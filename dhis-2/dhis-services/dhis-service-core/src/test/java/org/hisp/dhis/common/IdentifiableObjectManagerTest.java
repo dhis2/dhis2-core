@@ -141,6 +141,20 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest
     }
 
     @Test
+    void testGetAndValidateWithErrorCode()
+    {
+        DataElement dataElementA = createDataElement( 'A' );
+        dataElementService.addDataElement( dataElementA );
+
+        assertEquals( dataElementA,
+            idObjectManager.getAndValidate( DataElement.class, ErrorCode.E1100, dataElementA.getUid() ) );
+
+        IllegalQueryException ex = assertThrows( IllegalQueryException.class,
+            () -> idObjectManager.getAndValidate( DataElement.class, ErrorCode.E1100, "nonExisting" ) );
+        assertEquals( ErrorCode.E1100, ex.getErrorCode() );
+    }
+
+    @Test
     void testGetWithClasses()
     {
         DataElement dataElementA = createDataElement( 'A' );

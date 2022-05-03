@@ -27,73 +27,61 @@
  */
 package org.hisp.dhis.webapi.controller.dataentry;
 
-import static org.hisp.dhis.commons.collection.CollectionUtils.mapToList;
+import static org.hisp.dhis.webapi.webdomain.datavalue.DataValueDtoMapper.toDto;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueAudit;
-import org.hisp.dhis.datavalue.DataValueAuditService;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.webapi.controller.datavalue.DataValidator;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.webdomain.datavalue.DataValueContextDto;
-import org.hisp.dhis.webapi.webdomain.datavalue.DataValueDtoMapper;
-import org.hisp.dhis.webapi.webdomain.datavalue.DataValueQueryParams;
+import org.hisp.dhis.webapi.webdomain.datavalue.DataValueDto;
+import org.hisp.dhis.webapi.webdomain.datavalue.DataValuesQueryParams;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
-@RestController
+/**
+ * @author Lars Helge Overland
+ */
+@Controller
 @RequiredArgsConstructor
 @RequestMapping( "/dataEntry" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class DataValueContextController
+public class DataValueController
 {
-    private final DataValueAuditService dataValueAuditService;
-
     private final DataValueService dataValueService;
-
-    private final PeriodService periodService;
 
     private final DataValidator dataValidator;
 
-    @GetMapping( "/dataValueContext" )
-    public DataValueContextDto getChangeLog( DataValueQueryParams params )
+    @GetMapping( "/dataValues" )
+    public List<DataValueDto> getDataValueSet( DataValuesQueryParams params )
     {
-        DataElement de = dataValidator.getAndValidateDataElement( params.getDe() );
+        DataSet ds = dataValidator.getAndValidateDataSet( params.getDs() );
         Period pe = dataValidator.getAndValidatePeriod( params.getPe() );
         OrganisationUnit ou = dataValidator.getAndValidateOrganisationUnit( params.getOu() );
-        CategoryOptionCombo co = dataValidator.getAndValidateCategoryOptionCombo( params.getCo() );
         CategoryOptionCombo ao = dataValidator.getAndValidateAttributeOptionCombo( params.getCc(), params.getCp() );
 
-        DataValue dataValue = dataValueService.getAndValidateDataValue( de, pe, ou, co, ao );
-
-        List<DataValueAudit> audits = dataValueAuditService.getDataValueAudits( de, pe, ou, co, ao );
-
-        List<Period> periods = periodService.getPeriods( pe, 13 );
-
-        List<DataValue> dataValues = dataValueService.getDataValues( new DataExportParams()
-            .setDataElements( Set.of( de ) )
-            .setPeriods( Set.copyOf( periods ) )
+        DataExportParams exportParams = new DataExportParams()
+            .setDataSets( Set.of( ds ) )
+            .setPeriods( Set.of( pe ) )
             .setOrganisationUnits( Set.of( ou ) )
-            .setCategoryOptionCombos( Set.of( co ) )
-            .setAttributeOptionCombos( Set.of( ao ) )
-            .setOrderByPeriod( true ) );
+            .setAttributeOptionCombos( Set.of( ao ) );
 
-        return new DataValueContextDto()
-            .setDataValue( DataValueDtoMapper.toDto( dataValue ) )
-            .setAudits( mapToList( audits, DataValueDtoMapper::toDto ) )
-            .setHistory( mapToList( dataValues, DataValueDtoMapper::toDto ) );
+        List<DataValue> values = dataValueService.getDataValues( exportParams );
+
+        return values.stream()
+            .map( dv -> toDto( dv ) )
+            .collect( Collectors.toList() );
     }
 }

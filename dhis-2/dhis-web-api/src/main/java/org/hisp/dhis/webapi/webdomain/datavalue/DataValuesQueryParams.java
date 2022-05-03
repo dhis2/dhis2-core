@@ -25,34 +25,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.dataentry;
+package org.hisp.dhis.webapi.webdomain.datavalue;
 
-import lombok.RequiredArgsConstructor;
+import javax.validation.constraints.NotBlank;
 
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.dxf2.metadata.DataSetMetadataExportService;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-
-import com.fasterxml.jackson.databind.JsonNode;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
+ * Object which encapsulates parameters for a data value query.
+ *
  * @author Lars Helge Overland
  */
-@Controller
-@RequiredArgsConstructor
-@RequestMapping( "/dataEntry" )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class DataSetMetadataExportController
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor( access = AccessLevel.PRIVATE )
+public class DataValuesQueryParams
 {
-    private final DataSetMetadataExportService exportService;
+    @NotBlank
+    private String ds;
 
-    @GetMapping( "/metadata" )
-    public ResponseEntity<JsonNode> getMetadata()
-    {
-        return ResponseEntity.ok( exportService.getDataSetMetadata() );
-    }
+    private String cc;
+
+    private String cp;
+
+    @NotBlank
+    private String pe;
+
+    @NotBlank
+    private String ou;
+
 }

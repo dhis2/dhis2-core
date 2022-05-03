@@ -40,12 +40,9 @@ import org.hisp.dhis.period.Period;
  * The DataValueService interface defines how to work with data values.
  *
  * @author Kristian Nordal
- * @version $Id: DataValueService.java 5715 2008-09-17 14:05:28Z larshelg $
  */
 public interface DataValueService
 {
-    String ID = DataValueService.class.getName();
-
     // -------------------------------------------------------------------------
     // Basic DataValue
     // -------------------------------------------------------------------------
