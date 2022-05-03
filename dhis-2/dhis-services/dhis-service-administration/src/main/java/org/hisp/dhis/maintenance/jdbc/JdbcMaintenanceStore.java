@@ -42,6 +42,7 @@ import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.maintenance.MaintenanceStore;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -138,6 +139,33 @@ public class JdbcMaintenanceStore
     }
 
     @Override
+    public int deleteSoftDeletedRelationships()
+    {
+
+        List<String> deletedRelationships = getDeletionEntities(
+            "(select uid from relationship where deleted is true)" );
+
+        String relationships = "(select relationshipid from relationship where deleted is true)";
+        /*
+         * Delete relationship items and relationships
+         *
+         */
+        String[] sqlStmts = new String[] {
+            "delete from relationshipitem where relationshipid in " + relationships,
+            "delete from relationship where deleted is true" };
+
+        int result = jdbcTemplate.batchUpdate( sqlStmts )[sqlStmts.length - 1];
+
+        if ( result > 0 && deletedRelationships.size() > 0 )
+        {
+            auditHardDeletedEntity( deletedRelationships, Relationship.class );
+
+        }
+
+        return result;
+    }
+
+    @Override
     public int deleteSoftDeletedProgramInstances()
     {
         String piSelect = "(select programinstanceid from programinstance where deleted is true)";
@@ -153,6 +181,8 @@ public class JdbcMaintenanceStore
 
         String pmSelect = "(select id from programmessage where programinstanceid in "
             + piSelect + " )";
+
+        String relSelect = "(select relationshipid from relationshipitem where programinstanceid in " + piSelect + " )";
 
         /*
          * Delete event values, event value audits, event comments, events,
@@ -290,20 +320,20 @@ public class JdbcMaintenanceStore
         return deletedUids;
     }
 
-    private void auditHardDeletedEntity( List<String> deletedEnrollments, Class<? extends SoftDeletableObject> entity )
+    private void auditHardDeletedEntity( List<String> deletedEntities, Class<? extends SoftDeletableObject> entity )
     {
-        deletedEnrollments.forEach( enrolment -> {
+        deletedEntities.forEach( deletedEntity -> {
 
             SoftDeletableObject object = ENTITY_MAPPER.getOrDefault( entity, new SoftDeletableObject() );
 
-            object.setUid( enrolment );
+            object.setUid( deletedEntity );
             object.setDeleted( true );
             auditManager.send( Audit.builder()
                 .auditType( AuditType.DELETE )
                 .auditScope( AuditScope.TRACKER )
                 .createdAt( LocalDateTime.now() )
                 .object( object )
-                .uid( enrolment )
+                .uid( deletedEntity )
                 .auditableEntity( new AuditableEntity( entity, object ) )
                 .build() );
         } );
