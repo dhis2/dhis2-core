@@ -46,7 +46,7 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor( access = AccessLevel.PRIVATE )
-public class DataValuesQueryParams
+public class DataSetValueQueryParams
 {
     @NotBlank
     private String ds;

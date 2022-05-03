@@ -46,9 +46,9 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.webapi.controller.datavalue.DataValidator;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.webdomain.datavalue.DataSetValueQueryParams;
 import org.hisp.dhis.webapi.webdomain.datavalue.DataValueDtoMapper;
 import org.hisp.dhis.webapi.webdomain.datavalue.DataValuesDto;
-import org.hisp.dhis.webapi.webdomain.datavalue.DataValuesQueryParams;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -69,7 +69,7 @@ public class DataSetValueController
     private final DataValidator dataValidator;
 
     @GetMapping( "/dataValues" )
-    public DataValuesDto getDataValueSet( DataValuesQueryParams params )
+    public DataValuesDto getDataValueSet( DataSetValueQueryParams params )
     {
         DataSet ds = dataValidator.getAndValidateDataSet( params.getDs() );
         Period pe = dataValidator.getAndValidatePeriod( params.getPe() );
