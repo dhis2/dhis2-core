@@ -78,9 +78,9 @@ public class DataValueController
             .setOrganisationUnits( Set.of( ou ) )
             .setAttributeOptionCombos( Set.of( ao ) );
 
-        List<DataValue> values = dataValueService.getDataValues( exportParams );
+        List<DataValue> dataValues = dataValueService.getDataValues( exportParams );
 
-        return values.stream()
+        return dataValues.stream()
             .map( dv -> toDto( dv ) )
             .collect( Collectors.toList() );
     }

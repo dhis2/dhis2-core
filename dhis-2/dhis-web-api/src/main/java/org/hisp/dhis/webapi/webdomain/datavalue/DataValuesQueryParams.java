@@ -60,5 +60,4 @@ public class DataValuesQueryParams
 
     @NotBlank
     private String ou;
-
 }
