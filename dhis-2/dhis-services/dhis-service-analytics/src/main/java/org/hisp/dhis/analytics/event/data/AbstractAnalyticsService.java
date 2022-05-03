@@ -28,12 +28,14 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.joinWith;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.DIMENSIONS;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_HIERARCHY;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARCHY;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.PAGER;
+import static org.hisp.dhis.analytics.event.data.QueryItemHelper.getItemOptions;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
@@ -44,14 +46,12 @@ import static org.hisp.dhis.common.ValueType.COORDINATE;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentGraphMap;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraphMap;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.data.handler.SchemaIdResponseMapper;
@@ -119,7 +119,7 @@ public abstract class AbstractAnalyticsService
         List<DimensionItemKeywords.Keyword> periodKeywords = params.getDimensions().stream().map(
             DimensionalObject::getDimensionItemKeywords )
             .filter( dimensionItemKeywords -> dimensionItemKeywords != null && !dimensionItemKeywords.isEmpty() )
-            .flatMap( dk -> dk.getKeywords().stream() ).collect( Collectors.toList() );
+            .flatMap( dk -> dk.getKeywords().stream() ).collect( toList() );
 
         params = new EventQueryParams.Builder( params )
             .withStartEndDatesForPeriods()
@@ -304,7 +304,7 @@ public abstract class AbstractAnalyticsService
         {
             final Map<String, Object> metadata = new HashMap<>();
 
-            List<Option> options = getItemOptions( grid );
+            List<Option> options = getItemOptions( grid, params );
 
             metadata.put( ITEMS.getKey(), getMetadataItems( params, periodKeywords, options ) );
 
@@ -331,43 +331,6 @@ public abstract class AbstractAnalyticsService
 
             grid.setMetaData( metadata );
         }
-    }
-
-    /**
-     * Returns a map of metadata item options and {@link Option}.
-     *
-     * @param grid the Grid instance.
-     * @return a list of options.
-     */
-    protected List<Option> getItemOptions( Grid grid )
-    {
-        List<Option> options = new ArrayList<>();
-
-        for ( int i = 0; i < grid.getHeaders().size(); ++i )
-        {
-            GridHeader gridHeader = grid.getHeaders().get( i );
-
-            if ( gridHeader.hasOptionSet() )
-            {
-                final int columnIndex = i;
-
-                options.addAll( gridHeader
-                    .getOptionSetObject()
-                    .getOptions()
-                    .stream()
-                    .filter( opt -> opt != null && grid.getRows().stream().anyMatch( r -> {
-                        Object o = r.get( columnIndex );
-                        if ( o instanceof String )
-                        {
-                            return ((String) o).equalsIgnoreCase( opt.getCode() );
-                        }
-
-                        return false;
-                    } ) ).collect( Collectors.toList() ) );
-            }
-        }
-
-        return options.stream().distinct().collect( Collectors.toList() );
     }
 
     /**
@@ -575,7 +538,7 @@ public abstract class AbstractAnalyticsService
         {
             return itemOptions.stream()
                 .map( BaseIdentifiableObject::getUid )
-                .collect( Collectors.toList() );
+                .collect( toList() );
         }
     }
 

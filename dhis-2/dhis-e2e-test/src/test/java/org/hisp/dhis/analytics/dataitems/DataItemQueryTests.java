@@ -27,15 +27,6 @@
  */
 package org.hisp.dhis.analytics.dataitems;
 
-import org.hisp.dhis.ApiTest;
-import org.hisp.dhis.Constants;
-import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.dataitem.DataItemActions;
-import org.hisp.dhis.dto.ApiResponse;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
-
 import static java.lang.String.format;
 import static org.hamcrest.CoreMatchers.anyOf;
 import static org.hamcrest.CoreMatchers.containsString;
@@ -46,6 +37,15 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
+
+import org.hisp.dhis.ApiTest;
+import org.hisp.dhis.Constants;
+import org.hisp.dhis.actions.LoginActions;
+import org.hisp.dhis.actions.dataitem.DataItemActions;
+import org.hisp.dhis.dto.ApiResponse;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test cases related to GET "dataItems" endpoint. The tests and assertions are

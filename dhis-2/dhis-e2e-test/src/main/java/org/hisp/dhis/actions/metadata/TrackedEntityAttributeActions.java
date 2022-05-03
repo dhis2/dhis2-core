@@ -27,10 +27,11 @@
  */
 package org.hisp.dhis.actions.metadata;
 
-import com.google.gson.JsonObject;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.utils.DataGenerator;
+
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -38,7 +39,7 @@ import org.hisp.dhis.utils.DataGenerator;
 public class TrackedEntityAttributeActions
     extends RestApiActions
 {
-    public TrackedEntityAttributeActions( )
+    public TrackedEntityAttributeActions()
     {
         super( "/trackedEntityAttributes" );
     }
@@ -80,8 +81,9 @@ public class TrackedEntityAttributeActions
         return this.post( ob ).validateStatus( 201 ).extractUid();
     }
 
-    private JsonObject build( String valueType ) {
-       return new JsonObjectBuilder()
+    private JsonObject build( String valueType )
+    {
+        return new JsonObjectBuilder()
             .addProperty( "name", "TA TEA" + DataGenerator.randomString() )
             .addProperty( "shortName", "TA TEA " + DataGenerator.randomString() )
             .addProperty( "valueType", valueType )

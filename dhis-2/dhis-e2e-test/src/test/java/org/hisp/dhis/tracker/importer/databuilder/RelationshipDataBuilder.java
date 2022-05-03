@@ -25,7 +25,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.tracker.importer.databuilder;
 
 import org.hisp.dhis.helpers.JsonObjectBuilder;
@@ -44,7 +43,8 @@ public class RelationshipDataBuilder implements TrackerImporterDataBuilder
         this.jsonBuilder = new JsonObjectBuilder();
     }
 
-    public RelationshipDataBuilder setRelationshipId( String id ) {
+    public RelationshipDataBuilder setRelationshipId( String id )
+    {
         this.jsonBuilder.addProperty( "relationship", id );
         return this;
     }
@@ -57,7 +57,7 @@ public class RelationshipDataBuilder implements TrackerImporterDataBuilder
 
     public RelationshipDataBuilder setFromEntity( String entityName, String entityId )
     {
-        this.jsonBuilder.addObject( "from", relationshipItem(entityName, entityId));
+        this.jsonBuilder.addObject( "from", relationshipItem( entityName, entityId ) );
         return this;
     }
 
@@ -77,10 +77,11 @@ public class RelationshipDataBuilder implements TrackerImporterDataBuilder
         return setToEntity( "trackedEntity", trackedEntityId );
     }
 
-    private JsonObjectBuilder relationshipItem(String type, String identifier) {
+    private JsonObjectBuilder relationshipItem( String type, String identifier )
+    {
         return JsonObjectBuilder.jsonObject()
-                .addObject(type, JsonObjectBuilder.jsonObject()
-                        .addProperty(type, identifier));
+            .addObject( type, JsonObjectBuilder.jsonObject()
+                .addProperty( type, identifier ) );
     }
 
     public RelationshipDataBuilder buildUniDirectionalRelationship( String teiA, String teiB )
@@ -102,7 +103,7 @@ public class RelationshipDataBuilder implements TrackerImporterDataBuilder
     {
         return new JsonObjectBuilder()
             .addProperty( "relationshipType", relationshipType )
-            .addObject( "from", relationshipItem( "trackedEntity", trackedEntity_1 ))
+            .addObject( "from", relationshipItem( "trackedEntity", trackedEntity_1 ) )
             .addObject( "to", relationshipItem( "trackedEntity", trackedEntity_2 ) )
             .build();
     }

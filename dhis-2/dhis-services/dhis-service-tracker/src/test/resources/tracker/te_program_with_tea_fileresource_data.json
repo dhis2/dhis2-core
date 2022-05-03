@@ -35,7 +35,10 @@
       "trackedEntity": "EEFkxTWB55Y",
       "trackedEntityType": "KrYIdvLxkMb",
       "createdAtClient": "2020-02-20T12:09:21.844",
-      "orgUnit": "cNEZTkdAvmg",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "cNEZTkdAvmg"
+      },
       "inactive": false,
       "deleted": false,
       "potentialDuplicate": false,
@@ -70,13 +73,7 @@
           "value": "Jzf6hHNP7jx"
         }
       ],
-      "enrollments": [],
-      "programOwners": [
-        {
-          "trackedEntity": "EEFkxTWB55Y",
-          "program": "hJUBNVQWl4e"
-        }
-      ]
+      "enrollments": []
     }
   ],
   "enrollments": [
