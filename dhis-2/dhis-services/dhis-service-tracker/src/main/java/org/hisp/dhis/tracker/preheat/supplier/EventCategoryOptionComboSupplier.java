@@ -63,7 +63,6 @@ import org.springframework.stereotype.Component;
  */
 @RequiredArgsConstructor
 @Component
-@SupplierDependsOn( ClassBasedSupplier.class )
 public class EventCategoryOptionComboSupplier extends AbstractPreheatSupplier
 {
     @NonNull
