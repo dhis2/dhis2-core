@@ -30,19 +30,12 @@ package org.hisp.dhis.webapi.controller.tracker.imports;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
-import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
 import org.hisp.dhis.webapi.controller.tracker.view.RelationshipItem;
 import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 
-@Mapper( uses = {
-    AttributeMapper.class,
-    DataValueMapper.class,
-    NoteMapper.class,
-    InstantMapper.class,
-    UserMapper.class
-} )
+@Mapper
 interface RelationshipItemMapper
     extends DomainMapper<RelationshipItem, org.hisp.dhis.tracker.domain.RelationshipItem>
 {
