@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.jsontree.JsonObject;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
@@ -83,9 +82,9 @@ class GistValidationControllerTest extends AbstractGistControllerTest
     }
 
     @Test
-    @Disabled( "TODO: fix this test 12098" )
     void testValidation_Filter_CanAccessMissingPattern()
     {
+        switchToSuperuser();
         assertEquals(
             "Filter `surname:canaccess:[" + getSuperuserUid() + "]` requires a user ID and an access pattern argument.",
             GET(

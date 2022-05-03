@@ -195,12 +195,6 @@ class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
     // -------------------------------------------------------------------------
     // Set up/tear down helper methods
     // -------------------------------------------------------------------------
-    private User createUser( String userName, boolean superUserFlag,
-        OrganisationUnit orgUnit, String... auths )
-    {
-        return mockUser( superUserFlag, userName, newHashSet( orgUnit ), newHashSet( orgUnit ), auths );
-    }
-
     private UserGroup getUserGroup( String userGroupName, Set<User> users )
     {
         UserGroup userGroup = new UserGroup();
@@ -252,7 +246,7 @@ class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
         sourceB = createOrganisationUnit( 'B', sourceA );
         organisationUnitService.addOrganisationUnit( sourceA );
         organisationUnitService.addOrganisationUnit( sourceB );
-        superUser = createUser( "SuperUser", true, sourceA, UserRole.AUTHORITY_ALL );
+        superUser = mockUser( true, "SuperUser", newHashSet( sourceA ), newHashSet( sourceA ), UserRole.AUTHORITY_ALL );
         userA = mockUser( false, "UserA", sourceA, sourceA );
         userB = mockUser( false, "UserB", sourceB, sourceB );
         userC = mockUser( false, "UserC", sourceB, sourceB );
@@ -417,7 +411,7 @@ class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
         // User C can see only level 3, optionA from sourceB.
         injectSecurityContext( userC );
         audits = dataApprovalAuditService.getDataApprovalAudits( params );
-        // TODO: 12098 org.opentest4j.AssertionFailedError:
+        // TODO: 12098 AssertionFailedError:
         // Expected :1
         // Actual :2
         assertEquals( 1, audits.size() );

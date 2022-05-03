@@ -38,6 +38,7 @@ import org.hisp.dhis.IntegrationH2Test;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.jsontree.JsonResponse;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.utils.TestUtils;
@@ -80,6 +81,9 @@ public abstract class DhisControllerConvenienceTest extends DhisMockMvcControlle
 
     @Autowired
     private UserService _userService;
+
+    @Autowired
+    protected CurrentUserService currentUserService;
 
     @Autowired
     protected IdentifiableObjectManager manager;

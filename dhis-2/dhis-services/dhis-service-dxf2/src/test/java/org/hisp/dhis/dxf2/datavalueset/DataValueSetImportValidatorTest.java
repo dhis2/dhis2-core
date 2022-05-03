@@ -146,7 +146,6 @@ class DataValueSetImportValidatorTest extends DhisSpringTest
     @Test
     void testValidateDataSetOrgUnitExists()
     {
-        // when( aclService.canDataRead( any(), any() ) ).thenReturn( true );
         DataValueSet dataValueSet = new DataValueSet();
         dataValueSet.setOrgUnit( CodeGenerator.generateUid() );
         ImportContext context = createMinimalImportContext( null ).build();
@@ -159,7 +158,6 @@ class DataValueSetImportValidatorTest extends DhisSpringTest
     @Test
     void testValidateDataSetAttrOptionComboExists()
     {
-        // when( aclService.canDataRead( any(), any() ) ).thenReturn( true );
         DataValueSet dataValueSet = new DataValueSet();
         dataValueSet.setAttributeOptionCombo( CodeGenerator.generateUid() );
         ImportContext context = createMinimalImportContext( null ).build();

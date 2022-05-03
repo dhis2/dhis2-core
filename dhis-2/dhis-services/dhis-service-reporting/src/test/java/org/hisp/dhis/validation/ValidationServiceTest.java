@@ -91,7 +91,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingKey;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -1384,7 +1383,6 @@ class ValidationServiceTest extends DhisTest
     }
 
     @Test
-    @Disabled( "translation not impl yet due to 12098" )
     void testInstructionTranslation()
     {
         User user = createUserAndInjectSecurityContext( true );

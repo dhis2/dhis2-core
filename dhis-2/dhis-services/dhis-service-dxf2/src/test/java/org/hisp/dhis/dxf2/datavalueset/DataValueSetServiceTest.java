@@ -824,7 +824,7 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
     void testImportDataValuesInvalidAttributeOptionComboDates()
         throws Exception
     {
-        // clearSecurityContext();
+
         injectSecurityContext( superUser );
 
         categoryOptionA.setStartDate( peB.getStartDate() );
@@ -848,7 +848,7 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
     void testImportDataValuesInvalidAttributeOptionComboOrgUnit()
         throws Exception
     {
-        // clearSecurityContext();
+
         injectSecurityContext( superUser );
 
         categoryOptionA.setOrganisationUnits( Sets.newHashSet( ouA, ouB ) );
@@ -953,6 +953,9 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
     @Disabled( "TODO: fix this test 12098" )
     void testImportDataValuesWithDataSetAllowsPeriods()
     {
+        clearSecurityContext();
+        injectSecurityContext( this.user );
+
         Date thisMonth = DateUtils.truncate( new Date(), Calendar.MONTH );
         dsA.setExpiryDays( 62 );
         dsA.setOpenFuturePeriods( 2 );

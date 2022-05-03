@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertLinesMatch;
 
 import java.util.List;
 
-import org.junit.jupiter.api.Disabled;
+import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 
@@ -46,10 +46,9 @@ class GistCsvControllerTest extends AbstractGistControllerTest
     private static final MediaType TEXT_CSV = new MediaType( "text", "csv" );
 
     @Test
-    @Disabled( "TODO: 12098 org.opentest4j.AssertionFailedError: more actual lines than expected: 1 ask Jan how to accept two" )
     void testList()
     {
-        assertUserCsv( GET(
+        assertAllUserCsv( GET(
             "/users/gist?fields=id,code,education,twitter,employer", Accept( TEXT_CSV ) ) );
     }
 
@@ -68,11 +67,24 @@ class GistCsvControllerTest extends AbstractGistControllerTest
             GET( "/userGroups/" + id + "/users/gist?fields=id,code,education,twitter,employer", Accept( TEXT_CSV ) ) );
     }
 
+    private void assertAllUserCsv( HttpResponse response )
+    {
+        List<String> split = List.of( response.content( TEXT_CSV ).split( "\n" ) );
+        List<User> allUsers = userService.getAllUsers();
+
+        assertLinesMatch( List.of( "id,code,education,twitter,employer",
+            allUsers.get( 0 ).getUid() + ",Codeadmin,,,",
+            allUsers.get( 1 ).getUid() + ",CodeuserA,,," ),
+            split );
+    }
+
     private void assertUserCsv( HttpResponse response )
     {
-        // TODO: 12098 org.opentest4j.AssertionFailedError: more actual lines
-        // than expected: 1
-        assertLinesMatch( List.of( "id,code,education,twitter,employer", getSuperuserUid() + ",Codeadmin,,," ),
-            List.of( response.content( TEXT_CSV ).split( "\n" ) ) );
+        List<String> split = List.of( response.content( TEXT_CSV ).split( "\n" ) );
+        List<User> allUsers = userService.getAllUsers();
+
+        assertLinesMatch( List.of( "id,code,education,twitter,employer",
+            allUsers.get( 0 ).getUid() + ",Codeadmin,,," ),
+            split );
     }
 }
