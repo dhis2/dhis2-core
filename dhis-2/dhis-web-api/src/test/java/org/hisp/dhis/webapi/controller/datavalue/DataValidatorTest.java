@@ -205,7 +205,7 @@ class DataValidatorTest
     {
         final String uid = CodeGenerator.generateUid();
 
-        when( idObjectManager.get( DataElement.class, uid ) ).thenReturn( null );
+        when( idObjectManager.getAndValidate( DataElement.class, ErrorCode.E1100, uid ) ).thenReturn( null );
 
         IllegalQueryException ex = assertThrows( IllegalQueryException.class,
             () -> dataValidator.getAndValidateDataElement( uid ) );
@@ -227,7 +227,7 @@ class DataValidatorTest
     {
         final String uid = CodeGenerator.generateUid();
 
-        when( idObjectManager.get( OrganisationUnit.class, uid ) ).thenReturn( null );
+        when( idObjectManager.getAndValidate( OrganisationUnit.class, ErrorCode.E1102, uid ) ).thenReturn( null );
 
         IllegalQueryException ex = assertThrows( IllegalQueryException.class,
             () -> dataValidator.getAndValidateOrganisationUnit( uid ) );
@@ -240,7 +240,7 @@ class DataValidatorTest
     {
         final String uid = CodeGenerator.generateUid();
 
-        when( categoryService.getCategoryOptionCombo( uid ) ).thenReturn( null );
+        when( idObjectManager.getAndValidate( CategoryOptionCombo.class, ErrorCode.E1103, uid ) ).thenReturn( null );
 
         IllegalQueryException ex = assertThrows( IllegalQueryException.class,
             () -> dataValidator.getAndValidateCategoryOptionCombo( uid ) );
