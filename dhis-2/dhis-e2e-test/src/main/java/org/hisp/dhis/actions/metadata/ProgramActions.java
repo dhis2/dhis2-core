@@ -27,10 +27,14 @@
  */
 package org.hisp.dhis.actions.metadata;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.oneOf;
+
+import java.util.Arrays;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.StringUtils;
-import org.hamcrest.Matchers;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
@@ -38,12 +42,8 @@ import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.utils.DataGenerator;
 
-import java.util.Arrays;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.oneOf;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -228,7 +228,8 @@ public class ProgramActions
 
         if ( !StringUtils.isEmpty( trackedEntityTypeId ) )
         {
-            builder.addObject( "trackedEntityType", new JsonObjectBuilder().addProperty( "id", trackedEntityTypeId ) ).build();
+            builder.addObject( "trackedEntityType", new JsonObjectBuilder().addProperty( "id", trackedEntityTypeId ) )
+                .build();
         }
 
         return builder.build();

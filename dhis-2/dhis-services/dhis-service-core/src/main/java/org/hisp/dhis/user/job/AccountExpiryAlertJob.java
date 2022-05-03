@@ -28,6 +28,7 @@
 package org.hisp.dhis.user.job;
 
 import static java.lang.String.format;
+import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
 
 import java.util.List;
 
@@ -105,7 +106,7 @@ public class AccountExpiryAlertJob implements Job
         }
 
         progress.startingStage( "Notify user accounts that expire within next " + inDays + " days",
-            soonExpiring.size() );
+            soonExpiring.size(), SKIP_ITEM_OUTLIER );
         progress.runStage( soonExpiring.stream(), UserAccountExpiryInfo::getUsername,
             user -> emailMessageSender.sendMessage( "Account Expiry Alert", computeEmailMessage( user ),
                 user.getEmail() ),

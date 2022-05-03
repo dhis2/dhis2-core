@@ -25,7 +25,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.actions.analytics;
 
 import org.hisp.dhis.actions.RestApiActions;
@@ -61,8 +60,7 @@ public class AnalyticsEventActions
     public ApiResponse getDimensions( String programStage )
     {
         return this.get( "/dimensions", new QueryParamsBuilder()
-            .add( "programStageId", programStage )
-        ).validateStatus( 200 );
+            .add( "programStageId", programStage ) ).validateStatus( 200 );
     }
 
     public ApiResponse getDimensions( String programStage, QueryParamsBuilder queryParamsBuilder )
@@ -76,8 +74,7 @@ public class AnalyticsEventActions
     {
         return this.get( "/dimensions", new QueryParamsBuilder()
             .add( "programStageId", programStage )
-            .add( "filter", "dimensionType:eq:" + dimensionType )
-        ).validateStatus( 200 );
+            .add( "filter", "dimensionType:eq:" + dimensionType ) ).validateStatus( 200 );
     }
 
 }

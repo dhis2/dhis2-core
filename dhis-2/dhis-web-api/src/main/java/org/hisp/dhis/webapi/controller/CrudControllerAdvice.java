@@ -93,6 +93,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.web.client.RestClientException;
 
 import com.fasterxml.jackson.core.JsonParseException;
 
@@ -113,6 +114,13 @@ public class CrudControllerAdvice
     {
         binder.registerCustomEditor( Date.class, new FromTextPropertyEditor( DateUtils::parseDate ) );
         binder.registerCustomEditor( IdentifiableProperty.class, new FromTextPropertyEditor( String::toUpperCase ) );
+    }
+
+    @ExceptionHandler( RestClientException.class )
+    @ResponseBody
+    public WebMessage restClientExceptionHandler( RestClientException ex )
+    {
+        return createWebMessage( ex.getMessage(), Status.ERROR, HttpStatus.SERVICE_UNAVAILABLE );
     }
 
     @ExceptionHandler( IllegalQueryException.class )

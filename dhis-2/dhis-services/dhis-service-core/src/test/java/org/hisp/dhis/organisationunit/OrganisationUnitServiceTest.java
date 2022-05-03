@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.organisationunit;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -42,6 +43,9 @@ import java.util.List;
 import java.util.Set;
 
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.dataset.DataSet;
@@ -83,6 +87,9 @@ class OrganisationUnitServiceTest extends DhisSpringTest
 
     @Autowired
     private OrganisationUnitGroupService organisationUnitGroupService;
+
+    @Autowired
+    private CategoryService categoryService;
 
     // -------------------------------------------------------------------------
     // OrganisationUnit
@@ -192,6 +199,25 @@ class OrganisationUnitServiceTest extends DhisSpringTest
         assertTrue( programService.getProgram( programId ).getOrganisationUnits().isEmpty() );
         assertTrue( userService.getUser( userId ).getOrganisationUnits().isEmpty() );
         assertTrue( dataSetService.getDataSet( dataSetId ).getSources().isEmpty() );
+    }
+
+    @Test
+    void testAddAndDelOrganisationUnitWithCategoryOptions()
+    {
+        OrganisationUnit ouA = createOrganisationUnit( 'A' );
+        long idA = organisationUnitService.addOrganisationUnit( ouA );
+        CategoryOption coA = createCategoryOption( 'A' );
+        CategoryOption coB = createCategoryOption( 'B' );
+        categoryService.addCategoryOption( coA );
+        categoryService.addCategoryOption( coB );
+        Category caA = createCategory( 'A', coA, coB );
+        categoryService.addCategory( caA );
+        ouA.getCategoryOptions().add( coA );
+        organisationUnitService.updateOrganisationUnit( ouA );
+
+        assertDoesNotThrow( () -> organisationUnitService.deleteOrganisationUnit( ouA ) );
+        assertNull( organisationUnitService.getOrganisationUnit( idA ) );
+        assertEquals( 0, coA.getOrganisationUnits().size() );
     }
 
     @Test

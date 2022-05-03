@@ -77,15 +77,14 @@ public class EventIdSchemeTests
 
     private AttributeActions attributeActions;
 
-
     private static Stream<Arguments> provideIdSchemeArguments()
     {
         return Stream.of(
-                Arguments.arguments( "CODE", "code" ),
-                Arguments.arguments( "NAME", "name" ),
-                Arguments.arguments( "UID", "id" ),
-                Arguments.arguments( "AUTO", "id" ),
-                Arguments.arguments( "ATTRIBUTE:" + ATTRIBUTE_ID, "attributeValues.value[0]" ) );
+            Arguments.arguments( "CODE", "code" ),
+            Arguments.arguments( "NAME", "name" ),
+            Arguments.arguments( "UID", "id" ),
+            Arguments.arguments( "AUTO", "id" ),
+            Arguments.arguments( "ATTRIBUTE:" + ATTRIBUTE_ID, "attributeValues.value[0]" ) );
     }
 
     @BeforeAll
@@ -128,20 +127,24 @@ public class EventIdSchemeTests
     private static Stream<Arguments> provideIdSchemeArgumentsImport()
     {
         return Stream.of(
-                Arguments.arguments( "CODE", "code" ),
-                Arguments.arguments( "NAME", "name" ),
-                Arguments.arguments( "UID", "id" ),
-                Arguments.arguments( "AUTO", "id" ));
-                // TODO("DHIS2-12760") fix import using attribute: Exception:Transaction rolled back because it has been marked as rollback-only
-                // Arguments.arguments( "ATTRIBUTE:" + ATTRIBUTE_ID, "attributeValues.value[0]" ) );
+            Arguments.arguments( "CODE", "code" ),
+            Arguments.arguments( "NAME", "name" ),
+            Arguments.arguments( "UID", "id" ),
+            Arguments.arguments( "AUTO", "id" ) );
+        // TODO("DHIS2-12760") fix import using attribute: Exception:Transaction
+        // rolled back because it has been marked as rollback-only
+        // Arguments.arguments( "ATTRIBUTE:" + ATTRIBUTE_ID,
+        // "attributeValues.value[0]" ) );
     }
+
     @ParameterizedTest
     @MethodSource( "provideIdSchemeArgumentsImport" )
     public void eventsShouldBeImportedWithIdScheme( String scheme, String property )
     {
         String ouPropertyValue = orgUnitActions.get( ORG_UNIT_ID ).extractString( property );
         String programPropertyValue = programActions.get( PROGRAM_ID ).extractString( property );
-        String programStagePropertyValue = programActions.programStageActions.get( PROGRAM_STAGE_ID ).extractString( property );
+        String programStagePropertyValue = programActions.programStageActions.get( PROGRAM_STAGE_ID )
+            .extractString( property );
 
         JsonObject event = new EventDataBuilder()
             .setProgram( programPropertyValue )
@@ -221,7 +224,8 @@ public class EventIdSchemeTests
             .validate().statusCode( 200 );
 
         programActions.programStageActions.update( PROGRAM_STAGE_ID,
-            addAttributeValuePayload( programActions.programStageActions.get( PROGRAM_STAGE_ID ).getBody(), ATTRIBUTE_ID,
+            addAttributeValuePayload( programActions.programStageActions.get( PROGRAM_STAGE_ID ).getBody(),
+                ATTRIBUTE_ID,
                 ATTRIBUTE_VALUE ) )
             .validate().statusCode( 200 );
     }

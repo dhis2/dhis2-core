@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
@@ -107,11 +106,9 @@ class AtomicModeIntegrationTest extends TransactionalIntegrationTest
     void testImportSuccessWithAtomicModeObjectIfThereIsAnErrorInOneTEI()
         throws IOException
     {
-        InputStream inputStream = new ClassPathResource( "tracker/one_valid_tei_and_one_invalid.json" )
-            .getInputStream();
-        TrackerImportParams params = renderService.fromJson( inputStream, TrackerImportParams.class );
-        params.setUserId( userA.getUid() );
+        TrackerImportParams params = fromJson( "tracker/one_valid_tei_and_one_invalid.json" );
         params.setAtomicMode( AtomicMode.OBJECT );
+
         TrackerImportReport trackerImportTeiReport = trackerImportService.importTracker( params );
         assertNotNull( trackerImportTeiReport );
         assertEquals( TrackerStatus.OK, trackerImportTeiReport.getStatus() );
@@ -124,16 +121,23 @@ class AtomicModeIntegrationTest extends TransactionalIntegrationTest
     void testImportFailWithAtomicModeAllIfThereIsAnErrorInOneTEI()
         throws IOException
     {
-        InputStream inputStream = new ClassPathResource( "tracker/one_valid_tei_and_one_invalid.json" )
-            .getInputStream();
-        TrackerImportParams params = renderService.fromJson( inputStream, TrackerImportParams.class );
-        params.setUserId( userA.getUid() );
+        TrackerImportParams params = fromJson( "tracker/one_valid_tei_and_one_invalid.json" );
         params.setAtomicMode( AtomicMode.ALL );
+
         TrackerImportReport trackerImportTeiReport = trackerImportService.importTracker( params );
         assertNotNull( trackerImportTeiReport );
         assertEquals( TrackerStatus.ERROR, trackerImportTeiReport.getStatus() );
         assertEquals( 1, trackerImportTeiReport.getValidationReport().getErrors().size() );
         assertNull( trackedEntityInstanceService.getTrackedEntityInstance( "VALIDTEIAAA" ) );
         assertNull( trackedEntityInstanceService.getTrackedEntityInstance( "INVALIDTEIA" ) );
+    }
+
+    private TrackerImportParams fromJson( String path )
+        throws IOException
+    {
+        TrackerImportParams params = renderService.fromJson( new ClassPathResource( path ).getInputStream(),
+            TrackerImportParams.class );
+        params.setUserId( userA.getUid() );
+        return params;
     }
 }

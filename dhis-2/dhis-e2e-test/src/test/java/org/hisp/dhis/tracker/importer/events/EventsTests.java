@@ -27,9 +27,18 @@
  */
 package org.hisp.dhis.tracker.importer.events;
 
-import com.google.gson.JsonObject;
-import io.restassured.http.ContentType;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
+
+import java.io.File;
+import java.util.List;
+import java.util.stream.Stream;
+
 import joptsimple.internal.Strings;
+
 import org.hamcrest.Matchers;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.metadata.ProgramStageActions;
@@ -50,15 +59,8 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.io.File;
-import java.util.List;
-import java.util.stream.Stream;
-
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
+import com.google.gson.JsonObject;
+import io.restassured.http.ContentType;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -97,11 +99,10 @@ public class EventsTests
             .body( "objectReports[0].errorReports", empty() );
 
         eventBody.getAsJsonArray( "events" ).forEach( event -> {
-                trackerActions.getEvent( event.getAsJsonObject().get( "event" ).getAsString() )
-                    .validate().statusCode( 200 )
-                    .body( "", matchesJSON( event ) );
-            }
-        );
+            trackerActions.getEvent( event.getAsJsonObject().get( "event" ).getAsString() )
+                .validate().statusCode( 200 )
+                .body( "", matchesJSON( event ) );
+        } );
 
     }
 
@@ -208,7 +209,8 @@ public class EventsTests
             .add( "fields=id,categoryCombo[categories[categoryOptions]]" ) );
 
         String programId = program.extractString( "programs.id[0]" );
-        List<String> category = program.extractList( "programs[0].categoryCombo.categories.categoryOptions.id.flatten()" );
+        List<String> category = program
+            .extractList( "programs[0].categoryCombo.categories.categoryOptions.id.flatten()" );
 
         Assumptions.assumeFalse( Strings.isNullOrEmpty( programId ) );
 
