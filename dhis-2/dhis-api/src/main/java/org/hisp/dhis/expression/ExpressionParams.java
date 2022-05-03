@@ -30,6 +30,11 @@ package org.hisp.dhis.expression;
 import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
 import static org.hisp.dhis.util.ObjectUtils.firstNonNull;
 
+import java.time.LocalDate;
+import java.time.Month;
+import java.time.ZoneId;
+import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,8 +51,8 @@ import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 
 /**
@@ -62,6 +67,25 @@ import org.hisp.dhis.program.Program;
 public class ExpressionParams
 {
     /**
+     * Dummy data for sample periods, so in the absence of real sampled data the
+     * parser will still traverse the contents of aggregation functions once for
+     * the purposes of such things as syntax checking and getting an expression
+     * description. The actual date doesn't matter; a date was chosen that is
+     * likely to not be confused with real data.
+     */
+    private static final List<Period> SAMPLE_PERIODS;
+
+    static
+    {
+        Date genTheFirst99 = Date
+            .from( LocalDate.of( 1999, Month.JANUARY, 1 ).atStartOfDay( ZoneId.systemDefault() ).toInstant() );
+        Period period = new Period();
+        period.setPeriodType( new DailyPeriodType() );
+        period.setStartDate( genTheFirst99 );
+        period.setEndDate( genTheFirst99 );
+        SAMPLE_PERIODS = Collections.singletonList( period );
+    }
+
      * The expression to parse
      */
     @ToString.Include
@@ -155,7 +179,7 @@ public class ExpressionParams
     @ToString.Include
     @EqualsAndHashCode.Include
     @Builder.Default
-    private final List<Period> samplePeriods = List.of( PeriodType.getPeriodFromIsoString( "19990101" ) );
+    private final List<Period> samplePeriods = SAMPLE_PERIODS;
 
     /**
      * For predictors, a value map from item to value, for each of the periods
