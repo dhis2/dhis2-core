@@ -28,6 +28,7 @@
 package org.hisp.dhis.fileresource;
 
 import static java.util.stream.Collectors.toList;
+import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
 
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
@@ -83,7 +84,7 @@ public class FileResourceCleanUpJob implements Job
         if ( !FileResourceRetentionStrategy.FOREVER.equals( retentionStrategy ) )
         {
             List<FileResource> expired = fileResourceService.getExpiredFileResources( retentionStrategy );
-            progress.startingStage( "Deleting expired file resources", expired.size() );
+            progress.startingStage( "Deleting expired file resources", expired.size(), SKIP_ITEM_OUTLIER );
             progress.runStage( expired, FileResourceCleanUpJob::toIdentifier, fr -> {
                 if ( safeDelete( fr ) )
                 {
@@ -95,7 +96,7 @@ public class FileResourceCleanUpJob implements Job
         // Delete failed uploads
         List<FileResource> orphanedFileResources = fileResourceService.getOrphanedFileResources().stream()
             .filter( fr -> !isFileStored( fr ) ).collect( toList() );
-        progress.startingStage( "Deleting failed uploads", orphanedFileResources.size() );
+        progress.startingStage( "Deleting failed uploads", orphanedFileResources.size(), SKIP_ITEM_OUTLIER );
         progress.runStage( orphanedFileResources, FileResourceCleanUpJob::toIdentifier, fr -> {
             if ( safeDelete( fr ) )
             {

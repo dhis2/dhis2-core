@@ -33,11 +33,6 @@ import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
 import java.io.File;
 
 import org.hamcrest.Matchers;
-import org.hisp.dhis.ApiTest;
-import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.RestApiActions;
-import org.hisp.dhis.actions.tracker.EventActions;
-import org.hisp.dhis.actions.tracker.TEIActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;

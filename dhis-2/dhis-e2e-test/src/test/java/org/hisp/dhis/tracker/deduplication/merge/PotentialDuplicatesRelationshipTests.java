@@ -25,10 +25,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.tracker.deduplication.merge;
 
-import com.google.gson.JsonObject;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.hasItems;
+import static org.hamcrest.Matchers.hasSize;
+
+import java.util.Arrays;
+
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.tracker.RelationshipActions;
@@ -39,11 +43,7 @@ import org.hisp.dhis.tracker.importer.databuilder.RelationshipDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
-
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.hasItems;
-import static org.hamcrest.Matchers.hasSize;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -70,7 +70,8 @@ public class PotentialDuplicatesRelationshipTests
         String relationship3 = createUniDirectionalRelationship( teiC, teiB ).extractImportedRelationships().get( 0 );
         createUniDirectionalRelationship( teiA, teiB ).validateSuccessfulImport();
 
-        String potentialDuplicate = potentialDuplicatesActions.createAndValidatePotentialDuplicate( teiA, teiB, "OPEN" );
+        String potentialDuplicate = potentialDuplicatesActions.createAndValidatePotentialDuplicate( teiA, teiB,
+            "OPEN" );
 
         // act
         String username = createUserWithAccessToMerge();
@@ -95,7 +96,8 @@ public class PotentialDuplicatesRelationshipTests
 
         String relationship = createRelationship( teiB, teiC ).extractImportedRelationships().get( 0 );
 
-        String potentialDuplicate = potentialDuplicatesActions.createAndValidatePotentialDuplicate( teiA, teiB, "OPEN" );
+        String potentialDuplicate = potentialDuplicatesActions.createAndValidatePotentialDuplicate( teiA, teiB,
+            "OPEN" );
 
         potentialDuplicatesActions.manualMergePotentialDuplicate( potentialDuplicate,
             new JsonObjectBuilder().addArray( "relationships", Arrays.asList( relationship ) ).build() )
@@ -116,7 +118,8 @@ public class PotentialDuplicatesRelationshipTests
 
         String relationship = createRelationship( teiA, teiB ).extractImportedRelationships().get( 0 );
 
-        String potentialDuplicate = potentialDuplicatesActions.createAndValidatePotentialDuplicate( teiA, teiB, "OPEN" );
+        String potentialDuplicate = potentialDuplicatesActions.createAndValidatePotentialDuplicate( teiA, teiB,
+            "OPEN" );
 
         potentialDuplicatesActions.autoMergePotentialDuplicate( potentialDuplicate ).validate().statusCode( 200 );
 
@@ -135,7 +138,8 @@ public class PotentialDuplicatesRelationshipTests
 
         String relationship = createRelationship( teiA, teiB ).extractImportedRelationships().get( 0 );
 
-        String potentialDuplicate = potentialDuplicatesActions.createAndValidatePotentialDuplicate( teiA, teiB, "OPEN" );
+        String potentialDuplicate = potentialDuplicatesActions.createAndValidatePotentialDuplicate( teiA, teiB,
+            "OPEN" );
 
         potentialDuplicatesActions.manualMergePotentialDuplicate( potentialDuplicate,
             new JsonObjectBuilder().addArray( "relationships", Arrays.asList( relationship ) ).build() )

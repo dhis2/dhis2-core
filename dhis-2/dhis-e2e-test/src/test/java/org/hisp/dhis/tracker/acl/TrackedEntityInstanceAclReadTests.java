@@ -38,12 +38,10 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.ListUtils;
 import org.hamcrest.Matchers;
-import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.UserActions;
 import org.hisp.dhis.actions.metadata.MetadataActions;
-import org.hisp.dhis.actions.tracker.TEIActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.Me;
 import org.hisp.dhis.dto.OrgUnit;

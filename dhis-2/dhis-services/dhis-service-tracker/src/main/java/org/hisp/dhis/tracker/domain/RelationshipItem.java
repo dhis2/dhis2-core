@@ -109,10 +109,6 @@ public class RelationshipItem
         @Builder.Default
         private List<Enrollment> enrollments = new ArrayList<>();
 
-        @JsonProperty
-        @Builder.Default
-        private List<ProgramOwner> programOwners = new ArrayList<>();
-
         @Override
         public String getUid()
         {

@@ -34,7 +34,10 @@
     {
       "trackedEntity": "NCc1rCEOKaY",
       "trackedEntityType": "bPJ0FMtcnEh",
-      "orgUnit": "QfUVllTs6cS",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
       "inactive": false,
       "deleted": false,
       "potentialDuplicate": false,
@@ -51,13 +54,15 @@
           "value": "AddressA"
         }
       ],
-      "enrollments": [],
-      "programOwners": []
+      "enrollments": []
     },
     {
       "trackedEntity": "PB9VMezGkwA",
       "trackedEntityType": "bPJ0FMtcnEh",
-      "orgUnit": "QfUVllTs6cS",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
       "inactive": false,
       "deleted": false,
       "potentialDuplicate": false,
@@ -74,8 +79,7 @@
           "value": "AddressA"
         }
       ],
-      "enrollments": [],
-      "programOwners": []
+      "enrollments": []
     }
   ],
   "enrollments": [],

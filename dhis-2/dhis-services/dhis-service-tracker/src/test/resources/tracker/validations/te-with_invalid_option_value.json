@@ -34,7 +34,10 @@
     {
       "trackedEntity": "cNEZTkdAvre",
       "trackedEntityType": "bPJ0FMtcnEh",
-      "orgUnit": "QfUVllTs6cS",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
       "inactive": false,
       "deleted": false,
       "potentialDuplicate": false,
@@ -46,13 +49,15 @@
           "value": "Mle"
         }
       ],
-      "enrollments": [],
-      "programOwners": []
+      "enrollments": []
     },
     {
       "trackedEntity": "cNEZTkdAvrf",
       "trackedEntityType": "bPJ0FMtcnEh",
-      "orgUnit": "QfUVllTs6cS",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
       "inactive": false,
       "deleted": false,
       "potentialDuplicate": false,
@@ -64,8 +69,7 @@
           "value": "Female"
         }
       ],
-      "enrollments": [],
-      "programOwners": []
+      "enrollments": []
     }
   ],
   "enrollments": [],
