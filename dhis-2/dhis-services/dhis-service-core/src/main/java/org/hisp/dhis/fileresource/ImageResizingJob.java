@@ -28,6 +28,7 @@
 package org.hisp.dhis.fileresource;
 
 import static java.lang.String.format;
+import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -76,7 +77,7 @@ public class ImageResizingJob implements Job
         progress.startingProcess( "Resizing image resources" );
 
         List<FileResource> images = fileResourceService.getAllUnProcessedImagesFiles();
-        progress.startingStage( "Creating and storing images", images.size() );
+        progress.startingStage( "Creating and storing images", images.size(), SKIP_ITEM_OUTLIER );
         progress.runStage( images, FileResource::getStorageKey, this::storeImageFiles );
 
         progress.completedProcess( format( "Number of FileResources processed: %d", images.size() ) );

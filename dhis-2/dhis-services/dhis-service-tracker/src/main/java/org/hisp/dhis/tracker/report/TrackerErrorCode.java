@@ -158,6 +158,7 @@ public enum TrackerErrorCode
     E4013( "Relationship Type `{0}` constraint is missing {1}." ),
     E4014( "Relationship Type `{0}` constraint requires a Tracked Entity having type `{1}` but `{2}` was found." ),
     E4015( "Relationship: `{0}`, already exists." ),
+    E4016( "Relationship: `{0}`, do not exist." ),
     E9999( "N/A" );
 
     private final String message;

@@ -41,7 +41,6 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -85,8 +84,7 @@ public class TrackerIdentifierCollector
 
     private final ProgramRuleService programRuleService;
 
-    public Map<Class<?>, Set<String>> collect( TrackerImportParams params,
-        Map<Class<? extends IdentifiableObject>, IdentifiableObject> defaults )
+    public Map<Class<?>, Set<String>> collect( TrackerImportParams params )
     {
         final Map<Class<?>, Set<String>> identifiers = new HashMap<>();
 
@@ -98,7 +96,6 @@ public class TrackerIdentifierCollector
         // preloaded in the Preheat
         identifiers.put( TrackedEntityType.class, ImmutableSet.of( ID_WILDCARD ) );
         identifiers.put( RelationshipType.class, ImmutableSet.of( ID_WILDCARD ) );
-        collectDefaults( identifiers, defaults );
 
         collectProgramRulesFields( identifiers );
         return identifiers;
@@ -122,13 +119,6 @@ public class TrackerIdentifierCollector
             .collect( Collectors.toSet() );
 
         attributes.forEach( attribute -> addIdentifier( map, TrackedEntityAttribute.class, attribute ) );
-    }
-
-    private void collectDefaults( Map<Class<?>, Set<String>> map,
-        Map<Class<? extends IdentifiableObject>, IdentifiableObject> defaults )
-    {
-        defaults.forEach(
-            ( defaultClass, defaultMetadata ) -> addIdentifier( map, defaultClass, defaultMetadata.getUid() ) );
     }
 
     private void collectTrackedEntities( Map<Class<?>, Set<String>> identifiers, List<TrackedEntity> trackedEntities )
@@ -199,29 +189,21 @@ public class TrackerIdentifierCollector
     {
         relationships.forEach( relationship -> {
 
-            RelationshipKey relationshipKey = RelationshipPreheatKeySupport.getRelationshipKey( relationship );
-
-            addIdentifier( identifiers, Relationship.class, relationshipKey.asString() );
             addIdentifier( identifiers, Relationship.class, relationship.getRelationship() );
 
-            if ( relationship.getFrom() != null )
+            if ( RelationshipPreheatKeySupport.hasRelationshipKey( relationship ) )
             {
-                addIdentifier( identifiers, TrackedEntity.class,
-                    relationship.getFrom().getTrackedEntity() == null ? null
-                        : relationship.getFrom().getTrackedEntity().getTrackedEntity() );
-                addIdentifier( identifiers, Enrollment.class, relationship.getFrom().getEnrollment() == null ? null
-                    : relationship.getFrom().getEnrollment().getEnrollment() );
-                addIdentifier( identifiers, Event.class,
-                    relationship.getFrom().getEvent() == null ? null : relationship.getFrom().getEvent().getEvent() );
-            }
-            if ( relationship.getTo() != null )
-            {
-                addIdentifier( identifiers, TrackedEntity.class, relationship.getTo().getTrackedEntity() == null ? null
-                    : relationship.getTo().getTrackedEntity().getTrackedEntity() );
-                addIdentifier( identifiers, Enrollment.class, relationship.getTo().getEnrollment() == null ? null
-                    : relationship.getTo().getEnrollment().getEnrollment() );
-                addIdentifier( identifiers, Event.class,
-                    relationship.getTo().getEvent() == null ? null : relationship.getTo().getEvent().getEvent() );
+
+                RelationshipKey relationshipKey = RelationshipPreheatKeySupport.getRelationshipKey( relationship );
+                addIdentifier( identifiers, Relationship.class, relationshipKey.asString() );
+
+                addIdentifier( identifiers, TrackedEntity.class, relationshipKey.getFrom().getTrackedEntity() );
+                addIdentifier( identifiers, Enrollment.class, relationshipKey.getFrom().getEnrollment() );
+                addIdentifier( identifiers, Event.class, relationshipKey.getFrom().getEvent() );
+
+                addIdentifier( identifiers, TrackedEntity.class, relationshipKey.getTo().getTrackedEntity() );
+                addIdentifier( identifiers, Enrollment.class, relationshipKey.getTo().getEnrollment() );
+                addIdentifier( identifiers, Event.class, relationshipKey.getTo().getEvent() );
             }
         } );
     }

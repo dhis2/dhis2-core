@@ -25,18 +25,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.tracker.teis;
 
-import com.google.gson.JsonObject;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hisp.dhis.helpers.matchers.CustomMatchers.hasToStringContaining;
+
+import java.util.Arrays;
+import java.util.stream.Stream;
+
 import org.apache.commons.lang3.tuple.Pair;
-import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.IdGenerator;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.tracker.importer.TrackerActions;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
+import org.hisp.dhis.tracker.TrackerApiTest;
 import org.hisp.dhis.tracker.importer.databuilder.EnrollmentDataBuilder;
 import org.hisp.dhis.tracker.importer.databuilder.TeiDataBuilder;
 import org.hisp.dhis.utils.DataGenerator;
@@ -45,18 +50,13 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.util.Arrays;
-import java.util.stream.Stream;
-
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hisp.dhis.helpers.matchers.CustomMatchers.hasToStringContaining;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 class TrackedEntityInstanceQueryTests
-    extends ApiTest
+    extends TrackerApiTest
 {
     private TrackerActions trackerActions;
 
@@ -71,8 +71,7 @@ class TrackedEntityInstanceQueryTests
         .of( "kZeSYCgaHTk", "TrackedEntityInstanceQueryTests_Lastname" + DataGenerator.randomString( 4 ) );
 
     private final Pair<String, String> ageProgramAttribute = Pair.of(
-        "ypGAwVRNtVY", "11"
-    );
+        "ypGAwVRNtVY", "11" );
 
     private String teiId;
 
@@ -92,16 +91,16 @@ class TrackedEntityInstanceQueryTests
         return Stream.of(
             Arguments.of( "query=LIKE:first" ),
             Arguments.of( String
-                .format( "attribute=%s:LIKE:%s", firstNameAttribute.getKey(), firstNameAttribute.getValue().substring( 0, 8 ) ) ),
+                .format( "attribute=%s:LIKE:%s", firstNameAttribute.getKey(),
+                    firstNameAttribute.getValue().substring( 0, 8 ) ) ),
             Arguments.of( String.format( "attribute:%s&query=LIKE:%s", lastNameAttribute.getKey(),
                 lastNameAttribute.getValue().substring( 10, 15 ) ) ),
             Arguments.of(
-                String.format( "attribute=%s:EQ:%s&attribute=%s:EQ:%s", lastNameAttribute.getKey(), lastNameAttribute.getValue(),
+                String.format( "attribute=%s:EQ:%s&attribute=%s:EQ:%s", lastNameAttribute.getKey(),
+                    lastNameAttribute.getValue(),
                     firstNameAttribute.getKey(), firstNameAttribute.getValue() ) ),
             Arguments.of(
-                String.format( "attribute=%s:EQ:%s", ageProgramAttribute.getKey(), ageProgramAttribute.getValue() )
-            )
-        );
+                String.format( "attribute=%s:EQ:%s", ageProgramAttribute.getKey(), ageProgramAttribute.getValue() ) ) );
     }
 
     @ParameterizedTest( name = "/query with params [{arguments}]" )
@@ -113,12 +112,14 @@ class TrackedEntityInstanceQueryTests
             .add( "trackedEntityType", Constants.TRACKED_ENTITY_TYPE )
             .add( "ouMode", "ACCESSIBLE" );
 
-        trackedEntityInstanceQueryActions.get( String.format( "%s&%s", queryParamsBuilder.build(), attributesQueryParams ) )
+        trackedEntityInstanceQueryActions
+            .get( String.format( "%s&%s", queryParamsBuilder.build(), attributesQueryParams ) )
             .validate()
             .statusCode( 200 )
-            .body( "height", equalTo( 1 ) )
+            .body( "height", greaterThanOrEqualTo( 1 ) )
             .body( "rows", hasItem(
-                hasToStringContaining( Arrays.asList( teiId, lastNameAttribute.getValue(), firstNameAttribute.getValue() ) ) ) );
+                hasToStringContaining(
+                    Arrays.asList( teiId, lastNameAttribute.getValue(), firstNameAttribute.getValue() ) ) ) );
     }
 
     private String createTei()
@@ -132,8 +133,7 @@ class TrackedEntityInstanceQueryTests
             .addEnrollment( new EnrollmentDataBuilder()
                 .setProgram( Constants.TRACKER_PROGRAM_ID )
                 .setOu( ou )
-                .addAttribute( ageProgramAttribute.getKey(), ageProgramAttribute.getValue() )
-            )
+                .addAttribute( ageProgramAttribute.getKey(), ageProgramAttribute.getValue() ) )
             .setId( uid )
             .array();
 

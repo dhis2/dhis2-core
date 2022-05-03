@@ -27,7 +27,11 @@
  */
 package org.hisp.dhis.tracker.importer.events;
 
-import com.google.gson.JsonObject;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import java.util.stream.Stream;
+
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.UserActions;
 import org.hisp.dhis.actions.metadata.AttributeActions;
@@ -40,15 +44,11 @@ import org.hisp.dhis.tracker.TrackerNtiApiTest;
 import org.hisp.dhis.tracker.importer.databuilder.EventDataBuilder;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.util.stream.Stream;
-
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -56,7 +56,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 public class EventIdSchemeTests
     extends TrackerNtiApiTest
 {
-
     private static final String OU_NAME = "TA EventsImportIdSchemeTests ou name " + DataGenerator.randomString();
 
     private static final String OU_CODE = "TA EventsImportIdSchemeTests ou code " + DataGenerator.randomString();
@@ -77,7 +76,6 @@ public class EventIdSchemeTests
     private ProgramActions programActions;
 
     private AttributeActions attributeActions;
-
 
     private static Stream<Arguments> provideIdSchemeArguments()
     {
@@ -126,14 +124,27 @@ public class EventIdSchemeTests
             .body( "orgUnit", equalTo( ORG_UNIT_ID ) );
     }
 
+    private static Stream<Arguments> provideIdSchemeArgumentsImport()
+    {
+        return Stream.of(
+            Arguments.arguments( "CODE", "code" ),
+            Arguments.arguments( "NAME", "name" ),
+            Arguments.arguments( "UID", "id" ),
+            Arguments.arguments( "AUTO", "id" ) );
+        // TODO("DHIS2-12760") fix import using attribute: Exception:Transaction
+        // rolled back because it has been marked as rollback-only
+        // Arguments.arguments( "ATTRIBUTE:" + ATTRIBUTE_ID,
+        // "attributeValues.value[0]" ) );
+    }
+
     @ParameterizedTest
-    @Disabled("DHIS2-12759, DHIS2-12760")
-    @MethodSource( "provideIdSchemeArguments" )
+    @MethodSource( "provideIdSchemeArgumentsImport" )
     public void eventsShouldBeImportedWithIdScheme( String scheme, String property )
     {
         String ouPropertyValue = orgUnitActions.get( ORG_UNIT_ID ).extractString( property );
         String programPropertyValue = programActions.get( PROGRAM_ID ).extractString( property );
-        String programStagePropertyValue = programActions.programStageActions.get( PROGRAM_STAGE_ID ).extractString( property );
+        String programStagePropertyValue = programActions.programStageActions.get( PROGRAM_STAGE_ID )
+            .extractString( property );
 
         JsonObject event = new EventDataBuilder()
             .setProgram( programPropertyValue )
@@ -213,7 +224,8 @@ public class EventIdSchemeTests
             .validate().statusCode( 200 );
 
         programActions.programStageActions.update( PROGRAM_STAGE_ID,
-            addAttributeValuePayload( programActions.programStageActions.get( PROGRAM_STAGE_ID ).getBody(), ATTRIBUTE_ID,
+            addAttributeValuePayload( programActions.programStageActions.get( PROGRAM_STAGE_ID ).getBody(),
+                ATTRIBUTE_ID,
                 ATTRIBUTE_VALUE ) )
             .validate().statusCode( 200 );
     }

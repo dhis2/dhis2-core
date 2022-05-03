@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.tracker.deduplication;
 
+import static org.hamcrest.Matchers.*;
+
+import java.util.Arrays;
+
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
@@ -35,10 +39,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
-
-import java.util.Arrays;
-
-import static org.hamcrest.Matchers.*;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -105,7 +105,8 @@ public class PotentialDuplicatesTests
     @ParameterizedTest
     public void shouldUpdateStatus( String status, String newStatus, boolean shouldUpdate )
     {
-        String duplicateId = potentialDuplicatesActions.createAndValidatePotentialDuplicate( createTei(), createTei(), status );
+        String duplicateId = potentialDuplicatesActions.createAndValidatePotentialDuplicate( createTei(), createTei(),
+            status );
 
         ApiResponse response = potentialDuplicatesActions.update( duplicateId + "?status=" + newStatus,
             new JsonObjectBuilder().build() );
@@ -139,7 +140,8 @@ public class PotentialDuplicatesTests
             .validate().statusCode( 200 )
             .body( "identifiableObjects", hasSize( 2 ) );
 
-        potentialDuplicatesActions.get( "", new QueryParamsBuilder().addAll( "teis=" + teiB + "," + teiC, "status=ALL" ) )
+        potentialDuplicatesActions
+            .get( "", new QueryParamsBuilder().addAll( "teis=" + teiB + "," + teiC, "status=ALL" ) )
             .validate().statusCode( 200 )
             .body( "identifiableObjects", hasSize( 2 ) );
 

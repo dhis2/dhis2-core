@@ -25,10 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.tracker.deduplication.merge;
 
-import com.google.gson.JsonObject;
+import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.hasSize;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
+
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
@@ -38,14 +45,7 @@ import org.hisp.dhis.tracker.importer.databuilder.TeiDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Arrays;
-
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.hamcrest.Matchers.hasSize;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -62,9 +62,11 @@ public class PotentialDuplicatesEnrollmentsTests
     @Test
     public void shouldNotBeMergedWhenBothTeisEnrolledInSameProgram()
     {
-        String teiA = createTeiWithEnrollmentsAndEvents( Constants.TRACKER_PROGRAM_ID, "nlXNK4b7LVr" ).extractImportedTeis()
+        String teiA = createTeiWithEnrollmentsAndEvents( Constants.TRACKER_PROGRAM_ID, "nlXNK4b7LVr" )
+            .extractImportedTeis()
             .get( 0 );
-        String teiB = createTeiWithEnrollmentsAndEvents( Constants.TRACKER_PROGRAM_ID, "nlXNK4b7LVr" ).extractImportedTeis()
+        String teiB = createTeiWithEnrollmentsAndEvents( Constants.TRACKER_PROGRAM_ID, "nlXNK4b7LVr" )
+            .extractImportedTeis()
             .get( 0 );
 
         String potentialDuplicate = potentialDuplicatesActions.createPotentialDuplicate( teiA, teiB, "OPEN" )
@@ -79,10 +81,12 @@ public class PotentialDuplicatesEnrollmentsTests
     @Test
     public void shouldBeManuallyMerged()
     {
-        String teiA = createTeiWithEnrollmentsAndEvents( TRACKER_PROGRAM_ID, TRACKER_PROGRAM_STAGE_ID ).extractImportedTeis()
+        String teiA = createTeiWithEnrollmentsAndEvents( TRACKER_PROGRAM_ID, TRACKER_PROGRAM_STAGE_ID )
+            .extractImportedTeis()
             .get( 0 );
 
-        TrackerApiResponse teiBResponse = createTeiWithEnrollmentsAndEvents( Constants.ANOTHER_TRACKER_PROGRAM_ID, "PaOOjwLVW2X" );
+        TrackerApiResponse teiBResponse = createTeiWithEnrollmentsAndEvents( Constants.ANOTHER_TRACKER_PROGRAM_ID,
+            "PaOOjwLVW2X" );
         String teiB = teiBResponse.extractImportedTeis().get( 0 );
         String enrollmentToMerge = teiBResponse.extractImportedEnrollments().get( 0 );
 
@@ -105,19 +109,22 @@ public class PotentialDuplicatesEnrollmentsTests
         throws IOException
     {
         // arrange
-        TrackerApiResponse originalTeiResponse = createTeiWithEnrollmentsAndEvents( Constants.ANOTHER_TRACKER_PROGRAM_ID,
+        TrackerApiResponse originalTeiResponse = createTeiWithEnrollmentsAndEvents(
+            Constants.ANOTHER_TRACKER_PROGRAM_ID,
             "PaOOjwLVW2X" );
         String teiA = originalTeiResponse.extractImportedTeis().get( 0 );
         String enrollmentA = originalTeiResponse.extractImportedEnrollments().get( 0 );
 
         TrackerApiResponse duplicateTeiResponse = trackerActions.postAndGetJobReport(
-            new JsonFileReader( new File( "src/test/resources/tracker/importer/teis/teiWithEnrollmentAndEventsNested.json" ) )
-                .get() );
+            new JsonFileReader(
+                new File( "src/test/resources/tracker/importer/teis/teiWithEnrollmentAndEventsNested.json" ) )
+                    .get() );
 
         String teiB = duplicateTeiResponse.extractImportedTeis().get( 0 );
         String enrollmentB = duplicateTeiResponse.extractImportedEnrollments().get( 0 );
 
-        String potentialDuplicate = potentialDuplicatesActions.createAndValidatePotentialDuplicate( teiA, teiB, "OPEN" );
+        String potentialDuplicate = potentialDuplicatesActions.createAndValidatePotentialDuplicate( teiA, teiB,
+            "OPEN" );
 
         // act
         potentialDuplicatesActions.autoMergePotentialDuplicate( potentialDuplicate )
@@ -159,7 +166,8 @@ public class PotentialDuplicatesEnrollmentsTests
         String enrollment = imported.extractImportedEnrollments().get( 0 );
         assertThat( enrollment, notNullValue() );
 
-        String potentialDuplicate = potentialDuplicatesActions.createAndValidatePotentialDuplicate( teiA, teiB, "OPEN" );
+        String potentialDuplicate = potentialDuplicatesActions.createAndValidatePotentialDuplicate( teiA, teiB,
+            "OPEN" );
 
         String username = createUserWithAccessToMerge();
         loginActions.loginAsUser( username, USER_PASSWORD );

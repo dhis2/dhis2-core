@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.system;
 
+import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -233,7 +235,7 @@ public class SystemUpdateService
 
         if ( existingMessages.isEmpty() )
         {
-            progress.startingStage( "Sending notifications to recipients", recipients.size() );
+            progress.startingStage( "Sending notifications to recipients", recipients.size(), SKIP_ITEM_OUTLIER );
             progress.runStage( recipients, recipient -> "to: " + recipient.getUsername(),
                 recipient -> messageService.sendMessage( new MessageConversationParams.Builder()
                     .withRecipients( Set.of( recipient ) )

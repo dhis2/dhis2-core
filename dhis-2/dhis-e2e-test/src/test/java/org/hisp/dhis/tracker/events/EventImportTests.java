@@ -40,15 +40,14 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import org.hamcrest.Matchers;
-import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.TestRunStorage;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.SystemActions;
-import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.ImportSummary;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
+import org.hisp.dhis.tracker.TrackerApiTest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -62,11 +61,9 @@ import io.restassured.http.ContentType;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class EventImportTests
-    extends ApiTest
+    extends TrackerApiTest
 {
     List<String> createdEvents = new ArrayList<>();
-
-    private EventActions eventActions;
 
     private SystemActions systemActions;
 
@@ -81,7 +78,6 @@ public class EventImportTests
     @BeforeAll
     public void before()
     {
-        eventActions = new EventActions();
         systemActions = new SystemActions();
 
         new LoginActions().loginAsSuperUser();

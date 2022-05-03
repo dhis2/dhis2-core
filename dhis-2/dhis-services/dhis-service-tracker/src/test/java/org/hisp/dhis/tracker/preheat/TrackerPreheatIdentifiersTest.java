@@ -31,6 +31,8 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.tracker.TrackerIdSchemeParams.builder;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -39,8 +41,13 @@ import java.util.List;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramStage;
@@ -62,6 +69,9 @@ class TrackerPreheatIdentifiersTest extends TrackerTest
 
     @Autowired
     private TrackerPreheatService trackerPreheatService;
+
+    @Autowired
+    private IdentifiableObjectManager manager;
 
     @Override
     protected void initTest()
@@ -156,6 +166,43 @@ class TrackerPreheatIdentifiersTest extends TrackerTest
         }
     }
 
+    @Test
+    void testDefaultsWithIdSchemeUID()
+    {
+
+        TrackerImportParams params = TrackerImportParams.builder()
+            .user( currentUserService.getCurrentUser() )
+            .build();
+
+        TrackerPreheat preheat = trackerPreheatService.preheat( params );
+
+        assertPreheatHasDefault( preheat, Category.class );
+        assertPreheatHasDefault( preheat, CategoryCombo.class );
+        assertPreheatHasDefault( preheat, CategoryOption.class );
+        assertPreheatHasDefault( preheat, CategoryOptionCombo.class );
+    }
+
+    @Test
+    void testDefaultsWithIdSchemesOtherThanUID()
+    {
+
+        Event event = new Event();
+
+        TrackerImportParams params = buildParams( event,
+            builder()
+                .idScheme( TrackerIdSchemeParam.NAME )
+                .categoryOptionIdScheme( TrackerIdSchemeParam.ofAttribute( CodeGenerator.generateUid() ) )
+                .categoryOptionComboIdScheme( TrackerIdSchemeParam.CODE )
+                .build() );
+
+        TrackerPreheat preheat = trackerPreheatService.preheat( params );
+
+        assertPreheatHasDefault( preheat, Category.class );
+        assertPreheatHasDefault( preheat, CategoryCombo.class );
+        assertPreheatHasDefault( preheat, CategoryOption.class );
+        assertPreheatHasDefault( preheat, CategoryOptionCombo.class );
+    }
+
     private TrackerImportParams buildParams( Event event, TrackerIdSchemeParams idParams )
     {
         TrackerImportParams params = TrackerImportParams.builder()
@@ -182,5 +229,19 @@ class TrackerPreheatIdentifiersTest extends TrackerTest
             "Expecting a preheated object for idSchemeParam: " + idSchemeParam.getIdScheme().name() + " with value: "
                 + id,
             preheat.get( klazz, id ), is( notNullValue() ) );
+    }
+
+    private <T extends IdentifiableObject> void assertPreheatHasDefault( TrackerPreheat preheat, Class<T> klass )
+    {
+        T actual = preheat.getDefault( klass );
+        T expected = manager.getByName( klass, "default" );
+        assertNotNull( actual );
+        assertNotNull( expected );
+        // since these are mapped entities, not all fields are mapped
+        // we should at least get the identifiers
+        assertEquals( expected.getId(), actual.getId() );
+        assertEquals( expected.getUid(), actual.getUid() );
+        assertEquals( expected.getCode(), actual.getCode() );
+        assertEquals( expected.getName(), actual.getName() );
     }
 }

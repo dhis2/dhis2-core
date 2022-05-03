@@ -35,7 +35,10 @@
       "trackedEntity": "CLR1fvPj4ic",
       "trackedEntityType": "KrYIdvLxkMb",
       "createdAtClient": "2020-02-10T10:56:07.570",
-      "orgUnit": "cNEZTkdAvmg",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "cNEZTkdAvmg"
+      },
       "inactive": false,
       "deleted": false,
       "potentialDuplicate": false,
@@ -63,8 +66,7 @@
           "value": "2020-02-10"
         }
       ],
-      "enrollments": [],
-      "programOwners": []
+      "enrollments": []
     }
   ],
   "enrollments": [],

@@ -39,15 +39,13 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.File;
 
-import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
-import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.UserActions;
 import org.hisp.dhis.actions.metadata.MetadataActions;
-import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
+import org.hisp.dhis.tracker.TrackerApiTest;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -59,12 +57,8 @@ import com.google.gson.JsonObject;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class UserAssignmentFilterTests
-    extends ApiTest
+    extends TrackerApiTest
 {
-    private LoginActions loginActions;
-
-    private EventActions eventActions;
-
     private MetadataActions metadataActions;
 
     private UserActions userActions;
@@ -85,8 +79,6 @@ public class UserAssignmentFilterTests
     public void beforeAll()
         throws Exception
     {
-        eventActions = new EventActions();
-        loginActions = new LoginActions();
         metadataActions = new MetadataActions();
         userActions = new UserActions();
 
@@ -115,7 +107,8 @@ public class UserAssignmentFilterTests
         throws Exception
     {
         loginActions.loginAsSuperUser();
-        ApiResponse response = eventActions.get( "?program=" + programId + "&assignedUser=" + userId + "&ouMode=ACCESSIBLE");
+        ApiResponse response = eventActions
+            .get( "?program=" + programId + "&assignedUser=" + userId + "&ouMode=ACCESSIBLE" );
 
         response.validate().statusCode( 200 )
             .body( "events", hasSize( 4 ) )

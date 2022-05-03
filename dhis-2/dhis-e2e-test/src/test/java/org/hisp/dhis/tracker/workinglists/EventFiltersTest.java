@@ -29,12 +29,11 @@ package org.hisp.dhis.tracker.workinglists;
 
 import java.io.File;
 
-import org.hisp.dhis.ApiTest;
-import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.ResponseValidationHelper;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
+import org.hisp.dhis.tracker.TrackerApiTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -44,7 +43,7 @@ import com.google.gson.JsonObject;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class EventFiltersTest
-    extends ApiTest
+    extends TrackerApiTest
 {
     private RestApiActions eventFiltersActions;
 
@@ -55,7 +54,7 @@ public class EventFiltersTest
     {
         eventFiltersActions = new RestApiActions( "/eventFilters" );
 
-        new LoginActions().loginAsSuperUser();
+        loginActions.loginAsSuperUser();
     }
 
     @Test

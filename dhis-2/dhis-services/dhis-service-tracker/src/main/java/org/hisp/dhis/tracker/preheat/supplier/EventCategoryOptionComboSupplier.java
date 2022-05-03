@@ -48,6 +48,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.preheat.mappers.CategoryOptionComboMapper;
 import org.springframework.stereotype.Component;
 
 /**
@@ -88,7 +89,8 @@ public class EventCategoryOptionComboSupplier extends AbstractPreheatSupplier
                 continue;
             }
 
-            CategoryOptionCombo aoc = categoryService.getCategoryOptionCombo( p.getLeft(), p.getRight() );
+            CategoryOptionCombo aoc = CategoryOptionComboMapper.INSTANCE
+                .map( categoryService.getCategoryOptionCombo( p.getLeft(), p.getRight() ) );
             preheat.putCategoryOptionCombo( p.getLeft(), p.getRight(), aoc );
         }
     }

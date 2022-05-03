@@ -67,7 +67,10 @@ public interface IdentifiableObjectManager
 
     <T extends IdentifiableObject> T get( Class<T> type, long id );
 
-    <T extends IdentifiableObject> T get( Class<T> type, String uid );
+    <T extends IdentifiableObject> T get( Class<T> type, String uid )
+        throws IllegalQueryException;
+
+    <T extends IdentifiableObject> T getAndValidate( Class<T> type, String uid );
 
     <T extends IdentifiableObject> boolean exists( Class<T> type, String uid );
 

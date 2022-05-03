@@ -29,6 +29,7 @@ package org.hisp.dhis.validation;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
+import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -75,7 +76,8 @@ public class Validator
         int chunkSize = ValidationRunContext.ORG_UNITS_PER_TASK;
         List<ValidationChunk> orgUnitLists = splitIntoChunks( context, chunkSize );
 
-        progress.startingStage( "Evaluating validation rules in chunks of " + chunkSize, orgUnitLists.size() );
+        progress.startingStage( "Evaluating validation rules in chunks of " + chunkSize, orgUnitLists.size(),
+            SKIP_ITEM_OUTLIER );
         progress.runStageInParallel( threadPoolSize, orgUnitLists, ValidationChunk::toString,
             chunk -> runner.run( chunk.getOrgUnits(), context ) );
 

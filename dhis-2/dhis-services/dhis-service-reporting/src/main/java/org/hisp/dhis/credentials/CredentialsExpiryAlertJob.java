@@ -29,6 +29,7 @@ package org.hisp.dhis.credentials;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
+import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
 
 import java.util.Date;
 import java.util.List;
@@ -121,7 +122,7 @@ public class CredentialsExpiryAlertJob implements Job
 
     private void sendExpiryAlert( List<User> users, JobProgress progress )
     {
-        progress.startingStage( "sending expiry alert emails", users.size() );
+        progress.startingStage( "sending expiry alert emails", users.size(), SKIP_ITEM_OUTLIER );
         if ( emailMessageSender.isConfigured() )
         {
             progress.runStage( users,

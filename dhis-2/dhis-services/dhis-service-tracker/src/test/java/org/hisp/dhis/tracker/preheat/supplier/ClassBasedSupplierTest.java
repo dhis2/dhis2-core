@@ -35,7 +35,6 @@ import static org.mockito.Mockito.when;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Set;
 
 import org.hisp.dhis.tracker.TrackerIdentifierCollector;
 import org.hisp.dhis.tracker.TrackerImportParams;
@@ -86,8 +85,8 @@ class ClassBasedSupplierTest
 
         TrackerPreheat trackerPreheat = new TrackerPreheat();
 
-        when( identifierCollector.collect( trackerImportParams, trackerPreheat.getDefaults() ) )
-            .thenReturn( new HashMap<Class<?>, Set<String>>()
+        when( identifierCollector.collect( trackerImportParams ) )
+            .thenReturn( new HashMap<>()
             {
                 {
                     put( TrackedEntity.class, new HashSet<>( Collections.singletonList( "trackedEntity" ) ) );

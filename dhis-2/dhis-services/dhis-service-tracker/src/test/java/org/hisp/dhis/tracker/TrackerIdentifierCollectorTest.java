@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -73,7 +72,7 @@ class TrackerIdentifierCollectorTest
             Set.of( new AttributeValue( att, "sunshine" ), attributeValue( "grass" ) ) );
         Enrollment enrollment = Enrollment.builder()
             .enrollment( CodeGenerator.generateUid() )
-            .orgUnit( orgUnit.getUid() )
+            .orgUnit( MetadataIdentifier.ofUid( orgUnit.getUid() ) )
             .program( MetadataIdentifier.ofAttribute( att.getUid(), "sunshine" ) )
             .build();
 
@@ -85,7 +84,7 @@ class TrackerIdentifierCollectorTest
             .enrollments( Collections.singletonList( enrollment ) )
             .build();
 
-        Map<Class<?>, Set<String>> ids = collector.collect( params, new HashMap<>() );
+        Map<Class<?>, Set<String>> ids = collector.collect( params );
 
         assertNotNull( ids );
         assertContainsOnly( ids.get( Enrollment.class ), enrollment.getUid() );
@@ -108,7 +107,7 @@ class TrackerIdentifierCollectorTest
             .enrollments( Collections.singletonList( enrollment ) )
             .build();
 
-        Map<Class<?>, Set<String>> ids = collector.collect( params, new HashMap<>() );
+        Map<Class<?>, Set<String>> ids = collector.collect( params );
 
         assertNotNull( ids );
         assertContainsOnly( ids.get( Enrollment.class ), enrollment.getUid() );

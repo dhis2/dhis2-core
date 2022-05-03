@@ -25,11 +25,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.tracker;
 
+import static org.hamcrest.CoreMatchers.describedAs;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.startsWith;
+import static org.hamcrest.text.MatchesPattern.matchesPattern;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.stream.Stream;
+
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
@@ -40,22 +49,11 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.stream.Stream;
-
-import static org.hamcrest.CoreMatchers.describedAs;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.startsWith;
-import static org.hamcrest.text.MatchesPattern.matchesPattern;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class TrackedEntityAttributeValueGenerationTests
-    extends ApiTest
+    extends TrackerApiTest
 {
     private RestApiActions trackedEntityAttributeActions;
 
@@ -69,16 +67,18 @@ public class TrackedEntityAttributeValueGenerationTests
 
     private Stream<Arguments> shouldGenerateAttributeValues()
     {
-        ApiResponse response = trackedEntityAttributeActions.get( new QueryParamsBuilder().add( "filter", "generated:eq:true" )
-            .add( "filter", "pattern:!like:()" )
-            .add( "fields", "id,pattern" ) );
+        ApiResponse response = trackedEntityAttributeActions
+            .get( new QueryParamsBuilder().add( "filter", "generated:eq:true" )
+                .add( "filter", "pattern:!like:()" )
+                .add( "fields", "id,pattern" ) );
 
         List<HashMap> attributes = response.extractList( "trackedEntityAttributes" );
 
         List<Arguments> arguments = new ArrayList<>();
 
         attributes.forEach( att -> {
-            arguments.add( Arguments.of( att.get( "id" ), att.get( "pattern" ).toString().replaceAll( "[+,\" ]", "" ) ) );
+            arguments
+                .add( Arguments.of( att.get( "id" ), att.get( "pattern" ).toString().replaceAll( "[+,\" ]", "" ) ) );
         } );
 
         return arguments.stream();
@@ -107,7 +107,8 @@ public class TrackedEntityAttributeValueGenerationTests
             .extractString( "trackedEntityAttributes.id[0]" );
 
         assertNotNull( attribute, "Tracked entity attribute with pattern containing OU_CODE was not found" );
-        trackedEntityAttributeActions.get( attribute + "/generate", new QueryParamsBuilder().add( "ORG_UNIT_CODE", ouCode ) )
+        trackedEntityAttributeActions
+            .get( attribute + "/generate", new QueryParamsBuilder().add( "ORG_UNIT_CODE", ouCode ) )
             .validate()
             .statusCode( 200 )
             .body( "key", startsWith( ouCode ) )

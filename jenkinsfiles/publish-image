@@ -96,6 +96,11 @@ pipeline {
         }
 
         stage('Run api tests') {
+            environment {
+                RP_UUID = credentials('report-portal-access-uuid')
+                RP_ENABLE = 'true'
+                RP_ATTRIBUTES = "version:master;"
+            }
             matrix {
                 axes {
                     axis {
