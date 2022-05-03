@@ -44,6 +44,11 @@ public class RelationshipDataBuilder implements TrackerImporterDataBuilder
         this.jsonBuilder = new JsonObjectBuilder();
     }
 
+    public RelationshipDataBuilder setRelationshipId( String id ) {
+        this.jsonBuilder.addProperty( "relationship", id );
+        return this;
+    }
+
     public RelationshipDataBuilder setRelationshipType( String relationshipType )
     {
         this.jsonBuilder.addProperty( "relationshipType", relationshipType );
@@ -97,10 +102,8 @@ public class RelationshipDataBuilder implements TrackerImporterDataBuilder
     {
         return new JsonObjectBuilder()
             .addProperty( "relationshipType", relationshipType )
-            .addObject( "from", new JsonObjectBuilder()
-                .addProperty( "trackedEntity", trackedEntity_1 ) )
-            .addObject( "to", new JsonObjectBuilder()
-                .addProperty( "trackedEntity", trackedEntity_2 ) )
+            .addObject( "from", relationshipItem( "trackedEntity", trackedEntity_1 ))
+            .addObject( "to", relationshipItem( "trackedEntity", trackedEntity_2 ) )
             .build();
     }
 

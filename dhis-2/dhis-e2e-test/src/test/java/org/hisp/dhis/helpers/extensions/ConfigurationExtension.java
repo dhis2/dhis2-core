@@ -27,13 +27,11 @@
  */
 package org.hisp.dhis.helpers.extensions;
 
-import org.hisp.dhis.helpers.config.TestConfiguration;
-import org.junit.jupiter.api.extension.BeforeAllCallback;
-import org.junit.jupiter.api.extension.ExtensionContext;
-
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
+import io.restassured.config.FailureConfig;
 import io.restassured.config.JsonConfig;
+import io.restassured.config.LogConfig;
 import io.restassured.config.RestAssuredConfig;
 import io.restassured.filter.cookie.CookieFilter;
 import io.restassured.filter.session.SessionFilter;
@@ -41,6 +39,14 @@ import io.restassured.http.ContentType;
 import io.restassured.parsing.Parser;
 import io.restassured.path.json.config.JsonPathConfig;
 import io.restassured.specification.RequestSpecification;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.hisp.dhis.helpers.config.TestConfiguration;
+import org.junit.jupiter.api.extension.BeforeAllCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
+
+import java.io.PrintStream;
+import java.util.Arrays;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -48,15 +54,31 @@ import io.restassured.specification.RequestSpecification;
 public class ConfigurationExtension
     implements BeforeAllCallback
 {
+    private static Logger logger = LogManager.getRootLogger();
+
+    private static PrintStream loggingProxy()
+    {
+        return new PrintStream( System.out )
+        {
+            @Override
+            public void print( final String string )
+            {
+                logger.warn( string );
+            }
+        };
+    }
+
     @Override
     public void beforeAll( ExtensionContext context )
     {
         RestAssured.baseURI = TestConfiguration.get().baseUrl();
 
         RestAssured.config = RestAssuredConfig.config()
+            .failureConfig( FailureConfig.failureConfig().failureListeners( new OnFailureLogAppender() ) )
+            .logConfig( new LogConfig().defaultStream( loggingProxy() )
+                .urlEncodeRequestUri( false )
+                .enableLoggingOfRequestAndResponseIfValidationFails() )
             .jsonConfig( new JsonConfig().numberReturnType( JsonPathConfig.NumberReturnType.BIG_DECIMAL ) );
-
-        RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
 
         RestAssured.defaultParser = Parser.JSON;
         RestAssured.requestSpecification = defaultRequestSpecification();
@@ -66,10 +88,12 @@ public class ConfigurationExtension
     {
         RequestSpecBuilder requestSpecification = new RequestSpecBuilder();
 
-        requestSpecification.addFilter( new CookieFilter() );
-        requestSpecification.addFilter( new SessionFilter() );
-        requestSpecification.addFilter( new AuthFilter() );
-        requestSpecification.setContentType( ContentType.JSON );
+        requestSpecification.addFilters( Arrays.asList(
+            new CookieFilter(),
+            new SessionFilter(),
+            new AuthFilter()
+        ) )
+            .setContentType( ContentType.JSON );
 
         return requestSpecification.build();
     }

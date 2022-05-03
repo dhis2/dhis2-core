@@ -45,10 +45,12 @@ import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.metadata.MetadataActions;
 import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.actions.tracker.RelationshipActions;
+import org.hisp.dhis.actions.tracker.TEIActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.TestCleanUp;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
+import org.hisp.dhis.tracker.TrackerApiTest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -62,13 +64,13 @@ import com.google.gson.JsonObject;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class RelationshipsTest
-    extends ApiTest
+    extends TrackerApiTest
 {
     private static List<String> teis;
 
     private static List<String> events;
 
-    private RestApiActions trackedEntityInstanceActions;
+    private TEIActions trackedEntityInstanceActions;
 
     private MetadataActions metadataActions;
 
@@ -99,7 +101,7 @@ public class RelationshipsTest
         throws Exception
     {
         relationshipActions = new RelationshipActions();
-        trackedEntityInstanceActions = new RestApiActions( "/trackedEntityInstances" );
+        trackedEntityInstanceActions = new TEIActions();
         metadataActions = new MetadataActions();
         eventActions = new EventActions();
 

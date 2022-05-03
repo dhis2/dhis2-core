@@ -38,9 +38,11 @@ import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.startsWith;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -52,7 +54,6 @@ import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.tracker.TrackerNtiApiTest;
-import org.json.JSONException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -80,10 +81,11 @@ public class TrackerExportTests
     {
         loginActions.loginAsSuperUser();
 
-        TrackerApiResponse response = importTeiWithEnrollmentAndEvent();
+        TrackerApiResponse response = trackerActions.postAndGetJobReport(new File( "src/test/resources/tracker/importer/teis/teisWithEnrollmentsAndEvents.json"));
+
         teiId = response.validateSuccessfulImport().extractImportedTeis().get( 0 );
         enrollmentId = response.extractImportedEnrollments().get( 0 );
-        relationshipId = response.extractImportedRelationships().get( 0 );
+        relationshipId = importRelationshipBetweenTeis( teiId, response.extractImportedTeis().get( 1 ) ).extractImportedRelationships().get( 0 );
         eventId = response.extractImportedEvents().get( 0 );
     }
 
@@ -120,7 +122,7 @@ public class TrackerExportTests
 
     @Test
     public void singleTeiAndCollectionTeiShouldReturnSameResult()
-        throws JSONException
+        throws Exception
     {
 
         TrackerApiResponse trackedEntity = trackerActions.getTrackedEntity( "Kj6vYde4LHh",
@@ -211,5 +213,18 @@ public class TrackerExportTests
             .statusCode( 200 )
             .body( "instances.findAll { it.trackedEntity == 'Kj6vYde4LHh' }.size()", is( 1 ) )
             .body( "instances.attributes.flatten().findAll { it.attribute == 'kZeSYCgaHTk' }.value", everyItem( is( "Bravo" ) ) );
+    }
+
+    @Test
+    public void shouldReturnRelationshipsByTei()
+    {
+        trackerActions.getRelationship( "?trackedEntity=" + teiId )
+            .validate()
+            .statusCode( 200 )
+            .body( "instances", hasSize( greaterThanOrEqualTo( 1 ) ) )
+            .rootPath( "instances[0]" )
+            .body( "relationship", equalTo( relationshipId ) )
+            .body( "from.trackedEntity.trackedEntity", equalTo( teiId ) )
+            .body( "to.trackedEntity.trackedEntity", notNullValue() );
     }
 }
