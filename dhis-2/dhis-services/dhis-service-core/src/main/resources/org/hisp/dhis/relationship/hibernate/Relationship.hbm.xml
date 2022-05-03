@@ -45,5 +45,7 @@
 
         <property name="invertedKey" column="inverted_key" type="string" length="255" not-null="true" />
 
+        <property name="deleted" column="deleted"/>
+
     </class>
 </hibernate-mapping>

@@ -41,7 +41,6 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.commons.util.RelationshipUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventvisualization.EventVisualization;
@@ -53,7 +52,6 @@ import org.hisp.dhis.mapping.MapLayerPosition;
 import org.hisp.dhis.mapping.MapService;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.predictor.Predictor;
@@ -64,11 +62,7 @@ import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
-import org.hisp.dhis.relationship.Relationship;
-import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingKey;
@@ -138,34 +132,39 @@ class TranslationServiceTest extends DhisSpringTest
         assertEquals( translatedValue, option.getDisplayFormName() );
     }
 
-    @Test
-    void testFormNameTranslationForRelationShip()
-    {
-        RelationshipType relationshipType = createRelationshipType( 'A' );
-        OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
-        TrackedEntityAttribute attribute = createTrackedEntityAttribute( 'A' );
-        manager.save( relationshipType );
-        manager.save( organisationUnit );
-        manager.save( attribute );
-        TrackedEntityInstance trackedEntityInstance = createTrackedEntityInstance( 'A', organisationUnit, attribute );
-        manager.save( trackedEntityInstance );
-        Relationship relationship = new Relationship();
-        RelationshipItem from = new RelationshipItem();
-        from.setTrackedEntityInstance( trackedEntityInstance );
-        RelationshipItem to = new RelationshipItem();
-        to.setTrackedEntityInstance( trackedEntityInstance );
-        relationship.setFrom( from );
-        relationship.setTo( to );
-        relationship.setRelationshipType( relationshipType );
-        relationship.setKey( RelationshipUtils.generateRelationshipKey( relationship ) );
-        relationship.setInvertedKey( RelationshipUtils.generateRelationshipInvertedKey( relationship ) );
-        manager.save( relationship );
-        String translatedValue = "RelationShip FormName Translated";
-        Set<Translation> translations = new HashSet<>( relationship.getTranslations() );
-        translations.add( new Translation( locale.getLanguage(), "FORM_NAME", translatedValue ) );
-        manager.updateTranslations( relationship, translations );
-        assertEquals( translatedValue, relationship.getDisplayFormName() );
-    }
+    // @Test
+    // void testFormNameTranslationForRelationShip()
+    // {
+    // RelationshipType relationshipType = createRelationshipType( 'A' );
+    // OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
+    // TrackedEntityAttribute attribute = createTrackedEntityAttribute( 'A' );
+    // manager.save( relationshipType );
+    // manager.save( organisationUnit );
+    // manager.save( attribute );
+    // TrackedEntityInstance trackedEntityInstance =
+    // createTrackedEntityInstance( 'A', organisationUnit, attribute );
+    // manager.save( trackedEntityInstance );
+    // Relationship relationship = new Relationship();
+    // RelationshipItem from = new RelationshipItem();
+    // from.setTrackedEntityInstance( trackedEntityInstance );
+    // RelationshipItem to = new RelationshipItem();
+    // to.setTrackedEntityInstance( trackedEntityInstance );
+    // relationship.setFrom( from );
+    // relationship.setTo( to );
+    // relationship.setRelationshipType( relationshipType );
+    // relationship.setKey( RelationshipUtils.generateRelationshipKey(
+    // relationship ) );
+    // relationship.setInvertedKey(
+    // RelationshipUtils.generateRelationshipInvertedKey( relationship ) );
+    // manager.save( relationship );
+    // String translatedValue = "RelationShip FormName Translated";
+    // Set<Translation> translations = new HashSet<>(
+    // relationship.getTranslations() );
+    // translations.add( new Translation( locale.getLanguage(), "FORM_NAME",
+    // translatedValue ) );
+    // manager.updateTranslations( relationship, translations );
+    // assertEquals( translatedValue, relationship.getDisplayFormName() );
+    // }
 
     @Test
     void testFormNameTranslationForProgramStageSection()
