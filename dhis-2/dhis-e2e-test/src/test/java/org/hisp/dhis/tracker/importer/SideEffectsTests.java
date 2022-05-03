@@ -77,7 +77,7 @@ public class SideEffectsTests
 
     @ParameterizedTest
     @ValueSource( strings = { "true", "false" } )
-    @Disabled("todo: fix this test 12098")
+    @Disabled( "todo: fix this test 12098" )
     public void shouldSendNotificationIfNotSkipSideEffects( Boolean shouldSkipSideEffects )
     {
         JsonObject object = new TeiDataBuilder()

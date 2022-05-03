@@ -192,7 +192,7 @@ public class RuleEngineTests
     }
 
     @Test
-    @Disabled("TODO: fix this test 12098")
+    @Disabled( "TODO: fix this test 12098" )
     public void shouldSendProgramRuleNotification()
     {
         JsonObject payload = new EventDataBuilder()
