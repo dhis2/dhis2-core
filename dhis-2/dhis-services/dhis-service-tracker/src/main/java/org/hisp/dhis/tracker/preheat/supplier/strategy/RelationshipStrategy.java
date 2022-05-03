@@ -71,8 +71,8 @@ public class RelationshipStrategy implements ClassBasedSupplierStrategy
             .filter( CodeGenerator::isValidUid )
             .collect( Collectors.toList() );
 
-        uids.addAll( relationshipStore.getUidsByRelationshipKeys( keys ) );
+        uids.addAll( relationshipStore.getUidsByRelationshipKeyIncludeDeleted( keys ) );
 
-        return relationshipStore.getByUids( uids );
+        return relationshipStore.getByUidIncludeDeleted( uids );
     }
 }

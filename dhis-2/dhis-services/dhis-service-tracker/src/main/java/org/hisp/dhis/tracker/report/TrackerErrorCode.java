@@ -159,6 +159,7 @@ public enum TrackerErrorCode
     E4014( "Relationship Type `{0}` constraint requires a Tracked Entity having type `{1}` but `{2}` was found." ),
     E4015( "Relationship: `{0}`, already exists." ),
     E4016( "Relationship: `{0}`, do not exist." ),
+    E4017( "Relationship: `{0}`, is already deleted and cannot be modified." ),
     E9999( "N/A" );
 
     private final String message;

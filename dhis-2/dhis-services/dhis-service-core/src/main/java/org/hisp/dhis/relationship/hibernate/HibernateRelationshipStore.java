@@ -29,6 +29,7 @@ package org.hisp.dhis.relationship.hibernate;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.persistence.NoResultException;
@@ -271,7 +272,7 @@ public class HibernateRelationshipStore extends HibernateIdentifiableObjectStore
     }
 
     @Override
-    public List<String> getUidsByRelationshipKeys( List<String> relationshipKeyList )
+    public List<String> getUidsByRelationshipKeyIncludeDeleted( List<String> relationshipKeyList )
     {
         List<Object> c = getSession().createNativeQuery( new StringBuilder().append( "SELECT R.uid " )
             .append( "FROM relationship R " )
@@ -289,7 +290,7 @@ public class HibernateRelationshipStore extends HibernateIdentifiableObjectStore
     }
 
     @Override
-    public List<Relationship> getByUids( List<String> uids )
+    public List<Relationship> getByUidIncludeDeleted( List<String> uids )
     {
         CriteriaBuilder criteriaBuilder = getCriteriaBuilder();
 
@@ -309,6 +310,19 @@ public class HibernateRelationshipStore extends HibernateIdentifiableObjectStore
         {
             return null;
         }
+    }
+
+    @Override
+    protected void preProcessPredicates( CriteriaBuilder builder,
+        List<Function<Root<Relationship>, Predicate>> predicates )
+    {
+        predicates.add( root -> builder.equal( root.get( "deleted" ), false ) );
+    }
+
+    @Override
+    protected Relationship postProcessObject( Relationship relationship )
+    {
+        return (relationship == null || relationship.isDeleted()) ? null : relationship;
     }
 
     private Predicate bidirectionalCriteria( CriteriaBuilder criteriaBuilder, Root<Relationship> root,

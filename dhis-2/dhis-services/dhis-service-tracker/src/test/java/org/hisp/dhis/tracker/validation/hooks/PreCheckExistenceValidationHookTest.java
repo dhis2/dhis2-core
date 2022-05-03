@@ -44,6 +44,7 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1113;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1114;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4015;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4016;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4017;
 import static org.hisp.dhis.tracker.validation.hooks.AssertValidationErrorReporter.hasTrackerError;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -102,6 +103,8 @@ class PreCheckExistenceValidationHookTest
 
     private final static String RELATIONSHIP_UID = "RelationshipId";
 
+    private final static String SOFT_DELETED_RELATIONSHIP_UID = "SoftDeletedRelationshipId";
+
     @Mock
     private TrackerPreheat preheat;
 
@@ -123,8 +126,8 @@ class PreCheckExistenceValidationHookTest
         when( bundle.getProgramInstance( ENROLLMENT_UID ) ).thenReturn( getEnrollment() );
         when( bundle.getProgramStageInstance( SOFT_DELETED_EVENT_UID ) ).thenReturn( getSoftDeletedEvent() );
         when( bundle.getProgramStageInstance( EVENT_UID ) ).thenReturn( getEvent() );
-        when( preheat.getRelationship( getPayloadRelationship() ) )
-            .thenReturn( getRelationship() );
+        when( preheat.getRelationship( getPayloadRelationship() ) ).thenReturn( getRelationship() );
+        when( preheat.getRelationship( SOFT_DELETED_RELATIONSHIP_UID ) ).thenReturn( softDeletedRelationship() );
     }
 
     @Test
@@ -505,6 +508,22 @@ class PreCheckExistenceValidationHookTest
         hasTrackerError( reporter, E4016, RELATIONSHIP, rel.getUid() );
     }
 
+    @Test
+    void verifyRelationshipValidationFailsWhenIsSoftDeleted()
+    {
+        // given
+        Relationship rel = Relationship.builder()
+            .relationship( SOFT_DELETED_RELATIONSHIP_UID )
+            .build();
+
+        // when
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
+        validationHook.validateRelationship( reporter, rel );
+
+        // then
+        hasTrackerError( reporter, E4017, RELATIONSHIP, rel.getUid() );
+    }
+
     private TrackedEntityInstance getSoftDeletedTei()
     {
         TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
@@ -560,10 +579,18 @@ class PreCheckExistenceValidationHookTest
             .build();
     }
 
+    private org.hisp.dhis.relationship.Relationship softDeletedRelationship()
+    {
+        org.hisp.dhis.relationship.Relationship relationship = new org.hisp.dhis.relationship.Relationship();
+        relationship.setUid( SOFT_DELETED_RELATIONSHIP_UID );
+        relationship.setDeleted( true );
+        return relationship;
+    }
+
     private org.hisp.dhis.relationship.Relationship getRelationship()
     {
         org.hisp.dhis.relationship.Relationship relationship = new org.hisp.dhis.relationship.Relationship();
-        relationship.setUid( EVENT_UID );
+        relationship.setUid( RELATIONSHIP_UID );
         return relationship;
     }
 }

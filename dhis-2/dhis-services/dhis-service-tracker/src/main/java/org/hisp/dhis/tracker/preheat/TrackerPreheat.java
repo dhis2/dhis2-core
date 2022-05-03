@@ -626,6 +626,11 @@ public class TrackerPreheat
         return Optional.ofNullable( notes.get( uid ) );
     }
 
+    public Relationship getRelationship( String relationshipUid )
+    {
+        return relationships.get( relationshipUid );
+    }
+
     public Relationship getRelationship( org.hisp.dhis.tracker.domain.Relationship relationship )
     {
         RelationshipType relationshipType = get( RelationshipType.class, relationship.getRelationshipType() );
@@ -674,6 +679,7 @@ public class TrackerPreheat
             }
 
             relationships.put( relationshipKey.asString(), relationship );
+            relationships.put( relationship.getUid(), relationship );
         }
     }
 

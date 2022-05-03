@@ -55,6 +55,13 @@ public class RelationshipPreheatKeySupport
 
     public static RelationshipKey getRelationshipKey( Relationship relationship )
     {
+        if ( relationship.getRelationshipType() == null ||
+            relationship.getFrom() == null ||
+            relationship.getTo() == null )
+        {
+            return null;
+        }
+
         return getRelationshipKey(
             relationship.getRelationshipType(),
             getRelationshipItemKey( relationship.getFrom() ),
