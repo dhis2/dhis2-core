@@ -507,8 +507,8 @@ class DataValueServiceTest
     @Test
     void testValidateMissingPeriod()
     {
-        assertIllegalQueryEx( assertThrows( IllegalQueryException.class,
-            () -> dataValueService.validate( new DataExportParams()
+        assertIllegalQueryEx(
+            assertThrows( IllegalQueryException.class, () -> dataValueService.validate( new DataExportParams()
                 .setDataElements( Set.of( deA, deB ) )
                 .setOrganisationUnits( Set.of( ouB ) ) ) ),
             ErrorCode.E2002 );
@@ -517,8 +517,8 @@ class DataValueServiceTest
     @Test
     void testValidatePeriodAndStartEndDate()
     {
-        assertIllegalQueryEx( assertThrows( IllegalQueryException.class,
-            () -> dataValueService.validate( new DataExportParams()
+        assertIllegalQueryEx(
+            assertThrows( IllegalQueryException.class, () -> dataValueService.validate( new DataExportParams()
                 .setDataElements( Set.of( deA, deB ) )
                 .setPeriods( Set.of( peA ) )
                 .setStartDate( getDate( 2022, 1, 1 ) )
@@ -530,8 +530,8 @@ class DataValueServiceTest
     @Test
     void testValidateMissingOrgUnit()
     {
-        assertIllegalQueryEx( assertThrows( IllegalQueryException.class,
-            () -> dataValueService.validate( new DataExportParams()
+        assertIllegalQueryEx(
+            assertThrows( IllegalQueryException.class, () -> dataValueService.validate( new DataExportParams()
                 .setDataElements( Set.of( deA, deB ) )
                 .setPeriods( Set.of( peB ) ) ) ),
             ErrorCode.E2006 );
