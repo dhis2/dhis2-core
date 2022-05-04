@@ -183,10 +183,10 @@ public interface PeriodService
      * Enforces that each Period in the given collection is loaded in the
      * current session. Persists the Period if it does not exist.
      *
-     * @param periods the list of Periods.
+     * @param periods the collection of Periods.
      * @return the list of Periods.
      */
-    List<Period> reloadPeriods( List<Period> periods );
+    List<Period> reloadPeriods( Collection<Period> periods );
 
     /**
      * Returns a list of the given number of previous periods in ascending

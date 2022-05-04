@@ -173,7 +173,8 @@ public interface DataValueService
      * @param params the data export parameters.
      * @throws IllegalArgumentException if parameters are invalid.
      */
-    void validate( DataExportParams params );
+    void validate( DataExportParams params )
+        throws IllegalQueryException;
 
     /**
      * Returns all DataValues.
@@ -210,19 +211,8 @@ public interface DataValueService
 
     /**
      * Gets the number of DataValues which have been updated between the given
-     * start and end date. The
-     *
-     * <pre>
-     * startDate
-     * </pre>
-     *
-     * and
-     *
-     * <pre>
-     * endDate
-     * </pre>
-     *
-     * parameters can both be null but one must be defined.
+     * start and end date. The {@code startDate} and {@code endDate} parameters
+     * can both be null but one must be defined.
      *
      * @param startDate the start date to compare against data value last
      *        updated.
