@@ -515,6 +515,28 @@ public class DataValidator
     }
 
     /**
+     * Validates the given min value and max value.
+     *
+     * @param minValue the min value.
+     * @param maxValue the max value.
+     */
+    public void validateMinMaxValues( Integer minValue, Integer maxValue )
+    {
+        if ( minValue == null )
+        {
+            throw new IllegalQueryException( ErrorCode.E2042 );
+        }
+        if ( maxValue == null )
+        {
+            throw new IllegalQueryException( ErrorCode.E2043 );
+        }
+        if ( maxValue <= minValue )
+        {
+            throw new IllegalQueryException( ErrorCode.E2044 );
+        }
+    }
+
+    /**
      * Validates if the given data value is valid for the given DataElement, and
      * normalize it if the dataValue is a boolean type.
      *

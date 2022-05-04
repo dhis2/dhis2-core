@@ -41,6 +41,7 @@ import org.hisp.dhis.webapi.webdomain.datavalue.MinMaxValueDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -60,14 +61,14 @@ public class MinMaxValueController
 
     @PostMapping( "/minMaxValues" )
     @ResponseStatus( value = HttpStatus.OK )
-    public void saveOrUpdateMinMaxValue( MinMaxValueDto valueDto )
+    public void saveOrUpdateMinMaxValue( @RequestBody MinMaxValueDto valueDto )
     {
         saveOrUpdateMinMaxDataElement( valueDto );
     }
 
     @DeleteMapping( "/minMaxValues" )
     @ResponseStatus( value = HttpStatus.NO_CONTENT )
-    public void removeMinMaxValue( MinMaxValueDto valueDto )
+    public void removeMinMaxValue( @RequestBody MinMaxValueDto valueDto )
     {
         removeMinMaxDataElement( valueDto );
     }
@@ -82,6 +83,7 @@ public class MinMaxValueController
         DataElement dataElement = dataValidator.getAndValidateDataElement( dto.getDataElement() );
         OrganisationUnit orgUnit = dataValidator.getAndValidateOrganisationUnit( dto.getOrgUnit() );
         CategoryOptionCombo optCombo = dataValidator.getAndValidateCategoryOptionCombo( dto.getCategoryOptionCombo() );
+        dataValidator.validateMinMaxValues( dto.getMinValue(), dto.getMaxValue() );
         MinMaxDataElement value = minMaxValueService.getMinMaxDataElement( orgUnit, dataElement, optCombo );
 
         if ( value != null )
