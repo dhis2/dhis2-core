@@ -377,23 +377,6 @@ public class DefaultUserService
 
     @Override
     @Transactional( readOnly = true )
-    public boolean isLastSuperRole( UserRole userRole )
-    {
-        Collection<UserRole> groups = userRoleStore.getAll();
-
-        for ( UserRole group : groups )
-        {
-            if ( group.isSuper() && group.getId() != userRole.getId() )
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    @Override
-    @Transactional( readOnly = true )
     public boolean canAddOrUpdateUser( Collection<String> userGroups )
     {
         return canAddOrUpdateUser( userGroups, currentUserService.getCurrentUser() );
