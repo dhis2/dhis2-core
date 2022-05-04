@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.minmax;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.Collection;
 import java.util.List;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
@@ -40,25 +40,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
- * @version $Id$
  */
+@RequiredArgsConstructor
 @Transactional
 @Service( "org.hisp.dhis.minmax.MinMaxDataElementService" )
 public class DefaultMinMaxDataElementService
     implements MinMaxDataElementService
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final MinMaxDataElementStore minMaxDataElementStore;
-
-    public DefaultMinMaxDataElementService( MinMaxDataElementStore minMaxDataElementStore )
-    {
-        checkNotNull( minMaxDataElementStore );
-
-        this.minMaxDataElementStore = minMaxDataElementStore;
-    }
 
     // -------------------------------------------------------------------------
     // MinMaxDataElementService implementation

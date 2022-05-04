@@ -107,7 +107,7 @@ public class HibernateMinMaxDataElementStore
     @Override
     public List<MinMaxDataElement> get( OrganisationUnit source, Collection<DataElement> dataElements )
     {
-        if ( dataElements.size() == 0 )
+        if ( dataElements.isEmpty() )
         {
             return new ArrayList<>();
         }

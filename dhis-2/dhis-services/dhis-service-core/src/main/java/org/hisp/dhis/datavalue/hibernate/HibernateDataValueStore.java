@@ -33,8 +33,11 @@ import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.function.Function;
@@ -178,7 +181,15 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
     public List<DataValue> getDataValues( DataExportParams params )
     {
         Set<DataElement> dataElements = params.getAllDataElements();
+        Set<Period> periods = reloadAndFilterPeriods( params.getPeriods() );
         Set<OrganisationUnit> organisationUnits = params.getAllOrganisationUnits();
+
+        // Return empty list if parameters include periods but none exist
+
+        if ( params.hasPeriods() && periods.isEmpty() )
+        {
+            return new ArrayList<>();
+        }
 
         // ---------------------------------------------------------------------
         // HQL parameters
@@ -192,7 +203,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
             "inner join dv.attributeOptionCombo ao " +
             "where de.id in (:dataElements) ";
 
-        if ( params.hasPeriods() )
+        if ( !periods.isEmpty() )
         {
             hql += "and pe.id in (:periods) ";
         }
@@ -259,12 +270,8 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
         Query<DataValue> query = getQuery( hql )
             .setParameterList( "dataElements", getIdentifiers( dataElements ) );
 
-        if ( params.hasPeriods() )
+        if ( !periods.isEmpty() )
         {
-            Set<Period> periods = params.getPeriods().stream()
-                .map( p -> periodStore.reloadPeriod( p ) )
-                .collect( Collectors.toSet() );
-
             query.setParameterList( "periods", getIdentifiers( periods ) );
         }
         else if ( params.hasStartEndDate() )
@@ -553,6 +560,21 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
+
+    /**
+     * Reloads the periods in the given collection, and filters out periods
+     * which do not exist in the database.
+     *
+     * @param periods the collection of {@link Period}.
+     * @return a set of reloaded {@link Period}.
+     */
+    private Set<Period> reloadAndFilterPeriods( Collection<Period> periods )
+    {
+        return periods != null ? periods.stream()
+            .map( p -> periodStore.reloadPeriod( p ) )
+            .filter( Objects::nonNull )
+            .collect( Collectors.toSet() ) : new HashSet<>();
+    }
 
     /**
      * Gets a list of DataElementOperands to use for SQL query.

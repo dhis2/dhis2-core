@@ -65,9 +65,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * @author Joao Antunes
  */
 @Controller
-@RequestMapping( value = MinMaxValueController.RESOURCE_PATH )
+@RequestMapping( value = MinMaxValueGenerationController.RESOURCE_PATH )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class MinMaxValueController
+public class MinMaxValueGenerationController
 {
     public static final String RESOURCE_PATH = "/minMaxValues";
 

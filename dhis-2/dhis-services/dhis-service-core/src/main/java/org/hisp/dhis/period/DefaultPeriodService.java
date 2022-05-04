@@ -192,7 +192,7 @@ public class DefaultPeriodService
 
     @Override
     @Transactional
-    public List<Period> reloadPeriods( List<Period> periods )
+    public List<Period> reloadPeriods( Collection<Period> periods )
     {
         List<Period> reloaded = new ArrayList<>();
 
