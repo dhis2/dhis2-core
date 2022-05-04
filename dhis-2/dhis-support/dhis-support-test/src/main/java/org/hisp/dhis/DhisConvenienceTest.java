@@ -2530,12 +2530,13 @@ public abstract class DhisConvenienceTest
 
     protected void injectSecurityContext( User user )
     {
-        user = userService.getUser( user.getUid() );
         if ( user == null )
         {
             clearSecurityContext();
             return;
         }
+
+        user = userService.getUser( user.getUid() );
 
         Authentication authentication = new UsernamePasswordAuthenticationToken( user, "", user.getAuthorities() );
         SecurityContext context = SecurityContextHolder.createEmptyContext();
