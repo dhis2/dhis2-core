@@ -57,7 +57,7 @@ public class TrackedEntityDataValueAuditDeletionHandler
     protected void register()
     {
         whenVetoing( DataElement.class, this::allowDeleteDataElement );
-        whenVetoing( ProgramStageInstance.class, this::allowProgramStageInstance );
+        whenVetoing( ProgramStageInstance.class, this::allowDeleteProgramStageInstance );
     }
 
     private DeletionVeto allowDeleteDataElement( DataElement dataElement )
@@ -67,7 +67,7 @@ public class TrackedEntityDataValueAuditDeletionHandler
         return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
     }
 
-    private DeletionVeto allowProgramStageInstance( ProgramStageInstance psi )
+    private DeletionVeto allowDeleteProgramStageInstance( ProgramStageInstance psi )
     {
         String sql = "SELECT COUNT(*) FROM trackedentitydatavalueaudit where programstageinstanceid=" + psi.getId();
 
