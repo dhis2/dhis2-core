@@ -117,7 +117,7 @@ public class UserKeyJsonValue
     @JsonProperty
     public String getValue()
     {
-        return encrypted ? encryptedValue : jbPlainValue;
+        return isEncrypted() ? getEncryptedValue() : getJbPlainValue();
     }
 
     public void setValue( String value )
@@ -127,7 +127,7 @@ public class UserKeyJsonValue
 
     public String getJbPlainValue()
     {
-        return !encrypted && value != null ? value : jbPlainValue;
+        return !isEncrypted() && value != null ? value : jbPlainValue;
     }
 
     public void setJbPlainValue( String jbPlainValue )
@@ -137,7 +137,7 @@ public class UserKeyJsonValue
 
     public String getEncryptedValue()
     {
-        return encrypted && value != null ? value : encryptedValue;
+        return isEncrypted() && value != null ? value : encryptedValue;
     }
 
     public void setEncryptedValue( String encryptedValue )
@@ -153,5 +153,10 @@ public class UserKeyJsonValue
     public void setEncrypted( boolean encrypted )
     {
         this.encrypted = encrypted;
+    }
+
+    private boolean isEncrypted()
+    {
+        return encrypted != null && encrypted;
     }
 }
