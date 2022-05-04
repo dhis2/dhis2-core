@@ -113,6 +113,10 @@ public class TrackerIdSchemeParam
      */
     public MetadataIdentifier toMetadataIdentifier( IdentifiableObject metadata )
     {
+        if ( metadata == null )
+        {
+            return toMetadataIdentifier( (String) null );
+        }
         return toMetadataIdentifier( getIdentifier( metadata ) );
     }
 

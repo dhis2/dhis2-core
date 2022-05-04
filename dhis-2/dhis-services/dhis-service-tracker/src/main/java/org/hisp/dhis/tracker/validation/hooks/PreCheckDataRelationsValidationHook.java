@@ -218,7 +218,7 @@ public class PreCheckDataRelationsValidationHook
 
     private boolean hasNoAttributeOptionComboSet( Event event )
     {
-        return StringUtils.isBlank( event.getAttributeOptionCombo() );
+        return event.getAttributeOptionCombo().isBlank();
     }
 
     private boolean validateCategoryOptionsExist( ValidationErrorReporter reporter, Event event )
@@ -311,7 +311,7 @@ public class PreCheckDataRelationsValidationHook
         if ( !program.getCategoryCombo().equals( aoc.getCategoryCombo() ) )
         {
             reporter.addError( event, TrackerErrorCode.E1054,
-                event.getAttributeOptionCombo(), program.getCategoryCombo() );
+                event.getAttributeOptionCombo().getIdentifierOrAttributeValue(), program.getCategoryCombo() );
             return false;
         }
 
@@ -392,7 +392,8 @@ public class PreCheckDataRelationsValidationHook
         }
         else
         {
-            reporter.addError( event, TrackerErrorCode.E1117, event.getAttributeOptionCombo(),
+            reporter.addError( event, TrackerErrorCode.E1117,
+                event.getAttributeOptionCombo().getIdentifierOrAttributeValue(),
                 event.getAttributeCategoryOptions() );
         }
     }

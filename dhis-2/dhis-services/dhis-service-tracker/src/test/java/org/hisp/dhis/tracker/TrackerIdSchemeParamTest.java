@@ -32,12 +32,14 @@ import static org.hisp.dhis.tracker.TrackerIdScheme.CODE;
 import static org.hisp.dhis.tracker.TrackerIdScheme.NAME;
 import static org.hisp.dhis.tracker.TrackerIdScheme.UID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.Set;
 
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.junit.jupiter.api.Test;
@@ -79,6 +81,19 @@ class TrackerIdSchemeParamTest
     }
 
     @Test
+    void toMetadataIdentifierAttributeFromStringNull()
+    {
+
+        TrackerIdSchemeParam param = TrackerIdSchemeParam.ofAttribute( "z3Z4TD3oBCP" );
+
+        MetadataIdentifier id = param.toMetadataIdentifier( (String) null );
+
+        assertEquals( ATTRIBUTE, id.getIdScheme() );
+        assertEquals( "z3Z4TD3oBCP", id.getIdentifier() );
+        assertNull( id.getAttributeValue() );
+    }
+
+    @Test
     void toMetadataIdentifierUIDFromIdentifiableObject()
     {
 
@@ -88,6 +103,16 @@ class TrackerIdSchemeParamTest
 
         assertEquals( UID, id.getIdScheme() );
         assertEquals( "z3Z4TD3oBCP", id.getIdentifier() );
+    }
+
+    @Test
+    void toMetadataIdentifierUIDFromIdentifiableObjectNull()
+    {
+
+        MetadataIdentifier id = TrackerIdSchemeParam.UID.toMetadataIdentifier( (IdentifiableObject) null );
+
+        assertEquals( UID, id.getIdScheme() );
+        assertNull( id.getIdentifier() );
     }
 
     @Test
@@ -116,6 +141,19 @@ class TrackerIdSchemeParamTest
         assertEquals( ATTRIBUTE, id.getIdScheme() );
         assertEquals( "z3Z4TD3oBCP", id.getIdentifier() );
         assertEquals( "sunshine", id.getAttributeValue() );
+    }
+
+    @Test
+    void toMetadataIdentifierAttributeFromIdentifiableObjectNull()
+    {
+
+        TrackerIdSchemeParam param = TrackerIdSchemeParam.ofAttribute( "z3Z4TD3oBCP" );
+
+        MetadataIdentifier id = param.toMetadataIdentifier( (IdentifiableObject) null );
+
+        assertEquals( ATTRIBUTE, id.getIdScheme() );
+        assertEquals( "z3Z4TD3oBCP", id.getIdentifier() );
+        assertNull( id.getAttributeValue() );
     }
 
     private AttributeValue attributeValue( String value )
