@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import java.util.Set;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -47,8 +48,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import com.google.common.collect.Sets;
 
 /**
  * @author Kristian Nordal
@@ -249,18 +248,18 @@ class DataValueServiceTest
         dataValueService.addDataValue( dataValueI );
         dataValueService.addDataValue( dataValueJ );
         DataExportParams params = new DataExportParams()
-            .setDataElements( Sets.newHashSet( deA ) )
-            .setPeriods( Sets.newHashSet( peA, peB, peC ) )
-            .setOrganisationUnits( Sets.newHashSet( ouA ) );
+            .setDataElements( Set.of( deA ) )
+            .setPeriods( Set.of( peA, peB, peC ) )
+            .setOrganisationUnits( Set.of( ouA ) );
         List<DataValue> values = dataValueService.getDataValues( params );
         assertEquals( 3, values.size() );
         assertTrue( values.contains( dataValueA ) );
         assertTrue( values.contains( dataValueC ) );
         assertTrue( values.contains( dataValueI ) );
         params = new DataExportParams()
-            .setDataElements( Sets.newHashSet( deB ) )
-            .setPeriods( Sets.newHashSet( peA ) )
-            .setOrganisationUnits( Sets.newHashSet( ouA, ouB ) );
+            .setDataElements( Set.of( deB ) )
+            .setPeriods( Set.of( peA ) )
+            .setOrganisationUnits( Set.of( ouA, ouB ) );
         values = dataValueService.getDataValues( params );
         assertEquals( 2, values.size() );
         assertTrue( values.contains( dataValueE ) );
@@ -293,47 +292,47 @@ class DataValueServiceTest
 
         assertEquals( 4, dataValueService
             .getDataValues( new DataExportParams()
-                .setDataElements( Sets.newHashSet( deA, deB ) )
-                .setPeriods( Sets.newHashSet( peB ) )
-                .setOrganisationUnits( Sets.newHashSet( ouA, ouB ) ) )
+                .setDataElements( Set.of( deA, deB ) )
+                .setPeriods( Set.of( peB ) )
+                .setOrganisationUnits( Set.of( ouA, ouB ) ) )
             .size() );
         assertEquals( 2,
             dataValueService
                 .getDataValues( new DataExportParams()
-                    .setDataElements( Sets.newHashSet( deA, deB ) )
-                    .setPeriods( Sets.newHashSet( peA ) )
-                    .setOrganisationUnits( Sets.newHashSet( ouB ) ) )
+                    .setDataElements( Set.of( deA, deB ) )
+                    .setPeriods( Set.of( peA ) )
+                    .setOrganisationUnits( Set.of( ouB ) ) )
                 .size() );
         assertEquals( 4,
             dataValueService.getDataValues( new DataExportParams()
-                .setDataElements( Sets.newHashSet( deA ) )
-                .setPeriods( Sets.newHashSet( peA, peC ) )
-                .setOrganisationUnits( Sets.newHashSet( ouA, ouB ) ) ).size() );
+                .setDataElements( Set.of( deA ) )
+                .setPeriods( Set.of( peA, peC ) )
+                .setOrganisationUnits( Set.of( ouA, ouB ) ) ).size() );
         assertEquals( 4,
             dataValueService.getDataValues( new DataExportParams()
-                .setDataElements( Sets.newHashSet( deB ) )
-                .setPeriods( Sets.newHashSet( peA, peB ) )
-                .setOrganisationUnits( Sets.newHashSet( ouA, ouB ) ) ).size() );
+                .setDataElements( Set.of( deB ) )
+                .setPeriods( Set.of( peA, peB ) )
+                .setOrganisationUnits( Set.of( ouA, ouB ) ) ).size() );
         assertEquals( 1,
             dataValueService
                 .getDataValues( new DataExportParams()
-                    .setDataElements( Sets.newHashSet( deB ) )
-                    .setPeriods( Sets.newHashSet( peB ) )
-                    .setOrganisationUnits( Sets.newHashSet( ouA ) ) )
+                    .setDataElements( Set.of( deB ) )
+                    .setPeriods( Set.of( peB ) )
+                    .setOrganisationUnits( Set.of( ouA ) ) )
                 .size() );
         assertEquals( 1,
             dataValueService
                 .getDataValues( new DataExportParams()
-                    .setDataElements( Sets.newHashSet( deA ) )
-                    .setPeriods( Sets.newHashSet( peA ) )
-                    .setOrganisationUnits( Sets.newHashSet( ouB ) ) )
+                    .setDataElements( Set.of( deA ) )
+                    .setPeriods( Set.of( peA ) )
+                    .setOrganisationUnits( Set.of( ouB ) ) )
                 .size() );
         assertEquals( 1,
             dataValueService
                 .getDataValues( new DataExportParams()
-                    .setDataElements( Sets.newHashSet( deA ) )
+                    .setDataElements( Set.of( deA ) )
                     .setStartDate( peA.getStartDate() ).setEndDate( peA.getEndDate() )
-                    .setOrganisationUnits( Sets.newHashSet( ouB ) ) )
+                    .setOrganisationUnits( Set.of( ouB ) ) )
                 .size() );
     }
 
@@ -351,10 +350,10 @@ class DataValueServiceTest
 
         assertEquals( 2, dataValueService
             .getDataValues( new DataExportParams()
-                .setDataElements( Sets.newHashSet( deA ) )
-                .setCategoryOptionCombos( Sets.newHashSet( optionCombo ) )
-                .setPeriods( Sets.newHashSet( peA ) )
-                .setOrganisationUnits( Sets.newHashSet( ouA, ouB ) ) )
+                .setDataElements( Set.of( deA ) )
+                .setCategoryOptionCombos( Set.of( optionCombo ) )
+                .setPeriods( Set.of( peA ) )
+                .setOrganisationUnits( Set.of( ouA, ouB ) ) )
             .size() );
     }
 
@@ -367,10 +366,10 @@ class DataValueServiceTest
 
         assertEquals( 0, dataValueService
             .getDataValues( new DataExportParams()
-                .setDataElements( Sets.newHashSet( deA ) )
-                .setCategoryOptionCombos( Sets.newHashSet( optionCombo ) )
-                .setPeriods( Sets.newHashSet( peX ) )
-                .setOrganisationUnits( Sets.newHashSet( ouA ) ) )
+                .setDataElements( Set.of( deA ) )
+                .setCategoryOptionCombos( Set.of( optionCombo ) )
+                .setPeriods( Set.of( peX ) )
+                .setOrganisationUnits( Set.of( ouA ) ) )
             .size() );
     }
 
@@ -388,10 +387,10 @@ class DataValueServiceTest
 
         assertEquals( 2, dataValueService
             .getDataValues( new DataExportParams()
-                .setDataElements( Sets.newHashSet( deA ) )
-                .setCategoryOptionCombos( Sets.newHashSet( optionCombo ) )
-                .setPeriods( Sets.newHashSet( peA, peX ) )
-                .setOrganisationUnits( Sets.newHashSet( ouA, ouB ) ) )
+                .setDataElements( Set.of( deA ) )
+                .setCategoryOptionCombos( Set.of( optionCombo ) )
+                .setPeriods( Set.of( peA, peX ) )
+                .setOrganisationUnits( Set.of( ouA, ouB ) ) )
             .size() );
     }
 
@@ -439,40 +438,40 @@ class DataValueServiceTest
         dataValueService.addDataValue( dataValueI );
         dataValueService.addDataValue( dataValueJ );
         assertEquals( 4, dataValueService
-            .getDataValues( new DataExportParams().setDataElements( Sets.newHashSet( deA, deB ) )
-                .setPeriods( Sets.newHashSet( peB ) ).setOrganisationUnits( Sets.newHashSet( ouA, ouB ) ) )
+            .getDataValues( new DataExportParams().setDataElements( Set.of( deA, deB ) )
+                .setPeriods( Set.of( peB ) ).setOrganisationUnits( Set.of( ouA, ouB ) ) )
             .size() );
         assertEquals( 2,
             dataValueService
-                .getDataValues( new DataExportParams().setDataElements( Sets.newHashSet( deA, deB ) )
-                    .setPeriods( Sets.newHashSet( peA ) ).setOrganisationUnits( Sets.newHashSet( ouB ) ) )
+                .getDataValues( new DataExportParams().setDataElements( Set.of( deA, deB ) )
+                    .setPeriods( Set.of( peA ) ).setOrganisationUnits( Set.of( ouB ) ) )
                 .size() );
         assertEquals( 2,
-            dataValueService.getDataValues( new DataExportParams().setDataElements( Sets.newHashSet( deA ) )
-                .setPeriods( Sets.newHashSet( peC ) ).setOrganisationUnits( Sets.newHashSet( ouA, ouB ) ) )
+            dataValueService.getDataValues( new DataExportParams().setDataElements( Set.of( deA ) )
+                .setPeriods( Set.of( peC ) ).setOrganisationUnits( Set.of( ouA, ouB ) ) )
                 .size() );
         assertEquals( 4,
-            dataValueService.getDataValues( new DataExportParams().setDataElements( Sets.newHashSet( deA ) )
-                .setPeriods( Sets.newHashSet( peA, peC ) )
-                .setOrganisationUnits( Sets.newHashSet( ouA, ouB ) ) ).size() );
+            dataValueService.getDataValues( new DataExportParams().setDataElements( Set.of( deA ) )
+                .setPeriods( Set.of( peA, peC ) )
+                .setOrganisationUnits( Set.of( ouA, ouB ) ) ).size() );
         assertEquals( 4,
-            dataValueService.getDataValues( new DataExportParams().setDataElements( Sets.newHashSet( deB ) )
-                .setPeriods( Sets.newHashSet( peA, peB ) )
-                .setOrganisationUnits( Sets.newHashSet( ouA, ouB ) ) ).size() );
+            dataValueService.getDataValues( new DataExportParams().setDataElements( Set.of( deB ) )
+                .setPeriods( Set.of( peA, peB ) )
+                .setOrganisationUnits( Set.of( ouA, ouB ) ) ).size() );
         assertEquals( 1,
             dataValueService
-                .getDataValues( new DataExportParams().setDataElements( Sets.newHashSet( deB ) )
-                    .setPeriods( Sets.newHashSet( peB ) ).setOrganisationUnits( Sets.newHashSet( ouA ) ) )
+                .getDataValues( new DataExportParams().setDataElements( Set.of( deB ) )
+                    .setPeriods( Set.of( peB ) ).setOrganisationUnits( Set.of( ouA ) ) )
                 .size() );
         assertEquals( 1,
             dataValueService
-                .getDataValues( new DataExportParams().setDataElements( Sets.newHashSet( deB ) )
-                    .setPeriods( Sets.newHashSet( peB ) ).setOrganisationUnits( Sets.newHashSet( ouA ) ) )
+                .getDataValues( new DataExportParams().setDataElements( Set.of( deB ) )
+                    .setPeriods( Set.of( peB ) ).setOrganisationUnits( Set.of( ouA ) ) )
                 .size() );
         assertEquals( 1,
             dataValueService
-                .getDataValues( new DataExportParams().setDataElements( Sets.newHashSet( deA ) )
-                    .setPeriods( Sets.newHashSet( peA ) ).setOrganisationUnits( Sets.newHashSet( ouB ) ) )
+                .getDataValues( new DataExportParams().setDataElements( Set.of( deA ) )
+                    .setPeriods( Set.of( peA ) ).setOrganisationUnits( Set.of( ouB ) ) )
                 .size() );
     }
 
@@ -500,8 +499,8 @@ class DataValueServiceTest
     {
         assertIllegalQueryEx( assertThrows( IllegalQueryException.class,
             () -> dataValueService.validate( new DataExportParams()
-                .setPeriods( Sets.newHashSet( peB ) )
-                .setOrganisationUnits( Sets.newHashSet( ouA ) ) ) ),
+                .setPeriods( Set.of( peB ) )
+                .setOrganisationUnits( Set.of( ouA ) ) ) ),
             ErrorCode.E2001 );
     }
 
@@ -510,8 +509,8 @@ class DataValueServiceTest
     {
         assertIllegalQueryEx( assertThrows( IllegalQueryException.class,
             () -> dataValueService.validate( new DataExportParams()
-                .setDataElements( Sets.newHashSet( deA, deB ) )
-                .setOrganisationUnits( Sets.newHashSet( ouB ) ) ) ),
+                .setDataElements( Set.of( deA, deB ) )
+                .setOrganisationUnits( Set.of( ouB ) ) ) ),
             ErrorCode.E2002 );
     }
 
@@ -520,11 +519,11 @@ class DataValueServiceTest
     {
         assertIllegalQueryEx( assertThrows( IllegalQueryException.class,
             () -> dataValueService.validate( new DataExportParams()
-                .setDataElements( Sets.newHashSet( deA, deB ) )
-                .setPeriods( Sets.newHashSet( peA ) )
+                .setDataElements( Set.of( deA, deB ) )
+                .setPeriods( Set.of( peA ) )
                 .setStartDate( getDate( 2022, 1, 1 ) )
                 .setEndDate( getDate( 2022, 3, 1 ) )
-                .setOrganisationUnits( Sets.newHashSet( ouB ) ) ) ),
+                .setOrganisationUnits( Set.of( ouB ) ) ) ),
             ErrorCode.E2003 );
     }
 
@@ -533,8 +532,8 @@ class DataValueServiceTest
     {
         assertIllegalQueryEx( assertThrows( IllegalQueryException.class,
             () -> dataValueService.validate( new DataExportParams()
-                .setDataElements( Sets.newHashSet( deA, deB ) )
-                .setPeriods( Sets.newHashSet( peB ) ) ) ),
+                .setDataElements( Set.of( deA, deB ) )
+                .setPeriods( Set.of( peB ) ) ) ),
             ErrorCode.E2006 );
     }
 }
