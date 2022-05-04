@@ -276,7 +276,7 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
 
         String expected = "ps.\"monthly\",ax.\"ou\"  from " + getTable( programA.getUid() )
             + " as ax left join _dateperiodstructure as ps on cast(ax.\"duedate\" as date) = ps.\"dateperiod\" "
-            + "where (( ax.\"duedate\" >= '2000-01-01' and ax.\"duedate\" < '2000-04-01') )and ax.\"uidlevel1\" "
+            + "where ps.\"monthly\" in ('2000Q1') and ax.\"uidlevel1\" "
             + "in ('ouabcdefghA') and pistatus in ('ACTIVE','COMPLETED') and psistatus in ('SCHEDULE') limit 101";
 
         assertSql( expected, sql.getValue() );
