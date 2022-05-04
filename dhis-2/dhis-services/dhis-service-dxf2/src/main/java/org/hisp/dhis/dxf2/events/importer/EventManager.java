@@ -337,7 +337,7 @@ public class EventManager
 
         for ( DataValue dv : event.getDataValues() )
         {
-            AuditType auditType = null;
+            AuditType auditType = AuditType.READ;
 
             DataElement dateElement = workContext.getDataElementMap().get( dv.getDataElement() );
 
