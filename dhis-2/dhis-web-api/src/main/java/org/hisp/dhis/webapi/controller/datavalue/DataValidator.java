@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller.datavalue;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.forbidden;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
@@ -39,6 +38,8 @@ import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.calendar.CalendarService;
 import org.hisp.dhis.category.CategoryOption;
@@ -81,6 +82,7 @@ import com.google.common.base.Preconditions;
  * controller.
  */
 @Component
+@RequiredArgsConstructor
 public class DataValidator
 {
     private final CategoryService categoryService;
@@ -101,31 +103,16 @@ public class DataValidator
 
     private final AggregateAccessManager accessManager;
 
-    public DataValidator( final CategoryService categoryService, final OrganisationUnitService organisationUnitService,
-        final DataSetService dataSetService, final IdentifiableObjectManager idObjectManager,
-        final DataValueService dataValueService,
-        final InputUtils inputUtils, final FileResourceService fileResourceService,
-        final CalendarService calendarService, final AggregateAccessManager accessManager )
+    /**
+     * Retrieves and verifies a data set.
+     *
+     * @param uid the data set identifier.
+     * @return the {@link DataSet}.
+     * @throws IllegalQueryException if the validation fails.
+     */
+    public DataSet getAndValidateDataSet( String uid )
     {
-        checkNotNull( categoryService );
-        checkNotNull( organisationUnitService );
-        checkNotNull( dataSetService );
-        checkNotNull( idObjectManager );
-        checkNotNull( dataValueService );
-        checkNotNull( inputUtils );
-        checkNotNull( fileResourceService );
-        checkNotNull( calendarService );
-        checkNotNull( accessManager );
-
-        this.categoryService = categoryService;
-        this.organisationUnitService = organisationUnitService;
-        this.dataSetService = dataSetService;
-        this.idObjectManager = idObjectManager;
-        this.dataValueService = dataValueService;
-        this.inputUtils = inputUtils;
-        this.fileResourceService = fileResourceService;
-        this.calendarService = calendarService;
-        this.accessManager = accessManager;
+        return idObjectManager.getAndValidate( DataSet.class, ErrorCode.E1105, uid );
     }
 
     /**
@@ -137,14 +124,7 @@ public class DataValidator
      */
     public DataElement getAndValidateDataElement( String uid )
     {
-        final DataElement dataElement = idObjectManager.get( DataElement.class, uid );
-
-        if ( dataElement == null )
-        {
-            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E1100, uid ) );
-        }
-
-        return dataElement;
+        return idObjectManager.getAndValidate( DataElement.class, ErrorCode.E1100, uid );
     }
 
     /**
@@ -156,14 +136,7 @@ public class DataValidator
      */
     public CategoryOptionCombo getAndValidateCategoryOptionCombo( String uid )
     {
-        CategoryOptionCombo categoryOptionCombo = categoryService.getCategoryOptionCombo( uid );
-
-        if ( categoryOptionCombo == null )
-        {
-            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E1103, uid ) );
-        }
-
-        return categoryOptionCombo;
+        return idObjectManager.getAndValidate( CategoryOptionCombo.class, ErrorCode.E1103, uid );
     }
 
     /**
@@ -211,7 +184,7 @@ public class DataValidator
     {
         attribute = ObjectUtils.firstNonNull( attribute, new DataValueCategoryDto() );
 
-        final CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo(
+        CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo(
             attribute.getCombo(), attribute.getOptions(), false );
 
         if ( attributeOptionCombo == null )
@@ -263,7 +236,7 @@ public class DataValidator
      */
     public Period getAndValidatePeriod( String pe )
     {
-        final Period period = PeriodType.getPeriodFromIsoString( pe );
+        Period period = PeriodType.getPeriodFromIsoString( pe );
 
         if ( period == null )
         {
@@ -282,14 +255,10 @@ public class DataValidator
      */
     public OrganisationUnit getAndValidateOrganisationUnit( String uid )
     {
-        final OrganisationUnit organisationUnit = idObjectManager.get( OrganisationUnit.class, uid );
+        OrganisationUnit organisationUnit = idObjectManager.getAndValidate(
+            OrganisationUnit.class, ErrorCode.E1102, uid );
 
-        if ( organisationUnit == null )
-        {
-            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E1102, uid ) );
-        }
-
-        final boolean isInHierarchy = organisationUnitService.isInUserHierarchyCached( organisationUnit );
+        boolean isInHierarchy = organisationUnitService.isInUserHierarchyCached( organisationUnit );
 
         if ( !isInHierarchy )
         {
@@ -314,12 +283,7 @@ public class DataValidator
             return null;
         }
 
-        final DataSet dataSet = dataSetService.getDataSet( uid );
-
-        if ( dataSet == null )
-        {
-            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E1105, uid ) );
-        }
+        DataSet dataSet = idObjectManager.getAndValidate( DataSet.class, ErrorCode.E1105, uid );
 
         if ( !dataSet.getDataElements().contains( dataElement ) )
         {
@@ -365,10 +329,10 @@ public class DataValidator
      */
     public void validateOrganisationUnitPeriod( OrganisationUnit organisationUnit, Period period )
     {
-        final Date openingDate = organisationUnit.getOpeningDate();
-        final Date closedDate = organisationUnit.getClosedDate();
-        final Date startDate = period.getStartDate();
-        final Date endDate = period.getEndDate();
+        Date openingDate = organisationUnit.getOpeningDate();
+        Date closedDate = organisationUnit.getClosedDate();
+        Date startDate = period.getStartDate();
+        Date endDate = period.getEndDate();
 
         if ( (closedDate != null && closedDate.before( startDate )) || openingDate.after( endDate ) )
         {
@@ -386,7 +350,7 @@ public class DataValidator
      */
     public void validateInvalidFuturePeriod( Period period, DataElement dataElement )
     {
-        final Period latestFuturePeriod = dataElement.getLatestOpenFuturePeriod();
+        Period latestFuturePeriod = dataElement.getLatestOpenFuturePeriod();
 
         if ( period.isAfter( latestFuturePeriod ) && calendarService.getSystemCalendar().isIso8601() )
         {
@@ -547,6 +511,28 @@ public class DataValidator
             && !optionSet.getOptionCodesAsSet().contains( dataValue ) )
         {
             throw new IllegalQueryException( new ErrorMessage( ErrorCode.E2029, dataElement.getUid() ) );
+        }
+    }
+
+    /**
+     * Validates the given min value and max value.
+     *
+     * @param minValue the min value.
+     * @param maxValue the max value.
+     */
+    public void validateMinMaxValues( Integer minValue, Integer maxValue )
+    {
+        if ( minValue == null )
+        {
+            throw new IllegalQueryException( ErrorCode.E2042 );
+        }
+        if ( maxValue == null )
+        {
+            throw new IllegalQueryException( ErrorCode.E2043 );
+        }
+        if ( maxValue <= minValue )
+        {
+            throw new IllegalQueryException( ErrorCode.E2044 );
         }
     }
 

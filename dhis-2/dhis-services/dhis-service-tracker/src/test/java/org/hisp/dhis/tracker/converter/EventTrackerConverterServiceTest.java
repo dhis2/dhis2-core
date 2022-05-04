@@ -335,13 +335,14 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest
 
     private Event event( String uid, DataValue dataValue )
     {
-        Event event = new Event();
-        event.setEvent( uid );
-        event.setProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_UID ) );
-        event.setProgram( MetadataIdentifier.ofUid( PROGRAM_UID ) );
-        event.setOrgUnit( MetadataIdentifier.ofUid( ORGANISATION_UNIT_UID ) );
-        event.setDataValues( Sets.newHashSet( dataValue ) );
-        return event;
+        return Event.builder()
+            .event( uid )
+            .programStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_UID ) )
+            .program( MetadataIdentifier.ofUid( PROGRAM_UID ) )
+            .orgUnit( MetadataIdentifier.ofUid( ORGANISATION_UNIT_UID ) )
+            .attributeOptionCombo( MetadataIdentifier.ofUid( null ) )
+            .dataValues( Sets.newHashSet( dataValue ) )
+            .build();
     }
 
     private ProgramStageInstance programStageInstance()

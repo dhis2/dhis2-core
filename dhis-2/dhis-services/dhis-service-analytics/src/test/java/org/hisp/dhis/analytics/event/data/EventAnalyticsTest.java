@@ -163,6 +163,20 @@ abstract class EventAnalyticsTest
         return params.build();
     }
 
+    protected EventQueryParams createRequestParamsWithTimeField( final String timeField )
+    {
+        OrganisationUnit ouA = createOrganisationUnit( 'A' );
+        ouA.setPath( "/" + ouA.getUid() );
+        EventQueryParams.Builder params = new EventQueryParams.Builder();
+        params.withPeriods( getList( createPeriod( "2000Q1" ) ), "monthly" );
+        params.withOrganisationUnits( getList( ouA ) );
+        params.withTableName( getTableName() + "_" + programA.getUid() );
+        params.withProgram( programA );
+        params.withProgramStatuses( new LinkedHashSet<>( List.of( ACTIVE, COMPLETED ) ) );
+        params.withTimeField( timeField );
+        return params.build();
+    }
+
     protected EventQueryParams createRequestParams( ProgramStage withProgramStage, ValueType withQueryItemValueType )
     {
         EventQueryParams.Builder params = new EventQueryParams.Builder( _createRequestParams() );

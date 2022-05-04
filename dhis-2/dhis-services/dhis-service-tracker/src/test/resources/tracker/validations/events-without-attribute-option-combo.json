@@ -52,6 +52,9 @@
       "scheduledAt": "2019-08-19T13:59:13.688",
       "followup": false,
       "deleted": false,
+      "attributeOptionCombo": {
+        "idScheme": "UID"
+      },
       "attributeCategoryOptions": "Aj6SFQQBBFU",
       "dataValues": [],
       "notes": []
