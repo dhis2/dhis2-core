@@ -29,7 +29,6 @@ package org.hisp.dhis.relationship.hibernate;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.persistence.NoResultException;
@@ -309,19 +308,6 @@ public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<R
         {
             return null;
         }
-    }
-
-    @Override
-    protected void preProcessPredicates( CriteriaBuilder builder,
-        List<Function<Root<Relationship>, Predicate>> predicates )
-    {
-        predicates.add( root -> builder.equal( root.get( "deleted" ), false ) );
-    }
-
-    @Override
-    protected Relationship postProcessObject( Relationship relationship )
-    {
-        return (relationship == null || relationship.isDeleted()) ? null : relationship;
     }
 
     private Predicate bidirectionalCriteria( CriteriaBuilder criteriaBuilder, Root<Relationship> root,

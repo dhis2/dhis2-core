@@ -234,7 +234,9 @@ class MaintenanceServiceTest extends IntegrationTestBase
         assertNotNull( relationshipService.getRelationship( r.getId() ) );
         trackedEntityInstanceService.deleteTrackedEntityInstance( entityInstance );
         assertNull( trackedEntityInstanceService.getTrackedEntityInstance( entityInstance.getId() ) );
-        assertNull( relationshipService.getRelationship( r.getId() ) );
+        assertTrue( relationshipService.getRelationship( r.getId() ).isDeleted() );// To
+                                                                                   // be
+                                                                                   // changed
         assertTrue(
             trackedEntityInstanceService.trackedEntityInstanceExistsIncludingDeleted( entityInstance.getUid() ) );
         assertTrue( relationshipService.relationshipExistsIncludingDeleted( r.getUid() ) );
@@ -360,7 +362,9 @@ class MaintenanceServiceTest extends IntegrationTestBase
         assertNotNull( relationshipService.getRelationship( r.getId() ) );
         programStageInstanceService.deleteProgramStageInstance( programStageInstanceA );
         assertNull( programStageInstanceService.getProgramStageInstance( idA ) );
-        assertNull( relationshipService.getRelationship( r.getId() ) );
+        assertTrue( relationshipService.getRelationship( r.getId() ).isDeleted() );// To
+                                                                                   // be
+                                                                                   // changed
         assertTrue(
             programStageInstanceService.programStageInstanceExistsIncludingDeleted( programStageInstanceA.getUid() ) );
         assertTrue( relationshipService.relationshipExistsIncludingDeleted( r.getUid() ) );
@@ -394,7 +398,9 @@ class MaintenanceServiceTest extends IntegrationTestBase
         assertNotNull( relationshipService.getRelationship( r.getId() ) );
         programInstanceService.deleteProgramInstance( programInstance );
         assertNull( programInstanceService.getProgramInstance( programInstance.getId() ) );
-        assertNull( relationshipService.getRelationship( r.getId() ) );
+        assertTrue( relationshipService.getRelationship( r.getId() ).isDeleted() );// To
+                                                                                   // be
+                                                                                   // changed
         assertTrue( programInstanceService.programInstanceExistsIncludingDeleted( programInstance.getUid() ) );
         assertTrue( relationshipService.relationshipExistsIncludingDeleted( r.getUid() ) );
         maintenanceService.deleteSoftDeletedProgramInstances();
