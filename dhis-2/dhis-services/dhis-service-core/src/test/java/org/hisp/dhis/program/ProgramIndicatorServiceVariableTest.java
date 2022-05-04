@@ -191,8 +191,8 @@ class ProgramIndicatorServiceVariableTest extends DhisSpringTest
     @Test
     void testScheduledEventCount()
     {
-        assertEquals( " case when upper(psistatus) = 'SCHEDULE' then 1 end ", getSql( "V{scheduled_event_count}" ) );
-        assertEquals( " case when upper(psistatus) = 'SCHEDULE' then 1 end ",
+        assertEquals( " case when psistatus = 'SCHEDULE' then 1 end ", getSql( "V{scheduled_event_count}" ) );
+        assertEquals( " case when psistatus = 'SCHEDULE' then 1 end ",
             getSqlEnrollment( "V{scheduled_event_count}" ) );
     }
 
@@ -201,7 +201,7 @@ class ProgramIndicatorServiceVariableTest extends DhisSpringTest
     {
         assertEquals( "executiondate", getSql( "V{execution_date}" ) );
         assertEquals(
-            "(select executiondate from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and executiondate is not null and executiondate < cast( '2020-02-01' as date ) and executiondate >= cast( '2020-01-01' as date )  and upper(psistatus) IN ('COMPLETED', 'ACTIVE') order by executiondate desc limit 1 )",
+            "(select executiondate from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and executiondate is not null and executiondate < cast( '2020-02-01' as date ) and executiondate >= cast( '2020-01-01' as date )  and psistatus IN ('COMPLETED', 'ACTIVE') order by executiondate desc limit 1 )",
             getSqlEnrollment( "V{execution_date}" ) );
     }
 
@@ -210,7 +210,7 @@ class ProgramIndicatorServiceVariableTest extends DhisSpringTest
     {
         assertEquals( "executiondate", getSql( "V{event_date}" ) );
         assertEquals(
-            "(select executiondate from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and executiondate is not null and executiondate < cast( '2020-02-01' as date ) and executiondate >= cast( '2020-01-01' as date )  and upper(psistatus) IN ('COMPLETED', 'ACTIVE') order by executiondate desc limit 1 )",
+            "(select executiondate from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and executiondate is not null and executiondate < cast( '2020-02-01' as date ) and executiondate >= cast( '2020-01-01' as date )  and psistatus IN ('COMPLETED', 'ACTIVE') order by executiondate desc limit 1 )",
             getSqlEnrollment( "V{event_date}" ) );
     }
 
@@ -219,7 +219,7 @@ class ProgramIndicatorServiceVariableTest extends DhisSpringTest
     {
         assertEquals( "duedate", getSql( "V{scheduled_date}" ) );
         assertEquals(
-            "(select duedate from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and duedate is not null and executiondate < cast( '2020-02-01' as date ) and executiondate >= cast( '2020-01-01' as date )  and upper( psistatus ) = 'SCHEDULE' order by executiondate desc limit 1 )",
+            "(select duedate from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and duedate is not null and executiondate < cast( '2020-02-01' as date ) and executiondate >= cast( '2020-01-01' as date )  and psistatus = 'SCHEDULE' order by executiondate desc limit 1 )",
             getSqlEnrollment( "V{scheduled_date}" ) );
     }
 

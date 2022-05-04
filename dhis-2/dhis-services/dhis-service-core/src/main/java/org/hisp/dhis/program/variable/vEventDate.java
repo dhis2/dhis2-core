@@ -50,13 +50,13 @@ public class vEventDate
                 null, "executiondate", params.getReportingStartDate(), params.getReportingEndDate(),
                 params.getProgramIndicator() );
 
-            return insertIntoWhereProgramStageInstanceFilter( sqlStatement );
+            return maybeAppendEventStatusFilterIntoWhere( sqlStatement );
         }
 
         return "executiondate";
     }
 
-    private String insertIntoWhereProgramStageInstanceFilter( String sqlStatement )
+    private String maybeAppendEventStatusFilterIntoWhere( String sqlStatement )
     {
         int index = sqlStatement.indexOf( "order by executiondate" );
 
@@ -66,7 +66,7 @@ public class vEventDate
         }
 
         return sqlStatement.substring( 0, index )
-            + " and upper(psistatus) IN ('COMPLETED', 'ACTIVE') "
+            + " and psistatus IN ('COMPLETED', 'ACTIVE') "
             + sqlStatement.substring( index );
     }
 }
