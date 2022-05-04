@@ -110,6 +110,7 @@ public class DataValueDtoMapper
             .setOrgUnit( value.getSource().getUid() )
             .setCategoryOptionCombo( value.getOptionCombo().getUid() )
             .setMinValue( value.getMin() )
-            .setMaxValue( value.getMax() );
+            .setMaxValue( value.getMax() )
+            .setGenerated( value.isGenerated() );
     }
 }
