@@ -149,7 +149,7 @@ public class CompleteDataSetRegistrationSynchronization implements DataSynchroni
             + " completed data set registrations to synchronize were found.\n";
         msg += "Remote server URL for completeness POST synchronization: " + context.getInstance().getUrl();
 
-        progress.startingProcess( msg );
+        progress.startingStage( msg );
         return progress.runStage( false, () -> sendSyncRequest( context ) );
     }
 

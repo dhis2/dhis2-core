@@ -28,7 +28,7 @@
 package org.hisp.dhis.dxf2.sync;
 
 import static java.lang.String.format;
-import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
+import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
 
 import java.util.Date;
 import java.util.stream.IntStream;
@@ -149,7 +149,7 @@ public class DataValueSynchronization implements DataSynchronizationWithPaging
         msg += "DataValueSynchronization job has " + context.getPages() + " pages to sync. With page size: "
             + context.getPageSize();
 
-        progress.startingStage( msg, context.getPages(), SKIP_ITEM_OUTLIER );
+        progress.startingStage( msg, context.getPages(), SKIP_ITEM );
         progress.runStage( IntStream.range( 1, context.getPages() + 1 ).boxed(),
             page -> format( "Synchronizing page %d with page size %d", page, context.getPageSize() ),
             page -> synchronizePage( page, context ) );
