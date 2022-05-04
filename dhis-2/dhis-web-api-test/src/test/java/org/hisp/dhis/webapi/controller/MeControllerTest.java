@@ -65,7 +65,7 @@ class MeControllerTest extends DhisControllerConvenienceTest
     @Test
     void testGetCurrentUser()
     {
-        switchContextToUser( superUser );
+        switchToSuperuser();
         assertEquals( getCurrentUser().getUid(), GET( "/me" ).content().as( JsonUser.class ).getId() );
     }
 

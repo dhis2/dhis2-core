@@ -421,40 +421,26 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
         {
             setTranslationParams( translateParams );
         }
-        else
+
+        if ( !aclService.canRead( currentUser, getEntityClass() ) )
         {
-            // 12098 This is a hack to make sure that the translations
-            // are always returned in the correct language ???
-            // setTranslationParams( null, new TranslateParams( false ) );
-            // Is it needed now?
+            throw new ReadAccessDeniedException(
+                "You don't have the proper permissions to read objects of this type." );
         }
 
-        try
+        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
+
+        if ( fields.isEmpty() )
         {
-            if ( !aclService.canRead( currentUser, getEntityClass() ) )
-            {
-                throw new ReadAccessDeniedException(
-                    "You don't have the proper permissions to read objects of this type." );
-            }
-
-            List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
-
-            if ( fields.isEmpty() )
-            {
-                fields.add( ":all" );
-            }
-
-            String fieldFilter = "[" + Joiner.on( ',' ).join( fields ) + "]";
-
-            cachePrivate( response );
-
-            return getObjectInternal( pvUid, rpParameters, Lists.newArrayList(),
-                Lists.newArrayList( pvProperty + fieldFilter ), currentUser );
+            fields.add( ":all" );
         }
-        finally
-        {
-            // UserContext.reset();
-        }
+
+        String fieldFilter = "[" + Joiner.on( ',' ).join( fields ) + "]";
+
+        cachePrivate( response );
+
+        return getObjectInternal( pvUid, rpParameters, Lists.newArrayList(),
+            Lists.newArrayList( pvProperty + fieldFilter ), currentUser );
     }
 
     @SuppressWarnings( "unchecked" )

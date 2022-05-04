@@ -43,7 +43,7 @@ public class CurrentUserUtil
 {
     private CurrentUserUtil()
     {
-        throw new IllegalStateException( "Utility class" );
+        throw new UnsupportedOperationException( "Utility class" );
     }
 
     public static String getCurrentUsername()

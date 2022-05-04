@@ -91,7 +91,7 @@ public abstract class DhisControllerWithJwtTokenAuthTest extends DhisMockMvcCont
         userService = _userService;
 
         clearSecurityContext();
-        superUser = createAdminUser( "ALL" );
+        superUser = createAndAddAdminUser( "ALL" );
 
         mvc = MockMvcBuilders.webAppContextSetup( webApplicationContext ).addFilter( springSecurityFilterChain )
             .build();

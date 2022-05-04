@@ -89,7 +89,7 @@ public abstract class DhisControllerWithApiTokenAuthTest extends DhisMockMvcCont
         userService = _userService;
 
         clearSecurityContext();
-        adminUser = createAdminUser( "ALL" );
+        adminUser = createAndAddAdminUser( "ALL" );
 
         mvc = MockMvcBuilders.webAppContextSetup( webApplicationContext ).addFilter( springSecurityFilterChain )
             .build();

@@ -52,7 +52,6 @@ import org.springframework.test.web.servlet.MvcResult;
  */
 class DataValueControllerTest extends AbstractDataValueControllerTest
 {
-
     @Autowired
     private DataValueService dataValueService;
 

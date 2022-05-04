@@ -72,13 +72,13 @@ abstract class AbstractDataValueControllerTest
                     + "'aggregationType':'SUM', 'zeroIsSignificant':false, 'domainType':'AGGREGATE', "
                     + "'categoryCombo': {'id': '" + categoryComboId + "'}}" ) );
 
+        // Add the newly created org unit to the superuser's hierarchy
         OrganisationUnit unit = manager.get( orgUnitId );
-        User user = userService.getUser( superUser.getUid() );
+        User user = userService.getUser( getSuperUser().getUid() );
         user.addOrganisationUnit( unit );
         userService.updateUser( user );
 
-        superUser = userService.getUser( superUser.getUid() );
-        switchContextToUser( superUser );
+        switchToSuperuser();
     }
 
     /**

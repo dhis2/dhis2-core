@@ -97,7 +97,7 @@ public abstract class DhisWebSpringTest extends DhisConvenienceTest
         userService = _userService;
         clearSecurityContext();
 
-        User all = createAdminUser( "ALL" );
+        User all = createAndAddAdminUser( "ALL" );
         injectSecurityContext( all );
 
         CharacterEncodingFilter characterEncodingFilter = new CharacterEncodingFilter();

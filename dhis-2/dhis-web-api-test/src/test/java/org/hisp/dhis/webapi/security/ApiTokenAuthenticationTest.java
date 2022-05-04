@@ -53,7 +53,6 @@ import org.springframework.http.HttpStatus;
 @Slf4j
 class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest
 {
-
     public static final String URI = "/me?fields=settings,id";
 
     @Autowired
@@ -62,11 +61,8 @@ class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest
     @Autowired
     private ApiTokenStore apiTokenStore;
 
-    // private User adminUser;
-
     private static class TokenAndKey
     {
-
         String key;
 
         ApiToken apiToken;

@@ -181,9 +181,9 @@ public class User
      */
     private boolean disabled;
 
-    private transient boolean isCredentialsNonExpired;
+    private boolean isCredentialsNonExpired;
 
-    private transient boolean isAccountNonLocked;
+    private boolean isAccountNonLocked;
 
     /**
      * The timestamp representing when the user account expires. If not set the

@@ -2486,7 +2486,7 @@ public abstract class DhisConvenienceTest
         return user;
     }
 
-    protected User createAdminUser( String... authorities )
+    protected User createAndAddAdminUser( String... authorities )
     {
         checkUserServiceWasInjected();
 
@@ -2523,7 +2523,7 @@ public abstract class DhisConvenienceTest
 
     protected final User createAndInjectAdminUser( String... authorities )
     {
-        User user = createAdminUser( authorities );
+        User user = createAndAddAdminUser( authorities );
         injectSecurityContext( user );
         return user;
     }
@@ -2669,32 +2669,6 @@ public abstract class DhisConvenienceTest
         return programSection;
     }
 
-    private User _createUserAndRole( boolean superUserFlag, String username,
-        Set<OrganisationUnit> organisationUnits,
-        Set<OrganisationUnit> dataViewOrganisationUnits, String... auths )
-    {
-        UserRole userRole = new UserRole();
-        userRole.setName( "USER" );
-        userRole.setAutoFields();
-        userRole.getAuthorities().addAll( Arrays.asList( auths ) );
-        if ( superUserFlag )
-        {
-            userRole.getAuthorities().add( "ALL" );
-        }
-
-        User user = new User();
-        user.setUsername( username );
-        user.getUserRoles().add( userRole );
-        user.setFirstName( "First name" );
-        user.setSurname( "Last name" );
-        user.setOrganisationUnits( organisationUnits );
-        user.setDataViewOrganisationUnits( dataViewOrganisationUnits );
-        user.setAutoFields();
-        user.setCreatedBy( user );
-
-        return user;
-    }
-
     private User persistUserAndRoles( User user )
     {
         for ( UserRole role : user.getUserRoles() )
@@ -2750,6 +2724,32 @@ public abstract class DhisConvenienceTest
             auths );
 
         persistUserAndRoles( user );
+
+        return user;
+    }
+
+    private User _createUserAndRole( boolean superUserFlag, String username,
+        Set<OrganisationUnit> organisationUnits,
+        Set<OrganisationUnit> dataViewOrganisationUnits, String... auths )
+    {
+        UserRole userRole = new UserRole();
+        userRole.setName( "USER" );
+        userRole.setAutoFields();
+        userRole.getAuthorities().addAll( Arrays.asList( auths ) );
+        if ( superUserFlag )
+        {
+            userRole.getAuthorities().add( "ALL" );
+        }
+
+        User user = new User();
+        user.setUsername( username );
+        user.getUserRoles().add( userRole );
+        user.setFirstName( "First name" );
+        user.setSurname( "Last name" );
+        user.setOrganisationUnits( organisationUnits );
+        user.setDataViewOrganisationUnits( dataViewOrganisationUnits );
+        user.setAutoFields();
+        user.setCreatedBy( user );
 
         return user;
     }

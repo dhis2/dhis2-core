@@ -578,13 +578,14 @@ class PredictionServiceTest extends IntegrationTestBase
     }
 
     @Test
-    @Disabled( "TODO: fix this test 12098" )
     void testPredictSequentialStddevPopWithLimitedUser()
     {
         setupTestData();
         Set<OrganisationUnit> units = newHashSet( sourceA );
 
-        createAndAddUser( true, "mockUser2", units, units );
+        User user2 = createAndAddUser( true, "mockUser2", units, units );
+        injectSecurityContext( user2 );
+
         Predictor p = createPredictor( dataElementX, defaultCombo, "PredictSequential", expressionH, null,
             periodTypeMonthly, orgUnitLevel1, 3, 1, 0 );
         predictionService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 12 ), summary );

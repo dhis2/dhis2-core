@@ -104,7 +104,7 @@ class AclServiceTest extends TransactionalIntegrationTest
     @Test
     void testUpdateObjectWithPublicRWFail()
     {
-        User user = createAdminUser( "F_OPTIONSET_PUBLIC_ADD" );
+        User user = createAndAddAdminUser( "F_OPTIONSET_PUBLIC_ADD" );
         DataElement dataElement = createDataElement( 'A' );
         dataElement.setPublicAccess( AccessStringHelper.READ_WRITE );
         assertFalse( aclService.canUpdate( user, dataElement ) );
@@ -113,7 +113,7 @@ class AclServiceTest extends TransactionalIntegrationTest
     @Test
     void testUpdateObjectWithPublicWFail()
     {
-        User user = createAdminUser( "F_OPTIONSET_PUBLIC_ADD" );
+        User user = createAndAddAdminUser( "F_OPTIONSET_PUBLIC_ADD" );
         DataElement dataElement = createDataElement( 'A' );
         dataElement.setPublicAccess( AccessStringHelper.WRITE );
         assertFalse( aclService.canUpdate( user, dataElement ) );
@@ -122,7 +122,7 @@ class AclServiceTest extends TransactionalIntegrationTest
     @Test
     void testUpdateObjectWithPublicRFail()
     {
-        User user = createAdminUser( "F_OPTIONSET_PUBLIC_ADD" );
+        User user = createAndAddAdminUser( "F_OPTIONSET_PUBLIC_ADD" );
         DataElement dataElement = createDataElement( 'A' );
         dataElement.setPublicAccess( AccessStringHelper.READ );
         assertFalse( aclService.canUpdate( user, dataElement ) );
@@ -131,7 +131,7 @@ class AclServiceTest extends TransactionalIntegrationTest
     @Test
     void testUpdateObjectWithPublicRUserOwner()
     {
-        User user = createAdminUser( "F_DATAELEMENT_PUBLIC_ADD" );
+        User user = createAndAddAdminUser( "F_DATAELEMENT_PUBLIC_ADD" );
         DataElement dataElement = createDataElement( 'A' );
         dataElement.setCreatedBy( user );
         dataElement.getSharing().setOwner( user );
@@ -142,7 +142,7 @@ class AclServiceTest extends TransactionalIntegrationTest
     @Test
     void testUpdateObjectWithPublicRWSuccessPublic()
     {
-        User user = createAdminUser( "F_DATAELEMENT_PUBLIC_ADD" );
+        User user = createAndAddAdminUser( "F_DATAELEMENT_PUBLIC_ADD" );
         DataElement dataElement = createDataElement( 'A' );
         dataElement.setPublicAccess( AccessStringHelper.READ_WRITE );
         assertTrue( aclService.canUpdate( user, dataElement ) );
@@ -151,7 +151,7 @@ class AclServiceTest extends TransactionalIntegrationTest
     @Test
     void testUpdateObjectWithPublicRWSuccessPrivate1()
     {
-        User user = createAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
+        User user = createAndAddAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
         DataElement dataElement = createDataElement( 'A' );
         dataElement.setCreatedBy( user );
         dataElement.getSharing().setOwner( user );
@@ -162,7 +162,7 @@ class AclServiceTest extends TransactionalIntegrationTest
     @Test
     void testUpdateObjectWithPublicRWSuccessPrivate2()
     {
-        User user = createAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
+        User user = createAndAddAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
         DataElement dataElement = createDataElement( 'A' );
         dataElement.setPublicAccess( AccessStringHelper.READ_WRITE );
         assertFalse( aclService.canUpdate( user, dataElement ) );
@@ -171,7 +171,7 @@ class AclServiceTest extends TransactionalIntegrationTest
     @Test
     void testCanCreatePrivatePublicDashboard()
     {
-        User user = createAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
+        User user = createAndAddAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
         assertFalse( aclService.canMakeClassPublic( user, Dashboard.class ) );
         assertTrue( aclService.canMakeClassPrivate( user, Dashboard.class ) );
     }
@@ -179,7 +179,7 @@ class AclServiceTest extends TransactionalIntegrationTest
     @Test
     void testCanUpdatePrivateDashboard()
     {
-        User user = createAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
+        User user = createAndAddAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
         Dashboard dashboard = new Dashboard( "Dashboard" );
         dashboard.setAutoFields();
         dashboard.setCreatedBy( user );
@@ -191,7 +191,7 @@ class AclServiceTest extends TransactionalIntegrationTest
     @Test
     void testCanCreatePrivatePublicVisualization()
     {
-        User user = createAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
+        User user = createAndAddAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
         assertFalse( aclService.canMakeClassPublic( user, Visualization.class ) );
         assertTrue( aclService.canMakeClassPrivate( user, Visualization.class ) );
     }
@@ -199,7 +199,7 @@ class AclServiceTest extends TransactionalIntegrationTest
     @Test
     void testCanUpdatePrivateVisualization()
     {
-        User user = createAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
+        User user = createAndAddAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
         Visualization visualization = new Visualization( "Visualization" );
         visualization.setAutoFields();
         visualization.setCreatedBy( user );
@@ -213,7 +213,7 @@ class AclServiceTest extends TransactionalIntegrationTest
     void testCanCreatePrivatePublicEventVisualization()
     {
         // Given
-        User user = createAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
+        User user = createAndAddAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
         // Then
         assertFalse( aclService.canMakeClassPublic( user, EventVisualization.class ) );
         assertTrue( aclService.canMakeClassPrivate( user, EventVisualization.class ) );
@@ -223,7 +223,7 @@ class AclServiceTest extends TransactionalIntegrationTest
     void testCanUpdatePrivateEventVisualization()
     {
         // Given
-        User user = createAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
+        User user = createAndAddAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
         EventVisualization eventVisualization = new EventVisualization( "any" );
         eventVisualization.setAutoFields();
         eventVisualization.setCreatedBy( user );
@@ -237,7 +237,7 @@ class AclServiceTest extends TransactionalIntegrationTest
     @Test
     void testCanCreatePrivatePublicMap()
     {
-        User user = createAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
+        User user = createAndAddAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
         assertFalse( aclService.canMakeClassPublic( user, Map.class ) );
         assertTrue( aclService.canMakeClassPrivate( user, Map.class ) );
     }
@@ -245,7 +245,7 @@ class AclServiceTest extends TransactionalIntegrationTest
     @Test
     void testCanUpdatePrivateMap()
     {
-        User user = createAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
+        User user = createAndAddAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
         Map map = new Map();
         map.setAutoFields();
         map.setCreatedBy( user );
@@ -257,7 +257,7 @@ class AclServiceTest extends TransactionalIntegrationTest
     @Test
     void testCanCreatePrivatePublicEventChart()
     {
-        User user = createAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
+        User user = createAndAddAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
         assertFalse( aclService.canMakeClassPublic( user, EventChart.class ) );
         assertTrue( aclService.canMakeClassPrivate( user, EventChart.class ) );
     }
@@ -265,7 +265,7 @@ class AclServiceTest extends TransactionalIntegrationTest
     @Test
     void testCanUpdatePrivateEventChart()
     {
-        User user = createAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
+        User user = createAndAddAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
         EventChart eventChart = new EventChart();
         eventChart.setAutoFields();
         eventChart.setCreatedBy( user );
@@ -277,7 +277,7 @@ class AclServiceTest extends TransactionalIntegrationTest
     @Test
     void testCanCreatePrivatePublicEventReport()
     {
-        User user = createAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
+        User user = createAndAddAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
         assertFalse( aclService.canMakeClassPublic( user, EventReport.class ) );
         assertTrue( aclService.canMakeClassPrivate( user, EventReport.class ) );
     }
@@ -285,7 +285,7 @@ class AclServiceTest extends TransactionalIntegrationTest
     @Test
     void testCanUpdatePrivateEventReport()
     {
-        User user = createAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
+        User user = createAndAddAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
         EventReport eventReport = new EventReport();
         eventReport.setAutoFields();
         eventReport.setCreatedBy( user );
@@ -297,7 +297,7 @@ class AclServiceTest extends TransactionalIntegrationTest
     @Test
     void testCanCreatePrivatePublicLegendSet()
     {
-        User user = createAdminUser( "F_LEGEND_SET_PRIVATE_ADD" );
+        User user = createAndAddAdminUser( "F_LEGEND_SET_PRIVATE_ADD" );
         assertFalse( aclService.canMakeClassPublic( user, LegendSet.class ) );
         assertTrue( aclService.canMakeClassPrivate( user, LegendSet.class ) );
     }
@@ -305,7 +305,7 @@ class AclServiceTest extends TransactionalIntegrationTest
     @Test
     void testCanUpdatePrivateLegendSet()
     {
-        User user = createAdminUser( "F_LEGEND_SET_PRIVATE_ADD" );
+        User user = createAndAddAdminUser( "F_LEGEND_SET_PRIVATE_ADD" );
         LegendSet legendSet = new LegendSet();
         legendSet.setAutoFields();
         legendSet.setCreatedBy( user );
@@ -317,7 +317,7 @@ class AclServiceTest extends TransactionalIntegrationTest
     @Test
     void testVerifyDataElementPrivateRW()
     {
-        User user = createAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
+        User user = createAndAddAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
         DataElement dataElement = createDataElement( 'A' );
         dataElement.setPublicAccess( AccessStringHelper.READ_WRITE );
         assertFalse( aclService.verifySharing( dataElement, user ).isEmpty() );
@@ -326,7 +326,7 @@ class AclServiceTest extends TransactionalIntegrationTest
     @Test
     void testVerifyDataElementPrivate()
     {
-        User user = createAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
+        User user = createAndAddAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
         DataElement dataElement = createDataElement( 'A' );
         dataElement.setPublicAccess( AccessStringHelper.DEFAULT );
         assertTrue( aclService.verifySharing( dataElement, user ).isEmpty() );
@@ -335,7 +335,7 @@ class AclServiceTest extends TransactionalIntegrationTest
     @Test
     void testVerifyDataElementPublicRW()
     {
-        User user = createAdminUser( "F_DATAELEMENT_PUBLIC_ADD" );
+        User user = createAndAddAdminUser( "F_DATAELEMENT_PUBLIC_ADD" );
         DataElement dataElement = createDataElement( 'A' );
         dataElement.setPublicAccess( AccessStringHelper.READ_WRITE );
         assertTrue( aclService.verifySharing( dataElement, user ).isEmpty() );
@@ -344,7 +344,7 @@ class AclServiceTest extends TransactionalIntegrationTest
     @Test
     void testVerifyDataElementPublic()
     {
-        User user = createAdminUser( "F_DATAELEMENT_PUBLIC_ADD" );
+        User user = createAndAddAdminUser( "F_DATAELEMENT_PUBLIC_ADD" );
         DataElement dataElement = createDataElement( 'A' );
         dataElement.setPublicAccess( AccessStringHelper.DEFAULT );
         assertTrue( aclService.verifySharing( dataElement, user ).isEmpty() );
@@ -353,7 +353,7 @@ class AclServiceTest extends TransactionalIntegrationTest
     @Test
     void testVerifyVisualizationCantExternalize()
     {
-        User user = createAdminUser( "F_VISUALIZATION_PUBLIC_ADD" );
+        User user = createAndAddAdminUser( "F_VISUALIZATION_PUBLIC_ADD" );
         Visualization visualization = new Visualization();
         visualization.setAutoFields();
         visualization.setPublicAccess( AccessStringHelper.DEFAULT );
@@ -366,7 +366,7 @@ class AclServiceTest extends TransactionalIntegrationTest
     void testVerifyEventVisualizationCantExternalize()
     {
         // Given
-        User user = createAdminUser( "F_EVENT_VISUALIZATION_PUBLIC_ADD" );
+        User user = createAndAddAdminUser( "F_EVENT_VISUALIZATION_PUBLIC_ADD" );
         EventVisualization eventVisualization = new EventVisualization();
         eventVisualization.setAutoFields();
         eventVisualization.setPublicAccess( AccessStringHelper.DEFAULT );
@@ -379,7 +379,7 @@ class AclServiceTest extends TransactionalIntegrationTest
     @Test
     void testResetSharingPropsPrivate()
     {
-        User user = createAdminUser();
+        User user = createAndAddAdminUser();
         Visualization visualization = new Visualization();
         visualization.setAutoFields();
         visualization.setPublicAccess( AccessStringHelper.DEFAULT );
@@ -397,7 +397,7 @@ class AclServiceTest extends TransactionalIntegrationTest
     void testResetSharingEventVisualizationPropsPrivate()
     {
         // Given
-        User user = createAdminUser();
+        User user = createAndAddAdminUser();
         EventVisualization eventVisualization = new EventVisualization();
         eventVisualization.setAutoFields();
         eventVisualization.setPublicAccess( AccessStringHelper.DEFAULT );
@@ -416,7 +416,7 @@ class AclServiceTest extends TransactionalIntegrationTest
     @Test
     void testResetSharingPropsPublic()
     {
-        User user = createAdminUser( "F_VISUALIZATION_PUBLIC_ADD" );
+        User user = createAndAddAdminUser( "F_VISUALIZATION_PUBLIC_ADD" );
         Visualization visualization = new Visualization();
         visualization.setAutoFields();
         visualization.setPublicAccess( AccessStringHelper.DEFAULT );
@@ -434,7 +434,7 @@ class AclServiceTest extends TransactionalIntegrationTest
     void testResetSharingEventVisualizationPropsPublic()
     {
         // Given
-        User user = createAdminUser( "F_EVENT_VISUALIZATION_PUBLIC_ADD" );
+        User user = createAndAddAdminUser( "F_EVENT_VISUALIZATION_PUBLIC_ADD" );
         EventVisualization eventVisualization = new EventVisualization();
         eventVisualization.setAutoFields();
         eventVisualization.setPublicAccess( AccessStringHelper.DEFAULT );
@@ -453,14 +453,14 @@ class AclServiceTest extends TransactionalIntegrationTest
     @Test
     void testCreateNoSharingObject()
     {
-        User user = createAdminUser();
+        User user = createAndAddAdminUser();
         assertFalse( aclService.canCreate( user, OrganisationUnit.class ) );
     }
 
     @Test
     void testUpdateNoSharingObject()
     {
-        User user = createAdminUser();
+        User user = createAndAddAdminUser();
         OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
         assertFalse( aclService.canUpdate( user, organisationUnit ) );
     }

@@ -95,9 +95,9 @@ public abstract class DhisControllerConvenienceTest extends DhisMockMvcControlle
 
     private MockHttpSession session;
 
-    protected User superUser;
+    private User superUser;
 
-    protected User currentUser;
+    private User currentUser;
 
     @BeforeEach
     final void setup()
@@ -106,7 +106,7 @@ public abstract class DhisControllerConvenienceTest extends DhisMockMvcControlle
         userService = _userService;
         clearSecurityContext();
 
-        superUser = createAdminUser( "ALL" );
+        superUser = createAndAddAdminUser( "ALL" );
 
         mvc = MockMvcBuilders.webAppContextSetup( webApplicationContext ).build();
 
@@ -129,9 +129,16 @@ public abstract class DhisControllerConvenienceTest extends DhisMockMvcControlle
         return currentUser;
     }
 
+    public User getSuperUser()
+    {
+        return superUser;
+    }
+
     protected final User switchToSuperuser()
     {
-        switchContextToUser( superUser );
+        // Need to refetch the user here if it has changed since the last time
+        // we switched to superuser F:12098
+        switchContextToUser( userService.getUser( superUser.getUid() ) );
         return superUser;
     }
 

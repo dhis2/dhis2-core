@@ -81,8 +81,7 @@ class DataApprovalControllerTest extends DhisControllerConvenienceTest
             POST( "/dataSets/", "{'name':'My data set', 'periodType':'Monthly', " + "'workflow': {'id':'" + wfId + "'},"
                 + "'organisationUnits':[{'id':'" + ou1Id + "'},{'id':'" + ouId + "'}]" + "}" ) );
 
-        superUser.addOrganisationUnit( manager.get( ouId ) );
-
+        getSuperUser().addOrganisationUnit( manager.get( ouId ) );
     }
 
     @Test
