@@ -1096,8 +1096,7 @@ public class EventQueryParams
                 case SCHEDULED_DATE:
                     return Set.of( SCHEDULE );
                 case LAST_UPDATED:
-                    final Set<EventStatus> statuses = new LinkedHashSet<>();
-                    statuses.addAll( DEFAULT_EVENT_STATUS );
+                    final Set<EventStatus> statuses = new LinkedHashSet<>( DEFAULT_EVENT_STATUS );
                     statuses.add( SCHEDULE );
                     return statuses;
                 default:
