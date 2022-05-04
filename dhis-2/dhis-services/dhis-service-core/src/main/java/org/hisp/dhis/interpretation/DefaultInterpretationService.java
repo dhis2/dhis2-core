@@ -371,7 +371,7 @@ public class DefaultInterpretationService
                 + "&interpretationid=" + interpretation.getUid();
             break;
         case EVENT_VISUALIZATION:
-            path = "/line-listing/#/" + interpretation.getEventVisualization().getUid() + "?interpretationId="
+            path = "/api/apps/line-listing/#/" + interpretation.getEventVisualization().getUid() + "?interpretationId="
                 + interpretation.getUid();
             break;
         case EVENT_CHART:
