@@ -207,11 +207,10 @@ public class HibernateRelationshipStore extends HibernateIdentifiableObjectStore
     @Override
     public boolean existsIncludingDeleted( String uid )
     {
-        Query query = getSession().createNativeQuery( "select uid from relationship where uid=:uid limit 1;" );
+        Query<String> query = getSession().createNativeQuery( "select uid from relationship where uid=:uid limit 1;" );
         query.setParameter( "uid", uid );
-        int count = ((Number) query.getSingleResult()).intValue();
 
-        return count > 0;
+        return !query.list().isEmpty();
     }
 
     private JpaQueryParameters<Relationship> newJpaParameters(
