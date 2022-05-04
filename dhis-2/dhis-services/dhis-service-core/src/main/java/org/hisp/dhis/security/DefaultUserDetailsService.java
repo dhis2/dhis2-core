@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.security;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.user.CurrentUserUtil.initializeUser;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hibernate.SessionFactory;
@@ -48,36 +48,15 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Slf4j
 @Service( "userDetailsService" )
+@AllArgsConstructor
 public class DefaultUserDetailsService
     implements UserDetailsService
 {
-    public static final String ID = UserDetailsService.class.getName();
-
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final UserService userService;
 
     private final SecurityService securityService;
 
     private final SessionFactory sessionFactory;
-
-    public DefaultUserDetailsService( UserService userService, SecurityService securityService,
-        SessionFactory sessionFactory )
-    {
-        checkNotNull( userService );
-        checkNotNull( securityService );
-        checkNotNull( sessionFactory );
-
-        this.userService = userService;
-        this.securityService = securityService;
-        this.sessionFactory = sessionFactory;
-    }
-
-    // -------------------------------------------------------------------------
-    // UserDetailsService implementation
-    // -------------------------------------------------------------------------
 
     @Override
     @Transactional( readOnly = true )
@@ -108,5 +87,4 @@ public class DefaultUserDetailsService
 
         return user;
     }
-
 }

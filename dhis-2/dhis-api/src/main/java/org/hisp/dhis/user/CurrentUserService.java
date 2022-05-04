@@ -83,8 +83,9 @@ public class CurrentUserService
     public User getCurrentUser()
     {
         User currentUser = CurrentUserUtil.getCurrentUser();
-        boolean contains = sessionFactory.getCurrentSession().contains( currentUser );
-        if ( contains )
+
+        boolean sessionContains = sessionFactory.getCurrentSession().contains( currentUser );
+        if ( sessionContains )
         {
             log.info( "User in session, this should only happen in integration tests. 12098 hack" );
             try
