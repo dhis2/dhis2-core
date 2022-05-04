@@ -124,13 +124,14 @@ class TrackerPreheatTest extends DhisConvenienceTest
 
         String optionsString = concatCategoryOptions( identifiers.getCategoryOptionComboIdScheme(), options );
         assertFalse( preheat.containsCategoryOptionCombo( categoryCombo, options ) );
-        assertNull( preheat.getCategoryOptionComboIdentifier( categoryCombo, optionsString ) );
+        assertEquals( MetadataIdentifier.ofUid( null ),
+            preheat.getCategoryOptionComboIdentifier( categoryCombo, optionsString ) );
         assertNull( preheat.getCategoryOptionCombo( aoc.getUid() ) );
 
         preheat.putCategoryOptionCombo( categoryCombo, options, aoc );
 
         assertTrue( preheat.containsCategoryOptionCombo( categoryCombo, options ) );
-        assertEquals( identifiers.getCategoryOptionComboIdScheme().getIdentifier( aoc ),
+        assertEquals( identifiers.toMetadataIdentifier( aoc ),
             preheat.getCategoryOptionComboIdentifier( categoryCombo, optionsString ) );
         assertEquals( aoc, preheat.getCategoryOptionCombo( aoc.getUid() ),
             "option combo should also be stored in the preheat map" );
@@ -154,9 +155,9 @@ class TrackerPreheatTest extends DhisConvenienceTest
 
         preheat.putCategoryOptionCombo( categoryCombo, options, aoc );
 
-        assertEquals( identifiers.getCategoryOptionComboIdScheme().getIdentifier( aoc ),
+        assertEquals( identifiers.toMetadataIdentifier( aoc ),
             preheat.getCategoryOptionComboIdentifier( categoryCombo, option1.getUid() + ";" + option2.getUid() ) );
-        assertEquals( identifiers.getCategoryOptionComboIdScheme().getIdentifier( aoc ),
+        assertEquals( identifiers.toMetadataIdentifier( aoc ),
             preheat.getCategoryOptionComboIdentifier( categoryCombo, option2.getUid() + ";" + option1.getUid() ) );
     }
 
@@ -177,7 +178,8 @@ class TrackerPreheatTest extends DhisConvenienceTest
         assertTrue( preheat.containsCategoryOptionCombo( categoryCombo, options ) );
         String optionsString = concatCategoryOptions( identifiers.getCategoryOptionComboIdScheme(), options );
         assertNull( preheat.getCategoryOptionCombo( categoryCombo, options ) );
-        assertNull( preheat.getCategoryOptionComboIdentifier( categoryCombo, optionsString ) );
+        assertEquals( MetadataIdentifier.ofUid( null ),
+            preheat.getCategoryOptionComboIdentifier( categoryCombo, optionsString ) );
         assertNull( preheat.getCategoryOptionCombo( aoc.getUid() ),
             "option combo should not be added to preheat map if null" );
     }
