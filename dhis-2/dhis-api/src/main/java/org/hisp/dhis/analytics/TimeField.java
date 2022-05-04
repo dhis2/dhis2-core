@@ -33,12 +33,11 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 import lombok.Getter;
-
-import com.google.common.collect.ImmutableList;
 
 /**
  * Enum that maps database column names to their respective "business" names.
@@ -57,7 +56,7 @@ public enum TimeField
     @Getter
     private String field;
 
-    public static final Collection<String> DEFAULT_TIME_FIELDS = ImmutableList.of( EVENT_DATE.name(),
+    public static final Collection<String> DEFAULT_TIME_FIELDS = List.of( EVENT_DATE.name(),
         LAST_UPDATED.name(), ENROLLMENT_DATE.name() );
 
     /**
@@ -65,7 +64,7 @@ public enum TimeField
      * period column (in the analytics tables), instead of dates. This is
      * preferable for performance reasons.
      */
-    private static final Collection<TimeField> TIME_FIELDS_SUPPORT_RAW_PERIODS = ImmutableList.of( EVENT_DATE,
+    private static final Collection<TimeField> TIME_FIELDS_SUPPORT_RAW_PERIODS = List.of( EVENT_DATE,
         SCHEDULED_DATE, ENROLLMENT_DATE );
 
     private static final Set<String> FIELD_NAMES = newHashSet( TimeField.values() )
