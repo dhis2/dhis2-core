@@ -51,7 +51,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Torgeir Lorange Ostby
  * @version $Id: CurrentUserService.java 5708 2008-09-16 14:28:32Z larshelg $
  */
-@Service
+@Service( "org.hisp.dhis.user.CurrentUserService" )
 @Slf4j
 public class CurrentUserService
 {
