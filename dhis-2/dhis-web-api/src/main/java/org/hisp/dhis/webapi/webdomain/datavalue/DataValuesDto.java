@@ -51,5 +51,6 @@ public class DataValuesDto
     @JsonProperty
     private List<DataValueDto> dataValues = new ArrayList<>();
 
+    @JsonProperty
     private List<MinMaxValueDto> minMaxValues = new ArrayList<>();
 }
