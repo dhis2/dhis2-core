@@ -52,7 +52,6 @@ import org.springframework.stereotype.Component;
  */
 @RequiredArgsConstructor
 @Component
-@SupplierDependsOn( ClassBasedSupplier.class )
 public class ProgramOwnerSupplier extends AbstractPreheatSupplier
 {
     @NonNull

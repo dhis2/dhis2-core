@@ -117,7 +117,7 @@ public class EventProgramPreProcessor
 
         TrackerPreheat preheat = bundle.getPreheat();
         List<Event> events = bundle.getEvents().stream()
-            .filter( e -> isBlank( e.getAttributeOptionCombo() )
+            .filter( e -> e.getAttributeOptionCombo().isBlank()
                 && !isBlank( e.getAttributeCategoryOptions() ) )
             .filter( e -> preheat.getProgram( e.getProgram() ) != null )
             .collect( Collectors.toList() );
@@ -125,9 +125,8 @@ public class EventProgramPreProcessor
         for ( Event e : events )
         {
             Program program = preheat.getProgram( e.getProgram() );
-            String aoc = preheat.getCategoryOptionComboIdentifier( program.getCategoryCombo(),
-                e.getAttributeCategoryOptions() );
-            e.setAttributeOptionCombo( aoc );
+            e.setAttributeOptionCombo( preheat.getCategoryOptionComboIdentifier( program.getCategoryCombo(),
+                e.getAttributeCategoryOptions() ) );
         }
     }
 }

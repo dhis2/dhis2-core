@@ -15,10 +15,6 @@
 
         &identifiableProperties;
 
-        <property name="formName" type="text"/>
-
-        <property name="description" type="text"/>
-
         <property name="style" type="jbObjectStyle" column="style"/>
 
         <many-to-one name="relationshipType"

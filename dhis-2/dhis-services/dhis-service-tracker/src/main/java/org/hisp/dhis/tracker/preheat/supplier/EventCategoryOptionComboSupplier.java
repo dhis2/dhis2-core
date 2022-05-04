@@ -63,7 +63,6 @@ import org.springframework.stereotype.Component;
  */
 @RequiredArgsConstructor
 @Component
-@SupplierDependsOn( ClassBasedSupplier.class )
 public class EventCategoryOptionComboSupplier extends AbstractPreheatSupplier
 {
     @NonNull
@@ -74,7 +73,7 @@ public class EventCategoryOptionComboSupplier extends AbstractPreheatSupplier
     {
 
         List<Pair<CategoryCombo, Set<CategoryOption>>> events = params.getEvents().stream()
-            .filter( e -> StringUtils.isBlank( e.getAttributeOptionCombo() )
+            .filter( e -> e.getAttributeOptionCombo().isBlank()
                 && !StringUtils.isBlank( e.getAttributeCategoryOptions() ) )
             .map( e -> Pair.of( resolveProgram( preheat, e ), parseCategoryOptionIds( e ) ) )
             .filter( p -> p.getLeft() != null )

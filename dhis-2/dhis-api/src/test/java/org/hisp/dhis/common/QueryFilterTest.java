@@ -25,45 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.preheat.supplier;
+package org.hisp.dhis.common;
 
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
+import org.junit.jupiter.api.Test;
 
-/**
- * This annotation establishes a dependency between {@link PreheatSupplier}
- * objects.
- *
- * <pre>
- * {@code
- * &#64;SupplierDependsOn( SupplierZ.class )
- * public class SupplierA implements PreheatSupplier {
- *  ...
- * }
- *
- * public class SupplierZ implements PreheatSupplier {
- *  ...
- * }
- *
- * }
- * </pre>
- *
- * In the above example, the supplier "SupplierZ" will be executed before
- * "SupplierA"
- *
- * @author Luciano Fiandesio
- */
-@Retention( RUNTIME )
-@Target( ElementType.TYPE )
-public @interface SupplierDependsOn
+public class QueryFilterTest
 {
-    /**
-     * The {@link PreheatSupplier} subclass the supplier annotated with depends
-     * on
-     *
-     */
-    Class<?> value();
+
+    @Test
+    void testUnderscoreIsEscaped()
+    {
+        QueryFilter queryFilter = new QueryFilter();
+        queryFilter.setOperator( QueryOperator.LIKE );
+        assertThat( queryFilter.getSqlFilter( "_" ), is( "'%\\_%'" ) );
+    }
+
+    @Test
+    void testPercentageSignIsEscaped()
+    {
+        QueryFilter queryFilter = new QueryFilter();
+        queryFilter.setOperator( QueryOperator.LIKE );
+        assertThat( queryFilter.getSqlFilter( "%" ), is( "'%\\%%'" ) );
+    }
 }

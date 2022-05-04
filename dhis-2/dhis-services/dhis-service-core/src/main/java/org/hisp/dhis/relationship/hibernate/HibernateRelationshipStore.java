@@ -44,7 +44,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -66,7 +66,7 @@ import org.springframework.stereotype.Repository;
  * @author Abyot Asalefew
  */
 @Repository( "org.hisp.dhis.relationship.RelationshipStore" )
-public class HibernateRelationshipStore extends HibernateIdentifiableObjectStore<Relationship>
+public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relationship>
     implements RelationshipStore
 {
     private static final String TRACKED_ENTITY_INSTANCE = "trackedEntityInstance";

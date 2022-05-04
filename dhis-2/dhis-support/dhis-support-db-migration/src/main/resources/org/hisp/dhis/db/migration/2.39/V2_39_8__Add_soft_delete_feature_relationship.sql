@@ -8,3 +8,6 @@ ALTER TABLE relationship ADD CONSTRAINT fk_relationship_to_relationshipitemid FO
 
 ALTER TABLE relationshipitem DROP CONSTRAINT IF EXISTS fk_relationshipitem_relationshipid;
 ALTER TABLE relationshipitem ADD CONSTRAINT  fk_relationshipitem_relationshipid FOREIGN KEY(relationshipid) REFERENCES relationship(relationshipid) ON DELETE CASCADE;
+
+ALTER TABLE relationship DROP COLUMN IF EXISTS formname;
+ALTER TABLE relationship DROP COLUMN IF EXISTS description;
