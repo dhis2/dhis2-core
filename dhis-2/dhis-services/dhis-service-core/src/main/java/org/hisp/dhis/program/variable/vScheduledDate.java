@@ -66,7 +66,7 @@ public class vScheduledDate
         }
 
         return sqlStatement.substring( 0, index )
-            + " and upper(psistatus) = 'SCHEDULE' "
+            + " and upper( psistatus ) = 'SCHEDULE' "
             + sqlStatement.substring( index );
     }
 }
