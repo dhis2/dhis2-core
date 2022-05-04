@@ -33,6 +33,7 @@ import static org.hamcrest.Matchers.startsWith;
 import static org.hisp.dhis.antlr.AntlrParserUtils.castString;
 import static org.hisp.dhis.parser.expression.ExpressionItem.ITEM_GET_SQL;
 import static org.hisp.dhis.program.DefaultProgramIndicatorService.PROGRAM_INDICATOR_ITEMS;
+import static org.hisp.dhis.program.variable.vEventCount.DEFAULT_COUNT_CONDITION;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Date;
@@ -193,7 +194,7 @@ class ProgramSqlGeneratorVariablesTest extends DhisConvenienceTest
     void testEventCount()
     {
         String sql = castString( test( "V{event_count}", new DefaultLiteral(), eventIndicator ) );
-        assertThat( sql, is( "psi" ) );
+        assertThat( sql, is( "case " + DEFAULT_COUNT_CONDITION + " end" ) );
     }
 
     @Test

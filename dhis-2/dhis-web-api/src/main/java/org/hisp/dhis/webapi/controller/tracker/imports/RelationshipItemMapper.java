@@ -41,7 +41,7 @@ import org.mapstruct.Mapper;
     DataValueMapper.class,
     NoteMapper.class,
     InstantMapper.class,
-    UserMapper.class,
+    UserMapper.class
 } )
 interface RelationshipItemMapper
     extends DomainMapper<RelationshipItem, org.hisp.dhis.tracker.domain.RelationshipItem>

@@ -25,34 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.dataentry;
+package org.hisp.dhis.common;
 
-import lombok.RequiredArgsConstructor;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.dxf2.metadata.DataSetMetadataExportService;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
-/**
- * @author Lars Helge Overland
- */
-@RestController
-@RequiredArgsConstructor
-@RequestMapping( "/dataEntry" )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class DataSetMetadataExportController
+public class QueryFilterTest
 {
-    private final DataSetMetadataExportService exportService;
 
-    @GetMapping( "/metadata" )
-    public ResponseEntity<JsonNode> getMetadata()
+    @Test
+    void testUnderscoreIsEscaped()
     {
-        return ResponseEntity.ok( exportService.getDataSetMetadata() );
+        QueryFilter queryFilter = new QueryFilter();
+        queryFilter.setOperator( QueryOperator.LIKE );
+        assertThat( queryFilter.getSqlFilter( "_" ), is( "'%\\_%'" ) );
+    }
+
+    @Test
+    void testPercentageSignIsEscaped()
+    {
+        QueryFilter queryFilter = new QueryFilter();
+        queryFilter.setOperator( QueryOperator.LIKE );
+        assertThat( queryFilter.getSqlFilter( "%" ), is( "'%\\%%'" ) );
     }
 }

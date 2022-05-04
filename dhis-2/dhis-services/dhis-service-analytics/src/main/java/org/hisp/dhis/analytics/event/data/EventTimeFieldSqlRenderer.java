@@ -27,9 +27,11 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static java.util.Collections.singleton;
+import static java.util.Arrays.asList;
 import static org.hisp.dhis.analytics.EventOutputType.ENROLLMENT;
 import static org.hisp.dhis.analytics.TimeField.EVENT_DATE;
+import static org.hisp.dhis.analytics.TimeField.LAST_UPDATED;
+import static org.hisp.dhis.analytics.TimeField.SCHEDULED_DATE;
 import static org.hisp.dhis.analytics.event.data.JdbcEventAnalyticsManager.OPEN_IN;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.DATE_PERIOD_STRUCT_ALIAS;
@@ -42,6 +44,7 @@ import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 import static org.hisp.dhis.util.DateUtils.plusOneDay;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -65,17 +68,17 @@ class EventTimeFieldSqlRenderer extends TimeFieldSqlRenderer
     private final StatementBuilder statementBuilder;
 
     @Getter
-    private final Collection<TimeField> allowedTimeFields = singleton( TimeField.LAST_UPDATED );
+    private final Collection<TimeField> allowedTimeFields = new HashSet<>( asList( LAST_UPDATED, SCHEDULED_DATE ) );
 
     @Override
-    protected String getSqlConditionForPeriods( EventQueryParams params )
+    protected String getSqlConditionForPeriods( final EventQueryParams params )
     {
         final List<DimensionalItemObject> periods = params.getDimensionOrFilterItems( PERIOD_DIM_ID );
 
-        Optional<TimeField> timeField = getTimeField( params );
+        final Optional<TimeField> timeField = getTimeField( params );
+        final StringBuilder sql = new StringBuilder();
 
-        StringBuilder sql = new StringBuilder();
-        if ( timeField.isPresent() )
+        if ( timeField.isPresent() && !timeField.get().supportsRawPeriod() )
         {
             sql.append( periods.stream()
                 .filter( dimensionalItemObject -> dimensionalItemObject instanceof Period )
@@ -85,13 +88,14 @@ class EventTimeFieldSqlRenderer extends TimeFieldSqlRenderer
         }
         else
         {
-            String alias = getPeriodAlias( params );
+            final String alias = getPeriodAlias( params );
 
             sql.append( quote( alias, params.getPeriodType().toLowerCase() ) )
                 .append( OPEN_IN )
                 .append( getQuotedCommaDelimitedString( getUids( periods ) ) )
                 .append( ") " );
         }
+
         return sql.toString();
     }
 

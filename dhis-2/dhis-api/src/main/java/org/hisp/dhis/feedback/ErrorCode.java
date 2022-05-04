@@ -119,6 +119,9 @@ public enum ErrorCode
     E2039( "Stage offset is allowed only for repeatable stages (`{0}` is not repeatable)" ),
     E2040( "Both category combination and category options must be specified" ),
     E2041( "Attribute option combo does not exist for given category combo and category options" ),
+    E2042( "Min value must be specified" ),
+    E2043( "Max value must be specified" ),
+    E2044( "Max value must be greater than min value" ),
 
     /* Outlier detection */
     E2200( "At least one data element must be specified" ),

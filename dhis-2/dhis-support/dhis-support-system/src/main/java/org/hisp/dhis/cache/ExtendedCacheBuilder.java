@@ -101,7 +101,7 @@ public class ExtendedCacheBuilder<V> extends SimpleCacheBuilder<V>
     {
         if ( getMaximumSize() == 0 || isDisabled() )
         {
-            log.info( String.format( "NoOp Cache instance created for region:'%s'", getRegion() ) );
+            log.debug( String.format( "NoOp Cache instance created for region:'%s'", getRegion() ) );
             return new NoOpCache<>( this );
         }
         if ( forceInMemory )
@@ -111,12 +111,12 @@ public class ExtendedCacheBuilder<V> extends SimpleCacheBuilder<V>
             {
                 return cappedLocalCacheFactory.apply( this );
             }
-            log.info( String.format( "Local Cache (forced) instance created for region:'%s'", getRegion() ) );
+            log.debug( String.format( "Local Cache (forced) instance created for region:'%s'", getRegion() ) );
             return new LocalCache<>( this );
         }
         if ( configuration.isEnabled( ConfigurationKey.REDIS_ENABLED ) )
         {
-            log.info( String.format( "Redis Cache instance created for region:'%s'", getRegion() ) );
+            log.debug( String.format( "Redis Cache instance created for region:'%s'", getRegion() ) );
             return new RedisCache<>( this );
         }
         int capPercentage = parseInt( configuration.getProperty( ConfigurationKey.SYSTEM_CACHE_CAP_PERCENTAGE ) );
@@ -124,7 +124,7 @@ public class ExtendedCacheBuilder<V> extends SimpleCacheBuilder<V>
         {
             return cappedLocalCacheFactory.apply( this );
         }
-        log.info( String.format( "Local Cache instance created for region:'%s'", getRegion() ) );
+        log.debug( String.format( "Local Cache instance created for region:'%s'", getRegion() ) );
         return new LocalCache<>( this );
     }
 

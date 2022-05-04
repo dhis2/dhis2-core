@@ -35,6 +35,7 @@ import java.util.Set;
 
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
 
@@ -71,6 +72,9 @@ public interface IdentifiableObjectManager
         throws IllegalQueryException;
 
     <T extends IdentifiableObject> T getAndValidate( Class<T> type, String uid );
+
+    <T extends IdentifiableObject> T getAndValidate( Class<T> type, ErrorCode errorCode, String uid )
+        throws IllegalQueryException;
 
     <T extends IdentifiableObject> boolean exists( Class<T> type, String uid );
 
