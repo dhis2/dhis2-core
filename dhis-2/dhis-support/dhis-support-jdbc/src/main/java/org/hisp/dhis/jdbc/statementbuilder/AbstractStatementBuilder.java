@@ -228,8 +228,8 @@ public abstract class AbstractStatementBuilder
      * @return the derived literal table
      */
     @Override
-    public String literalLongStringTable( List<Long> longValues,
-        List<String> strValues, String table, String longColumn, String strColumn )
+    public String literalLongStringTable( List<Long> longValues, List<String> strValues, String table,
+        String longColumn, String strColumn )
     {
         StringBuilder sb = new StringBuilder();
 
@@ -268,8 +268,8 @@ public abstract class AbstractStatementBuilder
      * </code>
      */
     @Override
-    public String literalLongLongTable( List<Long> long1Values,
-        List<Long> long2Values, String table, String long1Column, String long2Column )
+    public String literalLongLongTable( List<Long> long1Values, List<Long> long2Values, String table,
+        String long1Column, String long2Column )
     {
         StringBuilder sb = new StringBuilder();
 
@@ -297,8 +297,7 @@ public abstract class AbstractStatementBuilder
 
     @Override
     public String getProgramIndicatorDataValueSelectSql( String programStageUid, String dataElementUid,
-        Date reportingStartDate,
-        Date reportingEndDate, ProgramIndicator programIndicator )
+        Date reportingStartDate, Date reportingEndDate, ProgramIndicator programIndicator )
     {
         String columnName = this.columnQuote( dataElementUid );
         if ( programIndicator.getAnalyticsType().equals( AnalyticsType.ENROLLMENT ) )
@@ -329,8 +328,7 @@ public abstract class AbstractStatementBuilder
 
     @Override
     public String getProgramIndicatorEventColumnSql( String programStageUid, String stageOffset, String columnName,
-        Date reportingStartDate,
-        Date reportingEndDate, ProgramIndicator programIndicator )
+        Date reportingStartDate, Date reportingEndDate, ProgramIndicator programIndicator )
     {
         if ( programIndicator.getAnalyticsType().equals( AnalyticsType.ENROLLMENT ) )
         {
@@ -344,17 +342,14 @@ public abstract class AbstractStatementBuilder
     }
 
     private String getProgramIndicatorEventInEnrollmentSelectSql( String columnName, String programStageUid,
-        Date reportingStartDate,
-        Date reportingEndDate, ProgramIndicator programIndicator )
+        Date reportingStartDate, Date reportingEndDate, ProgramIndicator programIndicator )
     {
         return getProgramIndicatorEventInEnrollmentSelectSql( columnName, "0", programStageUid, reportingStartDate,
             reportingEndDate, programIndicator );
     }
 
     private String getProgramIndicatorEventInEnrollmentSelectSql( String columnName, String stageOffset,
-        String programStageUid,
-        Date reportingStartDate,
-        Date reportingEndDate, ProgramIndicator programIndicator )
+        String programStageUid, Date reportingStartDate, Date reportingEndDate, ProgramIndicator programIndicator )
     {
         String programStageCondition = "";
         if ( programStageUid != null && programStageUid.length() == 11 )
@@ -364,19 +359,15 @@ public abstract class AbstractStatementBuilder
 
         String eventTableName = "analytics_event_" + programIndicator.getProgram().getUid();
         return "(select " + columnName + " from " + eventTableName + " where " + eventTableName +
-            ".pi = " + ANALYTICS_TBL_ALIAS + ".pi and " + columnName + " is not null " +
-            (programIndicator.getEndEventBoundary() != null ? ("and " +
-                getBoundaryCondition( programIndicator.getEndEventBoundary(), programIndicator, null,
-                    reportingStartDate,
-                    reportingEndDate )
-                +
-                " ") : "")
+            ".pi = " + ANALYTICS_TBL_ALIAS + ".pi and " + columnName + " is not null "
+            + (programIndicator.getEndEventBoundary() != null ? ("and "
+                + getBoundaryCondition( programIndicator.getEndEventBoundary(), programIndicator, null,
+                    reportingStartDate, reportingEndDate )
+                + " ") : "")
             + (programIndicator.getStartEventBoundary() != null ? ("and " +
                 getBoundaryCondition( programIndicator.getStartEventBoundary(), programIndicator, null,
-                    reportingStartDate,
-                    reportingEndDate )
-                +
-                " ") : "")
+                    reportingStartDate, reportingEndDate )
+                + " ") : "")
             + programStageCondition + "order by executiondate " + createOrderTypeAndOffset( stageOffset )
             + " limit 1 )";
     }
@@ -442,8 +433,9 @@ public abstract class AbstractStatementBuilder
             ? Optional.ofNullable( timeField ).orElse( AnalyticsPeriodBoundary.DB_EVENT_DATE )
             : boundary.isEnrollmentDateBoundary() ? AnalyticsPeriodBoundary.DB_ENROLLMENT_DATE
                 : boundary.isIncidentDateBoundary() ? AnalyticsPeriodBoundary.DB_INCIDENT_DATE
-                    : this.getBoundaryElementColumnSql( boundary, reportingStartDate, reportingEndDate,
-                        programIndicator );
+                    : boundary.isScheduledDateBoundary() ? AnalyticsPeriodBoundary.DB_SCHEDULED_DATE
+                        : this.getBoundaryElementColumnSql( boundary, reportingStartDate, reportingEndDate,
+                            programIndicator );
 
         final SimpleDateFormat format = new SimpleDateFormat();
         format.applyPattern( Period.DEFAULT_DATE_FORMAT );

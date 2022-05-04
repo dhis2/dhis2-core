@@ -50,26 +50,24 @@ public abstract class TimeFieldSqlRenderer
 
     public String renderTimeFieldSql( EventQueryParams params )
     {
+        StringBuilder sql = new StringBuilder();
+
+        if ( params.hasNonDefaultBoundaries() )
         {
-            StringBuilder sql = new StringBuilder();
-
-            if ( params.hasNonDefaultBoundaries() )
-            {
-                sql.append( getSqlConditionForNonDefaultBoundaries( params ) );
-            }
-            // when multiple periods are set
-            else if ( params.hasStartEndDate() || !params.getDateRangeByDateFilter().isEmpty() )
-            {
-                sql.append( getSqlConditionHasStartEndDate( params ) );
-            }
-            else // Periods -- should never go here when linelist, only Pivot
-                 // table
-            {
-                sql.append( getSqlConditionForPeriods( params ) );
-            }
-
-            return sql.toString();
+            sql.append( getSqlConditionForNonDefaultBoundaries( params ) );
         }
+        // when multiple periods are set
+        else if ( params.hasStartEndDate() || !params.getDateRangeByDateFilter().isEmpty() )
+        {
+            sql.append( getSqlConditionHasStartEndDate( params ) );
+        }
+        else // Periods -- should never go here when linelist, only Pivot
+             // table
+        {
+            sql.append( getSqlConditionForPeriods( params ) );
+        }
+
+        return sql.toString();
     }
 
     @Data
