@@ -21,7 +21,7 @@ jobs:
       - name: Test core
         run: mvn clean test --threads 2C --batch-mode --no-transfer-progress --update-snapshots -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty
       - name: Test dhis-web
-        run: mvn clean install --threads 2C --batch-mode --no-transfer-progress --update-snapshots -f ./dhis-2/dhis-web/pom.xml
+        run: mvn install --threads 2C --batch-mode --no-transfer-progress --update-snapshots -f ./dhis-2/dhis-web/pom.xml
 
   integration-test:
     runs-on: ubuntu-latest
