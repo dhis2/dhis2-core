@@ -225,14 +225,14 @@ class DuplicateRelationshipsPreProcessorTest
     private RelationshipItem trackedEntityRelationshipItem( String trackedEntityUid )
     {
         return RelationshipItem.builder()
-            .trackedEntity( RelationshipItem.TrackedEntity.builder().trackedEntity( trackedEntityUid ).build() )
+            .trackedEntity( trackedEntityUid )
             .build();
     }
 
     private RelationshipItem enrollmentRelationshipItem( String enrollmentUid )
     {
         return RelationshipItem.builder()
-            .enrollment( RelationshipItem.Enrollment.builder().enrollment( enrollmentUid ).build() )
+            .enrollment( enrollmentUid )
             .build();
     }
 }

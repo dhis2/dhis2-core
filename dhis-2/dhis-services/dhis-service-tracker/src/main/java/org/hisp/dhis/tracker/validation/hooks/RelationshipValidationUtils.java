@@ -40,15 +40,15 @@ public class RelationshipValidationUtils
 {
     public static TrackerType relationshipItemValueType( RelationshipItem item )
     {
-        if ( item.getTrackedEntity() != null && StringUtils.isNotEmpty( item.getTrackedEntity().getTrackedEntity() ) )
+        if ( StringUtils.isNotEmpty( item.getTrackedEntity() ) )
         {
             return TrackerType.TRACKED_ENTITY;
         }
-        else if ( item.getEnrollment() != null && StringUtils.isNotEmpty( item.getEnrollment().getEnrollment() ) )
+        else if ( StringUtils.isNotEmpty( item.getEnrollment() ) )
         {
             return TrackerType.ENROLLMENT;
         }
-        else if ( item.getEvent() != null && StringUtils.isNotEmpty( item.getEvent().getEvent() ) )
+        else if ( StringUtils.isNotEmpty( item.getEvent() ) )
         {
             return TrackerType.EVENT;
         }
@@ -59,15 +59,15 @@ public class RelationshipValidationUtils
     {
         if ( item.getTrackedEntity() != null )
         {
-            return Optional.of( item.getTrackedEntity().getTrackedEntity() );
+            return Optional.of( item.getTrackedEntity() );
         }
         else if ( item.getEnrollment() != null )
         {
-            return Optional.of( item.getEnrollment().getEnrollment() );
+            return Optional.of( item.getEnrollment() );
         }
         else if ( item.getEvent() != null )
         {
-            return Optional.of( item.getEvent().getEvent() );
+            return Optional.of( item.getEvent() );
         }
         return Optional.empty();
     }

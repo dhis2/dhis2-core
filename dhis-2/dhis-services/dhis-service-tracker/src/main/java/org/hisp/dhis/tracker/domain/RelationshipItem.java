@@ -32,8 +32,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import org.hisp.dhis.tracker.TrackerType;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -45,79 +43,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @AllArgsConstructor
 public class RelationshipItem
 {
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class TrackedEntity implements TrackerDto
-    {
-        @JsonProperty
-        private String trackedEntity;
-
-        @Override
-        public String getUid()
-        {
-            return this.trackedEntity;
-        }
-
-        @Override
-        public TrackerType getTrackerType()
-        {
-            return TrackerType.TRACKED_ENTITY;
-        }
-    }
-
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class Enrollment implements TrackerDto
-    {
-        @JsonProperty
-        private String enrollment;
-
-        @Override
-        public String getUid()
-        {
-            return this.enrollment;
-        }
-
-        @Override
-        public TrackerType getTrackerType()
-        {
-            return TrackerType.ENROLLMENT;
-        }
-    }
-
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class Event implements TrackerDto
-    {
-
-        @JsonProperty
-        private String event;
-
-        @Override
-        public String getUid()
-        {
-            return this.event;
-        }
-
-        @Override
-        public TrackerType getTrackerType()
-        {
-            return TrackerType.EVENT;
-        }
-    }
 
     @JsonProperty
-    private TrackedEntity trackedEntity;
+    private String trackedEntity;
 
     @JsonProperty
-    private Enrollment enrollment;
+    private String enrollment;
 
     @JsonProperty
-    private Event event;
+    private String event;
 }
