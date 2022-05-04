@@ -76,6 +76,8 @@ public class DataSetValueController
         OrganisationUnit ou = dataValidator.getAndValidateOrganisationUnit( params.getOu() );
         CategoryOptionCombo ao = dataValidator.getAndValidateAttributeOptionCombo( params.getCc(), params.getCp() );
 
+        System.out.println( "AO " + ao );
+
         DataExportParams exportParams = new DataExportParams()
             .setDataSets( Set.of( ds ) )
             .setPeriods( Set.of( pe ) )

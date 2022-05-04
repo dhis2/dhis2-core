@@ -198,6 +198,14 @@ class DataValidatorTest
     }
 
     @Test
+    void testGetAndValidateAttributeOptionComboNull()
+    {
+        IllegalQueryException ex = assertThrows( IllegalQueryException.class,
+            () -> dataValidator.getAndValidateAttributeOptionCombo( null, null ) );
+        assertEquals( ErrorCode.E1104, ex.getErrorCode() );
+    }
+
+    @Test
     void testInvalidPeriod()
     {
         IllegalQueryException ex = assertThrows( IllegalQueryException.class,
