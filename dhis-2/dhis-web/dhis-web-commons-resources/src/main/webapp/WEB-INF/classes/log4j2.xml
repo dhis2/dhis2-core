@@ -12,7 +12,7 @@
         </RollingFile>
 
         <Console name="console" target="SYSTEM_OUT">
-            <PatternLayout pattern="* %-5p %d{ISO8601} %m (%F [%t])%n %X{sessionId} %X{xRequestID}"/>
+            <PatternLayout pattern="* %-5p %d{ISO8601} %m (%F [%t]) %X{sessionId} %X{xRequestID}%n"/>
         </Console>
     </Appenders>
 
