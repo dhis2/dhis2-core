@@ -183,7 +183,6 @@ public class DefaultUserService
     }
 
     @Override
-    @Transactional( readOnly = true )
     public User getUser( String uid )
     {
         return userStore.getByUidNoAcl( uid );

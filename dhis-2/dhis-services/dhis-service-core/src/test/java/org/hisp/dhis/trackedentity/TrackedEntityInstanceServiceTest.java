@@ -65,7 +65,6 @@ import com.google.common.collect.Sets;
 class TrackedEntityInstanceServiceTest
     extends IntegrationTestBase
 {
-
     @Autowired
     private TrackedEntityInstanceService entityInstanceService;
 
@@ -96,6 +95,9 @@ class TrackedEntityInstanceServiceTest
     @Autowired
     private TrackedEntityTypeService trackedEntityTypeService;
 
+    @Autowired
+    private TrackedEntityAttributeService trackedEntityAttributeService;
+
     private ProgramStageInstance programStageInstanceA;
 
     private ProgramInstance programInstanceA;
@@ -110,21 +112,21 @@ class TrackedEntityInstanceServiceTest
 
     private OrganisationUnit organisationUnit;
 
-    private TrackedEntityType trackedEntityTypeA = createTrackedEntityType( 'A' );
+    private TrackedEntityType trackedEntityTypeA;
 
-    private TrackedEntityAttribute attrD = createTrackedEntityAttribute( 'D' );
+    private TrackedEntityAttribute attrD;
 
-    private TrackedEntityAttribute attrE = createTrackedEntityAttribute( 'E' );
+    private TrackedEntityAttribute attrE;
 
-    private TrackedEntityAttribute filtF = createTrackedEntityAttribute( 'F' );
+    private TrackedEntityAttribute filtF;
 
-    private TrackedEntityAttribute filtG = createTrackedEntityAttribute( 'G' );
+    private TrackedEntityAttribute filtG;
 
-    private TrackedEntityAttribute filtH = createTrackedEntityAttribute( 'H' );
+    private TrackedEntityAttribute filtH;
 
     private final static String ATTRIBUTE_VALUE = "Value";
 
-    private User adminUser;
+    private User superUser;
 
     @Override
     public boolean emptyDatabaseAfterTest()
@@ -137,7 +139,20 @@ class TrackedEntityInstanceServiceTest
     {
         super.userService = _userService;
 
-        this.adminUser = preCreateInjectAdminUser();
+        this.superUser = preCreateInjectAdminUser();
+
+        trackedEntityTypeA = createTrackedEntityType( 'A' );
+        attrD = createTrackedEntityAttribute( 'D' );
+        attrE = createTrackedEntityAttribute( 'E' );
+        filtF = createTrackedEntityAttribute( 'F' );
+        filtG = createTrackedEntityAttribute( 'G' );
+        filtH = createTrackedEntityAttribute( 'H' );
+
+        trackedEntityAttributeService.addTrackedEntityAttribute( attrD );
+        trackedEntityAttributeService.addTrackedEntityAttribute( attrE );
+        trackedEntityAttributeService.addTrackedEntityAttribute( filtF );
+        trackedEntityAttributeService.addTrackedEntityAttribute( filtG );
+        trackedEntityAttributeService.addTrackedEntityAttribute( filtH );
 
         organisationUnit = createOrganisationUnit( 'A' );
         organisationUnitService.addOrganisationUnit( organisationUnit );
@@ -271,11 +286,13 @@ class TrackedEntityInstanceServiceTest
     @Test
     void testTrackedEntityAttributeFilter()
     {
-        injectSecurityContext( adminUser );
-
+        injectSecurityContext( superUser );
         filtH.setDisplayInListNoProgram( true );
-
         attributeService.addTrackedEntityAttribute( filtH );
+
+        User user = createAndAddUser( false, "attributeFilterUser", Sets.newHashSet( organisationUnit ),
+            Sets.newHashSet( organisationUnit ) );
+        injectSecurityContext( user );
 
         entityInstanceA1.setTrackedEntityType( trackedEntityTypeA );
         entityInstanceService.addTrackedEntityInstance( entityInstanceA1 );

@@ -91,7 +91,6 @@ import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -322,16 +321,15 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
         periodService.addPeriod( peC );
         dataSetService.addDataSet( dsA );
 
-        this.user = createAndAddUser( false, "A", null, Authorities.F_SKIP_DATA_IMPORT_AUDIT.getAuthority() );
-        this.user.addOrganisationUnits( Sets.newHashSet( ouA, ouB ) );
-        userService.updateUser( this.user );
+        user = createAndAddUser( false, "A", null, Authorities.F_SKIP_DATA_IMPORT_AUDIT.getAuthority() );
+        user.addOrganisationUnits( Sets.newHashSet( ouA, ouB ) );
+        userService.updateUser( user );
 
-        clearSecurityContext();
-        enableDataSharing( this.user, dsA, AccessStringHelper.DATA_READ_WRITE );
-        enableDataSharing( this.user, categoryOptionA, AccessStringHelper.DATA_READ_WRITE );
-        enableDataSharing( this.user, categoryOptionB, AccessStringHelper.DATA_READ_WRITE );
-        userService.updateUser( this.user );
-        injectSecurityContext( this.user );
+        enableDataSharing( user, dsA, AccessStringHelper.DATA_READ_WRITE );
+        enableDataSharing( user, categoryOptionA, AccessStringHelper.DATA_READ_WRITE );
+        enableDataSharing( user, categoryOptionB, AccessStringHelper.DATA_READ_WRITE );
+        userService.updateUser( user );
+        injectSecurityContext( user );
 
         CompleteDataSetRegistration completeDataSetRegistration = new CompleteDataSetRegistration( dsA, peA, ouA,
             categoryOptionCombo, getDate( 2012, 1, 9 ), "userA", new Date(), "userA", true );
@@ -349,10 +347,7 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
         ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
         assertNotNull( summary );
         assertNotNull( summary.getImportCount() );
-        String description = summary.getDescription();
-        log.info( ":" + description );
         assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
-
         assertHasNoConflicts( summary );
         Collection<DataValue> dataValues = mockDataValueBatchHandler.getInserts();
         Collection<DataValueAudit> auditValues = mockDataValueAuditBatchHandler.getInserts();
@@ -824,12 +819,13 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
     void testImportDataValuesInvalidAttributeOptionComboDates()
         throws Exception
     {
-
         injectSecurityContext( superUser );
-
         categoryOptionA.setStartDate( peB.getStartDate() );
         categoryOptionA.setEndDate( peB.getEndDate() );
         categoryService.updateCategoryOption( categoryOptionA );
+
+        injectSecurityContext( user );
+
         in = new ClassPathResource( "datavalueset/dataValueSetH.xml" ).getInputStream();
         ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
         assertEquals( 2, summary.getConflictCount(), summary.getConflictsDescription() );
@@ -848,11 +844,12 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
     void testImportDataValuesInvalidAttributeOptionComboOrgUnit()
         throws Exception
     {
-
         injectSecurityContext( superUser );
-
         categoryOptionA.setOrganisationUnits( Sets.newHashSet( ouA, ouB ) );
         categoryService.updateCategoryOption( categoryOptionA );
+
+        injectSecurityContext( user );
+
         in = new ClassPathResource( "datavalueset/dataValueSetH.xml" ).getInputStream();
         ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
         assertEquals( 1, summary.getConflictCount(), summary.getConflictsDescription() );
@@ -950,12 +947,9 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    @Disabled( "TODO: fix this test 12098" )
     void testImportDataValuesWithDataSetAllowsPeriods()
     {
-        clearSecurityContext();
-        injectSecurityContext( this.user );
-
+        injectSecurityContext( superUser );
         Date thisMonth = DateUtils.truncate( new Date(), Calendar.MONTH );
         dsA.setExpiryDays( 62 );
         dsA.setOpenFuturePeriods( 2 );
@@ -976,6 +970,8 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
             + "  <dataValue dataElement=\"DE_D\" period=\"" + tooLate.getIsoDate() + "\" value=\"10004\" />\n"
             + "  <dataValue dataElement=\"DE_D\" period=\"" + outOfRange.getIsoDate() + "\" value=\"10005\" />\n"
             + "</dataValueSet>\n";
+
+        injectSecurityContext( user );
         in = new ByteArrayInputStream( importData.getBytes( StandardCharsets.UTF_8 ) );
         ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
         assertEquals( 3, summary.getConflictCount(), summary.getConflictsDescription() );
@@ -1022,11 +1018,12 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
     void testImportValueDefaultCatComboOk()
         throws IOException
     {
-        // clearSecurityContext();
         injectSecurityContext( superUser );
-
         enableDataSharing( user, dsA, AccessStringHelper.DATA_READ_WRITE );
         dataSetService.updateDataSet( dsA );
+
+        injectSecurityContext( user );
+
         in = new ClassPathResource( "datavalueset/dataValueSetA.xml" ).getInputStream();
         ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
         assertNotNull( summary );
