@@ -51,7 +51,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Torgeir Lorange Ostby
  * @version $Id: CurrentUserService.java 5708 2008-09-16 14:28:32Z larshelg $
  */
-@Service
+@Service( "org.hisp.dhis.user.CurrentUserService" )
 @Slf4j
 public class CurrentUserService
 {
@@ -83,8 +83,9 @@ public class CurrentUserService
     public User getCurrentUser()
     {
         User currentUser = CurrentUserUtil.getCurrentUser();
-        boolean contains = sessionFactory.getCurrentSession().contains( currentUser );
-        if ( contains )
+
+        boolean sessionContains = sessionFactory.getCurrentSession().contains( currentUser );
+        if ( sessionContains )
         {
             log.info( "User in session, this should only happen in integration tests. 12098 hack" );
             try
