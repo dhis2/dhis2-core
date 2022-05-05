@@ -34,6 +34,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
+import org.hisp.dhis.jsontree.JsonResponse;
 
 import com.google.gson.JsonObject;
 
@@ -135,6 +136,11 @@ public class ApiResponse
     public JsonObjectBuilder getBodyAsJsonBuilder()
     {
         return new JsonObjectBuilder( getBody() );
+    }
+
+    public JsonResponse getBodyAsJson()
+    {
+        return new JsonResponse( raw.asString() );
     }
 
     public boolean isEntityCreated()
