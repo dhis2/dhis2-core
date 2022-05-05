@@ -35,6 +35,7 @@ import org.hisp.dhis.Constants;
 import org.hisp.dhis.TestRunStorage;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
+import org.hisp.dhis.jsontree.JsonString;
 
 import com.google.gson.JsonObject;
 
@@ -85,7 +86,7 @@ public class UserActions
     public void addRoleToUser( String userId, String userRoleId )
     {
         ApiResponse response = this.get( userId );
-        if ( response.extractList( "userRoles.id" ).contains( userRoleId ) )
+        if ( response.getBodyAsJson().getArray( "userRoles.id" ).stringValues().contains( userRoleId ) )
         {
             return;
         }
