@@ -27,7 +27,16 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
+import static java.util.function.Predicate.not;
+
+import java.util.Collections;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Named;
@@ -37,30 +46,46 @@ interface MetadataIdentifierMapper
 {
 
     @Named( "programToMetadataIdentifier" )
-    default org.hisp.dhis.tracker.domain.MetadataIdentifier fromProgram( String identifier,
+    default MetadataIdentifier fromProgram( String identifier,
         @Context TrackerIdSchemeParams idSchemeParams )
     {
         return idSchemeParams.getProgramIdScheme().toMetadataIdentifier( identifier );
     }
 
     @Named( "programStageToMetadataIdentifier" )
-    default org.hisp.dhis.tracker.domain.MetadataIdentifier fromProgramStage( String identifier,
+    default MetadataIdentifier fromProgramStage( String identifier,
         @Context TrackerIdSchemeParams idSchemeParams )
     {
         return idSchemeParams.getProgramStageIdScheme().toMetadataIdentifier( identifier );
     }
 
     @Named( "orgUnitToMetadataIdentifier" )
-    default org.hisp.dhis.tracker.domain.MetadataIdentifier fromOrgUnit( String identifier,
+    default MetadataIdentifier fromOrgUnit( String identifier,
         @Context TrackerIdSchemeParams idSchemeParams )
     {
         return idSchemeParams.getOrgUnitIdScheme().toMetadataIdentifier( identifier );
     }
 
     @Named( "attributeOptionComboToMetadataIdentifier" )
-    default org.hisp.dhis.tracker.domain.MetadataIdentifier fromAttributeOptionCombo( String identifier,
+    default MetadataIdentifier fromAttributeOptionCombo( String identifier,
         @Context TrackerIdSchemeParams idSchemeParams )
     {
         return idSchemeParams.getCategoryOptionComboIdScheme().toMetadataIdentifier( identifier );
+    }
+
+    @Named( "attributeCategoryOptionsToMetadataIdentifier" )
+    default Set<MetadataIdentifier> fromAttributeCategoryOptions( String identifiers,
+        @Context TrackerIdSchemeParams idSchemeParams )
+    {
+        if ( identifiers == null || StringUtils.isBlank( identifiers ) )
+        {
+            return Collections.emptySet();
+        }
+
+        return TextUtils.splitToSet( identifiers, TextUtils.SEMICOLON ).stream()
+            .map( String::trim )
+            .filter( not( String::isEmpty ) )
+            .map( id -> idSchemeParams.getCategoryOptionIdScheme().toMetadataIdentifier( id ) )
+            .collect( Collectors.toSet() );
     }
 }
