@@ -28,45 +28,18 @@
 package org.hisp.dhis.program.variable;
 
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.ProgramExpressionParams;
-import org.hisp.dhis.program.AnalyticsType;
 
 /**
- * Program indicator variable: event date (also used for execution date)
+ * Program indicator variable: event count
  *
- * @author Jim Grace
+ * @author Dusan Bernat
  */
-public class vEventDate
-    extends ProgramDateVariable
+public class vScheduledEventCount
+    extends ProgramDoubleVariable
 {
     @Override
     public Object getSql( CommonExpressionVisitor visitor )
     {
-        ProgramExpressionParams params = visitor.getProgParams();
-
-        if ( AnalyticsType.ENROLLMENT == params.getProgramIndicator().getAnalyticsType() )
-        {
-            String sqlStatement = visitor.getStatementBuilder().getProgramIndicatorEventColumnSql(
-                null, "executiondate", params.getReportingStartDate(), params.getReportingEndDate(),
-                params.getProgramIndicator() );
-
-            return maybeAppendEventStatusFilterIntoWhere( sqlStatement );
-        }
-
-        return "executiondate";
-    }
-
-    private String maybeAppendEventStatusFilterIntoWhere( String sqlStatement )
-    {
-        int index = sqlStatement.indexOf( "order by executiondate" );
-
-        if ( index == -1 )
-        {
-            return sqlStatement;
-        }
-
-        return sqlStatement.substring( 0, index )
-            + " and psistatus IN ('COMPLETED', 'ACTIVE') "
-            + sqlStatement.substring( index );
+        return " case when psistatus = 'SCHEDULE' then 1 end ";
     }
 }
