@@ -125,7 +125,6 @@ public class DefaultProgramIndicatorSubqueryBuilder
         }
 
         return "(SELECT " + function + " (" + aggregateSql + ")";
-
     }
 
     private String getFrom( ProgramIndicator pi )

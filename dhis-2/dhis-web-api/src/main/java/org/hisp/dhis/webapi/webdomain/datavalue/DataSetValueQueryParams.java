@@ -25,45 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.preheat.supplier;
+package org.hisp.dhis.webapi.webdomain.datavalue;
 
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import javax.validation.constraints.NotBlank;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
- * This annotation establishes a dependency between {@link PreheatSupplier}
- * objects.
+ * Object which encapsulates parameters for a data value query.
  *
- * <pre>
- * {@code
- * &#64;SupplierDependsOn( SupplierZ.class )
- * public class SupplierA implements PreheatSupplier {
- *  ...
- * }
- *
- * public class SupplierZ implements PreheatSupplier {
- *  ...
- * }
- *
- * }
- * </pre>
- *
- * In the above example, the supplier "SupplierZ" will be executed before
- * "SupplierA"
- *
- * @author Luciano Fiandesio
+ * @author Lars Helge Overland
  */
-@Retention( RUNTIME )
-@Target( ElementType.TYPE )
-public @interface SupplierDependsOn
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor( access = AccessLevel.PRIVATE )
+public class DataSetValueQueryParams
 {
-    /**
-     * The {@link PreheatSupplier} subclass the supplier annotated with depends
-     * on
-     *
-     */
-    Class<?> value();
+    @NotBlank
+    private String ds;
+
+    private String cc;
+
+    private String cp;
+
+    @NotBlank
+    private String pe;
+
+    @NotBlank
+    private String ou;
 }
