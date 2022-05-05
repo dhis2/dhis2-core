@@ -387,8 +387,8 @@ class PreCheckMandatoryFieldsValidationHookTest
             is( "Missing required " + entity + " property: `" + property + "`." ) );
     }
 
-    private RelationshipItem.TrackedEntity trackedEntity()
+    private String trackedEntity()
     {
-        return RelationshipItem.TrackedEntity.builder().trackedEntity( CodeGenerator.generateUid() ).build();
+        return CodeGenerator.generateUid();
     }
 }

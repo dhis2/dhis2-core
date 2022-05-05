@@ -41,24 +41,10 @@
       "updatedAt": "2018-10-01T12:17:30.163",
       "bidirectional": false,
       "from": {
-        "trackedEntity": {
-          "trackedEntity": "IOR1AXXl24H",
-          "inactive": false,
-          "deleted": false,
-          "potentialDuplicate": false,
-          "attributes": [],
-          "enrollments": []
-        }
+        "trackedEntity": "IOR1AXXl24H"
       },
       "to": {
-        "enrollment": {
-          "enrollment": "TvctPPhpD8u",
-          "followUp": false,
-          "deleted": false,
-          "events": [],
-          "attributes": [],
-          "notes": []
-        }
+        "enrollment": "TvctPPhpD8u"
       }
     },
     {
@@ -68,24 +54,10 @@
       "updatedAt": "2018-10-01T12:17:30.163",
       "bidirectional": false,
       "from": {
-        "trackedEntity": {
-          "trackedEntity": "IOR1AXXl24H",
-          "inactive": false,
-          "deleted": false,
-          "potentialDuplicate": false,
-          "attributes": [],
-          "enrollments": []
-        }
+        "trackedEntity": "IOR1AXXl24H"
       },
       "to": {
-        "event": {
-          "event": "D9PbzJY8bJO",
-          "status": "ACTIVE",
-          "followup": false,
-          "deleted": false,
-          "dataValues": [],
-          "notes": []
-        }
+        "event": "D9PbzJY8bJO"
       }
     }
   ],
