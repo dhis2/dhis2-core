@@ -30,8 +30,13 @@ package org.hisp.dhis.query;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Stream;
 
-import org.apache.commons.lang3.StringUtils;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.schema.Schema;
@@ -42,28 +47,47 @@ import com.google.common.base.MoreObjects;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Accessors( chain = true )
 public class Query extends Criteria
 {
+    @Getter
+    @Setter
     private User user;
 
+    @Getter
+    @Setter
     private String locale;
 
-    private List<Order> orders = new ArrayList<>();
+    @Getter
+    private final List<Order> orders = new ArrayList<>();
 
+    @Getter
+    @Setter
     private boolean skipPaging;
 
+    @Setter
     private Integer firstResult = 0;
 
+    @Setter
     private Integer maxResults = Integer.MAX_VALUE;
 
-    private Junction.Type rootJunctionType = Junction.Type.AND;
+    @Getter
+    private final Junction.Type rootJunctionType;
 
+    @Getter
+    @Setter
     private boolean plannedQuery;
 
+    @Getter
+    @Setter
     private Defaults defaults = Defaults.EXCLUDE;
 
+    @Getter
+    @Setter
     private boolean cacheable = true;
 
+    @Getter
+    @Setter
     private List<? extends IdentifiableObject> objects;
 
     public static Query from( Schema schema )
@@ -92,7 +116,7 @@ public class Query extends Criteria
 
     private Query( Schema schema )
     {
-        super( schema );
+        this( schema, Junction.Type.AND );
     }
 
     private Query( Schema schema, Junction.Type rootJunctionType )
@@ -111,22 +135,9 @@ public class Query extends Criteria
         return criterions.isEmpty() && orders.isEmpty();
     }
 
-    public List<Order> getOrders()
-    {
-        return orders;
-    }
-
     public boolean ordersPersisted()
     {
-        for ( Order order : orders )
-        {
-            if ( order.isNonPersisted() )
-            {
-                return false;
-            }
-        }
-
-        return true;
+        return orders.stream().noneMatch( Order::isNonPersisted );
     }
 
     public void clearOrders()
@@ -134,62 +145,9 @@ public class Query extends Criteria
         orders.clear();
     }
 
-    public User getUser()
-    {
-        return user;
-    }
-
-    public Query setUser( User user )
-    {
-        this.user = user;
-        return this;
-    }
-
-    public boolean isCacheable()
-    {
-        return cacheable;
-    }
-
-    public void setCacheable( boolean cacheable )
-    {
-        this.cacheable = cacheable;
-    }
-
-    public String getLocale()
-    {
-        return locale;
-    }
-
-    public boolean hasLocale()
-    {
-        return !StringUtils.isEmpty( locale );
-    }
-
-    public void setLocale( String locale )
-    {
-        this.locale = locale;
-    }
-
-    public boolean isSkipPaging()
-    {
-        return skipPaging;
-    }
-
-    public Query setSkipPaging( boolean skipPaging )
-    {
-        this.skipPaging = skipPaging;
-        return this;
-    }
-
     public Integer getFirstResult()
     {
         return skipPaging ? 0 : firstResult;
-    }
-
-    public Query setFirstResult( Integer firstResult )
-    {
-        this.firstResult = firstResult;
-        return this;
     }
 
     public Integer getMaxResults()
@@ -197,66 +155,36 @@ public class Query extends Criteria
         return skipPaging ? Integer.MAX_VALUE : maxResults;
     }
 
-    public Query setMaxResults( Integer maxResults )
-    {
-        this.maxResults = maxResults;
-        return this;
-    }
-
-    public Junction.Type getRootJunctionType()
-    {
-        return rootJunctionType;
-    }
-
-    public boolean isPlannedQuery()
-    {
-        return plannedQuery;
-    }
-
-    public Query setPlannedQuery( boolean plannedQuery )
-    {
-        this.plannedQuery = plannedQuery;
-        return this;
-    }
-
-    public Defaults getDefaults()
-    {
-        return defaults;
-    }
-
-    public Query setDefaults( Defaults defaults )
-    {
-        this.defaults = defaults;
-        return this;
-    }
-
-    public List<? extends IdentifiableObject> getObjects()
-    {
-        return objects;
-    }
-
-    public Query setObjects( List<? extends IdentifiableObject> objects )
-    {
-        this.objects = objects;
-        return this;
-    }
-
     public Query addOrder( Order... orders )
     {
-        for ( Order order : orders )
-        {
-            if ( order != null )
-            {
-                this.orders.add( order );
-            }
-        }
-
+        Stream.of( orders ).filter( Objects::nonNull ).forEach( this.orders::add );
         return this;
     }
 
     public Query addOrders( Collection<Order> orders )
     {
         this.orders.addAll( orders );
+        return this;
+    }
+
+    @Override
+    public Query add( Criterion criterion )
+    {
+        super.add( criterion );
+        return this;
+    }
+
+    @Override
+    public Query add( Criterion... criterions )
+    {
+        super.add( criterions );
+        return this;
+    }
+
+    @Override
+    public Query add( Collection<Criterion> criterions )
+    {
+        super.add( criterions );
         return this;
     }
 
@@ -284,12 +212,6 @@ public class Query extends Criteria
     public Conjunction conjunction()
     {
         return new Conjunction( schema );
-    }
-
-    public Query forceDefaultOrder()
-    {
-        orders.clear();
-        return setDefaultOrder();
     }
 
     public Query setDefaultOrder()

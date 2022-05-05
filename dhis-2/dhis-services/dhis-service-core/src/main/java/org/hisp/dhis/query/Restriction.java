@@ -29,35 +29,44 @@ package org.hisp.dhis.query;
 
 import javax.persistence.criteria.Predicate;
 
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+
 import org.hisp.dhis.query.operators.Operator;
 import org.hisp.dhis.query.planner.QueryPath;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class Restriction implements Criterion
+@Getter
+@Accessors( chain = true )
+public final class Restriction implements Criterion
 {
     /**
      * Path to property you want to restrict only, one first-level properties
      * are currently supported.
      */
-    private String path;
+    private final String path;
 
     /**
      * Operator for restriction.
      */
-    private Operator operator;
+    private final Operator<?> operator;
 
     /**
      * Query Path.
      */
+    @Setter
     private QueryPath queryPath;
 
+    @Setter
     private Predicate predicate;
 
     public Restriction( String path, Predicate predicate )
     {
         this.path = path;
+        this.operator = null;
         this.predicate = predicate;
     }
 
@@ -65,42 +74,6 @@ public class Restriction implements Criterion
     {
         this.path = path;
         this.operator = operator;
-    }
-
-    public String getPath()
-    {
-        return path;
-    }
-
-    public Operator getOperator()
-    {
-        return operator;
-    }
-
-    public QueryPath getQueryPath()
-    {
-        return queryPath;
-    }
-
-    public Restriction setQueryPath( QueryPath queryPath )
-    {
-        this.queryPath = queryPath;
-        return this;
-    }
-
-    public Predicate getPredicate()
-    {
-        return predicate;
-    }
-
-    public void setPredicate( Predicate predicate )
-    {
-        this.predicate = predicate;
-    }
-
-    public boolean haveQueryPath()
-    {
-        return queryPath != null;
     }
 
     @Override
