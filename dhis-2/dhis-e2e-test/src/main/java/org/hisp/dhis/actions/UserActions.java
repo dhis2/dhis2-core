@@ -35,7 +35,6 @@ import org.hisp.dhis.Constants;
 import org.hisp.dhis.TestRunStorage;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
-import org.hisp.dhis.jsontree.JsonString;
 
 import com.google.gson.JsonObject;
 
