@@ -121,7 +121,7 @@ public class EventReportController
      */
     @Deprecated
     @Override
-    protected void forceFiltering( final List<String> filters )
+    protected void forceFiltering( final WebOptions webOptions, final List<String> filters )
     {
         filters.add( "type:in:[PIVOT_TABLE,LINE_LIST]" );
         filters.add( "legacy:eq:true" );

@@ -184,7 +184,7 @@ public class EventChartController
      */
     @Deprecated
     @Override
-    protected void forceFiltering( final List<String> filters )
+    protected void forceFiltering( final WebOptions webOptions, final List<String> filters )
     {
         filters.add( "type:!eq:PIVOT_TABLE" );
         filters.add( "type:!eq:LINE_LIST" );
