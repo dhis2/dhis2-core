@@ -140,7 +140,6 @@ public class QueryFilter
                 encodedFilter
                     .replace( "_", "\\_" )
                     .replace( "%", "\\%" )
-                    .replace( "\\", "\\\\" )
                 + "%'";
         }
         else if ( EQ == operator || NE == operator || NEQ == operator || IEQ == operator || NIEQ == operator )

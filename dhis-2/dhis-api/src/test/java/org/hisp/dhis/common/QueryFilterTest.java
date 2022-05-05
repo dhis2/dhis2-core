@@ -50,12 +50,4 @@ public class QueryFilterTest
         queryFilter.setOperator( QueryOperator.LIKE );
         assertThat( queryFilter.getSqlFilter( "%" ), is( "'%\\%%'" ) );
     }
-
-    @Test
-    void testSlashIsEscaped()
-    {
-        QueryFilter queryFilter = new QueryFilter();
-        queryFilter.setOperator( QueryOperator.LIKE );
-        assertThat( queryFilter.getSqlFilter( "\\" ), is( "'%\\\\%'" ) );
-    }
 }
