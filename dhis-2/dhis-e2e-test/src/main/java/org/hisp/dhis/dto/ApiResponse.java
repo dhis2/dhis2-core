@@ -34,6 +34,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
+import org.hisp.dhis.jsontree.JsonResponse;
 
 import com.google.gson.JsonObject;
 
@@ -41,7 +42,6 @@ import io.restassured.path.json.config.JsonParserType;
 import io.restassured.path.json.config.JsonPathConfig;
 import io.restassured.response.Response;
 import io.restassured.response.ValidatableResponse;
-import org.hisp.dhis.jsontree.JsonResponse;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -138,8 +138,9 @@ public class ApiResponse
         return new JsonObjectBuilder( getBody() );
     }
 
-    public JsonResponse getBodyAsJson() {
-        return new JsonResponse(raw.asString());
+    public JsonResponse getBodyAsJson()
+    {
+        return new JsonResponse( raw.asString() );
     }
 
     public boolean isEntityCreated()
