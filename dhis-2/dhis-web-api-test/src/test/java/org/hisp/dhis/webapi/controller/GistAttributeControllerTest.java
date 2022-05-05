@@ -136,8 +136,8 @@ class GistAttributeControllerTest extends AbstractGistControllerTest
     @Test
     void testFilter_NotEq()
     {
-        String url = "/userGroups/gist?fields=id,name&headless=true&filter={attr}:neq:extra-value";
-        JsonArray groups = GET( url, attrId ).content();
+        String url = "/userGroups/gist?fields=id,name,{attr}&headless=true&filter={attr}:neq:extra-value";
+        JsonArray groups = GET( url, attrId, attrId ).content();
         assertEquals( 1, groups.size() );
         assertEquals( "different", groups.getObject( 0 ).getString( attrId ).string() );
     }
