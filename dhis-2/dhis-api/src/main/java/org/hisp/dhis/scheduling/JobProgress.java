@@ -28,7 +28,6 @@
 package org.hisp.dhis.scheduling;
 
 import static java.lang.String.format;
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -138,8 +137,19 @@ public interface JobProgress
 
     default void failedProcess( Exception cause )
     {
-        String message = cause.getMessage();
-        failedProcess( "Process failed: " + (isNotEmpty( message ) ? message : cause.getClass().getSimpleName()) );
+        failedProcess( "Process failed: " + getMessage( cause ) );
+    }
+
+    default void endingProcess( boolean success )
+    {
+        if ( success )
+        {
+            completedProcess( null );
+        }
+        else
+        {
+            failedProcess( (String) null );
+        }
     }
 
     /**
@@ -476,6 +486,9 @@ public interface JobProgress
         public abstract Date getStartedTime();
 
         @JsonProperty
+        public abstract String getDescription();
+
+        @JsonProperty
         public long getDuration()
         {
             return completedTime == null
@@ -492,16 +505,22 @@ public interface JobProgress
         public void complete( String summary )
         {
             this.summary = summary;
-            this.status = Status.SUCCESS;
             this.completedTime = new Date();
+            if ( status == Status.RUNNING )
+            {
+                this.status = Status.SUCCESS;
+            }
         }
 
         public void completeExceptionally( String error, Exception cause )
         {
             this.error = error;
             this.cause = cause;
-            this.status = cause instanceof CancellationException ? Status.CANCELLED : Status.ERROR;
             this.completedTime = new Date();
+            if ( status == Status.RUNNING )
+            {
+                this.status = cause instanceof CancellationException ? Status.CANCELLED : Status.ERROR;
+            }
         }
     }
 
@@ -534,11 +553,6 @@ public interface JobProgress
             this.cancelledTime = new Date();
             this.status = Status.CANCELLED;
         }
-
-        public void abort()
-        {
-            completeExceptionally( "aborted after failed stage or item", null );
-        }
     }
 
     @Getter
@@ -569,5 +583,11 @@ public interface JobProgress
 
         @JsonProperty
         private final String description;
+    }
+
+    static String getMessage( Exception cause )
+    {
+        String msg = cause.getMessage();
+        return msg == null || msg.isBlank() ? cause.getClass().getName() : msg;
     }
 }

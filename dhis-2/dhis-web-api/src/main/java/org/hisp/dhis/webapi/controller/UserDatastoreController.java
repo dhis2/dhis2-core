@@ -38,17 +38,22 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import java.io.IOException;
 import java.util.List;
 
+import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletResponse;
 
+import lombok.AllArgsConstructor;
+
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.userdatastore.UserDatastoreEntry;
 import org.hisp.dhis.userdatastore.UserDatastoreService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -66,27 +71,28 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 @RequestMapping( "/userDataStore" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+@AllArgsConstructor
 public class UserDatastoreController
 {
-    @Autowired
-    private UserDatastoreService userDatastoreService;
+    private final UserDatastoreService userDatastoreService;
 
-    @Autowired
-    private RenderService renderService;
+    private final RenderService renderService;
 
-    @Autowired
-    private CurrentUserService currentUserService;
+    private final CurrentUserService currentUserService;
+
+    private final UserService userService;
 
     /**
      * Returns a JSON array of strings representing the different namespaces
      * used. If no namespaces exist, an empty array is returned.
      */
     @GetMapping( value = "", produces = APPLICATION_JSON_VALUE )
-    public @ResponseBody List<String> getNamespaces( HttpServletResponse response )
+    public @ResponseBody List<String> getNamespaces( @RequestParam( required = false ) String username,
+        HttpServletResponse response )
     {
         setNoStore( response );
 
-        return userDatastoreService.getNamespacesByUser( currentUserService.getCurrentUser() );
+        return userDatastoreService.getNamespacesByUser( getUser( username ) );
     }
 
     /**
@@ -94,10 +100,14 @@ public class UserDatastoreController
      * given namespace. If no namespaces exist, an empty array is returned.
      */
     @GetMapping( value = "/{namespace}", produces = APPLICATION_JSON_VALUE )
-    public @ResponseBody List<String> getKeys( @PathVariable String namespace, HttpServletResponse response )
+    public @ResponseBody List<String> getKeys(
+        @PathVariable String namespace,
+        @RequestParam( required = false ) String username,
+        HttpServletResponse response )
         throws WebMessageException
     {
-        if ( !userDatastoreService.getNamespacesByUser( currentUserService.getCurrentUser() ).contains( namespace ) )
+        User user = getUser( username );
+        if ( !userDatastoreService.getNamespacesByUser( user ).contains( namespace ) )
         {
             throw new WebMessageException(
                 notFound( "The namespace '" + namespace + "' was not found." ) );
@@ -105,7 +115,7 @@ public class UserDatastoreController
 
         setNoStore( response );
 
-        return userDatastoreService.getKeysByUserAndNamespace( currentUserService.getCurrentUser(), namespace );
+        return userDatastoreService.getKeysByUserAndNamespace( user, namespace );
     }
 
     /**
@@ -113,9 +123,9 @@ public class UserDatastoreController
      */
     @DeleteMapping( "/{namespace}" )
     @ResponseBody
-    public WebMessage deleteKeys( @PathVariable String namespace )
+    public WebMessage deleteKeys( @PathVariable String namespace, @RequestParam( required = false ) String username )
     {
-        userDatastoreService.deleteNamespaceFromUser( currentUserService.getCurrentUser(), namespace );
+        userDatastoreService.deleteNamespaceFromUser( getUser( username ), namespace );
 
         return ok( "All keys from namespace '" + namespace + "' deleted." );
     }
@@ -127,13 +137,14 @@ public class UserDatastoreController
     @GetMapping( value = "/{namespace}/{key}", produces = APPLICATION_JSON_VALUE )
     public @ResponseBody String getUserValue(
         @PathVariable String namespace,
-        @PathVariable String key, HttpServletResponse response )
+        @PathVariable String key,
+        @RequestParam( required = false ) String username,
+        HttpServletResponse response )
         throws WebMessageException
     {
-        UserDatastoreEntry userEntry = userDatastoreService.getUserEntry(
-            currentUserService.getCurrentUser(), namespace, key );
+        UserDatastoreEntry entry = getEntry( username, namespace, key );
 
-        if ( userEntry == null )
+        if ( entry == null )
         {
             throw new WebMessageException(
                 notFound( "The key '" + key + "' was not found in the namespace '" + namespace + "'." ) );
@@ -141,7 +152,7 @@ public class UserDatastoreController
 
         setNoStore( response );
 
-        return userEntry.getValue();
+        return entry.getValue();
     }
 
     /**
@@ -153,12 +164,13 @@ public class UserDatastoreController
     public WebMessage addUserValue(
         @PathVariable String namespace,
         @PathVariable String key,
+        @RequestParam( required = false ) String username,
         @RequestBody String body,
         @RequestParam( defaultValue = "false" ) boolean encrypt )
         throws IOException
     {
-        if ( userDatastoreService.getUserEntry( currentUserService.getCurrentUser(), namespace,
-            key ) != null )
+        User user = getUser( username );
+        if ( userDatastoreService.getUserEntry( user, namespace, key ) != null )
         {
             return conflict( "The key '" + key + "' already exists in the namespace '" + namespace + "'." );
         }
@@ -168,15 +180,15 @@ public class UserDatastoreController
             return badRequest( "The data is not valid JSON." );
         }
 
-        UserDatastoreEntry userEntry = new UserDatastoreEntry();
+        UserDatastoreEntry entry = new UserDatastoreEntry();
 
-        userEntry.setKey( key );
-        userEntry.setCreatedBy( currentUserService.getCurrentUser() );
-        userEntry.setNamespace( namespace );
-        userEntry.setValue( body );
-        userEntry.setEncrypted( encrypt );
+        entry.setKey( key );
+        entry.setCreatedBy( user );
+        entry.setNamespace( namespace );
+        entry.setValue( body );
+        entry.setEncrypted( encrypt );
 
-        userDatastoreService.addUserEntry( userEntry );
+        userDatastoreService.addUserEntry( entry );
 
         return created( "Key '" + key + "' in namespace '" + namespace + "' created." );
     }
@@ -189,13 +201,13 @@ public class UserDatastoreController
     public WebMessage updateUserValue(
         @PathVariable String namespace,
         @PathVariable String key,
+        @RequestParam( required = false ) String username,
         @RequestBody String body )
         throws IOException
     {
-        UserDatastoreEntry userEntry = userDatastoreService.getUserEntry(
-            currentUserService.getCurrentUser(), namespace, key );
+        UserDatastoreEntry entry = getEntry( username, namespace, key );
 
-        if ( userEntry == null )
+        if ( entry == null )
         {
             return notFound( "The key '" + key + "' was not found in the namespace '" + namespace + "'." );
         }
@@ -205,9 +217,9 @@ public class UserDatastoreController
             return badRequest( "The data is not valid JSON." );
         }
 
-        userEntry.setValue( body );
+        entry.setValue( body );
 
-        userDatastoreService.updateUserEntry( userEntry );
+        userDatastoreService.updateUserEntry( entry );
 
         return created( "Key '" + key + "' in namespace '" + namespace + "' updated." );
     }
@@ -219,18 +231,44 @@ public class UserDatastoreController
     @ResponseBody
     public WebMessage deleteUserValue(
         @PathVariable String namespace,
-        @PathVariable String key )
+        @PathVariable String key,
+        @RequestParam( required = false ) String username )
     {
-        UserDatastoreEntry userEntry = userDatastoreService.getUserEntry(
-            currentUserService.getCurrentUser(), namespace, key );
+        UserDatastoreEntry entry = getEntry( username, namespace, key );
 
-        if ( userEntry == null )
+        if ( entry == null )
         {
             return notFound( "The key '" + key + "' was not found in the namespace '" + namespace + "'." );
         }
 
-        userDatastoreService.deleteUserEntry( userEntry );
+        userDatastoreService.deleteUserEntry( entry );
 
         return ok( "Key '" + key + "' deleted from the namespace '" + namespace + "'." );
+    }
+
+    private UserDatastoreEntry getEntry( String username, String namespace, String key )
+    {
+        return userDatastoreService.getUserEntry( getUser( username ), namespace, key );
+    }
+
+    @Nonnull
+    private User getUser( String username )
+    {
+        User currentUser = currentUserService.getCurrentUser();
+        if ( username == null || username.isBlank() )
+        {
+            return currentUser;
+        }
+        if ( !currentUser.isSuper() )
+        {
+            throw new IllegalQueryException(
+                "Only superusers can read or write other users data using the `user` parameter." );
+        }
+        User user = userService.getUserByUsername( username );
+        if ( user == null )
+        {
+            throw new IllegalQueryException( "No user with username " + username + " exists." );
+        }
+        return user;
     }
 }
