@@ -25,21 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.imports;
+package org.hisp.dhis.webapi.webdomain.datavalue;
 
-import org.hisp.dhis.tracker.TrackerIdSchemeParams;
-import org.hisp.dhis.webapi.controller.tracker.view.RelationshipItem;
-import org.mapstruct.Context;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 
-@Mapper
-interface RelationshipItemMapper
-    extends DomainMapper<RelationshipItem, org.hisp.dhis.tracker.domain.RelationshipItem>
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+/**
+ * DTO which represents a min-max value.
+ *
+ * @author Lars Helge Overland
+ */
+@Getter
+@Setter
+@Accessors( chain = true )
+@NoArgsConstructor
+public class MinMaxValueDto
 {
-    @Mapping( target = "trackedEntity", source = "trackedEntity.trackedEntity" )
-    @Mapping( target = "enrollment", source = "enrollment.enrollment" )
-    @Mapping( target = "event", source = "event.event" )
-    org.hisp.dhis.tracker.domain.RelationshipItem from( RelationshipItem relationshipItem,
-        @Context TrackerIdSchemeParams idSchemeParams );
+    @JsonProperty
+    private String dataElement;
+
+    @JsonProperty
+    private String orgUnit;
+
+    @JsonProperty
+    private String categoryOptionCombo;
+
+    @JsonProperty
+    private Integer minValue;
+
+    @JsonProperty
+    private Integer maxValue;
 }

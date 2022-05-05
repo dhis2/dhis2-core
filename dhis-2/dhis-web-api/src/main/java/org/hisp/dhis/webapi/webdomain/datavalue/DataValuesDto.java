@@ -25,21 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.imports;
+package org.hisp.dhis.webapi.webdomain.datavalue;
 
-import org.hisp.dhis.tracker.TrackerIdSchemeParams;
-import org.hisp.dhis.webapi.controller.tracker.view.RelationshipItem;
-import org.mapstruct.Context;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import java.util.ArrayList;
+import java.util.List;
 
-@Mapper
-interface RelationshipItemMapper
-    extends DomainMapper<RelationshipItem, org.hisp.dhis.tracker.domain.RelationshipItem>
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+/**
+ * DTO which represents data values and min-max values for a data entry form.
+ *
+ * @author Lars Helge Overland
+ */
+@Getter
+@Setter
+@Accessors( chain = true )
+@NoArgsConstructor
+public class DataValuesDto
 {
-    @Mapping( target = "trackedEntity", source = "trackedEntity.trackedEntity" )
-    @Mapping( target = "enrollment", source = "enrollment.enrollment" )
-    @Mapping( target = "event", source = "event.event" )
-    org.hisp.dhis.tracker.domain.RelationshipItem from( RelationshipItem relationshipItem,
-        @Context TrackerIdSchemeParams idSchemeParams );
+    @JsonProperty
+    private List<DataValueDto> dataValues = new ArrayList<>();
+
+    @JsonProperty
+    private List<MinMaxValueDto> minMaxValues = new ArrayList<>();
 }

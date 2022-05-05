@@ -25,21 +25,48 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.imports;
+package org.hisp.dhis.program.variable;
 
-import org.hisp.dhis.tracker.TrackerIdSchemeParams;
-import org.hisp.dhis.webapi.controller.tracker.view.RelationshipItem;
-import org.mapstruct.Context;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.parser.expression.ProgramExpressionParams;
+import org.hisp.dhis.program.AnalyticsType;
 
-@Mapper
-interface RelationshipItemMapper
-    extends DomainMapper<RelationshipItem, org.hisp.dhis.tracker.domain.RelationshipItem>
+/**
+ * Program indicator variable: event date (also used for execution date)
+ *
+ * @author Dusan Bernat
+ */
+public class vScheduledDate
+    extends ProgramDateVariable
 {
-    @Mapping( target = "trackedEntity", source = "trackedEntity.trackedEntity" )
-    @Mapping( target = "enrollment", source = "enrollment.enrollment" )
-    @Mapping( target = "event", source = "event.event" )
-    org.hisp.dhis.tracker.domain.RelationshipItem from( RelationshipItem relationshipItem,
-        @Context TrackerIdSchemeParams idSchemeParams );
+    @Override
+    public Object getSql( CommonExpressionVisitor visitor )
+    {
+        ProgramExpressionParams params = visitor.getProgParams();
+
+        if ( AnalyticsType.ENROLLMENT == params.getProgramIndicator().getAnalyticsType() )
+        {
+            String sqlStatement = visitor.getStatementBuilder().getProgramIndicatorEventColumnSql(
+                null, "duedate", params.getReportingStartDate(), params.getReportingEndDate(),
+                params.getProgramIndicator() );
+
+            return maybeAppendEventStatusFilterIntoWhere( sqlStatement );
+        }
+
+        return "duedate";
+    }
+
+    private String maybeAppendEventStatusFilterIntoWhere( String sqlStatement )
+    {
+        int index = sqlStatement.indexOf( "order by executiondate" );
+
+        if ( index == -1 )
+        {
+            return sqlStatement;
+        }
+
+        return sqlStatement.substring( 0, index )
+            + " and psistatus = 'SCHEDULE' "
+            + sqlStatement.substring( index );
+    }
 }
