@@ -569,7 +569,7 @@ class EnrollmentAnalyticsManagerTest extends
             is( "(select json_agg(t1) from (select \"" + dataElementA.getUid()
                 + "\", incidentdate, duedate, executiondate  from analytics_event_" + programB.getUid()
                 + " where analytics_event_" + programB.getUid()
-                + ".pi = ax.pi and \"" + dataElementA.getUid() + "\" is not null and ps = '"
+                + ".pi = ax.pi and ps = '"
                 + programStageWithRepeatableParams.getUid()
                 + "' and executiondate >= '2022-01-01'  and executiondate <= '2022-01-31' order by executiondate desc LIMIT 100 ) as t1)" ) );
     }
@@ -596,7 +596,7 @@ class EnrollmentAnalyticsManagerTest extends
         assertThat( columnSql,
             is( "(select \"" + dataElementA.getUid()
                 + "\" from analytics_event_" + programB.getUid() + " where analytics_event_" + programB.getUid()
-                + ".pi = ax.pi and \"" + dataElementA.getUid() + "\" is not null and ps = '"
+                + ".pi = ax.pi and ps = '"
                 + programStageWithRepeatableParams.getUid()
                 + "' order by executiondate desc limit 1 )" ) );
     }
