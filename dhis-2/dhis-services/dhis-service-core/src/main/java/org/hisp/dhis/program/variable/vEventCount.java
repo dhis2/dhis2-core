@@ -37,9 +37,15 @@ import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 public class vEventCount
     extends ProgramDoubleVariable
 {
+    public static final String DEFAULT_COUNT_CONDITION = "when psistatus in ('ACTIVE', 'COMPLETED') then 1";
+
     @Override
     public Object getSql( CommonExpressionVisitor visitor )
     {
-        return "psi";
+        // Counts only the default 'psistatus' for events/V{event_count}. Needed
+        // for backward compatibility.
+        return "case "
+            + DEFAULT_COUNT_CONDITION
+            + " end";
     }
 }

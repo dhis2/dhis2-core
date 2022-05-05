@@ -25,34 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.dataentry;
+package org.hisp.dhis.webapi.webdomain.datavalue;
 
-import lombok.RequiredArgsConstructor;
+import java.util.ArrayList;
+import java.util.List;
 
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.dxf2.metadata.DataSetMetadataExportService;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
+ * DTO which represents data values and min-max values for a data entry form.
+ *
  * @author Lars Helge Overland
  */
-@RestController
-@RequiredArgsConstructor
-@RequestMapping( "/dataEntry" )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class DataSetMetadataExportController
+@Getter
+@Setter
+@Accessors( chain = true )
+@NoArgsConstructor
+public class DataValuesDto
 {
-    private final DataSetMetadataExportService exportService;
+    @JsonProperty
+    private List<DataValueDto> dataValues = new ArrayList<>();
 
-    @GetMapping( "/metadata" )
-    public ResponseEntity<JsonNode> getMetadata()
-    {
-        return ResponseEntity.ok( exportService.getDataSetMetadata() );
-    }
+    @JsonProperty
+    private List<MinMaxValueDto> minMaxValues = new ArrayList<>();
 }

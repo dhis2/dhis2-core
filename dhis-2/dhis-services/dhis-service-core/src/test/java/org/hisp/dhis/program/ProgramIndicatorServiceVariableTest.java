@@ -29,6 +29,7 @@ package org.hisp.dhis.program;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.startsWith;
+import static org.hisp.dhis.program.AnalyticsType.ENROLLMENT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Calendar;
@@ -86,7 +87,7 @@ class ProgramIndicatorServiceVariableTest extends DhisSpringTest
         piA = createProgramIndicator( 'A', programA, "20", null );
         programA.getProgramIndicators().add( piA );
         piB = createProgramIndicator( 'B', programA, "70", null );
-        piB.setAnalyticsType( AnalyticsType.ENROLLMENT );
+        piB.setAnalyticsType( ENROLLMENT );
         programA.getProgramIndicators().add( piB );
 
         TrackedEntityAttribute teaA = createTrackedEntityAttribute( 'A' );
@@ -106,6 +107,11 @@ class ProgramIndicatorServiceVariableTest extends DhisSpringTest
         piB.setExpression( expression );
 
         return programIndicatorService.getAnalyticsSql( expression, piB, startDate, endDate );
+    }
+
+    private String getSqlEnrollment( final String expression, final ProgramIndicator programIndicator )
+    {
+        return programIndicatorService.getAnalyticsSql( expression, programIndicator, startDate, endDate );
     }
 
     // -------------------------------------------------------------------------
@@ -182,10 +188,17 @@ class ProgramIndicatorServiceVariableTest extends DhisSpringTest
     }
 
     @Test
+    void testEventStatusWithComparison()
+    {
+        assertEquals( "psistatus = 'SCHEDULE'", getSql( "V{event_status} == 'SCHEDULE'" ) );
+    }
+
+    @Test
     void testEventCount()
     {
-        assertEquals( "psi", getSql( "V{event_count}" ) );
-        assertEquals( "psi", getSqlEnrollment( "V{event_count}" ) );
+        assertEquals( "case when psistatus in ('ACTIVE', 'COMPLETED') then 1 end", getSql( "V{event_count}" ) );
+        assertEquals( "case when psistatus in ('ACTIVE', 'COMPLETED') then 1 end",
+            getSqlEnrollment( "V{event_count}" ) );
     }
 
     @Test
