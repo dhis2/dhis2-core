@@ -98,7 +98,7 @@ public class RelationshipTrackerConverterService
     public org.hisp.dhis.relationship.Relationship from( TrackerPreheat preheat, Relationship fromRelationship )
     {
         org.hisp.dhis.relationship.Relationship toRelationship = preheat
-            .getRelationship( fromRelationship );
+            .getRelationship( fromRelationship.getRelationship() );
         return from( preheat, fromRelationship, toRelationship );
     }
 

@@ -143,7 +143,7 @@ public class StrategyPreProcessor
         {
             TrackerImportStrategy importStrategy = bundle.getImportStrategy();
             org.hisp.dhis.relationship.Relationship existingRelationship = bundle.getPreheat()
-                .getRelationship( relationship );
+                .getRelationship( relationship.getUid() );
 
             if ( importStrategy.isCreateAndUpdate() )
             {

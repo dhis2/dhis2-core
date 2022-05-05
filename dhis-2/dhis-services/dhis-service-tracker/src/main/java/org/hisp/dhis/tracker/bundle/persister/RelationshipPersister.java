@@ -101,7 +101,7 @@ public class RelationshipPersister
     @Override
     protected boolean isNew( TrackerPreheat preheat, Relationship trackerDto )
     {
-        return preheat.getRelationship( trackerDto ) == null;
+        return preheat.getRelationship( trackerDto.getRelationship() ) == null;
     }
 
     @Override

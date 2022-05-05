@@ -149,13 +149,13 @@ public class PreCheckExistenceValidationHook
             return;
         }
 
-        if ( existingRelationship != null && importStrategy.isUpdate() )
+        if ( existingUidRelationship != null && importStrategy.isUpdate() )
         {
             reporter.addWarning( relationship, E4015, relationship.getRelationship() );
             return;
         }
 
-        if ( existingRelationship != null && importStrategy.isCreate() )
+        if ( existingUidRelationship != null && importStrategy.isCreate() )
         {
             reporter.addError( relationship, E4015, relationship.getUid() );
         }
