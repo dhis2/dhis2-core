@@ -28,11 +28,11 @@
 package org.hisp.dhis.program;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionVeto;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
@@ -47,30 +47,30 @@ public class TrackedEntityDataValueAuditDeletionHandler
 
     private final JdbcTemplate jdbcTemplate;
 
-    public TrackedEntityDataValueAuditDeletionHandler( JdbcTemplate jdbcTemplate )
+    private final TrackedEntityDataValueAuditService trackedEntityDataValueAuditService;
+
+    public TrackedEntityDataValueAuditDeletionHandler( JdbcTemplate jdbcTemplate,
+        TrackedEntityDataValueAuditService trackedEntityDataValueAuditService )
     {
         checkNotNull( jdbcTemplate );
         this.jdbcTemplate = jdbcTemplate;
+        this.trackedEntityDataValueAuditService = trackedEntityDataValueAuditService;
     }
 
     @Override
     protected void register()
     {
-        whenVetoing( DataElement.class, this::allowDeleteDataElement );
-        whenVetoing( ProgramStageInstance.class, this::allowDeleteProgramStageInstance );
+        whenDeleting( DataElement.class, this::deleteDataElement );
+        whenDeleting( ProgramStageInstance.class, this::deleteProgramStageInstance );
     }
 
-    private DeletionVeto allowDeleteDataElement( DataElement dataElement )
+    private void deleteDataElement( DataElement dataElement )
     {
-        String sql = "SELECT COUNT(*) FROM trackedentitydatavalueaudit where dataelementid=" + dataElement.getId();
-
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
+        trackedEntityDataValueAuditService.deleteTrackedEntityDataValueAudit( dataElement );
     }
 
-    private DeletionVeto allowDeleteProgramStageInstance( ProgramStageInstance psi )
+    private void deleteProgramStageInstance( ProgramStageInstance psi )
     {
-        String sql = "SELECT COUNT(*) FROM trackedentitydatavalueaudit where programstageinstanceid=" + psi.getId();
-
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
+        trackedEntityDataValueAuditService.deleteTrackedEntityDataValueAudit( psi );
     }
 }

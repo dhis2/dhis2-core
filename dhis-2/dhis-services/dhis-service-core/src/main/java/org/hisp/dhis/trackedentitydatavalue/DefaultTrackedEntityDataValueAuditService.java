@@ -101,6 +101,21 @@ public class DefaultTrackedEntityDataValueAuditService
     }
 
     @Override
+    @Transactional
+    public void deleteTrackedEntityDataValueAudit( DataElement dataElement )
+    {
+        trackedEntityDataValueAuditStore.deleteTrackedEntityDataValueAudit( dataElement );
+    }
+
+    @Override
+    @Transactional
+    public void deleteTrackedEntityDataValueAudit( ProgramStageInstance programStageInstance )
+    {
+
+        trackedEntityDataValueAuditStore.deleteTrackedEntityDataValueAudit( programStageInstance );
+    }
+
+    @Override
     @Transactional( readOnly = true )
     public int countTrackedEntityDataValueAudits( List<DataElement> dataElements,
         List<ProgramStageInstance> programStageInstances, AuditType auditType )
