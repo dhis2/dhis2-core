@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.query;
 
-import javax.persistence.criteria.Predicate;
-
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
@@ -59,16 +57,6 @@ public final class Restriction implements Criterion
      */
     @Setter
     private QueryPath queryPath;
-
-    @Setter
-    private Predicate predicate;
-
-    public Restriction( String path, Predicate predicate )
-    {
-        this.path = path;
-        this.operator = null;
-        this.predicate = predicate;
-    }
 
     public Restriction( String path, Operator operator )
     {

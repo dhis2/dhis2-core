@@ -58,6 +58,11 @@ import com.google.common.collect.Lists;
  */
 public final class QueryUtils
 {
+    private QueryUtils()
+    {
+        throw new UnsupportedOperationException( "util" );
+    }
+
     public static <T> T parseValue( Class<?> klass, Object objectValue )
     {
         return parseValue( klass, null, objectValue );
@@ -71,7 +76,7 @@ public final class QueryUtils
             return (T) objectValue;
         }
 
-        if ( !String.class.isInstance( objectValue ) )
+        if ( !(objectValue instanceof String) )
         {
             return (T) objectValue;
         }
@@ -89,7 +94,7 @@ public final class QueryUtils
                 throw new QueryParserException( "Unable to parse `" + value + "` as `Integer`." );
             }
         }
-        else if ( Boolean.class.isAssignableFrom( klass ) )
+        if ( Boolean.class.isAssignableFrom( klass ) )
         {
             try
             {
@@ -100,7 +105,7 @@ public final class QueryUtils
                 throw new QueryParserException( "Unable to parse `" + value + "` as `Boolean`." );
             }
         }
-        else if ( Float.class.isAssignableFrom( klass ) )
+        if ( Float.class.isAssignableFrom( klass ) )
         {
             try
             {
@@ -111,7 +116,7 @@ public final class QueryUtils
                 throw new QueryParserException( "Unable to parse `" + value + "` as `Float`." );
             }
         }
-        else if ( Double.class.isAssignableFrom( klass ) )
+        if ( Double.class.isAssignableFrom( klass ) )
         {
             try
             {
@@ -122,7 +127,7 @@ public final class QueryUtils
                 throw new QueryParserException( "Unable to parse `" + value + "` as `Double`." );
             }
         }
-        else if ( Date.class.isAssignableFrom( klass ) )
+        if ( Date.class.isAssignableFrom( klass ) )
         {
             try
             {
@@ -134,7 +139,7 @@ public final class QueryUtils
                 throw new QueryParserException( "Unable to parse `" + value + "` as `Date`." );
             }
         }
-        else if ( Enum.class.isAssignableFrom( klass ) )
+        if ( Enum.class.isAssignableFrom( klass ) )
         {
             T enumValue = getEnumValue( klass, value );
 
@@ -198,12 +203,9 @@ public final class QueryUtils
         {
             return (T) enumValue.get();
         }
-        else
-        {
-            Object[] possibleValues = klass.getEnumConstants();
-            throw new QueryParserException( "Unable to parse `" + value + "` as `" + klass + "`, available values are: "
-                + Arrays.toString( possibleValues ) );
-        }
+        Object[] possibleValues = klass.getEnumConstants();
+        throw new QueryParserException( "Unable to parse `" + value + "` as `" + klass + "`, available values are: "
+            + Arrays.toString( possibleValues ) );
     }
 
     public static Object parseValue( String value )
@@ -212,14 +214,11 @@ public final class QueryUtils
         {
             return null;
         }
-        else if ( NumberUtils.isNumber( value ) )
+        if ( NumberUtils.isNumber( value ) )
         {
             return value;
         }
-        else
-        {
-            return "'" + value + "'";
-        }
+        return "'" + value + "'";
     }
 
     /**
@@ -236,19 +235,16 @@ public final class QueryUtils
         {
             return " * ";
         }
-        else
+        StringBuilder str = new StringBuilder( StringUtils.EMPTY );
+        for ( int i = 0; i < fields.size(); i++ )
         {
-            String str = StringUtils.EMPTY;
-            for ( int i = 0; i < fields.size(); i++ )
+            str.append( fields.get( i ) );
+            if ( i < fields.size() - 1 )
             {
-                str += fields.get( i );
-                if ( i < fields.size() - 1 )
-                {
-                    str += ",";
-                }
+                str.append( "," );
             }
-            return str;
         }
+        return str.toString();
     }
 
     /**
@@ -272,24 +268,24 @@ public final class QueryUtils
 
         String[] split = value.substring( 1, value.length() - 1 ).split( "," );
         List<String> items = Lists.newArrayList( split );
-        String str = "(";
+        StringBuilder str = new StringBuilder( "(" );
 
         for ( int i = 0; i < items.size(); i++ )
         {
             Object item = QueryUtils.parseValue( items.get( i ) );
             if ( item != null )
             {
-                str += item;
+                str.append( item );
                 if ( i < items.size() - 1 )
                 {
-                    str += ",";
+                    str.append( "," );
                 }
             }
         }
 
-        str += ")";
+        str.append( ")" );
 
-        return str;
+        return str.toString();
     }
 
     /**
@@ -316,13 +312,7 @@ public final class QueryUtils
             return "= " + QueryUtils.parseValue( value );
         }
         case "!eq":
-        {
-            return "!= " + QueryUtils.parseValue( value );
-        }
         case "ne":
-        {
-            return "!= " + QueryUtils.parseValue( value );
-        }
         case "neq":
         {
             return "!= " + QueryUtils.parseValue( value );
@@ -336,17 +326,11 @@ public final class QueryUtils
             return "< " + QueryUtils.parseValue( value );
         }
         case "gte":
-        {
-            return ">= " + QueryUtils.parseValue( value );
-        }
         case "ge":
         {
             return ">= " + QueryUtils.parseValue( value );
         }
         case "lte":
-        {
-            return "<= " + QueryUtils.parseValue( value );
-        }
         case "le":
         {
             return "<= " + QueryUtils.parseValue( value );
@@ -478,7 +462,7 @@ public final class QueryUtils
             {
                 continue;
             }
-            else if ( split.length == 2 )
+            if ( split.length == 2 )
             {
                 direction = split[1].toLowerCase();
             }

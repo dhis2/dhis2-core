@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.query.planner;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -37,6 +35,8 @@ import java.util.Set;
 
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Root;
+
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.query.Conjunction;
 import org.hisp.dhis.query.Criterion;
@@ -48,24 +48,16 @@ import org.hisp.dhis.query.Restriction;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Component( "org.hisp.dhis.query.planner.QueryPlanner" )
+@Component
+@AllArgsConstructor
 public class DefaultQueryPlanner implements QueryPlanner
 {
     private final SchemaService schemaService;
-
-    @Autowired
-    public DefaultQueryPlanner( SchemaService schemaService )
-    {
-        checkNotNull( schemaService );
-
-        this.schemaService = schemaService;
-    }
 
     @Override
     public QueryPlan planQuery( Query query )
@@ -82,7 +74,7 @@ public class DefaultQueryPlanner implements QueryPlanner
 
         if ( (!isFilterOnPersistedFieldOnly( query ) || Junction.Type.OR == junctionType) && !persistedOnly )
         {
-            return QueryPlan.QueryPlanBuilder.newBuilder()
+            return QueryPlan.builder()
                 .persistedQuery( Query.from( query.getSchema() ).setPlannedQuery( true ) )
                 .nonPersistedQuery( Query.from( query ).setPlannedQuery( true ) )
                 .build();
@@ -104,8 +96,7 @@ public class DefaultQueryPlanner implements QueryPlanner
             pQuery.setMaxResults( npQuery.getMaxResults() );
         }
 
-        return QueryPlan.QueryPlanBuilder
-            .newBuilder()
+        return QueryPlan.builder()
             .persistedQuery( pQuery )
             .nonPersistedQuery( npQuery )
             .build();
@@ -223,9 +214,9 @@ public class DefaultQueryPlanner implements QueryPlanner
 
         while ( iterator.hasNext() )
         {
-            org.hisp.dhis.query.Criterion criterion = iterator.next();
+            Criterion criterion = iterator.next();
 
-            if ( Junction.class.isInstance( criterion ) )
+            if ( criterion instanceof Junction )
             {
                 Junction junction = handleJunction( pQuery, (Junction) criterion, persistedOnly );
 
@@ -240,7 +231,7 @@ public class DefaultQueryPlanner implements QueryPlanner
                     iterator.remove();
                 }
             }
-            else if ( Restriction.class.isInstance( criterion ) )
+            else if ( criterion instanceof Restriction )
             {
                 Restriction restriction = (Restriction) criterion;
                 restriction.setQueryPath( getQueryPath( query.getSchema(), restriction.getPath() ) );
@@ -265,15 +256,15 @@ public class DefaultQueryPlanner implements QueryPlanner
 
     private Junction handleJunction( Query query, Junction queryJunction, boolean persistedOnly )
     {
-        Iterator<org.hisp.dhis.query.Criterion> iterator = queryJunction.getCriterions().iterator();
-        Junction criteriaJunction = Disjunction.class.isInstance( queryJunction ) ? new Disjunction( query.getSchema() )
+        Iterator<Criterion> iterator = queryJunction.getCriterions().iterator();
+        Junction criteriaJunction = queryJunction instanceof Disjunction ? new Disjunction( query.getSchema() )
             : new Conjunction( query.getSchema() );
 
         while ( iterator.hasNext() )
         {
-            org.hisp.dhis.query.Criterion criterion = iterator.next();
+            Criterion criterion = iterator.next();
 
-            if ( Junction.class.isInstance( criterion ) )
+            if ( criterion instanceof Junction )
             {
                 Junction junction = handleJunction( query, (Junction) criterion, persistedOnly );
 
@@ -288,7 +279,7 @@ public class DefaultQueryPlanner implements QueryPlanner
                     iterator.remove();
                 }
             }
-            else if ( Restriction.class.isInstance( criterion ) )
+            else if ( criterion instanceof Restriction )
             {
                 Restriction restriction = (Restriction) criterion;
                 restriction.setQueryPath( getQueryPath( query.getSchema(), restriction.getPath() ) );
