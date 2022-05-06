@@ -108,4 +108,18 @@ public class DefaultTrackedEntityDataValueAuditService
         return trackedEntityDataValueAuditStore.countTrackedEntityDataValueAudits( dataElements, programStageInstances,
             auditType );
     }
+
+    @Override
+    @Transactional
+    public void deleteTrackedEntityDataValueAudit( DataElement dataElement )
+    {
+        trackedEntityDataValueAuditStore.deleteTrackedEntityDataValueAudit( dataElement );
+    }
+
+    @Override
+    @Transactional
+    public void deleteTrackedEntityDataValueAudit( ProgramStageInstance programStageInstance )
+    {
+        trackedEntityDataValueAuditStore.deleteTrackedEntityDataValueAudit( programStageInstance );
+    }
 }
