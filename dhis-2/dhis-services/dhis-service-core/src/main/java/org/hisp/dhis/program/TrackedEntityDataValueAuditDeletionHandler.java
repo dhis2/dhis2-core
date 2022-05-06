@@ -31,9 +31,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 /**
@@ -43,17 +41,12 @@ import org.springframework.stereotype.Component;
 public class TrackedEntityDataValueAuditDeletionHandler
     extends DeletionHandler
 {
-    private static final DeletionVeto VETO = new DeletionVeto( TrackedEntityDataValueAuditDeletionHandler.class );
-
-    private final JdbcTemplate jdbcTemplate;
-
     private final TrackedEntityDataValueAuditService trackedEntityDataValueAuditService;
 
-    public TrackedEntityDataValueAuditDeletionHandler( JdbcTemplate jdbcTemplate,
+    public TrackedEntityDataValueAuditDeletionHandler(
         TrackedEntityDataValueAuditService trackedEntityDataValueAuditService )
     {
-        checkNotNull( jdbcTemplate );
-        this.jdbcTemplate = jdbcTemplate;
+        checkNotNull( trackedEntityDataValueAuditService );
         this.trackedEntityDataValueAuditService = trackedEntityDataValueAuditService;
     }
 
