@@ -47,5 +47,6 @@ interface EventMapper extends DomainMapper<Event, org.hisp.dhis.tracker.domain.E
     @Mapping( target = "programStage", source = "programStage", qualifiedByName = "programStageToMetadataIdentifier" )
     @Mapping( target = "orgUnit", source = "orgUnit", qualifiedByName = "orgUnitToMetadataIdentifier" )
     @Mapping( target = "attributeOptionCombo", source = "attributeOptionCombo", qualifiedByName = "attributeOptionComboToMetadataIdentifier" )
+    @Mapping( target = "attributeCategoryOptions", source = "attributeCategoryOptions", qualifiedByName = "attributeCategoryOptionsToMetadataIdentifier" )
     org.hisp.dhis.tracker.domain.Event from( Event event, @Context TrackerIdSchemeParams idSchemeParams );
 }
