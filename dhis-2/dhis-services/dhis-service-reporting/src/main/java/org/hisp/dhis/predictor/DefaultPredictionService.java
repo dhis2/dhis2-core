@@ -34,6 +34,7 @@ import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
 import static org.hisp.dhis.expression.ParseType.PREDICTOR_EXPRESSION;
 import static org.hisp.dhis.expression.ParseType.PREDICTOR_SKIP_TEST;
 import static org.hisp.dhis.predictor.PredictionFormatter.formatPrediction;
+import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -167,7 +168,7 @@ public class DefaultPredictionService
 
         PredictionSummary summary = new PredictionSummary();
         progress.startingStage( format( "Running predictors from %s to %s", startDate, endDate ),
-            predictorList.size() );
+            predictorList.size(), SKIP_ITEM_OUTLIER );
         progress.runStage( predictorList.stream(),
             predictor -> format( "Running predictor %s from %s to %s", predictor.getName(), startDate, endDate ),
             predictor -> predict( predictor, startDate, endDate, summary ),

@@ -72,7 +72,7 @@ public class Event
     private String enrollment;
 
     @JsonProperty
-    private String orgUnit;
+    private MetadataIdentifier orgUnit;
 
     @JsonProperty
     private String orgUnitName;
@@ -109,7 +109,7 @@ public class Event
     private Instant updatedAtClient;
 
     @JsonProperty
-    private String attributeOptionCombo;
+    private MetadataIdentifier attributeOptionCombo;
 
     @JsonProperty
     private String attributeCategoryOptions;

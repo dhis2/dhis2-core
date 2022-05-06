@@ -36,38 +36,32 @@
       "trackedEntityType": "nEenWmSyUEp",
       "createdAt": "2020-02-20T12:09:21.844",
       "updatedAt": "2020-02-20T12:09:21.844",
-      "orgUnit": "PlKwabX2xRW",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "PlKwabX2xRW"
+      },
       "inactive": false,
       "deleted": false,
       "potentialDuplicate": false,
       "relationships": [],
       "attributes": [],
-      "enrollments": [],
-      "programOwners": [
-        {
-          "trackedEntity": "EEFkxTWB55Y",
-          "program": "hJUBNVQWl4e"
-        }
-      ]
+      "enrollments": []
     },
     {
       "trackedEntity": "IOR1AXXl25E",
       "trackedEntityType": "nEenWmSyUEp",
       "createdAt": "2020-02-20T12:09:21.844",
       "updatedAt": "2020-02-20T12:09:21.844",
-      "orgUnit": "PlKwabX2xRW",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "PlKwabX2xRW"
+      },
       "inactive": false,
       "deleted": false,
       "potentialDuplicate": false,
       "relationships": [],
       "attributes": [],
-      "enrollments": [],
-      "programOwners": [
-        {
-          "trackedEntity": "EEFkxTWB55Y",
-          "program": "hJUBNVQWl4e"
-        }
-      ]
+      "enrollments": []
     }
   ],
   "enrollments": [
@@ -80,7 +74,10 @@
         "identifier": "BFcipDERJwr"
       },
       "status": "ACTIVE",
-      "orgUnit": "PlKwabX2xRW",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "PlKwabX2xRW"
+      },
       "orgUnitName": "Mbokie CHP",
       "enrolledAt": "2021-03-28T12:05:00.000",
       "occurredAt": "2021-03-28T12:05:00.000",
@@ -100,7 +97,10 @@
         "identifier": "BFcipDERJwr"
       },
       "status": "COMPLETED",
-      "orgUnit": "PlKwabX2xRW",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "PlKwabX2xRW"
+      },
       "orgUnitName": "Mbokie CHP",
       "enrolledAt": "2021-03-28T12:05:00.000",
       "occurredAt": "2021-03-28T12:05:00.000",
@@ -125,7 +125,10 @@
         "identifier": "NpsdDv6kKSO"
       },
       "enrollment": "TvctPPhpD8u",
-      "orgUnit": "PlKwabX2xRW",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "PlKwabX2xRW"
+      },
       "relationships": [],
       "occurredAt": "2019-01-28T00:00:00.000",
       "scheduledAt": "2019-01-28T12:10:38.100",
@@ -134,7 +137,10 @@
       "deleted": false,
       "createdAt": "2019-01-28T12:10:38.108",
       "updatedAt": "2019-01-28T12:10:38.109",
-      "attributeOptionCombo": "HllvX50cXC0",
+      "attributeOptionCombo": {
+        "idScheme": "UID",
+        "identifier": "HllvX50cXC0"
+      },
       "attributeCategoryOptions": "xYerKDKCefk",
       "completedBy": "admin",
       "completedAt": "2019-01-28T00:00:00.000",
@@ -162,7 +168,10 @@
         "identifier": "NpsdDv6kKSO"
       },
       "enrollment": "TvctPPhpD8u",
-      "orgUnit": "PlKwabX2xRW",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "PlKwabX2xRW"
+      },
       "relationships": [],
       "occurredAt": "2019-01-28T00:00:00.000",
       "scheduledAt": "2019-01-28T12:10:38.100",
@@ -171,7 +180,10 @@
       "deleted": false,
       "createdAt": "2019-01-28T12:10:38.108",
       "updatedAt": "2019-01-28T12:10:38.109",
-      "attributeOptionCombo": "HllvX50cXC0",
+      "attributeOptionCombo": {
+        "idScheme": "UID",
+        "identifier": "HllvX50cXC0"
+      },
       "attributeCategoryOptions": "xYerKDKCefk",
       "completedBy": "admin",
       "completedAt": "2019-01-28T00:00:00.000",
@@ -199,7 +211,10 @@
         "identifier": "NpsdDv6kKSO"
       },
       "enrollment": "TvctPPhpD8u",
-      "orgUnit": "PlKwabX2xRW",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "PlKwabX2xRW"
+      },
       "relationships": [],
       "occurredAt": "2019-01-28T00:00:00.000",
       "scheduledAt": "2019-01-28T12:10:38.100",
@@ -208,7 +223,10 @@
       "deleted": false,
       "createdAt": "2019-01-28T12:10:38.108",
       "updatedAt": "2019-01-28T12:10:38.109",
-      "attributeOptionCombo": "HllvX50cXC0",
+      "attributeOptionCombo": {
+        "idScheme": "UID",
+        "identifier": "HllvX50cXC0"
+      },
       "attributeCategoryOptions": "xYerKDKCefk",
       "completedBy": "admin",
       "completedAt": "2019-01-28T00:00:00.000",
@@ -236,7 +254,10 @@
         "identifier": "NpsdDv6kKSO"
       },
       "enrollment": "TvctPPhpD8u",
-      "orgUnit": "PlKwabX2xRW",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "PlKwabX2xRW"
+      },
       "relationships": [],
       "occurredAt": "2019-01-28T00:00:00.000",
       "scheduledAt": "2019-01-28T12:10:38.100",
@@ -245,7 +266,10 @@
       "deleted": false,
       "createdAt": "2019-01-28T12:10:38.108",
       "updatedAt": "2019-01-28T12:10:38.109",
-      "attributeOptionCombo": "HllvX50cXC0",
+      "attributeOptionCombo": {
+        "idScheme": "UID",
+        "identifier": "HllvX50cXC0"
+      },
       "attributeCategoryOptions": "xYerKDKCefk",
       "completedBy": "admin",
       "completedAt": "2019-01-28T00:00:00.000",
@@ -273,7 +297,10 @@
         "identifier": "NpsdDv6kKSO"
       },
       "enrollment": "TvctPPhpD8u",
-      "orgUnit": "PlKwabX2xRW",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "PlKwabX2xRW"
+      },
       "relationships": [],
       "occurredAt": "2019-01-28T00:00:00.000",
       "scheduledAt": "2019-01-28T12:10:38.100",
@@ -282,7 +309,10 @@
       "deleted": false,
       "createdAt": "2019-01-28T12:10:38.108",
       "updatedAt": "2019-01-28T12:10:38.109",
-      "attributeOptionCombo": "HllvX50cXC0",
+      "attributeOptionCombo": {
+        "idScheme": "UID",
+        "identifier": "HllvX50cXC0"
+      },
       "attributeCategoryOptions": "xYerKDKCefk",
       "completedBy": "admin",
       "completedAt": "2019-01-28T00:00:00.000",
@@ -310,7 +340,10 @@
         "identifier": "NpsdDv6kKSO"
       },
       "enrollment": "TvctPPhpD8u",
-      "orgUnit": "PlKwabX2xRW",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "PlKwabX2xRW"
+      },
       "relationships": [],
       "occurredAt": "2019-01-28T00:00:00.000",
       "scheduledAt": "2019-01-28T12:10:38.100",
@@ -319,7 +352,10 @@
       "deleted": false,
       "createdAt": "2019-01-28T12:10:38.108",
       "updatedAt": "2019-01-28T12:10:38.109",
-      "attributeOptionCombo": "HllvX50cXC0",
+      "attributeOptionCombo": {
+        "idScheme": "UID",
+        "identifier": "HllvX50cXC0"
+      },
       "attributeCategoryOptions": "xYerKDKCefk",
       "completedBy": "admin",
       "completedAt": "2019-01-28T00:00:00.000",
@@ -379,7 +415,10 @@
         "identifier": "NpsdDv6kKSO"
       },
       "enrollment": "TvctPPhpD8u",
-      "orgUnit": "PlKwabX2xRW",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "PlKwabX2xRW"
+      },
       "relationships": [],
       "occurredAt": "2019-01-28T00:00:00.000",
       "scheduledAt": "2019-01-28T12:10:38.100",
@@ -388,7 +427,10 @@
       "deleted": false,
       "createdAt": "2019-01-28T12:10:38.108",
       "updatedAt": "2019-01-28T12:10:38.109",
-      "attributeOptionCombo": "HllvX50cXC0",
+      "attributeOptionCombo": {
+        "idScheme": "UID",
+        "identifier": "HllvX50cXC0"
+      },
       "attributeCategoryOptions": "xYerKDKCefk",
       "completedBy": "admin",
       "completedAt": "2019-01-28T00:00:00.000",
@@ -448,7 +490,10 @@
         "identifier": "NpsdDv6kKSO"
       },
       "enrollment": "TvctPPhpD8u",
-      "orgUnit": "PlKwabX2xRW",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "PlKwabX2xRW"
+      },
       "relationships": [],
       "occurredAt": "2019-01-28T00:00:00.000",
       "scheduledAt": "2019-01-28T12:10:38.100",
@@ -457,7 +502,10 @@
       "deleted": false,
       "createdAt": "2019-01-28T12:10:38.108",
       "updatedAt": "2019-01-28T12:10:38.109",
-      "attributeOptionCombo": "HllvX50cXC0",
+      "attributeOptionCombo": {
+        "idScheme": "UID",
+        "identifier": "HllvX50cXC0"
+      },
       "attributeCategoryOptions": "xYerKDKCefk",
       "completedBy": "admin",
       "completedAt": "2019-01-28T00:00:00.000",

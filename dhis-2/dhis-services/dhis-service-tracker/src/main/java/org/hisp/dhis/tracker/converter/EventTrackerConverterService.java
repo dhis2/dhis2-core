@@ -119,13 +119,13 @@ public class EventTrackerConverterService
 
             if ( ou != null )
             {
-                event.setOrgUnit( ou.getUid() );
+                event.setOrgUnit( MetadataIdentifier.ofUid( ou.getUid() ) );
                 event.setOrgUnitName( ou.getName() );
             }
 
             event.setEnrollment( psi.getProgramInstance().getUid() );
             event.setProgramStage( MetadataIdentifier.ofUid( psi.getProgramStage().getUid() ) );
-            event.setAttributeOptionCombo( psi.getAttributeOptionCombo().getUid() );
+            event.setAttributeOptionCombo( MetadataIdentifier.ofUid( psi.getAttributeOptionCombo().getUid() ) );
             event.setAttributeCategoryOptions( psi.getAttributeOptionCombo()
                 .getCategoryOptions().stream().map( CategoryOption::getUid ).collect( Collectors.joining( ";" ) ) );
 
@@ -206,7 +206,7 @@ public class EventTrackerConverterService
     {
         ProgramStage programStage = preheat.get( ProgramStage.class, event.getProgramStage() );
         Program program = preheat.getProgram( event.getProgram() );
-        OrganisationUnit organisationUnit = preheat.get( OrganisationUnit.class, event.getOrgUnit() );
+        OrganisationUnit organisationUnit = preheat.getOrganisationUnit( event.getOrgUnit() );
 
         Date now = new Date();
 
@@ -231,17 +231,14 @@ public class EventTrackerConverterService
         programStageInstance.setExecutionDate( DateUtils.fromInstant( event.getOccurredAt() ) );
         programStageInstance.setDueDate( DateUtils.fromInstant( event.getScheduledAt() ) );
 
-        String attributeOptionCombo = event.getAttributeOptionCombo();
-
-        if ( attributeOptionCombo != null )
+        if ( !event.getAttributeOptionCombo().isBlank() )
         {
             programStageInstance.setAttributeOptionCombo(
-                preheat.get( CategoryOptionCombo.class, event.getAttributeOptionCombo() ) );
+                preheat.getCategoryOptionCombo( event.getAttributeOptionCombo() ) );
         }
         else
         {
-            programStageInstance.setAttributeOptionCombo(
-                (CategoryOptionCombo) preheat.getDefaults().get( CategoryOptionCombo.class ) );
+            programStageInstance.setAttributeOptionCombo( preheat.getDefault( CategoryOptionCombo.class ) );
         }
 
         programStageInstance.setGeometry( event.getGeometry() );

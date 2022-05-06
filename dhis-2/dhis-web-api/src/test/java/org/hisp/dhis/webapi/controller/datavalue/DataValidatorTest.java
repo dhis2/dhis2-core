@@ -32,7 +32,6 @@ import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.common.ValueType.BOOLEAN;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.when;
 
 import java.util.Date;
 
@@ -40,7 +39,6 @@ import org.hisp.dhis.calendar.CalendarService;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElement;
@@ -51,7 +49,6 @@ import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.util.InputUtils;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
@@ -201,16 +198,11 @@ class DataValidatorTest
     }
 
     @Test
-    void testGetMissingDataElement()
+    void testGetAndValidateAttributeOptionComboNull()
     {
-        final String uid = CodeGenerator.generateUid();
-
-        when( idObjectManager.get( DataElement.class, uid ) ).thenReturn( null );
-
         IllegalQueryException ex = assertThrows( IllegalQueryException.class,
-            () -> dataValidator.getAndValidateDataElement( uid ) );
-
-        assertEquals( ErrorCode.E1100, ex.getErrorCode() );
+            () -> dataValidator.getAndValidateAttributeOptionCombo( null, null ) );
+        assertEquals( ErrorCode.E1104, ex.getErrorCode() );
     }
 
     @Test
@@ -223,25 +215,9 @@ class DataValidatorTest
     }
 
     @Test
-    void testGetMissingOrgUnit()
-    {
-        final String uid = CodeGenerator.generateUid();
-
-        when( idObjectManager.get( OrganisationUnit.class, uid ) ).thenReturn( null );
-
-        IllegalQueryException ex = assertThrows( IllegalQueryException.class,
-            () -> dataValidator.getAndValidateOrganisationUnit( uid ) );
-
-        assertEquals( ErrorCode.E1102, ex.getErrorCode() );
-    }
-
-    @Test
     void testValidateAttributeOptionComboWithEarlyData()
     {
-        // Given
         categoryOptionA.setStartDate( feb15 );
-
-        // Then
 
         assertThrows( IllegalQueryException.class,
             () -> dataValidator.validateAttributeOptionCombo( optionComboA, periodJan, dataSetA, dataElementA ) );
@@ -250,10 +226,7 @@ class DataValidatorTest
     @Test
     void testValidateAttributeOptionComboWithLateData()
     {
-        // Given
         categoryOptionA.setEndDate( jan15 );
-
-        // Then
 
         assertThrows( IllegalQueryException.class,
             () -> dataValidator.validateAttributeOptionCombo( optionComboA, periodFeb, null, dataElementA ) );
@@ -262,11 +235,8 @@ class DataValidatorTest
     @Test
     void testValidateAttributeOptionComboWithLateAdjustedData()
     {
-        // Given
         categoryOptionA.setEndDate( jan15 );
         dataSetA.setOpenPeriodsAfterCoEndDate( 1 );
-
-        // Then
 
         assertThrows( IllegalQueryException.class,
             () -> dataValidator.validateAttributeOptionCombo( optionComboA, periodMar, dataSetA, dataElementA ) );
@@ -275,12 +245,10 @@ class DataValidatorTest
     @Test
     void validateBooleanDataValueWhenValuesAreAcceptableTrue()
     {
-        // Given
         final DataElement aBooleanTypeDataElement = new DataElement();
         final String normalizedBooleanValue = "true";
         aBooleanTypeDataElement.setValueType( BOOLEAN );
 
-        // Then
         String aBooleanDataValue = "true";
         aBooleanDataValue = dataValidator.validateAndNormalizeDataValue( aBooleanDataValue, aBooleanTypeDataElement );
         assertThat( aBooleanDataValue, is( normalizedBooleanValue ) );
@@ -305,12 +273,10 @@ class DataValidatorTest
     @Test
     void validateBooleanDataValueWhenValuesAreAcceptableFalse()
     {
-        // Given
         final DataElement aBooleanTypeDataElement = new DataElement();
         final String normalizedBooleanValue = "false";
         aBooleanTypeDataElement.setValueType( BOOLEAN );
 
-        // Then
         String aBooleanDataValue = "false";
         aBooleanDataValue = dataValidator.validateAndNormalizeDataValue( aBooleanDataValue, aBooleanTypeDataElement );
         assertThat( aBooleanDataValue, is( normalizedBooleanValue ) );
@@ -335,7 +301,6 @@ class DataValidatorTest
     @Test
     void validateBooleanDataValueWhenValueIsNotValid()
     {
-        // Given
         String anInvalidBooleanValue = "InvalidValue";
         final DataElement aBooleanTypeDataElement = new DataElement();
         aBooleanTypeDataElement.setValueType( BOOLEAN );

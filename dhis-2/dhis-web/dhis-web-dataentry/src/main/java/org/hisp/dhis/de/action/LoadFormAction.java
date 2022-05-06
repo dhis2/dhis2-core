@@ -34,6 +34,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -45,6 +46,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.comparator.CategoryComboSizeNameComparator;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ListMap;
+import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataentryform.DataEntryForm;
@@ -55,12 +57,14 @@ import org.hisp.dhis.dataset.FormType;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dataset.comparator.SectionOrderComparator;
 import org.hisp.dhis.datavalue.AggregateAccessManager;
+import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.util.SectionUtils;
-import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserSettingKey;
+import org.hisp.dhis.user.UserSettingService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.opensymphony.xwork2.Action;
@@ -112,15 +116,11 @@ public class LoadFormAction
         this.currentUserService = currentUserService;
     }
 
-    private I18n i18n;
-
-    public void setI18n( I18n i18n )
-    {
-        this.i18n = i18n;
-    }
-
     @Autowired
     private SectionUtils sectionUtils;
+
+    @Autowired
+    protected UserSettingService userSettingService;
 
     // -------------------------------------------------------------------------
     // Input
@@ -271,6 +271,12 @@ public class LoadFormAction
     public String execute()
         throws Exception
     {
+        User currentUser = currentUserService.getCurrentUser();
+
+        Locale dbLocale = getLocaleWithDefault( new TranslateParams( true ) );
+        UserContext.setUser( currentUser );
+        UserContext.setUserSetting( UserSettingKey.DB_LOCALE, dbLocale );
+
         dataSet = dataSetService.getDataSet( dataSetId );
 
         if ( dataSet == null )
@@ -287,7 +293,7 @@ public class LoadFormAction
         if ( formType.isCustom() && dataSet.hasDataEntryForm() )
         {
             dataEntryForm = dataSet.getDataEntryForm();
-            customDataEntryFormCode = dataEntryFormService.prepareDataEntryFormForEntry( dataEntryForm, dataSet, i18n );
+            customDataEntryFormCode = dataEntryFormService.prepareDataEntryFormForEntry( dataSet );
             return formType.toString();
         }
 
@@ -307,8 +313,6 @@ public class LoadFormAction
         orderedDataElements = ListMap.getListMap( dataElements, de -> de.getDataElementCategoryCombo( dataSet ) );
 
         orderedCategoryCombos = getCategoryCombos( dataElements, dataSet );
-
-        User currentUser = currentUserService.getCurrentUser();
 
         for ( CategoryCombo categoryCombo : orderedCategoryCombos )
         {
@@ -560,5 +564,13 @@ public class LoadFormAction
         Collections.sort( listCategoryCombos, new CategoryComboSizeNameComparator() );
 
         return listCategoryCombos;
+    }
+
+    private Locale getLocaleWithDefault( TranslateParams translateParams )
+    {
+        return translateParams.isTranslate()
+            ? translateParams.getLocaleWithDefault(
+                (Locale) userSettingService.getUserSetting( UserSettingKey.DB_LOCALE ) )
+            : null;
     }
 }

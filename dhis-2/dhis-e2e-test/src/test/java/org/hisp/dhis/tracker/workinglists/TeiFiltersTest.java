@@ -25,28 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.tracker.workinglists;
 
-import com.google.gson.JsonObject;
-import org.hisp.dhis.ApiTest;
-import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.RestApiActions;
-import org.hisp.dhis.helpers.file.JsonFileReader;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import static org.hamcrest.Matchers.containsStringIgnoringCase;
+import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
 
 import java.io.File;
 import java.io.IOException;
 
-import static org.hamcrest.Matchers.containsStringIgnoringCase;
-import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
+import org.hisp.dhis.actions.LoginActions;
+import org.hisp.dhis.actions.RestApiActions;
+import org.hisp.dhis.helpers.file.JsonFileReader;
+import org.hisp.dhis.tracker.TrackerApiTest;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class TeiFiltersTest
-    extends ApiTest
+    extends TrackerApiTest
 {
     private RestApiActions workingListActions;
 
@@ -89,7 +89,8 @@ public class TeiFiltersTest
         workingListActions.post( payload )
             .validate()
             .statusCode( 409 )
-            .body( "message", containsStringIgnoringCase( "Assigned Users cannot be empty with PROVIDED assigned user mode" ) );
+            .body( "message",
+                containsStringIgnoringCase( "Assigned Users cannot be empty with PROVIDED assigned user mode" ) );
     }
 
     @Test
@@ -104,7 +105,8 @@ public class TeiFiltersTest
         workingListActions.post( payload )
             .validate()
             .statusCode( 409 )
-            .body( "message", containsStringIgnoringCase( "Organisation Unit cannot be empty with SELECTED org unit mode" ) );
+            .body( "message",
+                containsStringIgnoringCase( "Organisation Unit cannot be empty with SELECTED org unit mode" ) );
 
     }
 
@@ -121,4 +123,3 @@ public class TeiFiltersTest
             .validate().body( "message", containsStringIgnoringCase( "no tracked entity attribute found" ) );
     }
 }
-

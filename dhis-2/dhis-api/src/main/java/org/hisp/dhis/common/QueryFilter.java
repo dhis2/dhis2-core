@@ -136,7 +136,11 @@ public class QueryFilter
 
         if ( LIKE == operator || NLIKE == operator || ILIKE == operator || NILIKE == operator )
         {
-            return "'%" + encodedFilter + "%'";
+            return "'%" +
+                encodedFilter
+                    .replace( "_", "\\_" )
+                    .replace( "%", "\\%" )
+                + "%'";
         }
         else if ( EQ == operator || NE == operator || NEQ == operator || IEQ == operator || NIEQ == operator )
         {

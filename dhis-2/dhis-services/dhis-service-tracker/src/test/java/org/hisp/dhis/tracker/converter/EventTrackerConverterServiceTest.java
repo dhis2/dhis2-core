@@ -309,7 +309,7 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest
 
         Event event = converter.to( psi );
 
-        assertEquals( event.getEnrollment(), PROGRAM_INSTANCE_UID );
+        assertEquals( PROGRAM_INSTANCE_UID, event.getEnrollment() );
         assertEquals( event.getStoredBy(), user.getUsername() );
         event.getDataValues().forEach( e -> {
             assertEquals( DateUtils.fromInstant( e.getCreatedAt() ), psi.getCreated() );
@@ -324,7 +324,8 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest
         when( preheat.get( ProgramStage.class, MetadataIdentifier.ofUid( programStage.getUid() ) ) )
             .thenReturn( programStage );
         when( preheat.getProgram( MetadataIdentifier.ofUid( program.getUid() ) ) ).thenReturn( program );
-        when( preheat.get( OrganisationUnit.class, organisationUnit.getUid() ) ).thenReturn( organisationUnit );
+        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( organisationUnit.getUid() ) ) )
+            .thenReturn( organisationUnit );
     }
 
     private Event event( DataValue dataValue )
@@ -334,13 +335,14 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest
 
     private Event event( String uid, DataValue dataValue )
     {
-        Event event = new Event();
-        event.setEvent( uid );
-        event.setProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_UID ) );
-        event.setProgram( MetadataIdentifier.ofUid( PROGRAM_UID ) );
-        event.setOrgUnit( ORGANISATION_UNIT_UID );
-        event.setDataValues( Sets.newHashSet( dataValue ) );
-        return event;
+        return Event.builder()
+            .event( uid )
+            .programStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_UID ) )
+            .program( MetadataIdentifier.ofUid( PROGRAM_UID ) )
+            .orgUnit( MetadataIdentifier.ofUid( ORGANISATION_UNIT_UID ) )
+            .attributeOptionCombo( MetadataIdentifier.ofUid( null ) )
+            .dataValues( Sets.newHashSet( dataValue ) )
+            .build();
     }
 
     private ProgramStageInstance programStageInstance()

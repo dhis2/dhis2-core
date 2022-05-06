@@ -44,7 +44,10 @@
         "idScheme": "UID",
         "identifier": "NpsdDv6kKSe"
       },
-      "orgUnit": "h4w96yEMlzO",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "h4w96yEMlzO"
+      },
       "relationships": [],
       "occurredAt": "2019-01-28T00:00:00.000",
       "scheduledAt": "2019-01-28T12:10:38.100",
@@ -53,7 +56,10 @@
       "deleted": false,
       "createdAt": "2019-01-28T12:10:38.108",
       "updatedAt": "2019-01-28T12:10:38.109",
-      "attributeOptionCombo": "HllvX50cXC0",
+      "attributeOptionCombo": {
+        "idScheme": "UID",
+        "identifier": "HllvX50cXC0"
+      },
       "attributeCategoryOptions": "xYerKDKCefk",
       "completedBy": "admin",
       "completedAt": "2019-01-28T00:00:00.000",

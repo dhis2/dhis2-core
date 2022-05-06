@@ -49,4 +49,18 @@ interface MetadataIdentifierMapper
     {
         return idSchemeParams.getProgramStageIdScheme().toMetadataIdentifier( identifier );
     }
+
+    @Named( "orgUnitToMetadataIdentifier" )
+    default org.hisp.dhis.tracker.domain.MetadataIdentifier fromOrgUnit( String identifier,
+        @Context TrackerIdSchemeParams idSchemeParams )
+    {
+        return idSchemeParams.getOrgUnitIdScheme().toMetadataIdentifier( identifier );
+    }
+
+    @Named( "attributeOptionComboToMetadataIdentifier" )
+    default org.hisp.dhis.tracker.domain.MetadataIdentifier fromAttributeOptionCombo( String identifier,
+        @Context TrackerIdSchemeParams idSchemeParams )
+    {
+        return idSchemeParams.getCategoryOptionComboIdScheme().toMetadataIdentifier( identifier );
+    }
 }

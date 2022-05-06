@@ -35,91 +35,76 @@
       "trackedEntity": "Kj6vYde4LHh",
       "trackedEntityType": "bPJ0FMtcnEh",
       "updatedAt": "2019-08-19T13:59:13.706",
-      "orgUnit": "QfUVllTs6cS",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
       "inactive": false,
       "deleted": false,
       "potentialDuplicate": false,
       "relationships": [],
       "attributes": [],
-      "enrollments": [],
-      "programOwners": [
-        {
-          "trackedEntity": "Kj6vYde4LHh",
-          "program": "E8o1E9tAppy"
-        }
-      ]
+      "enrollments": []
     },
     {
       "trackedEntity": "VVVKj6vYdes",
       "trackedEntityType": "XXXbPJ0FMtc",
       "updatedAt": "2019-08-19T13:59:13.706",
-      "orgUnit": "QfUVllTs6cS",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
       "inactive": false,
       "deleted": false,
       "potentialDuplicate": false,
       "relationships": [],
       "attributes": [],
-      "enrollments": [],
-      "programOwners": [
-        {
-          "trackedEntity": "Kj6vYde4LHh",
-          "program": "E8o1E9tAppy"
-        }
-      ]
+      "enrollments": []
     },
     {
       "trackedEntity": "KKKKj6vYdes",
       "trackedEntityType": "bPJ0FMtcnEh",
       "updatedAt": "2019-08-19T13:59:13.706",
-      "orgUnit": "QfUVllTs6cS",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
       "inactive": false,
       "deleted": false,
       "potentialDuplicate": false,
       "relationships": [],
       "attributes": [],
-      "enrollments": [],
-      "programOwners": [
-        {
-          "trackedEntity": "Kj6vYde4LHh",
-          "program": "E8o1E9tAppy"
-        }
-      ]
+      "enrollments": []
     },
     {
       "trackedEntity": "OOOOj6vYdes",
       "trackedEntityType": "bPJ0FMtcnEh",
       "updatedAt": "2019-08-19T13:59:13.706",
-      "orgUnit": "QfUVllTs6cS",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
       "inactive": false,
       "deleted": false,
       "potentialDuplicate": false,
       "relationships": [],
       "attributes": [],
-      "enrollments": [],
-      "programOwners": [
-        {
-          "trackedEntity": "Kj6vYde4LHh",
-          "program": "E8o1E9tAppy"
-        }
-      ]
+      "enrollments": []
     },
     {
       "trackedEntity": "YYYYj6vYdes",
       "trackedEntityType": "bPJ0FMtcnEh",
       "updatedAt": "2019-08-19T13:59:13.706",
-      "orgUnit": "QfUVllTs6cS",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
       "inactive": false,
       "deleted": false,
       "potentialDuplicate": false,
       "relationships": [],
       "attributes": [],
-      "enrollments": [],
-      "programOwners": [
-        {
-          "trackedEntity": "Kj6vYde4LHh",
-          "program": "E8o1E9tAppy"
-        }
-      ]
+      "enrollments": []
     }
   ],
   "enrollments": [],

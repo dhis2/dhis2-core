@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.helpers;
 
-import org.apache.commons.lang3.tuple.MutablePair;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import org.apache.commons.lang3.tuple.MutablePair;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>

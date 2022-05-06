@@ -149,13 +149,6 @@ public class DefaultPeriodService
 
     @Override
     @Transactional( readOnly = true )
-    public List<Period> getIntersectingPeriodsByPeriodType( PeriodType periodType, Date startDate, Date endDate )
-    {
-        return periodStore.getIntersectingPeriodsByPeriodType( periodType, startDate, endDate );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
     public List<Period> getIntersectingPeriods( Date startDate, Date endDate )
     {
         return periodStore.getIntersectingPeriods( startDate, endDate );
@@ -173,28 +166,6 @@ public class DefaultPeriodService
         }
 
         return new ArrayList<>( intersecting );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<Period> getBoundaryPeriods( Period period, Collection<Period> periods )
-    {
-        List<Period> immutablePeriods = new ArrayList<>( periods );
-
-        Iterator<Period> iterator = immutablePeriods.iterator();
-
-        while ( iterator.hasNext() )
-        {
-            Period iterated = iterator.next();
-
-            if ( !DateUtils.strictlyBetween( period.getStartDate(), iterated.getStartDate(), iterated.getEndDate() )
-                && !DateUtils.strictlyBetween( period.getEndDate(), iterated.getStartDate(), iterated.getEndDate() ) )
-            {
-                iterator.remove();
-            }
-        }
-
-        return immutablePeriods;
     }
 
     @Override
@@ -221,7 +192,7 @@ public class DefaultPeriodService
 
     @Override
     @Transactional
-    public List<Period> reloadPeriods( List<Period> periods )
+    public List<Period> reloadPeriods( Collection<Period> periods )
     {
         List<Period> reloaded = new ArrayList<>();
 
@@ -234,16 +205,16 @@ public class DefaultPeriodService
     }
 
     @Override
-    @Transactional( readOnly = true )
-    public List<Period> getPeriods( Period lastPeriod, int historyLength )
+    @Transactional
+    public List<Period> getPeriods( Period lastPeriod, int previousPeriods )
     {
-        List<Period> periods = new ArrayList<>( historyLength );
+        List<Period> periods = new ArrayList<>( previousPeriods );
 
         lastPeriod = periodStore.reloadForceAddPeriod( lastPeriod );
 
         PeriodType periodType = lastPeriod.getPeriodType();
 
-        for ( int i = 0; i < historyLength; ++i )
+        for ( int i = 0; i < previousPeriods; ++i )
         {
             Period pe = getPeriodFromDates( lastPeriod.getStartDate(), lastPeriod.getEndDate(), periodType );
 

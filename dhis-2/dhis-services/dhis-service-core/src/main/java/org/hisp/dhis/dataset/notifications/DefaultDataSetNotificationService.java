@@ -30,6 +30,7 @@ package org.hisp.dhis.dataset.notifications;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.*;
 import static org.hisp.dhis.program.notification.NotificationTrigger.SCHEDULED_DAYS_DUE_DATE;
+import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
 
 import java.util.*;
 import java.util.Map.Entry;
@@ -56,7 +57,6 @@ import org.hisp.dhis.notification.NotificationMessageRenderer;
 import org.hisp.dhis.notification.SendStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.program.message.ProgramMessage;
@@ -447,7 +447,8 @@ public class DefaultDataSetNotificationService implements DataSetNotificationSer
 
     private void sendInternalDhisMessages( String type, List<DhisMessage> messages, JobProgress progress )
     {
-        progress.startingStage( "Dispatching DHIS " + type + " notification messages", messages.size() );
+        progress.startingStage( "Dispatching DHIS " + type + " notification messages", messages.size(),
+            SKIP_ITEM_OUTLIER );
         progress.runStage( messages, msg -> msg.message.getSubject(),
             msg -> internalMessageService.sendMessage(
                 new MessageConversationParams.Builder( msg.recipients, null, msg.message.getSubject(),
@@ -458,9 +459,11 @@ public class DefaultDataSetNotificationService implements DataSetNotificationSer
 
     private void sendProgramMessages( String type, List<ProgramMessage> messages, JobProgress progress )
     {
-        progress.startingStage( "Dispatching DHIS " + type + " notification messages", messages.size() );
-        BatchResponseStatus status = externalMessageService.sendMessages( messages );
-        progress.completedStage( "Resulting status from ProgramMessageService:\n " + status.toString() );
+        progress.startingStage( "Dispatching DHIS " + type + " notification messages", messages.size(),
+            SKIP_ITEM_OUTLIER );
+        progress.runStage( null,
+            status -> "Resulting status from ProgramMessageService:\n " + status.toString(),
+            () -> externalMessageService.sendMessages( messages ) );
     }
 
     private void sendBatch( String type, MessageBatch batch, JobProgress progress )

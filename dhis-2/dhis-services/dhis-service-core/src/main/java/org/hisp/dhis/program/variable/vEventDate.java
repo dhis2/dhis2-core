@@ -46,11 +46,27 @@ public class vEventDate
 
         if ( AnalyticsType.ENROLLMENT == params.getProgramIndicator().getAnalyticsType() )
         {
-            return visitor.getStatementBuilder().getProgramIndicatorEventColumnSql(
+            String sqlStatement = visitor.getStatementBuilder().getProgramIndicatorEventColumnSql(
                 null, "executiondate", params.getReportingStartDate(), params.getReportingEndDate(),
                 params.getProgramIndicator() );
+
+            return maybeAppendEventStatusFilterIntoWhere( sqlStatement );
         }
 
         return "executiondate";
+    }
+
+    private String maybeAppendEventStatusFilterIntoWhere( String sqlStatement )
+    {
+        int index = sqlStatement.indexOf( "order by executiondate" );
+
+        if ( index == -1 )
+        {
+            return sqlStatement;
+        }
+
+        return sqlStatement.substring( 0, index )
+            + " and psistatus IN ('COMPLETED', 'ACTIVE') "
+            + sqlStatement.substring( index );
     }
 }

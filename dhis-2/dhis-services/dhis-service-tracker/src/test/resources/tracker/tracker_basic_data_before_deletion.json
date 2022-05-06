@@ -34,7 +34,10 @@
     {
       "trackedEntity": "NCc1rCEOKaY",
       "trackedEntityType": "bPJ0FMtcnEh",
-      "orgUnit": "QfUVllTs6cS",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
       "inactive": false,
       "deleted": false,
       "potentialDuplicate": false,
@@ -51,152 +54,175 @@
           "value": "AddressA"
         }
       ],
-      "enrollments": [],
-      "programOwners": []
+      "enrollments": []
     },
     {
       "trackedEntity": "PB9VMezGkwA",
       "trackedEntityType": "bPJ0FMtcnEh",
-      "orgUnit": "QfUVllTs6cS",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
       "inactive": false,
       "deleted": false,
       "potentialDuplicate": false,
       "relationships": [],
       "attributes": [],
-      "enrollments": [],
-      "programOwners": []
+      "enrollments": []
     },
     {
       "trackedEntity": "N0wuhEwexUW",
       "trackedEntityType": "bPJ0FMtcnEh",
-      "orgUnit": "QfUVllTs6cS",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
       "inactive": false,
       "deleted": false,
       "potentialDuplicate": false,
       "relationships": [],
       "attributes": [],
-      "enrollments": [],
-      "programOwners": []
+      "enrollments": []
     },
     {
       "trackedEntity": "g3eF1fJXuSz",
       "trackedEntityType": "bPJ0FMtcnEh",
-      "orgUnit": "QfUVllTs6cS",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
       "inactive": false,
       "deleted": false,
       "potentialDuplicate": false,
       "relationships": [],
       "attributes": [],
-      "enrollments": [],
-      "programOwners": []
+      "enrollments": []
     },
     {
       "trackedEntity": "s9D7VHiYLwj",
       "trackedEntityType": "bPJ0FMtcnEh",
-      "orgUnit": "QfUVllTs6cS",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
       "inactive": false,
       "deleted": false,
       "potentialDuplicate": false,
       "relationships": [],
       "attributes": [],
-      "enrollments": [],
-      "programOwners": []
+      "enrollments": []
     },
     {
       "trackedEntity": "C5nACFyIFQo",
       "trackedEntityType": "bPJ0FMtcnEh",
-      "orgUnit": "QfUVllTs6cS",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
       "inactive": false,
       "deleted": false,
       "potentialDuplicate": false,
       "relationships": [],
       "attributes": [],
-      "enrollments": [],
-      "programOwners": []
+      "enrollments": []
     },
     {
       "trackedEntity": "Jx8Ul6pnRfM",
       "trackedEntityType": "bPJ0FMtcnEh",
-      "orgUnit": "QfUVllTs6cS",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
       "inactive": false,
       "deleted": false,
       "potentialDuplicate": false,
       "relationships": [],
       "attributes": [],
-      "enrollments": [],
-      "programOwners": []
+      "enrollments": []
     },
     {
       "trackedEntity": "Z324qoN3WrF",
       "trackedEntityType": "bPJ0FMtcnEh",
-      "orgUnit": "QfUVllTs6cS",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
       "inactive": false,
       "deleted": false,
       "potentialDuplicate": false,
       "relationships": [],
       "attributes": [],
-      "enrollments": [],
-      "programOwners": []
+      "enrollments": []
     },
     {
       "trackedEntity": "TGeGZIIt4MO",
       "trackedEntityType": "bPJ0FMtcnEh",
-      "orgUnit": "QfUVllTs6cS",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
       "inactive": false,
       "deleted": false,
       "potentialDuplicate": false,
       "relationships": [],
       "attributes": [],
-      "enrollments": [],
-      "programOwners": []
+      "enrollments": []
     },
     {
       "trackedEntity": "KSLmzEjaV6A",
       "trackedEntityType": "bPJ0FMtcnEh",
-      "orgUnit": "QfUVllTs6cS",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
       "inactive": false,
       "deleted": false,
       "potentialDuplicate": false,
       "relationships": [],
       "attributes": [],
-      "enrollments": [],
-      "programOwners": []
+      "enrollments": []
     },
     {
       "trackedEntity": "IybbQIQt6rn",
       "trackedEntityType": "bPJ0FMtcnEh",
-      "orgUnit": "QfUVllTs6cS",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
       "inactive": false,
       "deleted": false,
       "potentialDuplicate": false,
       "relationships": [],
       "attributes": [],
-      "enrollments": [],
-      "programOwners": []
+      "enrollments": []
     },
     {
       "trackedEntity": "daMwzsKN3oJ",
       "trackedEntityType": "bPJ0FMtcnEh",
-      "orgUnit": "QfUVllTs6cS",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
       "inactive": false,
       "deleted": false,
       "potentialDuplicate": false,
       "relationships": [],
       "attributes": [],
-      "enrollments": [],
-      "programOwners": []
+      "enrollments": []
     },
     {
       "trackedEntity": "pcSaZP9lFqu",
       "trackedEntityType": "bPJ0FMtcnEh",
-      "orgUnit": "QfUVllTs6cS",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
       "inactive": false,
       "deleted": false,
       "potentialDuplicate": false,
       "relationships": [],
       "attributes": [],
-      "enrollments": [],
-      "programOwners": []
+      "enrollments": []
     }
   ],
   "enrollments": [
@@ -209,7 +235,10 @@
         "identifier": "E8o1E9tAppy"
       },
       "status": "COMPLETED",
-      "orgUnit": "QfUVllTs6cS",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
       "orgUnitName": "Mbokie CHP",
       "enrolledAt": "2021-03-28T12:05:00.000",
       "occurredAt": "2021-03-28T12:05:00.000",
@@ -229,7 +258,10 @@
         "identifier": "E8o1E9tAppy"
       },
       "status": "COMPLETED",
-      "orgUnit": "QfUVllTs6cS",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
       "orgUnitName": "Mbokie CHP",
       "enrolledAt": "2020-03-28T12:05:00.000",
       "occurredAt": "2020-03-28T12:05:00.000",
@@ -254,7 +286,10 @@
         "identifier": "Qmqxq907VNz"
       },
       "enrollment": "TvctPPhpD8u",
-      "orgUnit": "QfUVllTs6cS",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
       "relationships": [],
       "occurredAt": "2019-01-28T00:00:00.000",
       "scheduledAt": "2019-01-28T12:10:38.100",
@@ -266,6 +301,9 @@
       "attributeCategoryOptions": "xYerKDKCefk",
       "completedBy": "admin",
       "completedAt": "2019-01-28T00:00:00.000",
+      "attributeOptionCombo": {
+        "idScheme": "UID"
+      },
       "dataValues": [],
       "notes": []
     },
@@ -281,7 +319,10 @@
         "identifier": "Qmqxq907VNz"
       },
       "enrollment": "TvctPPhpD8v",
-      "orgUnit": "QfUVllTs6cS",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
       "relationships": [],
       "occurredAt": "2019-01-28T00:00:00.000",
       "scheduledAt": "2019-01-28T12:10:38.100",
@@ -293,6 +334,9 @@
       "attributeCategoryOptions": "xYerKDKCefk",
       "completedBy": "admin",
       "completedAt": "2019-01-28T00:00:00.000",
+      "attributeOptionCombo": {
+        "idScheme": "UID"
+      },
       "dataValues": [],
       "notes": []
     }

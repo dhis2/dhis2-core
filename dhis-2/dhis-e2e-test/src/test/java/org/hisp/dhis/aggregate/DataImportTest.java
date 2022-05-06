@@ -27,11 +27,13 @@
  */
 package org.hisp.dhis.aggregate;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import org.hamcrest.Matchers;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
 
+import java.io.File;
+import java.io.IOException;
+
+import org.hamcrest.Matchers;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.SystemActions;
@@ -44,17 +46,17 @@ import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.JsonFileReader;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-import java.io.File;
-import java.io.IOException;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
+@Tag( "category:aggregate" )
 public class DataImportTest
     extends ApiTest
 {
@@ -116,7 +118,8 @@ public class DataImportTest
         // Validate that job was successful
         systemActions.waitUntilTaskCompleted( "DATAVALUE_IMPORT", taskId )
             .validate()
-            .body( "message",  Matchers.containsInAnyOrder( "Process started", "Importing data values", "Import done" ) );
+            .body( "message",
+                Matchers.containsInAnyOrder( "Process started", "Importing data values", "Import done" ) );
 
         // validate task summaries were created
         ApiResponse taskSummariesResponse = systemActions.waitForTaskSummaries( "DATAVALUE_IMPORT", taskId );
@@ -143,7 +146,7 @@ public class DataImportTest
 
         JsonObject importedPayload = new JsonFileReader(
             new File( "src/test/resources/aggregate/dataValues_single_dataset.json" ) )
-            .get();
+                .get();
         ApiResponse response = dataValueSetActions.post( importedPayload );
 
         response.validate().statusCode( 200 )

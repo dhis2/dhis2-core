@@ -37,6 +37,7 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1082;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1113;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1114;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4015;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4016;
 
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -138,11 +139,22 @@ public class PreCheckExistenceValidationHook
         TrackerPreheat preheat = bundle.getPreheat();
         org.hisp.dhis.relationship.Relationship existingRelationship = preheat.getRelationship(
             relationship );
+        TrackerImportStrategy importStrategy = bundle.getStrategy( relationship );
 
-        if ( existingRelationship != null )
+        if ( existingRelationship != null && importStrategy.isUpdate() )
         {
             reporter.addWarning( relationship, E4015,
                 relationship.getRelationship() );
+            return;
+        }
+
+        if ( existingRelationship != null && importStrategy.isCreate() )
+        {
+            reporter.addError( relationship, E4015, relationship.getUid() );
+        }
+        else if ( existingRelationship == null && importStrategy.isUpdateOrDelete() )
+        {
+            reporter.addError( relationship, E4016, relationship.getUid() );
         }
     }
 

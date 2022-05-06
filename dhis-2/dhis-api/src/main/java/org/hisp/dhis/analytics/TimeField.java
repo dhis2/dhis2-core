@@ -27,19 +27,20 @@
  */
 package org.hisp.dhis.analytics;
 
+import static com.google.common.collect.Sets.newHashSet;
+import static java.util.stream.Collectors.toSet;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import lombok.Getter;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Sets;
-
 /**
- * enum to map database column names to "business" names
+ * Enum that maps database column names to their respective "business" names.
  */
 public enum TimeField
 {
@@ -55,27 +56,48 @@ public enum TimeField
     @Getter
     private String field;
 
-    public static final Collection<String> DEFAULT_TIME_FIELDS = ImmutableList.of( EVENT_DATE.name(),
+    public static final Collection<String> DEFAULT_TIME_FIELDS = List.of( EVENT_DATE.name(),
         LAST_UPDATED.name(), ENROLLMENT_DATE.name() );
 
-    private static final Set<String> FIELD_NAMES = Sets.newHashSet( TimeField.values() )
-        .stream().map( TimeField::name )
-        .collect( Collectors.toSet() );
+    /**
+     * These constants represent the columns that can be compared using the raw
+     * period column (in the analytics tables), instead of dates. This is
+     * preferable for performance reasons.
+     */
+    private static final Collection<TimeField> TIME_FIELDS_SUPPORT_RAW_PERIODS = List.of( EVENT_DATE,
+        SCHEDULED_DATE, ENROLLMENT_DATE );
 
-    TimeField( String field )
+    private static final Set<String> FIELD_NAMES = newHashSet( TimeField.values() )
+        .stream().map( TimeField::name )
+        .collect( toSet() );
+
+    TimeField( final String field )
     {
         this.field = field;
     }
 
-    public static Optional<TimeField> of( String timeField )
+    public static Optional<TimeField> of( final String timeField )
     {
         return Arrays.stream( values() )
             .filter( tf -> tf.name().equals( timeField ) )
             .findFirst();
     }
 
-    public static boolean fieldIsValid( String field )
+    public static Optional<TimeField> from( final String field )
     {
-        return field != null && FIELD_NAMES.contains( field );
+        return Arrays.stream( values() )
+            .filter( tf -> tf.getField().equals( field ) )
+            .findFirst();
+    }
+
+    public static boolean fieldIsValid( final String field )
+    {
+        return isNotBlank( field ) && FIELD_NAMES.contains( field );
+    }
+
+    public boolean supportsRawPeriod()
+    {
+        return isNotBlank( field ) && from( field ).isPresent()
+            && TIME_FIELDS_SUPPORT_RAW_PERIODS.contains( from( field ).get() );
     }
 }

@@ -323,14 +323,13 @@
     <dependency>
       <groupId>org.springframework.security</groupId>
       <artifactId>spring-security-oauth2-core</artifactId>
-      <version>5.6.2</version>
+      <version>5.6.3</version>
       <scope>test</scope>
     </dependency>
 
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
-      <version>5.8.2</version>
       <scope>test</scope>
     </dependency>
 
@@ -344,7 +343,7 @@
     <dependency>
       <groupId>com.nimbusds</groupId>
       <artifactId>nimbus-jose-jwt</artifactId>
-      <version>9.14</version>
+      <version>9.22</version>
       <scope>test</scope>
     </dependency>
 

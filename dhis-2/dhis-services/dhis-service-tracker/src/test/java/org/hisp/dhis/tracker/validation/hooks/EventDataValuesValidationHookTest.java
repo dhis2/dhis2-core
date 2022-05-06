@@ -43,6 +43,7 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ValidationStrategy;
@@ -78,6 +79,8 @@ class EventDataValuesValidationHookTest
     private static final String programStageUid = "programStageUid";
 
     private static final String dataElementUid = "dataElement";
+
+    private static final String organisationUnitUid = "organisationUnitUid";
 
     @Mock
     private TrackerBundle bundle;
@@ -733,7 +736,6 @@ class EventDataValuesValidationHookTest
         runAndAssertValidationForDataValue( ValueType.DATETIME, "wrong_date_time" );
         runAndAssertValidationForDataValue( ValueType.COORDINATE, "10" );
         runAndAssertValidationForDataValue( ValueType.URL, "not_valid_url" );
-        runAndAssertValidationForDataValue( ValueType.FILE_RESOURCE, "not_valid_uid" );
     }
 
     @Test
@@ -741,7 +743,7 @@ class EventDataValuesValidationHookTest
     {
         TrackerIdSchemeParams params = setUpIdentifiers();
 
-        DataValue validDataValue = dataValue( "code" );
+        DataValue validDataValue = dataValue( "CODE" );
         DataValue nullDataValue = dataValue( null );
 
         OptionSet optionSet = new OptionSet();
@@ -809,6 +811,65 @@ class EventDataValuesValidationHookTest
         assertThat( reporter.getReportList(), hasSize( 1 ) );
         assertEquals( 1, reporter.getReportList().stream()
             .filter( e -> e.getErrorCode() == TrackerErrorCode.E1125 ).count() );
+    }
+
+    @Test
+    void failValidationWhenOrgUnitValueIsInvalid()
+    {
+        TrackerIdSchemeParams params = setUpIdentifiers();
+
+        DataElement validDataElement = dataElement( ValueType.ORGANISATION_UNIT );
+        when( preheat.get( DataElement.class, dataElementUid ) ).thenReturn( validDataElement );
+
+        DataValue invalidDataValue = dataValue( "invlaid_org_unit" );
+        when( preheat.get( OrganisationUnit.class, invalidDataValue.getValue() ) ).thenReturn( null );
+
+        ProgramStage programStage = programStage( validDataElement );
+        when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStageUid ) ) )
+            .thenReturn( programStage );
+
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
+
+        Event event = Event.builder()
+            .programStage( params.toMetadataIdentifier( programStage ) )
+            .status( EventStatus.ACTIVE )
+            .dataValues( Set.of( invalidDataValue ) )
+            .build();
+
+        hook.validateEvent( reporter, event );
+
+        assertThat( reporter.getReportList(), hasSize( 1 ) );
+        assertEquals( TrackerErrorCode.E1007, reporter.getReportList().get( 0 ).getErrorCode() );
+    }
+
+    @Test
+    void succeedsValidationWhenOrgUnitValueIsValid()
+    {
+        TrackerIdSchemeParams params = setUpIdentifiers();
+
+        DataElement validDataElement = dataElement( ValueType.ORGANISATION_UNIT );
+        when( preheat.get( DataElement.class, dataElementUid ) ).thenReturn( validDataElement );
+
+        OrganisationUnit validOrgUnit = organisationUnit();
+
+        DataValue validDataValue = dataValue( validOrgUnit.getUid() );
+        when( preheat.get( OrganisationUnit.class, validDataValue.getValue() ) ).thenReturn( validOrgUnit );
+
+        ProgramStage programStage = programStage( validDataElement );
+        when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStageUid ) ) )
+            .thenReturn( programStage );
+
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
+
+        Event event = Event.builder()
+            .programStage( params.toMetadataIdentifier( programStage ) )
+            .status( EventStatus.ACTIVE )
+            .dataValues( Set.of( validDataValue ) )
+            .build();
+
+        hook.validateEvent( reporter, event );
+
+        assertFalse( reporter.hasErrors() );
     }
 
     private void runAndAssertValidationForDataValue( ValueType valueType, String value )
@@ -904,6 +965,13 @@ class EventDataValuesValidationHookTest
         ProgramStageDataElement programStageDataElement = new ProgramStageDataElement( programStage, dataElement );
         programStageDataElement.setCompulsory( compulsory );
         return Set.of( programStageDataElement );
+    }
+
+    private OrganisationUnit organisationUnit()
+    {
+        OrganisationUnit organisationUnit = new OrganisationUnit();
+        organisationUnit.setUid( organisationUnitUid );
+        return organisationUnit;
     }
 
 }

@@ -45,7 +45,10 @@
         "identifier": "NpsdDv6kKSO"
       },
       "enrollment": "TvctPPhpD8u",
-      "orgUnit": "h4w96yEMlzO",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "h4w96yEMlzO"
+      },
       "relationships": [],
       "occurredAt": "2019-01-28T00:00:00.000",
       "scheduledAt": "2019-01-28T12:10:38.100",
@@ -58,6 +61,9 @@
       "updatedAtClient": "2019-01-28T10:10:38.109",
       "completedBy": "admin",
       "completedAt": "2019-01-28T00:00:00.000",
+      "attributeOptionCombo": {
+        "idScheme": "UID"
+      },
       "dataValues": [],
       "notes": []
     }

@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.table;
 
 import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexName;
 import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexes;
+import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
 import java.util.Collection;
@@ -121,8 +122,9 @@ public class DefaultAnalyticsTableService
         progress.runStage( () -> tableManager.preCreateTables( params ) );
         clock.logTime( "Performed pre-create table work " + tableType );
 
+        dropTempTablesPartitions( tables, progress );
         progress.startingStage( "Dropping temp tables (if any) " + tableType, tables.size() );
-        dropAllTempTables( progress, tables );
+        dropTempTables( tables, progress );
         clock.logTime( "Dropped temp tables" );
 
         progress.startingStage( "Creating analytics tables " + tableType, tables.size() );
@@ -150,7 +152,7 @@ public class DefaultAnalyticsTableService
         }
 
         List<AnalyticsIndex> indexes = getIndexes( partitions );
-        progress.startingStage( "Creating indexes " + tableType, indexes.size() );
+        progress.startingStage( "Creating indexes " + tableType, indexes.size(), SKIP_ITEM_OUTLIER );
         createIndexes( indexes, progress );
         clock.logTime( "Created indexes" );
 
@@ -195,22 +197,11 @@ public class DefaultAnalyticsTableService
     // -------------------------------------------------------------------------
 
     /**
-     * Drops all temporary tables, including the ones used as partitions.
-     *
-     * @param progress
-     * @param tables
-     */
-    private void dropAllTempTables( final JobProgress progress, final List<AnalyticsTable> tables )
-    {
-        dropTempTablesPartitions( tables, progress );
-        dropTempTables( tables, progress );
-    }
-
-    /**
      * Drops the given temporary analytics tables.
      */
     private void dropTempTables( final List<AnalyticsTable> tables, final JobProgress progress )
     {
+
         progress.runStage( tables, AnalyticsTable::getTableName, tableManager::dropTempTable );
     }
 
@@ -221,6 +212,8 @@ public class DefaultAnalyticsTableService
     {
         for ( final AnalyticsTable table : tables )
         {
+            progress.startingStage( "Dropping table partitions of table " + table.getTableName(),
+                table.getTablePartitions().size() );
             progress.runStage( table.getTablePartitions(), AnalyticsTablePartition::getTableName,
                 tableManager::dropTempTablePartition );
         }
@@ -294,7 +287,7 @@ public class DefaultAnalyticsTableService
     private void createIndexes( List<AnalyticsIndex> indexes, JobProgress progress )
     {
         AnalyticsTableType type = getAnalyticsTableType();
-        log.info( "No of analytics table indexes: " + indexes.size() );
+
         progress.runStageInParallel( getProcessNo(), indexes,
             index -> getIndexName( index, type ).replace( "\"", "" ),
             tableManager::createIndex );

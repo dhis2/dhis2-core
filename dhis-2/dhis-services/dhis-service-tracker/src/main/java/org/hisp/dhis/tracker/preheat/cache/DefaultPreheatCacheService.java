@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiFunction;
 
 import lombok.RequiredArgsConstructor;
 
@@ -82,6 +83,30 @@ public class DefaultPreheatCacheService implements PreheatCacheService
         }
 
         return Optional.empty();
+    }
+
+    @Override
+    public Optional<IdentifiableObject> get( String cacheKey, String id,
+        BiFunction<String, String, Optional<IdentifiableObject>> mappingFunction, int cacheTTL, long capacity )
+    {
+        if ( mappingFunction == null )
+        {
+            throw new IllegalArgumentException( "MappingFunction cannot be null" );
+        }
+
+        Optional<IdentifiableObject> value = get( cacheKey, id );
+        if ( value.isPresent() )
+        {
+            return value;
+        }
+
+        value = mappingFunction.apply( cacheKey, id );
+        if ( value.isPresent() )
+        {
+            put( cacheKey, id, value.get(), cacheTTL, capacity );
+        }
+
+        return value;
     }
 
     @Override

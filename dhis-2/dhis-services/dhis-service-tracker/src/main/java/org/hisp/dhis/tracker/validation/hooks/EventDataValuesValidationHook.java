@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1007;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1009;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1076;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1084;
@@ -42,6 +43,7 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.system.util.ValidationUtils;
@@ -79,11 +81,7 @@ public class EventDataValuesValidationHook
                 continue;
             }
 
-            validateDataElement( reporter, dataElement, dataValue, programStage, event );
-            if ( dataValue.getValue() != null )
-            {
-                validateOptionSet( reporter, event, dataElement, dataValue.getValue() );
-            }
+            validateDataValue( reporter, dataElement, dataValue, programStage, event );
         }
 
         validateMandatoryDataValues( event, reporter );
@@ -111,10 +109,32 @@ public class EventDataValuesValidationHook
             .forEach( de -> reporter.addError( event, E1303, de ) );
     }
 
-    private void validateDataElement( ValidationErrorReporter reporter, DataElement dataElement,
+    private void validateDataValue( ValidationErrorReporter reporter, DataElement dataElement,
         DataValue dataValue, ProgramStage programStage, Event event )
     {
-        final String status = ValidationUtils.dataValueIsValid( dataValue.getValue(), dataElement );
+        String status = null;
+
+        if ( dataElement.getValueType() == null )
+        {
+            reporter.addError( event, TrackerErrorCode.E1302, dataElement.getUid(),
+                "data_element_or_type_null_or_empty" );
+        }
+        else if ( dataElement.hasOptionSet() )
+        {
+            validateOptionSet( reporter, event, dataElement, dataValue.getValue() );
+        }
+        else if ( dataElement.getValueType().isFile() )
+        {
+            validateFileNotAlreadyAssigned( reporter, event, dataValue, dataElement );
+        }
+        else if ( dataElement.getValueType().isOrganisationUnit() )
+        {
+            validateOrgUnitValueType( reporter, event, dataValue, dataElement );
+        }
+        else
+        {
+            status = ValidationUtils.dataValueIsValid( dataValue.getValue(), dataElement );
+        }
 
         if ( status != null )
         {
@@ -124,7 +144,6 @@ public class EventDataValuesValidationHook
         else
         {
             validateNullDataValues( reporter, dataElement, programStage, dataValue, event );
-            validateFileNotAlreadyAssigned( reporter, event, dataValue, dataElement );
         }
     }
 
@@ -176,13 +195,9 @@ public class EventDataValuesValidationHook
     private void validateFileNotAlreadyAssigned( ValidationErrorReporter reporter, Event event, DataValue dataValue,
         DataElement dataElement )
     {
-        if ( dataValue == null || dataValue.getValue() == null )
-        {
-            return;
-        }
-
         boolean isFile = dataElement.getValueType() != null && dataElement.getValueType().isFile();
-        if ( !isFile )
+
+        if ( dataValue == null || dataValue.getValue() == null || !isFile )
         {
             return;
         }
@@ -197,5 +212,19 @@ public class EventDataValuesValidationHook
             reporter.addErrorIf( () -> fileResource != null && fileResource.isAssigned(), event,
                 E1009, dataValue.getValue() );
         }
+    }
+
+    private void validateOrgUnitValueType( ValidationErrorReporter reporter, Event event, DataValue dataValue,
+        DataElement dataElement )
+    {
+        boolean isOrgUnit = dataElement.getValueType() != null && dataElement.getValueType().isOrganisationUnit();
+
+        if ( dataValue == null || dataValue.getValue() == null || !isOrgUnit )
+        {
+            return;
+        }
+
+        reporter.addErrorIfNull( reporter.getBundle().getPreheat().get( OrganisationUnit.class, dataValue.getValue() ),
+            event, E1007, dataValue.getValue() );
     }
 }

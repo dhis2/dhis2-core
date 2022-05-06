@@ -120,7 +120,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     void verifyValidationSuccessForEnrollment()
     {
         OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
-        when( preheat.getOrganisationUnit( ORG_UNIT_ID ) )
+        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) )
             .thenReturn( orgUnit );
         TrackedEntityType teiType = trackedEntityType( TEI_TYPE_ID );
         when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_UID ) ) )
@@ -131,7 +131,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .thenReturn( trackedEntityInstance( TEI_TYPE_ID, teiType, orgUnit ) );
 
         Enrollment enrollment = Enrollment.builder()
-            .orgUnit( ORG_UNIT_ID )
+            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
             .program( MetadataIdentifier.ofUid( PROGRAM_UID ) )
             .enrollment( CodeGenerator.generateUid() )
             .trackedEntity( TEI_ID )
@@ -146,7 +146,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     void verifyValidationFailsWhenEnrollmentIsNotARegistration()
     {
         OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
-        when( preheat.getOrganisationUnit( ORG_UNIT_ID ) )
+        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) )
             .thenReturn( orgUnit );
         when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_UID ) ) )
             .thenReturn( programWithoutRegistration( PROGRAM_UID, orgUnit ) );
@@ -154,7 +154,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
 
         Enrollment enrollment = Enrollment.builder()
-            .orgUnit( ORG_UNIT_ID )
+            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
             .enrollment( CodeGenerator.generateUid() )
             .program( MetadataIdentifier.ofUid( PROGRAM_UID ) )
             .build();
@@ -168,7 +168,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     void verifyValidationFailsWhenEnrollmentAndProgramOrganisationUnitDontMatch()
     {
         OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
-        when( preheat.getOrganisationUnit( ORG_UNIT_ID ) )
+        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) )
             .thenReturn( orgUnit );
         OrganisationUnit anotherOrgUnit = organisationUnit( CodeGenerator.generateUid() );
         when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_UID ) ) )
@@ -180,7 +180,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         Enrollment enrollment = Enrollment.builder()
             .enrollment( CodeGenerator.generateUid() )
             .program( MetadataIdentifier.ofUid( PROGRAM_UID ) )
-            .orgUnit( ORG_UNIT_ID )
+            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
             .build();
 
         hook.validateEnrollment( reporter, enrollment );
@@ -192,7 +192,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     void verifyValidationFailsWhenEnrollmentAndProgramTeiTypeDontMatch()
     {
         OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
-        when( preheat.getOrganisationUnit( ORG_UNIT_ID ) )
+        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) )
             .thenReturn( orgUnit );
         when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_UID ) ) )
             .thenReturn( programWithRegistration( PROGRAM_UID, orgUnit, trackedEntityType( TEI_TYPE_ID ) ) );
@@ -205,7 +205,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         Enrollment enrollment = Enrollment.builder()
             .enrollment( CodeGenerator.generateUid() )
             .program( MetadataIdentifier.ofUid( PROGRAM_UID ) )
-            .orgUnit( ORG_UNIT_ID )
+            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
             .trackedEntity( TEI_ID )
             .build();
 
@@ -218,7 +218,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     void verifyValidationFailsWhenEnrollmentAndProgramTeiTypeDontMatchAndTEIIsInPayload()
     {
         OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
-        when( preheat.getOrganisationUnit( ORG_UNIT_ID ) )
+        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) )
             .thenReturn( orgUnit );
         when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_UID ) ) )
             .thenReturn( programWithRegistration( PROGRAM_UID, orgUnit, trackedEntityType( TEI_TYPE_ID ) ) );
@@ -235,7 +235,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         Enrollment enrollment = Enrollment.builder()
             .enrollment( CodeGenerator.generateUid() )
             .program( MetadataIdentifier.ofUid( PROGRAM_UID ) )
-            .orgUnit( ORG_UNIT_ID )
+            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
             .trackedEntity( TEI_ID )
             .build();
 
@@ -248,8 +248,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     void eventValidationSucceedsWhenAOCAndCOsAreNotSetAndProgramHasDefaultCC()
     {
         OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
-        when( preheat.getOrganisationUnit( ORG_UNIT_ID ) )
-            .thenReturn( orgUnit );
+        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) ).thenReturn( orgUnit );
         Program program = programWithRegistration( PROGRAM_UID, orgUnit );
         when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_UID ) ) )
             .thenReturn( program );
@@ -269,7 +268,8 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .event( CodeGenerator.generateUid() )
             .program( MetadataIdentifier.ofUid( program.getUid() ) )
             .programStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_ID ) )
-            .orgUnit( ORG_UNIT_ID )
+            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
+            .attributeOptionCombo( MetadataIdentifier.ofUid( null ) )
             .enrollment( ENROLLMENT_ID )
             .build();
 
@@ -282,8 +282,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     void eventValidationFailsWhenEventAndProgramStageProgramDontMatch()
     {
         OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
-        when( preheat.getOrganisationUnit( ORG_UNIT_ID ) )
-            .thenReturn( orgUnit );
+        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) ).thenReturn( orgUnit );
         Program program = programWithRegistration( PROGRAM_UID, orgUnit );
         when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_UID ) ) )
             .thenReturn( program );
@@ -302,7 +301,8 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .event( CodeGenerator.generateUid() )
             .program( MetadataIdentifier.ofUid( program.getUid() ) )
             .programStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_ID ) )
-            .orgUnit( ORG_UNIT_ID )
+            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
+            .attributeOptionCombo( MetadataIdentifier.ofUid( null ) )
             .build();
 
         hook.validateEvent( reporter, event );
@@ -314,8 +314,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     void eventValidationFailsWhenProgramIsRegistrationAndEnrollmentIsMissing()
     {
         OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
-        when( preheat.getOrganisationUnit( ORG_UNIT_ID ) )
-            .thenReturn( orgUnit );
+        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) ).thenReturn( orgUnit );
         Program program = programWithRegistration( PROGRAM_UID, orgUnit );
         when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_UID ) ) )
             .thenReturn( program );
@@ -333,7 +332,8 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .event( CodeGenerator.generateUid() )
             .program( MetadataIdentifier.ofUid( program.getUid() ) )
             .programStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_ID ) )
-            .orgUnit( ORG_UNIT_ID )
+            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
+            .attributeOptionCombo( MetadataIdentifier.ofUid( null ) )
             .build();
 
         hook.validateEvent( reporter, event );
@@ -346,8 +346,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     void eventValidationFailsWhenEventAndEnrollmentProgramDontMatch()
     {
         OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
-        when( preheat.getOrganisationUnit( ORG_UNIT_ID ) )
-            .thenReturn( orgUnit );
+        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) ).thenReturn( orgUnit );
         Program program = programWithRegistration( PROGRAM_UID, orgUnit );
         when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_UID ) ) )
             .thenReturn( program );
@@ -368,7 +367,8 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .event( CodeGenerator.generateUid() )
             .program( MetadataIdentifier.ofUid( program.getUid() ) )
             .programStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_ID ) )
-            .orgUnit( ORG_UNIT_ID )
+            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
+            .attributeOptionCombo( MetadataIdentifier.ofUid( null ) )
             .enrollment( ENROLLMENT_ID )
             .build();
 
@@ -382,8 +382,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     void eventValidationFailsWhenEventAndProgramOrganisationUnitDontMatch()
     {
         OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
-        when( preheat.getOrganisationUnit( ORG_UNIT_ID ) )
-            .thenReturn( orgUnit );
+        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) ).thenReturn( orgUnit );
         OrganisationUnit anotherOrgUnit = organisationUnit( CodeGenerator.generateUid() );
         Program program = programWithRegistration( PROGRAM_UID, anotherOrgUnit );
         when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_UID ) ) )
@@ -405,7 +404,8 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .event( CodeGenerator.generateUid() )
             .program( MetadataIdentifier.ofUid( program.getUid() ) )
             .programStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_ID ) )
-            .orgUnit( ORG_UNIT_ID )
+            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
+            .attributeOptionCombo( MetadataIdentifier.ofUid( null ) )
             .enrollment( ENROLLMENT_ID )
             .build();
 
@@ -535,10 +535,10 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         CategoryCombo cc = categoryCombo();
         program.setCategoryCombo( cc );
         CategoryOptionCombo aoc = firstCategoryOptionCombo( cc );
-        when( preheat.getCategoryOptionCombo( aoc.getUid() ) ).thenReturn( aoc );
+        when( preheat.getCategoryOptionCombo( MetadataIdentifier.ofUid( aoc.getUid() ) ) ).thenReturn( aoc );
 
         Event event = eventBuilder()
-            .attributeOptionCombo( aoc.getUid() )
+            .attributeOptionCombo( MetadataIdentifier.ofUid( aoc.getUid() ) )
             .build();
 
         hook.validateEvent( reporter, event );
@@ -555,10 +555,11 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         CategoryCombo defaultCC = defaultCategoryCombo();
         program.setCategoryCombo( defaultCC );
         CategoryOptionCombo defaultAOC = firstCategoryOptionCombo( defaultCC );
-        when( preheat.getCategoryOptionCombo( defaultAOC.getUid() ) ).thenReturn( defaultAOC );
+        when( preheat.getCategoryOptionCombo( MetadataIdentifier.ofUid( defaultAOC.getUid() ) ) )
+            .thenReturn( defaultAOC );
 
         Event event = eventBuilder()
-            .attributeOptionCombo( defaultAOC.getUid() )
+            .attributeOptionCombo( MetadataIdentifier.ofUid( defaultAOC.getUid() ) )
             .build();
 
         hook.validateEvent( reporter, event );
@@ -574,10 +575,10 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         program.setCategoryCombo( defaultCategoryCombo() );
 
         String UNKNOWN_AOC_ID = CodeGenerator.generateUid();
-        when( preheat.getCategoryOptionCombo( UNKNOWN_AOC_ID ) ).thenReturn( null );
+        when( preheat.getCategoryOptionCombo( MetadataIdentifier.ofUid( UNKNOWN_AOC_ID ) ) ).thenReturn( null );
 
         Event event = eventBuilder()
-            .attributeOptionCombo( UNKNOWN_AOC_ID )
+            .attributeOptionCombo( MetadataIdentifier.ofUid( UNKNOWN_AOC_ID ) )
             .build();
 
         hook.validateEvent( reporter, event );
@@ -594,10 +595,10 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         program.setCategoryCombo( categoryCombo() );
 
         String UNKNOWN_AOC_ID = CodeGenerator.generateUid();
-        when( preheat.getCategoryOptionCombo( UNKNOWN_AOC_ID ) ).thenReturn( null );
+        when( preheat.getCategoryOptionCombo( MetadataIdentifier.ofUid( UNKNOWN_AOC_ID ) ) ).thenReturn( null );
 
         Event event = eventBuilder()
-            .attributeOptionCombo( UNKNOWN_AOC_ID )
+            .attributeOptionCombo( MetadataIdentifier.ofUid( UNKNOWN_AOC_ID ) )
             .build();
 
         hook.validateEvent( reporter, event );
@@ -614,10 +615,10 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         program.setCategoryCombo( categoryCombo( 'A' ) );
 
         CategoryOptionCombo aoc = firstCategoryOptionCombo( categoryCombo( 'B' ) );
-        when( preheat.getCategoryOptionCombo( aoc.getUid() ) ).thenReturn( aoc );
+        when( preheat.getCategoryOptionCombo( MetadataIdentifier.ofUid( aoc.getUid() ) ) ).thenReturn( aoc );
 
         Event event = eventBuilder()
-            .attributeOptionCombo( aoc.getUid() )
+            .attributeOptionCombo( MetadataIdentifier.ofUid( aoc.getUid() ) )
             .build();
 
         hook.validateEvent( reporter, event );
@@ -636,10 +637,11 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         program.setCategoryCombo( categoryCombo( 'A' ) );
 
         CategoryOptionCombo defaultAOC = firstCategoryOptionCombo( defaultCategoryCombo() );
-        when( preheat.getCategoryOptionCombo( defaultAOC.getUid() ) ).thenReturn( defaultAOC );
+        when( preheat.getCategoryOptionCombo( MetadataIdentifier.ofUid( defaultAOC.getUid() ) ) )
+            .thenReturn( defaultAOC );
 
         Event event = eventBuilder()
-            .attributeOptionCombo( defaultAOC.getUid() )
+            .attributeOptionCombo( MetadataIdentifier.ofUid( defaultAOC.getUid() ) )
             .build();
 
         hook.validateEvent( reporter, event );
@@ -656,10 +658,10 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         program.setCategoryCombo( defaultCategoryCombo() );
 
         CategoryOptionCombo aoc = firstCategoryOptionCombo( categoryCombo( 'B' ) );
-        when( preheat.getCategoryOptionCombo( aoc.getUid() ) ).thenReturn( aoc );
+        when( preheat.getCategoryOptionCombo( MetadataIdentifier.ofUid( aoc.getUid() ) ) ).thenReturn( aoc );
 
         Event event = eventBuilder()
-            .attributeOptionCombo( aoc.getUid() )
+            .attributeOptionCombo( MetadataIdentifier.ofUid( aoc.getUid() ) )
             .build();
 
         hook.validateEvent( reporter, event );
@@ -679,14 +681,15 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         CategoryCombo defaultCC = defaultCategoryCombo();
         program.setCategoryCombo( defaultCC );
         CategoryOptionCombo defaultAOC = firstCategoryOptionCombo( defaultCC );
-        when( preheat.getCategoryOptionCombo( defaultAOC.getUid() ) ).thenReturn( defaultAOC );
+        when( preheat.getCategoryOptionCombo( MetadataIdentifier.ofUid( defaultAOC.getUid() ) ) )
+            .thenReturn( defaultAOC );
 
         CategoryOption defaultCO = defaultCC.getCategoryOptions().get( 0 );
         program.setCategoryCombo( defaultCC );
         when( preheat.getCategoryOption( defaultCO.getUid() ) ).thenReturn( defaultCO );
 
         Event event = eventBuilder()
-            .attributeOptionCombo( defaultAOC.getUid() )
+            .attributeOptionCombo( MetadataIdentifier.ofUid( defaultAOC.getUid() ) )
             .attributeCategoryOptions( defaultCO.getUid() )
             .build();
 
@@ -706,10 +709,10 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         CategoryOption co = cc.getCategoryOptions().get( 0 );
         when( preheat.getCategoryOption( co.getUid() ) ).thenReturn( co );
         CategoryOptionCombo aoc = firstCategoryOptionCombo( cc );
-        when( preheat.getCategoryOptionCombo( aoc.getUid() ) ).thenReturn( aoc );
+        when( preheat.getCategoryOptionCombo( MetadataIdentifier.ofUid( aoc.getUid() ) ) ).thenReturn( aoc );
 
         Event event = eventBuilder()
-            .attributeOptionCombo( aoc.getUid() )
+            .attributeOptionCombo( MetadataIdentifier.ofUid( aoc.getUid() ) )
             .attributeCategoryOptions( co.getUid() )
             .build();
 
@@ -730,10 +733,10 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         when( preheat.getCategoryOption( co.getUid() ) ).thenReturn( co );
 
         String UNKNOWN_AOC_ID = CodeGenerator.generateUid();
-        when( preheat.getCategoryOptionCombo( UNKNOWN_AOC_ID ) ).thenReturn( null );
+        when( preheat.getCategoryOptionCombo( MetadataIdentifier.ofUid( UNKNOWN_AOC_ID ) ) ).thenReturn( null );
 
         Event event = eventBuilder()
-            .attributeOptionCombo( UNKNOWN_AOC_ID )
+            .attributeOptionCombo( MetadataIdentifier.ofUid( UNKNOWN_AOC_ID ) )
             .attributeCategoryOptions( co.getUid() )
             .build();
 
@@ -755,10 +758,11 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         when( preheat.getCategoryOption( co.getUid() ) ).thenReturn( co );
 
         CategoryOptionCombo defaultAOC = firstCategoryOptionCombo( defaultCategoryCombo() );
-        when( preheat.getCategoryOptionCombo( defaultAOC.getUid() ) ).thenReturn( defaultAOC );
+        when( preheat.getCategoryOptionCombo( MetadataIdentifier.ofUid( defaultAOC.getUid() ) ) )
+            .thenReturn( defaultAOC );
 
         Event event = eventBuilder()
-            .attributeOptionCombo( defaultAOC.getUid() )
+            .attributeOptionCombo( MetadataIdentifier.ofUid( defaultAOC.getUid() ) )
             .attributeCategoryOptions( co.getUid() )
             .build();
 
@@ -777,13 +781,13 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         CategoryCombo cc = categoryCombo();
         program.setCategoryCombo( cc );
         CategoryOptionCombo aoc = firstCategoryOptionCombo( cc );
-        when( preheat.getCategoryOptionCombo( aoc.getUid() ) ).thenReturn( aoc );
+        when( preheat.getCategoryOptionCombo( MetadataIdentifier.ofUid( aoc.getUid() ) ) ).thenReturn( aoc );
 
         String UNKNOWN_CO_ID = CodeGenerator.generateUid();
         when( preheat.getCategoryOption( UNKNOWN_CO_ID ) ).thenReturn( null );
 
         Event event = eventBuilder()
-            .attributeOptionCombo( aoc.getUid() )
+            .attributeOptionCombo( MetadataIdentifier.ofUid( aoc.getUid() ) )
             .attributeCategoryOptions( UNKNOWN_CO_ID )
             .build();
 
@@ -810,10 +814,10 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         when( preheat.getCategoryOption( UNKNOWN_CO_ID2 ) ).thenReturn( null );
 
         String UNKNOWN_AOC_ID = CodeGenerator.generateUid();
-        when( preheat.getCategoryOptionCombo( UNKNOWN_AOC_ID ) ).thenReturn( null );
+        when( preheat.getCategoryOptionCombo( MetadataIdentifier.ofUid( UNKNOWN_AOC_ID ) ) ).thenReturn( null );
 
         Event event = eventBuilder()
-            .attributeOptionCombo( UNKNOWN_AOC_ID )
+            .attributeOptionCombo( MetadataIdentifier.ofUid( UNKNOWN_AOC_ID ) )
             .attributeCategoryOptions( UNKNOWN_CO_ID1 + ";" + co.getUid() + ";" + UNKNOWN_CO_ID2 )
             .build();
 
@@ -836,13 +840,13 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         CategoryCombo cc = categoryCombo();
         program.setCategoryCombo( cc );
         CategoryOptionCombo aoc = firstCategoryOptionCombo( cc );
-        when( preheat.getCategoryOptionCombo( aoc.getUid() ) ).thenReturn( aoc );
+        when( preheat.getCategoryOptionCombo( MetadataIdentifier.ofUid( aoc.getUid() ) ) ).thenReturn( aoc );
 
         CategoryOption eventCO = createCategoryOption( 'C' );
         when( preheat.getCategoryOption( eventCO.getUid() ) ).thenReturn( eventCO );
 
         Event event = eventBuilder()
-            .attributeOptionCombo( aoc.getUid() )
+            .attributeOptionCombo( MetadataIdentifier.ofUid( aoc.getUid() ) )
             .attributeCategoryOptions( eventCO.getUid() )
             .build();
 
@@ -867,10 +871,10 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         when( preheat.getCategoryOption( co1.getUid() ) ).thenReturn( co1 );
 
         CategoryOptionCombo aoc2 = cc.getSortedOptionCombos().get( 1 );
-        when( preheat.getCategoryOptionCombo( aoc2.getUid() ) ).thenReturn( aoc2 );
+        when( preheat.getCategoryOptionCombo( MetadataIdentifier.ofUid( aoc2.getUid() ) ) ).thenReturn( aoc2 );
 
         Event event = eventBuilder()
-            .attributeOptionCombo( aoc2.getUid() )
+            .attributeOptionCombo( MetadataIdentifier.ofUid( aoc2.getUid() ) )
             .attributeCategoryOptions( co1.getUid() )
             .build();
 
@@ -891,12 +895,12 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         program.setCategoryCombo( cc );
 
         CategoryOptionCombo aoc = firstCategoryOptionCombo( cc );
-        when( preheat.getCategoryOptionCombo( aoc.getUid() ) ).thenReturn( aoc );
+        when( preheat.getCategoryOptionCombo( MetadataIdentifier.ofUid( aoc.getUid() ) ) ).thenReturn( aoc );
         CategoryOption co1 = (CategoryOption) aoc.getCategoryOptions().toArray()[0];
         when( preheat.getCategoryOption( co1.getUid() ) ).thenReturn( co1 );
 
         Event event = eventBuilder()
-            .attributeOptionCombo( aoc.getUid() )
+            .attributeOptionCombo( MetadataIdentifier.ofUid( aoc.getUid() ) )
             .attributeCategoryOptions( co1.getUid() )
             .build();
 
@@ -1051,7 +1055,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     private OrganisationUnit setupOrgUnit()
     {
         OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
-        when( preheat.getOrganisationUnit( ORG_UNIT_ID ) )
+        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) )
             .thenReturn( orgUnit );
         return orgUnit;
     }
@@ -1118,7 +1122,8 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .event( CodeGenerator.generateUid() )
             .program( MetadataIdentifier.ofUid( PROGRAM_UID ) )
             .programStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_ID ) )
-            .orgUnit( ORG_UNIT_ID )
+            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
+            .attributeOptionCombo( MetadataIdentifier.ofUid( null ) )
             .enrollment( ENROLLMENT_ID );
     }
 
@@ -1141,7 +1146,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     private RelationshipItem trackedEntityRelationshipItem( String trackedEntityUid )
     {
         return RelationshipItem.builder()
-            .trackedEntity( RelationshipItem.TrackedEntity.builder().trackedEntity( trackedEntityUid ).build() )
+            .trackedEntity( trackedEntityUid )
             .build();
     }
 

@@ -34,6 +34,10 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionGroup;
@@ -55,6 +59,9 @@ import com.google.common.collect.Sets;
 /**
  * @author Lars Helge Overland
  */
+@Getter
+@Setter
+@Accessors( chain = true )
 public class DataExportParams
 {
     private Set<DataElement> dataElements = new HashSet<>();
@@ -88,6 +95,8 @@ public class DataExportParams
     private boolean orderByPeriod;
 
     private Set<OrganisationUnitGroup> organisationUnitGroups = new HashSet<>();
+
+    private Set<CategoryOptionCombo> categoryOptionCombos = new HashSet<>();
 
     private Set<CategoryOptionCombo> attributeOptionCombos = new HashSet<>();
 
@@ -218,6 +227,11 @@ public class DataExportParams
         return organisationUnitGroups != null && !organisationUnitGroups.isEmpty();
     }
 
+    public boolean hasCategoryOptionCombos()
+    {
+        return categoryOptionCombos != null && !categoryOptionCombos.isEmpty();
+    }
+
     public boolean hasAttributeOptionCombos()
     {
         return attributeOptionCombos != null && !attributeOptionCombos.isEmpty();
@@ -289,284 +303,5 @@ public class DataExportParams
             .add( "output id schemes", outputIdSchemes )
             .add( "blockingQueue", blockingQueue )
             .toString();
-    }
-
-    // -------------------------------------------------------------------------
-    // Get and set methods
-    // -------------------------------------------------------------------------
-
-    public Set<DataElement> getDataElements()
-    {
-        return dataElements;
-    }
-
-    public DataExportParams setDataElements( Set<DataElement> dataElements )
-    {
-        this.dataElements = dataElements;
-        return this;
-    }
-
-    public Set<DataElementOperand> getDataElementOperands()
-    {
-        return dataElementOperands;
-    }
-
-    public DataExportParams setDataElementOperands( Set<DataElementOperand> dataElementOperands )
-    {
-        this.dataElementOperands = dataElementOperands;
-        return this;
-    }
-
-    public Set<DataSet> getDataSets()
-    {
-        return dataSets;
-    }
-
-    public DataExportParams setDataSets( Set<DataSet> dataSets )
-    {
-        this.dataSets = dataSets;
-        return this;
-    }
-
-    public Set<DataElementGroup> getDataElementGroups()
-    {
-        return dataElementGroups;
-    }
-
-    public DataExportParams setDataElementGroups( Set<DataElementGroup> dataElementGroups )
-    {
-        this.dataElementGroups = dataElementGroups;
-        return this;
-    }
-
-    public Set<PeriodType> getPeriodTypes()
-    {
-        return periodTypes;
-    }
-
-    public DataExportParams setPeriodTypes( Set<PeriodType> periodTypes )
-    {
-        this.periodTypes = periodTypes;
-        return this;
-    }
-
-    public Set<Period> getPeriods()
-    {
-        return periods;
-    }
-
-    public DataExportParams setPeriods( Set<Period> periods )
-    {
-        this.periods = periods;
-        return this;
-    }
-
-    public Date getStartDate()
-    {
-        return startDate;
-    }
-
-    public DataExportParams setStartDate( Date startDate )
-    {
-        this.startDate = startDate;
-        return this;
-    }
-
-    public Date getIncludedDate()
-    {
-        return includedDate;
-    }
-
-    public DataExportParams setIncludedDate( Date includedDate )
-    {
-        this.includedDate = includedDate;
-        return this;
-    }
-
-    public Date getEndDate()
-    {
-        return endDate;
-    }
-
-    public DataExportParams setEndDate( Date endDate )
-    {
-        this.endDate = endDate;
-        return this;
-    }
-
-    public Set<OrganisationUnit> getOrganisationUnits()
-    {
-        return organisationUnits;
-    }
-
-    public DataExportParams setOrganisationUnits( Set<OrganisationUnit> organisationUnits )
-    {
-        this.organisationUnits = organisationUnits;
-        return this;
-    }
-
-    public OrganisationUnitSelectionMode getOuMode()
-    {
-        return ouMode;
-    }
-
-    public DataExportParams setOuMode( OrganisationUnitSelectionMode ouMode )
-    {
-        this.ouMode = ouMode;
-        return this;
-    }
-
-    public Integer getOrgUnitLevel()
-    {
-        return orgUnitLevel;
-    }
-
-    public DataExportParams setOrgUnitLevel( Integer orgUnitLevel )
-    {
-        this.orgUnitLevel = orgUnitLevel;
-        return this;
-    }
-
-    public boolean isIncludeDescendants()
-    {
-        return includeDescendants;
-    }
-
-    public DataExportParams setIncludeDescendants( boolean includeDescendants )
-    {
-        this.includeDescendants = includeDescendants;
-        return this;
-    }
-
-    public boolean isOrderByOrgUnitPath()
-    {
-        return orderByOrgUnitPath;
-    }
-
-    public DataExportParams setOrderByOrgUnitPath( boolean orderByOrgUnitPath )
-    {
-        this.orderByOrgUnitPath = orderByOrgUnitPath;
-        return this;
-    }
-
-    public boolean isOrderByPeriod()
-    {
-        return orderByPeriod;
-    }
-
-    public DataExportParams setOrderByPeriod( boolean orderByPeriod )
-    {
-        this.orderByPeriod = orderByPeriod;
-        return this;
-    }
-
-    public Set<OrganisationUnitGroup> getOrganisationUnitGroups()
-    {
-        return organisationUnitGroups;
-    }
-
-    public DataExportParams setOrganisationUnitGroups( Set<OrganisationUnitGroup> organisationUnitGroups )
-    {
-        this.organisationUnitGroups = organisationUnitGroups;
-        return this;
-    }
-
-    public Set<CategoryOptionCombo> getAttributeOptionCombos()
-    {
-        return attributeOptionCombos;
-    }
-
-    public DataExportParams setAttributeOptionCombos( Set<CategoryOptionCombo> attributeOptionCombos )
-    {
-        this.attributeOptionCombos = attributeOptionCombos;
-        return this;
-    }
-
-    public Set<CategoryOption> getCoDimensionConstraints()
-    {
-        return coDimensionConstraints;
-    }
-
-    public DataExportParams setCoDimensionConstraints( Set<CategoryOption> coDimensionConstraints )
-    {
-        this.coDimensionConstraints = coDimensionConstraints;
-        return this;
-    }
-
-    public Set<CategoryOptionGroup> getCogDimensionConstraints()
-    {
-        return cogDimensionConstraints;
-    }
-
-    public DataExportParams setCogDimensionConstraints( Set<CategoryOptionGroup> cogDimensionConstraints )
-    {
-        this.cogDimensionConstraints = cogDimensionConstraints;
-        return this;
-    }
-
-    public boolean isIncludeDeleted()
-    {
-        return includeDeleted;
-    }
-
-    public DataExportParams setIncludeDeleted( boolean includeDeleted )
-    {
-        this.includeDeleted = includeDeleted;
-        return this;
-    }
-
-    public Date getLastUpdated()
-    {
-        return lastUpdated;
-    }
-
-    public DataExportParams setLastUpdated( Date lastUpdated )
-    {
-        this.lastUpdated = lastUpdated;
-        return this;
-    }
-
-    public String getLastUpdatedDuration()
-    {
-        return lastUpdatedDuration;
-    }
-
-    public DataExportParams setLastUpdatedDuration( String lastUpdatedDuration )
-    {
-        this.lastUpdatedDuration = lastUpdatedDuration;
-        return this;
-    }
-
-    public Integer getLimit()
-    {
-        return limit;
-    }
-
-    public DataExportParams setLimit( Integer limit )
-    {
-        this.limit = limit;
-        return this;
-    }
-
-    public IdSchemes getOutputIdSchemes()
-    {
-        return outputIdSchemes;
-    }
-
-    public DataExportParams setOutputIdSchemes( IdSchemes outputIdSchemes )
-    {
-        this.outputIdSchemes = outputIdSchemes;
-        return this;
-    }
-
-    public BlockingQueue<DeflatedDataValue> getBlockingQueue()
-    {
-        return blockingQueue;
-    }
-
-    public DataExportParams setBlockingQueue( BlockingQueue<DeflatedDataValue> blockingQueue )
-    {
-        this.blockingQueue = blockingQueue;
-        return this;
     }
 }

@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
@@ -243,77 +242,6 @@ class PeriodServiceTest extends DhisSpringTest
     }
 
     @Test
-    void testGetIntersectingPeriodsByPeriodType()
-    {
-        PeriodType ypt = PeriodType.getPeriodTypeByName( YearlyPeriodType.NAME );
-        Date jan2006 = getDate( 2006, 1, 1 );
-        Date dec2006 = getDate( 2006, 12, 31 );
-        Date jan2007 = getDate( 2007, 1, 1 );
-        Date dec2007 = getDate( 2007, 12, 31 );
-        Period periodA = new Period( ypt, jan2006, dec2006 );
-        Period periodB = new Period( ypt, jan2007, dec2007 );
-        periodService.addPeriod( periodA );
-        periodService.addPeriod( periodB );
-        PeriodType mpt = PeriodType.getPeriodTypeByName( MonthlyPeriodType.NAME );
-        Date janstart = getDate( 2006, 1, 1 );
-        Date janend = getDate( 2006, 1, 31 );
-        Date febstart = getDate( 2006, 2, 1 );
-        Date febend = getDate( 2006, 2, 28 );
-        Date marstart = getDate( 2006, 3, 1 );
-        Date marend = getDate( 2006, 3, 31 );
-        Date aprstart = getDate( 2006, 4, 1 );
-        Date aprend = getDate( 2006, 4, 30 );
-        Date maystart = getDate( 2006, 5, 1 );
-        Date mayend = getDate( 2006, 5, 31 );
-        Date junstart = getDate( 2006, 6, 1 );
-        Date junend = getDate( 2006, 6, 30 );
-        Date julstart = getDate( 2006, 7, 1 );
-        Date julend = getDate( 2006, 7, 31 );
-        Date augstart = getDate( 2006, 8, 1 );
-        Date augend = getDate( 2006, 8, 31 );
-        Date sepstart = getDate( 2006, 9, 1 );
-        Date sepend = getDate( 2006, 9, 30 );
-        Date octstart = getDate( 2006, 10, 1 );
-        Date octend = getDate( 2006, 10, 31 );
-        Date novstart = getDate( 2006, 11, 1 );
-        Date novend = getDate( 2006, 11, 30 );
-        Date decstart = getDate( 2006, 12, 1 );
-        Date decend = getDate( 2006, 12, 31 );
-        Period periodC = new Period( mpt, janstart, janend );
-        Period periodD = new Period( mpt, febstart, febend );
-        Period periodE = new Period( mpt, marstart, marend );
-        Period periodF = new Period( mpt, aprstart, aprend );
-        Period periodG = new Period( mpt, maystart, mayend );
-        Period periodH = new Period( mpt, junstart, junend );
-        Period periodI = new Period( mpt, julstart, julend );
-        Period periodJ = new Period( mpt, augstart, augend );
-        Period periodK = new Period( mpt, sepstart, sepend );
-        Period periodL = new Period( mpt, octstart, octend );
-        Period periodM = new Period( mpt, novstart, novend );
-        Period periodN = new Period( mpt, decstart, decend );
-        periodService.addPeriod( periodC );
-        periodService.addPeriod( periodD );
-        periodService.addPeriod( periodE );
-        periodService.addPeriod( periodF );
-        periodService.addPeriod( periodG );
-        periodService.addPeriod( periodH );
-        periodService.addPeriod( periodI );
-        periodService.addPeriod( periodJ );
-        periodService.addPeriod( periodK );
-        periodService.addPeriod( periodL );
-        periodService.addPeriod( periodM );
-        periodService.addPeriod( periodN );
-        List<Period> periodsA = periodService.getIntersectingPeriodsByPeriodType( ypt, getDate( 2006, 6, 1 ),
-            getDate( 2006, 11, 30 ) );
-        assertNotNull( periodsA );
-        assertEquals( 1, periodsA.size() );
-        List<Period> periodsB = periodService.getIntersectingPeriodsByPeriodType( mpt, getDate( 2006, 6, 1 ),
-            getDate( 2006, 11, 30 ) );
-        assertNotNull( periodsB );
-        assertEquals( 6, periodsB.size() );
-    }
-
-    @Test
     void testGetIntersectingPeriods()
     {
         PeriodType type = periodService.getAllPeriodTypes().iterator().next();
@@ -380,38 +308,6 @@ class PeriodServiceTest extends DhisSpringTest
         List<Period> periodsC = periodService.getPeriodsByPeriodType( periodTypeC );
         assertNotNull( periodsC );
         assertEquals( 0, periodsC.size() );
-    }
-
-    @Test
-    void testGetBoundaryPeriods()
-    {
-        PeriodType periodType = periodService.getAllPeriodTypes().iterator().next();
-        Period periodA = new Period( periodType, getDay( 5 ), getDay( 8 ) );
-        Period periodB = new Period( periodType, getDay( 8 ), getDay( 11 ) );
-        Period periodC = new Period( periodType, getDay( 11 ), getDay( 14 ) );
-        Period periodD = new Period( periodType, getDay( 14 ), getDay( 17 ) );
-        Period periodE = new Period( periodType, getDay( 17 ), getDay( 20 ) );
-        Period periodF = new Period( periodType, getDay( 5 ), getDay( 20 ) );
-        List<Period> periods = new ArrayList<>();
-        periods.add( periodA );
-        periods.add( periodB );
-        periods.add( periodC );
-        periods.add( periodD );
-        periods.add( periodE );
-        periods.add( periodF );
-        Period basePeriod = new Period( periodType, getDay( 9 ), getDay( 15 ) );
-        List<Period> boundaryPeriods = periodService.getBoundaryPeriods( basePeriod, periods );
-        assertTrue( boundaryPeriods.size() == 3 );
-        assertTrue( boundaryPeriods.contains( periodB ) );
-        assertTrue( boundaryPeriods.contains( periodD ) );
-        assertTrue( boundaryPeriods.contains( periodF ) );
-        basePeriod = new Period( periodType, getDay( 11 ), getDay( 14 ) );
-        boundaryPeriods = periodService.getBoundaryPeriods( basePeriod, periods );
-        assertTrue( boundaryPeriods.size() == 1 );
-        assertTrue( boundaryPeriods.contains( periodF ) );
-        basePeriod = new Period( periodType, getDay( 2 ), getDay( 5 ) );
-        boundaryPeriods = periodService.getBoundaryPeriods( basePeriod, periods );
-        assertTrue( boundaryPeriods.size() == 0 );
     }
 
     @Test

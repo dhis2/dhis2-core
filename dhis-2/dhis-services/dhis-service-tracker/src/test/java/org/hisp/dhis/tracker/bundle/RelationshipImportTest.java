@@ -35,6 +35,7 @@ import java.io.IOException;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
@@ -94,6 +95,7 @@ class RelationshipImportTest extends TrackerTest
         TrackerImportParams trackerImportParams = fromJson( "tracker/relationships.json" );
         trackerImportService.importTracker( trackerImportParams );
         trackerImportParams = fromJson( "tracker/relationshipToUpdate.json" );
+        trackerImportParams.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
         assertThat( trackerImportReport.getStatus(), is( TrackerStatus.OK ) );
         assertThat( trackerImportReport.getStats().getCreated(), is( 0 ) );

@@ -70,7 +70,6 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.common.ValueType;
@@ -493,20 +492,7 @@ public class JdbcEventAnalyticsManager
         // Query items and filters
         // ---------------------------------------------------------------------
 
-        sql += getItemsSql( params, hlp );
-
-        for ( QueryItem item : params.getItemFilters() )
-        {
-            if ( item.hasFilter() )
-            {
-                for ( QueryFilter filter : item.getFilters() )
-                {
-                    sql += hlp.whereAnd() + " "
-                        + getSelectSql( filter, item, params.getEarliestStartDate(), params.getLatestEndDate() ) +
-                        " " + filter.getSqlOperator() + " " + getSqlFilter( filter, item ) + " ";
-                }
-            }
-        }
+        sql += getStatementForDimensionsAndFilters( params, hlp );
 
         // ---------------------------------------------------------------------
         // Filter expression
@@ -544,12 +530,9 @@ public class JdbcEventAnalyticsManager
                 + ") ";
         }
 
-        if ( params.hasEventStatus() )
-        {
-            sql += hlp.whereAnd() + " psistatus in ("
-                + params.getEventStatus().stream().map( e -> encode( e.name(), true ) ).collect( joining( "," ) )
-                + ") ";
-        }
+        sql += hlp.whereAnd() + " psistatus in ("
+            + params.getEventStatus().stream().map( e -> encode( e.name(), true ) ).collect( joining( "," ) )
+            + ") ";
 
         if ( params.isCoordinatesOnly() || params.isGeometryOnly() )
         {

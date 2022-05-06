@@ -50,7 +50,9 @@ public enum ErrorCode
     E1109( "Could not remove item from collection: {0}" ),
     E1110( "Category combo not found or not accessible: `{0}`" ),
     E1111( "Category option not found or not accessible: `{0}`" ),
-    E1112( "Object(s) of type `{0}` not found or not accessible: `{1}`" ),
+    E1112( "Objects of type `{0}` not found or not accessible: `{1}`" ),
+    E1113( "Object of type `{0}` not found or not accessible: `{1}`" ),
+    E1114( "Data set form type must be custom: `{0}`" ),
 
     /* Org unit merge */
     E1500( "At least two source orgs unit must be specified" ),
@@ -107,7 +109,7 @@ public enum ErrorCode
     E2029( "Data value is not a valid option of the data element option set: `{0}`" ),
     E2030( "Data value must match data element value type: `{0}`" ),
     E2031( "User does not have write access to category option combo: `{0}`" ),
-    E2032( "Data value does not exist" ),
+    E2032( "Data value not found or not accessible" ),
     E2033( "Follow-up must be specified" ),
     E2034( "Filter not supported: `{0}`" ),
     E2035( "Operator not supported: `{0}`" ),
@@ -117,6 +119,9 @@ public enum ErrorCode
     E2039( "Stage offset is allowed only for repeatable stages (`{0}` is not repeatable)" ),
     E2040( "Both category combination and category options must be specified" ),
     E2041( "Attribute option combo does not exist for given category combo and category options" ),
+    E2042( "Min value must be specified" ),
+    E2043( "Max value must be specified" ),
+    E2044( "Max value must be greater than min value" ),
 
     /* Outlier detection */
     E2200( "At least one data element must be specified" ),
@@ -307,6 +312,7 @@ public enum ErrorCode
     E7132( "An indicator expression caused division by zero operation" ),
     E7133( "Query cannot be executed, possibly because of invalid types or invalid operation" ),
     E7134( "Cannot retrieve total value for data elements with skip total category combination" ),
+    E7135( "Date time is not parsable: `{0}`" ),
 
     /* Event analytics */
     E7200( "At least one organisation unit must be specified" ),

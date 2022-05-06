@@ -27,15 +27,16 @@
  */
 package org.hisp.dhis.actions;
 
-import com.google.gson.JsonObject;
+import static org.hamcrest.Matchers.equalTo;
+
+import java.util.List;
+
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.TestRunStorage;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 
-import java.util.List;
-
-import static org.hamcrest.Matchers.equalTo;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -55,7 +56,8 @@ public class UserActions
         return addUserFull( userName, "bravo", userName, password, "" );
     }
 
-    public String addUserFull( final String firstName, final String surname, final String username, final String password,
+    public String addUserFull( final String firstName, final String surname, final String username,
+        final String password,
         String... auth )
     {
         String roleUid = new UserRoleActions().createWithAuthorities( auth );
@@ -83,7 +85,7 @@ public class UserActions
     public void addRoleToUser( String userId, String userRoleId )
     {
         ApiResponse response = this.get( userId );
-        if ( response.extractList( "userRoles.id" ).contains( userRoleId ) )
+        if ( response.getBodyAsJson().getArray( "userRoles.id" ).stringValues().contains( userRoleId ) )
         {
             return;
         }
@@ -126,8 +128,10 @@ public class UserActions
     {
         JsonObject object = this.get( userId ).getBodyAsJsonBuilder()
             .addOrAppendToArray( "organisationUnits", new JsonObjectBuilder().addProperty( "id", captureOu ).build() )
-            .addOrAppendToArray( "dataViewOrganisationUnits", new JsonObjectBuilder().addProperty( "id", dataReadOu ).build() )
-            .addOrAppendToArray( "teiSearchOrganisationUnits", new JsonObjectBuilder().addProperty( "id", searchOu ).build() )
+            .addOrAppendToArray( "dataViewOrganisationUnits",
+                new JsonObjectBuilder().addProperty( "id", dataReadOu ).build() )
+            .addOrAppendToArray( "teiSearchOrganisationUnits",
+                new JsonObjectBuilder().addProperty( "id", searchOu ).build() )
             .build();
 
         ApiResponse response = this.update( userId, object );
@@ -138,7 +142,8 @@ public class UserActions
     public void grantUserSearchAccessToOrgUnit( String userId, String orgUnitId )
     {
         JsonObject object = this.get( userId ).getBodyAsJsonBuilder()
-            .addOrAppendToArray( "teiSearchOrganisationUnits", new JsonObjectBuilder().addProperty( "id", orgUnitId ).build() )
+            .addOrAppendToArray( "teiSearchOrganisationUnits",
+                new JsonObjectBuilder().addProperty( "id", orgUnitId ).build() )
             .build();
 
         ApiResponse response = this.update( userId, object );
@@ -150,7 +155,8 @@ public class UserActions
     public void grantUserDataViewAccessToOrgUnit( String userId, String orgUnitId )
     {
         JsonObject object = this.get( userId ).getBodyAsJsonBuilder()
-            .addOrAppendToArray( "dataViewOrganisationUnits", new JsonObjectBuilder().addProperty( "id", orgUnitId ).build() )
+            .addOrAppendToArray( "dataViewOrganisationUnits",
+                new JsonObjectBuilder().addProperty( "id", orgUnitId ).build() )
             .build();
 
         ApiResponse response = this.update( userId, object );
@@ -172,7 +178,8 @@ public class UserActions
     }
 
     /**
-     * Grants user access to all org units imported before the tests. /test/resources/setup/metadata.json
+     * Grants user access to all org units imported before the tests.
+     * /test/resources/setup/metadata.json
      *
      * @param userId
      */

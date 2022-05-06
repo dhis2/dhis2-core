@@ -364,16 +364,15 @@ public class DefaultInterpretationService
             break;
         case VISUALIZATION:
             path = "/dhis-web-data-visualizer/index.html#/" + interpretation.getVisualization().getUid()
-                + "/interpretation/"
-                + interpretation.getUid();
+                + "/interpretation/" + interpretation.getUid();
             break;
         case EVENT_REPORT:
             path = "/dhis-web-event-reports/index.html?id=" + interpretation.getEventReport().getUid()
                 + "&interpretationid=" + interpretation.getUid();
             break;
         case EVENT_VISUALIZATION:
-            path = "/dhis-web-event-visualizer/index.html?id=" + interpretation.getEventVisualization().getUid()
-                + "&interpretationid=" + interpretation.getUid();
+            path = "/api/apps/line-listing/#/" + interpretation.getEventVisualization().getUid() + "?interpretationId="
+                + interpretation.getUid();
             break;
         case EVENT_CHART:
             path = "/dhis-web-event-visualizer/index.html?id=" + interpretation.getEventChart().getUid()

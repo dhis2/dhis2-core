@@ -368,7 +368,7 @@ class RelationshipsValidationHookTest
             .relationshipType( relType.getUid() )
             .build();
         TrackerErrorReport error = TrackerErrorReport.builder()
-            .uid( relationship.getTo().getTrackedEntity().getTrackedEntity() )
+            .uid( relationship.getTo().getTrackedEntity() )
             .trackerType( TRACKED_ENTITY )
             .errorCode( TrackerErrorCode.E9999 )
             .build( bundle );
@@ -453,7 +453,7 @@ class RelationshipsValidationHookTest
     private RelationshipItem trackedEntityRelationshipItem( String trackedEntityUid )
     {
         return RelationshipItem.builder()
-            .trackedEntity( trackedEntity( trackedEntityUid ) )
+            .trackedEntity( trackedEntityUid )
             .build();
     }
 
@@ -471,23 +471,18 @@ class RelationshipsValidationHookTest
             .build();
     }
 
-    private RelationshipItem.TrackedEntity trackedEntity()
+    private String trackedEntity()
     {
-        return trackedEntity( CodeGenerator.generateUid() );
+        return CodeGenerator.generateUid();
     }
 
-    private RelationshipItem.TrackedEntity trackedEntity( String uid )
+    private String enrollment()
     {
-        return RelationshipItem.TrackedEntity.builder().trackedEntity( uid ).build();
+        return CodeGenerator.generateUid();
     }
 
-    private RelationshipItem.Enrollment enrollment()
+    private String event()
     {
-        return RelationshipItem.Enrollment.builder().enrollment( CodeGenerator.generateUid() ).build();
-    }
-
-    private RelationshipItem.Event event()
-    {
-        return RelationshipItem.Event.builder().event( CodeGenerator.generateUid() ).build();
+        return CodeGenerator.generateUid();
     }
 }

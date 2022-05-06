@@ -45,7 +45,7 @@ public interface DataValueAuditService
     String ID = DataValueAuditService.class.getName();
 
     /**
-     * Adds a DataValueAudit.
+     * Adds a data value audit.
      *
      * @param dataValueAudit the DataValueAudit to add.
      */
@@ -75,29 +75,61 @@ public interface DataValueAuditService
     List<DataValueAudit> getDataValueAudits( DataValue dataValue );
 
     /**
-     * Returns all DataValueAudits for the given DataElement, Period,
-     * OrganisationUnit and CategoryOptionCombo.
+     * Returns data value audits for the given parameters.
      *
-     * @param dataElements the DataElement of the DataValueAudits.
-     * @param periods the Period of the DataValueAudits.
-     * @param organisationUnits the OrganisationUnit of the DataValueAudits.
-     * @param categoryOptionCombo the CategoryOptionCombo of the
-     *        DataValueAudits.
-     * @param attributeOptionCombo the attribute option combo.
-     * @return a list of DataValueAudits which matches the given DataElement,
-     *         Period, OrganisationUnit and CategoryOptionCombo, or an empty
-     *         collection if there are not matches.
+     * @param dataElement the {@link DataElement}.
+     * @param period the {@link Period}.
+     * @param organisationUnit the {@link OrganisationUnit}.
+     * @param categoryOptionCombo the {@link CategoryOptionCombo}.
+     * @param attributeOptionCombo the {@link CategoryOptionCombo}.
+     * @return a list of {@link DataValueAudit}.
+     */
+    List<DataValueAudit> getDataValueAudits( DataElement dataElement, Period period,
+        OrganisationUnit organisationUnit, CategoryOptionCombo categoryOptionCombo,
+        CategoryOptionCombo attributeOptionCombo );
+
+    /**
+     * Returns data value audits for the given parameters.
+     *
+     * @param dataElements the list of {@link DataElement}.
+     * @param periods the list of {@link Period}.
+     * @param organisationUnits the list of {@link OrganisationUnit}.
+     * @param categoryOptionCombo the {@link CategoryOptionCombo}.
+     * @param attributeOptionCombo the {@link CategoryOptionCombo}.
+     * @return a list of {@link DataValueAudit}.
      */
     List<DataValueAudit> getDataValueAudits( List<DataElement> dataElements, List<Period> periods,
-        List<OrganisationUnit> organisationUnits,
-        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, AuditType auditType );
+        List<OrganisationUnit> organisationUnits, CategoryOptionCombo categoryOptionCombo,
+        CategoryOptionCombo attributeOptionCombo, AuditType auditType );
 
+    /**
+     * Returns data value audits for the given parameters.
+     *
+     * @param dataElements the list of {@link DataElement}.
+     * @param periods the list of {@link Period}.
+     * @param organisationUnits the list of {@link OrganisationUnit}.
+     * @param categoryOptionCombo the {@link CategoryOptionCombo}.
+     * @param attributeOptionCombo the {@link CategoryOptionCombo}.
+     * @param offset the item offset.
+     * @param limit the item limit.
+     * @return a list of {@link DataValueAudit}.
+     */
     List<DataValueAudit> getDataValueAudits( List<DataElement> dataElements, List<Period> periods,
-        List<OrganisationUnit> organisationUnits,
-        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, AuditType auditType,
-        int first, int max );
+        List<OrganisationUnit> organisationUnits, CategoryOptionCombo categoryOptionCombo,
+        CategoryOptionCombo attributeOptionCombo, AuditType auditType,
+        int offset, int limit );
 
+    /**
+     * Returns the count of data value audits for the given parameters.
+     *
+     * @param dataElements the list of {@link DataElement}.
+     * @param periods the list of {@link Period}.
+     * @param organisationUnits the list of {@link OrganisationUnit}.
+     * @param categoryOptionCombo the {@link CategoryOptionCombo}.
+     * @param attributeOptionCombo the {@link CategoryOptionCombo}.
+     * @return the count of data value audits.
+     */
     int countDataValueAudits( List<DataElement> dataElements, List<Period> periods,
-        List<OrganisationUnit> organisationUnits,
-        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, AuditType auditType );
+        List<OrganisationUnit> organisationUnits, CategoryOptionCombo categoryOptionCombo,
+        CategoryOptionCombo attributeOptionCombo, AuditType auditType );
 }

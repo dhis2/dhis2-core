@@ -34,18 +34,15 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import java.io.File;
 
 import org.hamcrest.Matchers;
-import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.IdGenerator;
-import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.metadata.DataElementActions;
 import org.hisp.dhis.actions.metadata.MetadataActions;
-import org.hisp.dhis.actions.metadata.ProgramActions;
-import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
+import org.hisp.dhis.tracker.TrackerApiTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -55,13 +52,9 @@ import com.google.gson.JsonObject;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class EventImportDataValueValidationTests
-    extends ApiTest
+    extends TrackerApiTest
 {
     private static String OU_ID = Constants.ORG_UNIT_IDS[0];
-
-    private ProgramActions programActions;
-
-    private EventActions eventActions;
 
     private DataElementActions dataElementActions;
 
@@ -75,11 +68,9 @@ public class EventImportDataValueValidationTests
     public void beforeAll()
         throws Exception
     {
-        programActions = new ProgramActions();
-        eventActions = new EventActions();
         dataElementActions = new DataElementActions();
 
-        new LoginActions().loginAsAdmin();
+        loginActions.loginAsAdmin();
 
         setupData();
     }

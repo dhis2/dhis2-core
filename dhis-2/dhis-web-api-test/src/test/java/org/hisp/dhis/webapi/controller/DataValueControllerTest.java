@@ -37,6 +37,7 @@ import java.util.List;
 
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
@@ -58,22 +59,22 @@ class DataValueControllerTest extends AbstractDataValueControllerTest
     @Test
     void testSetDataValuesFollowUp_Empty()
     {
-        assertEquals( "Follow-up must be specified",
-            PUT( "/dataValues/followups", Body( "{}" ) ).error( HttpStatus.CONFLICT ).getMessage() );
-        assertEquals( "Follow-up must be specified",
-            PUT( "/dataValues/followups", Body( "{'values':null}" ) ).error( HttpStatus.CONFLICT ).getMessage() );
-        assertEquals( "Follow-up must be specified",
-            PUT( "/dataValues/followups", Body( "{'values':[]}" ) ).error( HttpStatus.CONFLICT ).getMessage() );
+        assertEquals( ErrorCode.E2033,
+            PUT( "/dataValues/followups", Body( "{}" ) ).error( HttpStatus.CONFLICT ).getErrorCode() );
+        assertEquals( ErrorCode.E2033,
+            PUT( "/dataValues/followups", Body( "{'values':null}" ) ).error( HttpStatus.CONFLICT ).getErrorCode() );
+        assertEquals( ErrorCode.E2033,
+            PUT( "/dataValues/followups", Body( "{'values':[]}" ) ).error( HttpStatus.CONFLICT ).getErrorCode() );
     }
 
     @Test
     void testSetDataValuesFollowUp_NonExisting()
     {
         addDataValue( "2021-01", "2", null, false );
-        assertEquals( "Data value does not exist",
+        assertEquals( ErrorCode.E2032,
             PUT( "/dataValues/followups",
                 Body( String.format( "{'values':[%s]}", dataValueKeyJSON( "2021-02", true ) ) ) )
-                    .error( HttpStatus.CONFLICT ).getMessage() );
+                    .error( HttpStatus.CONFLICT ).getErrorCode() );
     }
 
     @Test

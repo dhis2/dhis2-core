@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.datavalue;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_AGGREGATE;
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsZeroAndInsignificant;
@@ -36,6 +35,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -62,6 +62,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Halvdan Hoem Grelland
  */
 @Slf4j
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.datavalue.DataValueService" )
 public class DefaultDataValueService
     implements DataValueService
@@ -79,22 +80,6 @@ public class DefaultDataValueService
     private final CategoryService categoryService;
 
     private final DhisConfigurationProvider config;
-
-    public DefaultDataValueService( DataValueStore dataValueStore, DataValueAuditService dataValueAuditService,
-        CurrentUserService currentUserService, CategoryService categoryService, DhisConfigurationProvider config )
-    {
-        checkNotNull( dataValueAuditService );
-        checkNotNull( dataValueStore );
-        checkNotNull( currentUserService );
-        checkNotNull( categoryService );
-        checkNotNull( config );
-
-        this.dataValueStore = dataValueStore;
-        this.dataValueAuditService = dataValueAuditService;
-        this.currentUserService = currentUserService;
-        this.categoryService = categoryService;
-        this.config = config;
-    }
 
     // -------------------------------------------------------------------------
     // Basic DataValue
@@ -256,6 +241,22 @@ public class DefaultDataValueService
         return dataValueStore.getDataValue( dataElement, period, source, categoryOptionCombo, attributeOptionCombo );
     }
 
+    @Override
+    @Transactional( readOnly = true )
+    public DataValue getAndValidateDataValue( DataElement dataElement, Period period, OrganisationUnit source,
+        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo )
+    {
+        DataValue dataValue = dataValueStore.getDataValue(
+            dataElement, period, source, categoryOptionCombo, attributeOptionCombo );
+
+        if ( dataValue == null )
+        {
+            throw new IllegalQueryException( ErrorCode.E2032 );
+        }
+
+        return dataValue;
+    }
+
     // -------------------------------------------------------------------------
     // Collections of DataValues
     // -------------------------------------------------------------------------
@@ -271,6 +272,7 @@ public class DefaultDataValueService
 
     @Override
     public void validate( DataExportParams params )
+        throws IllegalQueryException
     {
         ErrorMessage error = null;
 

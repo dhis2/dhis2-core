@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.apphub;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.apphub.AppHubUtils.getJsonRequestEntity;
 import static org.hisp.dhis.apphub.AppHubUtils.sanitizeQuery;
 import static org.hisp.dhis.apphub.AppHubUtils.validateApiVersion;
@@ -45,6 +44,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.io.IOUtils;
@@ -53,7 +53,6 @@ import org.hisp.dhis.appmanager.AppStatus;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -62,26 +61,15 @@ import org.springframework.web.client.RestTemplate;
  * @author Lars Helge Overland
  */
 @Slf4j
-@Service( "org.hisp.dhis.apphub.AppHubService" )
-public class DefaultAppHubService
-    implements AppHubService
+@Service
+@AllArgsConstructor
+public class DefaultAppHubService implements AppHubService
 {
     private final RestTemplate restTemplate;
 
     private final AppManager appManager;
 
     private final DhisConfigurationProvider dhisConfigurationProvider;
-
-    public DefaultAppHubService( RestTemplate restTemplate, AppManager appManager,
-        DhisConfigurationProvider dhisConfigurationProvider )
-    {
-        checkNotNull( restTemplate );
-        checkNotNull( appManager );
-        checkNotNull( dhisConfigurationProvider );
-        this.restTemplate = restTemplate;
-        this.appManager = appManager;
-        this.dhisConfigurationProvider = dhisConfigurationProvider;
-    }
 
     @Override
     public String getAppHubApiResponse( String apiVersion, String query )
@@ -102,10 +90,7 @@ public class DefaultAppHubService
 
         log.info( "App Hub proxy request URL: '{}'", url );
 
-        ResponseEntity<String> response = restTemplate.exchange( new URI( url ), HttpMethod.GET, getJsonRequestEntity(),
-            String.class );
-
-        return response.getBody();
+        return restTemplate.exchange( new URI( url ), HttpMethod.GET, getJsonRequestEntity(), String.class ).getBody();
     }
 
     @Override

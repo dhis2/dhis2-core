@@ -38,8 +38,6 @@ import org.hisp.dhis.i18n.I18nFormat;
  */
 public interface PeriodService
 {
-    String ID = PeriodService.class.getName();
-
     // -------------------------------------------------------------------------
     // Period
     // -------------------------------------------------------------------------
@@ -142,19 +140,6 @@ public interface PeriodService
     List<Period> getPeriodsBetweenOrSpanningDates( Date startDate, Date endDate );
 
     /**
-     * Returns all Intersecting Periods between the startDate and endDate based
-     * on PeriodType For example if the startDate is 2007-05-01 and endDate is
-     * 2007-08-01 and periodType is Quarterly then it returns the periods for
-     * Q2,Q3
-     *
-     * @param periodType is the ultimate period type
-     * @param startDate is intercepting startDate
-     * @param endDate is intercepting endDate
-     * @return a list of Periods.
-     */
-    List<Period> getIntersectingPeriodsByPeriodType( PeriodType periodType, Date startDate, Date endDate );
-
-    /**
      * Returns Periods where at least one its days are between the given start
      * date and end date.
      *
@@ -173,17 +158,6 @@ public interface PeriodService
      * @return a list of Periods.
      */
     List<Period> getIntersectionPeriods( Collection<Period> periods );
-
-    /**
-     * Returns all Periods from the given collection of Periods which span the
-     * border of either the start date OR end date of the given Period.
-     *
-     * @param period the base Period.
-     * @param periods the collection of Periods.
-     * @return all Periods from the given list of Periods which span the border
-     *         of either the start date or end date of the given Period.
-     */
-    List<Period> getBoundaryPeriods( Period period, Collection<Period> periods );
 
     /**
      * Returns all Periods from the given collection of Periods which are
@@ -209,20 +183,20 @@ public interface PeriodService
      * Enforces that each Period in the given collection is loaded in the
      * current session. Persists the Period if it does not exist.
      *
-     * @param periods the list of Periods.
+     * @param periods the collection of Periods.
      * @return the list of Periods.
      */
-    List<Period> reloadPeriods( List<Period> periods );
+    List<Period> reloadPeriods( Collection<Period> periods );
 
     /**
-     * Returns historyLength number of Periods chronologically ending with
-     * lastPeriod.
+     * Returns a list of the given number of previous periods in ascending
+     * order. The given last period appears last in the returned list.
      *
-     * @param lastPeriod the last Period in the provided collection.
-     * @param historyLength the number of Periods in the provided collection.
-     * @return a collection of Periods.
+     * @param lastPeriod the last period.
+     * @param previousPeriods the number of previous periods.
+     * @return a list of {@link Period}.
      */
-    List<Period> getPeriods( Period lastPeriod, int historyLength );
+    List<Period> getPeriods( Period lastPeriod, int previousPeriods );
 
     /**
      * Populates the name property of Period with the formatted name for the

@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.dataentryform;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.text.StringEscapeUtils.escapeHtml3;
 
 import java.util.HashSet;
@@ -37,21 +36,23 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 
-import lombok.extern.slf4j.Slf4j;
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
-import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.FormType;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.i18n.I18n;
-import org.hisp.dhis.indicator.Indicator;
-import org.hisp.dhis.indicator.IndicatorService;
+import org.hisp.dhis.i18n.I18nManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -60,15 +61,11 @@ import com.google.common.collect.Maps;
 /**
  * @author Bharath Kumar
  */
-@Slf4j
+@AllArgsConstructor
 @Service( "org.hisp.dhis.dataentryform.DataEntryFormService" )
 public class DefaultDataEntryFormService
     implements DataEntryFormService
 {
-    private static final String EMPTY_VALUE_TAG = "value=\"\"";
-
-    private static final String EMPTY_TITLE_TAG = "title=\"\"";
-
     private static final String TAG_CLOSE = "/>";
 
     private static final String EMPTY = "";
@@ -81,24 +78,7 @@ public class DefaultDataEntryFormService
 
     private final IdentifiableObjectManager idObjectManager;
 
-    private final DataElementService dataElementService;
-
-    private final IndicatorService indicatorService;
-
-    public DefaultDataEntryFormService( DataEntryFormStore dataEntryFormStore,
-        IdentifiableObjectManager idObjectManager, DataElementService dataElementService,
-        IndicatorService indicatorService )
-    {
-        checkNotNull( dataEntryFormStore );
-        checkNotNull( idObjectManager );
-        checkNotNull( dataElementService );
-        checkNotNull( indicatorService );
-
-        this.dataEntryFormStore = dataEntryFormStore;
-        this.idObjectManager = idObjectManager;
-        this.dataElementService = dataElementService;
-        this.indicatorService = indicatorService;
-    }
+    private final I18nManager i18nManager;
 
     // ------------------------------------------------------------------------
     // Implemented Methods
@@ -192,116 +172,18 @@ public class DefaultDataEntryFormService
 
     @Override
     @Transactional( readOnly = true )
-    public String prepareDataEntryFormForEdit( DataEntryForm dataEntryForm, DataSet dataSet, I18n i18n )
-    {
-        // ------------------------------------------------------------------------
-        // Only called for creation of CustomDataForm
-        // ------------------------------------------------------------------------
-
-        // TODO HTML encode names
-
-        if ( dataEntryForm == null || !dataEntryForm.hasForm() || dataSet == null )
-        {
-            return null;
-        }
-
-        CachingMap<String, CategoryOptionCombo> optionComboMap = new CachingMap<>();
-
-        optionComboMap.putAll( IdentifiableObjectUtils.getUidObjectMap( dataSet.getDataElementOptionCombos() ) );
-
-        StringBuffer sb = new StringBuffer();
-
-        Matcher inputMatcher = INPUT_PATTERN.matcher( dataEntryForm.getHtmlCode() );
-
-        while ( inputMatcher.find() )
-        {
-            String inputHtml = inputMatcher.group();
-
-            Matcher identifierMatcher = IDENTIFIER_PATTERN.matcher( inputHtml );
-            Matcher dataElementTotalMatcher = DATAELEMENT_TOTAL_PATTERN.matcher( inputHtml );
-            Matcher indicatorMatcher = INDICATOR_PATTERN.matcher( inputHtml );
-
-            String displayValue = null;
-            String displayTitle = null;
-
-            if ( identifierMatcher.find() && identifierMatcher.groupCount() > 0 )
-            {
-                String dataElementId = identifierMatcher.group( 1 );
-                DataElement dataElement = dataElementService.getDataElement( dataElementId );
-
-                String optionComboId = identifierMatcher.group( 2 );
-
-                CategoryOptionCombo categoryOptionCombo = optionComboMap.get( optionComboId,
-                    () -> idObjectManager.getObject( CategoryOptionCombo.class, IdScheme.UID, optionComboId ) );
-
-                String optionComboName = categoryOptionCombo != null ? escapeHtml3( categoryOptionCombo.getName() )
-                    : "[ " + i18n.getString( "cat_option_combo_not_exist" ) + " ]";
-
-                StringBuilder title = dataElement != null ? new StringBuilder( "title=\"" ).append( dataElementId )
-                    .append( " - " ).append( escapeHtml3( dataElement.getDisplayName() ) ).append( " - " )
-                    .append( optionComboId ).append( " - " ).append( optionComboName ).append( " - " )
-                    .append( dataElement.getValueType() ).append( "\"" ) : new StringBuilder();
-
-                displayValue = dataElement != null
-                    ? "value=\"[ " + escapeHtml3( dataElement.getDisplayName() ) + " " + optionComboName + " ]\""
-                    : "[ " + i18n.getString( "data_element_not_exist" ) + " ]";
-                displayTitle = dataElement != null ? title.toString()
-                    : "[ " + i18n.getString( "dataelement_not_exist" ) + " ]";
-            }
-            else if ( dataElementTotalMatcher.find() && dataElementTotalMatcher.groupCount() > 0 )
-            {
-                String dataElementId = dataElementTotalMatcher.group( 1 );
-                DataElement dataElement = dataElementService.getDataElement( dataElementId );
-
-                displayValue = dataElement != null ? "value=\"[ " + escapeHtml3( dataElement.getDisplayName() ) + " ]\""
-                    : "[ " + i18n.getString( "data_element_not_exist" ) + " ]";
-                displayTitle = dataElement != null ? "title=\"" + escapeHtml3( dataElement.getDisplayName() ) + "\""
-                    : "[ " + i18n.getString( "data_element_not_exist" ) + " ]";
-            }
-            else if ( indicatorMatcher.find() && indicatorMatcher.groupCount() > 0 )
-            {
-                String indicatorId = indicatorMatcher.group( 1 );
-                Indicator indicator = indicatorService.getIndicator( indicatorId );
-
-                displayValue = indicator != null ? "value=\"[ " + escapeHtml3( indicator.getDisplayName() ) + " ]\""
-                    : "[ " + i18n.getString( "indicator_not_exist" ) + " ]";
-                displayTitle = indicator != null ? "title=\"" + escapeHtml3( indicator.getDisplayName() ) + "\""
-                    : "[ " + i18n.getString( "indicator_not_exist" ) + " ]";
-            }
-
-            // -----------------------------------------------------------------
-            // Insert name of data element operand as value and title
-            // -----------------------------------------------------------------
-
-            if ( displayValue == null || displayTitle == null )
-            {
-                log.warn( "Ignoring invalid form markup: '" + inputHtml + "'" );
-                continue;
-            }
-
-            inputHtml = inputHtml.contains( EMPTY_VALUE_TAG ) ? inputHtml.replace( EMPTY_VALUE_TAG, displayValue )
-                : inputHtml.replace( TAG_CLOSE, (displayValue + TAG_CLOSE) );
-            inputHtml = inputHtml.contains( EMPTY_TITLE_TAG ) ? inputHtml.replace( EMPTY_TITLE_TAG, displayTitle )
-                : inputHtml.replace( TAG_CLOSE, (displayTitle + TAG_CLOSE) );
-
-            inputMatcher.appendReplacement( sb, inputHtml );
-        }
-
-        inputMatcher.appendTail( sb );
-
-        return sb.toString();
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public String prepareDataEntryFormForEntry( DataEntryForm dataEntryForm, DataSet dataSet, I18n i18n )
+    public String prepareDataEntryFormForEntry( DataSet dataSet )
     {
         // TODO HTML encode names
 
-        if ( dataEntryForm == null || !dataEntryForm.hasForm() || dataSet == null )
+        if ( dataSet.getFormType() != FormType.CUSTOM || !dataSet.hasDataEntryForm() )
         {
-            return null;
+            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E1114, dataSet.getUid() ) );
         }
+
+        DataEntryForm dataEntryForm = dataSet.getDataEntryForm();
+
+        I18n i18n = i18nManager.getI18n();
 
         // ---------------------------------------------------------------------
         // Inline javascript/html to add to HTML before output

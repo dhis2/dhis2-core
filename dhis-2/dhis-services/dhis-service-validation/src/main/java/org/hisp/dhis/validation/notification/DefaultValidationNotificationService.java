@@ -29,6 +29,7 @@ package org.hisp.dhis.validation.notification;
 
 import static java.lang.String.format;
 import static org.hisp.dhis.commons.util.TextUtils.LN;
+import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
 import static org.hisp.dhis.validation.Importance.HIGH;
 import static org.hisp.dhis.validation.Importance.LOW;
 import static org.hisp.dhis.validation.Importance.MEDIUM;
@@ -113,8 +114,8 @@ public class DefaultValidationNotificationService implements ValidationNotificat
                 .filter( IS_APPLICABLE_RESULT )
                 .collect( Collectors.toCollection( TreeSet::new ) ) );
 
-        progress
-            .startingStage( format( "Creating notifications for %d validation results", applicableResults.size() ) );
+        progress.startingStage(
+            format( "Creating notifications for %d validation results", applicableResults.size() ) );
         Map<SendStrategy, Map<Set<User>, NotificationMessage>> notifications = progress.runStage( Map.of(),
             () -> createNotifications( applicableResults ) );
 
@@ -122,7 +123,7 @@ public class DefaultValidationNotificationService implements ValidationNotificat
             .getOrDefault( SendStrategy.SINGLE_NOTIFICATION, Map.of() ).entrySet();
         if ( !singleNotifications.isEmpty() )
         {
-            progress.startingStage( "Sending single notification(s)", singleNotifications.size() );
+            progress.startingStage( "Sending single notification(s)", singleNotifications.size(), SKIP_ITEM_OUTLIER );
             progress.runStage( singleNotifications,
                 entry -> format( "Sending notification %s to %d users", entry.getValue().getSubject(),
                     entry.getKey().size() ),
@@ -133,7 +134,7 @@ public class DefaultValidationNotificationService implements ValidationNotificat
             .getOrDefault( SendStrategy.COLLECTIVE_SUMMARY, Map.of() ).entrySet();
         if ( !summaryNotifications.isEmpty() )
         {
-            progress.startingStage( "Sending summary notification(s)", summaryNotifications.size() );
+            progress.startingStage( "Sending summary notification(s)", summaryNotifications.size(), SKIP_ITEM_OUTLIER );
             progress.runStage( summaryNotifications,
                 entry -> format( "Sending notification %s to %d users", entry.getValue().getSubject(),
                     entry.getKey().size() ),

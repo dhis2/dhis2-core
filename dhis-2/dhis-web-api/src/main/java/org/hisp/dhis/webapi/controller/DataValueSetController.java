@@ -58,7 +58,7 @@ import java.util.zip.ZipOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import lombok.extern.slf4j.Slf4j;
+import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -81,7 +81,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -95,25 +94,20 @@ import org.springframework.web.bind.annotation.ResponseBody;
  * @author Lars Helge Overland
  */
 @Controller
+@RequiredArgsConstructor
 @RequestMapping( value = "/dataValueSets" )
-@Slf4j
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class DataValueSetController
 {
-    @Autowired
-    private DataValueSetService dataValueSetService;
+    private final DataValueSetService dataValueSetService;
 
-    @Autowired
-    private AdxDataService adxDataService;
+    private final AdxDataService adxDataService;
 
-    @Autowired
-    private CurrentUserService currentUserService;
+    private final CurrentUserService currentUserService;
 
-    @Autowired
-    private AsyncTaskExecutor taskExecutor;
+    private final AsyncTaskExecutor taskExecutor;
 
-    @Autowired
-    private SessionFactory sessionFactory;
+    private final SessionFactory sessionFactory;
 
     // -------------------------------------------------------------------------
     // Get
@@ -403,7 +397,8 @@ public class DataValueSetController
             // no-compression option.
             if ( !StringUtils.isEmpty( attachment ) )
             {
-                response.addHeader( ContextUtils.HEADER_CONTENT_DISPOSITION, "attachment; filename=" + fileName );
+                response.addHeader( ContextUtils.HEADER_CONTENT_DISPOSITION,
+                    "attachment; filename=" + fileName + "." + format );
                 response.addHeader( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
             }
 

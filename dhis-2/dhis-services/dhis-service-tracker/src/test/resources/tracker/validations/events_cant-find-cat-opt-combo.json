@@ -45,13 +45,19 @@
         "identifier": "Pmqxq907VNz"
       },
       "enrollment": "KNWZ6hnuhSw",
-      "orgUnit": "QfUVllTs6cS",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
       "relationships": [],
       "occurredAt": "2019-08-01T00:00:00.000",
       "scheduledAt": "2019-08-19T13:59:13.688",
       "followup": false,
       "deleted": false,
-      "attributeOptionCombo": "UuuvX50cXC0",
+      "attributeOptionCombo": {
+        "idScheme": "UID",
+        "identifier": "UuuvX50cXC0"
+      },
       "dataValues": [],
       "notes": []
     }

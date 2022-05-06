@@ -34,16 +34,14 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import java.io.File;
 
 import org.hamcrest.Matchers;
-import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.metadata.MetadataActions;
-import org.hisp.dhis.actions.metadata.ProgramActions;
-import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.ResponseValidationHelper;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
+import org.hisp.dhis.tracker.TrackerApiTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -55,15 +53,11 @@ import com.google.gson.JsonObject;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class UserAssignmentTests
-    extends ApiTest
+    extends TrackerApiTest
 {
     private MetadataActions metadataActions;
 
     private LoginActions loginActions;
-
-    private ProgramActions programActions;
-
-    private EventActions eventActions;
 
     private String userAssignmentProperty = "enableUserAssignment";
 
@@ -73,8 +67,6 @@ public class UserAssignmentTests
     public void beforeAll()
     {
         metadataActions = new MetadataActions();
-        programActions = new ProgramActions();
-        eventActions = new EventActions();
         loginActions = new LoginActions();
 
         loginActions.loginAsSuperUser();

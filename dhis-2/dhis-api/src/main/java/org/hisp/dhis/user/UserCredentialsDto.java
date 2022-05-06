@@ -78,9 +78,6 @@ public class UserCredentialsDto
     private boolean twoFA;
 
     @JsonProperty
-    private String secret;
-
-    @JsonProperty
     private Date passwordLastUpdated;
 
     @JsonProperty

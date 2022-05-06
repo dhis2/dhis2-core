@@ -34,6 +34,7 @@ import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.relationship.RelationshipItem;
@@ -43,6 +44,14 @@ import org.hisp.dhis.tracker.domain.Relationship;
 @NoArgsConstructor( access = AccessLevel.PRIVATE )
 public class RelationshipPreheatKeySupport
 {
+
+    public static boolean hasRelationshipKey( Relationship relationship )
+    {
+        return ObjectUtils.allNotNull(
+            relationship.getRelationshipType(),
+            relationship.getFrom(),
+            relationship.getTo() );
+    }
 
     public static RelationshipKey getRelationshipKey( Relationship relationship )
     {
@@ -72,12 +81,9 @@ public class RelationshipPreheatKeySupport
         if ( Objects.nonNull( relationshipItem ) )
         {
             return RelationshipKey.RelationshipItemKey.builder()
-                .trackedEntity( trimToEmpty( relationshipItem.getTrackedEntity() == null ? null
-                    : relationshipItem.getTrackedEntity().getTrackedEntity() ) )
-                .enrollment( trimToEmpty( relationshipItem.getEnrollment() == null ? null
-                    : relationshipItem.getEnrollment().getEnrollment() ) )
-                .event(
-                    trimToEmpty( relationshipItem.getEvent() == null ? null : relationshipItem.getEvent().getEvent() ) )
+                .trackedEntity( trimToEmpty( relationshipItem.getTrackedEntity() ) )
+                .enrollment( trimToEmpty( relationshipItem.getEnrollment() ) )
+                .event( trimToEmpty( relationshipItem.getEvent() ) )
                 .build();
         }
         throw new IllegalStateException( "Unable to determine uid for relationship item" );
