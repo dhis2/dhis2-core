@@ -98,8 +98,7 @@ class TrackerPreheatTest extends DhisConvenienceTest
         preheat.setIdSchemes( identifierParams );
 
         assertFalse( preheat.containsCategoryOptionCombo( categoryCombo, options ) );
-        Set<MetadataIdentifier> optionIds = categoryOptionIds( identifierParams.getCategoryOptionIdScheme(),
-            options );
+        Set<MetadataIdentifier> optionIds = categoryOptionIds( identifierParams, options );
         assertEquals( MetadataIdentifier.ofCode( null ),
             preheat.getCategoryOptionComboIdentifier( categoryCombo, optionIds ) );
         assertNull( preheat.getCategoryOptionCombo( categoryCombo, options ) );
@@ -130,8 +129,7 @@ class TrackerPreheatTest extends DhisConvenienceTest
         preheat.putCategoryOptionCombo( categoryCombo, options, null );
 
         assertTrue( preheat.containsCategoryOptionCombo( categoryCombo, options ) );
-        Set<MetadataIdentifier> optionIds = categoryOptionIds( identifiers.getCategoryOptionComboIdScheme(),
-            options );
+        Set<MetadataIdentifier> optionIds = categoryOptionIds( identifiers, options );
         assertEquals( MetadataIdentifier.ofUid( null ),
             preheat.getCategoryOptionComboIdentifier( categoryCombo, optionIds ) );
         assertNull( preheat.getCategoryOptionCombo( categoryCombo, options ) );
@@ -476,11 +474,10 @@ class TrackerPreheatTest extends DhisConvenienceTest
         assertThat( reference4.get().getParentUid(), is( allPs.get( 1 ).getUid() ) );
     }
 
-    private Set<MetadataIdentifier> categoryOptionIds( TrackerIdSchemeParam idSchemeParam,
-        Set<CategoryOption> options )
+    private Set<MetadataIdentifier> categoryOptionIds( TrackerIdSchemeParams params, Set<CategoryOption> options )
     {
         return options.stream()
-            .map( idSchemeParam::toMetadataIdentifier )
+            .map( params::toMetadataIdentifier )
             .collect( Collectors.toSet() );
     }
 
