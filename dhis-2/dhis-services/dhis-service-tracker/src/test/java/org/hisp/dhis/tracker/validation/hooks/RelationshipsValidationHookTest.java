@@ -42,6 +42,7 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4009;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4010;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4013;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4014;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4018;
 import static org.hisp.dhis.tracker.validation.hooks.AssertValidationErrorReporter.hasTrackerError;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
@@ -433,6 +434,28 @@ class RelationshipsValidationHookTest
         hasTrackerError( reporter, E4000, RELATIONSHIP, relationship.getUid() );
         assertThat( reporter.getReportList().get( 0 ).getErrorMessage(),
             is( "Relationship: `" + relationship.getRelationship() + "` cannot link to itself" ) );
+    }
+
+    @Test
+    void verifyValidationFailsWhenRelationshipIsDuplicated()
+    {
+        RelationshipType relType = createRelTypeConstraint( TRACKED_ENTITY_INSTANCE, TRACKED_ENTITY_INSTANCE );
+
+        Relationship relationship = Relationship.builder()
+            .relationship( CodeGenerator.generateUid() )
+            .relationshipType( relType.getUid() )
+            .from( trackedEntityRelationshipItem() )
+            .to( trackedEntityRelationshipItem() )
+            .build();
+        org.hisp.dhis.relationship.Relationship rel = new org.hisp.dhis.relationship.Relationship();
+
+        when( preheat.getAll( RelationshipType.class ) ).thenReturn( Collections.singletonList( relType ) );
+        when( preheat.getRelationshipUsingKey( relationship ) ).thenReturn( rel );
+
+        reporter = new ValidationErrorReporter( bundle );
+        validationHook.validateRelationship( reporter, relationship );
+
+        hasTrackerError( reporter, E4018, RELATIONSHIP, relationship.getUid() );
     }
 
     private RelationshipType createRelTypeConstraint( RelationshipEntity from, RelationshipEntity to )

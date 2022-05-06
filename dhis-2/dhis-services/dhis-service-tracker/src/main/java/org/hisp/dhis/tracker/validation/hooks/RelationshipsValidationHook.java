@@ -34,6 +34,8 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4000;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4001;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4009;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4011;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4018;
+import static org.hisp.dhis.tracker.validation.hooks.RelationshipValidationUtils.*;
 import static org.hisp.dhis.tracker.validation.hooks.RelationshipValidationUtils.getUidFromRelationshipItem;
 import static org.hisp.dhis.tracker.validation.hooks.RelationshipValidationUtils.relationshipItemValueType;
 
@@ -46,13 +48,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.springframework.stereotype.Component;
 
@@ -73,8 +75,7 @@ public class RelationshipsValidationHook
             bundle.getPreheat().getAll( RelationshipType.class ) );
 
         // No need to check additional data if there are missing information on
-        // the
-        // Relationship
+        // the Relationship
         if ( isValid )
         {
             validateRelationshipLinkToOneEntity( reporter, relationship );
@@ -82,10 +83,23 @@ public class RelationshipsValidationHook
 
             validateAutoRelationship( reporter, relationship );
 
+            validateDuplication( reporter, relationship, bundle );
+
             validateReferences( reporter, relationship, relationship.getFrom() );
             validateReferences( reporter, relationship, relationship.getTo() );
         }
 
+    }
+
+    private void validateDuplication( ValidationErrorReporter reporter, Relationship relationship,
+        TrackerBundle bundle )
+    {
+        org.hisp.dhis.relationship.Relationship relationshipUsingKey = bundle.getPreheat()
+            .getRelationshipUsingKey( relationship );
+
+        reporter.addErrorIf( () -> Objects.nonNull( relationshipUsingKey ), relationship, E4018,
+            relationshipItemValueType( relationship.getFrom() ), getUidFromRelationshipItem( relationship.getFrom() ),
+            relationshipItemValueType( relationship.getTo() ), getUidFromRelationshipItem( relationship.getTo() ) );
     }
 
     private void validateRelationshipLinkToOneEntity( ValidationErrorReporter reporter,
@@ -118,10 +132,9 @@ public class RelationshipsValidationHook
             () -> getRelationshipType( relationshipsTypes, relationship.getRelationshipType() ).isEmpty(),
             relationship, E4009, relationship.getRelationshipType() );
 
-        final Optional<TrackerErrorReport> any = reporter.getReportList().stream()
-            .filter( r -> relationship.getRelationship().equals( r.getUid() ) ).findAny();
-
-        return any.isEmpty();
+        return reporter.getReportList()
+            .stream()
+            .noneMatch( r -> relationship.getRelationship().equals( r.getUid() ) );
     }
 
     private Optional<RelationshipType> getRelationshipType( List<RelationshipType> relationshipsTypes,
@@ -240,5 +253,11 @@ public class RelationshipsValidationHook
     public boolean removeOnError()
     {
         return true;
+    }
+
+    @Override
+    public boolean needsToRun( TrackerImportStrategy strategy )
+    {
+        return strategy.isCreate();
     }
 }

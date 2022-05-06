@@ -58,21 +58,30 @@ public class RelationshipStrategy implements ClassBasedSupplierStrategy
     {
         List<org.hisp.dhis.relationship.Relationship> relationships = retrieveRelationships( splitList );
 
+        List<org.hisp.dhis.relationship.Relationship> relationshipKeys = retrieveRelationshipKeys( splitList );
+
         preheat.putRelationships(
             DetachUtils.detach( this.getClass().getAnnotation( StrategyFor.class ).mapper(), relationships ) );
+
+        preheat.putRelationships(
+            DetachUtils.detach( this.getClass().getAnnotation( StrategyFor.class ).mapper(), relationshipKeys ) );
     }
 
     private List<org.hisp.dhis.relationship.Relationship> retrieveRelationships( List<List<String>> splitList )
     {
-        List<String> keys = splitList.stream().flatMap( List::stream )
-            .filter( identifier -> !CodeGenerator.isValidUid( identifier ) )
-            .collect( Collectors.toList() );
         List<String> uids = splitList.stream().flatMap( List::stream )
             .filter( CodeGenerator::isValidUid )
             .collect( Collectors.toList() );
 
-        uids.addAll( relationshipStore.getUidsByRelationshipKeyIncludeDeleted( keys ) );
-
         return relationshipStore.getByUidIncludeDeleted( uids );
+    }
+
+    private List<org.hisp.dhis.relationship.Relationship> retrieveRelationshipKeys( List<List<String>> splitList )
+    {
+        List<String> keys = splitList.stream().flatMap( List::stream )
+            .filter( identifier -> !CodeGenerator.isValidUid( identifier ) )
+            .collect( Collectors.toList() );
+
+        return relationshipStore.getByUid( relationshipStore.getUidsByRelationshipKey( keys ) );
     }
 }

@@ -89,7 +89,7 @@ public interface RelationshipStore
      */
     boolean existsIncludingDeleted( String uid );
 
-    List<String> getUidsByRelationshipKeyIncludeDeleted( List<String> relationshipKeyList );
+    List<String> getUidsByRelationshipKey( List<String> relationshipKeyList );
 
     List<Relationship> getByUidIncludeDeleted( List<String> uids );
 }

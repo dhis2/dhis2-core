@@ -271,13 +271,13 @@ public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<R
     }
 
     @Override
-    public List<String> getUidsByRelationshipKeyIncludeDeleted( List<String> relationshipKeyList )
+    public List<String> getUidsByRelationshipKey( List<String> relationshipKeyList )
     {
         List<Object> c = getSession().createNativeQuery( new StringBuilder().append( "SELECT R.uid " )
             .append( "FROM relationship R " )
             .append( "INNER JOIN relationshiptype RT ON RT.relationshiptypeid = R.relationshiptypeid " )
-            .append( "WHERE R.key IN (:keys) " )
-            .append( "OR (R.inverted_key IN (:keys) AND RT.bidirectional = TRUE)" )
+            .append( "WHERE R.deleted = false AND (R.key IN (:keys) " )
+            .append( "OR (R.inverted_key IN (:keys) AND RT.bidirectional = TRUE))" )
             .toString() )
             .setParameter( "keys", relationshipKeyList )
             .getResultList();

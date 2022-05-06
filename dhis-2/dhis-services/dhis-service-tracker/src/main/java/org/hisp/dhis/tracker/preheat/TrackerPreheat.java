@@ -282,6 +282,8 @@ public class TrackerPreheat
     @Getter
     private final Map<String, Relationship> relationships = new HashMap<>();
 
+    private final List<String> relationshipKeys = new ArrayList<>();
+
     /**
      * Internal map of all preheated notes (events and enrollments)
      */
@@ -636,14 +638,9 @@ public class TrackerPreheat
         return relationships.get( relationshipUid );
     }
 
-    public Relationship getRelationship( org.hisp.dhis.tracker.domain.Relationship relationship )
+    public Relationship getRelationshipUsingKey( org.hisp.dhis.tracker.domain.Relationship relationship )
     {
         RelationshipType relationshipType = get( RelationshipType.class, relationship.getRelationshipType() );
-
-        if ( relationship.getUid() != null && relationships.containsKey( relationship.getUid() ) )
-        {
-            return relationships.get( relationship.getUid() );
-        }
 
         if ( Objects.nonNull( relationshipType ) )
         {

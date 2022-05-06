@@ -138,24 +138,23 @@ public class PreCheckExistenceValidationHook
     {
         TrackerBundle bundle = reporter.getBundle();
         TrackerPreheat preheat = bundle.getPreheat();
-        org.hisp.dhis.relationship.Relationship existingRelationship = preheat.getRelationship( relationship );
-        org.hisp.dhis.relationship.Relationship existingUidRelationship = preheat
+        org.hisp.dhis.relationship.Relationship existingRelationship = preheat
             .getRelationship( relationship.getUid() );
         TrackerImportStrategy importStrategy = bundle.getStrategy( relationship );
 
-        if ( existingUidRelationship != null && existingUidRelationship.isDeleted() )
+        if ( existingRelationship != null && existingRelationship.isDeleted() )
         {
             reporter.addError( relationship, E4017, relationship.getUid() );
             return;
         }
 
-        if ( existingUidRelationship != null && importStrategy.isUpdate() )
+        if ( existingRelationship != null && importStrategy.isUpdate() )
         {
             reporter.addWarning( relationship, E4015, relationship.getRelationship() );
             return;
         }
 
-        if ( existingUidRelationship != null && importStrategy.isCreate() )
+        if ( existingRelationship != null && importStrategy.isCreate() )
         {
             reporter.addError( relationship, E4015, relationship.getUid() );
         }

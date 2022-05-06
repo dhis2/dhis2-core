@@ -58,7 +58,6 @@ import org.hisp.dhis.tracker.TrackerNtiApiTest;
 import org.hisp.dhis.tracker.importer.databuilder.RelationshipDataBuilder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -439,7 +438,6 @@ public class RelationshipsTests
     }
 
     @Test
-    @Disabled( "It will be enabled when soft deletion is implemented for relationships" )
     public void shouldReturnErrorWhenUpdatingSoftDeletedEvent()
         throws Exception
     {
