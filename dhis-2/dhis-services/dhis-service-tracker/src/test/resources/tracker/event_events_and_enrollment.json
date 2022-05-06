@@ -141,7 +141,12 @@
         "idScheme": "UID",
         "identifier": "HllvX50cXC0"
       },
-      "attributeCategoryOptions": "xYerKDKCefk",
+      "attributeCategoryOptions": [
+        {
+          "idScheme": "UID",
+          "identifier": "xYerKDKCefk"
+        }
+      ],
       "completedBy": "admin",
       "completedAt": "2019-01-28T00:00:00.000",
       "dataValues": [
@@ -184,7 +189,12 @@
         "idScheme": "UID",
         "identifier": "HllvX50cXC0"
       },
-      "attributeCategoryOptions": "xYerKDKCefk",
+      "attributeCategoryOptions": [
+        {
+          "idScheme": "UID",
+          "identifier": "xYerKDKCefk"
+        }
+      ],
       "completedBy": "admin",
       "completedAt": "2019-01-28T00:00:00.000",
       "dataValues": [
@@ -227,7 +237,12 @@
         "idScheme": "UID",
         "identifier": "HllvX50cXC0"
       },
-      "attributeCategoryOptions": "xYerKDKCefk",
+      "attributeCategoryOptions": [
+        {
+          "idScheme": "UID",
+          "identifier": "xYerKDKCefk"
+        }
+      ],
       "completedBy": "admin",
       "completedAt": "2019-01-28T00:00:00.000",
       "dataValues": [
@@ -270,7 +285,12 @@
         "idScheme": "UID",
         "identifier": "HllvX50cXC0"
       },
-      "attributeCategoryOptions": "xYerKDKCefk",
+      "attributeCategoryOptions": [
+        {
+          "idScheme": "UID",
+          "identifier": "xYerKDKCefk"
+        }
+      ],
       "completedBy": "admin",
       "completedAt": "2019-01-28T00:00:00.000",
       "dataValues": [
@@ -313,7 +333,12 @@
         "idScheme": "UID",
         "identifier": "HllvX50cXC0"
       },
-      "attributeCategoryOptions": "xYerKDKCefk",
+      "attributeCategoryOptions": [
+        {
+          "idScheme": "UID",
+          "identifier": "xYerKDKCefk"
+        }
+      ],
       "completedBy": "admin",
       "completedAt": "2019-01-28T00:00:00.000",
       "dataValues": [
@@ -356,7 +381,12 @@
         "idScheme": "UID",
         "identifier": "HllvX50cXC0"
       },
-      "attributeCategoryOptions": "xYerKDKCefk",
+      "attributeCategoryOptions": [
+        {
+          "idScheme": "UID",
+          "identifier": "xYerKDKCefk"
+        }
+      ],
       "completedBy": "admin",
       "completedAt": "2019-01-28T00:00:00.000",
       "dataValues": [
@@ -431,7 +461,12 @@
         "idScheme": "UID",
         "identifier": "HllvX50cXC0"
       },
-      "attributeCategoryOptions": "xYerKDKCefk",
+      "attributeCategoryOptions": [
+        {
+          "idScheme": "UID",
+          "identifier": "xYerKDKCefk"
+        }
+      ],
       "completedBy": "admin",
       "completedAt": "2019-01-28T00:00:00.000",
       "dataValues": [
@@ -506,7 +541,12 @@
         "idScheme": "UID",
         "identifier": "HllvX50cXC0"
       },
-      "attributeCategoryOptions": "xYerKDKCefk",
+      "attributeCategoryOptions": [
+        {
+          "idScheme": "UID",
+          "identifier": "xYerKDKCefk"
+        }
+      ],
       "completedBy": "admin",
       "completedAt": "2019-01-28T00:00:00.000",
       "dataValues": [
