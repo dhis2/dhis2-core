@@ -271,7 +271,7 @@ public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<R
     }
 
     @Override
-    public List<String> getUidsByRelationshipKey( List<String> relationshipKeyList )
+    public List<String> getUidsByRelationshipKeys( List<String> relationshipKeyList )
     {
         List<Object> c = getSession().createNativeQuery( new StringBuilder().append( "SELECT R.uid " )
             .append( "FROM relationship R " )
@@ -289,7 +289,7 @@ public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<R
     }
 
     @Override
-    public List<Relationship> getByUidIncludeDeleted( List<String> uids )
+    public List<Relationship> getByUidsIncludeDeleted( List<String> uids )
     {
         CriteriaBuilder criteriaBuilder = getCriteriaBuilder();
 

@@ -73,7 +73,7 @@ public class RelationshipStrategy implements ClassBasedSupplierStrategy
             .filter( CodeGenerator::isValidUid )
             .collect( Collectors.toList() );
 
-        return relationshipStore.getByUidIncludeDeleted( uids );
+        return relationshipStore.getByUidsIncludeDeleted( uids );
     }
 
     private List<org.hisp.dhis.relationship.Relationship> retrieveRelationshipKeys( List<List<String>> splitList )
@@ -82,6 +82,6 @@ public class RelationshipStrategy implements ClassBasedSupplierStrategy
             .filter( identifier -> !CodeGenerator.isValidUid( identifier ) )
             .collect( Collectors.toList() );
 
-        return relationshipStore.getByUid( relationshipStore.getUidsByRelationshipKey( keys ) );
+        return relationshipStore.getByUid( relationshipStore.getUidsByRelationshipKeys( keys ) );
     }
 }

@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.preheat;
 
 import static org.hisp.dhis.tracker.preheat.RelationshipPreheatKeySupport.getRelationshipKey;
+import static org.hisp.dhis.tracker.preheat.RelationshipPreheatKeySupport.hasRelationshipKey;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -281,8 +282,6 @@ public class TrackerPreheat
      */
     @Getter
     private final Map<String, Relationship> relationships = new HashMap<>();
-
-    private final List<String> relationshipKeys = new ArrayList<>();
 
     /**
      * Internal map of all preheated notes (events and enrollments)
@@ -638,13 +637,12 @@ public class TrackerPreheat
         return relationships.get( relationshipUid );
     }
 
-    public Relationship getRelationshipUsingKey( org.hisp.dhis.tracker.domain.Relationship relationship )
+    public Relationship getRelationshipByKey( org.hisp.dhis.tracker.domain.Relationship relationship )
     {
         RelationshipType relationshipType = get( RelationshipType.class, relationship.getRelationshipType() );
 
-        if ( Objects.nonNull( relationshipType ) )
+        if ( hasRelationshipKey( relationship ) )
         {
-
             RelationshipKey relationshipKey = getRelationshipKey( relationship );
 
             RelationshipKey inverseKey = null;

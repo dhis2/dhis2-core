@@ -35,7 +35,6 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4001;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4009;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4011;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4018;
-import static org.hisp.dhis.tracker.validation.hooks.RelationshipValidationUtils.*;
 import static org.hisp.dhis.tracker.validation.hooks.RelationshipValidationUtils.getUidFromRelationshipItem;
 import static org.hisp.dhis.tracker.validation.hooks.RelationshipValidationUtils.relationshipItemValueType;
 
@@ -95,7 +94,7 @@ public class RelationshipsValidationHook
         TrackerBundle bundle )
     {
         org.hisp.dhis.relationship.Relationship relationshipUsingKey = bundle.getPreheat()
-            .getRelationshipUsingKey( relationship );
+            .getRelationshipByKey( relationship );
 
         if ( Objects.nonNull( relationshipUsingKey ) )
         {
@@ -261,6 +260,8 @@ public class RelationshipsValidationHook
         return true;
     }
 
+    // Skip validation when strategy is update as relationships are not
+    // updatable.
     @Override
     public boolean needsToRun( TrackerImportStrategy strategy )
     {
