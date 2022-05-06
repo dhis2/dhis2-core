@@ -172,7 +172,13 @@ public class TrackerPreheat
         Set<MetadataIdentifier> coIds = categoryOptions.stream()
             .map( co -> this.getIdSchemes().toMetadataIdentifier( co ) )
             .collect( Collectors.toSet() );
-        return Pair.of( categoryCombo.getUid(), coIds );
+        return toCategoryOptionComboCacheKey( categoryCombo, coIds );
+    }
+
+    private Pair<String, Set<MetadataIdentifier>> toCategoryOptionComboCacheKey( CategoryCombo categoryCombo,
+        Set<MetadataIdentifier> categoryOptions )
+    {
+        return Pair.of( categoryCombo.getUid(), categoryOptions );
     }
 
     /**
@@ -224,7 +230,7 @@ public class TrackerPreheat
         Set<MetadataIdentifier> categoryOptions )
     {
         CategoryOptionCombo categoryOptionCombo = this.getCategoryOptionCombo(
-            this.cosToCOC.get( Pair.of( categoryCombo.getUid(), categoryOptions ) ) );
+            this.cosToCOC.get( toCategoryOptionComboCacheKey( categoryCombo, categoryOptions ) ) );
         if ( categoryOptionCombo == null )
         {
             return idSchemes.toMetadataIdentifier( (CategoryOptionCombo) null );
