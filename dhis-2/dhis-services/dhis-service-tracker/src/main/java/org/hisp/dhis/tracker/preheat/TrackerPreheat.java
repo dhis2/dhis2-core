@@ -671,9 +671,20 @@ public class TrackerPreheat
     {
         if ( Objects.nonNull( relationship ) )
         {
-            RelationshipKey relationshipKey = getRelationshipKey( relationship );
-
             relationships.put( relationship.getUid(), relationship );
+        }
+    }
+
+    public void putRelationshipsByKey( List<Relationship> relationships )
+    {
+        relationships.forEach( this::putRelationshipByKey );
+    }
+
+    public void putRelationshipByKey( Relationship relationship )
+    {
+        if ( Objects.nonNull( relationship ) )
+        {
+            RelationshipKey relationshipKey = getRelationshipKey( relationship );
 
             if ( relationship.getRelationshipType().isBidirectional() )
             {
@@ -681,7 +692,6 @@ public class TrackerPreheat
             }
 
             relationships.put( relationshipKey.asString(), relationship );
-            relationships.put( relationship.getUid(), relationship );
         }
     }
 

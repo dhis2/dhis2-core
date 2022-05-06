@@ -97,9 +97,15 @@ public class RelationshipsValidationHook
         org.hisp.dhis.relationship.Relationship relationshipUsingKey = bundle.getPreheat()
             .getRelationshipUsingKey( relationship );
 
-        reporter.addErrorIf( () -> Objects.nonNull( relationshipUsingKey ), relationship, E4018,
-            relationshipItemValueType( relationship.getFrom() ), getUidFromRelationshipItem( relationship.getFrom() ),
-            relationshipItemValueType( relationship.getTo() ), getUidFromRelationshipItem( relationship.getTo() ) );
+        if ( Objects.nonNull( relationshipUsingKey ) )
+        {
+            reporter.addError( relationship, E4018,
+                relationship.getRelationship(),
+                relationshipItemValueType( relationship.getFrom() ).getName(),
+                getUidFromRelationshipItem( relationship.getFrom() ).get(),
+                relationshipItemValueType( relationship.getTo() ).getName(),
+                getUidFromRelationshipItem( relationship.getTo() ).get() );
+        }
     }
 
     private void validateRelationshipLinkToOneEntity( ValidationErrorReporter reporter,

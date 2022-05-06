@@ -151,7 +151,7 @@ public class ReferencesCheck implements ValidationCheck
                 ("user".equals( property.getName() ) || "lastUpdatedBy".equals( property.getName() )
                     || "createdBy".equals( property.getName() ));
 
-            if ( !(isUserReference) )
+            if ( !(isUserReference && skipSharing) )
             {
                 preheatErrorReports.add( new PreheatErrorReport( identifier, object.getClass(),
                     ErrorCode.E5002, identifier.getIdentifiersWithName( refObject ),
