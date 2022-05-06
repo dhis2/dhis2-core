@@ -69,9 +69,9 @@ public class DefaultAnalyticalObjectImportHandler implements AnalyticalObjectImp
     }
 
     /**
-     * When saving a {@link Visualization} if its property legendDefinitions has
-     * reference to a {@link LegendSet} then we need to make sure that LegendSet
-     * object existed in database.
+     * Before saving a {@link Visualization} if its property legendDefinitions
+     * has reference to a {@link LegendSet} then we need to make sure that
+     * LegendSet object existed in database.
      *
      * @param schema current analytic object {@link Schema}
      * @param analyticalObject the analytic object to be processed
@@ -95,21 +95,28 @@ public class DefaultAnalyticalObjectImportHandler implements AnalyticalObjectImp
 
         String legendSetId = visualization.getLegendDefinitions().getLegendSet().getUid();
         LegendSet legendSet = bundle.getPreheat().get( bundle.getPreheatIdentifier(), LegendSet.class, legendSetId );
-        legendSet = legendSet != null ? legendSet : objectManager.get( LegendSet.class, legendSetId );
 
-        if ( legendSet == null )
-        {
-            preheatService.connectReferences( visualization.getLegendDefinitions().getLegendSet(), bundle.getPreheat(),
-                bundle.getPreheatIdentifier() );
-            objectManager.save( visualization.getLegendDefinitions().getLegendSet() );
-        }
-        else
+        if ( legendSet != null )
         {
             visualization.getLegendDefinitions().setLegendSet( legendSet );
+            return;
         }
 
-        bundle.getPreheat().put( bundle.getPreheatIdentifier(), visualization.getLegendDefinitions().getLegendSet() );
+        legendSet = objectManager.get( LegendSet.class, legendSetId );
 
+        if ( legendSet != null )
+        {
+            visualization.getLegendDefinitions().setLegendSet( legendSet );
+            bundle.getPreheat().put( bundle.getPreheatIdentifier(), legendSet );
+            return;
+        }
+
+        // Add new LegendSet
+        preheatService.connectReferences( visualization.getLegendDefinitions().getLegendSet(), bundle.getPreheat(),
+            bundle.getPreheatIdentifier() );
+        objectManager.save( visualization.getLegendDefinitions().getLegendSet() );
+
+        bundle.getPreheat().put( bundle.getPreheatIdentifier(), visualization.getLegendDefinitions().getLegendSet() );
     }
 
     private void handleDataDimensionItems( Session session, Schema schema, BaseAnalyticalObject analyticalObject,
