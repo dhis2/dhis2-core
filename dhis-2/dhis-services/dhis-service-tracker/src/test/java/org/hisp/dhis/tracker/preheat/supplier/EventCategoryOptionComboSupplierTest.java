@@ -37,7 +37,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -442,7 +441,6 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
         Event event = Event.builder()
             .program( MetadataIdentifier.ofUid( program.getUid() ) )
             .attributeOptionCombo( identifierParams.toMetadataIdentifier( aoc ) )
-            .attributeCategoryOptions( Collections.emptySet() )
             .build();
         List<Event> events = List.of( event );
         TrackerImportParams params = TrackerImportParams.builder()
@@ -475,7 +473,6 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
         Event event = Event.builder()
             .program( MetadataIdentifier.ofUid( program.getUid() ) )
             .attributeOptionCombo( identifierParams.toMetadataIdentifier( (CategoryOptionCombo) null ) )
-            .attributeCategoryOptions( Collections.emptySet() )
             .build();
         List<Event> events = List.of( event );
         TrackerImportParams params = TrackerImportParams.builder()
