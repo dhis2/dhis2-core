@@ -79,7 +79,10 @@ public class DataValueDtoMapper
             .setAttribute( toDto( value.getAttributeOptionCombo() ) )
             .setValue( value.getValue() )
             .setComment( value.getComment() )
-            .setFollowUp( value.isFollowup() );
+            .setFollowUp( value.isFollowup() )
+            .setStoredBy( value.getStoredBy() )
+            .setCreated( value.getCreated() )
+            .setLastUpdated( value.getLastUpdated() );
     }
 
     /**
