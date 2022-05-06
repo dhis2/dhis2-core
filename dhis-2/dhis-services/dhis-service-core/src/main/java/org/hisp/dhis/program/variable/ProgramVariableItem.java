@@ -57,8 +57,10 @@ public class ProgramVariableItem
         .put( V_ENROLLMENT_STATUS, new vEnrollmentStatus() )
         .put( V_EVENT_STATUS, new vEventStatus() )
         .put( V_EVENT_COUNT, new vEventCount() )
+        .put( V_SCHEDULED_EVENT_COUNT, new vScheduledEventCount() )
         .put( V_EXECUTION_DATE, new vEventDate() ) // Same as event date
         .put( V_EVENT_DATE, new vEventDate() )
+        .put( V_SCHEDULED_DATE, new vScheduledDate() )
         .put( V_INCIDENT_DATE, new vIncidentDate() )
         .put( V_ORG_UNIT_COUNT, new vOrgUnitCount() )
         .put( V_PROGRAM_STAGE_ID, new vProgramStageId() )
