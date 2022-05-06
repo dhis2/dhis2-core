@@ -34,14 +34,12 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -62,7 +60,6 @@ import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.RelationshipPreheatKeySupport;
 import org.springframework.stereotype.Component;
 
-import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
 
 /**
@@ -170,10 +167,8 @@ public class TrackerIdentifierCollector
             addIdentifier( identifiers, ProgramStage.class, event.getProgramStage() );
             addIdentifier( identifiers, OrganisationUnit.class, event.getOrgUnit() );
 
-            Stream
-                .of( MoreObjects.firstNonNull( event.getAttributeCategoryOptions(), "" ).split( TextUtils.SEMICOLON ) )
-                .forEach(
-                    s -> addIdentifier( identifiers, CategoryOption.class, s ) );
+            event.getAttributeCategoryOptions()
+                .forEach( s -> addIdentifier( identifiers, CategoryOption.class, s ) );
 
             addIdentifier( identifiers, CategoryOptionCombo.class, event.getAttributeOptionCombo() );
 

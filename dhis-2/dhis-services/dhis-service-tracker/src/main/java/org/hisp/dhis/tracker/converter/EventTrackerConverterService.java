@@ -126,8 +126,10 @@ public class EventTrackerConverterService
             event.setEnrollment( psi.getProgramInstance().getUid() );
             event.setProgramStage( MetadataIdentifier.ofUid( psi.getProgramStage().getUid() ) );
             event.setAttributeOptionCombo( MetadataIdentifier.ofUid( psi.getAttributeOptionCombo().getUid() ) );
-            event.setAttributeCategoryOptions( psi.getAttributeOptionCombo()
-                .getCategoryOptions().stream().map( CategoryOption::getUid ).collect( Collectors.joining( ";" ) ) );
+            event.setAttributeCategoryOptions( psi.getAttributeOptionCombo().getCategoryOptions().stream()
+                .map( CategoryOption::getUid )
+                .map( MetadataIdentifier::ofUid )
+                .collect( Collectors.toSet() ) );
 
             Set<EventDataValue> dataValues = psi.getEventDataValues();
 

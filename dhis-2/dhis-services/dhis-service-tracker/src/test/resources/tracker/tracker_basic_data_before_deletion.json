@@ -298,12 +298,17 @@
       "deleted": false,
       "createdAt": "2019-01-28T12:10:38.108",
       "updatedAt": "2019-01-28T12:10:38.109",
-      "attributeCategoryOptions": "xYerKDKCefk",
-      "completedBy": "admin",
-      "completedAt": "2019-01-28T00:00:00.000",
       "attributeOptionCombo": {
         "idScheme": "UID"
       },
+      "attributeCategoryOptions": [
+        {
+          "idScheme": "UID",
+          "identifier": "xYerKDKCefk"
+        }
+      ],
+      "completedBy": "admin",
+      "completedAt": "2019-01-28T00:00:00.000",
       "dataValues": [],
       "notes": []
     },
@@ -331,12 +336,17 @@
       "deleted": false,
       "createdAt": "2019-01-28T12:10:38.108",
       "updatedAt": "2019-01-28T12:10:38.109",
-      "attributeCategoryOptions": "xYerKDKCefk",
-      "completedBy": "admin",
-      "completedAt": "2019-01-28T00:00:00.000",
       "attributeOptionCombo": {
         "idScheme": "UID"
       },
+      "attributeCategoryOptions": [
+        {
+          "idScheme": "UID",
+          "identifier": "xYerKDKCefk"
+        }
+      ],
+      "completedBy": "admin",
+      "completedAt": "2019-01-28T00:00:00.000",
       "dataValues": [],
       "notes": []
     }
