@@ -77,7 +77,7 @@ interface MetadataIdentifierMapper
     default Set<MetadataIdentifier> fromAttributeCategoryOptions( String identifiers,
         @Context TrackerIdSchemeParams idSchemeParams )
     {
-        if ( identifiers == null || StringUtils.isBlank( identifiers ) )
+        if ( StringUtils.isBlank( identifiers ) )
         {
             return Collections.emptySet();
         }
