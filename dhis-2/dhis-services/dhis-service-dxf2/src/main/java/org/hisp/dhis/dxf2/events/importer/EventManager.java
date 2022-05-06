@@ -191,7 +191,7 @@ public class EventManager
             executorsByPhase.get( EventProcessorPhase.INSERT_POST ).execute( workContext, savedEvents );
 
             Date today = new Date();
-            savedEvents.forEach( e -> logTrackedEntityDataValueHistory( e, workContext, today ) );
+            savedEvents.forEach( e -> auditTrackedEntityDataValueHistory( e, workContext, today ) );
 
             incrementSummaryTotals( events, importSummaries, CREATE );
 
@@ -264,7 +264,7 @@ public class EventManager
             executorsByPhase.get( EventProcessorPhase.UPDATE_POST ).execute( workContext, savedEvents );
 
             Date today = new Date();
-            savedEvents.forEach( e -> logTrackedEntityDataValueHistory( e, workContext, today ) );
+            savedEvents.forEach( e -> auditTrackedEntityDataValueHistory( e, workContext, today ) );
 
             incrementSummaryTotals( events, importSummaries, UPDATE );
 
@@ -321,7 +321,7 @@ public class EventManager
             executorsByPhase.get( EventProcessorPhase.DELETE_POST ).execute( workContext, deletedEvents );
 
             Date today = new Date();
-            deletedEvents.forEach( e -> logTrackedEntityDataValueHistory( e, workContext, today ) );
+            deletedEvents.forEach( e -> auditTrackedEntityDataValueHistory( e, workContext, today ) );
 
             incrementSummaryTotals( events, importSummaries, DELETE );
 
@@ -330,21 +330,20 @@ public class EventManager
         return importSummaries;
     }
 
-    private void logTrackedEntityDataValueHistory( Event event, WorkContext workContext, Date today )
+    private void auditTrackedEntityDataValueHistory( Event event, WorkContext workContext, Date today )
     {
         String persistedDataValue = null;
 
         ProgramStageInstance psi = workContext.getPersistedProgramStageInstanceMap().get( event.getUid() );
 
-        Map<String, EventDataValue> dataValueDBMap = Optional.ofNullable( psi ).map( p -> {
-            return p.getEventDataValues()
-                .stream()
-                .collect( Collectors.toMap( EventDataValue::getDataElement, Function.identity() ) );
-        } ).orElse( new HashMap<>() );
+        Map<String, EventDataValue> dataValueDBMap = Optional.ofNullable( psi ).map( p -> p.getEventDataValues()
+            .stream()
+            .collect( Collectors.toMap( EventDataValue::getDataElement, Function.identity() ) ) )
+            .orElse( new HashMap<>() );
 
         for ( DataValue dv : event.getDataValues() )
         {
-            AuditType auditType = null;
+            AuditType auditType = AuditType.READ;
 
             DataElement dateElement = workContext.getDataElementMap().get( dv.getDataElement() );
 
@@ -363,10 +362,10 @@ public class EventManager
                 auditType = AuditType.DELETE;
                 persistedDataValue = eventDataValue.getValue();
             }
-            else if ( !dv.getValue().equals( persistedDataValue ) )
+            else if ( !dv.getValue().equals( eventDataValue.getValue() ) )
             {
-                persistedDataValue = dv.getValue();
                 auditType = AuditType.UPDATE;
+                persistedDataValue = dv.getValue();
             }
 
             TrackedEntityDataValueAudit audit = new TrackedEntityDataValueAudit();
@@ -380,7 +379,6 @@ public class EventManager
 
             entityDataValueAuditService.addTrackedEntityDataValueAudit( audit );
         }
-
     }
 
     private void incrementSummaryTotals( final List<Event> events, final ImportSummaries importSummaries,
