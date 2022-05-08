@@ -395,7 +395,6 @@ public abstract class AbstractJdbcTableManager
         {
             log.error( ex.getMessage() );
         }
-
     }
 
     /**
