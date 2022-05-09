@@ -57,8 +57,11 @@ import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
@@ -279,11 +282,24 @@ class RelationshipsValidationHookTest
     @Test
     void verifyValidationFailsOnInvalidToTrackedEntityType()
     {
+        TrackerIdSchemeParams idSchemeParams = TrackerIdSchemeParams.builder()
+            .idScheme( TrackerIdSchemeParam.CODE ) // to test trackedEntityType
+                                                   // idScheme behavior
+            .orgUnitIdScheme( TrackerIdSchemeParam.UID )
+            .programIdScheme( TrackerIdSchemeParam.UID )
+            .programStageIdScheme( TrackerIdSchemeParam.UID )
+            .dataElementIdScheme( TrackerIdSchemeParam.UID )
+            .categoryOptionIdScheme( TrackerIdSchemeParam.UID )
+            .categoryOptionIdScheme( TrackerIdSchemeParam.UID )
+            .build();
+        when( preheat.getIdSchemes() ).thenReturn( idSchemeParams );
+
         RelationshipType relType = createRelTypeConstraint( PROGRAM_INSTANCE, TRACKED_ENTITY_INSTANCE );
         String trackedEntityUid = CodeGenerator.generateUid();
 
         TrackedEntityType constraintTrackedEntityType = new TrackedEntityType();
         constraintTrackedEntityType.setUid( CodeGenerator.generateUid() );
+        constraintTrackedEntityType.setCode( "GREEN" );
         relType.getToConstraint().setTrackedEntityType( constraintTrackedEntityType );
 
         Relationship relationship = Relationship.builder()
@@ -298,6 +314,7 @@ class RelationshipsValidationHookTest
 
         TrackedEntityType teiTrackedEntityType = new TrackedEntityType();
         teiTrackedEntityType.setUid( CodeGenerator.generateUid() );
+        teiTrackedEntityType.setCode( "RED" );
 
         TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
         trackedEntityInstance.setUid( trackedEntityUid );
@@ -306,12 +323,12 @@ class RelationshipsValidationHookTest
         when( bundle.getTrackedEntityInstance( trackedEntityUid ) ).thenReturn( trackedEntityInstance );
 
         reporter = new ValidationErrorReporter( bundle );
+
         validationHook.validateRelationship( reporter, relationship );
 
         hasTrackerError( reporter, E4014, RELATIONSHIP, relationship.getUid() );
         assertThat( reporter.getReportList().get( 0 ).getErrorMessage(),
-            is( "Relationship Type `to` constraint requires a Tracked Entity having type `"
-                + constraintTrackedEntityType.getUid() + "` but `" + teiTrackedEntityType.getUid() + "` was found." ) );
+            is( "Relationship Type `to` constraint requires a Tracked Entity having type `GREEN` but `RED` was found." ) );
     }
 
     @Test
@@ -338,7 +355,8 @@ class RelationshipsValidationHookTest
 
         TrackedEntity trackedEntity = new TrackedEntity();
         trackedEntity.setTrackedEntity( trackedEntityUid );
-        trackedEntity.setTrackedEntityType( CodeGenerator.generateUid() );
+        String trackedEntityType = CodeGenerator.generateUid();
+        trackedEntity.setTrackedEntityType( MetadataIdentifier.ofUid( trackedEntityType ) );
         trackedEntities.add( trackedEntity );
 
         when( bundle.getTrackedEntities() ).thenReturn( trackedEntities );
@@ -349,8 +367,7 @@ class RelationshipsValidationHookTest
         hasTrackerError( reporter, E4014, RELATIONSHIP, relationship.getUid() );
         assertThat( reporter.getReportList().get( 0 ).getErrorMessage(),
             is( "Relationship Type `from` constraint requires a Tracked Entity having type `"
-                + constraintTrackedEntityType.getUid() + "` but `" + trackedEntity.getTrackedEntityType()
-                + "` was found." ) );
+                + constraintTrackedEntityType.getUid() + "` but `" + trackedEntityType + "` was found." ) );
     }
 
     @Test

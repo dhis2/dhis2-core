@@ -33,7 +33,10 @@
   "trackedEntities": [
     {
       "trackedEntity": "IOR1AXXl24H",
-      "trackedEntityType": "ja8NY4PW7Xm",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "ja8NY4PW7Xm"
+      },
       "createdAt": "2020-02-20T12:09:21.844",
       "updatedAt": "2020-02-20T12:09:21.844",
       "orgUnit": {

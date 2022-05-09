@@ -229,7 +229,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
 
         TrackedEntity trackedEntity = TrackedEntity.builder()
             .trackedEntity( TEI_ID )
-            .trackedEntityType( ANOTHER_TEI_TYPE_ID )
+            .trackedEntityType( MetadataIdentifier.ofUid( ANOTHER_TEI_TYPE_ID ) )
             .build();
         bundle.setTrackedEntities( Collections.singletonList( trackedEntity ) );
 

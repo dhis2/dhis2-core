@@ -48,6 +48,7 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
@@ -167,10 +168,12 @@ public class RelationshipsValidationHook
                     item.getTrackedEntity() )
                         .ifPresent( type -> {
 
-                            if ( !type.equals( constraint.getTrackedEntityType().getUid() ) )
+                            if ( !type.isEqualTo( constraint.getTrackedEntityType() ) )
                             {
                                 reporter.addError( relationship,
-                                    TrackerErrorCode.E4014, relSide, constraint.getTrackedEntityType().getUid(), type );
+                                    TrackerErrorCode.E4014, relSide,
+                                    type.identifierOf( constraint.getTrackedEntityType() ),
+                                    type.getIdentifierOrAttributeValue() );
                             }
 
                         } );
@@ -216,20 +219,23 @@ public class RelationshipsValidationHook
             trackerType.getName(), s ) );
     }
 
-    private Optional<String> getRelationshipTypeUidFromTrackedEntity( TrackerBundle bundle, String uid )
+    private Optional<MetadataIdentifier> getRelationshipTypeUidFromTrackedEntity( TrackerBundle bundle, String uid )
     {
         return getTrackedEntityTypeFromTrackedEntity( bundle, uid ).map( Optional::of )
             .orElseGet( () -> getTrackedEntityTypeFromTrackedEntityRef( bundle, uid ) );
     }
 
-    private Optional<String> getTrackedEntityTypeFromTrackedEntity( TrackerBundle bundle, String uid )
+    private Optional<MetadataIdentifier> getTrackedEntityTypeFromTrackedEntity( TrackerBundle bundle, String uid )
     {
         final TrackedEntityInstance trackedEntity = bundle.getTrackedEntityInstance( uid );
 
-        return trackedEntity != null ? Optional.of( trackedEntity.getTrackedEntityType().getUid() ) : Optional.empty();
+        return trackedEntity != null
+            ? Optional
+                .of( bundle.getPreheat().getIdSchemes().toMetadataIdentifier( trackedEntity.getTrackedEntityType() ) )
+            : Optional.empty();
     }
 
-    private Optional<String> getTrackedEntityTypeFromTrackedEntityRef( TrackerBundle bundle, String uid )
+    private Optional<MetadataIdentifier> getTrackedEntityTypeFromTrackedEntityRef( TrackerBundle bundle, String uid )
     {
         final Optional<TrackedEntity> payloadTei = bundle.getTrackedEntities().stream()
             .filter( t -> t.getTrackedEntity().equals( uid ) ).findFirst();
