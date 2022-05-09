@@ -63,7 +63,7 @@ public class RelationshipStrategy implements ClassBasedSupplierStrategy
         preheat.putRelationships(
             DetachUtils.detach( this.getClass().getAnnotation( StrategyFor.class ).mapper(), relationships ) );
 
-        preheat.putDuplicatedRelationships(
+        preheat.putDuplicateRelationships(
             DetachUtils.detach( this.getClass().getAnnotation( StrategyFor.class ).mapper(), relationshipKeys ) );
     }
 

@@ -93,17 +93,14 @@ public class RelationshipsValidationHook
     private void validateDuplication( ValidationErrorReporter reporter, Relationship relationship,
         TrackerBundle bundle )
     {
-        org.hisp.dhis.relationship.Relationship duplicateRelationship = bundle.getPreheat()
-            .getDuplicatedRelationship( relationship );
-
-        if ( Objects.nonNull( duplicateRelationship ) )
+        if ( bundle.getPreheat().isDuplicate( relationship ) )
         {
             reporter.addError( relationship, E4018,
                 relationship.getRelationship(),
                 relationshipItemValueType( relationship.getFrom() ).getName(),
-                getUidFromRelationshipItem( relationship.getFrom() ).get(),
+                getUidFromRelationshipItem( relationship.getFrom() ).orElse( null ),
                 relationshipItemValueType( relationship.getTo() ).getName(),
-                getUidFromRelationshipItem( relationship.getTo() ).get() );
+                getUidFromRelationshipItem( relationship.getTo() ).orElse( null ) );
         }
     }
 

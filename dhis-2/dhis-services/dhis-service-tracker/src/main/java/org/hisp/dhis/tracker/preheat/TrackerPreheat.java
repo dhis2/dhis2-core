@@ -271,9 +271,10 @@ public class TrackerPreheat
      * Internal map of all relationships in the DB that are duplications of
      * relationships present in the payload. Two relationship are duplicated if
      * they have the same relationshipType, and the same relationshipItems, from
-     * and to.
+     * and to. They key of the map is a string concatenating the
+     * relationshipType uid, the uid of the `from` entity and the uid of the
+     * `to` entity.
      */
-    @Getter
     private final Map<String, Relationship> duplicatedRelationships = new HashMap<>();
 
     /**
@@ -640,7 +641,7 @@ public class TrackerPreheat
         return relationships.get( relationship.getUid() );
     }
 
-    public Relationship getDuplicatedRelationship( org.hisp.dhis.tracker.domain.Relationship relationship )
+    public boolean isDuplicate( org.hisp.dhis.tracker.domain.Relationship relationship )
     {
         RelationshipType relationshipType = get( RelationshipType.class, relationship.getRelationshipType() );
 
@@ -656,11 +657,9 @@ public class TrackerPreheat
             return Stream.of( relationshipKey, inverseKey )
                 .filter( Objects::nonNull )
                 .map( key -> duplicatedRelationships.get( key.asString() ) )
-                .filter( Objects::nonNull )
-                .findFirst()
-                .orElse( null );
+                .anyMatch( Objects::nonNull );
         }
-        return null;
+        return false;
     }
 
     public void putRelationships( List<Relationship> relationships )
@@ -676,7 +675,7 @@ public class TrackerPreheat
         }
     }
 
-    public void putDuplicatedRelationships( List<Relationship> relationships )
+    public void putDuplicateRelationships( List<Relationship> relationships )
     {
         relationships.forEach( this::putDuplicatedRelationship );
     }
