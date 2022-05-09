@@ -156,7 +156,7 @@ public class JdbcMaintenanceStore
 
         int result = jdbcTemplate.batchUpdate( sqlStmts )[sqlStmts.length - 1];
 
-        if ( result > 0 && deletedRelationships.size() > 0 )
+        if ( result > 0 && !deletedRelationships.isEmpty() )
         {
             auditHardDeletedEntity( deletedRelationships, Relationship.class );
 
@@ -181,8 +181,6 @@ public class JdbcMaintenanceStore
 
         String pmSelect = "(select id from programmessage where programinstanceid in "
             + piSelect + " )";
-
-        String relSelect = "(select relationshipid from relationshipitem where programinstanceid in " + piSelect + " )";
 
         /*
          * Delete event values, event value audits, event comments, events,
