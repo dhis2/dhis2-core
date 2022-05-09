@@ -139,7 +139,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void replaceTranslationsOk()
+    void replaceTranslationsOk()
     {
         String id = assertStatus( HttpStatus.CREATED,
             POST( "/dataSets/", "{'name':'My data set', 'periodType':'Monthly'}" ) );
@@ -163,7 +163,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void replaceTranslationsWithDuplicateLocales()
+    void replaceTranslationsWithDuplicateLocales()
     {
         String id = assertStatus( HttpStatus.CREATED,
             POST( "/dataSets/", "{'name':'My data set', 'periodType':'Monthly'}" ) );
