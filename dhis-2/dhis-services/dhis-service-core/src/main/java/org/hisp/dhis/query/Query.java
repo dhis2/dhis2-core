@@ -47,47 +47,31 @@ import com.google.common.base.MoreObjects;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Getter
+@Setter
 @Accessors( chain = true )
 public class Query extends Criteria
 {
-    @Getter
-    @Setter
     private User user;
 
-    @Getter
-    @Setter
     private String locale;
 
-    @Getter
     private final List<Order> orders = new ArrayList<>();
 
-    @Getter
-    @Setter
     private boolean skipPaging;
 
-    @Setter
     private Integer firstResult = 0;
 
-    @Setter
     private Integer maxResults = Integer.MAX_VALUE;
 
-    @Getter
     private final Junction.Type rootJunctionType;
 
-    @Getter
-    @Setter
     private boolean plannedQuery;
 
-    @Getter
-    @Setter
     private Defaults defaults = Defaults.EXCLUDE;
 
-    @Getter
-    @Setter
     private boolean cacheable = true;
 
-    @Getter
-    @Setter
     private List<? extends IdentifiableObject> objects;
 
     public static Query from( Schema schema )
