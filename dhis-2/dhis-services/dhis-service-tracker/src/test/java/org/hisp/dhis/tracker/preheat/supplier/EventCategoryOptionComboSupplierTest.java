@@ -95,7 +95,7 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
         Set<CategoryOption> options = aoc.getCategoryOptions();
 
         Event event = Event.builder()
-            .program( MetadataIdentifier.ofUid( program.getUid() ) )
+            .program( MetadataIdentifier.ofUid( program ) )
             .attributeOptionCombo( identifierParams.toMetadataIdentifier( (CategoryOptionCombo) null ) )
             .attributeCategoryOptions( categoryOptionIds( identifierParams, options ) )
             .build();
@@ -180,7 +180,7 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
         Set<CategoryOption> options = aoc.getCategoryOptions();
 
         Event event = Event.builder()
-            .program( MetadataIdentifier.ofUid( program.getUid() ) )
+            .program( MetadataIdentifier.ofUid( program ) )
             .attributeOptionCombo( identifierParams.toMetadataIdentifier( (CategoryOptionCombo) null ) )
             .attributeCategoryOptions( categoryOptionIds( identifierParams, options ) )
             .build();
@@ -223,7 +223,7 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
         Set<CategoryOption> options = aoc.getCategoryOptions();
 
         Event event = Event.builder()
-            .program( MetadataIdentifier.ofUid( program.getUid() ) )
+            .program( MetadataIdentifier.ofUid( program ) )
             .attributeOptionCombo( identifierParams.toMetadataIdentifier( (CategoryOptionCombo) null ) )
             .attributeCategoryOptions( categoryOptionIds( identifierParams, options ) )
             .build();
@@ -265,7 +265,7 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
         Set<CategoryOption> options = aoc.getCategoryOptions();
 
         Event event = Event.builder()
-            .program( MetadataIdentifier.ofUid( program.getUid() ) )
+            .program( MetadataIdentifier.ofUid( program ) )
             .attributeOptionCombo( identifierParams.toMetadataIdentifier( (CategoryOptionCombo) null ) )
             .attributeCategoryOptions( categoryOptionIds( identifierParams, options ) )
             .build();
@@ -301,7 +301,7 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
         Event event = Event.builder()
             .attributeCategoryOptions( categoryOptionIds( identifierParams, options ) )
             .attributeOptionCombo( identifierParams.toMetadataIdentifier( aoc ) )
-            .programStage( MetadataIdentifier.ofUid( null ) )
+            .programStage( MetadataIdentifier.EMPTY_UID )
             .build();
         List<Event> events = List.of( event );
         TrackerImportParams params = TrackerImportParams.builder()
@@ -333,7 +333,7 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
         Event event = Event.builder()
             .attributeOptionCombo( identifierParams.toMetadataIdentifier( (CategoryOptionCombo) null ) )
             .attributeCategoryOptions( categoryOptionIds( identifierParams, options ) )
-            .programStage( MetadataIdentifier.ofUid( null ) )
+            .programStage( MetadataIdentifier.EMPTY_UID )
             .build();
         List<Event> events = List.of( event );
         TrackerImportParams params = TrackerImportParams.builder()
@@ -439,7 +439,7 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
         CategoryOptionCombo aoc = firstCategoryOptionCombo( categoryCombo );
 
         Event event = Event.builder()
-            .program( MetadataIdentifier.ofUid( program.getUid() ) )
+            .program( MetadataIdentifier.ofUid( program ) )
             .attributeOptionCombo( identifierParams.toMetadataIdentifier( aoc ) )
             .build();
         List<Event> events = List.of( event );
@@ -471,7 +471,7 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
         program.setCategoryCombo( categoryCombo );
 
         Event event = Event.builder()
-            .program( MetadataIdentifier.ofUid( program.getUid() ) )
+            .program( MetadataIdentifier.ofUid( program ) )
             .attributeOptionCombo( identifierParams.toMetadataIdentifier( (CategoryOptionCombo) null ) )
             .build();
         List<Event> events = List.of( event );

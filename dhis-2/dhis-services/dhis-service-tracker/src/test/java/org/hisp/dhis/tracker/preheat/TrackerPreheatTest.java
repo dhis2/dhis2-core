@@ -130,7 +130,7 @@ class TrackerPreheatTest extends DhisConvenienceTest
 
         assertTrue( preheat.containsCategoryOptionCombo( categoryCombo, options ) );
         Set<MetadataIdentifier> optionIds = categoryOptionIds( identifiers, options );
-        assertEquals( MetadataIdentifier.ofUid( null ),
+        assertEquals( MetadataIdentifier.EMPTY_UID,
             preheat.getCategoryOptionComboIdentifier( categoryCombo, optionIds ) );
         assertNull( preheat.getCategoryOptionCombo( categoryCombo, options ) );
         assertNull( preheat.getCategoryOptionCombo( aoc.getUid() ),

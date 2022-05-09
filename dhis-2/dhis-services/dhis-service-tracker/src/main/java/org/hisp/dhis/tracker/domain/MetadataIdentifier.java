@@ -54,6 +54,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class MetadataIdentifier
 {
 
+    public static MetadataIdentifier EMPTY_UID = MetadataIdentifier.ofUid( (String) null );
+
     /**
      * Represents the idScheme the {@link #identifier} is in.
      */
@@ -100,7 +102,25 @@ public class MetadataIdentifier
     }
 
     /**
-     * Creates an identifier for metadata using idScheme UID and the given uid.
+     * Creates an identifier for the given metadata using idScheme UID and its
+     * UID.
+     *
+     * @param metadata identifiable object of which the identifier will be
+     *        returned
+     * @return metadata identifier representing a UID
+     */
+    public static MetadataIdentifier ofUid( IdentifiableObject metadata )
+    {
+        if ( metadata == null )
+        {
+            return MetadataIdentifier.EMPTY_UID;
+        }
+
+        return MetadataIdentifier.ofUid( metadata.getUid() );
+    }
+
+    /**
+     * Creates an identifier for metadata using idScheme UID and the given UID.
      *
      * @param uid metadata uid
      * @return metadata identifier representing a UID
