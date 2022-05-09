@@ -27,9 +27,13 @@
  */
 package org.hisp.dhis.query;
 
-import org.hisp.dhis.schema.Klass;
+import static java.util.Arrays.stream;
 
-import com.google.common.collect.Iterators;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+import org.hisp.dhis.schema.Klass;
 
 /**
  * Simple class for checking if an object is one of several allowed classes,
@@ -37,19 +41,11 @@ import com.google.common.collect.Iterators;
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class Typed
+@Getter
+@AllArgsConstructor( access = AccessLevel.PRIVATE )
+public final class Typed
 {
     private final Class<?>[] klasses;
-
-    public Typed( Class<?>[] klasses )
-    {
-        this.klasses = klasses;
-    }
-
-    public Class<?>[] getKlasses()
-    {
-        return klasses;
-    }
 
     public boolean isValid( Klass klass )
     {
@@ -62,16 +58,7 @@ public class Typed
         {
             return true;
         }
-
-        for ( Class<?> k : klasses )
-        {
-            if ( k != null && k.isAssignableFrom( klass ) )
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return stream( klasses ).anyMatch( k -> k != null && k.isAssignableFrom( klass ) );
     }
 
     public static Typed from( Class<?>... klasses )
@@ -79,8 +66,4 @@ public class Typed
         return new Typed( klasses );
     }
 
-    public static Typed from( Iterable<? extends Class<?>> iterable )
-    {
-        return new Typed( Iterators.toArray( iterable.iterator(), Class.class ) );
-    }
 }

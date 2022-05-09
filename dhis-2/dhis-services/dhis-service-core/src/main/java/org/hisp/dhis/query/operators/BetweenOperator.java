@@ -80,7 +80,7 @@ public class BetweenOperator<T extends Comparable<? super T>> extends Operator<T
 
             return s1 >= min && s1 <= max;
         }
-        else if ( type.isFloat() )
+        if ( type.isFloat() )
         {
             Float s1 = getValue( Float.class, value );
             Integer min = getValue( Integer.class, 0 );
@@ -88,7 +88,7 @@ public class BetweenOperator<T extends Comparable<? super T>> extends Operator<T
 
             return s1 >= min && s1 <= max;
         }
-        else if ( type.isDate() )
+        if ( type.isDate() )
         {
             Date min = getValue( Date.class, 0 );
             Date max = getValue( Date.class, 1 );
@@ -96,7 +96,7 @@ public class BetweenOperator<T extends Comparable<? super T>> extends Operator<T
 
             return (s2.equals( min ) || s2.after( min )) && (s2.before( max ) || s2.equals( max ));
         }
-        else if ( type.isCollection() )
+        if ( type.isCollection() )
         {
             Collection<?> collection = (Collection<?>) value;
             Integer min = getValue( Integer.class, 0 );
