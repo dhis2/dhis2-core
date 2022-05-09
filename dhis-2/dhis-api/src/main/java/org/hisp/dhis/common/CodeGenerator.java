@@ -242,6 +242,11 @@ public class CodeGenerator
         return Hashing.sha512().hashBytes( input ).toString();
     }
 
+    public static String hashSHA512( @Nonnull String input )
+    {
+        return hashSHA512( input.getBytes( StandardCharsets.UTF_8 ) );
+    }
+
     public static String hashSHA512( @Nonnull char[] input )
     {
         byte[] bytes = extractBytesFromChar( input );
@@ -268,5 +273,19 @@ public class CodeGenerator
     public static boolean isValidUid( String code )
     {
         return code != null && CODE_PATTERN.matcher( code ).matches();
+    }
+
+    public static boolean isValidSHA256HexFormat( String s )
+    {
+        // Check if the string is a valid hexadecimal number
+        String hexPattern = "^[0-9a-fA-F]+$";
+        Pattern pattern = Pattern.compile( hexPattern );
+        if ( !pattern.matcher( s ).matches() )
+        {
+            return false;
+        }
+
+        // SHA-256 hexadecimal strings are exactly 64 characters long
+        return s.length() == 64;
     }
 }

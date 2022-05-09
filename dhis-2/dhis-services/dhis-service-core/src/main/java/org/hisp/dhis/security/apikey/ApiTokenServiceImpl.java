@@ -37,7 +37,6 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
@@ -79,7 +78,7 @@ public class ApiTokenServiceImpl implements ApiTokenService
 
     @Override
     @CheckForNull
-    public ApiToken getWithUid( @Nonnull String uid )
+    public ApiToken getByUid( @Nonnull String uid )
     {
         return apiTokenStore.getByUid( uid );
     }
@@ -87,7 +86,7 @@ public class ApiTokenServiceImpl implements ApiTokenService
     @Override
     @Transactional( readOnly = true )
     @CheckForNull
-    public ApiToken getWithKey( @Nonnull String key, @Nonnull User user )
+    public ApiToken getByKey( @Nonnull String key, @Nonnull User user )
     {
         return apiTokenStore.getByKey( key, user );
     }
@@ -95,7 +94,7 @@ public class ApiTokenServiceImpl implements ApiTokenService
     @Override
     @Transactional( readOnly = true )
     @CheckForNull
-    public ApiToken getWithKey( @Nonnull String key )
+    public ApiToken getByKey( @Nonnull String key )
     {
         return apiTokenStore.getByKey( key );
     }
@@ -135,7 +134,7 @@ public class ApiTokenServiceImpl implements ApiTokenService
 
     @Override
     @Nonnull
-    public Pair<char[], ApiToken> generatePatToken( @CheckForNull List<ApiTokenAttribute> tokenAttributes, long expire )
+    public TokenWrapper generatePatToken( @CheckForNull List<ApiTokenAttribute> tokenAttributes, long expire )
     {
         ApiTokenType type = ApiTokenType.PERSONAL_ACCESS_TOKEN_V1;
 
@@ -148,7 +147,7 @@ public class ApiTokenServiceImpl implements ApiTokenService
             .key( ApiTokenType.hashToken( plaintextToken ) )
             .build();
 
-        return Pair.of( plaintextToken, token );
+        return new TokenWrapper( plaintextToken, token );
     }
 
     protected static char[] generatePlainTextToken( ApiTokenType type )

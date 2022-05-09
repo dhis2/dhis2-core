@@ -52,7 +52,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 @Setter
 @Builder( toBuilder = true )
 @JacksonXmlRootElement( localName = "apiToken", namespace = DxfNamespaces.DXF_2_0 )
-public final class ApiToken extends BaseIdentifiableObject implements MetadataObject
+public class ApiToken extends BaseIdentifiableObject implements MetadataObject
 {
     public ApiToken()
     {

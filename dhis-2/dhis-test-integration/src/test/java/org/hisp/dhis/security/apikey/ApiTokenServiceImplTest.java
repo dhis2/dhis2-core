@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.security.apikey;
 
+import static org.hisp.dhis.common.CodeGenerator.isValidSHA256HexFormat;
 import static org.hisp.dhis.security.apikey.ApiTokenType.hashToken;
 import static org.hisp.dhis.security.apikey.ApiTokenType.validateChecksum;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -36,9 +37,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
@@ -84,9 +83,9 @@ class ApiTokenServiceImplTest extends SingleSetupIntegrationTestBase
     public ApiToken createAndSaveToken()
     {
         long thirtyDaysInTheFuture = System.currentTimeMillis() + TimeUnit.DAYS.toMillis( 30 );
-        Pair<char[], ApiToken> apiTokenPair = apiTokenService.generatePatToken( null, thirtyDaysInTheFuture );
-        apiTokenStore.save( apiTokenPair.getRight() );
-        return apiTokenPair.getRight();
+        TokenWrapper apiTokenPair = apiTokenService.generatePatToken( null, thirtyDaysInTheFuture );
+        apiTokenStore.save( apiTokenPair.getApiToken() );
+        return apiTokenPair.getApiToken();
     }
 
     @Test
@@ -115,7 +114,7 @@ class ApiTokenServiceImplTest extends SingleSetupIntegrationTestBase
     {
         preCreateInjectAdminUser();
         final ApiToken apiToken0 = createAndSaveToken();
-        final ApiToken apiToken1 = apiTokenService.getWithKey( apiToken0.getKey() );
+        final ApiToken apiToken1 = apiTokenService.getByKey( apiToken0.getKey() );
         assertEquals( apiToken1.getKey(), apiToken0.getKey() );
     }
 
@@ -142,7 +141,7 @@ class ApiTokenServiceImplTest extends SingleSetupIntegrationTestBase
         final ApiToken apiToken0 = createAndSaveToken();
         CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
         User user = userService.getUserByUsername( currentUserDetails.getUsername() );
-        final ApiToken apiToken1 = apiTokenService.getWithKey( apiToken0.getKey(), user );
+        final ApiToken apiToken1 = apiTokenService.getByKey( apiToken0.getKey(), user );
         assertEquals( apiToken1.getKey(), apiToken0.getKey() );
     }
 
@@ -172,11 +171,11 @@ class ApiTokenServiceImplTest extends SingleSetupIntegrationTestBase
     {
         preCreateInjectAdminUser();
         final ApiToken apiToken0 = createAndSaveToken();
-        final ApiToken apiToken1 = apiTokenService.getWithKey( apiToken0.getKey() );
+        final ApiToken apiToken1 = apiTokenService.getByKey( apiToken0.getKey() );
         assertEquals( apiToken1.getKey(), apiToken0.getKey() );
         apiToken1.addIpToAllowedList( "1.1.1.1" );
         apiTokenService.update( apiToken1 );
-        final ApiToken apiToken2 = apiTokenService.getWithKey( apiToken0.getKey() );
+        final ApiToken apiToken2 = apiTokenService.getByKey( apiToken0.getKey() );
         assertTrue( apiToken2.getIpAllowedList().getAllowedIps().contains( "1.1.1.1" ) );
     }
 
@@ -185,7 +184,7 @@ class ApiTokenServiceImplTest extends SingleSetupIntegrationTestBase
     {
         preCreateInjectAdminUser();
         final ApiToken apiToken0 = createAndSaveToken();
-        final ApiToken apiToken1 = apiTokenService.getWithKey( apiToken0.getKey() );
+        final ApiToken apiToken1 = apiTokenService.getByKey( apiToken0.getKey() );
         assertEquals( apiToken1.getKey(), apiToken0.getKey() );
         apiToken1.addIpToAllowedList( "1.1.1.1" );
         switchToOtherUser();
@@ -197,10 +196,10 @@ class ApiTokenServiceImplTest extends SingleSetupIntegrationTestBase
     {
         preCreateInjectAdminUser();
         final ApiToken apiToken0 = createAndSaveToken();
-        final ApiToken apiToken1 = apiTokenService.getWithKey( apiToken0.getKey() );
+        final ApiToken apiToken1 = apiTokenService.getByKey( apiToken0.getKey() );
         assertEquals( apiToken1.getKey(), apiToken0.getKey() );
         apiTokenService.delete( apiToken1 );
-        assertNull( apiTokenService.getWithUid( apiToken0.getUid() ) );
+        assertNull( apiTokenService.getByUid( apiToken0.getUid() ) );
     }
 
     @Test
@@ -208,7 +207,7 @@ class ApiTokenServiceImplTest extends SingleSetupIntegrationTestBase
     {
         preCreateInjectAdminUser();
         final ApiToken apiToken0 = createAndSaveToken();
-        final ApiToken apiToken1 = apiTokenService.getWithKey( apiToken0.getKey() );
+        final ApiToken apiToken1 = apiTokenService.getByKey( apiToken0.getKey() );
         assertEquals( apiToken1.getKey(), apiToken0.getKey() );
         switchToOtherUser();
         assertThrows( DeleteAccessDeniedException.class, () -> apiTokenService.delete( apiToken1 ) );
@@ -232,20 +231,6 @@ class ApiTokenServiceImplTest extends SingleSetupIntegrationTestBase
     {
         char[] token = ApiTokenServiceImpl.generatePlainTextToken( ApiTokenType.PERSONAL_ACCESS_TOKEN_V1 );
         String hashedToken = hashToken( token );
-        assertTrue( isValidSHA256( hashedToken ) );
-    }
-
-    private static boolean isValidSHA256( String s )
-    {
-        // Check if the string is a valid hexadecimal number
-        String hexPattern = "^[0-9a-fA-F]+$";
-        Pattern pattern = Pattern.compile( hexPattern );
-        if ( !pattern.matcher( s ).matches() )
-        {
-            return false;
-        }
-
-        // SHA-256 hexadecimal strings are exactly 64 characters long
-        return s.length() == 64;
+        assertTrue( isValidSHA256HexFormat( hashedToken ) );
     }
 }

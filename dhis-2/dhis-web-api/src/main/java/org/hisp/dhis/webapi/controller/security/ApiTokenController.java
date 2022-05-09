@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.security;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.objectReport;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
@@ -38,7 +39,6 @@ import javax.servlet.http.HttpServletRequest;
 
 import lombok.RequiredArgsConstructor;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.validator.routines.InetAddressValidator;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -54,6 +54,7 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.schema.descriptors.ApiTokenSchemaDescriptor;
 import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.security.apikey.ApiTokenService;
+import org.hisp.dhis.security.apikey.TokenWrapper;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -108,14 +109,14 @@ public class ApiTokenController extends AbstractCrudController<ApiToken>
             throw new ConflictException( "Failed to validate the token's attributes, message: " + e.getMessage() );
         }
 
-        Pair<char[], ApiToken> apiTokenPair = apiTokenService.generatePatToken( inputToken.getAttributes(),
+        TokenWrapper apiTokenPair = apiTokenService.generatePatToken( inputToken.getAttributes(),
             inputToken.getExpire() );
 
         MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() )
             .setImportReportMode( ImportReportMode.FULL )
             .setUser( currentUser )
             .setImportStrategy( ImportStrategy.CREATE )
-            .addObject( apiTokenPair.getRight() );
+            .addObject( apiTokenPair.getApiToken() );
 
         ObjectReport report = importService.importMetadata( params ).getFirstObjectReport();
         WebMessage webMessage = objectReport( report );
@@ -125,7 +126,8 @@ public class ApiTokenController extends AbstractCrudController<ApiToken>
             String uid = report.getUid();
             webMessage.setHttpStatus( HttpStatus.CREATED );
             webMessage.setLocation( getSchema().getRelativeApiEndpoint() + "/" + uid );
-            webMessage.setResponse( new ApiTokenCreationResponse( report, apiTokenPair.getLeft() ) );
+            webMessage.setResponse( new ApiTokenCreationResponse( report, apiTokenPair.getPlaintextToken() ) );
+            Arrays.fill( apiTokenPair.getPlaintextToken(), '0' );
         }
         else
         {

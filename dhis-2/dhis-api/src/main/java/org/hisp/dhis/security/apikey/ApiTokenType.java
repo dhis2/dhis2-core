@@ -79,18 +79,14 @@ public enum ApiTokenType
 
     private static String getTokenTypePrefix( char[] token )
     {
-        StringBuilder prefixBuilder = new StringBuilder();
-
-        for ( char c : token )
+        for ( int i = 0; i < token.length; i++ )
         {
-            if ( c == '_' )
+            if ( token[i] == '_' )
             {
-                break;
+                return new String( token, 0, i );
             }
-            prefixBuilder.append( c );
         }
-
-        return prefixBuilder.toString();
+        throw new IllegalArgumentException( "No ApiTokenType prefix found in token" );
     }
 
     /**
