@@ -144,7 +144,7 @@ class DataValueControllerTest extends AbstractDataValueControllerTest
 
         HttpResponse response = POST( "/dataValues", body );
         assertStatus( HttpStatus.CREATED, response );
-        switchToUserWithOrgUnitDataView( "", orgUnitId );
+        switchToUserWithOrgUnitDataView( "A", orgUnitId );
         String url = "/dataValueSets?orgUnit=" + orgUnitId + "&startDate=2022-01-01&endDate=2022-01-30&dataSet=" + dsId
             +
             "&format=json&compression=zip&attachment=dataValues.json.zip";
