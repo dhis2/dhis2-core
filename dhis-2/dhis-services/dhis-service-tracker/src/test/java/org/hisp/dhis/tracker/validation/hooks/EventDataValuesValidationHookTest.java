@@ -215,7 +215,7 @@ class EventDataValuesValidationHookTest
         mandatoryStageElement2.setDataElement( mandatoryElement2 );
         mandatoryStageElement2.setCompulsory( true );
         programStage.setProgramStageDataElements( Set.of( mandatoryStageElement1, mandatoryStageElement2 ) );
-        when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStage.getUid() ) ) )
+        when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStage ) ) )
             .thenReturn( programStage );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
@@ -252,7 +252,7 @@ class EventDataValuesValidationHookTest
         mandatoryStageElement2.setDataElement( mandatoryElement2 );
         mandatoryStageElement2.setCompulsory( true );
         programStage.setProgramStageDataElements( Set.of( mandatoryStageElement1, mandatoryStageElement2 ) );
-        when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStage.getUid() ) ) )
+        when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStage ) ) )
             .thenReturn( programStage );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
@@ -320,7 +320,7 @@ class EventDataValuesValidationHookTest
         mandatoryStageElement1.setDataElement( mandatoryElement1 );
         mandatoryStageElement1.setCompulsory( true );
         programStage.setProgramStageDataElements( Set.of( mandatoryStageElement1 ) );
-        when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStage.getUid() ) ) )
+        when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStage ) ) )
             .thenReturn( programStage );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );

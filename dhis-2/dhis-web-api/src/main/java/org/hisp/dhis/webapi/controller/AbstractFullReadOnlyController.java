@@ -54,16 +54,10 @@ import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.fieldfilter.Defaults;
-import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
+import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
-import org.hisp.dhis.node.Node;
-import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.Preset;
-import org.hisp.dhis.node.config.InclusionStrategy;
-import org.hisp.dhis.node.types.CollectionNode;
-import org.hisp.dhis.node.types.ComplexNode;
-import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Pagination;
 import org.hisp.dhis.query.Query;
@@ -84,6 +78,7 @@ import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.LinkService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.utils.PaginationUtils;
+import org.hisp.dhis.webapi.webdomain.StreamingJsonRoot;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -97,12 +92,11 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.HttpClientErrorException;
 
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import com.fasterxml.jackson.dataformat.csv.CsvWriteException;
-import com.google.common.base.Enums;
 import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 
 /**
@@ -184,7 +178,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     // --------------------------------------------------------------------------
 
     @GetMapping
-    public @ResponseBody RootNode getObjectList(
+    public @ResponseBody ResponseEntity<StreamingJsonRoot<T>> getObjectList(
         @RequestParam Map<String, String> rpParameters, OrderParams orderParams,
         HttpServletResponse response, @CurrentUser User currentUser )
         throws QueryParserException
@@ -238,35 +232,22 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
         postProcessResponseEntities( entities, options, rpParameters );
 
         handleLinksAndAccess( entities, fields, false );
-
-        handleAttributeValues( entities, fields );
-
         linkService.generatePagerLinks( pager, getEntityClass() );
-
-        RootNode rootNode = NodeUtils.createMetadata();
-        rootNode.getConfig().setInclusionStrategy( getInclusionStrategy( rpParameters.get( "inclusionStrategy" ) ) );
-
-        if ( pager != null )
-        {
-            rootNode.addChild( NodeUtils.createPager( pager ) );
-        }
-
-        rootNode.addChild( oldFieldFilterService.toCollectionNode( getEntityClass(),
-            new FieldFilterParams( entities, fields, Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) ) ) );
 
         cachePrivate( response );
 
-        return rootNode;
+        return ResponseEntity.ok( new StreamingJsonRoot<>( pager, getSchema().getCollectionName(),
+            FieldFilterParams.of( entities, fields ) ) );
     }
 
-    @GetMapping( produces = "application/csv" )
+    @GetMapping( produces = { "text/csv", "application/text" } )
     public ResponseEntity<String> getObjectListCsv(
         @RequestParam Map<String, String> rpParameters, OrderParams orderParams,
         @CurrentUser User currentUser,
         @RequestParam( defaultValue = "," ) char separator,
         @RequestParam( defaultValue = ";" ) String arraySeparator,
         @RequestParam( defaultValue = "false" ) boolean skipHeader,
-        HttpServletResponse response, HttpServletRequest request )
+        HttpServletResponse response )
         throws IOException,
         WebMessageException
     {
@@ -382,7 +363,8 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     }
 
     @GetMapping( "/{uid}" )
-    public @ResponseBody RootNode getObject(
+    @SuppressWarnings( "unchecked" )
+    public @ResponseBody ResponseEntity<?> getObject(
         @PathVariable( "uid" ) String pvUid,
         @RequestParam Map<String, String> rpParameters,
         @CurrentUser User currentUser,
@@ -401,16 +383,41 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
         if ( fields.isEmpty() )
         {
-            fields.add( ":all" );
+            fields.add( "*" );
         }
 
         cachePrivate( response );
 
-        return getObjectInternal( pvUid, rpParameters, filters, fields, currentUser );
+        WebOptions options = new WebOptions( rpParameters );
+        List<T> entities = getEntity( pvUid, options );
+
+        if ( entities.isEmpty() )
+        {
+            throw new WebMessageException( notFound( getEntityClass(), pvUid ) );
+        }
+
+        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, new ArrayList<>(),
+            getPaginationData( options ), options.getRootJunction() );
+        query.setUser( currentUser );
+        query.setObjects( entities );
+        query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
+
+        entities = (List<T>) queryService.query( query );
+
+        handleLinksAndAccess( entities, fields, true );
+        handleAttributeValues( entities, fields );
+
+        for ( T entity : entities )
+        {
+            postProcessResponseEntity( entity, options, rpParameters );
+        }
+
+        return ResponseEntity.ok( new StreamingJsonRoot<>( null, null,
+            FieldFilterParams.of( entities, fields ) ) );
     }
 
     @GetMapping( "/{uid}/{property}" )
-    public @ResponseBody RootNode getObjectProperty(
+    public @ResponseBody ResponseEntity<ObjectNode> getObjectProperty(
         @PathVariable( "uid" ) String pvUid, @PathVariable( "property" ) String pvProperty,
         @RequestParam Map<String, String> rpParameters,
         TranslateParams translateParams,
@@ -446,8 +453,10 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
             cachePrivate( response );
 
-            return getObjectInternal( pvUid, rpParameters, Lists.newArrayList(),
+            ObjectNode objectNode = getObjectInternal( pvUid, rpParameters, Lists.newArrayList(),
                 Lists.newArrayList( pvProperty + fieldFilter ), currentUser );
+
+            return ResponseEntity.ok( objectNode );
         }
         finally
         {
@@ -456,7 +465,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     }
 
     @SuppressWarnings( "unchecked" )
-    private RootNode getObjectInternal( String uid, Map<String, String> parameters,
+    private ObjectNode getObjectInternal( String uid, Map<String, String> parameters,
         List<String> filters, List<String> fields, User currentUser )
         throws Exception
     {
@@ -484,35 +493,9 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
             postProcessResponseEntity( entity, options, parameters );
         }
 
-        CollectionNode collectionNode = oldFieldFilterService.toCollectionNode( getEntityClass(),
-            new FieldFilterParams( entities, fields, Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) )
-                .setUser( currentUser ) );
+        List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( entities, fields );
 
-        if ( options.isTrue( "useWrapper" ) || entities.size() > 1 )
-        {
-            RootNode rootNode = NodeUtils.createMetadata( collectionNode );
-            rootNode.getConfig().setInclusionStrategy( getInclusionStrategy( parameters.get( "inclusionStrategy" ) ) );
-
-            return rootNode;
-        }
-        else
-        {
-            List<Node> children = collectionNode.getChildren();
-            RootNode rootNode;
-
-            if ( !children.isEmpty() )
-            {
-                rootNode = NodeUtils.createRootNode( children.get( 0 ) );
-            }
-            else
-            {
-                rootNode = NodeUtils.createRootNode( new ComplexNode( getSchema().getSingular() ) );
-            }
-
-            rootNode.getConfig().setInclusionStrategy( getInclusionStrategy( parameters.get( "inclusionStrategy" ) ) );
-
-            return rootNode;
-        }
+        return objectNodes.isEmpty() ? fieldFilterService.createObjectNode() : objectNodes.get( 0 );
     }
 
     @SuppressWarnings( "unchecked" )
@@ -667,21 +650,5 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     protected final Pagination getPaginationData( WebOptions options )
     {
         return PaginationUtils.getPaginationData( options );
-    }
-
-    private InclusionStrategy.Include getInclusionStrategy( String inclusionStrategy )
-    {
-        if ( inclusionStrategy != null )
-        {
-            Optional<InclusionStrategy.Include> optional = Enums.getIfPresent( InclusionStrategy.Include.class,
-                inclusionStrategy );
-
-            if ( optional.isPresent() )
-            {
-                return optional.get();
-            }
-        }
-
-        return InclusionStrategy.Include.NON_NULL;
     }
 }

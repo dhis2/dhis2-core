@@ -61,7 +61,12 @@
       "attributeOptionCombo": {
         "idScheme": "UID"
       },
-      "attributeCategoryOptions": "LYerKDKCefZ",
+      "attributeCategoryOptions": [
+        {
+          "idScheme": "UID",
+          "identifier": "LYerKDKCefZ"
+        }
+      ],
       "dataValues": [],
       "notes": []
     }

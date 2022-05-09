@@ -25,52 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.metadata;
+package org.hisp.dhis.webapi.webdomain;
 
-import org.hisp.dhis.dxf2.metadata.MetadataExportService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.UserSettingService;
-import org.hisp.dhis.webapi.service.ContextService;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseEntity;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.fieldfiltering.FieldFilterParams;
+
+import com.fasterxml.jackson.annotation.JsonRootName;
 
 /**
- * Unit tests for {@link MetadataExportControllerTest}.
- *
- * @author Volker Schmidt
+ * @author Morten Olav Hansen
  */
-@ExtendWith( MockitoExtension.class )
-class MetadataExportControllerTest
+@Data
+@RequiredArgsConstructor
+@JsonRootName( value = "root", namespace = DxfNamespaces.DXF_2_0 )
+public class StreamingJsonRoot<T>
 {
-    @Mock
-    private MetadataExportService metadataExportService;
+    private final Pager pager;
 
-    @Mock
-    private ContextService contextService;
+    private final String wrapperName;
 
-    @Mock
-    private CurrentUserService currentUserService;
-
-    @Mock
-    private UserSettingService userSettingService;
-
-    @InjectMocks
-    private MetadataImportExportController controller;
-
-    @Test
-    void withDownload()
-    {
-        ResponseEntity<JsonNode> responseEntity = controller.getMetadataDownload( false, null, true );
-        Assertions.assertNotNull( responseEntity.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ) );
-        Assertions.assertEquals( "attachment; filename=metadata",
-            responseEntity.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ).get( 0 ) );
-    }
+    private final FieldFilterParams<T> params;
 }

@@ -57,7 +57,12 @@
         "idScheme": "UID",
         "identifier": "x2S2qeADpA9"
       },
-      "attributeCategoryOptions": "Aj6SFQQBBFU",
+      "attributeCategoryOptions": [
+        {
+          "idScheme": "UID",
+          "identifier": "Aj6SFQQBBFU"
+        }
+      ],
       "dataValues": [],
       "notes": []
     }

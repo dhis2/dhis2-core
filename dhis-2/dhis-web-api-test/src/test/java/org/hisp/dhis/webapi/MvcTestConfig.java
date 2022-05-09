@@ -36,6 +36,7 @@ import java.util.Map;
 
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.common.DefaultRequestInfoService;
+import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.message.FakeMessageSender;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.node.DefaultNodeService;
@@ -48,6 +49,7 @@ import org.hisp.dhis.webapi.mvc.DhisApiVersionHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.interceptor.RequestInfoInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.UserContextInterceptor;
 import org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter;
+import org.hisp.dhis.webapi.mvc.messageconverter.StreamingJsonRootMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.XmlMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.XmlPathMappingJackson2XmlHttpMessageConverter;
 import org.hisp.dhis.webapi.view.CustomPathExtensionContentNegotiationStrategy;
@@ -108,6 +110,9 @@ public class MvcTestConfig implements WebMvcConfigurer
     @Autowired
     @Qualifier( "xmlMapper" )
     private ObjectMapper xmlMapper;
+
+    @Autowired
+    private FieldFilterService fieldFilterService;
 
     @Bean
     public CustomRequestMappingHandlerMapping requestMappingHandlerMapping(
@@ -195,6 +200,10 @@ public class MvcTestConfig implements WebMvcConfigurer
             .forEach( compression -> converters.add( new JsonMessageConverter( nodeService(), compression ) ) );
         Arrays.stream( Compression.values() )
             .forEach( compression -> converters.add( new XmlMessageConverter( nodeService(), compression ) ) );
+
+        Arrays.stream( Compression.values() )
+            .forEach( compression -> converters
+                .add( new StreamingJsonRootMessageConverter( fieldFilterService, compression ) ) );
 
         converters.add( new StringHttpMessageConverter() );
         converters.add( new ByteArrayHttpMessageConverter() );

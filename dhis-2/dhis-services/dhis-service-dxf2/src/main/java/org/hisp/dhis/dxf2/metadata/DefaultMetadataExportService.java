@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.dxf2.metadata;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -73,11 +75,6 @@ import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.mapping.MapView;
-import org.hisp.dhis.node.NodeUtils;
-import org.hisp.dhis.node.types.CollectionNode;
-import org.hisp.dhis.node.types.ComplexNode;
-import org.hisp.dhis.node.types.RootNode;
-import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.program.Program;
@@ -108,6 +105,8 @@ import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.visualization.Visualization;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
 
@@ -125,8 +124,6 @@ public class DefaultMetadataExportService implements MetadataExportService
 
     private final FieldFilterService fieldFilterService;
 
-    private final org.hisp.dhis.fieldfilter.FieldFilterService oldFieldFilterService;
-
     private final CurrentUserService currentUserService;
 
     private final ProgramRuleService programRuleService;
@@ -136,6 +133,8 @@ public class DefaultMetadataExportService implements MetadataExportService
     private final SystemService systemService;
 
     private final AttributeService attributeService;
+
+    private final ObjectMapper objectMapper;
 
     @Override
     @SuppressWarnings( "unchecked" )
@@ -200,7 +199,7 @@ public class DefaultMetadataExportService implements MetadataExportService
     }
 
     @Override
-    public ObjectNode getMetadataAsNode( MetadataExportParams params )
+    public ObjectNode getMetadataAsObjectNode( MetadataExportParams params )
     {
         ObjectNode rootNode = fieldFilterService.createObjectNode();
         SystemInfo systemInfo = systemService.getSystemInfo();
@@ -234,37 +233,48 @@ public class DefaultMetadataExportService implements MetadataExportService
     }
 
     @Override
-    public RootNode getMetadataAsRootNode( MetadataExportParams params )
+    public void getMetadataAsObjectNodeStream( MetadataExportParams params, OutputStream outputStream )
+        throws IOException
     {
-        RootNode rootNode = NodeUtils.createMetadata();
-        rootNode.getConfig().setInclusionStrategy( params.getInclusionStrategy() );
-
         SystemInfo systemInfo = systemService.getSystemInfo();
-
-        ComplexNode system = rootNode.addChild( new ComplexNode( "system" ) );
-        system.addChild( new SimpleNode( "id", systemInfo.getSystemId() ) );
-        system.addChild( new SimpleNode( "rev", systemInfo.getRevision() ) );
-        system.addChild( new SimpleNode( "version", systemInfo.getVersion() ) );
-        system.addChild( new SimpleNode( "date", systemInfo.getServerDate() ) );
-
         Map<Class<? extends IdentifiableObject>, List<? extends IdentifiableObject>> metadata = getMetadata( params );
+        User currentUser = currentUserService.getCurrentUser();
 
-        for ( Class<? extends IdentifiableObject> klass : metadata.keySet() )
+        try ( JsonGenerator generator = objectMapper.getFactory().createGenerator( outputStream ) )
         {
-            org.hisp.dhis.fieldfilter.FieldFilterParams fieldFilterParams = new org.hisp.dhis.fieldfilter.FieldFilterParams(
-                metadata.get( klass ),
-                params.getFields( klass ), params.getDefaults(), params.getSkipSharing() );
-            fieldFilterParams.setUser( params.getUser() );
+            generator.writeStartObject();
 
-            CollectionNode collectionNode = oldFieldFilterService.toCollectionNode( klass, fieldFilterParams );
+            generator.writeObjectFieldStart( "system" );
+            generator.writeStringField( "id", systemInfo.getSystemId() );
+            generator.writeStringField( "rev", systemInfo.getRevision() );
+            generator.writeStringField( "version", systemInfo.getVersion() );
+            generator.writeStringField( "date", DateUtils.getIso8601( systemInfo.getServerDate() ) );
+            generator.writeEndObject();
 
-            if ( !collectionNode.getChildren().isEmpty() )
+            for ( Class<? extends IdentifiableObject> klass : metadata.keySet() )
             {
-                rootNode.addChild( collectionNode );
-            }
-        }
+                List<Object> objects = new ArrayList<>( metadata.get( klass ) );
 
-        return rootNode;
+                if ( objects.isEmpty() )
+                {
+                    continue;
+                }
+
+                FieldFilterParams<?> fieldFilterParams = FieldFilterParams.builder()
+                    .objects( objects )
+                    .filters( new HashSet<>( params.getFields( klass ) ) )
+                    .skipSharing( params.getSkipSharing() )
+                    .user( currentUser )
+                    .build();
+
+                String plural = schemaService.getDynamicSchema( klass ).getPlural();
+                generator.writeArrayFieldStart( plural );
+                fieldFilterService.toObjectNodesStream( fieldFilterParams, generator );
+                generator.writeEndArray();
+            }
+
+            generator.writeEndObject();
+        }
     }
 
     @Override

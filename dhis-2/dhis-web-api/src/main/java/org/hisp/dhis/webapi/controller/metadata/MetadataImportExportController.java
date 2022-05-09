@@ -70,7 +70,6 @@ import org.hisp.dhis.jsonpatch.BulkJsonPatches;
 import org.hisp.dhis.jsonpatch.BulkPatchManager;
 import org.hisp.dhis.jsonpatch.BulkPatchParameters;
 import org.hisp.dhis.jsonpatch.validator.BulkPatchValidatorFactory;
-import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.SchemaService;
@@ -91,7 +90,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -218,11 +219,11 @@ public class MetadataImportExportController
         return Arrays.asList( CsvImportClass.values() );
     }
 
-    @GetMapping
-    public ResponseEntity<RootNode> getMetadata(
+    @GetMapping( value = "", params = "download" )
+    public ResponseEntity<JsonNode> getMetadataDownload(
         @RequestParam( required = false, defaultValue = "false" ) boolean translate,
         @RequestParam( required = false ) String locale,
-        @RequestParam( required = false, defaultValue = "false" ) boolean download )
+        @RequestParam( defaultValue = "false" ) boolean download )
     {
         if ( translate )
         {
@@ -233,9 +234,26 @@ public class MetadataImportExportController
         MetadataExportParams params = metadataExportService.getParamsFromMap( contextService.getParameterValuesMap() );
         metadataExportService.validate( params );
 
-        RootNode rootNode = metadataExportService.getMetadataAsRootNode( params );
+        ObjectNode rootNode = metadataExportService.getMetadataAsObjectNode( params );
 
-        return MetadataExportControllerUtils.createResponseEntity( rootNode, download );
+        return MetadataExportControllerUtils.createJsonNodeResponseEntity( rootNode, download );
+    }
+
+    @GetMapping
+    public ResponseEntity<MetadataExportParams> getMetadata(
+        @RequestParam( required = false, defaultValue = "false" ) boolean translate,
+        @RequestParam( required = false ) String locale )
+    {
+        if ( translate )
+        {
+            TranslateParams translateParams = new TranslateParams( true, locale );
+            setUserContext( currentUserService.getCurrentUser(), translateParams );
+        }
+
+        MetadataExportParams params = metadataExportService.getParamsFromMap( contextService.getParameterValuesMap() );
+        metadataExportService.validate( params );
+
+        return ResponseEntity.ok( params );
     }
 
     @ResponseBody
