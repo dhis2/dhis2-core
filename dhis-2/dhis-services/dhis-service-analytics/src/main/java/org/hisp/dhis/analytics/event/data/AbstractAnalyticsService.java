@@ -385,9 +385,7 @@ public abstract class AbstractAnalyticsService
     private void addItemIntoMetadata( final Map<String, MetadataItem> metadataItemMap, final QueryItem item,
         final boolean includeDetails, final DisplayProperty displayProperty )
     {
-        final MetadataItem metadataItem = new MetadataItem(
-            displayProperty == DisplayProperty.SHORTNAME ? item.getItem().getDisplayShortName()
-                : item.getItem().getDisplayName(),
+        final MetadataItem metadataItem = new MetadataItem( getItemDisplayName( displayProperty, item ),
             includeDetails ? item.getItem() : null );
 
         metadataItemMap.put( getItemIdMaybeWithProgramStageIdPrefix( item ), metadataItem );
@@ -396,6 +394,18 @@ public abstract class AbstractAnalyticsService
         // while the New Event Report is living along with its "classic"
         // version.
         metadataItemMap.put( item.getItemId(), metadataItem );
+    }
+
+    private String getItemDisplayName( DisplayProperty displayProperty, QueryItem item )
+    {
+        return displayProperty == DisplayProperty.SHORTNAME ? item.getItem().getDisplayShortName()
+            : item.getItem().getDisplayName();
+    }
+
+    private String getItemDisplayName( DisplayProperty displayProperty, Option option )
+    {
+        return displayProperty == DisplayProperty.SHORTNAME ? option.getDisplayShortName()
+            : option.getDisplayName();
     }
 
     /**
@@ -440,8 +450,7 @@ public abstract class AbstractAnalyticsService
             // filtering if the rows in grid are there (skipData = false)
             itemOptions.forEach( option -> metadataItemMap.put( option.getUid(),
                 new MetadataItem(
-                    params.getDisplayProperty() == DisplayProperty.SHORTNAME ? option.getDisplayShortName()
-                        : option.getDisplayName(),
+                    getItemDisplayName( params.getDisplayProperty(), option ),
                     includeDetails ? option.getUid() : null,
                     option.getCode() ) ) );
         }
@@ -462,9 +471,7 @@ public abstract class AbstractAnalyticsService
                                 .anyMatch( f -> Arrays.stream( f.getFilter().split( ";" ) )
                                     .anyMatch( ft -> ft.equalsIgnoreCase( option.getCode() ) ) ) )) )
                 .forEach( option -> metadataItemMap.put( option.getUid(),
-                    new MetadataItem(
-                        params.getDisplayProperty() == DisplayProperty.SHORTNAME ? option.getDisplayShortName()
-                            : option.getDisplayName(),
+                    new MetadataItem( getItemDisplayName( params.getDisplayProperty(), option ),
                         includeDetails ? option.getUid() : null,
                         option.getCode() ) ) );
         }
