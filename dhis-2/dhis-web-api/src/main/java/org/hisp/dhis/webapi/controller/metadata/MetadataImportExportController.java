@@ -244,8 +244,7 @@ public class MetadataImportExportController
     {
         if ( translate )
         {
-            TranslateParams translateParams = new TranslateParams( true, locale );
-            setUserContext( currentUserService.getCurrentUser(), translateParams );
+            setTranslationParams( new TranslateParams( true, locale ) );
         }
 
         MetadataExportParams params = metadataExportService.getParamsFromMap( contextService.getParameterValuesMap() );
