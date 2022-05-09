@@ -401,7 +401,6 @@ public class DefaultDataSetService
     }
 
     @Override
-    @Transactional
     public SetValuedMap<String, String> getDataSetOrganisationUnitsAssociations()
     {
         Set<String> uids = getAllDataWrite().stream()
