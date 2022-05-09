@@ -200,7 +200,7 @@ class MetadataIdentifierTest
         Program p = new Program();
         p.setName( "program" );
 
-        MetadataIdentifier id = MetadataIdentifier.ofName( null );
+        MetadataIdentifier id = MetadataIdentifier.ofName( (String) null );
 
         assertFalse( id.isEqualTo( p ) );
     }
@@ -280,7 +280,7 @@ class MetadataIdentifierTest
     void isBlankTrueForNameIfIdentifierIsBlank()
     {
 
-        assertTrue( MetadataIdentifier.ofName( null ).isBlank() );
+        assertTrue( MetadataIdentifier.ofName( (String) null ).isBlank() );
         assertTrue( MetadataIdentifier.ofName( " " ).isBlank() );
     }
 

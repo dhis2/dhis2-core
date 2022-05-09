@@ -58,6 +58,8 @@ public class MetadataIdentifier
 
     public static MetadataIdentifier EMPTY_CODE = MetadataIdentifier.ofCode( (String) null );
 
+    public static final MetadataIdentifier EMPTY_NAME = MetadataIdentifier.ofName( (String) null );
+
     /**
      * Represents the idScheme the {@link #identifier} is in.
      */
@@ -160,6 +162,24 @@ public class MetadataIdentifier
     public static MetadataIdentifier ofCode( String code )
     {
         return new MetadataIdentifier( TrackerIdScheme.CODE, code, null );
+    }
+
+    /**
+     * Creates an identifier for the given metadata using idScheme NAME and its
+     * name.
+     *
+     * @param metadata identifiable object of which the identifier will be
+     *        returned
+     * @return metadata identifier representing a NAME
+     */
+    public static MetadataIdentifier ofName( IdentifiableObject metadata )
+    {
+        if ( metadata == null )
+        {
+            return MetadataIdentifier.EMPTY_NAME;
+        }
+
+        return MetadataIdentifier.ofName( metadata.getName() );
     }
 
     /**
