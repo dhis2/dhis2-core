@@ -247,7 +247,7 @@ class EventProgramPreProcessorTest
 
         preprocessor.process( bundle );
 
-        assertEquals( MetadataIdentifier.ofCode( categoryOptionCombo.getCode() ),
+        assertEquals( MetadataIdentifier.ofCode( categoryOptionCombo ),
             bundle.getEvents().get( 0 ).getAttributeOptionCombo() );
         assertEquals( categoryOptions,
             bundle.getEvents().get( 0 ).getAttributeCategoryOptions() );
@@ -271,7 +271,7 @@ class EventProgramPreProcessorTest
             Set.of( MetadataIdentifier.ofUid( "123" ), MetadataIdentifier.ofUid( "235" ) ) );
         when( preheat.getProgram( event.getProgram() ) ).thenReturn( program );
         when( preheat.getCategoryOptionComboIdentifier( categoryCombo, event.getAttributeCategoryOptions() ) )
-            .thenReturn( MetadataIdentifier.ofCode( null ) );
+            .thenReturn( MetadataIdentifier.EMPTY_CODE );
 
         TrackerBundle bundle = TrackerBundle.builder()
             .events( Collections.singletonList( event ) )
@@ -280,7 +280,7 @@ class EventProgramPreProcessorTest
 
         preprocessor.process( bundle );
 
-        assertEquals( MetadataIdentifier.ofCode( null ), bundle.getEvents().get( 0 ).getAttributeOptionCombo() );
+        assertEquals( MetadataIdentifier.EMPTY_CODE, bundle.getEvents().get( 0 ).getAttributeOptionCombo() );
         assertEquals( Set.of( MetadataIdentifier.ofUid( "123" ), MetadataIdentifier.ofUid( "235" ) ),
             bundle.getEvents().get( 0 ).getAttributeCategoryOptions() );
     }

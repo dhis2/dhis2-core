@@ -63,6 +63,25 @@ class MetadataIdentifierTest
     }
 
     @Test
+    void ofCode()
+    {
+
+        Program p = new Program();
+        p.setCode( "cloud" );
+
+        assertEquals( MetadataIdentifier.of( TrackerIdScheme.CODE, "cloud", null ),
+            MetadataIdentifier.ofCode( p ) );
+    }
+
+    @Test
+    void ofCodeGivenNull()
+    {
+
+        assertEquals( MetadataIdentifier.of( TrackerIdScheme.CODE, null, null ),
+            MetadataIdentifier.ofCode( (IdentifiableObject) null ) );
+    }
+
+    @Test
     void getIdentifierOrAttributeValue()
     {
 
@@ -246,7 +265,7 @@ class MetadataIdentifierTest
     void isBlankTrueForCodeIfIdentifierIsBlank()
     {
 
-        assertTrue( MetadataIdentifier.ofCode( null ).isBlank() );
+        assertTrue( MetadataIdentifier.ofCode( (String) null ).isBlank() );
         assertTrue( MetadataIdentifier.ofCode( " " ).isBlank() );
     }
 
