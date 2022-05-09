@@ -36,11 +36,50 @@ import java.util.Set;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.junit.jupiter.api.Test;
 
 class MetadataIdentifierTest
 {
+    @Test
+    void ofUid()
+    {
+
+        Program p = new Program();
+        p.setUid( "MNWZ6hnuhSw" );
+
+        assertEquals( MetadataIdentifier.of( TrackerIdScheme.UID, "MNWZ6hnuhSw", null ),
+            MetadataIdentifier.ofUid( p ) );
+    }
+
+    @Test
+    void ofUidGivenNull()
+    {
+
+        assertEquals( MetadataIdentifier.of( TrackerIdScheme.UID, null, null ),
+            MetadataIdentifier.ofUid( (IdentifiableObject) null ) );
+    }
+
+    @Test
+    void ofCode()
+    {
+
+        Program p = new Program();
+        p.setCode( "cloud" );
+
+        assertEquals( MetadataIdentifier.of( TrackerIdScheme.CODE, "cloud", null ),
+            MetadataIdentifier.ofCode( p ) );
+    }
+
+    @Test
+    void ofCodeGivenNull()
+    {
+
+        assertEquals( MetadataIdentifier.of( TrackerIdScheme.CODE, null, null ),
+            MetadataIdentifier.ofCode( (IdentifiableObject) null ) );
+    }
 
     @Test
     void getIdentifierOrAttributeValue()
@@ -65,7 +104,7 @@ class MetadataIdentifierTest
         Program p = new Program();
         p.setUid( CodeGenerator.generateUid() );
 
-        MetadataIdentifier id = MetadataIdentifier.ofUid( p.getUid() );
+        MetadataIdentifier id = MetadataIdentifier.ofUid( p );
 
         assertFalse( id.isEqualTo( null ) );
     }
@@ -77,7 +116,7 @@ class MetadataIdentifierTest
         Program p = new Program();
         p.setUid( CodeGenerator.generateUid() );
 
-        MetadataIdentifier id = MetadataIdentifier.ofUid( p.getUid() );
+        MetadataIdentifier id = MetadataIdentifier.ofUid( p );
 
         assertTrue( id.isEqualTo( p ) );
     }
@@ -101,7 +140,7 @@ class MetadataIdentifierTest
         Program p = new Program();
         p.setUid( CodeGenerator.generateUid() );
 
-        MetadataIdentifier id = MetadataIdentifier.ofUid( null );
+        MetadataIdentifier id = MetadataIdentifier.ofUid( (String) null );
 
         assertFalse( id.isEqualTo( p ) );
     }
@@ -161,7 +200,7 @@ class MetadataIdentifierTest
         Program p = new Program();
         p.setName( "program" );
 
-        MetadataIdentifier id = MetadataIdentifier.ofName( null );
+        MetadataIdentifier id = MetadataIdentifier.ofName( (String) null );
 
         assertFalse( id.isEqualTo( p ) );
     }
@@ -211,7 +250,7 @@ class MetadataIdentifierTest
     void isBlankTrueForUIDIfIdentifierIsBlank()
     {
 
-        assertTrue( MetadataIdentifier.ofUid( null ).isBlank() );
+        assertTrue( MetadataIdentifier.ofUid( (String) null ).isBlank() );
         assertTrue( MetadataIdentifier.ofUid( " " ).isBlank() );
     }
 
@@ -226,7 +265,7 @@ class MetadataIdentifierTest
     void isBlankTrueForCodeIfIdentifierIsBlank()
     {
 
-        assertTrue( MetadataIdentifier.ofCode( null ).isBlank() );
+        assertTrue( MetadataIdentifier.ofCode( (String) null ).isBlank() );
         assertTrue( MetadataIdentifier.ofCode( " " ).isBlank() );
     }
 
@@ -241,7 +280,7 @@ class MetadataIdentifierTest
     void isBlankTrueForNameIfIdentifierIsBlank()
     {
 
-        assertTrue( MetadataIdentifier.ofName( null ).isBlank() );
+        assertTrue( MetadataIdentifier.ofName( (String) null ).isBlank() );
         assertTrue( MetadataIdentifier.ofName( " " ).isBlank() );
     }
 

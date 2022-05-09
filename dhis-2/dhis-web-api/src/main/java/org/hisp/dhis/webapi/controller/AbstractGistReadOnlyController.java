@@ -44,7 +44,6 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.NamedParams;
 import org.hisp.dhis.common.PrimaryKeyObject;
-import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.gist.GistAutoType;
 import org.hisp.dhis.gist.GistQuery;
 import org.hisp.dhis.gist.GistQuery.Comparison;
@@ -54,6 +53,7 @@ import org.hisp.dhis.gist.GistService;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.webapi.CsvBuilder;
 import org.hisp.dhis.webapi.JsonBuilder;
@@ -185,7 +185,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
         NamedParams params = new NamedParams( request::getParameter, request::getParameterValues );
         Locale translationLocale = !params.getString( "locale", "" ).isEmpty()
             ? Locale.forLanguageTag( params.getString( "locale" ) )
-            : UserContext.getUserSetting( UserSettingKey.DB_LOCALE );
+            : CurrentUserService.getUserSetting( UserSettingKey.DB_LOCALE );
         return GistQuery.builder()
             .elementType( elementType )
             .autoType( params.getEnum( "auto", autoDefault ) )

@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.webdomain.datavalue;
 
+import java.util.Date;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -71,6 +73,15 @@ public class DataValueDto
 
     @JsonProperty
     private Boolean followUp;
+
+    @JsonProperty
+    private String storedBy;
+
+    @JsonProperty
+    private Date created;
+
+    @JsonProperty
+    private Date lastUpdated;
 
     @JsonProperty
     private Boolean force;

@@ -55,12 +55,10 @@ import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.category.hibernate.HibernateCategoryOptionGroupStore;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataapproval.exceptions.DataApprovalException;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
-import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
@@ -74,7 +72,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupAccessService;
 import org.hisp.dhis.user.UserGroupService;
-import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.junit.jupiter.api.Test;
@@ -153,53 +150,53 @@ class DataApprovalServiceCategoryOptionGroupTest extends IntegrationTestBase
 
     private Date dateA;
 
-    private MockCurrentUserService superUser;
+    private User superUser;
 
-    private CurrentUserService globalConsultant;
+    private User globalConsultant;
 
-    private CurrentUserService globalUser;
+    private User globalUser;
 
-    private CurrentUserService globalApproveOnly;
+    private User globalApproveOnly;
 
-    private CurrentUserService globalAcceptOnly;
+    private User globalAcceptOnly;
 
-    private CurrentUserService globalReadAll;
+    private User globalReadAll;
 
-    private CurrentUserService globalAgencyAUser;
+    private User globalAgencyAUser;
 
-    private CurrentUserService globalAgencyBUser;
+    private User globalAgencyBUser;
 
-    private CurrentUserService brazilInteragencyUser;
+    private User brazilInteragencyUser;
 
-    private CurrentUserService chinaInteragencyUser;
+    private User chinaInteragencyUser;
 
-    private CurrentUserService chinaInteragencyApproveOnly;
+    private User chinaInteragencyApproveOnly;
 
-    private CurrentUserService chinalInteragencyAcceptOnly;
+    private User chinalInteragencyAcceptOnly;
 
-    private CurrentUserService indiaInteragencyUser;
+    private User indiaInteragencyUser;
 
-    private CurrentUserService brazilAgencyAUser;
+    private User brazilAgencyAUser;
 
-    private CurrentUserService chinaAgencyAUser;
+    private User chinaAgencyAUser;
 
-    private CurrentUserService chinaAgencyAApproveOnly;
+    private User chinaAgencyAApproveOnly;
 
-    private CurrentUserService chinaAgencyAAcceptOnly;
+    private User chinaAgencyAAcceptOnly;
 
-    private CurrentUserService chinaAgencyBUser;
+    private User chinaAgencyBUser;
 
-    private CurrentUserService indiaAgencyAUser;
+    private User indiaAgencyAUser;
 
-    private CurrentUserService brazilPartner1User;
+    private User brazilPartner1User;
 
-    private CurrentUserService chinaPartner1User;
+    private User chinaPartner1User;
 
-    private CurrentUserService chinaPartner2User;
+    private User chinaPartner2User;
 
-    private CurrentUserService indiaPartner1User;
+    private User indiaPartner1User;
 
-    private CurrentUserService currentMockUserService;
+    private User currentMockUserService;
 
     private CategoryOption brazilA1;
 
@@ -266,23 +263,6 @@ class DataApprovalServiceCategoryOptionGroupTest extends IntegrationTestBase
     // -------------------------------------------------------------------------
     // Set up/tear down helper methods
     // -------------------------------------------------------------------------
-    private MockCurrentUserService mockUser( String userName, OrganisationUnit orgUnit, String... auths )
-    {
-        MockCurrentUserService mockCurrentUserService = new MockCurrentUserService( false, Sets.newHashSet( orgUnit ),
-            Sets.newHashSet( orgUnit ), auths );
-        User user = mockCurrentUserService.getCurrentUser();
-        user.setFirstName( "Test" );
-        user.setSurname( userName );
-        user.setUsername( userName );
-        for ( UserRole role : user.getUserRoles() )
-        {
-            // Arbitrary name
-            role.setName( CodeGenerator.generateUid() );
-            userService.addUserRole( role );
-        }
-        userService.addUser( user );
-        return mockCurrentUserService;
-    }
 
     private UserGroup getUserGroup( String userGroupName, Set<User> users )
     {
@@ -299,14 +279,9 @@ class DataApprovalServiceCategoryOptionGroupTest extends IntegrationTestBase
         return userGroup;
     }
 
-    private Set<User> userSet( CurrentUserService... mockServices )
+    private Set<User> userSet( User... users )
     {
-        Set<User> users = new HashSet<>();
-        for ( CurrentUserService mock : mockServices )
-        {
-            users.add( mock.getCurrentUser() );
-        }
-        return users;
+        return new HashSet<>( Arrays.asList( users ) );
     }
 
     private void setAccess( BaseIdentifiableObject object, UserGroup... userGroups )
@@ -324,9 +299,9 @@ class DataApprovalServiceCategoryOptionGroupTest extends IntegrationTestBase
         identifiableObjectManager.updateNoAcl( object );
     }
 
-    private void constrainByMechanism( CurrentUserService user )
+    private void constrainByMechanism( User user )
     {
-        user.getCurrentUser().getCatDimensionConstraints().add( mechanismCategory );
+        user.getCatDimensionConstraints().add( mechanismCategory );
     }
 
     // -------------------------------------------------------------------------
@@ -352,34 +327,37 @@ class DataApprovalServiceCategoryOptionGroupTest extends IntegrationTestBase
         organisationUnitService.addOrganisationUnit( brazil );
         organisationUnitService.addOrganisationUnit( china );
         organisationUnitService.addOrganisationUnit( india );
-        userA = createUser( 'A' );
+        userA = makeUser( "A" );
         userService.addUser( userA );
         dateA = new Date();
-        superUser = mockUser( "SuperUser", global, AUTHORITY_ALL );
-        superUser.setSuperUserFlag( true );
-        globalConsultant = mockUser( "GlobalConsultant", global, AUTH_APPROVE, AUTH_ACCEPT_LOWER_LEVELS,
+        superUser = createAndAddUser( true, "SuperUser", global, AUTHORITY_ALL );
+        globalConsultant = createAndAddUser( "GlobalConsultant", global, AUTH_APPROVE, AUTH_ACCEPT_LOWER_LEVELS,
             AUTH_APPROVE_LOWER_LEVELS );
-        globalUser = mockUser( "GlobalUser", global, AUTH_APPROVE, AUTH_ACCEPT_LOWER_LEVELS );
-        globalApproveOnly = mockUser( "GlobalApproveOnly", global, AUTH_APPROVE );
-        globalAcceptOnly = mockUser( "GlobalAcceptOnly", global, AUTH_ACCEPT_LOWER_LEVELS );
-        globalReadAll = mockUser( "GlobalReadEverything", global, AUTH_VIEW_UNAPPROVED_DATA );
-        globalAgencyAUser = mockUser( "GlobalAgencyAUser", global, AUTH_APPROVE, AUTH_ACCEPT_LOWER_LEVELS );
-        globalAgencyBUser = mockUser( "GlobalAgencyBUser", global, AUTH_APPROVE, AUTH_ACCEPT_LOWER_LEVELS );
-        brazilInteragencyUser = mockUser( "BrazilInteragencyUser", brazil, AUTH_APPROVE, AUTH_ACCEPT_LOWER_LEVELS );
-        chinaInteragencyUser = mockUser( "ChinaInteragencyUser", china, AUTH_APPROVE, AUTH_ACCEPT_LOWER_LEVELS );
-        chinaInteragencyApproveOnly = mockUser( "ChinaInteragencyApproveOnly", china, AUTH_APPROVE );
-        chinalInteragencyAcceptOnly = mockUser( "ChinalInteragencyAcceptOnly", china, AUTH_ACCEPT_LOWER_LEVELS );
-        indiaInteragencyUser = mockUser( "IndiaInteragencyUser", india, AUTH_APPROVE, AUTH_ACCEPT_LOWER_LEVELS );
-        brazilAgencyAUser = mockUser( "BrazilAgencyAUser", brazil, AUTH_APPROVE, AUTH_ACCEPT_LOWER_LEVELS );
-        chinaAgencyAUser = mockUser( "ChinaAgencyAUser", china, AUTH_APPROVE, AUTH_ACCEPT_LOWER_LEVELS );
-        chinaAgencyAApproveOnly = mockUser( "ChinaAgencyAApproveOnly", china, AUTH_APPROVE );
-        chinaAgencyAAcceptOnly = mockUser( "ChinaAgencyAAcceptOnly", china, AUTH_ACCEPT_LOWER_LEVELS );
-        chinaAgencyBUser = mockUser( "ChinaAgencyBUser", china, AUTH_APPROVE, AUTH_ACCEPT_LOWER_LEVELS );
-        indiaAgencyAUser = mockUser( "IndiaAgencyAUser", india, AUTH_APPROVE, AUTH_ACCEPT_LOWER_LEVELS );
-        brazilPartner1User = mockUser( "BrazilPartner1User", brazil, AUTH_APPROVE );
-        chinaPartner1User = mockUser( "ChinaPartner1User", china, AUTH_APPROVE );
-        chinaPartner2User = mockUser( "ChinaPartner2User", china, AUTH_APPROVE );
-        indiaPartner1User = mockUser( "IndiaPartner1User", india, AUTH_APPROVE );
+        globalUser = createAndAddUser( "GlobalUser", global, AUTH_APPROVE, AUTH_ACCEPT_LOWER_LEVELS );
+        globalApproveOnly = createAndAddUser( "GlobalApproveOnly", global, AUTH_APPROVE );
+        globalAcceptOnly = createAndAddUser( "GlobalAcceptOnly", global, AUTH_ACCEPT_LOWER_LEVELS );
+        globalReadAll = createAndAddUser( "GlobalReadEverything", global, AUTH_VIEW_UNAPPROVED_DATA );
+        globalAgencyAUser = createAndAddUser( "GlobalAgencyAUser", global, AUTH_APPROVE, AUTH_ACCEPT_LOWER_LEVELS );
+        globalAgencyBUser = createAndAddUser( "GlobalAgencyBUser", global, AUTH_APPROVE, AUTH_ACCEPT_LOWER_LEVELS );
+        brazilInteragencyUser = createAndAddUser( "BrazilInteragencyUser", brazil, AUTH_APPROVE,
+            AUTH_ACCEPT_LOWER_LEVELS );
+        chinaInteragencyUser = createAndAddUser( "ChinaInteragencyUser", china, AUTH_APPROVE,
+            AUTH_ACCEPT_LOWER_LEVELS );
+        chinaInteragencyApproveOnly = createAndAddUser( "ChinaInteragencyApproveOnly", china, AUTH_APPROVE );
+        chinalInteragencyAcceptOnly = createAndAddUser( "ChinalInteragencyAcceptOnly", china,
+            AUTH_ACCEPT_LOWER_LEVELS );
+        indiaInteragencyUser = createAndAddUser( "IndiaInteragencyUser", india, AUTH_APPROVE,
+            AUTH_ACCEPT_LOWER_LEVELS );
+        brazilAgencyAUser = createAndAddUser( "BrazilAgencyAUser", brazil, AUTH_APPROVE, AUTH_ACCEPT_LOWER_LEVELS );
+        chinaAgencyAUser = createAndAddUser( "ChinaAgencyAUser", china, AUTH_APPROVE, AUTH_ACCEPT_LOWER_LEVELS );
+        chinaAgencyAApproveOnly = createAndAddUser( "ChinaAgencyAApproveOnly", china, AUTH_APPROVE );
+        chinaAgencyAAcceptOnly = createAndAddUser( "ChinaAgencyAAcceptOnly", china, AUTH_ACCEPT_LOWER_LEVELS );
+        chinaAgencyBUser = createAndAddUser( "ChinaAgencyBUser", china, AUTH_APPROVE, AUTH_ACCEPT_LOWER_LEVELS );
+        indiaAgencyAUser = createAndAddUser( "IndiaAgencyAUser", india, AUTH_APPROVE, AUTH_ACCEPT_LOWER_LEVELS );
+        brazilPartner1User = createAndAddUser( "BrazilPartner1User", brazil, AUTH_APPROVE );
+        chinaPartner1User = createAndAddUser( "ChinaPartner1User", china, AUTH_APPROVE );
+        chinaPartner2User = createAndAddUser( "ChinaPartner2User", china, AUTH_APPROVE );
+        indiaPartner1User = createAndAddUser( "IndiaPartner1User", india, AUTH_APPROVE );
         currentMockUserService = null;
         UserGroup globalUsers = getUserGroup( "GlobalUsers",
             userSet( globalUser, globalApproveOnly, globalAcceptOnly, globalConsultant, globalReadAll ) );
@@ -444,18 +422,18 @@ class DataApprovalServiceCategoryOptionGroupTest extends IntegrationTestBase
         constrainByMechanism( chinaPartner1User );
         constrainByMechanism( chinaPartner2User );
         constrainByMechanism( indiaPartner1User );
-        userService.updateUser( globalAgencyAUser.getCurrentUser() );
-        userService.updateUser( globalAgencyBUser.getCurrentUser() );
-        userService.updateUser( brazilAgencyAUser.getCurrentUser() );
-        userService.updateUser( chinaAgencyAUser.getCurrentUser() );
-        userService.updateUser( chinaAgencyAApproveOnly.getCurrentUser() );
-        userService.updateUser( chinaAgencyAAcceptOnly.getCurrentUser() );
-        userService.updateUser( chinaAgencyBUser.getCurrentUser() );
-        userService.updateUser( indiaAgencyAUser.getCurrentUser() );
-        userService.updateUser( brazilPartner1User.getCurrentUser() );
-        userService.updateUser( chinaPartner1User.getCurrentUser() );
-        userService.updateUser( chinaPartner2User.getCurrentUser() );
-        userService.updateUser( indiaPartner1User.getCurrentUser() );
+        userService.updateUser( globalAgencyAUser );
+        userService.updateUser( globalAgencyBUser );
+        userService.updateUser( brazilAgencyAUser );
+        userService.updateUser( chinaAgencyAUser );
+        userService.updateUser( chinaAgencyAApproveOnly );
+        userService.updateUser( chinaAgencyAAcceptOnly );
+        userService.updateUser( chinaAgencyBUser );
+        userService.updateUser( indiaAgencyAUser );
+        userService.updateUser( brazilPartner1User );
+        userService.updateUser( chinaPartner1User );
+        userService.updateUser( chinaPartner2User );
+        userService.updateUser( indiaPartner1User );
         brazilA1Combo = createCategoryOptionCombo( mechanismCategoryCombo, brazilA1 );
         chinaA1_1Combo = createCategoryOptionCombo( mechanismCategoryCombo, chinaA1_1 );
         chinaA1_2Combo = createCategoryOptionCombo( mechanismCategoryCombo, chinaA1_2 );
@@ -569,15 +547,9 @@ class DataApprovalServiceCategoryOptionGroupTest extends IntegrationTestBase
     // -------------------------------------------------------------------------
     // Test helper methods
     // -------------------------------------------------------------------------
-    private void setUser( CurrentUserService mockUserService )
+    private void setUser( User user )
     {
-        if ( mockUserService != currentMockUserService )
-        {
-            setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
-                mockUserService, dataApprovalService, dataApprovalStore, dataApprovalLevelService,
-                organisationUnitService, hibernateCategoryOptionGroupStore );
-            currentMockUserService = mockUserService;
-        }
+        injectSecurityContext( user );
     }
 
     private String getStatusString( DataApprovalStatus status )
@@ -599,7 +571,7 @@ class DataApprovalServiceCategoryOptionGroupTest extends IntegrationTestBase
                     + " read=" + (p.isMayReadData() ? "T" : "F"));
     }
 
-    private String[] getUserApprovalsAndPermissions( CurrentUserService mockUserService, DataApprovalWorkflow workflow,
+    private String[] getUserApprovalsAndPermissions( User mockUserService, DataApprovalWorkflow workflow,
         Period period, OrganisationUnit orgUnit )
     {
         setUser( mockUserService );
@@ -614,11 +586,11 @@ class DataApprovalServiceCategoryOptionGroupTest extends IntegrationTestBase
         return Arrays.copyOf( approvalStrings.toArray(), approvalStrings.size(), String[].class );
     }
 
-    private String levels( CurrentUserService mockUserService, DataApprovalWorkflow workflow )
+    private String levels( User user, DataApprovalWorkflow workflow )
     {
-        setUser( mockUserService );
+        setUser( user );
         List<DataApprovalLevel> levels = dataApprovalLevelService
-            .getUserDataApprovalLevels( mockUserService.getCurrentUser(), workflow );
+            .getUserDataApprovalLevels( user, workflow );
         String names = "";
         for ( DataApprovalLevel level : levels )
         {
@@ -627,13 +599,13 @@ class DataApprovalServiceCategoryOptionGroupTest extends IntegrationTestBase
         return names;
     }
 
-    private boolean approve( CurrentUserService mockUserService, DataApprovalLevel dataApprovalLevel,
+    private boolean approve( User user, DataApprovalLevel dataApprovalLevel,
         DataApprovalWorkflow workflow, Period period, OrganisationUnit organisationUnit,
         CategoryOptionCombo mechanismCombo )
     {
         DataApproval da = new DataApproval( dataApprovalLevel, workflow, period, organisationUnit, mechanismCombo,
             false, dateA, userA );
-        setUser( mockUserService );
+        setUser( user );
         try
         {
             dataApprovalService.approveData( Arrays.asList( da ) );
@@ -649,13 +621,13 @@ class DataApprovalServiceCategoryOptionGroupTest extends IntegrationTestBase
         }
     }
 
-    private boolean unapprove( CurrentUserService mockUserService, DataApprovalLevel dataApprovalLevel,
+    private boolean unapprove( User user, DataApprovalLevel dataApprovalLevel,
         DataApprovalWorkflow workflow, Period period, OrganisationUnit organisationUnit,
         CategoryOptionCombo mechanismCombo )
     {
         DataApproval da = new DataApproval( dataApprovalLevel, workflow, period, organisationUnit, mechanismCombo,
             false, dateA, userA );
-        setUser( mockUserService );
+        setUser( user );
         try
         {
             dataApprovalService.unapproveData( Arrays.asList( da ) );
@@ -671,13 +643,13 @@ class DataApprovalServiceCategoryOptionGroupTest extends IntegrationTestBase
         }
     }
 
-    private boolean accept( CurrentUserService mockUserService, DataApprovalLevel dataApprovalLevel,
+    private boolean accept( User user, DataApprovalLevel dataApprovalLevel,
         DataApprovalWorkflow workflow, Period period, OrganisationUnit organisationUnit,
         CategoryOptionCombo mechanismCombo )
     {
         DataApproval da = new DataApproval( dataApprovalLevel, workflow, period, organisationUnit, mechanismCombo,
             false, dateA, userA );
-        setUser( mockUserService );
+        setUser( user );
         try
         {
             dataApprovalService.acceptData( Arrays.asList( da ) );
@@ -693,13 +665,13 @@ class DataApprovalServiceCategoryOptionGroupTest extends IntegrationTestBase
         }
     }
 
-    private boolean unaccept( CurrentUserService mockUserService, DataApprovalLevel dataApprovalLevel,
+    private boolean unaccept( User user, DataApprovalLevel dataApprovalLevel,
         DataApprovalWorkflow workflow, Period period, OrganisationUnit organisationUnit,
         CategoryOptionCombo mechanismCombo )
     {
         DataApproval da = new DataApproval( dataApprovalLevel, workflow, period, organisationUnit, mechanismCombo,
             false, dateA, userA );
-        setUser( mockUserService );
+        setUser( user );
         try
         {
             dataApprovalService.unacceptData( Arrays.asList( da ) );

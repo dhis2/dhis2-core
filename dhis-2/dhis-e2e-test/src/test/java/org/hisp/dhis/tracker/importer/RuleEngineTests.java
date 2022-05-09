@@ -49,6 +49,7 @@ import org.hisp.dhis.tracker.importer.databuilder.EventDataBuilder;
 import org.hisp.dhis.tracker.importer.databuilder.TeiDataBuilder;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -191,6 +192,7 @@ public class RuleEngineTests
     }
 
     @Test
+    @Disabled( "TODO: fix this test 12098" )
     public void shouldSendProgramRuleNotification()
     {
         JsonObject payload = new EventDataBuilder()

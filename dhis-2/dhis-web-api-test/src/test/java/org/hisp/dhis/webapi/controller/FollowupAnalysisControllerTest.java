@@ -43,9 +43,11 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonResponse;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.json.domain.JsonError;
 import org.hisp.dhis.webapi.json.domain.JsonFollowupValue;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -57,6 +59,9 @@ import org.springframework.http.HttpStatus;
  */
 class FollowupAnalysisControllerTest extends AbstractDataValueControllerTest
 {
+
+    @Autowired
+    private CurrentUserService currentUserService;
 
     /**
      * This test makes sure the fields returned by a

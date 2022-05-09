@@ -80,6 +80,8 @@ class DataApprovalControllerTest extends DhisControllerConvenienceTest
         dsId = assertStatus( HttpStatus.CREATED,
             POST( "/dataSets/", "{'name':'My data set', 'periodType':'Monthly', " + "'workflow': {'id':'" + wfId + "'},"
                 + "'organisationUnits':[{'id':'" + ou1Id + "'},{'id':'" + ouId + "'}]" + "}" ) );
+
+        getSuperUser().addOrganisationUnit( manager.get( ouId ) );
     }
 
     @Test

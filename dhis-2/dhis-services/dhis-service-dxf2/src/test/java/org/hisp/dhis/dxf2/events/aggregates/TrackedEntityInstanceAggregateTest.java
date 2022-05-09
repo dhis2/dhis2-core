@@ -65,7 +65,6 @@ import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -75,7 +74,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import com.google.common.collect.Sets;
 
@@ -105,14 +103,11 @@ class TrackedEntityInstanceAggregateTest extends TrackerTest
     @Override
     protected void mockCurrentUserService()
     {
-        User user = createUser( "testUser" );
+        User user = createUserWithAuth( "[Unknown]" );
         user.addOrganisationUnit( organisationUnitA );
         userService.updateUser( user );
         makeUserSuper( user );
-        currentUserService = new MockCurrentUserService( user );
-        ReflectionTestUtils.setField( trackedEntityInstanceAggregate, "currentUserService", currentUserService );
-        ReflectionTestUtils.setField( trackedEntityInstanceService, "currentUserService", currentUserService );
-        ReflectionTestUtils.setField( teiService, "currentUserService", currentUserService );
+        injectSecurityContext( user );
     }
 
     @Test
@@ -504,7 +499,7 @@ class TrackedEntityInstanceAggregateTest extends TrackerTest
         assertThat( enrollment.getProgram(), is( programA.getUid() ) );
         assertThat( enrollment.getStatus(), is( EnrollmentStatus.COMPLETED ) );
         assertThat( enrollment.isDeleted(), is( false ) );
-        assertThat( enrollment.getStoredBy(), is( "system-process" ) );
+        assertThat( enrollment.getStoredBy(), is( "[Unknown]" ) );
         assertThat( enrollment.getFollowup(), is( nullValue() ) );
         // Dates
         checkDate( currentTime, enrollment.getCreated(), 200L );

@@ -27,8 +27,12 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.Set;
 
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
@@ -216,5 +220,59 @@ class MetadataIdentifierMapperTest
 
         assertEquals( TrackerIdScheme.UID, id.getIdScheme() );
         assertNull( id.getIdentifier() );
+    }
+
+    @Test
+    void attributeCategoryOptionsIdentifierFromUIDWithWhitespaces()
+    {
+
+        TrackerIdSchemeParams params = TrackerIdSchemeParams.builder()
+            .idScheme( TrackerIdSchemeParam.CODE )
+            .build();
+
+        Set<MetadataIdentifier> ids = MAPPER.fromAttributeCategoryOptions( " RiNIt1yJoge;AiNIt1yJoge  ; ", params );
+
+        assertContainsOnly( ids, MetadataIdentifier.ofUid( "RiNIt1yJoge" ), MetadataIdentifier.ofUid( "AiNIt1yJoge" ) );
+    }
+
+    @Test
+    void attributeCategoryOptionsIdentifierFromAttribute()
+    {
+
+        TrackerIdSchemeParams params = TrackerIdSchemeParams.builder()
+            .idScheme( TrackerIdSchemeParam.CODE )
+            .categoryOptionIdScheme( TrackerIdSchemeParam.ofAttribute( "RiNIt1yJoge" ) )
+            .build();
+
+        Set<MetadataIdentifier> ids = MAPPER.fromAttributeCategoryOptions( "clouds;fruits", params );
+
+        assertContainsOnly( ids, MetadataIdentifier.ofAttribute( "RiNIt1yJoge", "clouds" ),
+            MetadataIdentifier.ofAttribute( "RiNIt1yJoge", "fruits" ) );
+    }
+
+    @Test
+    void attributeCategoryOptionsIdentifierFromUIDIfNull()
+    {
+
+        TrackerIdSchemeParams params = TrackerIdSchemeParams.builder()
+            .idScheme( TrackerIdSchemeParam.CODE )
+            .build();
+
+        Set<MetadataIdentifier> ids = MAPPER.fromAttributeCategoryOptions( null, params );
+
+        assertTrue( ids.isEmpty() );
+    }
+
+    @Test
+    void attributeCategoryOptionsIdentifierFromUIDIfEmpty()
+    {
+
+        TrackerIdSchemeParams params = TrackerIdSchemeParams.builder()
+            .idScheme( TrackerIdSchemeParam.CODE )
+            .build();
+
+        Set<MetadataIdentifier> ids = MAPPER.fromAttributeCategoryOptions( "  ", params );
+
+        assertTrue( ids.isEmpty() );
     }
 }

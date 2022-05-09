@@ -127,9 +127,9 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
         ProgramStageDataElement programStageDataElementB = createProgramStageDataElement( secondProgramStage,
             dataElementB, 0 );
         secondProgramStage.setProgramStageDataElements( Sets.newHashSet( programStageDataElementB ) );
-        when( preheat.getProgramStage( MetadataIdentifier.ofUid( firstProgramStage.getUid() ) ) )
+        when( preheat.getProgramStage( MetadataIdentifier.ofUid( firstProgramStage ) ) )
             .thenReturn( firstProgramStage );
-        when( preheat.getProgramStage( MetadataIdentifier.ofUid( secondProgramStage.getUid() ) ) )
+        when( preheat.getProgramStage( MetadataIdentifier.ofUid( secondProgramStage ) ) )
             .thenReturn( secondProgramStage );
         bundle = TrackerBundle.builder().build();
         bundle.setRuleEffects( getRuleEventAndEnrollmentEffects() );
@@ -201,7 +201,7 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
         Event event = new Event();
         event.setEvent( FIRST_EVENT_ID );
         event.setStatus( EventStatus.ACTIVE );
-        event.setProgramStage( MetadataIdentifier.ofUid( firstProgramStage.getUid() ) );
+        event.setProgramStage( MetadataIdentifier.ofUid( firstProgramStage ) );
         event.setDataValues( getActiveEventDataValues() );
         return event;
     }
@@ -211,7 +211,7 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
         Event event = new Event();
         event.setEvent( SECOND_EVENT_ID );
         event.setStatus( EventStatus.ACTIVE );
-        event.setProgramStage( MetadataIdentifier.ofUid( firstProgramStage.getUid() ) );
+        event.setProgramStage( MetadataIdentifier.ofUid( firstProgramStage ) );
         return event;
     }
 
@@ -220,7 +220,7 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
         Event event = new Event();
         event.setEvent( SECOND_EVENT_ID );
         event.setStatus( EventStatus.ACTIVE );
-        event.setProgramStage( MetadataIdentifier.ofUid( secondProgramStage.getUid() ) );
+        event.setProgramStage( MetadataIdentifier.ofUid( secondProgramStage ) );
         return event;
     }
 

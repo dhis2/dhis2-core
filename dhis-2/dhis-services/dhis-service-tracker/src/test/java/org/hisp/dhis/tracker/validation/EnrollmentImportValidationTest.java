@@ -77,6 +77,9 @@ class EnrollmentImportValidationTest extends AbstractImportValidationTest
         TrackerImportParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/enrollments_te_te-data.json" );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
+
+        logTrackerErrors( trackerImportReport );
+
         assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
         manager.flush();
     }
@@ -164,11 +167,16 @@ class EnrollmentImportValidationTest extends AbstractImportValidationTest
     void testDeleteCascadeProgramInstances()
         throws IOException
     {
+        User superUser = userService.getUser( ADMIN_USER_UID );
+        injectSecurityContext( superUser );
+
         TrackerImportParams params = renderService.fromJson(
             new ClassPathResource( "tracker/validations/enrollments_te_attr-data.json" ).getInputStream(),
             TrackerImportParams.class );
+        params.setUser( superUser );
         params.setImportStrategy( TrackerImportStrategy.CREATE );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
+
         assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
         assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
         manager.flush();

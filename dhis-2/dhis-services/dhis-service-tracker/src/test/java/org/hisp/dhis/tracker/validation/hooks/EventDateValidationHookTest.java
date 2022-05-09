@@ -91,7 +91,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
     {
         hookToTest = new EventDateValidationHook();
 
-        User user = createUser( 'A' );
+        User user = makeUser( "A" );
 
         bundle = TrackerBundle.builder()
             .user( user )
@@ -297,7 +297,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
 
     private User getEditExpiredUser()
     {
-        User user = createUser( 'A' );
+        User user = makeUser( "A" );
         UserRole userRole = createUserRole( 'A' );
         userRole.setAuthorities( Sets.newHashSet( Authorities.F_EDIT_EXPIRED.getAuthority() ) );
 

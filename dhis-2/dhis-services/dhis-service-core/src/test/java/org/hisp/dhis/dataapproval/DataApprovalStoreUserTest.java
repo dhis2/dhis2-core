@@ -38,7 +38,6 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
-import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
@@ -46,11 +45,12 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.CurrentUserServiceTarget;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 
 /**
  * @author Jim Grace
@@ -60,6 +60,9 @@ class DataApprovalStoreUserTest extends DhisTest
 
     @Autowired
     private DataApprovalStore dataApprovalStore;
+
+    @Autowired
+    private UserService _userService;
 
     @Autowired
     private DataApprovalService dataApprovalService;
@@ -100,7 +103,7 @@ class DataApprovalStoreUserTest extends DhisTest
 
     private OrganisationUnit orgUnitD;
 
-    private CurrentUserService mockCurrentUserService;
+    private User currentUser;
 
     // -------------------------------------------------------------------------
     // Set up/tear down
@@ -109,6 +112,9 @@ class DataApprovalStoreUserTest extends DhisTest
     public void setUpTest()
         throws Exception
     {
+        userService = _userService;
+        preCreateInjectAdminUser();
+
         periodA = createPeriod( "201801" );
         periodService.addPeriod( periodA );
         level1 = new DataApprovalLevel( "Level1", 1, null );
@@ -139,10 +145,9 @@ class DataApprovalStoreUserTest extends DhisTest
         organisationUnitService.updateOrganisationUnit( orgUnitB );
         organisationUnitService.updateOrganisationUnit( orgUnitC );
         organisationUnitService.updateOrganisationUnit( orgUnitD );
-        mockCurrentUserService = new MockCurrentUserService( true, Sets.newHashSet( orgUnitA ),
-            Sets.newHashSet( orgUnitA ) );
-        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
-            mockCurrentUserService, dataApprovalStore, dataApprovalLevelService );
+
+        currentUser = createAndAddUser( true, "username", newHashSet( orgUnitA ), newHashSet( orgUnitA ) );
+        injectSecurityContext( currentUser );
     }
 
     @Override
@@ -169,7 +174,7 @@ class DataApprovalStoreUserTest extends DhisTest
         categoryService.addCategoryOptionCombo( catOptionComboA );
         List<DataApprovalStatus> statuses = dataApprovalStore.getDataApprovalStatuses( workflowA, periodA,
             Lists.newArrayList( orgUnitA ), orgUnitA.getHierarchyLevel(), catComboA, null, dataApprovalLevelService
-                .getUserDataApprovalLevelsOrLowestLevel( mockCurrentUserService.getCurrentUser(), workflowA ),
+                .getUserDataApprovalLevelsOrLowestLevel( currentUser, workflowA ),
             dataApprovalLevelService.getDataApprovalLevelMap() );
         assertEquals( 1, statuses.size() );
         DataApprovalStatus status = statuses.get( 0 );
@@ -179,7 +184,7 @@ class DataApprovalStoreUserTest extends DhisTest
         assertEquals( catOptionComboA.getUid(), status.getAttributeOptionComboUid() );
         statuses = dataApprovalStore.getDataApprovalStatuses( workflowA, periodA, Lists.newArrayList( orgUnitB ),
             orgUnitB.getHierarchyLevel(), catComboA, null, dataApprovalLevelService
-                .getUserDataApprovalLevelsOrLowestLevel( mockCurrentUserService.getCurrentUser(), workflowA ),
+                .getUserDataApprovalLevelsOrLowestLevel( currentUser, workflowA ),
             dataApprovalLevelService.getDataApprovalLevelMap() );
         assertEquals( 1, statuses.size() );
         status = statuses.get( 0 );
@@ -189,7 +194,7 @@ class DataApprovalStoreUserTest extends DhisTest
         assertEquals( catOptionComboA.getUid(), status.getAttributeOptionComboUid() );
         statuses = dataApprovalStore.getDataApprovalStatuses( workflowA, periodA, Lists.newArrayList( orgUnitC ),
             orgUnitC.getHierarchyLevel(), catComboA, null, dataApprovalLevelService
-                .getUserDataApprovalLevelsOrLowestLevel( mockCurrentUserService.getCurrentUser(), workflowA ),
+                .getUserDataApprovalLevelsOrLowestLevel( currentUser, workflowA ),
             dataApprovalLevelService.getDataApprovalLevelMap() );
         assertEquals( 1, statuses.size() );
         status = statuses.get( 0 );

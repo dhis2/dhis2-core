@@ -324,9 +324,11 @@ class MetadataWorkflowControllerTest extends DhisControllerConvenienceTest
             report -> report.getErrorCode() == ErrorCode.E3001 );
         JsonMetadataProposal proposal = GET( "/metadata/proposals/" + proposalId ).content()
             .as( JsonMetadataProposal.class );
+
+        String reason = proposal.getReason();
         assertEquals( String.format(
-            "E3001 User `guest guest [%s] (User)` is not allowed to update object `New name [%s] (OrganisationUnit)`.\n",
-            guest.getUid(), defaultTargetId ), proposal.getReason() );
+            "E3001 User `FirstNameguest Surnameguest [%s] (User)` is not allowed to update object `New name [%s] (OrganisationUnit)`.\n",
+            guest.getUid(), defaultTargetId ), reason );
         // but the system could accept the proposal
         switchContextToUser( system );
         assertStatus( HttpStatus.OK, PUT( "/metadata/proposals/" + proposalId ) );

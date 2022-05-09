@@ -42,7 +42,6 @@ import org.springframework.http.HttpStatus;
  */
 class GistValidationControllerTest extends AbstractGistControllerTest
 {
-
     @Test
     void testValidation_Filter_MisplacedArgument()
     {
@@ -85,9 +84,12 @@ class GistValidationControllerTest extends AbstractGistControllerTest
     @Test
     void testValidation_Filter_CanAccessMissingPattern()
     {
+        switchToSuperuser();
         assertEquals(
             "Filter `surname:canaccess:[" + getSuperuserUid() + "]` requires a user ID and an access pattern argument.",
-            GET( "/users/gist?filter=surname:canAccess" ).error( HttpStatus.BAD_REQUEST ).getMessage() );
+            GET(
+                "/users/gist?filter=username:like:admin&filter=surname:canAccess" ).error( HttpStatus.BAD_REQUEST )
+                    .getMessage() );
     }
 
     @Test
@@ -135,9 +137,9 @@ class GistValidationControllerTest extends AbstractGistControllerTest
         JsonObject userLookup = GET( "/users/{id}/gist?fields=id,code,surname,firstName", getSuperuserUid() ).content();
         assertTrue( userLookup.has( "id", "code", "surname", "firstName" ) );
         assertEquals( getSuperuserUid(), userLookup.getString( "id" ).string() );
-        assertEquals( "admin", userLookup.getString( "code" ).string() );
-        assertEquals( "admin", userLookup.getString( "surname" ).string() );
-        assertEquals( "admin", userLookup.getString( "firstName" ).string() );
+        assertEquals( "Codeadmin", userLookup.getString( "code" ).string() );
+        assertEquals( "Surnameadmin", userLookup.getString( "surname" ).string() );
+        assertEquals( "FirstNameadmin", userLookup.getString( "firstName" ).string() );
     }
 
     @Test

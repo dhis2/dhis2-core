@@ -186,8 +186,8 @@ class DashboardItemDeletionHandlerTest extends DhisSpringTest
     @Test
     void testDeleteUser()
     {
-        User userA = createUser( 'A' );
-        User userB = createUser( 'B' );
+        User userA = makeUser( "A" );
+        User userB = makeUser( "B" );
         userService.addUser( userA );
         userService.addUser( userB );
         dashboardItem.getUsers().add( userA );

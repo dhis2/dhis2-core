@@ -66,9 +66,9 @@ class UserGroupServiceTest extends DhisSpringTest
     public void setUpTest()
         throws Exception
     {
-        user1 = createUser( 'A' );
-        user2 = createUser( 'B' );
-        user3 = createUser( 'C' );
+        user1 = makeUser( "A" );
+        user2 = makeUser( "B" );
+        user3 = makeUser( "C" );
         userService.addUser( user1 );
         userService.addUser( user2 );
         userService.addUser( user3 );

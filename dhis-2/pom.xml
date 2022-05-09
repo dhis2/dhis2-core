@@ -89,13 +89,13 @@
         <lettuce.version>6.1.8.RELEASE</lettuce.version>
 
         <!--DBMS -->
-        <flyway-core.version>8.5.7</flyway-core.version>
-        <hibernate.version>5.6.5.Final</hibernate.version>
+        <flyway-core.version>8.5.10</flyway-core.version>
+        <hibernate.version>5.6.8.Final</hibernate.version>
         <hibernate-types.version>2.16.2</hibernate-types.version>
         <!-- Data sources,db pools and db drivers-->
         <c3p0.version>0.9.5.5</c3p0.version>
         <HikariCP.version>5.0.1</HikariCP.version>
-        <postgresql-driver.version>42.3.4</postgresql-driver.version>
+        <postgresql-driver.version>42.3.5</postgresql-driver.version>
         <postgis-jdbc.version>2.5.1</postgis-jdbc.version>
         <datasource-proxy.version>1.7</datasource-proxy.version>
 
@@ -111,7 +111,7 @@
         <jackson.version>2.13.2</jackson.version>
         <jackson.databind.version>2.13.2.1</jackson.databind.version>
         <jackson-datatype-jts.version>1.0-2.7</jackson-datatype-jts.version>
-        <jackson-datatype-hibernate5.version>2.11.2</jackson-datatype-hibernate5.version>
+        <jackson-datatype-hibernate5.version>2.13.2</jackson-datatype-hibernate5.version>
         <geojson-jackson.version>1.14</geojson-jackson.version>
 
         <!-- JAXB -->
@@ -140,7 +140,7 @@
 
         <!-- Apache Artemis -->
         <artemis.version>2.22.0</artemis.version>
-        <netty-all.version>4.1.76.Final</netty-all.version>
+        <netty-all.version>4.1.77.Final</netty-all.version>
         <classgraph.version>4.8.146</classgraph.version>
 
         <!-- SMS/SMPP -->
@@ -157,7 +157,7 @@
         <guava.version>31.1-jre</guava.version>
         <jsr305.version>3.0.2</jsr305.version>
         <imgscalr-lib.version>4.2</imgscalr-lib.version>
-        <google-api-client.version>1.34.0</google-api-client.version>
+        <google-api-client.version>1.34.1</google-api-client.version>
         <lombok.version>1.18.24</lombok.version>
         <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
         <joda-time.version>2.10.14</joda-time.version>
@@ -2106,6 +2106,7 @@
                         <groupId>io.netty</groupId>
                         <artifactId>netty-transport-native-kqueue</artifactId>
                     </exclusion>
+
                     <exclusion>
                         <groupId>commons-logging</groupId>
                         <artifactId>commons-logging</artifactId>

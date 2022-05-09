@@ -48,6 +48,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.StatelessSession;
 import org.hibernate.annotations.QueryHints;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.query.NativeQuery;
@@ -140,6 +141,11 @@ public class HibernateGenericStore<T>
     protected final Session getSession()
     {
         return sessionFactory.getCurrentSession();
+    }
+
+    protected final StatelessSession getStatelessSession()
+    {
+        return sessionFactory.openStatelessSession();
     }
 
     /**

@@ -244,7 +244,7 @@ class EnrollmentSecurityImportValidationTest extends AbstractImportValidationTes
         TrackedEntityType bPJ0FMtcnEh = trackedEntityTypeService.getTrackedEntityType( "bPJ0FMtcnEh" );
         programA.setTrackedEntityType( bPJ0FMtcnEh );
         manager.updateNoAcl( programA );
-        User user = createUser( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        User user = createUserWithAuth( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         userService.addUser( user );
         injectSecurityContext( user );
         TrackerImportParams params = createBundleFromJson( "tracker/validations/enrollments_no-access-tei.json" );
@@ -267,7 +267,7 @@ class EnrollmentSecurityImportValidationTest extends AbstractImportValidationTes
         trackedEntityType.setPublicAccess( AccessStringHelper.DATA_READ );
         programA.setTrackedEntityType( trackedEntityType );
         manager.updateNoAcl( programA );
-        User user = createUser( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        User user = createUserWithAuth( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         userService.addUser( user );
         injectSecurityContext( user );
         TrackerImportParams params = createBundleFromJson( "tracker/validations/enrollments_no-access-program.json" );
@@ -290,7 +290,7 @@ class EnrollmentSecurityImportValidationTest extends AbstractImportValidationTes
         trackedEntityType.setPublicAccess( AccessStringHelper.DATA_READ );
         programA.setTrackedEntityType( trackedEntityType );
         manager.updateNoAcl( programA );
-        User user = createUser( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        User user = createUserWithAuth( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         userService.addUser( user );
         injectSecurityContext( user );
         TrackerImportParams params = createBundleFromJson( "tracker/validations/enrollments_no-access-program.json" );
@@ -311,7 +311,7 @@ class EnrollmentSecurityImportValidationTest extends AbstractImportValidationTes
         programA.setTrackedEntityType( trackedEntityType );
         manager.update( programA );
         manager.flush();
-        User user = createUser( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        User user = createUserWithAuth( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         injectSecurityContext( user );
         TrackerImportParams params = createBundleFromJson(
             "tracker/validations/enrollments_program-teitype-missmatch.json" );

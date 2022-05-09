@@ -50,6 +50,7 @@ import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
+import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -85,12 +86,12 @@ public abstract class TrackerTest extends TransactionalIntegrationTest
     protected void setUpTest()
         throws IOException
     {
-        preCreateInjectAdminUserWithoutPersistence();
-        renderService = _renderService;
         userService = _userService;
+        preCreateInjectAdminUser();
+        //
+        renderService = _renderService;
+        dbmsManager.clearSession();
         initTest();
-        // Clear the session to simulate different API call after the setup
-        manager.clear();
     }
 
     protected abstract void initTest()
@@ -107,7 +108,32 @@ public abstract class TrackerTest extends TransactionalIntegrationTest
         params.setObjects( metadata );
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
-        validationReport.forEachErrorReport( errorReport -> log.error( errorReport.toString() ) );
+        validationReport.forEachErrorReport( errorReport -> {
+            String s = errorReport.toString();
+            log.error( s );
+        } );
+        boolean condition = validationReport.hasErrorReports();
+        assertFalse( condition );
+        objectBundleService.commit( bundle );
+        return bundle;
+    }
+
+    protected ObjectBundle setUpMetadata( String path, User user )
+        throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService
+            .fromMetadata( new ClassPathResource( path ).getInputStream(), RenderFormat.JSON );
+        ObjectBundleParams params = new ObjectBundleParams();
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE );
+        params.setObjects( metadata );
+        params.setUser( user );
+        ObjectBundle bundle = objectBundleService.create( params );
+        ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
+        validationReport.forEachErrorReport( errorReport -> {
+            String s = errorReport.toString();
+            log.error( s );
+        } );
         boolean condition = validationReport.hasErrorReports();
         assertFalse( condition );
         objectBundleService.commit( bundle );
@@ -163,5 +189,18 @@ public abstract class TrackerTest extends TransactionalIntegrationTest
     public boolean emptyDatabaseAfterTest()
     {
         return true;
+    }
+
+    protected TrackerStatus logTrackerErrors( TrackerImportReport trackerImportReport )
+    {
+        TrackerStatus status = trackerImportReport.getStatus();
+        if ( status == TrackerStatus.ERROR )
+        {
+            List<TrackerErrorReport> errors = trackerImportReport.getValidationReport().getErrors();
+            errors.forEach( error -> {
+                log.error( error.getErrorCode() + ": " + error.getMessage() );
+            } );
+        }
+        return status;
     }
 }
