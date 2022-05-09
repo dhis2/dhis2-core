@@ -117,16 +117,16 @@ public class TrackerImportParamsBuilder
 
     public static TrackerIdSchemeParams getTrackerIdentifiers( Map<String, List<String>> parameters )
     {
-        TrackerIdScheme idScheme = getEnumWithDefault( TrackerIdScheme.class, parameters, ID_SCHEME_KEY, UID );
+        TrackerIdSchemeParam idScheme = globalIdScheme( parameters );
 
         return TrackerIdSchemeParams.builder()
-            .idScheme( bySchemeAndKey( parameters, ID_SCHEME_KEY, idScheme ) )
-            .orgUnitIdScheme( bySchemeAndKey( parameters, ORG_UNIT_ID_SCHEME_KEY, idScheme ) )
-            .programIdScheme( bySchemeAndKey( parameters, PROGRAM_ID_SCHEME_KEY, idScheme ) )
-            .programStageIdScheme( bySchemeAndKey( parameters, PROGRAM_STAGE_ID_SCHEME_KEY, idScheme ) )
-            .dataElementIdScheme( bySchemeAndKey( parameters, DATA_ELEMENT_ID_SCHEME_KEY, idScheme ) )
-            .categoryOptionComboIdScheme( bySchemeAndKey( parameters, CATEGORY_OPTION_COMBO_ID_SCHEME_KEY, idScheme ) )
-            .categoryOptionIdScheme( bySchemeAndKey( parameters, CATEGORY_OPTION_ID_SCHEME_KEY, idScheme ) )
+            .idScheme( idScheme )
+            .orgUnitIdScheme( idScheme( parameters, ORG_UNIT_ID_SCHEME_KEY, idScheme ) )
+            .programIdScheme( idScheme( parameters, PROGRAM_ID_SCHEME_KEY, idScheme ) )
+            .programStageIdScheme( idScheme( parameters, PROGRAM_STAGE_ID_SCHEME_KEY, idScheme ) )
+            .dataElementIdScheme( idScheme( parameters, DATA_ELEMENT_ID_SCHEME_KEY, idScheme ) )
+            .categoryOptionComboIdScheme( idScheme( parameters, CATEGORY_OPTION_COMBO_ID_SCHEME_KEY, idScheme ) )
+            .categoryOptionIdScheme( idScheme( parameters, CATEGORY_OPTION_ID_SCHEME_KEY, idScheme ) )
             .build();
     }
 
@@ -172,16 +172,36 @@ public class TrackerImportParamsBuilder
         return null;
     }
 
-    private static TrackerIdSchemeParam bySchemeAndKey( Map<String, List<String>> parameters,
-        TrackerImportParamKey trackerImportParameterKey,
-        TrackerIdScheme defaultIdScheme )
+    /**
+     * Extracts the "global" idScheme from the request parameters. Global
+     * meaning the idScheme that will be defaulted to for each metadata type if
+     * no metadata specific idScheme parameter like "programIdScheme" has been
+     * given.
+     *
+     * @param parameters request parameters
+     * @return tracker id scheme parameter
+     */
+    private static TrackerIdSchemeParam globalIdScheme( Map<String, List<String>> parameters )
+    {
+        TrackerIdScheme trackerIdScheme = getEnumWithDefault( TrackerIdScheme.class, parameters, ID_SCHEME_KEY, UID );
+
+        return TrackerIdSchemeParam.of( trackerIdScheme, getAttributeUidOrNull( parameters, ID_SCHEME_KEY ) );
+    }
+
+    private static TrackerIdSchemeParam idScheme( Map<String, List<String>> parameters,
+        TrackerImportParamKey parameterKey, TrackerIdSchemeParam defaultIdSchemeParam )
     {
 
-        TrackerIdScheme trackerIdScheme = getEnumWithDefault( TrackerIdScheme.class, parameters,
-            trackerImportParameterKey, defaultIdScheme );
+        if ( parameters == null || parameters.get( parameterKey.getKey() ) == null
+            || parameters.get( parameterKey.getKey() ).isEmpty() )
+        {
+            return defaultIdSchemeParam;
+        }
 
-        return TrackerIdSchemeParam.of( trackerIdScheme,
-            getAttributeUidOrNull( parameters, trackerImportParameterKey ) );
+        TrackerIdScheme trackerIdScheme = getEnumWithDefault( TrackerIdScheme.class, parameters,
+            parameterKey, defaultIdSchemeParam.getIdScheme() );
+
+        return TrackerIdSchemeParam.of( trackerIdScheme, getAttributeUidOrNull( parameters, parameterKey ) );
     }
 
     enum TrackerImportParamKey
