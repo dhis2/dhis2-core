@@ -55,7 +55,12 @@
       "attributeOptionCombo": {
         "idScheme": "UID"
       },
-      "attributeCategoryOptions": "Aj6SFQQBBFU",
+      "attributeCategoryOptions": [
+        {
+          "idScheme": "UID",
+          "identifier": "Aj6SFQQBBFU"
+        }
+      ],
       "dataValues": [],
       "notes": []
     }

@@ -72,7 +72,7 @@ class TrackerIdentifierCollectorTest
             Set.of( new AttributeValue( att, "sunshine" ), attributeValue( "grass" ) ) );
         Enrollment enrollment = Enrollment.builder()
             .enrollment( CodeGenerator.generateUid() )
-            .orgUnit( MetadataIdentifier.ofUid( orgUnit.getUid() ) )
+            .orgUnit( MetadataIdentifier.ofUid( orgUnit ) )
             .program( MetadataIdentifier.ofAttribute( att.getUid(), "sunshine" ) )
             .build();
 

@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.tracker.preprocess;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
-
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -117,8 +115,7 @@ public class EventProgramPreProcessor
 
         TrackerPreheat preheat = bundle.getPreheat();
         List<Event> events = bundle.getEvents().stream()
-            .filter( e -> e.getAttributeOptionCombo().isBlank()
-                && !isBlank( e.getAttributeCategoryOptions() ) )
+            .filter( e -> e.getAttributeOptionCombo().isBlank() && !e.getAttributeCategoryOptions().isEmpty() )
             .filter( e -> preheat.getProgram( e.getProgram() ) != null )
             .collect( Collectors.toList() );
 

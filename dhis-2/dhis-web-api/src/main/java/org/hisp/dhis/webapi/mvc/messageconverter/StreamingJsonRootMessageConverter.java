@@ -27,11 +27,15 @@
  */
 package org.hisp.dhis.webapi.mvc.messageconverter;
 
+import static org.hisp.dhis.webapi.mvc.messageconverter.MessageConverterUtils.JSON_GZIP_SUPPORTED_MEDIA_TYPES;
+import static org.hisp.dhis.webapi.mvc.messageconverter.MessageConverterUtils.JSON_SUPPORTED_MEDIA_TYPES;
+import static org.hisp.dhis.webapi.mvc.messageconverter.MessageConverterUtils.JSON_ZIP_SUPPORTED_MEDIA_TYPES;
 import static org.hisp.dhis.webapi.mvc.messageconverter.MessageConverterUtils.getContentDispositionHeaderValue;
 import static org.hisp.dhis.webapi.mvc.messageconverter.MessageConverterUtils.getExtensibleAttachmentFilename;
 import static org.hisp.dhis.webapi.mvc.messageconverter.MessageConverterUtils.isAttachment;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.List;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
@@ -40,67 +44,68 @@ import java.util.zip.ZipOutputStream;
 import javax.annotation.Nonnull;
 
 import org.hisp.dhis.common.Compression;
-import org.hisp.dhis.node.NodeService;
-import org.hisp.dhis.node.types.RootNode;
+import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
+import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.hisp.dhis.webapi.webdomain.StreamingJsonRoot;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
-import org.springframework.http.MediaType;
 import org.springframework.http.converter.AbstractHttpMessageConverter;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 /**
- * Abstract base class for HTTP message converters that convert root nodes.
- *
- * @author Volker Schmidt <volker@dhis2.org>
+ * @author Morten Olav Hansen
  */
-public abstract class AbstractRootNodeMessageConverter extends AbstractHttpMessageConverter<RootNode>
+public class StreamingJsonRootMessageConverter extends AbstractHttpMessageConverter<StreamingJsonRoot<?>>
 {
-    private final NodeService nodeService;
-
-    private final String contentType;
-
-    private final String fileExtension;
+    private final FieldFilterService fieldFilterService;
 
     private final Compression compression;
 
-    protected AbstractRootNodeMessageConverter( @Nonnull NodeService nodeService, @Nonnull String contentType,
-        @Nonnull String fileExtension, Compression compression )
+    public StreamingJsonRootMessageConverter( FieldFilterService fieldFilterService, Compression compression )
     {
-        this.nodeService = nodeService;
-        this.contentType = contentType;
-        this.fileExtension = fileExtension;
+        this.fieldFilterService = fieldFilterService;
         this.compression = compression;
-    }
 
-    protected Compression getCompression()
-    {
-        return compression;
+        switch ( compression )
+        {
+        case NONE:
+            setSupportedMediaTypes( JSON_SUPPORTED_MEDIA_TYPES );
+            break;
+        case GZIP:
+            setSupportedMediaTypes( JSON_GZIP_SUPPORTED_MEDIA_TYPES );
+            break;
+        case ZIP:
+            setSupportedMediaTypes( JSON_ZIP_SUPPORTED_MEDIA_TYPES );
+        }
     }
 
     @Override
     protected boolean supports( Class<?> clazz )
     {
-        return RootNode.class.equals( clazz );
+        return StreamingJsonRoot.class.equals( clazz );
     }
 
     @Override
-    protected boolean canRead( MediaType mediaType )
-    {
-        return false;
-    }
-
-    @Override
-    protected RootNode readInternal( Class<? extends RootNode> clazz, HttpInputMessage inputMessage )
+    protected StreamingJsonRoot<?> readInternal( Class<? extends StreamingJsonRoot<?>> clazz,
+        HttpInputMessage inputMessage )
+        throws IOException,
+        HttpMessageNotReadableException
     {
         return null;
     }
 
     @Override
-    protected void writeInternal( RootNode rootNode, HttpOutputMessage outputMessage )
+    protected void writeInternal( @Nonnull StreamingJsonRoot<?> jsonRoot, HttpOutputMessage outputMessage )
         throws IOException,
         HttpMessageNotWritableException
     {
+        ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
+
         final String contentDisposition = outputMessage.getHeaders()
             .getFirst( ContextUtils.HEADER_CONTENT_DISPOSITION );
         final boolean attachment = isAttachment( contentDisposition );
@@ -117,7 +122,7 @@ public abstract class AbstractRootNodeMessageConverter extends AbstractHttpMessa
             }
 
             GZIPOutputStream outputStream = new GZIPOutputStream( outputMessage.getBody() );
-            nodeService.serialize( rootNode, contentType, outputStream );
+            writeJsonRoot( jsonMapper, jsonRoot, outputStream );
             outputStream.close();
         }
         else if ( Compression.ZIP == compression )
@@ -130,8 +135,8 @@ public abstract class AbstractRootNodeMessageConverter extends AbstractHttpMessa
             }
 
             ZipOutputStream outputStream = new ZipOutputStream( outputMessage.getBody() );
-            outputStream.putNextEntry( new ZipEntry( "metadata." + fileExtension ) );
-            nodeService.serialize( rootNode, contentType, outputStream );
+            outputStream.putNextEntry( new ZipEntry( "metadata.json" ) );
+            writeJsonRoot( jsonMapper, jsonRoot, outputStream );
             outputStream.close();
         }
         else
@@ -142,8 +147,29 @@ public abstract class AbstractRootNodeMessageConverter extends AbstractHttpMessa
                     getContentDispositionHeaderValue( extensibleAttachmentFilename, null ) );
             }
 
-            nodeService.serialize( rootNode, contentType, outputMessage.getBody() );
+            writeJsonRoot( jsonMapper, jsonRoot, outputMessage.getBody() );
             outputMessage.getBody().close();
+        }
+    }
+
+    private void writeJsonRoot( ObjectMapper jsonMapper, StreamingJsonRoot<?> jsonRoot, OutputStream outputStream )
+        throws IOException
+    {
+        try ( JsonGenerator generator = jsonMapper.getFactory().createGenerator( outputStream ) )
+        {
+            if ( jsonRoot.getPager() == null && jsonRoot.getWrapperName() == null )
+            {
+                fieldFilterService.toObjectNodesStream( jsonRoot.getParams(), generator );
+            }
+            else
+            {
+                generator.writeStartObject();
+                generator.writeObjectField( "pager", jsonRoot.getPager() );
+                generator.writeArrayFieldStart( jsonRoot.getWrapperName() );
+                fieldFilterService.toObjectNodesStream( jsonRoot.getParams(), generator );
+                generator.writeEndArray();
+                generator.writeEndObject();
+            }
         }
     }
 }

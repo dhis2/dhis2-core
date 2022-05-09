@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.tracker.preheat.supplier;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -36,17 +35,16 @@ import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.mappers.CategoryOptionComboMapper;
 import org.springframework.stereotype.Component;
@@ -73,9 +71,8 @@ public class EventCategoryOptionComboSupplier extends AbstractPreheatSupplier
     {
 
         List<Pair<CategoryCombo, Set<CategoryOption>>> events = params.getEvents().stream()
-            .filter( e -> e.getAttributeOptionCombo().isBlank()
-                && !StringUtils.isBlank( e.getAttributeCategoryOptions() ) )
-            .map( e -> Pair.of( resolveProgram( preheat, e ), parseCategoryOptionIds( e ) ) )
+            .filter( e -> e.getAttributeOptionCombo().isBlank() && !e.getAttributeCategoryOptions().isEmpty() )
+            .map( e -> Pair.of( resolveProgram( preheat, e ), e.getAttributeCategoryOptions() ) )
             .filter( p -> p.getLeft() != null )
             .filter( p -> hasOnlyExistingCategoryOptions( preheat, p.getRight() ) )
             .map( p -> Pair.of( p.getLeft().getCategoryCombo(), toCategoryOptions( preheat, p.getRight() ) ) )
@@ -113,7 +110,7 @@ public class EventCategoryOptionComboSupplier extends AbstractPreheatSupplier
         {
             return null;
         }
-        ProgramStage programStage = preheat.get( ProgramStage.class, e.getProgramStage() );
+        ProgramStage programStage = preheat.getProgramStage( e.getProgramStage() );
         if ( programStage == null || programStage.getProgram() == null )
         {
             // TODO remove check for programStage.getProgram() == null once
@@ -138,9 +135,9 @@ public class EventCategoryOptionComboSupplier extends AbstractPreheatSupplier
         return programStage.getProgram();
     }
 
-    private boolean hasOnlyExistingCategoryOptions( TrackerPreheat preheat, Set<String> ids )
+    private boolean hasOnlyExistingCategoryOptions( TrackerPreheat preheat, Set<MetadataIdentifier> ids )
     {
-        for ( String id : ids )
+        for ( MetadataIdentifier id : ids )
         {
             if ( preheat.getCategoryOption( id ) == null )
             {
@@ -150,24 +147,13 @@ public class EventCategoryOptionComboSupplier extends AbstractPreheatSupplier
         return true;
     }
 
-    private Set<CategoryOption> toCategoryOptions( TrackerPreheat preheat, Set<String> ids )
+    private Set<CategoryOption> toCategoryOptions( TrackerPreheat preheat, Set<MetadataIdentifier> ids )
     {
         Set<CategoryOption> categoryOptions = new HashSet<>();
-        for ( String id : ids )
+        for ( MetadataIdentifier id : ids )
         {
             categoryOptions.add( preheat.getCategoryOption( id ) );
         }
         return categoryOptions;
-    }
-
-    private Set<String> parseCategoryOptionIds( Event event )
-    {
-        String cos = StringUtils.strip( event.getAttributeCategoryOptions() );
-        if ( StringUtils.isBlank( cos ) )
-        {
-            return Collections.emptySet();
-        }
-
-        return TextUtils.splitToSet( cos, TextUtils.SEMICOLON );
     }
 }

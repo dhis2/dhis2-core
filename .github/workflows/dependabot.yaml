@@ -15,19 +15,12 @@ jobs:
       - name: Fetch metadata on dependabot PR
         id: metadata
         uses: dependabot/fetch-metadata@v1.3.1
-      # dhis2-core requires 2 reviewers
       - name: Approve dependabot PR using GitHub actions bot
         if: ${{ steps.metadata.outputs.update-type == 'version-update:semver-patch'}}
         run: gh pr review --approve "$PR_URL"
         env:
           PR_URL: ${{github.event.pull_request.html_url}}
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-      - name: Approve dependabot PR using DHIS2 bot
-        if: ${{ steps.metadata.outputs.update-type == 'version-update:semver-patch'}}
-        run: gh pr review --approve "$PR_URL"
-        env:
-          PR_URL: ${{github.event.pull_request.html_url}}
-          GITHUB_TOKEN: ${{secrets.DHIS2_GITHUB_BOT_PASSWORD}}
       - name: Enable auto-merge for dependabot PR
         if: ${{ steps.metadata.outputs.update-type == 'version-update:semver-patch'}}
         run: gh pr merge --auto --squash "$PR_URL"

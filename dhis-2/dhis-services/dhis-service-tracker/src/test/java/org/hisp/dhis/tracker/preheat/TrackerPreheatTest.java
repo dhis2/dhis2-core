@@ -38,7 +38,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -84,7 +83,7 @@ class TrackerPreheatTest extends DhisConvenienceTest
     }
 
     @Test
-    void testPreheatCategoryOptionComboUsingSet()
+    void testPreheatCategoryOptionCombo()
     {
 
         CategoryCombo categoryCombo = categoryCombo();
@@ -99,66 +98,20 @@ class TrackerPreheatTest extends DhisConvenienceTest
         preheat.setIdSchemes( identifierParams );
 
         assertFalse( preheat.containsCategoryOptionCombo( categoryCombo, options ) );
+        Set<MetadataIdentifier> optionIds = categoryOptionIds( identifierParams, options );
+        assertEquals( MetadataIdentifier.EMPTY_CODE,
+            preheat.getCategoryOptionComboIdentifier( categoryCombo, optionIds ) );
         assertNull( preheat.getCategoryOptionCombo( categoryCombo, options ) );
         assertNull( preheat.getCategoryOptionCombo( "ABC" ) );
 
         preheat.putCategoryOptionCombo( categoryCombo, options, aoc );
 
         assertTrue( preheat.containsCategoryOptionCombo( categoryCombo, options ) );
+        assertEquals( identifierParams.toMetadataIdentifier( aoc ),
+            preheat.getCategoryOptionComboIdentifier( categoryCombo, optionIds ) );
         assertEquals( aoc, preheat.getCategoryOptionCombo( categoryCombo, options ) );
         assertEquals( aoc, preheat.getCategoryOptionCombo( "ABC" ),
             "option combo should also be stored in the preheat map" );
-    }
-
-    @Test
-    void testPreheatCategoryOptionComboUsingString()
-    {
-
-        CategoryCombo categoryCombo = categoryCombo();
-        CategoryOptionCombo aoc = firstCategoryOptionCombo( categoryCombo );
-        Set<CategoryOption> options = aoc.getCategoryOptions();
-
-        TrackerPreheat preheat = new TrackerPreheat();
-        TrackerIdSchemeParams identifiers = new TrackerIdSchemeParams();
-        preheat.setIdSchemes( identifiers );
-
-        String optionsString = concatCategoryOptions( identifiers.getCategoryOptionComboIdScheme(), options );
-        assertFalse( preheat.containsCategoryOptionCombo( categoryCombo, options ) );
-        assertEquals( MetadataIdentifier.ofUid( null ),
-            preheat.getCategoryOptionComboIdentifier( categoryCombo, optionsString ) );
-        assertNull( preheat.getCategoryOptionCombo( aoc.getUid() ) );
-
-        preheat.putCategoryOptionCombo( categoryCombo, options, aoc );
-
-        assertTrue( preheat.containsCategoryOptionCombo( categoryCombo, options ) );
-        assertEquals( identifiers.toMetadataIdentifier( aoc ),
-            preheat.getCategoryOptionComboIdentifier( categoryCombo, optionsString ) );
-        assertEquals( aoc, preheat.getCategoryOptionCombo( aoc.getUid() ),
-            "option combo should also be stored in the preheat map" );
-    }
-
-    @Test
-    void testPreheatCategoryOptionComboUsingStringIsOrderIndependent()
-    {
-
-        CategoryCombo categoryCombo = categoryCombo();
-        CategoryOptionCombo aoc = firstCategoryOptionCombo( categoryCombo );
-        Set<CategoryOption> options = aoc.getCategoryOptions();
-        assertEquals( 2, aoc.getCategoryOptions().size() );
-        Iterator<CategoryOption> it = aoc.getCategoryOptions().iterator();
-        CategoryOption option1 = it.next();
-        CategoryOption option2 = it.next();
-
-        TrackerPreheat preheat = new TrackerPreheat();
-        TrackerIdSchemeParams identifiers = new TrackerIdSchemeParams();
-        preheat.setIdSchemes( identifiers );
-
-        preheat.putCategoryOptionCombo( categoryCombo, options, aoc );
-
-        assertEquals( identifiers.toMetadataIdentifier( aoc ),
-            preheat.getCategoryOptionComboIdentifier( categoryCombo, option1.getUid() + ";" + option2.getUid() ) );
-        assertEquals( identifiers.toMetadataIdentifier( aoc ),
-            preheat.getCategoryOptionComboIdentifier( categoryCombo, option2.getUid() + ";" + option1.getUid() ) );
     }
 
     @Test
@@ -176,10 +129,10 @@ class TrackerPreheatTest extends DhisConvenienceTest
         preheat.putCategoryOptionCombo( categoryCombo, options, null );
 
         assertTrue( preheat.containsCategoryOptionCombo( categoryCombo, options ) );
-        String optionsString = concatCategoryOptions( identifiers.getCategoryOptionComboIdScheme(), options );
+        Set<MetadataIdentifier> optionIds = categoryOptionIds( identifiers, options );
+        assertEquals( MetadataIdentifier.EMPTY_UID,
+            preheat.getCategoryOptionComboIdentifier( categoryCombo, optionIds ) );
         assertNull( preheat.getCategoryOptionCombo( categoryCombo, options ) );
-        assertEquals( MetadataIdentifier.ofUid( null ),
-            preheat.getCategoryOptionComboIdentifier( categoryCombo, optionsString ) );
         assertNull( preheat.getCategoryOptionCombo( aoc.getUid() ),
             "option combo should not be added to preheat map if null" );
     }
@@ -521,11 +474,11 @@ class TrackerPreheatTest extends DhisConvenienceTest
         assertThat( reference4.get().getParentUid(), is( allPs.get( 1 ).getUid() ) );
     }
 
-    private String concatCategoryOptions( TrackerIdSchemeParam idSchemeParam, Set<CategoryOption> options )
+    private Set<MetadataIdentifier> categoryOptionIds( TrackerIdSchemeParams params, Set<CategoryOption> options )
     {
         return options.stream()
-            .map( idSchemeParam::getIdentifier )
-            .collect( Collectors.joining( ";" ) );
+            .map( params::toMetadataIdentifier )
+            .collect( Collectors.toSet() );
     }
 
     private CategoryCombo categoryCombo()
