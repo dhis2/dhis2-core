@@ -25,31 +25,51 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.importer;
+package org.hisp.dhis.utils;
 
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.Delegate;
+import java.util.List;
 
-import org.hisp.dhis.artemis.config.UsernameSupplier;
-import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserRole;
 
-@RequiredArgsConstructor
-@Component
-public class EventImporterUserService
+import com.google.common.collect.Lists;
+
+public class UserTestUtils
 {
+    protected static final String BASE_USER_UID = "userabcdef";
 
-    @NonNull
-    @Delegate
-    private final CurrentUserService currentUserService;
-
-    @NonNull
-    private final UsernameSupplier usernameSupplier;
-
-    public String getAuditUsername()
+    public static User makeUser( String uniqueCharacter )
     {
-        return usernameSupplier.get();
+        return makeUser( uniqueCharacter, Lists.newArrayList() );
+    }
+
+    public static User makeUser( String uniqueCharacter, List<String> auths )
+    {
+        User user = new User();
+        user.setUid( BASE_USER_UID + uniqueCharacter );
+
+        user.setCreatedBy( user );
+
+        user.setUsername( ("username" + uniqueCharacter).toLowerCase() );
+        user.setPassword( "password" + uniqueCharacter );
+
+        if ( auths != null && !auths.isEmpty() )
+        {
+            UserRole role = new UserRole();
+            role.setName( "Role_" + CodeGenerator.generateCode( 5 ) );
+            auths.forEach( auth -> role.getAuthorities().add( auth ) );
+            user.getUserRoles().add( role );
+        }
+
+        user.setFirstName( "FirstName" + uniqueCharacter );
+        user.setSurname( "Surname" + uniqueCharacter );
+        user.setEmail( ("Email" + uniqueCharacter).toLowerCase() );
+        user.setPhoneNumber( "PhoneNumber" + uniqueCharacter );
+        user.setCode( "UserCode" + uniqueCharacter );
+        user.setAutoFields();
+
+        return user;
     }
 
 }

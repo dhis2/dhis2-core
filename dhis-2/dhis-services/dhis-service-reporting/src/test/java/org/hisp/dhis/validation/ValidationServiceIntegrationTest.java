@@ -41,7 +41,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.expression.Expression;
-import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
@@ -49,8 +48,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.scheduling.NoopJobProgress;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.CurrentUserServiceTarget;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -115,9 +113,7 @@ class ValidationServiceIntegrationTest extends IntegrationTestBase
     public void setUpTest()
     {
         this.userService = injectUserService;
-        CurrentUserService currentUserService = new MockCurrentUserService( Sets.newHashSet( orgUnitA ), null );
-        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
-            currentUserService, validationService );
+
         periodTypeMonthly = new MonthlyPeriodType();
         dataElementA = createDataElement( 'A' );
         dataElementService.addDataElement( dataElementA );
@@ -126,6 +122,9 @@ class ValidationServiceIntegrationTest extends IntegrationTestBase
         orgUnitA = createOrganisationUnit( 'A' );
         organisationUnitService.addOrganisationUnit( orgUnitA );
         defaultCombo = categoryService.getDefaultCategoryOptionCombo();
+
+        User user = createAndAddUser( true, "SUPERUSER", Sets.newHashSet( orgUnitA ), null );
+        injectSecurityContext( user );
     }
 
     // -------------------------------------------------------------------------

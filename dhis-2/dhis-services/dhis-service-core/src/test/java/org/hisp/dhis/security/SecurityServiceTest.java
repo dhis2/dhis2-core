@@ -70,14 +70,14 @@ class SecurityServiceTest extends DhisSpringTest
         user.setUsername( "johndoe" );
         user.setPassword( "" );
         user.setAutoFields();
-        User userA = createUser( 'A' );
+        User userA = makeUser( "A" );
         userA.setEmail( "validA@email.com" );
 
         userService.addUser( user );
         otherUser = new User();
         otherUser.setUsername( "janesmith" );
         otherUser.setPassword( "" );
-        User userB = createUser( 'B' );
+        User userB = makeUser( "B" );
         userB.setEmail( "validB@email.com" );
         userService.addUser( otherUser );
     }

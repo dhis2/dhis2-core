@@ -106,7 +106,7 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest
     {
         converter = new EventTrackerConverterService( notesConverterService );
         dataElement = createDataElement( 'D' );
-        user = createUser( 'U' );
+        user = makeUser( "U" );
         programStage = createProgramStage( 'A', 1 );
         programStage.setUid( PROGRAM_STAGE_UID );
         programStage.setProgram( program );

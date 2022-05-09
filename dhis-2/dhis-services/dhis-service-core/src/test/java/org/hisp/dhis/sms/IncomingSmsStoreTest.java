@@ -67,7 +67,7 @@ class IncomingSmsStoreTest extends DhisSpringTest
     public void setUpTest()
     {
         this.userService = _userService;
-        user = createUser( 'A' );
+        user = makeUser( "A" );
         userService.addUser( user );
     }
 

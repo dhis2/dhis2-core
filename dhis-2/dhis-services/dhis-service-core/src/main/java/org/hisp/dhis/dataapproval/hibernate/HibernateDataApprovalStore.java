@@ -66,6 +66,7 @@ import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodStore;
@@ -114,11 +115,13 @@ public class HibernateDataApprovalStore
 
     private final StatementBuilder statementBuilder;
 
+    private final OrganisationUnitService organisationUnitService;
+
     public HibernateDataApprovalStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CacheProvider cacheProvider, PeriodService periodService,
         PeriodStore periodStore, CurrentUserService currentUserService, CategoryService categoryService,
         SystemSettingManager systemSettingManager,
-        StatementBuilder statementBuilder )
+        StatementBuilder statementBuilder, OrganisationUnitService organisationUnitService )
     {
         super( sessionFactory, jdbcTemplate, publisher, DataApproval.class, false );
 
@@ -129,6 +132,7 @@ public class HibernateDataApprovalStore
         checkNotNull( categoryService );
         checkNotNull( systemSettingManager );
         checkNotNull( statementBuilder );
+        checkNotNull( organisationUnitService );
 
         this.periodService = periodService;
         this.periodStore = periodStore;
@@ -137,6 +141,7 @@ public class HibernateDataApprovalStore
         this.systemSettingManager = systemSettingManager;
         this.statementBuilder = statementBuilder;
         this.isApprovedCache = cacheProvider.createIsDataApprovedCache();
+        this.organisationUnitService = organisationUnitService;
     }
 
     @Override
@@ -319,7 +324,7 @@ public class HibernateDataApprovalStore
         {
             for ( OrganisationUnit orgUnit : orgUnits )
             {
-                if ( !orgUnit.isDescendant( userOrgUnits ) )
+                if ( !organisationUnitService.isDescendant( orgUnit, userOrgUnits ) )
                 {
                     log.debug( "User " + user.getUsername() + " can't see orgUnit " + orgUnit.getName() );
 

@@ -445,8 +445,8 @@ class DataApprovalServiceTest extends IntegrationTestBase
         dataSetService.addDataSet( dataSetG );
         dataSetService.addDataSet( dataSetI );
         dataSetService.addDataSet( dataSetJ );
-        userA = createUser( 'A' );
-        userB = createUser( 'B' );
+        userA = makeUser( "A" );
+        userB = makeUser( "B" );
         userService.addUser( userA );
         userService.addUser( userB );
     }
@@ -622,10 +622,12 @@ class DataApprovalServiceTest extends IntegrationTestBase
     @Test
     void testLastUpdatedBy()
     {
-        User approveUserA = createUser( "approveA", DataApproval.AUTH_APPROVE, DataApproval.AUTH_APPROVE_LOWER_LEVELS );
+        User approveUserA = createUserWithAuth( "approveA", DataApproval.AUTH_APPROVE,
+            DataApproval.AUTH_APPROVE_LOWER_LEVELS );
         approveUserA.setOrganisationUnits( singleton( organisationUnitA ) );
         userService.updateUser( approveUserA );
-        User approveUserB = createUser( "approveB", DataApproval.AUTH_APPROVE, DataApproval.AUTH_APPROVE_LOWER_LEVELS );
+        User approveUserB = createUserWithAuth( "approveB", DataApproval.AUTH_APPROVE,
+            DataApproval.AUTH_APPROVE_LOWER_LEVELS );
         approveUserB.setOrganisationUnits( singleton( organisationUnitA ) );
         userService.updateUser( approveUserB );
         injectSecurityContext( approveUserA );

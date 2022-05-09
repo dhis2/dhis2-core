@@ -109,10 +109,10 @@ class DashboardCascadeSharingTest extends CascadeSharingTest
         userService = _userService;
         userGroupA = createUserGroup( 'A', Collections.EMPTY_SET );
         objectManager.save( userGroupA );
-        userA = createUser( 'A' );
+        userA = makeUser( "A" );
         userA.getGroups().add( userGroupA );
         userService.addUser( userA );
-        userB = createUser( 'B' );
+        userB = makeUser( "B" );
         userService.addUser( userB );
         sharingReadForUserA = new Sharing( DEFAULT, new UserAccess( userA, READ ) );
         sharingReadWriteForUserB = new Sharing( DEFAULT, new UserAccess( userB, READ_WRITE ) );

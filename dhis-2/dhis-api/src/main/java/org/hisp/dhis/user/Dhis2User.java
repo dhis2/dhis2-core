@@ -25,31 +25,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.importer;
+package org.hisp.dhis.user;
 
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.Delegate;
-
-import org.hisp.dhis.artemis.config.UsernameSupplier;
-import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.stereotype.Component;
-
-@RequiredArgsConstructor
-@Component
-public class EventImporterUserService
+public interface Dhis2User
 {
+    String getUsername();
 
-    @NonNull
-    @Delegate
-    private final CurrentUserService currentUserService;
-
-    @NonNull
-    private final UsernameSupplier usernameSupplier;
-
-    public String getAuditUsername()
-    {
-        return usernameSupplier.get();
-    }
-
+    User getDhis2User();
 }

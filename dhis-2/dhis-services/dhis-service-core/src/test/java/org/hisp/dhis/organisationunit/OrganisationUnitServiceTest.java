@@ -177,7 +177,7 @@ class OrganisationUnitServiceTest extends DhisSpringTest
     {
         OrganisationUnit organisationUnit1 = createOrganisationUnit( 'A' );
         Program program = createProgram( 'A' );
-        User user = createUser( 'A' );
+        User user = makeUser( "A" );
         DataSet dataSet = createDataSet( 'A' );
         long id1 = organisationUnitService.addOrganisationUnit( organisationUnit1 );
         long programId = programService.addProgram( program );
@@ -511,12 +511,12 @@ class OrganisationUnitServiceTest extends DhisSpringTest
         organisationUnitService.addOrganisationUnit( unit3 );
         OrganisationUnit unit4 = createOrganisationUnit( '4' );
         organisationUnitService.addOrganisationUnit( unit4 );
-        assertTrue( unit1.isDescendant( Sets.newHashSet( unit1 ) ) );
-        assertTrue( unit2.isDescendant( Sets.newHashSet( unit1 ) ) );
-        assertTrue( unit3.isDescendant( Sets.newHashSet( unit1 ) ) );
-        assertTrue( unit2.isDescendant( Sets.newHashSet( unit1, unit3 ) ) );
-        assertFalse( unit2.isDescendant( Sets.newHashSet( unit3 ) ) );
-        assertFalse( unit4.isDescendant( Sets.newHashSet( unit1 ) ) );
+        assertTrue( organisationUnitService.isDescendant( unit1, Sets.newHashSet( unit1 ) ) );
+        assertTrue( organisationUnitService.isDescendant( unit2, Sets.newHashSet( unit1 ) ) );
+        assertTrue( organisationUnitService.isDescendant( unit3, Sets.newHashSet( unit1 ) ) );
+        assertTrue( organisationUnitService.isDescendant( unit2, Sets.newHashSet( unit1, unit3 ) ) );
+        assertFalse( organisationUnitService.isDescendant( unit2, Sets.newHashSet( unit3 ) ) );
+        assertFalse( organisationUnitService.isDescendant( unit4, Sets.newHashSet( unit1 ) ) );
     }
 
     @Test
@@ -532,11 +532,11 @@ class OrganisationUnitServiceTest extends DhisSpringTest
         organisationUnitService.addOrganisationUnit( unit3 );
         OrganisationUnit unit4 = createOrganisationUnit( '4' );
         organisationUnitService.addOrganisationUnit( unit4 );
-        assertTrue( unit1.isDescendant( unit1 ) );
-        assertTrue( unit2.isDescendant( unit1 ) );
-        assertTrue( unit3.isDescendant( unit1 ) );
-        assertFalse( unit2.isDescendant( unit3 ) );
-        assertFalse( unit4.isDescendant( unit1 ) );
+        assertTrue( organisationUnitService.isDescendant( unit1, unit1 ) );
+        assertTrue( organisationUnitService.isDescendant( unit2, unit1 ) );
+        assertTrue( organisationUnitService.isDescendant( unit3, unit1 ) );
+        assertFalse( organisationUnitService.isDescendant( unit2, unit3 ) );
+        assertFalse( organisationUnitService.isDescendant( unit4, unit1 ) );
     }
 
     @Test
@@ -898,7 +898,7 @@ class OrganisationUnitServiceTest extends DhisSpringTest
         organisationUnitService.addOrganisationUnit( ouE );
         organisationUnitService.addOrganisationUnit( ouF );
         organisationUnitService.addOrganisationUnit( ouG );
-        User user = createUser( 'A' );
+        User user = makeUser( "A" );
         Set<OrganisationUnit> organisationUnits = Sets.newHashSet( ouB );
         user.setOrganisationUnits( organisationUnits );
         assertTrue( organisationUnitService.isInUserHierarchy( ouB.getUid(), organisationUnits ) );

@@ -43,6 +43,8 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.time.DateUtils;
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.attribute.Attribute;
@@ -75,7 +77,6 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.jdbc.batchhandler.DataValueAuditBatchHandler;
 import org.hisp.dhis.jdbc.batchhandler.DataValueBatchHandler;
-import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.mock.batchhandler.MockBatchHandler;
 import org.hisp.dhis.mock.batchhandler.MockBatchHandlerFactory;
 import org.hisp.dhis.option.Option;
@@ -88,8 +89,6 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
@@ -102,6 +101,8 @@ import com.google.common.collect.Sets;
 /**
  * @author Lars Helge Overland
  */
+
+@Slf4j
 class DataValueSetServiceTest extends TransactionalIntegrationTest
 {
 
@@ -192,6 +193,8 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
 
     private User user;
 
+    private User superUser;
+
     private InputStream in;
 
     private MockBatchHandler<DataValue> mockDataValueBatchHandler = null;
@@ -203,8 +206,11 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
     @Override
     public void setUpTest()
     {
-        CategoryOptionCombo categoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
         userService = _userService;
+        superUser = preCreateInjectAdminUser();
+        injectSecurityContext( superUser );
+
+        CategoryOptionCombo categoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
         mockDataValueBatchHandler = new MockBatchHandler<>();
         mockDataValueAuditBatchHandler = new MockBatchHandler<>();
         mockBatchHandlerFactory = new MockBatchHandlerFactory();
@@ -314,17 +320,17 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
         periodService.addPeriod( peB );
         periodService.addPeriod( peC );
         dataSetService.addDataSet( dsA );
-        user = createUser( 'A', Lists.newArrayList( Authorities.F_SKIP_DATA_IMPORT_AUDIT.getAuthority() ) );
-        user.setOrganisationUnits( Sets.newHashSet( ouA, ouB ) );
-        userService.addUser( user );
-        injectSecurityContext( user );
-        CurrentUserService currentUserService = new MockCurrentUserService( user );
-        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
-            currentUserService, dataValueSetService );
+
+        user = createAndAddUser( false, "A", null, Authorities.F_SKIP_DATA_IMPORT_AUDIT.getAuthority() );
+        user.addOrganisationUnits( Sets.newHashSet( ouA, ouB ) );
+        userService.updateUser( user );
+
         enableDataSharing( user, dsA, AccessStringHelper.DATA_READ_WRITE );
         enableDataSharing( user, categoryOptionA, AccessStringHelper.DATA_READ_WRITE );
         enableDataSharing( user, categoryOptionB, AccessStringHelper.DATA_READ_WRITE );
-        _userService.addUser( user );
+        userService.updateUser( user );
+        injectSecurityContext( user );
+
         CompleteDataSetRegistration completeDataSetRegistration = new CompleteDataSetRegistration( dsA, peA, ouA,
             categoryOptionCombo, getDate( 2012, 1, 9 ), "userA", new Date(), "userA", true );
         registrationService.saveCompleteDataSetRegistration( completeDataSetRegistration );
@@ -813,11 +819,13 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
     void testImportDataValuesInvalidAttributeOptionComboDates()
         throws Exception
     {
-        clearSecurityContext();
-
+        injectSecurityContext( superUser );
         categoryOptionA.setStartDate( peB.getStartDate() );
         categoryOptionA.setEndDate( peB.getEndDate() );
         categoryService.updateCategoryOption( categoryOptionA );
+
+        injectSecurityContext( user );
+
         in = new ClassPathResource( "datavalueset/dataValueSetH.xml" ).getInputStream();
         ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
         assertEquals( 2, summary.getConflictCount(), summary.getConflictsDescription() );
@@ -836,10 +844,12 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
     void testImportDataValuesInvalidAttributeOptionComboOrgUnit()
         throws Exception
     {
-        clearSecurityContext();
-
+        injectSecurityContext( superUser );
         categoryOptionA.setOrganisationUnits( Sets.newHashSet( ouA, ouB ) );
         categoryService.updateCategoryOption( categoryOptionA );
+
+        injectSecurityContext( user );
+
         in = new ClassPathResource( "datavalueset/dataValueSetH.xml" ).getInputStream();
         ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
         assertEquals( 1, summary.getConflictCount(), summary.getConflictsDescription() );
@@ -939,8 +949,7 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
     @Test
     void testImportDataValuesWithDataSetAllowsPeriods()
     {
-        clearSecurityContext();
-
+        injectSecurityContext( superUser );
         Date thisMonth = DateUtils.truncate( new Date(), Calendar.MONTH );
         dsA.setExpiryDays( 62 );
         dsA.setOpenFuturePeriods( 2 );
@@ -961,6 +970,8 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
             + "  <dataValue dataElement=\"DE_D\" period=\"" + tooLate.getIsoDate() + "\" value=\"10004\" />\n"
             + "  <dataValue dataElement=\"DE_D\" period=\"" + outOfRange.getIsoDate() + "\" value=\"10005\" />\n"
             + "</dataValueSet>\n";
+
+        injectSecurityContext( user );
         in = new ByteArrayInputStream( importData.getBytes( StandardCharsets.UTF_8 ) );
         ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
         assertEquals( 3, summary.getConflictCount(), summary.getConflictsDescription() );
@@ -1007,10 +1018,12 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
     void testImportValueDefaultCatComboOk()
         throws IOException
     {
-        clearSecurityContext();
-
+        injectSecurityContext( superUser );
         enableDataSharing( user, dsA, AccessStringHelper.DATA_READ_WRITE );
         dataSetService.updateDataSet( dsA );
+
+        injectSecurityContext( user );
+
         in = new ClassPathResource( "datavalueset/dataValueSetA.xml" ).getInputStream();
         ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
         assertNotNull( summary );

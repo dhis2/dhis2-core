@@ -49,7 +49,6 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PrimaryKeyObject;
-import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -427,41 +426,30 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     {
         if ( !"translations".equals( pvProperty ) )
         {
-            setUserContext( currentUser, translateParams );
+            setTranslationParams( translateParams );
         }
-        else
+
+        if ( !aclService.canRead( currentUser, getEntityClass() ) )
         {
-            setUserContext( null, new TranslateParams( false ) );
+            throw new ReadAccessDeniedException(
+                "You don't have the proper permissions to read objects of this type." );
         }
 
-        try
+        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
+
+        if ( fields.isEmpty() )
         {
-            if ( !aclService.canRead( currentUser, getEntityClass() ) )
-            {
-                throw new ReadAccessDeniedException(
-                    "You don't have the proper permissions to read objects of this type." );
-            }
-
-            List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
-
-            if ( fields.isEmpty() )
-            {
-                fields.add( ":all" );
-            }
-
-            String fieldFilter = "[" + Joiner.on( ',' ).join( fields ) + "]";
-
-            cachePrivate( response );
-
-            ObjectNode objectNode = getObjectInternal( pvUid, rpParameters, Lists.newArrayList(),
-                Lists.newArrayList( pvProperty + fieldFilter ), currentUser );
-
-            return ResponseEntity.ok( objectNode );
+            fields.add( ":all" );
         }
-        finally
-        {
-            UserContext.reset();
-        }
+
+        String fieldFilter = "[" + Joiner.on( ',' ).join( fields ) + "]";
+
+        cachePrivate( response );
+
+        ObjectNode objectNode = getObjectInternal( pvUid, rpParameters, Lists.newArrayList(),
+            Lists.newArrayList( pvProperty + fieldFilter ), currentUser );
+
+        return ResponseEntity.ok( objectNode );
     }
 
     @SuppressWarnings( "unchecked" )
@@ -627,16 +615,10 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     // Helpers
     // --------------------------------------------------------------------------
 
-    protected final void setUserContext( TranslateParams translateParams )
-    {
-        setUserContext( currentUserService.getCurrentUser(), translateParams );
-    }
-
-    protected final void setUserContext( User user, TranslateParams translateParams )
+    protected final void setTranslationParams( TranslateParams translateParams )
     {
         Locale dbLocale = getLocaleWithDefault( translateParams );
-        UserContext.setUser( user );
-        UserContext.setUserSetting( UserSettingKey.DB_LOCALE, dbLocale );
+        currentUserService.setUserSetting( UserSettingKey.DB_LOCALE, dbLocale );
     }
 
     private Locale getLocaleWithDefault( TranslateParams translateParams )

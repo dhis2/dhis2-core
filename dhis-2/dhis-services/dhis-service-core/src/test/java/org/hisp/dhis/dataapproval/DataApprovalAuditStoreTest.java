@@ -41,7 +41,6 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
@@ -49,7 +48,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
@@ -79,7 +77,7 @@ class DataApprovalAuditStoreTest extends DhisSpringTest
     private CategoryService categoryService;
 
     @Autowired
-    private UserService userService;
+    private UserService _userService;
 
     @Autowired
     private CurrentUserService currentUserService;
@@ -135,8 +133,8 @@ class DataApprovalAuditStoreTest extends DhisSpringTest
     public void setUpTest()
         throws Exception
     {
-        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
-            currentUserService, dataApprovalAuditStore );
+        userService = _userService;
+        preCreateInjectAdminUser();
         // ---------------------------------------------------------------------
         // Add supporting data
         // ---------------------------------------------------------------------
@@ -157,7 +155,7 @@ class DataApprovalAuditStoreTest extends DhisSpringTest
         sourceB = createOrganisationUnit( 'B', sourceA );
         organisationUnitService.addOrganisationUnit( sourceA );
         organisationUnitService.addOrganisationUnit( sourceB );
-        userA = createUser( 'A' );
+        userA = makeUser( "A" );
         userService.addUser( userA );
         optionA = new CategoryOption( "CategoryOptionA" );
         optionB = new CategoryOption( "CategoryOptionB" );
@@ -261,9 +259,10 @@ class DataApprovalAuditStoreTest extends DhisSpringTest
         audits = dataApprovalAuditStore.getDataApprovalAudits( params );
         assertEquals( 1, audits.size() );
         assertEquals( auditA, audits.get( 0 ) );
-        CurrentUserService mockUserService = new MockCurrentUserService( Sets.newHashSet( sourceB ), null );
-        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService, mockUserService,
-            dataApprovalAuditStore );
+
+        User userB = createAndAddUser( newHashSet( sourceB ), null );
+        injectSecurityContext( userB );
+
         params = new DataApprovalAuditQueryParams();
         audits = dataApprovalAuditStore.getDataApprovalAudits( params );
         assertEquals( 1, audits.size() );

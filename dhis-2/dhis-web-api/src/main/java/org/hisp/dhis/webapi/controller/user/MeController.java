@@ -177,7 +177,7 @@ public class MeController
         Map<String, Serializable> userSettings = userSettingService.getUserSettingsWithFallbackByUserAsMap(
             user, USER_SETTING_KEYS, true );
 
-        List<String> programs = programService.getUserPrograms().stream().map( BaseIdentifiableObject::getUid )
+        List<String> programs = programService.getCurrentUserPrograms().stream().map( BaseIdentifiableObject::getUid )
             .collect( Collectors.toList() );
 
         List<String> dataSets = dataSetService.getUserDataRead( user ).stream().map( BaseIdentifiableObject::getUid )

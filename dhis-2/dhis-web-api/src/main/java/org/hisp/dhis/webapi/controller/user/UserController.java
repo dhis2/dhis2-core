@@ -62,6 +62,7 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.commons.collection.CollectionUtils;
+import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
@@ -135,6 +136,9 @@ public class UserController
     private static final String KEY_USERNAME = "username";
 
     private static final String KEY_PASSWORD = "password";
+
+    @Autowired
+    protected DbmsManager dbmsManager;
 
     @Autowired
     private UserService userService;
@@ -572,6 +576,7 @@ public class UserController
 
     @PatchMapping( value = "/{uid}" )
     @ResponseStatus( value = HttpStatus.NO_CONTENT )
+    @Override
     public void partialUpdateObject(
         @PathVariable( "uid" ) String pvUid, @RequestParam Map<String, String> rpParameters,
         @CurrentUser User currentUser, HttpServletRequest request )
@@ -735,7 +740,8 @@ public class UserController
 
         // current user may have been changed and detached and must become
         // managed again
-        // TODO: what is this doing? I don't understand how this is possible.
+        // 12098, handle update to current user if needed since now it's static?
+        // Do wee still need it?
         if ( currentUser != null && currentUser.getId() == user.getId() )
         {
             currentUser = currentUserService.getCurrentUser();

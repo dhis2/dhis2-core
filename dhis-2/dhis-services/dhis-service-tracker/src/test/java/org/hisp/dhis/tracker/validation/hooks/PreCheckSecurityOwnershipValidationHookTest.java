@@ -131,7 +131,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
     @BeforeEach
     public void setUp()
     {
-        user = createUser( 'A' );
+        user = makeUser( "A" );
         when( bundle.getUser() ).thenReturn( user );
 
         organisationUnit = createOrganisationUnit( 'A' );
@@ -1115,16 +1115,16 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
 
     private User deleteTeiAuthorisedUser()
     {
-        return createUser( 'A', Lists.newArrayList( Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) );
+        return makeUser( "A", Lists.newArrayList( Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) );
     }
 
     private User deleteEnrollmentAuthorisedUser()
     {
-        return createUser( 'A', Lists.newArrayList( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() ) );
+        return makeUser( "A", Lists.newArrayList( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() ) );
     }
 
     private User changeCompletedEventAuthorisedUser()
     {
-        return createUser( 'A', Lists.newArrayList( "F_UNCOMPLETE_EVENT" ) );
+        return makeUser( "A", Lists.newArrayList( "F_UNCOMPLETE_EVENT" ) );
     }
 }

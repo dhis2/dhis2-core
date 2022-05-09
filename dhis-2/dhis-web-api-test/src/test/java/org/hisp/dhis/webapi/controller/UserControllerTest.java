@@ -73,7 +73,7 @@ class UserControllerTest extends DhisControllerConvenienceTest
     @BeforeEach
     void setUp()
     {
-        peter = createUser( "peter" );
+        peter = createUserWithAuth( "peter" );
 
         this.peter = switchToNewUser( "Peter" );
         switchToSuperuser();

@@ -31,8 +31,12 @@ import static org.hisp.dhis.webapi.WebClient.Body;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.BeforeEach;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 
 abstract class AbstractDataValueControllerTest
@@ -45,6 +49,9 @@ abstract class AbstractDataValueControllerTest
     protected String categoryComboId;
 
     protected String categoryOptionComboId;
+
+    @Autowired
+    protected CurrentUserService currentUserService;
 
     @BeforeEach
     void setUp()
@@ -64,6 +71,14 @@ abstract class AbstractDataValueControllerTest
                 "{'name':'My data element', 'shortName':'DE1', 'code':'DE1', 'valueType':'INTEGER', "
                     + "'aggregationType':'SUM', 'zeroIsSignificant':false, 'domainType':'AGGREGATE', "
                     + "'categoryCombo': {'id': '" + categoryComboId + "'}}" ) );
+
+        // Add the newly created org unit to the superuser's hierarchy
+        OrganisationUnit unit = manager.get( orgUnitId );
+        User user = userService.getUser( getSuperUser().getUid() );
+        user.addOrganisationUnit( unit );
+        userService.updateUser( user );
+
+        switchToSuperuser();
     }
 
     /**

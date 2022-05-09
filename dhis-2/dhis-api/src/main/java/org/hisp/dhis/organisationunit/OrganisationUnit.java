@@ -38,7 +38,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
 import org.geotools.geojson.geom.GeometryJSON;
@@ -77,6 +78,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Kristian Nordal
  */
+@Slf4j
 @JacksonXmlRootElement( localName = "organisationUnit", namespace = DxfNamespaces.DXF_2_0 )
 public class OrganisationUnit
     extends BaseDimensionalItemObject
@@ -410,80 +412,11 @@ public class OrganisationUnit
         return CoordinateUtils.hasDescendantsWithCoordinates( children );
     }
 
-    /**
-     * Indicates whether this organisation unit is a descendant of the given
-     * ancestor organisation unit, i.e. if the given organisation unit is an
-     * ancestor of this organisation unit.
-     *
-     * @param ancestor the organisation unit to check.
-     * @return true if the given organisation unit is an ancestor of this
-     *         organisation unit.
-     */
-    public boolean isDescendant( OrganisationUnit ancestor )
-    {
-        if ( ancestor == null )
-        {
-            return false;
-        }
-
-        OrganisationUnit unit = this;
-
-        while ( unit != null )
-        {
-            if ( ancestor.equals( unit ) )
-            {
-                return true;
-            }
-
-            unit = unit.getParent();
-        }
-
-        return false;
-    }
-
-    /**
-     * Indicates whether this organisation unit is a descendant of any of the
-     * given ancestor organisation units, i.e. if any of the given organisation
-     * units is an ancestor of this organisation unit.
-     *
-     * @param ancestors the organisation units to check.
-     * @return true if any of the given organisation unit is an ancestor of this
-     *         organisation unit.
-     */
-    public boolean isDescendant( Set<OrganisationUnit> ancestors )
-    {
-        if ( ancestors == null || ancestors.isEmpty() )
-        {
-            return false;
-        }
-
-        Set<String> ancestorsUid = ancestors.stream()
-            .map( OrganisationUnit::getUid )
-            .collect( Collectors.toSet() );
-
-        OrganisationUnit unit = this;
-
-        while ( unit != null )
-        {
-            if ( ancestorsUid.contains( unit.getUid() ) )
-            {
-                return true;
-            }
-
-            unit = unit.getParent();
-        }
-
-        return false;
-    }
-
     public boolean hasCoordinatesUp()
     {
-        if ( parent != null )
+        if ( parent != null && parent.getParent() != null )
         {
-            if ( parent.getParent() != null )
-            {
-                return parent.getParent().hasDescendantsWithCoordinates();
-            }
+            return parent.getParent().hasDescendantsWithCoordinates();
         }
 
         return false;
@@ -854,29 +787,29 @@ public class OrganisationUnit
     {
         List<String> pathList = new ArrayList<>();
         Set<String> visitedSet = new HashSet<>();
-        OrganisationUnit currentParent = parent;
+        OrganisationUnit unit = parent;
 
         pathList.add( uid );
 
-        while ( currentParent != null )
+        while ( unit != null )
         {
-            if ( !visitedSet.contains( currentParent.getUid() ) )
+            if ( !visitedSet.contains( unit.getUid() ) )
             {
-                pathList.add( currentParent.getUid() );
-                visitedSet.add( currentParent.getUid() );
-                currentParent = currentParent.getParent();
+                pathList.add( unit.getUid() );
+                visitedSet.add( unit.getUid() );
+                unit = unit.getParent();
             }
             else
             {
-                currentParent = null; // Protect against cyclic org unit graphs
+                unit = null; // Protect against cyclic org unit graphs
             }
         }
 
         Collections.reverse( pathList );
 
-        path = PATH_SEP + StringUtils.join( pathList, PATH_SEP );
+        this.path = PATH_SEP + StringUtils.join( pathList, PATH_SEP );
 
-        return path;
+        return this.path;
     }
 
     /**
@@ -1220,11 +1153,11 @@ public class OrganisationUnit
             {
                 GeometryJSON geometryJSON = new GeometryJSON();
 
-                Geometry geometry = geometryJSON.read( geometryAsJsonString );
+                Geometry geo = geometryJSON.read( geometryAsJsonString );
 
-                geometry.setSRID( 4326 );
+                geo.setSRID( 4326 );
 
-                this.geometry = geometry;
+                this.geometry = geo;
             }
             catch ( IOException e )
             {

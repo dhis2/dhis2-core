@@ -55,7 +55,6 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.sms.config.MessageSendingCallback;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -207,7 +206,7 @@ public class DefaultProgramMessageService
     @Transactional( readOnly = true )
     public List<ProgramMessage> getProgramMessages( ProgramMessageQueryParams params )
     {
-        hasAccess( params, currentUserService.getCurrentUser() );
+        currentUserHasAccess( params );
         validateQueryParameters( params );
 
         return programMessageStore.getProgramMessages( params );
@@ -272,7 +271,7 @@ public class DefaultProgramMessageService
 
     @Override
     @Transactional( readOnly = true )
-    public void hasAccess( ProgramMessageQueryParams params, User user )
+    public void currentUserHasAccess( ProgramMessageQueryParams params )
     {
         ProgramInstance programInstance = null;
 
@@ -293,9 +292,9 @@ public class DefaultProgramMessageService
             throw new IllegalQueryException( "ProgramInstance or ProgramStageInstance has to be provided" );
         }
 
-        programs = new HashSet<>( programService.getUserPrograms( user ) );
+        programs = new HashSet<>( programService.getCurrentUserPrograms() );
 
-        if ( user != null && !programs.contains( programInstance.getProgram() ) )
+        if ( currentUserService.getCurrentUser() != null && !programs.contains( programInstance.getProgram() ) )
         {
             throw new IllegalQueryException( "User does not have access to the required program" );
         }
