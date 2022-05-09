@@ -633,6 +633,11 @@ public class TrackerPreheat
         return Optional.ofNullable( notes.get( uid ) );
     }
 
+    public RelationshipType getRelationshipType( MetadataIdentifier id )
+    {
+        return get( RelationshipType.class, id );
+    }
+
     public Relationship getRelationship( String relationshipUid )
     {
         return relationships.get( relationshipUid );

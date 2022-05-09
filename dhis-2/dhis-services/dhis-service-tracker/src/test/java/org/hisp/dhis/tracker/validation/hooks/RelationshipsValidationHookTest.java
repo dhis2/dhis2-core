@@ -107,7 +107,7 @@ class RelationshipsValidationHookTest
     {
         Relationship relationship = Relationship.builder()
             .relationship( CodeGenerator.generateUid() )
-            .relationshipType( "do-not-exist" )
+            .relationshipType( MetadataIdentifier.ofUid( "do-not-exist" ) )
             .from( trackedEntityRelationshipItem() )
             .to( trackedEntityRelationshipItem() )
             .build();
@@ -122,9 +122,10 @@ class RelationshipsValidationHookTest
     void verifyValidationFailsOnFromWithMultipleDataset()
     {
         String relationshipUid = "nBx6auGDUHG";
+        String reltypeUid = CodeGenerator.generateUid();
         Relationship relationship = Relationship.builder()
             .relationship( relationshipUid )
-            .relationshipType( CodeGenerator.generateUid() )
+            .relationshipType( MetadataIdentifier.ofUid( reltypeUid ) )
             .from( RelationshipItem.builder()
                 .trackedEntity( trackedEntity() )
                 .enrollment( enrollment() )
@@ -133,7 +134,7 @@ class RelationshipsValidationHookTest
             .build();
 
         RelationshipType relationshipType = new RelationshipType();
-        relationshipType.setUid( relationship.getRelationshipType() );
+        relationshipType.setUid( reltypeUid );
         RelationshipConstraint constraint = new RelationshipConstraint();
         constraint.setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
         relationshipType.setFromConstraint( constraint );
@@ -154,15 +155,16 @@ class RelationshipsValidationHookTest
     void verifyValidationFailsOnFromWithNoDataset()
     {
         String relationshipUid = "nBx6auGDUHG";
+        String reltypeUid = CodeGenerator.generateUid();
         Relationship relationship = Relationship.builder()
             .relationship( relationshipUid )
-            .relationshipType( CodeGenerator.generateUid() )
+            .relationshipType( MetadataIdentifier.ofUid( reltypeUid ) )
             .from( RelationshipItem.builder().build() )
             .to( trackedEntityRelationshipItem() )
             .build();
 
         RelationshipType relationshipType = new RelationshipType();
-        relationshipType.setUid( relationship.getRelationshipType() );
+        relationshipType.setUid( reltypeUid );
         RelationshipConstraint constraint = new RelationshipConstraint();
         constraint.setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
         relationshipType.setFromConstraint( constraint );
@@ -182,9 +184,10 @@ class RelationshipsValidationHookTest
     void verifyValidationFailsOnToWithMultipleDataset()
     {
         String relationshipUid = "nBx6auGDUHG";
+        String reltypeUid = CodeGenerator.generateUid();
         Relationship relationship = Relationship.builder()
             .relationship( relationshipUid )
-            .relationshipType( CodeGenerator.generateUid() )
+            .relationshipType( MetadataIdentifier.ofUid( reltypeUid ) )
             .from( trackedEntityRelationshipItem() )
             .to( RelationshipItem.builder()
                 .trackedEntity( trackedEntity() )
@@ -193,7 +196,7 @@ class RelationshipsValidationHookTest
             .build();
 
         RelationshipType relationshipType = new RelationshipType();
-        relationshipType.setUid( relationship.getRelationshipType() );
+        relationshipType.setUid( reltypeUid );
         RelationshipConstraint constraint = new RelationshipConstraint();
         constraint.setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
         relationshipType.setFromConstraint( constraint );
@@ -218,7 +221,7 @@ class RelationshipsValidationHookTest
             .relationship( CodeGenerator.generateUid() )
             .from( trackedEntityRelationshipItem() )
             .to( enrollmentRelationshipItem() )
-            .relationshipType( relType.getUid() )
+            .relationshipType( MetadataIdentifier.ofUid( relType.getUid() ) )
             .build();
 
         when( preheat.getAll( RelationshipType.class ) )
@@ -241,7 +244,7 @@ class RelationshipsValidationHookTest
             .relationship( CodeGenerator.generateUid() )
             .from( trackedEntityRelationshipItem() )
             .to( enrollmentRelationshipItem() )
-            .relationshipType( relType.getUid() )
+            .relationshipType( MetadataIdentifier.ofUid( relType.getUid() ) )
             .build();
 
         when( preheat.getAll( RelationshipType.class ) )
@@ -266,7 +269,7 @@ class RelationshipsValidationHookTest
                 .event( event() )
                 .build() )
             .to( trackedEntityRelationshipItem() )
-            .relationshipType( relType.getUid() )
+            .relationshipType( MetadataIdentifier.ofUid( relType.getUid() ) )
             .build();
 
         when( preheat.getAll( RelationshipType.class ) )
@@ -307,7 +310,7 @@ class RelationshipsValidationHookTest
             .relationship( CodeGenerator.generateUid() )
             .from( enrollmentRelationshipItem() )
             .to( trackedEntityRelationshipItem( trackedEntityUid ) )
-            .relationshipType( relType.getUid() )
+            .relationshipType( MetadataIdentifier.ofUid( relType.getUid() ) )
             .build();
 
         when( preheat.getAll( RelationshipType.class ) )
@@ -346,7 +349,7 @@ class RelationshipsValidationHookTest
             .relationship( CodeGenerator.generateUid() )
             .from( trackedEntityRelationshipItem( trackedEntityUid ) )
             .to( enrollmentRelationshipItem() )
-            .relationshipType( relType.getUid() )
+            .relationshipType( MetadataIdentifier.ofUid( relType.getUid() ) )
             .build();
 
         when( preheat.getAll( RelationshipType.class ) )
@@ -383,7 +386,7 @@ class RelationshipsValidationHookTest
             .relationship( CodeGenerator.generateUid() )
             .from( trackedEntityRelationshipItem( "validTrackedEntity" ) )
             .to( trackedEntityRelationshipItem( "notValidTrackedEntity" ) )
-            .relationshipType( relType.getUid() )
+            .relationshipType( MetadataIdentifier.ofUid( relType.getUid() ) )
             .build();
         TrackerErrorReport error = TrackerErrorReport.builder()
             .uid( relationship.getTo().getTrackedEntity() )
@@ -413,7 +416,7 @@ class RelationshipsValidationHookTest
             .relationship( CodeGenerator.generateUid() )
             .from( trackedEntityRelationshipItem( "validTrackedEntity" ) )
             .to( trackedEntityRelationshipItem( "anotherValidTrackedEntity" ) )
-            .relationshipType( relType.getUid() )
+            .relationshipType( MetadataIdentifier.ofUid( relType.getUid() ) )
             .build();
         TrackerErrorReport error = TrackerErrorReport.builder()
             .uid( "notValidTrackedEntity" )
@@ -439,7 +442,7 @@ class RelationshipsValidationHookTest
             .relationship( CodeGenerator.generateUid() )
             .from( trackedEntityRelationshipItem( uid ) )
             .to( trackedEntityRelationshipItem( uid ) )
-            .relationshipType( relType.getUid() )
+            .relationshipType( MetadataIdentifier.ofUid( relType.getUid() ) )
             .build();
 
         when( preheat.getAll( RelationshipType.class ) )
@@ -460,7 +463,7 @@ class RelationshipsValidationHookTest
 
         Relationship relationship = Relationship.builder()
             .relationship( CodeGenerator.generateUid() )
-            .relationshipType( relType.getUid() )
+            .relationshipType( MetadataIdentifier.ofUid( relType.getUid() ) )
             .from( trackedEntityRelationshipItem() )
             .to( trackedEntityRelationshipItem() )
             .build();

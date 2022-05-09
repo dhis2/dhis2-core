@@ -36,7 +36,10 @@
   "relationships": [
     {
       "relationship": "Nva3Xj2j75W",
-      "relationshipType": "xLmPUYJX8Ks",
+      "relationshipType": {
+        "idScheme": "UID",
+        "identifier": "xLmPUYJX8Ks"
+      },
       "createdAt": "2018-10-01T12:17:30.163",
       "updatedAt": "2018-10-01T12:17:30.163",
       "bidirectional": false,
@@ -49,7 +52,10 @@
     },
     {
       "relationship": "HiXiipNGsxT",
-      "relationshipType": "TV9oB9LT3sh",
+      "relationshipType": {
+        "idScheme": "UID",
+        "identifier": "TV9oB9LT3sh"
+      },
       "createdAt": "2018-10-01T12:17:30.163",
       "updatedAt": "2018-10-01T12:17:30.163",
       "bidirectional": false,

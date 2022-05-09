@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker.preheat.supplier;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import lombok.NonNull;
@@ -74,10 +73,8 @@ public class DuplicateRelationshipSupplier extends AbstractPreheatSupplier
 
     private RelationshipType getRelationshipType( Relationship rel, List<RelationshipType> relationshipTypes )
     {
-        // When idScheme is implemented for relationshipType
-        // this method must consider it to retrieve the right relationshipType
         return relationshipTypes.stream()
-            .filter( relationshipType -> Objects.equals( rel.getRelationshipType(), relationshipType.getUid() ) )
+            .filter( type -> rel.getRelationshipType().isEqualTo( type ) )
             .findAny()
             .orElse( null );
     }
