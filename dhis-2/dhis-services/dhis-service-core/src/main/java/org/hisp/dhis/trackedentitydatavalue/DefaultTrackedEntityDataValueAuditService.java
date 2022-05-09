@@ -54,7 +54,7 @@ public class DefaultTrackedEntityDataValueAuditService
 
     private final TrackedEntityDataValueAuditStore trackedEntityDataValueAuditStore;
 
-    private Predicate<TrackedEntityDataValueAudit> aclFilter;
+    private final Predicate<TrackedEntityDataValueAudit> aclFilter;
 
     public DefaultTrackedEntityDataValueAuditService( TrackedEntityDataValueAuditStore trackedEntityDataValueAuditStore,
         TrackerAccessManager trackerAccessManager, CurrentUserService currentUserService )
