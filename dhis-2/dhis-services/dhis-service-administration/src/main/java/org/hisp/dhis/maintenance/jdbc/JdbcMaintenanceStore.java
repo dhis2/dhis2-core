@@ -123,6 +123,7 @@ public class JdbcMaintenanceStore
             "delete from trackedentitydatavalueaudit where programstageinstanceid in " + psiSelect,
             "delete from programstageinstancecomments where programstageinstanceid in " + psiSelect,
             "delete from trackedentitycomment where trackedentitycommentid not in (select trackedentitycommentid from programstageinstancecomments union all select trackedentitycommentid from programinstancecomments)",
+            "delete from relationshipitem where programstageinstanceid in " + psiSelect,
             "delete from programstageinstance where deleted is true" };
 
         int result = jdbcTemplate.batchUpdate( sqlStmts )[sqlStmts.length - 1];
@@ -171,6 +172,7 @@ public class JdbcMaintenanceStore
             "delete from programstageinstance where programinstanceid in " + piSelect,
             "delete from programinstancecomments where programinstanceid in " + piSelect,
             "delete from trackedentitycomment where trackedentitycommentid not in (select trackedentitycommentid from programstageinstancecomments union all select trackedentitycommentid from programinstancecomments)",
+            "delete from relationshipitem where programinstanceid in " + piSelect,
             "delete from programinstance where deleted is true" };
 
         int result = jdbcTemplate.batchUpdate( sqlStmts )[sqlStmts.length - 1];
@@ -240,6 +242,7 @@ public class JdbcMaintenanceStore
             "delete from programmessage where trackedentityinstanceid in " + teiSelect,
             "delete from programinstancecomments where programinstanceid in " + piSelect,
             "delete from trackedentitycomment where trackedentitycommentid not in (select trackedentitycommentid from programstageinstancecomments union all select trackedentitycommentid from programinstancecomments)",
+            "delete from relationshipitem where trackedentityinstanceid in " + teiSelect,
             "delete from programinstance where programinstanceid in " + piSelect,
             "delete from trackedentityattributevalue where trackedentityinstanceid in " + teiSelect,
             "delete from trackedentityattributevalueaudit where trackedentityinstanceid in " + teiSelect,

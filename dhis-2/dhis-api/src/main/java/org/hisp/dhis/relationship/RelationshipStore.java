@@ -91,5 +91,5 @@ public interface RelationshipStore
 
     List<String> getUidsByRelationshipKeys( List<String> relationshipKeyList );
 
-    List<Relationship> getByUids( List<String> uids );
+    List<Relationship> getByUidsIncludeDeleted( List<String> uids );
 }

@@ -262,4 +262,9 @@ public class TrackerBundle
     {
         return getPreheat().getEvent( event );
     }
+
+    public org.hisp.dhis.relationship.Relationship getRelationship( String relationship )
+    {
+        return getPreheat().getRelationship( relationship );
+    }
 }
