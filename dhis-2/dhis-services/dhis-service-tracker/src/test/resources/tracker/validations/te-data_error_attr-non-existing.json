@@ -33,7 +33,10 @@
   "trackedEntities": [
     {
       "trackedEntity": "NCc1rCEOKaY",
-      "trackedEntityType": "bPJ0FMtcnEh",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "bPJ0FMtcnEh"
+      },
       "orgUnit": {
         "idScheme": "UID",
         "identifier": "QfUVllTs6cS"
@@ -58,7 +61,10 @@
     },
     {
       "trackedEntity": "PB9VMezGkwA",
-      "trackedEntityType": "bPJ0FMtcnEh",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "bPJ0FMtcnEh"
+      },
       "orgUnit": {
         "idScheme": "UID",
         "identifier": "QfUVllTs6cS"

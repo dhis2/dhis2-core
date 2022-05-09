@@ -33,7 +33,10 @@
   "trackedEntities": [
     {
       "trackedEntity": "IOR1AXXl24H",
-      "trackedEntityType": "nEenWmSyUEp",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "nEenWmSyUEp"
+      },
       "createdAt": "2020-02-20T12:09:21.844",
       "updatedAt": "2020-02-20T12:09:21.844",
       "orgUnit": {
@@ -49,7 +52,10 @@
     },
     {
       "trackedEntity": "IOR1AXXl25E",
-      "trackedEntityType": "nEenWmSyUEp",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "nEenWmSyUEp"
+      },
       "createdAt": "2020-02-20T12:09:21.844",
       "updatedAt": "2020-02-20T12:09:21.844",
       "orgUnit": {

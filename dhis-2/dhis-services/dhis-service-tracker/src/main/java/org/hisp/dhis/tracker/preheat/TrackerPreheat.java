@@ -799,6 +799,11 @@ public class TrackerPreheat
         return get( Program.class, id );
     }
 
+    public TrackedEntityType getTrackedEntityType( MetadataIdentifier id )
+    {
+        return get( TrackedEntityType.class, id );
+    }
+
     public TrackedEntityType getTrackedEntityType( String id )
     {
         return get( TrackedEntityType.class, id );

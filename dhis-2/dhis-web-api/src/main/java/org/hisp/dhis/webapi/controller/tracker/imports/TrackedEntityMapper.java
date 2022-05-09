@@ -45,6 +45,7 @@ import org.mapstruct.Mapping;
 interface TrackedEntityMapper extends DomainMapper<TrackedEntity, org.hisp.dhis.tracker.domain.TrackedEntity>
 {
     @Mapping( target = "orgUnit", source = "orgUnit", qualifiedByName = "orgUnitToMetadataIdentifier" )
+    @Mapping( target = "trackedEntityType", source = "trackedEntityType", qualifiedByName = "trackedEntityTypeToMetadataIdentifier" )
     org.hisp.dhis.tracker.domain.TrackedEntity from( TrackedEntity trackedEntity,
         @Context TrackerIdSchemeParams idSchemeParams );
 
