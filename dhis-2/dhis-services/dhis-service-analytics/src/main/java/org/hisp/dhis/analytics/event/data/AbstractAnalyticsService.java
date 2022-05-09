@@ -439,7 +439,10 @@ public abstract class AbstractAnalyticsService
         {
             // filtering if the rows in grid are there (skipData = false)
             itemOptions.forEach( option -> metadataItemMap.put( option.getUid(),
-                new MetadataItem( option.getDisplayName(), includeDetails ? option.getUid() : null,
+                new MetadataItem(
+                    params.getDisplayProperty() == DisplayProperty.SHORTNAME ? option.getDisplayShortName()
+                        : option.getDisplayName(),
+                    includeDetails ? option.getUid() : null,
                     option.getCode() ) ) );
         }
         else
@@ -459,7 +462,10 @@ public abstract class AbstractAnalyticsService
                                 .anyMatch( f -> Arrays.stream( f.getFilter().split( ";" ) )
                                     .anyMatch( ft -> ft.equalsIgnoreCase( option.getCode() ) ) ) )) )
                 .forEach( option -> metadataItemMap.put( option.getUid(),
-                    new MetadataItem( option.getDisplayName(), includeDetails ? option.getUid() : null,
+                    new MetadataItem(
+                        params.getDisplayProperty() == DisplayProperty.SHORTNAME ? option.getDisplayShortName()
+                            : option.getDisplayName(),
+                        includeDetails ? option.getUid() : null,
                         option.getCode() ) ) );
         }
     }
