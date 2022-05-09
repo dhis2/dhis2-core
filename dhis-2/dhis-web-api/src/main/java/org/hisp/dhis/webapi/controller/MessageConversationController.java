@@ -84,6 +84,7 @@ import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -97,6 +98,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -133,7 +135,9 @@ public class MessageConversationController
     protected void postProcessResponseEntity( org.hisp.dhis.message.MessageConversation entity, WebOptions options,
         Map<String, String> parameters )
     {
-        if ( !messageService.hasAccessToManageFeedbackMessages( currentUserService.getCurrentUser() ) )
+        User currentUser = currentUserService.getCurrentUser();
+
+        if ( !messageService.hasAccessToManageFeedbackMessages( currentUser ) )
         {
             entity.setMessages( entity.getMessages().stream().filter( message -> !message.isInternal() ).collect(
                 Collectors.toList() ) );
@@ -143,13 +147,13 @@ public class MessageConversationController
 
         if ( markRead )
         {
-            entity.markRead( currentUserService.getCurrentUser() );
+            entity.markRead( currentUser );
             manager.update( entity );
         }
     }
 
     @Override
-    public RootNode getObject( @PathVariable String uid, Map<String, String> rpParameters,
+    public ResponseEntity<?> getObject( @PathVariable String uid, Map<String, String> rpParameters,
         @CurrentUser User currentUser, HttpServletRequest request,
         HttpServletResponse response )
         throws Exception
@@ -159,9 +163,10 @@ public class MessageConversationController
         if ( messageConversation == null )
         {
             response.setStatus( HttpServletResponse.SC_NOT_FOUND );
-            RootNode responseNode = new RootNode( "reply" );
-            responseNode.addChild( new SimpleNode( "message", "No MessageConversation found with UID: " + uid ) );
-            return responseNode;
+            ObjectNode objectNode = fieldFilterService.createObjectNode()
+                .put( "message", "No MessageConversation found with UID: " + uid );
+
+            return ResponseEntity.ok( objectNode );
         }
 
         if ( !canReadMessageConversation( currentUser, messageConversation ) )

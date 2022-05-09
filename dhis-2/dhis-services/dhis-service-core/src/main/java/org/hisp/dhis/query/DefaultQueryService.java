@@ -27,10 +27,9 @@
  */
 package org.hisp.dhis.query;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.List;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.IdentifiableObject;
@@ -46,7 +45,8 @@ import org.springframework.stereotype.Component;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Slf4j
-@Component( "org.hisp.dhis.query.QueryService" )
+@Component
+@AllArgsConstructor
 public class DefaultQueryService
     implements QueryService
 {
@@ -59,22 +59,7 @@ public class DefaultQueryService
 
     private final InMemoryQueryEngine<? extends IdentifiableObject> inMemoryQueryEngine;
 
-    private final Junction.Type DEFAULT_JUNCTION_TYPE = Junction.Type.AND;
-
-    public DefaultQueryService( QueryParser queryParser, QueryPlanner queryPlanner,
-        JpaCriteriaQueryEngine<? extends IdentifiableObject> criteriaQueryEngine,
-        InMemoryQueryEngine<? extends IdentifiableObject> inMemoryQueryEngine )
-    {
-        checkNotNull( queryParser );
-        checkNotNull( queryPlanner );
-        checkNotNull( criteriaQueryEngine );
-        checkNotNull( inMemoryQueryEngine );
-
-        this.queryParser = queryParser;
-        this.queryPlanner = queryPlanner;
-        this.criteriaQueryEngine = criteriaQueryEngine;
-        this.inMemoryQueryEngine = inMemoryQueryEngine;
-    }
+    private static final Junction.Type DEFAULT_JUNCTION_TYPE = Junction.Type.AND;
 
     @Override
     public List<? extends IdentifiableObject> query( Query query )
@@ -155,10 +140,7 @@ public class DefaultQueryService
             objects = inMemoryQueryEngine.query( npQuery );
             return objects.size();
         }
-        else
-        {
-            return criteriaQueryEngine.count( pQuery );
-        }
+        return criteriaQueryEngine.count( pQuery );
     }
 
     private List<? extends IdentifiableObject> queryObjects( Query query )

@@ -75,7 +75,6 @@ import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.importexport.ImportStrategy;
-import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.patch.Mutation;
 import org.hisp.dhis.patch.Patch;
@@ -105,6 +104,7 @@ import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -117,6 +117,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
 
 /**
@@ -263,7 +264,7 @@ public class UserController
 
     @Override
     @GetMapping( "/{uid}/{property}" )
-    public @ResponseBody RootNode getObjectProperty(
+    public @ResponseBody ResponseEntity<ObjectNode> getObjectProperty(
         @PathVariable( "uid" ) String pvUid, @PathVariable( "property" ) String pvProperty,
         @RequestParam Map<String, String> rpParameters,
         TranslateParams translateParams,
@@ -288,7 +289,7 @@ public class UserController
             throw new CreateAccessDeniedException( "You don't have the proper permissions to access this user." );
         }
 
-        return userControllerUtils.getUserDataApprovalWorkflows( user );
+        return ResponseEntity.ok( userControllerUtils.getUserDataApprovalWorkflows( user ) );
     }
 
     // -------------------------------------------------------------------------

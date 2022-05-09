@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.query;
 
+import lombok.Getter;
+
 import org.hisp.dhis.schema.Schema;
 
 /**
@@ -40,17 +42,13 @@ public abstract class Junction extends Criteria implements Criterion
         OR
     }
 
-    protected Type type;
+    @Getter
+    protected final Type type;
 
-    public Junction( Schema schema, Type type )
+    Junction( Schema schema, Type type )
     {
         super( schema );
         this.type = type;
-    }
-
-    public Type getType()
-    {
-        return type;
     }
 
     @Override
