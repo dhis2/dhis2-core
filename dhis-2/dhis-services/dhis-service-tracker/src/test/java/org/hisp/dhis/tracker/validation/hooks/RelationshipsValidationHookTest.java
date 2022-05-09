@@ -450,7 +450,7 @@ class RelationshipsValidationHookTest
         org.hisp.dhis.relationship.Relationship rel = new org.hisp.dhis.relationship.Relationship();
 
         when( preheat.getAll( RelationshipType.class ) ).thenReturn( Collections.singletonList( relType ) );
-        when( preheat.getRelationshipByKey( relationship ) ).thenReturn( rel );
+        when( preheat.getDuplicatedRelationship( relationship ) ).thenReturn( rel );
 
         reporter = new ValidationErrorReporter( bundle );
         validationHook.validateRelationship( reporter, relationship );

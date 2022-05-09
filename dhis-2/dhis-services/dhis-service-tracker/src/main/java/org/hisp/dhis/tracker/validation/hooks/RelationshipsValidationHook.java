@@ -93,10 +93,10 @@ public class RelationshipsValidationHook
     private void validateDuplication( ValidationErrorReporter reporter, Relationship relationship,
         TrackerBundle bundle )
     {
-        org.hisp.dhis.relationship.Relationship relationshipUsingKey = bundle.getPreheat()
-            .getRelationshipByKey( relationship );
+        org.hisp.dhis.relationship.Relationship duplicateRelationship = bundle.getPreheat()
+            .getDuplicatedRelationship( relationship );
 
-        if ( Objects.nonNull( relationshipUsingKey ) )
+        if ( Objects.nonNull( duplicateRelationship ) )
         {
             reporter.addError( relationship, E4018,
                 relationship.getRelationship(),

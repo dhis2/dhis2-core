@@ -268,6 +268,15 @@ public class TrackerPreheat
     private final Map<String, Relationship> relationships = new HashMap<>();
 
     /**
+     * Internal map of all relationships in the DB that are duplications of
+     * relationships present in the payload. Two relationship are duplicated if
+     * they have the same relationshipType, and the same relationshipItems, from
+     * and to.
+     */
+    @Getter
+    private final Map<String, Relationship> duplicatedRelationships = new HashMap<>();
+
+    /**
      * Internal map of all preheated notes (events and enrollments)
      */
     private final Map<String, TrackedEntityComment> notes = new HashMap<>();
@@ -626,7 +635,12 @@ public class TrackerPreheat
         return relationships.get( relationshipUid );
     }
 
-    public Relationship getRelationshipByKey( org.hisp.dhis.tracker.domain.Relationship relationship )
+    public Relationship getRelationship( org.hisp.dhis.tracker.domain.Relationship relationship )
+    {
+        return relationships.get( relationship.getUid() );
+    }
+
+    public Relationship getDuplicatedRelationship( org.hisp.dhis.tracker.domain.Relationship relationship )
     {
         RelationshipType relationshipType = get( RelationshipType.class, relationship.getRelationshipType() );
 
@@ -641,7 +655,7 @@ public class TrackerPreheat
             }
             return Stream.of( relationshipKey, inverseKey )
                 .filter( Objects::nonNull )
-                .map( key -> relationships.get( key.asString() ) )
+                .map( key -> duplicatedRelationships.get( key.asString() ) )
                 .filter( Objects::nonNull )
                 .findFirst()
                 .orElse( null );
@@ -662,12 +676,12 @@ public class TrackerPreheat
         }
     }
 
-    public void putRelationshipsByKey( List<Relationship> relationships )
+    public void putDuplicatedRelationships( List<Relationship> relationships )
     {
-        relationships.forEach( this::putRelationshipByKey );
+        relationships.forEach( this::putDuplicatedRelationship );
     }
 
-    public void putRelationshipByKey( Relationship relationship )
+    public void putDuplicatedRelationship( Relationship relationship )
     {
         if ( Objects.nonNull( relationship ) )
         {
@@ -675,10 +689,10 @@ public class TrackerPreheat
 
             if ( relationship.getRelationshipType().isBidirectional() )
             {
-                relationships.put( relationshipKey.inverseKey().asString(), relationship );
+                duplicatedRelationships.put( relationshipKey.inverseKey().asString(), relationship );
             }
 
-            relationships.put( relationshipKey.asString(), relationship );
+            duplicatedRelationships.put( relationshipKey.asString(), relationship );
         }
     }
 
