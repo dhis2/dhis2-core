@@ -139,7 +139,7 @@
 
         <!-- Apache Artemis -->
         <artemis.version>2.22.0</artemis.version>
-        <netty-all.version>4.1.76.Final</netty-all.version>
+        <netty-all.version>4.1.77.Final</netty-all.version>
         <classgraph.version>4.8.146</classgraph.version>
 
         <!-- SMS/SMPP -->
