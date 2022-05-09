@@ -57,7 +57,12 @@
       "attributeOptionCombo": {
         "idScheme": "UID"
       },
-      "attributeCategoryOptions": "xYerKDKCefk",
+      "attributeCategoryOptions": [
+        {
+          "idScheme": "UID",
+          "identifier": "xYerKDKCefk"
+        }
+      ],
       "dataValues": [],
       "notes": []
     }

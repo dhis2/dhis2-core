@@ -321,10 +321,10 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest
     private void setUpMocks()
     {
         when( preheat.getUser() ).thenReturn( user );
-        when( preheat.get( ProgramStage.class, MetadataIdentifier.ofUid( programStage.getUid() ) ) )
+        when( preheat.get( ProgramStage.class, MetadataIdentifier.ofUid( programStage ) ) )
             .thenReturn( programStage );
-        when( preheat.getProgram( MetadataIdentifier.ofUid( program.getUid() ) ) ).thenReturn( program );
-        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( organisationUnit.getUid() ) ) )
+        when( preheat.getProgram( MetadataIdentifier.ofUid( program ) ) ).thenReturn( program );
+        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( organisationUnit ) ) )
             .thenReturn( organisationUnit );
     }
 
@@ -340,7 +340,7 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest
             .programStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_UID ) )
             .program( MetadataIdentifier.ofUid( PROGRAM_UID ) )
             .orgUnit( MetadataIdentifier.ofUid( ORGANISATION_UNIT_UID ) )
-            .attributeOptionCombo( MetadataIdentifier.ofUid( null ) )
+            .attributeOptionCombo( MetadataIdentifier.EMPTY_UID )
             .dataValues( Sets.newHashSet( dataValue ) )
             .build();
     }

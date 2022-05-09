@@ -38,6 +38,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -142,12 +143,16 @@ class TrackerPreheatIdentifiersTest extends TrackerTest
         List<Pair<String, TrackerIdSchemeParam>> data = buildDataSet( "XXXrKDKCefk", "COA", "COAname" );
         for ( Pair<String, TrackerIdSchemeParam> pair : data )
         {
-            Event event = new Event();
-            event.setAttributeCategoryOptions( pair.getLeft() );
-            TrackerImportParams params = buildParams( event,
-                builder().categoryOptionIdScheme( pair.getRight() ).build() );
+            String id = pair.getLeft();
+            TrackerIdSchemeParam param = pair.getRight();
+            Event event = Event.builder()
+                .attributeCategoryOptions( Set.of( param.toMetadataIdentifier( id ) ) )
+                .build();
+            TrackerImportParams params = buildParams( event, builder().categoryOptionIdScheme( param ).build() );
+
             TrackerPreheat preheat = trackerPreheatService.preheat( params );
-            assertPreheatedObjectExists( preheat, CategoryOption.class, pair.getRight(), pair.getLeft() );
+
+            assertPreheatedObjectExists( preheat, CategoryOption.class, param, id );
         }
     }
 
@@ -162,7 +167,6 @@ class TrackerPreheatIdentifiersTest extends TrackerTest
             Event event = Event.builder()
                 .attributeOptionCombo( param.toMetadataIdentifier( id ) )
                 .build();
-
             TrackerImportParams params = buildParams( event, builder().categoryOptionComboIdScheme( param ).build() );
 
             TrackerPreheat preheat = trackerPreheatService.preheat( params );
