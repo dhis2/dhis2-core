@@ -212,6 +212,12 @@ public class OrganisationUnit
         this.comment = comment;
     }
 
+    @Override
+    public void setAutoFields()
+    {
+        super.setAutoFields();
+    }
+
     // -------------------------------------------------------------------------
     // Logic
     // -------------------------------------------------------------------------

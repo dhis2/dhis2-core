@@ -87,7 +87,8 @@ public class CurrentUserService
         boolean sessionContains = sessionFactory.getCurrentSession().contains( currentUser );
         if ( sessionContains )
         {
-            log.info( "User in session, this should only happen in integration tests. 12098 hack" );
+            // User in session, this should only happen in integration tests.
+            // Related to 12098
             try
             {
                 sessionFactory.getCurrentSession().flush();
