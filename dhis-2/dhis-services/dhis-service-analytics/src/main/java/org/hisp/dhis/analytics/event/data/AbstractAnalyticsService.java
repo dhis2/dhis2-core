@@ -63,6 +63,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemKeywords;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdScheme;
@@ -364,7 +365,8 @@ public abstract class AbstractAnalyticsService
 
         params.getItemsAndItemFilters().stream()
             .filter( Objects::nonNull )
-            .forEach( item -> addItemIntoMetadata( metadataItemMap, item, includeDetails ) );
+            .forEach(
+                item -> addItemIntoMetadata( metadataItemMap, item, includeDetails, params.getDisplayProperty() ) );
 
         if ( hasPeriodKeywords( periodKeywords ) )
         {
@@ -381,9 +383,11 @@ public abstract class AbstractAnalyticsService
     }
 
     private void addItemIntoMetadata( final Map<String, MetadataItem> metadataItemMap, final QueryItem item,
-        final boolean includeDetails )
+        final boolean includeDetails, final DisplayProperty displayProperty )
     {
-        final MetadataItem metadataItem = new MetadataItem( item.getItem().getDisplayName(),
+        final MetadataItem metadataItem = new MetadataItem(
+            displayProperty == DisplayProperty.SHORTNAME ? item.getItem().getDisplayShortName()
+                : item.getItem().getDisplayName(),
             includeDetails ? item.getItem() : null );
 
         metadataItemMap.put( getItemIdMaybeWithProgramStageIdPrefix( item ), metadataItem );
