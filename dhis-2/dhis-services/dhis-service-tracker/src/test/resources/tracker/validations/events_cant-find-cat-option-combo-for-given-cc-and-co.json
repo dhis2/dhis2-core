@@ -54,7 +54,15 @@
       "scheduledAt": "2019-08-19T13:59:13.688",
       "followup": false,
       "deleted": false,
-      "attributeCategoryOptions": "xYerKDKCefk",
+      "attributeOptionCombo": {
+        "idScheme": "UID"
+      },
+      "attributeCategoryOptions": [
+        {
+          "idScheme": "UID",
+          "identifier": "xYerKDKCefk"
+        }
+      ],
       "dataValues": [],
       "notes": []
     }

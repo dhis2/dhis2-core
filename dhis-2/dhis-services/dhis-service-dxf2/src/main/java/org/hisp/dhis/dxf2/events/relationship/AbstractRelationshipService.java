@@ -307,8 +307,6 @@ public abstract class AbstractRelationshipService
             {
                 importSummaries.addImportSummary( updateRelationship( relationship, importOptions ) );
             }
-
-            clearSession();
         }
 
         return importSummaries;

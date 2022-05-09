@@ -43,19 +43,18 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4012;
 import static org.hisp.dhis.tracker.validation.hooks.RelationshipValidationUtils.getUidFromRelationshipItem;
 import static org.hisp.dhis.tracker.validation.hooks.RelationshipValidationUtils.relationshipItemValueType;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -65,6 +64,7 @@ import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
@@ -218,7 +218,7 @@ public class PreCheckDataRelationsValidationHook
 
     private boolean hasNoAttributeOptionComboSet( Event event )
     {
-        return StringUtils.isBlank( event.getAttributeOptionCombo() );
+        return event.getAttributeOptionCombo().isBlank();
     }
 
     private boolean validateCategoryOptionsExist( ValidationErrorReporter reporter, Event event )
@@ -229,13 +229,12 @@ public class PreCheckDataRelationsValidationHook
         }
 
         boolean allCOsExist = true;
-        Set<String> categoryOptions = parseCategoryOptions( event );
         TrackerPreheat preheat = reporter.getBundle().getPreheat();
-        for ( String id : categoryOptions )
+        for ( MetadataIdentifier id : event.getAttributeCategoryOptions() )
         {
             if ( preheat.getCategoryOption( id ) == null )
             {
-                reporter.addError( event, E1116, id );
+                reporter.addError( event, E1116, id.getIdentifierOrAttributeValue() );
                 allCOsExist = false;
             }
         }
@@ -244,20 +243,7 @@ public class PreCheckDataRelationsValidationHook
 
     private boolean hasNoAttributeCategoryOptionsSet( Event event )
     {
-        return StringUtils.isBlank( event.getAttributeCategoryOptions() );
-    }
-
-    private Set<String> parseCategoryOptions( Event event )
-    {
-
-        String cos = StringUtils.strip( event.getAttributeCategoryOptions() );
-        if ( StringUtils.isBlank( cos ) )
-        {
-            return Collections.emptySet();
-        }
-
-        return TextUtils
-            .splitToSet( cos, TextUtils.SEMICOLON );
+        return event.getAttributeCategoryOptions().isEmpty();
     }
 
     /**
@@ -311,7 +297,7 @@ public class PreCheckDataRelationsValidationHook
         if ( !program.getCategoryCombo().equals( aoc.getCategoryCombo() ) )
         {
             reporter.addError( event, TrackerErrorCode.E1054,
-                event.getAttributeOptionCombo(), program.getCategoryCombo() );
+                event.getAttributeOptionCombo().getIdentifierOrAttributeValue(), program.getCategoryCombo() );
             return false;
         }
 
@@ -345,8 +331,7 @@ public class PreCheckDataRelationsValidationHook
     {
 
         Set<CategoryOption> categoryOptions = new HashSet<>();
-        Set<String> categoryOptionIds = parseCategoryOptions( event );
-        for ( String id : categoryOptionIds )
+        for ( MetadataIdentifier id : event.getAttributeCategoryOptions() )
         {
             categoryOptions.add( preheat.getCategoryOption( id ) );
         }
@@ -388,12 +373,15 @@ public class PreCheckDataRelationsValidationHook
         if ( hasNoAttributeOptionComboSet( event ) )
         {
             reporter.addError( event, TrackerErrorCode.E1117, program.getCategoryCombo(),
-                event.getAttributeCategoryOptions() );
+                event.getAttributeCategoryOptions().stream().map( MetadataIdentifier::getIdentifierOrAttributeValue )
+                    .collect( Collectors.toSet() ).toString() );
         }
         else
         {
-            reporter.addError( event, TrackerErrorCode.E1117, event.getAttributeOptionCombo(),
-                event.getAttributeCategoryOptions() );
+            reporter.addError( event, TrackerErrorCode.E1117,
+                event.getAttributeOptionCombo().getIdentifierOrAttributeValue(),
+                event.getAttributeCategoryOptions().stream().map( MetadataIdentifier::getIdentifierOrAttributeValue )
+                    .collect( Collectors.toSet() ).toString() );
         }
     }
 

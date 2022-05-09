@@ -51,7 +51,6 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
@@ -165,7 +164,7 @@ public class RelationshipsValidationHook
                 // constraint
                 //
                 getRelationshipTypeUidFromTrackedEntity( reporter.getBundle(),
-                    item.getTrackedEntity().getTrackedEntity() )
+                    item.getTrackedEntity() )
                         .ifPresent( type -> {
 
                             if ( !type.equals( constraint.getTrackedEntityType().getUid() ) )
@@ -200,8 +199,7 @@ public class RelationshipsValidationHook
         {
             return false;
         }
-        return Stream.of( item.getTrackedEntity(), item.getEnrollment(), item.getEvent() ).filter( Objects::nonNull )
-            .map( TrackerDto::getUid )
+        return Stream.of( item.getTrackedEntity(), item.getEnrollment(), item.getEvent() )
             .filter( StringUtils::isNotBlank )
             .count() > 1;
     }

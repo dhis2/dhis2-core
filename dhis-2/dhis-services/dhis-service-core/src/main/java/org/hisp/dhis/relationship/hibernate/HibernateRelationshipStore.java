@@ -41,6 +41,7 @@ import javax.persistence.criteria.Subquery;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.SessionFactory;
+import org.hibernate.query.Query;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
@@ -200,6 +201,16 @@ public class HibernateRelationshipStore extends HibernateIdentifiableObjectStore
         return getList( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.join( "relationshipType" ), relationshipType ) ) );
 
+    }
+
+    @Override
+    public boolean existsIncludingDeleted( String uid )
+    {
+        Query query = getSession().createNativeQuery( "select uid from relationship where uid=:uid limit 1;" );
+        query.setParameter( "uid", uid );
+        int count = ((Number) query.getSingleResult()).intValue();
+
+        return count > 0;
     }
 
     private JpaQueryParameters<Relationship> newJpaParameters(

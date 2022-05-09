@@ -125,9 +125,11 @@ public class EventTrackerConverterService
 
             event.setEnrollment( psi.getProgramInstance().getUid() );
             event.setProgramStage( MetadataIdentifier.ofUid( psi.getProgramStage().getUid() ) );
-            event.setAttributeOptionCombo( psi.getAttributeOptionCombo().getUid() );
-            event.setAttributeCategoryOptions( psi.getAttributeOptionCombo()
-                .getCategoryOptions().stream().map( CategoryOption::getUid ).collect( Collectors.joining( ";" ) ) );
+            event.setAttributeOptionCombo( MetadataIdentifier.ofUid( psi.getAttributeOptionCombo().getUid() ) );
+            event.setAttributeCategoryOptions( psi.getAttributeOptionCombo().getCategoryOptions().stream()
+                .map( CategoryOption::getUid )
+                .map( MetadataIdentifier::ofUid )
+                .collect( Collectors.toSet() ) );
 
             Set<EventDataValue> dataValues = psi.getEventDataValues();
 
@@ -231,12 +233,10 @@ public class EventTrackerConverterService
         programStageInstance.setExecutionDate( DateUtils.fromInstant( event.getOccurredAt() ) );
         programStageInstance.setDueDate( DateUtils.fromInstant( event.getScheduledAt() ) );
 
-        String attributeOptionCombo = event.getAttributeOptionCombo();
-
-        if ( attributeOptionCombo != null )
+        if ( !event.getAttributeOptionCombo().isBlank() )
         {
             programStageInstance.setAttributeOptionCombo(
-                preheat.get( CategoryOptionCombo.class, event.getAttributeOptionCombo() ) );
+                preheat.getCategoryOptionCombo( event.getAttributeOptionCombo() ) );
         }
         else
         {

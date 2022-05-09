@@ -31,7 +31,6 @@ import static org.hisp.dhis.tracker.preheat.RelationshipPreheatKeySupport.getRel
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,7 +52,6 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -145,7 +143,7 @@ public class TrackerPreheat
      * Category option combo value will be in the idScheme defined by the user
      * on import.
      */
-    private final Map<Pair<String, Set<String>>, String> cosToCOC = new HashMap<>();
+    private final Map<Pair<String, Set<MetadataIdentifier>>, MetadataIdentifier> cosToCOC = new HashMap<>();
 
     /**
      * Store mapping of category combo + category options identifiers(key) to
@@ -158,26 +156,29 @@ public class TrackerPreheat
     public void putCategoryOptionCombo( CategoryCombo categoryCombo, Set<CategoryOption> categoryOptions,
         CategoryOptionCombo categoryOptionCombo )
     {
-        if ( categoryOptionCombo != null )
-        {
-            TrackerIdSchemeParam optionComboIdScheme = this.getIdSchemes().getCategoryOptionComboIdScheme();
-            this.cosToCOC.put( categoryOptionComboCacheKey( categoryCombo, categoryOptions ),
-                optionComboIdScheme.getIdentifier( categoryOptionCombo ) );
-            this.put( categoryOptionCombo );
-        }
-        else
+        if ( categoryOptionCombo == null )
         {
             this.cosToCOC.put( categoryOptionComboCacheKey( categoryCombo, categoryOptions ), null );
         }
+
+        this.cosToCOC.put( categoryOptionComboCacheKey( categoryCombo, categoryOptions ),
+            this.getIdSchemes().toMetadataIdentifier( categoryOptionCombo ) );
+        this.put( categoryOptionCombo );
     }
 
-    private Pair<String, Set<String>> categoryOptionComboCacheKey( CategoryCombo categoryCombo,
+    private Pair<String, Set<MetadataIdentifier>> categoryOptionComboCacheKey( CategoryCombo categoryCombo,
         Set<CategoryOption> categoryOptions )
     {
-        Set<String> coIds = categoryOptions.stream()
-            .map( this.getIdSchemes().getCategoryOptionIdScheme()::getIdentifier )
+        Set<MetadataIdentifier> coIds = categoryOptions.stream()
+            .map( co -> this.getIdSchemes().toMetadataIdentifier( co ) )
             .collect( Collectors.toSet() );
-        return Pair.of( categoryCombo.getUid(), coIds );
+        return toCategoryOptionComboCacheKey( categoryCombo, coIds );
+    }
+
+    private Pair<String, Set<MetadataIdentifier>> toCategoryOptionComboCacheKey( CategoryCombo categoryCombo,
+        Set<MetadataIdentifier> categoryOptions )
+    {
+        return Pair.of( categoryCombo.getUid(), categoryOptions );
     }
 
     /**
@@ -213,45 +214,28 @@ public class TrackerPreheat
 
     /**
      * Get the identifier of a category option combo for given category combo
-     * and semicolon separated list of category options. For the category option
-     * combo to exist it has to be stored before using
-     * {@link #putCategoryOptionCombo}.
+     * and category options. For the category option combo to exist it has to be
+     * stored before using {@link #putCategoryOptionCombo}.
      *
      * Category option identifiers needs to match the idScheme used when storing
      * the category option combo using {@link #putCategoryOptionCombo}. Category
-     * option combo identifiers will be in the idScheme defined by the user on
+     * option combo identifier will be in the idScheme defined by the user on
      * import.
      *
      * @param categoryCombo category combo
-     * @param categoryOptions semicolon separated list of category options
+     * @param categoryOptions category options
      * @return category option combo identifier
      */
-    public String getCategoryOptionComboIdentifier( CategoryCombo categoryCombo, String categoryOptions )
+    public MetadataIdentifier getCategoryOptionComboIdentifier( CategoryCombo categoryCombo,
+        Set<MetadataIdentifier> categoryOptions )
     {
         CategoryOptionCombo categoryOptionCombo = this.getCategoryOptionCombo(
-            this.cosToCOC.get( categoryOptionComboCacheKey( categoryCombo, categoryOptions ) ) );
+            this.cosToCOC.get( toCategoryOptionComboCacheKey( categoryCombo, categoryOptions ) ) );
         if ( categoryOptionCombo == null )
         {
-            return null;
+            return idSchemes.toMetadataIdentifier( (CategoryOptionCombo) null );
         }
-        return idSchemes.getCategoryOptionComboIdScheme().getIdentifier( categoryOptionCombo );
-    }
-
-    private Pair<String, Set<String>> categoryOptionComboCacheKey( CategoryCombo categoryCombo,
-        String categoryOptions )
-    {
-        return Pair.of( categoryCombo.getUid(), parseCategoryOptions( categoryOptions ) );
-    }
-
-    private Set<String> parseCategoryOptions( String categoryOptions )
-    {
-        String cos = StringUtils.strip( categoryOptions );
-        if ( StringUtils.isBlank( cos ) )
-        {
-            return Collections.emptySet();
-        }
-
-        return TextUtils.splitToSet( cos, TextUtils.SEMICOLON );
+        return idSchemes.toMetadataIdentifier( categoryOptionCombo );
     }
 
     /**
@@ -434,9 +418,19 @@ public class TrackerPreheat
         return (T) map.getOrDefault( klass, new HashMap<>() ).get( key );
     }
 
+    public CategoryOption getCategoryOption( MetadataIdentifier id )
+    {
+        return get( CategoryOption.class, id );
+    }
+
     public CategoryOption getCategoryOption( String id )
     {
         return get( CategoryOption.class, id );
+    }
+
+    public CategoryOptionCombo getCategoryOptionCombo( MetadataIdentifier id )
+    {
+        return get( CategoryOptionCombo.class, id );
     }
 
     public CategoryOptionCombo getCategoryOptionCombo( String id )

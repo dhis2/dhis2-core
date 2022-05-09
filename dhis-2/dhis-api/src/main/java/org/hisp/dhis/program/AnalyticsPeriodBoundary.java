@@ -59,6 +59,8 @@ public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements E
 
     public static final String INCIDENT_DATE = "INCIDENT_DATE";
 
+    public static final String SCHEDULED_DATE = "SCHEDULED_DATE";
+
     public static final String COHORT_HAVING_PROGRAM_STAGE_PREFIX = "PS_EVENTDATE:";
 
     public static final String PROGRAM_STAGE_REGEX_GROUP = "ps";
@@ -92,6 +94,8 @@ public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements E
     public static final String DB_ENROLLMENT_DATE = "enrollmentdate";
 
     public static final String DB_INCIDENT_DATE = "incidentdate";
+
+    public static final String DB_SCHEDULED_DATE = "duedate";
 
     public static final String DB_QUOTE = "\"";
 
@@ -203,6 +207,11 @@ public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements E
     public Boolean isIncidentDateBoundary()
     {
         return boundaryTarget.equals( AnalyticsPeriodBoundary.INCIDENT_DATE );
+    }
+
+    public Boolean isScheduledDateBoundary()
+    {
+        return boundaryTarget.equals( AnalyticsPeriodBoundary.SCHEDULED_DATE );
     }
 
     // -------------------------------------------------------------------------
