@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.webapi.mvc.messageconverter;
 
+import static org.hisp.dhis.webapi.mvc.messageconverter.MessageConverterUtils.JSON_GZIP_SUPPORTED_MEDIA_TYPES;
+import static org.hisp.dhis.webapi.mvc.messageconverter.MessageConverterUtils.JSON_SUPPORTED_MEDIA_TYPES;
+import static org.hisp.dhis.webapi.mvc.messageconverter.MessageConverterUtils.JSON_ZIP_SUPPORTED_MEDIA_TYPES;
 import static org.hisp.dhis.webapi.mvc.messageconverter.MessageConverterUtils.getContentDispositionHeaderValue;
 import static org.hisp.dhis.webapi.mvc.messageconverter.MessageConverterUtils.getExtensibleAttachmentFilename;
 import static org.hisp.dhis.webapi.mvc.messageconverter.MessageConverterUtils.isAttachment;
@@ -40,64 +43,59 @@ import java.util.zip.ZipOutputStream;
 import javax.annotation.Nonnull;
 
 import org.hisp.dhis.common.Compression;
-import org.hisp.dhis.node.NodeService;
-import org.hisp.dhis.node.types.RootNode;
+import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
+import org.hisp.dhis.dxf2.metadata.MetadataExportService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
-import org.springframework.http.MediaType;
 import org.springframework.http.converter.AbstractHttpMessageConverter;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 
 /**
- * Abstract base class for HTTP message converters that convert root nodes.
- *
- * @author Volker Schmidt <volker@dhis2.org>
+ * @author Morten Olav Hansen
  */
-public abstract class AbstractRootNodeMessageConverter extends AbstractHttpMessageConverter<RootNode>
+public class MetadataExportParamsMessageConverter extends AbstractHttpMessageConverter<MetadataExportParams>
 {
-    private final NodeService nodeService;
-
-    private final String contentType;
-
-    private final String fileExtension;
+    private final MetadataExportService metadataExportService;
 
     private final Compression compression;
 
-    protected AbstractRootNodeMessageConverter( @Nonnull NodeService nodeService, @Nonnull String contentType,
-        @Nonnull String fileExtension, Compression compression )
+    public MetadataExportParamsMessageConverter( MetadataExportService metadataExportService, Compression compression )
     {
-        this.nodeService = nodeService;
-        this.contentType = contentType;
-        this.fileExtension = fileExtension;
+        this.metadataExportService = metadataExportService;
         this.compression = compression;
-    }
 
-    protected Compression getCompression()
-    {
-        return compression;
+        switch ( compression )
+        {
+        case NONE:
+            setSupportedMediaTypes( JSON_SUPPORTED_MEDIA_TYPES );
+            break;
+        case GZIP:
+            setSupportedMediaTypes( JSON_GZIP_SUPPORTED_MEDIA_TYPES );
+            break;
+        case ZIP:
+            setSupportedMediaTypes( JSON_ZIP_SUPPORTED_MEDIA_TYPES );
+        }
     }
 
     @Override
     protected boolean supports( Class<?> clazz )
     {
-        return RootNode.class.equals( clazz );
+        return MetadataExportParams.class.equals( clazz );
     }
 
     @Override
-    protected boolean canRead( MediaType mediaType )
-    {
-        return false;
-    }
-
-    @Override
-    protected RootNode readInternal( Class<? extends RootNode> clazz, HttpInputMessage inputMessage )
+    protected MetadataExportParams readInternal( Class<? extends MetadataExportParams> clazz,
+        HttpInputMessage inputMessage )
+        throws IOException,
+        HttpMessageNotReadableException
     {
         return null;
     }
 
     @Override
-    protected void writeInternal( RootNode rootNode, HttpOutputMessage outputMessage )
+    protected void writeInternal( @Nonnull MetadataExportParams params, HttpOutputMessage outputMessage )
         throws IOException,
         HttpMessageNotWritableException
     {
@@ -117,7 +115,7 @@ public abstract class AbstractRootNodeMessageConverter extends AbstractHttpMessa
             }
 
             GZIPOutputStream outputStream = new GZIPOutputStream( outputMessage.getBody() );
-            nodeService.serialize( rootNode, contentType, outputStream );
+            metadataExportService.getMetadataAsObjectNodeStream( params, outputStream );
             outputStream.close();
         }
         else if ( Compression.ZIP == compression )
@@ -130,8 +128,8 @@ public abstract class AbstractRootNodeMessageConverter extends AbstractHttpMessa
             }
 
             ZipOutputStream outputStream = new ZipOutputStream( outputMessage.getBody() );
-            outputStream.putNextEntry( new ZipEntry( "metadata." + fileExtension ) );
-            nodeService.serialize( rootNode, contentType, outputStream );
+            outputStream.putNextEntry( new ZipEntry( "metadata.json" ) );
+            metadataExportService.getMetadataAsObjectNodeStream( params, outputStream );
             outputStream.close();
         }
         else
@@ -142,7 +140,7 @@ public abstract class AbstractRootNodeMessageConverter extends AbstractHttpMessa
                     getContentDispositionHeaderValue( extensibleAttachmentFilename, null ) );
             }
 
-            nodeService.serialize( rootNode, contentType, outputMessage.getBody() );
+            metadataExportService.getMetadataAsObjectNodeStream( params, outputMessage.getBody() );
             outputMessage.getBody().close();
         }
     }

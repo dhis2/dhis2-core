@@ -72,29 +72,28 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
 
     protected boolean include( final PropertyWriter writer, final JsonGenerator jgen )
     {
-        PathValue pathValue = getPath( writer, jgen );
-        String path = pathValue.getPath();
+        PathContext ctx = getPath( writer, jgen );
 
-        if ( pathValue.getValue() == null )
+        if ( ctx.getCurrentValue() == null )
         {
             return false;
         }
 
         if ( skipSharing &&
-            StringUtils.equalsAny( path, "user", "publicAccess", "externalAccess", "userGroupAccesses",
+            StringUtils.equalsAny( ctx.getFullPath(), "user", "publicAccess", "externalAccess", "userGroupAccesses",
                 "userAccesses", "sharing" ) )
         {
             return false;
         }
 
-        if ( pathValue.isInsideMap() )
+        if ( ctx.isMapType() )
         {
             return true;
         }
 
         for ( FieldPath fieldPath : fieldPaths )
         {
-            if ( fieldPath.toFullPath().equals( path ) )
+            if ( fieldPath.toFullPath().equals( ctx.getFullPath() ) )
             {
                 return true;
             }
@@ -103,27 +102,26 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
         return false;
     }
 
-    private PathValue getPath( PropertyWriter writer, JsonGenerator jgen )
+    private PathContext getPath( PropertyWriter writer, JsonGenerator jgen )
     {
         StringBuilder nestedPath = new StringBuilder();
         JsonStreamContext sc = jgen.getOutputContext();
-        Object value = null;
-        boolean isInsideMap = false;
+        Object currentValue = null;
+        boolean mapType = false;
 
         if ( sc != null )
         {
             nestedPath.append( writer.getName() );
-            value = sc.getCurrentValue();
+            currentValue = sc.getCurrentValue();
             sc = sc.getParent();
         }
 
         while ( sc != null )
         {
-            if ( sc.getCurrentValue() != null && (Map.class.isAssignableFrom( sc.getCurrentValue().getClass() )
-                || JobParameters.class.isAssignableFrom( sc.getCurrentValue().getClass() )) )
+            if ( isMapType( sc.getCurrentValue() ) )
             {
                 sc = sc.getParent();
-                isInsideMap = true;
+                mapType = true;
                 continue;
             }
 
@@ -136,13 +134,12 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
             sc = sc.getParent();
         }
 
-        if ( value != null && (Map.class.isAssignableFrom( value.getClass() )
-            || JobParameters.class.isAssignableFrom( value.getClass() )) )
+        if ( isMapType( currentValue ) )
         {
-            isInsideMap = true;
+            mapType = true;
         }
 
-        return new PathValue( nestedPath.toString(), value, isInsideMap );
+        return new PathContext( nestedPath.toString(), currentValue, mapType );
     }
 
     @Override
@@ -158,6 +155,12 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
             writer.serializeAsOmittedField( pojo, jgen, provider );
         }
     }
+
+    private boolean isMapType( Object object )
+    {
+        return object != null && (Map.class.isAssignableFrom( object.getClass() )
+            || JobParameters.class.isAssignableFrom( object.getClass() ));
+    }
 }
 
 /**
@@ -165,11 +168,11 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
  */
 @Data
 @RequiredArgsConstructor
-class PathValue
+class PathContext
 {
-    private final String path;
+    private final String fullPath;
 
-    private final Object value;
+    private final Object currentValue;
 
-    private final boolean insideMap;
+    private final boolean mapType;
 }
