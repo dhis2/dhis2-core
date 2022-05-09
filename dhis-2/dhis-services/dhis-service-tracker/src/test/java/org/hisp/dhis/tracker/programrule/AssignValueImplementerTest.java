@@ -151,9 +151,9 @@ class AssignValueImplementerTest extends DhisConvenienceTest
         ProgramStageDataElement programStageDataElementB = createProgramStageDataElement( secondProgramStage,
             dataElementB, 0 );
         secondProgramStage.setProgramStageDataElements( Sets.newHashSet( programStageDataElementB ) );
-        when( preheat.getProgramStage( MetadataIdentifier.ofUid( firstProgramStage.getUid() ) ) )
+        when( preheat.getProgramStage( MetadataIdentifier.ofUid( firstProgramStage ) ) )
             .thenReturn( firstProgramStage );
-        when( preheat.getProgramStage( MetadataIdentifier.ofUid( secondProgramStage.getUid() ) ) )
+        when( preheat.getProgramStage( MetadataIdentifier.ofUid( secondProgramStage ) ) )
             .thenReturn( secondProgramStage );
         when( preheat.get( DataElement.class, dataElementA.getUid() ) ).thenReturn( dataElementA );
         when( preheat.get( TrackedEntityAttribute.class, attributeA.getUid() ) ).thenReturn( attributeA );
@@ -380,7 +380,7 @@ class AssignValueImplementerTest extends DhisConvenienceTest
         Event event = new Event();
         event.setEvent( FIRST_EVENT_ID );
         event.setStatus( EventStatus.ACTIVE );
-        event.setProgramStage( MetadataIdentifier.ofUid( firstProgramStage.getUid() ) );
+        event.setProgramStage( MetadataIdentifier.ofUid( firstProgramStage ) );
         event.setDataValues( getEventDataValues() );
         return event;
     }
@@ -390,7 +390,7 @@ class AssignValueImplementerTest extends DhisConvenienceTest
         Event event = new Event();
         event.setEvent( FIRST_EVENT_ID );
         event.setStatus( EventStatus.ACTIVE );
-        event.setProgramStage( MetadataIdentifier.ofUid( firstProgramStage.getUid() ) );
+        event.setProgramStage( MetadataIdentifier.ofUid( firstProgramStage ) );
         event.setDataValues( getEventDataValuesSameValue() );
         return event;
     }
@@ -400,7 +400,7 @@ class AssignValueImplementerTest extends DhisConvenienceTest
         Event event = new Event();
         event.setEvent( SECOND_EVENT_ID );
         event.setStatus( EventStatus.ACTIVE );
-        event.setProgramStage( MetadataIdentifier.ofUid( firstProgramStage.getUid() ) );
+        event.setProgramStage( MetadataIdentifier.ofUid( firstProgramStage ) );
         return event;
     }
 
@@ -409,7 +409,7 @@ class AssignValueImplementerTest extends DhisConvenienceTest
         return Event.builder()
             .event( SECOND_EVENT_ID )
             .status( EventStatus.ACTIVE )
-            .programStage( MetadataIdentifier.ofUid( secondProgramStage.getUid() ) )
+            .programStage( MetadataIdentifier.ofUid( secondProgramStage ) )
             .build();
     }
 

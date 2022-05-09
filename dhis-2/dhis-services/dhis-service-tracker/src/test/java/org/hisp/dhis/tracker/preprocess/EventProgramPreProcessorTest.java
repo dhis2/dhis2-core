@@ -147,9 +147,9 @@ class EventProgramPreProcessorTest
         when( preheat.get( ProgramStage.class, "LGSWs20XFvy" ) ).thenReturn( programStage );
 
         Event event = Event.builder()
-            .program( MetadataIdentifier.ofUid( null ) )
-            .programStage( MetadataIdentifier.ofUid( programStage.getUid() ) )
-            .attributeOptionCombo( MetadataIdentifier.ofUid( null ) )
+            .program( MetadataIdentifier.EMPTY_UID )
+            .programStage( MetadataIdentifier.ofUid( programStage ) )
+            .attributeOptionCombo( MetadataIdentifier.EMPTY_UID )
             .attributeCategoryOptions( Collections.emptySet() )
             .build();
         TrackerBundle bundle = TrackerBundle.builder().events( Collections.singletonList( event ) ).preheat( preheat )
@@ -194,7 +194,7 @@ class EventProgramPreProcessorTest
 
         assertEquals( MetadataIdentifier.ofUid( PROGRAM_WITH_REGISTRATION ),
             bundle.getEvents().get( 0 ).getProgram() );
-        assertEquals( MetadataIdentifier.ofUid( null ), bundle.getEvents().get( 0 ).getProgramStage() );
+        assertEquals( MetadataIdentifier.EMPTY_UID, bundle.getEvents().get( 0 ).getProgramStage() );
     }
 
     @Test
@@ -230,7 +230,7 @@ class EventProgramPreProcessorTest
         CategoryCombo categoryCombo = createCategoryCombo( 'A' );
         program.setCategoryCombo( categoryCombo );
         Event event = completeTrackerEvent();
-        event.setProgram( MetadataIdentifier.ofUid( program.getUid() ) );
+        event.setProgram( MetadataIdentifier.ofUid( program ) );
         Set<MetadataIdentifier> categoryOptions = Set.of( MetadataIdentifier.ofUid( "123" ),
             MetadataIdentifier.ofUid( "235" ) );
         event.setAttributeCategoryOptions(
@@ -247,7 +247,7 @@ class EventProgramPreProcessorTest
 
         preprocessor.process( bundle );
 
-        assertEquals( MetadataIdentifier.ofCode( categoryOptionCombo.getCode() ),
+        assertEquals( MetadataIdentifier.ofCode( categoryOptionCombo ),
             bundle.getEvents().get( 0 ).getAttributeOptionCombo() );
         assertEquals( categoryOptions,
             bundle.getEvents().get( 0 ).getAttributeCategoryOptions() );
@@ -266,12 +266,12 @@ class EventProgramPreProcessorTest
         CategoryCombo categoryCombo = createCategoryCombo( 'A' );
         program.setCategoryCombo( categoryCombo );
         Event event = completeTrackerEvent();
-        event.setProgram( MetadataIdentifier.ofUid( program.getUid() ) );
+        event.setProgram( MetadataIdentifier.ofUid( program ) );
         event.setAttributeCategoryOptions(
             Set.of( MetadataIdentifier.ofUid( "123" ), MetadataIdentifier.ofUid( "235" ) ) );
         when( preheat.getProgram( event.getProgram() ) ).thenReturn( program );
         when( preheat.getCategoryOptionComboIdentifier( categoryCombo, event.getAttributeCategoryOptions() ) )
-            .thenReturn( MetadataIdentifier.ofCode( null ) );
+            .thenReturn( MetadataIdentifier.EMPTY_CODE );
 
         TrackerBundle bundle = TrackerBundle.builder()
             .events( Collections.singletonList( event ) )
@@ -280,7 +280,7 @@ class EventProgramPreProcessorTest
 
         preprocessor.process( bundle );
 
-        assertEquals( MetadataIdentifier.ofCode( null ), bundle.getEvents().get( 0 ).getAttributeOptionCombo() );
+        assertEquals( MetadataIdentifier.EMPTY_CODE, bundle.getEvents().get( 0 ).getAttributeOptionCombo() );
         assertEquals( Set.of( MetadataIdentifier.ofUid( "123" ), MetadataIdentifier.ofUid( "235" ) ),
             bundle.getEvents().get( 0 ).getAttributeCategoryOptions() );
     }
@@ -298,7 +298,7 @@ class EventProgramPreProcessorTest
         CategoryCombo categoryCombo = createCategoryCombo( 'A' );
         program.setCategoryCombo( categoryCombo );
         Event event = completeTrackerEvent();
-        event.setProgram( MetadataIdentifier.ofUid( program.getUid() ) );
+        event.setProgram( MetadataIdentifier.ofUid( program ) );
         event.setAttributeCategoryOptions(
             Set.of( MetadataIdentifier.ofUid( "123" ), MetadataIdentifier.ofUid( "235" ) ) );
 
@@ -309,7 +309,7 @@ class EventProgramPreProcessorTest
 
         preprocessor.process( bundle );
 
-        assertEquals( MetadataIdentifier.ofUid( null ), bundle.getEvents().get( 0 ).getAttributeOptionCombo() );
+        assertEquals( MetadataIdentifier.EMPTY_UID, bundle.getEvents().get( 0 ).getAttributeOptionCombo() );
         assertEquals( Set.of( MetadataIdentifier.ofUid( "123" ), MetadataIdentifier.ofUid( "235" ) ),
             bundle.getEvents().get( 0 ).getAttributeCategoryOptions() );
     }
@@ -327,7 +327,7 @@ class EventProgramPreProcessorTest
         CategoryCombo categoryCombo = createCategoryCombo( 'A' );
         program.setCategoryCombo( categoryCombo );
         Event event = completeTrackerEvent();
-        event.setProgram( MetadataIdentifier.ofUid( program.getUid() ) );
+        event.setProgram( MetadataIdentifier.ofUid( program ) );
         event.setAttributeOptionCombo( MetadataIdentifier.ofCode( "9871" ) );
         event.setAttributeCategoryOptions(
             Set.of( MetadataIdentifier.ofUid( "123" ), MetadataIdentifier.ofUid( "235" ) ) );
@@ -358,7 +358,7 @@ class EventProgramPreProcessorTest
         CategoryCombo categoryCombo = createCategoryCombo( 'A' );
         program.setCategoryCombo( categoryCombo );
         Event event = completeTrackerEvent();
-        event.setProgram( MetadataIdentifier.ofUid( program.getUid() ) );
+        event.setProgram( MetadataIdentifier.ofUid( program ) );
         event.setAttributeOptionCombo( MetadataIdentifier.ofCode( "9871" ) );
         when( preheat.getProgram( event.getProgram() ) ).thenReturn( program );
 
@@ -385,7 +385,7 @@ class EventProgramPreProcessorTest
         CategoryCombo categoryCombo = createCategoryCombo( 'A' );
         program.setCategoryCombo( categoryCombo );
         Event event = completeTrackerEvent();
-        event.setProgram( MetadataIdentifier.ofUid( program.getUid() ) );
+        event.setProgram( MetadataIdentifier.ofUid( program ) );
         when( preheat.getProgram( event.getProgram() ) ).thenReturn( program );
 
         TrackerBundle bundle = TrackerBundle.builder()
@@ -395,7 +395,7 @@ class EventProgramPreProcessorTest
 
         preprocessor.process( bundle );
 
-        assertEquals( MetadataIdentifier.ofUid( null ), bundle.getEvents().get( 0 ).getAttributeOptionCombo() );
+        assertEquals( MetadataIdentifier.EMPTY_UID, bundle.getEvents().get( 0 ).getAttributeOptionCombo() );
         assertTrue( bundle.getEvents().get( 0 ).getAttributeCategoryOptions().isEmpty() );
     }
 
@@ -453,17 +453,17 @@ class EventProgramPreProcessorTest
     {
         return Event.builder()
             .program( MetadataIdentifier.ofUid( PROGRAM_WITHOUT_REGISTRATION ) )
-            .programStage( MetadataIdentifier.ofUid( null ) )
-            .attributeOptionCombo( MetadataIdentifier.ofUid( null ) )
+            .programStage( MetadataIdentifier.EMPTY_UID )
+            .attributeOptionCombo( MetadataIdentifier.EMPTY_UID )
             .build();
     }
 
     private Event programEventWithProgramStage()
     {
         return Event.builder()
-            .program( MetadataIdentifier.ofUid( null ) )
+            .program( MetadataIdentifier.EMPTY_UID )
             .programStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_WITHOUT_REGISTRATION ) )
-            .attributeOptionCombo( MetadataIdentifier.ofUid( null ) )
+            .attributeOptionCombo( MetadataIdentifier.EMPTY_UID )
             .build();
     }
 
@@ -472,16 +472,16 @@ class EventProgramPreProcessorTest
         return Event.builder()
             .programStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_WITHOUT_REGISTRATION ) )
             .program( MetadataIdentifier.ofUid( PROGRAM_WITHOUT_REGISTRATION ) )
-            .attributeOptionCombo( MetadataIdentifier.ofUid( null ) )
+            .attributeOptionCombo( MetadataIdentifier.EMPTY_UID )
             .build();
     }
 
     private Event trackerEventWithProgramStage()
     {
         return Event.builder()
-            .program( MetadataIdentifier.ofUid( null ) )
+            .program( MetadataIdentifier.EMPTY_UID )
             .programStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_WITH_REGISTRATION ) )
-            .attributeOptionCombo( MetadataIdentifier.ofUid( null ) )
+            .attributeOptionCombo( MetadataIdentifier.EMPTY_UID )
             .build();
     }
 
@@ -489,8 +489,8 @@ class EventProgramPreProcessorTest
     {
         return Event.builder()
             .program( MetadataIdentifier.ofUid( PROGRAM_WITH_REGISTRATION ) )
-            .programStage( MetadataIdentifier.ofUid( null ) )
-            .attributeOptionCombo( MetadataIdentifier.ofUid( null ) )
+            .programStage( MetadataIdentifier.EMPTY_UID )
+            .attributeOptionCombo( MetadataIdentifier.EMPTY_UID )
             .build();
     }
 
@@ -499,7 +499,7 @@ class EventProgramPreProcessorTest
         return Event.builder()
             .programStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_WITH_REGISTRATION ) )
             .program( MetadataIdentifier.ofUid( PROGRAM_WITH_REGISTRATION ) )
-            .attributeOptionCombo( MetadataIdentifier.ofUid( null ) )
+            .attributeOptionCombo( MetadataIdentifier.EMPTY_UID )
             .build();
     }
 }
