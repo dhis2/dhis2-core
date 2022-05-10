@@ -109,7 +109,7 @@
 
         <!-- Jackson -->
         <jackson.version>2.13.2</jackson.version>
-        <jackson.databind.version>2.13.2.1</jackson.databind.version>
+        <jackson.databind.version>2.13.2.2</jackson.databind.version>
         <jackson-datatype-jts.version>1.0-2.7</jackson-datatype-jts.version>
         <jackson-datatype-hibernate5.version>2.13.2</jackson-datatype-hibernate5.version>
         <geojson-jackson.version>1.14</geojson-jackson.version>
