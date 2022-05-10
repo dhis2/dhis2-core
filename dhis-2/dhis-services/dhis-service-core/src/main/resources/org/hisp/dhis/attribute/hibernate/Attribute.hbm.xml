@@ -101,6 +101,8 @@
 
     <property name="eventChartAttribute" not-null="true"/>
 
+    <property name="relationshipTypeAttribute" not-null="true"/>
+
     <property name="sortOrder"/>
 
     <property name="translations" type="jblTranslations"/>
