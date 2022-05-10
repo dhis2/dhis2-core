@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.event.data;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 
 /**
@@ -51,9 +52,9 @@ public class LabelMapper
      */
     static String getEventDateLabel( final ProgramStage programStage, final String defaultLabel )
     {
-        if ( programStage != null && isNotBlank( programStage.getExecutionDateLabel() ) )
+        if ( programStage != null && isNotBlank( programStage.getDisplayExecutionDateLabel() ) )
         {
-            return programStage.getExecutionDateLabel();
+            return programStage.getDisplayExecutionDateLabel();
         }
 
         return defaultLabel;
@@ -68,9 +69,9 @@ public class LabelMapper
     static String getEnrollmentDateLabel( final ProgramStage programStage, final String defaultLabel )
     {
         if ( programStage != null && programStage.getProgram() != null
-            && isNotBlank( programStage.getProgram().getEnrollmentDateLabel() ) )
+            && isNotBlank( programStage.getProgram().getDisplayEnrollmentDateLabel() ) )
         {
-            return programStage.getProgram().getEnrollmentDateLabel();
+            return programStage.getProgram().getDisplayEnrollmentDateLabel();
         }
 
         return defaultLabel;
@@ -85,9 +86,41 @@ public class LabelMapper
     static String getIncidentDateLabel( final ProgramStage programStage, final String defaultLabel )
     {
         if ( programStage != null && programStage.getProgram() != null
-            && isNotBlank( programStage.getProgram().getIncidentDateLabel() ) )
+            && isNotBlank( programStage.getProgram().getDisplayIncidentDateLabel() ) )
         {
-            return programStage.getProgram().getIncidentDateLabel();
+            return programStage.getProgram().getDisplayIncidentDateLabel();
+        }
+
+        return defaultLabel;
+    }
+
+    /**
+     * Finds for a custom label for enrollment date if one exists.
+     *
+     * @param program
+     * @return the custom label, otherwise the default one
+     */
+    static String getEnrollmentDateLabel( final Program program, final String defaultLabel )
+    {
+        if ( program != null && isNotBlank( program.getDisplayEnrollmentDateLabel() ) )
+        {
+            return program.getDisplayEnrollmentDateLabel();
+        }
+
+        return defaultLabel;
+    }
+
+    /**
+     * Finds for a custom label for incident date if one exists.
+     *
+     * @param program
+     * @return the custom label, otherwise the default one
+     */
+    static String getIncidentDateLabel( final Program program, final String defaultLabel )
+    {
+        if ( program != null && isNotBlank( program.getDisplayIncidentDateLabel() ) )
+        {
+            return program.getDisplayIncidentDateLabel();
         }
 
         return defaultLabel;
