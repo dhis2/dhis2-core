@@ -121,7 +121,7 @@ public abstract class AbstractStore
 
         if ( !ctx.getParams().isIncludeDeleted() )
         {
-            getRelationshipsHavingIdSQL.append( " AND r.delete is false" );
+            getRelationshipsHavingIdSQL.append( " AND r.deleted is false" );
         }
         // Get all the relationship ids that have at least one relationship item
         // having
