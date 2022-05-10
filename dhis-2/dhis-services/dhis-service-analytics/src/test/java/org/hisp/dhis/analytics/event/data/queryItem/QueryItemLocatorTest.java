@@ -42,14 +42,20 @@ import static org.hisp.dhis.DhisConvenienceTest.createProgramTrackedEntityAttrib
 import static org.hisp.dhis.DhisConvenienceTest.createTrackedEntityAttribute;
 import static org.hisp.dhis.common.DimensionalObject.ITEM_SEP;
 import static org.hisp.dhis.common.DimensionalObject.PROGRAMSTAGE_SEP;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import java.util.Collections;
+
+import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.event.QueryItemLocator;
 import org.hisp.dhis.analytics.event.data.DefaultQueryItemLocator;
+import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.dataelement.DataElement;
@@ -96,6 +102,9 @@ class QueryItemLocatorTest
     private ProgramIndicatorService programIndicatorService;
 
     @Mock
+    private DataQueryService dataQueryService;
+
+    @Mock
     private LegendSetService legendSetService;
 
     @Mock
@@ -118,7 +127,19 @@ class QueryItemLocatorTest
         programStageUid = CodeGenerator.generateUid();
 
         subject = new DefaultQueryItemLocator( programStageService, dataElementService, attributeService,
-            programIndicatorService, legendSetService, relationshipTypeService );
+            programIndicatorService, legendSetService, relationshipTypeService, dataQueryService );
+    }
+
+    @Test
+    void verifyDynamicDimensionsDoesntThrowException()
+    {
+        String dimension = "dynamicDimension";
+
+        when( dataQueryService.getDimension( dimension, Collections.emptyList(), null, Collections.emptyList(), null,
+            true, false, IdScheme.UID ) )
+                .thenReturn( new BaseDimensionalObject( dimension ) );
+
+        assertDoesNotThrow( () -> subject.getQueryItemFromDimension( dimension, programA, null ) );
     }
 
     @Test
