@@ -112,6 +112,22 @@ public class HibernateTrackedEntityDataValueAuditStore
     }
 
     @Override
+    public void deleteTrackedEntityDataValueAudit( DataElement dataElement )
+    {
+        String hql = "delete from TrackedEntityDataValueAudit d where d.dataElement = :de";
+
+        sessionFactory.getCurrentSession().createQuery( hql ).setParameter( "de", dataElement ).executeUpdate();
+    }
+
+    @Override
+    public void deleteTrackedEntityDataValueAudit( ProgramStageInstance psi )
+    {
+        String hql = "delete from TrackedEntityDataValueAudit d where d.programStageInstance = :psi";
+
+        sessionFactory.getCurrentSession().createQuery( hql ).setParameter( "psi", psi ).executeUpdate();
+    }
+
+    @Override
     public int countTrackedEntityDataValueAudits( List<DataElement> dataElements,
         List<ProgramStageInstance> programStageInstances, AuditType auditType )
     {
