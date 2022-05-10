@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.bundle;
 
+import static org.hisp.dhis.tracker.validation.AbstractImportValidationTest.ADMIN_USER_UID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
@@ -84,8 +85,10 @@ class TrackedEntityAttributeValueAuditTest extends TrackerTest
         throws IOException
     {
         TrackerImportParams trackerImportParams = fromJson( "tracker/te_program_with_tea_data.json" );
-        trackerImportParams.setUser( currentUserService.getCurrentUser() );
+        trackerImportParams.setUser( userService.getUser( ADMIN_USER_UID ) );
+
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
+        logTrackerErrors( trackerImportReport );
         assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
         List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
         assertEquals( 1, trackedEntityInstances.size() );
@@ -105,7 +108,8 @@ class TrackedEntityAttributeValueAuditTest extends TrackerTest
         throws IOException
     {
         TrackerImportParams trackerImportParams = fromJson( "tracker/te_program_with_tea_data.json" );
-        trackerImportParams.setUser( currentUserService.getCurrentUser() );
+        trackerImportParams.setUser( userService.getUser( ADMIN_USER_UID ) );
+
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
         assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
         List<TrackedEntityAttributeValue> attributeValues1 = trackedEntityAttributeValueService
@@ -113,7 +117,7 @@ class TrackedEntityAttributeValueAuditTest extends TrackerTest
         List<TrackedEntityAttribute> attributes1 = attributeValues1.stream()
             .map( TrackedEntityAttributeValue::getAttribute ).collect( Collectors.toList() );
         trackerImportParams = fromJson( "tracker/te_program_with_tea_null_data.json" );
-        trackerImportParams.setUser( currentUserService.getCurrentUser() );
+        trackerImportParams.setUser( userService.getUser( ADMIN_USER_UID ) );
         trackerImportParams.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
         trackerImportReport = trackerImportService.importTracker( trackerImportParams );
         assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );

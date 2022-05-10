@@ -40,7 +40,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  */
 class IsEmptyFieldFilterTest
 {
-
     private final ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
 
     @Test

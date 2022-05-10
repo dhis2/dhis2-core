@@ -61,7 +61,12 @@
         "idScheme": "UID",
         "identifier": "z8lvX50cXC0"
       },
-      "attributeCategoryOptions": "xYerKDKCefk",
+      "attributeCategoryOptions": [
+        {
+          "idScheme": "UID",
+          "identifier": "xYerKDKCefk"
+        }
+      ],
       "dataValues": [],
       "notes": []
     }

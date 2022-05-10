@@ -53,7 +53,6 @@ import org.springframework.http.HttpStatus;
 @Slf4j
 class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest
 {
-
     public static final String URI = "/me?fields=settings,id";
 
     @Autowired
@@ -62,11 +61,8 @@ class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest
     @Autowired
     private ApiTokenStore apiTokenStore;
 
-    private User adminUser;
-
     private static class TokenAndKey
     {
-
         String key;
 
         ApiToken apiToken;
@@ -91,12 +87,12 @@ class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest
         throws Exception
     {
         super.setup();
-        adminUser = preCreateInjectAdminUser();
     }
 
     private TokenAndKey createNewToken()
     {
         ApiToken token = new ApiToken();
+        token.setOwner( "M5zQapPyTZI" );
         token.setType( ApiTokenType.PERSONAL_ACCESS_TOKEN );
         token = apiTokenService.initToken( token );
         apiTokenStore.save( token );

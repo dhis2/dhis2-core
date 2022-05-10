@@ -86,7 +86,7 @@ class ProgramStageObjectBundleHookTest
         dataElement = DhisConvenienceTest.createDataElement( 'A' );
         dataElement.setUid( "qtplcYVR1oO" );
         programStage.addDataElement( dataElement, 0 );
-        user = DhisConvenienceTest.createUser( 'A' );
+        user = DhisConvenienceTest.makeUser( "A" );
         user.setUid( "WAoGUm593U7" );
 
         preheat.put( PreheatIdentifier.UID, program );

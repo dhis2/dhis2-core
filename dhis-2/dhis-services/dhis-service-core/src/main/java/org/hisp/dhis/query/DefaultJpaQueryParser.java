@@ -127,14 +127,8 @@ public class DefaultJpaQueryParser
             return Restrictions.eq( path, QueryUtils.parseValue( property.getKlass(), arg ) );
         }
         case "!eq":
-        {
-            return Restrictions.ne( path, QueryUtils.parseValue( property.getKlass(), arg ) );
-        }
-        case "ne":
-        {
-            return Restrictions.ne( path, QueryUtils.parseValue( property.getKlass(), arg ) );
-        }
         case "neq":
+        case "ne":
         {
             return Restrictions.ne( path, QueryUtils.parseValue( property.getKlass(), arg ) );
         }
@@ -147,17 +141,11 @@ public class DefaultJpaQueryParser
             return Restrictions.lt( path, QueryUtils.parseValue( property.getKlass(), arg ) );
         }
         case "gte":
-        {
-            return Restrictions.ge( path, QueryUtils.parseValue( property.getKlass(), arg ) );
-        }
         case "ge":
         {
             return Restrictions.ge( path, QueryUtils.parseValue( property.getKlass(), arg ) );
         }
         case "lte":
-        {
-            return Restrictions.le( path, QueryUtils.parseValue( property.getKlass(), arg ) );
-        }
         case "le":
         {
             return Restrictions.le( path, QueryUtils.parseValue( property.getKlass(), arg ) );

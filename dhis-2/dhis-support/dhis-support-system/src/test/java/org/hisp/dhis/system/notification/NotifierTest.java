@@ -57,7 +57,7 @@ class NotifierTest extends DhisSpringTest
     @Autowired
     private Notifier notifier;
 
-    private final User user = createUser( 'A' );
+    private final User user = makeUser( "A" );
 
     private final JobConfiguration dataValueImportJobConfig;
 

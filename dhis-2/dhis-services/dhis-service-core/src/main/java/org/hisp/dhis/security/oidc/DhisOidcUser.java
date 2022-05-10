@@ -29,6 +29,7 @@ package org.hisp.dhis.security.oidc;
 
 import java.util.Map;
 
+import org.hisp.dhis.user.Dhis2User;
 import org.hisp.dhis.user.User;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
@@ -40,7 +41,7 @@ import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
  */
 public class DhisOidcUser
     extends DefaultOAuth2User
-    implements OidcUser
+    implements OidcUser, Dhis2User
 {
     private final OidcIdToken oidcIdToken;
 
@@ -73,6 +74,18 @@ public class DhisOidcUser
     }
 
     public User getUser()
+    {
+        return user;
+    }
+
+    @Override
+    public String getUsername()
+    {
+        return user.getUsername();
+    }
+
+    @Override
+    public User getDhis2User()
     {
         return user;
     }

@@ -34,6 +34,7 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4000;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4001;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4009;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4011;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4018;
 import static org.hisp.dhis.tracker.validation.hooks.RelationshipValidationUtils.getUidFromRelationshipItem;
 import static org.hisp.dhis.tracker.validation.hooks.RelationshipValidationUtils.relationshipItemValueType;
 
@@ -46,13 +47,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.springframework.stereotype.Component;
 
@@ -73,8 +75,7 @@ public class RelationshipsValidationHook
             bundle.getPreheat().getAll( RelationshipType.class ) );
 
         // No need to check additional data if there are missing information on
-        // the
-        // Relationship
+        // the Relationship
         if ( isValid )
         {
             validateRelationshipLinkToOneEntity( reporter, relationship );
@@ -82,10 +83,26 @@ public class RelationshipsValidationHook
 
             validateAutoRelationship( reporter, relationship );
 
+            validateDuplication( reporter, relationship, bundle );
+
             validateReferences( reporter, relationship, relationship.getFrom() );
             validateReferences( reporter, relationship, relationship.getTo() );
         }
 
+    }
+
+    private void validateDuplication( ValidationErrorReporter reporter, Relationship relationship,
+        TrackerBundle bundle )
+    {
+        if ( bundle.getPreheat().isDuplicate( relationship ) )
+        {
+            reporter.addError( relationship, E4018,
+                relationship.getRelationship(),
+                relationshipItemValueType( relationship.getFrom() ).getName(),
+                getUidFromRelationshipItem( relationship.getFrom() ).orElse( null ),
+                relationshipItemValueType( relationship.getTo() ).getName(),
+                getUidFromRelationshipItem( relationship.getTo() ).orElse( null ) );
+        }
     }
 
     private void validateRelationshipLinkToOneEntity( ValidationErrorReporter reporter,
@@ -118,10 +135,9 @@ public class RelationshipsValidationHook
             () -> getRelationshipType( relationshipsTypes, relationship.getRelationshipType() ).isEmpty(),
             relationship, E4009, relationship.getRelationshipType() );
 
-        final Optional<TrackerErrorReport> any = reporter.getReportList().stream()
-            .filter( r -> relationship.getRelationship().equals( r.getUid() ) ).findAny();
-
-        return any.isEmpty();
+        return reporter.getReportList()
+            .stream()
+            .noneMatch( r -> relationship.getRelationship().equals( r.getUid() ) );
     }
 
     private Optional<RelationshipType> getRelationshipType( List<RelationshipType> relationshipsTypes,
@@ -167,10 +183,12 @@ public class RelationshipsValidationHook
                     item.getTrackedEntity() )
                         .ifPresent( type -> {
 
-                            if ( !type.equals( constraint.getTrackedEntityType().getUid() ) )
+                            if ( !type.isEqualTo( constraint.getTrackedEntityType() ) )
                             {
                                 reporter.addError( relationship,
-                                    TrackerErrorCode.E4014, relSide, constraint.getTrackedEntityType().getUid(), type );
+                                    TrackerErrorCode.E4014, relSide,
+                                    type.identifierOf( constraint.getTrackedEntityType() ),
+                                    type.getIdentifierOrAttributeValue() );
                             }
 
                         } );
@@ -216,20 +234,23 @@ public class RelationshipsValidationHook
             trackerType.getName(), s ) );
     }
 
-    private Optional<String> getRelationshipTypeUidFromTrackedEntity( TrackerBundle bundle, String uid )
+    private Optional<MetadataIdentifier> getRelationshipTypeUidFromTrackedEntity( TrackerBundle bundle, String uid )
     {
         return getTrackedEntityTypeFromTrackedEntity( bundle, uid ).map( Optional::of )
             .orElseGet( () -> getTrackedEntityTypeFromTrackedEntityRef( bundle, uid ) );
     }
 
-    private Optional<String> getTrackedEntityTypeFromTrackedEntity( TrackerBundle bundle, String uid )
+    private Optional<MetadataIdentifier> getTrackedEntityTypeFromTrackedEntity( TrackerBundle bundle, String uid )
     {
         final TrackedEntityInstance trackedEntity = bundle.getTrackedEntityInstance( uid );
 
-        return trackedEntity != null ? Optional.of( trackedEntity.getTrackedEntityType().getUid() ) : Optional.empty();
+        return trackedEntity != null
+            ? Optional
+                .of( bundle.getPreheat().getIdSchemes().toMetadataIdentifier( trackedEntity.getTrackedEntityType() ) )
+            : Optional.empty();
     }
 
-    private Optional<String> getTrackedEntityTypeFromTrackedEntityRef( TrackerBundle bundle, String uid )
+    private Optional<MetadataIdentifier> getTrackedEntityTypeFromTrackedEntityRef( TrackerBundle bundle, String uid )
     {
         final Optional<TrackedEntity> payloadTei = bundle.getTrackedEntities().stream()
             .filter( t -> t.getTrackedEntity().equals( uid ) ).findFirst();
@@ -240,5 +261,13 @@ public class RelationshipsValidationHook
     public boolean removeOnError()
     {
         return true;
+    }
+
+    // Skip validation when strategy is update as relationships are not
+    // updatable.
+    @Override
+    public boolean needsToRun( TrackerImportStrategy strategy )
+    {
+        return strategy.isCreate();
     }
 }

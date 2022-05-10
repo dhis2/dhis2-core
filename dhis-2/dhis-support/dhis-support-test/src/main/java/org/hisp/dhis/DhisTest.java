@@ -27,14 +27,18 @@
  */
 package org.hisp.dhis;
 
+import javax.sql.DataSource;
+
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.config.Configurator;
 import org.hisp.dhis.config.UnitTestConfig;
 import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.h2.H2SqlFunction;
 import org.hisp.dhis.utils.TestUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -54,6 +58,9 @@ public abstract class DhisTest extends BaseSpringTest
         return true;
     }
 
+    @Autowired
+    private DataSource dataSource;
+
     @BeforeEach
     final void before()
         throws Exception
@@ -66,6 +73,7 @@ public abstract class DhisTest extends BaseSpringTest
             Configurator.setLevel( "org.hisp.dhis.datasource.query", Level.INFO );
             Configurator.setRootLevel( Level.INFO );
         }
+        H2SqlFunction.registerH2Functions( dataSource );
         setUpTest();
     }
 

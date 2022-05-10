@@ -154,7 +154,7 @@ class PatchServiceTest extends DhisSpringTest
     @Test
     void testUpdateUserOnDataElement()
     {
-        User user = createUser( 'A' );
+        User user = makeUser( "A" );
         manager.save( user );
         createAndInjectAdminUser();
         DataElement dataElement = createDataElement( 'A' );

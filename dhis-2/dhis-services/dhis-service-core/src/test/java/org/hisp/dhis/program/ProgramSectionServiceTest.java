@@ -75,10 +75,10 @@ class ProgramSectionServiceTest
 
         manager.save( programSection );
 
-        User userA = createUser( "A", "F_PROGRAM_PUBLIC_ADD" );
+        User userA = createUserWithAuth( "A", "F_PROGRAM_PUBLIC_ADD" );
         assertTrue( aclService.canUpdate( userA, programSection ) );
 
-        User userB = createUser( "B" );
+        User userB = createUserWithAuth( "B" );
         assertFalse( aclService.canUpdate( userB, programSection ) );
     }
 

@@ -29,6 +29,7 @@ package org.hisp.dhis.relationship.hibernate;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.persistence.NoResultException;
@@ -43,7 +44,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -65,7 +66,7 @@ import org.springframework.stereotype.Repository;
  * @author Abyot Asalefew
  */
 @Repository( "org.hisp.dhis.relationship.RelationshipStore" )
-public class HibernateRelationshipStore extends HibernateIdentifiableObjectStore<Relationship>
+public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relationship>
     implements RelationshipStore
 {
     private static final String TRACKED_ENTITY_INSTANCE = "trackedEntityInstance";
@@ -206,11 +207,10 @@ public class HibernateRelationshipStore extends HibernateIdentifiableObjectStore
     @Override
     public boolean existsIncludingDeleted( String uid )
     {
-        Query query = getSession().createNativeQuery( "select uid from relationship where uid=:uid limit 1;" );
+        Query<String> query = getSession().createNativeQuery( "select uid from relationship where uid=:uid limit 1;" );
         query.setParameter( "uid", uid );
-        int count = ((Number) query.getSingleResult()).intValue();
 
-        return count > 0;
+        return !query.list().isEmpty();
     }
 
     private JpaQueryParameters<Relationship> newJpaParameters(
@@ -276,8 +276,8 @@ public class HibernateRelationshipStore extends HibernateIdentifiableObjectStore
         List<Object> c = getSession().createNativeQuery( new StringBuilder().append( "SELECT R.uid " )
             .append( "FROM relationship R " )
             .append( "INNER JOIN relationshiptype RT ON RT.relationshiptypeid = R.relationshiptypeid " )
-            .append( "WHERE R.key IN (:keys) " )
-            .append( "OR (R.inverted_key IN (:keys) AND RT.bidirectional = TRUE)" )
+            .append( "WHERE R.deleted = false AND (R.key IN (:keys) " )
+            .append( "OR (R.inverted_key IN (:keys) AND RT.bidirectional = TRUE))" )
             .toString() )
             .setParameter( "keys", relationshipKeyList )
             .getResultList();
@@ -289,7 +289,7 @@ public class HibernateRelationshipStore extends HibernateIdentifiableObjectStore
     }
 
     @Override
-    public List<Relationship> getByUids( List<String> uids )
+    public List<Relationship> getByUidsIncludeDeleted( List<String> uids )
     {
         CriteriaBuilder criteriaBuilder = getCriteriaBuilder();
 
@@ -309,6 +309,19 @@ public class HibernateRelationshipStore extends HibernateIdentifiableObjectStore
         {
             return null;
         }
+    }
+
+    @Override
+    protected void preProcessPredicates( CriteriaBuilder builder,
+        List<Function<Root<Relationship>, Predicate>> predicates )
+    {
+        predicates.add( root -> builder.equal( root.get( "deleted" ), false ) );
+    }
+
+    @Override
+    protected Relationship postProcessObject( Relationship relationship )
+    {
+        return (relationship == null || relationship.isDeleted()) ? null : relationship;
     }
 
     private Predicate bidirectionalCriteria( CriteriaBuilder criteriaBuilder, Root<Relationship> root,

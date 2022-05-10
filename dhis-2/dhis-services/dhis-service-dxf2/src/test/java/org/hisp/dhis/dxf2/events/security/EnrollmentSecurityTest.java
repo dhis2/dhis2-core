@@ -182,7 +182,7 @@ class EnrollmentSecurityTest extends TransactionalIntegrationTest
     {
         programA.getSharing().setPublicAccess( AccessStringHelper.FULL );
         manager.updateNoAcl( programA );
-        User user = createUser( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        User user = createUserWithAuth( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         user.setTeiSearchOrganisationUnits( Sets.newHashSet( organisationUnitA, organisationUnitB ) );
         userService.addUser( user );
         injectSecurityContext( user );
@@ -208,7 +208,7 @@ class EnrollmentSecurityTest extends TransactionalIntegrationTest
     {
         programA.getSharing().setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
         manager.updateNoAcl( programA );
-        User user = createUser( "user1" );
+        User user = createUserWithAuth( "user1" );
         injectSecurityContext( user );
         assertThrows( IllegalQueryException.class,
             () -> enrollmentService.addEnrollment( createEnrollment( programA.getUid(), maleA.getUid() ),
@@ -223,7 +223,7 @@ class EnrollmentSecurityTest extends TransactionalIntegrationTest
     {
         programA.setPublicAccess( AccessStringHelper.DATA_READ );
         manager.updateNoAcl( programA );
-        User user = createUser( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        User user = createUserWithAuth( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         injectSecurityContext( user );
         assertEquals( ImportStatus.ERROR,
             enrollmentService.addEnrollment( createEnrollment( programA.getUid(), maleA.getUid() ),
@@ -241,7 +241,7 @@ class EnrollmentSecurityTest extends TransactionalIntegrationTest
     {
         programA.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
         manager.updateNoAcl( programA );
-        User user = createUser( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        User user = createUserWithAuth( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         injectSecurityContext( user );
         assertEquals( ImportStatus.ERROR,
             enrollmentService.addEnrollment( createEnrollment( programA.getUid(), maleA.getUid() ),
@@ -259,7 +259,7 @@ class EnrollmentSecurityTest extends TransactionalIntegrationTest
     {
         programA.setPublicAccess( AccessStringHelper.DEFAULT );
         manager.update( programA );
-        User user = createUser( "user1" );
+        User user = createUserWithAuth( "user1" );
         injectSecurityContext( user );
         assertThrows( IllegalQueryException.class,
             () -> enrollmentService.addEnrollment( createEnrollment( programA.getUid(), maleA.getUid() ),
@@ -277,7 +277,7 @@ class EnrollmentSecurityTest extends TransactionalIntegrationTest
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         programA.getSharing().setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
         manager.updateNoAcl( programA );
-        User user = createUser( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        User user = createUserWithAuth( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         injectSecurityContext( user );
         Enrollment enrollment = enrollmentService.getEnrollment( importSummary.getReference() );
         assertNotNull( enrollment );
@@ -295,7 +295,7 @@ class EnrollmentSecurityTest extends TransactionalIntegrationTest
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         programA.getSharing().setPublicAccess( AccessStringHelper.DATA_READ );
         manager.updateNoAcl( programA );
-        User user = createUser( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        User user = createUserWithAuth( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         injectSecurityContext( user );
         Enrollment enrollment = enrollmentService.getEnrollment( importSummary.getReference() );
         assertNotNull( enrollment );
@@ -313,7 +313,7 @@ class EnrollmentSecurityTest extends TransactionalIntegrationTest
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         programA.getSharing().setPublicAccess( AccessStringHelper.DATA_READ );
         manager.update( programA );
-        User user = createUser( "user1" );
+        User user = createUserWithAuth( "user1" );
         user.setOrganisationUnits( Sets.newHashSet( organisationUnitB ) );
         user.setTeiSearchOrganisationUnits( Sets.newHashSet( organisationUnitA, organisationUnitB ) );
         user.setDataViewOrganisationUnits( Sets.newHashSet( organisationUnitB ) );
@@ -340,7 +340,7 @@ class EnrollmentSecurityTest extends TransactionalIntegrationTest
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         programA.getSharing().setPublicAccess( AccessStringHelper.DATA_READ );
         manager.updateNoAcl( programA );
-        User user = createUser( "user1" );
+        User user = createUserWithAuth( "user1" );
         injectSecurityContext( user );
         assertThrows( IllegalQueryException.class,
             () -> enrollmentService.getEnrollment( importSummary.getReference() ) );
@@ -357,7 +357,7 @@ class EnrollmentSecurityTest extends TransactionalIntegrationTest
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         programA.getSharing().setPublicAccess( AccessStringHelper.DATA_READ );
         manager.updateNoAcl( programA );
-        User user = createUser( "user1" );
+        User user = createUserWithAuth( "user1" );
         injectSecurityContext( user );
         assertThrows( IllegalQueryException.class,
             () -> enrollmentService.getEnrollment( importSummary.getReference() ) );
@@ -374,7 +374,7 @@ class EnrollmentSecurityTest extends TransactionalIntegrationTest
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         programA.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
         manager.updateNoAcl( programA );
-        User user = createUser( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        User user = createUserWithAuth( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         injectSecurityContext( user );
         assertThrows( IllegalQueryException.class,
             () -> enrollmentService.getEnrollment( importSummary.getReference() ) );

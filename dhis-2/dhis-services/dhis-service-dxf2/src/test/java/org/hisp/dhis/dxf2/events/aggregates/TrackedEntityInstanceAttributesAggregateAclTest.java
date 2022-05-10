@@ -40,14 +40,12 @@ import org.hisp.dhis.dxf2.TrackerTest;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
-import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
@@ -67,15 +65,19 @@ class TrackedEntityInstanceAttributesAggregateAclTest extends TrackerTest
     @Autowired
     private TrackedEntityInstanceAggregate trackedEntityInstanceAggregate;
 
+    private User superUser;
+
+    private User nonSuperUser;
+
     @Override
     protected void mockCurrentUserService()
     {
-        User user = createUser( "testUser" );
-        setUserAuthorityToNonSuper( user );
-        currentUserService = new MockCurrentUserService( user );
-        ReflectionTestUtils.setField( trackedEntityInstanceAggregate, "currentUserService", currentUserService );
-        ReflectionTestUtils.setField( trackedEntityInstanceService, "currentUserService", currentUserService );
-        ReflectionTestUtils.setField( teiService, "currentUserService", currentUserService );
+        superUser = preCreateInjectAdminUser();
+        injectSecurityContext( superUser );
+
+        nonSuperUser = createUserWithAuth( "testUser" );
+        setUserAuthorityToNonSuper( nonSuperUser );
+        injectSecurityContext( nonSuperUser );
     }
 
     @Test
@@ -102,6 +104,7 @@ class TrackedEntityInstanceAttributesAggregateAclTest extends TrackerTest
     {
         final String tetUid = CodeGenerator.generateUid();
         doInTransaction( () -> {
+            injectSecurityContext( superUser );
             TrackedEntityType trackedEntityTypeZ = createTrackedEntityType( 'Z' );
             trackedEntityTypeZ.setUid( tetUid );
             trackedEntityTypeZ.setName( "TrackedEntityTypeZ" + trackedEntityTypeZ.getUid() );

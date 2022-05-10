@@ -45,7 +45,6 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -57,7 +56,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.DhisWebSpringTest;
@@ -67,7 +65,6 @@ import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.hisp.dhis.webapi.controller.event.webrequest.TrackedEntityInstanceCriteria;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import com.google.common.collect.Sets;
 
@@ -138,10 +135,10 @@ class TrackedEntityCriteriaMapperTest extends DhisWebSpringTest
         userIds = userId1 + ";" + userId2 + ";" + userId3;
         // mock user
         super.userService = this.userService;
-        User user = createUser( "testUser" );
+        User user = createUserWithAuth( "testUser" );
         user.setTeiSearchOrganisationUnits( Sets.newHashSet( organisationUnit ) );
-        CurrentUserService currentUserService = new MockCurrentUserService( user );
-        ReflectionTestUtils.setField( trackedEntityCriteriaMapper, "currentUserService", currentUserService );
+
+        injectSecurityContext( user );
     }
 
     @Test
@@ -272,9 +269,10 @@ class TrackedEntityCriteriaMapperTest extends DhisWebSpringTest
     @Test
     void verifyCriteriaMappingFailOnUserNonInOuHierarchy()
     {
+        clearSecurityContext();
         // Force Current User Service to return a User without search org unit
-        ReflectionTestUtils.setField( trackedEntityCriteriaMapper, "currentUserService",
-            new MockCurrentUserService( createUser( "testUser2" ) ) );
+        User mockUser = createUserWithAuth( "testUser2" );
+        injectSecurityContext( mockUser );
         TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
         criteria.setOu( organisationUnit.getUid() );
         IllegalQueryException e = assertThrows( IllegalQueryException.class,

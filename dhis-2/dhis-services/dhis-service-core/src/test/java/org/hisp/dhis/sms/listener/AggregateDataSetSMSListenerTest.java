@@ -223,7 +223,7 @@ class AggregateDataSetSMSListenerTest extends
         throws SmsCompressionException
     {
         organisationUnit = createOrganisationUnit( 'O' );
-        user = createUser( 'U' );
+        user = makeUser( "U" );
         user.setPhoneNumber( ORIGINATOR );
         user.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
         dataSet = createDataSet( 'D' );

@@ -371,7 +371,7 @@ class PreCheckMetaValidationHookTest
         return TrackedEntity.builder()
             .trackedEntity( TRACKED_ENTITY_UID )
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_UID ) )
-            .trackedEntityType( TRACKED_ENTITY_TYPE_UID )
+            .trackedEntityType( MetadataIdentifier.ofUid( TRACKED_ENTITY_TYPE_UID ) )
             .build();
     }
 

@@ -130,7 +130,7 @@ class StrategyPreProcessorTest extends DhisConvenienceTest
         Mockito.when( preheat.getTrackedEntity( TEI_UID ) ).thenReturn( tei );
         Mockito.when( preheat.getEnrollment( ENROLLMENT_UID ) ).thenReturn( pi );
         Mockito.when( preheat.getEvent( EVENT_UID ) ).thenReturn( psi );
-        Mockito.when( preheat.getRelationship( payloadRelationship ) ).thenReturn( relationship );
+        Mockito.when( preheat.getRelationship( RELATIONSHIP_UID ) ).thenReturn( relationship );
     }
 
     @Test

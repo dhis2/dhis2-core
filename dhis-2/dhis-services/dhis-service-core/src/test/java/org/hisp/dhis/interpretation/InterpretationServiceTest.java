@@ -104,19 +104,13 @@ class InterpretationServiceTest extends TransactionalIntegrationTest
     @BeforeEach
     void beforeTest()
     {
-        userA = createUser( 'A' );
-        userB = createUser( 'B' );
-        userC = createUser( "C.D-E_F" );
+        userA = makeUser( "A" );
+        userB = makeUser( "B" );
+        userC = createUserWithAuth( "C.D-E_F" );
         userService.addUser( userA );
         userService.addUser( userB );
         userService.addUser( userC );
         injectSecurityContext( userA );
-        // setDependency( interpretationService, "currentUserService", new
-        // MockCurrentUserService( userA ),
-        // CurrentUserService.class );
-        // setDependency( interpretationService, "userService", new
-        // MockUserService( Arrays.asList(userA, userB, userC) ),
-        // UserService.class );
         visualizationA = createVisualization( 'A' );
         visualizationService.save( visualizationA );
         interpretationA = new Interpretation( visualizationA, null, "Interpration of chart A" );

@@ -33,7 +33,10 @@
   "trackedEntities": [
     {
       "trackedEntity": "Kj6vYde4LHh",
-      "trackedEntityType": "bPJ0FMtcnEh",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "bPJ0FMtcnEh"
+      },
       "updatedAt": "2019-08-19T13:59:13.706",
       "orgUnit": {
         "idScheme": "UID",
@@ -48,7 +51,10 @@
     },
     {
       "trackedEntity": "VVVKj6vYdes",
-      "trackedEntityType": "XXXbPJ0FMtc",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "XXXbPJ0FMtc"
+      },
       "updatedAt": "2019-08-19T13:59:13.706",
       "orgUnit": {
         "idScheme": "UID",
@@ -63,7 +69,10 @@
     },
     {
       "trackedEntity": "KKKKj6vYdes",
-      "trackedEntityType": "bPJ0FMtcnEh",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "bPJ0FMtcnEh"
+      },
       "updatedAt": "2019-08-19T13:59:13.706",
       "orgUnit": {
         "idScheme": "UID",
@@ -78,7 +87,10 @@
     },
     {
       "trackedEntity": "OOOOj6vYdes",
-      "trackedEntityType": "bPJ0FMtcnEh",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "bPJ0FMtcnEh"
+      },
       "updatedAt": "2019-08-19T13:59:13.706",
       "orgUnit": {
         "idScheme": "UID",
@@ -93,7 +105,10 @@
     },
     {
       "trackedEntity": "YYYYj6vYdes",
-      "trackedEntityType": "bPJ0FMtcnEh",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "bPJ0FMtcnEh"
+      },
       "updatedAt": "2019-08-19T13:59:13.706",
       "orgUnit": {
         "idScheme": "UID",

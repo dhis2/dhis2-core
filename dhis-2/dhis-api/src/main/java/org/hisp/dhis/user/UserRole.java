@@ -32,7 +32,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
@@ -43,7 +42,6 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.collect.Sets;
 
 /**
  * @author Nguyen Hong Duc
@@ -54,42 +52,15 @@ public class UserRole
 {
     public static final String AUTHORITY_ALL = "ALL";
 
-    private static final String[] CRITICAL_AUTHS = { "ALL", "F_SCHEDULING_ADMIN", "F_SYSTEM_SETTING",
-        "F_SQLVIEW_PUBLIC_ADD", "F_SQLVIEW_PRIVATE_ADD", "F_SQLVIEW_DELETE",
-        "F_USERROLE_PUBLIC_ADD", "F_USERROLE_PRIVATE_ADD", "F_USERROLE_DELETE" };
-
-    /**
-     * Required and unique.
-     */
     private String description;
 
     private Set<String> authorities = new HashSet<>();
 
     private Set<User> members = new HashSet<>();
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
-
     public UserRole()
     {
         setAutoFields();
-    }
-
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
-
-    public void addUser( User user )
-    {
-        members.add( user );
-        user.getUserRoles().add( this );
-    }
-
-    public void removeUser( User useer )
-    {
-        members.remove( useer );
-        useer.getUserRoles().remove( this );
     }
 
     public boolean isSuper()
@@ -97,14 +68,17 @@ public class UserRole
         return authorities != null && authorities.contains( AUTHORITY_ALL );
     }
 
-    public boolean hasCriticalAuthorities()
+    public void addUser( User user )
     {
-        return authorities != null && CollectionUtils.containsAny( authorities, Sets.newHashSet( CRITICAL_AUTHS ) );
+        members.add( user );
+        user.getUserRoles().add( this );
     }
 
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
+    public void removeUser( User user )
+    {
+        members.remove( user );
+        user.getUserRoles().remove( this );
+    }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )

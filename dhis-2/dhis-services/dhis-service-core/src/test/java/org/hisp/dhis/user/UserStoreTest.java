@@ -112,8 +112,8 @@ class UserStoreTest extends DhisSpringTest
         Set<OrganisationUnit> units = new HashSet<>();
         units.add( unit1 );
         units.add( unit2 );
-        User userA = createUser( 'A' );
-        User userB = createUser( 'B' );
+        User userA = makeUser( "A" );
+        User userB = makeUser( "B" );
         userA.setOrganisationUnits( units );
         userB.setOrganisationUnits( units );
         userStore.save( userA );
@@ -129,8 +129,8 @@ class UserStoreTest extends DhisSpringTest
     @Test
     void testUpdateUser()
     {
-        User userA = createUser( 'A' );
-        User userB = createUser( 'B' );
+        User userA = makeUser( "A" );
+        User userB = makeUser( "B" );
         userStore.save( userA );
         long idA = userA.getId();
         userStore.save( userB );
@@ -145,8 +145,8 @@ class UserStoreTest extends DhisSpringTest
     @Test
     void testDeleteUser()
     {
-        User userA = createUser( 'A' );
-        User userB = createUser( 'B' );
+        User userA = makeUser( "A" );
+        User userB = makeUser( "B" );
         userStore.save( userA );
         long idA = userA.getId();
         userStore.save( userB );
@@ -161,7 +161,7 @@ class UserStoreTest extends DhisSpringTest
     @Test
     void testGetCurrentUserGroupInfo()
     {
-        User userA = createUser( 'A' );
+        User userA = makeUser( "A" );
         userStore.save( userA );
         UserGroup userGroupA = createUserGroup( 'A', Sets.newHashSet( userA ) );
         userGroupService.addUserGroup( userGroupA );
@@ -169,7 +169,7 @@ class UserStoreTest extends DhisSpringTest
         userGroupService.addUserGroup( userGroupB );
         userA.getGroups().add( userGroupA );
         userA.getGroups().add( userGroupB );
-        CurrentUserGroupInfo currentUserGroupInfo = userStore.getCurrentUserGroupInfo( userA.getId() );
+        CurrentUserGroupInfo currentUserGroupInfo = userStore.getCurrentUserGroupInfo( userA );
         assertNotNull( currentUserGroupInfo );
         assertEquals( 2, currentUserGroupInfo.getUserGroupUIDs().size() );
         assertEquals( userA.getUid(), currentUserGroupInfo.getUserUID() );
@@ -178,9 +178,9 @@ class UserStoreTest extends DhisSpringTest
     @Test
     void testGetCurrentUserGroupInfoWithoutGroup()
     {
-        User userA = createUser( 'A' );
+        User userA = makeUser( "A" );
         userStore.save( userA );
-        CurrentUserGroupInfo currentUserGroupInfo = userStore.getCurrentUserGroupInfo( userA.getId() );
+        CurrentUserGroupInfo currentUserGroupInfo = userStore.getCurrentUserGroupInfo( userA );
         assertNotNull( currentUserGroupInfo );
         assertEquals( 0, currentUserGroupInfo.getUserGroupUIDs().size() );
         assertEquals( userA.getUid(), currentUserGroupInfo.getUserUID() );
@@ -189,7 +189,7 @@ class UserStoreTest extends DhisSpringTest
     @Test
     void testGetDisplayName()
     {
-        User userA = createUser( 'A' );
+        User userA = makeUser( "A" );
         userStore.save( userA );
         assertEquals( "FirstNameA SurnameA", userStore.getDisplayName( userA.getUid() ) );
     }
@@ -197,8 +197,8 @@ class UserStoreTest extends DhisSpringTest
     @Test
     void testAddGetUserTwo()
     {
-        User userA = createUser( 'A' );
-        User userB = createUser( 'B' );
+        User userA = makeUser( "A" );
+        User userB = makeUser( "B" );
         userStore.save( userA );
         long idA = userA.getId();
         userStore.save( userB );
@@ -210,8 +210,8 @@ class UserStoreTest extends DhisSpringTest
     @Test
     void testGetUserByUuid()
     {
-        User userA = createUser( 'A' );
-        User userB = createUser( 'B' );
+        User userA = makeUser( "A" );
+        User userB = makeUser( "B" );
         userStore.save( userA );
         userStore.save( userB );
 
@@ -228,8 +228,8 @@ class UserStoreTest extends DhisSpringTest
     @Test
     void testGetUserWithAuthority()
     {
-        User userA = addUser( 'A', roleA );
-        User userB = addUser( 'B', roleB, roleC );
+        User userA = addUser( "A", roleA );
+        User userB = addUser( "B", roleB, roleC );
         List<User> usersWithAuthorityA = userService.getUsersWithAuthority( AUTH_D );
         assertTrue( usersWithAuthorityA.contains( userA ) );
         List<User> usersWithAuthorityB = userService.getUsersWithAuthority( AUTH_D );

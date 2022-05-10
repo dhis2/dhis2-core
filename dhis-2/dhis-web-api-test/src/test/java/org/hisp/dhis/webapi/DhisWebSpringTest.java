@@ -38,6 +38,7 @@ import org.hisp.dhis.IntegrationH2Test;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.utils.TestUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -94,6 +95,11 @@ public abstract class DhisWebSpringTest extends DhisConvenienceTest
         throws Exception
     {
         userService = _userService;
+        clearSecurityContext();
+
+        User all = createAndAddAdminUser( "ALL" );
+        injectSecurityContext( all );
+
         CharacterEncodingFilter characterEncodingFilter = new CharacterEncodingFilter();
         characterEncodingFilter.setEncoding( "UTF-8" );
         characterEncodingFilter.setForceEncoding( true );
@@ -117,11 +123,13 @@ public abstract class DhisWebSpringTest extends DhisConvenienceTest
 
     public MockHttpSession getSession( String... authorities )
     {
-        createAndInjectAdminUser( authorities );
+        // createAndInjectAdminUser( authorities );
 
         MockHttpSession session = new MockHttpSession();
+
         session.setAttribute( HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
             SecurityContextHolder.getContext() );
+
         return session;
     }
 

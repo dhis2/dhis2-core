@@ -43,19 +43,18 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4012;
 import static org.hisp.dhis.tracker.validation.hooks.RelationshipValidationUtils.getUidFromRelationshipItem;
 import static org.hisp.dhis.tracker.validation.hooks.RelationshipValidationUtils.relationshipItemValueType;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -65,6 +64,7 @@ import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
@@ -104,12 +104,7 @@ public class PreCheckDataRelationsValidationHook
             reporter.addError( enrollment, E1041, organisationUnit, program );
         }
 
-        if ( program.getTrackedEntityType() != null
-            && !program.getTrackedEntityType().getUid()
-                .equals( getTrackedEntityTypeUidFromEnrollment( reporter.getBundle(), enrollment ) ) )
-        {
-            reporter.addError( enrollment, E1022, enrollment.getTrackedEntity(), program );
-        }
+        validateTrackedEntityTypeMatchesPrograms( reporter, program, enrollment );
     }
 
     private boolean programDoesNotHaveOrgUnit( Program program, OrganisationUnit orgUnit,
@@ -229,13 +224,12 @@ public class PreCheckDataRelationsValidationHook
         }
 
         boolean allCOsExist = true;
-        Set<String> categoryOptions = parseCategoryOptions( event );
         TrackerPreheat preheat = reporter.getBundle().getPreheat();
-        for ( String id : categoryOptions )
+        for ( MetadataIdentifier id : event.getAttributeCategoryOptions() )
         {
             if ( preheat.getCategoryOption( id ) == null )
             {
-                reporter.addError( event, E1116, id );
+                reporter.addError( event, E1116, id.getIdentifierOrAttributeValue() );
                 allCOsExist = false;
             }
         }
@@ -244,20 +238,7 @@ public class PreCheckDataRelationsValidationHook
 
     private boolean hasNoAttributeCategoryOptionsSet( Event event )
     {
-        return StringUtils.isBlank( event.getAttributeCategoryOptions() );
-    }
-
-    private Set<String> parseCategoryOptions( Event event )
-    {
-
-        String cos = StringUtils.strip( event.getAttributeCategoryOptions() );
-        if ( StringUtils.isBlank( cos ) )
-        {
-            return Collections.emptySet();
-        }
-
-        return TextUtils
-            .splitToSet( cos, TextUtils.SEMICOLON );
+        return event.getAttributeCategoryOptions().isEmpty();
     }
 
     /**
@@ -345,8 +326,7 @@ public class PreCheckDataRelationsValidationHook
     {
 
         Set<CategoryOption> categoryOptions = new HashSet<>();
-        Set<String> categoryOptionIds = parseCategoryOptions( event );
-        for ( String id : categoryOptionIds )
+        for ( MetadataIdentifier id : event.getAttributeCategoryOptions() )
         {
             categoryOptions.add( preheat.getCategoryOption( id ) );
         }
@@ -388,13 +368,15 @@ public class PreCheckDataRelationsValidationHook
         if ( hasNoAttributeOptionComboSet( event ) )
         {
             reporter.addError( event, TrackerErrorCode.E1117, program.getCategoryCombo(),
-                event.getAttributeCategoryOptions() );
+                event.getAttributeCategoryOptions().stream().map( MetadataIdentifier::getIdentifierOrAttributeValue )
+                    .collect( Collectors.toSet() ).toString() );
         }
         else
         {
             reporter.addError( event, TrackerErrorCode.E1117,
                 event.getAttributeOptionCombo().getIdentifierOrAttributeValue(),
-                event.getAttributeCategoryOptions() );
+                event.getAttributeCategoryOptions().stream().map( MetadataIdentifier::getIdentifierOrAttributeValue )
+                    .collect( Collectors.toSet() ).toString() );
         }
     }
 
@@ -432,29 +414,43 @@ public class PreCheckDataRelationsValidationHook
         return null;
     }
 
-    private String getTrackedEntityTypeUidFromEnrollment( TrackerBundle bundle,
+    private void validateTrackedEntityTypeMatchesPrograms( ValidationErrorReporter reporter, Program program,
         Enrollment enrollment )
+    {
+
+        if ( program.getTrackedEntityType() == null )
+        {
+            return;
+        }
+
+        if ( !trackedEntityTypesMatch( reporter.getBundle(), program, enrollment ) )
+        {
+            reporter.addError( enrollment, E1022, enrollment.getTrackedEntity(), program );
+        }
+    }
+
+    private boolean trackedEntityTypesMatch( TrackerBundle bundle, Program program, Enrollment enrollment )
     {
         final TrackedEntityInstance trackedEntityInstance = bundle
             .getTrackedEntityInstance( enrollment.getTrackedEntity() );
         if ( trackedEntityInstance != null )
         {
-            return trackedEntityInstance.getTrackedEntityType().getUid();
+            return program.getTrackedEntityType().getUid()
+                .equals( trackedEntityInstance.getTrackedEntityType().getUid() );
         }
-        else
+
+        final Optional<ReferenceTrackerEntity> reference = bundle.getPreheat()
+            .getReference( enrollment.getTrackedEntity() );
+        if ( reference.isPresent() )
         {
-            final Optional<ReferenceTrackerEntity> reference = bundle.getPreheat()
-                .getReference( enrollment.getTrackedEntity() );
-            if ( reference.isPresent() )
+            final Optional<TrackedEntity> tei = bundle.getTrackedEntity( enrollment.getTrackedEntity() );
+            if ( tei.isPresent() )
             {
-                final Optional<TrackedEntity> tei = bundle.getTrackedEntity( enrollment.getTrackedEntity() );
-                if ( tei.isPresent() )
-                {
-                    return tei.get().getTrackedEntityType();
-                }
+                return tei.get().getTrackedEntityType().isEqualTo( program.getTrackedEntityType() );
             }
         }
-        return null;
+
+        return false;
     }
 
     @Override
