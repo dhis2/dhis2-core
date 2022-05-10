@@ -696,6 +696,29 @@
         "id" : "Xh9idCUkyaE"
       },
       "translations": []
+    },
+    {
+      "created": "2020-12-17T12:52:51.569",
+      "lastUpdated": "2020-12-17T12:52:51.569",
+      "id": "hyJMNkTi9YX",
+      "programRuleActionType": "ERRORONCOMPLETE",
+      "evaluationTime": "ALWAYS",
+      "content": "ERROR ON COMPLETE",
+      "lastUpdatedBy": {
+        "code": "admin",
+        "displayName": "admin admin",
+        "id": "M5zQapPyTZI",
+        "username": "admin"
+      },
+
+      "evaluationEnvironments": [
+        "WEB",
+        "ANDROID"
+      ],
+      "programRule":{
+        "id" : "Xh9idCUkyaE"
+      },
+      "translations": []
     }
   ],
   "users": [{
@@ -1431,7 +1454,11 @@
       "translations": [],
       "programRuleActions": [{
         "id": "hyJMNkTi9YE"
-      }]
+      },
+        {
+          "id": "hyJMNkTi9YX"
+        }
+      ]
     }
   ],
   "organisationUnitLevels": [{
