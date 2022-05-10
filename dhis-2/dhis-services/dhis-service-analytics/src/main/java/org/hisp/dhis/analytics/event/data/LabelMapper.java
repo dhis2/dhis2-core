@@ -118,7 +118,7 @@ public class LabelMapper
      */
     static String getIncidentDateLabel( final Program program, final String defaultLabel )
     {
-        if ( program != null && program != null && isNotBlank( program.getDisplayIncidentDateLabel() ) )
+        if ( program != null && isNotBlank( program.getDisplayIncidentDateLabel() ) )
         {
             return program.getDisplayIncidentDateLabel();
         }
