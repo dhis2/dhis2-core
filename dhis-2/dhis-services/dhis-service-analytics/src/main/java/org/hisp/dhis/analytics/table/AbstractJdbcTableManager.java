@@ -337,7 +337,7 @@ public abstract class AbstractJdbcTableManager
 
     /**
      * Executes a SQL statement. Ignores existing tables/indexes when attempting
-     * to create new.
+     * to create new but log as error.
      *
      * @param sql the SQL statement.
      */
