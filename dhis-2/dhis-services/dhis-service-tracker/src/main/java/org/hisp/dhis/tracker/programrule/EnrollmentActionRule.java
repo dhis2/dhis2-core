@@ -41,7 +41,8 @@ import org.hisp.dhis.tracker.domain.Attribute;
 @RequiredArgsConstructor
 @AllArgsConstructor
 public class EnrollmentActionRule
-    implements ActionRule {
+    implements ActionRule
+{
     private final String ruleUid;
 
     private final String enrollment;
@@ -56,16 +57,20 @@ public class EnrollmentActionRule
 
     private final List<Attribute> attributes;
 
-    public String getValue() {
+    public String getValue()
+    {
         StringBuilder stringBuilder = new StringBuilder();
-        if (!StringUtils.isEmpty(content)) {
-            stringBuilder.append(data);
+        if ( !StringUtils.isEmpty( content ) )
+        {
+            stringBuilder.append( data );
         }
-        if (!StringUtils.isEmpty(stringBuilder.toString())) {
-            stringBuilder.append(" ");
+        if ( !StringUtils.isEmpty( stringBuilder.toString() ) )
+        {
+            stringBuilder.append( " " );
         }
-        if (!StringUtils.isEmpty(data)) {
-            stringBuilder.append(data);
+        if ( !StringUtils.isEmpty( data ) )
+        {
+            stringBuilder.append( data );
         }
         return stringBuilder.toString();
     }

@@ -32,9 +32,15 @@ import org.hisp.dhis.webapi.controller.tracker.view.DataValue;
 import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-@Mapper( uses = { InstantMapper.class, UserMapper.class } )
+@Mapper( uses = {
+    InstantMapper.class,
+    UserMapper.class,
+    MetadataIdentifierMapper.class
+} )
 public interface DataValueMapper extends DomainMapper<DataValue, org.hisp.dhis.tracker.domain.DataValue>
 {
+    @Mapping( target = "dataElement", source = "dataElement", qualifiedByName = "dataElementToMetadataIdentifier" )
     org.hisp.dhis.tracker.domain.DataValue from( DataValue dataValue, @Context TrackerIdSchemeParams idSchemeParams );
 }

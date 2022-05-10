@@ -94,7 +94,7 @@ public class TrackerIdentifierCollector
         return identifiers;
     }
 
-    private void collectProgramRulesFields(Map<Class<?>, Set<String>> map )
+    private void collectProgramRulesFields( Map<Class<?>, Set<String>> map )
     {
         // collecting program rule dataElement/attributes deliberately using
         // UIDs
@@ -113,7 +113,7 @@ public class TrackerIdentifierCollector
         Set<String> attributes = programRules.stream()
             .flatMap( pr -> pr.getProgramRuleActions().stream() )
             .filter( a -> Objects.nonNull( a.getAttribute() ) )
-            .map( a -> a.getAttribute().getUid())
+            .map( a -> a.getAttribute().getUid() )
             .collect( Collectors.toSet() );
         attributes.forEach( attribute -> addIdentifier( map, TrackedEntityAttribute.class, attribute ) );
     }
