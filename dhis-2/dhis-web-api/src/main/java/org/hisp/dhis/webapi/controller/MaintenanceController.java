@@ -167,6 +167,15 @@ public class MaintenanceController
         maintenanceService.deleteSoftDeletedProgramStageInstances();
     }
 
+    @RequestMapping( value = "/softDeletedRelationshipRemoval", method = { RequestMethod.PUT,
+        RequestMethod.POST } )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
+    public void deleteSoftDeletedRelationships()
+    {
+        maintenanceService.deleteSoftDeletedRelationships();
+    }
+
     @RequestMapping( value = "/softDeletedProgramInstanceRemoval", method = { RequestMethod.PUT, RequestMethod.POST } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
