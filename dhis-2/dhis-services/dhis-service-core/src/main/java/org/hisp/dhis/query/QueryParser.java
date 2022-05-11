@@ -60,7 +60,4 @@ public interface QueryParser
 
     Property getProperty( Schema schema, String path )
         throws QueryParserException;
-
-    Restriction getRestriction( Schema schema, String path, String operator, Object arg )
-        throws QueryParserException;
 }

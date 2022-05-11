@@ -25,61 +25,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.query;
+package org.hisp.dhis.webapi.controller;
 
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.Accessors;
+import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.hisp.dhis.query.operators.Operator;
-import org.hisp.dhis.query.planner.QueryPath;
+import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Test the filters of the metadata API.
+ *
+ * @author Jan Bernitt
  */
-@Getter
-@Accessors( chain = true )
-@RequiredArgsConstructor( access = AccessLevel.PRIVATE )
-public final class Restriction implements Criterion
+class MetadataFilterControllerTest extends DhisControllerConvenienceTest
 {
-    /**
-     * Path to property you want to restrict only, one first-level properties
-     * are currently supported.
-     */
-    private final String path;
-
-    /**
-     * Operator for restriction.
-     */
-    private final Operator<?> operator;
-
-    /**
-     * Indicates that the {@link #path} is a attribute UID. This also means the
-     * {@link Restriction} is an in-memory filter.
-     */
-    private final boolean attribute;
-
-    /**
-     * Query Path used in persistent part of a query.
-     */
-    @Setter
-    private QueryPath queryPath;
-
-    public Restriction( String path, Operator<?> operator )
+    @Test
+    void testFilter_attributeEq()
     {
-        this( path, operator, false );
-    }
+        String attrId = assertStatus( HttpStatus.CREATED, POST( "/attributes", "{" + "'name':'extra', "
+            + "'valueType':'TEXT', " + "'" + Attribute.ObjectType.ORGANISATION_UNIT.getPropertyName() + "':true}" ) );
+        String ouId = assertStatus( HttpStatus.CREATED,
+            POST( "/organisationUnits/", "{"
+                + "'name':'My Unit', "
+                + "'shortName':'OU1', "
+                + "'openingDate': '2020-01-01',"
+                + "'attributeValues':[{'attribute': {'id':'" + attrId + "'}, 'value':'test'}]"
+                + "}" ) );
 
-    public Restriction asAttribute()
-    {
-        return new Restriction( path, operator, true );
-    }
-
-    @Override
-    public String toString()
-    {
-        return "[" + path + ", op: " + operator + "]";
+        JsonArray units = GET( "/organisationUnits?filter={attr}:eq:test", attrId ).content()
+            .getArray( "organisationUnits" );
+        assertEquals( 1, units.size() );
+        JsonObject unit = units.getObject( 0 );
+        assertEquals( "My Unit", unit.getString( "displayName" ).string() );
+        assertEquals( ouId, unit.getString( "id" ).string() );
     }
 }
