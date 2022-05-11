@@ -27,6 +27,34 @@
  */
 package org.hisp.dhis.analytics.tei;
 
+import static org.hisp.dhis.analytics.shared.JdbcGridAdaptor.createGrid;
+
+import java.util.List;
+
+import lombok.AllArgsConstructor;
+
+import org.hisp.dhis.analytics.shared.Query;
+import org.hisp.dhis.analytics.shared.QueryExecutor;
+import org.hisp.dhis.analytics.shared.QueryGenerator;
+import org.hisp.dhis.analytics.shared.QueryResult;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
+import org.springframework.stereotype.Service;
+
+@Service
+@AllArgsConstructor
 public class TeiAnalyticsService
 {
+    private final QueryGenerator<TeiParams> teiJdbcQuery;
+
+    private final QueryExecutor queryExecutor;
+
+    Grid getTeiGrid( final TeiParams teiParams )
+    {
+        final Query query = teiJdbcQuery.from( teiParams );
+        final QueryResult result = queryExecutor.execute( query );
+        final List<GridHeader> headers = GridHeaderProvider.getHeaders();
+
+        return createGrid( headers, result );
+    }
 }

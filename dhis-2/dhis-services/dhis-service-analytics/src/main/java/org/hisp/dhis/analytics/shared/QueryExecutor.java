@@ -29,4 +29,5 @@ package org.hisp.dhis.analytics.shared;
 
 public interface QueryExecutor
 {
+    QueryResult execute( Query query );
 }

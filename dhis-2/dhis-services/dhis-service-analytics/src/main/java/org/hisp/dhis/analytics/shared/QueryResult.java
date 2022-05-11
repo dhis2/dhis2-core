@@ -27,6 +27,14 @@
  */
 package org.hisp.dhis.analytics.shared;
 
+import java.util.List;
+import java.util.Map;
+
 public interface QueryResult
 {
+    Map<Column, List<Object>> resultMap();
+
+    boolean isEmpty();
+
+    boolean isNotEmpty();
 }

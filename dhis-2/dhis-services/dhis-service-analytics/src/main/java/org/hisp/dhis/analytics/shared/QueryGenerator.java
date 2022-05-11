@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.shared;
 
-public class QueryGenerator
+public interface QueryGenerator<T>
 {
+    Query from( T params );
 }

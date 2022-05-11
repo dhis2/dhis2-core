@@ -28,26 +28,30 @@
 package org.hisp.dhis.analytics.shared;
 
 import java.util.List;
+import java.util.Map;
 
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.GridHeader;
-import org.hisp.dhis.system.grid.ListGrid;
+import lombok.AllArgsConstructor;
 
-public class JdbcGridAdaptor
+import org.apache.commons.collections4.MapUtils;
+
+@AllArgsConstructor
+public class SqlQueryResult implements QueryResult
 {
-    public static Grid createGrid( final List<GridHeader> headers, final QueryResult queryResult )
+    private final Map<Column, List<Object>> resultMap;
+
+    @Override
+    public Map<Column, List<Object>> resultMap()
     {
-        final Grid grid = new ListGrid();
+        return resultMap;
+    }
 
-        if ( queryResult.isNotEmpty() )
-        {
-            for ( final GridHeader header : headers )
-            {
-                // Note that the header column must match the result map key.
-                grid.addHeader( header ).addColumn( queryResult.resultMap().get( header.getColumn() ) );
-            }
-        }
+    public final boolean isEmpty()
+    {
+        return MapUtils.isEmpty( resultMap );
+    }
 
-        return grid;
+    public final boolean isNotEmpty()
+    {
+        return MapUtils.isNotEmpty( resultMap );
     }
 }

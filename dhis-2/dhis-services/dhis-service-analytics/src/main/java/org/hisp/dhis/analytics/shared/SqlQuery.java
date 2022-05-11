@@ -27,27 +27,50 @@
  */
 package org.hisp.dhis.analytics.shared;
 
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.SPACE;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.join;
+import static org.apache.commons.lang3.StringUtils.wrap;
+import static org.springframework.util.Assert.hasText;
+
 import java.util.List;
 
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.GridHeader;
-import org.hisp.dhis.system.grid.ListGrid;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
-public class JdbcGridAdaptor
+@Getter
+@EqualsAndHashCode
+@Builder
+public class SqlQuery implements Query
 {
-    public static Grid createGrid( final List<GridHeader> headers, final QueryResult queryResult )
+    private final List<Column> columns;
+
+    private final String fromClause;
+
+    private final String joinClause;
+
+    private final String whereClause;
+
+    /**
+     * Stores the last clauses in the query.
+     *
+     * Example: order by "name" desc limit 100 offset 0
+     */
+    private final String closingClauses;
+
+    public String fullStatement()
     {
-        final Grid grid = new ListGrid();
+        hasText( fromClause, "Must have a 'from' clause" );
+        hasText( whereClause, "Must have a 'where' clause" );
 
-        if ( queryResult.isNotEmpty() )
-        {
-            for ( final GridHeader header : headers )
-            {
-                // Note that the header column must match the result map key.
-                grid.addHeader( header ).addColumn( queryResult.resultMap().get( header.getColumn() ) );
-            }
-        }
+        return "select " + join( columns, "," ) + spaced( fromClause ) + spaced( joinClause ) + spaced( whereClause )
+            + spaced( whereClause );
+    }
 
-        return grid;
+    private String spaced( final String value )
+    {
+        return isNotBlank( value ) ? wrap( value, SPACE ) : EMPTY;
     }
 }
