@@ -253,8 +253,4 @@ public class DefaultSynchronizationManager
 
         return importService.importMetadata( importParams );
     }
-
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
 }
