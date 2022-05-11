@@ -52,6 +52,7 @@ import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
+import org.hisp.dhis.helpers.ResponseValidationHelper;
 import org.hisp.dhis.helpers.TestCleanUp;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.tracker.TrackerNtiApiTest;
@@ -319,7 +320,6 @@ public class RelationshipsTests
         response = trackerActions.postAndGetJobReport( obj, new QueryParamsBuilder().add( "importStrategy=DELETE" ) );
 
         // assert
-
         response.validate()
             .body( "status", equalTo( "OK" ) )
             .body( "stats.deleted", equalTo( 1 ) );
@@ -474,6 +474,42 @@ public class RelationshipsTests
         responseImportAgain
             .validateErrorReport()
             .body( "errorCode", Matchers.hasItem( "E4017" ) );
+    }
+
+    @Test
+    public void shouldSuccessfullyCreateHardDeletedRelationship()
+        throws Exception
+    {
+        String trackedEntity_1 = importTei();
+        String trackedEntity_2 = importTei();
+
+        JsonObject relationships = new RelationshipDataBuilder()
+            .buildBidirectionalRelationship( trackedEntity_1, trackedEntity_2 )
+            .array();
+
+        // Create Relationship
+        TrackerApiResponse response = trackerActions
+            .postAndGetJobReport( relationships )
+            .validateSuccessfulImport();
+
+        String relationshipId = response.extractImportedRelationships().get( 0 );
+
+        // Hard Delete Relationship
+        ApiResponse deleteResponse = trackerActions.delete( relationshipId );
+
+        ResponseValidationHelper.validateObjectRemoval( deleteResponse, "Relationship was not deleted" );
+
+        JsonObject relationshipsToImportAgain = new RelationshipDataBuilder()
+            .setRelationshipId( relationshipId )
+            .buildBidirectionalRelationship( trackedEntity_1, trackedEntity_2 )
+            .array();
+
+        // Create again Relationship
+        TrackerApiResponse responseImportAgain = trackerActions.postAndGetJobReport( relationshipsToImportAgain );
+
+        responseImportAgain
+            .validateRelationships()
+            .body( "stats.created", equalTo( 1 ) );
     }
 
     private ApiResponse getEntityInRelationship( String toOrFromInstance, String id )
