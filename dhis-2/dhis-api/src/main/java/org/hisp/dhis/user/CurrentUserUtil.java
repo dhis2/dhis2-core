@@ -31,12 +31,12 @@ import static org.hisp.dhis.hibernate.HibernateProxyUtils.initializeAndUnproxy;
 
 import java.io.Serializable;
 import java.util.Map;
+import java.util.Objects;
 
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -179,14 +179,24 @@ public class CurrentUserUtil
         initializeAndUnproxy( user.getPreviousPasswords() );
         initializeAndUnproxy( user.getApps() );
         initializeAndUnproxy( user.getOrganisationUnits() );
-        for ( OrganisationUnit unit : user.getOrganisationUnits() )
-        {
-            initializeAndUnproxy( unit.getChildren() );
-        }
+        initializeAndUnproxy( user.getTeiSearchOrganisationUnits() );
+        initializeAndUnproxy( user.getDataViewOrganisationUnits() );
+        user.getOrganisationUnits().stream().filter( Objects::nonNull )
+            .forEach( organisationUnit -> initializeAndUnproxy( organisationUnit.getChildren() ) );
+        initializeAndUnproxy( user.getTeiSearchOrganisationUnits() );
+        user.getTeiSearchOrganisationUnits().stream().filter( Objects::nonNull )
+            .forEach( organisationUnit -> initializeAndUnproxy( organisationUnit.getChildren() ) );
+        initializeAndUnproxy( user.getDataViewOrganisationUnits() );
+        user.getDataViewOrganisationUnits().stream().filter( Objects::nonNull )
+            .forEach( organisationUnit -> initializeAndUnproxy( organisationUnit.getChildren() ) );
 
         initializeAndUnproxy( user.getUserRoles() );
         for ( UserRole userRole : user.getUserRoles() )
         {
+            if ( userRole == null )
+            {
+                continue;
+            }
             initializeAndUnproxy( userRole );
             initializeAndUnproxy( userRole.getAuthorities() );
             initializeAndUnproxy( userRole.getMembers() );
@@ -197,6 +207,10 @@ public class CurrentUserUtil
         initializeAndUnproxy( user.getGroups() );
         for ( UserGroup group : user.getGroups() )
         {
+            if ( group == null )
+            {
+                continue;
+            }
             initializeAndUnproxy( group.getManagedByGroups() );
             initializeAndUnproxy( group.getManagedGroups() );
             initializeAndUnproxy( group.getMembers() );
@@ -205,21 +219,14 @@ public class CurrentUserUtil
             initializeAndUnproxy( group.getUserAccesses() );
             initializeAndUnproxy( group.getUserGroupAccesses() );
         }
-        initializeAndUnproxy( user.getTeiSearchOrganisationUnits() );
-        for ( OrganisationUnit unit : user.getTeiSearchOrganisationUnits() )
-        {
-            initializeAndUnproxy( unit.getChildren() );
-        }
-
-        initializeAndUnproxy( user.getDataViewOrganisationUnits() );
-        for ( OrganisationUnit unit : user.getDataViewOrganisationUnits() )
-        {
-            initializeAndUnproxy( unit.getChildren() );
-        }
 
         initializeAndUnproxy( user.getCogsDimensionConstraints() );
         for ( CategoryOptionGroupSet groupSet : user.getCogsDimensionConstraints() )
         {
+            if ( groupSet == null )
+            {
+                continue;
+            }
             initializeAndUnproxy( groupSet.getMembers() );
             initializeAndUnproxy( groupSet.getItems() );
             initializeAndUnproxy( groupSet.getFilterItemsAsList() );
@@ -234,6 +241,10 @@ public class CurrentUserUtil
         initializeAndUnproxy( user.getDimensionConstraints() );
         for ( DimensionalObject dimension : user.getDimensionConstraints() )
         {
+            if ( dimension == null )
+            {
+                continue;
+            }
             initializeAndUnproxy( dimension.getItems() );
             initializeAndUnproxy( dimension.getAttributeValues() );
             initializeAndUnproxy( dimension.getFavorites() );
@@ -245,6 +256,10 @@ public class CurrentUserUtil
         initializeAndUnproxy( user.getCatDimensionConstraints() );
         for ( DimensionalObject dimension : user.getCatDimensionConstraints() )
         {
+            if ( dimension == null )
+            {
+                continue;
+            }
             initializeAndUnproxy( dimension.getItems() );
             initializeAndUnproxy( dimension.getAttributeValues() );
             initializeAndUnproxy( dimension.getFavorites() );
