@@ -41,7 +41,6 @@ import org.junit.jupiter.api.Test;
  */
 class LabelMapperTest
 {
-
     public static final String EVENT_DATE = "Event date";
 
     public static final String INCIDENT_DATE = "Incident date";
@@ -56,7 +55,7 @@ class LabelMapperTest
         // When
         final String actualName = LabelMapper.getEventDateLabel( aMockedProgramStageWithLabels, EVENT_DATE );
         // Then
-        assertThat( actualName, is( aMockedProgramStageWithLabels.getExecutionDateLabel() ) );
+        assertThat( actualName, is( aMockedProgramStageWithLabels.getDisplayExecutionDateLabel() ) );
     }
 
     @Test
@@ -67,7 +66,7 @@ class LabelMapperTest
         // When
         final String actualName = LabelMapper.getEnrollmentDateLabel( aMockedProgramStageWithLabels, ENROLLMENT_DATE );
         // Then
-        assertThat( actualName, is( aMockedProgramStageWithLabels.getProgram().getEnrollmentDateLabel() ) );
+        assertThat( actualName, is( aMockedProgramStageWithLabels.getProgram().getDisplayEnrollmentDateLabel() ) );
     }
 
     @Test
@@ -78,7 +77,7 @@ class LabelMapperTest
         // When
         final String actualName = LabelMapper.getIncidentDateLabel( aMockedProgramStageWithLabels, INCIDENT_DATE );
         // Then
-        assertThat( actualName, is( aMockedProgramStageWithLabels.getProgram().getIncidentDateLabel() ) );
+        assertThat( actualName, is( aMockedProgramStageWithLabels.getProgram().getDisplayIncidentDateLabel() ) );
     }
 
     @Test

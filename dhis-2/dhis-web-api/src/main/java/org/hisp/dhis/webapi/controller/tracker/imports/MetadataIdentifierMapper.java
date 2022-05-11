@@ -88,4 +88,11 @@ interface MetadataIdentifierMapper
             .map( id -> idSchemeParams.getCategoryOptionIdScheme().toMetadataIdentifier( id ) )
             .collect( Collectors.toSet() );
     }
+
+    @Named( "trackedEntityTypeToMetadataIdentifier" )
+    default MetadataIdentifier fromTrackedEntityType( String identifier,
+        @Context TrackerIdSchemeParams idSchemeParams )
+    {
+        return idSchemeParams.getIdScheme().toMetadataIdentifier( identifier );
+    }
 }

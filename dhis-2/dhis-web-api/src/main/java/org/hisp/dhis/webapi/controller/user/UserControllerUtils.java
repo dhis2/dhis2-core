@@ -32,18 +32,13 @@ import static org.hisp.dhis.dataapproval.DataApproval.AUTH_APPROVE;
 import static org.hisp.dhis.dataapproval.DataApproval.AUTH_APPROVE_LOWER_LEVELS;
 import static org.hisp.dhis.user.UserRole.AUTHORITY_ALL;
 
-import java.util.Comparator;
 import java.util.Set;
 
+import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataapproval.DataApprovalService;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
-import org.hisp.dhis.node.NodeUtils;
-import org.hisp.dhis.node.types.CollectionNode;
-import org.hisp.dhis.node.types.ComplexNode;
-import org.hisp.dhis.node.types.RootNode;
-import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SettingKey;
@@ -51,6 +46,10 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * @author Jim Grace
@@ -78,10 +77,13 @@ public class UserControllerUtils
      * @param user the user
      * @throws Exception if an error occurs
      */
-    public RootNode getUserDataApprovalWorkflows( User user )
+    public ObjectNode getUserDataApprovalWorkflows( User user )
         throws Exception
     {
-        CollectionNode collectionNode = new CollectionNode( "dataApprovalWorkflows", true );
+        ObjectMapper objectMapper = JacksonObjectMapperConfig.staticJsonMapper();
+
+        ObjectNode objectNode = objectMapper.createObjectNode();
+        ArrayNode arrayNode = objectNode.putArray( "dataApprovalWorkflows" );
 
         for ( DataApprovalWorkflow workflow : dataApprovalService.getAllWorkflows() )
         {
@@ -90,22 +92,25 @@ public class UserControllerUtils
                 continue;
             }
 
-            ComplexNode workflowNode = new ComplexNode( "dataApprovalWorkflow" );
+            ObjectNode node = objectMapper.createObjectNode()
+                .put( "id", workflow.getUid() )
+                .put( "name", workflow.getName() );
 
-            workflowNode.addChild( new SimpleNode( "name", workflow.getName() ) );
-            workflowNode.addChild( new SimpleNode( "id", workflow.getUid() ) );
-            workflowNode.addChild( getWorkflowLevelNodes( user, workflow ) );
+            node.set( "dataApprovalLevels", getWorkflowLevelNodes( user, workflow ) );
 
-            collectionNode.addChild( workflowNode );
+            arrayNode.add( node );
         }
 
-        collectionNode.getUnorderedChildren()
-            .sort( Comparator.comparing( c -> (String) ((SimpleNode) c.getUnorderedChildren().get( 0 )).getValue() ) );
+        /*
+         * collectionNode.getUnorderedChildren() .sort( Comparator.comparing( c
+         * -> (String) ((SimpleNode) c.getUnorderedChildren().get( 0
+         * )).getValue() ) );
+         *
+         * RootNode rootNode = NodeUtils.createRootNode( "dataApprovalWorkflows"
+         * ); rootNode.addChild( collectionNode );
+         */
 
-        RootNode rootNode = NodeUtils.createRootNode( "dataApprovalWorkflows" );
-        rootNode.addChild( collectionNode );
-
-        return rootNode;
+        return objectNode;
     }
 
     // -------------------------------------------------------------------------
@@ -121,7 +126,7 @@ public class UserControllerUtils
      * @param workflow the approval workflow for which to fetch the levels
      * @return a node with the ordered list of data approval levels
      */
-    private CollectionNode getWorkflowLevelNodes( User user, DataApprovalWorkflow workflow )
+    private ArrayNode getWorkflowLevelNodes( User user, DataApprovalWorkflow workflow )
     {
         Set<String> authorities = user.getAllAuthorities();
 
@@ -135,7 +140,7 @@ public class UserControllerUtils
 
         int lowestUserOrgUnitLevel = getLowsetUserOrgUnitLevel( user );
 
-        CollectionNode levelNodes = new CollectionNode( "dataApprovalLevels", true );
+        ArrayNode levelNodes = JacksonObjectMapperConfig.staticJsonMapper().createArrayNode();
 
         boolean highestLevelInWorkflow = true;
 
@@ -146,20 +151,18 @@ public class UserControllerUtils
                 continue;
             }
 
-            ComplexNode levelNode = new ComplexNode( "dataApprovalLevel" );
-
-            levelNode.addChild( new SimpleNode( "name", level.getName() ) );
-            levelNode.addChild( new SimpleNode( "id", level.getUid() ) );
-            levelNode.addChild( new SimpleNode( "level", level.getLevel() ) );
-            levelNode.addChild(
-                new SimpleNode( "approve", (canApprove && highestLevelInWorkflow) || canApproveLowerLevels ) );
+            ObjectNode levelNode = levelNodes.addObject()
+                .put( "name", level.getName() )
+                .put( "id", level.getUid() )
+                .put( "level", level.getLevel() )
+                .put( "approve", (canApprove && highestLevelInWorkflow) || canApproveLowerLevels );
 
             if ( acceptConfigured )
             {
-                levelNode.addChild( new SimpleNode( "accept", canAccept && !highestLevelInWorkflow ) );
+                levelNode.put( "accept", canAccept && !highestLevelInWorkflow );
             }
 
-            levelNodes.addChild( levelNode );
+            levelNodes.add( levelNode );
 
             highestLevelInWorkflow = false;
         }

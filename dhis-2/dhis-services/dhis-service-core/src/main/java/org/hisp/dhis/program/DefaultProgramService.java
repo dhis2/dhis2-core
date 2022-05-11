@@ -147,15 +147,9 @@ public class DefaultProgramService
 
     @Override
     @Transactional( readOnly = true )
-    public List<Program> getUserPrograms()
+    public List<Program> getCurrentUserPrograms()
     {
-        return getUserPrograms( currentUserService.getCurrentUser() );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<Program> getUserPrograms( User user )
-    {
+        User user = currentUserService.getCurrentUser();
         if ( user == null || user.isSuper() )
         {
             return getAllPrograms();

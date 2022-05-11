@@ -28,6 +28,7 @@
 package org.hisp.dhis.common;
 
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.slf4j.Logger;
 
 public class AuditLogUtil
@@ -50,7 +51,7 @@ public class AuditLogUtil
 
     public static void infoWrapper( Logger log, Object object, String action )
     {
-        infoWrapper( log, UserContext.getUsername(), object, action );
+        infoWrapper( log, CurrentUserUtil.getCurrentUsername(), object, action );
     }
 
     public static void infoWrapper( Logger log, String username, Object object, String action )

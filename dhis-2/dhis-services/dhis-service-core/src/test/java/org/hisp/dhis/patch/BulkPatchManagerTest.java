@@ -103,8 +103,8 @@ class BulkPatchManagerTest extends DhisSpringTest
         userService = _userService;
         userA = createUserWithId( "A", "NOOF56dveaZ" );
         userB = createUserWithId( "B", "Kh68cDMwZsg" );
-        userC = createUser( "C" );
-        userD = createUser( "D" );
+        userC = createUserWithAuth( "C" );
+        userD = createUserWithAuth( "D" );
         dataElementA = createDataElement( 'A' );
         dataElementA
             .setSharing( Sharing.builder().owner( userD.getUid() ).publicAccess( AccessStringHelper.DEFAULT ).build() );

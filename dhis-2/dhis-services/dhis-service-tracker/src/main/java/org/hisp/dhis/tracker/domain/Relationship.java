@@ -66,6 +66,9 @@ public class Relationship implements TrackerDto
     private boolean bidirectional;
 
     @JsonProperty
+    private boolean deleted;
+
+    @JsonProperty
     private RelationshipItem from;
 
     @JsonProperty

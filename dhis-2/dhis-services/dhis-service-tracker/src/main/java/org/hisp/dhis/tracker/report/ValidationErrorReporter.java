@@ -163,6 +163,15 @@ public class ValidationErrorReporter
         addWarning( warn );
     }
 
+    public void addWarningIf( BooleanSupplier expression, TrackerDto dto,
+        TrackerErrorCode code, Object... args )
+    {
+        if ( expression.getAsBoolean() )
+        {
+            addWarning( dto, code, args );
+        }
+    }
+
     public void addErrorIf( BooleanSupplier expression, TrackerDto dto,
         TrackerErrorCode code, Object... args )
     {

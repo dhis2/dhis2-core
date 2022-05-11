@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.security.oidc;
 
+import static org.hisp.dhis.user.CurrentUserUtil.initializeUser;
+
 import java.util.Map;
 
 import lombok.extern.slf4j.Slf4j;
@@ -62,19 +64,17 @@ public class DhisOidcUserService
     public OidcUser loadUser( OidcUserRequest userRequest )
         throws OAuth2AuthenticationException
     {
+        OidcUser oidcUser = super.loadUser( userRequest );
+
         ClientRegistration clientRegistration = userRequest.getClientRegistration();
+
         DhisOidcClientRegistration oidcClientRegistration = clientRegistrationRepository
             .getDhisOidcClientRegistration( clientRegistration.getRegistrationId() );
 
         String mappingClaimKey = oidcClientRegistration.getMappingClaimKey();
-
-        OidcUser oidcUser = super.loadUser( userRequest );
-
-        OidcUserInfo userInfo = oidcUser.getUserInfo();
         Map<String, Object> attributes = oidcUser.getAttributes();
-
         Object claimValue = attributes.get( mappingClaimKey );
-
+        OidcUserInfo userInfo = oidcUser.getUserInfo();
         if ( claimValue == null && userInfo != null )
         {
             claimValue = userInfo.getClaim( mappingClaimKey );
@@ -93,6 +93,7 @@ public class DhisOidcUserService
 
             if ( user != null )
             {
+                initializeUser( user );
                 return new DhisOidcUser( user, attributes, IdTokenClaimNames.SUB, oidcUser.getIdToken() );
             }
         }

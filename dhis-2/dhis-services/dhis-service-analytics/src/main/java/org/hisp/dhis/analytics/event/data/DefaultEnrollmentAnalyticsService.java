@@ -123,9 +123,11 @@ public class DefaultEnrollmentAnalyticsService
             .addHeader( new GridHeader(
                 ITEM_TEI, NAME_TEI, TEXT, false, true ) )
             .addHeader( new GridHeader(
-                ITEM_ENROLLMENT_DATE, NAME_ENROLLMENT_DATE, DATE, false, true ) )
+                ITEM_ENROLLMENT_DATE, LabelMapper.getEnrollmentDateLabel( params.getProgram(), NAME_ENROLLMENT_DATE ),
+                DATE, false, true ) )
             .addHeader( new GridHeader(
-                ITEM_INCIDENT_DATE, NAME_INCIDENT_DATE, DATE, false, true ) )
+                ITEM_INCIDENT_DATE, LabelMapper.getIncidentDateLabel( params.getProgram(), NAME_INCIDENT_DATE ), DATE,
+                false, true ) )
             .addHeader( new GridHeader(
                 ITEM_STORED_BY, NAME_STORED_BY, TEXT, false, true ) )
             .addHeader( new GridHeader(

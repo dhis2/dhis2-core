@@ -54,7 +54,7 @@ abstract class CompressionSMSListenerTest extends
     protected IncomingSms createSMSFromSubmission( SmsSubmission subm )
         throws SmsCompressionException
     {
-        User user = createUser( 'U' );
+        User user = makeUser( "U" );
         SmsMetadata meta = new SmsMetadata();
         meta.lastSyncDate = new Date();
         SmsSubmissionWriter writer = new SmsSubmissionWriter( meta );

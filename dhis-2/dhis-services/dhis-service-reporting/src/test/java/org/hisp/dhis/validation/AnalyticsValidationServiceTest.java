@@ -65,7 +65,6 @@ import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionParams;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.mock.MockAnalyticsService;
-import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
@@ -90,8 +89,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.CurrentUserServiceTarget;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -156,6 +155,9 @@ class AnalyticsValidationServiceTest extends TransactionalIntegrationTest
     @Autowired
     private DataValidationRunner runner;
 
+    @Autowired
+    private UserService _userService;
+
     private CategoryOptionCombo defaultCombo;
 
     private OrganisationUnit orgUnitA;
@@ -185,6 +187,9 @@ class AnalyticsValidationServiceTest extends TransactionalIntegrationTest
     @Override
     public void setUpTest()
     {
+
+        this.userService = _userService;
+
         final String DATA_ELEMENT_A_UID = "DataElement";
         final String TRACKED_ENTITY_ATTRIBUTE_UID = "TEAttribute";
         final String PROGRAM_UID = "ProgramABCD";
@@ -287,9 +292,9 @@ class AnalyticsValidationServiceTest extends TransactionalIntegrationTest
         MockAnalyticsService mockAnalyticsSerivce = new MockAnalyticsService();
         mockAnalyticsSerivce.setDateGridMap( dateGridMap );
         runner.setAnalyticsService( mockAnalyticsSerivce );
-        CurrentUserService currentUserService = new MockCurrentUserService( Sets.newHashSet( orgUnitA ), null );
-        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
-            currentUserService, validationService );
+
+        User user = createAndAddUser( Sets.newHashSet( orgUnitA ), null );
+        injectSecurityContext( user );
     }
 
     @Override

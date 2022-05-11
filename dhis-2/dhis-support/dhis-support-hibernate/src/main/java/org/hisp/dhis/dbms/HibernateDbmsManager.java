@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dbms;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -449,5 +450,23 @@ public class HibernateDbmsManager
         {
             log.debug( "Could not empty relationship tables" );
         }
+    }
+
+    @Override
+    public void evictObject( Object object )
+    {
+        sessionFactory.getCurrentSession().evict( object );
+    }
+
+    @Override
+    public boolean contains( Object object )
+    {
+        return sessionFactory.getCurrentSession().contains( object );
+    }
+
+    @Override
+    public Serializable getIdentifier( Object object )
+    {
+        return sessionFactory.getCurrentSession().getIdentifier( object );
     }
 }

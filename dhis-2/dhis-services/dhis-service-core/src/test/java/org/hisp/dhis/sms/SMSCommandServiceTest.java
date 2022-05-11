@@ -494,8 +494,8 @@ class SMSCommandServiceTest extends DhisSpringTest
 
     private void createUnregisteredParserCommand()
     {
-        userA = createUser( 'A' );
-        userB = createUser( 'B' );
+        userA = makeUser( "A" );
+        userB = makeUser( "B" );
         userService.addUser( userA );
         userService.addUser( userB );
         userGroupA = createUserGroup( 'G', Sets.newHashSet( userA, userB ) );

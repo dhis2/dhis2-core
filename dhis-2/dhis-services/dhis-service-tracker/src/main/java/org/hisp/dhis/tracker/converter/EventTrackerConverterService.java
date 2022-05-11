@@ -119,13 +119,13 @@ public class EventTrackerConverterService
 
             if ( ou != null )
             {
-                event.setOrgUnit( MetadataIdentifier.ofUid( ou.getUid() ) );
+                event.setOrgUnit( MetadataIdentifier.ofUid( ou ) );
                 event.setOrgUnitName( ou.getName() );
             }
 
             event.setEnrollment( psi.getProgramInstance().getUid() );
-            event.setProgramStage( MetadataIdentifier.ofUid( psi.getProgramStage().getUid() ) );
-            event.setAttributeOptionCombo( MetadataIdentifier.ofUid( psi.getAttributeOptionCombo().getUid() ) );
+            event.setProgramStage( MetadataIdentifier.ofUid( psi.getProgramStage() ) );
+            event.setAttributeOptionCombo( MetadataIdentifier.ofUid( psi.getAttributeOptionCombo() ) );
             event.setAttributeCategoryOptions( psi.getAttributeOptionCombo().getCategoryOptions().stream()
                 .map( CategoryOption::getUid )
                 .map( MetadataIdentifier::ofUid )

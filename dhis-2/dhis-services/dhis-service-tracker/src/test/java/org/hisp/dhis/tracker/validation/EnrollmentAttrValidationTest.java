@@ -34,6 +34,7 @@ import static org.hamcrest.core.Every.everyItem;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -42,8 +43,10 @@ import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
+import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,8 +71,15 @@ class EnrollmentAttrValidationTest extends AbstractImportValidationTest
         throws IOException
     {
         setUpMetadata( "tracker/tracker_basic_metadata_mandatory_attr.json" );
-        TrackerImportParams trackerBundleParams = fromJson( "tracker/validations/enrollments_te_te-data_2.json" );
+        TrackerImportParams trackerBundleParams = fromJson( "tracker/validations/enrollments_te_te-data_2.json",
+            userService.getUser( ADMIN_USER_UID ) );
+        User currentUser = currentUserService.getCurrentUser();
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
+        List<TrackerErrorReport> errors = trackerImportReport.getValidationReport().getErrors();
+        errors.forEach( error -> {
+            System.out.println( error.getErrorCode() + ": " + error.getMessage() );
+        } );
+
         assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
         assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
         manager.flush();
@@ -80,7 +90,8 @@ class EnrollmentAttrValidationTest extends AbstractImportValidationTest
         throws IOException
     {
         TrackerImportParams params = createBundleFromJson(
-            "tracker/validations/enrollments_te_with_invalid_option_value.json" );
+            "tracker/validations/enrollments_te_with_invalid_option_value.json",
+            userService.getUser( ADMIN_USER_UID ) );
         params.setImportStrategy( TrackerImportStrategy.CREATE );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
         assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
@@ -93,7 +104,7 @@ class EnrollmentAttrValidationTest extends AbstractImportValidationTest
         throws IOException
     {
         TrackerImportParams params = createBundleFromJson(
-            "tracker/validations/enrollments_te_with_valid_option_value.json" );
+            "tracker/validations/enrollments_te_with_valid_option_value.json", userService.getUser( ADMIN_USER_UID ) );
         params.setImportStrategy( TrackerImportStrategy.CREATE );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
         assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
@@ -104,7 +115,7 @@ class EnrollmentAttrValidationTest extends AbstractImportValidationTest
         throws IOException
     {
         TrackerImportParams params = createBundleFromJson(
-            "tracker/validations/enrollments_te_attr-missing-uuid.json" );
+            "tracker/validations/enrollments_te_attr-missing-uuid.json", userService.getUser( ADMIN_USER_UID ) );
         params.setImportStrategy( TrackerImportStrategy.CREATE );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
         assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
@@ -117,7 +128,7 @@ class EnrollmentAttrValidationTest extends AbstractImportValidationTest
         throws IOException
     {
         TrackerImportParams params = createBundleFromJson(
-            "tracker/validations/enrollments_te_attr-missing-value.json" );
+            "tracker/validations/enrollments_te_attr-missing-value.json", userService.getUser( ADMIN_USER_UID ) );
         params.setImportStrategy( TrackerImportStrategy.CREATE );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
         assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
@@ -136,7 +147,8 @@ class EnrollmentAttrValidationTest extends AbstractImportValidationTest
     {
         TrackedEntityAttribute sTJvSLN7Kcb = trackedEntityAttributeService.getTrackedEntityAttribute( "sTJvSLN7Kcb" );
         trackedEntityAttributeService.deleteTrackedEntityAttribute( sTJvSLN7Kcb );
-        TrackerImportParams params = createBundleFromJson( "tracker/validations/enrollments_te_attr-data.json" );
+        TrackerImportParams params = createBundleFromJson( "tracker/validations/enrollments_te_attr-data.json",
+            userService.getUser( ADMIN_USER_UID ) );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
         assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
         assertThat( trackerImportReport.getValidationReport().getErrors(),
@@ -148,7 +160,7 @@ class EnrollmentAttrValidationTest extends AbstractImportValidationTest
         throws IOException
     {
         TrackerImportParams params = createBundleFromJson(
-            "tracker/validations/enrollments_te_attr-missing-mandatory.json" );
+            "tracker/validations/enrollments_te_attr-missing-mandatory.json", userService.getUser( ADMIN_USER_UID ) );
         params.setImportStrategy( TrackerImportStrategy.CREATE );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
         assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
@@ -161,7 +173,7 @@ class EnrollmentAttrValidationTest extends AbstractImportValidationTest
         throws IOException
     {
         TrackerImportParams params = createBundleFromJson(
-            "tracker/validations/enrollments_te_unique_attr_same_tei.json" );
+            "tracker/validations/enrollments_te_unique_attr_same_tei.json", userService.getUser( ADMIN_USER_UID ) );
         params.setImportStrategy( TrackerImportStrategy.CREATE );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
         assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
@@ -171,19 +183,22 @@ class EnrollmentAttrValidationTest extends AbstractImportValidationTest
     void testAttributesUniquenessAlreadyInDB()
         throws IOException
     {
-        TrackerImportParams params = fromJson( "tracker/validations/enrollments_te_te-data_3.json" );
+        TrackerImportParams params = fromJson( "tracker/validations/enrollments_te_te-data_3.json",
+            userService.getUser( ADMIN_USER_UID ) );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
         assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
         assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
         manager.flush();
         manager.clear();
-        params = createBundleFromJson( "tracker/validations/enrollments_te_unique_attr_same_tei.json" );
+        params = createBundleFromJson( "tracker/validations/enrollments_te_unique_attr_same_tei.json",
+            userService.getUser( ADMIN_USER_UID ) );
         params.setImportStrategy( TrackerImportStrategy.CREATE );
         trackerImportReport = trackerImportService.importTracker( params );
         assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
         manager.flush();
         manager.clear();
-        params = createBundleFromJson( "tracker/validations/enrollments_te_unique_attr_in_db.json" );
+        params = createBundleFromJson( "tracker/validations/enrollments_te_unique_attr_in_db.json",
+            userService.getUser( ADMIN_USER_UID ) );
         params.setImportStrategy( TrackerImportStrategy.CREATE );
         trackerImportReport = trackerImportService.importTracker( params );
         assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
@@ -195,13 +210,15 @@ class EnrollmentAttrValidationTest extends AbstractImportValidationTest
     void testAttributesUniquenessInDifferentTeis()
         throws IOException
     {
-        TrackerImportParams params = fromJson( "tracker/validations/enrollments_te_te-data_3.json" );
+        TrackerImportParams params = fromJson( "tracker/validations/enrollments_te_te-data_3.json",
+            userService.getUser( ADMIN_USER_UID ) );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
         assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
         assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
         manager.flush();
         manager.clear();
-        params = createBundleFromJson( "tracker/validations/enrollments_te_unique_attr.json" );
+        params = createBundleFromJson( "tracker/validations/enrollments_te_unique_attr.json",
+            userService.getUser( ADMIN_USER_UID ) );
         params.setImportStrategy( TrackerImportStrategy.CREATE );
         trackerImportReport = trackerImportService.importTracker( params );
         assertEquals( 2, trackerImportReport.getValidationReport().getErrors().size() );
@@ -214,7 +231,7 @@ class EnrollmentAttrValidationTest extends AbstractImportValidationTest
         throws IOException
     {
         TrackerImportParams params = createBundleFromJson(
-            "tracker/validations/enrollments_te_attr-only-program-attr.json" );
+            "tracker/validations/enrollments_te_attr-only-program-attr.json", userService.getUser( ADMIN_USER_UID ) );
         params.setImportStrategy( TrackerImportStrategy.CREATE );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
         assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );

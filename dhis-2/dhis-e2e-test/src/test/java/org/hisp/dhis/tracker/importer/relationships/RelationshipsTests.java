@@ -58,7 +58,6 @@ import org.hisp.dhis.tracker.TrackerNtiApiTest;
 import org.hisp.dhis.tracker.importer.databuilder.RelationshipDataBuilder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -235,9 +234,8 @@ public class RelationshipsTests
         // when posting the same payload, then relationship is ignored when in
         // the same way
         trackerActions.postAndGetJobReport( jsonObject )
-            .validateSuccessfulImportWithIgnored( 1 )
-            .validateRelationships()
-            .body( "stats.ignored", equalTo( 1 ) );
+            .validateErrorReport()
+            .body( "errorCode", contains( "E4018" ) );
 
         // and is imported again when the relation is in inverse order
         jsonObject = new RelationshipDataBuilder().buildUniDirectionalRelationship( trackedEntity_2, trackedEntity_1 )
@@ -285,9 +283,8 @@ public class RelationshipsTests
         // when posting the same payload, then relationship is ignored both ways
         Stream.of( jsonObject, invertedRelationship )
             .map( trackerActions::postAndGetJobReport )
-            .map( tar -> tar.validateSuccessfulImportWithIgnored( 1 ) )
-            .map( TrackerApiResponse::validateRelationships )
-            .forEach( validatableResponse -> validatableResponse.body( "stats.ignored", equalTo( 1 ) ) );
+            .map( TrackerApiResponse::validateErrorReport )
+            .forEach( validatableResponse -> validatableResponse.body( "errorCode", contains( "E4018" ) ) );
 
         // and relationship is not duplicated
         ApiResponse relationshipResponse = trackerActions.get( "/relationships?tei=" + trackedEntity_1 );
@@ -439,7 +436,6 @@ public class RelationshipsTests
     }
 
     @Test
-    @Disabled( "It will be enabled when soft deletion is implemented for relationships" )
     public void shouldReturnErrorWhenUpdatingSoftDeletedEvent()
         throws Exception
     {

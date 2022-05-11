@@ -30,6 +30,8 @@ package org.hisp.dhis.merge.orgunit;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
@@ -40,6 +42,9 @@ import org.springframework.stereotype.Service;
 @Service
 public class OrgUnitMergeValidator
 {
+    @Autowired
+    private OrganisationUnitService organisationUnitService;
+
     /**
      * Validates the given {@link OrgUnitMergeRequest}. Throws
      * {@link IllegalQueryException} if validation fails.
@@ -79,7 +84,7 @@ public class OrgUnitMergeValidator
         {
             return new ErrorMessage( ErrorCode.E1502 );
         }
-        if ( request.getTarget().isDescendant( request.getSources() ) )
+        if ( organisationUnitService.isDescendant( request.getTarget(), request.getSources() ) )
         {
             return new ErrorMessage( ErrorCode.E1504 );
         }

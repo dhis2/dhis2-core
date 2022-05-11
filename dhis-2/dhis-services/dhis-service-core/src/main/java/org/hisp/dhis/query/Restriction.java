@@ -27,7 +27,11 @@
  */
 package org.hisp.dhis.query;
 
-import javax.persistence.criteria.Predicate;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 
 import org.hisp.dhis.query.operators.Operator;
 import org.hisp.dhis.query.planner.QueryPath;
@@ -35,72 +39,42 @@ import org.hisp.dhis.query.planner.QueryPath;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class Restriction implements Criterion
+@Getter
+@Accessors( chain = true )
+@RequiredArgsConstructor( access = AccessLevel.PRIVATE )
+public final class Restriction implements Criterion
 {
     /**
      * Path to property you want to restrict only, one first-level properties
      * are currently supported.
      */
-    private String path;
+    private final String path;
 
     /**
      * Operator for restriction.
      */
-    private Operator operator;
+    private final Operator<?> operator;
 
     /**
-     * Query Path.
+     * Indicates that the {@link #path} is a attribute UID. This also means the
+     * {@link Restriction} is an in-memory filter.
      */
+    private final boolean attribute;
+
+    /**
+     * Query Path used in persistent part of a query.
+     */
+    @Setter
     private QueryPath queryPath;
 
-    private Predicate predicate;
-
-    public Restriction( String path, Predicate predicate )
+    public Restriction( String path, Operator<?> operator )
     {
-        this.path = path;
-        this.predicate = predicate;
+        this( path, operator, false );
     }
 
-    public Restriction( String path, Operator operator )
+    public Restriction asAttribute()
     {
-        this.path = path;
-        this.operator = operator;
-    }
-
-    public String getPath()
-    {
-        return path;
-    }
-
-    public Operator getOperator()
-    {
-        return operator;
-    }
-
-    public QueryPath getQueryPath()
-    {
-        return queryPath;
-    }
-
-    public Restriction setQueryPath( QueryPath queryPath )
-    {
-        this.queryPath = queryPath;
-        return this;
-    }
-
-    public Predicate getPredicate()
-    {
-        return predicate;
-    }
-
-    public void setPredicate( Predicate predicate )
-    {
-        this.predicate = predicate;
-    }
-
-    public boolean haveQueryPath()
-    {
-        return queryPath != null;
+        return new Restriction( path, operator, true );
     }
 
     @Override

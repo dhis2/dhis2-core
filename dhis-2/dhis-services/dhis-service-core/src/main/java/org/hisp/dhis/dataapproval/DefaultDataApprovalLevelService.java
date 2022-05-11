@@ -462,7 +462,7 @@ public class DefaultDataApprovalLevelService
 
         for ( OrganisationUnit unit : user.getOrganisationUnits() )
         {
-            if ( orgUnit.isDescendant( unit ) )
+            if ( organisationUnitService.isDescendant( orgUnit, unit ) )
             {
                 organisationUnit = unit;
                 break;

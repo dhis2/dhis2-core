@@ -36,7 +36,6 @@ import org.apache.commons.collections4.SetValuedMap;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.user.User;
 
 /**
  * @author Abyot Asalefew
@@ -140,9 +139,7 @@ public interface ProgramService
      *
      * @return Immutable set of programs associated with the current user.
      */
-    List<Program> getUserPrograms();
-
-    List<Program> getUserPrograms( User user );
+    List<Program> getCurrentUserPrograms();
 
     /**
      * Returns a list of generated, non-persisted program data elements for the

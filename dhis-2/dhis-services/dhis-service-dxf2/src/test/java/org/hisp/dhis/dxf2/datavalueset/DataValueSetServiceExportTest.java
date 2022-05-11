@@ -56,7 +56,6 @@ import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -65,8 +64,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
@@ -226,17 +223,17 @@ class DataValueSetServiceExportTest extends IntegrationTestBase
         dataValueService.addDataValue( new DataValue( deB, peA, ouB, cocA, cocA, "1" ) );
         dataValueService.addDataValue( new DataValue( deB, peA, ouB, cocB, cocB, "1" ) );
         // Flush session to make data values visible to JDBC query
-        // Service mocks
-        user = createUser( 'A' );
-        user.setOrganisationUnits( Sets.newHashSet( ouA, ouB ) );
-        userService.addUser( user );
-        CurrentUserService currentUserService = new MockCurrentUserService( user );
-        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
-            currentUserService, dataValueSetService, organisationUnitService );
-        enableDataSharing( user, dsA, AccessStringHelper.DATA_READ_WRITE );
-        enableDataSharing( user, dsB, AccessStringHelper.DATA_READ_WRITE );
+
         dataSetService.updateDataSet( dsA );
         dataSetService.updateDataSet( dsB );
+
+        user = makeUser( "A" );
+        user.setOrganisationUnits( Sets.newHashSet( ouA, ouB ) );
+        userService.addUser( user );
+        injectSecurityContext( user );
+
+        enableDataSharing( user, dsA, AccessStringHelper.DATA_READ_WRITE );
+        enableDataSharing( user, dsB, AccessStringHelper.DATA_READ_WRITE );
     }
 
     // -------------------------------------------------------------------------

@@ -48,5 +48,7 @@
         <!-- Sharing -->
         <property name="sharing" type="jsbObjectSharing"/>
 
+        <property name="attributeValues" type="jsbAttributeValues"/>
+
     </class>
 </hibernate-mapping>

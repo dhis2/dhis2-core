@@ -178,7 +178,7 @@ class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest
     {
         dataApprovalStore = new HibernateDataApprovalStore( sessionFactory, jdbcTemplate,
             publisher, cacheProvider, periodService, periodStore, currentUserService, categoryService,
-            systemSettingManager, new PostgreSQLStatementBuilder() );
+            systemSettingManager, new PostgreSQLStatementBuilder(), organisationUnitService );
 
         // ---------------------------------------------------------------------
         // Add supporting data
@@ -218,8 +218,8 @@ class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest
         periodService.addPeriod( periodMay );
         periodService.addPeriod( periodJun );
 
-        userA = createUser( 'A' );
-        userB = createUser( 'B' );
+        userA = makeUser( "A" );
+        userB = makeUser( "B" );
 
         userA.addOrganisationUnit( sourceA );
         userB.addOrganisationUnit( sourceA );

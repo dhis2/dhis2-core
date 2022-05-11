@@ -38,7 +38,6 @@ import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryOperator;
-import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -52,13 +51,11 @@ import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import com.google.common.collect.Sets;
 
@@ -68,7 +65,6 @@ import com.google.common.collect.Sets;
 class TrackedEntityInstanceServiceTest
     extends IntegrationTestBase
 {
-
     @Autowired
     private TrackedEntityInstanceService entityInstanceService;
 
@@ -94,10 +90,13 @@ class TrackedEntityInstanceServiceTest
     private TrackedEntityAttributeValueService attributeValueService;
 
     @Autowired
-    private UserService userService;
+    private UserService _userService;
 
     @Autowired
     private TrackedEntityTypeService trackedEntityTypeService;
+
+    @Autowired
+    private TrackedEntityAttributeService trackedEntityAttributeService;
 
     private ProgramStageInstance programStageInstanceA;
 
@@ -113,19 +112,21 @@ class TrackedEntityInstanceServiceTest
 
     private OrganisationUnit organisationUnit;
 
-    private TrackedEntityType trackedEntityTypeA = createTrackedEntityType( 'A' );
+    private TrackedEntityType trackedEntityTypeA;
 
-    private TrackedEntityAttribute attrD = createTrackedEntityAttribute( 'D' );
+    private TrackedEntityAttribute attrD;
 
-    private TrackedEntityAttribute attrE = createTrackedEntityAttribute( 'E' );
+    private TrackedEntityAttribute attrE;
 
-    private TrackedEntityAttribute filtF = createTrackedEntityAttribute( 'F' );
+    private TrackedEntityAttribute filtF;
 
-    private TrackedEntityAttribute filtG = createTrackedEntityAttribute( 'G' );
+    private TrackedEntityAttribute filtG;
 
-    private TrackedEntityAttribute filtH = createTrackedEntityAttribute( 'H' );
+    private TrackedEntityAttribute filtH;
 
     private final static String ATTRIBUTE_VALUE = "Value";
+
+    private User superUser;
 
     @Override
     public boolean emptyDatabaseAfterTest()
@@ -136,6 +137,23 @@ class TrackedEntityInstanceServiceTest
     @Override
     public void setUpTest()
     {
+        super.userService = _userService;
+
+        this.superUser = preCreateInjectAdminUser();
+
+        trackedEntityTypeA = createTrackedEntityType( 'A' );
+        attrD = createTrackedEntityAttribute( 'D' );
+        attrE = createTrackedEntityAttribute( 'E' );
+        filtF = createTrackedEntityAttribute( 'F' );
+        filtG = createTrackedEntityAttribute( 'G' );
+        filtH = createTrackedEntityAttribute( 'H' );
+
+        trackedEntityAttributeService.addTrackedEntityAttribute( attrD );
+        trackedEntityAttributeService.addTrackedEntityAttribute( attrE );
+        trackedEntityAttributeService.addTrackedEntityAttribute( filtF );
+        trackedEntityAttributeService.addTrackedEntityAttribute( filtG );
+        trackedEntityAttributeService.addTrackedEntityAttribute( filtH );
+
         organisationUnit = createOrganisationUnit( 'A' );
         organisationUnitService.addOrganisationUnit( organisationUnit );
         OrganisationUnit organisationUnitB = createOrganisationUnit( 'B' );
@@ -172,11 +190,10 @@ class TrackedEntityInstanceServiceTest
         attributeService.addTrackedEntityAttribute( attrE );
         attributeService.addTrackedEntityAttribute( filtF );
         attributeService.addTrackedEntityAttribute( filtG );
-        super.userService = this.userService;
-        User user = createUser( "testUser" );
+
+        User user = createUserWithAuth( "testUser" );
         user.setTeiSearchOrganisationUnits( Sets.newHashSet( organisationUnit ) );
-        CurrentUserService currentUserService = new MockCurrentUserService( user );
-        ReflectionTestUtils.setField( entityInstanceService, "currentUserService", currentUserService );
+        injectSecurityContext( user );
     }
 
     @Test
@@ -269,14 +286,13 @@ class TrackedEntityInstanceServiceTest
     @Test
     void testTrackedEntityAttributeFilter()
     {
-        User user = createUser( "attributeFilterUser" );
-        user.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
-        CurrentUserService currentUserService = new MockCurrentUserService( user );
-        ReflectionTestUtils.setField( entityInstanceService, "currentUserService", currentUserService );
-
+        injectSecurityContext( superUser );
         filtH.setDisplayInListNoProgram( true );
-
         attributeService.addTrackedEntityAttribute( filtH );
+
+        User user = createAndAddUser( false, "attributeFilterUser", Sets.newHashSet( organisationUnit ),
+            Sets.newHashSet( organisationUnit ) );
+        injectSecurityContext( user );
 
         entityInstanceA1.setTrackedEntityType( trackedEntityTypeA );
         entityInstanceService.addTrackedEntityInstance( entityInstanceA1 );
@@ -298,6 +314,5 @@ class TrackedEntityInstanceServiceTest
         Grid grid = entityInstanceService.getTrackedEntityInstancesGrid( params );
 
         assertEquals( 1, grid.getHeight() );
-
     }
 }

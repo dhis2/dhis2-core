@@ -47,7 +47,6 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
@@ -59,6 +58,7 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorService;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
@@ -214,8 +214,7 @@ public class GetMetaDataAction
         User user = currentUserService.getCurrentUser();
 
         Locale dbLocale = getLocaleWithDefault( new TranslateParams( true ) );
-        UserContext.setUser( user );
-        UserContext.setUserSetting( UserSettingKey.DB_LOCALE, dbLocale );
+        CurrentUserUtil.setUserSetting( UserSettingKey.DB_LOCALE, dbLocale );
 
         Date lastUpdated = DateUtils.max( Sets.newHashSet(
             identifiableObjectManager.getLastUpdated( DataElement.class ),

@@ -55,7 +55,12 @@ public interface DataIntegrityService
      * New generic API
      */
 
-    Collection<DataIntegrityCheck> getDataIntegrityChecks();
+    default Collection<DataIntegrityCheck> getDataIntegrityChecks()
+    {
+        return getDataIntegrityChecks( Set.of() );
+    }
+
+    Collection<DataIntegrityCheck> getDataIntegrityChecks( Set<String> checks );
 
     Map<String, DataIntegritySummary> getSummaries( Set<String> checks, long timeout );
 

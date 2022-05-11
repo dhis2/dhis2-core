@@ -67,8 +67,8 @@ class ConfigurationServiceTest extends DhisSpringTest
     @Test
     void testConfiguration()
     {
-        User userA = createUser( 'A' );
-        User userB = createUser( 'B' );
+        User userA = makeUser( "A" );
+        User userB = makeUser( "B" );
         UserGroup group = new UserGroup( "UserGroupA" );
         group.getMembers().add( userA );
         group.getMembers().add( userB );

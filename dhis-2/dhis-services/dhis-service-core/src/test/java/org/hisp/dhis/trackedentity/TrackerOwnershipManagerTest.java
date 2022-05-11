@@ -27,19 +27,15 @@
  */
 package org.hisp.dhis.trackedentity;
 
-import static com.google.common.collect.Sets.newHashSet;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.AccessLevel;
-import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
@@ -85,15 +81,13 @@ class TrackerOwnershipManagerTest extends DhisSpringTest
         throws Exception
     {
         userService = _userService;
+        preCreateInjectAdminUser();
+
         organisationUnitA = createOrganisationUnit( 'A' );
         organisationUnitService.addOrganisationUnit( organisationUnitA );
         organisationUnitB = createOrganisationUnit( 'B' );
         organisationUnitService.addOrganisationUnit( organisationUnitB );
-        CurrentUserService mockCurrentUserService = new MockCurrentUserService( false, newHashSet( organisationUnitA ),
-            newHashSet( organisationUnitA ), "" );
 
-        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
-            mockCurrentUserService, trackerOwnershipAccessManager );
         entityInstanceA1 = createTrackedEntityInstance( organisationUnitA );
         entityInstanceB1 = createTrackedEntityInstance( organisationUnitB );
         entityInstanceService.addTrackedEntityInstance( entityInstanceA1 );
@@ -101,11 +95,13 @@ class TrackerOwnershipManagerTest extends DhisSpringTest
         programA = createProgram( 'A' );
         programA.setAccessLevel( AccessLevel.PROTECTED );
         programService.addProgram( programA );
-        userA = mockCurrentUserService.getCurrentUser();
-        userB = createUser( "userB" );
+
+        userA = createUserWithAuth( "userA" );
+        userA.addOrganisationUnit( organisationUnitA );
+        userService.updateUser( userA );
+        userB = createUserWithAuth( "userB" );
         userB.addOrganisationUnit( organisationUnitB );
-        userService.addUser( userA );
-        userService.addUser( userB );
+        userService.updateUser( userB );
     }
 
     @Test
