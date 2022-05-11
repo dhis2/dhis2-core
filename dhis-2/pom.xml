@@ -2271,7 +2271,6 @@
                 </exclusions>
             </dependency>
 
-
             <!-- Test -->
             <dependency>
                 <groupId>org.hamcrest</groupId>
