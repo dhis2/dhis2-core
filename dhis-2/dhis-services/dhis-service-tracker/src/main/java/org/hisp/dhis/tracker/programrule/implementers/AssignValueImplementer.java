@@ -182,6 +182,11 @@ public class AssignValueImplementer
     {
         TrackedEntityAttribute attribute = preheat.getTrackedEntityAttribute( actionRule.getField() );
         String value = actionRule.getValue();
+        // NOTE: since rule engine has no notion of idSchemes the attribute
+        // identifiers have to be mapped to UIDs
+        // here we "escape" the safety of MetadataIdentifier and assume it
+        // contains a UID; thus directly comparing
+        // the identifier String to the field String
         Optional<Attribute> optionalAttribute = actionRule.getAttributes().stream()
             .filter( at -> at.getAttribute().isEqualTo( attribute ) )
             .findAny();
@@ -234,6 +239,11 @@ public class AssignValueImplementer
         if ( trackedEntity.isPresent() )
         {
             attributes = trackedEntity.get().getAttributes();
+            // NOTE: since rule engine has no notion of idSchemes the attribute
+            // identifiers have to be mapped to UIDs
+            // here we "escape" the safety of MetadataIdentifier and assume it
+            // contains a UID; thus directly comparing
+            // the identifier String to the field String
             Optional<Attribute> optionalAttribute = attributes.stream()
                 .filter( at -> at.getAttribute().isEqualTo( attribute ) )
                 .findAny();
@@ -245,6 +255,11 @@ public class AssignValueImplementer
         }
 
         attributes = enrollment.getAttributes();
+        // NOTE: since rule engine has no notion of idSchemes the attribute
+        // identifiers have to be mapped to UIDs
+        // here we "escape" the safety of MetadataIdentifier and assume it
+        // contains a UID; thus directly comparing
+        // the identifier String to the field String
         Optional<Attribute> optionalAttribute = attributes.stream()
             .filter( at -> at.getAttribute().isEqualTo( attribute ) )
             .findAny();

@@ -104,12 +104,12 @@ public class TrackerIdentifierCollector
         // dataElements/attributes from rule actions
         // out of the preheat using UIDs
         List<ProgramRule> programRules = programRuleService.getProgramRulesLinkedToTeaOrDe();
+
         Set<String> dataElements = programRules.stream()
             .flatMap( pr -> pr.getProgramRuleActions().stream() )
             .filter( a -> Objects.nonNull( a.getDataElement() ) )
             .map( a -> a.getDataElement().getUid() )
             .collect( Collectors.toSet() );
-
         dataElements.forEach( de -> addIdentifier( map, DataElement.class, de ) );
 
         Set<String> attributes = programRules.stream()
@@ -117,7 +117,6 @@ public class TrackerIdentifierCollector
             .filter( a -> Objects.nonNull( a.getAttribute() ) )
             .map( a -> a.getAttribute().getUid() )
             .collect( Collectors.toSet() );
-
         attributes.forEach( attribute -> addIdentifier( map, TrackedEntityAttribute.class, attribute ) );
     }
 

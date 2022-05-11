@@ -108,7 +108,7 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
 
     private TrackedEntityAttribute attribute;
 
-    private SetMandatoryFieldValidator implementerToTest = new SetMandatoryFieldValidator();
+    private final SetMandatoryFieldValidator implementerToTest = new SetMandatoryFieldValidator();
 
     private TrackerBundle bundle;
 
