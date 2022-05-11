@@ -27,27 +27,25 @@
  */
 package org.hisp.dhis.analytics.shared;
 
-import java.util.List;
+import lombok.AllArgsConstructor;
 
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.GridHeader;
-import org.hisp.dhis.system.grid.ListGrid;
+import org.hisp.dhis.analytics.ColumnDataType;
 
-public class JdbcGridAdaptor
+@AllArgsConstructor
+public class Column
 {
-    public static Grid createGrid( final List<GridHeader> headers, final QueryResult queryResult )
-    {
-        final Grid grid = new ListGrid();
+    /**
+     * The column name.
+     */
+    private final String name;
 
-        if ( queryResult.isNotEmpty() )
-        {
-            for ( final GridHeader header : headers )
-            {
-                // Note that the header column must match the result map key.
-                grid.addHeader( header ).addColumn( queryResult.resultMap().get( header.getColumn() ) );
-            }
-        }
+    /**
+     * The column data type.
+     */
+    private final ColumnDataType dataType;
 
-        return grid;
-    }
+    /**
+     * The column alias.
+     */
+    private final String alias;
 }

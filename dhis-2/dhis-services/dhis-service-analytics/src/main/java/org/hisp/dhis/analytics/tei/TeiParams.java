@@ -25,29 +25,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.shared;
+package org.hisp.dhis.analytics.tei;
 
-import java.util.List;
-
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.GridHeader;
-import org.hisp.dhis.system.grid.ListGrid;
-
-public class JdbcGridAdaptor
+public class TeiParams
 {
-    public static Grid createGrid( final List<GridHeader> headers, final QueryResult queryResult )
-    {
-        final Grid grid = new ListGrid();
-
-        if ( queryResult.isNotEmpty() )
-        {
-            for ( final GridHeader header : headers )
-            {
-                // Note that the header column must match the result map key.
-                grid.addHeader( header ).addColumn( queryResult.resultMap().get( header.getColumn() ) );
-            }
-        }
-
-        return grid;
-    }
 }

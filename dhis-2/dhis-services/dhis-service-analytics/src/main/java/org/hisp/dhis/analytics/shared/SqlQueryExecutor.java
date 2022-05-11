@@ -27,6 +27,35 @@
  */
 package org.hisp.dhis.analytics.shared;
 
-public class SqlQueryExecutor
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
+import org.springframework.stereotype.Component;
+
+@Component
+public class SqlQueryExecutor implements QueryExecutor
 {
+    @Override
+    public QueryResult execute( final Query query )
+    {
+        final SqlQuery sqlQuery = (SqlQuery) query;
+        final String fullStatement = sqlQuery.fullStatement();
+        // TODO: Execute JDBC fullStatement here and populated the map based on
+        // the
+        // results.
+        final Map<Column, List<Object>> resultMap = new TreeMap<>();
+
+        // Initialize map of columns with empty lists.
+        for ( final Column column : sqlQuery.getColumns() )
+        {
+            resultMap.put( column, new ArrayList<>() );
+        }
+
+        // TODO: iterate the JDBC result set and add to the list of the
+        // respective column.
+
+        return new SqlQueryResult( resultMap );
+    }
 }

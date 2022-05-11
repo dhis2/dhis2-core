@@ -27,6 +27,30 @@
  */
 package org.hisp.dhis.analytics.tei;
 
-public class TeiJdbcQuery
+import java.util.ArrayList;
+import java.util.List;
+
+import org.hisp.dhis.analytics.shared.Column;
+import org.hisp.dhis.analytics.shared.Query;
+import org.hisp.dhis.analytics.shared.QueryGenerator;
+import org.hisp.dhis.analytics.shared.SqlQuery;
+import org.springframework.stereotype.Component;
+
+@Component
+public class TeiJdbcQuery implements QueryGenerator<TeiParams>
 {
+    @Override
+    public Query from( final TeiParams params )
+    {
+        // TODO: build objects below from the params.
+        final List<Column> columns = new ArrayList<>();
+        final String fromClause = null;
+        final String joinClause = null;
+        final String whereClause = null;
+        final String closingClauses = null;
+
+        return SqlQuery.builder().columns( columns ).fromClause( fromClause ).joinClause( joinClause )
+            .whereClause( whereClause ).closingClauses( closingClauses )
+            .build();
+    }
 }
