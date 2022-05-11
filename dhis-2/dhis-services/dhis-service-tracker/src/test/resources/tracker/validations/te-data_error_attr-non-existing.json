@@ -47,12 +47,18 @@
       "relationships": [],
       "attributes": [
         {
-          "attribute": "--BIpOStK--",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "--BIpOStK--"
+          },
           "storedBy": "admin",
           "value": "PersonA"
         },
         {
-          "attribute": "sTJvSLN7Kcb",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "sTJvSLN7Kcb"
+          },
           "storedBy": "admin",
           "value": "AddressA"
         }
@@ -75,12 +81,18 @@
       "relationships": [],
       "attributes": [
         {
-          "attribute": "--BIpOStK--",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "--BIpOStK--"
+          },
           "storedBy": "admin",
           "value": "PersonA"
         },
         {
-          "attribute": "sTJvSLN7Kcb",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "sTJvSLN7Kcb"
+          },
           "storedBy": "admin",
           "value": "AddressA"
         }

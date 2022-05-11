@@ -48,7 +48,10 @@
       "relationships": [],
       "attributes": [
         {
-          "attribute": "CWMLspQP2RH",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "CWMLspQP2RH"
+          },
           "displayName": "Attribute_Encrypted_Text",
           "storedBy": "admin",
           "valueType": "TEXT",

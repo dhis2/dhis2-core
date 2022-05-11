@@ -48,10 +48,16 @@
       "relationships": [],
       "attributes": [
         {
-          "attribute": "sYn3tkL3XKa"
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "sYn3tkL3XKa"
+          }
         },
         {
-          "attribute": "TsfP85GKsU5"
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "TsfP85GKsU5"
+          }
         }
       ],
       "enrollments": []
@@ -81,7 +87,10 @@
       "relationships": [],
       "attributes": [
         {
-          "attribute": "p5TPww5Uhrd"
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "p5TPww5Uhrd"
+          }
         }
       ],
       "notes": []

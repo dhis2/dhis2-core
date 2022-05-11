@@ -80,9 +80,19 @@ public class EnrollmentActionRule
     {
         if ( attributeType.equals( AttributeType.TRACKED_ENTITY_ATTRIBUTE ) )
         {
+            // TODO(DHIS2-12563) I assume field represents an attribute id.
+            // Previously it was just a String, we assumed
+            // was always a UID which is not true since these ids come from the
+            // payload at least in AbstractRuleActionImplementer.mergeAttributes
+
+            // NOTE: since rule engine has no notion of idSchemes the attribute
+            // identifiers have to be mapped to UIDs
+            // here we "escape" the safety of MetadataIdentifier and assume it
+            // contains a UID; thus directly comparing
+            // the identifier String to the field String
             return getAttributes()
                 .stream()
-                .filter( at -> at.getAttribute().equals( field ) )
+                .filter( at -> at.getAttribute().getIdentifier().equals( field ) )
                 .findAny();
         }
 

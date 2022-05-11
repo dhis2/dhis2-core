@@ -46,6 +46,7 @@ import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.programrule.EnrollmentActionRule;
@@ -159,10 +160,15 @@ public class AssignValueImplementer
 
     private boolean isTheSameValue( EnrollmentActionRule actionRule, TrackerPreheat preheat )
     {
-        TrackedEntityAttribute attribute = preheat.get( TrackedEntityAttribute.class, actionRule.getField() );
+        TrackedEntityAttribute attribute = preheat.getTrackedEntityAttribute( actionRule.getField() );
         String value = actionRule.getValue();
+        // NOTE: since rule engine has no notion of idSchemes the attribute
+        // identifiers have to be mapped to UIDs
+        // here we "escape" the safety of MetadataIdentifier and assume it
+        // contains a UID; thus directly comparing
+        // the identifier String to the field String
         Optional<Attribute> optionalAttribute = actionRule.getAttributes().stream()
-            .filter( at -> at.getAttribute().equals( actionRule.getField() ) )
+            .filter( at -> at.getAttribute().getIdentifier().equals( actionRule.getField() ) )
             .findAny();
         if ( optionalAttribute.isPresent() )
         {
@@ -212,8 +218,13 @@ public class AssignValueImplementer
         if ( trackedEntity.isPresent() )
         {
             attributes = trackedEntity.get().getAttributes();
+            // NOTE: since rule engine has no notion of idSchemes the attribute
+            // identifiers have to be mapped to UIDs
+            // here we "escape" the safety of MetadataIdentifier and assume it
+            // contains a UID; thus directly comparing
+            // the identifier String to the field String
             Optional<Attribute> optionalAttribute = attributes.stream()
-                .filter( at -> at.getAttribute().equals( actionRule.getField() ) )
+                .filter( at -> at.getAttribute().getIdentifier().equals( actionRule.getField() ) )
                 .findAny();
             if ( optionalAttribute.isPresent() )
             {
@@ -223,8 +234,13 @@ public class AssignValueImplementer
         }
 
         attributes = enrollment.getAttributes();
+        // NOTE: since rule engine has no notion of idSchemes the attribute
+        // identifiers have to be mapped to UIDs
+        // here we "escape" the safety of MetadataIdentifier and assume it
+        // contains a UID; thus directly comparing
+        // the identifier String to the field String
         Optional<Attribute> optionalAttribute = attributes.stream()
-            .filter( at -> at.getAttribute().equals( actionRule.getField() ) )
+            .filter( at -> at.getAttribute().getIdentifier().equals( actionRule.getField() ) )
             .findAny();
         if ( optionalAttribute.isPresent() )
         {
@@ -238,9 +254,10 @@ public class AssignValueImplementer
 
     private Attribute createAttribute( String attributeUid, String newValue )
     {
-        Attribute attribute = new Attribute();
-        attribute.setAttribute( attributeUid );
-        attribute.setValue( newValue );
+        Attribute attribute = Attribute.builder()
+            .attribute( MetadataIdentifier.ofUid( attributeUid ) )
+            .value( newValue )
+            .build();
         return attribute;
     }
 

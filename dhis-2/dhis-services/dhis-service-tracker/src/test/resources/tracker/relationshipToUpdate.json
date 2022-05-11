@@ -43,6 +43,7 @@
       "createdAt": "2019-10-01T12:17:30.163",
       "updatedAt": "2019-10-01T12:17:30.163",
       "bidirectional": false,
+      "deleted": false,
       "from": {
         "trackedEntity": "IOR1AXXl24H"
       },
