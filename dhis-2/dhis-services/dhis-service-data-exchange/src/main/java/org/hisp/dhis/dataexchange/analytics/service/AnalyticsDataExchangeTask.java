@@ -31,7 +31,6 @@ import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -62,7 +61,6 @@ public class AnalyticsDataExchangeTask
     private final DataValueSetService dataValueSetService;
 
     public ImportSummary exhangeData( AnalyticsDataExchange exchange )
-        throws IOException
     {
         DataQueryParams params = toDataQueryParams( exchange );
 
@@ -73,13 +71,11 @@ public class AnalyticsDataExchangeTask
     }
 
     private ImportSummary pushToInternal( AnalyticsDataExchange exchange, DataValueSet dataValueSet )
-        throws IOException
     {
         return dataValueSetService.importDataValueSet( dataValueSet, toImportOptions( exchange ) );
     }
 
     private ImportSummary pushToExternal( AnalyticsDataExchange exchange, DataValueSet dataValueSet )
-        throws IOException
     {
         return null; // TODO
     }
