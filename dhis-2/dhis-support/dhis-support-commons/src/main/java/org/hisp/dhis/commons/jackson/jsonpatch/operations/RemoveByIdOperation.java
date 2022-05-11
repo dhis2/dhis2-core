@@ -82,7 +82,7 @@ public class RemoveByIdOperation extends JsonPatchOperation
             int removeIndex = -1;
             for ( int i = 0; i < arrayNode.size(); i++ )
             {
-                JsonNode item = arrayNode.get( 0 );
+                JsonNode item = arrayNode.get( i );
                 if ( item.has( "id" ) && id.equals( item.get( "id" ).asText() ) )
                 {
                     removeIndex = i;
