@@ -97,22 +97,16 @@ public class AnalyticsDataExchangeTask
     private DataQueryParams toDataQueryParams( AnalyticsDataExchange exchange )
     {
         SourceRequest request = exchange.getSource().getRequest();
-
-        DimensionalObject dx = dataQueryService.getDimension( DATA_X_DIM_ID,
-            request.getDx(), null, null, null, false, request.getInputIdScheme() );
-        DimensionalObject pe = dataQueryService.getDimension( PERIOD_DIM_ID,
-            request.getDx(), null, null, null, false, request.getInputIdScheme() );
-        DimensionalObject ou = dataQueryService.getDimension( ORGUNIT_DIM_ID,
-            request.getDx(), null, null, null, false, request.getInputIdScheme() );
+        IdScheme idScheme = request.getInputIdScheme();
 
         List<DimensionalObject> filters = request.getFilters().stream()
-            .map( f -> toDimensionalObject( f, request.getInputIdScheme() ) )
+            .map( f -> toDimensionalObject( f, idScheme ) )
             .collect( Collectors.toList() );
 
         return DataQueryParams.newBuilder()
-            .addDimension( dx )
-            .addDimension( pe )
-            .addDimension( ou )
+            .addDimension( toDimensionalObject( DATA_X_DIM_ID, request.getDx(), idScheme ) )
+            .addDimension( toDimensionalObject( PERIOD_DIM_ID, request.getPe(), idScheme ) )
+            .addDimension( toDimensionalObject( ORGUNIT_DIM_ID, request.getOu(), idScheme ) )
             .addFilters( filters )
             .build();
     }
@@ -122,9 +116,15 @@ public class AnalyticsDataExchangeTask
         return idScheme != null ? idScheme.name() : null;
     }
 
+    private DimensionalObject toDimensionalObject( String dimension, List<String> items, IdScheme inputIdScheme )
+    {
+        return dataQueryService.getDimension(
+            dimension, items, null, null, null, false, inputIdScheme );
+    }
+
     private DimensionalObject toDimensionalObject( Filter filter, IdScheme inputIdScheme )
     {
-        return dataQueryService.getDimension( filter.getDimension(),
-            filter.getItems(), null, null, null, false, false, inputIdScheme );
+        return dataQueryService.getDimension(
+            filter.getDimension(), filter.getItems(), null, null, null, false, inputIdScheme );
     }
 }
