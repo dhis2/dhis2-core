@@ -131,7 +131,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
     @BeforeEach
     public void setUp()
     {
-        user = createUser( 'A' );
+        user = makeUser( "A" );
         when( bundle.getUser() ).thenReturn( user );
 
         organisationUnit = createOrganisationUnit( 'A' );
@@ -157,7 +157,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         TrackedEntity trackedEntity = TrackedEntity.builder()
             .trackedEntity( CodeGenerator.generateUid() )
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .trackedEntityType( TEI_TYPE_ID )
+            .trackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) )
             .build();
 
         when( bundle.getPreheat() ).thenReturn( preheat );
@@ -180,7 +180,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         TrackedEntity trackedEntity = TrackedEntity.builder()
             .trackedEntity( TEI_ID )
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .trackedEntityType( TEI_TYPE_ID )
+            .trackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) )
             .build();
 
         when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.DELETE );
@@ -202,7 +202,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         TrackedEntity trackedEntity = TrackedEntity.builder()
             .trackedEntity( TEI_ID )
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .trackedEntityType( TEI_TYPE_ID )
+            .trackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) )
             .build();
 
         when( bundle.getPreheat() ).thenReturn( preheat );
@@ -225,7 +225,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         TrackedEntity trackedEntity = TrackedEntity.builder()
             .trackedEntity( TEI_ID )
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .trackedEntityType( TEI_TYPE_ID )
+            .trackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) )
             .build();
 
         when( bundle.getPreheat() ).thenReturn( preheat );
@@ -248,7 +248,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         TrackedEntity trackedEntity = TrackedEntity.builder()
             .trackedEntity( TEI_ID )
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .trackedEntityType( TEI_TYPE_ID )
+            .trackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) )
             .build();
 
         when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.DELETE );
@@ -270,7 +270,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         TrackedEntity trackedEntity = TrackedEntity.builder()
             .trackedEntity( TEI_ID )
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .trackedEntityType( TEI_TYPE_ID )
+            .trackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) )
             .build();
 
         when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.DELETE );
@@ -292,7 +292,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         TrackedEntity trackedEntity = TrackedEntity.builder()
             .trackedEntity( TEI_ID )
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .trackedEntityType( TEI_TYPE_ID )
+            .trackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) )
             .build();
 
         when( bundle.getUser() ).thenReturn( deleteTeiAuthorisedUser() );
@@ -315,7 +315,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         TrackedEntity trackedEntity = TrackedEntity.builder()
             .trackedEntity( TEI_ID )
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .trackedEntityType( TEI_TYPE_ID )
+            .trackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) )
             .build();
 
         when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.DELETE );
@@ -338,7 +338,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         TrackedEntity trackedEntity = TrackedEntity.builder()
             .trackedEntity( TEI_ID )
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .trackedEntityType( TEI_TYPE_ID )
+            .trackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) )
             .build();
 
         when( bundle.getPreheat() ).thenReturn( preheat );
@@ -364,7 +364,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         TrackedEntity trackedEntity = TrackedEntity.builder()
             .trackedEntity( TEI_ID )
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .trackedEntityType( TEI_TYPE_ID )
+            .trackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) )
             .build();
 
         when( bundle.getPreheat() ).thenReturn( preheat );
@@ -388,7 +388,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         TrackedEntity trackedEntity = TrackedEntity.builder()
             .trackedEntity( CodeGenerator.generateUid() )
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .trackedEntityType( TEI_TYPE_ID )
+            .trackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) )
             .build();
 
         when( bundle.getPreheat() ).thenReturn( preheat );
@@ -1115,16 +1115,16 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
 
     private User deleteTeiAuthorisedUser()
     {
-        return createUser( 'A', Lists.newArrayList( Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) );
+        return makeUser( "A", Lists.newArrayList( Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) );
     }
 
     private User deleteEnrollmentAuthorisedUser()
     {
-        return createUser( 'A', Lists.newArrayList( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() ) );
+        return makeUser( "A", Lists.newArrayList( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() ) );
     }
 
     private User changeCompletedEventAuthorisedUser()
     {
-        return createUser( 'A', Lists.newArrayList( "F_UNCOMPLETE_EVENT" ) );
+        return makeUser( "A", Lists.newArrayList( "F_UNCOMPLETE_EVENT" ) );
     }
 }

@@ -51,10 +51,8 @@ import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.expression.Expression;
-import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
@@ -112,7 +110,7 @@ class ValidationResultStoreTest extends TransactionalIntegrationTest
     protected IdentifiableObjectManager identifiableObjectManager;
 
     @Autowired
-    private UserService userService;
+    private UserService _userService;
 
     @Autowired
     private CurrentUserService currentUserService;
@@ -152,15 +150,15 @@ class ValidationResultStoreTest extends TransactionalIntegrationTest
 
     private OrganisationUnit sourceC;
 
-    private CurrentUserService superUserService;
+    private User superUser;
 
-    private CurrentUserService userAService;
+    private User userA;
 
-    private CurrentUserService userBService;
+    private User userB;
 
-    private CurrentUserService userCService;
+    private User userC;
 
-    private CurrentUserService userDService;
+    private User userD;
 
     private User userZ;
 
@@ -183,27 +181,6 @@ class ValidationResultStoreTest extends TransactionalIntegrationTest
     private CategoryOptionGroup optionGroupB;
 
     private CategoryOptionGroupSet optionGroupSetB;
-
-    // -------------------------------------------------------------------------
-    // Set up/tear down helper methods
-    // -------------------------------------------------------------------------
-    private CurrentUserService getMockCurrentUserService( String userName, boolean superUserFlag,
-        OrganisationUnit orgUnit, String... auths )
-    {
-        CurrentUserService mockCurrentUserService = new MockCurrentUserService( superUserFlag,
-            Sets.newHashSet( orgUnit ), Sets.newHashSet( orgUnit ), auths );
-        User user = mockCurrentUserService.getCurrentUser();
-        user.setFirstName( "Test" );
-        user.setSurname( userName );
-        user.setUsername( userName );
-        for ( UserRole role : user.getUserRoles() )
-        {
-            role.setName( CodeGenerator.generateUid() );
-            userService.addUserRole( role );
-        }
-        userService.addUser( user );
-        return mockCurrentUserService;
-    }
 
     private void setPrivateAccess( BaseIdentifiableObject object, UserGroup... userGroups )
     {
@@ -232,6 +209,7 @@ class ValidationResultStoreTest extends TransactionalIntegrationTest
     public void setUpTest()
         throws Exception
     {
+        userService = _userService;
         // ---------------------------------------------------------------------
         // Add supporting data
         // ---------------------------------------------------------------------
@@ -246,21 +224,21 @@ class ValidationResultStoreTest extends TransactionalIntegrationTest
         organisationUnitService.addOrganisationUnit( sourceA );
         organisationUnitService.addOrganisationUnit( sourceB );
         organisationUnitService.addOrganisationUnit( sourceC );
-        superUserService = getMockCurrentUserService( "SuperUser", true, sourceA, UserRole.AUTHORITY_ALL );
-        userAService = getMockCurrentUserService( "UserA", false, sourceA );
-        userBService = getMockCurrentUserService( "UserB", false, sourceB );
-        userCService = getMockCurrentUserService( "UserC", false, sourceB );
-        userDService = getMockCurrentUserService( "UserD", false, sourceB );
-        userZ = createUser( 'Z' );
+        superUser = createAndAddUser( true, "SuperUser", sourceA, UserRole.AUTHORITY_ALL );
+        userA = createAndAddUser( "UserA", sourceA );
+        userB = createAndAddUser( "UserB", sourceB );
+        userC = createAndAddUser( "UserC", sourceB );
+        userD = createAndAddUser( "UserD", sourceB );
+        userZ = makeUser( "Z" );
         userService.addUser( userZ );
-        UserGroup userGroupC = createUserGroup( 'A', Sets.newHashSet( userCService.getCurrentUser() ) );
-        UserGroup userGroupD = createUserGroup( 'B', Sets.newHashSet( userDService.getCurrentUser() ) );
+        UserGroup userGroupC = createUserGroup( 'A', Sets.newHashSet( userC ) );
+        UserGroup userGroupD = createUserGroup( 'B', Sets.newHashSet( userD ) );
         userGroupService.addUserGroup( userGroupC );
         userGroupService.addUserGroup( userGroupD );
-        userCService.getCurrentUser().getGroups().add( userGroupC );
-        userService.updateUser( userCService.getCurrentUser() );
-        userDService.getCurrentUser().getGroups().add( userGroupD );
-        userService.updateUser( userDService.getCurrentUser() );
+        userC.getGroups().add( userGroupC );
+        userService.updateUser( userC );
+        userD.getGroups().add( userGroupD );
+        userService.updateUser( userD );
         optionA = new CategoryOption( "CategoryOptionA" );
         optionB = new CategoryOption( "CategoryOptionB" );
         categoryService.addCategoryOption( optionA );
@@ -292,8 +270,8 @@ class ValidationResultStoreTest extends TransactionalIntegrationTest
         categoryService.updateCategoryOptionGroupSet( optionGroupSetB );
         categoryService.updateCategoryOptionGroup( optionGroupA );
         categoryService.updateCategoryOptionGroup( optionGroupB );
-        userCService.getCurrentUser().getCatDimensionConstraints().add( categoryA );
-        userDService.getCurrentUser().getCogsDimensionConstraints().add( optionGroupSetB );
+        userC.getCatDimensionConstraints().add( categoryA );
+        userD.getCogsDimensionConstraints().add( optionGroupSetB );
         expressionA = new Expression( "expressionA", "descriptionA" );
         expressionB = new Expression( "expressionB", "descriptionB" );
         validationRuleA = createValidationRule( 'A', equal_to, expressionA, expressionB, periodType );
@@ -367,23 +345,23 @@ class ValidationResultStoreTest extends TransactionalIntegrationTest
         save( asList( validationResultAA, validationResultAB, validationResultAC, validationResultBA,
             validationResultBB, validationResultBC ) );
         // Superuser can see all unreported results.
-        setMockUserService( superUserService );
+        injectSecurityContext( superUser );
         assertEqualSets( asList( validationResultAA, validationResultAC, validationResultBA, validationResultBB,
             validationResultBC ), validationResultStore.getAllUnreportedValidationResults() );
         // User A can see all unreported results from sourceA or its children.
-        setMockUserService( userAService );
+        injectSecurityContext( userA );
         assertEqualSets( asList( validationResultAA, validationResultAC, validationResultBA, validationResultBB,
             validationResultBC ), validationResultStore.getAllUnreportedValidationResults() );
         // User B can see all unreported results from sourceB.
-        setMockUserService( userBService );
+        injectSecurityContext( userB );
         assertEqualSets( asList( validationResultBA, validationResultBB, validationResultBC ),
             validationResultStore.getAllUnreportedValidationResults() );
         // User C can see only optionA from sourceB.
-        setMockUserService( userCService );
+        injectSecurityContext( userC );
         assertEqualSets( singletonList( validationResultBA ),
             validationResultStore.getAllUnreportedValidationResults() );
         // User D can see only optionB from sourceB.
-        setMockUserService( userDService );
+        injectSecurityContext( userD );
         assertEqualSets( singletonList( validationResultBB ),
             validationResultStore.getAllUnreportedValidationResults() );
     }
@@ -394,35 +372,35 @@ class ValidationResultStoreTest extends TransactionalIntegrationTest
     {
         save( asList( validationResultAA, validationResultAB, validationResultAC, validationResultBA,
             validationResultBB, validationResultBC ) );
-        setMockUserService( superUserService );
+        injectSecurityContext( superUser );
         assertEquals( validationResultAA, validationResultStore.getById( validationResultAA.getId() ) );
         assertEquals( validationResultAB, validationResultStore.getById( validationResultAB.getId() ) );
         assertEquals( validationResultAC, validationResultStore.getById( validationResultAC.getId() ) );
         assertEquals( validationResultBA, validationResultStore.getById( validationResultBA.getId() ) );
         assertEquals( validationResultBB, validationResultStore.getById( validationResultBB.getId() ) );
         assertEquals( validationResultBC, validationResultStore.getById( validationResultBC.getId() ) );
-        setMockUserService( userAService );
+        injectSecurityContext( userA );
         assertEquals( validationResultAA, validationResultStore.getById( validationResultAA.getId() ) );
         assertEquals( validationResultAB, validationResultStore.getById( validationResultAB.getId() ) );
         assertEquals( validationResultAC, validationResultStore.getById( validationResultAC.getId() ) );
         assertEquals( validationResultBA, validationResultStore.getById( validationResultBA.getId() ) );
         assertEquals( validationResultBB, validationResultStore.getById( validationResultBB.getId() ) );
         assertEquals( validationResultBC, validationResultStore.getById( validationResultBC.getId() ) );
-        setMockUserService( userBService );
+        injectSecurityContext( userB );
         assertNull( validationResultStore.getById( validationResultAA.getId() ) );
         assertNull( validationResultStore.getById( validationResultAB.getId() ) );
         assertNull( validationResultStore.getById( validationResultAC.getId() ) );
         assertEquals( validationResultBA, validationResultStore.getById( validationResultBA.getId() ) );
         assertEquals( validationResultBB, validationResultStore.getById( validationResultBB.getId() ) );
         assertEquals( validationResultBC, validationResultStore.getById( validationResultBC.getId() ) );
-        setMockUserService( userCService );
+        injectSecurityContext( userC );
         assertNull( validationResultStore.getById( validationResultAA.getId() ) );
         assertNull( validationResultStore.getById( validationResultAB.getId() ) );
         assertNull( validationResultStore.getById( validationResultAC.getId() ) );
         assertEquals( validationResultBA, validationResultStore.getById( validationResultBA.getId() ) );
         assertNull( validationResultStore.getById( validationResultBB.getId() ) );
         assertNull( validationResultStore.getById( validationResultBC.getId() ) );
-        setMockUserService( userDService );
+        injectSecurityContext( userD );
         assertNull( validationResultStore.getById( validationResultAA.getId() ) );
         assertNull( validationResultStore.getById( validationResultAB.getId() ) );
         assertNull( validationResultStore.getById( validationResultAC.getId() ) );
@@ -439,16 +417,16 @@ class ValidationResultStoreTest extends TransactionalIntegrationTest
             validationResultBA, validationResultBB, validationResultBC );
         save( expected );
         ValidationResultQuery query = new ValidationResultQuery();
-        setMockUserService( superUserService );
+        injectSecurityContext( superUser );
         assertEqualSets( expected, validationResultStore.query( query ) );
-        setMockUserService( userAService );
+        injectSecurityContext( userA );
         assertEqualSets( expected, validationResultStore.query( query ) );
-        setMockUserService( userBService );
+        injectSecurityContext( userB );
         assertEqualSets( asList( validationResultBA, validationResultBB, validationResultBC ),
             validationResultStore.query( query ) );
-        setMockUserService( userCService );
+        injectSecurityContext( userC );
         assertEqualSets( singletonList( validationResultBA ), validationResultStore.query( query ) );
-        setMockUserService( userDService );
+        injectSecurityContext( userD );
         assertEqualSets( singletonList( validationResultBB ), validationResultStore.query( query ) );
     }
 
@@ -458,7 +436,7 @@ class ValidationResultStoreTest extends TransactionalIntegrationTest
         save( asList( validationResultAA, validationResultAB, validationResultAC, validationResultBA,
             validationResultBB, validationResultBC ) );
         // test with superuser so user adds no extra restrictions
-        setMockUserService( superUserService );
+        injectSecurityContext( superUser );
         ValidationResultQuery query = new ValidationResultQuery();
         // filter on A gives results for A
         query.setOu( singletonList( sourceA.getUid() ) );
@@ -476,7 +454,7 @@ class ValidationResultStoreTest extends TransactionalIntegrationTest
         assertEqualSets( asList( validationResultAA, validationResultAB, validationResultAC, validationResultBA,
             validationResultBB, validationResultBC ), validationResultStore.query( query ) );
         // now we restrict user to only be able to see Bs
-        setMockUserService( userBService );
+        injectSecurityContext( userB );
         // so filtering on As should not give any result
         query.setOu( singletonList( sourceA.getUid() ) );
         assertEqualSets( emptyList(), validationResultStore.query( query ) );
@@ -488,7 +466,7 @@ class ValidationResultStoreTest extends TransactionalIntegrationTest
         save( asList( validationResultAA, validationResultAB, validationResultAC, validationResultBA,
             validationResultBB, validationResultBC ) );
         // test with superuser so user adds no extra restrictions
-        setMockUserService( superUserService );
+        injectSecurityContext( superUser );
         ValidationResultQuery query = new ValidationResultQuery();
         // filter on A gives results for A
         query.setVr( singletonList( validationRuleA.getUid() ) );
@@ -503,7 +481,7 @@ class ValidationResultStoreTest extends TransactionalIntegrationTest
         assertEqualSets( asList( validationResultAA, validationResultAB, validationResultAC, validationResultBA,
             validationResultBB, validationResultBC ), validationResultStore.query( query ) );
         // now we restrict user to only be able to see Bs
-        setMockUserService( userBService );
+        injectSecurityContext( userB );
         // so filtering on As should not give any result
         query.setVr( singletonList( validationRuleA.getUid() ) );
         assertEqualSets( emptyList(), validationResultStore.query( query ) );
@@ -515,7 +493,7 @@ class ValidationResultStoreTest extends TransactionalIntegrationTest
         save( asList( validationResultAA, validationResultAB, validationResultAC, validationResultBA,
             validationResultBB, validationResultBC ) );
         // test with superuser so user adds no extra restrictions
-        setMockUserService( superUserService );
+        injectSecurityContext( superUser );
         ValidationResultQuery query = new ValidationResultQuery();
         // periodA is Jan 2017, periodB is Feb 2017
         // monthly ISO pattern: YYYY-MM
@@ -570,7 +548,7 @@ class ValidationResultStoreTest extends TransactionalIntegrationTest
         save( asList( validationResultAA, validationResultAB, validationResultAC, validationResultBA,
             validationResultBB, validationResultBC ) );
         // test with superuser so user adds no extra restrictions
-        setMockUserService( superUserService );
+        injectSecurityContext( superUser );
         // filter on A gives results for A
         ValidationResultQuery query = new ValidationResultQuery();
         query.setPe( singletonList( "2017" ) );
@@ -591,15 +569,15 @@ class ValidationResultStoreTest extends TransactionalIntegrationTest
         save( asList( validationResultAA, validationResultAB, validationResultAC, validationResultBA,
             validationResultBB, validationResultBC ) );
         ValidationResultQuery query = new ValidationResultQuery();
-        setMockUserService( superUserService );
+        injectSecurityContext( superUser );
         assertEquals( 6, validationResultStore.count( query ) );
-        setMockUserService( userAService );
+        injectSecurityContext( userA );
         assertEquals( 6, validationResultStore.count( query ) );
-        setMockUserService( userBService );
+        injectSecurityContext( userB );
         assertEquals( 3, validationResultStore.count( query ) );
-        setMockUserService( userCService );
+        injectSecurityContext( userC );
         assertEquals( 1, validationResultStore.count( query ) );
-        setMockUserService( userDService );
+        injectSecurityContext( userD );
         assertEquals( 1, validationResultStore.count( query ) );
     }
 

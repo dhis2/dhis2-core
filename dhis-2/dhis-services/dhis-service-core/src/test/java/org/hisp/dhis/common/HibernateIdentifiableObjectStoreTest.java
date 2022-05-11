@@ -150,10 +150,10 @@ class HibernateIdentifiableObjectStoreTest extends TransactionalIntegrationTest
     @Test
     void testDataRead()
     {
-        User user1 = createUser( "user1", "DATA_READ" );
-        User user2 = createUser( "user2", "DATA_READ" );
-        User user3 = createUser( "user3", "DATA_READ" );
-        User user4 = createUser( "user4", "DATA_READ" );
+        User user1 = createUserWithAuth( "user1", "DATA_READ" );
+        User user2 = createUserWithAuth( "user2", "DATA_READ" );
+        User user3 = createUserWithAuth( "user3", "DATA_READ" );
+        User user4 = createUserWithAuth( "user4", "DATA_READ" );
         UserGroup userGroup1 = createUserGroup( 'A', Sets.newHashSet( user1 ) );
         manager.save( userGroup1 );
         UserGroup userGroup2 = createUserGroup( 'B', Sets.newHashSet( user1, user4 ) );

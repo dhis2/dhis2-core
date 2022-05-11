@@ -176,7 +176,7 @@ class ValidationNotificationServiceTest extends DhisConvenienceTest
     void testValidationResultGeneratesSingleNotificationForMultipleUsers()
     {
         setUpEntitiesA();
-        User userB = createUser( 'B' );
+        User userB = makeUser( "B" );
         userGroupA.addUser( userB );
         ValidationResult validationResult = createValidationResultA();
         subject.sendNotifications( Sets.newHashSet( validationResult ), NoopJobProgress.INSTANCE );
@@ -205,7 +205,7 @@ class ValidationNotificationServiceTest extends DhisConvenienceTest
             lvlTwoLeftRight = createOrganisationUnit( '4' );
         configureHierarchy( root, lvlOneLeft, lvlOneRight, lvlTwoLeftLeft, lvlTwoLeftRight );
         // Users
-        User uB = createUser( 'B' ), uC = createUser( 'C' ), uD = createUser( 'D' ), uE = createUser( 'E' );
+        User uB = makeUser( "B" ), uC = makeUser( "C" ), uD = makeUser( "D" ), uE = makeUser( "E" );
         UserGroup groupA = createUserGroup( 'A', Sets.newHashSet() );
         groupA.addUser( uD );
         groupA.addUser( uE );
@@ -236,8 +236,8 @@ class ValidationNotificationServiceTest extends DhisConvenienceTest
             lvlTwoLeftRight = createOrganisationUnit( '4' );
         configureHierarchy( root, lvlOneLeft, lvlOneRight, lvlTwoLeftLeft, lvlTwoLeftRight );
         // Users
-        User uA = createUser( 'A' ), uB = createUser( 'B' ), uC = createUser( 'C' ), uD = createUser( 'D' ),
-            uE = createUser( 'E' ), uF = createUser( 'F' ), uG = createUser( 'G' );
+        User uA = makeUser( "A" ), uB = makeUser( "B" ), uC = makeUser( "C" ), uD = makeUser( "D" ),
+            uE = makeUser( "E" ), uF = makeUser( "F" ), uG = makeUser( "G" );
         root.addUser( uA );
         lvlOneLeft.addUser( uB );
         lvlOneLeft.addUser( uC );
@@ -297,7 +297,7 @@ class ValidationNotificationServiceTest extends DhisConvenienceTest
 
     private void setUpEntitiesA()
     {
-        User userA = createUser( 'A' );
+        User userA = makeUser( "A" );
         orgUnitA = createOrganisationUnit( 'A' );
         orgUnitA.addUser( userA );
         userGroupA = createUserGroup( 'A', Sets.newHashSet( userA ) );

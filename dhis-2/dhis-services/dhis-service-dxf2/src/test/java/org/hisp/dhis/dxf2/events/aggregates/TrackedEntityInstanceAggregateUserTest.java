@@ -37,11 +37,10 @@ import org.hisp.dhis.dxf2.TrackerTest;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
-import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
+import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import com.google.common.collect.Sets;
 
@@ -59,10 +58,11 @@ class TrackedEntityInstanceAggregateUserTest extends TrackerTest
     @Override
     protected void mockCurrentUserService()
     {
-        currentUserService = new MockCurrentUserService( null );
-        ReflectionTestUtils.setField( trackedEntityInstanceAggregate, "currentUserService", currentUserService );
-        ReflectionTestUtils.setField( trackedEntityInstanceService, "currentUserService", currentUserService );
-        ReflectionTestUtils.setField( teiService, "currentUserService", currentUserService );
+        User user = createUserWithAuth( "testUser" );
+        user.addOrganisationUnit( organisationUnitA );
+        userService.updateUser( user );
+        makeUserSuper( user );
+        injectSecurityContext( user );
     }
 
     @Test

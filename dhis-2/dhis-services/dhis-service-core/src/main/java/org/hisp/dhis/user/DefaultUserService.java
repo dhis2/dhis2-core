@@ -142,7 +142,8 @@ public class DefaultUserService
     @Transactional
     public long addUser( User user )
     {
-        AuditLogUtil.infoWrapper( log, currentUserService.getCurrentUsername(), user, AuditLogUtil.ACTION_CREATE );
+        String currentUsername = currentUserService.getCurrentUsername();
+        AuditLogUtil.infoWrapper( log, currentUsername, user, AuditLogUtil.ACTION_CREATE );
 
         userStore.save( user );
 
@@ -182,7 +183,6 @@ public class DefaultUserService
     }
 
     @Override
-    @Transactional( readOnly = true )
     public User getUser( String uid )
     {
         return userStore.getByUidNoAcl( uid );
@@ -366,23 +366,6 @@ public class DefaultUserService
         for ( User u : allUsers )
         {
             if ( u.isSuper() && !u.equals( user ) )
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public boolean isLastSuperRole( UserRole userRole )
-    {
-        Collection<UserRole> groups = userRoleStore.getAll();
-
-        for ( UserRole group : groups )
-        {
-            if ( group.isSuper() && group.getId() != userRole.getId() )
             {
                 return false;
             }

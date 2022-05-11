@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dataintegrity;
 
+import static java.lang.String.format;
 import static java.lang.System.currentTimeMillis;
 import static java.util.Collections.unmodifiableCollection;
 import static java.util.Collections.unmodifiableSet;
@@ -57,6 +58,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiFunction;
+import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -517,14 +519,29 @@ public class DefaultDataIntegrityService
         Supplier<List<DataIntegrityIssue>> check )
     {
         String name = type.getName();
-        checksByName.put( name, DataIntegrityCheck.builder()
-            .name( name )
-            .severity( DataIntegritySeverity.WARNING )
-            .section( "Legacy" )
-            .description( name.replace( '_', ' ' ) )
-            .runDetailsCheck( c -> new DataIntegrityDetails( c, new Date(), null, check.get() ) )
-            .runSummaryCheck( c -> new DataIntegritySummary( c, new Date(), null, check.get().size(), null ) )
-            .build() );
+        I18n i18n = i18nManager.getI18n( DataIntegrityService.class );
+        BinaryOperator<String> info = ( property, defaultValue ) -> i18n
+            .getString( format( "data_integrity.%s.%s", name, property ), defaultValue );
+
+        try
+        {
+            checksByName.put( name, DataIntegrityCheck.builder()
+                .name( name )
+                .displayName( info.apply( "name", name.replace( '_', ' ' ) ) )
+                .severity( DataIntegritySeverity.valueOf(
+                    info.apply( "severity", DataIntegritySeverity.WARNING.name() ).toUpperCase() ) )
+                .section( info.apply( "section", "Other" ) )
+                .description( info.apply( "description", null ) )
+                .introduction( info.apply( "introduction", null ) )
+                .recommendation( info.apply( "recommendation", null ) )
+                .runDetailsCheck( c -> new DataIntegrityDetails( c, new Date(), null, check.get() ) )
+                .runSummaryCheck( c -> new DataIntegritySummary( c, new Date(), null, check.get().size(), null ) )
+                .build() );
+        }
+        catch ( Exception ex )
+        {
+            log.error( "Failed to register data integrity check " + type, ex );
+        }
     }
 
     /**
@@ -532,7 +549,6 @@ public class DefaultDataIntegrityService
      * a {@link DataIntegrityCheck} to perform the method as
      * {@link DataIntegrityDetails}.
      */
-    @PostConstruct
     public void initIntegrityChecks()
     {
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.DATA_ELEMENTS_WITHOUT_DATA_SETS,
@@ -805,10 +821,12 @@ public class DefaultDataIntegrityService
     private final AtomicBoolean configurationsAreLoaded = new AtomicBoolean( false );
 
     @Override
-    public Collection<DataIntegrityCheck> getDataIntegrityChecks()
+    public Collection<DataIntegrityCheck> getDataIntegrityChecks( Set<String> checks )
     {
         ensureConfigurationsAreLoaded();
-        return unmodifiableCollection( checksByName.values() );
+        return checks.isEmpty()
+            ? unmodifiableCollection( checksByName.values() )
+            : expandChecks( checks ).stream().map( checksByName::get ).collect( toList() );
     }
 
     @Override
@@ -937,8 +955,14 @@ public class DefaultDataIntegrityService
     {
         if ( configurationsAreLoaded.compareAndSet( false, true ) )
         {
+            // programmatic checks
+            initIntegrityChecks();
+
+            // YAML based checks
+            I18n i18n = i18nManager.getI18n( DataIntegrityService.class );
             readDataIntegrityYaml( "data-integrity-checks.yaml",
                 check -> checksByName.put( check.getName(), check ),
+                ( property, defaultValue ) -> i18n.getString( format( "data_integrity.%s", property ), defaultValue ),
                 sql -> check -> dataIntegrityStore.querySummary( check, sql ),
                 sql -> check -> dataIntegrityStore.queryDetails( check, sql ) );
         }

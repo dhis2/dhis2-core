@@ -162,24 +162,6 @@ public class DefaultDataSetService
 
     @Override
     @Transactional( readOnly = true )
-    public List<DataSet> getAllDataRead()
-    {
-        User user = currentUserService.getCurrentUser();
-
-        return getUserDataRead( user );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<DataSet> getAllDataWrite()
-    {
-        User user = currentUserService.getCurrentUser();
-
-        return getUserDataWrite( user );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
     public List<DataSet> getUserDataWrite( User user )
     {
         if ( user == null )
@@ -401,9 +383,10 @@ public class DefaultDataSetService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public SetValuedMap<String, String> getDataSetOrganisationUnitsAssociations()
     {
-        Set<String> uids = getAllDataWrite().stream()
+        Set<String> uids = getUserDataWrite( currentUserService.getCurrentUser() ).stream()
             .map( DataSet::getUid )
             .collect( Collectors.toSet() );
 

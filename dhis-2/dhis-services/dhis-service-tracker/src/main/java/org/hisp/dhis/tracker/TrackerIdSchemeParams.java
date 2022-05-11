@@ -127,6 +127,19 @@ public class TrackerIdSchemeParams
     }
 
     /**
+     * Creates metadata identifier for given {@code metadata} using
+     * {@link #idScheme}. For more details refer to
+     * {@link TrackerIdSchemeParam#toMetadataIdentifier(IdentifiableObject)}
+     *
+     * @param metadata to create metadata identifier for
+     * @return metadata identifier representing metadata using the idScheme
+     */
+    public MetadataIdentifier toMetadataIdentifier( IdentifiableObject metadata )
+    {
+        return idScheme.toMetadataIdentifier( metadata );
+    }
+
+    /**
      * Creates metadata identifier for given {@code categoryOptionCombo} using
      * {@link #categoryOptionComboIdScheme}. For more details refer to
      * {@link TrackerIdSchemeParam#toMetadataIdentifier(IdentifiableObject)}

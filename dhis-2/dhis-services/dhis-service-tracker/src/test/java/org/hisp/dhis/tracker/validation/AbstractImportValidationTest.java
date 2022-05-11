@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.validation;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
@@ -36,6 +37,7 @@ import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -75,9 +77,16 @@ public abstract class AbstractImportValidationTest extends TrackerTest
     protected TrackerImportParams createBundleFromJson( String jsonFile )
         throws IOException
     {
-        TrackerImportParams params = _fromJson( jsonFile );
+        return createBundleFromJson( jsonFile, userService.getUser( ADMIN_USER_UID ) );
+    }
 
-        User user = userService.getUser( ADMIN_USER_UID );
+    protected TrackerImportParams createBundleFromJson( String jsonFile, User user )
+        throws IOException
+    {
+        InputStream inputStream = new ClassPathResource( jsonFile ).getInputStream();
+
+        TrackerImportParams params = renderService.fromJson( inputStream, TrackerImportParams.class );
+
         params.setUser( user );
 
         return params;

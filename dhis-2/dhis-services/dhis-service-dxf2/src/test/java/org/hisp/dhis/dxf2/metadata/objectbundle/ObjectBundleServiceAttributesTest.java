@@ -256,7 +256,7 @@ class ObjectBundleServiceAttributesTest extends IntegrationTestBase
             manager.clear();
             return null;
         } );
-        User user = createUser( 'A' );
+        User user = makeUser( "A" );
         manager.save( user );
     }
 }

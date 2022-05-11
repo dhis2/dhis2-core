@@ -84,7 +84,7 @@ public class DataElementGroupController
         throws Exception
     {
         WebOptions options = new WebOptions( parameters );
-        setUserContext( translateParams );
+        setTranslationParams( translateParams );
         List<DataElementGroup> dataElementGroups = getEntity( uid, NO_WEB_OPTIONS );
 
         if ( dataElementGroups.isEmpty() )
@@ -123,7 +123,7 @@ public class DataElementGroupController
         throws Exception
     {
         WebOptions options = new WebOptions( parameters );
-        setUserContext( translateParams );
+        setTranslationParams( translateParams );
         List<DataElementGroup> dataElementGroups = getEntity( uid, NO_WEB_OPTIONS );
 
         if ( dataElementGroups.isEmpty() )

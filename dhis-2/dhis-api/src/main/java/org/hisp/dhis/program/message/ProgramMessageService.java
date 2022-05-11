@@ -33,7 +33,6 @@ import java.util.Set;
 
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.outboundmessage.BatchResponseStatus;
-import org.hisp.dhis.user.User;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
@@ -51,7 +50,7 @@ public interface ProgramMessageService
      */
     boolean exists( String uid );
 
-    void hasAccess( ProgramMessageQueryParams params, User user );
+    void currentUserHasAccess( ProgramMessageQueryParams params );
 
     void validateQueryParameters( ProgramMessageQueryParams params );
 

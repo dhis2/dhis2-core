@@ -38,12 +38,10 @@ import java.util.Collections;
 import java.util.List;
 
 import org.hisp.dhis.IntegrationTestBase;
-import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.util.ReflectionTestUtils;
 
 class DeduplicationServiceIntegrationTest extends IntegrationTestBase
 {
@@ -69,10 +67,8 @@ class DeduplicationServiceIntegrationTest extends IntegrationTestBase
     public void setUpTest()
     {
         super.userService = this.userService;
-        User user = createUser( "testUser" );
-        MockCurrentUserService currentUserService = new MockCurrentUserService( user );
-        ReflectionTestUtils.setField( potentialDuplicateStore, "currentUserService", currentUserService );
-        ReflectionTestUtils.setField( deduplicationService, "currentUserService", currentUserService );
+        User user = createUserWithAuth( "testUser" );
+        injectSecurityContext( user );
     }
 
     @Test

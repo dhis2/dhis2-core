@@ -123,7 +123,7 @@ class JsonPatchManagerTest extends IntegrationTestBase
         throws JsonProcessingException,
         JsonPatchException
     {
-        User userA = createUser( 'A' );
+        User userA = makeUser( "A" );
         manager.save( userA );
         DataElement dataElementA = createDataElement( 'A' );
         manager.save( dataElementA );
@@ -150,7 +150,7 @@ class JsonPatchManagerTest extends IntegrationTestBase
         throws JsonProcessingException,
         JsonPatchException
     {
-        User userA = createUser( 'A' );
+        User userA = makeUser( "A" );
         manager.save( userA );
         DataElement dataElementA = createDataElement( 'A' );
         manager.save( dataElementA );

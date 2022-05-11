@@ -36,6 +36,10 @@ import java.util.List;
 import java.util.Optional;
 
 import org.hisp.dhis.TransactionalIntegrationTest;
+import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.attribute.AttributeService;
+import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.RelationshipUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -83,6 +87,9 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
 
     @Autowired
     private ProgramStageService programStageService;
+
+    @Autowired
+    private AttributeService attributeService;
 
     private TrackedEntityInstance trackedEntityInstanceA;
 
@@ -183,6 +190,22 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
         assertTrue( existing.isPresent() );
     }
 
+    @Test
+    void testAddRelationshipTypeWithAttribute()
+    {
+        Attribute attribute = createAttribute( 'A' );
+        attribute.setRelationshipTypeAttribute( true );
+        attribute.setValueType( ValueType.TEXT );
+        attributeService.addAttribute( attribute );
+
+        relationshipType = createRelationshipType( 'A' );
+        relationshipType.getAttributeValues().add( new AttributeValue( attribute, "test" ) );
+        relationshipTypeService.addRelationshipType( relationshipType );
+
+        RelationshipType saved = relationshipTypeService.getRelationshipType( relationshipType.getId() );
+        assertEquals( "test", saved.getAttributeValue( attribute ).getValue() );
+    }
+
     private Relationship addTeiToTeiRelationship()
     {
         trackedEntityInstanceA = createTrackedEntityInstance( organisationUnit );
@@ -203,7 +226,6 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
         teiRelationship.setTo( relationshipItemTo );
         teiRelationship.setKey( RelationshipUtils.generateRelationshipKey( teiRelationship ) );
         teiRelationship.setInvertedKey( RelationshipUtils.generateRelationshipInvertedKey( teiRelationship ) );
-
         relationshipService.addRelationship( teiRelationship );
         return teiRelationship;
     }

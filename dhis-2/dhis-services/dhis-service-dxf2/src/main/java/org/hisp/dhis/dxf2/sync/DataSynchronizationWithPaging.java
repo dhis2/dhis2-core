@@ -62,5 +62,4 @@ public interface DataSynchronizationWithPaging
     }
 
     SynchronizationResult synchronizeData( final int pageSize, JobProgress progress );
-
 }

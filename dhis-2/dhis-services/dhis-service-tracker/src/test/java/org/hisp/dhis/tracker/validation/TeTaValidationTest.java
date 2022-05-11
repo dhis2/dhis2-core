@@ -54,7 +54,9 @@ import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
+import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -140,6 +142,12 @@ class TeTaValidationTest extends AbstractImportValidationTest
         TrackerImportParams trackerImportParams = createBundleFromJson(
             "tracker/validations/te-program_with_tea_fileresource_data.json" );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
+
+        List<TrackerErrorReport> errors = trackerImportReport.getValidationReport().getErrors();
+        errors.forEach( error -> {
+            error.getMessage();
+        } );
+
         assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
         assertThat( trackerImportReport.getValidationReport().getErrors(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1084 ) ) ) );
@@ -164,6 +172,9 @@ class TeTaValidationTest extends AbstractImportValidationTest
     void testEncryptedAttrFail()
         throws IOException
     {
+        List<User> allUsers = userService.getAllUsers();
+        User currentUser = currentUserService.getCurrentUser();
+
         setUpMetadata( "tracker/validations/te-program_with_tea_encryption_metadata.json" );
         TrackerImportParams trackerImportParams = createBundleFromJson(
             "tracker/validations/te-program_with_tea_encryption_data.json" );

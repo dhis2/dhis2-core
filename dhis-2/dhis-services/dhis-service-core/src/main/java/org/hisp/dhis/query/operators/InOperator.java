@@ -109,10 +109,7 @@ public class InOperator<T extends Comparable<? super T>> extends Operator<T>
         }
         else
         {
-            if ( compareCollection( value, items ) )
-            {
-                return true;
-            }
+            return compareCollection( value, items );
         }
 
         return false;
@@ -140,42 +137,42 @@ public class InOperator<T extends Comparable<? super T>> extends Operator<T>
             String s1 = getValue( String.class, lside );
             String s2 = (String) rside;
 
-            return s1 != null && s2.equals( s1 );
+            return s2.equals( s1 );
         }
-        else if ( type.isBoolean() )
+        if ( type.isBoolean() )
         {
             Boolean s1 = getValue( Boolean.class, lside );
             Boolean s2 = (Boolean) rside;
 
-            return s1 != null && s2.equals( s1 );
+            return s2.equals( s1 );
         }
-        else if ( type.isInteger() )
+        if ( type.isInteger() )
         {
             Integer s1 = getValue( Integer.class, lside );
             Integer s2 = (Integer) rside;
 
-            return s1 != null && s2.equals( s1 );
+            return s2.equals( s1 );
         }
-        else if ( type.isFloat() )
+        if ( type.isFloat() )
         {
             Float s1 = getValue( Float.class, lside );
             Float s2 = (Float) rside;
 
-            return s1 != null && s2.equals( s1 );
+            return s2.equals( s1 );
         }
-        else if ( type.isDate() )
+        if ( type.isDate() )
         {
             Date s1 = getValue( Date.class, lside );
             Date s2 = (Date) rside;
 
-            return s1 != null && s2.equals( s1 );
+            return s2.equals( s1 );
         }
-        else if ( type.isEnum() )
+        if ( type.isEnum() )
         {
             String s1 = String.valueOf( lside );
             String s2 = String.valueOf( rside );
 
-            return s1 != null && s2.equals( s1 );
+            return s2.equals( s1 );
         }
 
         return false;

@@ -121,7 +121,7 @@ class PreCheckUpdatableFieldsValidationHookTest
     {
         // given
         TrackedEntity trackedEntity = validTei();
-        trackedEntity.setTrackedEntityType( "NewTrackedEntityTypeId" );
+        trackedEntity.setTrackedEntityType( MetadataIdentifier.ofUid( "NewTrackedEntityTypeId" ) );
 
         // when
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
@@ -226,7 +226,7 @@ class PreCheckUpdatableFieldsValidationHookTest
     {
         return TrackedEntity.builder()
             .trackedEntity( TRACKED_ENTITY_ID )
-            .trackedEntityType( TRACKED_ENTITY_TYPE_ID )
+            .trackedEntityType( MetadataIdentifier.ofUid( TRACKED_ENTITY_TYPE_ID ) )
             .build();
     }
 

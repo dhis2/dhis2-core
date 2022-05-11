@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -59,6 +60,46 @@ class DataIntegrityChecksControllerTest extends AbstractDataIntegrityControllerT
         {
             assertCheckExists( type.getName(), checks );
         }
+    }
+
+    @Test
+    void testGetAvailableChecks_FilterUsingChecksPatterns()
+    {
+        JsonList<JsonDataIntegrityCheck> checks = GET( "/dataIntegrity?checks=program*" ).content()
+            .asList( JsonDataIntegrityCheck.class );
+        assertTrue( checks.size() > 0, "there should be matches" );
+        checks.forEach( check -> assertTrue( check.getSection().startsWith( "Program" ) ) );
+    }
+
+    @Test
+    void testGetAvailableChecks_FilterUsingSection()
+    {
+        JsonList<JsonDataIntegrityCheck> checks = GET( "/dataIntegrity?section=Program Rules" ).content()
+            .asList( JsonDataIntegrityCheck.class );
+        assertTrue( checks.size() > 0, "there should be matches" );
+        checks.forEach( check -> assertEquals( "Program Rules", check.getSection() ) );
+    }
+
+    /**
+     * The point of this test is to check if the known i18n texts provided are
+     * resolved and assigned to the correct field
+     */
+    @Test
+    void testGetAvailableChecks_i18n()
+    {
+        JsonList<JsonDataIntegrityCheck> checks = GET(
+            "/dataIntegrity?checks=program_rule_variables_without_attribute" ).content()
+                .asList( JsonDataIntegrityCheck.class );
+        assertEquals( 1, checks.size() );
+        JsonDataIntegrityCheck check = checks.get( 0 );
+        assertEquals( "program_rule_variables_without_attribute", check.getName() );
+        assertEquals( "Program rule variables lacking an attribute", check.getDisplayName() );
+        assertEquals( "Program Rules", check.getSection() );
+        assertEquals(
+            "Lists all programs with rule variables requiring an attribute source but that is not yet linked to an attribute",
+            check.getDescription() );
+        assertEquals( "Assign an attribute to the variable in question or consider if the variable is not needed",
+            check.getRecommendation() );
     }
 
     private void assertCheckExists( String name, JsonList<JsonDataIntegrityCheck> checks )

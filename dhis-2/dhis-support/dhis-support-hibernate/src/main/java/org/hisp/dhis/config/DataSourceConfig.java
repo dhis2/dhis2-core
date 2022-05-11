@@ -28,7 +28,6 @@
 package org.hisp.dhis.config;
 
 import java.beans.PropertyVetoException;
-import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -198,10 +197,36 @@ public class DataSourceConfig
 
     private static void executeAfterMethod( MethodExecutionContext executionContext )
     {
-        Method method = executionContext.getMethod();
-        Class<?> targetClass = executionContext.getTarget().getClass();
+        Thread thread = Thread.currentThread();
+        StackTraceElement[] stackTrace = thread.getStackTrace();
 
-        log.info( "JDBC: " + targetClass.getSimpleName() + "#" + method.getName() );
+        for ( int i = 0; i < stackTrace.length; i++ )
+        {
+            StackTraceElement stackTraceElement = stackTrace[i];
+            String methodName = stackTraceElement.getMethodName();
+            String className = stackTraceElement.getClassName();
+            int pos = className.lastIndexOf( '.' );
+            String packageName = className.substring( 0, pos );
+
+            if ( className.contains( "org.hisp.dhis.cacheinvalidation.KnownTransactionsService" ) || methodName.equals(
+                "getSingleResult" ) || methodName.equals( "doFilterInternal" ) )
+            {
+                break;
+            }
+
+            if ( packageName.startsWith( "org.hisp.dhis" ) && !methodName.equals( "executeAfterMethod" ) )
+            {
+                StackTraceElement nextElement = stackTrace[i - 1];
+                String methodName1 = nextElement.getMethodName();
+                String className1 = nextElement.getClassName();
+
+                log.info(
+                    "---- JDBC: " + className + "#" + methodName + " ---- \n ----" + className1 + "#" + methodName1 );
+                break;
+            }
+
+        }
+
     }
 
     private static class PrettyQueryEntryCreator extends DefaultQueryLogEntryCreator

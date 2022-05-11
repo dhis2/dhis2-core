@@ -38,17 +38,16 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1113;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1114;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4015;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4016;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4017;
 
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.springframework.stereotype.Component;
 
@@ -135,27 +134,52 @@ public class PreCheckExistenceValidationHook
     @Override
     public void validateRelationship( ValidationErrorReporter reporter, Relationship relationship )
     {
-        TrackerBundle bundle = reporter.getBundle();
-        TrackerPreheat preheat = bundle.getPreheat();
-        org.hisp.dhis.relationship.Relationship existingRelationship = preheat.getRelationship(
-            relationship );
-        TrackerImportStrategy importStrategy = bundle.getStrategy( relationship );
 
-        if ( existingRelationship != null && importStrategy.isUpdate() )
-        {
-            reporter.addWarning( relationship, E4015,
-                relationship.getRelationship() );
-            return;
-        }
+        org.hisp.dhis.relationship.Relationship existingRelationship = reporter.getBundle()
+            .getRelationship( relationship.getRelationship() );
+        TrackerImportStrategy importStrategy = reporter.getBundle().getStrategy( relationship );
 
-        if ( existingRelationship != null && importStrategy.isCreate() )
-        {
-            reporter.addError( relationship, E4015, relationship.getUid() );
-        }
-        else if ( existingRelationship == null && importStrategy.isUpdateOrDelete() )
-        {
-            reporter.addError( relationship, E4016, relationship.getUid() );
-        }
+        validateRelationshipNotDeleted( reporter, existingRelationship, relationship );
+        validateRelationshipNotUpdated( reporter, existingRelationship, relationship, importStrategy );
+        validateNewRelationshipNotExistAlready( reporter, existingRelationship, relationship, importStrategy );
+        validateUpdatedOrDeletedRelationshipExists( reporter, existingRelationship, relationship, importStrategy );
+    }
+
+    private void validateRelationshipNotDeleted( ValidationErrorReporter reporter,
+        org.hisp.dhis.relationship.Relationship existingRelationship,
+        Relationship relationship )
+    {
+        reporter.addErrorIf( () -> existingRelationship != null && existingRelationship.isDeleted(), relationship,
+            E4017, relationship.getRelationship() );
+    }
+
+    private void validateRelationshipNotUpdated( ValidationErrorReporter reporter,
+        org.hisp.dhis.relationship.Relationship existingRelationship,
+        Relationship relationship,
+        TrackerImportStrategy importStrategy )
+    {
+        reporter.addWarningIf(
+            () -> existingRelationship != null && !existingRelationship.isDeleted() && importStrategy.isUpdate(),
+            relationship, E4015, relationship.getRelationship() );
+    }
+
+    private void validateNewRelationshipNotExistAlready( ValidationErrorReporter reporter,
+        org.hisp.dhis.relationship.Relationship existingRelationship,
+        Relationship relationship,
+        TrackerImportStrategy importStrategy )
+    {
+        reporter.addErrorIf(
+            () -> existingRelationship != null && !existingRelationship.isDeleted() && importStrategy.isCreate(),
+            relationship, E4015, relationship.getRelationship() );
+    }
+
+    private void validateUpdatedOrDeletedRelationshipExists( ValidationErrorReporter reporter,
+        org.hisp.dhis.relationship.Relationship existingRelationship,
+        Relationship relationship,
+        TrackerImportStrategy importStrategy )
+    {
+        reporter.addErrorIf( () -> existingRelationship == null && importStrategy.isUpdateOrDelete(), relationship,
+            E4016, relationship.getRelationship() );
     }
 
     @Override

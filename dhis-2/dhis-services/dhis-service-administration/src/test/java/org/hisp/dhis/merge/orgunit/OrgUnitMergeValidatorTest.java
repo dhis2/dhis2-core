@@ -27,27 +27,34 @@
  */
 package org.hisp.dhis.merge.orgunit;
 
-import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Lars Helge Overland
  */
-class OrgUnitMergeValidatorTest
+class OrgUnitMergeValidatorTest extends DhisSpringTest
 {
 
+    @Autowired
+    private OrganisationUnitService organisationUnitService;
+
+    @Autowired
     private OrgUnitMergeValidator validator;
 
     @BeforeEach
     void before()
     {
-        validator = new OrgUnitMergeValidator();
+        // validator = new OrgUnitMergeValidator();
     }
 
     @Test
@@ -84,9 +91,13 @@ class OrgUnitMergeValidatorTest
         OrganisationUnit ouA = createOrganisationUnit( 'A' );
         OrganisationUnit ouB = createOrganisationUnit( 'B' );
         OrganisationUnit ouC = createOrganisationUnit( 'C', ouA );
+        organisationUnitService.addOrganisationUnit( ouA );
+        organisationUnitService.addOrganisationUnit( ouB );
+        organisationUnitService.addOrganisationUnit( ouC );
         OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder().addSource( ouA ).addSource( ouB )
             .withTarget( ouC ).build();
-        assertEquals( ErrorCode.E1504, validator.validateForErrorMessage( request ).getErrorCode() );
+        ErrorMessage errorMessage = validator.validateForErrorMessage( request );
+        assertEquals( ErrorCode.E1504, errorMessage.getErrorCode() );
     }
 
     @Test
@@ -95,6 +106,9 @@ class OrgUnitMergeValidatorTest
         OrganisationUnit ouA = createOrganisationUnit( 'A' );
         OrganisationUnit ouB = createOrganisationUnit( 'B' );
         OrganisationUnit ouC = createOrganisationUnit( 'C' );
+        organisationUnitService.addOrganisationUnit( ouA );
+        organisationUnitService.addOrganisationUnit( ouB );
+        organisationUnitService.addOrganisationUnit( ouC );
         OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder().addSource( ouA ).addSource( ouB )
             .withTarget( ouC ).build();
         assertNull( validator.validateForErrorMessage( request ) );
