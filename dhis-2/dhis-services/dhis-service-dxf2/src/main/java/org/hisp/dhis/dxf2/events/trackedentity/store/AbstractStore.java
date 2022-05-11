@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.dxf2.events.aggregates.AggregateContext;
+import org.hisp.dhis.dxf2.events.event.EventSearchParams;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.AbstractMapper;
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.RelationshipRowCallbackHandler;
@@ -100,27 +101,34 @@ public abstract class AbstractStore
         return parameters;
     }
 
-    public Multimap<String, Relationship> getRelationships( List<Long> ids )
+    public Multimap<String, Relationship> getRelationships( List<Long> ids, AggregateContext ctx )
     {
         List<List<Long>> partitionedIds = Lists.partition( ids, PARITITION_SIZE );
 
         Multimap<String, Relationship> relationshipMultimap = ArrayListMultimap.create();
 
-        partitionedIds.forEach( partition -> relationshipMultimap.putAll( getRelationshipsPartitioned( partition ) ) );
+        partitionedIds
+            .forEach( partition -> relationshipMultimap.putAll( getRelationshipsPartitioned( partition, ctx ) ) );
 
         return relationshipMultimap;
     }
 
-    private Multimap<String, Relationship> getRelationshipsPartitioned( List<Long> ids )
+    private Multimap<String, Relationship> getRelationshipsPartitioned( List<Long> ids, AggregateContext ctx )
     {
-        String getRelationshipsHavingIdSQL = String.format( GET_RELATIONSHIP_ID_BY_ENTITY_ID_SQL,
-            getRelationshipEntityColumn(), getRelationshipEntityColumn() );
+        StringBuilder getRelationshipsHavingIdSQL = new StringBuilder(
+            String.format( GET_RELATIONSHIP_ID_BY_ENTITY_ID_SQL, getRelationshipEntityColumn(),
+                getRelationshipEntityColumn() ) );
 
+        if ( !ctx.getParams().isIncludeDeleted() )
+        {
+            getRelationshipsHavingIdSQL.append( " AND r.deleted is false" );
+        }
         // Get all the relationship ids that have at least one relationship item
         // having
         // the ids in the tei|pi|psi column (depending on the subclass)
 
-        List<Long> relationshipIds = getRelationshipIds( getRelationshipsHavingIdSQL, createIdsParam( ids ) );
+        List<Long> relationshipIds = getRelationshipIds( getRelationshipsHavingIdSQL.toString(),
+            createIdsParam( ids ) );
 
         if ( !relationshipIds.isEmpty() )
         {
@@ -131,24 +139,30 @@ public abstract class AbstractStore
         return ArrayListMultimap.create();
     }
 
-    public Multimap<String, Relationship> getRelationshipsByIds( List<Long> ids )
+    public Multimap<String, Relationship> getRelationshipsByIds( List<Long> ids, EventSearchParams params )
     {
         List<List<Long>> partitionedIds = Lists.partition( ids, PARITITION_SIZE );
 
         Multimap<String, Relationship> relationshipMultimap = ArrayListMultimap.create();
 
         partitionedIds
-            .forEach( partition -> relationshipMultimap.putAll( getRelationshipsByIdsPartitioned( partition ) ) );
+            .forEach(
+                partition -> relationshipMultimap.putAll( getRelationshipsByIdsPartitioned( partition, params ) ) );
 
         return relationshipMultimap;
     }
 
-    private Multimap<String, Relationship> getRelationshipsByIdsPartitioned( List<Long> ids )
+    private Multimap<String, Relationship> getRelationshipsByIdsPartitioned( List<Long> ids, EventSearchParams params )
     {
         if ( !ids.isEmpty() )
         {
             RelationshipRowCallbackHandler handler = new RelationshipRowCallbackHandler();
-            jdbcTemplate.query( GET_RELATIONSHIP_BY_RELATIONSHIP_ID, createIdsParam( ids ), handler );
+            StringBuilder query = new StringBuilder( GET_RELATIONSHIP_BY_RELATIONSHIP_ID );
+            if ( !params.isIncludeDeleted() )
+            {
+                query.append( " AND r.deleted is false" );
+            }
+            jdbcTemplate.query( query.toString(), createIdsParam( ids ), handler );
             return handler.getItems();
         }
         return ArrayListMultimap.create();
