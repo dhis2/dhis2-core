@@ -206,8 +206,7 @@ public class AnalyticsController
     {
         final DataQueryRequest request = DataQueryRequest.newBuilder()
             .fromCriteria( criteria )
-            .apiVersion( apiVersion )
-            .allowAllPeriods( true ).build();
+            .apiVersion( apiVersion ).build();
 
         DataQueryParams params = dataQueryService.getFromRequest( request );
 
@@ -226,8 +225,7 @@ public class AnalyticsController
     {
         final DataQueryRequest request = DataQueryRequest.newBuilder()
             .fromCriteria( criteria )
-            .apiVersion( apiVersion )
-            .allowAllPeriods( true ).build();
+            .apiVersion( apiVersion ).build();
 
         DataQueryParams params = dataQueryService.getFromRequest( request );
 
@@ -271,8 +269,8 @@ public class AnalyticsController
         return analyticsService.getAggregatedDataValueSet( params );
     }
 
-    @GetMapping( value = RESOURCE_PATH + "/tableTypes",
-        produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
+    @GetMapping( value = RESOURCE_PATH + "/tableTypes", produces = { APPLICATION_JSON_VALUE,
+        "application/javascript" } )
     public @ResponseBody AnalyticsTableType[] getTableTypes()
     {
         return AnalyticsTableType.values();
