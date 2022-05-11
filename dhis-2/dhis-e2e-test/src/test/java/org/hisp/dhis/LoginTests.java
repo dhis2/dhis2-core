@@ -38,7 +38,6 @@ import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.ResponseValidationHelper;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import com.google.gson.JsonArray;
@@ -47,7 +46,6 @@ import com.google.gson.JsonObject;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-@Disabled( "Disabled temporary due to issues with DHIS2-12098" )
 public class LoginTests
     extends ApiTest
 {
