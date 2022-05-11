@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.expression.dataitem;
 
+import static org.hisp.dhis.common.ValueType.NUMBER;
+import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 import static org.hisp.dhis.parser.expression.ParserUtils.DOUBLE_VALUE_IF_NULL;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
@@ -62,7 +64,7 @@ public abstract class DimensionalItem
 
         visitor.getItemDescriptions().put( ctx.getText(), item.getDisplayName() );
 
-        return ValidationUtils.getNullReplacementValue( getItemValueType( item ) );
+        return ValidationUtils.getNullReplacementValue( getItemValueType( item, visitor ) );
     }
 
     @Override
@@ -84,7 +86,7 @@ public abstract class DimensionalItem
             ? visitor.getParams().getValueMap().get( item )
             : null;
 
-        return visitor.getState().handleNulls( value, getItemValueType( item ) );
+        return visitor.getState().handleNulls( value, getItemValueType( item, visitor ) );
     }
 
     /**
@@ -103,11 +105,21 @@ public abstract class DimensionalItem
 
     /**
      * Returns the value type of this item.
+     * <p>
+     * If within an indicator and not a subexpression, always returns number. If
+     * in an indicator subexpression or anywhere else (such as validation rule
+     * or predictor), returns the item's data type if it has one (defaulting to
+     * number).
      */
-    private ValueType getItemValueType( DimensionalItemObject item )
+    private ValueType getItemValueType( DimensionalItemObject item, CommonExpressionVisitor visitor )
     {
-        return (item instanceof ValueTypedDimensionalItemObject)
-            ? ((ValueTypedDimensionalItemObject) item).getValueType()
-            : ValueType.NUMBER;
+        if ( item instanceof ValueTypedDimensionalItemObject &&
+            (visitor.getParams().getParseType() != INDICATOR_EXPRESSION
+                || visitor.getState().isInSubexpression()) )
+        {
+            return ((ValueTypedDimensionalItemObject) item).getValueType();
+        }
+
+        return NUMBER;
     }
 }
