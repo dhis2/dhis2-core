@@ -75,6 +75,7 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.Assert;
@@ -336,7 +337,7 @@ public abstract class AbstractJdbcTableManager
 
     /**
      * Executes a SQL statement. Ignores existing tables/indexes when attempting
-     * to create new.
+     * to create new but log as an error.
      *
      * @param sql the SQL statement.
      */
@@ -346,9 +347,9 @@ public abstract class AbstractJdbcTableManager
         {
             jdbcTemplate.execute( sql );
         }
-        catch ( BadSqlGrammarException ex )
+        catch ( DataAccessException ex )
         {
-            log.debug( ex.getMessage() );
+            log.error( ex.getMessage() );
         }
     }
 
