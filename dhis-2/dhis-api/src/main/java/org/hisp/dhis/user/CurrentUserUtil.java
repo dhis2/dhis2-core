@@ -34,6 +34,9 @@ import java.util.Map;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.hisp.dhis.category.CategoryOptionGroupSet;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -173,20 +176,81 @@ public class CurrentUserUtil
     public static void initializeUser( User user )
     {
         initializeAndUnproxy( user );
+        initializeAndUnproxy( user.getPreviousPasswords() );
+        initializeAndUnproxy( user.getApps() );
         initializeAndUnproxy( user.getOrganisationUnits() );
+        for ( OrganisationUnit unit : user.getOrganisationUnits() )
+        {
+            initializeAndUnproxy( unit.getChildren() );
+        }
+
         initializeAndUnproxy( user.getUserRoles() );
         for ( UserRole userRole : user.getUserRoles() )
         {
             initializeAndUnproxy( userRole );
             initializeAndUnproxy( userRole.getAuthorities() );
+            initializeAndUnproxy( userRole.getMembers() );
+            initializeAndUnproxy( userRole.getUserAccesses() );
+            initializeAndUnproxy( userRole.getAttributeValues() );
         }
+
         initializeAndUnproxy( user.getGroups() );
+        for ( UserGroup group : user.getGroups() )
+        {
+            initializeAndUnproxy( group.getManagedByGroups() );
+            initializeAndUnproxy( group.getManagedGroups() );
+            initializeAndUnproxy( group.getMembers() );
+            initializeAndUnproxy( group.getAttributeValues() );
+            initializeAndUnproxy( group.getTranslations() );
+            initializeAndUnproxy( group.getUserAccesses() );
+            initializeAndUnproxy( group.getUserGroupAccesses() );
+        }
         initializeAndUnproxy( user.getTeiSearchOrganisationUnits() );
+        for ( OrganisationUnit unit : user.getTeiSearchOrganisationUnits() )
+        {
+            initializeAndUnproxy( unit.getChildren() );
+        }
+
         initializeAndUnproxy( user.getDataViewOrganisationUnits() );
+        for ( OrganisationUnit unit : user.getDataViewOrganisationUnits() )
+        {
+            initializeAndUnproxy( unit.getChildren() );
+        }
+
         initializeAndUnproxy( user.getCogsDimensionConstraints() );
+        for ( CategoryOptionGroupSet groupSet : user.getCogsDimensionConstraints() )
+        {
+            initializeAndUnproxy( groupSet.getMembers() );
+            initializeAndUnproxy( groupSet.getItems() );
+            initializeAndUnproxy( groupSet.getFilterItemsAsList() );
+            initializeAndUnproxy( groupSet.getAttributeValues() );
+            initializeAndUnproxy( groupSet.getFavorites() );
+            initializeAndUnproxy( groupSet.getUserAccesses() );
+            initializeAndUnproxy( groupSet.getUserGroupAccesses() );
+            initializeAndUnproxy( groupSet.getTranslations() );
+
+        }
+
         initializeAndUnproxy( user.getDimensionConstraints() );
+        for ( DimensionalObject dimension : user.getDimensionConstraints() )
+        {
+            initializeAndUnproxy( dimension.getItems() );
+            initializeAndUnproxy( dimension.getAttributeValues() );
+            initializeAndUnproxy( dimension.getFavorites() );
+            initializeAndUnproxy( dimension.getUserAccesses() );
+            initializeAndUnproxy( dimension.getUserGroupAccesses() );
+            initializeAndUnproxy( dimension.getTranslations() );
+        }
+
         initializeAndUnproxy( user.getCatDimensionConstraints() );
-        initializeAndUnproxy( user.getPreviousPasswords() );
-        initializeAndUnproxy( user.getApps() );
+        for ( DimensionalObject dimension : user.getCatDimensionConstraints() )
+        {
+            initializeAndUnproxy( dimension.getItems() );
+            initializeAndUnproxy( dimension.getAttributeValues() );
+            initializeAndUnproxy( dimension.getFavorites() );
+            initializeAndUnproxy( dimension.getUserAccesses() );
+            initializeAndUnproxy( dimension.getUserGroupAccesses() );
+            initializeAndUnproxy( dimension.getTranslations() );
+        }
     }
 }
