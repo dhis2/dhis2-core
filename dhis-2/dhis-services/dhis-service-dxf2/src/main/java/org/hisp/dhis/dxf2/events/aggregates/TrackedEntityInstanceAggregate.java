@@ -163,7 +163,7 @@ public class TrackedEntityInstanceAggregate
          * (only if isIncludeRelationships = true)
          */
         final CompletableFuture<Multimap<String, Relationship>> relationshipsAsync = conditionalAsyncFetch(
-            ctx.getParams().isIncludeRelationships(), () -> trackedEntityInstanceStore.getRelationships( ids ),
+            ctx.getParams().isIncludeRelationships(), () -> trackedEntityInstanceStore.getRelationships( ids, ctx ),
             getPool() );
 
         /*

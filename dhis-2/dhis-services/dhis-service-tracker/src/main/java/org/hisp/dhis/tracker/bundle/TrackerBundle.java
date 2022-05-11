@@ -181,10 +181,6 @@ public class TrackerBundle
     @Builder.Default
     private Map<TrackerType, Map<String, TrackerImportStrategy>> resolvedStrategyMap = initStrategyMap();
 
-    private TrackerBundle()
-    {
-    }
-
     private static Map<TrackerType, Map<String, TrackerImportStrategy>> initStrategyMap()
     {
         Map<TrackerType, Map<String, TrackerImportStrategy>> resolvedStrategyMap = new EnumMap<>( TrackerType.class );
