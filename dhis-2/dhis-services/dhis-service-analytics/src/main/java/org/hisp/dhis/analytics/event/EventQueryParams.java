@@ -1104,6 +1104,10 @@ public class EventQueryParams
                 }
             }
         }
+        else if ( containsScheduledDatePeriod() )
+        {
+            return Set.of( SCHEDULE );
+        }
 
         return DEFAULT_EVENT_STATUS;
     }

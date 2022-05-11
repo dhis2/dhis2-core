@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.query;
 
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
@@ -39,6 +41,7 @@ import org.hisp.dhis.query.planner.QueryPath;
  */
 @Getter
 @Accessors( chain = true )
+@RequiredArgsConstructor( access = AccessLevel.PRIVATE )
 public final class Restriction implements Criterion
 {
     /**
@@ -53,15 +56,25 @@ public final class Restriction implements Criterion
     private final Operator<?> operator;
 
     /**
-     * Query Path.
+     * Indicates that the {@link #path} is a attribute UID. This also means the
+     * {@link Restriction} is an in-memory filter.
+     */
+    private final boolean attribute;
+
+    /**
+     * Query Path used in persistent part of a query.
      */
     @Setter
     private QueryPath queryPath;
 
-    public Restriction( String path, Operator operator )
+    public Restriction( String path, Operator<?> operator )
     {
-        this.path = path;
-        this.operator = operator;
+        this( path, operator, false );
+    }
+
+    public Restriction asAttribute()
+    {
+        return new Restriction( path, operator, true );
     }
 
     @Override

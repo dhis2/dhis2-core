@@ -108,6 +108,29 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
+    void testPatchRemoveById()
+    {
+        String ou1 = assertStatus( HttpStatus.CREATED,
+            POST( "/organisationUnits/", "{'name':'My Unit 1', 'shortName':'OU1', 'openingDate': '2020-01-01'}" ) );
+        String ou2 = assertStatus( HttpStatus.CREATED,
+            POST( "/organisationUnits/", "{'name':'My Unit 2', 'shortName':'OU2', 'openingDate': '2020-01-01'}" ) );
+
+        String dsId = assertStatus( HttpStatus.CREATED,
+            POST( "/dataSets/", "{'name':'My data set', 'periodType':'Monthly','organisationUnits':[{'id':'" + ou1
+                + "'},{'id':'" + ou2 + "'}]}" ) );
+
+        JsonResponse dataSet = GET( "/dataSets/{id}", dsId ).content();
+        assertEquals( 2, dataSet.getArray( "organisationUnits" ).size() );
+
+        assertStatus( HttpStatus.OK, PATCH( "/dataSets/" + dsId,
+            "[{'op': 'remove-by-id', 'path': '/organisationUnits', 'id': '" + ou1 + "'}]" ) );
+        dataSet = GET( "/dataSets/{id}", dsId ).content();
+        assertEquals( 1, dataSet.getArray( "organisationUnits" ).size() );
+        assertEquals( ou2,
+            dataSet.getArray( "organisationUnits" ).get( 0, JsonObject.class ).getString( "id" ).string() );
+    }
+
+    @Test
     void testPartialUpdateObject_Validation()
     {
         String id = run( SomeUserId::new );
@@ -134,7 +157,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void replaceTranslationsOk()
+    void replaceTranslationsOk()
     {
         String id = assertStatus( HttpStatus.CREATED,
             POST( "/dataSets/", "{'name':'My data set', 'periodType':'Monthly'}" ) );
@@ -158,7 +181,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void replaceTranslationsWithDuplicateLocales()
+    void replaceTranslationsWithDuplicateLocales()
     {
         String id = assertStatus( HttpStatus.CREATED,
             POST( "/dataSets/", "{'name':'My data set', 'periodType':'Monthly'}" ) );
