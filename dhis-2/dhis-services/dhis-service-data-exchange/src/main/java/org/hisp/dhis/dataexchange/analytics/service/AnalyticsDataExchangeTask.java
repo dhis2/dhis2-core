@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.dataexchange.analytics.service;
 
+import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -35,7 +39,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dataexchange.analytics.model.AnalyticsDataExchange;
@@ -51,9 +55,11 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 @RequiredArgsConstructor
 public class AnalyticsDataExchangeTask
 {
-    private AnalyticsService analyticsService;
+    private final AnalyticsService analyticsService;
 
-    private DataValueSetService dataValueSetService;
+    private final DataQueryService dataQueryService;
+
+    private final DataValueSetService dataValueSetService;
 
     public ImportSummary exhangeData( AnalyticsDataExchange exchange )
         throws IOException
@@ -92,16 +98,21 @@ public class AnalyticsDataExchangeTask
     {
         SourceRequest request = exchange.getSource().getRequest();
 
+        DimensionalObject dx = dataQueryService.getDimension( DATA_X_DIM_ID,
+            request.getDx(), null, null, null, false, false, request.getInputIdScheme() );
+        DimensionalObject pe = dataQueryService.getDimension( PERIOD_DIM_ID,
+            request.getDx(), null, null, null, false, false, request.getInputIdScheme() );
+        DimensionalObject ou = dataQueryService.getDimension( ORGUNIT_DIM_ID,
+            request.getDx(), null, null, null, false, false, request.getInputIdScheme() );
+
         List<DimensionalObject> filters = request.getFilters().stream()
-            .map( this::toDimensionalObject )
+            .map( f -> toDimensionalObject( f, request.getInputIdScheme() ) )
             .collect( Collectors.toList() );
 
-        // TODO
-
         return DataQueryParams.newBuilder()
-            .withDataElements( null )
-            .withPeriods( null )
-            .withOrganisationUnits( null )
+            .addDimension( dx )
+            .addDimension( pe )
+            .addDimension( ou )
             .addFilters( filters )
             .build();
     }
@@ -111,8 +122,9 @@ public class AnalyticsDataExchangeTask
         return idScheme != null ? idScheme.name() : null;
     }
 
-    private DimensionalObject toDimensionalObject( Filter filter )
+    private DimensionalObject toDimensionalObject( Filter filter, IdScheme inputIdScheme )
     {
-        return new BaseDimensionalObject(); // TODO
+        return dataQueryService.getDimension( filter.getDimension(),
+            filter.getItems(), null, null, null, false, false, inputIdScheme );
     }
 }

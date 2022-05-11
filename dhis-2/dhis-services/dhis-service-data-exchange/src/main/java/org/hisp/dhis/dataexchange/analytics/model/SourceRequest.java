@@ -54,8 +54,8 @@ public class SourceRequest
     private List<Filter> filters = new ArrayList<>();
 
     @JsonProperty
-    private IdScheme outputIdScheme;
+    private IdScheme inputIdScheme;
 
     @JsonProperty
-    private IdScheme inputIdScheme;
+    private IdScheme outputIdScheme;
 }

@@ -192,8 +192,7 @@ public class DefaultDataQueryService
         if ( request.getDimension() != null && !request.getDimension().isEmpty() )
         {
             params.addDimensions( getDimensionalObjects( request.getDimension(), request.getRelativePeriodDate(),
-                request.getUserOrgUnit(), format,
-                request.isAllowAllPeriods(), inputIdScheme ) );
+                request.getUserOrgUnit(), format, request.isAllowAllPeriods(), inputIdScheme ) );
         }
 
         if ( request.getFilter() != null && !request.getFilter().isEmpty() )
