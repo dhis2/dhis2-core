@@ -51,5 +51,4 @@ public enum SyncEndpoint
     private final String path;
 
     private final Class<? extends AbstractWebMessageResponse> klass;
-
 }

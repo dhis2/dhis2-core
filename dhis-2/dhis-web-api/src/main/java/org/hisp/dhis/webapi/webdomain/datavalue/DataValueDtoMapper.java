@@ -103,7 +103,7 @@ public class DataValueDtoMapper
      * Converts a {@link MinMaxDataElement} object to a {@link MinMaxValueDto}
      * object.
      *
-     * @param attribute the {@link MinMaxDataElement}.
+     * @param value the {@link MinMaxDataElement}.
      * @return a {@link MinMaxValueDto}.
      */
     public static MinMaxValueDto toDto( MinMaxDataElement value )
