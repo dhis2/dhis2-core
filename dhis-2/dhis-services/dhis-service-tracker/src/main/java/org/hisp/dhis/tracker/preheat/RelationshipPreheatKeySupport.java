@@ -81,12 +81,9 @@ public class RelationshipPreheatKeySupport
         if ( Objects.nonNull( relationshipItem ) )
         {
             return RelationshipKey.RelationshipItemKey.builder()
-                .trackedEntity( trimToEmpty( relationshipItem.getTrackedEntity() == null ? null
-                    : relationshipItem.getTrackedEntity().getTrackedEntity() ) )
-                .enrollment( trimToEmpty( relationshipItem.getEnrollment() == null ? null
-                    : relationshipItem.getEnrollment().getEnrollment() ) )
-                .event(
-                    trimToEmpty( relationshipItem.getEvent() == null ? null : relationshipItem.getEvent().getEvent() ) )
+                .trackedEntity( trimToEmpty( relationshipItem.getTrackedEntity() ) )
+                .enrollment( trimToEmpty( relationshipItem.getEnrollment() ) )
+                .event( trimToEmpty( relationshipItem.getEvent() ) )
                 .build();
         }
         throw new IllegalStateException( "Unable to determine uid for relationship item" );

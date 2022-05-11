@@ -141,6 +141,24 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest
     }
 
     @Test
+    void testGetAndValidateWithErrorCode()
+    {
+        DataElement dataElementA = createDataElement( 'A' );
+        dataElementService.addDataElement( dataElementA );
+
+        assertEquals( dataElementA,
+            idObjectManager.getAndValidate( DataElement.class, ErrorCode.E1100, dataElementA.getUid() ) );
+
+        IllegalQueryException exA = assertThrows( IllegalQueryException.class,
+            () -> idObjectManager.getAndValidate( DataElement.class, ErrorCode.E1100, "nonExisting" ) );
+        assertEquals( ErrorCode.E1100, exA.getErrorCode() );
+
+        IllegalQueryException exB = assertThrows( IllegalQueryException.class,
+            () -> idObjectManager.getAndValidate( OrganisationUnit.class, ErrorCode.E1102, "nonExisting" ) );
+        assertEquals( ErrorCode.E1102, exB.getErrorCode() );
+    }
+
+    @Test
     void testGetWithClasses()
     {
         DataElement dataElementA = createDataElement( 'A' );
@@ -321,7 +339,7 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest
     void userDeniedDeleteObject()
     {
         createUserAndInjectSecurityContext( false, "F_DATAELEMENT_PUBLIC_ADD", "F_USER_ADD" );
-        User user = createUser( 'B' );
+        User user = makeUser( "B" );
         idObjectManager.save( user );
         DataElement dataElement = createDataElement( 'A' );
         idObjectManager.save( dataElement );
@@ -346,7 +364,7 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest
     void readPrivateObjects()
     {
         createUserAndInjectSecurityContext( false, "F_DATAELEMENT_PUBLIC_ADD", "F_USER_ADD" );
-        User user = createUser( 'B' );
+        User user = makeUser( "B" );
         idObjectManager.save( user );
         idObjectManager.save( createDataElement( 'A' ) );
         idObjectManager.save( createDataElement( 'B' ) );
@@ -369,7 +387,7 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest
     {
         User loginUser = createUserAndInjectSecurityContext( false, "F_DATAELEMENT_PUBLIC_ADD", "F_USER_ADD",
             "F_USERGROUP_PUBLIC_ADD" );
-        User user = createUser( 'B' );
+        User user = makeUser( "B" );
         idObjectManager.save( user );
         UserGroup userGroup = createUserGroup( 'A', Sets.newHashSet( loginUser ) );
         idObjectManager.save( userGroup );
@@ -591,7 +609,7 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest
     @Test
     void testRemoveUserGroupFromSharing()
     {
-        User userA = createUser( 'A' );
+        User userA = makeUser( "A" );
         userService.addUser( userA );
         UserGroup userGroupA = createUserGroup( 'A', Sets.newHashSet( userA ) );
         idObjectManager.save( userGroupA );

@@ -206,7 +206,7 @@ class FileResourceCleanUpJobTest extends IntegrationTestBase
         fileResourceB.setCreated( DateTime.now().minus( Days.ONE ).toDate() );
         String uidB = fileResourceService.saveFileResource( fileResourceB, content );
 
-        User userB = createUser( 'B' );
+        User userB = makeUser( "B" );
         userB.setAvatar( fileResourceB );
         userService.addUser( userB );
 

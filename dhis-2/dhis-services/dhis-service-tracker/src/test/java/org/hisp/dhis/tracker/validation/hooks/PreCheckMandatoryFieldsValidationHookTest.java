@@ -94,7 +94,7 @@ class PreCheckMandatoryFieldsValidationHookTest
     {
         TrackedEntity trackedEntity = TrackedEntity.builder()
             .trackedEntity( CodeGenerator.generateUid() )
-            .trackedEntityType( CodeGenerator.generateUid() )
+            .trackedEntityType( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
             .orgUnit( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
             .build();
 
@@ -109,8 +109,8 @@ class PreCheckMandatoryFieldsValidationHookTest
     {
         TrackedEntity trackedEntity = TrackedEntity.builder()
             .trackedEntity( CodeGenerator.generateUid() )
-            .trackedEntityType( CodeGenerator.generateUid() )
-            .orgUnit( MetadataIdentifier.ofUid( null ) )
+            .trackedEntityType( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
+            .orgUnit( MetadataIdentifier.EMPTY_UID )
             .build();
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
@@ -124,7 +124,7 @@ class PreCheckMandatoryFieldsValidationHookTest
     {
         TrackedEntity trackedEntity = TrackedEntity.builder()
             .trackedEntity( CodeGenerator.generateUid() )
-            .trackedEntityType( null )
+            .trackedEntityType( MetadataIdentifier.EMPTY_UID )
             .orgUnit( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
             .build();
 
@@ -172,7 +172,7 @@ class PreCheckMandatoryFieldsValidationHookTest
         Enrollment enrollment = Enrollment.builder()
             .enrollment( CodeGenerator.generateUid() )
             .orgUnit( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
-            .program( MetadataIdentifier.ofUid( null ) )
+            .program( MetadataIdentifier.EMPTY_UID )
             .trackedEntity( CodeGenerator.generateUid() )
             .build();
 
@@ -187,7 +187,7 @@ class PreCheckMandatoryFieldsValidationHookTest
     {
         Enrollment enrollment = Enrollment.builder()
             .enrollment( CodeGenerator.generateUid() )
-            .orgUnit( MetadataIdentifier.ofUid( null ) )
+            .orgUnit( MetadataIdentifier.EMPTY_UID )
             .program( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
             .trackedEntity( CodeGenerator.generateUid() )
             .build();
@@ -221,7 +221,7 @@ class PreCheckMandatoryFieldsValidationHookTest
             .event( CodeGenerator.generateUid() )
             .orgUnit( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
             .programStage( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
-            .program( MetadataIdentifier.ofUid( null ) )
+            .program( MetadataIdentifier.EMPTY_UID )
             .build();
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
@@ -240,7 +240,7 @@ class PreCheckMandatoryFieldsValidationHookTest
             .build();
         ProgramStage programStage = new ProgramStage();
         programStage.setUid( event.getProgramStage().getIdentifier() );
-        when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStage.getUid() ) ) )
+        when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStage ) ) )
             .thenReturn( programStage );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
@@ -257,7 +257,7 @@ class PreCheckMandatoryFieldsValidationHookTest
         Event event = Event.builder()
             .event( CodeGenerator.generateUid() )
             .orgUnit( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
-            .programStage( MetadataIdentifier.ofUid( null ) )
+            .programStage( MetadataIdentifier.EMPTY_UID )
             .program( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
             .build();
 
@@ -272,7 +272,7 @@ class PreCheckMandatoryFieldsValidationHookTest
     {
         Event event = Event.builder()
             .event( CodeGenerator.generateUid() )
-            .orgUnit( MetadataIdentifier.ofUid( null ) )
+            .orgUnit( MetadataIdentifier.EMPTY_UID )
             .programStage( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
             .program( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
             .build();
@@ -387,8 +387,8 @@ class PreCheckMandatoryFieldsValidationHookTest
             is( "Missing required " + entity + " property: `" + property + "`." ) );
     }
 
-    private RelationshipItem.TrackedEntity trackedEntity()
+    private String trackedEntity()
     {
-        return RelationshipItem.TrackedEntity.builder().trackedEntity( CodeGenerator.generateUid() ).build();
+        return CodeGenerator.generateUid();
     }
 }

@@ -44,6 +44,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.events.report.EventRow;
 import org.hisp.dhis.dxf2.events.trackedentity.store.EventStore;
 import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
+import org.hisp.dhis.organisationunit.OrganisationUnitStore;
 import org.hisp.dhis.user.CurrentUserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -87,6 +88,9 @@ class JdbcEventStoreTest
 
     @Mock
     private SkipLockedProvider skipLockedProvider;
+
+    @Mock
+    private OrganisationUnitStore organisationUnitStore;
 
     @BeforeEach
     public void setUp()

@@ -306,6 +306,20 @@ public class DefaultIdentifiableObjectManager
     }
 
     @Override
+    public <T extends IdentifiableObject> T getAndValidate( Class<T> type, ErrorCode errorCode, String uid )
+        throws IllegalQueryException
+    {
+        T object = get( type, uid );
+
+        if ( object == null )
+        {
+            throw new IllegalQueryException( new ErrorMessage( errorCode, uid ) );
+        }
+
+        return object;
+    }
+
+    @Override
     @Transactional( readOnly = true )
     public <T extends IdentifiableObject> boolean exists( Class<T> type, String uid )
     {

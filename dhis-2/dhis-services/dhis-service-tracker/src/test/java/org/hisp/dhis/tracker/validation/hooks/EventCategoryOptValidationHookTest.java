@@ -132,17 +132,17 @@ class EventCategoryOptValidationHookTest extends DhisConvenienceTest
 
         event = new Event();
         event.setEvent( CodeGenerator.generateUid() );
-        event.setProgram( MetadataIdentifier.ofUid( program.getUid() ) );
+        event.setProgram( MetadataIdentifier.ofUid( program ) );
         event.setOccurredAt( EVENT_INSTANT );
 
-        User user = createUser( 'A' );
+        User user = makeUser( "A" );
 
         TrackerBundle bundle = TrackerBundle.builder()
             .user( user )
             .preheat( preheat )
             .build();
 
-        when( preheat.getProgram( MetadataIdentifier.ofUid( program.getUid() ) ) )
+        when( preheat.getProgram( MetadataIdentifier.ofUid( program ) ) )
             .thenReturn( program );
         when( i18nManager.getI18nFormat() ).thenReturn( I18N_FORMAT );
 

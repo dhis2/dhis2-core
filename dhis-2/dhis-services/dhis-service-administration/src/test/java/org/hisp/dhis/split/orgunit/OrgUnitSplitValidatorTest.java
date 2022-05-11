@@ -31,24 +31,24 @@ import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.junit.jupiter.api.BeforeEach;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Lars Helge Overland
  */
-class OrgUnitSplitValidatorTest
+class OrgUnitSplitValidatorTest extends DhisSpringTest
 {
 
-    private OrgUnitSplitValidator validator;
+    @Autowired
+    private OrganisationUnitService organisationUnitService;
 
-    @BeforeEach
-    void before()
-    {
-        this.validator = new OrgUnitSplitValidator();
-    }
+    @Autowired
+    private OrgUnitSplitValidator validator;
 
     @Test
     void testValidateMissingSource()
@@ -109,6 +109,9 @@ class OrgUnitSplitValidatorTest
         OrganisationUnit ouA = createOrganisationUnit( 'A' );
         OrganisationUnit ouB = createOrganisationUnit( 'B' );
         OrganisationUnit ouC = createOrganisationUnit( 'C', ouA );
+        organisationUnitService.addOrganisationUnit( ouA );
+        organisationUnitService.addOrganisationUnit( ouB );
+        organisationUnitService.addOrganisationUnit( ouC );
         OrgUnitSplitRequest request = new OrgUnitSplitRequest.Builder().withSource( ouA ).addTarget( ouB )
             .addTarget( ouC ).withPrimaryTarget( ouB ).build();
         assertEquals( ErrorCode.E1516, validator.validateForErrorMessage( request ).getErrorCode() );

@@ -138,8 +138,8 @@ class DataApprovalStoreTest extends DhisSpringTest
         organisationUnitService.addOrganisationUnit( sourceB );
         organisationUnitService.addOrganisationUnit( sourceC );
         organisationUnitService.addOrganisationUnit( sourceD );
-        userA = createUser( 'A' );
-        userB = createUser( 'B' );
+        userA = makeUser( "A" );
+        userB = makeUser( "B" );
         userService.addUser( userA );
         userService.addUser( userB );
         categoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();

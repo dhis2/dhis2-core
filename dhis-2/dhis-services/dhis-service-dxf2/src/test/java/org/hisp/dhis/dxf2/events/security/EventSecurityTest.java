@@ -162,7 +162,7 @@ class EventSecurityTest extends TransactionalIntegrationTest
         programStageA.setPublicAccess( AccessStringHelper.DEFAULT );
         manager.update( programA );
         manager.update( programStageA );
-        User user = createUser( "user1" );
+        User user = createUserWithAuth( "user1" );
         injectSecurityContext( user );
         Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
         ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
@@ -180,7 +180,7 @@ class EventSecurityTest extends TransactionalIntegrationTest
         programStageA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
         manager.updateNoAcl( programA );
         manager.updateNoAcl( programStageA );
-        User user = createUser( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        User user = createUserWithAuth( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         userService.addUser( user );
         injectSecurityContext( user );
         Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
@@ -201,7 +201,7 @@ class EventSecurityTest extends TransactionalIntegrationTest
         programStageA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
         manager.update( programA );
         manager.update( programStageA );
-        User user = createUser( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        User user = createUserWithAuth( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         injectSecurityContext( user );
         Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
         ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
@@ -219,7 +219,7 @@ class EventSecurityTest extends TransactionalIntegrationTest
         programStageA.setPublicAccess( AccessStringHelper.DATA_READ );
         manager.update( programA );
         manager.update( programStageA );
-        User user = createUser( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        User user = createUserWithAuth( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         injectSecurityContext( user );
         // make sure data is flushed, so event service can access it
         manager.flush();
@@ -239,7 +239,7 @@ class EventSecurityTest extends TransactionalIntegrationTest
         programStageA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
         manager.update( programA );
         manager.update( programStageA );
-        User user = createUser( "user1" );
+        User user = createUserWithAuth( "user1" );
         injectSecurityContext( user );
         Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
         ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
@@ -265,7 +265,7 @@ class EventSecurityTest extends TransactionalIntegrationTest
         programStageA.setPublicAccess( AccessStringHelper.DATA_READ );
         manager.update( programA );
         manager.update( programStageA );
-        User user = createUser( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        User user = createUserWithAuth( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         injectSecurityContext( user );
         assertTrue( programStageInstanceService.programStageInstanceExists( event.getEvent() ) );
         ProgramStageInstance programStageInstance = programStageInstanceService
@@ -295,7 +295,7 @@ class EventSecurityTest extends TransactionalIntegrationTest
         programStageA.setPublicAccess( AccessStringHelper.DATA_WRITE );
         manager.update( programA );
         manager.update( programStageA );
-        User user = createUser( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        User user = createUserWithAuth( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         injectSecurityContext( user );
         assertTrue( programStageInstanceService.programStageInstanceExists( event.getEvent() ) );
         ProgramStageInstance programStageInstance = programStageInstanceService
@@ -325,7 +325,7 @@ class EventSecurityTest extends TransactionalIntegrationTest
         programStageA.setPublicAccess( AccessStringHelper.DATA_WRITE );
         manager.update( programA );
         manager.update( programStageA );
-        User user = createUser( "user1" );
+        User user = createUserWithAuth( "user1" );
         injectSecurityContext( user );
         assertTrue( programStageInstanceService.programStageInstanceExists( event.getEvent() ) );
         ProgramStageInstance programStageInstance = programStageInstanceService
@@ -353,7 +353,7 @@ class EventSecurityTest extends TransactionalIntegrationTest
         programStageA.setPublicAccess( AccessStringHelper.DATA_READ );
         manager.update( programA );
         manager.update( programStageA );
-        User user = createUser( "user1" );
+        User user = createUserWithAuth( "user1" );
         injectSecurityContext( user );
         assertTrue( programStageInstanceService.programStageInstanceExists( event.getEvent() ) );
         ProgramStageInstance programStageInstance = programStageInstanceService
@@ -380,7 +380,7 @@ class EventSecurityTest extends TransactionalIntegrationTest
         programStageA.setPublicAccess( AccessStringHelper.DATA_READ );
         manager.update( programA );
         manager.update( programStageA );
-        User user = createUser( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        User user = createUserWithAuth( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         injectSecurityContext( user );
         assertTrue( programStageInstanceService.programStageInstanceExists( event.getEvent() ) );
         ProgramStageInstance programStageInstance = programStageInstanceService
@@ -407,7 +407,7 @@ class EventSecurityTest extends TransactionalIntegrationTest
         programStageA.setPublicAccess( AccessStringHelper.DEFAULT );
         manager.update( programA );
         manager.update( programStageA );
-        User user = createUser( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        User user = createUserWithAuth( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         injectSecurityContext( user );
         assertTrue( programStageInstanceService.programStageInstanceExists( event.getEvent() ) );
         ProgramStageInstance programStageInstance = programStageInstanceService

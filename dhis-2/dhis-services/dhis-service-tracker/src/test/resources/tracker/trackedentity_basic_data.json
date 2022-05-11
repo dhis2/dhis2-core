@@ -33,7 +33,10 @@
   "trackedEntities": [
     {
       "trackedEntity": "NCc1rCEOKaY",
-      "trackedEntityType": "bPJ0FMtcnEh",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "bPJ0FMtcnEh"
+      },
       "orgUnit": {
         "idScheme": "UID",
         "identifier": "QfUVllTs6cS"
@@ -58,7 +61,10 @@
     },
     {
       "trackedEntity": "PB9VMezGkwA",
-      "trackedEntityType": "bPJ0FMtcnEh",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "bPJ0FMtcnEh"
+      },
       "orgUnit": {
         "idScheme": "UID",
         "identifier": "QfUVllTs6cS"
@@ -83,7 +89,10 @@
     },
     {
       "trackedEntity": "N0wuhEwexUW",
-      "trackedEntityType": "bPJ0FMtcnEh",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "bPJ0FMtcnEh"
+      },
       "orgUnit": {
         "idScheme": "UID",
         "identifier": "QfUVllTs6cS"
@@ -108,7 +117,10 @@
     },
     {
       "trackedEntity": "g3eF1fJXuSz",
-      "trackedEntityType": "bPJ0FMtcnEh",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "bPJ0FMtcnEh"
+      },
       "orgUnit": {
         "idScheme": "UID",
         "identifier": "QfUVllTs6cS"
@@ -133,7 +145,10 @@
     },
     {
       "trackedEntity": "s9D7VHiYLwj",
-      "trackedEntityType": "bPJ0FMtcnEh",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "bPJ0FMtcnEh"
+      },
       "orgUnit": {
         "idScheme": "UID",
         "identifier": "QfUVllTs6cS"
@@ -158,7 +173,10 @@
     },
     {
       "trackedEntity": "C5nACFyIFQo",
-      "trackedEntityType": "bPJ0FMtcnEh",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "bPJ0FMtcnEh"
+      },
       "orgUnit": {
         "idScheme": "UID",
         "identifier": "QfUVllTs6cS"
@@ -183,7 +201,10 @@
     },
     {
       "trackedEntity": "Jx8Ul6pnRfM",
-      "trackedEntityType": "bPJ0FMtcnEh",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "bPJ0FMtcnEh"
+      },
       "orgUnit": {
         "idScheme": "UID",
         "identifier": "QfUVllTs6cS"
@@ -208,7 +229,10 @@
     },
     {
       "trackedEntity": "Z324qoN3WrF",
-      "trackedEntityType": "bPJ0FMtcnEh",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "bPJ0FMtcnEh"
+      },
       "orgUnit": {
         "idScheme": "UID",
         "identifier": "QfUVllTs6cS"
@@ -233,7 +257,10 @@
     },
     {
       "trackedEntity": "TGeGZIIt4MO",
-      "trackedEntityType": "bPJ0FMtcnEh",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "bPJ0FMtcnEh"
+      },
       "orgUnit": {
         "idScheme": "UID",
         "identifier": "QfUVllTs6cS"
@@ -258,7 +285,10 @@
     },
     {
       "trackedEntity": "KSLmzEjaV6A",
-      "trackedEntityType": "bPJ0FMtcnEh",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "bPJ0FMtcnEh"
+      },
       "orgUnit": {
         "idScheme": "UID",
         "identifier": "QfUVllTs6cS"
@@ -283,7 +313,10 @@
     },
     {
       "trackedEntity": "IybbQIQt6rn",
-      "trackedEntityType": "bPJ0FMtcnEh",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "bPJ0FMtcnEh"
+      },
       "orgUnit": {
         "idScheme": "UID",
         "identifier": "QfUVllTs6cS"
@@ -308,7 +341,10 @@
     },
     {
       "trackedEntity": "daMwzsKN3oJ",
-      "trackedEntityType": "bPJ0FMtcnEh",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "bPJ0FMtcnEh"
+      },
       "orgUnit": {
         "idScheme": "UID",
         "identifier": "QfUVllTs6cS"
@@ -333,7 +369,10 @@
     },
     {
       "trackedEntity": "pcSaZP9lFqu",
-      "trackedEntityType": "bPJ0FMtcnEh",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "bPJ0FMtcnEh"
+      },
       "orgUnit": {
         "idScheme": "UID",
         "identifier": "QfUVllTs6cS"

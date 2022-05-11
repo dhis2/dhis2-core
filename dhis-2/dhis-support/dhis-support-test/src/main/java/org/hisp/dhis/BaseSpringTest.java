@@ -208,4 +208,5 @@ public abstract class BaseSpringTest extends DhisConvenienceTest implements Appl
             .unbindResource( sessionFactory );
         SessionFactoryUtils.closeSession( sessionHolder.getSession() );
     }
+
 }

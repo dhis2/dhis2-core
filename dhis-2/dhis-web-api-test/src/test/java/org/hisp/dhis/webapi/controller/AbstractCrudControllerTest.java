@@ -39,8 +39,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 
-import java.util.List;
-
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
@@ -77,7 +75,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
         JsonList<JsonUser> users = GET( "/users/" ).content( HttpStatus.OK ).getList( "users", JsonUser.class );
         assertEquals( 1, users.size() );
         JsonUser user = users.get( 0 );
-        assertEquals( "admin admin", user.getDisplayName() );
+        assertEquals( "FirstNameadmin Surnameadmin", user.getDisplayName() );
     }
 
     @Test
@@ -97,19 +95,16 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
         // response will look like: { "surname": <name> }
         JsonUser userProperty = GET( "/users/{id}/surname", run( SomeUserId::new ) ).content( HttpStatus.OK )
             .as( JsonUser.class );
-        assertEquals( "admin", userProperty.getSurname() );
+        assertEquals( "Surnameadmin", userProperty.getSurname() );
         assertEquals( 1, userProperty.size() );
     }
 
     @Test
     void testPartialUpdateObject()
     {
-        List<User> allUsers = userService.getAllUsers();
-        String id = run( SomeUserId::new );
-
-        assertStatus( HttpStatus.OK, PATCH( "/users/" + id + "?importReportMode=ERRORS",
+        assertStatus( HttpStatus.OK, PATCH( "/users/" + "M5zQapPyTZI" + "?importReportMode=ERRORS",
             "[{'op': 'add', 'path': '/surname', 'value': 'Peter'}]" ) );
-        assertEquals( "Peter", GET( "/users/{id}", id ).content().as( JsonUser.class ).getSurname() );
+        assertEquals( "Peter", GET( "/users/{id}", "M5zQapPyTZI" ).content().as( JsonUser.class ).getSurname() );
     }
 
     @Test
@@ -139,7 +134,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void replaceTranslationsOk()
+    void replaceTranslationsOk()
     {
         String id = assertStatus( HttpStatus.CREATED,
             POST( "/dataSets/", "{'name':'My data set', 'periodType':'Monthly'}" ) );
@@ -163,7 +158,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void replaceTranslationsWithDuplicateLocales()
+    void replaceTranslationsWithDuplicateLocales()
     {
         String id = assertStatus( HttpStatus.CREATED,
             POST( "/dataSets/", "{'name':'My data set', 'periodType':'Monthly'}" ) );
@@ -540,12 +535,14 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
         String userId = getCurrentUser().getUid();
         // first create an object which has a collection
         String groupId = assertStatus( HttpStatus.CREATED, POST( "/userGroups/", "{'name':'testers'}" ) );
+
         assertStatus( HttpStatus.OK,
             POST( "/userGroups/" + groupId + "/users", "{'additions': [{'id':'" + userId + "'}]}" ) );
+
         assertUserGroupHasOnlyUser( groupId, userId );
 
-        User testUser1 = createUser( "test1" );
-        User testUser2 = createUser( "test2" );
+        User testUser1 = createAndAddUser( "test1" );
+        User testUser2 = createAndAddUser( "test2" );
 
         // Add 2 new users and remove existing user from the created group
         assertStatus( HttpStatus.OK,
@@ -555,6 +552,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
 
         JsonList<JsonUser> usersInGroup = GET( "/userGroups/{uid}/", groupId ).content()
             .getList( "users", JsonUser.class );
+
         assertEquals( 2, usersInGroup.size() );
     }
 

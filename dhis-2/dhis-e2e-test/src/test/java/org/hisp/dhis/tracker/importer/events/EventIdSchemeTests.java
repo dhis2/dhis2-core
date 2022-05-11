@@ -124,21 +124,8 @@ public class EventIdSchemeTests
             .body( "orgUnit", equalTo( ORG_UNIT_ID ) );
     }
 
-    private static Stream<Arguments> provideIdSchemeArgumentsImport()
-    {
-        return Stream.of(
-            Arguments.arguments( "CODE", "code" ),
-            Arguments.arguments( "NAME", "name" ),
-            Arguments.arguments( "UID", "id" ),
-            Arguments.arguments( "AUTO", "id" ) );
-        // TODO("DHIS2-12760") fix import using attribute: Exception:Transaction
-        // rolled back because it has been marked as rollback-only
-        // Arguments.arguments( "ATTRIBUTE:" + ATTRIBUTE_ID,
-        // "attributeValues.value[0]" ) );
-    }
-
     @ParameterizedTest
-    @MethodSource( "provideIdSchemeArgumentsImport" )
+    @MethodSource( "provideIdSchemeArguments" )
     public void eventsShouldBeImportedWithIdScheme( String scheme, String property )
     {
         String ouPropertyValue = orgUnitActions.get( ORG_UNIT_ID ).extractString( property );

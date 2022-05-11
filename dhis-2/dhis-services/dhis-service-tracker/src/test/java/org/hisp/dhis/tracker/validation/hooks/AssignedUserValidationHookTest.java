@@ -80,7 +80,7 @@ class AssignedUserValidationHookTest extends DhisConvenienceTest
 
         bundle = TrackerBundle.builder().build();
         TrackerPreheat preheat = new TrackerPreheat();
-        org.hisp.dhis.user.User user = createUser( 'A' );
+        org.hisp.dhis.user.User user = makeUser( "A" );
         user.setUsername( USER_NAME );
         preheat.addUsers( Sets.newHashSet( user ) );
         bundle.setPreheat( preheat );

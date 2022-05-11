@@ -80,7 +80,7 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
     @BeforeEach
     void setUp()
     {
-        owner = createUser( "owner" );
+        owner = makeUser( "owner" );
 
         orgUnit = createOrganisationUnit( 'A' );
         orgUnit.getSharing().setOwner( owner );

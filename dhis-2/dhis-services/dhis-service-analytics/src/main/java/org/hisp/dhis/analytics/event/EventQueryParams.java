@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.event;
 
+import static java.util.Arrays.asList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
@@ -35,6 +36,9 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 import static org.hisp.dhis.common.FallbackCoordinateFieldType.OU_GEOMETRY;
 import static org.hisp.dhis.common.FallbackCoordinateFieldType.PSI_GEOMETRY;
+import static org.hisp.dhis.event.EventStatus.ACTIVE;
+import static org.hisp.dhis.event.EventStatus.COMPLETED;
+import static org.hisp.dhis.event.EventStatus.SCHEDULE;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -118,6 +122,8 @@ public class EventQueryParams
 
     public static final ImmutableSet<FallbackCoordinateFieldType> FALLBACK_COORDINATE_FIELD_TYPES = ImmutableSet.of(
         OU_GEOMETRY, PSI_GEOMETRY );
+
+    private static final Set<EventStatus> DEFAULT_EVENT_STATUS = new LinkedHashSet<>( asList( ACTIVE, COMPLETED ) );
 
     /**
      * The query items.
@@ -1074,7 +1080,36 @@ public class EventQueryParams
 
     public Set<EventStatus> getEventStatus()
     {
-        return eventStatus;
+        if ( isNotEmpty( eventStatus ) )
+        {
+            return eventStatus;
+        }
+
+        if ( TimeField.fieldIsValid( timeField ) )
+        {
+            final Optional<TimeField> time = TimeField.of( timeField );
+
+            if ( time.isPresent() )
+            {
+                switch ( time.get() )
+                {
+                case SCHEDULED_DATE:
+                    return Set.of( SCHEDULE );
+                case LAST_UPDATED:
+                    final Set<EventStatus> statuses = new LinkedHashSet<>( DEFAULT_EVENT_STATUS );
+                    statuses.add( SCHEDULE );
+                    return statuses;
+                default:
+                    return DEFAULT_EVENT_STATUS;
+                }
+            }
+        }
+        else if ( containsScheduledDatePeriod() )
+        {
+            return Set.of( SCHEDULE );
+        }
+
+        return DEFAULT_EVENT_STATUS;
     }
 
     public boolean isCollapseDataDimensions()

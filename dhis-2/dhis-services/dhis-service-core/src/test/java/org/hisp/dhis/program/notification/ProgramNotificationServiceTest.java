@@ -662,11 +662,11 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
 
         // User and UserGroup
 
-        userA = createUser( 'U' );
+        userA = makeUser( "U" );
         userA.setPhoneNumber( USERA_PHONE_NUMBER );
         userA.getOrganisationUnits().add( lvlTwoLeftLeft );
 
-        userB = createUser( 'V' );
+        userB = makeUser( "V" );
         userB.setPhoneNumber( USERB_PHONE_NUMBER );
         userB.getOrganisationUnits().add( lvlTwoLeftLeft );
 
@@ -674,23 +674,23 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
 
         // User based on hierarchy
 
-        userLvlTwoLeftLeft = createUser( 'K' );
+        userLvlTwoLeftLeft = makeUser( "K" );
         userLvlTwoLeftLeft.getOrganisationUnits().add( lvlTwoLeftLeft );
         lvlTwoLeftLeft.getUsers().add( userLvlTwoLeftLeft );
 
-        userLvlTwoLeftRight = createUser( 'L' );
+        userLvlTwoLeftRight = makeUser( "L" );
         userLvlTwoLeftRight.getOrganisationUnits().add( lvlTwoLeftRight );
         lvlTwoLeftRight.getUsers().add( userLvlTwoLeftRight );
 
-        userLvlOneLeft = createUser( 'M' );
+        userLvlOneLeft = makeUser( "M" );
         userLvlOneLeft.getOrganisationUnits().add( lvlOneLeft );
         lvlOneLeft.getUsers().add( userLvlOneLeft );
 
-        userLvlOneRight = createUser( 'N' );
+        userLvlOneRight = makeUser( "N" );
         userLvlOneRight.getOrganisationUnits().add( lvlOneRight );
         lvlOneRight.getUsers().add( userLvlOneLeft );
 
-        userRoot = createUser( 'R' );
+        userRoot = makeUser( "R" );
         userRoot.getOrganisationUnits().add( root );
         root.getUsers().add( userRoot );
 

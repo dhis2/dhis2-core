@@ -32,6 +32,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -126,6 +127,19 @@ public class TrackerIdSchemeParams
     }
 
     /**
+     * Creates metadata identifier for given {@code metadata} using
+     * {@link #idScheme}. For more details refer to
+     * {@link TrackerIdSchemeParam#toMetadataIdentifier(IdentifiableObject)}
+     *
+     * @param metadata to create metadata identifier for
+     * @return metadata identifier representing metadata using the idScheme
+     */
+    public MetadataIdentifier toMetadataIdentifier( IdentifiableObject metadata )
+    {
+        return idScheme.toMetadataIdentifier( metadata );
+    }
+
+    /**
      * Creates metadata identifier for given {@code categoryOptionCombo} using
      * {@link #categoryOptionComboIdScheme}. For more details refer to
      * {@link TrackerIdSchemeParam#toMetadataIdentifier(IdentifiableObject)}
@@ -137,6 +151,20 @@ public class TrackerIdSchemeParams
     public MetadataIdentifier toMetadataIdentifier( CategoryOptionCombo categoryOptionCombo )
     {
         return categoryOptionComboIdScheme.toMetadataIdentifier( categoryOptionCombo );
+    }
+
+    /**
+     * Creates metadata identifier for given {@code categoryOption} using
+     * {@link #categoryOptionIdScheme}. For more details refer to
+     * {@link TrackerIdSchemeParam#toMetadataIdentifier(IdentifiableObject)}
+     *
+     * @param categoryOption to create metadata identifier for
+     * @return metadata identifier representing metadata using the
+     *         categoryOptionIdScheme
+     */
+    public MetadataIdentifier toMetadataIdentifier( CategoryOption categoryOption )
+    {
+        return categoryOptionIdScheme.toMetadataIdentifier( categoryOption );
     }
 
     /**

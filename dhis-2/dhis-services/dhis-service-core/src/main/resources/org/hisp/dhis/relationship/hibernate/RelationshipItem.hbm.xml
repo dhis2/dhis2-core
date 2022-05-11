@@ -14,7 +14,8 @@
 
         <many-to-one name="relationship" class="org.hisp.dhis.relationship.Relationship"
                      column="relationshipid"
-                     foreign-key="fk_relationshipitem_relationshipid" />
+                     foreign-key="fk_relationshipitem_relationshipid"
+                        cascade="delete"/>
 
         <many-to-one name="trackedEntityInstance" class="org.hisp.dhis.trackedentity.TrackedEntityInstance"
                      column="trackedentityinstanceid"

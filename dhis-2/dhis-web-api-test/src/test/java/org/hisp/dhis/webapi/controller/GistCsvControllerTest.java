@@ -32,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertLinesMatch;
 
 import java.util.List;
 
+import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 
@@ -47,7 +48,8 @@ class GistCsvControllerTest extends AbstractGistControllerTest
     @Test
     void testList()
     {
-        assertUserCsv( GET( "/users/gist?fields=id,code,education,twitter,employer", Accept( TEXT_CSV ) ) );
+        assertAllUserCsv( GET(
+            "/users/gist?fields=id,code,education,twitter,employer", Accept( TEXT_CSV ) ) );
     }
 
     @Test
@@ -65,9 +67,24 @@ class GistCsvControllerTest extends AbstractGistControllerTest
             GET( "/userGroups/" + id + "/users/gist?fields=id,code,education,twitter,employer", Accept( TEXT_CSV ) ) );
     }
 
+    private void assertAllUserCsv( HttpResponse response )
+    {
+        List<String> split = List.of( response.content( TEXT_CSV ).split( "\n" ) );
+        List<User> allUsers = userService.getAllUsers();
+
+        assertLinesMatch( List.of( "id,code,education,twitter,employer",
+            allUsers.get( 0 ).getUid() + ",Codeadmin,,,",
+            allUsers.get( 1 ).getUid() + ",CodeuserA,,," ),
+            split );
+    }
+
     private void assertUserCsv( HttpResponse response )
     {
-        assertLinesMatch( List.of( "id,code,education,twitter,employer", getSuperuserUid() + ",admin,.*" ),
-            List.of( response.content( TEXT_CSV ).split( "\n" ) ) );
+        List<String> split = List.of( response.content( TEXT_CSV ).split( "\n" ) );
+        List<User> allUsers = userService.getAllUsers();
+
+        assertLinesMatch( List.of( "id,code,education,twitter,employer",
+            allUsers.get( 0 ).getUid() + ",Codeadmin,,," ),
+            split );
     }
 }

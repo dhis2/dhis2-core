@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.dxf2.metadata;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -34,7 +36,6 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.node.types.RootNode;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -59,9 +60,17 @@ public interface MetadataExportService
      * @param params Export parameters
      * @return RootNode instance with children containing all exported objects
      */
-    ObjectNode getMetadataAsNode( MetadataExportParams params );
+    ObjectNode getMetadataAsObjectNode( MetadataExportParams params );
 
-    RootNode getMetadataAsRootNode( MetadataExportParams params );
+    /**
+     * Returns same result as getMetadata, but metadata is written to
+     * outputStream instead.
+     *
+     * @param params Export parameters
+     * @param outputStream Streaming target
+     */
+    void getMetadataAsObjectNodeStream( MetadataExportParams params, OutputStream outputStream )
+        throws IOException;
 
     /**
      * Validates the import params. Not currently implemented.

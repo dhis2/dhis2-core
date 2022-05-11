@@ -76,9 +76,9 @@ class MessageConversationStoreTest extends DhisSpringTest
     {
         userService = _userService;
         // 'A' used as currentUser
-        setupUser( 'A' );
-        userB = setupUser( 'B' );
-        userC = setupUser( 'C' );
+        setupUser( "A" );
+        userB = setupUser( "B" );
+        userC = setupUser( "C" );
         Set<User> usersA = new HashSet<>();
         usersA.add( userC );
         Set<User> usersB = new HashSet<>();
@@ -104,9 +104,9 @@ class MessageConversationStoreTest extends DhisSpringTest
         conversationIds.add( mc.getUid() );
     }
 
-    private User setupUser( char id )
+    private User setupUser( String id )
     {
-        User user = createUser( id );
+        User user = makeUser( id );
         userService.addUser( user );
         return user;
     }

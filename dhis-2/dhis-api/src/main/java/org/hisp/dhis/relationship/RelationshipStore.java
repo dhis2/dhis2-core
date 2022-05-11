@@ -80,7 +80,16 @@ public interface RelationshipStore
      */
     Relationship getByRelationship( Relationship relationship );
 
+    /**
+     * Checks if relationship for given UID exists (including deleted
+     * relationships).
+     *
+     * @param uid Relationship UID to check for.
+     * @return return true if relationship exists, false otherwise.
+     */
+    boolean existsIncludingDeleted( String uid );
+
     List<String> getUidsByRelationshipKeys( List<String> relationshipKeyList );
 
-    List<Relationship> getByUids( List<String> uids );
+    List<Relationship> getByUidsIncludeDeleted( List<String> uids );
 }

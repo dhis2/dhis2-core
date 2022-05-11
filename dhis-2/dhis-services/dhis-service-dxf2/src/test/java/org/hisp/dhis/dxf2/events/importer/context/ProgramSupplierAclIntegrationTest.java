@@ -100,7 +100,7 @@ class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationTest
     void verifyUserHasNoWriteAccessToProgram()
     {
         // Given
-        final User demo = createUser( "demo" );
+        final User demo = createUserWithAuth( "demo" );
         final Program program = createProgram( 'A' );
         program.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
         manager.save( program, false );
@@ -116,7 +116,7 @@ class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationTest
     void verifyUserHasWriteAccessToProgramForUserAccess()
     {
         // Given
-        final User user = createUser( "A" );
+        final User user = createUserWithAuth( "A" );
         final Program program = createProgram( 'A' );
         UserAccess userAccess = new UserAccess( user, AccessStringHelper.DATA_READ_WRITE );
         Set<UserAccess> userAccesses = new HashSet<>();
@@ -135,7 +135,7 @@ class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationTest
     void verifyUserHasWriteAccessToProgramForUserGroupAccess()
     {
         // Given
-        final User user = createUser( "A" );
+        final User user = createUserWithAuth( "A" );
         final Program program = createProgram( 'A' );
         UserGroup userGroup = new UserGroup( "test-group", singleton( user ) );
         manager.save( userGroup, true );
@@ -155,7 +155,7 @@ class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationTest
     void verifyUserHasWriteAccessToProgramForSharing()
     {
         // Given
-        final User user = createUser( "A" );
+        final User user = createUserWithAuth( "A" );
         final Program program = createProgram( 'A' );
         program.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
         manager.save( program, false );
@@ -171,7 +171,7 @@ class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationTest
     void verifyUserHasNoWriteAccessToProgramStage()
     {
         // Given
-        final User demo = createUser( "demo" );
+        final User demo = createUserWithAuth( "demo" );
         final ProgramStage programStage = createProgramStage( 'A', 1 );
         programStage.setPublicAccess( AccessStringHelper.DEFAULT );
         manager.save( programStage );
@@ -191,7 +191,7 @@ class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationTest
     void verifyUserHasWriteAccessToProgramStageForUserAccess()
     {
         // Given
-        final User user = createUser( "user2" );
+        final User user = createUserWithAuth( "user2" );
         final ProgramStage programStage = createProgramStage( 'B', 1 );
         UserAccess userAccess = new UserAccess( user, AccessStringHelper.DATA_READ_WRITE );
         programStage.setUserAccesses( singleton( userAccess ) );
@@ -212,7 +212,7 @@ class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationTest
     void verifyUserHasWriteAccessToProgramStageForGroupAccess()
     {
         // Given
-        final User user = createUser( "user1" );
+        final User user = createUserWithAuth( "user1" );
         final ProgramStage programStage = createProgramStage( 'A', 1 );
         programStage.setPublicAccess( AccessStringHelper.DEFAULT );
         UserGroup userGroup = new UserGroup( "test-group-programstage", singleton( user ) );
@@ -237,7 +237,7 @@ class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationTest
     void verifyUserHasWriteAccessToProgramStageForSharing()
     {
         // Given
-        final User user = createUser( "user1" );
+        final User user = createUserWithAuth( "user1" );
         final ProgramStage programStage = createProgramStage( 'A', 1 );
         programStage.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
         manager.save( programStage, false );
@@ -261,7 +261,7 @@ class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationTest
     void verifyUserHasNoWriteAccessToTrackedEntityType()
     {
         // Given
-        final User demo = createUser( "demo" );
+        final User demo = createUserWithAuth( "demo" );
         final TrackedEntityType tet = createTrackedEntityType( 'A' );
         tet.setPublicAccess( AccessStringHelper.DEFAULT );
         manager.save( tet );
@@ -281,7 +281,7 @@ class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationTest
     void verifyUserHasWriteAccessToTrackedEntityTypeForUserAccess()
     {
         // Given
-        final User user = createUser( "A" );
+        final User user = createUserWithAuth( "A" );
         final TrackedEntityType tet = createTrackedEntityType( 'A' );
         manager.save( tet );
         UserAccess userAccess = new UserAccess( user, AccessStringHelper.DATA_READ_WRITE );
@@ -303,7 +303,7 @@ class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationTest
     void verifyUserHasWriteAccessToTrackedEntityTypeForGroupAccess()
     {
         // Given
-        final User user = createUser( "user1" );
+        final User user = createUserWithAuth( "user1" );
         final TrackedEntityType tet = createTrackedEntityType( 'A' );
         manager.save( tet );
         UserGroup userGroup = new UserGroup( "test-group-tet", singleton( user ) );
@@ -327,7 +327,7 @@ class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationTest
     void verifyUserHasWriteAccessToTrackedEntityTypeForSharing()
     {
         // Given
-        final User user = createUser( "user1" );
+        final User user = createUserWithAuth( "user1" );
         final TrackedEntityType tet = createTrackedEntityType( 'A' );
         tet.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
         manager.save( tet, false );

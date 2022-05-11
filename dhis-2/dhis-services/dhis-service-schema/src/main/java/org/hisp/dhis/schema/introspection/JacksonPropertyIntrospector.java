@@ -47,7 +47,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -96,13 +95,6 @@ import com.google.common.primitives.Primitives;
 @Slf4j
 public class JacksonPropertyIntrospector implements PropertyIntrospector
 {
-
-    /**
-     * A simple cache to remember which types do or do not have {@link Property}
-     * values so the inspection is not done over and over again.
-     */
-    private static final Map<Class<?>, Boolean> HAS_PROPERTIES = new ConcurrentHashMap<>();
-
     @Override
     public void introspect( Class<?> klass, Map<String, Property> properties )
     {
@@ -137,7 +129,8 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
             initCollectionProperty( property );
 
             Method getterMethod = property.getGetterMethod();
-            if ( getterMethod != null && !property.isCollection() && !hasProperties( getterMethod.getReturnType() ) )
+
+            if ( getterMethod != null && !property.isCollection() && isSimple( getterMethod.getReturnType() ) )
             {
                 property.setSimple( true );
             }
@@ -149,9 +142,10 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
         }
     }
 
-    private static boolean hasProperties( Class<?> type )
+    private static boolean isSimple( Class<?> type )
     {
-        return HAS_PROPERTIES.computeIfAbsent( type, key -> !collectProperties( key ).isEmpty() );
+        return Primitives.allPrimitiveTypes().contains( type ) || Primitives.allWrapperTypes().contains( type )
+            || String.class.isAssignableFrom( type ) || Enum.class.isAssignableFrom( type );
     }
 
     private static void initFromDescription( Property property )
@@ -294,7 +288,7 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
             Class<?> klass = (Class<?>) ReflectionUtils.getInnerType( (ParameterizedType) type );
             property.setItemKlass( Primitives.wrap( klass ) );
 
-            if ( !hasProperties( klass ) )
+            if ( isSimple( klass ) )
             {
                 property.setSimple( true );
             }

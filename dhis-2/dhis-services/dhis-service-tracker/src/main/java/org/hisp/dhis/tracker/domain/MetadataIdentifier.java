@@ -54,6 +54,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class MetadataIdentifier
 {
 
+    public static MetadataIdentifier EMPTY_UID = MetadataIdentifier.ofUid( (String) null );
+
+    public static MetadataIdentifier EMPTY_CODE = MetadataIdentifier.ofCode( (String) null );
+
+    public static final MetadataIdentifier EMPTY_NAME = MetadataIdentifier.ofName( (String) null );
+
     /**
      * Represents the idScheme the {@link #identifier} is in.
      */
@@ -100,7 +106,25 @@ public class MetadataIdentifier
     }
 
     /**
-     * Creates an identifier for metadata using idScheme UID and the given uid.
+     * Creates an identifier for the given metadata using idScheme UID and its
+     * UID.
+     *
+     * @param metadata identifiable object of which the identifier will be
+     *        returned
+     * @return metadata identifier representing a UID
+     */
+    public static MetadataIdentifier ofUid( IdentifiableObject metadata )
+    {
+        if ( metadata == null )
+        {
+            return MetadataIdentifier.EMPTY_UID;
+        }
+
+        return MetadataIdentifier.ofUid( metadata.getUid() );
+    }
+
+    /**
+     * Creates an identifier for metadata using idScheme UID and the given UID.
      *
      * @param uid metadata uid
      * @return metadata identifier representing a UID
@@ -108,6 +132,24 @@ public class MetadataIdentifier
     public static MetadataIdentifier ofUid( String uid )
     {
         return new MetadataIdentifier( TrackerIdScheme.UID, uid, null );
+    }
+
+    /**
+     * Creates an identifier for the given metadata using idScheme CODE and its
+     * CODE.
+     *
+     * @param metadata identifiable object of which the identifier will be
+     *        returned
+     * @return metadata identifier representing a CODE
+     */
+    public static MetadataIdentifier ofCode( IdentifiableObject metadata )
+    {
+        if ( metadata == null )
+        {
+            return MetadataIdentifier.EMPTY_CODE;
+        }
+
+        return MetadataIdentifier.ofCode( metadata.getCode() );
     }
 
     /**
@@ -120,6 +162,24 @@ public class MetadataIdentifier
     public static MetadataIdentifier ofCode( String code )
     {
         return new MetadataIdentifier( TrackerIdScheme.CODE, code, null );
+    }
+
+    /**
+     * Creates an identifier for the given metadata using idScheme NAME and its
+     * name.
+     *
+     * @param metadata identifiable object of which the identifier will be
+     *        returned
+     * @return metadata identifier representing a NAME
+     */
+    public static MetadataIdentifier ofName( IdentifiableObject metadata )
+    {
+        if ( metadata == null )
+        {
+            return MetadataIdentifier.EMPTY_NAME;
+        }
+
+        return MetadataIdentifier.ofName( metadata.getName() );
     }
 
     /**

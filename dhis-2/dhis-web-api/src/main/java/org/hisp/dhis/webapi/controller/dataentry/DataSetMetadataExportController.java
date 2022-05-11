@@ -27,23 +27,23 @@
  */
 package org.hisp.dhis.webapi.controller.dataentry;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.metadata.DataSetMetadataExportService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * @author Lars Helge Overland
  */
-@Controller
-@AllArgsConstructor
+@RestController
+@RequiredArgsConstructor
 @RequestMapping( "/dataEntry" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class DataSetMetadataExportController

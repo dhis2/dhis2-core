@@ -33,7 +33,10 @@
   "trackedEntities": [
     {
       "trackedEntity": "NCc1rCEOKaY",
-      "trackedEntityType": "bPJ0FMtcnEh",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "bPJ0FMtcnEh"
+      },
       "orgUnit": {
         "idScheme": "UID",
         "identifier": "QfUVllTs6cS"
@@ -58,7 +61,10 @@
     },
     {
       "trackedEntity": "PB9VMezGkwA",
-      "trackedEntityType": "bPJ0FMtcnEh",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "bPJ0FMtcnEh"
+      },
       "orgUnit": {
         "idScheme": "UID",
         "identifier": "QfUVllTs6cS"
@@ -72,7 +78,10 @@
     },
     {
       "trackedEntity": "N0wuhEwexUW",
-      "trackedEntityType": "bPJ0FMtcnEh",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "bPJ0FMtcnEh"
+      },
       "orgUnit": {
         "idScheme": "UID",
         "identifier": "QfUVllTs6cS"
@@ -86,7 +95,10 @@
     },
     {
       "trackedEntity": "g3eF1fJXuSz",
-      "trackedEntityType": "bPJ0FMtcnEh",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "bPJ0FMtcnEh"
+      },
       "orgUnit": {
         "idScheme": "UID",
         "identifier": "QfUVllTs6cS"
@@ -100,7 +112,10 @@
     },
     {
       "trackedEntity": "s9D7VHiYLwj",
-      "trackedEntityType": "bPJ0FMtcnEh",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "bPJ0FMtcnEh"
+      },
       "orgUnit": {
         "idScheme": "UID",
         "identifier": "QfUVllTs6cS"
@@ -114,7 +129,10 @@
     },
     {
       "trackedEntity": "C5nACFyIFQo",
-      "trackedEntityType": "bPJ0FMtcnEh",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "bPJ0FMtcnEh"
+      },
       "orgUnit": {
         "idScheme": "UID",
         "identifier": "QfUVllTs6cS"
@@ -128,7 +146,10 @@
     },
     {
       "trackedEntity": "Jx8Ul6pnRfM",
-      "trackedEntityType": "bPJ0FMtcnEh",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "bPJ0FMtcnEh"
+      },
       "orgUnit": {
         "idScheme": "UID",
         "identifier": "QfUVllTs6cS"
@@ -142,7 +163,10 @@
     },
     {
       "trackedEntity": "Z324qoN3WrF",
-      "trackedEntityType": "bPJ0FMtcnEh",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "bPJ0FMtcnEh"
+      },
       "orgUnit": {
         "idScheme": "UID",
         "identifier": "QfUVllTs6cS"
@@ -156,7 +180,10 @@
     },
     {
       "trackedEntity": "TGeGZIIt4MO",
-      "trackedEntityType": "bPJ0FMtcnEh",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "bPJ0FMtcnEh"
+      },
       "orgUnit": {
         "idScheme": "UID",
         "identifier": "QfUVllTs6cS"
@@ -170,7 +197,10 @@
     },
     {
       "trackedEntity": "KSLmzEjaV6A",
-      "trackedEntityType": "bPJ0FMtcnEh",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "bPJ0FMtcnEh"
+      },
       "orgUnit": {
         "idScheme": "UID",
         "identifier": "QfUVllTs6cS"
@@ -184,7 +214,10 @@
     },
     {
       "trackedEntity": "IybbQIQt6rn",
-      "trackedEntityType": "bPJ0FMtcnEh",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "bPJ0FMtcnEh"
+      },
       "orgUnit": {
         "idScheme": "UID",
         "identifier": "QfUVllTs6cS"
@@ -198,7 +231,10 @@
     },
     {
       "trackedEntity": "daMwzsKN3oJ",
-      "trackedEntityType": "bPJ0FMtcnEh",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "bPJ0FMtcnEh"
+      },
       "orgUnit": {
         "idScheme": "UID",
         "identifier": "QfUVllTs6cS"
@@ -212,7 +248,10 @@
     },
     {
       "trackedEntity": "pcSaZP9lFqu",
-      "trackedEntityType": "bPJ0FMtcnEh",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "bPJ0FMtcnEh"
+      },
       "orgUnit": {
         "idScheme": "UID",
         "identifier": "QfUVllTs6cS"
@@ -298,12 +337,17 @@
       "deleted": false,
       "createdAt": "2019-01-28T12:10:38.108",
       "updatedAt": "2019-01-28T12:10:38.109",
-      "attributeCategoryOptions": "xYerKDKCefk",
-      "completedBy": "admin",
-      "completedAt": "2019-01-28T00:00:00.000",
       "attributeOptionCombo": {
         "idScheme": "UID"
       },
+      "attributeCategoryOptions": [
+        {
+          "idScheme": "UID",
+          "identifier": "xYerKDKCefk"
+        }
+      ],
+      "completedBy": "admin",
+      "completedAt": "2019-01-28T00:00:00.000",
       "dataValues": [],
       "notes": []
     },
@@ -331,12 +375,17 @@
       "deleted": false,
       "createdAt": "2019-01-28T12:10:38.108",
       "updatedAt": "2019-01-28T12:10:38.109",
-      "attributeCategoryOptions": "xYerKDKCefk",
-      "completedBy": "admin",
-      "completedAt": "2019-01-28T00:00:00.000",
       "attributeOptionCombo": {
         "idScheme": "UID"
       },
+      "attributeCategoryOptions": [
+        {
+          "idScheme": "UID",
+          "identifier": "xYerKDKCefk"
+        }
+      ],
+      "completedBy": "admin",
+      "completedAt": "2019-01-28T00:00:00.000",
       "dataValues": [],
       "notes": []
     }

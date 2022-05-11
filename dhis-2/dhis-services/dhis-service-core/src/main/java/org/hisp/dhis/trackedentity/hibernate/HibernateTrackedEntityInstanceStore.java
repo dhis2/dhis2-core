@@ -846,10 +846,13 @@ public class HibernateTrackedEntityInstanceStore
 
             for ( OrganisationUnit organisationUnit : params.getOrganisationUnits() )
             {
+
+                OrganisationUnit byUid = organisationUnitStore.getByUid( organisationUnit.getUid() );
+
                 orgUnits
                     .append( orHlp.or() )
                     .append( "OU.path LIKE '" )
-                    .append( organisationUnit.getPath() )
+                    .append( byUid.getPath() )
                     .append( "%'" );
             }
 

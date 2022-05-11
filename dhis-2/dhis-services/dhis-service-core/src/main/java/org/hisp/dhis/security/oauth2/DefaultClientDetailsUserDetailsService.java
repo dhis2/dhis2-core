@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.security.oauth2;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import lombok.AllArgsConstructor;
+
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -42,44 +42,30 @@ import org.springframework.stereotype.Service;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Service( "defaultClientDetailsUserDetailsService" )
+@AllArgsConstructor
 public class DefaultClientDetailsUserDetailsService implements UserDetailsService
 {
-
     private final DefaultClientDetailsService clientDetailsService;
 
-    private String emptyPassword = "";
-
-    @Autowired
-    public DefaultClientDetailsUserDetailsService(
-        @Qualifier( "defaultClientDetailsService" ) DefaultClientDetailsService clientDetailsService )
-    {
-        this.clientDetailsService = clientDetailsService;
-    }
-
-    /**
-     * @param passwordEncoder the password encoder to set
-     */
-    public void setPasswordEncoder( PasswordEncoder passwordEncoder )
-    {
-        this.emptyPassword = passwordEncoder.encode( "" );
-    }
+    private final PasswordEncoder passwordEncoder;
 
     public UserDetails loadUserByUsername( String username )
     {
-        ClientDetails clientDetails;
         try
         {
-            clientDetails = clientDetailsService.loadClientByClientId( username );
+            ClientDetails clientDetails = clientDetailsService.loadClientByClientId( username );
+
+            String clientSecret = clientDetails.getClientSecret();
+            if ( clientSecret == null || clientSecret.trim().length() == 0 )
+            {
+                clientSecret = passwordEncoder.encode( "" );
+            }
+
+            return new User( username, clientSecret, clientDetails.getAuthorities() );
         }
         catch ( NoSuchClientException e )
         {
             throw new UsernameNotFoundException( e.getMessage(), e );
         }
-        String clientSecret = clientDetails.getClientSecret();
-        if ( clientSecret == null || clientSecret.trim().length() == 0 )
-        {
-            clientSecret = emptyPassword;
-        }
-        return new User( username, clientSecret, clientDetails.getAuthorities() );
     }
 }

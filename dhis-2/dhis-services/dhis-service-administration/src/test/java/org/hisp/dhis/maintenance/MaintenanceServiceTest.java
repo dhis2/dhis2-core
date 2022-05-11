@@ -211,6 +211,40 @@ class MaintenanceServiceTest extends IntegrationTestBase
     }
 
     @Test
+    void testDeleteSoftDeletedTrackedEntityInstanceLinkedToARelationshipItem()
+    {
+        RelationshipType rType = createRelationshipType( 'A' );
+        rType.getFromConstraint().setRelationshipEntity( RelationshipEntity.PROGRAM_INSTANCE );
+        rType.getFromConstraint().setProgram( program );
+        rType.getToConstraint().setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
+        rType.getFromConstraint().setTrackedEntityType( entityInstance.getTrackedEntityType() );
+        relationshipTypeService.addRelationshipType( rType );
+        Relationship r = new Relationship();
+        RelationshipItem rItem1 = new RelationshipItem();
+        rItem1.setProgramInstance( programInstance );
+        RelationshipItem rItem2 = new RelationshipItem();
+        rItem2.setTrackedEntityInstance( entityInstance );
+        r.setFrom( rItem1 );
+        r.setTo( rItem2 );
+        r.setRelationshipType( rType );
+        r.setKey( RelationshipUtils.generateRelationshipKey( r ) );
+        r.setInvertedKey( RelationshipUtils.generateRelationshipInvertedKey( r ) );
+        relationshipService.addRelationship( r );
+        assertNotNull( trackedEntityInstanceService.getTrackedEntityInstance( entityInstance.getId() ) );
+        assertNotNull( relationshipService.getRelationship( r.getId() ) );
+        trackedEntityInstanceService.deleteTrackedEntityInstance( entityInstance );
+        assertNull( trackedEntityInstanceService.getTrackedEntityInstance( entityInstance.getId() ) );
+        assertNull( relationshipService.getRelationship( r.getId() ) );
+        assertTrue(
+            trackedEntityInstanceService.trackedEntityInstanceExistsIncludingDeleted( entityInstance.getUid() ) );
+        assertTrue( relationshipService.relationshipExistsIncludingDeleted( r.getUid() ) );
+        maintenanceService.deleteSoftDeletedTrackedEntityInstances();
+        assertFalse(
+            trackedEntityInstanceService.trackedEntityInstanceExistsIncludingDeleted( entityInstance.getUid() ) );
+        assertFalse( relationshipService.relationshipExistsIncludingDeleted( r.getUid() ) );
+    }
+
+    @Test
     void testDeleteSoftDeletedProgramInstanceWithAProgramMessage()
     {
         ProgramMessageRecipients programMessageRecipients = new ProgramMessageRecipients();
@@ -329,9 +363,11 @@ class MaintenanceServiceTest extends IntegrationTestBase
         assertNull( relationshipService.getRelationship( r.getId() ) );
         assertTrue(
             programStageInstanceService.programStageInstanceExistsIncludingDeleted( programStageInstanceA.getUid() ) );
+        assertTrue( relationshipService.relationshipExistsIncludingDeleted( r.getUid() ) );
         maintenanceService.deleteSoftDeletedProgramStageInstances();
         assertFalse(
             programStageInstanceService.programStageInstanceExistsIncludingDeleted( programStageInstanceA.getUid() ) );
+        assertFalse( relationshipService.relationshipExistsIncludingDeleted( r.getUid() ) );
     }
 
     @Test
@@ -360,8 +396,10 @@ class MaintenanceServiceTest extends IntegrationTestBase
         assertNull( programInstanceService.getProgramInstance( programInstance.getId() ) );
         assertNull( relationshipService.getRelationship( r.getId() ) );
         assertTrue( programInstanceService.programInstanceExistsIncludingDeleted( programInstance.getUid() ) );
+        assertTrue( relationshipService.relationshipExistsIncludingDeleted( r.getUid() ) );
         maintenanceService.deleteSoftDeletedProgramInstances();
         assertFalse( programInstanceService.programInstanceExistsIncludingDeleted( programInstance.getUid() ) );
+        assertFalse( relationshipService.relationshipExistsIncludingDeleted( r.getUid() ) );
     }
 
     @Test
