@@ -45,6 +45,12 @@ public interface JsonDataIntegrityCheck extends JsonObject
         return getString( "name" ).string();
     }
 
+    @Expected
+    default String getDisplayName()
+    {
+        return getString( "displayName" ).string();
+    }
+
     default String getSection()
     {
         return getString( "section" ).string();
