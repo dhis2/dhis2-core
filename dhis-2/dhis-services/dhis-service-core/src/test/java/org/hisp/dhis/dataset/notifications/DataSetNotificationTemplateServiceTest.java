@@ -144,8 +144,8 @@ class DataSetNotificationTemplateServiceTest extends DhisSpringTest
         dataSetService.addDataSet( dataSetA );
         dataSetService.addDataSet( dataSetB );
         dataSetService.addDataSet( dataSetC );
-        userA = createUser( 'A' );
-        userB = createUser( 'B' );
+        userA = makeUser( "A" );
+        userB = makeUser( "B" );
         userService.addUser( userA );
         userService.addUser( userB );
         dataSets.addAll( Arrays.asList( dataSetA, dataSetB, dataSetC ) );

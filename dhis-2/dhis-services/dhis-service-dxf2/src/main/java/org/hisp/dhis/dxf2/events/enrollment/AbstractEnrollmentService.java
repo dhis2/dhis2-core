@@ -74,6 +74,7 @@ import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.event.Note;
 import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
+import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.importsummary.ImportConflicts;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
@@ -372,9 +373,14 @@ public abstract class AbstractEnrollmentService
         {
             for ( RelationshipItem relationshipItem : programInstance.getRelationshipItems() )
             {
-                enrollment.getRelationships()
-                    .add( relationshipService.getRelationship( relationshipItem.getRelationship(),
-                        RelationshipParams.FALSE, user ) );
+                org.hisp.dhis.relationship.Relationship daoRelationship = relationshipItem.getRelationship();
+                if ( trackerAccessManager.canRead( user, daoRelationship ).isEmpty()
+                    && (params.isIncludeDeleted() || !daoRelationship.isDeleted()) )
+                {
+                    Relationship relationship = relationshipService.getRelationship( relationshipItem.getRelationship(),
+                        RelationshipParams.FALSE, user );
+                    enrollment.getRelationships().add( relationship );
+                }
             }
         }
 

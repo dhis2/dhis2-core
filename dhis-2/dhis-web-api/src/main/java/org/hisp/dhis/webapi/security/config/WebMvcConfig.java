@@ -37,6 +37,8 @@ import java.util.regex.Pattern;
 
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.common.DefaultRequestInfoService;
+import org.hisp.dhis.dxf2.metadata.MetadataExportService;
+import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.node.DefaultNodeService;
 import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.user.CurrentUserService;
@@ -48,6 +50,8 @@ import org.hisp.dhis.webapi.mvc.DhisApiVersionHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.interceptor.RequestInfoInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.UserContextInterceptor;
 import org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter;
+import org.hisp.dhis.webapi.mvc.messageconverter.MetadataExportParamsMessageConverter;
+import org.hisp.dhis.webapi.mvc.messageconverter.StreamingJsonRootMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.XmlMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.XmlPathMappingJackson2XmlHttpMessageConverter;
 import org.hisp.dhis.webapi.view.CustomPathExtensionContentNegotiationStrategy;
@@ -123,6 +127,12 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration
     @Qualifier( "xmlMapper" )
     private ObjectMapper xmlMapper;
 
+    @Autowired
+    private MetadataExportService metadataExportService;
+
+    @Autowired
+    private FieldFilterService fieldFilterService;
+
     @Bean( "multipartResolver" )
     public MultipartResolver multipartResolver()
     {
@@ -185,6 +195,14 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration
         Arrays.stream( Compression.values() )
             .forEach( compression -> converters.add( new XmlMessageConverter( nodeService(), compression ) ) );
 
+        Arrays.stream( Compression.values() )
+            .forEach( compression -> converters
+                .add( new MetadataExportParamsMessageConverter( metadataExportService, compression ) ) );
+
+        Arrays.stream( Compression.values() )
+            .forEach( compression -> converters
+                .add( new StreamingJsonRootMessageConverter( fieldFilterService, compression ) ) );
+
         converters.add( new StringHttpMessageConverter( StandardCharsets.UTF_8 ) );
         converters.add( new ByteArrayHttpMessageConverter() );
         converters.add( new FormHttpMessageConverter() );
@@ -243,7 +261,7 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration
         .put( "pdf", MediaType.APPLICATION_PDF )
         .put( "xls", parseMediaType( "application/vnd.ms-excel" ) )
         .put( "xlsx", parseMediaType( "application/vnd.ms-excel" ) )
-        .put( "csv", parseMediaType( "application/csv" ) )
+        .put( "csv", parseMediaType( "text/csv" ) )
         .put( "csv.gz", parseMediaType( "application/csv+gzip" ) )
         .put( "csv.zip", parseMediaType( "application/csv+zip" ) )
         .put( "adx.xml", parseMediaType( "application/adx+xml" ) )

@@ -27,11 +27,12 @@
  */
 package org.hisp.dhis.security;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.user.CurrentUserUtil.initializeUser;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.hisp.dhis.system.util.SecurityUtils;
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.ObjectUtils;
@@ -47,31 +48,15 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Slf4j
 @Service( "userDetailsService" )
+@AllArgsConstructor
 public class DefaultUserDetailsService
     implements UserDetailsService
 {
-    public static final String ID = UserDetailsService.class.getName();
-
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final UserService userService;
 
     private final SecurityService securityService;
 
-    public DefaultUserDetailsService( UserService userService, SecurityService securityService )
-    {
-        checkNotNull( userService );
-        checkNotNull( securityService );
-
-        this.userService = userService;
-        this.securityService = securityService;
-    }
-
-    // -------------------------------------------------------------------------
-    // UserDetailsService implementation
-    // -------------------------------------------------------------------------
+    private final SessionFactory sessionFactory;
 
     @Override
     @Transactional( readOnly = true )
@@ -93,9 +78,13 @@ public class DefaultUserDetailsService
                 username, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked ) );
         }
 
-        return new org.springframework.security.core.userdetails.User( user.getUsername(),
-            user.getPassword(),
-            enabled, accountNonExpired, credentialsNonExpired, accountNonLocked,
-            SecurityUtils.getGrantedAuthorities( user ) );
+        initializeUser( user );
+
+        sessionFactory.getCurrentSession().evict( user );
+
+        user.setAccountNonLocked( accountNonLocked );
+        user.setCredentialsNonExpired( credentialsNonExpired );
+
+        return user;
     }
 }

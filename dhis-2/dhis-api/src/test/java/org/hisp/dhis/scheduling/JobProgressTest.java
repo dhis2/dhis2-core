@@ -198,20 +198,6 @@ class JobProgressTest
     }
 
     @Test
-    void testRunStageInParallel_CommonPool()
-    {
-        // runStageInParallel_Success(
-        // Runtime.getRuntime().availableProcessors() );
-    }
-
-    @Test
-    void testRunStageInParallel_CustomPool()
-    {
-        // runStageInParallel_Success( max( 2,
-        // Runtime.getRuntime().availableProcessors() / 2 ) );
-    }
-
-    @Test
     void testRunStageInParallel_CommonPoolHalfFailed()
     {
         runStageInParallel_Success( Runtime.getRuntime().availableProcessors() );

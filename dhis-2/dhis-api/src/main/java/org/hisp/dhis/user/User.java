@@ -29,12 +29,15 @@ package org.hisp.dhis.user;
 
 import static org.springframework.beans.BeanUtils.copyProperties;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -178,6 +181,10 @@ public class User
      */
     private boolean disabled;
 
+    private boolean isCredentialsNonExpired;
+
+    private boolean isAccountNonLocked;
+
     /**
      * The timestamp representing when the user account expires. If not set the
      * account does never expire.
@@ -233,8 +240,7 @@ public class User
     private transient UserCredentialsDto userCredentialsRaw;
 
     /**
-     * Organisation units for data input and data capture operations. TODO move
-     * to User.
+     * Organisation units for data input and data capture operations.
      */
     private Set<OrganisationUnit> organisationUnits = new HashSet<>();
 
@@ -816,13 +822,23 @@ public class User
     @Override
     public boolean isAccountNonLocked()
     {
-        return false;
+        return isAccountNonLocked;
+    }
+
+    public void setAccountNonLocked( boolean isAccountNonLocked )
+    {
+        this.isAccountNonLocked = isAccountNonLocked;
     }
 
     @Override
     public boolean isCredentialsNonExpired()
     {
-        return false;
+        return isCredentialsNonExpired;
+    }
+
+    public void setCredentialsNonExpired( boolean isCredentialsNonExpired )
+    {
+        this.isCredentialsNonExpired = isCredentialsNonExpired;
     }
 
     @Override
@@ -1492,6 +1508,15 @@ public class User
     protected void setUserCredentials( UserCredentialsDto user )
     {
         this.userCredentialsRaw = user;
+    }
+
+    @JsonIgnore
+    private transient Map<String, Serializable> userSettings = new HashMap<>();
+
+    @JsonIgnore
+    public Map<String, Serializable> getUserSettings()
+    {
+        return userSettings;
     }
 
     public static void populateUserCredentialsDtoFields( User user )

@@ -56,6 +56,7 @@ import javax.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.annotations.QueryHints;
 import org.hibernate.query.Query;
@@ -531,20 +532,22 @@ public class HibernateUserStore
     }
 
     @Override
-    public CurrentUserGroupInfo getCurrentUserGroupInfo( long userId )
+    public CurrentUserGroupInfo getCurrentUserGroupInfo( User user )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
         CriteriaQuery<Object[]> query = builder.createQuery( Object[].class );
         Root<User> root = query.from( User.class );
-        query.where( builder.equal( root.get( "id" ), userId ) );
+        query.where( builder.equal( root.get( "id" ), user.getId() ) );
         query.select( builder.array( root.get( "uid" ), root.join( "groups", JoinType.LEFT ).get( "uid" ) ) );
 
-        List<Object[]> results = getSession().createQuery( query ).getResultList();
+        Session session = getSession();
+        List<Object[]> results = session.createQuery( query ).getResultList();
 
         CurrentUserGroupInfo currentUserGroupInfo = new CurrentUserGroupInfo();
 
         if ( CollectionUtils.isEmpty( results ) )
         {
+            currentUserGroupInfo.setUserUID( user.getUid() );
             return currentUserGroupInfo;
         }
 

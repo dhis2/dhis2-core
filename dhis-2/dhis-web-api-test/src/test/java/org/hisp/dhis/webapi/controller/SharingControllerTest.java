@@ -106,7 +106,7 @@ class SharingControllerTest extends DhisControllerConvenienceTest
         assertEquals( "test", object.getString( "displayName" ).string() );
         assertEquals( "rw------", object.getString( "publicAccess" ).string() );
         assertFalse( object.getBoolean( "externalAccess" ).booleanValue() );
-        assertEquals( "admin admin", object.getObject( "user" ).getString( "name" ).string() );
+        assertEquals( "FirstNameadmin Surnameadmin", object.getObject( "user" ).getString( "name" ).string() );
         assertEquals( 0, object.getArray( "userGroupAccesses" ).size() );
         assertEquals( 0, object.getArray( "userAccesses" ).size() );
     }

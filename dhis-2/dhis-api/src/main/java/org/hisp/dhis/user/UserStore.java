@@ -112,7 +112,7 @@ public interface UserStore
      * @param userId
      * @return
      */
-    CurrentUserGroupInfo getCurrentUserGroupInfo( long userId );
+    CurrentUserGroupInfo getCurrentUserGroupInfo( User user );
 
     /**
      * Sets {@link User#setDisabled(boolean)} to {@code true} for all users

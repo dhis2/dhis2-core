@@ -60,7 +60,7 @@ class UserServiceTest extends DhisSpringTest
 {
 
     @Autowired
-    private UserService userService;
+    private UserService _userService;
 
     @Autowired
     private UserGroupService userGroupService;
@@ -91,7 +91,7 @@ class UserServiceTest extends DhisSpringTest
     public void setUpTest()
         throws Exception
     {
-        super.userService = userService;
+        super.userService = _userService;
         unitA = createOrganisationUnit( 'A' );
         unitB = createOrganisationUnit( 'B' );
         unitC = createOrganisationUnit( 'C', unitA );
@@ -125,8 +125,8 @@ class UserServiceTest extends DhisSpringTest
     @Test
     void testAddGetUser()
     {
-        User userA = addUser( 'A', unitA, unitB );
-        User userB = addUser( 'B', unitA, unitB );
+        User userA = addUser( "A", unitA, unitB );
+        User userB = addUser( "B", unitA, unitB );
         Set<OrganisationUnit> expected = new HashSet<>( asList( unitA, unitB ) );
         assertEquals( expected, userService.getUser( userA.getId() ).getOrganisationUnits() );
         assertEquals( expected, userService.getUser( userB.getId() ).getOrganisationUnits() );
@@ -135,10 +135,9 @@ class UserServiceTest extends DhisSpringTest
     @Test
     void testGetUserByUsernames()
     {
-        addUser( 'a' );
-        addUser( 'b' );
+        addUser( "a" );
+        addUser( "b" );
 
-        List<User> allUsers = userService.getAllUsers();
         assertEquals( 2, userService.getUsersByUsernames( asList( "usernamea", "usernameb" ) ).size() );
         assertEquals( 2,
             userService.getUsersByUsernames( asList( "usernamea", "usernameb", "usernamex" ) ).size() );
@@ -148,8 +147,8 @@ class UserServiceTest extends DhisSpringTest
     @Test
     void testUpdateUser()
     {
-        User userA = addUser( 'A' );
-        User userB = addUser( 'B' );
+        User userA = addUser( "A" );
+        User userB = addUser( "B" );
         assertEquals( userA, userService.getUser( userA.getId() ) );
         assertEquals( userB, userService.getUser( userB.getId() ) );
         userA.setSurname( "UpdatedSurnameA" );
@@ -160,8 +159,8 @@ class UserServiceTest extends DhisSpringTest
     @Test
     void testDeleteUser()
     {
-        User userA = addUser( 'A' );
-        User userB = addUser( 'B' );
+        User userA = addUser( "A" );
+        User userB = addUser( "B" );
         assertEquals( userA, userService.getUser( userA.getId() ) );
         assertEquals( userB, userService.getUser( userB.getId() ) );
         userService.deleteUser( userA );
@@ -172,8 +171,8 @@ class UserServiceTest extends DhisSpringTest
     @Test
     void testUserByQuery()
     {
-        User userA = addUser( 'A', user -> user.setFirstName( "Chris" ) );
-        User userB = addUser( 'B', user -> user.setFirstName( "Chris" ) );
+        User userA = addUser( "A", user -> user.setFirstName( "Chris" ) );
+        User userB = addUser( "B", user -> user.setFirstName( "Chris" ) );
         assertContainsOnly( userService.getUsers( getDefaultParams().setQuery( "Chris" ) ), userA, userB );
         assertContainsOnly( userService.getUsers( getDefaultParams().setQuery( "hris SURNAM" ) ), userA, userB );
         assertContainsOnly( userService.getUsers( getDefaultParams().setQuery( "hris SurnameA" ) ), userA );
@@ -186,10 +185,10 @@ class UserServiceTest extends DhisSpringTest
     @Test
     void testUserByOrgUnits()
     {
-        User userA = addUser( 'A', unitA );
-        addUser( 'B', unitB );
-        User userC = addUser( 'C', unitC );
-        addUser( 'D', unitD );
+        User userA = addUser( "A", unitA );
+        addUser( "B", unitB );
+        User userC = addUser( "C", unitC );
+        addUser( "D", unitD );
         UserQueryParams params = getDefaultParams().addOrganisationUnit( unitA ).setUser( userA );
         assertContainsOnly( userService.getUsers( params ), userA );
         params = getDefaultParams().addOrganisationUnit( unitA ).setIncludeOrgUnitChildren( true ).setUser( userA );
@@ -199,16 +198,16 @@ class UserServiceTest extends DhisSpringTest
     @Test
     void testUserByDataViewOrgUnits()
     {
-        User userA = addUser( 'A', unitA );
+        User userA = addUser( "A", unitA );
         userA.getDataViewOrganisationUnits().add( unitA );
         userService.updateUser( userA );
-        User userB = addUser( 'B', unitB );
+        User userB = addUser( "B", unitB );
         userB.getDataViewOrganisationUnits().add( unitA );
         userService.updateUser( userB );
-        User userC = addUser( 'C', unitC );
+        User userC = addUser( "C", unitC );
         userC.getDataViewOrganisationUnits().add( unitC );
         userService.updateUser( userC );
-        User userD = addUser( 'D', unitD );
+        User userD = addUser( "D", unitD );
         userD.getDataViewOrganisationUnits().add( unitD );
         userService.updateUser( userD );
         UserQueryParams params = getDefaultParams().addDataViewOrganisationUnit( unitA ).setUser( userA );
@@ -221,16 +220,16 @@ class UserServiceTest extends DhisSpringTest
     @Test
     void testUserByTeiSearchOrgUnits()
     {
-        User userA = addUser( 'A', unitA );
+        User userA = addUser( "A", unitA );
         userA.getTeiSearchOrganisationUnits().add( unitA );
         userService.updateUser( userA );
-        User userB = addUser( 'B', unitB );
+        User userB = addUser( "B", unitB );
         userB.getTeiSearchOrganisationUnits().add( unitA );
         userService.updateUser( userB );
-        User userC = addUser( 'C', unitC );
+        User userC = addUser( "C", unitC );
         userC.getTeiSearchOrganisationUnits().add( unitC );
         userService.updateUser( userC );
-        User userD = addUser( 'D', unitD );
+        User userD = addUser( "D", unitD );
         userD.getTeiSearchOrganisationUnits().add( unitD );
         userService.updateUser( userD );
         UserQueryParams params = getDefaultParams().addTeiSearchOrganisationUnit( unitA ).setUser( userA );
@@ -243,10 +242,10 @@ class UserServiceTest extends DhisSpringTest
     @Test
     void testUserByUserGroups()
     {
-        User userA = addUser( 'A' );
-        User userB = addUser( 'B' );
-        User userC = addUser( 'C' );
-        User userD = addUser( 'D' );
+        User userA = addUser( "A" );
+        User userB = addUser( "B" );
+        User userC = addUser( "C" );
+        User userD = addUser( "D" );
         UserGroup ugA = createUserGroup( 'A', newHashSet( userA, userB ) );
         UserGroup ugB = createUserGroup( 'B', newHashSet( userB, userC ) );
         UserGroup ugC = createUserGroup( 'C', newHashSet( userD ) );
@@ -264,12 +263,12 @@ class UserServiceTest extends DhisSpringTest
     @Test
     void testGetUserOrgUnits()
     {
-        User currentUser = addUser( 'Z', unitA, unitB );
-        User userA = addUser( 'A', unitA );
-        User userB = addUser( 'B', unitB );
-        User userC = addUser( 'C', unitC );
-        User userD = addUser( 'D', unitD );
-        addUser( 'E', unitE );
+        User currentUser = addUser( "Z", unitA, unitB );
+        User userA = addUser( "A", unitA );
+        User userB = addUser( "B", unitB );
+        User userC = addUser( "C", unitC );
+        User userD = addUser( "D", unitD );
+        addUser( "E", unitE );
         UserQueryParams params = getDefaultParams().setUser( currentUser ).setUserOrgUnits( true );
         assertContainsOnly( userService.getUsers( params ), currentUser, userA, userB );
         params = getDefaultParams().setUser( currentUser ).setUserOrgUnits( true ).setIncludeOrgUnitChildren( true );
@@ -281,10 +280,10 @@ class UserServiceTest extends DhisSpringTest
     {
         systemSettingManager.saveSystemSetting( CAN_GRANT_OWN_USER_ROLES, true );
         // TODO find way to override in parameters
-        User userA = addUser( 'A' );
-        User userB = addUser( 'B' );
-        User userC = addUser( 'C' );
-        User userD = addUser( 'D' );
+        User userA = addUser( "A" );
+        User userB = addUser( "B" );
+        User userC = addUser( "C" );
+        User userD = addUser( "D" );
         UserGroup userGroup1 = createUserGroup( 'A', newHashSet( userA, userB ) );
         UserGroup userGroup2 = createUserGroup( 'B', newHashSet( userC, userD ) );
         userA.getGroups().add( userGroup1 );
@@ -325,9 +324,9 @@ class UserServiceTest extends DhisSpringTest
     void testGetByPhoneNumber()
     {
         systemSettingManager.saveSystemSetting( CAN_GRANT_OWN_USER_ROLES, true );
-        addUser( 'A', user -> user.setPhoneNumber( "73647271" ) );
-        User userB = addUser( 'B', user -> user.setPhoneNumber( "23452134" ) );
-        addUser( 'C', user -> user.setPhoneNumber( "14543232" ) );
+        addUser( "A", user -> user.setPhoneNumber( "73647271" ) );
+        User userB = addUser( "B", user -> user.setPhoneNumber( "23452134" ) );
+        addUser( "C", user -> user.setPhoneNumber( "14543232" ) );
         List<User> users = userService.getUsersByPhoneNumber( "23452134" );
         assertEquals( 1, users.size() );
         assertEquals( userB, users.get( 0 ) );
@@ -336,8 +335,8 @@ class UserServiceTest extends DhisSpringTest
     @Test
     void testGetByUuid()
     {
-        User userA = addUser( 'A' );
-        User userB = addUser( 'B' );
+        User userA = addUser( "A" );
+        User userB = addUser( "B" );
         assertEquals( userA, userService.getUserByUuid( userA.getUuid() ) );
         assertEquals( userB, userService.getUserByUuid( userB.getUuid() ) );
     }
@@ -345,9 +344,9 @@ class UserServiceTest extends DhisSpringTest
     @Test
     void testGetByIdentifier()
     {
-        User userA = addUser( 'A' );
-        User userB = addUser( 'B' );
-        addUser( 'C' );
+        User userA = addUser( "A" );
+        User userB = addUser( "B" );
+        addUser( "C" );
         // Match
         assertEquals( userA, userService.getUserByIdentifier( userA.getUid() ) );
         assertEquals( userA, userService.getUserByIdentifier( userA.getUuid().toString() ) );
@@ -364,19 +363,19 @@ class UserServiceTest extends DhisSpringTest
     @Test
     void testGetOrdered()
     {
-        User userA = addUser( 'A', user -> {
+        User userA = addUser( "A", user -> {
             user.setSurname( "Yong" );
             user.setFirstName( "Anne" );
             user.setEmail( "lost@space.com" );
             user.getOrganisationUnits().add( unitA );
         } );
-        User userB = addUser( 'B', user -> {
+        User userB = addUser( "B", user -> {
             user.setSurname( "Arden" );
             user.setFirstName( "Jenny" );
             user.setEmail( "Inside@other.com" );
             user.getOrganisationUnits().add( unitA );
         } );
-        User userC = addUser( 'C', user -> {
+        User userC = addUser( "C", user -> {
             user.setSurname( "Smith" );
             user.setFirstName( "Igor" );
             user.setEmail( "home@other.com" );
@@ -391,12 +390,12 @@ class UserServiceTest extends DhisSpringTest
     @Test
     void testGetManagedGroupsLessAuthoritiesDisjointRoles()
     {
-        User userA = addUser( 'A', roleA );
-        User userB = addUser( 'B', roleB, roleC );
-        User userC = addUser( 'C', roleA, roleC );
-        User userD = addUser( 'D', roleC );
-        User userE = addUser( 'E', roleA );
-        User userF = addUser( 'F', roleC );
+        User userA = addUser( "A", roleA );
+        User userB = addUser( "B", roleB, roleC );
+        User userC = addUser( "C", roleA, roleC );
+        User userD = addUser( "D", roleC );
+        User userE = addUser( "E", roleA );
+        User userF = addUser( "F", roleC );
         UserGroup userGroup1 = createUserGroup( 'A', newHashSet( userA, userB ) );
         UserGroup userGroup2 = createUserGroup( 'B', newHashSet( userC, userD, userE, userF ) );
         userA.getGroups().add( userGroup1 );
@@ -423,12 +422,12 @@ class UserServiceTest extends DhisSpringTest
     @Test
     void testGetManagedGroupsSearch()
     {
-        User userA = addUser( 'A' );
-        addUser( 'B' );
-        addUser( 'C' );
-        addUser( 'D' );
-        addUser( 'E' );
-        addUser( 'F' );
+        User userA = addUser( "A" );
+        addUser( "B" );
+        addUser( "C" );
+        addUser( "D" );
+        addUser( "E" );
+        addUser( "F" );
         UserQueryParams params = getDefaultParams().setQuery( "rstnameA" );
         assertContainsOnly( userService.getUsers( params ), userA );
         assertEquals( 1, userService.getUserCount( params ) );
@@ -437,10 +436,10 @@ class UserServiceTest extends DhisSpringTest
     @Test
     void testGetManagedGroupsSelfRegistered()
     {
-        User userA = addUser( 'A', User::setSelfRegistered, true );
-        addUser( 'B' );
-        User userC = addUser( 'C', User::setSelfRegistered, true );
-        addUser( 'D' );
+        User userA = addUser( "A", User::setSelfRegistered, true );
+        addUser( "B" );
+        User userC = addUser( "C", User::setSelfRegistered, true );
+        addUser( "D" );
         UserQueryParams params = getDefaultParams().setSelfRegistered( true );
         assertContainsOnly( userService.getUsers( params ), userA, userC );
         assertEquals( 2, userService.getUserCount( params ) );
@@ -449,10 +448,10 @@ class UserServiceTest extends DhisSpringTest
     @Test
     void testGetManagedGroupsOrganisationUnit()
     {
-        User userA = addUser( 'A', unitA, unitB );
-        addUser( 'B', unitB );
-        User userC = addUser( 'C', unitA );
-        addUser( 'D', unitB );
+        User userA = addUser( "A", unitA, unitB );
+        addUser( "B", unitB );
+        User userC = addUser( "C", unitA );
+        addUser( "D", unitB );
         UserQueryParams params = getDefaultParams().addOrganisationUnit( unitA );
         assertContainsOnly( userService.getUsers( params ), userA, userC );
         assertEquals( 2, userService.getUserCount( params ) );
@@ -461,10 +460,10 @@ class UserServiceTest extends DhisSpringTest
     @Test
     void testGetInvitations()
     {
-        addUser( 'A' );
-        User userB = addUser( 'B', User::setInvitation, true );
-        addUser( 'C' );
-        User userD = addUser( 'D', User::setInvitation, true );
+        addUser( "A" );
+        User userB = addUser( "B", User::setInvitation, true );
+        addUser( "C" );
+        User userD = addUser( "D", User::setInvitation, true );
         UserQueryParams params = getDefaultParams().setInvitationStatus( UserInvitationStatus.ALL );
         assertContainsOnly( userService.getUsers( params ), userB, userD );
         assertEquals( 2, userService.getUserCount( params ) );
@@ -476,10 +475,10 @@ class UserServiceTest extends DhisSpringTest
     @Test
     void testGetExpiringUser()
     {
-        User userA = addUser( 'A' );
-        addUser( 'B', User::setDisabled, true );
-        User userC = addUser( 'C' );
-        addUser( 'D', User::setDisabled, true );
+        User userA = addUser( "A" );
+        addUser( "B", User::setDisabled, true );
+        User userC = addUser( "C" );
+        addUser( "D", User::setDisabled, true );
         assertContainsOnly( userService.getExpiringUsers(), userA, userC );
     }
 
@@ -490,11 +489,11 @@ class UserServiceTest extends DhisSpringTest
         Date inFiveDays = Date.from( now.plusDays( 5 ).toInstant() );
         Date inSixDays = Date.from( now.plusDays( 6 ).toInstant() );
         Date inEightDays = Date.from( now.plusDays( 8 ).toInstant() );
-        addUser( 'A' );
-        addUser( 'B', User::setAccountExpiry, inFiveDays );
-        addUser( 'C' );
-        addUser( 'D', User::setAccountExpiry, inSixDays );
-        addUser( 'E', User::setAccountExpiry, inEightDays );
+        addUser( "A" );
+        addUser( "B", User::setAccountExpiry, inFiveDays );
+        addUser( "C" );
+        addUser( "D", User::setAccountExpiry, inSixDays );
+        addUser( "E", User::setAccountExpiry, inEightDays );
         List<UserAccountExpiryInfo> soonExpiringAccounts = userService.getExpiringUserAccounts( 7 );
         Set<String> soonExpiringAccountNames = soonExpiringAccounts.stream()
             .map( UserAccountExpiryInfo::getUsername ).collect( toSet() );
@@ -519,13 +518,13 @@ class UserServiceTest extends DhisSpringTest
         Date threeMonthAgo = Date.from( now.minusMonths( 3 ).toInstant() );
         Date fourMonthAgo = Date.from( now.minusMonths( 4 ).toInstant() );
         Date twentyTwoDaysAgo = Date.from( now.minusDays( 22 ).toInstant() );
-        User userA = addUser( 'A', User::setLastLogin, threeMonthAgo );
-        User userB = addUser( 'B', credentials -> {
+        User userA = addUser( "A", User::setLastLogin, threeMonthAgo );
+        User userB = addUser( "B", credentials -> {
             credentials.setDisabled( true );
             credentials.setLastLogin( fourMonthAgo );
         } );
-        addUser( 'C', User::setLastLogin, twentyTwoDaysAgo );
-        addUser( 'D' );
+        addUser( "C", User::setLastLogin, twentyTwoDaysAgo );
+        addUser( "D" );
         // User A gets disabled, B would but already was, C is active, D last
         // login is still null
         assertEquals( 1, userService.disableUsersInactiveSince( twoMonthsAgo ) );
@@ -547,13 +546,13 @@ class UserServiceTest extends DhisSpringTest
         Date threeMonthAgo = Date.from( now.minusMonths( 3 ).toInstant() );
         Date fourMonthAgo = Date.from( now.minusMonths( 4 ).toInstant() );
         Date twentyTwoDaysAgo = Date.from( now.minusDays( 22 ).toInstant() );
-        addUser( 'A', User::setLastLogin, threeMonthAgo );
-        addUser( 'B', credentials -> {
+        addUser( "A", User::setLastLogin, threeMonthAgo );
+        addUser( "B", credentials -> {
             credentials.setDisabled( true );
             credentials.setLastLogin( Date.from( now.minusMonths( 4 ).plusDays( 2 ).toInstant() ) );
         } );
-        addUser( 'C', User::setLastLogin, twentyTwoDaysAgo );
-        addUser( 'D' );
+        addUser( "C", User::setLastLogin, twentyTwoDaysAgo );
+        addUser( "D" );
         assertEquals( singleton( "emaila" ),
             userService.findNotifiableUsersWithLastLoginBetween( threeMonthAgo, twoMonthsAgo ) );
         assertEquals( singleton( "emaila" ),

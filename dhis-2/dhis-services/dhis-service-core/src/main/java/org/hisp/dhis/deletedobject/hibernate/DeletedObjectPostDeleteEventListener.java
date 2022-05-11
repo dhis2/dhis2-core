@@ -39,8 +39,8 @@ import org.hisp.dhis.cacheinvalidation.KnownTransactionsService;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.deletedobject.DeletedObject;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.stereotype.Component;
 
 /**
@@ -99,7 +99,8 @@ public class DeletedObjectPostDeleteEventListener implements PostCommitDeleteEve
 
     private String getUsername()
     {
-        return UserContext.haveUser() ? UserContext.getUser().getUsername() : "system-process";
+        return CurrentUserUtil.getCurrentUsername() != null ? CurrentUserUtil.getCurrentUsername()
+            : "system-process";
     }
 
     @Override

@@ -284,6 +284,47 @@
       ],
       "attributeValues": [],
       "userAccesses": []
+    },
+    {
+      "code": "TA_TEI_TO_TEI",
+      "id": "WmNgnmedbQK",
+      "name": "TA tei to tei",
+      "bidirectional": false,
+      "displayName": "TA tei to tei",
+      "publicAccess": "rw------",
+      "fromToName": "TA",
+      "externalAccess": false,
+      "displayFromToName": "TA",
+      "favorite": false,
+      "toConstraint": {
+        "relationshipEntity": "TRACKED_ENTITY_INSTANCE",
+        "trackedEntityType": {
+          "id": "Q9GufDoplCL"
+        }
+      },
+      "sharing": {
+        "owner": "M5zQapPyTZI",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "access": "rwrw----",
+            "id": "OPVIvvXzNTw"
+          }
+        },
+        "external": false,
+        "public": "rwrw----",
+        "users": {}
+      },
+      "fromConstraint": {
+        "relationshipEntity": "TRACKED_ENTITY_INSTANCE",
+        "trackedEntityType": {
+          "id": "Q9GufDoplCL"
+        }
+      },
+      "favorites": [],
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": []
     }
   ]
 }

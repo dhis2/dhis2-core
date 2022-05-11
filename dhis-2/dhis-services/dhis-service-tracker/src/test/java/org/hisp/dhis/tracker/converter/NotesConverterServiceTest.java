@@ -64,7 +64,7 @@ class NotesConverterServiceTest extends DhisConvenienceTest
     void setUp()
     {
         this.notesConverterService = new NotesConverterService();
-        User user = createUser( 'A' );
+        User user = makeUser( "A" );
         this.preheat = new TrackerPreheat();
         preheat.setUser( user );
     }

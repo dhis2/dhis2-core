@@ -39,8 +39,11 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.cache.Cache;
@@ -72,6 +75,7 @@ import com.google.common.collect.Sets;
  * @author Torgeir Lorange Ostby
  */
 @Service( "org.hisp.dhis.organisationunit.OrganisationUnitService" )
+@Slf4j
 public class DefaultOrganisationUnitService
     implements OrganisationUnitService, CurrentUserServiceTarget
 {
@@ -464,14 +468,16 @@ public class DefaultOrganisationUnitService
     @Transactional( readOnly = true )
     public boolean isInUserHierarchy( OrganisationUnit organisationUnit )
     {
-        return isInUserHierarchy( currentUserService.getCurrentUser(), organisationUnit );
+        User currentUser = currentUserService.getCurrentUser();
+        return isInUserHierarchy( currentUser, organisationUnit );
     }
 
     @Override
     @Transactional( readOnly = true )
     public boolean isInUserHierarchyCached( OrganisationUnit organisationUnit )
     {
-        return isInUserHierarchyCached( currentUserService.getCurrentUser(), organisationUnit );
+        User currentUser = currentUserService.getCurrentUser();
+        return isInUserHierarchyCached( currentUser, organisationUnit );
     }
 
     @Override
@@ -492,7 +498,74 @@ public class DefaultOrganisationUnitService
             return false;
         }
 
-        return organisationUnit.isDescendant( user.getOrganisationUnits() );
+        return isDescendant( organisationUnit, user.getOrganisationUnits() );
+    }
+
+    @Override
+    @Transactional
+    public boolean isDescendant( OrganisationUnit organisationUnit, Set<OrganisationUnit> ancestors )
+    {
+        Objects.requireNonNull( organisationUnit, "organisationUnit is null" );
+
+        if ( ancestors == null || ancestors.isEmpty() )
+        {
+            return false;
+        }
+
+        Set<String> ancestorsUid = new HashSet<>();
+        for ( OrganisationUnit ancestor : ancestors )
+        {
+            if ( ancestor == null )
+            {
+                continue;
+            }
+
+            String uid1 = ancestor.getUid();
+            ancestorsUid.add( uid1 );
+        }
+
+        OrganisationUnit unit = getOrganisationUnit( organisationUnit.getUid() );
+        if ( unit == null )
+        {
+            unit = organisationUnit;
+        }
+
+        while ( unit != null )
+        {
+            if ( ancestorsUid.contains( unit.getUid() ) )
+            {
+                return true;
+            }
+
+            unit = unit.getParent();
+        }
+
+        return false;
+    }
+
+    @Transactional( readOnly = true )
+    @Override
+    public boolean isDescendant( OrganisationUnit organisationUnit, OrganisationUnit ancestor )
+    {
+        if ( ancestor == null )
+        {
+            return false;
+        }
+
+        OrganisationUnit unit = getOrganisationUnit( organisationUnit.getUid() );
+
+        while ( unit != null )
+        {
+            if ( ancestor.equals( unit ) )
+            {
+                return true;
+            }
+
+            unit = unit.getParent();
+        }
+
+        return false;
+
     }
 
     @Override
@@ -519,7 +592,7 @@ public class DefaultOrganisationUnitService
             return false;
         }
 
-        return organisationUnit.isDescendant( user.getDataViewOrganisationUnitsWithFallback() );
+        return isDescendant( organisationUnit, user.getDataViewOrganisationUnitsWithFallback() );
     }
 
     @Override
@@ -566,7 +639,7 @@ public class DefaultOrganisationUnitService
             return false;
         }
 
-        return organisationUnit.isDescendant( user.getTeiSearchOrganisationUnitsWithFallback() );
+        return isDescendant( organisationUnit, user.getTeiSearchOrganisationUnitsWithFallback() );
     }
 
     @Override
@@ -575,7 +648,7 @@ public class DefaultOrganisationUnitService
     {
         OrganisationUnit organisationUnit = organisationUnitStore.getByUid( uid );
 
-        return organisationUnit != null && organisationUnit.isDescendant( organisationUnits );
+        return organisationUnit != null && isDescendant( organisationUnit, organisationUnits );
     }
 
     @Override
@@ -859,7 +932,7 @@ public class DefaultOrganisationUnitService
 
         // Go through the list and remove the ones located outside radius
 
-        if ( objects != null && objects.size() > 0 )
+        if ( objects != null && !objects.isEmpty() )
         {
             Iterator<OrganisationUnit> iter = objects.iterator();
 
@@ -977,7 +1050,7 @@ public class DefaultOrganisationUnitService
             FilterUtils.filter( unitsAtLevel,
                 new OrganisationUnitPolygonCoveringCoordinateFilter( longitude, latitude ) );
 
-            if ( unitsAtLevel.size() > 0 )
+            if ( !unitsAtLevel.isEmpty() )
             {
                 return unitsAtLevel;
             }

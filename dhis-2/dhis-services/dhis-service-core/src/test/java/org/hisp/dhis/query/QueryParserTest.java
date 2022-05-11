@@ -34,22 +34,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.Arrays;
 
 import org.hisp.dhis.IntegrationTestBase;
-import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.mock.MockCurrentUserService;
-import org.hisp.dhis.organisationunit.DefaultOrganisationUnitService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitLevelStore;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.organisationunit.OrganisationUnitStore;
 import org.hisp.dhis.query.operators.EqualOperator;
 import org.hisp.dhis.query.operators.NullOperator;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -61,28 +53,11 @@ class QueryParserTest extends IntegrationTestBase
 
     private QueryParser queryParser;
 
-    private OrganisationUnitService organisationUnitService;
-
     @Autowired
     private SchemaService schemaService;
 
     @Autowired
-    private IdentifiableObjectManager idObjectManager;
-
-    @Autowired
     private OrganisationUnitStore organisationUnitStore;
-
-    @Autowired
-    private OrganisationUnitLevelStore organisationUnitLevelStore;
-
-    @Autowired
-    private ConfigurationService configurationService;
-
-    @Autowired
-    private UserSettingService userSettingService;
-
-    @Autowired
-    private CacheProvider cacheProvider;
 
     @Override
     public boolean emptyDatabaseAfterTest()
@@ -90,18 +65,24 @@ class QueryParserTest extends IntegrationTestBase
         return true;
     }
 
+    @Autowired
+    private UserService _userService;
+
     @Override
     protected void setUpTest()
         throws Exception
     {
+        this.userService = _userService;
+
         OrganisationUnit orgUnitA = createOrganisationUnit( 'A' );
-        User user = createUser( 'A' );
+        organisationUnitStore.save( orgUnitA );
+
+        User user = createAndAddUser( "A" );
         user.addOrganisationUnit( orgUnitA );
-        CurrentUserService currentUserService = new MockCurrentUserService( user );
-        this.organisationUnitService = new DefaultOrganisationUnitService( organisationUnitStore, idObjectManager,
-            organisationUnitLevelStore, currentUserService, configurationService, userSettingService, cacheProvider );
-        organisationUnitService.addOrganisationUnit( orgUnitA );
-        idObjectManager.save( orgUnitA );
+        userService.updateUser( user );
+
+        injectSecurityContext( user );
+
         queryParser = new DefaultJpaQueryParser( schemaService );
     }
 

@@ -112,28 +112,28 @@ public class GreaterThanOperator<T extends Comparable<? super T>> extends Operat
 
             return s1 != null && s2.compareTo( s1 ) > 0;
         }
-        else if ( type.isInteger() )
+        if ( type.isInteger() )
         {
             Integer s1 = getValue( Integer.class );
             Integer s2 = (Integer) value;
 
             return s1 != null && s2 > s1;
         }
-        else if ( type.isFloat() )
+        if ( type.isFloat() )
         {
             Float s1 = getValue( Float.class );
             Float s2 = (Float) value;
 
             return s1 != null && s2 > s1;
         }
-        else if ( type.isDate() )
+        if ( type.isDate() )
         {
             Date s1 = getValue( Date.class );
             Date s2 = (Date) value;
 
             return s1 != null && s2.after( s1 );
         }
-        else if ( type.isCollection() )
+        if ( type.isCollection() )
         {
             Collection<?> collection = (Collection<?>) value;
             Integer size = getValue( Integer.class );

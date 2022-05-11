@@ -37,4 +37,5 @@ public interface TrackerDto
     String getUid();
 
     TrackerType getTrackerType();
+
 }

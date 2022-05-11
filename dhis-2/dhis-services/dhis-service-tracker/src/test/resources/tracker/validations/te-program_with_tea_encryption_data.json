@@ -33,7 +33,10 @@
   "trackedEntities": [
     {
       "trackedEntity": "EEFkxTWB55Y",
-      "trackedEntityType": "KrYIdvLxkMb",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "KrYIdvLxkMb"
+      },
       "createdAtClient": "2020-02-20T12:09:21.844",
       "orgUnit": {
         "idScheme": "UID",

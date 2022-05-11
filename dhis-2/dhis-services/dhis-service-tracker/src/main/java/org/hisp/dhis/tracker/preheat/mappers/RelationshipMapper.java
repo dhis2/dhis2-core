@@ -51,6 +51,7 @@ public interface RelationshipMapper extends PreheatMapper<Relationship>
     @Mapping( target = "createdBy" )
     @Mapping( target = "lastUpdated" )
     @Mapping( target = "lastUpdatedBy" )
+    @Mapping( target = "deleted" )
     Relationship map( Relationship relationship );
 
     @Named( "typeMapper" )

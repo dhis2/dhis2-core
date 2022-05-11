@@ -54,7 +54,7 @@ public class PreCheckMandatoryFieldsValidationHook
     @Override
     public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity trackedEntity )
     {
-        reporter.addErrorIf( () -> StringUtils.isEmpty( trackedEntity.getTrackedEntityType() ), trackedEntity, E1121,
+        reporter.addErrorIf( () -> trackedEntity.getTrackedEntityType().isBlank(), trackedEntity, E1121,
             "trackedEntityType" );
         reporter.addErrorIf( () -> trackedEntity.getOrgUnit().isBlank(), trackedEntity, E1121, ORG_UNIT );
     }

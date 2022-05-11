@@ -278,7 +278,7 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject>
     private <Y> void addPredicate( CriteriaBuilder builder, Root<Y> root, Predicate predicateJunction,
         org.hisp.dhis.query.Criterion criterion )
     {
-        if ( Restriction.class.isInstance( criterion ) )
+        if ( criterion instanceof Restriction )
         {
             Restriction restriction = (Restriction) criterion;
             Predicate predicate = getPredicate( builder, root, restriction );
@@ -288,15 +288,15 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject>
                 predicateJunction.getExpressions().add( predicate );
             }
         }
-        else if ( Junction.class.isInstance( criterion ) )
+        else if ( criterion instanceof Junction )
         {
             Predicate junction = null;
 
-            if ( Disjunction.class.isInstance( criterion ) )
+            if ( criterion instanceof Disjunction )
             {
                 junction = builder.disjunction();
             }
-            else if ( Conjunction.class.isInstance( criterion ) )
+            else if ( criterion instanceof Conjunction )
             {
                 junction = builder.conjunction();
             }
@@ -313,7 +313,7 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject>
     private <Y> void addJunction( CriteriaBuilder builder, Root<Y> root, Predicate junction,
         org.hisp.dhis.query.Criterion criterion )
     {
-        if ( Restriction.class.isInstance( criterion ) )
+        if ( criterion instanceof Restriction )
         {
             Restriction restriction = (Restriction) criterion;
             Predicate predicate = getPredicate( builder, root, restriction );
@@ -323,15 +323,15 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject>
                 junction.getExpressions().add( predicate );
             }
         }
-        else if ( Junction.class.isInstance( criterion ) )
+        else if ( criterion instanceof Junction )
         {
             Predicate j = null;
 
-            if ( Disjunction.class.isInstance( criterion ) )
+            if ( criterion instanceof Disjunction )
             {
                 j = builder.disjunction();
             }
-            else if ( Conjunction.class.isInstance( criterion ) )
+            else if ( criterion instanceof Conjunction )
             {
                 j = builder.conjunction();
             }

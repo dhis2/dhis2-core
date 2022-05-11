@@ -121,12 +121,6 @@ public interface DataSetService extends DataSetDataIntegrityProvider
     List<DataSet> getDataSetsByPeriodType( PeriodType periodType );
 
     /**
-     * Returns the data sets which current user have READ access. If the current
-     * user has the ALL authority then all data sets are returned.
-     */
-    List<DataSet> getAllDataRead();
-
-    /**
      * Returns the data sets which given user have READ access. If the current
      * user has the ALL authority then all data sets are returned.
      *
@@ -134,12 +128,6 @@ public interface DataSetService extends DataSetDataIntegrityProvider
      * @return a list of data sets which the given user has data read access to.
      */
     List<DataSet> getUserDataRead( User user );
-
-    /**
-     * Returns the data sets which current user have WRITE access. If the
-     * current user has the ALL authority then all data sets are returned.
-     */
-    List<DataSet> getAllDataWrite();
 
     /**
      * Returns the data sets which current user have WRITE access. If the

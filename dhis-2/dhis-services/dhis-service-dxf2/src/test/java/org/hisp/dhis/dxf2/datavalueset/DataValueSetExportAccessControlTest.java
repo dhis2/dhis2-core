@@ -50,15 +50,12 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
-import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
@@ -134,8 +131,8 @@ class DataValueSetExportAccessControlTest extends TransactionalIntegrationTest
     public void setUpTest()
     {
         userService = _userService;
-
         createAndInjectAdminUser();
+
         // Metadata
         PeriodType ptA = periodService.getPeriodTypeByName( MonthlyPeriodType.NAME );
         deA = createDataElement( 'A' );
@@ -189,9 +186,9 @@ class DataValueSetExportAccessControlTest extends TransactionalIntegrationTest
         throws IOException
     {
         // User
-        User user = createUser( 'A' );
+        User user = makeUser( "A" );
+        userService.addUser( user );
         user.setOrganisationUnits( Sets.newHashSet( ouA ) );
-        setCurrentUser( user );
         // Sharing
         enableDataSharing( user, coA, DATA_READ );
         enableDataSharing( user, coC, DATA_READ );
@@ -201,6 +198,10 @@ class DataValueSetExportAccessControlTest extends TransactionalIntegrationTest
         idObjectManager.update( coC );
         idObjectManager.update( coD );
         idObjectManager.update( dsA );
+
+        User user1 = userService.getUser( user.getUid() );
+        injectSecurityContext( user1 );
+
         // Test
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         DataExportParams params = new DataExportParams().setDataSets( Sets.newHashSet( dsA ) )
@@ -229,12 +230,9 @@ class DataValueSetExportAccessControlTest extends TransactionalIntegrationTest
     void testExportAttributeOptionComboAccessSuperUser()
         throws IOException
     {
-        // // User
-        //
-        User adminUser = createUser( 'A', Lists.newArrayList( "ALL" ) );
+        User adminUser = makeUser( "A", Lists.newArrayList( "ALL" ) );
         adminUser.setOrganisationUnits( Sets.newHashSet( ouA ) );
         setCurrentUser( adminUser );
-        // // Sharing
 
         enableDataSharing( adminUser, coA, DATA_READ );
         enableDataSharing( adminUser, coB, DATA_READ );
@@ -259,18 +257,18 @@ class DataValueSetExportAccessControlTest extends TransactionalIntegrationTest
     @Test
     void testExportDataSetAccess()
     {
-        // User
-        User user = createUser( 'A' );
+        User user = makeUser( "A" );
+        userService.addUser( user );
         user.setOrganisationUnits( Sets.newHashSet( ouA ) );
-        setCurrentUser( user );
-        // Sharing
         enableDataSharing( user, coA, DATA_READ );
         enableDataSharing( user, coC, DATA_READ );
         idObjectManager.update( coA );
         idObjectManager.update( coC );
         idObjectManager.update( coD );
         idObjectManager.update( dsA );
-        // Test
+
+        User user1 = userService.getUser( user.getUid() );
+        injectSecurityContext( user1 );
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         DataExportParams params = new DataExportParams().setDataSets( Sets.newHashSet( dsA ) )
             .setPeriods( Sets.newHashSet( peA ) ).setOrganisationUnits( Sets.newHashSet( ouA ) );
@@ -285,17 +283,17 @@ class DataValueSetExportAccessControlTest extends TransactionalIntegrationTest
     @Test
     void testExportExplicitAttributeOptionComboAccess()
     {
-        // User
-        User user = createUser( 'A' );
+        User user = makeUser( "A" );
+        userService.addUser( user );
         user.setOrganisationUnits( Sets.newHashSet( ouA ) );
-        setCurrentUser( user );
-        // Sharing
         enableDataSharing( user, coA, DATA_READ );
         enableDataSharing( user, dsA, DATA_READ );
         idObjectManager.update( coA );
         idObjectManager.update( dsA );
         dbmsManager.flushSession();
-        // Test
+
+        User user1 = userService.getUser( user.getUid() );
+        injectSecurityContext( user1 );
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         DataExportParams params = new DataExportParams().setDataSets( Sets.newHashSet( dsA ) )
             .setPeriods( Sets.newHashSet( peA ) ).setOrganisationUnits( Sets.newHashSet( ouA ) )
@@ -311,8 +309,6 @@ class DataValueSetExportAccessControlTest extends TransactionalIntegrationTest
     private void setCurrentUser( User user )
     {
         userService.addUser( user );
-        CurrentUserService currentUserService = new MockCurrentUserService( user );
-        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
-            currentUserService, dataValueSetService, dataValueSetStore, organisationUnitService );
+        injectSecurityContext( user );
     }
 }

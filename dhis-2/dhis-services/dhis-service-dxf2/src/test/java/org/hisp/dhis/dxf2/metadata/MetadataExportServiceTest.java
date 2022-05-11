@@ -82,7 +82,7 @@ class MetadataExportServiceTest extends TransactionalIntegrationTest
         manager.save( de1 );
         manager.save( de2 );
         manager.save( de3 );
-        User user = createUser( 'A' );
+        User user = makeUser( "A" );
         manager.save( user );
         deg1.addDataElement( de1 );
         deg1.addDataElement( de2 );
@@ -107,7 +107,7 @@ class MetadataExportServiceTest extends TransactionalIntegrationTest
         manager.save( de1 );
         manager.save( de2 );
         manager.save( de3 );
-        User user = createUser( 'A' );
+        User user = makeUser( "A" );
         manager.save( user );
         deg1.addDataElement( de1 );
         deg1.addDataElement( de2 );
@@ -134,7 +134,7 @@ class MetadataExportServiceTest extends TransactionalIntegrationTest
         manager.save( de1 );
         manager.save( de2 );
         manager.save( de3 );
-        User user = createUser( 'A' );
+        User user = makeUser( "A" );
         manager.save( user );
         deg1.addDataElement( de1 );
         deg1.addDataElement( de2 );
@@ -166,7 +166,7 @@ class MetadataExportServiceTest extends TransactionalIntegrationTest
         MetadataExportParams params = new MetadataExportParams();
         params.setSkipSharing( true );
         params.setClasses( Sets.newHashSet( DataElement.class ) );
-        User user = createUser( 'A' );
+        User user = makeUser( "A" );
         UserGroup group = createUserGroup( 'A', Sets.newHashSet( user ) );
         DataElement de1 = createDataElement( 'A' );
         DataElement de2 = createDataElement( 'B' );

@@ -576,9 +576,9 @@ class CriteriaQueryEngineTest extends TransactionalIntegrationTest
     @Test
     void testQueryWithNoAccessPermission()
     {
-        User userA = createUser( 'A' );
+        User userA = makeUser( "A" );
         userService.addUser( userA );
-        User userB = createUser( 'B' );
+        User userB = makeUser( "B" );
         userService.addUser( userB );
         DataElement de = identifiableObjectManager.get( DataElement.class, "deabcdefghA" );
         de.setCreatedBy( userB );
@@ -597,9 +597,9 @@ class CriteriaQueryEngineTest extends TransactionalIntegrationTest
     @Test
     void testEmptyQueryWithNoAccessPermission()
     {
-        User userA = createUser( 'A' );
+        User userA = makeUser( "A" );
         userService.addUser( userA );
-        User userB = createUser( 'B' );
+        User userB = makeUser( "B" );
         userService.addUser( userB );
         DataElement de = identifiableObjectManager.get( DataElement.class, "deabcdefghA" );
         de.setCreatedBy( userB );

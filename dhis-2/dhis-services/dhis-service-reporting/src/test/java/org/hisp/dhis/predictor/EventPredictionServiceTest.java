@@ -54,7 +54,6 @@ import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.mock.MockAnalyticsService;
-import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -82,6 +81,8 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.CurrentUserServiceTarget;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -146,6 +147,9 @@ class EventPredictionServiceTest extends IntegrationTestBase
     @Autowired
     private CategoryManager categoryManager;
 
+    @Autowired
+    private UserService _userService;
+
     private CategoryOptionCombo defaultCombo;
 
     private OrganisationUnit orgUnitA;
@@ -177,6 +181,8 @@ class EventPredictionServiceTest extends IntegrationTestBase
     @Override
     public void setUpTest()
     {
+        this.userService = _userService;
+
         final String DATA_ELEMENT_A_UID = "DataElemenA";
         final String DATA_ELEMENT_D_UID = "DataElemenD";
         final String DATA_ELEMENT_I_UID = "DataElemenI";
@@ -314,9 +320,10 @@ class EventPredictionServiceTest extends IntegrationTestBase
         mockAnalyticsSerivce.setItemGridMap( itemGridMap );
         setDependency( AnalyticsServiceTarget.class, AnalyticsServiceTarget::setAnalyticsService, mockAnalyticsSerivce,
             predictionService );
-        CurrentUserService mockCurrentUserService = new MockCurrentUserService( true, orgUnitASet, orgUnitASet );
-        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
-            mockCurrentUserService, predictionService );
+
+        User user = createAndAddUser( true, "mockUser", orgUnitASet, orgUnitASet );
+        injectSecurityContext( user );
+
         dataValueService
             .addDataValue( createDataValue( dataElementE, periodMar, orgUnitA, defaultCombo, defaultCombo, "100" ) );
         dataValueService

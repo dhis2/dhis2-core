@@ -127,7 +127,7 @@ class DataOrgUnitSplitHandlerTest extends DhisSpringTest
         idObjectManager.save( ouA );
         idObjectManager.save( ouB );
         idObjectManager.save( ouC );
-        usA = createUser( 'A' );
+        usA = makeUser( "A" );
         userService.addUser( usA );
         dlA = new DataApprovalLevel( "DataApprovalLevelA", 1 );
         idObjectManager.save( dlA );

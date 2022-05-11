@@ -61,8 +61,9 @@ public class PreCheckUpdatableFieldsValidationHook
         TrackedEntityInstance trackedEntityInstance = reporter.getBundle()
             .getTrackedEntityInstance( trackedEntity.getTrackedEntity() );
 
-        reporter.addErrorIf( () -> !trackedEntityInstance.getTrackedEntityType().getUid()
-            .equals( trackedEntity.getTrackedEntityType() ), trackedEntity, E1126, "trackedEntityType" );
+        reporter.addErrorIf(
+            () -> !trackedEntity.getTrackedEntityType().isEqualTo( trackedEntityInstance.getTrackedEntityType() ),
+            trackedEntity, E1126, "trackedEntityType" );
     }
 
     @Override

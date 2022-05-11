@@ -95,7 +95,7 @@ class TrackedEntityImportValidationTest extends AbstractImportValidationTest
     {
         renderService = _renderService;
         userService = _userService;
-        User systemUser = createUser( "systemUser", "ALL" );
+        User systemUser = createUserWithAuth( "systemUser", "ALL" );
         userService.addUser( systemUser );
         injectSecurityContext( systemUser );
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(

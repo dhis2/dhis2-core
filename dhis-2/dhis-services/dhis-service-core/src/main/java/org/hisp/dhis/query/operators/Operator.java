@@ -27,14 +27,16 @@
  */
 package org.hisp.dhis.query.operators;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 import org.hibernate.criterion.Criterion;
 import org.hisp.dhis.query.JpaQueryUtils;
@@ -47,77 +49,60 @@ import org.hisp.dhis.query.planner.QueryPath;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@AllArgsConstructor( access = AccessLevel.PRIVATE )
 public abstract class Operator<T extends Comparable<? super T>>
 {
     protected final String name;
 
-    protected final List<T> args = new ArrayList<>();
-
-    protected final List<Collection<T>> collectionArgs = new ArrayList<>();
-
     protected final Typed typed;
 
-    protected Class<T> klass;
+    protected final Type argumentType;
 
-    protected Type argumentType;
+    @Getter
+    protected final List<T> args;
 
-    public Operator( String name, Typed typed )
+    @Getter
+    protected final List<Collection<T>> collectionArgs;
+
+    Operator( String name, Typed typed )
     {
-        this.name = name;
-        this.typed = typed;
+        this( name, typed, null, List.of(), List.of() );
     }
 
-    public Operator( String name, Typed typed, Collection<T> collectionArg )
+    Operator( String name, Typed typed, Collection<T> collectionArg )
     {
-        this( name, typed );
-        this.argumentType = new Type( collectionArg );
-        this.collectionArgs.add( collectionArg );
-    }
-
-    @SafeVarargs
-    public Operator( String name, Typed typed, Collection<T>... collectionArgs )
-    {
-        this( name, typed );
-        this.argumentType = new Type( collectionArgs[0] );
-        Collections.addAll( this.collectionArgs, collectionArgs );
-    }
-
-    public Operator( String name, Typed typed, T arg )
-    {
-        this( name, typed );
-        this.argumentType = new Type( arg );
-        this.args.add( arg );
-        validate();
+        this( name, typed, new Type( collectionArg ), List.of(), List.of( collectionArg ) );
     }
 
     @SafeVarargs
-    public Operator( String name, Typed typed, T... args )
+    Operator( String name, Typed typed, Collection<T>... collectionArgs )
     {
-        this( name, typed );
-        this.argumentType = new Type( args[0] );
-        Collections.addAll( this.args, args );
+        this( name, typed, new Type( collectionArgs[0] ), List.of(), List.of( collectionArgs ) );
     }
 
-    private void validate()
+    Operator( String name, Typed typed, T arg )
+    {
+        this( name, typed, new Type( arg ), List.of( arg ), List.of() );
+        validateArgs();
+    }
+
+    @SafeVarargs
+    Operator( String name, Typed typed, T... args )
+    {
+        this( name, typed, new Type( args[0] ), List.of( args ), List.of() );
+        validateArgs();
+    }
+
+    private void validateArgs()
     {
         for ( Object arg : args )
         {
             if ( !isValid( arg.getClass() ) )
             {
-                throw new QueryParserException( "Value `" + args.get( 0 ) + "` of type `"
+                throw new QueryParserException( "Value `" + arg + "` of type `"
                     + arg.getClass().getSimpleName() + "` is not supported by this operator." );
             }
         }
-    }
-
-    public List<T> getArgs()
-    {
-        return args;
-    }
-
-    public List<Collection<T>> getCollectionArgs()
-    {
-        return collectionArgs;
     }
 
     protected <S> S getValue( Class<S> klass, Class<?> secondaryClass, int idx )

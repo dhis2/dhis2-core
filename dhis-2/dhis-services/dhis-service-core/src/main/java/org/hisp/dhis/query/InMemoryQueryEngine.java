@@ -36,6 +36,7 @@ import java.util.stream.Collectors;
 
 import lombok.AllArgsConstructor;
 
+import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.PagerUtils;
@@ -172,7 +173,7 @@ public class InMemoryQueryEngine<T extends IdentifiableObject>
             if ( criterion instanceof Restriction )
             {
                 Restriction restriction = (Restriction) criterion;
-                Object value = getValue( query, object, restriction.getPath() );
+                Object value = getValue( query, object, restriction );
 
                 if ( !(value instanceof Collection) )
                 {
@@ -208,7 +209,7 @@ public class InMemoryQueryEngine<T extends IdentifiableObject>
             if ( criterion instanceof Restriction )
             {
                 Restriction restriction = (Restriction) criterion;
-                Object value = getValue( query, object, restriction.getPath() );
+                Object value = getValue( query, object, restriction );
 
                 if ( !(value instanceof Collection) )
                 {
@@ -236,8 +237,9 @@ public class InMemoryQueryEngine<T extends IdentifiableObject>
     }
 
     @SuppressWarnings( "unchecked" )
-    private Object getValue( Query query, Object object, String path )
+    private Object getValue( Query query, Object object, Restriction filter )
     {
+        String path = filter.getPath();
         String[] paths = path.split( "\\." );
         Schema currentSchema = query.getSchema();
 
@@ -252,6 +254,11 @@ public class InMemoryQueryEngine<T extends IdentifiableObject>
 
             if ( property == null )
             {
+                if ( i == paths.length - 1 && filter.isAttribute() )
+                {
+                    AttributeValue attr = ((BaseIdentifiableObject) object).getAttributeValue( paths[i] );
+                    return attr == null ? null : attr.getValue();
+                }
                 throw new QueryException( "No property found for path " + path );
             }
 
@@ -296,7 +303,7 @@ public class InMemoryQueryEngine<T extends IdentifiableObject>
         throw new QueryException( "No values found for path " + path );
     }
 
-    @SuppressWarnings( { "unchecked", "rawtypes" } )
+    @SuppressWarnings( { "rawtypes" } )
     private Object collect( Object object, Property property )
     {
         object = HibernateProxyUtils.unproxy( object );

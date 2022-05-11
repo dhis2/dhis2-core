@@ -27,25 +27,31 @@
  */
 package org.hisp.dhis.query;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.ToString;
+
 /**
  * Simple POJO containing the pagination directive from the HTTP Request
  *
  * @author Luciano Fiandesio
  */
+@ToString
+@AllArgsConstructor( access = AccessLevel.PRIVATE )
 public class Pagination
 {
-    private int firstResult;
+    @Getter
+    private final int firstResult;
 
-    private int size;
+    @Getter
+    private final int size;
 
-    private boolean hasPagination = false;
+    private final boolean hasPagination;
 
     public Pagination( int firstResult, int size )
     {
-        assert (size > 0);
-        this.firstResult = firstResult;
-        this.size = size;
-        this.hasPagination = true;
+        this( firstResult, size, true );
     }
 
     /**
@@ -53,17 +59,7 @@ public class Pagination
      */
     public Pagination()
     {
-        // empty constructor
-    }
-
-    public int getFirstResult()
-    {
-        return firstResult;
-    }
-
-    public int getSize()
-    {
-        return size;
+        this( 0, 0, false );
     }
 
     public boolean hasPagination()

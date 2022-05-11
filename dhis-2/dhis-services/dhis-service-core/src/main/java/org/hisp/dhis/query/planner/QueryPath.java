@@ -29,6 +29,9 @@ package org.hisp.dhis.query.planner;
 
 import java.util.Arrays;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
 import org.hisp.dhis.schema.Property;
 
 import com.google.common.base.Joiner;
@@ -37,31 +40,21 @@ import com.google.common.base.MoreObjects;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Getter
+@AllArgsConstructor
 public class QueryPath
 {
     private final Property property;
 
     private final boolean persisted;
 
-    private String[] alias = new String[] {};
+    private final String[] alias;
 
     private static final Joiner PATH_JOINER = Joiner.on( "." );
 
     public QueryPath( Property property, boolean persisted )
     {
-        this.property = property;
-        this.persisted = persisted;
-    }
-
-    public QueryPath( Property property, boolean persisted, String[] alias )
-    {
-        this( property, persisted );
-        this.alias = alias;
-    }
-
-    public Property getProperty()
-    {
-        return property;
+        this( property, persisted, new String[0] );
     }
 
     public String getPath()
@@ -76,19 +69,9 @@ public class QueryPath
         return haveAlias() ? PATH_JOINER.join( alias ) + "." + fieldName : fieldName;
     }
 
-    public boolean isPersisted()
-    {
-        return persisted;
-    }
-
-    public String[] getAlias()
-    {
-        return alias;
-    }
-
     public boolean haveAlias()
     {
-        return alias != null && alias.length > 0;
+        return haveAlias( 0 );
     }
 
     public boolean haveAlias( int n )

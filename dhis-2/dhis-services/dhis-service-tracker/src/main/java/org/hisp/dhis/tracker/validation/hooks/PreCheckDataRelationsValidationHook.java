@@ -104,12 +104,7 @@ public class PreCheckDataRelationsValidationHook
             reporter.addError( enrollment, E1041, organisationUnit, program );
         }
 
-        if ( program.getTrackedEntityType() != null
-            && !program.getTrackedEntityType().getUid()
-                .equals( getTrackedEntityTypeUidFromEnrollment( reporter.getBundle(), enrollment ) ) )
-        {
-            reporter.addError( enrollment, E1022, enrollment.getTrackedEntity(), program );
-        }
+        validateTrackedEntityTypeMatchesPrograms( reporter, program, enrollment );
     }
 
     private boolean programDoesNotHaveOrgUnit( Program program, OrganisationUnit orgUnit,
@@ -419,29 +414,43 @@ public class PreCheckDataRelationsValidationHook
         return null;
     }
 
-    private String getTrackedEntityTypeUidFromEnrollment( TrackerBundle bundle,
+    private void validateTrackedEntityTypeMatchesPrograms( ValidationErrorReporter reporter, Program program,
         Enrollment enrollment )
+    {
+
+        if ( program.getTrackedEntityType() == null )
+        {
+            return;
+        }
+
+        if ( !trackedEntityTypesMatch( reporter.getBundle(), program, enrollment ) )
+        {
+            reporter.addError( enrollment, E1022, enrollment.getTrackedEntity(), program );
+        }
+    }
+
+    private boolean trackedEntityTypesMatch( TrackerBundle bundle, Program program, Enrollment enrollment )
     {
         final TrackedEntityInstance trackedEntityInstance = bundle
             .getTrackedEntityInstance( enrollment.getTrackedEntity() );
         if ( trackedEntityInstance != null )
         {
-            return trackedEntityInstance.getTrackedEntityType().getUid();
+            return program.getTrackedEntityType().getUid()
+                .equals( trackedEntityInstance.getTrackedEntityType().getUid() );
         }
-        else
+
+        final Optional<ReferenceTrackerEntity> reference = bundle.getPreheat()
+            .getReference( enrollment.getTrackedEntity() );
+        if ( reference.isPresent() )
         {
-            final Optional<ReferenceTrackerEntity> reference = bundle.getPreheat()
-                .getReference( enrollment.getTrackedEntity() );
-            if ( reference.isPresent() )
+            final Optional<TrackedEntity> tei = bundle.getTrackedEntity( enrollment.getTrackedEntity() );
+            if ( tei.isPresent() )
             {
-                final Optional<TrackedEntity> tei = bundle.getTrackedEntity( enrollment.getTrackedEntity() );
-                if ( tei.isPresent() )
-                {
-                    return tei.get().getTrackedEntityType();
-                }
+                return tei.get().getTrackedEntityType().isEqualTo( program.getTrackedEntityType() );
             }
         }
-        return null;
+
+        return false;
     }
 
     @Override

@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.dxf2.metadata;
 
-import static java.util.Collections.singleton;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashSet;
 import java.util.function.Consumer;
 
 import org.hisp.dhis.TransactionalIntegrationTest;
@@ -43,6 +43,7 @@ import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.user.User;
@@ -114,7 +115,9 @@ class CsvMetadataImportIntegrationTest extends TransactionalIntegrationTest
         throws Exception
     {
         User user = createAndInjectAdminUser( "F_ORGANISATIONUNIT_MOVE", "F_ORGANISATIONUNIT_ADD" );
-        user.setOrganisationUnits( singleton( organisationUnitService.getOrganisationUnitByCode( "L2b" ) ) );
+        HashSet<OrganisationUnit> orgUnits = new HashSet<>();
+        orgUnits.add( organisationUnitService.getOrganisationUnitByCode( "L2b" ) );
+        user.setOrganisationUnits( orgUnits );
         userService.updateUser( user );
         ImportReport report = runImport( "metadata/organisationUnits_move.csv", CsvImportClass.ORGANISATION_UNIT, null,
             params -> params.setImportStrategy( ImportStrategy.UPDATE ) );
@@ -128,7 +131,9 @@ class CsvMetadataImportIntegrationTest extends TransactionalIntegrationTest
         throws Exception
     {
         User user = createAndInjectAdminUser( "F_ORGANISATIONUNIT_MOVE", "F_ORGANISATIONUNIT_ADD" );
-        user.setOrganisationUnits( singleton( organisationUnitService.getOrganisationUnitByCode( "L2a" ) ) );
+        HashSet<OrganisationUnit> orgUnits = new HashSet<>();
+        orgUnits.add( organisationUnitService.getOrganisationUnitByCode( "L2a" ) );
+        user.setOrganisationUnits( orgUnits );
         userService.updateUser( user );
         ImportReport report = runImport( "metadata/organisationUnits_move.csv", CsvImportClass.ORGANISATION_UNIT, null,
             params -> params.setImportStrategy( ImportStrategy.UPDATE ) );
@@ -142,7 +147,9 @@ class CsvMetadataImportIntegrationTest extends TransactionalIntegrationTest
         throws Exception
     {
         User user = createAndInjectAdminUser( "F_ORGANISATIONUNIT_MOVE", "F_ORGANISATIONUNIT_ADD" );
-        user.setOrganisationUnits( singleton( organisationUnitService.getOrganisationUnitByCode( "L1" ) ) );
+        HashSet<OrganisationUnit> orgUnits = new HashSet<>();
+        orgUnits.add( organisationUnitService.getOrganisationUnitByCode( "L1" ) );
+        user.setOrganisationUnits( orgUnits );
         userService.updateUser( user );
         ImportReport importReport = runImport( "metadata/organisationUnits_move.csv", CsvImportClass.ORGANISATION_UNIT,
             null, params -> params.setImportStrategy( ImportStrategy.UPDATE ) );

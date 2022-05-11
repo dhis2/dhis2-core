@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.preheat;
 
 import static org.hisp.dhis.tracker.preheat.RelationshipPreheatKeySupport.getRelationshipKey;
+import static org.hisp.dhis.tracker.preheat.RelationshipPreheatKeySupport.hasRelationshipKey;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -265,6 +266,16 @@ public class TrackerPreheat
      */
     @Getter
     private final Map<String, Relationship> relationships = new HashMap<>();
+
+    /**
+     * Internal map of all relationships in the DB that are duplications of
+     * relationships present in the payload. Two relationship are duplicated if
+     * they have the same relationshipType, and the same relationshipItems, from
+     * and to. They key of the map is a string concatenating the
+     * relationshipType uid, the uid of the `from` entity and the uid of the
+     * `to` entity.
+     */
+    private final Map<String, Relationship> duplicatedRelationships = new HashMap<>();
 
     /**
      * Internal map of all preheated notes (events and enrollments)
@@ -620,18 +631,22 @@ public class TrackerPreheat
         return Optional.ofNullable( notes.get( uid ) );
     }
 
+    public Relationship getRelationship( String relationshipUid )
+    {
+        return relationships.get( relationshipUid );
+    }
+
     public Relationship getRelationship( org.hisp.dhis.tracker.domain.Relationship relationship )
+    {
+        return relationships.get( relationship.getUid() );
+    }
+
+    public boolean isDuplicate( org.hisp.dhis.tracker.domain.Relationship relationship )
     {
         RelationshipType relationshipType = get( RelationshipType.class, relationship.getRelationshipType() );
 
-        if ( relationship.getUid() != null && relationships.containsKey( relationship.getUid() ) )
+        if ( hasRelationshipKey( relationship ) )
         {
-            return relationships.get( relationship.getUid() );
-        }
-
-        if ( Objects.nonNull( relationshipType ) )
-        {
-
             RelationshipKey relationshipKey = getRelationshipKey( relationship );
 
             RelationshipKey inverseKey = null;
@@ -641,12 +656,10 @@ public class TrackerPreheat
             }
             return Stream.of( relationshipKey, inverseKey )
                 .filter( Objects::nonNull )
-                .map( key -> relationships.get( key.asString() ) )
-                .filter( Objects::nonNull )
-                .findFirst()
-                .orElse( null );
+                .map( key -> duplicatedRelationships.get( key.asString() ) )
+                .anyMatch( Objects::nonNull );
         }
-        return null;
+        return false;
     }
 
     public void putRelationships( List<Relationship> relationships )
@@ -658,16 +671,27 @@ public class TrackerPreheat
     {
         if ( Objects.nonNull( relationship ) )
         {
-            RelationshipKey relationshipKey = getRelationshipKey( relationship );
-
             relationships.put( relationship.getUid(), relationship );
+        }
+    }
+
+    public void putDuplicateRelationships( List<Relationship> relationships )
+    {
+        relationships.forEach( this::putDuplicatedRelationship );
+    }
+
+    public void putDuplicatedRelationship( Relationship relationship )
+    {
+        if ( Objects.nonNull( relationship ) )
+        {
+            RelationshipKey relationshipKey = getRelationshipKey( relationship );
 
             if ( relationship.getRelationshipType().isBidirectional() )
             {
-                relationships.put( relationshipKey.inverseKey().asString(), relationship );
+                duplicatedRelationships.put( relationshipKey.inverseKey().asString(), relationship );
             }
 
-            relationships.put( relationshipKey.asString(), relationship );
+            duplicatedRelationships.put( relationshipKey.asString(), relationship );
         }
     }
 
@@ -797,6 +821,11 @@ public class TrackerPreheat
     public Program getProgram( String id )
     {
         return get( Program.class, id );
+    }
+
+    public TrackedEntityType getTrackedEntityType( MetadataIdentifier id )
+    {
+        return get( TrackedEntityType.class, id );
     }
 
     public TrackedEntityType getTrackedEntityType( String id )

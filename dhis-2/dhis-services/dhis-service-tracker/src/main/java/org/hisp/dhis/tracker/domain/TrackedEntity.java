@@ -55,7 +55,7 @@ public class TrackedEntity
     private String trackedEntity;
 
     @JsonProperty
-    private String trackedEntityType;
+    private MetadataIdentifier trackedEntityType;
 
     @JsonProperty
     private Instant createdAt;

@@ -37,7 +37,6 @@ import java.util.HashSet;
 import java.util.Map;
 
 import org.hisp.dhis.IntegrationTestBase;
-import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -57,7 +56,6 @@ import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.util.ReflectionTestUtils;
 
 class DeduplicationServiceMergeIntegrationTest extends IntegrationTestBase
 {
@@ -102,7 +100,9 @@ class DeduplicationServiceMergeIntegrationTest extends IntegrationTestBase
     {
         OrganisationUnit ou = createOrganisationUnit( "OU_A" );
         organisationUnitService.addOrganisationUnit( ou );
-        creteUser( new HashSet<>( Collections.singletonList( ou ) ), UserRole.AUTHORITY_ALL );
+        User user = createUser( new HashSet<>( Collections.singletonList( ou ) ), UserRole.AUTHORITY_ALL );
+        injectSecurityContext( user );
+
         TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
         trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
         TrackedEntityInstance original = createTrackedEntityInstance( ou );
@@ -143,7 +143,8 @@ class DeduplicationServiceMergeIntegrationTest extends IntegrationTestBase
     {
         OrganisationUnit ou = createOrganisationUnit( "OU_A" );
         organisationUnitService.addOrganisationUnit( ou );
-        User user = creteUser( new HashSet<>( Collections.singletonList( ou ) ), "F_TRACKED_ENTITY_MERGE" );
+        User user = createAndAddUser( true, "userB", ou, "F_TRACKED_ENTITY_MERGE" );
+        injectSecurityContext( user );
         Sharing sharing = getUserSharing( user, AccessStringHelper.FULL );
         TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
         trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
@@ -197,14 +198,10 @@ class DeduplicationServiceMergeIntegrationTest extends IntegrationTestBase
             .userGroups( userGroupSharing ).users( userSharing ).build();
     }
 
-    private User creteUser( HashSet<OrganisationUnit> ou, String... authorities )
+    private User createUser( HashSet<OrganisationUnit> ou, String... authorities )
     {
-        User user = createUser( "testUser", authorities );
+        User user = createUserWithAuth( "testUser", authorities );
         user.setOrganisationUnits( ou );
-        MockCurrentUserService currentUserService = new MockCurrentUserService( user );
-        ReflectionTestUtils.setField( potentialDuplicateStore, "currentUserService", currentUserService );
-        ReflectionTestUtils.setField( deduplicationHelper, "currentUserService", currentUserService );
-        ReflectionTestUtils.setField( deduplicationService, "currentUserService", currentUserService );
         return user;
     }
 }

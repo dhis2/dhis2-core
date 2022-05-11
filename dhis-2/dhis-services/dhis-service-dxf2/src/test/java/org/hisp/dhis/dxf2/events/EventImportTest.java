@@ -83,6 +83,7 @@ import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.Disabled;
@@ -156,6 +157,8 @@ class EventImportTest extends TransactionalIntegrationTest
 
     private Event event;
 
+    private User superUser;
+
     private static final SimpleDateFormat simpleDateFormat = new SimpleDateFormat( DateUtils.ISO8601_NO_TZ_PATTERN );
 
     @Override
@@ -169,6 +172,9 @@ class EventImportTest extends TransactionalIntegrationTest
         throws Exception
     {
         userService = _userService;
+        superUser = preCreateInjectAdminUser();
+        injectSecurityContext( superUser );
+
         organisationUnitA = createOrganisationUnit( 'A' );
         organisationUnitB = createOrganisationUnit( 'B' );
         manager.save( organisationUnitA );
@@ -535,6 +541,7 @@ class EventImportTest extends TransactionalIntegrationTest
     void testVerifyEventCanBeUpdatedUsingProgramOnly()
         throws IOException
     {
+
         // CREATE A NEW EVENT
         InputStream is = createEventJsonInputStream( programB.getUid(), programStageB.getUid(),
             organisationUnitB.getUid(), null, dataElementB, "10" );
@@ -551,8 +558,11 @@ class EventImportTest extends TransactionalIntegrationTest
         event.setStatus( EventStatus.COMPLETED );
         assertEquals( ImportStatus.SUCCESS,
             eventService.updateEvent( event, false, ImportOptions.getDefaultImportOptions(), false ).getStatus() );
-        cleanSession();
+
+        // cleanSession();
+        dbmsManager.clearSession();
         ProgramStageInstance psi2 = programStageInstanceService.getProgramStageInstance( uid );
+
         assertThat( psi.getLastUpdated(), DateMatchers.before( psi2.getLastUpdated() ) );
         assertThat( psi.getCreated(), is( psi2.getCreated() ) );
         assertThat( psi.getProgramInstance().getUid(), is( psi2.getProgramInstance().getUid() ) );
@@ -589,7 +599,8 @@ class EventImportTest extends TransactionalIntegrationTest
         event.setStatus( EventStatus.ACTIVE );
         assertEquals( ImportStatus.SUCCESS,
             eventService.updateEvent( event, false, ImportOptions.getDefaultImportOptions(), false ).getStatus() );
-        cleanSession();
+        dbmsManager.clearSession();
+
         ProgramStageInstance psi2 = programStageInstanceService.getProgramStageInstance( uid );
         assertThat( psi.getLastUpdated(), DateMatchers.before( psi2.getLastUpdated() ) );
         assertThat( psi.getCreated(), is( psi2.getCreated() ) );
