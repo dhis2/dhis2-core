@@ -99,11 +99,11 @@ public class AnalyticsDataExchangeTask
         SourceRequest request = exchange.getSource().getRequest();
 
         DimensionalObject dx = dataQueryService.getDimension( DATA_X_DIM_ID,
-            request.getDx(), null, null, null, false, false, request.getInputIdScheme() );
+            request.getDx(), null, null, null, false, request.getInputIdScheme() );
         DimensionalObject pe = dataQueryService.getDimension( PERIOD_DIM_ID,
-            request.getDx(), null, null, null, false, false, request.getInputIdScheme() );
+            request.getDx(), null, null, null, false, request.getInputIdScheme() );
         DimensionalObject ou = dataQueryService.getDimension( ORGUNIT_DIM_ID,
-            request.getDx(), null, null, null, false, false, request.getInputIdScheme() );
+            request.getDx(), null, null, null, false, request.getInputIdScheme() );
 
         List<DimensionalObject> filters = request.getFilters().stream()
             .map( f -> toDimensionalObject( f, request.getInputIdScheme() ) )
