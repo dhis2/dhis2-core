@@ -79,6 +79,7 @@ public class AnalyticsDataExchangeTask
     }
 
     private ImportSummary pushToExternal( AnalyticsDataExchange exchange, DataValueSet dataValueSet )
+        throws IOException
     {
         return null; // TODO
     }
