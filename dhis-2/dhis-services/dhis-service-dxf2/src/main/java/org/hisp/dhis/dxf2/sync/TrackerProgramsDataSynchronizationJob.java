@@ -28,7 +28,6 @@
 package org.hisp.dhis.dxf2.sync;
 
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.dxf2.synch.SynchronizationManager;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -43,7 +42,6 @@ import org.springframework.stereotype.Component;
  * @author David Katuscak (original)
  * @author Jan Bernitt (job progress tracking)
  */
-@Slf4j
 @Component
 @AllArgsConstructor
 public class TrackerProgramsDataSynchronizationJob implements Job
