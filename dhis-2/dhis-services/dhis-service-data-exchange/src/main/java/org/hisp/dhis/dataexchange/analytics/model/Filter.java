@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dataexchange.analytics.model;
 
+import java.io.Serializable;
 import java.util.List;
 
 import lombok.Getter;
@@ -37,6 +38,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Getter
 @Setter
 public class Filter
+    implements Serializable
 {
     @JsonProperty
     private String dimension;
