@@ -32,7 +32,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dataexchange.analytics.model.AnalyticsDataExchange;
 import org.hisp.dhis.dataexchange.analytics.service.AnalyticsDataExchangeService;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -54,8 +54,8 @@ public class AnalyticsDataExchangeController
 
     @PostMapping( "/exchange" )
     @ResponseStatus( value = HttpStatus.OK )
-    public ImportSummary runDataExchange( @RequestBody AnalyticsDataExchange exchange )
+    public ImportSummaries runDataExchange( @RequestBody AnalyticsDataExchange exchange )
     {
-        return service.exhangeData( exchange );
+        return service.exchangeData( exchange );
     }
 }

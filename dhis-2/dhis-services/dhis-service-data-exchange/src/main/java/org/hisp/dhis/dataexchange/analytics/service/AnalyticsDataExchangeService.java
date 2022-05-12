@@ -49,6 +49,7 @@ import org.hisp.dhis.dataexchange.analytics.model.TargetType;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
+import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.springframework.stereotype.Service;
 
@@ -62,9 +63,19 @@ public class AnalyticsDataExchangeService
 
     private final DataValueSetService dataValueSetService;
 
-    public ImportSummary exhangeData( AnalyticsDataExchange exchange )
+    public ImportSummaries exchangeData( AnalyticsDataExchange exchange )
     {
-        DataValueSet dataValueSet = analyticsService.getAggregatedDataValueSet( toDataQueryParams( exchange ) );
+        ImportSummaries summaries = new ImportSummaries();
+
+        exchange.getSource().getRequests()
+            .forEach( request -> summaries.addImportSummary( exchangeData( exchange, request ) ) );
+
+        return summaries;
+    }
+
+    private ImportSummary exchangeData( AnalyticsDataExchange exchange, SourceRequest request )
+    {
+        DataValueSet dataValueSet = analyticsService.getAggregatedDataValueSet( toDataQueryParams( request ) );
 
         return exchange.getTarget().getType() == TargetType.INTERNAL ? pushToInternal( exchange, dataValueSet )
             : pushToExternal( exchange, dataValueSet );
@@ -91,9 +102,8 @@ public class AnalyticsDataExchangeService
             .setIdScheme( toNameOrDefault( request.getIdScheme() ) );
     }
 
-    private DataQueryParams toDataQueryParams( AnalyticsDataExchange exchange )
+    private DataQueryParams toDataQueryParams( SourceRequest request )
     {
-        SourceRequest request = exchange.getSource().getRequest();
         IdScheme inputIdScheme = getOrDefault( request.getInputIdScheme() );
 
         List<DimensionalObject> filters = request.getFilters().stream()
@@ -142,4 +152,5 @@ public class AnalyticsDataExchangeService
     {
         return idScheme != null ? idScheme : IdScheme.UID;
     }
+
 }

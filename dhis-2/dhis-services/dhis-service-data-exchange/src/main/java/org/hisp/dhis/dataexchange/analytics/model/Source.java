@@ -28,6 +28,8 @@
 package org.hisp.dhis.dataexchange.analytics.model;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -40,5 +42,5 @@ public class Source
     implements Serializable
 {
     @JsonProperty
-    private SourceRequest request;
+    private List<SourceRequest> requests = new ArrayList<>();
 }
