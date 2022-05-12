@@ -153,9 +153,9 @@ public class IdScheme
     }
 
     /**
-     * Returns a canonical String name representation of this id scheme.
+     * Returns a canonical name representation of this ID scheme.
      *
-     * @return a canonical String name representation of this id scheme.
+     * @return a canonical name representation of this ID scheme.
      */
     public String name()
     {
@@ -167,6 +167,18 @@ public class IdScheme
         {
             return identifiableProperty.name();
         }
+    }
+
+    /**
+     * Returns a canonical name representation of the given ID scheme, or null
+     * if the given ID scheme is null.
+     *
+     * @param idScheme the {@link IdScheme}.
+     * @return a canonical name representation.
+     */
+    public static String toName( IdScheme idScheme )
+    {
+        return idScheme != null ? idScheme.name() : null;
     }
 
     public static boolean isAttribute( String str )

@@ -30,6 +30,7 @@ package org.hisp.dhis.dataexchange.analytics.service;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.hisp.dhis.common.IdScheme.toName;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -64,9 +65,7 @@ public class AnalyticsDataExchangeService
 
     public ImportSummary exhangeData( AnalyticsDataExchange exchange )
     {
-        DataQueryParams params = toDataQueryParams( exchange );
-
-        DataValueSet dataValueSet = analyticsService.getAggregatedDataValueSet( params );
+        DataValueSet dataValueSet = analyticsService.getAggregatedDataValueSet( toDataQueryParams( exchange ) );
 
         return exchange.getTarget().getType() == TargetType.INTERNAL ? pushToInternal( exchange, dataValueSet )
             : pushToExternal( exchange, dataValueSet );
@@ -96,23 +95,18 @@ public class AnalyticsDataExchangeService
     private DataQueryParams toDataQueryParams( AnalyticsDataExchange exchange )
     {
         SourceRequest request = exchange.getSource().getRequest();
-        IdScheme idScheme = request.getInputIdScheme();
+        IdScheme inputIdScheme = request.getInputIdScheme();
 
         List<DimensionalObject> filters = request.getFilters().stream()
-            .map( f -> toDimensionalObject( f, idScheme ) )
+            .map( f -> toDimensionalObject( f, inputIdScheme ) )
             .collect( Collectors.toList() );
 
         return DataQueryParams.newBuilder()
-            .addDimension( toDimensionalObject( DATA_X_DIM_ID, request.getDx(), idScheme ) )
-            .addDimension( toDimensionalObject( PERIOD_DIM_ID, request.getPe(), idScheme ) )
-            .addDimension( toDimensionalObject( ORGUNIT_DIM_ID, request.getOu(), idScheme ) )
+            .addDimension( toDimensionalObject( DATA_X_DIM_ID, request.getDx(), inputIdScheme ) )
+            .addDimension( toDimensionalObject( PERIOD_DIM_ID, request.getPe(), inputIdScheme ) )
+            .addDimension( toDimensionalObject( ORGUNIT_DIM_ID, request.getOu(), inputIdScheme ) )
             .addFilters( filters )
             .build();
-    }
-
-    private String toName( IdScheme idScheme )
-    {
-        return idScheme != null ? idScheme.name() : null;
     }
 
     private DimensionalObject toDimensionalObject( String dimension, List<String> items, IdScheme inputIdScheme )
