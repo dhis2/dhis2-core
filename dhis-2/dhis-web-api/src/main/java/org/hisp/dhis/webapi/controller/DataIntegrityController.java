@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
@@ -107,9 +108,15 @@ public class DataIntegrityController
 
     @GetMapping
     @ResponseBody
-    public Collection<DataIntegrityCheck> getAvailableChecks()
+    public Collection<DataIntegrityCheck> getAvailableChecks(
+        @RequestParam( required = false ) Set<String> checks,
+        @RequestParam( required = false ) String section )
     {
-        return dataIntegrityService.getDataIntegrityChecks();
+        Collection<DataIntegrityCheck> matches = dataIntegrityService
+            .getDataIntegrityChecks( toUniformCheckNames( checks ) );
+        return section == null || section.isBlank()
+            ? matches
+            : matches.stream().filter( check -> section.equals( check.getSection() ) ).collect( toList() );
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )

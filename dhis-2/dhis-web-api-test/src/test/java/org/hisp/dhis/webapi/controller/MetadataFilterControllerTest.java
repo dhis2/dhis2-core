@@ -25,55 +25,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.json.domain;
+package org.hisp.dhis.webapi.controller;
 
-import org.hisp.dhis.dataintegrity.DataIntegritySeverity;
-import org.hisp.dhis.jsontree.Expected;
+import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
 
 /**
- * JSON API equivalent of the
- * {@link org.hisp.dhis.dataintegrity.DataIntegrityCheck}.
+ * Test the filters of the metadata API.
  *
  * @author Jan Bernitt
  */
-public interface JsonDataIntegrityCheck extends JsonObject
+class MetadataFilterControllerTest extends DhisControllerConvenienceTest
 {
-    @Expected
-    default String getName()
+    @Test
+    void testFilter_attributeEq()
     {
-        return getString( "name" ).string();
-    }
+        String attrId = assertStatus( HttpStatus.CREATED, POST( "/attributes", "{" + "'name':'extra', "
+            + "'valueType':'TEXT', " + "'" + Attribute.ObjectType.ORGANISATION_UNIT.getPropertyName() + "':true}" ) );
+        String ouId = assertStatus( HttpStatus.CREATED,
+            POST( "/organisationUnits/", "{"
+                + "'name':'My Unit', "
+                + "'shortName':'OU1', "
+                + "'openingDate': '2020-01-01',"
+                + "'attributeValues':[{'attribute': {'id':'" + attrId + "'}, 'value':'test'}]"
+                + "}" ) );
 
-    @Expected
-    default String getDisplayName()
-    {
-        return getString( "displayName" ).string();
+        JsonArray units = GET( "/organisationUnits?filter={attr}:eq:test", attrId ).content()
+            .getArray( "organisationUnits" );
+        assertEquals( 1, units.size() );
+        JsonObject unit = units.getObject( 0 );
+        assertEquals( "My Unit", unit.getString( "displayName" ).string() );
+        assertEquals( ouId, unit.getString( "id" ).string() );
     }
-
-    default String getSection()
-    {
-        return getString( "section" ).string();
-    }
-
-    default DataIntegritySeverity getSeverity()
-    {
-        return getString( "severity" ).parsed( DataIntegritySeverity::valueOf );
-    }
-
-    default String getDescription()
-    {
-        return getString( "description" ).string();
-    }
-
-    default String getIntroduction()
-    {
-        return getString( "introduction" ).string();
-    }
-
-    default String getRecommendation()
-    {
-        return getString( "recommendation" ).string();
-    }
-
 }

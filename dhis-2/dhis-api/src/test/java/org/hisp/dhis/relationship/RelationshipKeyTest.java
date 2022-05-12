@@ -25,39 +25,51 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.query;
+package org.hisp.dhis.relationship;
 
-import java.util.List;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.hisp.dhis.schema.Property;
-import org.hisp.dhis.schema.Schema;
+import org.junit.jupiter.api.Test;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public interface QueryParser
+class RelationshipKeyTest
 {
-    /**
-     * Parses filter expressions, need 2 or 3 components depending on operator.
-     * i.e. for null you can use "name:null" which checks to see if property
-     * name is null i.e. for eq you can use "name:eq:ANC" which check to see if
-     * property name is equal to ANC
-     * <p>
-     * The general syntax is "propertyName:operatorName:<Value to check against
-     * if needed>"
-     *
-     * @param klass Class type to query for
-     * @param filters List of filters to add to Query
-     * @param rootJunction Root junction to use (defaults to AND)
-     * @return Query instance based on Schema of klass and filters list
-     * @throws QueryParserException
-     */
-    Query parse( Class<?> klass, List<String> filters, Junction.Type rootJunction )
-        throws QueryParserException;
 
-    Query parse( Class<?> klass, List<String> filters )
-        throws QueryParserException;
+    @Test
+    void asStringForRelationshipTeiToTei()
+    {
 
-    Property getProperty( Schema schema, String path )
-        throws QueryParserException;
+        RelationshipKey key = RelationshipKey.of( "dDrh5UyCyvQ",
+            RelationshipKey.RelationshipItemKey.builder()
+                .trackedEntity( "Ea0rRdBPAIp" ).build(),
+            RelationshipKey.RelationshipItemKey.builder()
+                .trackedEntity( "G1afLIEKt8A" ).build() );
+
+        assertEquals( "dDrh5UyCyvQ_Ea0rRdBPAIp_G1afLIEKt8A", key.asString() );
+    }
+
+    @Test
+    void asStringForRelationshipTeiToEnrollment()
+    {
+
+        RelationshipKey key = RelationshipKey.of( "dDrh5UyCyvQ",
+            RelationshipKey.RelationshipItemKey.builder()
+                .trackedEntity( "Ea0rRdBPAIp" ).build(),
+            RelationshipKey.RelationshipItemKey.builder()
+                .enrollment( "G1afLIEKt8A" ).build() );
+
+        assertEquals( "dDrh5UyCyvQ_Ea0rRdBPAIp_G1afLIEKt8A", key.asString() );
+    }
+
+    @Test
+    void asStringForRelationshipTeiToEvent()
+    {
+
+        RelationshipKey key = RelationshipKey.of( "dDrh5UyCyvQ",
+            RelationshipKey.RelationshipItemKey.builder()
+                .trackedEntity( "Ea0rRdBPAIp" ).build(),
+            RelationshipKey.RelationshipItemKey.builder()
+                .event( "G1afLIEKt8A" ).build() );
+
+        assertEquals( "dDrh5UyCyvQ_Ea0rRdBPAIp_G1afLIEKt8A", key.asString() );
+    }
 }
