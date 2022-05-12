@@ -53,7 +53,7 @@
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
     </dependency>
-    
+
     <!-- Test -->
     <dependency>
       <groupId>org.junit.jupiter</groupId>
