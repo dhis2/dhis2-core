@@ -27,6 +27,26 @@
  */
 package org.hisp.dhis.analytics.shared;
 
-public interface GridAdaptor
+import java.util.List;
+
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
+
+/**
+ * Interface that provides operations responsible externally generate or
+ * manipulated Grid objects. It encapsulates some logic around Grid objects.
+ *
+ * @author maikel arabori
+ */
+public interface GridAdaptor<T>
 {
+    /**
+     * Based on the given headers and query result, this method takes care of
+     * the logic needed to create a valid Grid object.
+     *
+     * @param headers
+     * @param queryResult
+     * @return the Grid object
+     */
+    Grid createGrid( List<GridHeader> headers, QueryResult<T> queryResult );
 }

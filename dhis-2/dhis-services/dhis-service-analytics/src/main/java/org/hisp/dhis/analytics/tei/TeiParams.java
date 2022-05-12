@@ -27,6 +27,15 @@
  */
 package org.hisp.dhis.analytics.tei;
 
+/**
+ * This class is a wrapper for all possible parameters related to a tei. All
+ * attributes present here should be correctly typed and ready to be used by the
+ * service layers.
+ *
+ * @author maikel arabori
+ */
 public class TeiParams
 {
+    // TODO: add attributes, probably merge Giuseppe's work in
+    // https://github.com/dhis2/dhis2-core/pull/10503/files
 }

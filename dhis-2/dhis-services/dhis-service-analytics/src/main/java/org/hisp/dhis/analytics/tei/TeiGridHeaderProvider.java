@@ -27,34 +27,47 @@
  */
 package org.hisp.dhis.analytics.tei;
 
-import static org.hisp.dhis.analytics.shared.JdbcGridAdaptor.createGrid;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.springframework.util.Assert.noNullElements;
+import static org.springframework.util.Assert.notEmpty;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import lombok.AllArgsConstructor;
-
-import org.hisp.dhis.analytics.shared.Query;
-import org.hisp.dhis.analytics.shared.QueryExecutor;
-import org.hisp.dhis.analytics.shared.QueryGenerator;
-import org.hisp.dhis.analytics.shared.QueryResult;
-import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.analytics.shared.Column;
 import org.hisp.dhis.common.GridHeader;
-import org.springframework.stereotype.Service;
 
-@Service
-@AllArgsConstructor
-public class TeiAnalyticsService
+/**
+ * This class is responsible for encapsulating the grid header creation related
+ * to the tei columns.
+ *
+ * @author maikel arabori
+ */
+public class TeiGridHeaderProvider
 {
-    private final QueryGenerator<TeiParams> teiJdbcQuery;
-
-    private final QueryExecutor queryExecutor;
-
-    Grid getTeiGrid( final TeiParams teiParams )
+    /**
+     * Simple create a list of GridHeader objects based on the list of columns
+     * provided as argument.
+     *
+     * @param columns
+     * @return the list of grid headers or empty if the provided columns are
+     *         empty/null
+     * @throws IllegalArgumentException if the provided columns is null/empty or
+     *         contain at least one null element
+     */
+    public static List<GridHeader> getHeaders( final List<Column> columns )
     {
-        final Query query = teiJdbcQuery.from( teiParams );
-        final QueryResult result = queryExecutor.execute( query );
-        final List<GridHeader> headers = GridHeaderProvider.getHeaders();
+        notEmpty( columns, "The 'columns' must not be null/empty" );
+        noNullElements( columns, "The 'columns' must not contain null elements" );
 
-        return createGrid( headers, result );
+        final List<GridHeader> headers = new ArrayList<>();
+
+        if ( isNotEmpty( columns ) )
+        {
+            columns.stream().peek( column -> headers.add( new GridHeader(
+                column.getName(), column.getAlias(), column.valueType(), column.isHidden(), column.isMeta() ) ) );
+        }
+
+        return headers;
     }
 }

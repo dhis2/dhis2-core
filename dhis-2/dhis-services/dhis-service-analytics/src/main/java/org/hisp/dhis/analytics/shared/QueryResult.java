@@ -27,14 +27,25 @@
  */
 package org.hisp.dhis.analytics.shared;
 
-import java.util.List;
-import java.util.Map;
-
-public interface QueryResult
+/**
+ * Represents the result of a query. It's a very simple interface that will hold
+ * the result object required by the implementation class.
+ *
+ * @author maikel arabori
+ */
+public interface QueryResult<T>
 {
-    Map<Column, List<Object>> resultMap();
+    /**
+     * Holds the result object of a query.
+     *
+     * @return the result object
+     */
+    T result();
 
+    /**
+     * Checks if the query result is empty.
+     *
+     * @return true if the result is empty, false otherwise
+     */
     boolean isEmpty();
-
-    boolean isNotEmpty();
 }

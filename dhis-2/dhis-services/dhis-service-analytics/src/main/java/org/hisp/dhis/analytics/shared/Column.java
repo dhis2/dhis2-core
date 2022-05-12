@@ -28,10 +28,20 @@
 package org.hisp.dhis.analytics.shared;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 import org.hisp.dhis.analytics.ColumnDataType;
+import org.hisp.dhis.common.ValueType;
 
+/**
+ * Simple representation of a column that used by different analytics components
+ * and flows. Its main purpose is to encapsulate common and relevant attributes
+ * of a column.
+ *
+ * @author maikel arabori
+ */
 @AllArgsConstructor
+@Getter
 public class Column
 {
     /**
@@ -48,4 +58,38 @@ public class Column
      * The column alias.
      */
     private final String alias;
+
+    /**
+     * Flag to show/hide column.
+     */
+    private final boolean hidden;
+
+    /**
+     * Flag to indicate if this column is a metadata column or not.
+     */
+    private final boolean meta;
+
+    /**
+     * This method will find and return the value type associated with the
+     * current data type set.
+     *
+     * @return the respective value type or null if the column has no data type
+     *         set
+     */
+    public ValueType valueType()
+    {
+        if ( dataType != null )
+        {
+            // TODO: Implement it correctly for each type
+            switch ( dataType )
+            {
+            case DOUBLE:
+                return ValueType.NUMBER;
+            default:
+                return ValueType.TEXT;
+            }
+        }
+
+        return null;
+    }
 }
