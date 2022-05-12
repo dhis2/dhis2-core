@@ -30,8 +30,15 @@ package org.hisp.dhis.webapi.controller;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.dataexchange.analytics.model.AnalyticsDataExchange;
+import org.hisp.dhis.dataexchange.analytics.service.AnalyticsDataExchangeService;
+import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -43,4 +50,12 @@ import org.springframework.web.bind.annotation.RestController;
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class AnalyticsDataExchangeController
 {
+    private final AnalyticsDataExchangeService service;
+
+    @PostMapping( "/exchange" )
+    @ResponseStatus( value = HttpStatus.OK )
+    public ImportSummary runDataExchange( @RequestBody AnalyticsDataExchange exchange )
+    {
+        return service.exhangeData( exchange );
+    }
 }
