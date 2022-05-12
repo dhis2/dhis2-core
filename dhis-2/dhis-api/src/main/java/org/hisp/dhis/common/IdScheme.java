@@ -169,18 +169,6 @@ public class IdScheme
         }
     }
 
-    /**
-     * Returns a canonical name representation of the given ID scheme, or null
-     * if the given ID scheme is null.
-     *
-     * @param idScheme the {@link IdScheme}.
-     * @return a canonical name representation.
-     */
-    public static String toName( IdScheme idScheme )
-    {
-        return idScheme != null ? idScheme.name() : null;
-    }
-
     public static boolean isAttribute( String str )
     {
         return !StringUtils.isEmpty( str ) && str.toUpperCase().startsWith( ATTR_ID_SCHEME_PREFIX )

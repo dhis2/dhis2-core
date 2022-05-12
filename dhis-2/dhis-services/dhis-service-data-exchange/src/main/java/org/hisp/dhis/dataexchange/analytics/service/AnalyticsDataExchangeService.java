@@ -30,7 +30,6 @@ package org.hisp.dhis.dataexchange.analytics.service;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
-import static org.hisp.dhis.common.IdScheme.toName;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -86,16 +85,16 @@ public class AnalyticsDataExchangeService
         TargetRequest request = exchange.getTarget().getRequest();
 
         return new ImportOptions()
-            .setDataElementIdScheme( toName( request.getDataElementIdScheme() ) )
-            .setOrgUnitIdScheme( toName( request.getOrgUnitIdScheme() ) )
-            .setCategoryOptionComboIdScheme( toName( request.getCategoryOptionComboIdScheme() ) )
-            .setIdScheme( toName( request.getIdScheme() ) );
+            .setDataElementIdScheme( toNameOrDefault( request.getDataElementIdScheme() ) )
+            .setOrgUnitIdScheme( toNameOrDefault( request.getOrgUnitIdScheme() ) )
+            .setCategoryOptionComboIdScheme( toNameOrDefault( request.getCategoryOptionComboIdScheme() ) )
+            .setIdScheme( toNameOrDefault( request.getIdScheme() ) );
     }
 
     private DataQueryParams toDataQueryParams( AnalyticsDataExchange exchange )
     {
         SourceRequest request = exchange.getSource().getRequest();
-        IdScheme inputIdScheme = request.getInputIdScheme();
+        IdScheme inputIdScheme = getOrDefault( request.getInputIdScheme() );
 
         List<DimensionalObject> filters = request.getFilters().stream()
             .map( f -> toDimensionalObject( f, inputIdScheme ) )
@@ -119,5 +118,28 @@ public class AnalyticsDataExchangeService
     {
         return dataQueryService.getDimension(
             filter.getDimension(), filter.getItems(), null, null, null, false, inputIdScheme );
+    }
+
+    /**
+     * Returns a canonical name of the given ID scheme, or the name of the
+     * default ID scheme if the given ID scheme is null.
+     *
+     * @param idScheme the {@link IdScheme}.
+     * @return a canonical name.
+     */
+    public static String toNameOrDefault( IdScheme idScheme )
+    {
+        return idScheme != null ? idScheme.name() : IdScheme.UID.name();
+    }
+
+    /**
+     * Returns the given ID scheme, or the default ID scheme if null.
+     *
+     * @param idScheme the {@link IdScheme}.
+     * @return the given ID scheme, or the default ID scheme if null.
+     */
+    public IdScheme getOrDefault( IdScheme idScheme )
+    {
+        return idScheme != null ? idScheme : IdScheme.UID;
     }
 }
