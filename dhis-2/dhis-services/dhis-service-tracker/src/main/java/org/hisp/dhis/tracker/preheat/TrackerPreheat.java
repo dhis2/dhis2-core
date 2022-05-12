@@ -654,8 +654,7 @@ public class TrackerPreheat
             }
             return Stream.of( relationshipKey, inverseKey )
                 .filter( Objects::nonNull )
-                .map( key -> duplicatedRelationships.contains( key.asString() ) )
-                .anyMatch( Objects::nonNull );
+                .anyMatch( key -> duplicatedRelationships.contains( key.asString() ) );
         }
         return false;
     }
