@@ -51,14 +51,6 @@ public class RelationshipKeySupport
             relationship.getTo() );
     }
 
-    public static RelationshipKey getRelationshipKey( Relationship relationship )
-    {
-        return RelationshipKey.of(
-            relationship.getRelationshipType(),
-            getRelationshipItemKey( relationship.getFrom() ),
-            getRelationshipItemKey( relationship.getTo() ) );
-    }
-
     private static RelationshipKey.RelationshipItemKey getRelationshipItemKey( RelationshipItem relationshipItem )
     {
         if ( Objects.nonNull( relationshipItem ) )

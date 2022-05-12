@@ -67,7 +67,7 @@ public class DuplicateRelationshipSupplier extends AbstractPreheatSupplier
         // When idScheme is implemented for relationshipType
         // this keys must be converted to always use UID identifier
         List<String> keys = relationships.stream()
-            .map( rel -> RelationshipKeySupport.getRelationshipKey( rel ).asString() )
+            .map( rel -> RelationshipKeySupport.getRelationshipKey( rel, rel.getRelationshipType() ).asString() )
             .collect( Collectors.toList() );
 
         return relationshipStore.getByUid( relationshipStore.getUidsByRelationshipKeys( keys ) );

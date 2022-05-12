@@ -46,7 +46,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleService;
-import org.hisp.dhis.relationship.RelationshipKey;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -57,7 +56,6 @@ import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.Note;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.util.RelationshipKeySupport;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.ImmutableSet;
@@ -186,17 +184,18 @@ public class TrackerIdentifierCollector
 
             addIdentifier( identifiers, Relationship.class, relationship.getRelationship() );
 
-            if ( RelationshipKeySupport.hasRelationshipKey( relationship ) )
+            if ( Objects.nonNull( relationship.getFrom() ) )
             {
-                RelationshipKey relationshipKey = RelationshipKeySupport.getRelationshipKey( relationship );
+                addIdentifier( identifiers, TrackedEntity.class, relationship.getFrom().getTrackedEntity() );
+                addIdentifier( identifiers, Enrollment.class, relationship.getFrom().getEnrollment() );
+                addIdentifier( identifiers, Event.class, relationship.getFrom().getEvent() );
+            }
 
-                addIdentifier( identifiers, TrackedEntity.class, relationshipKey.getFrom().getTrackedEntity() );
-                addIdentifier( identifiers, Enrollment.class, relationshipKey.getFrom().getEnrollment() );
-                addIdentifier( identifiers, Event.class, relationshipKey.getFrom().getEvent() );
-
-                addIdentifier( identifiers, TrackedEntity.class, relationshipKey.getTo().getTrackedEntity() );
-                addIdentifier( identifiers, Enrollment.class, relationshipKey.getTo().getEnrollment() );
-                addIdentifier( identifiers, Event.class, relationshipKey.getTo().getEvent() );
+            if ( Objects.nonNull( relationship.getTo() ) )
+            {
+                addIdentifier( identifiers, TrackedEntity.class, relationship.getTo().getTrackedEntity() );
+                addIdentifier( identifiers, Enrollment.class, relationship.getTo().getEnrollment() );
+                addIdentifier( identifiers, Event.class, relationship.getTo().getEvent() );
             }
         } );
     }

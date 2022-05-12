@@ -180,7 +180,8 @@ public class RelationshipTrackerConverterService
 
         toRelationship.setFrom( fromItem );
         toRelationship.setTo( toItem );
-        RelationshipKey relationshipKey = RelationshipKeySupport.getRelationshipKey( fromRelationship );
+        RelationshipKey relationshipKey = RelationshipKeySupport.getRelationshipKey( fromRelationship,
+            relationshipType.getUid() );
         toRelationship.setKey( relationshipKey.asString() );
         toRelationship.setInvertedKey( relationshipKey.inverseKey().asString() );
 
