@@ -60,7 +60,7 @@ public interface TrackedEntityInstanceStore
      * @return a MultiMap where key is a {@see TrackedEntityInstance} uid and
      *         the key a List of {@see Relationship} objects
      */
-    Multimap<String, Relationship> getRelationships( List<Long> ids );
+    Multimap<String, Relationship> getRelationships( List<Long> ids, AggregateContext ctx );
 
     /**
      *

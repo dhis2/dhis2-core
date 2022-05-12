@@ -80,6 +80,8 @@ public class D2RelationshipCount
 
         return "(select count(*) from relationship r" + relationshipIdConstraint +
             " join relationshipitem rifrom on rifrom.relationshipid = r.relationshipid" +
-            " join trackedentityinstance tei on rifrom.trackedentityinstanceid = tei.trackedentityinstanceid and tei.uid = ax.tei)";
+            " join trackedentityinstance tei on rifrom.trackedentityinstanceid = tei.trackedentityinstanceid and tei.uid = ax.tei"
+            +
+            " where r.deleted is false)";
     }
 }
