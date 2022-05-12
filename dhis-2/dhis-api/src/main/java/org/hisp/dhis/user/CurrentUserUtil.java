@@ -31,9 +31,12 @@ import static org.hisp.dhis.hibernate.HibernateProxyUtils.initializeAndUnproxy;
 
 import java.io.Serializable;
 import java.util.Map;
+import java.util.Objects;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.hisp.dhis.category.CategoryOptionGroupSet;
+import org.hisp.dhis.common.DimensionalObject;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -173,20 +176,87 @@ public class CurrentUserUtil
     public static void initializeUser( User user )
     {
         initializeAndUnproxy( user );
+        initializeAndUnproxy( user.getPreviousPasswords() );
+        initializeAndUnproxy( user.getApps() );
         initializeAndUnproxy( user.getOrganisationUnits() );
+        initializeAndUnproxy( user.getTeiSearchOrganisationUnits() );
+        initializeAndUnproxy( user.getDataViewOrganisationUnits() );
+        user.getOrganisationUnits().stream().filter( Objects::nonNull )
+            .forEach( organisationUnit -> initializeAndUnproxy( organisationUnit.getChildren() ) );
+        initializeAndUnproxy( user.getTeiSearchOrganisationUnits() );
+        user.getTeiSearchOrganisationUnits().stream().filter( Objects::nonNull )
+            .forEach( organisationUnit -> initializeAndUnproxy( organisationUnit.getChildren() ) );
+        initializeAndUnproxy( user.getDataViewOrganisationUnits() );
+        user.getDataViewOrganisationUnits().stream().filter( Objects::nonNull )
+            .forEach( organisationUnit -> initializeAndUnproxy( organisationUnit.getChildren() ) );
+
         initializeAndUnproxy( user.getUserRoles() );
         for ( UserRole userRole : user.getUserRoles() )
         {
+            if ( userRole == null )
+            {
+                continue;
+            }
             initializeAndUnproxy( userRole );
             initializeAndUnproxy( userRole.getAuthorities() );
+            initializeAndUnproxy( userRole.getMembers() );
+            initializeAndUnproxy( userRole.getAttributeValues() );
         }
+
         initializeAndUnproxy( user.getGroups() );
-        initializeAndUnproxy( user.getTeiSearchOrganisationUnits() );
-        initializeAndUnproxy( user.getDataViewOrganisationUnits() );
+        for ( UserGroup group : user.getGroups() )
+        {
+            if ( group == null )
+            {
+                continue;
+            }
+            initializeAndUnproxy( group.getManagedByGroups() );
+            initializeAndUnproxy( group.getManagedGroups() );
+            initializeAndUnproxy( group.getMembers() );
+            initializeAndUnproxy( group.getAttributeValues() );
+            initializeAndUnproxy( group.getTranslations() );
+        }
+
         initializeAndUnproxy( user.getCogsDimensionConstraints() );
+        for ( CategoryOptionGroupSet groupSet : user.getCogsDimensionConstraints() )
+        {
+            if ( groupSet == null )
+            {
+                continue;
+            }
+            initializeAndUnproxy( groupSet.getMembers() );
+            initializeAndUnproxy( groupSet.getItems() );
+            initializeAndUnproxy( groupSet.getFilterItemsAsList() );
+            initializeAndUnproxy( groupSet.getAttributeValues() );
+            initializeAndUnproxy( groupSet.getFavorites() );
+            initializeAndUnproxy( groupSet.getTranslations() );
+
+        }
+
         initializeAndUnproxy( user.getDimensionConstraints() );
+        for ( DimensionalObject dimension : user.getDimensionConstraints() )
+        {
+            if ( dimension == null )
+            {
+                continue;
+            }
+            initializeAndUnproxy( dimension.getItems() );
+            initializeAndUnproxy( dimension.getAttributeValues() );
+            initializeAndUnproxy( dimension.getFavorites() );
+            initializeAndUnproxy( dimension.getTranslations() );
+        }
+
         initializeAndUnproxy( user.getCatDimensionConstraints() );
-        initializeAndUnproxy( user.getPreviousPasswords() );
-        initializeAndUnproxy( user.getApps() );
+        for ( DimensionalObject dimension : user.getCatDimensionConstraints() )
+        {
+            if ( dimension == null )
+            {
+                continue;
+            }
+            initializeAndUnproxy( dimension.getItems() );
+            initializeAndUnproxy( dimension.getAttributeValues() );
+            initializeAndUnproxy( dimension.getFavorites() );
+            initializeAndUnproxy( dimension.getTranslations() );
+        }
     }
 }

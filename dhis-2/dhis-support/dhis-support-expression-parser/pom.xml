@@ -1,5 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
@@ -16,7 +16,6 @@
   <dependencies>
 
     <!-- DHIS -->
-
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-api</artifactId>
@@ -34,11 +33,11 @@
       <artifactId>dhis-antlr-expression-parser</artifactId>
     </dependency>
 
+    <!-- Application -->
     <dependency>
       <groupId>org.antlr</groupId>
       <artifactId>antlr4-runtime</artifactId>
     </dependency>
-
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-text</artifactId>
@@ -55,14 +54,13 @@
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
     </dependency>
-
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
       <scope>provided</scope>
     </dependency>
 
-
+    <!-- Test -->
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter</artifactId>
@@ -70,7 +68,7 @@
     </dependency>
 
   </dependencies>
-  
+
   <properties>
     <rootDir>../../</rootDir>
   </properties>

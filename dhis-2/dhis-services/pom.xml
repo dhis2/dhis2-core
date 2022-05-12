@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
@@ -12,14 +13,11 @@
   <packaging>pom</packaging>
   <name>DHIS Services Parent Project</name>
 
-  <!--
-    Service modules are grouped in levels, where a module in a level can only
-    depend on modules on a lower level. Note: New services should be added
-    as high up in the list as possible (at the lowest level).
-
-    The purpose is to avoid circular dependencies and have a clean dependency
-    graph. The modules are built in ascending order according to the level.
-  -->
+  <!-- Service modules are grouped in levels, where a module in a level can 
+    only depend on modules on a lower level. Note: New services should be added 
+    as high up in the list as possible (at the lowest level). The purpose is 
+    to avoid circular dependencies and have a clean dependency graph. The modules 
+    are built in ascending order according to the level. -->
 
   <modules>
     <!-- Level 1 -->
