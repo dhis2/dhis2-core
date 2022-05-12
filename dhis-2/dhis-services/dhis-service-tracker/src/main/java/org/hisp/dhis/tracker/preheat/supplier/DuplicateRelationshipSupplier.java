@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.preheat.supplier.strategy;
+package org.hisp.dhis.tracker.preheat.supplier;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -33,41 +33,38 @@ import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.relationship.RelationshipStore;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.Relationship;
+import org.hisp.dhis.tracker.preheat.RelationshipPreheatKeySupport;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.preheat.mappers.RelationshipMapper;
-import org.hisp.dhis.tracker.preheat.supplier.DetachUtils;
+import org.hisp.dhis.tracker.preheat.supplier.strategy.StrategyFor;
 import org.springframework.stereotype.Component;
 
-/**
- * @author Luciano Fiandesio
- */
 @RequiredArgsConstructor
 @Component
-@StrategyFor( value = Relationship.class, mapper = RelationshipMapper.class )
-public class RelationshipStrategy implements ClassBasedSupplierStrategy
+public class DuplicateRelationshipSupplier extends AbstractPreheatSupplier
 {
     @NonNull
     private final RelationshipStore relationshipStore;
 
     @Override
-    public void add( TrackerImportParams params, List<List<String>> splitList, TrackerPreheat preheat )
+    public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
     {
-        List<org.hisp.dhis.relationship.Relationship> relationships = retrieveRelationships( splitList );
 
-        preheat.putRelationships(
-            DetachUtils.detach( this.getClass().getAnnotation( StrategyFor.class ).mapper(), relationships ) );
+        List<org.hisp.dhis.relationship.Relationship> relationshipKeys = retrieveRelationshipKeys(
+            params.getRelationships() );
+
+        preheat.putDuplicateRelationships(
+            DetachUtils.detach( this.getClass().getAnnotation( StrategyFor.class ).mapper(), relationshipKeys ) );
     }
 
-    private List<org.hisp.dhis.relationship.Relationship> retrieveRelationships( List<List<String>> splitList )
+    private List<org.hisp.dhis.relationship.Relationship> retrieveRelationshipKeys( List<Relationship> relationships )
     {
-        List<String> uids = splitList.stream().flatMap( List::stream )
-            .filter( CodeGenerator::isValidUid )
+        List<String> keys = relationships.stream()
+            .map( rel -> RelationshipPreheatKeySupport.getRelationshipKey( rel ).asString() )
             .collect( Collectors.toList() );
 
-        return relationshipStore.getByUidsIncludeDeleted( uids );
+        return relationshipStore.getByUid( relationshipStore.getUidsByRelationshipKeys( keys ) );
     }
 }
