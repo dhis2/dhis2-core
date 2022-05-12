@@ -137,7 +137,14 @@ public class AuthenticationListener
         if ( Objects.nonNull( user ) && !readOnly )
         {
             user.updateLastLogin();
-            userService.updateUser( user );
+            try
+            {
+                userService.updateUser( user );
+            }
+            catch ( Exception e )
+            {
+                log.warn( "Failed to update the user!", e );
+            }
         }
 
         securityService.registerSuccessfulLogin( username );

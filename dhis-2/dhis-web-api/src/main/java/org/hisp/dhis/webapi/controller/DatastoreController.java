@@ -141,7 +141,7 @@ public class DatastoreController
                     {
                         writer.write( "{\"pager\":{" );
                         writer.write( "\"page\":" + query.getPage() + "," );
-                        writer.write( "\"pageSize\":" + query.getPageSize() + "," );
+                        writer.write( "\"pageSize\":" + query.getPageSize() );
                         writer.write( "},\"entries\":" );
                     }
                     out.writeEntries( members, entries );

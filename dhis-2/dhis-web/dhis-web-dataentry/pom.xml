@@ -1,26 +1,26 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  
+
   <parent>
     <groupId>org.hisp.dhis</groupId>
     <artifactId>dhis-web</artifactId>
     <version>2.39-SNAPSHOT</version>
   </parent>
-  
+
   <artifactId>dhis-web-dataentry</artifactId>
   <packaging>war</packaging>
   <name>DHIS Data Entry</name>
-  
+
   <build>
     <finalName>dhis-web-dataentry</finalName>
   </build>
-  
+
   <dependencies>
-    	
+
     <!-- DHIS -->
-    
+
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-api</artifactId>
@@ -42,7 +42,7 @@
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-service-core</artifactId>
-    </dependency>    
+    </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-service-reporting</artifactId>
