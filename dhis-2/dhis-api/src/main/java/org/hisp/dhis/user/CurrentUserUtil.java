@@ -200,7 +200,6 @@ public class CurrentUserUtil
             initializeAndUnproxy( userRole );
             initializeAndUnproxy( userRole.getAuthorities() );
             initializeAndUnproxy( userRole.getMembers() );
-            initializeAndUnproxy( userRole.getUserAccesses() );
             initializeAndUnproxy( userRole.getAttributeValues() );
         }
 
@@ -216,8 +215,6 @@ public class CurrentUserUtil
             initializeAndUnproxy( group.getMembers() );
             initializeAndUnproxy( group.getAttributeValues() );
             initializeAndUnproxy( group.getTranslations() );
-            initializeAndUnproxy( group.getUserAccesses() );
-            initializeAndUnproxy( group.getUserGroupAccesses() );
         }
 
         initializeAndUnproxy( user.getCogsDimensionConstraints() );
@@ -232,8 +229,6 @@ public class CurrentUserUtil
             initializeAndUnproxy( groupSet.getFilterItemsAsList() );
             initializeAndUnproxy( groupSet.getAttributeValues() );
             initializeAndUnproxy( groupSet.getFavorites() );
-            initializeAndUnproxy( groupSet.getUserAccesses() );
-            initializeAndUnproxy( groupSet.getUserGroupAccesses() );
             initializeAndUnproxy( groupSet.getTranslations() );
 
         }
@@ -248,8 +243,6 @@ public class CurrentUserUtil
             initializeAndUnproxy( dimension.getItems() );
             initializeAndUnproxy( dimension.getAttributeValues() );
             initializeAndUnproxy( dimension.getFavorites() );
-            initializeAndUnproxy( dimension.getUserAccesses() );
-            initializeAndUnproxy( dimension.getUserGroupAccesses() );
             initializeAndUnproxy( dimension.getTranslations() );
         }
 
@@ -263,8 +256,6 @@ public class CurrentUserUtil
             initializeAndUnproxy( dimension.getItems() );
             initializeAndUnproxy( dimension.getAttributeValues() );
             initializeAndUnproxy( dimension.getFavorites() );
-            initializeAndUnproxy( dimension.getUserAccesses() );
-            initializeAndUnproxy( dimension.getUserGroupAccesses() );
             initializeAndUnproxy( dimension.getTranslations() );
         }
     }
