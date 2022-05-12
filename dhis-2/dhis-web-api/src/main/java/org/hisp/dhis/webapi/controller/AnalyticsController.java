@@ -303,8 +303,7 @@ public class AnalyticsController
     }
 
     private Grid getGridWithAttachment( AggregateAnalyticsQueryCriteria criteria, DhisApiVersion apiVersion,
-        String contentType, String file,
-        HttpServletResponse response )
+        String contentType, String file, HttpServletResponse response )
     {
         DataQueryParams params = dataQueryService.getFromRequest( mapFromCriteria( criteria, apiVersion ) );
 

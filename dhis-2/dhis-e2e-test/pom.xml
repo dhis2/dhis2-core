@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xmlns="http://maven.apache.org/POM/4.0.0"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  xmlns="http://maven.apache.org/POM/4.0.0"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>org.hisp.dhis</groupId>
@@ -143,7 +143,8 @@
             <consoleOutputReporter>
               <disable>true</disable>
             </consoleOutputReporter>
-            <statelessTestsetInfoReporter implementation="org.apache.maven.plugin.surefire.extensions.junit5.JUnit5StatelessTestsetInfoTreeReporter"/>
+            <statelessTestsetInfoReporter
+              implementation="org.apache.maven.plugin.surefire.extensions.junit5.JUnit5StatelessTestsetInfoTreeReporter" />
           </configuration>
         </plugin>
         <plugin>
@@ -164,8 +165,8 @@
                 <file>${rootDir}/DHISFormatter.xml</file>
                 <version>4.9.0</version>
               </eclipse>
-              <trimTrailingWhitespace/>
-              <removeUnusedImports/>
+              <trimTrailingWhitespace />
+              <removeUnusedImports />
               <importOrder>
                 <order>
                   java,javax,org,com
