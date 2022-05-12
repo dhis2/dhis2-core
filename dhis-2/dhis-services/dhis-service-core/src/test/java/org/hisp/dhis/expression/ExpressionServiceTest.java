@@ -1323,9 +1323,6 @@ class ExpressionServiceTest extends DhisSpringTest
         assertNull( error( "true && 2" ) );
         assertNull( error( "!5" ) );
         assertNull( error( "true / ( #{dataElemenA} - #{dataElemenB} )" ) );
-        assertNull( error( "#{dataElemenF}" ) );
-        assertNull( error( "#{dataElemenG}" ) );
-        assertNull( error( "#{dataElemenH}" ) );
         assertNull( error( "#{dataElemenA}.aggregationType(NOT_AN_AGGREGATION_TYPE)" ) );
         assertNull( error( "#{dataElemenA}.periodOffset('notANumber')" ) );
         assertNull( error( "#{dataElemenA}.maxDate(2022-13-01)" ) );
