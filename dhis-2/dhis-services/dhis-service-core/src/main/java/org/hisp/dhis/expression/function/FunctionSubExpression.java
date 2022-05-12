@@ -86,7 +86,9 @@ public class FunctionSubExpression
     private DimensionalItemId getDimItemId( ExprContext ctx, CommonExpressionVisitor visitor )
     {
         CommonExpressionVisitor infoVisitor = visitor.toBuilder()
-            .itemMethod( ITEM_GET_EXPRESSION_INFO ).info( new ExpressionInfo() ).build();
+            .itemMethod( ITEM_GET_EXPRESSION_INFO )
+            .info( new ExpressionInfo() )
+            .state( getSubExpressionState( visitor ) ).build();
 
         Object returnObject = infoVisitor.visit( ctx.expr( 0 ) );
 
@@ -131,14 +133,21 @@ public class FunctionSubExpression
      */
     private String getSubExpressionSql( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        ExpressionState state = new ExpressionState();
-        state.setSqlForSubExpression( true );
-
-        CommonExpressionVisitor sqlVisitor = visitor.toBuilder().itemMethod( ITEM_GET_SQL ).state( state ).build();
+        CommonExpressionVisitor sqlVisitor = visitor.toBuilder()
+            .itemMethod( ITEM_GET_SQL )
+            .state( getSubExpressionState( visitor ) ).build();
 
         sqlVisitor.setExpressionLiteral( new SqlLiteral() );
 
         return sqlVisitor.castStringVisit( ctx.expr( 0 ) );
+    }
+
+    /**
+     * Gets the current state adding that we are in a subexpression.
+     */
+    private ExpressionState getSubExpressionState( CommonExpressionVisitor visitor )
+    {
+        return visitor.getState().builder().inSubexpression( true ).build();
     }
 
     /**
