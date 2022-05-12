@@ -25,49 +25,51 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.sync;
+package org.hisp.dhis.relationship;
 
-import lombok.AllArgsConstructor;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.hisp.dhis.dxf2.synch.SynchronizationManager;
-import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.scheduling.Job;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.scheduling.parameters.EventProgramsDataSynchronizationJobParameters;
-import org.springframework.stereotype.Component;
+import org.junit.jupiter.api.Test;
 
-/**
- * @author David Katuscak (original)
- * @author Jan Bernitt (job progress tracking)
- */
-@Component
-@AllArgsConstructor
-public class EventProgramsDataSynchronizationJob implements Job
+class RelationshipKeyTest
 {
-    private final EventSynchronization eventSync;
 
-    private final SynchronizationManager syncManager;
-
-    @Override
-    public JobType getJobType()
+    @Test
+    void asStringForRelationshipTeiToTei()
     {
-        return JobType.EVENT_PROGRAMS_DATA_SYNC;
+
+        RelationshipKey key = RelationshipKey.of( "dDrh5UyCyvQ",
+            RelationshipKey.RelationshipItemKey.builder()
+                .trackedEntity( "Ea0rRdBPAIp" ).build(),
+            RelationshipKey.RelationshipItemKey.builder()
+                .trackedEntity( "G1afLIEKt8A" ).build() );
+
+        assertEquals( "dDrh5UyCyvQ_Ea0rRdBPAIp_G1afLIEKt8A", key.asString() );
     }
 
-    @Override
-    public void execute( JobConfiguration config, JobProgress progress )
+    @Test
+    void asStringForRelationshipTeiToEnrollment()
     {
-        EventProgramsDataSynchronizationJobParameters params = (EventProgramsDataSynchronizationJobParameters) config
-            .getJobParameters();
-        eventSync.synchronizeData( params.getPageSize(), progress );
+
+        RelationshipKey key = RelationshipKey.of( "dDrh5UyCyvQ",
+            RelationshipKey.RelationshipItemKey.builder()
+                .trackedEntity( "Ea0rRdBPAIp" ).build(),
+            RelationshipKey.RelationshipItemKey.builder()
+                .enrollment( "G1afLIEKt8A" ).build() );
+
+        assertEquals( "dDrh5UyCyvQ_Ea0rRdBPAIp_G1afLIEKt8A", key.asString() );
     }
 
-    @Override
-    public ErrorReport validate()
+    @Test
+    void asStringForRelationshipTeiToEvent()
     {
-        return SyncUtils.validateRemoteServerAvailability( syncManager, EventProgramsDataSynchronizationJob.class )
-            .orElse( null );
+
+        RelationshipKey key = RelationshipKey.of( "dDrh5UyCyvQ",
+            RelationshipKey.RelationshipItemKey.builder()
+                .trackedEntity( "Ea0rRdBPAIp" ).build(),
+            RelationshipKey.RelationshipItemKey.builder()
+                .event( "G1afLIEKt8A" ).build() );
+
+        assertEquals( "dDrh5UyCyvQ_Ea0rRdBPAIp_G1afLIEKt8A", key.asString() );
     }
 }

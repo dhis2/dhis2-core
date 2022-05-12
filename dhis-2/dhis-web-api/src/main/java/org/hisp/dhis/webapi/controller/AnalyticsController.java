@@ -206,8 +206,7 @@ public class AnalyticsController
     {
         final DataQueryRequest request = DataQueryRequest.newBuilder()
             .fromCriteria( criteria )
-            .apiVersion( apiVersion )
-            .allowAllPeriods( true ).build();
+            .apiVersion( apiVersion ).build();
 
         DataQueryParams params = dataQueryService.getFromRequest( request );
 
@@ -226,8 +225,7 @@ public class AnalyticsController
     {
         final DataQueryRequest request = DataQueryRequest.newBuilder()
             .fromCriteria( criteria )
-            .apiVersion( apiVersion )
-            .allowAllPeriods( true ).build();
+            .apiVersion( apiVersion ).build();
 
         DataQueryParams params = dataQueryService.getFromRequest( request );
 
@@ -291,11 +289,14 @@ public class AnalyticsController
 
         if ( analyzeOnly )
         {
-            params = DataQueryParams.newBuilder( params ).withSkipData( false ).withAnalyzeOrderId().build();
+            params = DataQueryParams.newBuilder( params )
+                .withSkipData( false )
+                .withAnalyzeOrderId()
+                .build();
         }
 
-        contextUtils.configureAnalyticsResponse( response, contentType, CacheStrategy.RESPECT_SYSTEM_SETTING, null,
-            false, params.getLatestEndDate() );
+        contextUtils.configureAnalyticsResponse( response, contentType, CacheStrategy.RESPECT_SYSTEM_SETTING,
+            null, false, params.getLatestEndDate() );
 
         return analyticsService.getAggregatedDataValues( params, getItemsFromParam( criteria.getColumns() ),
             getItemsFromParam( criteria.getRows() ) );
@@ -307,8 +308,8 @@ public class AnalyticsController
     {
         DataQueryParams params = dataQueryService.getFromRequest( mapFromCriteria( criteria, apiVersion ) );
 
-        contextUtils.configureAnalyticsResponse( response, contentType, CacheStrategy.RESPECT_SYSTEM_SETTING, file,
-            true, params.getLatestEndDate() );
+        contextUtils.configureAnalyticsResponse( response, contentType, CacheStrategy.RESPECT_SYSTEM_SETTING,
+            file, true, params.getLatestEndDate() );
 
         return analyticsService.getAggregatedDataValues( params, getItemsFromParam( criteria.getColumns() ),
             getItemsFromParam( criteria.getRows() ) );

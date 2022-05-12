@@ -89,7 +89,7 @@ public class EnrollmentAggregate
 
         final CompletableFuture<Multimap<String, Relationship>> relationshipAsync = conditionalAsyncFetch(
             ctx.getParams().isIncludeRelationships(),
-            () -> enrollmentStore.getRelationships( enrollmentIds ), getPool() );
+            () -> enrollmentStore.getRelationships( enrollmentIds, ctx ), getPool() );
 
         final CompletableFuture<Multimap<String, Note>> notesAsync = asyncFetch(
             () -> enrollmentStore.getNotes( enrollmentIds ), getPool() );

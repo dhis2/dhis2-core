@@ -80,8 +80,6 @@ public class DataQueryRequest
 
     protected boolean duplicatesOnly;
 
-    protected boolean allowAllPeriods;
-
     protected DisplayProperty displayProperty;
 
     protected IdScheme outputIdScheme;
@@ -260,11 +258,6 @@ public class DataQueryRequest
     public boolean isDuplicatesOnly()
     {
         return duplicatesOnly;
-    }
-
-    public boolean isAllowAllPeriods()
-    {
-        return allowAllPeriods;
     }
 
     public static DataQueryRequestBuilder newBuilder()
@@ -474,12 +467,6 @@ public class DataQueryRequest
         public DataQueryRequestBuilder duplicatesOnly( boolean duplicatesOnly )
         {
             this.request.duplicatesOnly = duplicatesOnly;
-            return this;
-        }
-
-        public DataQueryRequestBuilder allowAllPeriods( boolean allowAllPeriods )
-        {
-            this.request.allowAllPeriods = allowAllPeriods;
             return this;
         }
 
