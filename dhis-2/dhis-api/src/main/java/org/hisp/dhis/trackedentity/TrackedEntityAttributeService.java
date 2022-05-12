@@ -99,6 +99,14 @@ public interface TrackedEntityAttributeService
     List<TrackedEntityAttribute> getTrackedEntityAttributes( List<String> uids );
 
     /**
+     * Returns the {@link TrackedEntityAttribute}s with the given UIDs.
+     *
+     * @param ids list of primary key ids.
+     * @return all the TrackedEntityAttribute with the given ids.
+     */
+    List<TrackedEntityAttribute> getTrackedEntityAttributesById( List<Long> ids );
+
+    /**
      * Returns a {@link TrackedEntityAttribute} with a given name.
      *
      * @param name the name of the TrackedEntityAttribute to return.
