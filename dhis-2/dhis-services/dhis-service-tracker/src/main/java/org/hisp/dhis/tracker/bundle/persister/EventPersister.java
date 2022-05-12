@@ -163,10 +163,11 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
     private void handleDataValues( Session session, TrackerPreheat preheat, Set<DataValue> payloadDataValues,
         ProgramStageInstance psi )
     {
-        Map<String, EventDataValue> dataValueDBMap = psi
-            .getEventDataValues()
-            .stream()
-            .collect( Collectors.toMap( EventDataValue::getDataElement, Function.identity() ) );
+        Map<String, EventDataValue> dataValueDBMap = Optional.ofNullable( preheat.getEvent( psi.getUid() ) )
+            .map( a -> a.getEventDataValues()
+                .stream()
+                .collect( Collectors.toMap( EventDataValue::getDataElement, Function.identity() ) ) )
+            .orElse( new HashMap<>() );
 
         Date today = new Date();
 
