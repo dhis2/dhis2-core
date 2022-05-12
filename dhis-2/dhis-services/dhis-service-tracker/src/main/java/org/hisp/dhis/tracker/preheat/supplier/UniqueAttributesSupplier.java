@@ -245,7 +245,7 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier
     {
         return uniqueTrackedEntityAttributes
             .stream()
-            .filter( a -> attribute.isEqualTo( a ) )
+            .filter( attribute::isEqualTo )
             .findAny()
             .orElse( null );
     }

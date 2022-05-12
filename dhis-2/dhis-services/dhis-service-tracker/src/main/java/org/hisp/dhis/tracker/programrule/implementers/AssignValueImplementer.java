@@ -254,11 +254,10 @@ public class AssignValueImplementer
 
     private Attribute createAttribute( String attributeUid, String newValue )
     {
-        Attribute attribute = Attribute.builder()
+        return Attribute.builder()
             .attribute( MetadataIdentifier.ofUid( attributeUid ) )
             .value( newValue )
             .build();
-        return attribute;
     }
 
     private DataValue createDataValue( String dataElementUid, String newValue )
