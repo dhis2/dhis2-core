@@ -27,7 +27,20 @@
  */
 package org.hisp.dhis.analytics.shared;
 
+/**
+ * Encapsulates the internals of a query, exposing methods that provides
+ * executable statements.
+ *
+ * @author maikel arabori
+ */
 public interface Query
 {
+    /**
+     * Responsible for encapsulating the logic to unify al query attributes into
+     * a full/final statement that can be executed on the respective data
+     * provider.
+     *
+     * @return the full query statement
+     */
     String fullStatement();
 }

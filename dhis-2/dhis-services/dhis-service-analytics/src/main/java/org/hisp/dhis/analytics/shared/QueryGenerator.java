@@ -27,6 +27,12 @@
  */
 package org.hisp.dhis.analytics.shared;
 
+/**
+ * Provides methods responsible for creating Query objects based on the given
+ * arguments and internal logic.
+ *
+ * @author maikel arabori
+ */
 public interface QueryGenerator<T>
 {
     Query from( T params );

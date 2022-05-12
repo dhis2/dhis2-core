@@ -27,7 +27,22 @@
  */
 package org.hisp.dhis.analytics.shared;
 
+/**
+ * Responsible for providing methods able to execute queries on the respective
+ * data source, based on the implementation provided.
+ *
+ * NOTE: in analytics we never persist or update data. So this interface will
+ * always delivery read/retrieve operations.
+ *
+ * @author maikel arabori
+ */
 public interface QueryExecutor
 {
+    /**
+     * Executes a read/retrieve operation based on the given query.
+     *
+     * @param query
+     * @return the result of the execution represented by a QueryResult object.
+     */
     QueryResult execute( Query query );
 }

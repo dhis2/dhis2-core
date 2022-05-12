@@ -27,24 +27,47 @@
  */
 package org.hisp.dhis.analytics.shared;
 
+import static org.springframework.util.Assert.noNullElements;
+import static org.springframework.util.Assert.notEmpty;
+import static org.springframework.util.Assert.notNull;
+
 import java.util.List;
+import java.util.Map;
 
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.system.grid.ListGrid;
+import org.springframework.stereotype.Component;
 
-public class JdbcGridAdaptor
+/**
+ * @see GridAdaptor
+ *
+ * @author maikel arabori
+ */
+@Component
+public class JdbcGridAdaptor implements GridAdaptor<Map<Column, List<Object>>>
 {
-    public static Grid createGrid( final List<GridHeader> headers, final QueryResult queryResult )
+    /**
+     * @see GridAdaptor#createGrid(List, QueryResult)
+     *
+     * @throws IllegalArgumentException if headers is null/empty or contain at
+     *         least one null element, or if the queryResult is null
+     */
+    @Override
+    public Grid createGrid( final List<GridHeader> headers, final QueryResult<Map<Column, List<Object>>> queryResult )
     {
+        notEmpty( headers, "The 'headers' must not be null/empty" );
+        noNullElements( headers, "The 'headers' must not contain null elements" );
+        notNull( queryResult, "The 'queryResult' must not be null" );
+
         final Grid grid = new ListGrid();
 
-        if ( queryResult.isNotEmpty() )
+        if ( !queryResult.isEmpty() )
         {
             for ( final GridHeader header : headers )
             {
                 // Note that the header column must match the result map key.
-                grid.addHeader( header ).addColumn( queryResult.resultMap().get( header.getColumn() ) );
+                grid.addHeader( header ).addColumn( queryResult.result().get( header.getColumn() ) );
             }
         }
 

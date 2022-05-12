@@ -25,46 +25,58 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.shared;
+package org.hisp.dhis.analytics.tei;
+
+import static org.hisp.dhis.analytics.tei.TeiGridHeaderProvider.getHeaders;
+import static org.springframework.util.Assert.notNull;
 
 import java.util.List;
-import java.util.Map;
 
 import lombok.AllArgsConstructor;
 
-import org.apache.commons.collections4.MapUtils;
+import org.hisp.dhis.analytics.shared.GridAdaptor;
+import org.hisp.dhis.analytics.shared.Query;
+import org.hisp.dhis.analytics.shared.QueryExecutor;
+import org.hisp.dhis.analytics.shared.QueryGenerator;
+import org.hisp.dhis.analytics.shared.QueryResult;
+import org.hisp.dhis.analytics.shared.SqlQuery;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
+import org.springframework.stereotype.Service;
 
 /**
- * @see org.hisp.dhis.analytics.shared.QueryResult
+ * Service responsible exclusively for querying. Methods present on this class
+ * must not change any state.
  *
  * @author maikel arabori
  */
+@Service
 @AllArgsConstructor
-public class SqlQueryResult implements QueryResult<Map<Column, List<Object>>>
+public class TeiAnalyticsQueryService
 {
-    /**
-     * Represents the query result. It maps each column to the respective list
-     * of rows.
-     */
-    private final Map<Column, List<Object>> resultMap;
+    private final QueryGenerator<TeiParams> teiJdbcQuery;
+
+    private final QueryExecutor queryExecutor;
+
+    private final GridAdaptor jdbcGridAdaptor;
 
     /**
-     * @see QueryResult#result()
+     * This method will create a query, based on the teiParams, and execute it
+     * against the underline data provider and return. The results found will be
+     * returned encapsulated on a Grid object.
      *
-     * @return a map that contains all rows for each column
+     * @param teiParams
+     * @return the populated Grid object
+     * @throws IllegalArgumentException if the given teiParams is null
      */
-    @Override
-    public Map<Column, List<Object>> result()
+    public Grid getTeiGrid( final TeiParams teiParams )
     {
-        return resultMap;
-    }
+        notNull( teiParams, "The 'teiParams' must not be null" );
 
-    /**
-     * @see QueryResult#isEmpty()
-     */
-    @Override
-    public boolean isEmpty()
-    {
-        return MapUtils.isEmpty( resultMap );
+        final Query query = teiJdbcQuery.from( teiParams );
+        final QueryResult result = queryExecutor.execute( query );
+        final List<GridHeader> headers = getHeaders( ((SqlQuery) query).getColumns() );
+
+        return jdbcGridAdaptor.createGrid( headers, result );
     }
 }

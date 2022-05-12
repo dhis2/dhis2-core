@@ -27,29 +27,45 @@
  */
 package org.hisp.dhis.analytics.tei;
 
+import static org.hisp.dhis.analytics.shared.SqlQuery.builder;
+import static org.springframework.util.Assert.notNull;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import org.hisp.dhis.analytics.shared.Column;
 import org.hisp.dhis.analytics.shared.Query;
 import org.hisp.dhis.analytics.shared.QueryGenerator;
-import org.hisp.dhis.analytics.shared.SqlQuery;
 import org.springframework.stereotype.Component;
 
+/**
+ * @see QueryGenerator
+ *
+ * @author maikel arabori
+ */
 @Component
 public class TeiJdbcQuery implements QueryGenerator<TeiParams>
 {
+    /**
+     * @see QueryGenerator#from(Object)
+     *
+     * @param teiParams
+     * @return the built Query object
+     * @throws IllegalArgumentException if the given teiParams is null
+     */
     @Override
-    public Query from( final TeiParams params )
+    public Query from( final TeiParams teiParams )
     {
-        // TODO: build objects below from the params.
+        notNull( teiParams, "The 'teiParams' must not be null" );
+
+        // TODO: build objects below from the teiParams.
         final List<Column> columns = new ArrayList<>();
         final String fromClause = null;
         final String joinClause = null;
         final String whereClause = null;
         final String closingClauses = null;
 
-        return SqlQuery.builder().columns( columns ).fromClause( fromClause ).joinClause( joinClause )
+        return builder().columns( columns ).fromClause( fromClause ).joinClause( joinClause )
             .whereClause( whereClause ).closingClauses( closingClauses )
             .build();
     }

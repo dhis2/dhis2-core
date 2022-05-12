@@ -33,13 +33,27 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 
+/**
+ * @author maikel arabori
+ * @see QueryExecutor
+ */
 @Component
 public class SqlQueryExecutor implements QueryExecutor
 {
+    /**
+     * @see QueryExecutor#execute(Query)
+     *
+     * @throws IllegalArgumentException if the query argument is null or the
+     *         query contains an invalid statement (see
+     *         {@link SqlQuery#validate()})
+     */
     @Override
     public QueryResult execute( final Query query )
     {
+        Assert.notNull( query, "The 'query' must not be null" );
+
         final SqlQuery sqlQuery = (SqlQuery) query;
         final String fullStatement = sqlQuery.fullStatement();
         // TODO: Execute JDBC fullStatement here and populated the map based on
