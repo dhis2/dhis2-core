@@ -32,6 +32,7 @@ import static org.hisp.dhis.analytics.AggregationType.COUNT;
 import static org.hisp.dhis.analytics.AggregationType.NONE;
 import static org.hisp.dhis.analytics.AggregationType.SUM;
 import static org.hisp.dhis.common.ValueType.BOOLEAN;
+import static org.hisp.dhis.common.ValueType.DATE;
 import static org.hisp.dhis.common.ValueType.INTEGER;
 import static org.hisp.dhis.common.ValueType.TEXT;
 import static org.hisp.dhis.expression.Operator.equal_to;
@@ -143,6 +144,8 @@ class AnalyticsServiceTest
     private DataElement deF;
 
     private DataElement deG;
+
+    private DataElement deH;
 
     private OrganisationUnit ouA;
 
@@ -293,6 +296,7 @@ class AnalyticsServiceTest
         deE = createDataElement( 'E', INTEGER, SUM );
         deF = createDataElement( 'F', BOOLEAN, COUNT );
         deG = createDataElement( 'G', TEXT, NONE );
+        deH = createDataElement( 'H', DATE, NONE );
 
         dataElementService.addDataElement( deA );
         dataElementService.addDataElement( deB );
@@ -301,6 +305,7 @@ class AnalyticsServiceTest
         dataElementService.addDataElement( deE );
         dataElementService.addDataElement( deF );
         dataElementService.addDataElement( deG );
+        dataElementService.addDataElement( deH );
 
         ouA = createOrganisationUnit( 'A' );
 
@@ -492,7 +497,7 @@ class AnalyticsServiceTest
             dataValue.setValue( line[3] );
             dataValueService.addDataValue( dataValue );
         }
-        assertEquals( 29, dataValueService.getAllDataValues().size(),
+        assertEquals( 30, dataValueService.getAllDataValues().size(),
             "Import of data values failed, number of imports are wrong" );
     }
 
@@ -581,10 +586,12 @@ class AnalyticsServiceTest
     @Test
     void test_de_avg_2017_03()
     {
+        List<DataElement> dataElements = List.of( deA, deB, deC, deD, deE );
+
         assertDataValues(
             Map.of( "deabcdefghC-201703", 6.75 ),
             DataQueryParams.newBuilder()
-                .withDataElements( dataElementService.getAllDataElements() )
+                .withDataElements( dataElements )
                 .withAggregationType( AnalyticsAggregationType.AVERAGE )
                 .withSkipRounding( true )
                 .withPeriod( peMar )
@@ -792,6 +799,21 @@ class AnalyticsServiceTest
 
         assertDataValues(
             Map.of( "indicatorId-ouabcdefghA-201701", 5.0 ),
+            DataQueryParams.newBuilder()
+                .withOrganisationUnit( ouA )
+                .withIndicators( Lists.newArrayList( indicatorA ) )
+                .withAggregationType( AnalyticsAggregationType.SUM )
+                .withPeriods( List.of( peJan, peFeb ) )
+                .withOutputFormat( OutputFormat.ANALYTICS ).build() );
+    }
+
+    @Test
+    void testIndicatorSubexpressionDate()
+    {
+        withIndicator( "subExpression( if( #{" + deH.getUid() + "} >= '2017-01-01', 7, 8 ) )" );
+
+        assertDataValues(
+            Map.of( "indicatorId-ouabcdefghA-201701", 7.0 ),
             DataQueryParams.newBuilder()
                 .withOrganisationUnit( ouA )
                 .withIndicators( Lists.newArrayList( indicatorA ) )
