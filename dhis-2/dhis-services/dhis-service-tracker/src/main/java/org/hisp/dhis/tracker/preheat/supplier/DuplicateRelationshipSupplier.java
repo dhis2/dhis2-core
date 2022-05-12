@@ -38,7 +38,7 @@ import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.preheat.RelationshipPreheatKeySupport;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.preheat.supplier.strategy.StrategyFor;
+import org.hisp.dhis.tracker.preheat.mappers.RelationshipMapper;
 import org.springframework.stereotype.Component;
 
 @RequiredArgsConstructor
@@ -56,7 +56,7 @@ public class DuplicateRelationshipSupplier extends AbstractPreheatSupplier
             params.getRelationships() );
 
         preheat.putDuplicateRelationships(
-            DetachUtils.detach( this.getClass().getAnnotation( StrategyFor.class ).mapper(), relationshipKeys ) );
+            DetachUtils.detach( RelationshipMapper.INSTANCE, relationshipKeys ) );
     }
 
     private List<org.hisp.dhis.relationship.Relationship> retrieveRelationshipKeys( List<Relationship> relationships )
