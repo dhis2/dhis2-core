@@ -66,20 +66,17 @@ public class HibernateProxyUtils
         return (T) Hibernate.unproxy( proxy );
     }
 
-    public static <T> T initializeAndUnproxy( T entity )
+    public static <T> void initializeAndUnproxy( T entity )
     {
         if ( entity == null )
         {
-            throw new NullPointerException( "Entity passed for initialization is null" );
+            return;
         }
 
         Hibernate.initialize( entity );
         if ( entity instanceof HibernateProxy )
         {
-            entity = (T) ((HibernateProxy) entity).getHibernateLazyInitializer()
-                .getImplementation();
+            ((HibernateProxy) entity).getHibernateLazyInitializer().getImplementation();
         }
-
-        return entity;
     }
 }
