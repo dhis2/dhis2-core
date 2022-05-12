@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.common;
 
+import java.io.Serializable;
+
 import org.apache.commons.lang3.StringUtils;
 
 import com.google.common.base.MoreObjects;
@@ -36,6 +38,7 @@ import com.google.common.collect.ImmutableMap;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class IdScheme
+    implements Serializable
 {
     public static final IdScheme NULL = new IdScheme( null );
 
