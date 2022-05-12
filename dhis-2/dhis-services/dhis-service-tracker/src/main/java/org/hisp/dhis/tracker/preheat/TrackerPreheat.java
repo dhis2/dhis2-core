@@ -33,6 +33,7 @@ import static org.hisp.dhis.tracker.preheat.RelationshipPreheatKeySupport.hasRel
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -53,6 +54,7 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.commons.util.RelationshipUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -268,14 +270,11 @@ public class TrackerPreheat
     private final Map<String, Relationship> relationships = new HashMap<>();
 
     /**
-     * Internal map of all relationships in the DB that are duplications of
-     * relationships present in the payload. Two relationship are duplicated if
-     * they have the same relationshipType, and the same relationshipItems, from
-     * and to. They key of the map is a string concatenating the
-     * relationshipType uid, the uid of the `from` entity and the uid of the
-     * `to` entity.
+     * Internal set of all relationship keys already present in the DB. They key
+     * is a string concatenating the relationshipType uid, the uid of the `from`
+     * entity and the uid of the `to` entity.
      */
-    private final Map<String, Relationship> duplicatedRelationships = new HashMap<>();
+    private final Set<String> duplicatedRelationships = new HashSet<>();
 
     /**
      * Internal map of all preheated notes (events and enrollments)
@@ -643,11 +642,10 @@ public class TrackerPreheat
 
     public boolean isDuplicate( org.hisp.dhis.tracker.domain.Relationship relationship )
     {
-        RelationshipType relationshipType = get( RelationshipType.class, relationship.getRelationshipType() );
-
         if ( hasRelationshipKey( relationship ) )
         {
-            RelationshipKey relationshipKey = getRelationshipKey( relationship );
+            RelationshipType relationshipType = get( RelationshipType.class, relationship.getRelationshipType() );
+            RelationshipKey relationshipKey = getRelationshipKey( relationship, relationshipType.getUid() );
 
             RelationshipKey inverseKey = null;
             if ( relationshipType.isBidirectional() )
@@ -656,7 +654,7 @@ public class TrackerPreheat
             }
             return Stream.of( relationshipKey, inverseKey )
                 .filter( Objects::nonNull )
-                .map( key -> duplicatedRelationships.get( key.asString() ) )
+                .map( key -> duplicatedRelationships.contains( key.asString() ) )
                 .anyMatch( Objects::nonNull );
         }
         return false;
@@ -684,14 +682,12 @@ public class TrackerPreheat
     {
         if ( Objects.nonNull( relationship ) )
         {
-            RelationshipKey relationshipKey = getRelationshipKey( relationship );
-
             if ( relationship.getRelationshipType().isBidirectional() )
             {
-                duplicatedRelationships.put( relationshipKey.inverseKey().asString(), relationship );
+                duplicatedRelationships.add( RelationshipUtils.generateRelationshipInvertedKey( relationship ) );
             }
 
-            duplicatedRelationships.put( relationshipKey.asString(), relationship );
+            duplicatedRelationships.add( RelationshipUtils.generateRelationshipKey( relationship ) );
         }
     }
 

@@ -188,7 +188,6 @@ public class TrackerIdentifierCollector
 
             if ( RelationshipPreheatKeySupport.hasRelationshipKey( relationship ) )
             {
-
                 RelationshipKey relationshipKey = RelationshipPreheatKeySupport.getRelationshipKey( relationship );
                 addIdentifier( identifiers, Relationship.class, relationshipKey.asString() );
 
