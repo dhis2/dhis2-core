@@ -367,7 +367,9 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
         String sql = test( "d2:relationshipCount()" );
         assertThat( sql, is( "(select count(*) from relationship r " +
             "join relationshipitem rifrom on rifrom.relationshipid = r.relationshipid " +
-            "join trackedentityinstance tei on rifrom.trackedentityinstanceid = tei.trackedentityinstanceid and tei.uid = ax.tei)" ) );
+            "join trackedentityinstance tei on rifrom.trackedentityinstanceid = tei.trackedentityinstanceid and tei.uid = ax.tei"
+            +
+            " where r.deleted is false)" ) );
     }
 
     @Test
@@ -379,7 +381,9 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
         assertThat( sql, is( "(select count(*) from relationship r " +
             "join relationshiptype rt on r.relationshiptypeid = rt.relationshiptypeid and rt.uid = 'RelatnTypeA' " +
             "join relationshipitem rifrom on rifrom.relationshipid = r.relationshipid " +
-            "join trackedentityinstance tei on rifrom.trackedentityinstanceid = tei.trackedentityinstanceid and tei.uid = ax.tei)" ) );
+            "join trackedentityinstance tei on rifrom.trackedentityinstanceid = tei.trackedentityinstanceid and tei.uid = ax.tei"
+            +
+            " where r.deleted is false)" ) );
     }
 
     @Test

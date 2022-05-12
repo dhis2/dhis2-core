@@ -312,16 +312,16 @@ class ProgramIndicatorServiceD2FunctionTest extends DhisSpringTest
     void testD2RelationshipCount()
     {
         assertEquals(
-            "(select count(*) from relationship r join relationshipitem rifrom on rifrom.relationshipid = r.relationshipid join trackedentityinstance tei on rifrom.trackedentityinstanceid = tei.trackedentityinstanceid and tei.uid = ax.tei)",
+            "(select count(*) from relationship r join relationshipitem rifrom on rifrom.relationshipid = r.relationshipid join trackedentityinstance tei on rifrom.trackedentityinstanceid = tei.trackedentityinstanceid and tei.uid = ax.tei where r.deleted is false)",
             getSql( "d2:relationshipCount()" ) );
         assertEquals(
-            "(select count(*) from relationship r join relationshipitem rifrom on rifrom.relationshipid = r.relationshipid join trackedentityinstance tei on rifrom.trackedentityinstanceid = tei.trackedentityinstanceid and tei.uid = ax.tei)",
+            "(select count(*) from relationship r join relationshipitem rifrom on rifrom.relationshipid = r.relationshipid join trackedentityinstance tei on rifrom.trackedentityinstanceid = tei.trackedentityinstanceid and tei.uid = ax.tei where r.deleted is false)",
             getSqlEnrollment( "d2:relationshipCount()" ) );
         assertEquals(
-            "(select count(*) from relationship r join relationshiptype rt on r.relationshiptypeid = rt.relationshiptypeid and rt.uid = 'RelatioTypA' join relationshipitem rifrom on rifrom.relationshipid = r.relationshipid join trackedentityinstance tei on rifrom.trackedentityinstanceid = tei.trackedentityinstanceid and tei.uid = ax.tei)",
+            "(select count(*) from relationship r join relationshiptype rt on r.relationshiptypeid = rt.relationshiptypeid and rt.uid = 'RelatioTypA' join relationshipitem rifrom on rifrom.relationshipid = r.relationshipid join trackedentityinstance tei on rifrom.trackedentityinstanceid = tei.trackedentityinstanceid and tei.uid = ax.tei where r.deleted is false)",
             getSql( "d2:relationshipCount('RelatioTypA')" ) );
         assertEquals(
-            "(select count(*) from relationship r join relationshiptype rt on r.relationshiptypeid = rt.relationshiptypeid and rt.uid = 'RelatioTypA' join relationshipitem rifrom on rifrom.relationshipid = r.relationshipid join trackedentityinstance tei on rifrom.trackedentityinstanceid = tei.trackedentityinstanceid and tei.uid = ax.tei)",
+            "(select count(*) from relationship r join relationshiptype rt on r.relationshiptypeid = rt.relationshiptypeid and rt.uid = 'RelatioTypA' join relationshipitem rifrom on rifrom.relationshipid = r.relationshipid join trackedentityinstance tei on rifrom.trackedentityinstanceid = tei.trackedentityinstanceid and tei.uid = ax.tei where r.deleted is false)",
             getSqlEnrollment( "d2:relationshipCount('RelatioTypA')" ) );
     }
 

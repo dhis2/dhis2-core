@@ -88,7 +88,7 @@ public class EventAggregate
          * isIncludeRelationships = true)
          */
         final CompletableFuture<Multimap<String, Relationship>> relationshipAsync = conditionalAsyncFetch(
-            ctx.getParams().isIncludeRelationships(), () -> eventStore.getRelationships( eventIds ), getPool() );
+            ctx.getParams().isIncludeRelationships(), () -> eventStore.getRelationships( eventIds, ctx ), getPool() );
 
         /*
          * Async fetch Notes for the given Event ids

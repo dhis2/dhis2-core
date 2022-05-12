@@ -553,7 +553,7 @@ public class JdbcEventStore implements EventStore
         }
 
         final Multimap<String, Relationship> map = eventStore
-            .getRelationshipsByIds( relationshipIds );
+            .getRelationshipsByIds( relationshipIds, params );
 
         if ( !map.isEmpty() )
         {
