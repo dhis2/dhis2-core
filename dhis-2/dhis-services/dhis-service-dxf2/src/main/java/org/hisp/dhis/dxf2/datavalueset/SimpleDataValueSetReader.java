@@ -49,11 +49,12 @@ public class SimpleDataValueSetReader implements DataValueSetReader
     @Override
     public DataValueEntry readNext()
     {
-        return null;
+        return null; // Not relevant
     }
 
     @Override
     public void close()
     {
+        // Not relevant
     }
 }

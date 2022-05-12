@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.dataexchange.analytics.model;
 
+import java.io.Serializable;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -35,6 +37,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Getter
 @Setter
 public class Api
+    implements Serializable
 {
     @JsonProperty
     private String url;

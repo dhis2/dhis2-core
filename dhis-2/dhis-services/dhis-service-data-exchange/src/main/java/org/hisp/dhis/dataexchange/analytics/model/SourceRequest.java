@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dataexchange.analytics.model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,6 +41,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Getter
 @Setter
 public class SourceRequest
+    implements Serializable
 {
     @JsonProperty
     private List<String> dx = new ArrayList<>();
