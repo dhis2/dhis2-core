@@ -91,7 +91,6 @@ public class JobConfigurationController
 
     @PostMapping( value = "{uid}/execute", produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
     public ObjectReport executeJobConfiguration( @PathVariable( "uid" ) String uid )
-        throws WebMessageException
     {
         JobConfiguration jobConfiguration = jobConfigurationService.getJobConfigurationByUid( uid );
 
