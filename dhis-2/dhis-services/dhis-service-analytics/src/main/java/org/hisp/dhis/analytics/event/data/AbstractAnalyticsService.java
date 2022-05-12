@@ -63,6 +63,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemKeywords;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdScheme;
@@ -364,7 +365,8 @@ public abstract class AbstractAnalyticsService
 
         params.getItemsAndItemFilters().stream()
             .filter( Objects::nonNull )
-            .forEach( item -> addItemIntoMetadata( metadataItemMap, item, includeDetails ) );
+            .forEach(
+                item -> addItemIntoMetadata( metadataItemMap, item, includeDetails, params.getDisplayProperty() ) );
 
         if ( hasPeriodKeywords( periodKeywords ) )
         {
@@ -381,9 +383,9 @@ public abstract class AbstractAnalyticsService
     }
 
     private void addItemIntoMetadata( final Map<String, MetadataItem> metadataItemMap, final QueryItem item,
-        final boolean includeDetails )
+        final boolean includeDetails, final DisplayProperty displayProperty )
     {
-        final MetadataItem metadataItem = new MetadataItem( item.getItem().getDisplayName(),
+        final MetadataItem metadataItem = new MetadataItem( item.getItem().getDisplayProperty( displayProperty ),
             includeDetails ? item.getItem() : null );
 
         metadataItemMap.put( getItemIdMaybeWithProgramStageIdPrefix( item ), metadataItem );
@@ -435,8 +437,8 @@ public abstract class AbstractAnalyticsService
         {
             // filtering if the rows in grid are there (skipData = false)
             itemOptions.forEach( option -> metadataItemMap.put( option.getUid(),
-                new MetadataItem( option.getDisplayName(), includeDetails ? option.getUid() : null,
-                    option.getCode() ) ) );
+                new MetadataItem( option.getDisplayProperty( params.getDisplayProperty() ),
+                    includeDetails ? option.getUid() : null, option.getCode() ) ) );
         }
         else
         {
@@ -455,8 +457,8 @@ public abstract class AbstractAnalyticsService
                                 .anyMatch( f -> Arrays.stream( f.getFilter().split( ";" ) )
                                     .anyMatch( ft -> ft.equalsIgnoreCase( option.getCode() ) ) ) )) )
                 .forEach( option -> metadataItemMap.put( option.getUid(),
-                    new MetadataItem( option.getDisplayName(), includeDetails ? option.getUid() : null,
-                        option.getCode() ) ) );
+                    new MetadataItem( option.getDisplayProperty( params.getDisplayProperty() ),
+                        includeDetails ? option.getUid() : null, option.getCode() ) ) );
         }
     }
 
