@@ -50,9 +50,11 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.springframework.stereotype.Service;
 
+@Service
 @RequiredArgsConstructor
-public class AnalyticsDataExchangeTask
+public class AnalyticsDataExchangeService
 {
     private final AnalyticsService analyticsService;
 
