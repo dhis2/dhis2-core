@@ -58,8 +58,6 @@ import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.springframework.stereotype.Component;
 
-import com.google.common.collect.ImmutableSet;
-
 /**
  * This class "collects" identifiers from all input objects. This resulting map
  * of all identifiers will then be used to "preheat/cache" all the objects
@@ -89,14 +87,14 @@ public class TrackerIdentifierCollector
         collectRelationships( identifiers, params.getRelationships() );
         // Using "*" signals that all the entities of the given type have to be
         // preloaded in the Preheat
-        identifiers.put( TrackedEntityType.class, ImmutableSet.of( ID_WILDCARD ) );
-        identifiers.put( RelationshipType.class, ImmutableSet.of( ID_WILDCARD ) );
+        identifiers.put( TrackedEntityType.class, Set.of( ID_WILDCARD ) );
+        identifiers.put( RelationshipType.class, Set.of( ID_WILDCARD ) );
 
         collectProgramRulesFields( identifiers );
         return identifiers;
     }
 
-    private void collectProgramRulesFields( Map<Class<?>, Set<String>> map )
+    private void collectProgramRulesFields(Map<Class<?>, Set<String>> map )
     {
         // collecting program rule dataElement/attributes deliberately using
         // UIDs
@@ -115,7 +113,7 @@ public class TrackerIdentifierCollector
         Set<String> attributes = programRules.stream()
             .flatMap( pr -> pr.getProgramRuleActions().stream() )
             .filter( a -> Objects.nonNull( a.getAttribute() ) )
-            .map( a -> a.getAttribute().getUid() )
+            .map( a -> a.getAttribute().getUid())
             .collect( Collectors.toSet() );
         attributes.forEach( attribute -> addIdentifier( map, TrackedEntityAttribute.class, attribute ) );
     }

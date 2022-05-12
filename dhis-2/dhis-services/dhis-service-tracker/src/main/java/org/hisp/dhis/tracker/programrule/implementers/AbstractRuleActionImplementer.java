@@ -198,6 +198,8 @@ public abstract class AbstractRuleActionImplementer<T extends RuleAction>
                     List<Attribute> attributes = mergeAttributes( enrollment.getAttributes(),
                         payloadTeiAttributes );
 
+                    // TODO(DHIS2-12563) do we need to map the UID of getField(
+                    // (T) effect.ruleAction() ) here?
                     List<EnrollmentActionRule> enrollmentActionRules = e.getValue()
                         .stream()
                         .filter( effect -> getActionClass().isAssignableFrom( effect.ruleAction().getClass() ) )
