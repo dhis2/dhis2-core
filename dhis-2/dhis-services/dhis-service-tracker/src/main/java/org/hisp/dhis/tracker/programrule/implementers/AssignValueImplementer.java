@@ -131,12 +131,15 @@ public class AssignValueImplementer
             {
                 addOrOverwriteAttribute( actionRule, bundle );
                 issues.add( new ProgramRuleIssue( actionRule.getRuleUid(), TrackerErrorCode.E1310,
-                    Lists.newArrayList( actionRule.getField(), actionRule.getValue() ), IssueType.WARNING ) );
+                    Lists.newArrayList( actionRule.getField(), actionRule.getValue() ),
+                    IssueType.WARNING ) );
             }
             else
             {
                 issues.add( new ProgramRuleIssue( actionRule.getRuleUid(), TrackerErrorCode.E1309,
-                    Lists.newArrayList( actionRule.getField(), actionRule.getEnrollment() ), IssueType.ERROR ) );
+                    Lists.newArrayList( actionRule.getField(),
+                        actionRule.getEnrollment() ),
+                    IssueType.ERROR ) );
             }
         }
 
@@ -160,15 +163,10 @@ public class AssignValueImplementer
 
     private boolean isTheSameValue( EnrollmentActionRule actionRule, TrackerPreheat preheat )
     {
-        TrackedEntityAttribute attribute = preheat.getTrackedEntityAttribute( actionRule.getField() );
+        TrackedEntityAttribute attribute = preheat.getTrackedEntityAttribute( actionRule.getFieldMetadataIdentifier() );
         String value = actionRule.getValue();
-        // NOTE: since rule engine has no notion of idSchemes the attribute
-        // identifiers have to be mapped to UIDs
-        // here we "escape" the safety of MetadataIdentifier and assume it
-        // contains a UID; thus directly comparing
-        // the identifier String to the field String
         Optional<Attribute> optionalAttribute = actionRule.getAttributes().stream()
-            .filter( at -> at.getAttribute().getIdentifier().equals( actionRule.getField() ) )
+            .filter( at -> at.getAttribute().equals( actionRule.getFieldMetadataIdentifier() ) )
             .findAny();
         if ( optionalAttribute.isPresent() )
         {
@@ -218,13 +216,8 @@ public class AssignValueImplementer
         if ( trackedEntity.isPresent() )
         {
             attributes = trackedEntity.get().getAttributes();
-            // NOTE: since rule engine has no notion of idSchemes the attribute
-            // identifiers have to be mapped to UIDs
-            // here we "escape" the safety of MetadataIdentifier and assume it
-            // contains a UID; thus directly comparing
-            // the identifier String to the field String
             Optional<Attribute> optionalAttribute = attributes.stream()
-                .filter( at -> at.getAttribute().getIdentifier().equals( actionRule.getField() ) )
+                .filter( at -> at.getAttribute().equals( actionRule.getFieldMetadataIdentifier() ) )
                 .findAny();
             if ( optionalAttribute.isPresent() )
             {
@@ -234,13 +227,8 @@ public class AssignValueImplementer
         }
 
         attributes = enrollment.getAttributes();
-        // NOTE: since rule engine has no notion of idSchemes the attribute
-        // identifiers have to be mapped to UIDs
-        // here we "escape" the safety of MetadataIdentifier and assume it
-        // contains a UID; thus directly comparing
-        // the identifier String to the field String
         Optional<Attribute> optionalAttribute = attributes.stream()
-            .filter( at -> at.getAttribute().getIdentifier().equals( actionRule.getField() ) )
+            .filter( at -> at.getAttribute().equals( actionRule.getFieldMetadataIdentifier() ) )
             .findAny();
         if ( optionalAttribute.isPresent() )
         {
@@ -248,14 +236,14 @@ public class AssignValueImplementer
         }
         else
         {
-            attributes.add( createAttribute( actionRule.getField(), actionRule.getData() ) );
+            attributes.add( createAttribute( actionRule.getFieldMetadataIdentifier(), actionRule.getData() ) );
         }
     }
 
-    private Attribute createAttribute( String attributeUid, String newValue )
+    private Attribute createAttribute( MetadataIdentifier attribute, String newValue )
     {
         return Attribute.builder()
-            .attribute( MetadataIdentifier.ofUid( attributeUid ) )
+            .attribute( attribute )
             .value( newValue )
             .build();
     }

@@ -39,13 +39,11 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.rules.models.*;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
-import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.programrule.*;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.springframework.stereotype.Component;
@@ -87,24 +85,17 @@ public class SetMandatoryFieldValidator
     {
         return enrollmentActionRules.getValue().stream()
             .flatMap( actionRule -> checkMandatoryEnrollmentAttribute(
-                bundle.getPreheat(),
                 bundle.getEnrollment( actionRule.getEnrollment() ).get(),
                 enrollmentActionRules.getValue() ).stream() )
             .collect( Collectors.toList() );
     }
 
-    private List<ProgramRuleIssue> checkMandatoryEnrollmentAttribute( TrackerPreheat preheat, Enrollment enrollment,
+    private List<ProgramRuleIssue> checkMandatoryEnrollmentAttribute( Enrollment enrollment,
         List<EnrollmentActionRule> effects )
     {
         return effects.stream()
             .map( action -> {
-                // TODO(DHIS2-12563) the field representing an attribute id is
-                // currently a UID I assume
-                // the enrollment is from the payload can be in any idScheme
-                // is it ok to get the field attribute from the preheat?
-                TrackedEntityAttribute actionAttribute = preheat.getTrackedEntityAttribute( action.getField() );
-                // TODO what if actionAttribute does not exist?
-                MetadataIdentifier attributeId = preheat.getIdSchemes().toMetadataIdentifier( actionAttribute );
+                MetadataIdentifier attributeId = action.getFieldMetadataIdentifier();
                 Optional<Attribute> any = enrollment.getAttributes().stream()
                     .filter( attribute -> attribute.getAttribute().equals( attributeId ) )
                     .findAny();

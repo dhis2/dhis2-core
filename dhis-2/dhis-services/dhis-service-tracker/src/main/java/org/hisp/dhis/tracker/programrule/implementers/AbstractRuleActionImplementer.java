@@ -32,7 +32,11 @@ import static org.hisp.dhis.rules.models.AttributeType.TRACKED_ENTITY_ATTRIBUTE;
 import static org.hisp.dhis.rules.models.AttributeType.UNKNOWN;
 import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.needsToValidateDataValues;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -41,7 +45,6 @@ import org.hisp.dhis.rules.models.AttributeType;
 import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionAttribute;
 import org.hisp.dhis.rules.models.RuleEffect;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.DataValue;
@@ -58,7 +61,7 @@ import com.google.common.collect.Maps;
 
 // TODO: Verify if we can remove checks on ProgramStage when Program Rule
 // validation is in place
-abstract public class AbstractRuleActionImplementer<T extends RuleAction>
+public abstract class AbstractRuleActionImplementer<T extends RuleAction>
 {
     /**
      * @return the class of the action that the implementer work with
@@ -189,8 +192,6 @@ abstract public class AbstractRuleActionImplementer<T extends RuleAction>
             .collect( Collectors.toMap( Map.Entry::getKey,
                 e -> {
                     Enrollment enrollment = getEnrollment( bundle, e.getKey() ).get();
-                    TrackedEntityInstance tei = bundle.getPreheat()
-                        .getTrackedEntity( enrollment.getTrackedEntity() );
 
                     List<Attribute> payloadTeiAttributes = getTrackedEntity( bundle, enrollment.getTrackedEntity() )
                         .map( te -> te.getAttributes() )
@@ -199,6 +200,8 @@ abstract public class AbstractRuleActionImplementer<T extends RuleAction>
                     List<Attribute> attributes = mergeAttributes( bundle.getPreheat(), enrollment.getAttributes(),
                         payloadTeiAttributes );
 
+                    // TODO(DHIS2-12563) do we need to map the UID of getField(
+                    // (T) effect.ruleAction() ) here?
                     List<EnrollmentActionRule> enrollmentActionRules = e.getValue()
                         .stream()
                         .filter( effect -> getActionClass().isAssignableFrom( effect.ruleAction().getClass() ) )
@@ -206,7 +209,8 @@ abstract public class AbstractRuleActionImplementer<T extends RuleAction>
                             getAttributeType( effect.ruleAction() ) == TRACKED_ENTITY_ATTRIBUTE )
                         .map( effect -> new EnrollmentActionRule( effect.ruleId(),
                             enrollment.getEnrollment(), effect.data(),
-                            getField( (T) effect.ruleAction() ), getAttributeType( effect.ruleAction() ),
+                            MetadataIdentifier.ofUid( getField( (T) effect.ruleAction() ) ),
+                            getAttributeType( effect.ruleAction() ),
                             getContent( (T) effect.ruleAction() ), attributes ) )
                         .collect( Collectors.toList() );
                     return enrollmentActionRules;
