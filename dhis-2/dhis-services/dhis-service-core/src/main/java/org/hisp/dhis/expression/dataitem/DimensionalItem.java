@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.expression.dataitem;
 
+import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 import static org.hisp.dhis.parser.expression.ParserUtils.DOUBLE_VALUE_IF_NULL;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
@@ -62,7 +63,7 @@ public abstract class DimensionalItem
 
         visitor.getItemDescriptions().put( ctx.getText(), item.getDisplayName() );
 
-        return ValidationUtils.getNullReplacementValue( getItemValueType( item ) );
+        return ValidationUtils.getNullReplacementValue( getItemValueType( item, visitor ) );
     }
 
     @Override
@@ -90,7 +91,7 @@ public abstract class DimensionalItem
             ? visitor.getItemValueMap().get( item )
             : null;
 
-        return visitor.handleNulls( value, getItemValueType( item ) );
+        return visitor.handleNulls( value, getItemValueType( item, visitor ) );
     }
 
     /**
@@ -110,10 +111,11 @@ public abstract class DimensionalItem
     /**
      * Returns the value type of this item.
      */
-    private ValueType getItemValueType( DimensionalItemObject item )
+    private ValueType getItemValueType( DimensionalItemObject item, CommonExpressionVisitor visitor )
     {
-        return (item instanceof ValueTypedDimensionalItemObject)
-            ? ((ValueTypedDimensionalItemObject) item).getValueType()
-            : ValueType.NUMBER;
+        return (item instanceof ValueTypedDimensionalItemObject
+            && visitor.getParseType() != INDICATOR_EXPRESSION)
+                ? ((ValueTypedDimensionalItemObject) item).getValueType()
+                : ValueType.NUMBER;
     }
 }
