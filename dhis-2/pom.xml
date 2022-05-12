@@ -16,414 +16,302 @@
         users, by allowing them to decide what to register and report data for.
     </description>
 
-  <organization>
-    <name>UiO</name>
-    <url>http://www.dhis2.org</url>
-  </organization>
+    <organization>
+        <name>UiO</name>
+        <url>http://www.dhis2.org</url>
+    </organization>
 
-  <licenses>
-    <license>
-      <name>BSD</name>
-      <url>http://opensource.org/licenses/BSD-2-Clause</url>
-    </license>
-  </licenses>
+    <licenses>
+        <license>
+            <name>BSD</name>
+            <url>http://opensource.org/licenses/BSD-2-Clause</url>
+        </license>
+    </licenses>
 
-  <modules>
-    <module>dhis-api</module>
-    <module>dhis-services</module>
-    <module>dhis-support</module>
-    <module>dhis-web-api</module>
-    <module>dhis-web-api-test</module>
-    <module>dhis-web-embedded-jetty</module>
-  </modules>
+    <modules>
+        <module>dhis-api</module>
+        <module>dhis-services</module>
+        <module>dhis-support</module>
+        <module>dhis-web-api</module>
+        <module>dhis-web-api-test</module>
+        <module>dhis-web-embedded-jetty</module>
+    </modules>
 
-  <properties>
-    <!-- Build Properties -->
-    <rootDir></rootDir>
-    <!-- Custom source directory property, as <build><sourceDirectory> cannot 
-      be set in a profile. See https://github.com/awhitford/lombok.maven/issues/17#issuecomment-136606104 -->
-    <sourceDir>${project.basedir}/src/main/java</sourceDir>
+    <properties>
+        <!-- Build Properties-->
+        <rootDir></rootDir>
+        <!-- Custom source directory property, as <build><sourceDirectory> cannot be set in a profile.
+             See https://github.com/awhitford/lombok.maven/issues/17#issuecomment-136606104 -->
+        <sourceDir>${project.basedir}/src/main/java</sourceDir>
 
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-    <minimum-maven.version>3.6.0</minimum-maven.version>
-    <minimum-java.version>11</minimum-java.version>
+        <minimum-maven.version>3.6.0</minimum-maven.version>
+        <minimum-java.version>11</minimum-java.version>
 
-    <snippetsDirectory>${project.build.directory}/generated-snippets</snippetsDirectory>
-    <sonar.organization>dhis2</sonar.organization>
-    <sonar.host.url>https://sonarcloud.io</sonar.host.url>
-    <surefireArgLine>-Xmx2024m --illegal-access=permit</surefireArgLine>
+        <snippetsDirectory>${project.build.directory}/generated-snippets</snippetsDirectory>
+        <sonar.organization>dhis2</sonar.organization>
+        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+        <surefireArgLine>-Xmx2024m --illegal-access=permit</surefireArgLine>
 
-    <!-- Needed so we can disable running tests when the default profile 
-      is used (activated by default). It does not honor -DskipTests otherwise https://maven.apache.org/surefire/maven-surefire-plugin/examples/skipping-tests.html -->
-    <skipTests>false</skipTests>
+        <!-- Needed so we can disable running tests when the default profile is used (activated by default). It does not
+          honor -DskipTests otherwise https://maven.apache.org/surefire/maven-surefire-plugin/examples/skipping-tests.html -->
+        <skipTests>false</skipTests>
 
-    <!-- *Dependencies* -->
+        <!-- *Dependencies* -->
 
-    <!-- DHIS2 Rule Engine -->
-    <dhis2-rule-engine.version>2.0.39</dhis2-rule-engine.version>
+        <!-- DHIS2 Rule Engine-->
+        <dhis2-rule-engine.version>2.0.39</dhis2-rule-engine.version>
 
-    <!-- HISP Quick and Staxwax -->
-    <dhis-hisp-quick.version>1.4.0</dhis-hisp-quick.version>
-    <dhis-hisp-staxwax.version>2.0.0</dhis-hisp-staxwax.version>
-    <dhis-json-tree.version>0.3.0</dhis-json-tree.version>
+        <!-- HISP Quick and Staxwax -->
+        <dhis-hisp-quick.version>1.4.0</dhis-hisp-quick.version>
+        <dhis-hisp-staxwax.version>2.0.0</dhis-hisp-staxwax.version>
+        <dhis-json-tree.version>0.3.0</dhis-json-tree.version>
 
-    <!-- Security -->
-    <spring-security.version>5.6.3</spring-security.version>
-    <spring-security-oauth2.version>2.5.2.RELEASE</spring-security-oauth2.version>
-    <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
-    <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
-    <jasypt.version>1.9.3</jasypt.version>
+        <!-- Security-->
+        <spring-security.version>5.6.3</spring-security.version>
+        <spring-security-oauth2.version>2.5.2.RELEASE</spring-security-oauth2.version>
+        <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
+        <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
+        <jasypt.version>1.9.3</jasypt.version>
 
-    <!-- Spring -->
-    <spring.version>5.3.19</spring.version>
-    <spring-data-redis.version>2.6.4</spring-data-redis.version>
-    <spring-session-data-redis.version>2.6.3</spring-session-data-redis.version>
-    <spring-mobile-device.version>1.1.5.RELEASE</spring-mobile-device.version>
-    <spring-retry.version>1.3.3</spring-retry.version>
-    <spring-restdocs-mockmvc.version>2.0.6.RELEASE</spring-restdocs-mockmvc.version>
-    <spring-ldap.version>2.3.7.RELEASE</spring-ldap.version>
-    <cache2k-api.version>1.6.0.Final</cache2k-api.version>
-    <lettuce.version>6.1.8.RELEASE</lettuce.version>
+        <!-- Spring-->
+        <spring.version>5.3.20</spring.version>
+        <spring-data-redis.version>2.6.4</spring-data-redis.version>
+        <spring-session-data-redis.version>2.6.3</spring-session-data-redis.version>
+        <spring-mobile-device.version>1.1.5.RELEASE</spring-mobile-device.version>
+        <spring-retry.version>1.3.3</spring-retry.version>
+        <spring-restdocs-mockmvc.version>2.0.6.RELEASE</spring-restdocs-mockmvc.version>
+        <spring-ldap.version>2.3.7.RELEASE</spring-ldap.version>
+        <cache2k-api.version>1.6.0.Final</cache2k-api.version>
+        <lettuce.version>6.1.8.RELEASE</lettuce.version>
 
-    <!--DBMS -->
-    <flyway-core.version>8.5.10</flyway-core.version>
-    <hibernate.version>5.6.8.Final</hibernate.version>
-    <hibernate-types.version>2.16.2</hibernate-types.version>
-    <!-- Data sources,db pools and db drivers -->
-    <c3p0.version>0.9.5.5</c3p0.version>
-    <HikariCP.version>5.0.1</HikariCP.version>
-    <postgresql-driver.version>42.3.5</postgresql-driver.version>
-    <postgis-jdbc.version>2.5.1</postgis-jdbc.version>
-    <datasource-proxy.version>1.7</datasource-proxy.version>
+        <!--DBMS -->
+        <flyway-core.version>8.5.10</flyway-core.version>
+        <hibernate.version>5.6.8.Final</hibernate.version>
+        <hibernate-types.version>2.16.2</hibernate-types.version>
+        <!-- Data sources,db pools and db drivers-->
+        <c3p0.version>0.9.5.5</c3p0.version>
+        <HikariCP.version>5.0.1</HikariCP.version>
+        <postgresql-driver.version>42.3.5</postgresql-driver.version>
+        <postgis-jdbc.version>2.5.1</postgis-jdbc.version>
+        <datasource-proxy.version>1.7</datasource-proxy.version>
 
-    <!-- Servlet -->
-    <javax.servlet-api.version>4.0.1</javax.servlet-api.version>
+        <!-- Servlet-->
+        <javax.servlet-api.version>4.0.1</javax.servlet-api.version>
 
-    <!-- Struts -->
-    <struts.version>2.5.30</struts.version>
-    <velocity.version>1.7</velocity.version>
-    <velocity-tools.version>2.0</velocity-tools.version>
+        <!-- Struts -->
+        <struts.version>2.5.30</struts.version>
+        <velocity.version>1.7</velocity.version>
+        <velocity-tools.version>2.0</velocity-tools.version>
 
-    <!-- Jackson -->
-    <jackson.version>2.13.2</jackson.version>
-    <jackson.databind.version>2.13.2.2</jackson.databind.version>
-    <jackson-datatype-jts.version>1.0-2.7</jackson-datatype-jts.version>
-    <jackson-datatype-hibernate5.version>2.13.2</jackson-datatype-hibernate5.version>
-    <geojson-jackson.version>1.14</geojson-jackson.version>
+        <!-- Jackson -->
+        <jackson.version>2.13.2</jackson.version>
+        <jackson.databind.version>2.13.2.2</jackson.databind.version>
+        <jackson-datatype-jts.version>1.0-2.7</jackson-datatype-jts.version>
+        <jackson-datatype-hibernate5.version>2.13.2</jackson-datatype-hibernate5.version>
+        <geojson-jackson.version>1.14</geojson-jackson.version>
 
-    <!-- JAXB -->
-    <jaxb-api.version>2.4.0-b180830.0359</jaxb-api.version>
-    <jaxws-ri.version>2.3.2</jaxws-ri.version>
-    <jakarta.xml.ws-api.version>3.0.1</jakarta.xml.ws-api.version>
-    <javax.annotation-api.version>1.3.2</javax.annotation-api.version>
-    <xercesImpl.version>2.12.2</xercesImpl.version>
+        <!-- JAXB -->
+        <jaxb-api.version>2.4.0-b180830.0359</jaxb-api.version>
+        <jaxws-ri.version>2.3.2</jaxws-ri.version>
+        <jakarta.xml.ws-api.version>3.0.1</jakarta.xml.ws-api.version>
+        <javax.annotation-api.version>1.3.2</javax.annotation-api.version>
+        <xercesImpl.version>2.12.2</xercesImpl.version>
 
-    <!--Reporting -->
-    <jasperreports.version>6.19.1</jasperreports.version>
-    <jfreechart.version>1.5.3</jfreechart.version>
-    <htmlparser.version>2.1</htmlparser.version>
-    <htmllexer.version>2.1</htmllexer.version>
-    <poi.version>5.2.2</poi.version>
-    <itext.version>2.1.7</itext.version>
-    <jclouds.version>2.5.0</jclouds.version>
-    <antlr.version>4.9.3</antlr.version>
+        <!--Reporting -->
+        <jasperreports.version>6.19.1</jasperreports.version>
+        <jfreechart.version>1.5.3</jfreechart.version>
+        <htmlparser.version>2.1</htmlparser.version>
+        <htmllexer.version>2.1</htmllexer.version>
+        <poi.version>5.2.2</poi.version>
+        <itext.version>2.1.7</itext.version>
+        <jclouds.version>2.5.0</jclouds.version>
+        <antlr.version>4.9.3</antlr.version>
 
-    <!-- GIS -->
-    <batik-transcoder.version>1.14</batik-transcoder.version>
-    <fop.version>2.7</fop.version>
-    <mapstruct.version>1.4.2.Final</mapstruct.version>
-    <geotools.version>26.4</geotools.version>
-    <jts.version>1.18.2</jts.version>
+        <!-- GIS -->
+        <batik-transcoder.version>1.14</batik-transcoder.version>
+        <fop.version>2.7</fop.version>
+        <mapstruct.version>1.4.2.Final</mapstruct.version>
+        <geotools.version>26.4</geotools.version>
+        <jts.version>1.18.2</jts.version>
 
-    <!-- Apache Artemis -->
-    <artemis.version>2.22.0</artemis.version>
-    <netty-all.version>4.1.77.Final</netty-all.version>
-    <classgraph.version>4.8.146</classgraph.version>
+        <!-- Apache Artemis -->
+        <artemis.version>2.22.0</artemis.version>
+        <netty-all.version>4.1.77.Final</netty-all.version>
+        <classgraph.version>4.8.146</classgraph.version>
 
-    <!-- SMS/SMPP -->
-    <sms-compression.version>0.2.1.1</sms-compression.version>
-    <javacsv.version>2.0</javacsv.version>
-    <aerogear-otp-java.version>1.0.0</aerogear-otp-java.version>
-    <jsmpp.version>2.3.11</jsmpp.version>
-    <json-path.version>2.7.0</json-path.version>
-    <jsoup.version>1.14.3</jsoup.version>
-    <jetty.version>10.0.9</jetty.version>
+        <!-- SMS/SMPP -->
+        <sms-compression.version>0.2.1.1</sms-compression.version>
+        <javacsv.version>2.0</javacsv.version>
+        <aerogear-otp-java.version>1.0.0</aerogear-otp-java.version>
+        <jsmpp.version>2.3.11</jsmpp.version>
+        <json-path.version>2.7.0</json-path.version>
+        <jsoup.version>1.14.3</jsoup.version>
+        <jetty.version>10.0.9</jetty.version>
 
-    <!-- Div. utils -->
-    <version.debezium>1.9.2.Final</version.debezium>
-    <guava.version>31.1-jre</guava.version>
-    <jsr305.version>3.0.2</jsr305.version>
-    <imgscalr-lib.version>4.2</imgscalr-lib.version>
-    <google-api-client.version>1.34.1</google-api-client.version>
-    <lombok.version>1.18.24</lombok.version>
-    <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
-    <joda-time.version>2.10.14</joda-time.version>
-    <cron-utils.version>9.1.6</cron-utils.version>
-    <validation-api.version>2.0.1.Final</validation-api.version>
-    <hibernate-validator.version>6.2.0.Final</hibernate-validator.version>
-    <commons-collections4.version>4.4</commons-collections4.version>
-    <commons-beanutils.version>1.9.4</commons-beanutils.version>
-    <commons-lang3.version>3.12.0</commons-lang3.version>
-    <commons-text.version>1.9</commons-text.version>
-    <commons-fileupload.version>1.4</commons-fileupload.version>
-    <commons-math3.version>3.6.1</commons-math3.version>
-    <commons-validator.version>1.7</commons-validator.version>
-    <commons-io.version>2.11.0</commons-io.version>
-    <commons-codec.version>1.15</commons-codec.version>
-    <commons-jexl.version>2.1.1</commons-jexl.version>
-    <commons-email.version>1.5</commons-email.version>
-    <httpcomponents-core.version>4.4.15</httpcomponents-core.version>
-    <httpcomponents-client.version>4.5.13</httpcomponents-client.version>
+        <!-- Div. utils -->
+        <version.debezium>1.9.2.Final</version.debezium>
+        <guava.version>31.1-jre</guava.version>
+        <jsr305.version>3.0.2</jsr305.version>
+        <imgscalr-lib.version>4.2</imgscalr-lib.version>
+        <google-api-client.version>1.34.1</google-api-client.version>
+        <lombok.version>1.18.24</lombok.version>
+        <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
+        <joda-time.version>2.10.14</joda-time.version>
+        <cron-utils.version>9.1.6</cron-utils.version>
+        <validation-api.version>2.0.1.Final</validation-api.version>
+        <hibernate-validator.version>6.2.0.Final</hibernate-validator.version>
+        <commons-collections4.version>4.4</commons-collections4.version>
+        <commons-beanutils.version>1.9.4</commons-beanutils.version>
+        <commons-lang3.version>3.12.0</commons-lang3.version>
+        <commons-text.version>1.9</commons-text.version>
+        <commons-fileupload.version>1.4</commons-fileupload.version>
+        <commons-math3.version>3.6.1</commons-math3.version>
+        <commons-validator.version>1.7</commons-validator.version>
+        <commons-io.version>2.11.0</commons-io.version>
+        <commons-codec.version>1.15</commons-codec.version>
+        <commons-jexl.version>2.1.1</commons-jexl.version>
+        <commons-email.version>1.5</commons-email.version>
+        <httpcomponents-core.version>4.4.15</httpcomponents-core.version>
+        <httpcomponents-client.version>4.5.13</httpcomponents-client.version>
 
-    <!-- Monitoring -->
-    <micrometer-spring-legacy.version>1.3.20</micrometer-spring-legacy.version>
-    <micrometer-registry-prometheus.version>1.3.5</micrometer-registry-prometheus.version>
+        <!-- Monitoring -->
+        <micrometer-spring-legacy.version>1.3.20</micrometer-spring-legacy.version>
+        <micrometer-registry-prometheus.version>1.3.5</micrometer-registry-prometheus.version>
 
-    <!-- Logging -->
-    <log4j.version>2.17.2</log4j.version>
-    <slf4j.version>1.7.36</slf4j.version>
+        <!-- Logging-->
+        <log4j.version>2.17.2</log4j.version>
+        <slf4j.version>1.7.36</slf4j.version>
 
-    <!-- Test -->
-    <junit.version>5.8.2</junit.version>
-    <mockito.version>4.5.1</mockito.version>
-    <powermock.version>2.0.9</powermock.version>
-    <hamcrest.version>2.2</hamcrest.version>
-    <hamcrest-date.version>2.0.8</hamcrest-date.version>
-    <testcontainers.version>1.17.1</testcontainers.version>
-    <jsonassert.version>1.5.0</jsonassert.version>
-    <awaitility.version>4.2.0</awaitility.version>
-    <easy-random.version>5.0.0</easy-random.version>
-    <tree.version>0.2.5</tree.version>
-    <h2.version>2.1.212</h2.version>
-    <javax.persistence-api.version>2.2</javax.persistence-api.version>
+        <!-- Test -->
+        <junit.version>5.8.2</junit.version>
+        <mockito.version>4.5.1</mockito.version>
+        <powermock.version>2.0.9</powermock.version>
+        <hamcrest.version>2.2</hamcrest.version>
+        <hamcrest-date.version>2.0.8</hamcrest-date.version>
+        <testcontainers.version>1.17.1</testcontainers.version>
+        <jsonassert.version>1.5.0</jsonassert.version>
+        <awaitility.version>4.2.0</awaitility.version>
+        <easy-random.version>5.0.0</easy-random.version>
+        <tree.version>0.2.5</tree.version>
+        <h2.version>2.1.212</h2.version>
+        <javax.persistence-api.version>2.2</javax.persistence-api.version>
 
-    <!-- Maven plugin versions -->
-    <maven-surefire-plugin.version>3.0.0-M6</maven-surefire-plugin.version>
-    <maven-compiler-plugin.version>3.10.1</maven-compiler-plugin.version>
-    <maven-resources-plugin.version>3.2.0</maven-resources-plugin.version>
-    <maven-failsafe-plugin.version>3.0.0-M6</maven-failsafe-plugin.version>
-    <maven-javadoc-plugin.version>3.4.0</maven-javadoc-plugin.version>
-    <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
-    <maven-enforcer-plugin.version>3.0.0</maven-enforcer-plugin.version>
-    <maven-dependency-plugin.version>3.3.0</maven-dependency-plugin.version>
-    <restrict-imports-enforcer.version>2.0.0</restrict-imports-enforcer.version>
-    <versions-maven-plugin.version>2.10.0</versions-maven-plugin.version>
-    <dependency-check-maven.version>7.1.0</dependency-check-maven.version>
-    <spotbugs-maven-plugin.version>4.6.0.0</spotbugs-maven-plugin.version>
-    <speedy-spotless-maven-plugin.version>0.1.3</speedy-spotless-maven-plugin.version>
-    <jacoco-maven-plugin.version>0.8.8</jacoco-maven-plugin.version>
-    <jrebel-x-maven-plugin.version>1.1.10</jrebel-x-maven-plugin.version>
-    <dhis-antlr-expression-parser.version>1.0.28</dhis-antlr-expression-parser.version>
-    <jai-imageio.version>1.1.1</jai-imageio.version>
-    <ow2.asm.version>9.3</ow2.asm.version>
-    <gson.version>2.8.9</gson.version>
-    <semver4j.version>3.1.0</semver4j.version>
-  </properties>
+        <!-- Maven plugin versions -->
+        <maven-surefire-plugin.version>3.0.0-M6</maven-surefire-plugin.version>
+        <maven-compiler-plugin.version>3.10.1</maven-compiler-plugin.version>
+        <maven-resources-plugin.version>3.2.0</maven-resources-plugin.version>
+        <maven-failsafe-plugin.version>3.0.0-M6</maven-failsafe-plugin.version>
+        <maven-javadoc-plugin.version>3.4.0</maven-javadoc-plugin.version>
+        <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
+        <maven-enforcer-plugin.version>3.0.0</maven-enforcer-plugin.version>
+        <maven-dependency-plugin.version>3.3.0</maven-dependency-plugin.version>
+        <restrict-imports-enforcer.version>2.0.0</restrict-imports-enforcer.version>
+        <versions-maven-plugin.version>2.10.0</versions-maven-plugin.version>
+        <dependency-check-maven.version>7.1.0</dependency-check-maven.version>
+        <spotbugs-maven-plugin.version>4.6.0.0</spotbugs-maven-plugin.version>
+        <speedy-spotless-maven-plugin.version>0.1.3</speedy-spotless-maven-plugin.version>
+        <jacoco-maven-plugin.version>0.8.8</jacoco-maven-plugin.version>
+        <jrebel-x-maven-plugin.version>1.1.10</jrebel-x-maven-plugin.version>
+        <dhis-antlr-expression-parser.version>1.0.28</dhis-antlr-expression-parser.version>
+        <jai-imageio.version>1.1.1</jai-imageio.version>
+        <ow2.asm.version>9.3</ow2.asm.version>
+        <gson.version>2.8.9</gson.version>
+        <semver4j.version>3.1.0</semver4j.version>
+    </properties>
 
-  <distributionManagement>
-    <repository>
-      <id></id>
-      <name>DHIS 2 Maven repository</name>
-      <url>scp://</url>
-    </repository>
-  </distributionManagement>
+    <distributionManagement>
+        <repository>
+            <id></id>
+            <name>DHIS 2 Maven repository</name>
+            <url>scp://</url>
+        </repository>
+    </distributionManagement>
 
-  <repositories>
-    <repository>
-      <id>central</id>
-      <url>https://repo1.maven.org/maven2</url>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-      <snapshots>
-        <enabled>false</enabled>
-        <updatePolicy>daily</updatePolicy>
-      </snapshots>
-    </repository>
-    <repository>
-      <id>osgeo</id>
-      <name>Open Source Geospatial Foundation Repository</name>
-      <url>https://repo.osgeo.org/repository/release/</url>
-      <snapshots>
-        <enabled>false</enabled>
-        <updatePolicy>daily</updatePolicy>
-      </snapshots>
-      <releases>
-        <updatePolicy>never</updatePolicy>
-      </releases>
-    </repository>
-    <repository>
-      <id>DHIS2_MAVEN_REPO_MIRROR</id>
-      <url>https://raw.githubusercontent.com/dhis2/maven-repo-mirror/master/</url>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-      <snapshots>
-        <enabled>false</enabled>
-        <updatePolicy>daily</updatePolicy>
-      </snapshots>
-    </repository>
-    <repository>
-      <id>ossrh</id>
-      <name>Sonatype OSS</name>
-      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-      <releases>
-        <enabled>false</enabled>
-        <updatePolicy>never</updatePolicy>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-        <updatePolicy>daily</updatePolicy>
-      </snapshots>
-    </repository>
-    <repository>
-      <id>jitpack.io</id>
-      <url>https://jitpack.io</url>
-    </repository>
-  </repositories>
+    <repositories>
+        <repository>
+            <id>central</id>
+            <url>https://repo1.maven.org/maven2</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+                <updatePolicy>daily</updatePolicy>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>osgeo</id>
+            <name>Open Source Geospatial Foundation Repository</name>
+            <url>https://repo.osgeo.org/repository/release/</url>
+            <snapshots>
+                <enabled>false</enabled>
+                <updatePolicy>daily</updatePolicy>
+            </snapshots>
+            <releases>
+                <updatePolicy>never</updatePolicy>
+            </releases>
+        </repository>
+        <repository>
+            <id>DHIS2_MAVEN_REPO_MIRROR</id>
+            <url>https://raw.githubusercontent.com/dhis2/maven-repo-mirror/master/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+                <updatePolicy>daily</updatePolicy>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>ossrh</id>
+            <name>Sonatype OSS</name>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+            <releases>
+                <enabled>false</enabled>
+                <updatePolicy>never</updatePolicy>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>daily</updatePolicy>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
 
-  <pluginRepositories>
-    <pluginRepository>
-      <id>central</id>
-      <url>https://repo1.maven.org/maven2</url>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-    </pluginRepository>
-  </pluginRepositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>central</id>
+            <url>https://repo1.maven.org/maven2</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </pluginRepository>
+    </pluginRepositories>
 
-  <issueManagement>
-    <system>Launchpad</system>
-    <url>https://launchpad.net/dhis2</url>
-  </issueManagement>
+    <issueManagement>
+        <system>Launchpad</system>
+        <url>https://launchpad.net/dhis2</url>
+    </issueManagement>
 
-  <scm>
-    <url>lp:dhis2</url>
-  </scm>
+    <scm>
+        <url>lp:dhis2</url>
+    </scm>
 
-  <mailingLists>
-    <mailingList>
-      <name>Developer mailing list</name>
-      <post>dhis2-devs@lists.launchpad.net</post>
-      <subscribe>https://launchpad.net/~dhis2-devs</subscribe>
-    </mailingList>
-  </mailingLists>
+    <mailingLists>
+        <mailingList>
+            <name>Developer mailing list</name>
+            <post>dhis2-devs@lists.launchpad.net</post>
+            <subscribe>https://launchpad.net/~dhis2-devs</subscribe>
+        </mailingList>
+    </mailingLists>
 
-  <reporting>
-    <plugins>
-      <plugin>
-        <groupId>org.owasp</groupId>
-        <artifactId>dependency-check-maven</artifactId>
-        <version>${dependency-check-maven.version}</version>
-        <configuration>
-          <name>Dependency Check</name>
-        </configuration>
-        <reportSets>
-          <reportSet>
-            <reports>
-              <report>aggregate</report>
-            </reports>
-          </reportSet>
-        </reportSets>
-      </plugin>
-    </plugins>
-  </reporting>
-
-  <profiles>
-
-    <!-- Default profile will run all unit tests, not integration tests -->
-    <profile>
-      <id>default</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <configuration>
-              <parallel>all</parallel>
-              <threadCount>10</threadCount>
-              <skipTests>${skipTests}</skipTests>
-              <trimStackTrace>false</trimStackTrace>
-              <argLine>${surefireArgLine}</argLine>
-              <excludedGroups>integration,integrationH2</excludedGroups>
-            </configuration>
-            <dependencies>
-              <dependency>
-                <groupId>org.ow2.asm</groupId>
-                <artifactId>asm</artifactId>
-                <version>${ow2.asm.version}</version>
-              </dependency>
-            </dependencies>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <!-- Integration test profile, runs the integrations tests, but not unit 
-      tests -->
-    <profile>
-      <id>integration</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <configuration>
-              <skipTests>false</skipTests>
-              <trimStackTrace>false</trimStackTrace>
-              <argLine>${surefireArgLine}</argLine>
-              <groups>integration</groups>
-            </configuration>
-            <dependencies>
-              <dependency>
-                <groupId>org.ow2.asm</groupId>
-                <artifactId>asm</artifactId>
-                <version>${ow2.asm.version}</version>
-              </dependency>
-            </dependencies>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <!-- IntegrationH2 test profile, this runs all the integrations tests 
-      with H2, but not the unit tests -->
-    <profile>
-      <id>integrationH2</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <configuration>
-              <skipTests>false</skipTests>
-              <trimStackTrace>false</trimStackTrace>
-              <argLine>${surefireArgLine}</argLine>
-              <groups>integrationH2</groups>
-            </configuration>
-            <dependencies>
-              <dependency>
-                <groupId>org.ow2.asm</groupId>
-                <artifactId>asm</artifactId>
-                <version>${ow2.asm.version}</version>
-              </dependency>
-            </dependencies>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <profile>
-      <id>sonarqube</id>
-      <properties>
-        <skipTests>true</skipTests>
-      </properties>
-      <build>
+    <reporting>
         <plugins>
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
