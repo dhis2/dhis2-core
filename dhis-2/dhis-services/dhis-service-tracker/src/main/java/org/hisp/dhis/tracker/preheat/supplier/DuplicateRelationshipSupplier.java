@@ -38,7 +38,6 @@ import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.preheat.RelationshipPreheatKeySupport;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.preheat.mappers.RelationshipMapper;
 import org.springframework.stereotype.Component;
 
 @RequiredArgsConstructor
@@ -51,16 +50,22 @@ public class DuplicateRelationshipSupplier extends AbstractPreheatSupplier
     @Override
     public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
     {
-
-        List<org.hisp.dhis.relationship.Relationship> relationshipKeys = retrieveRelationshipKeys(
+        List<org.hisp.dhis.relationship.Relationship> relationships = retrieveRelationshipKeys(
             params.getRelationships() );
 
-        preheat.putDuplicateRelationships(
-            DetachUtils.detach( RelationshipMapper.INSTANCE, relationshipKeys ) );
+        relationships.forEach( r -> {
+            preheat.addDuplicatedRelationship( r.getKey() );
+            if ( r.getRelationshipType().isBidirectional() )
+            {
+                preheat.addDuplicatedRelationship( r.getInvertedKey() );
+            }
+        } );
     }
 
     private List<org.hisp.dhis.relationship.Relationship> retrieveRelationshipKeys( List<Relationship> relationships )
     {
+        // When idScheme is implemented for relationshipType
+        // this keys must be converted to always use UID identifier
         List<String> keys = relationships.stream()
             .map( rel -> RelationshipPreheatKeySupport.getRelationshipKey( rel ).asString() )
             .collect( Collectors.toList() );

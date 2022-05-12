@@ -25,16 +25,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.utils;
+package org.hisp.dhis.commons.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.hisp.dhis.DhisConvenienceTest;
-import org.hisp.dhis.commons.util.RelationshipUtils;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
@@ -43,8 +38,17 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class RelationshipUtilsTest extends DhisConvenienceTest
+class RelationshipUtilsTest
 {
+    private static final String TEIA_UID = "TEIA_UID";
+
+    private static final String TEIB_UID = "TEIB_UID";
+
+    private static final String PI_UID = "PI_UID";
+
+    private static final String PSI_UID = "PSI_UID";
+
+    private static final String RELATIONSHIP_TYPE_UID = "RELATIONSHIP_TYPE_UID";
 
     private TrackedEntityInstance teiA, teiB;
 
@@ -57,14 +61,16 @@ class RelationshipUtilsTest extends DhisConvenienceTest
     @BeforeEach
     void setup()
     {
-        OrganisationUnit ou = createOrganisationUnit( 'A' );
-        teiA = createTrackedEntityInstance( 'A', ou );
-        teiB = createTrackedEntityInstance( 'B', ou );
-        Program p = createProgram( 'A' );
-        piA = createProgramInstance( p, teiA, ou );
-        ProgramStage ps = createProgramStage( 'A', p );
-        psiA = createProgramStageInstance( ps, piA, ou );
-        relationshipType = createRelationshipType( 'A' );
+        teiA = new TrackedEntityInstance();
+        teiA.setUid( TEIA_UID );
+        teiB = new TrackedEntityInstance();
+        teiB.setUid( TEIB_UID );
+        piA = new ProgramInstance();
+        piA.setUid( PI_UID );
+        psiA = new ProgramStageInstance();
+        psiA.setUid( PSI_UID );
+        relationshipType = new RelationshipType();
+        relationshipType.setUid( RELATIONSHIP_TYPE_UID );
     }
 
     @Test

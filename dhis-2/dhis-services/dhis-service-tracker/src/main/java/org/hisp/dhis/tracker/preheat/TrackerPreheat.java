@@ -54,7 +54,6 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.commons.util.RelationshipUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -270,9 +269,13 @@ public class TrackerPreheat
     private final Map<String, Relationship> relationships = new HashMap<>();
 
     /**
-     * Internal set of all relationship keys already present in the DB. They key
-     * is a string concatenating the relationshipType uid, the uid of the `from`
-     * entity and the uid of the `to` entity.
+     * Internal set of all relationship keys and inverted keys already present
+     * in the DB. This is used to validate only newly create relationships as
+     * update is not allowed for relationships. The key is a string
+     * concatenating the relationshipType uid, the uid of the `from` entity and
+     * the uid of the `to` entity. The inverted key is a string concatenating
+     * the relationshipType uid, the uid of the `to` entity and the uid of the
+     * `from` entity.
      */
     private final Set<String> duplicatedRelationships = new HashSet<>();
 
@@ -672,22 +675,9 @@ public class TrackerPreheat
         }
     }
 
-    public void putDuplicateRelationships( List<Relationship> relationships )
+    public void addDuplicatedRelationship( String key )
     {
-        relationships.forEach( this::putDuplicatedRelationship );
-    }
-
-    public void putDuplicatedRelationship( Relationship relationship )
-    {
-        if ( Objects.nonNull( relationship ) )
-        {
-            if ( relationship.getRelationshipType().isBidirectional() )
-            {
-                duplicatedRelationships.add( RelationshipUtils.generateRelationshipInvertedKey( relationship ) );
-            }
-
-            duplicatedRelationships.add( RelationshipUtils.generateRelationshipKey( relationship ) );
-        }
+        duplicatedRelationships.add( key );
     }
 
     public ProgramInstance getProgramInstancesWithoutRegistration( String programUid )
