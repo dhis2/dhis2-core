@@ -902,14 +902,14 @@ public abstract class AbstractJdbcEventAnalyticsManager
      * @param params a {@see EventQueryParams}
      * @param hlp a {@see SqlHelper}
      */
-    protected String getItemsSql( EventQueryParams params, SqlHelper hlp )
+    protected String getStatementForDimensionsAndFilters( EventQueryParams params, SqlHelper hlp )
     {
         // Creates a map grouping queryItems referring to repeatable stages and
         // those referring to non-repeatable stages
         // Only for enrollments, for events all query items are treated as
         // non-repeatable
-        Map<Boolean, List<QueryItem>> itemsByRepeatableFlag = params.getItems()
-            .stream()
+        Map<Boolean, List<QueryItem>> itemsByRepeatableFlag = Stream.concat(
+            params.getItems().stream(), params.getItemFilters().stream() )
             .filter( QueryItem::hasFilter )
             .collect( groupingBy(
                 queryItem -> queryItem.hasRepeatableStageParams() && params.getEndpointItem() == ENROLLMENT ) );
