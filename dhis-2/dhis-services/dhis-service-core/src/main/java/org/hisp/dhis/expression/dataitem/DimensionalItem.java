@@ -115,7 +115,7 @@ public abstract class DimensionalItem
     {
         return (item instanceof ValueTypedDimensionalItemObject
             && visitor.getParseType() != INDICATOR_EXPRESSION)
-            ? ((ValueTypedDimensionalItemObject) item).getValueType()
-            : ValueType.NUMBER;
+                ? ((ValueTypedDimensionalItemObject) item).getValueType()
+                : ValueType.NUMBER;
     }
 }
