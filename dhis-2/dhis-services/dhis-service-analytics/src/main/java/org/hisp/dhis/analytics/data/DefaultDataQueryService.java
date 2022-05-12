@@ -192,14 +192,13 @@ public class DefaultDataQueryService
         if ( request.getDimension() != null && !request.getDimension().isEmpty() )
         {
             params.addDimensions( getDimensionalObjects( request.getDimension(), request.getRelativePeriodDate(),
-                request.getUserOrgUnit(), format,
-                request.isAllowAllPeriods(), inputIdScheme ) );
+                request.getUserOrgUnit(), format, inputIdScheme ) );
         }
 
         if ( request.getFilter() != null && !request.getFilter().isEmpty() )
         {
             params.addFilters( getDimensionalObjects( request.getFilter(), request.getRelativePeriodDate(),
-                request.getUserOrgUnit(), format, request.isAllowAllPeriods(), inputIdScheme ) );
+                request.getUserOrgUnit(), format, inputIdScheme ) );
         }
 
         if ( request.getMeasureCriteria() != null && !request.getMeasureCriteria().isEmpty() )
@@ -270,19 +269,19 @@ public class DefaultDataQueryService
         for ( DimensionalObject column : object.getColumns() )
         {
             params.addDimension( getDimension( column.getDimension(), getDimensionalItemIds( column.getItems() ), date,
-                userOrgUnits, format, false, false, idScheme ) );
+                userOrgUnits, format, false, idScheme ) );
         }
 
         for ( DimensionalObject row : object.getRows() )
         {
             params.addDimension( getDimension( row.getDimension(), getDimensionalItemIds( row.getItems() ), date,
-                userOrgUnits, format, false, false, idScheme ) );
+                userOrgUnits, format, false, idScheme ) );
         }
 
         for ( DimensionalObject filter : object.getFilters() )
         {
             params.addFilter( getDimension( filter.getDimension(), getDimensionalItemIds( filter.getItems() ), date,
-                userOrgUnits, format, false, false, idScheme ) );
+                userOrgUnits, format, false, idScheme ) );
         }
 
         return params
@@ -293,8 +292,7 @@ public class DefaultDataQueryService
 
     @Override
     public List<DimensionalObject> getDimensionalObjects( Set<String> dimensionParams,
-        Date relativePeriodDate, String userOrgUnit, I18nFormat format, boolean allowAllPeriods,
-        IdScheme inputIdScheme )
+        Date relativePeriodDate, String userOrgUnit, I18nFormat format, IdScheme inputIdScheme )
     {
         List<DimensionalObject> list = new ArrayList<>();
 
@@ -309,8 +307,8 @@ public class DefaultDataQueryService
 
                 if ( dimension != null && items != null )
                 {
-                    list.add( getDimension( dimension, items, relativePeriodDate, userOrgUnits, format, false,
-                        allowAllPeriods, inputIdScheme ) );
+                    list.add( getDimension( dimension, items, relativePeriodDate, userOrgUnits,
+                        format, false, inputIdScheme ) );
                 }
             }
         }
@@ -323,8 +321,7 @@ public class DefaultDataQueryService
 
     @Override
     public DimensionalObject getDimension( String dimension, List<String> items, Date relativePeriodDate,
-        List<OrganisationUnit> userOrgUnits, I18nFormat format, boolean allowNull, boolean allowAllPeriodItems,
-        IdScheme inputIdScheme )
+        List<OrganisationUnit> userOrgUnits, I18nFormat format, boolean allowNull, IdScheme inputIdScheme )
     {
         final boolean allItems = items.isEmpty();
         User user = currentUserService.getCurrentUser();

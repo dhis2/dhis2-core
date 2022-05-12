@@ -29,7 +29,7 @@ package org.hisp.dhis.security.oauth2;
 
 import lombok.AllArgsConstructor;
 
-import org.springframework.security.core.userdetails.User;
+import org.hisp.dhis.user.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -61,7 +61,15 @@ public class DefaultClientDetailsUserDetailsService implements UserDetailsServic
                 clientSecret = passwordEncoder.encode( "" );
             }
 
-            return new User( username, clientSecret, clientDetails.getAuthorities() );
+            User user = new User();
+            user.setUsername( username );
+            user.setPassword( clientSecret );
+            user.setDisabled( false );
+            user.setAccountNonLocked( true );
+            user.setCredentialsNonExpired( true );
+            user.setAccountExpiry( null );
+
+            return user;
         }
         catch ( NoSuchClientException e )
         {

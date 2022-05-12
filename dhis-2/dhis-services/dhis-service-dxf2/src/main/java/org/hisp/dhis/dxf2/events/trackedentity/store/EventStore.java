@@ -33,6 +33,7 @@ import java.util.Map;
 import org.hisp.dhis.dxf2.events.aggregates.AggregateContext;
 import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.event.EventSearchParams;
 import org.hisp.dhis.dxf2.events.event.Note;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 
@@ -72,7 +73,7 @@ public interface EventStore
      * @return a MultiMap where key is a {@see Enrollment} uid and the value a
      *         List of {@see Relationship} objects
      */
-    Multimap<String, Relationship> getRelationships( List<Long> ids );
+    Multimap<String, Relationship> getRelationships( List<Long> ids, AggregateContext ctx );
 
     /**
      * Fetch all the relationships based on provided relationship ids and return
@@ -82,7 +83,7 @@ public interface EventStore
      * @return Multimap containing entity uid as key and its associated list of
      *         Relationships as value.
      */
-    Multimap<String, Relationship> getRelationshipsByIds( List<Long> ids );
+    Multimap<String, Relationship> getRelationshipsByIds( List<Long> ids, EventSearchParams params );
 
     Multimap<String, Note> getNotes( List<Long> eventIds );
 }

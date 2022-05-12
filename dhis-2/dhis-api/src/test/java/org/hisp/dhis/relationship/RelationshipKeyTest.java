@@ -25,58 +25,51 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.hibernate;
+package org.hisp.dhis.relationship;
 
-import java.util.Objects;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Test;
 
-import org.hibernate.Hibernate;
-import org.hibernate.proxy.HibernateProxy;
-import org.hibernate.proxy.HibernateProxyHelper;
-
-/**
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-
-@Slf4j
-public class HibernateProxyUtils
+class RelationshipKeyTest
 {
-    private HibernateProxyUtils()
+
+    @Test
+    void asStringForRelationshipTeiToTei()
     {
-        throw new IllegalStateException( "Utility class" );
+
+        RelationshipKey key = RelationshipKey.of( "dDrh5UyCyvQ",
+            RelationshipKey.RelationshipItemKey.builder()
+                .trackedEntity( "Ea0rRdBPAIp" ).build(),
+            RelationshipKey.RelationshipItemKey.builder()
+                .trackedEntity( "G1afLIEKt8A" ).build() );
+
+        assertEquals( "dDrh5UyCyvQ_Ea0rRdBPAIp_G1afLIEKt8A", key.asString() );
     }
 
-    @SuppressWarnings( "rawtypes" )
-    public static Class getRealClass( Object object )
+    @Test
+    void asStringForRelationshipTeiToEnrollment()
     {
-        Objects.requireNonNull( object );
 
-        if ( object instanceof Class )
-        {
-            throw new IllegalArgumentException( "Input can't be a Class instance!" );
-        }
+        RelationshipKey key = RelationshipKey.of( "dDrh5UyCyvQ",
+            RelationshipKey.RelationshipItemKey.builder()
+                .trackedEntity( "Ea0rRdBPAIp" ).build(),
+            RelationshipKey.RelationshipItemKey.builder()
+                .enrollment( "G1afLIEKt8A" ).build() );
 
-        return HibernateProxyHelper.getClassWithoutInitializingProxy( object );
+        assertEquals( "dDrh5UyCyvQ_Ea0rRdBPAIp_G1afLIEKt8A", key.asString() );
     }
 
-    @SuppressWarnings( { "unchecked" } )
-    public static <T> T unproxy( T proxy )
+    @Test
+    void asStringForRelationshipTeiToEvent()
     {
-        return (T) Hibernate.unproxy( proxy );
-    }
 
-    public static <T> void initializeAndUnproxy( T entity )
-    {
-        if ( entity == null )
-        {
-            return;
-        }
+        RelationshipKey key = RelationshipKey.of( "dDrh5UyCyvQ",
+            RelationshipKey.RelationshipItemKey.builder()
+                .trackedEntity( "Ea0rRdBPAIp" ).build(),
+            RelationshipKey.RelationshipItemKey.builder()
+                .event( "G1afLIEKt8A" ).build() );
 
-        Hibernate.initialize( entity );
-        if ( entity instanceof HibernateProxy )
-        {
-            ((HibernateProxy) entity).getHibernateLazyInitializer().getImplementation();
-        }
+        assertEquals( "dDrh5UyCyvQ_Ea0rRdBPAIp_G1afLIEKt8A", key.asString() );
     }
 }

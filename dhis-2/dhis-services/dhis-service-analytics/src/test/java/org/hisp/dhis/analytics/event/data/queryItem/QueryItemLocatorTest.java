@@ -136,7 +136,7 @@ class QueryItemLocatorTest
         String dimension = "dynamicDimension";
 
         when( dataQueryService.getDimension( dimension, Collections.emptyList(), null, Collections.emptyList(), null,
-            true, false, IdScheme.UID ) )
+            true, IdScheme.UID ) )
                 .thenReturn( new BaseDimensionalObject( dimension ) );
 
         assertDoesNotThrow( () -> subject.getQueryItemFromDimension( dimension, programA, null ) );
