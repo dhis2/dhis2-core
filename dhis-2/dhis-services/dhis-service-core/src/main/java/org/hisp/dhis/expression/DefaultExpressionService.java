@@ -699,6 +699,7 @@ public class DefaultExpressionService
             .withOrganisationUnitGroupService( organisationUnitGroupService )
             .withSamplePeriods( samplePeriods )
             .withMissingValueStrategy( missingValueStrategy )
+            .withParseType( parseType )
             .buildForExpressions();
     }
 
