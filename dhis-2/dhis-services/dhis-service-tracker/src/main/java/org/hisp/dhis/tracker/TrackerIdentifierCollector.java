@@ -57,7 +57,7 @@ import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.Note;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.preheat.RelationshipPreheatKeySupport;
+import org.hisp.dhis.tracker.util.RelationshipKeySupport;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.ImmutableSet;
@@ -186,9 +186,9 @@ public class TrackerIdentifierCollector
 
             addIdentifier( identifiers, Relationship.class, relationship.getRelationship() );
 
-            if ( RelationshipPreheatKeySupport.hasRelationshipKey( relationship ) )
+            if ( RelationshipKeySupport.hasRelationshipKey( relationship ) )
             {
-                RelationshipKey relationshipKey = RelationshipPreheatKeySupport.getRelationshipKey( relationship );
+                RelationshipKey relationshipKey = RelationshipKeySupport.getRelationshipKey( relationship );
 
                 addIdentifier( identifiers, TrackedEntity.class, relationshipKey.getFrom().getTrackedEntity() );
                 addIdentifier( identifiers, Enrollment.class, relationshipKey.getFrom().getEnrollment() );

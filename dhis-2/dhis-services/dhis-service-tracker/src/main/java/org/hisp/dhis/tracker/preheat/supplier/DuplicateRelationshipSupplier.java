@@ -36,8 +36,8 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.relationship.RelationshipStore;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.Relationship;
-import org.hisp.dhis.tracker.preheat.RelationshipPreheatKeySupport;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.util.RelationshipKeySupport;
 import org.springframework.stereotype.Component;
 
 @RequiredArgsConstructor
@@ -67,7 +67,7 @@ public class DuplicateRelationshipSupplier extends AbstractPreheatSupplier
         // When idScheme is implemented for relationshipType
         // this keys must be converted to always use UID identifier
         List<String> keys = relationships.stream()
-            .map( rel -> RelationshipPreheatKeySupport.getRelationshipKey( rel ).asString() )
+            .map( rel -> RelationshipKeySupport.getRelationshipKey( rel ).asString() )
             .collect( Collectors.toList() );
 
         return relationshipStore.getByUid( relationshipStore.getUidsByRelationshipKeys( keys ) );

@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.tracker.preheat;
 
-import static org.hisp.dhis.tracker.preheat.RelationshipPreheatKeySupport.getRelationshipKey;
-import static org.hisp.dhis.tracker.preheat.RelationshipPreheatKeySupport.hasRelationshipKey;
+import static org.hisp.dhis.tracker.util.RelationshipKeySupport.getRelationshipKey;
+import static org.hisp.dhis.tracker.util.RelationshipKeySupport.hasRelationshipKey;
 
 import java.util.ArrayList;
 import java.util.Collection;
