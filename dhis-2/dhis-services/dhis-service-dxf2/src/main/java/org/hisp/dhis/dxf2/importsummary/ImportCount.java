@@ -145,14 +145,6 @@ public class ImportCount
         deleted += n;
     }
 
-    public void increment( ImportCount importCount )
-    {
-        incrementImported( importCount.getImported() );
-        incrementUpdated( importCount.getUpdated() );
-        incrementIgnored( importCount.getIgnored() );
-        incrementDeleted( importCount.getDeleted() );
-    }
-
     public int getTotalCount()
     {
         return imported + updated + ignored + deleted;

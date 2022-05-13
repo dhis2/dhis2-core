@@ -152,5 +152,4 @@ public class AnalyticsDataExchangeService
     {
         return idScheme != null ? idScheme : IdScheme.UID;
     }
-
 }
