@@ -28,8 +28,11 @@
 package org.hisp.dhis.analytics.shared;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
+import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.hisp.dhis.analytics.ColumnDataType;
 import org.hisp.dhis.common.ValueType;
 
@@ -42,7 +45,9 @@ import org.hisp.dhis.common.ValueType;
  */
 @AllArgsConstructor
 @Getter
-public class Column
+@Builder
+@EqualsAndHashCode
+public class Column implements Comparable<Column>
 {
     /**
      * The column name.
@@ -91,5 +96,17 @@ public class Column
         }
 
         return null;
+    }
+
+    @Override
+    public int compareTo( final Column column )
+    {
+        return new CompareToBuilder().append( this.alias, column.alias ).toComparison();
+    }
+
+    @Override
+    public String toString()
+    {
+        return alias;
     }
 }
