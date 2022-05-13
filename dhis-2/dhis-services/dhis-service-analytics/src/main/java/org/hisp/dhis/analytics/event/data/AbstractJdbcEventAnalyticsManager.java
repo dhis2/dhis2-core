@@ -35,6 +35,7 @@ import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_DENOMINATOR_PROPERTIES_COUNT;
+import static org.hisp.dhis.analytics.QueryKey.NV;
 import static org.hisp.dhis.analytics.SortOrder.ASC;
 import static org.hisp.dhis.analytics.SortOrder.DESC;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_GEOMETRY_COL_SUFFIX;
@@ -740,7 +741,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
     {
         try
         {
-            if ( item.getValueType() == ValueType.DATETIME )
+            if ( !NV.equals( filter ) && item.getValueType() == ValueType.DATETIME )
             {
                 return DateFormatUtils.format(
                     DateUtils.parseDate( filter,
