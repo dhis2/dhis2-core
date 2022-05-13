@@ -25,47 +25,46 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.shared;
+package org.hisp.dhis.analytics.tei;
 
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.springframework.util.Assert.noNullElements;
-import static org.springframework.util.Assert.notEmpty;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.analytics.shared.Query;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 /**
- * This class is responsible for encapsulating the grid header creation.
+ * // TODO: Improve unit tests and coverage
+ *
+ * Tests for {@link TeiJdbcQuery}.
  *
  * @author maikel arabori
  */
-public class GridHeaders
+class TeiJdbcQueryTest
 {
-    /**
-     * Simple create a list of GridHeader objects based on the list of columns
-     * provided as argument.
-     *
-     * @param columns
-     * @return the list of grid headers or empty if the provided columns are
-     *         empty/null
-     * @throws IllegalArgumentException if the provided columns is null/empty or
-     *         contain at least one null element
-     */
-    public static List<GridHeader> from( final List<Column> columns )
+    private static TeiJdbcQuery teiJdbcQuery;
+
+    @BeforeAll
+    static void setUp()
     {
-        notEmpty( columns, "The 'columns' must not be null/empty" );
-        noNullElements( columns, "The 'columns' must not contain null elements" );
+        teiJdbcQuery = new TeiJdbcQuery();
+    }
 
-        final List<GridHeader> headers = new ArrayList<>();
+    @Test
+    void testFrom()
+    {
+        // Given
+        final TeiParams mockTeiParams = mockTeiParams();
 
-        if ( isNotEmpty( columns ) )
-        {
-            columns.forEach( column -> headers.add( new GridHeader(
-                column.getAlias(), column.getName(), column.valueType(), column.isHidden(), column.isMeta() ) ) );
-        }
+        // When
+        final Query query = teiJdbcQuery.from( mockTeiParams );
 
-        return headers;
+        // Then
+        assertNotNull( query, "Should not be null: query" );
+    }
+
+    private TeiParams mockTeiParams()
+    {
+        return new TeiParams();
     }
 }

@@ -27,45 +27,35 @@
  */
 package org.hisp.dhis.analytics.shared;
 
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.springframework.util.Assert.noNullElements;
-import static org.springframework.util.Assert.notEmpty;
+import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.hisp.dhis.common.GridHeader;
+import org.junit.jupiter.api.Test;
 
 /**
- * This class is responsible for encapsulating the grid header creation.
+ * // TODO: Improve unit tests and coverage
+ *
+ * Unit tests for {@link GridHeaders}
  *
  * @author maikel arabori
  */
-public class GridHeaders
+class GridHeadersTest
 {
-    /**
-     * Simple create a list of GridHeader objects based on the list of columns
-     * provided as argument.
-     *
-     * @param columns
-     * @return the list of grid headers or empty if the provided columns are
-     *         empty/null
-     * @throws IllegalArgumentException if the provided columns is null/empty or
-     *         contain at least one null element
-     */
-    public static List<GridHeader> from( final List<Column> columns )
+    @Test
+    void testFrom()
     {
-        notEmpty( columns, "The 'columns' must not be null/empty" );
-        noNullElements( columns, "The 'columns' must not contain null elements" );
+        // Given
+        final List<Column> columns = List.of( Column.builder().name( "name" ).dataType( TEXT ).build() );
 
-        final List<GridHeader> headers = new ArrayList<>();
+        // When
+        final List<GridHeader> headers = GridHeaders.from( columns );
 
-        if ( isNotEmpty( columns ) )
-        {
-            columns.forEach( column -> headers.add( new GridHeader(
-                column.getAlias(), column.getName(), column.valueType(), column.isHidden(), column.isMeta() ) ) );
-        }
-
-        return headers;
+        // Then
+        assertNotNull( headers, "Should not be null: headers" );
+        assertTrue( headers.size() == 1, "Should have size of 1: headers" );
     }
 }

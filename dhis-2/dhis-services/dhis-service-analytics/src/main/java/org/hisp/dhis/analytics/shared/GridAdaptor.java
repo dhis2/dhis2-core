@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.shared;
 
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.springframework.util.Assert.noNullElements;
 import static org.springframework.util.Assert.notEmpty;
 import static org.springframework.util.Assert.notNull;
@@ -69,10 +70,20 @@ public class GridAdaptor
 
         final Grid grid = new ListGrid();
 
+        boolean rowsAdded = false;
+
         for ( final GridHeader header : headers )
         {
+            final List<Object> columnRows = resultMap.get( Column.builder().alias( header.getName() ).build() );
+
+            if ( !rowsAdded && isNotEmpty( columnRows ) )
+            {
+                columnRows.forEach( c -> grid.addRow() );
+                rowsAdded = true;
+            }
+
             // Note that the header column must match the result map key.
-            grid.addHeader( header ).addColumn( resultMap.get( header.getColumn() ) );
+            grid.addHeader( header ).addColumn( columnRows );
         }
 
         return grid;
