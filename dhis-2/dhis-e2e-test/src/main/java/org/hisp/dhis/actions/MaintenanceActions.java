@@ -47,6 +47,11 @@ public class MaintenanceActions
         super( "/maintenance" );
     }
 
+    public void removeSoftDeletedRelationships()
+    {
+        sendRequest( true, "softDeletedRelationshipRemoval=true" );
+    }
+
     public void removeSoftDeletedEvents()
     {
         sendRequest( true, "softDeletedEventRemoval=true" );
@@ -56,7 +61,7 @@ public class MaintenanceActions
     {
         sendRequest( true, "softDeletedEventRemoval=true", "softDeletedTrackedEntityInstanceRemoval=true",
             "softDeletedProgramStageInstanceRemoval=true", "softDeletedProgramInstanceRemoval=true",
-            "softDeletedDataValueRemoval=true" );
+            "softDeletedRelationshipRemoval=true", "softDeletedDataValueRemoval=true" );
     }
 
     private void sendRequest( boolean validate, String... queryParams )
