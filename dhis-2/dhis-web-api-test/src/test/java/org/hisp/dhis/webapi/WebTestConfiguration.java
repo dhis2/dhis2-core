@@ -61,6 +61,7 @@ import org.hisp.dhis.scheduling.AbstractSchedulingManager;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobService;
+import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.security.SystemAuthoritiesProvider;
 import org.hisp.dhis.startup.DefaultAdminUserPopulator;
@@ -237,6 +238,8 @@ public class WebTestConfiguration
     {
         private boolean enabled = true;
 
+        private boolean isRunning = false;
+
         public TestSchedulingManager( JobService jobService, JobConfigurationService jobConfigurationService,
             MessageService messageService, Notifier notifier, LeaderManager leaderManager, CacheProvider cacheProvider )
         {
@@ -266,15 +269,26 @@ public class WebTestConfiguration
         {
             if ( enabled )
             {
-                execute( configuration );
+                return execute( configuration );
             }
-            return true;
+            return !isRunning;
+        }
+
+        @Override
+        public boolean isRunning( JobType type )
+        {
+            return isRunning;
         }
 
         public void setEnabled( boolean enabled )
         {
 
             this.enabled = enabled;
+        }
+
+        public void setRunning( boolean running )
+        {
+            isRunning = running;
         }
     }
 }
