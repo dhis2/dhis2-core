@@ -46,7 +46,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping( "/dataExchange/analytics" )
+@RequestMapping( "/analyticsDataExchanges" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class AnalyticsDataExchangeController
 {
