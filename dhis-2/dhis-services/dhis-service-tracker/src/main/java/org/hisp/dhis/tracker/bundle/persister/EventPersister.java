@@ -223,6 +223,7 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
                     assignFileResource( session, preheat, eventDataValue.getValue() );
                 }
 
+                psi.getEventDataValues().remove( eventDataValue );
                 psi.getEventDataValues().add( eventDataValue );
             }
 
