@@ -36,6 +36,7 @@ import lombok.NoArgsConstructor;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.relationship.RelationshipKey;
+import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
 
@@ -43,10 +44,10 @@ import org.hisp.dhis.tracker.domain.RelationshipItem;
 public class RelationshipKeySupport
 {
 
-    public static boolean hasRelationshipKey( Relationship relationship )
+    public static boolean hasRelationshipKey( Relationship relationship, RelationshipType relationshipType )
     {
         return ObjectUtils.allNotNull(
-            relationship.getRelationshipType(),
+            relationshipType,
             relationship.getFrom(),
             relationship.getTo() );
     }
@@ -64,10 +65,10 @@ public class RelationshipKeySupport
         throw new IllegalStateException( "Unable to determine uid for relationship item" );
     }
 
-    public static RelationshipKey getRelationshipKey( Relationship relationship, String relationshipType )
+    public static RelationshipKey getRelationshipKey( Relationship relationship, RelationshipType relationshipType )
     {
         return RelationshipKey.of(
-            relationshipType,
+            relationshipType.getUid(),
             getRelationshipItemKey( relationship.getFrom() ),
             getRelationshipItemKey( relationship.getTo() ) );
     }

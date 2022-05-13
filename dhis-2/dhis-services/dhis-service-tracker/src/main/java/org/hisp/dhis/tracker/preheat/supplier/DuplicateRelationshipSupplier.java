@@ -28,12 +28,14 @@
 package org.hisp.dhis.tracker.preheat.supplier;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.relationship.RelationshipStore;
+import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
@@ -51,25 +53,32 @@ public class DuplicateRelationshipSupplier extends AbstractPreheatSupplier
     public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
     {
         List<org.hisp.dhis.relationship.Relationship> relationships = retrieveRelationshipKeys(
-            params.getRelationships() );
+            params.getRelationships(), preheat );
 
-        relationships.forEach( r -> {
-            preheat.addDuplicatedRelationship( r.getKey() );
-            if ( r.getRelationshipType().isBidirectional() )
-            {
-                preheat.addDuplicatedRelationship( r.getInvertedKey() );
-            }
-        } );
+        relationships.forEach( preheat::addExistingRelationship );
     }
 
-    private List<org.hisp.dhis.relationship.Relationship> retrieveRelationshipKeys( List<Relationship> relationships )
+    private List<org.hisp.dhis.relationship.Relationship> retrieveRelationshipKeys( List<Relationship> relationships,
+        TrackerPreheat preheat )
     {
-        // When idScheme is implemented for relationshipType
-        // this keys must be converted to always use UID identifier
+        List<RelationshipType> relationshipTypes = preheat.getAll( RelationshipType.class );
         List<String> keys = relationships.stream()
-            .map( rel -> RelationshipKeySupport.getRelationshipKey( rel, rel.getRelationshipType() ).asString() )
+            .filter(
+                rel -> RelationshipKeySupport.hasRelationshipKey( rel, getRelationshipType( rel, relationshipTypes ) ) )
+            .map( rel -> RelationshipKeySupport.getRelationshipKey( rel, getRelationshipType( rel, relationshipTypes ) )
+                .asString() )
             .collect( Collectors.toList() );
 
         return relationshipStore.getByUid( relationshipStore.getUidsByRelationshipKeys( keys ) );
+    }
+
+    private RelationshipType getRelationshipType( Relationship rel, List<RelationshipType> relationshipTypes )
+    {
+        // When idScheme is implemented for relationshipType
+        // this method must consider it to retrieve the right relationshipType
+        return relationshipTypes.stream()
+            .filter( relationshipType -> Objects.equals( rel.getRelationshipType(), relationshipType.getUid() ) )
+            .findAny()
+            .orElse( null );
     }
 }

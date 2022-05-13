@@ -277,7 +277,7 @@ public class TrackerPreheat
      * the relationshipType uid, the uid of the `to` entity and the uid of the
      * `from` entity.
      */
-    private final Set<String> duplicatedRelationships = new HashSet<>();
+    private final Set<String> existingRelationships = new HashSet<>();
 
     /**
      * Internal map of all preheated notes (events and enrollments)
@@ -645,10 +645,11 @@ public class TrackerPreheat
 
     public boolean isDuplicate( org.hisp.dhis.tracker.domain.Relationship relationship )
     {
-        if ( hasRelationshipKey( relationship ) )
+        RelationshipType relationshipType = get( RelationshipType.class, relationship.getRelationshipType() );
+
+        if ( hasRelationshipKey( relationship, relationshipType ) )
         {
-            RelationshipType relationshipType = get( RelationshipType.class, relationship.getRelationshipType() );
-            RelationshipKey relationshipKey = getRelationshipKey( relationship, relationshipType.getUid() );
+            RelationshipKey relationshipKey = getRelationshipKey( relationship, relationshipType );
 
             RelationshipKey inverseKey = null;
             if ( relationshipType.isBidirectional() )
@@ -657,7 +658,7 @@ public class TrackerPreheat
             }
             return Stream.of( relationshipKey, inverseKey )
                 .filter( Objects::nonNull )
-                .anyMatch( key -> duplicatedRelationships.contains( key.asString() ) );
+                .anyMatch( key -> existingRelationships.contains( key.asString() ) );
         }
         return false;
     }
@@ -675,9 +676,13 @@ public class TrackerPreheat
         }
     }
 
-    public void addDuplicatedRelationship( String key )
+    public void addExistingRelationship( Relationship relationship )
     {
-        duplicatedRelationships.add( key );
+        existingRelationships.add( relationship.getKey() );
+        if ( relationship.getRelationshipType().isBidirectional() )
+        {
+            existingRelationships.add( relationship.getInvertedKey() );
+        }
     }
 
     public ProgramInstance getProgramInstancesWithoutRegistration( String programUid )

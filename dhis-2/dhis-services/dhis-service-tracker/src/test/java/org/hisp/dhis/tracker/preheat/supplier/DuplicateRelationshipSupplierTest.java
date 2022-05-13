@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.tracker.preheat.supplier;
 
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -39,6 +39,7 @@ import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipStore;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
@@ -67,15 +68,9 @@ class DuplicateRelationshipSupplierTest extends DhisConvenienceTest
 
     private static final String KEY_REL_A = "UNIRELTYPE_TEIA_TEIB";
 
-    private static final String INVERTED_KEY_REL_A = "UNIRELTYPE_TEIB_TEIA";
-
     private static final String KEY_REL_B = "BIRELTYPE_TEIB_TEIC";
 
-    private static final String INVERTED_KEY_REL_B = "BIRELTYPE_TEIC_TEIB";
-
     private static final String KEY_REL_C = "UNIRELTYPE_TEIC_TEIA";
-
-    private static final String UNKNOWN_KEY = "TYPE_Z_Y";
 
     private static final String UNIDIRECTIONAL_RELATIONSHIP_TYPE_UID = "UNIRELTYPE";
 
@@ -93,14 +88,13 @@ class DuplicateRelationshipSupplierTest extends DhisConvenienceTest
 
     private TrackedEntityInstance teiA, teiB, teiC;
 
-    @Mock
     private TrackerPreheat preheat;
 
     @Mock
     private RelationshipStore relationshipStore;
 
     @InjectMocks
-    private DuplicateRelationshipSupplier supplierToTest;
+    private DuplicateRelationshipSupplier supplier;
 
     @BeforeEach
     public void setUp()
@@ -142,6 +136,10 @@ class DuplicateRelationshipSupplierTest extends DhisConvenienceTest
             .from( RelationshipItem.builder().trackedEntity( TEIC_UID ).build() )
             .to( RelationshipItem.builder().trackedEntity( TEIA_UID ).build() )
             .build();
+
+        preheat = new TrackerPreheat();
+        preheat.put( TrackerIdSchemeParam.UID, unidirectionalRelationshipType );
+        preheat.put( TrackerIdSchemeParam.UID, bidirectionalRelationshipType );
     }
 
     @Test
@@ -156,13 +154,13 @@ class DuplicateRelationshipSupplierTest extends DhisConvenienceTest
             .relationships( List.of( relationshipA, relationshipB, relationshipC ) )
             .build();
 
-        supplierToTest.preheatAdd( trackerImportParams, preheat );
+        supplier.preheatAdd( trackerImportParams, preheat );
 
-        verify( preheat ).addDuplicatedRelationship( KEY_REL_A );
-        verify( preheat, never() ).addDuplicatedRelationship( INVERTED_KEY_REL_A );
-        verify( preheat ).addDuplicatedRelationship( KEY_REL_B );
-        verify( preheat ).addDuplicatedRelationship( INVERTED_KEY_REL_B );
-        verify( preheat, never() ).addDuplicatedRelationship( KEY_REL_C );
+        assertTrue( preheat.isDuplicate( relationshipA ) );
+        assertFalse( preheat.isDuplicate( invertTeiToTeiRelationship( relationshipA ) ) );
+        assertTrue( preheat.isDuplicate( relationshipB ) );
+        assertTrue( preheat.isDuplicate( invertTeiToTeiRelationship( relationshipB ) ) );
+        assertFalse( preheat.isDuplicate( relationshipC ) );
     }
 
     private Relationship relationshipA()
@@ -173,5 +171,16 @@ class DuplicateRelationshipSupplierTest extends DhisConvenienceTest
     private Relationship relationshipB()
     {
         return createTeiToTeiRelationship( teiB, teiC, bidirectionalRelationshipType );
+    }
+
+    private org.hisp.dhis.tracker.domain.Relationship invertTeiToTeiRelationship(
+        org.hisp.dhis.tracker.domain.Relationship relationship )
+    {
+        return org.hisp.dhis.tracker.domain.Relationship.builder()
+            .relationship( relationship.getRelationship() )
+            .relationshipType( relationship.getRelationshipType() )
+            .from( RelationshipItem.builder().trackedEntity( relationship.getTo().getTrackedEntity() ).build() )
+            .to( RelationshipItem.builder().trackedEntity( relationship.getFrom().getTrackedEntity() ).build() )
+            .build();
     }
 }
