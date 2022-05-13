@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei;
+package org.hisp.dhis.analytics.shared;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.springframework.util.Assert.noNullElements;
@@ -34,16 +34,14 @@ import static org.springframework.util.Assert.notEmpty;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hisp.dhis.analytics.shared.Column;
 import org.hisp.dhis.common.GridHeader;
 
 /**
- * This class is responsible for encapsulating the grid header creation related
- * to the tei columns.
+ * This class is responsible for encapsulating the grid header creation.
  *
  * @author maikel arabori
  */
-public class TeiGridHeaderProvider
+public class GridHeaders
 {
     /**
      * Simple create a list of GridHeader objects based on the list of columns
@@ -55,7 +53,7 @@ public class TeiGridHeaderProvider
      * @throws IllegalArgumentException if the provided columns is null/empty or
      *         contain at least one null element
      */
-    public static List<GridHeader> getHeaders( final List<Column> columns )
+    public static List<GridHeader> from( final List<Column> columns )
     {
         notEmpty( columns, "The 'columns' must not be null/empty" );
         noNullElements( columns, "The 'columns' must not contain null elements" );

@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.analytics.tei;
 
-import static org.hisp.dhis.analytics.tei.TeiGridHeaderProvider.getHeaders;
+import static org.hisp.dhis.analytics.shared.GridHeaders.from;
 import static org.springframework.util.Assert.notNull;
 
 import java.util.List;
@@ -38,8 +38,8 @@ import org.hisp.dhis.analytics.shared.GridAdaptor;
 import org.hisp.dhis.analytics.shared.Query;
 import org.hisp.dhis.analytics.shared.QueryExecutor;
 import org.hisp.dhis.analytics.shared.QueryGenerator;
-import org.hisp.dhis.analytics.shared.QueryResult;
 import org.hisp.dhis.analytics.shared.SqlQuery;
+import org.hisp.dhis.analytics.shared.SqlQueryResult;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.springframework.stereotype.Service;
@@ -58,7 +58,7 @@ public class TeiAnalyticsQueryService
 
     private final QueryExecutor queryExecutor;
 
-    private final GridAdaptor jdbcGridAdaptor;
+    private final GridAdaptor gridAdaptor;
 
     /**
      * This method will create a query, based on the teiParams, and execute it
@@ -74,9 +74,9 @@ public class TeiAnalyticsQueryService
         notNull( teiParams, "The 'teiParams' must not be null" );
 
         final Query query = teiJdbcQuery.from( teiParams );
-        final QueryResult result = queryExecutor.execute( query );
-        final List<GridHeader> headers = getHeaders( ((SqlQuery) query).getColumns() );
+        final SqlQueryResult result = (SqlQueryResult) queryExecutor.execute( query );
+        final List<GridHeader> headers = from( ((SqlQuery) query).getColumns() );
 
-        return jdbcGridAdaptor.createGrid( headers, result );
+        return gridAdaptor.createGrid( headers, result.result() );
     }
 }
