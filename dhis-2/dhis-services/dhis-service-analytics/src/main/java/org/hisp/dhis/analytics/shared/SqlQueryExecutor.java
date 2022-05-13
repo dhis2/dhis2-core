@@ -27,21 +27,30 @@
  */
 package org.hisp.dhis.analytics.shared;
 
+import static org.springframework.util.Assert.notNull;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import lombok.AllArgsConstructor;
+
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
 
 /**
- * @author maikel arabori
  * @see QueryExecutor
+ *
+ * @author maikel arabori
  */
 @Component
+@AllArgsConstructor
 public class SqlQueryExecutor implements QueryExecutor
 {
+    private final JdbcTemplate jdbcTemplate;
+
     /**
      * @see QueryExecutor#execute(Query)
      *
@@ -52,24 +61,46 @@ public class SqlQueryExecutor implements QueryExecutor
     @Override
     public QueryResult execute( final Query query )
     {
-        Assert.notNull( query, "The 'query' must not be null" );
+        notNull( query, "The 'query' must not be null" );
 
         final SqlQuery sqlQuery = (SqlQuery) query;
-        final String fullStatement = sqlQuery.fullStatement();
-        // TODO: Execute JDBC fullStatement here and populated the map based on
-        // the
-        // results.
+        final List<Column> columns = sqlQuery.getColumns();
+        final Map<Column, List<Object>> resultMap = initializeResultMapWith( columns );
+
+        final SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sqlQuery.fullStatement() );
+
+        while ( rowSet.next() )
+        {
+            for ( final Column column : columns )
+            {
+                // TODO: Check if we always return as object, or the correct
+                // type based on Column.valueType().
+                final Object value = rowSet.getObject( column.getAlias() );
+                resultMap.get( column ).add( value );
+            }
+        }
+
+        return new SqlQueryResult( resultMap );
+    }
+
+    /**
+     * Simply creates a map initializing it with keys (based on the given
+     * columns) and empty lists.
+     *
+     * It returns a TreeMap version to ensure the ordering.
+     *
+     * @param columns
+     * @return the initialized map
+     */
+    private Map<Column, List<Object>> initializeResultMapWith( final List<Column> columns )
+    {
         final Map<Column, List<Object>> resultMap = new TreeMap<>();
 
-        // Initialize map of columns with empty lists.
-        for ( final Column column : sqlQuery.getColumns() )
+        for ( final Column column : columns )
         {
             resultMap.put( column, new ArrayList<>() );
         }
 
-        // TODO: iterate the JDBC result set and add to the list of the
-        // respective column.
-
-        return new SqlQueryResult( resultMap );
+        return resultMap;
     }
 }

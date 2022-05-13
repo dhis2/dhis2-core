@@ -60,7 +60,7 @@ public class SqlQuery implements Query
     /**
      * Stores the join clause.
      *
-     * from programinstance pi
+     * Example: from programinstance pi
      */
     private final String fromClause;
 

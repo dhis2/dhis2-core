@@ -59,6 +59,8 @@ public class TeiJdbcQuery implements QueryGenerator<TeiParams>
         notNull( teiParams, "The 'teiParams' must not be null" );
 
         // TODO: build objects below from the teiParams.
+        // Probably merge Giuseppe's work in
+        // https://github.com/dhis2/dhis2-core/pull/10503/files
         final List<Column> columns = new ArrayList<>();
         final String fromClause = null;
         final String joinClause = null;

@@ -27,26 +27,54 @@
  */
 package org.hisp.dhis.analytics.shared;
 
+import static org.springframework.util.Assert.noNullElements;
+import static org.springframework.util.Assert.notEmpty;
+import static org.springframework.util.Assert.notNull;
+
 import java.util.List;
+import java.util.Map;
 
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.system.grid.ListGrid;
+import org.springframework.stereotype.Component;
 
 /**
- * Interface that provides operations responsible externally generate or
- * manipulated Grid objects. It encapsulates some logic around Grid objects.
+ * Component that provides operations for generation or manipulation of Grid
+ * objects. It basically encapsulates any required Grid logic that is not
+ * supported by the Grid itself.
  *
  * @author maikel arabori
  */
-public interface GridAdaptor<T>
+@Component
+public class GridAdaptor
 {
     /**
-     * Based on the given headers and query result, this method takes care of
+     * /** Based on the given headers and result map, this method takes care of
      * the logic needed to create a valid Grid object.
      *
      * @param headers
-     * @param queryResult
+     * @param resultMap
      * @return the Grid object
+     *
+     * @throws IllegalArgumentException if headers is null/empty or contain at
+     *         least one null element, or if the queryResult is null
      */
-    Grid createGrid( List<GridHeader> headers, QueryResult<T> queryResult );
+    public Grid createGrid( final List<GridHeader> headers, final Map<Column, List<Object>> resultMap )
+    {
+        notEmpty( headers, "The 'headers' must not be null/empty" );
+        noNullElements( headers, "The 'headers' must not contain null elements" );
+        notEmpty( resultMap, "The 'resultMap' must not be null/empty" );
+        notNull( resultMap, "The 'queryResult' must not be null" );
+
+        final Grid grid = new ListGrid();
+
+        for ( final GridHeader header : headers )
+        {
+            // Note that the header column must match the result map key.
+            grid.addHeader( header ).addColumn( resultMap.get( header.getColumn() ) );
+        }
+
+        return grid;
+    }
 }
