@@ -29,6 +29,8 @@ package org.hisp.dhis.dataexchange.client;
 
 import lombok.Getter;
 
+import org.springframework.http.HttpStatus;
+
 /**
  * Exception caused by client side errors.
  *
@@ -38,11 +40,11 @@ import lombok.Getter;
 public class Dhis2ClientException
     extends RuntimeException
 {
-    private int statusCode;
+    private HttpStatus httpStatus;
 
-    public Dhis2ClientException( String message, int statusCode )
+    public Dhis2ClientException( HttpStatus httpStatus )
     {
-        super( message );
-        this.statusCode = statusCode;
+        super( String.format( "%d %s", httpStatus.value(), httpStatus.getReasonPhrase() ) );
+        this.httpStatus = httpStatus;
     }
 }

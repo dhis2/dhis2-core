@@ -28,6 +28,7 @@
 package org.hisp.dhis.dataexchange.client;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
 
@@ -44,5 +45,11 @@ public class Dhis2ConfigTest
             config.getResolvedUri( "/dataValueSets" ).toString() );
         assertEquals( "https://play.dhis2.org/2.38.0/api/system/info",
             config.getResolvedUri( "/system/info" ).toString() );
+    }
+
+    @Test
+    void testNullConstructorArgument()
+    {
+        assertThrows( NullPointerException.class, () -> new Dhis2Config( "https://play.dhis2.org/2.38.0", null ) );
     }
 }

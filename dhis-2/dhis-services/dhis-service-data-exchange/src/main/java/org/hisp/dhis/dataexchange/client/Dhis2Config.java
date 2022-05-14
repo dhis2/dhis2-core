@@ -30,24 +30,20 @@ package org.hisp.dhis.dataexchange.client;
 import java.net.URI;
 
 import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
-import org.apache.commons.lang3.Validate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @Getter
+@RequiredArgsConstructor
 public class Dhis2Config
 {
+    @NonNull
     private final String url;
 
+    @NonNull
     private final String accessToken;
-
-    public Dhis2Config( String url, String accessToken )
-    {
-        this.url = url;
-        this.accessToken = accessToken;
-        Validate.notNull( url );
-        Validate.notNull( accessToken );
-    }
 
     public URI getResolvedUri( String path )
     {

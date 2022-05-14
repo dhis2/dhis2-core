@@ -36,6 +36,7 @@ import java.text.SimpleDateFormat;
 import java.util.Set;
 
 import lombok.Getter;
+import lombok.NonNull;
 
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -60,6 +61,7 @@ public class Dhis2Client
     private final Set<HttpStatus> ERROR_STATUS_CODES = Set.of(
         UNAUTHORIZED, FORBIDDEN, NOT_FOUND );
 
+    @NonNull
     private final Dhis2Config config;
 
     private final RestTemplate restTemplate;
@@ -77,7 +79,7 @@ public class Dhis2Client
     }
 
     /**
-     * Handles error status codes.
+     * Handles response errors.
      *
      * @param response the {@link ResponseEntity}.
      * @throws Dhis2ClientException
@@ -88,13 +90,13 @@ public class Dhis2Client
 
         if ( ERROR_STATUS_CODES.contains( status ) )
         {
-            throw new Dhis2ClientException( status.getReasonPhrase(), status.value() );
+            throw new Dhis2ClientException( status );
         }
     }
 
     private <T> ResponseEntity<WebMessage> executeJsonPostRequest( URI uri, T body )
     {
-        HttpEntity<T> requestEntity = new HttpEntity<>( body, getJsonAuthHeaders( config.getAccessToken() ) );
+        HttpEntity<T> requestEntity = new HttpEntity<>( body, getJsonAuthHeaders() );
 
         ResponseEntity<WebMessage> response = restTemplate.exchange( uri, HttpMethod.POST, requestEntity,
             WebMessage.class );
@@ -104,12 +106,12 @@ public class Dhis2Client
         return response;
     }
 
-    private MultiValueMap<String, String> getJsonAuthHeaders( String apiToken )
+    private MultiValueMap<String, String> getJsonAuthHeaders()
     {
         MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
         headers.add( HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE );
         headers.add( HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE );
-        headers.add( HttpHeaders.AUTHORIZATION, String.format( "ApiToken %s", apiToken ) );
+        headers.add( HttpHeaders.AUTHORIZATION, String.format( "ApiToken %s", config.getAccessToken() ) );
         return headers;
     }
 
@@ -117,8 +119,6 @@ public class Dhis2Client
     {
         URI uri = config.getResolvedUri( "/dataValueSets" );
 
-        ResponseEntity<WebMessage> response = executeJsonPostRequest( uri, dataValueSet );
-
-        return (ImportSummary) response.getBody().getResponse();
+        return (ImportSummary) executeJsonPostRequest( uri, dataValueSet ).getBody().getResponse();
     }
 }
