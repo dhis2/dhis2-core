@@ -74,11 +74,9 @@ public class Dhis2Client
      */
     private void handleErrors( ResponseEntity<?> response )
     {
-        final HttpStatus status = response.getStatusCode();
-
-        if ( ERROR_STATUS_CODES.contains( status ) )
+        if ( ERROR_STATUS_CODES.contains( response.getStatusCode() ) )
         {
-            throw new Dhis2ClientException( status );
+            throw new Dhis2ClientException( response.getStatusCode() );
         }
     }
 
