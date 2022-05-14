@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataexchange.analytics.client;
+package org.hisp.dhis.dataexchange.client;
 
 import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
@@ -115,7 +115,7 @@ public class Dhis2Client
 
     public ImportSummary saveDataValueSet( DataValueSet dataValueSet )
     {
-        URI uri = config.getResolvedUrl( "/dataValueSets" );
+        URI uri = config.getResolvedUri( "/dataValueSets" );
 
         ResponseEntity<WebMessage> response = executeJsonPostRequest( uri, dataValueSet );
 

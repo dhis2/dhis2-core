@@ -25,36 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataexchange.analytics.client;
-
-import java.net.URI;
+package org.hisp.dhis.dataexchange.client;
 
 import lombok.Getter;
 
-import org.apache.commons.lang3.Validate;
-import org.springframework.web.util.UriComponentsBuilder;
-
+/**
+ * Exception caused by client side errors.
+ *
+ * @author Lars Helge Overland
+ */
 @Getter
-public class Dhis2Config
+public class Dhis2ClientException
+    extends RuntimeException
 {
-    private final String url;
+    private int statusCode;
 
-    private final String accessToken;
-
-    public Dhis2Config( String url, String accessToken )
+    public Dhis2ClientException( String message, int statusCode )
     {
-        this.url = url;
-        this.accessToken = accessToken;
-        Validate.notNull( url );
-        Validate.notNull( accessToken );
-    }
-
-    public URI getResolvedUrl( String path )
-    {
-        return UriComponentsBuilder.fromHttpUrl( url )
-            .pathSegment( "api" )
-            .path( path )
-            .build()
-            .toUri();
+        super( message );
+        this.statusCode = statusCode;
     }
 }

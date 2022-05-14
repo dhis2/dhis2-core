@@ -25,24 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataexchange.analytics.client;
+package org.hisp.dhis.dataexchange.client;
 
-import lombok.Getter;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * Exception caused by client side errors.
- *
- * @author Lars Helge Overland
- */
-@Getter
-public class Dhis2ClientException
-    extends RuntimeException
+import org.junit.jupiter.api.Test;
+
+public class Dhis2ConfigTest
 {
-    private int statusCode;
-
-    public Dhis2ClientException( String message, int statusCode )
+    @Test
+    void testGetResolvedUri()
     {
-        super( message );
-        this.statusCode = statusCode;
+        Dhis2Config config = new Dhis2Config(
+            "https://play.dhis2.org/2.38.0",
+            "d2pat_5xVA12xyUbWNedQxy4ohH77WlxRGVvZZ1151814092" );
+
+        assertEquals( "https://play.dhis2.org/2.38.0/api/dataValueSets",
+            config.getResolvedUri( "/dataValueSets" ).toString() );
+        assertEquals( "https://play.dhis2.org/2.38.0/api/system/info",
+            config.getResolvedUri( "/system/info" ).toString() );
     }
 }
