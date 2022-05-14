@@ -25,23 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataexchange.analytics.model;
-
-import java.io.Serializable;
+package org.hisp.dhis.dataexchange.analytics.client;
 
 import lombok.Getter;
-import lombok.Setter;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
+/**
+ * Exception caused by client side errors.
+ *
+ * @author Lars Helge Overland
+ */
 @Getter
-@Setter
-public class Api
-    implements Serializable
+public class Dhis2ClientException
+    extends RuntimeException
 {
-    @JsonProperty
-    private String url;
+    private int statusCode;
 
-    @JsonProperty
-    private String accessToken; // TODO Custom encryption
+    public Dhis2ClientException( String message, int statusCode )
+    {
+        super( message );
+        this.statusCode = statusCode;
+    }
 }

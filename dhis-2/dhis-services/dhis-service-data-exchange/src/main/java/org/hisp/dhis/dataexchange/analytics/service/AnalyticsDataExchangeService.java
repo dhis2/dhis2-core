@@ -41,7 +41,10 @@ import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.dataexchange.analytics.client.Dhis2Client;
+import org.hisp.dhis.dataexchange.analytics.client.Dhis2Config;
 import org.hisp.dhis.dataexchange.analytics.model.AnalyticsDataExchange;
+import org.hisp.dhis.dataexchange.analytics.model.Api;
 import org.hisp.dhis.dataexchange.analytics.model.Filter;
 import org.hisp.dhis.dataexchange.analytics.model.SourceRequest;
 import org.hisp.dhis.dataexchange.analytics.model.TargetRequest;
@@ -88,7 +91,7 @@ public class AnalyticsDataExchangeService
 
     private ImportSummary pushToExternal( AnalyticsDataExchange exchange, DataValueSet dataValueSet )
     {
-        return null; // TODO
+        return getDhis2Client( exchange ).saveDataValueSet( dataValueSet );
     }
 
     private ImportOptions toImportOptions( AnalyticsDataExchange exchange )
@@ -151,5 +154,19 @@ public class AnalyticsDataExchangeService
     public IdScheme getOrDefault( IdScheme idScheme )
     {
         return idScheme != null ? idScheme : IdScheme.UID;
+    }
+
+    /**
+     * Returns a {@link Dhis2Client} based on the given
+     * {@link AnalyticsDataExchange}.
+     *
+     * @param exchange the {@link AnalyticsDataExchange}.
+     * @return a {@link Dhis2Client}.
+     */
+    public Dhis2Client getDhis2Client( AnalyticsDataExchange exchange )
+    {
+        Api api = exchange.getTarget().getApi();
+
+        return new Dhis2Client( new Dhis2Config( api.getUrl(), api.getAccessToken() ) );
     }
 }
