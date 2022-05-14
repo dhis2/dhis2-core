@@ -53,4 +53,9 @@ public class Dhis2Config
             .build()
             .toUri();
     }
+
+    public String getAccessTokenHeader()
+    {
+        return String.format( "ApiToken %s", accessToken );
+    }
 }

@@ -35,6 +35,12 @@ import org.junit.jupiter.api.Test;
 public class Dhis2ConfigTest
 {
     @Test
+    void testNullConstructorArgument()
+    {
+        assertThrows( NullPointerException.class, () -> new Dhis2Config( "https://play.dhis2.org/2.38.0", null ) );
+    }
+
+    @Test
     void testGetResolvedUri()
     {
         Dhis2Config config = new Dhis2Config(
@@ -48,8 +54,12 @@ public class Dhis2ConfigTest
     }
 
     @Test
-    void testNullConstructorArgument()
+    void testGetAccessTokenHeader()
     {
-        assertThrows( NullPointerException.class, () -> new Dhis2Config( "https://play.dhis2.org/2.38.0", null ) );
+        Dhis2Config config = new Dhis2Config(
+            "https://play.dhis2.org/2.38.0",
+            "d2pat_5xVA12xyUbWNedQxy4ohH77WlxRGVvZZ1151814092" );
+
+        assertEquals( "ApiToken d2pat_5xVA12xyUbWNedQxy4ohH77WlxRGVvZZ1151814092", config.getAccessTokenHeader() );
     }
 }

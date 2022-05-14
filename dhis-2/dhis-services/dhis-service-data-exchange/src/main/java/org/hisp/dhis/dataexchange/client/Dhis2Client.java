@@ -98,8 +98,8 @@ public class Dhis2Client
     {
         HttpEntity<T> requestEntity = new HttpEntity<>( body, getJsonAuthHeaders() );
 
-        ResponseEntity<WebMessage> response = restTemplate.exchange( uri, HttpMethod.POST, requestEntity,
-            WebMessage.class );
+        ResponseEntity<WebMessage> response = restTemplate.exchange(
+            uri, HttpMethod.POST, requestEntity, WebMessage.class );
 
         handleErrors( response );
 
@@ -111,7 +111,7 @@ public class Dhis2Client
         MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
         headers.add( HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE );
         headers.add( HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE );
-        headers.add( HttpHeaders.AUTHORIZATION, String.format( "ApiToken %s", config.getAccessToken() ) );
+        headers.add( HttpHeaders.AUTHORIZATION, config.getAccessTokenHeader() );
         return headers;
     }
 
