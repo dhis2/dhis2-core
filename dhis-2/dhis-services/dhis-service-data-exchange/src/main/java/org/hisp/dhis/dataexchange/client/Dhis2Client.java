@@ -81,12 +81,9 @@ public class Dhis2Client
     private <T> ResponseEntity<WebMessage> executeJsonPostRequest( URI uri, T body )
     {
         HttpEntity<T> requestEntity = new HttpEntity<>( body, getJsonAuthHeaders() );
-
         ResponseEntity<WebMessage> response = restTemplate.exchange(
             uri, HttpMethod.POST, requestEntity, WebMessage.class );
-
         handleErrors( response );
-
         return response;
     }
 
