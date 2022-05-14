@@ -25,33 +25,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentitydatavalue;
+package org.hisp.dhis.program;
 
-import java.util.List;
+import static com.google.common.base.Preconditions.checkNotNull;
 
-import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Zubair Asghar
  */
-public interface TrackedEntityDataValueAuditService
+@Component( "org.hisp.dhis.program.TrackedEntityDataValueAuditDeletionHandler" )
+public class TrackedEntityDataValueAuditDeletionHandler
+    extends DeletionHandler
 {
-    void addTrackedEntityDataValueAudit( TrackedEntityDataValueAudit trackedEntityDataValueAudit );
+    private final TrackedEntityDataValueAuditService trackedEntityDataValueAuditService;
 
-    List<TrackedEntityDataValueAudit> getTrackedEntityDataValueAudits( List<DataElement> dataElements,
-        List<ProgramStageInstance> programStageInstances,
-        AuditType auditType );
+    public TrackedEntityDataValueAuditDeletionHandler(
+        TrackedEntityDataValueAuditService trackedEntityDataValueAuditService )
+    {
+        checkNotNull( trackedEntityDataValueAuditService );
+        this.trackedEntityDataValueAuditService = trackedEntityDataValueAuditService;
+    }
 
-    List<TrackedEntityDataValueAudit> getTrackedEntityDataValueAudits( List<DataElement> dataElements,
-        List<ProgramStageInstance> programStageInstances,
-        AuditType auditType, int first, int max );
+    @Override
+    protected void register()
+    {
+        whenDeleting( DataElement.class, this::deleteDataElement );
+        whenDeleting( ProgramStageInstance.class, this::deleteProgramStageInstance );
+    }
 
-    int countTrackedEntityDataValueAudits( List<DataElement> dataElements,
-        List<ProgramStageInstance> programStageInstances, AuditType auditType );
+    private void deleteDataElement( DataElement dataElement )
+    {
+        trackedEntityDataValueAuditService.deleteTrackedEntityDataValueAudit( dataElement );
+    }
 
-    void deleteTrackedEntityDataValueAudit( DataElement dataElement );
-
-    void deleteTrackedEntityDataValueAudit( ProgramStageInstance programStageInstance );
+    private void deleteProgramStageInstance( ProgramStageInstance psi )
+    {
+        trackedEntityDataValueAuditService.deleteTrackedEntityDataValueAudit( psi );
+    }
 }
