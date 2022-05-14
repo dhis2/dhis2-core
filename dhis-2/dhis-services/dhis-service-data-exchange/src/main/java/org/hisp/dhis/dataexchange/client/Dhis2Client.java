@@ -35,7 +35,6 @@ import java.net.URI;
 import java.util.Set;
 
 import lombok.Getter;
-import lombok.NonNull;
 
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -55,7 +54,6 @@ public class Dhis2Client
 {
     private final Set<HttpStatus> ERROR_STATUS_CODES = Set.of( UNAUTHORIZED, FORBIDDEN, NOT_FOUND );
 
-    @NonNull
     private final Dhis2Config config;
 
     private final RestTemplate restTemplate;
