@@ -32,7 +32,6 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
 import java.net.URI;
-import java.text.SimpleDateFormat;
 import java.util.Set;
 
 import lombok.Getter;
@@ -51,10 +50,6 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 @Getter
 public class Dhis2Client
 {
@@ -66,16 +61,10 @@ public class Dhis2Client
 
     private final RestTemplate restTemplate;
 
-    private final ObjectMapper objectMapper;
-
     public Dhis2Client( Dhis2Config config )
     {
         this.config = config;
         this.restTemplate = new RestTemplate();
-        this.objectMapper = new ObjectMapper();
-        objectMapper.disable( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES );
-        objectMapper.setSerializationInclusion( Include.NON_NULL );
-        objectMapper.setDateFormat( new SimpleDateFormat( "yyyy-MM-dd" ) );
     }
 
     /**
