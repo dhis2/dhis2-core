@@ -84,27 +84,28 @@ public class TrackedEntityDataValueAuditTest extends TrackerTest
         trackerImportParams.setUser( userService.getUser( ADMIN_USER_UID ) );
 
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        logTrackerErrors( trackerImportReport );
         assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
 
         trackerImportParams = fromJson( "tracker/event_with_data_values_for_update_audit.json" );
         trackerImportParams.setUser( userService.getUser( ADMIN_USER_UID ) );
 
         trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        logTrackerErrors( trackerImportReport );
         assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
 
         trackerImportParams = fromJson( "tracker/event_with_data_values_for_delete_audit.json" );
         trackerImportParams.setUser( userService.getUser( ADMIN_USER_UID ) );
 
         trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        logTrackerErrors( trackerImportReport );
         assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
 
         DataElement dataElement = manager.search( DataElement.class, DE );
         ProgramStageInstance psi = manager.search( ProgramStageInstance.class, PSI );
         assertNotNull( dataElement );
         assertNotNull( psi );
+
+        System.out.println( dataValueAuditService.countTrackedEntityDataValueAudits(
+                Lists.newArrayList( dataElement ), Lists.newArrayList( psi ), AuditType.CREATE ));
+
 
         List<TrackedEntityDataValueAudit> createdAudit = dataValueAuditService.getTrackedEntityDataValueAudits(
             Lists.newArrayList( dataElement ), Lists.newArrayList( psi ), AuditType.CREATE );
