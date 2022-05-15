@@ -100,6 +100,8 @@ public class Dhis2Client
     {
         URI uri = config.getResolvedUri( "/dataValueSets" );
 
-        return (ImportSummary) executeJsonPostRequest( uri, dataValueSet ).getBody().getResponse();
+        WebMessage response = executeJsonPostRequest( uri, dataValueSet ).getBody();
+
+        return response != null ? (ImportSummary) response.getResponse() : null;
     }
 }
