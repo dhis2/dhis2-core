@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
 
-public class Dhis2ConfigTest
+class Dhis2ConfigTest
 {
     @Test
     void testNullConstructorArgument()

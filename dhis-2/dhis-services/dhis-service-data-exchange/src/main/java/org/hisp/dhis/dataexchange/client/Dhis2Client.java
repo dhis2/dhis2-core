@@ -52,7 +52,7 @@ import org.springframework.web.client.RestTemplate;
 @Getter
 public class Dhis2Client
 {
-    private final Set<HttpStatus> ERROR_STATUS_CODES = Set.of( UNAUTHORIZED, FORBIDDEN, NOT_FOUND );
+    private static final Set<HttpStatus> ERROR_STATUS_CODES = Set.of( UNAUTHORIZED, FORBIDDEN, NOT_FOUND );
 
     private final Dhis2Config config;
 

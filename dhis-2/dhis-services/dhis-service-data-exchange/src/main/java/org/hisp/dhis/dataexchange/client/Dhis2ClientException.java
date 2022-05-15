@@ -40,7 +40,7 @@ import org.springframework.http.HttpStatus;
 public class Dhis2ClientException
     extends RuntimeException
 {
-    private HttpStatus httpStatus;
+    private final HttpStatus httpStatus;
 
     public Dhis2ClientException( HttpStatus httpStatus )
     {
