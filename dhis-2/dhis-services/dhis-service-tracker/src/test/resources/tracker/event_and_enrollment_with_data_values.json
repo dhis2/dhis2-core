@@ -88,25 +88,17 @@
       "completedAt": "2019-01-28T00:00:00.000",
       "attributeOptionCombo": "HllvX50cXC0",
       "completedBy": "admin",
-      "dataValues": []
-    },
-    {
-      "event": "D9PbzJY8bJM",
-      "enrollment": "TvctPPhpD8z",
-      "storedBy": "admin",
-      "scheduledAt": "2019-01-28T12:10:38.100",
-      "program": "BFcipDERJnf",
-      "programStage": "NpsdDv6kKSO",
-      "orgUnit": "h4w96yEMlzO",
-      "status": "COMPLETED",
-      "occurredAt": "2019-01-28T00:00:00.000",
-      "attributeCategoryOptions": "xYerKDKCefk",
-      "updatedAt": "2019-01-28T12:10:38.109",
-      "createdAt": "2019-01-28T12:10:38.108",
-      "completedAt": "2019-01-28T00:00:00.000",
-      "attributeOptionCombo": "HllvX50cXC0",
-      "completedBy": "admin",
-      "dataValues": []
+      "dataValues": [
+        {
+          "createdAt": "2019-01-28T12:10:38.113",
+          "updatedAt": "2019-01-28T12:10:38.113",
+          "storedBy": "admin",
+          "providedElsewhere": false,
+          "dataElement": "DATAEL00001",
+          "value": "Fourth updated"
+        }
+
+      ]
     }
   ]
 }

@@ -58,7 +58,7 @@ public class TrackedEntityDataValueAuditTest extends TrackerTest
 {
     private static final String PSI = "D9PbzJY8bJO";
 
-    public static final String DE = "DATAEL00001";
+    private static final String DE = "DATAEL00001";
 
     @Autowired
     private TrackerImportService trackerImportService;
@@ -102,9 +102,8 @@ public class TrackedEntityDataValueAuditTest extends TrackerTest
         ProgramStageInstance psi = manager.search( ProgramStageInstance.class, PSI );
         assertNotNull( dataElement );
         assertNotNull( psi );
-
-        System.out.println( dataValueAuditService.countTrackedEntityDataValueAudits(
-            Lists.newArrayList( dataElement ), Lists.newArrayList( psi ), AuditType.CREATE ) );
+        assertEquals( dataElement.getUid(), DE );
+        assertEquals( psi.getUid(), PSI );
 
         List<TrackedEntityDataValueAudit> createdAudit = dataValueAuditService.getTrackedEntityDataValueAudits(
             Lists.newArrayList( dataElement ), Lists.newArrayList( psi ), AuditType.CREATE );
