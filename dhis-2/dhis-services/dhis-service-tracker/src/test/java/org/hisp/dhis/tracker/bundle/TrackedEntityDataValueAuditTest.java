@@ -104,8 +104,7 @@ public class TrackedEntityDataValueAuditTest extends TrackerTest
         assertNotNull( psi );
 
         System.out.println( dataValueAuditService.countTrackedEntityDataValueAudits(
-                Lists.newArrayList( dataElement ), Lists.newArrayList( psi ), AuditType.CREATE ));
-
+            Lists.newArrayList( dataElement ), Lists.newArrayList( psi ), AuditType.CREATE ) );
 
         List<TrackedEntityDataValueAudit> createdAudit = dataValueAuditService.getTrackedEntityDataValueAudits(
             Lists.newArrayList( dataElement ), Lists.newArrayList( psi ), AuditType.CREATE );
