@@ -28,6 +28,7 @@
 package org.hisp.dhis.dxf2.datavalueset;
 
 import lombok.AllArgsConstructor;
+import lombok.NonNull;
 
 /**
  * Simple implementation of {@link DataValueSetReader} which wraps an in-memory
@@ -38,7 +39,8 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public class SimpleDataValueSetReader implements DataValueSetReader
 {
-    private DataValueSet dataValueSet;
+    @NonNull
+    private final DataValueSet dataValueSet;
 
     @Override
     public DataValueSet readHeader()
