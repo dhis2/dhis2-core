@@ -163,18 +163,17 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
     private void handleDataValues( Session session, TrackerPreheat preheat, Set<DataValue> payloadDataValues,
         ProgramStageInstance psi )
     {
-        String persistedDataValue = "";
-
-        Map<String, EventDataValue> dataValueDBMap = psi
-            .getEventDataValues()
-            .stream()
-            .collect( Collectors.toMap( EventDataValue::getDataElement, Function.identity() ) );
+        Map<String, EventDataValue> dataValueDBMap = Optional.ofNullable( preheat.getEvent( psi.getUid() ) )
+            .map( a -> a.getEventDataValues()
+                .stream()
+                .collect( Collectors.toMap( EventDataValue::getDataElement, Function.identity() ) ) )
+            .orElse( new HashMap<>() );
 
         Date today = new Date();
 
         for ( DataValue dv : payloadDataValues )
         {
-            AuditType auditType = null;
+            AuditType auditType;
 
             DataElement dateElement = preheat.get( DataElement.class, dv.getDataElement() );
 
@@ -188,10 +187,20 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
                 eventDataValue = new EventDataValue();
                 auditType = AuditType.CREATE;
             }
+            else
+            {
+                final String persistedValue = eventDataValue.getValue();
 
-            persistedDataValue = eventDataValue.getValue();
+                Optional<AuditType> optionalAuditType = Optional.ofNullable( dv.getValue() )
+                    .filter( v -> !dv.getValue().equals( persistedValue ) )
+                    .map( v1 -> AuditType.UPDATE )
+                    .or( () -> Optional.ofNullable( dv.getValue() ).map( a -> AuditType.READ )
+                        .or( () -> Optional.of( AuditType.DELETE ) ) );
+
+                auditType = optionalAuditType.orElse( null );
+            }
+
             eventDataValue.setDataElement( dateElement.getUid() );
-            eventDataValue.setValue( dv.getValue() );
             eventDataValue.setStoredBy( dv.getStoredBy() );
 
             handleDataValueCreatedUpdatedDates( dv, eventDataValue );
@@ -204,21 +213,18 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
                 }
 
                 psi.getEventDataValues().remove( eventDataValue );
-                auditType = AuditType.DELETE;
             }
             else
             {
+                eventDataValue.setValue( dv.getValue() );
+
                 if ( dateElement.isFileType() )
                 {
                     assignFileResource( session, preheat, eventDataValue.getValue() );
                 }
 
+                psi.getEventDataValues().remove( eventDataValue );
                 psi.getEventDataValues().add( eventDataValue );
-
-                if ( !dv.getValue().equals( persistedDataValue ) )
-                {
-                    auditType = AuditType.UPDATE;
-                }
             }
 
             logTrackedEntityDataValueHistory( preheat.getUsername(), eventDataValue, dateElement, psi, auditType,

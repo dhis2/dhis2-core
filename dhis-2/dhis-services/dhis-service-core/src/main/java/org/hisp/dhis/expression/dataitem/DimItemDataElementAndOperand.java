@@ -67,7 +67,7 @@ public class DimItemDataElementAndOperand
     @Override
     public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        if ( !visitor.getState().isSqlForSubExpression() )
+        if ( !visitor.getState().isInSubexpression() )
         {
             throw new ParserExceptionWithoutContext(
                 "Not valid to generate DataElement or DataElementOperand SQL here: " + ctx.getText() );
@@ -78,6 +78,12 @@ public class DimItemDataElementAndOperand
         if ( dataElement == null )
         {
             throw new ParserExceptionWithoutContext( "DataElement not found: " + ctx.uid0.getText() );
+        }
+
+        // Boolean is stored as 1 or 0. Convert to SQL bool in subexpression:
+        if ( dataElement.getValueType().isBoolean() )
+        {
+            return dataElement.getValueColumn() + "::int::bool";
         }
 
         return dataElement.getValueColumn();
