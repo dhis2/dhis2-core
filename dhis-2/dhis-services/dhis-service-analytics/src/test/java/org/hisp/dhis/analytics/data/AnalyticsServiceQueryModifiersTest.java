@@ -184,15 +184,13 @@ class AnalyticsServiceQueryModifiersTest
         dataValueService.addDataValue( newDataValue( deB, jan, ouA, cocA, aocA, "A" ) );
         dataValueService.addDataValue( newDataValue( deB, feb, ouA, cocB, aocA, "B" ) );
 
-        // Wait before generating analytics tables
-        Thread.sleep( 5000 );
+        dbmsManager.clearSession();
 
         // Generate analytics tables
         analyticsTableGenerator.generateTables( AnalyticsTableUpdateParams.newBuilder().build(),
             NoopJobProgress.INSTANCE );
 
-        // Wait after generating analytics tables
-        Thread.sleep( 8000 );
+        dbmsManager.clearSession();
     }
 
     @Override

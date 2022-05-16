@@ -250,9 +250,7 @@ class AnalyticsServiceTest
         setUpDataValues();
         setUpValidation();
 
-        // to ensure that Hibernate has flushed validation
-        // results before generating tables.
-        Thread.sleep( 1000 );
+        dbmsManager.clearSession();
 
         // Generate analytics tables
         analyticsTableGenerator.generateTables( AnalyticsTableUpdateParams.newBuilder().build(),
