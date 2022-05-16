@@ -49,7 +49,6 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -110,7 +109,6 @@ class EventRequestToParamsMapperTest
         Program program = new Program();
         User user = new User();
         OrganisationUnit ou = new OrganisationUnit();
-        TrackedEntityInstance tei = new TrackedEntityInstance();
         DataElement de = new DataElement();
 
         when( currentUserService.getCurrentUser() ).thenReturn( user );
@@ -119,7 +117,7 @@ class EventRequestToParamsMapperTest
 
         when( organisationUnitService.isInUserHierarchy( ou ) ).thenReturn( true );
         when( aclService.canDataRead( user, program ) ).thenReturn( true );
-        when( entityInstanceService.getTrackedEntityInstance( any() ) ).thenReturn( tei );
+        when( entityInstanceService.trackedEntityInstanceExists( any() ) ).thenReturn( true );
         when( dataElementService.getDataElement( any() ) ).thenReturn( de );
     }
 
