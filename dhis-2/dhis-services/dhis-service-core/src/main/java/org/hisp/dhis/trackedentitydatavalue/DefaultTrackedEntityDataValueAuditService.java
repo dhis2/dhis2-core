@@ -54,7 +54,7 @@ public class DefaultTrackedEntityDataValueAuditService
 
     private final TrackedEntityDataValueAuditStore trackedEntityDataValueAuditStore;
 
-    private Predicate<TrackedEntityDataValueAudit> aclFilter;
+    private final Predicate<TrackedEntityDataValueAudit> aclFilter;
 
     public DefaultTrackedEntityDataValueAuditService( TrackedEntityDataValueAuditStore trackedEntityDataValueAuditStore,
         TrackerAccessManager trackerAccessManager, CurrentUserService currentUserService )
@@ -107,5 +107,19 @@ public class DefaultTrackedEntityDataValueAuditService
     {
         return trackedEntityDataValueAuditStore.countTrackedEntityDataValueAudits( dataElements, programStageInstances,
             auditType );
+    }
+
+    @Override
+    @Transactional
+    public void deleteTrackedEntityDataValueAudit( DataElement dataElement )
+    {
+        trackedEntityDataValueAuditStore.deleteTrackedEntityDataValueAudit( dataElement );
+    }
+
+    @Override
+    @Transactional
+    public void deleteTrackedEntityDataValueAudit( ProgramStageInstance programStageInstance )
+    {
+        trackedEntityDataValueAuditStore.deleteTrackedEntityDataValueAudit( programStageInstance );
     }
 }
