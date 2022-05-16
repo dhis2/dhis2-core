@@ -207,7 +207,7 @@ public class JdbcAnalyticsManager
         catch ( DataAccessResourceFailureException ex )
         {
             log.warn( ErrorCode.E7131.getMessage(), ex );
-            throw new QueryRuntimeException( ErrorCode.E7131, ex );
+            throw new QueryRuntimeException( ErrorCode.E7131 );
         }
         catch ( RuntimeException ex )
         {
