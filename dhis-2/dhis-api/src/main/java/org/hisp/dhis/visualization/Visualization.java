@@ -218,6 +218,9 @@ public class Visualization
      */
     private List<Axis> optionalAxes = new ArrayList<>();
 
+    /**
+     * The legend and legend set definitions.
+     */
     private LegendDefinitions legendDefinitions;
 
     /**
