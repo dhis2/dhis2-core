@@ -128,6 +128,9 @@ public class WorkContextLoader
         final Map<String, ProgramStageInstance> programStageInstanceMap = programStageInstanceSupplier
             .get( localImportOptions, events );
 
+        final Map<String, ProgramStageInstance> persistedProgramStageInstanceMap = programStageInstanceSupplier
+            .get( localImportOptions, events );
+
         final Map<String, Pair<TrackedEntityInstance, Boolean>> teiMap = trackedEntityInstanceSupplier
             .get( localImportOptions, events );
 
@@ -137,6 +140,7 @@ public class WorkContextLoader
             .importOptions( localImportOptions )
             .programsMap( programSupplier.get( localImportOptions, events ) )
             .programStageInstanceMap( programStageInstanceMap )
+            .persistedProgramStageInstanceMap( persistedProgramStageInstanceMap )
             .organisationUnitMap( orgUniMap )
             .trackedEntityInstanceMap( teiMap )
             .programInstanceMap( programInstanceSupplier.get( localImportOptions, teiMap, events ) )
