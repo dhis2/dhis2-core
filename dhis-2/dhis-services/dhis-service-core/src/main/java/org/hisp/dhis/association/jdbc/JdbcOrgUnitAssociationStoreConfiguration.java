@@ -47,29 +47,29 @@ public class JdbcOrgUnitAssociationStoreConfiguration
 
     @Bean( "jdbcProgramOrgUnitAssociationsStore" )
     public JdbcOrgUnitAssociationsStore jdbcProgramOrgUnitAssociationStore( CurrentUserService currentUserService,
-        JdbcTemplate jdbcTemplate, OrganisationUnitService unitService )
+        JdbcTemplate jdbcTemplate, OrganisationUnitService organisationUnitService )
     {
-        return new JdbcOrgUnitAssociationsStore( currentUserService, unitService, jdbcTemplate,
+        return new JdbcOrgUnitAssociationsStore( currentUserService, organisationUnitService, jdbcTemplate,
             new ProgramOrganisationUnitAssociationsQueryBuilder( currentUserService ),
             cacheProvider.createProgramOrgUnitAssociationCache() );
     }
 
     @Bean( "jdbcCategoryOptionOrgUnitAssociationsStore" )
     public JdbcOrgUnitAssociationsStore jdbcCategoryOptionOrgUnitAssociationStore(
-        CurrentUserService currentUserService, OrganisationUnitService unitService,
+        CurrentUserService currentUserService, OrganisationUnitService organisationUnitService,
         JdbcTemplate jdbcTemplate )
     {
-        return new JdbcOrgUnitAssociationsStore( currentUserService, unitService, jdbcTemplate,
+        return new JdbcOrgUnitAssociationsStore( currentUserService, organisationUnitService, jdbcTemplate,
             new CategoryOptionOrganisationUnitAssociationsQueryBuilder( currentUserService ),
             cacheProvider.createCatOptOrgUnitAssociationCache() );
     }
 
     @Bean( "jdbcDataSetOrgUnitAssociationsStore" )
     public JdbcOrgUnitAssociationsStore jdbcDataSetOrgUnitAssociationStore( CurrentUserService currentUserService,
-        OrganisationUnitService unitService,
+        OrganisationUnitService organisationUnitService,
         JdbcTemplate jdbcTemplate )
     {
-        return new JdbcOrgUnitAssociationsStore( currentUserService, unitService, jdbcTemplate,
+        return new JdbcOrgUnitAssociationsStore( currentUserService, organisationUnitService, jdbcTemplate,
             new DataSetOrganisationUnitAssociationsQueryBuilder( currentUserService ),
             cacheProvider.createDataSetOrgUnitAssociationCache() );
     }
