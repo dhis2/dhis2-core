@@ -100,7 +100,7 @@ public class SqlQuery implements Query
         validate();
 
         return "select " + join( columns, "," ) + spaced( fromClause ) + spaced( joinClause ) + spaced( whereClause )
-            + spaced( whereClause );
+            + spaced( closingClauses );
     }
 
     private void validate()

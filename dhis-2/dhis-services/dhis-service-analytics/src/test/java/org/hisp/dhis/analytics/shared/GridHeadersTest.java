@@ -27,22 +27,35 @@
  */
 package org.hisp.dhis.analytics.shared;
 
+import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import java.util.List;
+
+import org.hisp.dhis.common.GridHeader;
+import org.junit.jupiter.api.Test;
+
 /**
- * Responsible for providing methods able to execute queries on the respective
- * data source, based on the implementation provided.
+ * // TODO: Improve unit tests and coverage
  *
- * NOTE: in analytics we never persist or update data. So this interface will
- * always delivery read/retrieve operations.
+ * Unit tests for {@link GridHeaders}
  *
  * @author maikel arabori
  */
-public interface QueryExecutor<T extends QueryResult, E extends Query>
+class GridHeadersTest
 {
-    /**
-     * Executes a read/retrieve operation based on the given query.
-     *
-     * @param query
-     * @return the result of the execution represented by a QueryResult object.
-     */
-    T execute( E query );
+    @Test
+    void testFrom()
+    {
+        // Given
+        final List<Column> columns = List.of( Column.builder().name( "name" ).dataType( TEXT ).build() );
+
+        // When
+        final List<GridHeader> headers = GridHeaders.from( columns );
+
+        // Then
+        assertNotNull( headers, "Should not be null: headers" );
+        assertEquals( 1, headers.size(), "Should have size of 1: headers" );
+    }
 }

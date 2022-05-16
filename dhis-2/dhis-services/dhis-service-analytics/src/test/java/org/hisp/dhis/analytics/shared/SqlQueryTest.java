@@ -27,49 +27,50 @@
  */
 package org.hisp.dhis.analytics.shared;
 
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.springframework.util.Assert.noNullElements;
-import static org.springframework.util.Assert.notEmpty;
+import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import org.hisp.dhis.common.GridHeader;
+import org.junit.jupiter.api.Test;
 
 /**
- * This class is responsible for encapsulating the grid header creation.
+ * // TODO: Improve unit tests and coverage
+ *
+ * Unit tests for {@link SqlQuery}
  *
  * @author maikel arabori
  */
-public class GridHeaders
+class SqlQueryTest
 {
-    private GridHeaders()
+    @Test
+    void testFullStatementSuccessfully()
     {
+        // Given
+        final List<Column> columns = List.of( mockColumn( "a" ), mockColumn( "b" ) );
+        final String from = "from table programstageinstance psi";
+        final String join = "inner join programinstance pi on psi.programinstanceid = pi.programinstanceid";
+        final String where = "where psi.status in ('COMPLETED', 'ACTIVE', 'SCHEDULE')";
+        final String closing = "order by a_alias desc limit 101 offset 0";
+
+        final SqlQuery sqlQuery = SqlQuery.builder().columns( columns ).fromClause( from ).joinClause( join )
+            .whereClause( where ).closingClauses( closing ).build();
+
+        // When
+        final String fullStatement = sqlQuery.fullStatement();
+
+        // Then
+        assertEquals(
+            "select a_alias,b_alias from table programstageinstance psi  "
+                + "inner join programinstance pi on psi.programinstanceid = pi.programinstanceid  "
+                + "where psi.status in ('COMPLETED', 'ACTIVE', 'SCHEDULE')  "
+                + "order by a_alias desc limit 101 offset 0 ",
+            fullStatement );
     }
 
-    /**
-     * Simple create a list of GridHeader objects based on the list of columns
-     * provided as argument.
-     *
-     * @param columns
-     * @return the list of grid headers or empty if the provided columns are
-     *         empty/null
-     * @throws IllegalArgumentException if the provided columns is null/empty or
-     *         contain at least one null element
-     */
-    public static List<GridHeader> from( final List<Column> columns )
+    private final Column mockColumn( final String prefix )
     {
-        notEmpty( columns, "The 'columns' must not be null/empty" );
-        noNullElements( columns, "The 'columns' must not contain null elements" );
-
-        final List<GridHeader> headers = new ArrayList<>();
-
-        if ( isNotEmpty( columns ) )
-        {
-            columns.forEach( column -> headers.add( new GridHeader(
-                column.getAlias(), column.getName(), column.valueType(), column.isHidden(), column.isMeta() ) ) );
-        }
-
-        return headers;
+        return Column.builder().dataType( TEXT ).alias( prefix + "_alias" ).hidden( false ).meta( false )
+            .name( prefix + "_name" ).build();
     }
 }

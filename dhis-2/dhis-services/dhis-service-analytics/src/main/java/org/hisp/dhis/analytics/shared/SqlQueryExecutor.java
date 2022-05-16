@@ -47,7 +47,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
-public class SqlQueryExecutor implements QueryExecutor
+public class SqlQueryExecutor implements QueryExecutor<SqlQueryResult, SqlQuery>
 {
     private final JdbcTemplate jdbcTemplate;
 
@@ -59,15 +59,14 @@ public class SqlQueryExecutor implements QueryExecutor
      *         {@link SqlQuery#validate()})
      */
     @Override
-    public QueryResult execute( final Query query )
+    public SqlQueryResult execute( final SqlQuery query )
     {
         notNull( query, "The 'query' must not be null" );
 
-        final SqlQuery sqlQuery = (SqlQuery) query;
-        final List<Column> columns = sqlQuery.getColumns();
+        final List<Column> columns = query.getColumns();
         final Map<Column, List<Object>> resultMap = initializeResultMapWith( columns );
 
-        final SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sqlQuery.fullStatement() );
+        final SqlRowSet rowSet = jdbcTemplate.queryForRowSet( query.fullStatement() );
 
         while ( rowSet.next() )
         {

@@ -296,6 +296,7 @@ public class MaintenanceController
         @RequestParam( required = false ) boolean periodPruning,
         @RequestParam( required = false ) boolean zeroDataValueRemoval,
         @RequestParam( required = false ) boolean softDeletedDataValueRemoval,
+        @RequestParam( required = false ) boolean softDeletedRelationshipRemoval,
         @RequestParam( required = false ) boolean softDeletedEventRemoval,
         @RequestParam( required = false ) boolean softDeletedEnrollmentRemoval,
         @RequestParam( required = false ) boolean softDeletedTrackedEntityInstanceRemoval,
@@ -339,6 +340,11 @@ public class MaintenanceController
         if ( softDeletedDataValueRemoval )
         {
             deleteSoftDeletedDataValues();
+        }
+
+        if ( softDeletedRelationshipRemoval )
+        {
+            deleteSoftDeletedRelationships();
         }
 
         if ( softDeletedEventRemoval )

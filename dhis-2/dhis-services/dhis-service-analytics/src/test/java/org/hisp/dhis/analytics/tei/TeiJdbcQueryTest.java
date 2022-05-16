@@ -25,24 +25,46 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.shared;
+package org.hisp.dhis.analytics.tei;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import org.hisp.dhis.analytics.shared.Query;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 /**
- * Responsible for providing methods able to execute queries on the respective
- * data source, based on the implementation provided.
+ * // TODO: Improve unit tests and coverage
  *
- * NOTE: in analytics we never persist or update data. So this interface will
- * always delivery read/retrieve operations.
+ * Tests for {@link TeiJdbcQuery}.
  *
  * @author maikel arabori
  */
-public interface QueryExecutor<T extends QueryResult, E extends Query>
+class TeiJdbcQueryTest
 {
-    /**
-     * Executes a read/retrieve operation based on the given query.
-     *
-     * @param query
-     * @return the result of the execution represented by a QueryResult object.
-     */
-    T execute( E query );
+    private static TeiJdbcQuery teiJdbcQuery;
+
+    @BeforeAll
+    static void setUp()
+    {
+        teiJdbcQuery = new TeiJdbcQuery();
+    }
+
+    @Test
+    void testFrom()
+    {
+        // Given
+        final TeiParams mockTeiParams = mockTeiParams();
+
+        // When
+        final Query query = teiJdbcQuery.from( mockTeiParams );
+
+        // Then
+        assertNotNull( query, "Should not be null: query" );
+    }
+
+    private TeiParams mockTeiParams()
+    {
+        return new TeiParams();
+    }
 }

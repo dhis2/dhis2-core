@@ -25,24 +25,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.shared;
+package org.hisp.dhis.program;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
+import org.springframework.stereotype.Component;
 
 /**
- * Responsible for providing methods able to execute queries on the respective
- * data source, based on the implementation provided.
- *
- * NOTE: in analytics we never persist or update data. So this interface will
- * always delivery read/retrieve operations.
- *
- * @author maikel arabori
+ * @author Zubair Asghar
  */
-public interface QueryExecutor<T extends QueryResult, E extends Query>
+@Component( "org.hisp.dhis.program.TrackedEntityDataValueAuditDeletionHandler" )
+public class TrackedEntityDataValueAuditDeletionHandler
+    extends DeletionHandler
 {
-    /**
-     * Executes a read/retrieve operation based on the given query.
-     *
-     * @param query
-     * @return the result of the execution represented by a QueryResult object.
-     */
-    T execute( E query );
+    private final TrackedEntityDataValueAuditService trackedEntityDataValueAuditService;
+
+    public TrackedEntityDataValueAuditDeletionHandler(
+        TrackedEntityDataValueAuditService trackedEntityDataValueAuditService )
+    {
+        checkNotNull( trackedEntityDataValueAuditService );
+        this.trackedEntityDataValueAuditService = trackedEntityDataValueAuditService;
+    }
+
+    @Override
+    protected void register()
+    {
+        whenDeleting( DataElement.class, this::deleteDataElement );
+        whenDeleting( ProgramStageInstance.class, this::deleteProgramStageInstance );
+    }
+
+    private void deleteDataElement( DataElement dataElement )
+    {
+        trackedEntityDataValueAuditService.deleteTrackedEntityDataValueAudit( dataElement );
+    }
+
+    private void deleteProgramStageInstance( ProgramStageInstance psi )
+    {
+        trackedEntityDataValueAuditService.deleteTrackedEntityDataValueAudit( psi );
+    }
 }

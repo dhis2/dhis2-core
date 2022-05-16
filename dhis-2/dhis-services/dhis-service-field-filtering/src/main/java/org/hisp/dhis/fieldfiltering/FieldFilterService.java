@@ -39,6 +39,7 @@ import java.util.function.Predicate;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.fieldfiltering.transformers.IsEmptyFieldTransformer;
 import org.hisp.dhis.fieldfiltering.transformers.IsNotEmptyFieldTransformer;
@@ -252,9 +253,29 @@ public class FieldFilterService
             applyAttributeValuesAttribute( params, fieldPaths, object );
 
             ObjectNode objectNode = objectMapper.valueToTree( object );
+            applyAttributeValueFields( object, objectNode, fieldPaths );
             applyTransformers( objectNode, null, "", fieldTransformers );
 
             generator.writeObject( objectNode );
+        }
+    }
+
+    private void applyAttributeValueFields( Object object, ObjectNode objectNode, List<FieldPath> fieldPaths )
+    {
+        if ( !(object instanceof BaseIdentifiableObject) )
+        {
+            return;
+        }
+        for ( FieldPath path : fieldPaths )
+        {
+            if ( path.getProperty() == null && CodeGenerator.isValidUid( path.getFullPath() ) )
+            {
+                AttributeValue value = ((BaseIdentifiableObject) object).getAttributeValue( path.getFullPath() );
+                if ( value != null )
+                {
+                    objectNode.put( path.getFullPath(), value.getValue() );
+                }
+            }
         }
     }
 
