@@ -108,7 +108,7 @@
     <velocity-tools.version>2.0</velocity-tools.version>
 
     <!-- Jackson -->
-    <jackson.version>2.13.2</jackson.version>
+    <jackson.version>2.13.3</jackson.version>
     <jackson.databind.version>2.13.2.2</jackson.databind.version>
     <jackson-datatype-jts.version>1.0-2.7</jackson-datatype-jts.version>
     <jackson-datatype-hibernate5.version>2.13.2</jackson-datatype-hibernate5.version>
