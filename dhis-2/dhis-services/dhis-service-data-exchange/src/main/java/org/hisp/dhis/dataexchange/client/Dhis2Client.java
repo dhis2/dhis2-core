@@ -74,12 +74,12 @@ public class Dhis2Client
      */
     private void handleErrors( ResponseEntity<?> response )
     {
-        log.info( "Status code: {}", response.getStatusCode() );
+        log.info( "Response status code: {}", response.getStatusCode() );
 
         if ( ERROR_STATUS_CODES.contains( response.getStatusCode() ) || response.getStatusCode().is5xxServerError() )
         {
-            log.info( "Reason phrase: {} {}",
-                response.getStatusCode().getReasonPhrase(), response.getStatusCode().value() );
+            log.warn( "Errror status code: {}, reason phrase: {}",
+                response.getStatusCode().value(), response.getStatusCode().getReasonPhrase() );
 
             throw new Dhis2ClientException( response.getStatusCode() );
         }
@@ -91,7 +91,6 @@ public class Dhis2Client
         headers.add( HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE );
         headers.add( HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE );
         headers.add( HttpHeaders.AUTHORIZATION, config.getAccessTokenHeader() );
-
         log.info( "{}: {}", HttpHeaders.AUTHORIZATION, config.getAccessTokenHeader() );
         return headers;
     }
