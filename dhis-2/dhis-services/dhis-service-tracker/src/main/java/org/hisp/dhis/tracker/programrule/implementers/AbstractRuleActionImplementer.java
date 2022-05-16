@@ -38,7 +38,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.rules.models.AttributeType;
@@ -57,6 +56,7 @@ import org.hisp.dhis.tracker.programrule.EnrollmentActionRule;
 import org.hisp.dhis.tracker.programrule.EventActionRule;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 // TODO: Verify if we can remove checks on ProgramStage when Program Rule
@@ -221,40 +221,9 @@ public abstract class AbstractRuleActionImplementer<T extends RuleAction>
         TrackerPreheat preheat, List<Attribute> enrollmentAttributes, List<Attribute> attributes )
     {
 
-        // TODO(DHIS2-12563) the merged attributes are passed to
-        // EnrollmentActionRule, and later rule engine which has no
-        // concept of idSchemes. I have to lookup attributes in the preheat and
-        // normalize them to UIDs
-        // Are there any risks/changes in behavior related to that?
-
-        // TODO(DHIS2-12563) payloadAttributes seems unused, should it be used?
-        List<MetadataIdentifier> payloadAttributes = attributes.stream()
-            .map( Attribute::getAttribute )
-            .collect( Collectors.toList() );
-        payloadAttributes
-            .addAll( enrollmentAttributes.stream().map( Attribute::getAttribute ).collect( Collectors.toList() ) );
-
-        // TODO attribute.attribute has to be mapped to UID
-        List<Attribute> mergedAttributes = Stream.concat( attributes.stream(), enrollmentAttributes.stream() )
-            .collect( Collectors.toList() )
-            .stream()
-            .map( a -> Attribute.builder()
-                .attribute( a.getAttribute() )
-                .code( a.getCode() )
-                .displayName( a.getDisplayName() )
-                .createdAt( a.getCreatedAt() )
-                .updatedAt( a.getUpdatedAt() )
-                .storedBy( a.getStoredBy() )
-                .valueType( a.getValueType() )
-                .value( a.getValue() )
-                .build() ) // copy before mutating the attribute id
-            .map( a -> {
-                a.setAttribute( MetadataIdentifier.ofUid( preheat.getTrackedEntityAttribute( a.getAttribute() ) ) );
-                return a;
-            } )
-            .filter( a -> !a.getAttribute().equals( MetadataIdentifier.EMPTY_UID ) )
-            .collect( Collectors.toList() );
-
+        List<Attribute> mergedAttributes = Lists.newArrayList();
+        mergedAttributes.addAll( attributes );
+        mergedAttributes.addAll( enrollmentAttributes );
         return mergedAttributes;
     }
 
