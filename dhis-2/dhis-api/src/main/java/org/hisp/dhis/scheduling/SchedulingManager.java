@@ -118,6 +118,14 @@ public interface SchedulingManager
     void cancel( JobType type );
 
     /**
+     * Check if this job configuration is currently running
+     *
+     * @param type type of job to check
+     * @return true/false
+     */
+    boolean isRunning( JobType type );
+
+    /**
      * @return a set of job types for which a job is running currently
      */
     Collection<JobType> getRunningTypes();
