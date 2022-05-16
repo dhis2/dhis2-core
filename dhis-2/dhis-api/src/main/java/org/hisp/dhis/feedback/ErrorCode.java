@@ -267,6 +267,9 @@ public enum ErrorCode
     /* Users */
     E6200( "Feedback message recipients user group not defined" ),
 
+    /* Data exchange */
+    E6300( "DHIS 2 client request failed: `{0}`" ),
+
     /* Scheduling */
     E7000( "Job of same type already scheduled with cron expression: `{0}`" ),
     E7003( "Only interval property can be configured for non configurable job type: `{0}`" ),
