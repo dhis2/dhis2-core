@@ -35,6 +35,7 @@ import java.net.URI;
 import java.util.Set;
 
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -49,6 +50,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+@Slf4j
 @Getter
 public class Dhis2Client
 {
@@ -72,10 +74,26 @@ public class Dhis2Client
      */
     private void handleErrors( ResponseEntity<?> response )
     {
+        log.info( "Status code: {}", response.getStatusCode() );
+
         if ( ERROR_STATUS_CODES.contains( response.getStatusCode() ) )
         {
+            log.info( "Reason phrase: {} {}",
+                response.getStatusCode().getReasonPhrase(), response.getStatusCode().value() );
+
             throw new Dhis2ClientException( response.getStatusCode() );
         }
+    }
+
+    private MultiValueMap<String, String> getJsonAuthHeaders()
+    {
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add( HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE );
+        headers.add( HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE );
+        headers.add( HttpHeaders.AUTHORIZATION, config.getAccessTokenHeader() );
+
+        log.info( "{}: {}", HttpHeaders.AUTHORIZATION, config.getAccessTokenHeader() );
+        return headers;
     }
 
     private <T> ResponseEntity<WebMessage> executeJsonPostRequest( URI uri, T body )
@@ -85,15 +103,6 @@ public class Dhis2Client
             uri, HttpMethod.POST, requestEntity, WebMessage.class );
         handleErrors( response );
         return response;
-    }
-
-    private MultiValueMap<String, String> getJsonAuthHeaders()
-    {
-        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-        headers.add( HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE );
-        headers.add( HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE );
-        headers.add( HttpHeaders.AUTHORIZATION, config.getAccessTokenHeader() );
-        return headers;
     }
 
     public ImportSummary saveDataValueSet( DataValueSet dataValueSet )
