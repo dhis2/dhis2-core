@@ -1123,7 +1123,7 @@ public class JdbcEventStore implements EventStore
         if ( params.getTrackedEntityInstance() != null )
         {
             sqlBuilder.append(
-                hlp.whereAnd() + " tei.trackedentityinstanceid=" + params.getTrackedEntityInstance().getId() + " " );
+                hlp.whereAnd() + " tei.uid=" + "'" + params.getTrackedEntityInstance() + "'" );
         }
 
         if ( params.getProgram() != null )
