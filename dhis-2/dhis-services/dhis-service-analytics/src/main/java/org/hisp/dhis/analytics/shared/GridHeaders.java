@@ -43,6 +43,10 @@ import org.hisp.dhis.common.GridHeader;
  */
 public class GridHeaders
 {
+    private GridHeaders()
+    {
+    }
+
     /**
      * Simple create a list of GridHeader objects based on the list of columns
      * provided as argument.

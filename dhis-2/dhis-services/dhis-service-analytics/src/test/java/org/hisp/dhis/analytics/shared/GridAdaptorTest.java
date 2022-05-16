@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.shared;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -74,8 +75,8 @@ class GridAdaptorTest
         assertNotNull( grid, "Should not be null: grid" );
         assertFalse( grid.getHeaders().isEmpty(), "Should not be empty: headers" );
         assertFalse( grid.getRows().isEmpty(), "Should not be empty: rows" );
-        assertTrue( grid.getHeaders().size() == 2, "Should have size of 2: headers" );
-        assertTrue( grid.getRows().size() == 3, "Should have size of 3: rows" );
+        assertEquals( 2, grid.getHeaders().size(), "Should have size of 2: headers" );
+        assertEquals( 3, grid.getRows().size(), "Should have size of 3: rows" );
     }
 
     @Test

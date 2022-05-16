@@ -28,8 +28,8 @@
 package org.hisp.dhis.analytics.shared;
 
 import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 
@@ -56,6 +56,6 @@ class GridHeadersTest
 
         // Then
         assertNotNull( headers, "Should not be null: headers" );
-        assertTrue( headers.size() == 1, "Should have size of 1: headers" );
+        assertEquals( 1, headers.size(), "Should have size of 1: headers" );
     }
 }
