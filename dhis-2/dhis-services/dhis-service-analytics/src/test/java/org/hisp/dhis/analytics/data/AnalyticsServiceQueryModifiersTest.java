@@ -187,6 +187,8 @@ class AnalyticsServiceQueryModifiersTest
         dataValueService.addDataValue( newDataValue( deB, jan, ouA, cocA, aocA, "A" ) );
         dataValueService.addDataValue( newDataValue( deB, feb, ouA, cocB, aocA, "B" ) );
 
+        // We need to make sure that table generation start time is greater than
+        // lastUpdated on tables populated in the setup
         Date oneSecondFromNow = Date
             .from( LocalDateTime.now().plusSeconds( 1 ).atZone( ZoneId.systemDefault() ).toInstant() );
 

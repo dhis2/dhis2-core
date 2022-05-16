@@ -252,6 +252,8 @@ class AnalyticsServiceTest
         setUpDataValues();
         setUpValidation();
 
+        // We need to make sure that table generation start time is greater than
+        // lastUpdated on tables populated in the setup
         Date oneSecondFromNow = Date
             .from( LocalDateTime.now().plusSeconds( 1 ).atZone( ZoneId.systemDefault() ).toInstant() );
 
