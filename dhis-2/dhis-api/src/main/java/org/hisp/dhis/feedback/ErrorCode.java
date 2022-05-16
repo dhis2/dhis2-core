@@ -268,7 +268,7 @@ public enum ErrorCode
     E6200( "Feedback message recipients user group not defined" ),
 
     /* Data exchange */
-    E6300( "DHIS 2 client request failed: `{0}`" ),
+    E6300( "DHIS 2 client request failed: {0} {1}" ),
 
     /* Scheduling */
     E7000( "Job of same type already scheduled with cron expression: `{0}`" ),

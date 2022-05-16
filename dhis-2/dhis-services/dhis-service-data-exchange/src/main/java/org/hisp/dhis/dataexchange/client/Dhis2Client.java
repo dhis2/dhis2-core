@@ -76,7 +76,7 @@ public class Dhis2Client
     {
         log.info( "Status code: {}", response.getStatusCode() );
 
-        if ( ERROR_STATUS_CODES.contains( response.getStatusCode() ) )
+        if ( ERROR_STATUS_CODES.contains( response.getStatusCode() ) || response.getStatusCode().is5xxServerError() )
         {
             log.info( "Reason phrase: {} {}",
                 response.getStatusCode().getReasonPhrase(), response.getStatusCode().value() );

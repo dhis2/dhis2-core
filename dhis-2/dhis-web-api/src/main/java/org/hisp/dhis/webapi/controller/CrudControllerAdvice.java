@@ -135,7 +135,7 @@ public class CrudControllerAdvice
     @ResponseBody
     public WebMessage dhis2ClientException( Dhis2ClientException ex )
     {
-        return conflict( ex.getMessage() );
+        return conflict( ex.getMessage(), ex.getErrorCode() );
     }
 
     @ExceptionHandler( QueryRuntimeException.class )

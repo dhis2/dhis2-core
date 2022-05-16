@@ -29,6 +29,9 @@ package org.hisp.dhis.dataexchange.client;
 
 import lombok.Getter;
 
+import org.hisp.dhis.common.ErrorCodeException;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -38,13 +41,13 @@ import org.springframework.http.HttpStatus;
  */
 @Getter
 public class Dhis2ClientException
-    extends RuntimeException
+    extends ErrorCodeException
 {
     private final HttpStatus httpStatus;
 
     public Dhis2ClientException( HttpStatus httpStatus )
     {
-        super( String.format( "%d %s", httpStatus.value(), httpStatus.getReasonPhrase() ) );
+        super( new ErrorMessage( ErrorCode.E6300, httpStatus.value(), httpStatus.getReasonPhrase() ) );
         this.httpStatus = httpStatus;
     }
 }
