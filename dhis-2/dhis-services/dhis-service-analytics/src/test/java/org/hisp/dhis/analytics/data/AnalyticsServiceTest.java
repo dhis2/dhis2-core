@@ -250,8 +250,6 @@ class AnalyticsServiceTest
         setUpDataValues();
         setUpValidation();
 
-        dbmsManager.clearSession();
-
         // Generate analytics tables
         analyticsTableGenerator.generateTables( AnalyticsTableUpdateParams.newBuilder().build(),
             NoopJobProgress.INSTANCE );

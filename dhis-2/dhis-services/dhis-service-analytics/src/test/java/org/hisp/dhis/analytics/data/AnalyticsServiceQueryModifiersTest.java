@@ -184,13 +184,9 @@ class AnalyticsServiceQueryModifiersTest
         dataValueService.addDataValue( newDataValue( deB, jan, ouA, cocA, aocA, "A" ) );
         dataValueService.addDataValue( newDataValue( deB, feb, ouA, cocB, aocA, "B" ) );
 
-        dbmsManager.clearSession();
-
         // Generate analytics tables
         analyticsTableGenerator.generateTables( AnalyticsTableUpdateParams.newBuilder().build(),
             NoopJobProgress.INSTANCE );
-
-        dbmsManager.clearSession();
     }
 
     @Override
