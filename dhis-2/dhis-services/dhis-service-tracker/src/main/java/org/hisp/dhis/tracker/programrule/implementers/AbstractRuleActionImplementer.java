@@ -51,7 +51,6 @@ import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.programrule.EnrollmentActionRule;
 import org.hisp.dhis.tracker.programrule.EventActionRule;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
@@ -197,11 +196,9 @@ public abstract class AbstractRuleActionImplementer<T extends RuleAction>
                         .map( te -> te.getAttributes() )
                         .orElse( Collections.emptyList() );
 
-                    List<Attribute> attributes = mergeAttributes( bundle.getPreheat(), enrollment.getAttributes(),
+                    List<Attribute> attributes = mergeAttributes( enrollment.getAttributes(),
                         payloadTeiAttributes );
 
-                    // TODO(DHIS2-12563) do we need to map the UID of getField(
-                    // (T) effect.ruleAction() ) here?
                     List<EnrollmentActionRule> enrollmentActionRules = e.getValue()
                         .stream()
                         .filter( effect -> getActionClass().isAssignableFrom( effect.ruleAction().getClass() ) )
@@ -217,8 +214,7 @@ public abstract class AbstractRuleActionImplementer<T extends RuleAction>
                 } ) );
     }
 
-    private List<Attribute> mergeAttributes(
-        TrackerPreheat preheat, List<Attribute> enrollmentAttributes, List<Attribute> attributes )
+    private List<Attribute> mergeAttributes( List<Attribute> enrollmentAttributes, List<Attribute> attributes )
     {
 
         List<Attribute> mergedAttributes = Lists.newArrayList();
