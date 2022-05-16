@@ -31,40 +31,44 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 
 /**
- * Exception representing an illegal query.
+ * Runtime exception which references an {@link ErrorCode}.
  *
  * @author Lars Helge Overland
  */
-public class IllegalQueryException
-    extends ErrorCodeException
+public class ErrorCodeException
+    extends RuntimeException
 {
+    private final ErrorCode errorCode;
+
     /**
-     * Constructor.
-     *
-     * @param message the exception message.
+     * Deprecated, use {@link ErrorCode} or {@ErrorMessage} constructors
+     * instead.
      */
-    public IllegalQueryException( String message )
+    public ErrorCodeException( String message )
     {
         super( message );
+        this.errorCode = null;
+    }
+
+    public ErrorCodeException( ErrorCode errorCode )
+    {
+        super( errorCode.getMessage() );
+        this.errorCode = errorCode;
+    }
+
+    public ErrorCodeException( ErrorMessage errorMessage )
+    {
+        super( errorMessage.getMessage() );
+        this.errorCode = errorMessage.getErrorCode();
     }
 
     /**
-     * Constructor. Sets the message based on the error code message.
+     * Returns the {@link ErrorCode} of the exception.
      *
-     * @param errorCode the {@link ErrorCode}.
+     * @return the {@link ErrorCode} of the exception.
      */
-    public IllegalQueryException( ErrorCode errorCode )
+    public ErrorCode getErrorCode()
     {
-        super( errorCode );
-    }
-
-    /**
-     * Constructor. Sets the message and error code based on the error message.
-     *
-     * @param errorMessage the {@link ErrorMessage}.
-     */
-    public IllegalQueryException( ErrorMessage errorMessage )
-    {
-        super( errorMessage );
+        return errorCode;
     }
 }

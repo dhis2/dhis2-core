@@ -27,25 +27,16 @@
  */
 package org.hisp.dhis.common;
 
-import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 
 /**
  * @author Lars Helge Overland
  */
 public class DeleteNotAllowedException
-    extends RuntimeException
+    extends ErrorCodeException
 {
-    private ErrorCode errorCode;
-
     public DeleteNotAllowedException( ErrorMessage errorMessage )
     {
-        super( errorMessage.getMessage() );
-        this.errorCode = errorMessage.getErrorCode();
-    }
-
-    public ErrorCode getErrorCode()
-    {
-        return errorCode;
+        super( errorMessage );
     }
 }
