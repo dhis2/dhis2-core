@@ -111,9 +111,9 @@ public class DuplicateRelationshipsPreProcessor implements BundlePreProcessor
     public void process( TrackerBundle bundle )
     {
         Predicate<Relationship> validRelationship = rel -> StringUtils.isNotEmpty( rel.getRelationship() )
-            && StringUtils.isNotEmpty( rel.getRelationshipType() ) &&
+            && !rel.getRelationshipType().isBlank() &&
             rel.getFrom() != null && rel.getTo() != null
-            && getRelationshipType( rel.getRelationshipType(), bundle ) != null;
+            && bundle.getPreheat().getRelationshipType( rel.getRelationshipType() ) != null;
 
         // Create a map where both key and value must be unique
         BidiMap<String, String> map = new DualHashBidiMap<>();
@@ -132,7 +132,7 @@ public class DuplicateRelationshipsPreProcessor implements BundlePreProcessor
 
     private String hash( Relationship rel, TrackerBundle bundle )
     {
-        RelationshipType relationshipType = getRelationshipType( rel.getRelationshipType(), bundle );
+        RelationshipType relationshipType = bundle.getPreheat().getRelationshipType( rel.getRelationshipType() );
         return rel.getRelationshipType() + "-"
             + (relationshipType.isBidirectional() ? sortItems( rel ) : rel.getFrom() + "-" + rel.getTo())
             + relationshipType.isBidirectional();
@@ -142,10 +142,5 @@ public class DuplicateRelationshipsPreProcessor implements BundlePreProcessor
     {
         return Stream.of( rel.getFrom().toString(), rel.getTo().toString() ).sorted()
             .collect( Collectors.joining( "-" ) );
-    }
-
-    private RelationshipType getRelationshipType( String uid, TrackerBundle bundle )
-    {
-        return bundle.getPreheat().get( RelationshipType.class, uid );
     }
 }

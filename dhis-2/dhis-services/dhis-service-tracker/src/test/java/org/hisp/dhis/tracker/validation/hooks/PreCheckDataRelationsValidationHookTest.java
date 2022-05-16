@@ -923,7 +923,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .relationship( CodeGenerator.generateUid() )
             .from( trackedEntityRelationshipItem( "validTrackedEntity" ) )
             .to( trackedEntityRelationshipItem( "anotherValidTrackedEntity" ) )
-            .relationshipType( relType.getUid() )
+            .relationshipType( MetadataIdentifier.ofUid( relType.getUid() ) )
             .build();
 
         hook.validateRelationship( reporter, relationship );
@@ -957,7 +957,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .relationship( CodeGenerator.generateUid() )
             .from( trackedEntityRelationshipItem( "validTrackedEntity" ) )
             .to( trackedEntityRelationshipItem( "anotherValidTrackedEntity" ) )
-            .relationshipType( relType.getUid() )
+            .relationshipType( MetadataIdentifier.ofUid( relType.getUid() ) )
             .build();
 
         hook.validateRelationship( reporter, relationship );

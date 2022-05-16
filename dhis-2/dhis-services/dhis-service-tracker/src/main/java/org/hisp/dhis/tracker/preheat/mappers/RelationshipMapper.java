@@ -47,6 +47,8 @@ public interface RelationshipMapper extends PreheatMapper<Relationship>
     @Mapping( target = "code" )
     @Mapping( target = "from" )
     @Mapping( target = "to" )
+    @Mapping( target = "key" )
+    @Mapping( target = "invertedKey" )
     @Mapping( target = "created" )
     @Mapping( target = "createdBy" )
     @Mapping( target = "lastUpdated" )
@@ -59,6 +61,8 @@ public interface RelationshipMapper extends PreheatMapper<Relationship>
     @Mapping( target = "id" )
     @Mapping( target = "uid" )
     @Mapping( target = "code" )
+    @Mapping( target = "name" )
+    @Mapping( target = "attributeValues" )
     @Mapping( target = "bidirectional" )
     RelationshipType mapType( RelationshipType type );
 

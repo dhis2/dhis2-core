@@ -41,6 +41,7 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerImportParams;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.junit.jupiter.api.BeforeEach;
@@ -118,21 +119,21 @@ class DuplicateRelationshipSupplierTest extends DhisConvenienceTest
 
         relationshipA = org.hisp.dhis.tracker.domain.Relationship.builder()
             .relationship( REL_A_UID )
-            .relationshipType( UNIDIRECTIONAL_RELATIONSHIP_TYPE_UID )
+            .relationshipType( MetadataIdentifier.ofUid( UNIDIRECTIONAL_RELATIONSHIP_TYPE_UID ) )
             .from( RelationshipItem.builder().trackedEntity( TEIA_UID ).build() )
             .to( RelationshipItem.builder().trackedEntity( TEIB_UID ).build() )
             .build();
 
         relationshipB = org.hisp.dhis.tracker.domain.Relationship.builder()
             .relationship( REL_B_UID )
-            .relationshipType( BIDIRECTIONAL_RELATIONSHIP_TYPE_UID )
+            .relationshipType( MetadataIdentifier.ofUid( BIDIRECTIONAL_RELATIONSHIP_TYPE_UID ) )
             .from( RelationshipItem.builder().trackedEntity( TEIB_UID ).build() )
             .to( RelationshipItem.builder().trackedEntity( TEIC_UID ).build() )
             .build();
 
         relationshipC = org.hisp.dhis.tracker.domain.Relationship.builder()
             .relationship( REL_C_UID )
-            .relationshipType( UNIDIRECTIONAL_RELATIONSHIP_TYPE_UID )
+            .relationshipType( MetadataIdentifier.ofUid( UNIDIRECTIONAL_RELATIONSHIP_TYPE_UID ) )
             .from( RelationshipItem.builder().trackedEntity( TEIC_UID ).build() )
             .to( RelationshipItem.builder().trackedEntity( TEIA_UID ).build() )
             .build();

@@ -89,8 +89,8 @@ interface MetadataIdentifierMapper
             .collect( Collectors.toSet() );
     }
 
-    @Named( "trackedEntityTypeToMetadataIdentifier" )
-    default MetadataIdentifier fromTrackedEntityType( String identifier,
+    @Named( "toMetadataIdentifier" )
+    default MetadataIdentifier fromStringIdentifier( String identifier,
         @Context TrackerIdSchemeParams idSchemeParams )
     {
         return idSchemeParams.getIdScheme().toMetadataIdentifier( identifier );
