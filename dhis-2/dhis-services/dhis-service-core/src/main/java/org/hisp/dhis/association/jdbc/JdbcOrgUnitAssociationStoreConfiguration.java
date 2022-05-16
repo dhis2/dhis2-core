@@ -33,6 +33,7 @@ import org.hisp.dhis.association.CategoryOptionOrganisationUnitAssociationsQuery
 import org.hisp.dhis.association.DataSetOrganisationUnitAssociationsQueryBuilder;
 import org.hisp.dhis.association.ProgramOrganisationUnitAssociationsQueryBuilder;
 import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -46,28 +47,29 @@ public class JdbcOrgUnitAssociationStoreConfiguration
 
     @Bean( "jdbcProgramOrgUnitAssociationsStore" )
     public JdbcOrgUnitAssociationsStore jdbcProgramOrgUnitAssociationStore( CurrentUserService currentUserService,
-        JdbcTemplate jdbcTemplate )
+        JdbcTemplate jdbcTemplate, OrganisationUnitService unitService )
     {
-        return new JdbcOrgUnitAssociationsStore( currentUserService, jdbcTemplate,
+        return new JdbcOrgUnitAssociationsStore( currentUserService, unitService, jdbcTemplate,
             new ProgramOrganisationUnitAssociationsQueryBuilder( currentUserService ),
             cacheProvider.createProgramOrgUnitAssociationCache() );
     }
 
     @Bean( "jdbcCategoryOptionOrgUnitAssociationsStore" )
     public JdbcOrgUnitAssociationsStore jdbcCategoryOptionOrgUnitAssociationStore(
-        CurrentUserService currentUserService,
+        CurrentUserService currentUserService, OrganisationUnitService unitService,
         JdbcTemplate jdbcTemplate )
     {
-        return new JdbcOrgUnitAssociationsStore( currentUserService, jdbcTemplate,
+        return new JdbcOrgUnitAssociationsStore( currentUserService, unitService, jdbcTemplate,
             new CategoryOptionOrganisationUnitAssociationsQueryBuilder( currentUserService ),
             cacheProvider.createCatOptOrgUnitAssociationCache() );
     }
 
     @Bean( "jdbcDataSetOrgUnitAssociationsStore" )
     public JdbcOrgUnitAssociationsStore jdbcDataSetOrgUnitAssociationStore( CurrentUserService currentUserService,
+        OrganisationUnitService unitService,
         JdbcTemplate jdbcTemplate )
     {
-        return new JdbcOrgUnitAssociationsStore( currentUserService, jdbcTemplate,
+        return new JdbcOrgUnitAssociationsStore( currentUserService, unitService, jdbcTemplate,
             new DataSetOrganisationUnitAssociationsQueryBuilder( currentUserService ),
             cacheProvider.createDataSetOrgUnitAssociationCache() );
     }

@@ -40,6 +40,7 @@ import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.hisp.dhis.association.AbstractOrganisationUnitAssociationsQueryBuilder;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -47,6 +48,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 public class JdbcOrgUnitAssociationsStore
 {
     private final CurrentUserService currentUserService;
+
+    private final OrganisationUnitService organisationUnitService;
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -119,7 +122,14 @@ public class JdbcOrgUnitAssociationsStore
 
     private Set<String> getUserOrgUnitPaths()
     {
-        Set<String> allUserOrgUnitPaths = currentUserService.getCurrentUserOrganisationUnits().stream()
+        Set<OrganisationUnit> currentUserOrganisationUnits = currentUserService.getCurrentUserOrganisationUnits();
+        Set<OrganisationUnit> refetchedUnits = new HashSet<>();
+        for ( OrganisationUnit unit : currentUserOrganisationUnits )
+        {
+            refetchedUnits.add( organisationUnitService.getOrganisationUnit( unit.getUid() ) );
+        }
+
+        Set<String> allUserOrgUnitPaths = refetchedUnits.stream()
             .map( OrganisationUnit::getPath )
             .collect( Collectors.toSet() );
 
