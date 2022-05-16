@@ -36,11 +36,13 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.commons.util.RelationshipUtils;
+import org.hisp.dhis.relationship.RelationshipKey;
 import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.util.RelationshipKeySupport;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 
@@ -77,7 +79,8 @@ public class RelationshipTrackerConverterService
             toRelationship.setFrom( convertRelationshipType( fromRelationship.getFrom() ) );
             toRelationship.setTo( convertRelationshipType( fromRelationship.getTo() ) );
             toRelationship.setUpdatedAt( DateUtils.instantFromDate( fromRelationship.getLastUpdated() ) );
-            toRelationship.setRelationshipType( fromRelationship.getRelationshipType().getUid() );
+            toRelationship
+                .setRelationshipType( MetadataIdentifier.ofUid( fromRelationship.getRelationshipType().getUid() ) );
 
             return toRelationship;
         } ).collect( Collectors.toList() );
@@ -179,8 +182,10 @@ public class RelationshipTrackerConverterService
 
         toRelationship.setFrom( fromItem );
         toRelationship.setTo( toItem );
-        toRelationship.setKey( RelationshipUtils.generateRelationshipKey( toRelationship ) );
-        toRelationship.setInvertedKey( RelationshipUtils.generateRelationshipInvertedKey( toRelationship ) );
+        RelationshipKey relationshipKey = RelationshipKeySupport.getRelationshipKey( fromRelationship,
+            relationshipType );
+        toRelationship.setKey( relationshipKey.asString() );
+        toRelationship.setInvertedKey( relationshipKey.inverseKey().asString() );
 
         return toRelationship;
     }

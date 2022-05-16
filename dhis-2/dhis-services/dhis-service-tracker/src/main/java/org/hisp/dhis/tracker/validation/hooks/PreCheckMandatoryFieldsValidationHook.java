@@ -101,7 +101,7 @@ public class PreCheckMandatoryFieldsValidationHook
     {
         reporter.addErrorIfNull( relationship.getFrom(), relationship, E1124, "from" );
         reporter.addErrorIfNull( relationship.getTo(), relationship, E1124, "to" );
-        reporter.addErrorIf( () -> StringUtils.isEmpty( relationship.getRelationshipType() ), relationship, E1124,
+        reporter.addErrorIf( () -> relationship.getRelationshipType().isBlank(), relationship, E1124,
             "relationshipType" );
     }
 

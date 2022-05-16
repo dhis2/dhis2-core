@@ -399,7 +399,7 @@ class PreCheckMetaValidationHookTest
     {
         return Relationship.builder()
             .relationship( CodeGenerator.generateUid() )
-            .relationshipType( RELATIONSHIP_TYPE_UID )
+            .relationshipType( MetadataIdentifier.ofUid( RELATIONSHIP_TYPE_UID ) )
             .build();
     }
 }
