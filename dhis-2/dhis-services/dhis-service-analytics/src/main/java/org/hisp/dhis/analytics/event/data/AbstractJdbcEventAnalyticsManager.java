@@ -477,7 +477,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
         catch ( DataAccessResourceFailureException ex )
         {
             log.warn( ErrorCode.E7131.getMessage(), ex );
-            throw new QueryRuntimeException( ErrorCode.E7131, ex );
+            throw new QueryRuntimeException( ErrorCode.E7131 );
         }
 
         return grid;
@@ -848,7 +848,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
         catch ( DataAccessResourceFailureException ex )
         {
             log.warn( ErrorCode.E7131.getMessage(), ex );
-            throw new QueryRuntimeException( ErrorCode.E7131, ex );
+            throw new QueryRuntimeException( ErrorCode.E7131 );
         }
     }
 

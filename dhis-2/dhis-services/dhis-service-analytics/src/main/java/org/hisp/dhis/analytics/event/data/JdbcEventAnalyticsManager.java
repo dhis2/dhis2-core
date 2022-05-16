@@ -261,12 +261,12 @@ public class JdbcEventAnalyticsManager
         catch ( DataAccessResourceFailureException ex )
         {
             log.warn( E7131.getMessage(), ex );
-            throw new QueryRuntimeException( E7131, ex );
+            throw new QueryRuntimeException( E7131 );
         }
         catch ( DataIntegrityViolationException ex )
         {
             log.warn( E7132.getMessage(), ex );
-            throw new QueryRuntimeException( E7132, ex );
+            throw new QueryRuntimeException( E7132 );
         }
 
         return count;
@@ -320,7 +320,7 @@ public class JdbcEventAnalyticsManager
         catch ( DataAccessResourceFailureException ex )
         {
             log.warn( E7131.getMessage(), ex );
-            throw new QueryRuntimeException( E7131, ex );
+            throw new QueryRuntimeException( E7131 );
         }
         catch ( DataIntegrityViolationException ex )
         {
@@ -722,12 +722,12 @@ public class JdbcEventAnalyticsManager
                 && DIVISION_BY_ZERO.getState().equals( ((PSQLException) ex.getCause()).getSQLState() ) )
             {
                 log.warn( E7132.getMessage(), ex );
-                throw new QueryRuntimeException( E7132, ex );
+                throw new QueryRuntimeException( E7132 );
             }
             else
             {
                 log.warn( E7133.getMessage(), ex );
-                throw new QueryRuntimeException( E7133, ex );
+                throw new QueryRuntimeException( E7133 );
             }
         }
     }
