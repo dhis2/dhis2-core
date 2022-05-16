@@ -449,8 +449,17 @@ public class DefaultDataQueryService
                     }
                     else
                     {
-                        tryParseDateRange( isoPeriodHolder )
-                            .ifPresent( periods::add );
+                        Optional<Period> optionalPeriod = tryParseDateRange( isoPeriodHolder );
+                        if ( optionalPeriod.isPresent() )
+                        {
+                            Period periodToAdd = optionalPeriod.get();
+                            String startDate = i18nManager.getI18nFormat().formatDate( periodToAdd.getStartDate() );
+                            String endDate = i18nManager.getI18nFormat().formatDate( periodToAdd.getEndDate() );
+                            dimensionalKeywords.addKeyword(
+                                isoPeriodHolder.getIsoPeriod(),
+                                String.join( " - ", startDate, endDate ) );
+                            periods.add( periodToAdd );
+                        }
                     }
                 }
             }
