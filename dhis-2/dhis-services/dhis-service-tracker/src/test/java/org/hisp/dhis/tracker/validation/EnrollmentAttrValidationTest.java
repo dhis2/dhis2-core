@@ -117,7 +117,9 @@ class EnrollmentAttrValidationTest extends AbstractImportValidationTest
         TrackerImportParams params = createBundleFromJson(
             "tracker/validations/enrollments_te_attr-missing-uuid.json", userService.getUser( ADMIN_USER_UID ) );
         params.setImportStrategy( TrackerImportStrategy.CREATE );
+
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
+
         assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
         assertThat( trackerImportReport.getValidationReport().getErrors(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1075 ) ) ) );
@@ -220,7 +222,9 @@ class EnrollmentAttrValidationTest extends AbstractImportValidationTest
         params = createBundleFromJson( "tracker/validations/enrollments_te_unique_attr.json",
             userService.getUser( ADMIN_USER_UID ) );
         params.setImportStrategy( TrackerImportStrategy.CREATE );
+
         trackerImportReport = trackerImportService.importTracker( params );
+
         assertEquals( 2, trackerImportReport.getValidationReport().getErrors().size() );
         assertThat( trackerImportReport.getValidationReport().getErrors(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1064 ) ) ) );

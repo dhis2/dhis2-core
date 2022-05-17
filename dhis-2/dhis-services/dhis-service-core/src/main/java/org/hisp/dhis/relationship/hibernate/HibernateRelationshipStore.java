@@ -50,7 +50,6 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
-import org.hisp.dhis.relationship.RelationshipKey;
 import org.hisp.dhis.relationship.RelationshipStore;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AclService;
@@ -351,24 +350,6 @@ public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<R
             .get( "bidirectional" ), false ),
             criteriaBuilder.and( getRelatedEntityCriteria( criteriaBuilder, root, fromFieldValuePair, "from" ),
                 getRelatedEntityCriteria( criteriaBuilder, root, toFieldValuePair, "to" ) ) );
-    }
-
-    private Pair<String, String> getFieldValuePair( RelationshipKey.RelationshipItemKey relationshipItemKey )
-    {
-        if ( relationshipItemKey.isTrackedEntity() )
-        {
-            return Pair.of( TRACKED_ENTITY_INSTANCE, relationshipItemKey.getTrackedEntity() );
-        }
-        if ( relationshipItemKey.isEnrollment() )
-        {
-            return Pair.of( PROGRAM_INSTANCE, relationshipItemKey.getEnrollment() );
-        }
-        if ( relationshipItemKey.isEvent() )
-        {
-            return Pair.of( PROGRAM_STAGE_INSTANCE, relationshipItemKey.getEvent() );
-        }
-        throw new IllegalStateException(
-            "Unable to determine relationshipType for relationshipItem: " + relationshipItemKey.asString() );
     }
 
     private Predicate getFromOrToPredicate( String direction, CriteriaBuilder builder, Root<Relationship> root,

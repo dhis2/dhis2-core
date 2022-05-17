@@ -44,6 +44,8 @@ public interface RelationshipTypeMapper extends PreheatMapper<RelationshipType>
     @Mapping( target = "id" )
     @Mapping( target = "uid" )
     @Mapping( target = "code" )
+    @Mapping( target = "name" )
+    @Mapping( target = "attributeValues" )
     @Mapping( target = "fromConstraint", qualifiedByName = "constraintMapper" )
     @Mapping( target = "toConstraint", qualifiedByName = "constraintMapper" )
     @Mapping( target = "bidirectional" )

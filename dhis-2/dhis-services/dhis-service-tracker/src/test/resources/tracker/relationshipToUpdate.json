@@ -36,10 +36,14 @@
   "relationships": [
     {
       "relationship": "Nva3Xj2j75W",
-      "relationshipType": "xLmPUYJX8Ks",
+      "relationshipType": {
+        "idScheme": "UID",
+        "identifier": "xLmPUYJX8Ks"
+      },
       "createdAt": "2019-10-01T12:17:30.163",
       "updatedAt": "2019-10-01T12:17:30.163",
       "bidirectional": false,
+      "deleted": false,
       "from": {
         "trackedEntity": "IOR1AXXl24H"
       },

@@ -30,8 +30,6 @@ package org.hisp.dhis.split.orgunit;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.transaction.Transactional;
-
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -44,6 +42,7 @@ import org.hisp.dhis.split.orgunit.handler.DataOrgUnitSplitHandler;
 import org.hisp.dhis.split.orgunit.handler.MetadataOrgUnitSplitHandler;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.ImmutableList;
 

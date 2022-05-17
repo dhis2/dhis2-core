@@ -54,7 +54,10 @@
       "relationships": [],
       "attributes": [
         {
-          "attribute": "fmBIpOStKkF",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "fmBIpOStKkF"
+          },
           "displayName": "Attribute_Integer",
           "storedBy": "admin",
           "valueType": "INTEGER",

@@ -54,6 +54,7 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueServ
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.Attribute;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.UniqueAttributeValue;
@@ -233,17 +234,18 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier
 
         return uniqueAttributeAlreadyPresentInDB
             .stream()
-            .map( av -> new UniqueAttributeValue( av.getEntityInstance().getUid(), av.getAttribute().getUid(),
+            .map( av -> new UniqueAttributeValue( av.getEntityInstance().getUid(),
+                idSchemes.toMetadataIdentifier( av.getAttribute() ),
                 av.getValue(), idSchemes.toMetadataIdentifier( av.getEntityInstance().getOrganisationUnit() ) ) )
             .collect( toList() );
     }
 
-    private TrackedEntityAttribute extractAttribute( String attribute,
+    private TrackedEntityAttribute extractAttribute( MetadataIdentifier attribute,
         List<TrackedEntityAttribute> uniqueTrackedEntityAttributes )
     {
         return uniqueTrackedEntityAttributes
             .stream()
-            .filter( a -> a.getUid().equals( attribute ) )
+            .filter( attribute::isEqualTo )
             .findAny()
             .orElse( null );
     }
@@ -253,7 +255,7 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier
     {
         return attributes.stream()
             .filter( tea -> uniqueTrackedEntityAttributes.stream().anyMatch(
-                uniqueAttr -> uniqueAttr.getUid().equals( tea.getAttribute() ) ) )
+                uniqueAttr -> tea.getAttribute().isEqualTo( uniqueAttr ) ) )
             .collect( toSet() );
     }
 }
