@@ -27,14 +27,13 @@
  */
 package org.hisp.dhis.merge.orgunit.handler;
 
-import javax.transaction.Transactional;
-
 import lombok.AllArgsConstructor;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Merge handler for tracker entities.
