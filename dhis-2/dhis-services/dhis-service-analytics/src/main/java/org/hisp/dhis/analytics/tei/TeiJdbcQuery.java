@@ -27,21 +27,24 @@
  */
 package org.hisp.dhis.analytics.tei;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.springframework.util.Assert.notNull;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
-import org.hisp.dhis.analytics.ColumnDataType;
 import org.hisp.dhis.analytics.shared.Column;
 import org.hisp.dhis.analytics.shared.Query;
 import org.hisp.dhis.analytics.shared.QueryGenerator;
 import org.hisp.dhis.analytics.shared.SqlQuery;
+import org.hisp.dhis.analytics.shared.component.ColumnComponent;
+import org.hisp.dhis.analytics.shared.component.TableComponent;
+import org.hisp.dhis.analytics.shared.component.builder.FromClauseComponentBuilder;
+import org.hisp.dhis.analytics.shared.component.builder.SelectClauseComponentBuilder;
+import org.hisp.dhis.analytics.shared.component.element.Element;
+import org.hisp.dhis.analytics.shared.visitor.FromClauseElementVisitor;
+import org.hisp.dhis.analytics.shared.visitor.FromElementVisitor;
+import org.hisp.dhis.analytics.shared.visitor.SelectClauseElementVisitor;
+import org.hisp.dhis.analytics.shared.visitor.SelectElementVisitor;
 import org.springframework.stereotype.Component;
 
 /**
@@ -67,155 +70,83 @@ public class TeiJdbcQuery implements QueryGenerator<TeiParams>
         // TODO: build objects below from the teiParams.
         // Probably merge Giuseppe's work in
         // https://github.com/dhis2/dhis2-core/pull/10503/files
-        final String fromClause = null;
-        final String joinClause = null;
-        final String whereClause = null;
-        final String closingClauses = null;
 
-        Map<String, String> inputUidMap = new HashMap<>();
-        inputUidMap.put( "w75KJ2mc4zz", "First Name" );
-        inputUidMap.put( "zDhUuAYrxNC", "LastName" );
-        inputUidMap.put( "iESIqZ0R0R0", "DOB" );
-
-        final List<Column> columns = getColumnsForTeavValues( inputUidMap );
-
-        inputUidMap.clear();
-        inputUidMap.put( "IpHINAT79UW", "Child Program Enrollment Date" );
-        inputUidMap.put( "ur1Edk5Oe2n", "TB Program Enrollment Date" );
-
-        columns.addAll( getColumnsForProgramEnrollmentFlags( inputUidMap ) );
-
-        inputUidMap.clear();
-        inputUidMap.put( "IpHINAT79UW", "is enrolled in Child Program" );
-        inputUidMap.put( "ur1Edk5Oe2n", "is enrolled in TB Program" );
-
-        columns.addAll( getNestedSelectsForEnrollmentDateValues( inputUidMap ) );
-
-        Map<Pair<String, String>, String> pJsonNodeWithPUidMap = new HashMap<>();
-        pJsonNodeWithPUidMap.put( new ImmutablePair<>( "ZzYYXq4fJie", "IpHINAT79UW" ), "Report Date" );
-        pJsonNodeWithPUidMap.put( new ImmutablePair<>( "jdRD35YwbRH", null ), "Stage Sputum Test Report Date" );
-
-        columns.addAll( getNestedSelectsForExecutionDateValues( pJsonNodeWithPUidMap ) );
-
-        pJsonNodeWithPUidMap.clear();
-        pJsonNodeWithPUidMap.put( new ImmutablePair<>( "cYGaxwK615G", "IpHINAT79UW" ), "Infant HIV test Result" );
-        pJsonNodeWithPUidMap.put( new ImmutablePair<>( "sj3j9Hwc7so", "IpHINAT79UW" ), "Child ARV's" );
-        pJsonNodeWithPUidMap.put( new ImmutablePair<>( "zocHNQIQBIN", null ), "TB  smear microscopy test outcome" );
-
-        columns.addAll( getNestedSelectsForEventDateValues( pJsonNodeWithPUidMap ) );
-
-        return SqlQuery.builder().columns( columns ).fromClause( fromClause ).joinClause( joinClause )
-            .whereClause( whereClause ).closingClauses( closingClauses )
+        return SqlQuery
+            .builder()
+            .columns( getColumns( teiParams ) )
+            .fromClause( getFromClause( teiParams ) )
+            .joinClause( getJoinClause( teiParams ) )
+            .whereClause( getWhereClause( teiParams ) )
+            .closingClauses( getClosingClause( teiParams ) )
             .build();
     }
 
-    private List<Column> getColumnsForTeavValues( final Map<String, String> teaUidWithAliasMap )
+    private String getClosingClause( TeiParams teiParams )
     {
-        return teaUidWithAliasMap.keySet().stream().map( uid -> new Column( " (SELECT teav.VALUE " +
-            " FROM trackedentityattributevalue teav, " +
-            "  trackedentityattribute tea" +
-            " WHERE teav.trackedentityinstanceid = t.trackedentityinstanceid " +
-            "  AND teav.trackedentityattributeid = tea.trackedentityattributeid " +
-            "  AND tea.uid = '" + uid + "' " +
-            " LIMIT 1 )", ColumnDataType.TEXT, teaUidWithAliasMap.get( uid ), false, false ) )
-            .collect( Collectors.toList() );
+        return "";
     }
 
-    private List<Column> getColumnsForProgramEnrollmentFlags( final Map<String, String> programUidWithAliasMap )
+    private String getWhereClause( TeiParams teiParams )
     {
-        return programUidWithAliasMap.keySet().stream().map( uid -> new Column( " COALESCE((SELECT TRUE " +
-            " FROM program p, " +
-            " programinstance pi " +
-            " WHERE p.programid = pi.programid " +
-            " AND pi.trackedentityinstanceid = t.trackedentityinstanceid " +
-            " AND p.uid = '" + uid + "' " +
-            " LIMIT 1 " +
-            " ), FALSE)", ColumnDataType.BOOLEAN, programUidWithAliasMap.get( uid ), false, false ) )
-            .collect( Collectors.toList() );
+        return "WHERE exists(" +
+            "        SELECT 1" +
+            "        FROM programinstance pi," +
+            "             program p" +
+            "        WHERE pi.programid = p.programid" +
+            "          AND pi.trackedentityinstanceid = t.trackedentityinstanceid" +
+            "          AND p.uid IN ('ur1Edk5Oe2n', 'IpHINAT79UW' /* TB program and Child program */)" +
+            "          AND pi.enrollmentdate > '2022-01-01'" +
+            "    )" +
+            "  AND (SELECT teav.VALUE" +
+            "       FROM trackedentityattributevalue teav," +
+            "            trackedentityattribute tea" +
+            "       WHERE teav.trackedentityinstanceid = t.trackedentityinstanceid" +
+            "         AND teav.trackedentityattributeid = tea.trackedentityattributeid" +
+            "         AND tea.uid = 'w75KJ2mc4zz' /* UID for TEA 'First name' */" +
+            "       LIMIT 1) = 'John'" +
+            "  AND (SELECT teav.VALUE" +
+            "       FROM trackedentityattributevalue teav," +
+            "            trackedentityattribute tea" +
+            "       WHERE teav.trackedentityinstanceid = t.trackedentityinstanceid" +
+            "         AND teav.trackedentityattributeid = tea.trackedentityattributeid" +
+            "         AND tea.uid = 'zDhUuAYrxNC' /* UID for TEA 'Last name' */ " +
+            "       LIMIT 1) = 'Kelly'";
     }
 
-    private List<Column> getNestedSelectsForEnrollmentDateValues( final Map<String, String> programUidMap )
+    private String getJoinClause( TeiParams teiParams )
     {
-        return programUidMap.keySet().stream().map( uid -> new Column( "(SELECT pi.enrollmentdate " +
-            " FROM programinstance pi, " +
-            " program p " +
-            " WHERE pi.trackedentityinstanceid = t.trackedentityinstanceid " +
-            " AND pi.programid = p.programid " +
-            " AND p.uid = '" + uid + "' " +
-            " ORDER BY enrollmentdate DESC", ColumnDataType.DATE, programUidMap.get( uid ), false, false ) )
-            .collect( Collectors.toList() );
+        return "";
     }
 
-    private List<Column> getNestedSelectsForExecutionDateValues(
-        final Map<Pair<String, String>, String> psUidWithPUidMap )
+    private String getFromClause( TeiParams teiParams )
     {
-        return psUidWithPUidMap.keySet().stream()
-            .map( uidPair -> new Column( isBlank( getProgramUid( uidPair ) ) ? " SELECT psi.executiondate" +
-                " FROM programstageinstance psi," +
-                " programinstance pi," +
-                " programstage ps" +
-                " WHERE psi.programinstanceid = pi.programinstanceid" +
-                " AND pi.trackedentityinstanceid = t.trackedentityinstanceid" +
-                " AND ps.uid = '" + getProgramStageUid( uidPair ) + "'" +
-                " AND psi.programstageid = ps.programstageid" +
-                " ORDER BY pi.enrollmentdate DESC, psi.executiondate DESC" +
-                " LIMIT 1"
-                : " SELECT psi.executiondate" +
-                    " FROM programstageinstance psi," +
-                    " programinstance pi," +
-                    " program p," +
-                    " programstage ps" +
-                    " WHERE psi.programinstanceid = pi.programinstanceid" +
-                    " AND pi.trackedentityinstanceid = t.trackedentityinstanceid" +
-                    " AND pi.programid = p.programid" +
-                    " AND p.uid = '" + getProgramUid( uidPair ) + "'" +
-                    " AND ps.uid = '" + getProgramStageUid( uidPair ) + "'" +
-                    " AND ps.programid = p.programid" +
-                    " ORDER BY pi.enrollmentdate DESC, psi.executiondate DESC",
-                ColumnDataType.DATE,
-                psUidWithPUidMap.get( uidPair ), false, false ) )
-            .collect( Collectors.toList() );
+        List<Element<FromElementVisitor>> elements = FromClauseComponentBuilder.builder().withTeiParams( teiParams )
+            .build();
+
+        final Element<FromElementVisitor> tableList = new TableComponent( elements );
+
+        List<String> tables = new ArrayList<>();
+
+        FromElementVisitor fromElementVisitor = new FromClauseElementVisitor( tables );
+
+        tableList.accept( fromElementVisitor );
+
+        return String.join( ",", tables );
     }
 
-    private List<Column> getNestedSelectsForEventDateValues(
-        final Map<Pair<String, String>, String> pJsonNodeWithPUidMap )
+    private List<Column> getColumns( TeiParams teiParams )
     {
-        return pJsonNodeWithPUidMap.keySet().stream()
-            .map( uidPair -> new Column( isBlank( getProgramUid( uidPair ) )
-                ? " SELECT psi.eventdatavalues -> 'cYGaxwK615G' -> 'value'" +
-                    "  FROM programstageinstance psi," +
-                    "  programinstance pi," +
-                    "  program p" +
-                    "  WHERE psi.programinstanceid = pi.programinstanceid" +
-                    "  AND pi.trackedentityinstanceid = t.trackedentityinstanceid" +
-                    "  AND pi.programid = p.programid" +
-                    "  AND p.uid = '" + getProgramUid( uidPair ) + "'" +
-                    "  ORDER BY pi.enrollmentdate DESC, psi.executiondate DESC" +
-                    "  LIMIT 1"
-                : " SELECT psi.eventdatavalues -> '" + getJsonNodeUid( uidPair ) + "' -> 'value'" +
-                    "  FROM programstageinstance psi," +
-                    "  programinstance pi" +
-                    "  WHERE psi.programinstanceid = pi.programinstanceid" +
-                    "  AND pi.trackedentityinstanceid = t.trackedentityinstanceid" +
-                    "  ORDER BY pi.enrollmentdate DESC, psi.executiondate DESC" +
-                    "  LIMIT 1",
-                ColumnDataType.DATE, pJsonNodeWithPUidMap.get( uidPair ), false, false ) )
-            .collect( Collectors.toList() );
-    }
+        List<Element<SelectElementVisitor>> elements = SelectClauseComponentBuilder.builder().withTeiParams( teiParams )
+            .build();
 
-    private String getProgramUid( Pair<String, String> pUidWithPsUid )
-    {
-        return pUidWithPsUid.getRight();
-    }
+        final Element<SelectElementVisitor> columnList = new ColumnComponent( elements );
 
-    private String getProgramStageUid( Pair<String, String> pUidWithPsUid )
-    {
-        return pUidWithPsUid.getLeft();
-    }
+        List<Column> columns = new ArrayList<>();
 
-    private String getJsonNodeUid( Pair<String, String> pUidWithPsUid )
-    {
-        return pUidWithPsUid.getLeft();
-    }
+        SelectElementVisitor columnVisitor = new SelectClauseElementVisitor( columns );
 
+        columnList.accept( columnVisitor );
+
+        return columns;
+    }
 }
