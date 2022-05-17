@@ -52,6 +52,8 @@ import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionSetMandatoryField;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.rules.models.RuleEffects;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
@@ -88,6 +90,8 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
 
     private final static String ATTRIBUTE_ID = "AttributeId";
 
+    private final static String ATTRIBUTE_CODE = "AttributeCode";
+
     private final static String TEI_ID = "TeiId";
 
     private final static String DATA_ELEMENT_VALUE = "1.0";
@@ -101,6 +105,8 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
     private static DataElement dataElementA;
 
     private static DataElement dataElementB;
+
+    private TrackedEntityAttribute attribute;
 
     private SetMandatoryFieldValidator implementerToTest = new SetMandatoryFieldValidator();
 
@@ -125,6 +131,10 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
         ProgramStageDataElement programStageDataElementB = createProgramStageDataElement( secondProgramStage,
             dataElementB, 0 );
         secondProgramStage.setProgramStageDataElements( Sets.newHashSet( programStageDataElementB ) );
+
+        attribute = createTrackedEntityAttribute( 'A' );
+        attribute.setUid( ATTRIBUTE_ID );
+        attribute.setCode( ATTRIBUTE_CODE );
 
         bundle = TrackerBundle.builder().build();
         bundle.setRuleEffects( getRuleEventAndEnrollmentEffects() );
@@ -190,8 +200,25 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
     }
 
     @Test
+    void testValidateOkMandatoryFieldsForEnrollmentUsingIdSchemeCode()
+    {
+        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder()
+            .idScheme( TrackerIdSchemeParam.CODE )
+            .build();
+        when( preheat.getIdSchemes() ).thenReturn( idSchemes );
+        when( preheat.getTrackedEntityAttribute( ATTRIBUTE_ID ) ).thenReturn( attribute );
+        bundle.setEnrollments( Lists.newArrayList( getEnrollmentWithMandatoryAttributeSet( idSchemes ) ) );
+
+        Map<String, List<ProgramRuleIssue>> errors = implementerToTest.validateEnrollments( bundle );
+
+        assertTrue( errors.isEmpty() );
+    }
+
+    @Test
     void testValidateWithErrorMandatoryFieldsForEnrollments()
     {
+        when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
+        when( preheat.getTrackedEntityAttribute( ATTRIBUTE_ID ) ).thenReturn( attribute );
         bundle.setEnrollments( Lists.newArrayList( getEnrollmentWithMandatoryAttributeSet(),
             getEnrollmentWithMandatoryAttributeNOTSet() ) );
 
@@ -287,7 +314,7 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
     private Attribute getAttribute( TrackerIdSchemeParams idSchemes )
     {
         return Attribute.builder()
-            .attribute( idSchemes.getIdScheme().toMetadataIdentifier( ATTRIBUTE_ID ) )
+            .attribute( idSchemes.toMetadataIdentifier( attribute ) )
             .value( ATTRIBUTE_VALUE )
             .build();
     }
