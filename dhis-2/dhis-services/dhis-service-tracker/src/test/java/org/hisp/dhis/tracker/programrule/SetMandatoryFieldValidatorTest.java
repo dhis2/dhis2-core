@@ -52,8 +52,11 @@ import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionSetMandatoryField;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.rules.models.RuleEffects;
+<<<<<<< HEAD
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
+=======
+>>>>>>> 64beb29a4a (test: make test strict and fix testing wrong method)
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
@@ -132,10 +135,13 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
             dataElementB, 0 );
         secondProgramStage.setProgramStageDataElements( Sets.newHashSet( programStageDataElementB ) );
 
+<<<<<<< HEAD
         attribute = createTrackedEntityAttribute( 'A' );
         attribute.setUid( ATTRIBUTE_ID );
         attribute.setCode( ATTRIBUTE_CODE );
 
+=======
+>>>>>>> 64beb29a4a (test: make test strict and fix testing wrong method)
         bundle = TrackerBundle.builder().build();
         bundle.setRuleEffects( getRuleEventAndEnrollmentEffects() );
         bundle.setPreheat( preheat );
@@ -316,7 +322,11 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
     private Attribute getAttribute( TrackerIdSchemeParams idSchemes )
     {
         return Attribute.builder()
+<<<<<<< HEAD
             .attribute( idSchemes.toMetadataIdentifier( attribute ) )
+=======
+            .attribute( idSchemes.getIdScheme().toMetadataIdentifier( ATTRIBUTE_ID ) )
+>>>>>>> 64beb29a4a (test: make test strict and fix testing wrong method)
             .value( ATTRIBUTE_VALUE )
             .build();
     }
