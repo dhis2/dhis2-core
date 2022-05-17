@@ -51,7 +51,7 @@ jobs:
         if: github.event_name == 'pull_request'
         run: |
           mvn -f dhis-2/pom.xml clean install -Psonarqube -Pjdk11 -DskipTests
-          mvn -f dhis-2/pom.xml sonar:sonar -Dsonar.scm.revision=${{ github.event.pull_request.head.sha }} -Dsonar.projectKey=dhis2_dhis2-core -Dsonar.coverage.jacoco.xmlReportPaths=$(find "$(pwd)" -path '*jacoco.xml' | sed 's/.*/&/' | tr '\n' ',')
+          mvn -f dhis-2/pom.xml sonar:sonar -Dsonar.internal.analysis.dbd=false -Dsonar.scm.revision=${{ github.event.pull_request.head.sha }} -Dsonar.projectKey=dhis2_dhis2-core -Dsonar.coverage.jacoco.xmlReportPaths=$(find "$(pwd)" -path '*jacoco.xml' | sed 's/.*/&/' | tr '\n' ',')
 
       - name: Analyse long-living branch
         env:
@@ -60,4 +60,4 @@ jobs:
         if: github.event_name != 'pull_request'
         run: |
           mvn -f dhis-2/pom.xml clean install -Psonarqube -Pjdk11 -DskipTests
-          mvn -f dhis-2/pom.xml sonar:sonar -Dsonar.branch.name=${GITHUB_REF#refs/heads/} -Dsonar.projectKey=dhis2_dhis2-core -Dsonar.coverage.jacoco.xmlReportPaths=$(find "$(pwd)" -path '*jacoco.xml' | sed 's/.*/&/' | tr '\n' ',')
+          mvn -f dhis-2/pom.xml sonar:sonar -Dsonar.internal.analysis.dbd=false -Dsonar.branch.name=${GITHUB_REF#refs/heads/} -Dsonar.projectKey=dhis2_dhis2-core -Dsonar.coverage.jacoco.xmlReportPaths=$(find "$(pwd)" -path '*jacoco.xml' | sed 's/.*/&/' | tr '\n' ',')
