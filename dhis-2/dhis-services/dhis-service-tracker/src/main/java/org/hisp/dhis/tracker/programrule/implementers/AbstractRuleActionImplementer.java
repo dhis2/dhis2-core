@@ -44,14 +44,12 @@ import org.hisp.dhis.rules.models.AttributeType;
 import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionAttribute;
 import org.hisp.dhis.rules.models.RuleEffect;
-import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.programrule.EnrollmentActionRule;
 import org.hisp.dhis.tracker.programrule.EventActionRule;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
@@ -200,24 +198,14 @@ public abstract class AbstractRuleActionImplementer<T extends RuleAction>
                     List<Attribute> attributes = mergeAttributes( enrollment.getAttributes(),
                         payloadTeiAttributes );
 
-                    TrackerPreheat preheat = bundle.getPreheat();
-                    TrackerIdSchemeParams idSchemes = preheat.getIdSchemes();
-
                     List<EnrollmentActionRule> enrollmentActionRules = e.getValue()
                         .stream()
                         .filter( effect -> getActionClass().isAssignableFrom( effect.ruleAction().getClass() ) )
                         .filter( effect -> getAttributeType( effect.ruleAction() ) == UNKNOWN ||
                             getAttributeType( effect.ruleAction() ) == TRACKED_ENTITY_ATTRIBUTE )
-                        .filter(
-                            effect -> preheat.getTrackedEntityAttribute( getField( (T) effect.ruleAction() ) ) != null )
                         .map( effect -> new EnrollmentActionRule( effect.ruleId(),
                             enrollment.getEnrollment(), effect.data(),
-<<<<<<< HEAD
                             getField( (T) effect.ruleAction() ),
-=======
-                            idSchemes.toMetadataIdentifier(
-                                preheat.getTrackedEntityAttribute( getField( (T) effect.ruleAction() ) ) ),
->>>>>>> a5ddb4ee61 (fix: rule engine attribute identifiers are UIDs)
                             getAttributeType( effect.ruleAction() ),
                             getContent( (T) effect.ruleAction() ), attributes ) )
                         .collect( Collectors.toList() );
