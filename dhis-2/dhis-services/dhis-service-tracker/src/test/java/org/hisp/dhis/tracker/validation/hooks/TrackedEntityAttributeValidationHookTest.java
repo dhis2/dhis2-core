@@ -30,7 +30,6 @@ package org.hisp.dhis.tracker.validation.hooks;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
 
@@ -46,6 +45,7 @@ import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
@@ -92,6 +92,7 @@ class TrackedEntityAttributeValidationHookTest
         bundle = TrackerBundle.builder()
             .preheat( preheat )
             .build();
+        when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
         when( dhisConfigurationProvider.getEncryptionStatus() ).thenReturn( EncryptionStatus.OK );
     }
 
@@ -102,12 +103,13 @@ class TrackedEntityAttributeValidationHookTest
         trackedEntityAttribute.setUid( "uid" );
         trackedEntityAttribute.setValueType( ValueType.TEXT );
 
-        when( preheat.getTrackedEntityAttribute( anyString() ) ).thenReturn( trackedEntityAttribute );
+        when( preheat.getTrackedEntityAttribute( (MetadataIdentifier) any() ) ).thenReturn( trackedEntityAttribute );
         when( preheat.getTrackedEntityType( (MetadataIdentifier) any() ) ).thenReturn( new TrackedEntityType() );
 
         TrackedEntity trackedEntity = TrackedEntity.builder()
             .attributes(
-                Collections.singletonList( Attribute.builder().attribute( "uid" ).value( "value" ).build() ) )
+                Collections.singletonList(
+                    Attribute.builder().attribute( MetadataIdentifier.ofUid( "uid" ) ).value( "value" ).build() ) )
             .trackedEntityType( MetadataIdentifier.ofUid( "trackedEntityType" ) )
             .build();
 
@@ -138,15 +140,16 @@ class TrackedEntityAttributeValidationHookTest
 
         TrackedEntity trackedEntity = TrackedEntity.builder()
             .trackedEntityType( MetadataIdentifier.ofUid( tet ) )
-            .attributes( Arrays.asList( Attribute.builder().attribute( "a" ).value( "value" ).build(),
-                Attribute.builder().attribute( "b" ).value( "value" ).build() ) )
+            .attributes( Arrays.asList(
+                Attribute.builder().attribute( MetadataIdentifier.ofUid( "a" ) ).value( "value" ).build(),
+                Attribute.builder().attribute( MetadataIdentifier.ofUid( "b" ) ).value( "value" ).build() ) )
             .build();
 
         TrackedEntityAttribute contextAttribute = new TrackedEntityAttribute();
         contextAttribute.setUid( "uid" );
         contextAttribute.setValueType( ValueType.TEXT );
 
-        when( preheat.getTrackedEntityAttribute( anyString() ) ).thenReturn( contextAttribute );
+        when( preheat.getTrackedEntityAttribute( (MetadataIdentifier) any() ) ).thenReturn( contextAttribute );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
         trackedEntityAttributeValidationHook.validateTrackedEntity( reporter,
@@ -162,8 +165,8 @@ class TrackedEntityAttributeValidationHookTest
     void shouldFailValidationMissingTea()
     {
         TrackedEntity trackedEntity = TrackedEntity.builder()
-            .attributes( Arrays.asList( Attribute.builder().attribute( "aaaaa" ).build(),
-                Attribute.builder().attribute( "bbbbb" ).build() ) )
+            .attributes( Arrays.asList( Attribute.builder().attribute( MetadataIdentifier.ofUid( "aaaaa" ) ).build(),
+                Attribute.builder().attribute( MetadataIdentifier.ofUid( "bbbbb" ) ).build() ) )
             .trackedEntityType( MetadataIdentifier.ofUid( "tet" ) )
             .build();
 
@@ -186,7 +189,8 @@ class TrackedEntityAttributeValidationHookTest
         String tet = "tet";
 
         TrackedEntity trackedEntity = TrackedEntity.builder()
-            .attributes( Collections.singletonList( Attribute.builder().attribute( tea ).build() ) )
+            .attributes(
+                Collections.singletonList( Attribute.builder().attribute( MetadataIdentifier.ofUid( tea ) ).build() ) )
             .trackedEntityType( MetadataIdentifier.ofUid( tet ) )
             .build();
 
@@ -201,7 +205,8 @@ class TrackedEntityAttributeValidationHookTest
         trackedEntityType.setTrackedEntityTypeAttributes( Collections.singletonList( trackedEntityTypeAttribute ) );
 
         when( preheat.getTrackedEntityType( MetadataIdentifier.ofUid( tet ) ) ).thenReturn( trackedEntityType );
-        when( preheat.getTrackedEntityAttribute( tea ) ).thenReturn( trackedEntityAttribute );
+        when( preheat.getTrackedEntityAttribute( MetadataIdentifier.ofUid( tea ) ) )
+            .thenReturn( trackedEntityAttribute );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
         trackedEntityAttributeValidationHook.validateTrackedEntity( reporter,
@@ -267,7 +272,7 @@ class TrackedEntityAttributeValidationHookTest
         when( dhisConfigurationProvider.getProperty( any() ) ).thenReturn( "property" );
         when( trackedEntityAttribute.getValueType() ).thenReturn( ValueType.TEXT );
 
-        when( preheat.getTrackedEntityAttribute( anyString() ) ).thenReturn( trackedEntityAttribute );
+        when( preheat.getTrackedEntityAttribute( (MetadataIdentifier) any() ) ).thenReturn( trackedEntityAttribute );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
         TrackedEntity te = TrackedEntity.builder().trackedEntity( CodeGenerator.generateUid() ).build();
@@ -286,12 +291,13 @@ class TrackedEntityAttributeValidationHookTest
     {
         TrackedEntityAttribute trackedEntityAttribute = getTrackedEntityAttributeWithOptionSet();
 
-        when( preheat.getTrackedEntityAttribute( anyString() ) ).thenReturn( trackedEntityAttribute );
+        when( preheat.getTrackedEntityAttribute( (MetadataIdentifier) any() ) ).thenReturn( trackedEntityAttribute );
         when( preheat.getTrackedEntityType( (MetadataIdentifier) any() ) ).thenReturn( new TrackedEntityType() );
 
         TrackedEntity trackedEntity = TrackedEntity.builder()
             .attributes(
-                Collections.singletonList( Attribute.builder().attribute( "uid" ).value( "wrongCode" ).build() ) )
+                Collections.singletonList(
+                    Attribute.builder().attribute( MetadataIdentifier.ofUid( "uid" ) ).value( "wrongCode" ).build() ) )
             .trackedEntityType( MetadataIdentifier.ofUid( "trackedEntityType" ) )
             .build();
 
@@ -310,12 +316,13 @@ class TrackedEntityAttributeValidationHookTest
     {
         TrackedEntityAttribute trackedEntityAttribute = getTrackedEntityAttributeWithOptionSet();
 
-        when( preheat.getTrackedEntityAttribute( anyString() ) ).thenReturn( trackedEntityAttribute );
+        when( preheat.getTrackedEntityAttribute( (MetadataIdentifier) any() ) ).thenReturn( trackedEntityAttribute );
         when( preheat.getTrackedEntityType( (MetadataIdentifier) any() ) ).thenReturn( new TrackedEntityType() );
 
         TrackedEntity trackedEntity = TrackedEntity.builder()
             .attributes(
-                Collections.singletonList( Attribute.builder().attribute( "trackedEntity" ).value( "code" ).build() ) )
+                Collections.singletonList( Attribute.builder().attribute( MetadataIdentifier.ofUid( "trackedEntity" ) )
+                    .value( "code" ).build() ) )
             .trackedEntityType( MetadataIdentifier.ofUid( "trackedEntityType" ) )
             .build();
 
@@ -340,13 +347,14 @@ class TrackedEntityAttributeValidationHookTest
         TrackedEntityType trackedEntityType = new TrackedEntityType();
         trackedEntityType.setTrackedEntityTypeAttributes( Collections.singletonList( trackedEntityTypeAttribute ) );
 
-        when( preheat.getTrackedEntityAttribute( "trackedEntityAttribute" ) )
+        when( preheat.getTrackedEntityAttribute( MetadataIdentifier.ofUid( "trackedEntityAttribute" ) ) )
             .thenReturn( trackedEntityAttribute );
         when( preheat.getTrackedEntityType( (MetadataIdentifier) any() ) ).thenReturn( trackedEntityType );
 
         TrackedEntity trackedEntity = TrackedEntity.builder()
             .attributes(
-                Collections.singletonList( Attribute.builder().attribute( "trackedEntityAttribute" ).build() ) )
+                Collections.singletonList(
+                    Attribute.builder().attribute( MetadataIdentifier.ofUid( "trackedEntityAttribute" ) ).build() ) )
             .trackedEntityType( MetadataIdentifier.ofUid( "trackedEntityType" ) )
             .build();
 
@@ -363,7 +371,8 @@ class TrackedEntityAttributeValidationHookTest
     {
         TrackedEntity trackedEntity = TrackedEntity.builder()
             .attributes(
-                Collections.singletonList( Attribute.builder().attribute( "trackedEntityAttribute" ).build() ) )
+                Collections.singletonList(
+                    Attribute.builder().attribute( MetadataIdentifier.ofUid( "trackedEntityAttribute" ) ).build() ) )
             .trackedEntityType( MetadataIdentifier.ofUid( "trackedEntityType" ) )
             .build();
 
@@ -378,7 +387,7 @@ class TrackedEntityAttributeValidationHookTest
         TrackedEntityType trackedEntityType = new TrackedEntityType();
         trackedEntityType.setTrackedEntityTypeAttributes( Collections.singletonList( trackedEntityTypeAttribute ) );
 
-        when( preheat.getTrackedEntityAttribute( "trackedEntityAttribute" ) )
+        when( preheat.getTrackedEntityAttribute( MetadataIdentifier.ofUid( "trackedEntityAttribute" ) ) )
             .thenReturn( trackedEntityAttribute );
 
         when( preheat.getTrackedEntityType( (MetadataIdentifier) any() ) ).thenReturn( trackedEntityType );

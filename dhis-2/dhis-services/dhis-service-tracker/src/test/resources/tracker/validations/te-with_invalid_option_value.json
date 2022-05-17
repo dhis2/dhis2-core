@@ -47,7 +47,10 @@
       "relationships": [],
       "attributes": [
         {
-          "attribute": "cejWyOfXge6",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "cejWyOfXge6"
+          },
           "storedBy": "admin",
           "value": "Mle"
         }
@@ -70,7 +73,10 @@
       "relationships": [],
       "attributes": [
         {
-          "attribute": "cejWyOfXge6",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "cejWyOfXge6"
+          },
           "storedBy": "admin",
           "value": "Female"
         }

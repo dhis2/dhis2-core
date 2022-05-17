@@ -52,6 +52,8 @@ import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionSetMandatoryField;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.rules.models.RuleEffects;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.DataValue;
@@ -127,6 +129,7 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
         ProgramStageDataElement programStageDataElementB = createProgramStageDataElement( secondProgramStage,
             dataElementB, 0 );
         secondProgramStage.setProgramStageDataElements( Sets.newHashSet( programStageDataElementB ) );
+        when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
         when( preheat.getProgramStage( MetadataIdentifier.ofUid( firstProgramStage ) ) )
             .thenReturn( firstProgramStage );
         when( preheat.getProgramStage( MetadataIdentifier.ofUid( secondProgramStage ) ) )
@@ -183,6 +186,9 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
     {
         bundle.setEnrollments( Lists.newArrayList( getEnrollmentWithMandatoryAttributeSet(),
             getEnrollmentWithMandatoryAttributeNOTSet() ) );
+        TrackedEntityAttribute tea = new TrackedEntityAttribute();
+        tea.setUid( ATTRIBUTE_ID );
+        when( preheat.getTrackedEntityAttribute( ATTRIBUTE_ID ) ).thenReturn( tea );
         Map<String, List<ProgramRuleIssue>> errors = implementerToTest.validateEnrollments( bundle );
         assertFalse( errors.isEmpty() );
         List<ProgramRuleIssue> errorMessages = errors.values().stream().flatMap( Collection::stream )
@@ -234,29 +240,34 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
 
     private Enrollment getEnrollmentWithMandatoryAttributeSet()
     {
-        Enrollment enrollment = new Enrollment();
-        enrollment.setEnrollment( ACTIVE_ENROLLMENT_ID );
-        enrollment.setTrackedEntity( TEI_ID );
-        enrollment.setStatus( EnrollmentStatus.ACTIVE );
-        enrollment.setAttributes( getAttributes() );
-        return enrollment;
+        return Enrollment.builder()
+            .enrollment( ACTIVE_ENROLLMENT_ID )
+            .trackedEntity( TEI_ID )
+            .status( EnrollmentStatus.ACTIVE )
+            .attributes( getAttributes() )
+            .build();
     }
 
     private Enrollment getEnrollmentWithMandatoryAttributeNOTSet()
     {
-        Enrollment enrollment = new Enrollment();
-        enrollment.setEnrollment( COMPLETED_ENROLLMENT_ID );
-        enrollment.setTrackedEntity( TEI_ID );
-        enrollment.setStatus( EnrollmentStatus.COMPLETED );
-        return enrollment;
+        return Enrollment.builder()
+            .enrollment( COMPLETED_ENROLLMENT_ID )
+            .trackedEntity( TEI_ID )
+            .status( EnrollmentStatus.COMPLETED )
+            .build();
     }
 
     private List<Attribute> getAttributes()
     {
-        Attribute attribute = new Attribute();
-        attribute.setAttribute( ATTRIBUTE_ID );
-        attribute.setValue( ATTRIBUTE_VALUE );
-        return Lists.newArrayList( attribute );
+        return Lists.newArrayList( getAttribute() );
+    }
+
+    private Attribute getAttribute()
+    {
+        return Attribute.builder()
+            .attribute( MetadataIdentifier.ofUid( ATTRIBUTE_ID ) )
+            .value( ATTRIBUTE_VALUE )
+            .build();
     }
 
     private List<RuleEffects> getRuleEventAndEnrollmentEffects()

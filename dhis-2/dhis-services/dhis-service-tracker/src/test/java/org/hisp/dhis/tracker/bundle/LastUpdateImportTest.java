@@ -45,6 +45,7 @@ import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
@@ -90,9 +91,10 @@ class LastUpdateImportTest extends TrackerTest
     {
         TrackerImportParams trackerImportParams = fromJson( "tracker/single_tei.json", superuser.getUid() );
         trackerImportParams.setImportStrategy( TrackerImportStrategy.UPDATE );
-        Attribute attribute = new Attribute();
-        attribute.setAttribute( "toUpdate000" );
-        attribute.setValue( "value" );
+        Attribute attribute = Attribute.builder()
+            .attribute( MetadataIdentifier.ofUid( "toUpdate000" ) )
+            .value( "value" )
+            .build();
         trackedEntity.setAttributes( Collections.singletonList( attribute ) );
         Date lastUpdateBefore = trackedEntityInstanceService
             .getTrackedEntityInstance( trackedEntity.getTrackedEntity() ).getLastUpdated();

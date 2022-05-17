@@ -48,7 +48,10 @@
       "relationships": [],
       "attributes": [
         {
-          "attribute": "ccccc5ttttt",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "ccccc5ttttt"
+          },
           "displayName": "Attribute_Image",
           "storedBy": "admin",
           "value": "ABCD"

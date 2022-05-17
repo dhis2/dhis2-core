@@ -277,28 +277,28 @@ class MetadataIdentifierMapperTest
     }
 
     @Test
-    void trackedEntityTypeIdentifierFromUID()
+    void stringToIdentifierFromUID()
     {
 
         TrackerIdSchemeParams params = TrackerIdSchemeParams.builder()
             .idScheme( TrackerIdSchemeParam.UID )
             .build();
 
-        MetadataIdentifier id = MAPPER.fromTrackedEntityType( "RiNIt1yJoge", params );
+        MetadataIdentifier id = MAPPER.fromStringIdentifier( "RiNIt1yJoge", params );
 
         assertEquals( TrackerIdScheme.UID, id.getIdScheme() );
         assertEquals( "RiNIt1yJoge", id.getIdentifier() );
     }
 
     @Test
-    void trackedEntityTypeIdentifierFromAttribute()
+    void stringToIdentifierFromAttribute()
     {
 
         TrackerIdSchemeParams params = TrackerIdSchemeParams.builder()
             .idScheme( TrackerIdSchemeParam.ofAttribute( "RiNIt1yJoge" ) )
             .build();
 
-        MetadataIdentifier id = MAPPER.fromTrackedEntityType( "clouds", params );
+        MetadataIdentifier id = MAPPER.fromStringIdentifier( "clouds", params );
 
         assertEquals( TrackerIdScheme.ATTRIBUTE, id.getIdScheme() );
         assertEquals( "RiNIt1yJoge", id.getIdentifier() );
@@ -306,14 +306,14 @@ class MetadataIdentifierMapperTest
     }
 
     @Test
-    void trackedEntityTypeIdentifierFromUIDIfNull()
+    void stringToIdentifierFromUIDIfNull()
     {
 
         TrackerIdSchemeParams params = TrackerIdSchemeParams.builder()
             .idScheme( TrackerIdSchemeParam.UID )
             .build();
 
-        MetadataIdentifier id = MAPPER.fromTrackedEntityType( null, params );
+        MetadataIdentifier id = MAPPER.fromStringIdentifier( null, params );
 
         assertEquals( TrackerIdScheme.UID, id.getIdScheme() );
         assertNull( id.getIdentifier() );

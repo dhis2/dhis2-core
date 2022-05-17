@@ -37,6 +37,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.rules.models.AttributeType;
 import org.hisp.dhis.tracker.domain.Attribute;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 
 @Getter
 @RequiredArgsConstructor
@@ -50,7 +51,7 @@ public class EnrollmentActionRule
 
     private final String data;
 
-    private final String field;
+    private final MetadataIdentifier field;
 
     private final AttributeType attributeType;
 
@@ -88,5 +89,15 @@ public class EnrollmentActionRule
 
         return Optional.empty();
 
+    }
+
+    public String getField()
+    {
+        return this.field.getIdentifierOrAttributeValue();
+    }
+
+    public MetadataIdentifier getFieldMetadataIdentifier()
+    {
+        return this.field;
     }
 }

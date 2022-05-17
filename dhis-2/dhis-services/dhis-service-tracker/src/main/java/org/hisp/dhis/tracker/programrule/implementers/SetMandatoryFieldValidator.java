@@ -43,6 +43,7 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.programrule.*;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.springframework.stereotype.Component;
@@ -94,15 +95,15 @@ public class SetMandatoryFieldValidator
     {
         return effects.stream()
             .map( action -> {
-                String attributeUid = action.getField();
+                MetadataIdentifier attributeId = action.getFieldMetadataIdentifier();
                 Optional<Attribute> any = enrollment.getAttributes().stream()
-                    .filter( attribute -> attribute.getAttribute().equals( attributeUid ) )
+                    .filter( attribute -> attribute.getAttribute().equals( attributeId ) )
                     .findAny();
                 if ( !any.isPresent() || StringUtils.isEmpty( any.get().getValue() ) )
                 {
                     return new ProgramRuleIssue( action.getRuleUid(),
                         TrackerErrorCode.E1306,
-                        Lists.newArrayList( attributeUid ), IssueType.ERROR );
+                        Lists.newArrayList( attributeId.getIdentifierOrAttributeValue() ), IssueType.ERROR );
                 }
                 else
                 {
