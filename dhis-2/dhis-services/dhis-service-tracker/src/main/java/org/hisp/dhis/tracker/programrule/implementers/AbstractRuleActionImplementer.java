@@ -32,7 +32,11 @@ import static org.hisp.dhis.rules.models.AttributeType.TRACKED_ENTITY_ATTRIBUTE;
 import static org.hisp.dhis.rules.models.AttributeType.UNKNOWN;
 import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.needsToValidateDataValues;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.program.ProgramStage;
@@ -40,12 +44,12 @@ import org.hisp.dhis.rules.models.AttributeType;
 import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionAttribute;
 import org.hisp.dhis.rules.models.RuleEffect;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.programrule.EnrollmentActionRule;
 import org.hisp.dhis.tracker.programrule.EventActionRule;
@@ -56,7 +60,7 @@ import com.google.common.collect.Maps;
 
 // TODO: Verify if we can remove checks on ProgramStage when Program Rule
 // validation is in place
-abstract public class AbstractRuleActionImplementer<T extends RuleAction>
+public abstract class AbstractRuleActionImplementer<T extends RuleAction>
 {
     /**
      * @return the class of the action that the implementer work with
@@ -187,14 +191,13 @@ abstract public class AbstractRuleActionImplementer<T extends RuleAction>
             .collect( Collectors.toMap( Map.Entry::getKey,
                 e -> {
                     Enrollment enrollment = getEnrollment( bundle, e.getKey() ).get();
-                    TrackedEntityInstance tei = bundle.getPreheat()
-                        .getTrackedEntity( enrollment.getTrackedEntity() );
 
                     List<Attribute> payloadTeiAttributes = getTrackedEntity( bundle, enrollment.getTrackedEntity() )
                         .map( te -> te.getAttributes() )
                         .orElse( Collections.emptyList() );
 
-                    List<Attribute> attributes = mergeAttributes( enrollment.getAttributes(), payloadTeiAttributes );
+                    List<Attribute> attributes = mergeAttributes( enrollment.getAttributes(),
+                        payloadTeiAttributes );
 
                     List<EnrollmentActionRule> enrollmentActionRules = e.getValue()
                         .stream()
@@ -203,25 +206,18 @@ abstract public class AbstractRuleActionImplementer<T extends RuleAction>
                             getAttributeType( effect.ruleAction() ) == TRACKED_ENTITY_ATTRIBUTE )
                         .map( effect -> new EnrollmentActionRule( effect.ruleId(),
                             enrollment.getEnrollment(), effect.data(),
-                            getField( (T) effect.ruleAction() ), getAttributeType( effect.ruleAction() ),
+                            MetadataIdentifier.ofUid( getField( (T) effect.ruleAction() ) ),
+                            getAttributeType( effect.ruleAction() ),
                             getContent( (T) effect.ruleAction() ), attributes ) )
                         .collect( Collectors.toList() );
                     return enrollmentActionRules;
                 } ) );
     }
 
-    private List<Attribute> mergeAttributes(
-        List<Attribute> enrollmentAttributes, List<Attribute> attributes )
+    private List<Attribute> mergeAttributes( List<Attribute> enrollmentAttributes, List<Attribute> attributes )
     {
 
-        List<String> payloadAttributes = attributes.stream()
-            .map( Attribute::getAttribute )
-            .collect( Collectors.toList() );
-        payloadAttributes
-            .addAll( enrollmentAttributes.stream().map( Attribute::getAttribute ).collect( Collectors.toList() ) );
-
         List<Attribute> mergedAttributes = Lists.newArrayList();
-
         mergedAttributes.addAll( attributes );
         mergedAttributes.addAll( enrollmentAttributes );
         return mergedAttributes;

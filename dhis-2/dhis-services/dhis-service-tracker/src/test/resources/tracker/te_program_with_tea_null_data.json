@@ -48,20 +48,29 @@
       "relationships": [],
       "attributes": [
         {
-          "attribute": "sTGqP5JNy6E",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "sTGqP5JNy6E"
+          },
           "displayName": "Attribute_Date",
           "storedBy": "admin",
           "valueType": "DATE"
         },
         {
-          "attribute": "TsfP85GKsU5",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "TsfP85GKsU5"
+          },
           "displayName": "Attribute_Text",
           "storedBy": "admin",
           "valueType": "TEXT",
           "value": "TEXT1"
         },
         {
-          "attribute": "sYn3tkL3XKa",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "sYn3tkL3XKa"
+          },
           "displayName": "Attribute_Integer",
           "storedBy": "admin",
           "valueType": "INTEGER",
