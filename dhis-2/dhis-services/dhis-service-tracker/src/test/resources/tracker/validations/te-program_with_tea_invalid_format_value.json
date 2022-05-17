@@ -48,7 +48,10 @@
       "relationships": [],
       "attributes": [
         {
-          "attribute": "p5TPww5Uhrd",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "p5TPww5Uhrd"
+          },
           "displayName": "Attribute_Identifier_Integer",
           "storedBy": "admin",
           "value": "ABCD"

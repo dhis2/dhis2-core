@@ -48,7 +48,7 @@ public class UniqueAttributeValue
 
     private String teiUid;
 
-    private String attributeUid;
+    private MetadataIdentifier attribute;
 
     private String value;
 

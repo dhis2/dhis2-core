@@ -43,9 +43,11 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.DataValue;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.springframework.stereotype.Component;
 
@@ -72,9 +74,10 @@ public class OrgUnitValueTypeSupplier extends AbstractPreheatSupplier
 
         List<TrackedEntityAttribute> attributes = preheat.getAll( TrackedEntityAttribute.class );
 
-        List<String> orgUnitAttributes = attributes.stream()
+        TrackerIdSchemeParams idSchemes = preheat.getIdSchemes();
+        List<MetadataIdentifier> orgUnitAttributes = attributes.stream()
             .filter( at -> at.getValueType() == ValueType.ORGANISATION_UNIT )
-            .map( BaseIdentifiableObject::getUid )
+            .map( idSchemes::toMetadataIdentifier )
             .collect( Collectors.toList() );
 
         List<String> orgUnitIds = new ArrayList<>();
@@ -89,7 +92,7 @@ public class OrgUnitValueTypeSupplier extends AbstractPreheatSupplier
         preheat.put( TrackerIdSchemeParam.UID, manager.getByUid( OrganisationUnit.class, orgUnitIds ) );
     }
 
-    private void collectResourceIds( List<String> orgUnitAttributes, List<String> orgUnitIds,
+    private void collectResourceIds( List<MetadataIdentifier> orgUnitAttributes, List<String> orgUnitIds,
         List<Attribute> attributes )
     {
         attributes.forEach( at -> {

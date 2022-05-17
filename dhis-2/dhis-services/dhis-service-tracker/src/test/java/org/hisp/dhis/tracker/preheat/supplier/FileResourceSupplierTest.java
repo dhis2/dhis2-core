@@ -44,6 +44,7 @@ import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.junit.jupiter.api.BeforeEach;
@@ -149,7 +150,7 @@ class FileResourceSupplierTest extends DhisConvenienceTest
     private TrackedEntity getTrackedEntity()
     {
         Attribute attribute = new Attribute();
-        attribute.setAttribute( NUMERIC_ATTRIBUTE_UID );
+        attribute.setAttribute( MetadataIdentifier.ofUid( NUMERIC_ATTRIBUTE_UID ) );
         attribute.setValueType( ValueType.NUMBER );
 
         TrackedEntity trackedEntity = new TrackedEntity();
@@ -161,7 +162,7 @@ class FileResourceSupplierTest extends DhisConvenienceTest
     private Enrollment getEnrollment()
     {
         Attribute attribute = new Attribute();
-        attribute.setAttribute( FILE_RESOURCE_ATTRIBUTE_UID );
+        attribute.setAttribute( MetadataIdentifier.ofUid( FILE_RESOURCE_ATTRIBUTE_UID ) );
         attribute.setValueType( ValueType.FILE_RESOURCE );
         attribute.setValue( ANOTHER_FILE_RESOURCE_UID );
 
