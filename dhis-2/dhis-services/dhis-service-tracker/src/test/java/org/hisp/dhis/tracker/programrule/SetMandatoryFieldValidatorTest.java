@@ -192,6 +192,8 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
     @Test
     void testValidateOkMandatoryFieldsForEnrollment()
     {
+        when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
+        when( preheat.getTrackedEntityAttribute( ATTRIBUTE_ID ) ).thenReturn( attribute );
         bundle.setEnrollments( Lists.newArrayList( getEnrollmentWithMandatoryAttributeSet() ) );
 
         Map<String, List<ProgramRuleIssue>> errors = implementerToTest.validateEnrollments( bundle );
