@@ -116,7 +116,7 @@ public class CommonLineListingMapper
                         items,
                         request.getRelativePeriodDate(),
                         userOrgUnits,
-                        i18nFormat, true, false,
+                        i18nFormat, true,
                         IdScheme.UID );
 
                     if ( dimensionalObject != null )
