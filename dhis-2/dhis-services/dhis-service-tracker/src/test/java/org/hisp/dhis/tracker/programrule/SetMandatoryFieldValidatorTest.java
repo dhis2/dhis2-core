@@ -52,7 +52,6 @@ import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionSetMandatoryField;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.rules.models.RuleEffects;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
@@ -69,13 +68,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
-@MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
 class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
 {
@@ -129,11 +125,7 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
         ProgramStageDataElement programStageDataElementB = createProgramStageDataElement( secondProgramStage,
             dataElementB, 0 );
         secondProgramStage.setProgramStageDataElements( Sets.newHashSet( programStageDataElementB ) );
-        when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
-        when( preheat.getProgramStage( MetadataIdentifier.ofUid( firstProgramStage ) ) )
-            .thenReturn( firstProgramStage );
-        when( preheat.getProgramStage( MetadataIdentifier.ofUid( secondProgramStage ) ) )
-            .thenReturn( secondProgramStage );
+
         bundle = TrackerBundle.builder().build();
         bundle.setRuleEffects( getRuleEventAndEnrollmentEffects() );
         bundle.setPreheat( preheat );
@@ -142,16 +134,24 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
     @Test
     void testValidateOkMandatoryFieldsForEvents()
     {
+        when( preheat.getProgramStage( MetadataIdentifier.ofUid( firstProgramStage ) ) )
+            .thenReturn( firstProgramStage );
         bundle.setEvents( Lists.newArrayList( getEventWithMandatoryValueSet() ) );
+
         Map<String, List<ProgramRuleIssue>> errors = implementerToTest.validateEvents( bundle );
+
         assertTrue( errors.isEmpty() );
     }
 
     @Test
     void testValidateWithErrorMandatoryFieldsForEvents()
     {
+        when( preheat.getProgramStage( MetadataIdentifier.ofUid( firstProgramStage ) ) )
+            .thenReturn( firstProgramStage );
         bundle.setEvents( Lists.newArrayList( getEventWithMandatoryValueSet(), getEventWithMandatoryValueNOTSet() ) );
+
         Map<String, List<ProgramRuleIssue>> errors = implementerToTest.validateEvents( bundle );
+
         assertFalse( errors.isEmpty() );
         List<ProgramRuleIssue> errorMessages = errors.values().stream().flatMap( Collection::stream )
             .collect( Collectors.toList() );
@@ -167,9 +167,15 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
     @Test
     void testValidateOkMandatoryFieldsForValidEventAndNotValidEventInDifferentProgramStage()
     {
+        when( preheat.getProgramStage( MetadataIdentifier.ofUid( firstProgramStage ) ) )
+            .thenReturn( firstProgramStage );
+        when( preheat.getProgramStage( MetadataIdentifier.ofUid( secondProgramStage ) ) )
+            .thenReturn( secondProgramStage );
         bundle.setEvents( Lists.newArrayList( getEventWithMandatoryValueSet(),
             getEventWithMandatoryValueNOTSetInDifferentProgramStage() ) );
+
         Map<String, List<ProgramRuleIssue>> errors = implementerToTest.validateEvents( bundle );
+
         assertTrue( errors.isEmpty() );
     }
 
@@ -177,7 +183,9 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
     void testValidateOkMandatoryFieldsForEnrollment()
     {
         bundle.setEnrollments( Lists.newArrayList( getEnrollmentWithMandatoryAttributeSet() ) );
-        Map<String, List<ProgramRuleIssue>> errors = implementerToTest.validateEvents( bundle );
+
+        Map<String, List<ProgramRuleIssue>> errors = implementerToTest.validateEnrollments( bundle );
+
         assertTrue( errors.isEmpty() );
     }
 
@@ -186,10 +194,9 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
     {
         bundle.setEnrollments( Lists.newArrayList( getEnrollmentWithMandatoryAttributeSet(),
             getEnrollmentWithMandatoryAttributeNOTSet() ) );
-        TrackedEntityAttribute tea = new TrackedEntityAttribute();
-        tea.setUid( ATTRIBUTE_ID );
-        when( preheat.getTrackedEntityAttribute( ATTRIBUTE_ID ) ).thenReturn( tea );
+
         Map<String, List<ProgramRuleIssue>> errors = implementerToTest.validateEnrollments( bundle );
+
         assertFalse( errors.isEmpty() );
         List<ProgramRuleIssue> errorMessages = errors.values().stream().flatMap( Collection::stream )
             .collect( Collectors.toList() );
@@ -238,6 +245,16 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
         return Sets.newHashSet( dataValue );
     }
 
+    private Enrollment getEnrollmentWithMandatoryAttributeSet( TrackerIdSchemeParams idSchemes )
+    {
+        return Enrollment.builder()
+            .enrollment( ACTIVE_ENROLLMENT_ID )
+            .trackedEntity( TEI_ID )
+            .status( EnrollmentStatus.ACTIVE )
+            .attributes( getAttributes( idSchemes ) )
+            .build();
+    }
+
     private Enrollment getEnrollmentWithMandatoryAttributeSet()
     {
         return Enrollment.builder()
@@ -257,9 +274,22 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
             .build();
     }
 
+    private List<Attribute> getAttributes( TrackerIdSchemeParams idSchemes )
+    {
+        return Lists.newArrayList( getAttribute( idSchemes ) );
+    }
+
     private List<Attribute> getAttributes()
     {
         return Lists.newArrayList( getAttribute() );
+    }
+
+    private Attribute getAttribute( TrackerIdSchemeParams idSchemes )
+    {
+        return Attribute.builder()
+            .attribute( idSchemes.getIdScheme().toMetadataIdentifier( ATTRIBUTE_ID ) )
+            .value( ATTRIBUTE_VALUE )
+            .build();
     }
 
     private Attribute getAttribute()
