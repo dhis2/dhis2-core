@@ -71,7 +71,7 @@
     <dhis-json-tree.version>0.3.0</dhis-json-tree.version>
 
     <!-- Security -->
-    <spring-security.version>5.6.3</spring-security.version>
+    <spring-security.version>5.7.0</spring-security.version>
     <spring-security-oauth2.version>2.5.2.RELEASE</spring-security-oauth2.version>
     <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
