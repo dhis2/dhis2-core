@@ -25,46 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.json.domain;
+package org.hisp.dhis.dxf2.geojson;
 
-import org.hisp.dhis.jsontree.JsonList;
-import org.hisp.dhis.jsontree.JsonObject;
+import java.io.InputStream;
 
 /**
- * Web API equivalent of an {@code ImportSummary}.
  *
  * @author Jan Bernitt
  */
-public interface JsonImportSummary extends JsonObject
+public interface GeoJsonService
 {
-    default String getResponseType()
-    {
-        return getString( "responseType" ).string();
-    }
-
-    default String getStatus()
-    {
-        return getString( "status" ).string();
-    }
-
-    default JsonStats getStats()
-    {
-        return get( "stats", JsonStats.class );
-    }
-
-    default JsonList<JsonTypeReport> getTypeReports()
-    {
-        return getList( "typeReports", JsonTypeReport.class );
-    }
-
-    default JsonImportCount getImportCount()
-    {
-        return get( "importCount", JsonImportCount.class );
-    }
-
-    default JsonList<JsonImportConflict> getConflicts()
-    {
-        return getList( "conflicts", JsonImportConflict.class );
-    }
-
+    GeoJsonImportReport importGeoData( GeoJsonImportParams params, InputStream geoJsonData );
 }

@@ -58,6 +58,9 @@ public class TestUtils
     public static final MediaType APPLICATION_JSON_PATCH_UTF8 = new MediaType( "application", "json-patch+json",
         StandardCharsets.UTF_8 );
 
+    public static final MediaType APPLICATION_GEO_JSON_UTF8 = new MediaType( "application", "geo+json",
+        StandardCharsets.UTF_8 );
+
     public static byte[] convertObjectToJsonBytes( Object object )
         throws IOException
     {

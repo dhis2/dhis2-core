@@ -27,44 +27,49 @@
  */
 package org.hisp.dhis.webapi.json.domain;
 
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.jsontree.Expected;
 import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonMap;
+import org.hisp.dhis.jsontree.JsonNumber;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.JsonString;
 
 /**
- * Web API equivalent of an {@code ImportSummary}.
+ * Web API equivalent of an {@code ImportConflict}.
  *
  * @author Jan Bernitt
  */
-public interface JsonImportSummary extends JsonObject
+public interface JsonImportConflict extends JsonObject
 {
-    default String getResponseType()
+    default String getObject()
     {
-        return getString( "responseType" ).string();
+        return getString( "object" ).string();
     }
 
-    default String getStatus()
+    default JsonMap<JsonString> getObjects()
     {
-        return getString( "status" ).string();
+        return getMap( "objects", JsonString.class );
     }
 
-    default JsonStats getStats()
+    @Expected
+    default String getValue()
     {
-        return get( "stats", JsonStats.class );
+        return getString( "value" ).string();
     }
 
-    default JsonList<JsonTypeReport> getTypeReports()
+    default ErrorCode getErrorCode()
     {
-        return getList( "typeReports", JsonTypeReport.class );
+        return getString( "errorCode" ).parsed( ErrorCode::valueOf );
     }
 
-    default JsonImportCount getImportCount()
+    default String getProperty()
     {
-        return get( "importCount", JsonImportCount.class );
+        return getString( "property" ).string();
     }
 
-    default JsonList<JsonImportConflict> getConflicts()
+    default JsonList<JsonNumber> getIndexes()
     {
-        return getList( "conflicts", JsonImportConflict.class );
+        return getList( "indexes", JsonNumber.class );
     }
-
 }

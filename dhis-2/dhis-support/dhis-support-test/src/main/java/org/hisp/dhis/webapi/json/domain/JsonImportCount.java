@@ -27,44 +27,32 @@
  */
 package org.hisp.dhis.webapi.json.domain;
 
-import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 
 /**
- * Web API equivalent of an {@code ImportSummary}.
+ * Web API equivalent of an {@code ImportCount}.
  *
  * @author Jan Bernitt
  */
-public interface JsonImportSummary extends JsonObject
+public interface JsonImportCount extends JsonObject
 {
-    default String getResponseType()
+    default int getImported()
     {
-        return getString( "responseType" ).string();
+        return getNumber( "imported" ).intValue();
     }
 
-    default String getStatus()
+    default int getUpdated()
     {
-        return getString( "status" ).string();
+        return getNumber( "updated" ).intValue();
     }
 
-    default JsonStats getStats()
+    default int getIgnored()
     {
-        return get( "stats", JsonStats.class );
+        return getNumber( "ignored" ).intValue();
     }
 
-    default JsonList<JsonTypeReport> getTypeReports()
+    default int getDeleted()
     {
-        return getList( "typeReports", JsonTypeReport.class );
+        return getNumber( "deleted" ).intValue();
     }
-
-    default JsonImportCount getImportCount()
-    {
-        return get( "importCount", JsonImportCount.class );
-    }
-
-    default JsonList<JsonImportConflict> getConflicts()
-    {
-        return getList( "conflicts", JsonImportConflict.class );
-    }
-
 }

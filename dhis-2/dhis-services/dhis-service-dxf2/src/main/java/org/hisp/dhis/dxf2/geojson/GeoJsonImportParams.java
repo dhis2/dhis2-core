@@ -25,46 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.json.domain;
+package org.hisp.dhis.dxf2.geojson;
 
-import org.hisp.dhis.jsontree.JsonList;
-import org.hisp.dhis.jsontree.JsonObject;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
 
-/**
- * Web API equivalent of an {@code ImportSummary}.
- *
- * @author Jan Bernitt
- */
-public interface JsonImportSummary extends JsonObject
+import org.hisp.dhis.common.IdentifiableProperty;
+
+@Builder
+@Getter
+@AllArgsConstructor( access = AccessLevel.PRIVATE )
+public class GeoJsonImportParams
 {
-    default String getResponseType()
-    {
-        return getString( "responseType" ).string();
-    }
+    /**
+     * If true the import is validated and processed without actually modifying
+     * any organisation unit or storing geo-json data.
+     */
+    private final boolean dryRun;
 
-    default String getStatus()
-    {
-        return getString( "status" ).string();
-    }
+    private final String orgUnitIdProperty;
 
-    default JsonStats getStats()
-    {
-        return get( "stats", JsonStats.class );
-    }
+    private final IdentifiableProperty idType;
 
-    default JsonList<JsonTypeReport> getTypeReports()
-    {
-        return getList( "typeReports", JsonTypeReport.class );
-    }
-
-    default JsonImportCount getImportCount()
-    {
-        return get( "importCount", JsonImportCount.class );
-    }
-
-    default JsonList<JsonImportConflict> getConflicts()
-    {
-        return getList( "conflicts", JsonImportConflict.class );
-    }
-
+    /**
+     * Optional UID that refers to an {@link org.hisp.dhis.attribute.Attribute}
+     * for which the geometry is stored.
+     */
+    private final String attributeId;
 }

@@ -69,8 +69,17 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 @JacksonXmlRootElement( localName = "conflict", namespace = DxfNamespaces.DXF_2_0 )
 public final class ImportConflict
 {
-
     private static final String KEY_DELIMITER = ":";
+
+    public static ImportConflict createConflict( ImportConflictDescriptor descriptor, String... objects )
+    {
+        return createConflict( -1, descriptor, objects );
+    }
+
+    public static ImportConflict createConflict( int index, ImportConflictDescriptor descriptor, String... objects )
+    {
+        return createConflict( null, Class::getSimpleName, index, descriptor, objects );
+    }
 
     public static ImportConflict createConflict( I18n i18n,
         Function<Class<? extends IdentifiableObject>, String> singularNameForType,
@@ -83,7 +92,7 @@ public final class ImportConflict
         {
             Class<?> objectType = objectTypes[i];
             String object = objects[i];
-            if ( objectType == I18n.class )
+            if ( objectType == I18n.class && i18n != null )
             {
                 if ( property != null )
                 {
