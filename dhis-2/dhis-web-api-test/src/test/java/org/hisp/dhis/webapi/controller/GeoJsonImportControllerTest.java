@@ -72,7 +72,7 @@ class GeoJsonImportControllerTest extends DhisControllerConvenienceTest
     @Test
     void testPostImport_NameAsIdentifier()
     {
-        Map<Integer, String> ouUids = postNewOrganisationUnits( IntStream.range( 0, 7 ) );
+        Map<Integer, String> ouIds = postNewOrganisationUnits( IntStream.range( 0, 7 ) );
 
         JsonWebMessage msg = assertWebMessage( "OK", 200, "OK", "Import partially successful.",
             POST( "/organisationUnits/geometry?geoJsonId=false&geoJsonProperty=name&orgUnitProperty=name",
@@ -80,14 +80,14 @@ class GeoJsonImportControllerTest extends DhisControllerConvenienceTest
 
         assertImportedAndIgnored( msg, 7, 8 );
         assertReportError( msg, ErrorCode.E7708, List.of( 7, 8, 9, 10, 11, 12, 13, 14 ) );
-        assertGeometryIsSet( ouUids, List.of( 0, 1, 2, 3, 4, 5, 6 ) );
+        assertGeometryIsSet( ouIds, List.of( 0, 1, 2, 3, 4, 5, 6 ) );
     }
 
     @Test
     void testPostImport_NameAsIdentifier_Attribute()
     {
         String attrId = postNewGeoJsonAttribute();
-        Map<Integer, String> ouUids = postNewOrganisationUnits( IntStream.range( 0, 7 ) );
+        Map<Integer, String> ouIds = postNewOrganisationUnits( IntStream.range( 0, 7 ) );
 
         JsonWebMessage msg = assertWebMessage( "OK", 200, "OK", "Import partially successful.",
             POST(
@@ -97,13 +97,13 @@ class GeoJsonImportControllerTest extends DhisControllerConvenienceTest
 
         assertImportedAndIgnored( msg, 7, 8 );
         assertReportError( msg, ErrorCode.E7708, List.of( 7, 8, 9, 10, 11, 12, 13, 14 ) );
-        assertGeometryAttributeIsSet( attrId, ouUids, List.of( 0, 1, 2, 3, 4, 5, 6 ) );
+        assertGeometryAttributeIsSet( attrId, ouIds, List.of( 0, 1, 2, 3, 4, 5, 6 ) );
     }
 
     @Test
     void testPostImport_IdAsIdentifier()
     {
-        Map<Integer, String> ouUids = postNewOrganisationUnits( IntStream.of( 1, 3, 5, 7, 9, 11, 13 ) );
+        Map<Integer, String> ouIds = postNewOrganisationUnits( IntStream.of( 1, 3, 5, 7, 9, 11, 13 ) );
 
         JsonWebMessage msg = assertWebMessage( "OK", 200, "OK", "Import partially successful.",
             POST( "/organisationUnits/geometry", "geo-json/sierra-leone-districts.geojson" ).content() );
@@ -111,14 +111,14 @@ class GeoJsonImportControllerTest extends DhisControllerConvenienceTest
         assertImportedAndIgnored( msg, 4, 11 );
         assertReportError( msg, ErrorCode.E7708, List.of( 0, 2, 4, 6, 8, 10, 12, 14 ) );
         assertReportError( msg, ErrorCode.E7707, List.of( 9, 11, 13 ) );
-        assertGeometryIsSet( ouUids, List.of( 1, 3, 5, 7 ) );
+        assertGeometryIsSet( ouIds, List.of( 1, 3, 5, 7 ) );
     }
 
     @Test
     void testPostImport_IdAsIdentifier_Attribute()
     {
         String attrId = postNewGeoJsonAttribute();
-        Map<Integer, String> ouUids = postNewOrganisationUnits( IntStream.of( 1, 3, 5, 7, 9, 11, 13 ) );
+        Map<Integer, String> ouIds = postNewOrganisationUnits( IntStream.of( 1, 3, 5, 7, 9, 11, 13 ) );
 
         JsonWebMessage msg = assertWebMessage( "OK", 200, "OK", "Import partially successful.",
             POST( "/organisationUnits/geometry?attributeId=" + attrId, "geo-json/sierra-leone-districts.geojson" )
@@ -126,13 +126,13 @@ class GeoJsonImportControllerTest extends DhisControllerConvenienceTest
 
         assertImportedAndIgnored( msg, 7, 8 );
         assertReportError( msg, ErrorCode.E7708, List.of( 0, 2, 4, 6, 8, 10, 12, 14 ) );
-        assertGeometryAttributeIsSet( attrId, ouUids, List.of( 1, 3, 5, 7, 9, 11, 13 ) );
+        assertGeometryAttributeIsSet( attrId, ouIds, List.of( 1, 3, 5, 7, 9, 11, 13 ) );
     }
 
     @Test
     void testPostImport_CodeAsIdentifier()
     {
-        Map<Integer, String> ouUids = postNewOrganisationUnits( IntStream.range( 3, 14 ) );
+        Map<Integer, String> ouIds = postNewOrganisationUnits( IntStream.range( 3, 14 ) );
 
         JsonWebMessage msg = assertWebMessage( "OK", 200, "OK", "Import partially successful.",
             POST( "/organisationUnits/geometry?geoJsonId=false&geoJsonProperty=code&orgUnitProperty=code",
@@ -141,14 +141,14 @@ class GeoJsonImportControllerTest extends DhisControllerConvenienceTest
         assertImportedAndIgnored( msg, 6, 9 );
         assertReportError( msg, ErrorCode.E7708, List.of( 0, 1, 2, 14 ) );
         assertReportError( msg, ErrorCode.E7707, List.of( 8, 9, 11, 12, 13 ) );
-        assertGeometryIsSet( ouUids, List.of( 3, 4, 5, 6, 7, 10 ) );
+        assertGeometryIsSet( ouIds, List.of( 3, 4, 5, 6, 7, 10 ) );
     }
 
     @Test
     void testPostImport_CodeAsIdentifier_Attribute()
     {
         String attrId = postNewGeoJsonAttribute();
-        Map<Integer, String> ouUids = postNewOrganisationUnits( IntStream.range( 3, 14 ) );
+        Map<Integer, String> ouIds = postNewOrganisationUnits( IntStream.range( 3, 14 ) );
 
         JsonWebMessage msg = assertWebMessage( "OK", 200, "OK", "Import partially successful.",
             POST(
@@ -158,7 +158,7 @@ class GeoJsonImportControllerTest extends DhisControllerConvenienceTest
 
         assertImportedAndIgnored( msg, 11, 4 );
         assertReportError( msg, ErrorCode.E7708, List.of( 0, 1, 2, 14 ) );
-        assertGeometryAttributeIsSet( attrId, ouUids, List.of( 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 ) );
+        assertGeometryAttributeIsSet( attrId, ouIds, List.of( 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 ) );
     }
 
     @Test
@@ -242,6 +242,37 @@ class GeoJsonImportControllerTest extends DhisControllerConvenienceTest
         assertReportError( msg, ErrorCode.E7708, List.of( 0 ) );
     }
 
+    @Test
+    void testPostImportSingle()
+    {
+        Map<Integer, String> ouIds = postNewOrganisationUnits( IntStream.of( 0 ) );
+        String ouId = ouIds.values().iterator().next();
+
+        JsonWebMessage msg = assertWebMessage( "OK", 200, "OK", "Import successful.",
+            POST( "/organisationUnits/" + ouId + "/geometry",
+                "{'type':'MultiPolygon', 'coordinates': [ [ [ [ 1,1 ], [ 2,2 ], [ 1,3 ], [1,1] ] ] ] }" )
+                    .content( HttpStatus.OK ) );
+
+        assertImportedAndIgnored( msg, 1, 0 );
+        assertGeometryIsSet( ouId );
+    }
+
+    @Test
+    void testPostImportSingle_Attribute()
+    {
+        String attrId = postNewGeoJsonAttribute();
+        Map<Integer, String> ouIds = postNewOrganisationUnits( IntStream.of( 0 ) );
+        String ouId = ouIds.values().iterator().next();
+
+        JsonWebMessage msg = assertWebMessage( "OK", 200, "OK", "Import successful.",
+            POST( "/organisationUnits/" + ouId + "/geometry?attributeId=" + attrId,
+                "{'type':'MultiPolygon', 'coordinates': [ [ [ [ 1,1 ], [ 2,2 ], [ 1,3 ], [1,1] ] ] ] }" )
+                    .content( HttpStatus.OK ) );
+
+        assertImportedAndIgnored( msg, 1, 0 );
+        assertGeometryAttributeIsSet( attrId, ouId );
+    }
+
     private void assertImportedAndIgnored( JsonWebMessage msg, int expectedImported, int expectedIgnored )
     {
         JsonObject report = msg.getResponse();
@@ -268,9 +299,9 @@ class GeoJsonImportControllerTest extends DhisControllerConvenienceTest
         }
     }
 
-    private void assertGeometryIsSet( Map<Integer, String> ouUids, List<Integer> indexes )
+    private void assertGeometryIsSet( Map<Integer, String> ouIds, List<Integer> indexes )
     {
-        indexes.stream().map( ouUids::get ).forEach( this::assertGeometryIsSet );
+        indexes.stream().map( ouIds::get ).forEach( this::assertGeometryIsSet );
     }
 
     private void assertGeometryIsSet( String uid )
@@ -283,9 +314,9 @@ class GeoJsonImportControllerTest extends DhisControllerConvenienceTest
         assertTrue( attributeValues.isUndefined() || attributeValues.isEmpty() );
     }
 
-    private void assertGeometryAttributeIsSet( String attributeId, Map<Integer, String> ouUids, List<Integer> indexes )
+    private void assertGeometryAttributeIsSet( String attributeId, Map<Integer, String> ouIds, List<Integer> indexes )
     {
-        indexes.stream().map( ouUids::get ).forEach( ouUid -> assertGeometryAttributeIsSet( attributeId, ouUid ) );
+        indexes.stream().map( ouIds::get ).forEach( ouId -> assertGeometryAttributeIsSet( attributeId, ouId ) );
     }
 
     private void assertGeometryAttributeIsSet( String attributeId, String uid )
@@ -309,12 +340,12 @@ class GeoJsonImportControllerTest extends DhisControllerConvenienceTest
 
     private Map<Integer, String> postNewOrganisationUnits( IntStream nameIndexes )
     {
-        Map<Integer, String> ouUidByIndex = new TreeMap<>();
+        Map<Integer, String> ouIdByIndex = new TreeMap<>();
         for ( int i : nameIndexes.toArray() )
         {
-            ouUidByIndex.put( i, postNewOrganisationUnit( NAMES.get( i ) ) );
+            ouIdByIndex.put( i, postNewOrganisationUnit( NAMES.get( i ) ) );
         }
-        return ouUidByIndex;
+        return ouIdByIndex;
     }
 
     private String postNewGeoJsonAttribute()

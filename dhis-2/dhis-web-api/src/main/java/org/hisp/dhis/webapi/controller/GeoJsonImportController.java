@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static java.lang.String.format;
 import static org.apache.commons.io.IOUtils.toBufferedInputStream;
+import static org.apache.commons.io.IOUtils.toInputStream;
 import static org.hisp.dhis.common.IdentifiableProperty.UID;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
@@ -35,7 +37,9 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
+import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 
 import lombok.AllArgsConstructor;
@@ -56,7 +60,9 @@ import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -64,7 +70,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Jan Bernitt
  */
-@RequestMapping( "/organisationUnits/geometry" )
+@RequestMapping( "/organisationUnits" )
 @RestController
 @AllArgsConstructor
 public class GeoJsonImportController
@@ -77,7 +83,7 @@ public class GeoJsonImportController
 
     private final SessionFactory sessionFactory;
 
-    @PostMapping( value = "", consumes = { "application/geo+json", "application/json" } )
+    @PostMapping( value = "/geometry", consumes = { "application/geo+json", "application/json" } )
     public WebMessage postImport(
         @RequestParam( defaultValue = "true" ) boolean geoJsonId,
         @RequestParam( required = false ) String geoJsonProperty,
@@ -97,16 +103,43 @@ public class GeoJsonImportController
             .user( currentUser )
             .build();
 
+        return runImport( async, params, request.getInputStream() );
+    }
+
+    private WebMessage runImport( boolean async, GeoJsonImportParams params, ServletInputStream data )
+        throws IOException
+    {
         if ( async )
         {
             JobConfiguration config = new JobConfiguration( "GeoJSON import", JobType.GEOJSON_IMPORT,
-                currentUser.getUid(), true );
+                params.getUser().getUid(), true );
             taskExecutor.execute(
-                new GeoJsonAsyncImporter( params, config, toBufferedInputStream( request.getInputStream() ) ) );
+                new GeoJsonAsyncImporter( params, config, toBufferedInputStream( data ) ) );
             return jobConfigurationReport( config );
         }
 
-        return toWebMessage( geoJsonService.importGeoData( params, request.getInputStream() ) );
+        return toWebMessage( geoJsonService.importGeoData( params, data ) );
+    }
+
+    @PostMapping( value = "/{uid}/geometry", consumes = { "application/geo+json", "application/json" } )
+    public WebMessage postImportSingle(
+        @PathVariable( "uid" ) String ou,
+        @RequestParam( required = false ) String attributeId,
+        @RequestParam( required = false ) boolean dryRun,
+        @RequestBody String geometry,
+        @CurrentUser User currentUser )
+    {
+        GeoJsonImportParams params = GeoJsonImportParams.builder()
+            .user( currentUser )
+            .attributeId( attributeId )
+            .dryRun( dryRun )
+            .orgUnitIdProperty( "id" )
+            .idType( UID )
+            .build();
+
+        return toWebMessage( geoJsonService.importGeoData( params,
+            toInputStream( format( "{\"features\":[{\"id\":\"%s\",\"geometry\":%s}]}", ou, geometry ),
+                StandardCharsets.UTF_8 ) ) );
     }
 
     private WebMessage toWebMessage( GeoJsonImportReport report )

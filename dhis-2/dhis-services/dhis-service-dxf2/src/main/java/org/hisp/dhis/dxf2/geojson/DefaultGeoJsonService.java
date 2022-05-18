@@ -56,7 +56,6 @@ import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitStore;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.User;
 import org.locationtech.jts.geom.Geometry;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -134,7 +133,6 @@ public class DefaultGeoJsonService implements GeoJsonService
         Map<String, OrganisationUnit> unitsByIdentifier = units.stream()
             .collect( toUnmodifiableMap( toKey, Function.identity() ) );
 
-        User user = params.getUser();
         int index = 0;
         for ( JsonObject feature : features )
         {
@@ -149,7 +147,7 @@ public class DefaultGeoJsonService implements GeoJsonService
             {
                 OrganisationUnit target = unitsByIdentifier.get( identifier );
                 JsonObject geometry = feature.getObject( "geometry" );
-                updateGeometry( user, attribute, target, geometry, report, index );
+                updateGeometry( params, attribute, target, geometry, report, index );
             }
             index++;
         }
@@ -207,7 +205,8 @@ public class DefaultGeoJsonService implements GeoJsonService
         return attribute;
     }
 
-    private void updateGeometry( User user, Attribute attribute, OrganisationUnit target, JsonObject geometry,
+    private void updateGeometry( GeoJsonImportParams params, Attribute attribute, OrganisationUnit target,
+        JsonObject geometry,
         GeoJsonImportReport report, int index )
     {
         ImportCount stats = report.getImportCount();
@@ -217,7 +216,7 @@ public class DefaultGeoJsonService implements GeoJsonService
             stats.incrementIgnored();
             return;
         }
-        if ( !aclService.canUpdate( user, target ) )
+        if ( !aclService.canUpdate( params.getUser(), target ) )
         {
             report.addConflict( createConflict( index, GeoJsonImportConflict.ORG_UNIT_NOT_ACCESSIBLE ) );
             stats.incrementIgnored();
@@ -268,7 +267,10 @@ public class DefaultGeoJsonService implements GeoJsonService
         }
         try
         {
-            organisationUnitStore.update( target );
+            if ( !params.isDryRun() )
+            {
+                organisationUnitStore.update( target );
+            }
             inc.run(); // now we can count as updated or imported
         }
         catch ( Exception ex )
