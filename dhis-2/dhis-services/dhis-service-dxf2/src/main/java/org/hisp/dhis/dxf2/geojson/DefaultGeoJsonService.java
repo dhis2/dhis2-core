@@ -206,32 +206,38 @@ public class DefaultGeoJsonService implements GeoJsonService
         return attribute;
     }
 
-    private void updateGeometry( GeoJsonImportParams params, Attribute attribute, OrganisationUnit target,
-        JsonObject geometry,
-        GeoJsonImportReport report, int index )
+    private boolean validateGeometry( GeoJsonImportParams params, OrganisationUnit target,
+        JsonObject geometry, GeoJsonImportReport report, int index )
     {
-        ImportCount stats = report.getImportCount();
         if ( target == null )
         {
             report.addConflict( createConflict( index, GeoJsonImportConflict.ORG_UNIT_NOT_FOUND ) );
-            stats.incrementIgnored();
-            return;
+            return false;
         }
         if ( !aclService.canUpdate( params.getUser(), target ) )
         {
             report.addConflict( createConflict( index, GeoJsonImportConflict.ORG_UNIT_NOT_ACCESSIBLE ) );
-            stats.incrementIgnored();
-            return;
+            return false;
         }
         if ( geometry.isUndefined() )
         {
             report.addConflict( createConflict( index, GeoJsonImportConflict.FEATURE_LACKS_GEOMETRY ) );
-            stats.incrementIgnored();
-            return;
+            return false;
         }
         if ( !geometry.isObject() )
         {
             report.addConflict( createConflict( index, GeoJsonImportConflict.GEOMETRY_INVALID ) );
+            return false;
+        }
+        return true;
+    }
+
+    private void updateGeometry( GeoJsonImportParams params, Attribute attribute, OrganisationUnit target,
+        JsonObject geometry, GeoJsonImportReport report, int index )
+    {
+        ImportCount stats = report.getImportCount();
+        if ( !validateGeometry( params, target, geometry, report, index ) )
+        {
             stats.incrementIgnored();
             return;
         }
