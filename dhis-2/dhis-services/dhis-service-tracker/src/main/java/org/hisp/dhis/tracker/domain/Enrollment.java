@@ -79,9 +79,6 @@ public class Enrollment
     private MetadataIdentifier orgUnit;
 
     @JsonProperty
-    private String orgUnitName;
-
-    @JsonProperty
     private Instant enrolledAt;
 
     @JsonProperty
