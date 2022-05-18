@@ -55,6 +55,8 @@ import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitStore;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.User;
 import org.locationtech.jts.geom.Geometry;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -71,6 +73,8 @@ public class DefaultGeoJsonService implements GeoJsonService
     private final AttributeService attributeService;
 
     private final OrganisationUnitStore organisationUnitStore;
+
+    private final AclService aclService;
 
     /**
      * Imports the provided (file) content.
@@ -130,6 +134,7 @@ public class DefaultGeoJsonService implements GeoJsonService
         Map<String, OrganisationUnit> unitsByIdentifier = units.stream()
             .collect( toUnmodifiableMap( toKey, Function.identity() ) );
 
+        User user = params.getUser();
         int index = 0;
         for ( JsonObject feature : features )
         {
@@ -144,7 +149,7 @@ public class DefaultGeoJsonService implements GeoJsonService
             {
                 OrganisationUnit target = unitsByIdentifier.get( identifier );
                 JsonObject geometry = feature.getObject( "geometry" );
-                updateGeometry( attribute, target, geometry, report, index );
+                updateGeometry( user, attribute, target, geometry, report, index );
             }
             index++;
         }
@@ -169,11 +174,11 @@ public class DefaultGeoJsonService implements GeoJsonService
         switch ( params.getIdType() )
         {
         case CODE:
-            return organisationUnitStore.getByCode( ouIdentifiers, null );
+            return organisationUnitStore.getByCode( ouIdentifiers, params.getUser() );
         case NAME:
-            return organisationUnitStore.getByName( ouIdentifiers, null );
+            return organisationUnitStore.getByName( ouIdentifiers, params.getUser() );
         default:
-            return organisationUnitStore.getByUid( ouIdentifiers, null );
+            return organisationUnitStore.getByUid( ouIdentifiers, params.getUser() );
         }
     }
 
@@ -202,13 +207,19 @@ public class DefaultGeoJsonService implements GeoJsonService
         return attribute;
     }
 
-    private void updateGeometry( Attribute attribute, OrganisationUnit target, JsonObject geometry,
+    private void updateGeometry( User user, Attribute attribute, OrganisationUnit target, JsonObject geometry,
         GeoJsonImportReport report, int index )
     {
         ImportCount stats = report.getImportCount();
         if ( target == null )
         {
             report.addConflict( createConflict( index, GeoJsonImportConflict.ORG_UNIT_NOT_FOUND ) );
+            stats.incrementIgnored();
+            return;
+        }
+        if ( !aclService.canUpdate( user, target ) )
+        {
+            report.addConflict( createConflict( index, GeoJsonImportConflict.ORG_UNIT_NOT_ACCESSIBLE ) );
             stats.incrementIgnored();
             return;
         }

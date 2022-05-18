@@ -416,7 +416,8 @@ public enum ErrorCode
     E7706( "GeoJSON feature lacks geometry property" ),
     E7707( "GeoJSON geometry is not valid" ),
     E7708( "GeoJSON target organisation unit does not exist" ),
-    E7709( "Organisation unit could not be updated with new GeoJSON geometry" );
+    E7709( "Organisation unit could not be updated with new GeoJSON geometry" ),
+    E7710( "User is not allowed to update the target organisation unit" );
 
     private String message;
 

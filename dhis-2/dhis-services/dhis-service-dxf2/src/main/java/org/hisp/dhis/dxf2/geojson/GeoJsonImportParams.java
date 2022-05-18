@@ -33,6 +33,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 import org.hisp.dhis.common.IdentifiableProperty;
+import org.hisp.dhis.user.User;
 
 @Builder
 @Getter
@@ -54,4 +55,6 @@ public class GeoJsonImportParams
      * for which the geometry is stored.
      */
     private final String attributeId;
+
+    private final User user;
 }

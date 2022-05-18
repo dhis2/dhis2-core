@@ -74,7 +74,7 @@ class GeoJsonImportControllerTest extends DhisControllerConvenienceTest
     {
         Map<Integer, String> ouUids = postNewOrganisationUnits( IntStream.range( 0, 7 ) );
 
-        JsonWebMessage msg = assertWebMessage( "OK", 200, "OK", "Import partially successful",
+        JsonWebMessage msg = assertWebMessage( "OK", 200, "OK", "Import partially successful.",
             POST( "/organisationUnits/geometry?geoJsonId=false&geoJsonProperty=name&orgUnitProperty=name",
                 "geo-json/sierra-leone-districts.geojson" ).content() );
 
@@ -89,7 +89,7 @@ class GeoJsonImportControllerTest extends DhisControllerConvenienceTest
         String attrId = postNewGeoJsonAttribute();
         Map<Integer, String> ouUids = postNewOrganisationUnits( IntStream.range( 0, 7 ) );
 
-        JsonWebMessage msg = assertWebMessage( "OK", 200, "OK", "Import partially successful",
+        JsonWebMessage msg = assertWebMessage( "OK", 200, "OK", "Import partially successful.",
             POST(
                 "/organisationUnits/geometry?geoJsonId=false&geoJsonProperty=name&orgUnitProperty=name&attributeId="
                     + attrId,
@@ -105,7 +105,7 @@ class GeoJsonImportControllerTest extends DhisControllerConvenienceTest
     {
         Map<Integer, String> ouUids = postNewOrganisationUnits( IntStream.of( 1, 3, 5, 7, 9, 11, 13 ) );
 
-        JsonWebMessage msg = assertWebMessage( "OK", 200, "OK", "Import partially successful",
+        JsonWebMessage msg = assertWebMessage( "OK", 200, "OK", "Import partially successful.",
             POST( "/organisationUnits/geometry", "geo-json/sierra-leone-districts.geojson" ).content() );
 
         assertImportedAndIgnored( msg, 4, 11 );
@@ -120,7 +120,7 @@ class GeoJsonImportControllerTest extends DhisControllerConvenienceTest
         String attrId = postNewGeoJsonAttribute();
         Map<Integer, String> ouUids = postNewOrganisationUnits( IntStream.of( 1, 3, 5, 7, 9, 11, 13 ) );
 
-        JsonWebMessage msg = assertWebMessage( "OK", 200, "OK", "Import partially successful",
+        JsonWebMessage msg = assertWebMessage( "OK", 200, "OK", "Import partially successful.",
             POST( "/organisationUnits/geometry?attributeId=" + attrId, "geo-json/sierra-leone-districts.geojson" )
                 .content() );
 
@@ -134,7 +134,7 @@ class GeoJsonImportControllerTest extends DhisControllerConvenienceTest
     {
         Map<Integer, String> ouUids = postNewOrganisationUnits( IntStream.range( 3, 14 ) );
 
-        JsonWebMessage msg = assertWebMessage( "OK", 200, "OK", "Import partially successful",
+        JsonWebMessage msg = assertWebMessage( "OK", 200, "OK", "Import partially successful.",
             POST( "/organisationUnits/geometry?geoJsonId=false&geoJsonProperty=code&orgUnitProperty=code",
                 "geo-json/sierra-leone-districts.geojson" ).content() );
 
@@ -150,7 +150,7 @@ class GeoJsonImportControllerTest extends DhisControllerConvenienceTest
         String attrId = postNewGeoJsonAttribute();
         Map<Integer, String> ouUids = postNewOrganisationUnits( IntStream.range( 3, 14 ) );
 
-        JsonWebMessage msg = assertWebMessage( "OK", 200, "OK", "Import partially successful",
+        JsonWebMessage msg = assertWebMessage( "OK", 200, "OK", "Import partially successful.",
             POST(
                 "/organisationUnits/geometry?geoJsonId=false&geoJsonProperty=code&orgUnitProperty=code&attributeId="
                     + attrId,
@@ -164,7 +164,7 @@ class GeoJsonImportControllerTest extends DhisControllerConvenienceTest
     @Test
     void testPostImport_ErrorInputNotGeoJson()
     {
-        JsonWebMessage msg = assertWebMessage( "Conflict", 409, "ERROR", "Import failed",
+        JsonWebMessage msg = assertWebMessage( "Conflict", 409, "ERROR", "Import failed.",
             POST( "/organisationUnits/geometry", "not-valid-geojson" ).content( HttpStatus.CONFLICT ) );
         assertReportError( msg, ErrorCode.E7701, List.of() );
     }
@@ -172,7 +172,7 @@ class GeoJsonImportControllerTest extends DhisControllerConvenienceTest
     @Test
     void testPostImport_ErrorAttributeDoesNotExist()
     {
-        JsonWebMessage msg = assertWebMessage( "Conflict", 409, "ERROR", "Import failed",
+        JsonWebMessage msg = assertWebMessage( "Conflict", 409, "ERROR", "Import failed.",
             POST( "/organisationUnits/geometry?attributeId=fake", "does not matter" ).content( HttpStatus.CONFLICT ) );
         assertReportError( msg, ErrorCode.E7702, List.of() );
     }
@@ -182,7 +182,7 @@ class GeoJsonImportControllerTest extends DhisControllerConvenienceTest
     {
         String attrId = postNewAttribute( "TEXT", Attribute.ObjectType.ORGANISATION_UNIT );
 
-        JsonWebMessage msg = assertWebMessage( "Conflict", 409, "ERROR", "Import failed",
+        JsonWebMessage msg = assertWebMessage( "Conflict", 409, "ERROR", "Import failed.",
             POST( "/organisationUnits/geometry?attributeId=" + attrId, "does not matter" )
                 .content( HttpStatus.CONFLICT ) );
         assertReportError( msg, ErrorCode.E7703, List.of() );
@@ -193,7 +193,7 @@ class GeoJsonImportControllerTest extends DhisControllerConvenienceTest
     {
         String attrId = postNewAttribute( "GEOJSON", Attribute.ObjectType.CATEGORY );
 
-        JsonWebMessage msg = assertWebMessage( "Conflict", 409, "ERROR", "Import failed",
+        JsonWebMessage msg = assertWebMessage( "Conflict", 409, "ERROR", "Import failed.",
             POST( "/organisationUnits/geometry?attributeId=" + attrId, "does not matter" )
                 .content( HttpStatus.CONFLICT ) );
         assertReportError( msg, ErrorCode.E7704, List.of() );
@@ -202,7 +202,7 @@ class GeoJsonImportControllerTest extends DhisControllerConvenienceTest
     @Test
     void testPostImport_ErrorFeatureHasNoIdentifier()
     {
-        JsonWebMessage msg = assertWebMessage( "Conflict", 409, "ERROR", "Import failed",
+        JsonWebMessage msg = assertWebMessage( "Conflict", 409, "ERROR", "Import failed.",
             POST( "/organisationUnits/geometry",
                 "{'features':[{'geometry': {'type':'MultiPolygon', 'coordinates': [ [ [ [ -12, 9 ], [ -13, 10 ], [ -11, 8 ] ] ] ] }}]}" )
                     .content( HttpStatus.CONFLICT ) );
@@ -214,7 +214,7 @@ class GeoJsonImportControllerTest extends DhisControllerConvenienceTest
     {
         postNewOrganisationUnits( IntStream.of( 0 ) );
 
-        JsonWebMessage msg = assertWebMessage( "Conflict", 409, "ERROR", "Import failed",
+        JsonWebMessage msg = assertWebMessage( "Conflict", 409, "ERROR", "Import failed.",
             POST( "/organisationUnits/geometry", "{'features':[{'id':'Kare5678901'}]}" )
                 .content( HttpStatus.CONFLICT ) );
         assertReportError( msg, ErrorCode.E7706, List.of( 0 ) );
@@ -225,7 +225,7 @@ class GeoJsonImportControllerTest extends DhisControllerConvenienceTest
     {
         postNewOrganisationUnits( IntStream.of( 0 ) );
 
-        JsonWebMessage msg = assertWebMessage( "Conflict", 409, "ERROR", "Import failed",
+        JsonWebMessage msg = assertWebMessage( "Conflict", 409, "ERROR", "Import failed.",
             POST( "/organisationUnits/geometry",
                 "{'features':[{'id':'Kare5678901', 'geometry': {'type':'Invalid'} }]}" )
                     .content( HttpStatus.CONFLICT ) );
@@ -235,7 +235,7 @@ class GeoJsonImportControllerTest extends DhisControllerConvenienceTest
     @Test
     void testPostImport_ErrorOrgUnitDoesNotExist()
     {
-        JsonWebMessage msg = assertWebMessage( "Conflict", 409, "ERROR", "Import failed",
+        JsonWebMessage msg = assertWebMessage( "Conflict", 409, "ERROR", "Import failed.",
             POST( "/organisationUnits/geometry",
                 "{'features':[{'id':'foo', 'geometry': {'type':'MultiPolygon', 'coordinates': [ [ [ [ -12, 9 ], [ -13, 10 ], [ -11, 8 ] ] ] ]}}]}" )
                     .content( HttpStatus.CONFLICT ) );

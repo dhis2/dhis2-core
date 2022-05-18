@@ -27,22 +27,35 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.apache.commons.io.IOUtils.toBufferedInputStream;
 import static org.hisp.dhis.common.IdentifiableProperty.UID;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 import javax.servlet.http.HttpServletRequest;
 
 import lombok.AllArgsConstructor;
 
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableProperty;
+import org.hisp.dhis.dbms.DbmsUtils;
 import org.hisp.dhis.dxf2.geojson.GeoJsonImportParams;
 import org.hisp.dhis.dxf2.geojson.GeoJsonImportReport;
 import org.hisp.dhis.dxf2.geojson.GeoJsonService;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.security.SecurityContextRunnable;
+import org.hisp.dhis.system.notification.NotificationLevel;
+import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.dhis.user.CurrentUser;
+import org.hisp.dhis.user.User;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -58,36 +71,92 @@ public class GeoJsonImportController
 {
     private final GeoJsonService geoJsonService;
 
+    private final Notifier notifier;
+
+    private final TaskExecutor taskExecutor;
+
+    private final SessionFactory sessionFactory;
+
     @PostMapping( value = "", consumes = { "application/geo+json", "application/json" } )
     public WebMessage postImport(
-        /**
-         * If true the {@code id} field/property of a GeoJSON {feature} node is
-         * used to refer to the organisation unit. If false the
-         * {@link #geojsonProperty} names the property within the GeoJSON
-         * {@code feature.properties} map that refers to the organisation unit.
-         */
         @RequestParam( defaultValue = "true" ) boolean geoJsonId,
-        @RequestParam( required = false )
-        final String geoJsonProperty,
-        @RequestParam( required = false )
-        final String orgUnitProperty,
-        @RequestParam( required = false )
-        final String attributeId,
+        @RequestParam( required = false ) String geoJsonProperty,
+        @RequestParam( required = false ) String orgUnitProperty,
+        @RequestParam( required = false ) String attributeId,
         @RequestParam( required = false ) boolean dryRun,
-        HttpServletRequest request )
+        @RequestParam( required = false, defaultValue = "false" ) boolean async,
+        HttpServletRequest request,
+        @CurrentUser User currentUser )
         throws IOException
     {
-        GeoJsonImportReport report = geoJsonService.importGeoData( GeoJsonImportParams.builder()
+        GeoJsonImportParams params = GeoJsonImportParams.builder()
             .attributeId( attributeId )
             .dryRun( dryRun )
             .idType( orgUnitProperty == null ? UID : IdentifiableProperty.valueOf( orgUnitProperty.toUpperCase() ) )
             .orgUnitIdProperty( geoJsonId ? "id" : "properties." + geoJsonProperty )
-            .build(),
-            request.getInputStream() );
+            .user( currentUser )
+            .build();
 
-        WebMessage message = report.getStatus() == ImportStatus.ERROR
-            ? conflict( "Import failed" )
-            : ok( report.getImportCount().getIgnored() > 0 ? "Import partially successful" : "Import successful" );
-        return message.setResponse( report );
+        if ( async )
+        {
+            JobConfiguration config = new JobConfiguration( "GeoJSON import", JobType.GEOJSON_IMPORT,
+                currentUser.getUid(), true );
+            taskExecutor.execute(
+                new GeoJsonAsyncImporter( params, config, toBufferedInputStream( request.getInputStream() ) ) );
+            return jobConfigurationReport( config );
+        }
+
+        return toWebMessage( geoJsonService.importGeoData( params, request.getInputStream() ) );
+    }
+
+    private WebMessage toWebMessage( GeoJsonImportReport report )
+    {
+        if ( report.getStatus() == ImportStatus.ERROR )
+        {
+            return conflict( "Import failed." ).setResponse( report );
+        }
+        return report.getImportCount().getIgnored() > 0
+            ? ok( "Import partially successful." ).setResponse( report )
+            : ok( "Import successful." ).setResponse( report );
+    }
+
+    @AllArgsConstructor
+    private class GeoJsonAsyncImporter extends SecurityContextRunnable
+    {
+
+        private final GeoJsonImportParams params;
+
+        private final JobConfiguration config;
+
+        private final InputStream data;
+
+        @Override
+        public void before()
+        {
+            DbmsUtils.bindSessionToThread( sessionFactory );
+        }
+
+        @Override
+        public void after()
+        {
+            DbmsUtils.unbindSessionFromThread( sessionFactory );
+        }
+
+        @Override
+        public void call()
+        {
+            notifier.clear( config );
+            notifier.notify( config, NotificationLevel.INFO, "GeoJSON import stared", true );
+            GeoJsonImportReport report = geoJsonService.importGeoData( params, data );
+            notifier.notify( config, NotificationLevel.INFO, "GeoJSON import complete. " + report.getImportCount(),
+                true );
+            notifier.addJobSummary( config, report, GeoJsonImportReport.class );
+        }
+
+        @Override
+        public void handleError( Throwable ex )
+        {
+            notifier.notify( config, NotificationLevel.ERROR, "GeoJSON import failed: " + ex.getMessage(), true );
+        }
     }
 }

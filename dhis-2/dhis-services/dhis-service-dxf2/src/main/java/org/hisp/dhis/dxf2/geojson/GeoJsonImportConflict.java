@@ -88,7 +88,12 @@ public enum GeoJsonImportConflict implements ImportConflictDescriptor
      * {@link org.hisp.dhis.organisationunit.OrganisationUnit} fails for some
      * reason
      */
-    ORG_UNIT_INVALID( ErrorCode.E7709, "geometry" );
+    ORG_UNIT_INVALID( ErrorCode.E7709, "geometry" ),
+    /**
+     * When the current user is not allowed to update the target organisation
+     * unit
+     */
+    ORG_UNIT_NOT_ACCESSIBLE( ErrorCode.E7710, "" );
 
     private final ErrorCode errorCode;
 

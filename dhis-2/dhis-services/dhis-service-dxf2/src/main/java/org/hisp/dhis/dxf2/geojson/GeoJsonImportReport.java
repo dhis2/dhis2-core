@@ -28,6 +28,7 @@
 package org.hisp.dhis.dxf2.geojson;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import lombok.Getter;
@@ -38,6 +39,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportCount;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.webmessage.WebMessageResponse;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -49,7 +51,7 @@ public final class GeoJsonImportReport implements ImportConflicts, WebMessageRes
 {
     @Getter
     @JsonProperty
-    private final ImportCount importCount = new ImportCount();
+    private final ImportCount importCount;
 
     /**
      * Number of total conflicts. In contrast to the collection of
@@ -59,7 +61,28 @@ public final class GeoJsonImportReport implements ImportConflicts, WebMessageRes
     @JsonProperty
     private int totalConflictOccurrenceCount = 0;
 
-    private final Map<String, ImportConflict> conflicts = new LinkedHashMap<>();
+    private final Map<String, ImportConflict> conflicts;
+
+    public GeoJsonImportReport()
+    {
+        this( new ImportCount(), 0, List.of() );
+    }
+
+    /**
+     * Only for deserialisation (when using redis)
+     */
+    @JsonCreator
+    public GeoJsonImportReport(
+        @JsonProperty( "importCount" ) ImportCount importCount,
+        @JsonProperty( "totalConflictOccurrenceCount" ) int totalConflictOccurrenceCount,
+        @JsonProperty( "conflicts" ) List<ImportConflict> conflicts )
+    {
+        this.importCount = importCount;
+        this.conflicts = new LinkedHashMap<>();
+        conflicts.forEach( this::addConflict );
+        // OBS! setting the total count has to be after adding the conflicts
+        this.totalConflictOccurrenceCount = totalConflictOccurrenceCount;
+    }
 
     @JsonProperty
     public ImportStatus getStatus()

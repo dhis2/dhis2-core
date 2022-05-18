@@ -25,23 +25,46 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.importsummary;
+package org.hisp.dhis.dxf2.geojson;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static com.google.common.collect.Iterables.toArray;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
-class ImportConflictTest
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+/**
+ * For now just make sure that a {@link GeoJsonImportReport} can be stored in
+ * redis.
+ *
+ * @author Jan Bernitt
+ */
+class GeoJsonServiceTest extends DhisSpringTest
 {
-    @Test
-    void testImportConflictObjectCanBeNull()
-    {
-        new ImportConflict( null, "message" );
-    }
+    @Autowired
+    private ObjectMapper jsonMapper;
 
     @Test
-    void testImportConflictMessageCantBeNull()
+    void testReportSerialisation()
+        throws JsonProcessingException
     {
-        assertThrows( NullPointerException.class, () -> new ImportConflict( "whatever", null ) );
+        GeoJsonImportReport report = new GeoJsonImportReport();
+        report.getImportCount().incrementIgnored();
+        report.addConflict( new ImportConflict( "a", "b" ) );
+
+        String json = jsonMapper.writeValueAsString( report );
+        GeoJsonImportReport reportFromJson = jsonMapper.readValue( json, GeoJsonImportReport.class );
+
+        assertEquals( report.getConflictCount(), reportFromJson.getConflictCount() );
+        assertEquals( report.getImportCount().getIgnored(), reportFromJson.getImportCount().getIgnored() );
+        assertEquals( report.getTotalConflictOccurrenceCount(), reportFromJson.getTotalConflictOccurrenceCount() );
+        assertArrayEquals( toArray( report.getConflicts(), ImportConflict.class ),
+            toArray( reportFromJson.getConflicts(), ImportConflict.class ) );
     }
 }
