@@ -121,7 +121,6 @@ public class EventTrackerConverterService
             if ( ou != null )
             {
                 event.setOrgUnit( MetadataIdentifier.ofUid( ou ) );
-                event.setOrgUnitName( ou.getName() );
             }
 
             event.setEnrollment( psi.getProgramInstance().getUid() );
