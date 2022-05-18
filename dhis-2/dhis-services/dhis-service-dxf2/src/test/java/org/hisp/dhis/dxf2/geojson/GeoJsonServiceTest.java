@@ -27,9 +27,8 @@
  */
 package org.hisp.dhis.dxf2.geojson;
 
-import static com.google.common.collect.Iterables.toArray;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
@@ -64,7 +63,6 @@ class GeoJsonServiceTest extends DhisSpringTest
         assertEquals( report.getConflictCount(), reportFromJson.getConflictCount() );
         assertEquals( report.getImportCount().getIgnored(), reportFromJson.getImportCount().getIgnored() );
         assertEquals( report.getTotalConflictOccurrenceCount(), reportFromJson.getTotalConflictOccurrenceCount() );
-        assertArrayEquals( toArray( report.getConflicts(), ImportConflict.class ),
-            toArray( reportFromJson.getConflicts(), ImportConflict.class ) );
+        assertIterableEquals( report.getConflicts(), reportFromJson.getConflicts() );
     }
 }
