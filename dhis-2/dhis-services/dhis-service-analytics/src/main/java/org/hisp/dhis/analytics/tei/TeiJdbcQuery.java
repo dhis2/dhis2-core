@@ -29,26 +29,24 @@ package org.hisp.dhis.analytics.tei;
 
 import static org.springframework.util.Assert.notNull;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.hisp.dhis.analytics.shared.Column;
 import org.hisp.dhis.analytics.shared.Query;
 import org.hisp.dhis.analytics.shared.QueryGenerator;
 import org.hisp.dhis.analytics.shared.SqlQuery;
-import org.hisp.dhis.analytics.shared.component.ColumnComponent;
-import org.hisp.dhis.analytics.shared.component.PredicateComponent;
-import org.hisp.dhis.analytics.shared.component.TableComponent;
-import org.hisp.dhis.analytics.shared.component.builder.FromClauseComponentBuilder;
-import org.hisp.dhis.analytics.shared.component.builder.SelectClauseComponentBuilder;
-import org.hisp.dhis.analytics.shared.component.builder.WhereClauseComponentBuilder;
-import org.hisp.dhis.analytics.shared.component.element.Element;
-import org.hisp.dhis.analytics.shared.visitor.FromClauseElementVisitor;
-import org.hisp.dhis.analytics.shared.visitor.FromElementVisitor;
-import org.hisp.dhis.analytics.shared.visitor.SelectClauseElementVisitor;
-import org.hisp.dhis.analytics.shared.visitor.SelectElementVisitor;
-import org.hisp.dhis.analytics.shared.visitor.WhereClauseElementVisitor;
-import org.hisp.dhis.analytics.shared.visitor.WhereElementVisitor;
+import org.hisp.dhis.analytics.shared.component.FromComponent;
+import org.hisp.dhis.analytics.shared.component.SelectComponent;
+import org.hisp.dhis.analytics.shared.component.WhereComponent;
+import org.hisp.dhis.analytics.shared.component.builder.FromComponentBuilder;
+import org.hisp.dhis.analytics.shared.component.builder.SelectComponentBuilder;
+import org.hisp.dhis.analytics.shared.component.builder.WhereComponentBuilder;
+import org.hisp.dhis.analytics.shared.visitor.from.FromElementVisitor;
+import org.hisp.dhis.analytics.shared.visitor.from.FromVisitor;
+import org.hisp.dhis.analytics.shared.visitor.select.SelectElementVisitor;
+import org.hisp.dhis.analytics.shared.visitor.select.SelectVisitor;
+import org.hisp.dhis.analytics.shared.visitor.where.WhereElementVisitor;
+import org.hisp.dhis.analytics.shared.visitor.where.WhereVisitor;
 import org.springframework.stereotype.Component;
 
 /**
@@ -92,18 +90,14 @@ public class TeiJdbcQuery implements QueryGenerator<TeiParams>
 
     private String getWhereClause( TeiParams teiParams )
     {
-        List<Element<WhereElementVisitor>> elements = WhereClauseComponentBuilder.builder().withTeiParams( teiParams )
+        WhereComponent component = WhereComponentBuilder.builder().withTeiParams( teiParams )
             .build();
 
-        final Element<WhereElementVisitor> predicateComponent = new PredicateComponent( elements );
+        WhereVisitor whereVisitor = new WhereElementVisitor();
 
-        List<String> predicates = new ArrayList<>();
+        component.accept( whereVisitor );
 
-        WhereElementVisitor whereElementVisitor = new WhereClauseElementVisitor( predicates );
-
-        predicateComponent.accept( whereElementVisitor );
-
-        return String.join( " AND ", predicates );
+        return String.join( " AND ", whereVisitor.getPredicates() );
     }
 
     private String getJoinClause( TeiParams teiParams )
@@ -113,33 +107,25 @@ public class TeiJdbcQuery implements QueryGenerator<TeiParams>
 
     private String getFromClause( TeiParams teiParams )
     {
-        List<Element<FromElementVisitor>> elements = FromClauseComponentBuilder.builder().withTeiParams( teiParams )
+        FromComponent component = FromComponentBuilder.builder().withTeiParams( teiParams )
             .build();
 
-        final Element<FromElementVisitor> tableComponent = new TableComponent( elements );
+        FromVisitor fromVisitor = new FromElementVisitor();
 
-        List<String> tables = new ArrayList<>();
+        component.accept( fromVisitor );
 
-        FromElementVisitor fromElementVisitor = new FromClauseElementVisitor( tables );
-
-        tableComponent.accept( fromElementVisitor );
-
-        return String.join( ",", tables );
+        return String.join( ",", fromVisitor.getTables() );
     }
 
     private List<Column> getColumns( TeiParams teiParams )
     {
-        List<Element<SelectElementVisitor>> elements = SelectClauseComponentBuilder.builder().withTeiParams( teiParams )
+        SelectComponent component = SelectComponentBuilder.builder().withTeiParams( teiParams )
             .build();
 
-        final Element<SelectElementVisitor> columnComponent = new ColumnComponent( elements );
+        SelectVisitor columnVisitor = new SelectElementVisitor();
 
-        List<Column> columns = new ArrayList<>();
+        component.accept( columnVisitor );
 
-        SelectElementVisitor columnVisitor = new SelectClauseElementVisitor( columns );
-
-        columnComponent.accept( columnVisitor );
-
-        return columns;
+        return columnVisitor.getColumns();
     }
 }

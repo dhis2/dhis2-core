@@ -35,37 +35,38 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.hisp.dhis.analytics.shared.component.SelectComponent;
 import org.hisp.dhis.analytics.shared.component.element.Element;
-import org.hisp.dhis.analytics.shared.component.element.select.EnrollmentDateValueElement;
+import org.hisp.dhis.analytics.shared.component.element.select.EnrollmentDateValueSelectElement;
 import org.hisp.dhis.analytics.shared.component.element.select.EventDateValueElement;
 import org.hisp.dhis.analytics.shared.component.element.select.ExecutionDateValueElement;
 import org.hisp.dhis.analytics.shared.component.element.select.ProgramEnrollmentFlagElement;
-import org.hisp.dhis.analytics.shared.component.element.select.SimpleColumnElement;
-import org.hisp.dhis.analytics.shared.component.element.select.TeavValueElement;
-import org.hisp.dhis.analytics.shared.visitor.SelectElementVisitor;
+import org.hisp.dhis.analytics.shared.component.element.select.SimpleSelectElement;
+import org.hisp.dhis.analytics.shared.component.element.select.TeaValueSelectElement;
+import org.hisp.dhis.analytics.shared.visitor.select.SelectVisitor;
 import org.hisp.dhis.analytics.tei.TeiParams;
 
-public class SelectClauseComponentBuilder
+public class SelectComponentBuilder
 {
     private TeiParams teiParams;
 
-    public static SelectClauseComponentBuilder builder()
+    public static SelectComponentBuilder builder()
     {
-        return new SelectClauseComponentBuilder();
+        return new SelectComponentBuilder();
     }
 
-    public SelectClauseComponentBuilder withTeiParams( TeiParams teiParams )
+    public SelectComponentBuilder withTeiParams( TeiParams teiParams )
     {
         this.teiParams = teiParams;
 
         return this;
     }
 
-    public List<Element<SelectElementVisitor>> build()
+    public SelectComponent build()
     {
-        List<Element<SelectElementVisitor>> elements = new ArrayList<>(
-            List.of( new SimpleColumnElement( "t.trackedentityinstanceid" ),
-                new SimpleColumnElement( "t.uid" ) ) );
+        List<Element<SelectVisitor>> elements = new ArrayList<>(
+            List.of( new SimpleSelectElement( "t.trackedentityinstanceid" ),
+                new SimpleSelectElement( "t.uid" ) ) );
 
         Map<String, String> inputUidMap = new HashMap<>();
         inputUidMap.put( "w75KJ2mc4zz", "First Name" );
@@ -74,7 +75,7 @@ public class SelectClauseComponentBuilder
         elements.addAll( inputUidMap
             .keySet()
             .stream()
-            .map( k -> new TeavValueElement( k, inputUidMap.get( k ) ) ).collect( Collectors.toList() ) );
+            .map( k -> new TeaValueSelectElement( k, inputUidMap.get( k ) ) ).collect( Collectors.toList() ) );
 
         inputUidMap.clear();
         inputUidMap.put( "IpHINAT79UW", "Child Program Enrollment Date" );
@@ -90,7 +91,8 @@ public class SelectClauseComponentBuilder
         elements.addAll( inputUidMap
             .keySet()
             .stream()
-            .map( k -> new EnrollmentDateValueElement( k, inputUidMap.get( k ) ) ).collect( Collectors.toList() ) );
+            .map( k -> new EnrollmentDateValueSelectElement( k, inputUidMap.get( k ) ) )
+            .collect( Collectors.toList() ) );
 
         Map<Pair<String, String>, String> pJsonNodeWithPUidMap = new HashMap<>();
         pJsonNodeWithPUidMap.put( new ImmutablePair<>( "ZzYYXq4fJie", "IpHINAT79UW" ), "Report Date" );
@@ -113,7 +115,7 @@ public class SelectClauseComponentBuilder
                 pJsonNodeWithPUidMap.get( k ) ) )
             .collect( Collectors.toList() ) );
 
-        return elements;
+        return new SelectComponent( elements );
     }
 
     private String getProgramUid( Pair<String, String> pUidWithPsUid )

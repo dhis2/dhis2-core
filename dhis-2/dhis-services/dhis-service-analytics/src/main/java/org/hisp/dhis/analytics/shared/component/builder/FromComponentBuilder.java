@@ -25,25 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.shared.component.element.select;
+package org.hisp.dhis.analytics.shared.component.builder;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import java.util.List;
 
-import org.hisp.dhis.analytics.shared.component.element.Element;
-import org.hisp.dhis.analytics.shared.visitor.SelectElementVisitor;
+import org.hisp.dhis.analytics.shared.component.FromComponent;
+import org.hisp.dhis.analytics.shared.component.element.from.SimpleFromElement;
+import org.hisp.dhis.analytics.tei.TeiParams;
 
-@AllArgsConstructor
-@Getter
-public class EnrollmentDateValueElement extends Element<SelectElementVisitor>
+public class FromComponentBuilder
 {
-    private String uid;
+    private TeiParams teiParams;
 
-    private String alias;
-
-    @Override
-    public void accept( SelectElementVisitor v )
+    public static FromComponentBuilder builder()
     {
-        v.visit( this );
+        return new FromComponentBuilder();
+    }
+
+    public FromComponentBuilder withTeiParams( TeiParams teiParams )
+    {
+        this.teiParams = teiParams;
+
+        return this;
+    }
+
+    public FromComponent build()
+    {
+        return new FromComponent( List.of( new SimpleFromElement( "trackedentityinstance t" ) ) );
     }
 }

@@ -31,16 +31,18 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import org.hisp.dhis.analytics.shared.component.element.Element;
-import org.hisp.dhis.analytics.shared.visitor.FromElementVisitor;
+import org.hisp.dhis.analytics.shared.visitor.select.SelectVisitor;
 
 @AllArgsConstructor
 @Getter
-public class SimpleTableElement extends Element<FromElementVisitor>
+public class TeaValueSelectElement implements Element<SelectVisitor>
 {
-    private String value;
+    private String uid;
+
+    private String alias;
 
     @Override
-    public void accept( FromElementVisitor v )
+    public void accept( SelectVisitor v )
     {
         v.visit( this );
     }

@@ -25,25 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.shared.component.element.where;
+package org.hisp.dhis.analytics.shared.visitor.where;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import java.util.List;
 
-import org.hisp.dhis.analytics.shared.component.element.Element;
-import org.hisp.dhis.analytics.shared.visitor.WhereElementVisitor;
+import org.hisp.dhis.analytics.shared.component.element.where.EnrollmentDateValueWhereElement;
+import org.hisp.dhis.analytics.shared.component.element.where.TeaValueWhereElement;
 
-@AllArgsConstructor
-@Getter
-public class TeavValueElement extends Element<WhereElementVisitor>
+/**
+ * Visitor for 'where' section element of sql statement
+ *
+ * @author dusan bernat
+ */
+public interface WhereVisitor
 {
-    private String uid;
+    /**
+     * TeavValue visit method
+     *
+     * @param element
+     */
+    void visit( TeaValueWhereElement element );
 
-    private String filterValue;
+    /**
+     * EnrollmentDateValue visit method
+     *
+     * @param element
+     */
+    void visit( EnrollmentDateValueWhereElement element );
 
-    @Override
-    public void accept( WhereElementVisitor v )
-    {
-        v.visit( this );
-    }
+    List<String> getPredicates();
 }

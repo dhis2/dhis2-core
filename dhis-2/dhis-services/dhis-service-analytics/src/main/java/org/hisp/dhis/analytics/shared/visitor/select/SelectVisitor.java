@@ -25,33 +25,60 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.shared.visitor;
+package org.hisp.dhis.analytics.shared.visitor.select;
 
 import java.util.List;
 
-import org.hisp.dhis.analytics.shared.component.element.select.SimpleTableElement;
+import org.hisp.dhis.analytics.shared.Column;
+import org.hisp.dhis.analytics.shared.component.element.select.EnrollmentDateValueSelectElement;
+import org.hisp.dhis.analytics.shared.component.element.select.EventDateValueElement;
+import org.hisp.dhis.analytics.shared.component.element.select.ExecutionDateValueElement;
+import org.hisp.dhis.analytics.shared.component.element.select.ProgramEnrollmentFlagElement;
+import org.hisp.dhis.analytics.shared.component.element.select.SimpleSelectElement;
+import org.hisp.dhis.analytics.shared.component.element.select.TeaValueSelectElement;
 
 /**
- * @see FromElementVisitor
+ * Visitor for 'select' section element of sql statement
  *
  * @author dusan bernat
  */
-public class FromClauseElementVisitor implements FromElementVisitor
+public interface SelectVisitor
 {
-    private final List<String> tables;
+    /**
+     *
+     * @param element
+     */
+    void visit( TeaValueSelectElement element );
 
-    public FromClauseElementVisitor( List<String> tables )
-    {
-        if ( tables == null )
-        {
-            throw new IllegalArgumentException( "tables" );
-        }
-        this.tables = tables;
-    }
+    /**
+     *
+     * @param element
+     */
+    void visit( ProgramEnrollmentFlagElement element );
 
-    @Override
-    public void visit( SimpleTableElement element )
-    {
-        tables.add( element.getValue() );
-    }
+    /**
+     *
+     * @param element
+     */
+    void visit( EnrollmentDateValueSelectElement element );
+
+    /**
+     *
+     * @param element
+     */
+    void visit( ExecutionDateValueElement element );
+
+    /**
+     *
+     * @param element
+     */
+    void visit( EventDateValueElement element );
+
+    /**
+     *
+     * @param element
+     */
+    void visit( SimpleSelectElement element );
+
+    List<Column> getColumns();
 }

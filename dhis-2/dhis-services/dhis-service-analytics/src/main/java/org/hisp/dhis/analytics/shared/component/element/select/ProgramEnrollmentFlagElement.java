@@ -31,18 +31,18 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import org.hisp.dhis.analytics.shared.component.element.Element;
-import org.hisp.dhis.analytics.shared.visitor.SelectElementVisitor;
+import org.hisp.dhis.analytics.shared.visitor.select.SelectVisitor;
 
 @AllArgsConstructor
 @Getter
-public class ProgramEnrollmentFlagElement extends Element<SelectElementVisitor>
+public class ProgramEnrollmentFlagElement implements Element<SelectVisitor>
 {
     private final String uid;
 
     private final String alias;
 
     @Override
-    public void accept( SelectElementVisitor v )
+    public void accept( SelectVisitor v )
     {
         v.visit( this );
     }

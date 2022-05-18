@@ -25,26 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.shared.component.element.select;
+package org.hisp.dhis.analytics.shared.component.element.where;
+
+import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import org.hisp.dhis.analytics.shared.component.element.Element;
-import org.hisp.dhis.analytics.shared.visitor.select.SelectVisitor;
+import org.hisp.dhis.analytics.shared.visitor.where.WhereVisitor;
 
 @AllArgsConstructor
 @Getter
-public class ExecutionDateValueElement implements Element<SelectVisitor>
+public class EnrollmentDateValueWhereElement implements Element<WhereVisitor>
 {
-    private final String programStageUid;
+    private List<String> programUidList;
 
-    private final String programUid;
-
-    private final String alias;
+    private String date;
 
     @Override
-    public void accept( SelectVisitor v )
+    public void accept( WhereVisitor v )
     {
         v.visit( this );
     }

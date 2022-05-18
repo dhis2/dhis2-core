@@ -25,25 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.shared.component.element.select;
+package org.hisp.dhis.analytics.shared.component;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import java.util.List;
 
 import org.hisp.dhis.analytics.shared.component.element.Element;
-import org.hisp.dhis.analytics.shared.visitor.SelectElementVisitor;
+import org.hisp.dhis.analytics.shared.visitor.select.SelectVisitor;
 
-@AllArgsConstructor
-@Getter
-public class TeavValueElement extends Element<SelectElementVisitor>
+public class SelectComponent implements Element<SelectVisitor>
 {
-    private String uid;
+    private final List<Element<SelectVisitor>> elements;
 
-    private String alias;
+    public SelectComponent( final List<Element<SelectVisitor>> elements )
+    {
+        this.elements = elements;
+    }
 
     @Override
-    public void accept( SelectElementVisitor v )
+    public void accept( SelectVisitor v )
     {
-        v.visit( this );
+        elements.forEach( el -> el.accept( v ) );
     }
 }

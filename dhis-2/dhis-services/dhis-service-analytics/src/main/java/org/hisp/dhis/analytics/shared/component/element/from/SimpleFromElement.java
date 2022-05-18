@@ -25,20 +25,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.shared.visitor;
+package org.hisp.dhis.analytics.shared.component.element.from;
 
-import org.hisp.dhis.analytics.shared.component.element.select.SimpleTableElement;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
-/**
- * Visitor for 'from' section element of sql statement
- *
- * @author dusan bernat
- */
-public interface FromElementVisitor
+import org.hisp.dhis.analytics.shared.component.element.Element;
+import org.hisp.dhis.analytics.shared.visitor.from.FromVisitor;
+
+@AllArgsConstructor
+@Getter
+public class SimpleFromElement implements Element<FromVisitor>
 {
-    /**
-     *
-     * @param element
-     */
-    void visit( SimpleTableElement element );
+    private String value;
+
+    @Override
+    public void accept( FromVisitor v )
+    {
+        v.visit( this );
+    }
 }

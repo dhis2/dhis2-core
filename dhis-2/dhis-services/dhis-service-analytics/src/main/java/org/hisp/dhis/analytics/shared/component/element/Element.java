@@ -27,12 +27,13 @@
  */
 package org.hisp.dhis.analytics.shared.component.element;
 
+import java.util.function.Consumer;
+
 /**
  * Part of generic visitor design pattern, parameter T is related visitor
  *
  * @author dusan bernat
  */
-public abstract class Element<T>
+public interface Element<T> extends Consumer<T>
 {
-    public abstract void accept( T v );
 }

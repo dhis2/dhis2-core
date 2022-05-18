@@ -25,29 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.shared.visitor;
+package org.hisp.dhis.analytics.shared.visitor.from;
 
-import org.hisp.dhis.analytics.shared.component.element.where.EnrollmentDateValueElement;
-import org.hisp.dhis.analytics.shared.component.element.where.TeavValueElement;
+import java.util.List;
+
+import org.hisp.dhis.analytics.shared.component.element.from.SimpleFromElement;
 
 /**
- * Visitor for 'where' section element of sql statement
+ * Visitor for 'from' section element of sql statement
  *
  * @author dusan bernat
  */
-public interface WhereElementVisitor
+public interface FromVisitor
 {
     /**
-     * TeavValue visit method
      *
      * @param element
      */
-    void visit( TeavValueElement element );
+    void visit( SimpleFromElement element );
 
-    /**
-     * EnrollmentDateValue visit method
-     *
-     * @param element
-     */
-    void visit( EnrollmentDateValueElement element );
+    List<String> getTables();
+
 }

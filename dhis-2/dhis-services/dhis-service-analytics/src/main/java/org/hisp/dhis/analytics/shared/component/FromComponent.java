@@ -25,49 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.shared.component.builder;
+package org.hisp.dhis.analytics.shared.component;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.hisp.dhis.analytics.shared.component.element.Element;
-import org.hisp.dhis.analytics.shared.component.element.where.EnrollmentDateValueElement;
-import org.hisp.dhis.analytics.shared.component.element.where.TeavValueElement;
-import org.hisp.dhis.analytics.shared.visitor.WhereElementVisitor;
-import org.hisp.dhis.analytics.tei.TeiParams;
+import org.hisp.dhis.analytics.shared.visitor.from.FromVisitor;
 
-public class WhereClauseComponentBuilder
+public class FromComponent implements Element<FromVisitor>
 {
-    private TeiParams teiParams;
+    private final List<Element<FromVisitor>> elements;
 
-    public static WhereClauseComponentBuilder builder()
+    public FromComponent( final List<Element<FromVisitor>> elements )
     {
-        return new WhereClauseComponentBuilder();
+        this.elements = elements;
     }
 
-    public WhereClauseComponentBuilder withTeiParams( TeiParams teiParams )
+    @Override
+    public void accept( FromVisitor v )
     {
-        this.teiParams = teiParams;
-
-        return this;
+        elements.forEach( el -> el.accept( v ) );
     }
-
-    public List<Element<WhereElementVisitor>> build()
-    {
-        Map<String, String> inputUidMap = new HashMap<>();
-        inputUidMap.put( "w75KJ2mc4zz", "John" );
-        inputUidMap.put( "zDhUuAYrxNC", "Kelly" );
-
-        List<Element<WhereElementVisitor>> elements = inputUidMap
-            .keySet()
-            .stream()
-            .map( k -> new TeavValueElement( k, inputUidMap.get( k ) ) ).collect( Collectors.toList() );
-
-        elements.add( new EnrollmentDateValueElement( List.of( "ur1Edk5Oe2n", "IpHINAT79UW" ), "2022-01-01" ) );
-
-        return elements;
-    }
-
 }

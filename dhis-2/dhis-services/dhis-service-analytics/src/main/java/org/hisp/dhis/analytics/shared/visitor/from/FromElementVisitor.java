@@ -25,25 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.shared.component;
+package org.hisp.dhis.analytics.shared.visitor.from;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import org.hisp.dhis.analytics.shared.component.element.Element;
-import org.hisp.dhis.analytics.shared.visitor.SelectElementVisitor;
+import lombok.Getter;
 
-public class ColumnComponent extends Element<SelectElementVisitor>
+import org.hisp.dhis.analytics.shared.component.element.from.SimpleFromElement;
+
+/**
+ * @see FromVisitor
+ *
+ * @author dusan bernat
+ */
+@Getter
+public class FromElementVisitor implements FromVisitor
 {
-    private final List<Element<SelectElementVisitor>> elements;
-
-    public ColumnComponent( final List<Element<SelectElementVisitor>> elements )
-    {
-        this.elements = elements;
-    }
+    private final List<String> tables = new ArrayList<>();
 
     @Override
-    public void accept( SelectElementVisitor v )
+    public void visit( SimpleFromElement element )
     {
-        elements.forEach( el -> el.accept( v ) );
+        tables.add( element.getValue() );
     }
+
 }

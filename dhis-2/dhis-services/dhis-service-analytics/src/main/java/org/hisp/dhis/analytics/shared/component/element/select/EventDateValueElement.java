@@ -31,11 +31,11 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import org.hisp.dhis.analytics.shared.component.element.Element;
-import org.hisp.dhis.analytics.shared.visitor.SelectElementVisitor;
+import org.hisp.dhis.analytics.shared.visitor.select.SelectVisitor;
 
 @AllArgsConstructor
 @Getter
-public class EventDateValueElement extends Element<SelectElementVisitor>
+public class EventDateValueElement implements Element<SelectVisitor>
 {
     private final String eventDataValue;
 
@@ -44,7 +44,7 @@ public class EventDateValueElement extends Element<SelectElementVisitor>
     private final String alias;
 
     @Override
-    public void accept( SelectElementVisitor v )
+    public void accept( SelectVisitor v )
     {
         v.visit( this );
     }

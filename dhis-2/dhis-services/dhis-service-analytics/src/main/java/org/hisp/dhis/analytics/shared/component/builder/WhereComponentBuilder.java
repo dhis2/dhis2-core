@@ -25,27 +25,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.shared.component.element.where;
+package org.hisp.dhis.analytics.shared.component.builder;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
+import org.hisp.dhis.analytics.shared.component.WhereComponent;
 import org.hisp.dhis.analytics.shared.component.element.Element;
-import org.hisp.dhis.analytics.shared.visitor.WhereElementVisitor;
+import org.hisp.dhis.analytics.shared.component.element.where.EnrollmentDateValueWhereElement;
+import org.hisp.dhis.analytics.shared.component.element.where.TeaValueWhereElement;
+import org.hisp.dhis.analytics.shared.visitor.where.WhereVisitor;
+import org.hisp.dhis.analytics.tei.TeiParams;
 
-@AllArgsConstructor
-@Getter
-public class EnrollmentDateValueElement extends Element<WhereElementVisitor>
+public class WhereComponentBuilder
 {
-    private List<String> programUidList;
+    private TeiParams teiParams;
 
-    private String date;
-
-    @Override
-    public void accept( WhereElementVisitor v )
+    public static WhereComponentBuilder builder()
     {
-        v.visit( this );
+        return new WhereComponentBuilder();
     }
+
+    public WhereComponentBuilder withTeiParams( TeiParams teiParams )
+    {
+        this.teiParams = teiParams;
+
+        return this;
+    }
+
+    public WhereComponent build()
+    {
+        Map<String, String> inputUidMap = new HashMap<>();
+        inputUidMap.put( "w75KJ2mc4zz", "John" );
+        inputUidMap.put( "zDhUuAYrxNC", "Kelly" );
+
+        List<Element<WhereVisitor>> elements = inputUidMap
+            .keySet()
+            .stream()
+            .map( k -> new TeaValueWhereElement( k, inputUidMap.get( k ) ) ).collect( Collectors.toList() );
+
+        elements.add( new EnrollmentDateValueWhereElement( List.of( "ur1Edk5Oe2n", "IpHINAT79UW" ), "2022-01-01" ) );
+
+        return new WhereComponent( elements );
+    }
+
 }

@@ -25,41 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.shared.visitor;
+package org.hisp.dhis.analytics.shared.visitor.select;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
+import java.util.ArrayList;
 import java.util.List;
+
+import lombok.Getter;
 
 import org.hisp.dhis.analytics.ColumnDataType;
 import org.hisp.dhis.analytics.shared.Column;
-import org.hisp.dhis.analytics.shared.component.element.select.EnrollmentDateValueElement;
+import org.hisp.dhis.analytics.shared.component.element.select.EnrollmentDateValueSelectElement;
 import org.hisp.dhis.analytics.shared.component.element.select.EventDateValueElement;
 import org.hisp.dhis.analytics.shared.component.element.select.ExecutionDateValueElement;
 import org.hisp.dhis.analytics.shared.component.element.select.ProgramEnrollmentFlagElement;
-import org.hisp.dhis.analytics.shared.component.element.select.SimpleColumnElement;
-import org.hisp.dhis.analytics.shared.component.element.select.TeavValueElement;
+import org.hisp.dhis.analytics.shared.component.element.select.SimpleSelectElement;
+import org.hisp.dhis.analytics.shared.component.element.select.TeaValueSelectElement;
 
 /**
- * @see SelectElementVisitor
+ * @see SelectVisitor
  *
  * @author dusan bernat
  */
-public class SelectClauseElementVisitor implements SelectElementVisitor
+@Getter
+public class SelectElementVisitor implements SelectVisitor
 {
-    private final List<Column> columns;
-
-    public SelectClauseElementVisitor( List<Column> columns )
-    {
-        if ( columns == null )
-        {
-            throw new IllegalArgumentException( "columns" );
-        }
-        this.columns = columns;
-    }
+    private final List<Column> columns = new ArrayList<>();
 
     @Override
-    public void visit( TeavValueElement element )
+    public void visit( TeaValueSelectElement element )
     {
         columns.add( new Column( " ( SELECT teav.VALUE " +
             " FROM trackedentityattributevalue teav, " +
@@ -84,7 +79,7 @@ public class SelectClauseElementVisitor implements SelectElementVisitor
     }
 
     @Override
-    public void visit( EnrollmentDateValueElement element )
+    public void visit( EnrollmentDateValueSelectElement element )
     {
         columns.add( new Column( " ( SELECT pi.enrollmentdate " +
             " FROM programinstance pi, " +
@@ -149,7 +144,7 @@ public class SelectClauseElementVisitor implements SelectElementVisitor
     }
 
     @Override
-    public void visit( SimpleColumnElement element )
+    public void visit( SimpleSelectElement element )
     {
         columns.add( new Column( element.getValue(), ColumnDataType.TEXT, "", false, false ) );
     }

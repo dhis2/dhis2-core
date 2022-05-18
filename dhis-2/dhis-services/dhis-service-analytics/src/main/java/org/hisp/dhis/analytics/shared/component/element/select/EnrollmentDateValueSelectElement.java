@@ -25,25 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.shared.component;
+package org.hisp.dhis.analytics.shared.component.element.select;
 
-import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 import org.hisp.dhis.analytics.shared.component.element.Element;
-import org.hisp.dhis.analytics.shared.visitor.FromElementVisitor;
+import org.hisp.dhis.analytics.shared.visitor.select.SelectVisitor;
 
-public class TableComponent extends Element<FromElementVisitor>
+@AllArgsConstructor
+@Getter
+public class EnrollmentDateValueSelectElement implements Element<SelectVisitor>
 {
-    private final List<Element<FromElementVisitor>> elements;
+    private String uid;
 
-    public TableComponent( final List<Element<FromElementVisitor>> elements )
-    {
-        this.elements = elements;
-    }
+    private String alias;
 
     @Override
-    public void accept( FromElementVisitor v )
+    public void accept( SelectVisitor v )
     {
-        elements.forEach( el -> el.accept( v ) );
+        v.visit( this );
     }
 }

@@ -25,34 +25,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.shared.component.builder;
+package org.hisp.dhis.analytics.shared.visitor.where;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hisp.dhis.analytics.shared.component.element.Element;
-import org.hisp.dhis.analytics.shared.component.element.select.SimpleTableElement;
-import org.hisp.dhis.analytics.shared.visitor.FromElementVisitor;
-import org.hisp.dhis.analytics.tei.TeiParams;
+import lombok.Getter;
 
-public class FromClauseComponentBuilder
+import org.hisp.dhis.analytics.shared.component.element.where.EnrollmentDateValueWhereElement;
+import org.hisp.dhis.analytics.shared.component.element.where.TeaValueWhereElement;
+import org.hisp.dhis.analytics.shared.visitor.select.SelectVisitor;
+
+/**
+ * @see SelectVisitor
+ *
+ * @author dusan bernat
+ */
+@Getter
+public class WhereElementVisitor implements WhereVisitor
 {
-    private TeiParams teiParams;
+    private final List<String> predicates = new ArrayList<>();
 
-    public static FromClauseComponentBuilder builder()
+    @Override
+    public void visit( TeaValueWhereElement element )
     {
-        return new FromClauseComponentBuilder();
+        predicates.add( "(SELECT teav.VALUE" +
+            "       FROM trackedentityattributevalue teav," +
+            "            trackedentityattribute tea" +
+            "       WHERE teav.trackedentityinstanceid = t.trackedentityinstanceid" +
+            "         AND teav.trackedentityattributeid = tea.trackedentityattributeid" +
+            "         AND tea.uid = '" + element.getUid() + "'" +
+            "       LIMIT 1) = " + "'" + element.getFilterValue() + "'" );
     }
 
-    public FromClauseComponentBuilder withTeiParams( TeiParams teiParams )
+    @Override
+    public void visit( EnrollmentDateValueWhereElement element )
     {
-        this.teiParams = teiParams;
-
-        return this;
-    }
-
-    public List<Element<FromElementVisitor>> build()
-    {
-        return new ArrayList<>( List.of( new SimpleTableElement( "trackedentityinstance t" ) ) );
+        predicates.add( "exists(" +
+            "        SELECT 1" +
+            "        FROM programinstance pi," +
+            "             program p" +
+            "        WHERE pi.programid = p.programid" +
+            "          AND pi.trackedentityinstanceid = t.trackedentityinstanceid" +
+            "          AND p.uid IN ('" + String.join( "','", element.getProgramUidList() ) + "')" +
+            "          AND pi.enrollmentdate > '" + element.getDate() + "'" +
+            "    )" );
     }
 }

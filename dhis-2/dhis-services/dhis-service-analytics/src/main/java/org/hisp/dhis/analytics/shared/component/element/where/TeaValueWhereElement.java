@@ -25,56 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.shared.visitor;
+package org.hisp.dhis.analytics.shared.component.element.where;
 
-import org.hisp.dhis.analytics.shared.component.element.select.EnrollmentDateValueElement;
-import org.hisp.dhis.analytics.shared.component.element.select.EventDateValueElement;
-import org.hisp.dhis.analytics.shared.component.element.select.ExecutionDateValueElement;
-import org.hisp.dhis.analytics.shared.component.element.select.ProgramEnrollmentFlagElement;
-import org.hisp.dhis.analytics.shared.component.element.select.SimpleColumnElement;
-import org.hisp.dhis.analytics.shared.component.element.select.TeavValueElement;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
-/**
- * Visitor for 'select' section element of sql statement
- *
- * @author dusan bernat
- */
-public interface SelectElementVisitor
+import org.hisp.dhis.analytics.shared.component.element.Element;
+import org.hisp.dhis.analytics.shared.visitor.where.WhereVisitor;
+
+@AllArgsConstructor
+@Getter
+public class TeaValueWhereElement implements Element<WhereVisitor>
 {
-    /**
-     *
-     * @param element
-     */
-    void visit( TeavValueElement element );
+    private String uid;
 
-    /**
-     *
-     * @param element
-     */
-    void visit( ProgramEnrollmentFlagElement element );
+    private String filterValue;
 
-    /**
-     *
-     * @param element
-     */
-    void visit( EnrollmentDateValueElement element );
-
-    /**
-     *
-     * @param element
-     */
-    void visit( ExecutionDateValueElement element );
-
-    /**
-     *
-     * @param element
-     */
-    void visit( EventDateValueElement element );
-
-    /**
-     *
-     * @param element
-     */
-    void visit( SimpleColumnElement element );
-
+    @Override
+    public void accept( WhereVisitor v )
+    {
+        v.visit( this );
+    }
 }
