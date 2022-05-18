@@ -51,7 +51,7 @@ public class EventWithoutRegistrationPreProcessor
         {
             if ( event.getProgramStage().isNotBlank() )
             {
-                ProgramStage programStage = bundle.getPreheat().get( ProgramStage.class, event.getProgramStage() );
+                ProgramStage programStage = bundle.getPreheat().getProgramStage( event.getProgramStage() );
 
                 if ( programStage != null )
                 {
