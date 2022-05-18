@@ -29,29 +29,50 @@ package org.hisp.dhis.analytics.shared.visitor;
 
 import java.util.List;
 
-import org.hisp.dhis.analytics.shared.component.element.select.SimpleTableElement;
+import org.hisp.dhis.analytics.shared.component.element.where.EnrollmentDateValueElement;
+import org.hisp.dhis.analytics.shared.component.element.where.TeavValueElement;
 
 /**
- * @see FromElementVisitor
+ * @see SelectElementVisitor
  *
  * @author dusan bernat
  */
-public class FromClauseElementVisitor implements FromElementVisitor
+public class WhereClauseElementVisitor implements WhereElementVisitor
 {
-    private final List<String> tables;
+    private final List<String> predicates;
 
-    public FromClauseElementVisitor( List<String> tables )
+    public WhereClauseElementVisitor( List<String> predicates )
     {
-        if ( tables == null )
+        if ( predicates == null )
         {
-            throw new IllegalArgumentException( "tables" );
+            throw new IllegalArgumentException( "predicates" );
         }
-        this.tables = tables;
+        this.predicates = predicates;
     }
 
     @Override
-    public void visit( SimpleTableElement element )
+    public void visit( TeavValueElement element )
     {
-        tables.add( element.getValue() );
+        predicates.add( "(SELECT teav.VALUE" +
+            "       FROM trackedentityattributevalue teav," +
+            "            trackedentityattribute tea" +
+            "       WHERE teav.trackedentityinstanceid = t.trackedentityinstanceid" +
+            "         AND teav.trackedentityattributeid = tea.trackedentityattributeid" +
+            "         AND tea.uid = '" + element.getUid() + "'" +
+            "       LIMIT 1) = " + "'" + element.getFilterValue() + "'" );
+    }
+
+    @Override
+    public void visit( EnrollmentDateValueElement element )
+    {
+        predicates.add( "exists(" +
+            "        SELECT 1" +
+            "        FROM programinstance pi," +
+            "             program p" +
+            "        WHERE pi.programid = p.programid" +
+            "          AND pi.trackedentityinstanceid = t.trackedentityinstanceid" +
+            "          AND p.uid IN ('" + String.join( "','", element.getProgramUidList() ) + "')" +
+            "          AND pi.enrollmentdate > '" + element.getDate() + "'" +
+            "    )" );
     }
 }

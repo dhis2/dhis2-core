@@ -27,9 +27,18 @@
  */
 package org.hisp.dhis.analytics.shared.visitor;
 
-import org.hisp.dhis.analytics.shared.component.element.SimpleTableElement;
+import org.hisp.dhis.analytics.shared.component.element.select.SimpleTableElement;
 
+/**
+ * Visitor for 'from' section element of sql statement
+ *
+ * @author dusan bernat
+ */
 public interface FromElementVisitor
 {
+    /**
+     *
+     * @param element
+     */
     void visit( SimpleTableElement element );
 }

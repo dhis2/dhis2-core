@@ -36,12 +36,12 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.analytics.shared.component.element.Element;
-import org.hisp.dhis.analytics.shared.component.element.EnrollmentDateValueElement;
-import org.hisp.dhis.analytics.shared.component.element.EventDateValueElement;
-import org.hisp.dhis.analytics.shared.component.element.ExecutionDateValueElement;
-import org.hisp.dhis.analytics.shared.component.element.ProgramEnrollmentFlagElement;
-import org.hisp.dhis.analytics.shared.component.element.SimpleColumnElement;
-import org.hisp.dhis.analytics.shared.component.element.TeavValueElement;
+import org.hisp.dhis.analytics.shared.component.element.select.EnrollmentDateValueElement;
+import org.hisp.dhis.analytics.shared.component.element.select.EventDateValueElement;
+import org.hisp.dhis.analytics.shared.component.element.select.ExecutionDateValueElement;
+import org.hisp.dhis.analytics.shared.component.element.select.ProgramEnrollmentFlagElement;
+import org.hisp.dhis.analytics.shared.component.element.select.SimpleColumnElement;
+import org.hisp.dhis.analytics.shared.component.element.select.TeavValueElement;
 import org.hisp.dhis.analytics.shared.visitor.SelectElementVisitor;
 import org.hisp.dhis.analytics.tei.TeiParams;
 

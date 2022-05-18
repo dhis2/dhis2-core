@@ -27,32 +27,47 @@
  */
 package org.hisp.dhis.analytics.shared.component.builder;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.analytics.shared.component.element.Element;
-import org.hisp.dhis.analytics.shared.component.element.select.SimpleTableElement;
-import org.hisp.dhis.analytics.shared.visitor.FromElementVisitor;
+import org.hisp.dhis.analytics.shared.component.element.where.EnrollmentDateValueElement;
+import org.hisp.dhis.analytics.shared.component.element.where.TeavValueElement;
+import org.hisp.dhis.analytics.shared.visitor.WhereElementVisitor;
 import org.hisp.dhis.analytics.tei.TeiParams;
 
-public class FromClauseComponentBuilder
+public class WhereClauseComponentBuilder
 {
     private TeiParams teiParams;
 
-    public static FromClauseComponentBuilder builder()
+    public static WhereClauseComponentBuilder builder()
     {
-        return new FromClauseComponentBuilder();
+        return new WhereClauseComponentBuilder();
     }
 
-    public FromClauseComponentBuilder withTeiParams( TeiParams teiParams )
+    public WhereClauseComponentBuilder withTeiParams( TeiParams teiParams )
     {
         this.teiParams = teiParams;
 
         return this;
     }
 
-    public List<Element<FromElementVisitor>> build()
+    public List<Element<WhereElementVisitor>> build()
     {
-        return new ArrayList<>( List.of( new SimpleTableElement( "trackedentityinstance t" ) ) );
+        Map<String, String> inputUidMap = new HashMap<>();
+        inputUidMap.put( "w75KJ2mc4zz", "John" );
+        inputUidMap.put( "zDhUuAYrxNC", "Kelly" );
+
+        List<Element<WhereElementVisitor>> elements = inputUidMap
+            .keySet()
+            .stream()
+            .map( k -> new TeavValueElement( k, inputUidMap.get( k ) ) ).collect( Collectors.toList() );
+
+        elements.add( new EnrollmentDateValueElement( List.of( "ur1Edk5Oe2n", "IpHINAT79UW" ), "2022-01-01" ) );
+
+        return elements;
     }
+
 }

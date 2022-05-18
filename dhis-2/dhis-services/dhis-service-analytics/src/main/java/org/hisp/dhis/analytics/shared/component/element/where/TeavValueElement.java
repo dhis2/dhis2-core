@@ -25,21 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.shared.component.element;
+package org.hisp.dhis.analytics.shared.component.element.where;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-import org.hisp.dhis.analytics.shared.visitor.FromElementVisitor;
+import org.hisp.dhis.analytics.shared.component.element.Element;
+import org.hisp.dhis.analytics.shared.visitor.WhereElementVisitor;
 
 @AllArgsConstructor
 @Getter
-public class SimpleTableElement extends Element<FromElementVisitor>
+public class TeavValueElement extends Element<WhereElementVisitor>
 {
-    private String value;
+    private String uid;
+
+    private String filterValue;
 
     @Override
-    public void accept( FromElementVisitor v )
+    public void accept( WhereElementVisitor v )
     {
         v.visit( this );
     }

@@ -37,14 +37,18 @@ import org.hisp.dhis.analytics.shared.Query;
 import org.hisp.dhis.analytics.shared.QueryGenerator;
 import org.hisp.dhis.analytics.shared.SqlQuery;
 import org.hisp.dhis.analytics.shared.component.ColumnComponent;
+import org.hisp.dhis.analytics.shared.component.PredicateComponent;
 import org.hisp.dhis.analytics.shared.component.TableComponent;
 import org.hisp.dhis.analytics.shared.component.builder.FromClauseComponentBuilder;
 import org.hisp.dhis.analytics.shared.component.builder.SelectClauseComponentBuilder;
+import org.hisp.dhis.analytics.shared.component.builder.WhereClauseComponentBuilder;
 import org.hisp.dhis.analytics.shared.component.element.Element;
 import org.hisp.dhis.analytics.shared.visitor.FromClauseElementVisitor;
 import org.hisp.dhis.analytics.shared.visitor.FromElementVisitor;
 import org.hisp.dhis.analytics.shared.visitor.SelectClauseElementVisitor;
 import org.hisp.dhis.analytics.shared.visitor.SelectElementVisitor;
+import org.hisp.dhis.analytics.shared.visitor.WhereClauseElementVisitor;
+import org.hisp.dhis.analytics.shared.visitor.WhereElementVisitor;
 import org.springframework.stereotype.Component;
 
 /**
@@ -88,29 +92,18 @@ public class TeiJdbcQuery implements QueryGenerator<TeiParams>
 
     private String getWhereClause( TeiParams teiParams )
     {
-        return "WHERE exists(" +
-            "        SELECT 1" +
-            "        FROM programinstance pi," +
-            "             program p" +
-            "        WHERE pi.programid = p.programid" +
-            "          AND pi.trackedentityinstanceid = t.trackedentityinstanceid" +
-            "          AND p.uid IN ('ur1Edk5Oe2n', 'IpHINAT79UW' /* TB program and Child program */)" +
-            "          AND pi.enrollmentdate > '2022-01-01'" +
-            "    )" +
-            "  AND (SELECT teav.VALUE" +
-            "       FROM trackedentityattributevalue teav," +
-            "            trackedentityattribute tea" +
-            "       WHERE teav.trackedentityinstanceid = t.trackedentityinstanceid" +
-            "         AND teav.trackedentityattributeid = tea.trackedentityattributeid" +
-            "         AND tea.uid = 'w75KJ2mc4zz' /* UID for TEA 'First name' */" +
-            "       LIMIT 1) = 'John'" +
-            "  AND (SELECT teav.VALUE" +
-            "       FROM trackedentityattributevalue teav," +
-            "            trackedentityattribute tea" +
-            "       WHERE teav.trackedentityinstanceid = t.trackedentityinstanceid" +
-            "         AND teav.trackedentityattributeid = tea.trackedentityattributeid" +
-            "         AND tea.uid = 'zDhUuAYrxNC' /* UID for TEA 'Last name' */ " +
-            "       LIMIT 1) = 'Kelly'";
+        List<Element<WhereElementVisitor>> elements = WhereClauseComponentBuilder.builder().withTeiParams( teiParams )
+            .build();
+
+        final Element<WhereElementVisitor> predicateComponent = new PredicateComponent( elements );
+
+        List<String> predicates = new ArrayList<>();
+
+        WhereElementVisitor whereElementVisitor = new WhereClauseElementVisitor( predicates );
+
+        predicateComponent.accept( whereElementVisitor );
+
+        return String.join( " AND ", predicates );
     }
 
     private String getJoinClause( TeiParams teiParams )
@@ -123,13 +116,13 @@ public class TeiJdbcQuery implements QueryGenerator<TeiParams>
         List<Element<FromElementVisitor>> elements = FromClauseComponentBuilder.builder().withTeiParams( teiParams )
             .build();
 
-        final Element<FromElementVisitor> tableList = new TableComponent( elements );
+        final Element<FromElementVisitor> tableComponent = new TableComponent( elements );
 
         List<String> tables = new ArrayList<>();
 
         FromElementVisitor fromElementVisitor = new FromClauseElementVisitor( tables );
 
-        tableList.accept( fromElementVisitor );
+        tableComponent.accept( fromElementVisitor );
 
         return String.join( ",", tables );
     }
@@ -139,13 +132,13 @@ public class TeiJdbcQuery implements QueryGenerator<TeiParams>
         List<Element<SelectElementVisitor>> elements = SelectClauseComponentBuilder.builder().withTeiParams( teiParams )
             .build();
 
-        final Element<SelectElementVisitor> columnList = new ColumnComponent( elements );
+        final Element<SelectElementVisitor> columnComponent = new ColumnComponent( elements );
 
         List<Column> columns = new ArrayList<>();
 
         SelectElementVisitor columnVisitor = new SelectClauseElementVisitor( columns );
 
-        columnList.accept( columnVisitor );
+        columnComponent.accept( columnVisitor );
 
         return columns;
     }

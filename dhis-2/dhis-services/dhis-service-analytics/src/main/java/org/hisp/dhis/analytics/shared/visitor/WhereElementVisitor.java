@@ -25,34 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.shared.component.builder;
+package org.hisp.dhis.analytics.shared.visitor;
 
-import java.util.ArrayList;
-import java.util.List;
+import org.hisp.dhis.analytics.shared.component.element.where.EnrollmentDateValueElement;
+import org.hisp.dhis.analytics.shared.component.element.where.TeavValueElement;
 
-import org.hisp.dhis.analytics.shared.component.element.Element;
-import org.hisp.dhis.analytics.shared.component.element.select.SimpleTableElement;
-import org.hisp.dhis.analytics.shared.visitor.FromElementVisitor;
-import org.hisp.dhis.analytics.tei.TeiParams;
-
-public class FromClauseComponentBuilder
+/**
+ * Visitor for 'where' section element of sql statement
+ *
+ * @author dusan bernat
+ */
+public interface WhereElementVisitor
 {
-    private TeiParams teiParams;
+    /**
+     * TeavValue visit method
+     *
+     * @param element
+     */
+    void visit( TeavValueElement element );
 
-    public static FromClauseComponentBuilder builder()
-    {
-        return new FromClauseComponentBuilder();
-    }
-
-    public FromClauseComponentBuilder withTeiParams( TeiParams teiParams )
-    {
-        this.teiParams = teiParams;
-
-        return this;
-    }
-
-    public List<Element<FromElementVisitor>> build()
-    {
-        return new ArrayList<>( List.of( new SimpleTableElement( "trackedentityinstance t" ) ) );
-    }
+    /**
+     * EnrollmentDateValue visit method
+     *
+     * @param element
+     */
+    void visit( EnrollmentDateValueElement element );
 }

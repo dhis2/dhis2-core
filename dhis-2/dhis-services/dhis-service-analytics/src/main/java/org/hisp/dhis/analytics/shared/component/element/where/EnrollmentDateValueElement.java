@@ -25,34 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.shared.component.builder;
+package org.hisp.dhis.analytics.shared.component.element.where;
 
-import java.util.ArrayList;
 import java.util.List;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
 import org.hisp.dhis.analytics.shared.component.element.Element;
-import org.hisp.dhis.analytics.shared.component.element.select.SimpleTableElement;
-import org.hisp.dhis.analytics.shared.visitor.FromElementVisitor;
-import org.hisp.dhis.analytics.tei.TeiParams;
+import org.hisp.dhis.analytics.shared.visitor.WhereElementVisitor;
 
-public class FromClauseComponentBuilder
+@AllArgsConstructor
+@Getter
+public class EnrollmentDateValueElement extends Element<WhereElementVisitor>
 {
-    private TeiParams teiParams;
+    private List<String> programUidList;
 
-    public static FromClauseComponentBuilder builder()
+    private String date;
+
+    @Override
+    public void accept( WhereElementVisitor v )
     {
-        return new FromClauseComponentBuilder();
-    }
-
-    public FromClauseComponentBuilder withTeiParams( TeiParams teiParams )
-    {
-        this.teiParams = teiParams;
-
-        return this;
-    }
-
-    public List<Element<FromElementVisitor>> build()
-    {
-        return new ArrayList<>( List.of( new SimpleTableElement( "trackedentityinstance t" ) ) );
+        v.visit( this );
     }
 }

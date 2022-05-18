@@ -25,22 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.shared.component.element;
+package org.hisp.dhis.analytics.shared.component;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import java.util.List;
 
-import org.hisp.dhis.analytics.shared.visitor.SelectElementVisitor;
+import org.hisp.dhis.analytics.shared.component.element.Element;
+import org.hisp.dhis.analytics.shared.visitor.WhereElementVisitor;
 
-@AllArgsConstructor
-@Getter
-public class SimpleColumnElement extends Element<SelectElementVisitor>
+public class PredicateComponent extends Element<WhereElementVisitor>
 {
-    private String value;
+    private final List<Element<WhereElementVisitor>> elements;
+
+    public PredicateComponent( final List<Element<WhereElementVisitor>> elements )
+    {
+        this.elements = elements;
+    }
 
     @Override
-    public void accept( SelectElementVisitor v )
+    public void accept( WhereElementVisitor v )
     {
-        v.visit( this );
+        elements.forEach( el -> el.accept( v ) );
     }
 }

@@ -33,13 +33,18 @@ import java.util.List;
 
 import org.hisp.dhis.analytics.ColumnDataType;
 import org.hisp.dhis.analytics.shared.Column;
-import org.hisp.dhis.analytics.shared.component.element.EnrollmentDateValueElement;
-import org.hisp.dhis.analytics.shared.component.element.EventDateValueElement;
-import org.hisp.dhis.analytics.shared.component.element.ExecutionDateValueElement;
-import org.hisp.dhis.analytics.shared.component.element.ProgramEnrollmentFlagElement;
-import org.hisp.dhis.analytics.shared.component.element.SimpleColumnElement;
-import org.hisp.dhis.analytics.shared.component.element.TeavValueElement;
+import org.hisp.dhis.analytics.shared.component.element.select.EnrollmentDateValueElement;
+import org.hisp.dhis.analytics.shared.component.element.select.EventDateValueElement;
+import org.hisp.dhis.analytics.shared.component.element.select.ExecutionDateValueElement;
+import org.hisp.dhis.analytics.shared.component.element.select.ProgramEnrollmentFlagElement;
+import org.hisp.dhis.analytics.shared.component.element.select.SimpleColumnElement;
+import org.hisp.dhis.analytics.shared.component.element.select.TeavValueElement;
 
+/**
+ * @see SelectElementVisitor
+ *
+ * @author dusan bernat
+ */
 public class SelectClauseElementVisitor implements SelectElementVisitor
 {
     private final List<Column> columns;
