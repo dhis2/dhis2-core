@@ -31,6 +31,9 @@ import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -184,15 +187,16 @@ class AnalyticsServiceQueryModifiersTest
         dataValueService.addDataValue( newDataValue( deB, jan, ouA, cocA, aocA, "A" ) );
         dataValueService.addDataValue( newDataValue( deB, feb, ouA, cocB, aocA, "B" ) );
 
-        // Wait before generating analytics tables
-        Thread.sleep( 5000 );
+        // We need to make sure that table generation start time is greater than
+        // lastUpdated on tables populated in the setup
+        Date oneSecondFromNow = Date
+            .from( LocalDateTime.now().plusSeconds( 1 ).atZone( ZoneId.systemDefault() ).toInstant() );
 
         // Generate analytics tables
-        analyticsTableGenerator.generateTables( AnalyticsTableUpdateParams.newBuilder().build(),
+        analyticsTableGenerator.generateTables( AnalyticsTableUpdateParams.newBuilder()
+            .withStartTime( oneSecondFromNow )
+            .build(),
             NoopJobProgress.INSTANCE );
-
-        // Wait after generating analytics tables
-        Thread.sleep( 8000 );
     }
 
     @Override

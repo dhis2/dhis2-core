@@ -92,12 +92,17 @@ public class TrackerIdentifierCollector
         identifiers.put( TrackedEntityType.class, ImmutableSet.of( ID_WILDCARD ) );
         identifiers.put( RelationshipType.class, ImmutableSet.of( ID_WILDCARD ) );
 
-        collectProgramRulesFields( params.getIdSchemes(), identifiers );
+        collectProgramRulesFields( identifiers );
         return identifiers;
     }
 
-    private void collectProgramRulesFields( TrackerIdSchemeParams idSchemes, Map<Class<?>, Set<String>> map )
+    private void collectProgramRulesFields( Map<Class<?>, Set<String>> map )
     {
+        // collecting program rule dataElement/attributes deliberately using
+        // UIDs
+        // Rule engine rules only know UIDs, so we need to be able to get
+        // dataElements/attributes from rule actions
+        // out of the preheat using UIDs
         List<ProgramRule> programRules = programRuleService.getProgramRulesLinkedToTeaOrDe();
         Set<String> dataElements = programRules.stream()
             .flatMap( pr -> pr.getProgramRuleActions().stream() )
@@ -107,12 +112,10 @@ public class TrackerIdentifierCollector
 
         dataElements.forEach( de -> addIdentifier( map, DataElement.class, de ) );
 
-        // collect program rule attribute ids using user defined idScheme; so
-        // ids are in the same idScheme as user provided attributes
         Set<String> attributes = programRules.stream()
             .flatMap( pr -> pr.getProgramRuleActions().stream() )
             .filter( a -> Objects.nonNull( a.getAttribute() ) )
-            .map( a -> idSchemes.getIdScheme().getIdentifier( a.getAttribute() ) )
+            .map( a -> a.getAttribute().getUid() )
             .collect( Collectors.toSet() );
 
         attributes.forEach( attribute -> addIdentifier( map, TrackedEntityAttribute.class, attribute ) );
