@@ -56,6 +56,7 @@ import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitStore;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.system.util.GeoUtils;
 import org.locationtech.jts.geom.Geometry;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -236,13 +237,16 @@ public class DefaultGeoJsonService implements GeoJsonService
         }
         Runnable inc;
         String geoJsonValue = geometry.node().getDeclaration();
+        boolean needsUpdate = true;
         if ( attribute != null )
         {
             AttributeValue attributeValue = target.getAttributeValue( attribute );
             if ( attributeValue != null )
             {
+                String old = attributeValue.getValue();
                 attributeValue.setValue( geoJsonValue );
                 inc = stats::incrementUpdated;
+                needsUpdate = !Objects.equals( geoJsonValue, old );
             }
             else
             {
@@ -255,8 +259,11 @@ public class DefaultGeoJsonService implements GeoJsonService
             try
             {
                 Geometry old = target.getGeometry();
-                target.setGeometry( new GeometryJSON().read( geoJsonValue ) );
+                Geometry updated = new GeometryJSON().read( geoJsonValue );
+                updated.setSRID( GeoUtils.SRID );
+                target.setGeometry( updated );
                 inc = old != null ? stats::incrementUpdated : stats::incrementImported;
+                needsUpdate = !Objects.equals( updated, old );
             }
             catch ( Exception ex )
             {
@@ -267,7 +274,7 @@ public class DefaultGeoJsonService implements GeoJsonService
         }
         try
         {
-            if ( !params.isDryRun() )
+            if ( needsUpdate && !params.isDryRun() )
             {
                 organisationUnitStore.update( target );
             }
