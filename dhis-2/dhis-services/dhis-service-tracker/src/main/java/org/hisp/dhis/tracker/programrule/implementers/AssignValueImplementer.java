@@ -37,6 +37,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.rules.models.AttributeType;
 import org.hisp.dhis.rules.models.RuleActionAssign;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -125,7 +126,7 @@ public class AssignValueImplementer
 
         for ( EnrollmentActionRule actionRule : enrollmentActionRules.getValue() )
         {
-            if ( !actionRule.getAttribute().isPresent() ||
+            if ( !getAttribute( actionRule, bundle.getPreheat() ).isPresent() ||
                 Boolean.TRUE.equals( canOverwrite ) ||
                 isTheSameValue( actionRule, bundle.getPreheat() ) )
             {
@@ -146,6 +147,22 @@ public class AssignValueImplementer
         return issues;
     }
 
+    private Optional<Attribute> getAttribute( EnrollmentActionRule actionRule, TrackerPreheat preheat )
+    {
+        TrackedEntityAttribute attribute = preheat.getTrackedEntityAttribute( actionRule.getField() );
+
+        if ( AttributeType.TRACKED_ENTITY_ATTRIBUTE == actionRule.getAttributeType() )
+        {
+            return actionRule.getAttributes()
+                .stream()
+                .filter( at -> at.getAttribute().isEqualTo( attribute ) )
+                .findAny();
+        }
+
+        return Optional.empty();
+
+    }
+
     private boolean isTheSameValue( EventActionRule actionRule, TrackerPreheat preheat )
     {
         DataElement dataElement = preheat.get( DataElement.class, actionRule.getField() );
@@ -163,10 +180,10 @@ public class AssignValueImplementer
 
     private boolean isTheSameValue( EnrollmentActionRule actionRule, TrackerPreheat preheat )
     {
-        TrackedEntityAttribute attribute = preheat.getTrackedEntityAttribute( actionRule.getFieldMetadataIdentifier() );
+        TrackedEntityAttribute attribute = preheat.getTrackedEntityAttribute( actionRule.getField() );
         String value = actionRule.getValue();
         Optional<Attribute> optionalAttribute = actionRule.getAttributes().stream()
-            .filter( at -> at.getAttribute().equals( actionRule.getFieldMetadataIdentifier() ) )
+            .filter( at -> at.getAttribute().isEqualTo( attribute ) )
             .findAny();
         if ( optionalAttribute.isPresent() )
         {
@@ -210,6 +227,7 @@ public class AssignValueImplementer
     private void addOrOverwriteAttribute( EnrollmentActionRule actionRule, TrackerBundle bundle )
     {
         Enrollment enrollment = bundle.getEnrollment( actionRule.getEnrollment() ).get();
+        TrackedEntityAttribute attribute = bundle.getPreheat().getTrackedEntityAttribute( actionRule.getField() );
         Optional<TrackedEntity> trackedEntity = bundle.getTrackedEntity( enrollment.getTrackedEntity() );
         List<Attribute> attributes;
 
@@ -217,7 +235,7 @@ public class AssignValueImplementer
         {
             attributes = trackedEntity.get().getAttributes();
             Optional<Attribute> optionalAttribute = attributes.stream()
-                .filter( at -> at.getAttribute().equals( actionRule.getFieldMetadataIdentifier() ) )
+                .filter( at -> at.getAttribute().isEqualTo( attribute ) )
                 .findAny();
             if ( optionalAttribute.isPresent() )
             {
@@ -228,7 +246,7 @@ public class AssignValueImplementer
 
         attributes = enrollment.getAttributes();
         Optional<Attribute> optionalAttribute = attributes.stream()
-            .filter( at -> at.getAttribute().equals( actionRule.getFieldMetadataIdentifier() ) )
+            .filter( at -> at.getAttribute().isEqualTo( attribute ) )
             .findAny();
         if ( optionalAttribute.isPresent() )
         {
@@ -236,7 +254,8 @@ public class AssignValueImplementer
         }
         else
         {
-            attributes.add( createAttribute( actionRule.getFieldMetadataIdentifier(), actionRule.getData() ) );
+            attributes.add( createAttribute( bundle.getPreheat().getIdSchemes().toMetadataIdentifier( attribute ),
+                actionRule.getData() ) );
         }
     }
 
