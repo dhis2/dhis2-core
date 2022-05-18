@@ -113,7 +113,7 @@ public class CurrentUserUtil
         if ( principal instanceof UserDetails )
         {
             User user = (User) authentication.getPrincipal();
-            initializeUser( user );
+            // initializeUser( user );
 
             return user;
         }
@@ -121,7 +121,7 @@ public class CurrentUserUtil
         {
             Dhis2User dhisOidcUser = (Dhis2User) authentication.getPrincipal();
             User user = dhisOidcUser.getDhis2User();
-            initializeUser( user );
+            // initializeUser( user );
 
             return user;
         }

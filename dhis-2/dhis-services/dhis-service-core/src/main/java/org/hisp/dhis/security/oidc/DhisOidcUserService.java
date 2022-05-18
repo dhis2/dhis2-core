@@ -31,11 +31,12 @@ import static org.hisp.dhis.user.CurrentUserUtil.initializeUser;
 
 import java.util.Map;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
@@ -51,14 +52,15 @@ import org.springframework.stereotype.Service;
  */
 @Slf4j
 @Service
+@AllArgsConstructor
 public class DhisOidcUserService
     extends OidcUserService
 {
-    @Autowired
-    public UserService userService;
+    public final UserService userService;
 
-    @Autowired
-    private DhisOidcProviderRepository clientRegistrationRepository;
+    private final SessionFactory sessionFactory;
+
+    private final DhisOidcProviderRepository clientRegistrationRepository;
 
     @Override
     public OidcUser loadUser( OidcUserRequest userRequest )
@@ -90,10 +92,10 @@ public class DhisOidcUserService
         if ( claimValue != null )
         {
             User user = userService.getUserByOpenId( (String) claimValue );
-
             if ( user != null )
             {
                 initializeUser( user );
+                sessionFactory.getCurrentSession().evict( user );
                 return new DhisOidcUser( user, attributes, IdTokenClaimNames.SUB, oidcUser.getIdToken() );
             }
         }

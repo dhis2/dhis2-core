@@ -87,7 +87,6 @@ public class DefaultLdapUserDetailsService
         }
 
         initializeUser( user );
-
         sessionFactory.getCurrentSession().evict( user );
 
         user.setAccountNonLocked( accountNonLocked );

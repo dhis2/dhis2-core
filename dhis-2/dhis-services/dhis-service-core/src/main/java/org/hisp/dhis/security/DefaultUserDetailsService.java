@@ -79,7 +79,6 @@ public class DefaultUserDetailsService
         }
 
         initializeUser( user );
-
         sessionFactory.getCurrentSession().evict( user );
 
         user.setAccountNonLocked( accountNonLocked );
