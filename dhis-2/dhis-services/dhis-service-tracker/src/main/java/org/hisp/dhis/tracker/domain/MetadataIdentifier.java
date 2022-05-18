@@ -43,8 +43,25 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * MetadataIdentifier represents an immutable idScheme aware identifier of
- * metadata.
- *
+ * metadata. <br>
+ * <p>
+ * Tracker allows imports to use identifiers in idScheme {@code UID},
+ * {@code CODE} {@code NAME} and {@code ATTRIBUTE}. Any matching of metadata
+ * like "does the {@code orgUnit} given in the import exist?" has to respect the
+ * user chosen idScheme. To reduce the risk of falsely declaring metadata as for
+ * example not found {@code MetadataIdentifier} wraps the idScheme with the
+ * identifier value.
+ * </p>
+ * <br>
+ * <p>
+ * Compare a {@link MetadataIdentifier} to an {@link IdentifiableObject} using
+ * {@link #isEqualTo(IdentifiableObject)}. {@link MetadataIdentifier} can be
+ * compared to {@link MetadataIdentifier} using {@link #equals(Object)}. If you
+ * must access the actual identifier like the {@code UID} use
+ * {@link #getIdentifier()}. Exercise caution when you do, as you should of
+ * course only compare the UID to another UID.
+ * </p>
+ * <br>
  * idScheme=ATTRIBUTE uses the {@link #identifier} and {@link #attributeValue}
  * to identify metadata while the other idSchemes only rely on the
  * {@link #identifier} (UID, CODE, NAME).
