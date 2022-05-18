@@ -28,44 +28,28 @@
 package org.hisp.dhis.tracker.bundle;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
-import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
-import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceStore;
-import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.tracker.TrackerImportParams;
+import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerTest;
+import org.hisp.dhis.tracker.report.TrackerImportReport;
+import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 class TrackerEventBundleServiceTest extends TrackerTest
 {
-
     @Autowired
-    private ObjectBundleService objectBundleService;
-
-    @Autowired
-    private ObjectBundleValidationService objectBundleValidationService;
-
-    @Autowired
-    private TrackerBundleService trackerBundleService;
+    private TrackerImportService trackerImportService;
 
     @Autowired
     private ProgramStageInstanceStore programStageInstanceStore;
@@ -74,16 +58,8 @@ class TrackerEventBundleServiceTest extends TrackerTest
     protected void initTest()
         throws IOException
     {
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService
-            .fromMetadata( new ClassPathResource( "tracker/event_metadata.json" ).getInputStream(), RenderFormat.JSON );
-        ObjectBundleParams params = new ObjectBundleParams();
-        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.CREATE );
-        params.setObjects( metadata );
-        ObjectBundle bundle = objectBundleService.create( params );
-        ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
-        assertFalse( validationReport.hasErrorReports() );
-        objectBundleService.commit( bundle );
+        setUpMetadata( "tracker/event_metadata.json" );
+        injectAdminUser();
     }
 
     @Test
@@ -92,8 +68,9 @@ class TrackerEventBundleServiceTest extends TrackerTest
     {
         TrackerImportParams trackerImportParams = fromJson( "tracker/event_events_and_enrollment.json" );
         assertEquals( 8, trackerImportParams.getEvents().size() );
-        TrackerBundle trackerBundle = trackerBundleService.create( trackerImportParams );
-        trackerBundleService.commit( trackerBundle );
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
+        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
+
         List<ProgramStageInstance> programStageInstances = programStageInstanceStore.getAll();
         assertEquals( 8, programStageInstances.size() );
     }
@@ -104,13 +81,13 @@ class TrackerEventBundleServiceTest extends TrackerTest
     {
         TrackerImportParams trackerImportParams = fromJson( "tracker/event_events_and_enrollment.json" );
         trackerImportParams.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
-        TrackerBundle trackerBundle = trackerBundleService.create( trackerImportParams );
-        trackerBundleService.commit( trackerBundle );
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
+        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
         assertEquals( 8, programStageInstanceStore.getAll().size() );
-        trackerBundle = trackerBundleService.create( TrackerImportParams.builder().events( trackerBundle.getEvents() )
-            .enrollments( trackerBundle.getEnrollments() ).trackedEntities( trackerBundle.getTrackedEntities() )
-            .user( currentUserService.getCurrentUser() ).build() );
-        trackerBundleService.commit( trackerBundle );
+
+        trackerImportReport = trackerImportService.importTracker( trackerImportParams );
+        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
+
         assertEquals( 8, programStageInstanceStore.getAll().size() );
     }
 }
