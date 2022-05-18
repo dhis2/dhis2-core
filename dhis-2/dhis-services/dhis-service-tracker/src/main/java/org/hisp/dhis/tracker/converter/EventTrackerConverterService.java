@@ -239,7 +239,7 @@ public class EventTrackerConverterService
         programStageInstance.setExecutionDate( DateUtils.fromInstant( event.getOccurredAt() ) );
         programStageInstance.setDueDate( DateUtils.fromInstant( event.getScheduledAt() ) );
 
-        if ( !event.getAttributeOptionCombo().isBlank() )
+        if ( event.getAttributeOptionCombo().isNotBlank() )
         {
             programStageInstance.setAttributeOptionCombo(
                 preheat.getCategoryOptionCombo( event.getAttributeOptionCombo() ) );

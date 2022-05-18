@@ -292,4 +292,15 @@ public class MetadataIdentifier
     {
         return StringUtils.isBlank( this.getIdentifierOrAttributeValue() );
     }
+
+    /**
+     * Determines whether this metadata identifier is not blank. Complement of
+     * {@link #isBlank()}.
+     *
+     * @return true if identifier is not blank
+     */
+    public boolean isNotBlank()
+    {
+        return !this.isBlank();
+    }
 }
