@@ -285,14 +285,9 @@ class DataElementStoreTest extends DhisSpringTest
         dataElementStore.save( dataElementA );
         dataElementStore.save( dataElementB );
         Date lastUpdated = dataElementStore.getLastUpdated();
-        try
-        {
-            Thread.sleep( 10 );
-        }
-        catch ( InterruptedException e )
-        {
-            e.printStackTrace();
-        }
+
+        dbmsManager.clearSession();
+
         dataElementA.setDescription( "testA" );
         dataElementStore.update( dataElementA );
         dataElementB.setDescription( "testB" );
