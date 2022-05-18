@@ -87,13 +87,13 @@ public class SelectElementVisitor implements SelectVisitor
             " WHERE pi.trackedentityinstanceid = t.trackedentityinstanceid " +
             " AND pi.programid = p.programid " +
             " AND p.uid = '" + element.getUid() + "' " +
-            " ORDER BY enrollmentdate DESC )", ColumnDataType.DATE, element.getAlias(), false, false ) );
+            " ORDER BY enrollmentdate DESC LIMIT 1 )", ColumnDataType.DATE, element.getAlias(), false, false ) );
     }
 
     @Override
     public void visit( ExecutionDateValueElement element )
     {
-        columns.add( new Column( isBlank( element.getProgramUid() ) ? " SELECT psi.executiondate" +
+        columns.add( new Column( isBlank( element.getProgramUid() ) ? " ( SELECT psi.executiondate" +
             " FROM programstageinstance psi," +
             " programinstance pi," +
             " programstage ps" +
@@ -102,8 +102,8 @@ public class SelectElementVisitor implements SelectVisitor
             " AND ps.uid = '" + element.getProgramStageUid() + "'" +
             " AND psi.programstageid = ps.programstageid" +
             " ORDER BY pi.enrollmentdate DESC, psi.executiondate DESC" +
-            " LIMIT 1"
-            : " SELECT psi.executiondate" +
+            " LIMIT 1 ) "
+            : " ( SELECT psi.executiondate" +
                 " FROM programstageinstance psi," +
                 " programinstance pi," +
                 " program p," +
@@ -114,7 +114,8 @@ public class SelectElementVisitor implements SelectVisitor
                 " AND p.uid = '" + element.getProgramUid() + "'" +
                 " AND ps.uid = '" + element.getProgramStageUid() + "'" +
                 " AND ps.programid = p.programid" +
-                " ORDER BY pi.enrollmentdate DESC, psi.executiondate DESC",
+                " ORDER BY pi.enrollmentdate DESC, psi.executiondate DESC" +
+                "  LIMIT 1 ) ",
             ColumnDataType.DATE,
             element.getAlias(), false, false ) );
     }
@@ -123,7 +124,7 @@ public class SelectElementVisitor implements SelectVisitor
     public void visit( EventDateValueElement element )
     {
         columns.add( new Column( !isBlank( element.getProgramUid() )
-            ? " SELECT psi.eventdatavalues -> '" + element.getEventDataValue() + "' -> 'value'" +
+            ? " ( SELECT psi.eventdatavalues -> '" + element.getEventDataValue() + "' -> 'value'" +
                 "  FROM programstageinstance psi," +
                 "  programinstance pi," +
                 "  program p" +
@@ -132,14 +133,14 @@ public class SelectElementVisitor implements SelectVisitor
                 "  AND pi.programid = p.programid" +
                 "  AND p.uid = '" + element.getProgramUid() + "'" +
                 "  ORDER BY pi.enrollmentdate DESC, psi.executiondate DESC" +
-                "  LIMIT 1"
-            : " SELECT psi.eventdatavalues -> '" + element.getEventDataValue() + "' -> 'value'" +
+                "  LIMIT 1 ) "
+            : " ( SELECT psi.eventdatavalues -> '" + element.getEventDataValue() + "' -> 'value'" +
                 "  FROM programstageinstance psi," +
                 "  programinstance pi" +
                 "  WHERE psi.programinstanceid = pi.programinstanceid" +
                 "  AND pi.trackedentityinstanceid = t.trackedentityinstanceid" +
                 "  ORDER BY pi.enrollmentdate DESC, psi.executiondate DESC" +
-                "  LIMIT 1",
+                "  LIMIT 1 )",
             ColumnDataType.DATE, element.getAlias(), false, false ) );
     }
 

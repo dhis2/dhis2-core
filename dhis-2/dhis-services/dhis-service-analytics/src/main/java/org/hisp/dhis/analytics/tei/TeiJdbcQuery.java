@@ -75,10 +75,10 @@ public class TeiJdbcQuery implements QueryGenerator<TeiParams>
 
         return SqlQuery
             .builder()
-            .columns( getColumns( teiParams ) )
-            .fromClause( getFromClause( teiParams ) )
+            .columns( getSelectClause( teiParams ) )
+            .fromClause( " FROM " + getFromClause( teiParams ) )
             .joinClause( getJoinClause( teiParams ) )
-            .whereClause( getWhereClause( teiParams ) )
+            .whereClause( " WHERE" + getWhereClause( teiParams ) )
             .closingClauses( getClosingClause( teiParams ) )
             .build();
     }
@@ -117,7 +117,7 @@ public class TeiJdbcQuery implements QueryGenerator<TeiParams>
         return String.join( ",", fromVisitor.getTables() );
     }
 
-    private List<Column> getColumns( TeiParams teiParams )
+    private List<Column> getSelectClause( TeiParams teiParams )
     {
         SelectComponent component = SelectComponentBuilder.builder().withTeiParams( teiParams )
             .build();

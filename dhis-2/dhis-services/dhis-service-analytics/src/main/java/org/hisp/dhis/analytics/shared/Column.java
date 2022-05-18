@@ -107,6 +107,6 @@ public class Column implements Comparable<Column>
     @Override
     public String toString()
     {
-        return alias;
+        return value + (alias.isBlank() ? "" : " AS \"" + alias + "\"");
     }
 }
