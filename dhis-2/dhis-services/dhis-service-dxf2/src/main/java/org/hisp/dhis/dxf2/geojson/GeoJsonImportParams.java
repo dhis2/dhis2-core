@@ -41,7 +41,7 @@ public class GeoJsonImportParams
 {
     /**
      * If true the import is validated and processed without actually modifying
-     * any organisation unit or storing geo-json data.
+     * any organisation unit or storing GeoJSON data.
      */
     private final boolean dryRun;
 

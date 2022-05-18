@@ -31,7 +31,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportConflictDescriptor;
 import org.hisp.dhis.feedback.ErrorCode;
 
 /**
- * The different conflicts that can occur during a geo-json import.
+ * The different conflicts that can occur during a GeoJSON import.
  *
  * @author Jan Bernitt
  */
@@ -66,7 +66,7 @@ public enum GeoJsonImportConflict implements ImportConflictDescriptor
 
     /* individual conflicts */
     /**
-     * When extracting the geometry identifier from the geo-json feature results
+     * When extracting the geometry identifier from the GeoJSON feature results
      * in null value
      */
     FEATURE_LACKS_IDENTIFIER( ErrorCode.E7705, "feature" ),
@@ -75,7 +75,7 @@ public enum GeoJsonImportConflict implements ImportConflictDescriptor
      */
     FEATURE_LACKS_GEOMETRY( ErrorCode.E7706, "feature" ),
     /**
-     * When validating or parsing (and setting) the provided geo-json geometry
+     * When validating or parsing (and setting) the provided GeoJSON geometry
      * fails
      */
     GEOMETRY_INVALID( ErrorCode.E7707, "geometry" ),

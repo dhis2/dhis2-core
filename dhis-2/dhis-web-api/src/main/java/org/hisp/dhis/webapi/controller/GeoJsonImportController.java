@@ -28,6 +28,8 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.common.IdentifiableProperty.UID;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 
 import java.io.IOException;
 
@@ -39,8 +41,8 @@ import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.dxf2.geojson.GeoJsonImportParams;
 import org.hisp.dhis.dxf2.geojson.GeoJsonImportReport;
 import org.hisp.dhis.dxf2.geojson.GeoJsonService;
+import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -59,9 +61,9 @@ public class GeoJsonImportController
     @PostMapping( value = "", consumes = { "application/geo+json", "application/json" } )
     public WebMessage postImport(
         /**
-         * If true the {@code id} field/property of a geo-json {feature} node is
+         * If true the {@code id} field/property of a GeoJSON {feature} node is
          * used to refer to the organisation unit. If false the
-         * {@link #geojsonProperty} names the property within the geo-json
+         * {@link #geojsonProperty} names the property within the GeoJSON
          * {@code feature.properties} map that refers to the organisation unit.
          */
         @RequestParam( defaultValue = "true" ) boolean geoJsonId,
@@ -83,6 +85,9 @@ public class GeoJsonImportController
             .build(),
             request.getInputStream() );
 
-        return WebMessageUtils.ok().setResponse( report );
+        WebMessage message = report.getStatus() == ImportStatus.ERROR
+            ? conflict( "Import failed" )
+            : ok( report.getImportCount().getIgnored() > 0 ? "Import partially successful" : "Import successful" );
+        return message.setResponse( report );
     }
 }

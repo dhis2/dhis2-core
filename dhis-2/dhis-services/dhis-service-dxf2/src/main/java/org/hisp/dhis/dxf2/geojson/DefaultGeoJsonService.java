@@ -48,10 +48,11 @@ import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dxf2.importsummary.ImportCount;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.jsontree.JsonResponse;
+import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitStore;
 import org.locationtech.jts.geom.Geometry;
@@ -59,7 +60,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Service to process Geo-JSON imports and (eventually) exports.
+ * Service to process GeoJSON imports and (eventually) exports.
  *
  * @author Jan Bernitt
  */
@@ -71,25 +72,54 @@ public class DefaultGeoJsonService implements GeoJsonService
 
     private final OrganisationUnitStore organisationUnitStore;
 
+    /**
+     * Imports the provided (file) content.
+     *
+     * Steps: 1. parameter validation (mostly sanity checks for attribute) 2.
+     * extract all organisation unit identifiers from GeoJSON features 3. fetch
+     * all organisation units in single query 4. index organisation units in a
+     * map using the identifier as key 5. loop over the input GeoJSON features,
+     * for each: find the target OU, update OU object, store update
+     *
+     * @param params import configuration
+     * @param geoJsonFeatureCollection expected to contain a GeoJSON
+     *        feature-collection as root
+     * @return A report with statistics and conflicts of the import
+     */
     @Override
     @Transactional
     public GeoJsonImportReport importGeoData( GeoJsonImportParams params, InputStream geoJsonFeatureCollection )
     {
         GeoJsonImportReport report = new GeoJsonImportReport();
+        Attribute attribute = validateAttribute( params.getAttributeId(), report );
+        if ( report.getConflictCount() > 0 )
+        {
+            return report;
+        }
+
         JsonObject featureCollection;
         try
         {
-            featureCollection = new JsonResponse(
-                new String( geoJsonFeatureCollection.readAllBytes(), StandardCharsets.UTF_8 ) );
+            featureCollection = JsonValue.of(
+                new String( StreamUtils.wrapAndCheckCompressionFormat( geoJsonFeatureCollection ).readAllBytes(),
+                    StandardCharsets.UTF_8 ) )
+                .asObject();
         }
         catch ( IOException ex )
         {
             report.addConflict( createConflict( GeoJsonImportConflict.INPUT_IO_ERROR, ex.getMessage() ) );
             return report;
         }
+
         String idProperty = isBlank( params.getOrgUnitIdProperty() ) ? "id" : params.getOrgUnitIdProperty();
         Function<JsonObject, String> readIdentifiers = feature -> feature.getString( idProperty ).string();
         JsonList<JsonObject> features = featureCollection.getList( "features", JsonObject.class );
+        if ( features.isUndefined() || !features.isArray() )
+        {
+            report
+                .addConflict( createConflict( GeoJsonImportConflict.INPUT_FORMAT_ERROR, "No list of features found" ) );
+            return report;
+        }
         Set<String> ouIdentifiers = features.stream()
             .map( readIdentifiers )
             .filter( Objects::nonNull )
@@ -100,11 +130,6 @@ public class DefaultGeoJsonService implements GeoJsonService
         Map<String, OrganisationUnit> unitsByIdentifier = units.stream()
             .collect( toUnmodifiableMap( toKey, Function.identity() ) );
 
-        Attribute attribute = validateAttribute( params.getAttributeId(), report );
-        if ( report.getConflictCount() > 0 )
-        {
-            return report;
-        }
         int index = 0;
         for ( JsonObject feature : features )
         {
@@ -180,7 +205,6 @@ public class DefaultGeoJsonService implements GeoJsonService
     private void updateGeometry( Attribute attribute, OrganisationUnit target, JsonObject geometry,
         GeoJsonImportReport report, int index )
     {
-        Runnable inc;
         ImportCount stats = report.getImportCount();
         if ( target == null )
         {
@@ -188,6 +212,19 @@ public class DefaultGeoJsonService implements GeoJsonService
             stats.incrementIgnored();
             return;
         }
+        if ( geometry.isUndefined() )
+        {
+            report.addConflict( createConflict( index, GeoJsonImportConflict.FEATURE_LACKS_GEOMETRY ) );
+            stats.incrementIgnored();
+            return;
+        }
+        if ( !geometry.isObject() )
+        {
+            report.addConflict( createConflict( index, GeoJsonImportConflict.GEOMETRY_INVALID ) );
+            stats.incrementIgnored();
+            return;
+        }
+        Runnable inc;
         String geoJsonValue = geometry.node().getDeclaration();
         if ( attribute != null )
         {

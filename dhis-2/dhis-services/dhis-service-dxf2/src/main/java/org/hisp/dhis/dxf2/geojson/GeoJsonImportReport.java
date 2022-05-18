@@ -41,7 +41,7 @@ import org.hisp.dhis.webmessage.WebMessageResponse;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Tracks the conflicts during import of geo-json data.
+ * Tracks the conflicts during import of GeoJSON data.
  *
  * @author Jan Bernitt
  */
@@ -65,7 +65,7 @@ public final class GeoJsonImportReport implements ImportConflicts, WebMessageRes
     public ImportStatus getStatus()
     {
         int ignored = importCount.getIgnored();
-        if ( ignored == 0 || totalConflictOccurrenceCount == 0 )
+        if ( ignored == 0 && totalConflictOccurrenceCount == 0 )
         {
             return ImportStatus.SUCCESS;
         }
