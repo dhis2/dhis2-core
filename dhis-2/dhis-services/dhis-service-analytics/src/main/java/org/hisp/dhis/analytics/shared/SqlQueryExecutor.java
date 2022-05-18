@@ -47,7 +47,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
-public class SqlQueryExecutor implements QueryExecutor<SqlQueryResult, SqlQuery>
+public class SqlQueryExecutor implements QueryExecutor<SqlQuery, SqlQueryResult>
 {
     private final JdbcTemplate jdbcTemplate;
 

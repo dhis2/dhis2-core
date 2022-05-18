@@ -105,8 +105,8 @@ class GridAdaptorTest
     private Map<Column, List<Object>> mockResultMap()
     {
         final Map<Column, List<Object>> map = new TreeMap();
-        map.put( Column.builder().alias( "alias1" ).name( "name" ).build(), List.of( 1, 2, 3 ) );
-        map.put( Column.builder().alias( "alias2" ).name( "name" ).build(), List.of( "a", "b", "c" ) );
+        map.put( Column.builder().alias( "alias1" ).value( "name" ).build(), List.of( 1, 2, 3 ) );
+        map.put( Column.builder().alias( "alias2" ).value( "name" ).build(), List.of( "a", "b", "c" ) );
 
         return map;
     }

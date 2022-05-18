@@ -70,7 +70,7 @@ class SqlQueryTest
 
     private final Column mockColumn( final String prefix )
     {
-        return Column.builder().dataType( TEXT ).alias( prefix + "_alias" ).hidden( false ).meta( false )
-            .name( prefix + "_name" ).build();
+        return Column.builder().type( TEXT ).alias( prefix + "_alias" ).hidden( false ).meta( false )
+            .value( prefix + "_name" ).build();
     }
 }

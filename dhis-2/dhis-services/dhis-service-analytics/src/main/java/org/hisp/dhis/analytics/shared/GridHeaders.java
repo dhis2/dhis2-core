@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics.shared;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.hisp.dhis.analytics.shared.LabelMapper.getLabelOf;
 import static org.springframework.util.Assert.noNullElements;
 import static org.springframework.util.Assert.notEmpty;
 
@@ -67,7 +68,7 @@ public class GridHeaders
         if ( isNotEmpty( columns ) )
         {
             columns.forEach( column -> headers.add( new GridHeader(
-                column.getAlias(), column.getName(), column.valueType(), column.isHidden(), column.isMeta() ) ) );
+                column.getAlias(), getLabelOf( column ), column.valueType(), column.isHidden(), column.isMeta() ) ) );
         }
 
         return headers;

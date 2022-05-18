@@ -33,6 +33,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 import org.apache.commons.lang3.builder.CompareToBuilder;
+import org.apache.poi.ss.formula.functions.T;
 import org.hisp.dhis.analytics.ColumnDataType;
 import org.hisp.dhis.common.ValueType;
 
@@ -47,17 +48,17 @@ import org.hisp.dhis.common.ValueType;
 @Getter
 @Builder
 @EqualsAndHashCode
-public class Column implements Comparable<Column>
+public class Column<T> implements Comparable<Column>
 {
     /**
-     * The column name.
+     * The column value.
      */
-    private final String name;
+    private final T value;
 
     /**
      * The column data type.
      */
-    private final ColumnDataType dataType;
+    private final ColumnDataType type;
 
     /**
      * The column alias.
@@ -83,10 +84,10 @@ public class Column implements Comparable<Column>
      */
     public ValueType valueType()
     {
-        if ( dataType != null )
+        if ( type != null )
         {
             // TODO: Implement it correctly for each type
-            switch ( dataType )
+            switch ( type )
             {
             case DOUBLE:
                 return ValueType.NUMBER;
