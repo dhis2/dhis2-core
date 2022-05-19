@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.tracker.bundle;
 
-import static org.hisp.dhis.tracker.validation.AbstractImportValidationTest.ADMIN_USER_UID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
@@ -48,7 +47,6 @@ import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
-import org.hisp.dhis.user.CurrentUserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -68,9 +66,6 @@ class TrackedEntityAttributeValueAuditTest extends TrackerTest
     private IdentifiableObjectManager manager;
 
     @Autowired
-    private CurrentUserService currentUserService;
-
-    @Autowired
     private TrackedEntityAttributeValueAuditService attributeValueAuditService;
 
     @Override
@@ -78,6 +73,7 @@ class TrackedEntityAttributeValueAuditTest extends TrackerTest
         throws IOException
     {
         setUpMetadata( "tracker/te_program_with_tea_allow_audit_metadata.json" );
+        injectAdminUser();
     }
 
     @Test
@@ -85,7 +81,6 @@ class TrackedEntityAttributeValueAuditTest extends TrackerTest
         throws IOException
     {
         TrackerImportParams trackerImportParams = fromJson( "tracker/te_program_with_tea_data.json" );
-        trackerImportParams.setUser( userService.getUser( ADMIN_USER_UID ) );
 
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
         logTrackerErrors( trackerImportReport );
@@ -108,7 +103,6 @@ class TrackedEntityAttributeValueAuditTest extends TrackerTest
         throws IOException
     {
         TrackerImportParams trackerImportParams = fromJson( "tracker/te_program_with_tea_data.json" );
-        trackerImportParams.setUser( userService.getUser( ADMIN_USER_UID ) );
 
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
         assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
@@ -117,7 +111,6 @@ class TrackedEntityAttributeValueAuditTest extends TrackerTest
         List<TrackedEntityAttribute> attributes1 = attributeValues1.stream()
             .map( TrackedEntityAttributeValue::getAttribute ).collect( Collectors.toList() );
         trackerImportParams = fromJson( "tracker/te_program_with_tea_null_data.json" );
-        trackerImportParams.setUser( userService.getUser( ADMIN_USER_UID ) );
         trackerImportParams.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
         trackerImportReport = trackerImportService.importTracker( trackerImportParams );
         assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );

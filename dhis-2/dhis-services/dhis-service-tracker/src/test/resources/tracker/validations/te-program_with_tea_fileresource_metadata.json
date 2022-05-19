@@ -309,6 +309,39 @@
       "trackedEntityTypeAttributes": [
         {
           "lastUpdated": "2020-02-25T10:54:34.965",
+          "id": "fOV8XA0v4IM",
+          "created": "2020-02-10T09:12:52.050",
+          "name": "Person Attribute_Image",
+          "displayName": "Person Attribute_Image",
+          "displayShortName": "null Attribute_Image",
+          "mandatory": true,
+          "externalAccess": false,
+          "valueType": "DATE",
+          "searchable": true,
+          "displayInList": true,
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "trackedEntityAttribute": {
+            "id": "ccccc5ttttt"
+          },
+          "trackedEntityType": {
+            "id": "KrYIdvLxkMb"
+          },
+          "favorites": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
+        },
+        {
+          "lastUpdated": "2020-02-25T10:54:34.965",
           "id": "fOV8XA0v4ep",
           "created": "2020-02-10T09:12:52.050",
           "name": "Person Attribute_Date",
@@ -576,6 +609,36 @@
         "id": "M5zQapPyTZI"
       },
       "programTrackedEntityAttributes": [
+        {
+          "lastUpdated": "2020-02-20T12:08:40.006",
+          "id": "OQeqChgVcIM",
+          "created": "2020-02-12T15:07:06.260",
+          "name": "Program Attribute_Identifier_Image",
+          "displayName": "Program Attribute_Identifier_Image",
+          "mandatory": true,
+          "displayShortName": "Program Attribute_Identifier_Image",
+          "externalAccess": false,
+          "renderOptionsAsRadio": false,
+          "valueType": "IMAGE",
+          "searchable": false,
+          "displayInList": true,
+          "sortOrder": 1,
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "program": {
+            "id": "hJUBNVQWl4e"
+          },
+          "trackedEntityAttribute": {
+            "id": "ccccc5ttttt"
+          }
+        },
         {
           "lastUpdated": "2020-02-20T12:08:40.006",
           "id": "OQeqChgVcMi",
