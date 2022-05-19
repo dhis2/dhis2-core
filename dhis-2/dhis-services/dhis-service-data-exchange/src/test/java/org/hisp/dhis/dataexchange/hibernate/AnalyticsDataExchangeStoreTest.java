@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dataexchange.hibernate;
 
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -76,11 +77,17 @@ class AnalyticsDataExchangeStoreTest
 
         assertNotNull( de.getSource().getRequests().get( 0 ) );
 
+        de.setName( "DataExchangeUpdated" );
         de.getSource().getRequests().get( 0 ).getDx().add( "NhSFzklRD55" );
+        de.getTarget().getApi().setUrl( "https://play.dhis2.org/dev" );
 
         store.update( de );
 
+        assertEquals( "DataExchangeUpdated", de.getName() );
         assertEquals( 3, de.getSource().getRequests().get( 0 ).getDx().size() );
+        assertContainsOnly( de.getSource().getRequests().get( 0 ).getDx(),
+            "LrDpG50RAU9", "uR5HCiJhQ1w", "NhSFzklRD55" );
+        assertEquals( "https://play.dhis2.org/dev", de.getTarget().getApi().getUrl() );
     }
 
     private AnalyticsDataExchange getAnayticsDataExchange( char uniqueChar )
