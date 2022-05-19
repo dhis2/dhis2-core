@@ -125,15 +125,21 @@ class TrackerPreheatIdentifiersTest extends TrackerTest
         List<Pair<String, TrackerIdSchemeParam>> data = buildDataSet( "DSKTW8qFP0z", "DEAGE", "DE Age" );
         for ( Pair<String, TrackerIdSchemeParam> pair : data )
         {
-            Event event = new Event();
-            event.setProgramStage( MetadataIdentifier.ofUid( "NpsdDv6kKSO" ) );
-            DataValue dv1 = new DataValue();
-            dv1.setDataElement( pair.getLeft() );
-            dv1.setValue( "val1" );
-            event.setDataValues( Collections.singleton( dv1 ) );
-            TrackerImportParams params = buildParams( event, builder().dataElementIdScheme( pair.getRight() ).build() );
+            String id = pair.getLeft();
+            TrackerIdSchemeParam param = pair.getRight();
+            DataValue dv1 = DataValue.builder()
+                .dataElement( param.toMetadataIdentifier( id ) )
+                .value( "val1" )
+                .build();
+            Event event = Event.builder()
+                .programStage( MetadataIdentifier.ofUid( "NpsdDv6kKSO" ) )
+                .dataValues( Collections.singleton( dv1 ) )
+                .build();
+            TrackerImportParams params = buildParams( event, builder().dataElementIdScheme( param ).build() );
+
             TrackerPreheat preheat = trackerPreheatService.preheat( params );
-            assertPreheatedObjectExists( preheat, DataElement.class, pair.getRight(), pair.getLeft() );
+
+            assertPreheatedObjectExists( preheat, DataElement.class, param, id );
         }
     }
 

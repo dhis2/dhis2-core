@@ -75,7 +75,10 @@
           "updatedAt": "2019-01-28T12:10:38.113",
           "storedBy": "admin",
           "providedElsewhere": false,
-          "dataElement": "DATAEL00004",
+          "dataElement": {
+            "idScheme": "UID",
+            "identifier": "DATAEL00004"
+          },
           "value": "Fourth updated"
         },
         {
@@ -83,7 +86,10 @@
           "updatedAt": "2019-01-28T12:10:38.113",
           "storedBy": "admin",
           "providedElsewhere": false,
-          "dataElement": "DATAEL00001",
+          "dataElement": {
+            "idScheme": "UID",
+            "identifier": "DATAEL00001"
+          },
           "value": "First"
         },
         {
@@ -91,7 +97,10 @@
           "updatedAt": "2019-01-28T12:10:38.113",
           "storedBy": "admin",
           "providedElsewhere": false,
-          "dataElement": "DATAEL00003"
+          "dataElement": {
+            "idScheme": "UID",
+            "identifier": "DATAEL00003"
+          }
         }
       ],
       "notes": []

@@ -47,6 +47,50 @@ class MetadataIdentifierMapperTest
     private static final MetadataIdentifierMapper MAPPER = Mappers.getMapper( MetadataIdentifierMapper.class );
 
     @Test
+    void dataElementIdentifierFromUID()
+    {
+
+        TrackerIdSchemeParams params = TrackerIdSchemeParams.builder()
+            .idScheme( TrackerIdSchemeParam.CODE )
+            .build();
+
+        MetadataIdentifier id = MAPPER.fromDataElement( "RiNIt1yJoge", params );
+
+        assertEquals( TrackerIdScheme.UID, id.getIdScheme() );
+        assertEquals( "RiNIt1yJoge", id.getIdentifier() );
+    }
+
+    @Test
+    void dataElementIdentifierFromAttribute()
+    {
+
+        TrackerIdSchemeParams params = TrackerIdSchemeParams.builder()
+            .idScheme( TrackerIdSchemeParam.CODE )
+            .dataElementIdScheme( TrackerIdSchemeParam.ofAttribute( "RiNIt1yJoge" ) )
+            .build();
+
+        MetadataIdentifier id = MAPPER.fromDataElement( "clouds", params );
+
+        assertEquals( TrackerIdScheme.ATTRIBUTE, id.getIdScheme() );
+        assertEquals( "RiNIt1yJoge", id.getIdentifier() );
+        assertEquals( "clouds", id.getAttributeValue() );
+    }
+
+    @Test
+    void dataElementIdentifierFromUIDIfNull()
+    {
+
+        TrackerIdSchemeParams params = TrackerIdSchemeParams.builder()
+            .idScheme( TrackerIdSchemeParam.CODE )
+            .build();
+
+        MetadataIdentifier id = MAPPER.fromDataElement( null, params );
+
+        assertEquals( TrackerIdScheme.UID, id.getIdScheme() );
+        assertNull( id.getIdentifier() );
+    }
+
+    @Test
     void programIdentifierFromUID()
     {
 
