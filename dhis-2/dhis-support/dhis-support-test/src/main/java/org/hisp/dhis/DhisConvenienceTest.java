@@ -2528,6 +2528,11 @@ public abstract class DhisConvenienceTest
         return user;
     }
 
+    protected void injectAdminUser()
+    {
+        injectSecurityContext( userService.getUser( "M5zQapPyTZI" ) );
+    }
+
     protected void injectSecurityContext( User user )
     {
         if ( user == null )

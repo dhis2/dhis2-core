@@ -28,40 +28,30 @@
 package org.hisp.dhis.tracker.bundle;
 
 import static org.awaitility.Awaitility.await;
-import static org.hisp.dhis.tracker.validation.AbstractImportValidationTest.ADMIN_USER_UID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import org.hisp.dhis.TransactionalIntegrationTest;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
-import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
-import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
-import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
+import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
 
 /**
  * @author Zubair Asghar
  */
-class TrackerSideEffectHandlerServiceTest extends TransactionalIntegrationTest
+class TrackerSideEffectHandlerServiceTest extends TrackerTest
 {
 
     @Autowired
@@ -83,22 +73,11 @@ class TrackerSideEffectHandlerServiceTest extends TransactionalIntegrationTest
     private IdentifiableObjectManager manager;
 
     @Override
-    protected void setUpTest()
+    protected void initTest()
         throws IOException
     {
-        renderService = _renderService;
-        userService = _userService;
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "tracker/tracker_metadata_with_program_rules.json" ).getInputStream(),
-            RenderFormat.JSON );
-        ObjectBundleParams params = new ObjectBundleParams();
-        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.CREATE );
-        params.setObjects( metadata );
-        ObjectBundle bundle = objectBundleService.create( params );
-        ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
-        assertFalse( validationReport.hasErrorReports() );
-        objectBundleService.commit( bundle );
+        setUpMetadata( "tracker/tracker_metadata_with_program_rules.json" );
+        injectAdminUser();
     }
 
     @Test
@@ -106,15 +85,14 @@ class TrackerSideEffectHandlerServiceTest extends TransactionalIntegrationTest
     void testRuleEngineSideEffectHandlerService()
         throws IOException
     {
-        TrackerImportParams trackerImportParams = renderService.fromJson(
-            new ClassPathResource( "tracker/enrollment_data_with_program_rule_side_effects.json" ).getInputStream(),
-            TrackerImportParams.class );
+        TrackerImportParams trackerImportParams = fromJson(
+            "tracker/enrollment_data_with_program_rule_side_effects.json" );
         assertEquals( 0, trackerImportParams.getEvents().size() );
         assertEquals( 1, trackerImportParams.getTrackedEntities().size() );
         TrackerImportParams params = TrackerImportParams.builder().events( trackerImportParams.getEvents() )
             .enrollments( trackerImportParams.getEnrollments() )
             .trackedEntities( trackerImportParams.getTrackedEntities() ).build();
-        params.setUserId( ADMIN_USER_UID );
+
         trackerImportService.importTracker( params );
         await().atMost( 2, TimeUnit.SECONDS )
             .until( () -> manager.getAll( ProgramNotificationInstance.class ).size() > 0 );
