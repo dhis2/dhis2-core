@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei;
+package org.hisp.dhis.analytics.linelisting.trackedentityinstance;
 
 import static org.hisp.dhis.analytics.shared.GridHeaders.from;
 import static org.springframework.util.Assert.notNull;
@@ -35,7 +35,6 @@ import java.util.List;
 import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.analytics.shared.GridAdaptor;
-import org.hisp.dhis.analytics.shared.Query;
 import org.hisp.dhis.analytics.shared.QueryExecutor;
 import org.hisp.dhis.analytics.shared.QueryGenerator;
 import org.hisp.dhis.analytics.shared.SqlQuery;
@@ -54,9 +53,9 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 public class TeiAnalyticsQueryService
 {
-    private final QueryGenerator<TeiParams> teiJdbcQuery;
+    private final QueryGenerator<TeiLineListingParams> teiJdbcQuery;
 
-    private final QueryExecutor queryExecutor;
+    private final QueryExecutor<SqlQuery, SqlQueryResult> queryExecutor;
 
     private final GridAdaptor gridAdaptor;
 
@@ -65,18 +64,23 @@ public class TeiAnalyticsQueryService
      * against the underline data provider and return. The results found will be
      * returned encapsulated on a Grid object.
      *
-     * @param teiParams
+     * @param teiLineListingParams
      * @return the populated Grid object
      * @throws IllegalArgumentException if the given teiParams is null
      */
-    public Grid getTeiGrid( final TeiParams teiParams )
+    public Grid getTeiGrid( final TeiLineListingParams teiLineListingParams )
     {
-        notNull( teiParams, "The 'teiParams' must not be null" );
+        notNull( teiLineListingParams, "The 'teiParams' must not be null" );
 
-        final Query query = teiJdbcQuery.from( teiParams );
-        final SqlQueryResult result = (SqlQueryResult) queryExecutor.execute( query );
-        final List<GridHeader> headers = from( ((SqlQuery) query).getColumns() );
+        final SqlQuery query = (SqlQuery) teiJdbcQuery.from( teiLineListingParams );
+        final SqlQueryResult result = queryExecutor.execute( query );
+        final List<GridHeader> headers = from( query.getColumns() );
 
         return gridAdaptor.createGrid( headers, result.result() );
+    }
+
+    public void validateRequest( TeiLineListingRequest request )
+    {
+        // TODO: validate request
     }
 }

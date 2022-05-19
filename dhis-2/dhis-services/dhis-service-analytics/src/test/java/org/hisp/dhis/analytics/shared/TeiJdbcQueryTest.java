@@ -29,8 +29,8 @@ package org.hisp.dhis.analytics.shared;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.hisp.dhis.analytics.tei.TeiJdbcQuery;
-import org.hisp.dhis.analytics.tei.TeiParams;
+import org.hisp.dhis.analytics.linelisting.trackedentityinstance.TeiJdbcQuery;
+import org.hisp.dhis.analytics.linelisting.trackedentityinstance.TeiLineListingParams;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -182,7 +182,7 @@ class TeiJdbcQueryTest
             "     AND p.uid IN ('ur1Edk5Oe2n', 'IpHINAT79UW')\n" +
             "     AND pi.enrollmentdate > '2022-01-01' )";
         // When
-        final Query query = teiJdbcQuery.from( new TeiParams() );
+        final Query query = teiJdbcQuery.from( TeiLineListingParams.builder().build() );
         final String fullStatement = query.fullStatement();
 
         // Then

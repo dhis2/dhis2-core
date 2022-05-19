@@ -34,6 +34,10 @@ import javax.servlet.http.HttpServletResponse;
 
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.analytics.linelisting.trackedentityinstance.TeiAnalyticsQueryService;
+import org.hisp.dhis.analytics.linelisting.trackedentityinstance.TeiLineListingParams;
+import org.hisp.dhis.analytics.linelisting.trackedentityinstance.TeiLineListingRequest;
+import org.hisp.dhis.analytics.linelisting.trackedentityinstance.TrackedEntityLineListingRequestMapper;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -50,7 +54,7 @@ class TrackedEntityLineListingController
 
     public static final String TRACKED_ENTITIES = "analytics/trackedEntities";
 
-    private final TrackedEntityLineListingService service;
+    private final TeiAnalyticsQueryService teiAnalyticsQueryService;
 
     private final TrackedEntityLineListingRequestMapper mapper;
 
@@ -59,15 +63,15 @@ class TrackedEntityLineListingController
     @GetMapping( "query/{trackedEntityType}" )
     Grid getGrid(
         @PathVariable String trackedEntityType,
-        TrackedEntityLineListingRequest request,
+        TeiLineListingRequest request,
         DhisApiVersion apiVersion,
         HttpServletResponse response )
     {
         request.setTrackedEntityType( trackedEntityType );
-        service.validateRequest( request );
-        TrackedEntityLineListingParams params = mapper.map( request, apiVersion );
+        teiAnalyticsQueryService.validateRequest( request );
+        TeiLineListingParams params = mapper.map( request, apiVersion );
         contextUtils.configureResponse( response, CONTENT_TYPE_JSON, RESPECT_SYSTEM_SETTING );
-        return service.getGrid( params );
+        return teiAnalyticsQueryService.getTeiGrid( params );
     }
 
 }

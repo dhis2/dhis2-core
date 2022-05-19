@@ -25,30 +25,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.linelist;
+package org.hisp.dhis.analytics.linelisting.trackedentityinstance;
 
-import lombok.RequiredArgsConstructor;
+import java.util.Collection;
 
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.system.grid.ListGrid;
-import org.springframework.stereotype.Service;
+import lombok.Getter;
+import lombok.Setter;
 
-@Service
-@RequiredArgsConstructor
-public class CommonLineListingService implements LineListingService<CommonLineListingRequest, CommonLineListingParams>
+import org.hisp.dhis.analytics.linelisting.CommonLineListingRequest;
+
+@Getter
+@Setter
+public class TeiLineListingRequest extends CommonLineListingRequest
 {
+    private String trackedEntityType;
 
-    @Override
-    public Grid getGrid( CommonLineListingParams queryParams )
-    {
-        Grid grid = new ListGrid();
-        // TODO: prepare the grid based on CommonLineListingParams
-        return grid;
-    }
-
-    @Override
-    public void validateRequest( CommonLineListingRequest request )
-    {
-        // TODO: validate request based on common params
-    }
+    private Collection<String> programs;
 }

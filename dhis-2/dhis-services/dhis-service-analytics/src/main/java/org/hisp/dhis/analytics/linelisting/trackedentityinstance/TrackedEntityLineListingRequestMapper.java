@@ -25,34 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.linelist.trackedentity;
+package org.hisp.dhis.analytics.linelisting.trackedentityinstance;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.webapi.controller.linelist.CommonLineListingService;
-import org.hisp.dhis.webapi.controller.linelist.LineListingService;
+import org.hisp.dhis.analytics.linelisting.CommonLineListingMapper;
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-class TrackedEntityLineListingService
-    implements LineListingService<TrackedEntityLineListingRequest, TrackedEntityLineListingParams>
+public class TrackedEntityLineListingRequestMapper
 {
-    private final CommonLineListingService commonLineListingService;
 
-    @Override
-    public Grid getGrid( TrackedEntityLineListingParams queryParams )
-    {
-        Grid grid = commonLineListingService.getGrid( queryParams.getCommonParams() );
-        // TODO: do something with grid specific to TEI
-        return grid;
-    }
+    private final CommonLineListingMapper commonLineListingMapper;
 
-    @Override
-    public void validateRequest( TrackedEntityLineListingRequest request )
+    private final ProgramService programService;
+
+    private final TrackedEntityTypeService trackedEntityTypeService;
+
+    public TeiLineListingParams map( TeiLineListingRequest request, DhisApiVersion apiVersion )
     {
-        commonLineListingService.validateRequest( request );
-        // TODO: validate TEI fields in request
+        return TeiLineListingParams.builder()
+            .programs( programService.getPrograms( request.getPrograms() ) )
+            .trackedEntityType( trackedEntityTypeService.getTrackedEntityType( request.getTrackedEntityType() ) )
+            .commonParams( commonLineListingMapper.map( request, apiVersion ) )
+            .build();
     }
 }

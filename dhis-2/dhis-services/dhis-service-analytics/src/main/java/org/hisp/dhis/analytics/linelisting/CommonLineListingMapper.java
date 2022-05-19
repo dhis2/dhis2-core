@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.linelist;
+package org.hisp.dhis.analytics.linelisting;
 
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionFromParam;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionItemsFromParam;
@@ -57,7 +57,6 @@ import com.google.common.collect.ImmutableMap;
 
 @Service
 public class CommonLineListingMapper
-    implements LineListingRequestMapper<CommonLineListingRequest, CommonLineListingParams>
 {
 
     private final I18nFormat i18nFormat;
@@ -70,7 +69,6 @@ public class CommonLineListingMapper
         this.dataQueryService = dataQueryService;
     }
 
-    @Override
     public CommonLineListingParams map( CommonLineListingRequest request, DhisApiVersion apiVersion )
     {
 

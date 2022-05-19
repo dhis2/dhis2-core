@@ -32,25 +32,25 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.hisp.dhis.analytics.linelisting.trackedentityinstance.TeiLineListingParams;
 import org.hisp.dhis.analytics.shared.component.WhereComponent;
 import org.hisp.dhis.analytics.shared.component.element.Element;
 import org.hisp.dhis.analytics.shared.component.element.where.EnrollmentDateValueWhereElement;
 import org.hisp.dhis.analytics.shared.component.element.where.TeaValueWhereElement;
 import org.hisp.dhis.analytics.shared.visitor.where.WhereVisitor;
-import org.hisp.dhis.analytics.tei.TeiParams;
 
 public class WhereComponentBuilder
 {
-    private TeiParams teiParams;
+    private TeiLineListingParams teiLineListingParams;
 
     public static WhereComponentBuilder builder()
     {
         return new WhereComponentBuilder();
     }
 
-    public WhereComponentBuilder withTeiParams( TeiParams teiParams )
+    public WhereComponentBuilder withTeiParams( TeiLineListingParams teiLineListingParams )
     {
-        this.teiParams = teiParams;
+        this.teiLineListingParams = teiLineListingParams;
 
         return this;
     }

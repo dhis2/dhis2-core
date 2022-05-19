@@ -25,35 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.linelist;
+package org.hisp.dhis.analytics.linelisting;
 
-import java.util.ArrayList;
-import java.util.List;
+import lombok.RequiredArgsConstructor;
 
-import lombok.Builder;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.system.grid.ListGrid;
+import org.springframework.stereotype.Service;
 
-import org.hisp.dhis.common.QueryItem;
-
-@Builder( toBuilder = true )
-public class LineListingPagingAndSortingParams
+@Service
+@RequiredArgsConstructor
+public class CommonLineListingService
 {
-    private final Integer page;
+    public Grid getGrid( CommonLineListingParams queryParams )
+    {
+        Grid grid = new ListGrid();
+        // TODO: prepare the grid based on CommonLineListingParams
+        return grid;
+    }
 
-    private final Integer pageSize;
-
-    private final Boolean requestPaged;
-
-    private final Boolean countRequested;
-
-    /**
-     * Columns to sort ascending.
-     */
-    @Builder.Default
-    private List<QueryItem> asc = new ArrayList<>();
-
-    /**
-     * Columns to sort descending.
-     */
-    @Builder.Default
-    private List<QueryItem> desc = new ArrayList<>();
+    public void validateRequest( CommonLineListingRequest request )
+    {
+        // TODO: validate request based on common params
+    }
 }
