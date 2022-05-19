@@ -30,12 +30,19 @@ package org.hisp.dhis.analytics.shared.component;
 import java.util.List;
 
 import org.hisp.dhis.analytics.shared.component.element.Element;
-import org.hisp.dhis.analytics.shared.visitor.select.SelectVisitor;
 
-public class SelectComponent extends Component<SelectVisitor>
+public abstract class Component<T> implements Element<T>
 {
-    public SelectComponent( final List<Element<SelectVisitor>> elements )
+    private final List<Element<T>> elements;
+
+    protected Component( final List<Element<T>> elements )
     {
-        super( elements );
+        this.elements = elements;
+    }
+
+    @Override
+    public void accept( T v )
+    {
+        elements.forEach( el -> el.accept( v ) );
     }
 }

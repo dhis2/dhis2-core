@@ -32,18 +32,10 @@ import java.util.List;
 import org.hisp.dhis.analytics.shared.component.element.Element;
 import org.hisp.dhis.analytics.shared.visitor.from.FromVisitor;
 
-public class FromComponent implements Element<FromVisitor>
+public class FromComponent extends Component<FromVisitor>
 {
-    private final List<Element<FromVisitor>> elements;
-
     public FromComponent( final List<Element<FromVisitor>> elements )
     {
-        this.elements = elements;
-    }
-
-    @Override
-    public void accept( FromVisitor v )
-    {
-        elements.forEach( el -> el.accept( v ) );
+        super( elements );
     }
 }

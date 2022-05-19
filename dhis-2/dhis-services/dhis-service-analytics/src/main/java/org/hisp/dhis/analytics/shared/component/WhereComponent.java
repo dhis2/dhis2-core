@@ -32,18 +32,10 @@ import java.util.List;
 import org.hisp.dhis.analytics.shared.component.element.Element;
 import org.hisp.dhis.analytics.shared.visitor.where.WhereVisitor;
 
-public class WhereComponent implements Element<WhereVisitor>
+public class WhereComponent extends Component<WhereVisitor>
 {
-    private final List<Element<WhereVisitor>> elements;
-
     public WhereComponent( final List<Element<WhereVisitor>> elements )
     {
-        this.elements = elements;
-    }
-
-    @Override
-    public void accept( WhereVisitor v )
-    {
-        elements.forEach( el -> el.accept( v ) );
+        super( elements );
     }
 }
