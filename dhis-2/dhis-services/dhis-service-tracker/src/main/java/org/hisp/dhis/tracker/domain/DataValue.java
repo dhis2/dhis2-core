@@ -58,8 +58,7 @@ public class DataValue
     private boolean providedElsewhere;
 
     @JsonProperty
-    @Builder.Default
-    private String dataElement = "";
+    private MetadataIdentifier dataElement;
 
     @JsonProperty
     private String value;

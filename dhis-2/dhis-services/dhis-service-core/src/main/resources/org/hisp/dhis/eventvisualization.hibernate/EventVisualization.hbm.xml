@@ -153,6 +153,31 @@
 
         <property name="hideSubtitle"/>
 
+        <component name="legendDefinitions" class="org.hisp.dhis.visualization.LegendDefinitions">
+            <property name="legendDisplayStyle" length="40">
+                <type name="org.hibernate.type.EnumType">
+                    <param name="enumClass">org.hisp.dhis.legend.LegendDisplayStyle</param>
+                    <param name="useNamed">true</param>
+                    <param name="type">12</param>
+                </type>
+            </property>
+
+            <property name="legendDisplayStrategy" length="40">
+                <type name="org.hibernate.type.EnumType">
+                    <param name="enumClass">org.hisp.dhis.legend.LegendDisplayStrategy</param>
+                    <param name="useNamed">true</param>
+                    <param name="type">12</param>
+                </type>
+            </property>
+
+            <property name="showKey">
+                <column name="legendshowkey" default="false"/>
+            </property>
+
+            <many-to-one name="legendSet" class="org.hisp.dhis.legend.LegendSet" column="legendsetid"
+                         foreign-key="fk_evisualization_legendsetid"/>
+        </component>
+
         <set name="interpretations" inverse="true">
             <key column="eventvisualizationid"/>
             <one-to-many class="org.hisp.dhis.interpretation.Interpretation"/>

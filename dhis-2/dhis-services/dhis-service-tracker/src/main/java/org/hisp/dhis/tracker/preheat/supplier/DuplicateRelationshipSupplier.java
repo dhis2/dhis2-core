@@ -39,6 +39,7 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.preheat.mappers.RelationshipMapper;
 import org.hisp.dhis.tracker.util.RelationshipKeySupport;
 import org.springframework.stereotype.Component;
 
@@ -55,7 +56,10 @@ public class DuplicateRelationshipSupplier extends AbstractPreheatSupplier
         List<org.hisp.dhis.relationship.Relationship> relationships = retrieveRelationshipKeys(
             params.getRelationships(), preheat );
 
-        relationships.forEach( preheat::addExistingRelationship );
+        relationships.stream()
+            .map( RelationshipMapper.INSTANCE::map )
+            .filter( Objects::nonNull )
+            .forEach( preheat::addExistingRelationship );
     }
 
     private List<org.hisp.dhis.relationship.Relationship> retrieveRelationshipKeys( List<Relationship> relationships,
@@ -74,10 +78,8 @@ public class DuplicateRelationshipSupplier extends AbstractPreheatSupplier
 
     private RelationshipType getRelationshipType( Relationship rel, List<RelationshipType> relationshipTypes )
     {
-        // When idScheme is implemented for relationshipType
-        // this method must consider it to retrieve the right relationshipType
         return relationshipTypes.stream()
-            .filter( relationshipType -> Objects.equals( rel.getRelationshipType(), relationshipType.getUid() ) )
+            .filter( type -> rel.getRelationshipType().isEqualTo( type ) )
             .findAny()
             .orElse( null );
     }

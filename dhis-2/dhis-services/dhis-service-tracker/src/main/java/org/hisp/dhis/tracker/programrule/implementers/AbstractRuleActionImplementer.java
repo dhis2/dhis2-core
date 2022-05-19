@@ -32,15 +32,19 @@ import static org.hisp.dhis.rules.models.AttributeType.TRACKED_ENTITY_ATTRIBUTE;
 import static org.hisp.dhis.rules.models.AttributeType.UNKNOWN;
 import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.needsToValidateDataValues;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.rules.models.AttributeType;
 import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionAttribute;
 import org.hisp.dhis.rules.models.RuleEffect;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.DataValue;
@@ -56,7 +60,7 @@ import com.google.common.collect.Maps;
 
 // TODO: Verify if we can remove checks on ProgramStage when Program Rule
 // validation is in place
-abstract public class AbstractRuleActionImplementer<T extends RuleAction>
+public abstract class AbstractRuleActionImplementer<T extends RuleAction>
 {
     /**
      * @return the class of the action that the implementer work with
@@ -151,13 +155,14 @@ abstract public class AbstractRuleActionImplementer<T extends RuleAction>
                     ProgramStage programStage = bundle.getPreheat().getProgramStage( event.getProgramStage() );
                     Set<DataValue> dataValues = event.getDataValues();
 
-                    List<EventActionRule> eventActionRules = e.getValue()
+                    return e.getValue()
                         .stream()
                         .filter( effect -> getActionClass().isAssignableFrom( effect.ruleAction().getClass() ) )
                         .filter( effect -> getAttributeType( effect.ruleAction() ) == UNKNOWN ||
                             getAttributeType( effect.ruleAction() ) == DATA_ELEMENT )
                         .map( effect -> new EventActionRule( effect.ruleId(), event.getEvent(), effect.data(),
-                            getField( (T) effect.ruleAction() ), getAttributeType( effect.ruleAction() ),
+                            getField( (T) effect.ruleAction() ),
+                            getAttributeType( effect.ruleAction() ),
                             getContent( (T) effect.ruleAction() ), dataValues ) )
                         .filter( effect -> effect.getAttributeType() != DATA_ELEMENT ||
                             isDataElementPartOfProgramStage( effect.getField(), programStage ) )
@@ -165,7 +170,6 @@ abstract public class AbstractRuleActionImplementer<T extends RuleAction>
                             effect -> effect.getAttributeType() != DATA_ELEMENT ||
                                 needsToValidateDataValues( event, programStage ) )
                         .collect( Collectors.toList() );
-                    return eventActionRules;
                 } ) );
     }
 
@@ -187,41 +191,32 @@ abstract public class AbstractRuleActionImplementer<T extends RuleAction>
             .collect( Collectors.toMap( Map.Entry::getKey,
                 e -> {
                     Enrollment enrollment = getEnrollment( bundle, e.getKey() ).get();
-                    TrackedEntityInstance tei = bundle.getPreheat()
-                        .getTrackedEntity( enrollment.getTrackedEntity() );
 
                     List<Attribute> payloadTeiAttributes = getTrackedEntity( bundle, enrollment.getTrackedEntity() )
-                        .map( te -> te.getAttributes() )
+                        .map( TrackedEntity::getAttributes )
                         .orElse( Collections.emptyList() );
 
-                    List<Attribute> attributes = mergeAttributes( enrollment.getAttributes(), payloadTeiAttributes );
+                    List<Attribute> attributes = mergeAttributes( enrollment.getAttributes(),
+                        payloadTeiAttributes );
 
-                    List<EnrollmentActionRule> enrollmentActionRules = e.getValue()
+                    return e.getValue()
                         .stream()
                         .filter( effect -> getActionClass().isAssignableFrom( effect.ruleAction().getClass() ) )
                         .filter( effect -> getAttributeType( effect.ruleAction() ) == UNKNOWN ||
                             getAttributeType( effect.ruleAction() ) == TRACKED_ENTITY_ATTRIBUTE )
                         .map( effect -> new EnrollmentActionRule( effect.ruleId(),
                             enrollment.getEnrollment(), effect.data(),
-                            getField( (T) effect.ruleAction() ), getAttributeType( effect.ruleAction() ),
+                            getField( (T) effect.ruleAction() ),
+                            getAttributeType( effect.ruleAction() ),
                             getContent( (T) effect.ruleAction() ), attributes ) )
                         .collect( Collectors.toList() );
-                    return enrollmentActionRules;
                 } ) );
     }
 
-    private List<Attribute> mergeAttributes(
-        List<Attribute> enrollmentAttributes, List<Attribute> attributes )
+    private List<Attribute> mergeAttributes( List<Attribute> enrollmentAttributes, List<Attribute> attributes )
     {
 
-        List<String> payloadAttributes = attributes.stream()
-            .map( Attribute::getAttribute )
-            .collect( Collectors.toList() );
-        payloadAttributes
-            .addAll( enrollmentAttributes.stream().map( Attribute::getAttribute ).collect( Collectors.toList() ) );
-
         List<Attribute> mergedAttributes = Lists.newArrayList();
-
         mergedAttributes.addAll( attributes );
         mergedAttributes.addAll( enrollmentAttributes );
         return mergedAttributes;
@@ -231,7 +226,7 @@ abstract public class AbstractRuleActionImplementer<T extends RuleAction>
     {
         return programStage.getDataElements()
             .stream()
-            .map( de -> de.getUid() )
+            .map( BaseIdentifiableObject::getUid )
             .anyMatch( de -> de.equals( dataElementUid ) );
     }
 

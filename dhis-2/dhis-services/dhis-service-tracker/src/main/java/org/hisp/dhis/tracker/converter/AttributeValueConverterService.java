@@ -36,6 +36,7 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.domain.Attribute;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.springframework.stereotype.Service;
 
@@ -51,7 +52,7 @@ public class AttributeValueConverterService
     {
         Attribute attribute = new Attribute();
 
-        attribute.setAttribute( teav.getAttribute().getUid() );
+        attribute.setAttribute( MetadataIdentifier.ofUid( teav.getAttribute().getUid() ) );
         attribute.setCode( teav.getAttribute().getCode() );
         attribute.setDisplayName( teav.getAttribute().getDisplayName() );
         attribute.setCreatedAt( instantFromDate( teav.getCreated() ) );
@@ -72,7 +73,7 @@ public class AttributeValueConverterService
     @Override
     public TrackedEntityAttributeValue from( TrackerPreheat preheat, Attribute at )
     {
-        TrackedEntityAttribute attribute = preheat.get( TrackedEntityAttribute.class, at.getAttribute() );
+        TrackedEntityAttribute attribute = preheat.getTrackedEntityAttribute( at.getAttribute() );
 
         TrackedEntityAttributeValue teav = new TrackedEntityAttributeValue();
 

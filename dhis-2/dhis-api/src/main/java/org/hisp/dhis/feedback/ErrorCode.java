@@ -404,7 +404,20 @@ public enum ErrorCode
     E7650( "Not a valid path: `{0}`" ),
     E7651( "Illegal fields expression. Expected `,`, `[` or `]` at position {0} but found `{1}`" ),
     E7652( "Illegal filter expression `{0}`: {1}" ),
-    E7653( "Illegal filter `{0}`: {1}" );
+    E7653( "Illegal filter `{0}`: {1}" ),
+
+    /* GeoJSON import validation and conflicts */
+    E7700( "Error reading JSON input: {0}" ),
+    E7701( "Input is not a valid GeoJSON document: {0}" ),
+    E7702( "GeoJSON attribute does not exist: {0}" ),
+    E7703( "GeoJSON attribute is not of type {0} but: {1}" ),
+    E7704( "GeoJSON attribute is not applicable to organisation units" ),
+    E7705( "GeoJSON feature lacks identifier property: `{0}`" ),
+    E7706( "GeoJSON feature lacks geometry property" ),
+    E7707( "GeoJSON geometry is not valid" ),
+    E7708( "GeoJSON target organisation unit does not exist" ),
+    E7709( "Organisation unit could not be updated with new GeoJSON geometry" ),
+    E7710( "User is not allowed to update the target organisation unit" );
 
     private String message;
 

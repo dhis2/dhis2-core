@@ -57,26 +57,14 @@ public interface JsonImportSummary extends JsonObject
         return getList( "typeReports", JsonTypeReport.class );
     }
 
-    default JsonStats getImportCount()
+    default JsonImportCount getImportCount()
     {
-        return get( "importCount", JsonStats.class );
+        return get( "importCount", JsonImportCount.class );
     }
 
-    default JsonList<JsonConflict> getConflicts()
+    default JsonList<JsonImportConflict> getConflicts()
     {
-        return getList( "conflicts", JsonConflict.class );
+        return getList( "conflicts", JsonImportConflict.class );
     }
 
-    interface JsonConflict extends JsonObject
-    {
-        default String getObject()
-        {
-            return getString( "object" ).string();
-        }
-
-        default String getValue()
-        {
-            return getString( "value" ).string();
-        }
-    }
 }

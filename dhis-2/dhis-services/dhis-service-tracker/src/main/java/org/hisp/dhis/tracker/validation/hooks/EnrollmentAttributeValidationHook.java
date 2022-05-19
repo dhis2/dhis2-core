@@ -40,13 +40,13 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -86,7 +86,7 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
         OrganisationUnit orgUnit = preheat
             .getOrganisationUnit( getOrgUnitUidFromTei( bundle, enrollment.getTrackedEntity() ) );
 
-        Map<String, String> attributeValueMap = Maps.newHashMap();
+        Map<MetadataIdentifier, String> attributeValueMap = Maps.newHashMap();
 
         for ( Attribute attribute : enrollment.getAttributes() )
         {
@@ -95,7 +95,7 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
             TrackedEntityAttribute teAttribute = reporter.getBundle().getPreheat()
                 .getTrackedEntityAttribute( attribute.getAttribute() );
 
-            if ( attribute.getAttribute() != null && attribute.getValue() != null && teAttribute != null )
+            if ( !attribute.getAttribute().isBlank() && attribute.getValue() != null && teAttribute != null )
             {
 
                 attributeValueMap.put( attribute.getAttribute(), attribute.getValue() );
@@ -119,30 +119,31 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
     protected void validateRequiredProperties( ValidationErrorReporter reporter, Enrollment enrollment,
         Attribute attribute, Program program )
     {
-        reporter.addErrorIfNull( attribute.getAttribute(), enrollment, E1075, attribute );
+        if ( attribute.getAttribute().isBlank() )
+        {
+            reporter.addError( enrollment, E1075, attribute );
+            return;
+        }
 
         Optional<ProgramTrackedEntityAttribute> optionalTrackedAttr = program.getProgramAttributes().stream()
-            .filter( pa -> pa.getAttribute().getUid().equals( attribute.getAttribute() ) && pa.isMandatory() )
+            .filter( pa -> attribute.getAttribute().isEqualTo( pa.getAttribute() ) && pa.isMandatory() )
             .findFirst();
 
         if ( optionalTrackedAttr.isPresent() )
         {
             reporter.addErrorIfNull( attribute.getValue(), enrollment, E1076,
                 TrackedEntityAttribute.class.getSimpleName(),
-                attribute.getAttribute() );
+                attribute.getAttribute().getIdentifierOrAttributeValue() );
         }
 
-        if ( attribute.getAttribute() != null )
-        {
-            TrackedEntityAttribute teAttribute = reporter.getBundle().getPreheat()
-                .getTrackedEntityAttribute( attribute.getAttribute() );
-
-            reporter.addErrorIfNull( teAttribute, enrollment, E1006, attribute.getAttribute() );
-        }
+        TrackedEntityAttribute teAttribute = reporter.getBundle().getPreheat()
+            .getTrackedEntityAttribute( attribute.getAttribute() );
+        reporter.addErrorIfNull( teAttribute, enrollment, E1006,
+            attribute.getAttribute().getIdentifierOrAttributeValue() );
     }
 
     private void validateMandatoryAttributes( ValidationErrorReporter reporter,
-        Program program, Map<String, String> enrollmentNonEmptyAttributeUids, Enrollment enrollment )
+        Program program, Map<MetadataIdentifier, String> enrollmentNonEmptyAttributes, Enrollment enrollment )
     {
         // Build a data structures of attributes eligible for mandatory
         // validations:
@@ -151,18 +152,20 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
 
         // 1 - attributes from enrollment whose value is non-empty
 
-        // 2 - attributes uids from existing TEI (if any) from preheat
-        Set<String> teiAttributeUids = buildTeiAttributeUids( reporter, enrollment.getTrackedEntity() );
+        // 2 - attributes from existing TEI (if any) from preheat
+        Set<MetadataIdentifier> teiAttributes = buildTeiAttributes( reporter, enrollment.getTrackedEntity() );
 
-        // merged uids of eligible attribute to validate
-        Set<String> mergedAttributes = Streams
-            .concat( enrollmentNonEmptyAttributeUids.keySet().stream(), teiAttributeUids.stream() )
+        // merged ids of eligible attributes to validate
+        Set<MetadataIdentifier> mergedAttributes = Streams
+            .concat( enrollmentNonEmptyAttributes.keySet().stream(), teiAttributes.stream() )
             .collect( Collectors.toSet() );
 
-        // Map having as key program attribute uid and mandatory flag as value
-        Map<String, Boolean> programAttributesMap = program.getProgramAttributes().stream()
+        // Map having as key program attribute and mandatory flag as value
+        TrackerIdSchemeParams idSchemes = reporter.getBundle().getPreheat().getIdSchemes();
+        Map<MetadataIdentifier, Boolean> programAttributesMap = program.getProgramAttributes().stream()
             .collect( Collectors.toMap(
-                programTrackedEntityAttribute -> programTrackedEntityAttribute.getAttribute().getUid(),
+                programTrackedEntityAttribute -> idSchemes
+                    .toMetadataIdentifier( programTrackedEntityAttribute.getAttribute() ),
                 ProgramTrackedEntityAttribute::isMandatory ) );
 
         // Merged attributes must contain each mandatory program attribute.
@@ -170,22 +173,25 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
             .stream()
             .filter( Map.Entry::getValue ) // <--- filter on mandatory flag
             .map( Map.Entry::getKey )
-            .forEach( mandatoryProgramAttributeUid -> reporter.addErrorIf(
-                () -> !mergedAttributes.contains( mandatoryProgramAttributeUid ),
+            .forEach( mandatoryProgramAttribute -> reporter.addErrorIf(
+                () -> !mergedAttributes.contains( mandatoryProgramAttribute ),
                 enrollment, E1018,
-                mandatoryProgramAttributeUid, program.getUid(), enrollment.getEnrollment() ) );
+                mandatoryProgramAttribute.getIdentifierOrAttributeValue(), program.getUid(),
+                enrollment.getEnrollment() ) );
 
         // enrollment must not contain any attribute which is not defined in
         // program
-        enrollmentNonEmptyAttributeUids
+        enrollmentNonEmptyAttributes
             .forEach(
-                ( attrUid, attrVal ) -> reporter.addErrorIf( () -> !programAttributesMap.containsKey( attrUid ),
+                ( attrId, attrVal ) -> reporter.addErrorIf( () -> !programAttributesMap.containsKey( attrId ),
                     enrollment, E1019,
-                    attrUid + "=" + attrVal ) );
+                    attrId.getIdentifierOrAttributeValue() + "=" + attrVal ) );
     }
 
-    private Set<String> buildTeiAttributeUids( ValidationErrorReporter reporter, String trackedEntityInstanceUid )
+    private Set<MetadataIdentifier> buildTeiAttributes( ValidationErrorReporter reporter,
+        String trackedEntityInstanceUid )
     {
+        TrackerIdSchemeParams idSchemes = reporter.getBundle().getPreheat().getIdSchemes();
         return Optional.of( reporter )
             .map( ValidationErrorReporter::getBundle )
             .map( TrackerBundle::getPreheat )
@@ -194,7 +200,7 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
             .orElse( Collections.emptySet() )
             .stream()
             .map( TrackedEntityAttributeValue::getAttribute )
-            .map( BaseIdentifiableObject::getUid )
+            .map( idSchemes::toMetadataIdentifier )
             .collect( Collectors.toSet() );
     }
 
