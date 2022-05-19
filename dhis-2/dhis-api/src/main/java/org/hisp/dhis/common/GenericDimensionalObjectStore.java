@@ -52,4 +52,5 @@ public interface GenericDimensionalObjectStore<T>
      * @return a List of objects.
      */
     List<T> getByDataDimensionNoAcl( boolean dataDimension );
+
 }
