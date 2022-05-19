@@ -39,6 +39,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.rules.models.AttributeType;
 import org.hisp.dhis.rules.models.RuleAction;
@@ -154,13 +155,14 @@ public abstract class AbstractRuleActionImplementer<T extends RuleAction>
                     ProgramStage programStage = bundle.getPreheat().getProgramStage( event.getProgramStage() );
                     Set<DataValue> dataValues = event.getDataValues();
 
-                    List<EventActionRule> eventActionRules = e.getValue()
+                    return e.getValue()
                         .stream()
                         .filter( effect -> getActionClass().isAssignableFrom( effect.ruleAction().getClass() ) )
                         .filter( effect -> getAttributeType( effect.ruleAction() ) == UNKNOWN ||
                             getAttributeType( effect.ruleAction() ) == DATA_ELEMENT )
                         .map( effect -> new EventActionRule( effect.ruleId(), event.getEvent(), effect.data(),
-                            getField( (T) effect.ruleAction() ), getAttributeType( effect.ruleAction() ),
+                            getField( (T) effect.ruleAction() ),
+                            getAttributeType( effect.ruleAction() ),
                             getContent( (T) effect.ruleAction() ), dataValues ) )
                         .filter( effect -> effect.getAttributeType() != DATA_ELEMENT ||
                             isDataElementPartOfProgramStage( effect.getField(), programStage ) )
@@ -168,7 +170,6 @@ public abstract class AbstractRuleActionImplementer<T extends RuleAction>
                             effect -> effect.getAttributeType() != DATA_ELEMENT ||
                                 needsToValidateDataValues( event, programStage ) )
                         .collect( Collectors.toList() );
-                    return eventActionRules;
                 } ) );
     }
 
@@ -192,13 +193,13 @@ public abstract class AbstractRuleActionImplementer<T extends RuleAction>
                     Enrollment enrollment = getEnrollment( bundle, e.getKey() ).get();
 
                     List<Attribute> payloadTeiAttributes = getTrackedEntity( bundle, enrollment.getTrackedEntity() )
-                        .map( te -> te.getAttributes() )
+                        .map( TrackedEntity::getAttributes )
                         .orElse( Collections.emptyList() );
 
                     List<Attribute> attributes = mergeAttributes( enrollment.getAttributes(),
                         payloadTeiAttributes );
 
-                    List<EnrollmentActionRule> enrollmentActionRules = e.getValue()
+                    return e.getValue()
                         .stream()
                         .filter( effect -> getActionClass().isAssignableFrom( effect.ruleAction().getClass() ) )
                         .filter( effect -> getAttributeType( effect.ruleAction() ) == UNKNOWN ||
@@ -209,7 +210,6 @@ public abstract class AbstractRuleActionImplementer<T extends RuleAction>
                             getAttributeType( effect.ruleAction() ),
                             getContent( (T) effect.ruleAction() ), attributes ) )
                         .collect( Collectors.toList() );
-                    return enrollmentActionRules;
                 } ) );
     }
 
@@ -226,7 +226,7 @@ public abstract class AbstractRuleActionImplementer<T extends RuleAction>
     {
         return programStage.getDataElements()
             .stream()
-            .map( de -> de.getUid() )
+            .map( BaseIdentifiableObject::getUid )
             .anyMatch( de -> de.equals( dataElementUid ) );
     }
 

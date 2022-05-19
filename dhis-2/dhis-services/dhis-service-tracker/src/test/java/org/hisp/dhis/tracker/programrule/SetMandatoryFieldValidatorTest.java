@@ -108,7 +108,7 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
 
     private TrackedEntityAttribute attribute;
 
-    private SetMandatoryFieldValidator implementerToTest = new SetMandatoryFieldValidator();
+    private final SetMandatoryFieldValidator implementerToTest = new SetMandatoryFieldValidator();
 
     private TrackerBundle bundle;
 
@@ -144,6 +144,8 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
     @Test
     void testValidateOkMandatoryFieldsForEvents()
     {
+        when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
+        when( preheat.getDataElement( DATA_ELEMENT_ID ) ).thenReturn( dataElementA );
         when( preheat.getProgramStage( MetadataIdentifier.ofUid( firstProgramStage ) ) )
             .thenReturn( firstProgramStage );
         bundle.setEvents( Lists.newArrayList( getEventWithMandatoryValueSet() ) );
@@ -154,8 +156,27 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
     }
 
     @Test
+    void testValidateOkMandatoryFieldsForEventsUsingIdSchemeCode()
+    {
+        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder()
+            .dataElementIdScheme( TrackerIdSchemeParam.CODE )
+            .build();
+        when( preheat.getIdSchemes() ).thenReturn( idSchemes );
+        when( preheat.getDataElement( DATA_ELEMENT_ID ) ).thenReturn( dataElementA );
+        when( preheat.getProgramStage( MetadataIdentifier.ofUid( firstProgramStage ) ) )
+            .thenReturn( firstProgramStage );
+        bundle.setEvents( Lists.newArrayList( getEventWithMandatoryValueSet( idSchemes ) ) );
+
+        Map<String, List<ProgramRuleIssue>> errors = implementerToTest.validateEvents( bundle );
+
+        assertTrue( errors.isEmpty() );
+    }
+
+    @Test
     void testValidateWithErrorMandatoryFieldsForEvents()
     {
+        when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
+        when( preheat.getDataElement( DATA_ELEMENT_ID ) ).thenReturn( dataElementA );
         when( preheat.getProgramStage( MetadataIdentifier.ofUid( firstProgramStage ) ) )
             .thenReturn( firstProgramStage );
         bundle.setEvents( Lists.newArrayList( getEventWithMandatoryValueSet(), getEventWithMandatoryValueNOTSet() ) );
@@ -177,6 +198,8 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
     @Test
     void testValidateOkMandatoryFieldsForValidEventAndNotValidEventInDifferentProgramStage()
     {
+        when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
+        when( preheat.getDataElement( DATA_ELEMENT_ID ) ).thenReturn( dataElementA );
         when( preheat.getProgramStage( MetadataIdentifier.ofUid( firstProgramStage ) ) )
             .thenReturn( firstProgramStage );
         when( preheat.getProgramStage( MetadataIdentifier.ofUid( secondProgramStage ) ) )
@@ -238,14 +261,24 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
         } );
     }
 
+    private Event getEventWithMandatoryValueSet( TrackerIdSchemeParams idSchemes )
+    {
+        return Event.builder()
+            .event( FIRST_EVENT_ID )
+            .status( EventStatus.ACTIVE )
+            .programStage( idSchemes.toMetadataIdentifier( firstProgramStage ) )
+            .dataValues( getActiveEventDataValues( idSchemes ) )
+            .build();
+    }
+
     private Event getEventWithMandatoryValueSet()
     {
-        Event event = new Event();
-        event.setEvent( FIRST_EVENT_ID );
-        event.setStatus( EventStatus.ACTIVE );
-        event.setProgramStage( MetadataIdentifier.ofUid( firstProgramStage ) );
-        event.setDataValues( getActiveEventDataValues() );
-        return event;
+        return Event.builder()
+            .event( FIRST_EVENT_ID )
+            .status( EventStatus.ACTIVE )
+            .programStage( MetadataIdentifier.ofUid( firstProgramStage ) )
+            .dataValues( getActiveEventDataValues() )
+            .build();
     }
 
     private Event getEventWithMandatoryValueNOTSet()
@@ -266,11 +299,21 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
         return event;
     }
 
+    private Set<DataValue> getActiveEventDataValues( TrackerIdSchemeParams idSchemes )
+    {
+        DataValue dataValue = DataValue.builder()
+            .value( DATA_ELEMENT_VALUE )
+            .dataElement( idSchemes.toMetadataIdentifier( dataElementA ) )
+            .build();
+        return Sets.newHashSet( dataValue );
+    }
+
     private Set<DataValue> getActiveEventDataValues()
     {
-        DataValue dataValue = new DataValue();
-        dataValue.setValue( DATA_ELEMENT_VALUE );
-        dataValue.setDataElement( DATA_ELEMENT_ID );
+        DataValue dataValue = DataValue.builder()
+            .value( DATA_ELEMENT_VALUE )
+            .dataElement( MetadataIdentifier.ofUid( DATA_ELEMENT_ID ) )
+            .build();
         return Sets.newHashSet( dataValue );
     }
 

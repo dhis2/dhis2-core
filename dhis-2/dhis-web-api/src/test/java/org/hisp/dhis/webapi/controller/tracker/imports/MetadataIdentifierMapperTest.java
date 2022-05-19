@@ -29,12 +29,10 @@ package org.hisp.dhis.webapi.controller.tracker.imports;
 
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Set;
 
-import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
@@ -47,6 +45,46 @@ class MetadataIdentifierMapperTest
     private static final MetadataIdentifierMapper MAPPER = Mappers.getMapper( MetadataIdentifierMapper.class );
 
     @Test
+    void dataElementIdentifierFromUID()
+    {
+
+        TrackerIdSchemeParams params = TrackerIdSchemeParams.builder()
+            .idScheme( TrackerIdSchemeParam.CODE )
+            .build();
+
+        MetadataIdentifier id = MAPPER.fromDataElement( "RiNIt1yJoge", params );
+
+        assertEquals( MetadataIdentifier.ofUid( "RiNIt1yJoge" ), id );
+    }
+
+    @Test
+    void dataElementIdentifierFromAttribute()
+    {
+
+        TrackerIdSchemeParams params = TrackerIdSchemeParams.builder()
+            .idScheme( TrackerIdSchemeParam.CODE )
+            .dataElementIdScheme( TrackerIdSchemeParam.ofAttribute( "RiNIt1yJoge" ) )
+            .build();
+
+        MetadataIdentifier id = MAPPER.fromDataElement( "clouds", params );
+
+        assertEquals( MetadataIdentifier.ofAttribute( "RiNIt1yJoge", "clouds" ), id );
+    }
+
+    @Test
+    void dataElementIdentifierFromUIDIfNull()
+    {
+
+        TrackerIdSchemeParams params = TrackerIdSchemeParams.builder()
+            .idScheme( TrackerIdSchemeParam.CODE )
+            .build();
+
+        MetadataIdentifier id = MAPPER.fromDataElement( null, params );
+
+        assertEquals( MetadataIdentifier.EMPTY_UID, id );
+    }
+
+    @Test
     void programIdentifierFromUID()
     {
 
@@ -56,8 +94,7 @@ class MetadataIdentifierMapperTest
 
         MetadataIdentifier id = MAPPER.fromProgram( "RiNIt1yJoge", params );
 
-        assertEquals( TrackerIdScheme.UID, id.getIdScheme() );
-        assertEquals( "RiNIt1yJoge", id.getIdentifier() );
+        assertEquals( MetadataIdentifier.ofUid( "RiNIt1yJoge" ), id );
     }
 
     @Test
@@ -71,9 +108,7 @@ class MetadataIdentifierMapperTest
 
         MetadataIdentifier id = MAPPER.fromProgram( "clouds", params );
 
-        assertEquals( TrackerIdScheme.ATTRIBUTE, id.getIdScheme() );
-        assertEquals( "RiNIt1yJoge", id.getIdentifier() );
-        assertEquals( "clouds", id.getAttributeValue() );
+        assertEquals( MetadataIdentifier.ofAttribute( "RiNIt1yJoge", "clouds" ), id );
     }
 
     @Test
@@ -86,8 +121,7 @@ class MetadataIdentifierMapperTest
 
         MetadataIdentifier id = MAPPER.fromProgram( null, params );
 
-        assertEquals( TrackerIdScheme.UID, id.getIdScheme() );
-        assertNull( id.getIdentifier() );
+        assertEquals( MetadataIdentifier.EMPTY_UID, id );
     }
 
     @Test
@@ -100,8 +134,7 @@ class MetadataIdentifierMapperTest
 
         MetadataIdentifier id = MAPPER.fromProgramStage( "RiNIt1yJoge", params );
 
-        assertEquals( TrackerIdScheme.UID, id.getIdScheme() );
-        assertEquals( "RiNIt1yJoge", id.getIdentifier() );
+        assertEquals( MetadataIdentifier.ofUid( "RiNIt1yJoge" ), id );
     }
 
     @Test
@@ -115,9 +148,7 @@ class MetadataIdentifierMapperTest
 
         MetadataIdentifier id = MAPPER.fromProgramStage( "clouds", params );
 
-        assertEquals( TrackerIdScheme.ATTRIBUTE, id.getIdScheme() );
-        assertEquals( "RiNIt1yJoge", id.getIdentifier() );
-        assertEquals( "clouds", id.getAttributeValue() );
+        assertEquals( MetadataIdentifier.ofAttribute( "RiNIt1yJoge", "clouds" ), id );
     }
 
     @Test
@@ -130,8 +161,7 @@ class MetadataIdentifierMapperTest
 
         MetadataIdentifier id = MAPPER.fromProgramStage( null, params );
 
-        assertEquals( TrackerIdScheme.UID, id.getIdScheme() );
-        assertNull( id.getIdentifier() );
+        assertEquals( MetadataIdentifier.EMPTY_UID, id );
     }
 
     @Test
@@ -144,8 +174,7 @@ class MetadataIdentifierMapperTest
 
         MetadataIdentifier id = MAPPER.fromOrgUnit( "RiNIt1yJoge", params );
 
-        assertEquals( TrackerIdScheme.UID, id.getIdScheme() );
-        assertEquals( "RiNIt1yJoge", id.getIdentifier() );
+        assertEquals( MetadataIdentifier.ofUid( "RiNIt1yJoge" ), id );
     }
 
     @Test
@@ -159,9 +188,7 @@ class MetadataIdentifierMapperTest
 
         MetadataIdentifier id = MAPPER.fromOrgUnit( "clouds", params );
 
-        assertEquals( TrackerIdScheme.ATTRIBUTE, id.getIdScheme() );
-        assertEquals( "RiNIt1yJoge", id.getIdentifier() );
-        assertEquals( "clouds", id.getAttributeValue() );
+        assertEquals( MetadataIdentifier.ofAttribute( "RiNIt1yJoge", "clouds" ), id );
     }
 
     @Test
@@ -174,8 +201,7 @@ class MetadataIdentifierMapperTest
 
         MetadataIdentifier id = MAPPER.fromOrgUnit( null, params );
 
-        assertEquals( TrackerIdScheme.UID, id.getIdScheme() );
-        assertNull( id.getIdentifier() );
+        assertEquals( MetadataIdentifier.EMPTY_UID, id );
     }
 
     @Test
@@ -188,8 +214,7 @@ class MetadataIdentifierMapperTest
 
         MetadataIdentifier id = MAPPER.fromAttributeOptionCombo( "RiNIt1yJoge", params );
 
-        assertEquals( TrackerIdScheme.UID, id.getIdScheme() );
-        assertEquals( "RiNIt1yJoge", id.getIdentifier() );
+        assertEquals( MetadataIdentifier.ofUid( "RiNIt1yJoge" ), id );
     }
 
     @Test
@@ -203,9 +228,7 @@ class MetadataIdentifierMapperTest
 
         MetadataIdentifier id = MAPPER.fromAttributeOptionCombo( "clouds", params );
 
-        assertEquals( TrackerIdScheme.ATTRIBUTE, id.getIdScheme() );
-        assertEquals( "RiNIt1yJoge", id.getIdentifier() );
-        assertEquals( "clouds", id.getAttributeValue() );
+        assertEquals( MetadataIdentifier.ofAttribute( "RiNIt1yJoge", "clouds" ), id );
     }
 
     @Test
@@ -218,8 +241,7 @@ class MetadataIdentifierMapperTest
 
         MetadataIdentifier id = MAPPER.fromAttributeOptionCombo( null, params );
 
-        assertEquals( TrackerIdScheme.UID, id.getIdScheme() );
-        assertNull( id.getIdentifier() );
+        assertEquals( MetadataIdentifier.EMPTY_UID, id );
     }
 
     @Test
@@ -286,8 +308,7 @@ class MetadataIdentifierMapperTest
 
         MetadataIdentifier id = MAPPER.fromStringIdentifier( "RiNIt1yJoge", params );
 
-        assertEquals( TrackerIdScheme.UID, id.getIdScheme() );
-        assertEquals( "RiNIt1yJoge", id.getIdentifier() );
+        assertEquals( MetadataIdentifier.ofUid( "RiNIt1yJoge" ), id );
     }
 
     @Test
@@ -300,9 +321,7 @@ class MetadataIdentifierMapperTest
 
         MetadataIdentifier id = MAPPER.fromStringIdentifier( "clouds", params );
 
-        assertEquals( TrackerIdScheme.ATTRIBUTE, id.getIdScheme() );
-        assertEquals( "RiNIt1yJoge", id.getIdentifier() );
-        assertEquals( "clouds", id.getAttributeValue() );
+        assertEquals( MetadataIdentifier.ofAttribute( "RiNIt1yJoge", "clouds" ), id );
     }
 
     @Test
@@ -315,7 +334,6 @@ class MetadataIdentifierMapperTest
 
         MetadataIdentifier id = MAPPER.fromStringIdentifier( null, params );
 
-        assertEquals( TrackerIdScheme.UID, id.getIdScheme() );
-        assertNull( id.getIdentifier() );
+        assertEquals( MetadataIdentifier.EMPTY_UID, id );
     }
 }

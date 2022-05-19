@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.tracker.programrule;
 
-import java.util.Optional;
 import java.util.Set;
 
 import lombok.AllArgsConstructor;
@@ -74,19 +73,5 @@ public class EventActionRule
             stringBuilder.append( data );
         }
         return stringBuilder.toString();
-    }
-
-    public Optional<DataValue> getDataValue()
-    {
-        if ( attributeType.equals( AttributeType.DATA_ELEMENT ) )
-        {
-            return getDataValues()
-                .stream()
-                .filter( dv -> dv.getDataElement().equals( field ) )
-                .findAny();
-        }
-
-        return Optional.empty();
-
     }
 }

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi;
 
+import static org.hisp.dhis.webapi.utils.TestUtils.APPLICATION_GEO_JSON_UTF8;
 import static org.hisp.dhis.webapi.utils.TestUtils.APPLICATION_JSON_PATCH_UTF8;
 import static org.hisp.dhis.webapi.utils.TestUtils.APPLICATION_JSON_UTF8;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertSeries;
@@ -227,6 +228,12 @@ public interface WebClient
         if ( body != null && body.endsWith( ".json" ) )
         {
             MediaType fileContentType = contentMediaType != null ? contentMediaType : APPLICATION_JSON_UTF8;
+            return failOnException( () -> webRequest( method, url, headers, fileContentType,
+                Files.readString( new ClassPathResource( body ).getFile().toPath(), StandardCharsets.UTF_8 ) ) );
+        }
+        if ( body != null && body.endsWith( ".geojson" ) )
+        {
+            MediaType fileContentType = contentMediaType != null ? contentMediaType : APPLICATION_GEO_JSON_UTF8;
             return failOnException( () -> webRequest( method, url, headers, fileContentType,
                 Files.readString( new ClassPathResource( body ).getFile().toPath(), StandardCharsets.UTF_8 ) ) );
         }

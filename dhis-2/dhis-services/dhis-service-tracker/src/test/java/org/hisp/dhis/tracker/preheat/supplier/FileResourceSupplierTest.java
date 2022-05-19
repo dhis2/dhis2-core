@@ -175,19 +175,19 @@ class FileResourceSupplierTest extends DhisConvenienceTest
     private Event getEvent()
     {
         DataValue fileResourceDataValue = new DataValue();
-        fileResourceDataValue.setDataElement( FILE_RESOURCE_DATA_ELEMENT_UID );
+        fileResourceDataValue.setDataElement( MetadataIdentifier.ofUid( FILE_RESOURCE_DATA_ELEMENT_UID ) );
         fileResourceDataValue.setValue( FILE_RESOURCE_UID );
 
         DataValue emptyFileResourceDataValue = new DataValue();
-        emptyFileResourceDataValue.setDataElement( EMPTY_FILE_RESOURCE_DATA_ELEMENT_UID );
+        emptyFileResourceDataValue.setDataElement( MetadataIdentifier.ofUid( EMPTY_FILE_RESOURCE_DATA_ELEMENT_UID ) );
         emptyFileResourceDataValue.setValue( "" );
 
         DataValue nullFileResourceDataValue = new DataValue();
-        nullFileResourceDataValue.setDataElement( NULL_FILE_RESOURCE_DATA_ELEMENT_UID );
+        nullFileResourceDataValue.setDataElement( MetadataIdentifier.ofUid( NULL_FILE_RESOURCE_DATA_ELEMENT_UID ) );
         nullFileResourceDataValue.setValue( null );
 
         DataValue numericDataValue = new DataValue();
-        numericDataValue.setDataElement( NUMERIC_DATA_ELEMENT_UID );
+        numericDataValue.setDataElement( MetadataIdentifier.ofUid( NUMERIC_DATA_ELEMENT_UID ) );
         numericDataValue.setValue( "3" );
 
         Event event = new Event();

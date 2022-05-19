@@ -53,7 +53,8 @@
       "relationships": [],
       "attributes": [],
       "notes": []
-    }],
+    }
+  ],
   "events": [
     {
       "event": "D9PbzJY8bJO",
@@ -97,7 +98,10 @@
           "updatedAt": "2019-01-28T12:10:38.113",
           "storedBy": "admin",
           "providedElsewhere": false,
-          "dataElement": "DATAEL00001"
+          "dataElement": {
+            "idScheme": "UID",
+            "identifier": "DATAEL00001"
+          }
         }
       ],
       "notes": []

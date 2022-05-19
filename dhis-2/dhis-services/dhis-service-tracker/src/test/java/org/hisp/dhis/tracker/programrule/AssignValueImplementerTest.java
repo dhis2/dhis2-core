@@ -69,6 +69,7 @@ import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.programrule.implementers.AssignValueImplementer;
+import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -97,6 +98,8 @@ class AssignValueImplementerTest extends DhisConvenienceTest
     private final static String SECOND_EVENT_ID = "CompletedEventUid";
 
     private final static String DATA_ELEMENT_ID = "DataElementId";
+
+    private final static String DATA_ELEMENT_CODE = "DataElementCode";
 
     private final static String ANOTHER_DATA_ELEMENT_ID = "AnotherDataElementId";
 
@@ -146,6 +149,7 @@ class AssignValueImplementerTest extends DhisConvenienceTest
         attributeA.setValueType( ValueType.NUMBER );
         dataElementA = createDataElement( 'A' );
         dataElementA.setUid( DATA_ELEMENT_ID );
+        dataElementA.setCode( DATA_ELEMENT_CODE );
         ProgramStageDataElement programStageDataElementA = createProgramStageDataElement( firstProgramStage,
             dataElementA, 0 );
         firstProgramStage.setProgramStageDataElements( Sets.newHashSet( programStageDataElementA ) );
@@ -156,12 +160,11 @@ class AssignValueImplementerTest extends DhisConvenienceTest
         ProgramStageDataElement programStageDataElementB = createProgramStageDataElement( secondProgramStage,
             dataElementB, 0 );
         secondProgramStage.setProgramStageDataElements( Sets.newHashSet( programStageDataElementB ) );
-        when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
         when( preheat.getProgramStage( MetadataIdentifier.ofUid( firstProgramStage ) ) )
             .thenReturn( firstProgramStage );
         when( preheat.getProgramStage( MetadataIdentifier.ofUid( secondProgramStage ) ) )
             .thenReturn( secondProgramStage );
-        when( preheat.get( DataElement.class, dataElementA.getUid() ) ).thenReturn( dataElementA );
+        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementA.getUid() ) ) ).thenReturn( dataElementA );
         when( preheat.getTrackedEntityAttribute( attributeA.getUid() ) )
             .thenReturn( attributeA );
         when( preheat.getTrackedEntityAttribute( MetadataIdentifier.ofUid( attributeA.getUid() ) ) )
@@ -175,13 +178,17 @@ class AssignValueImplementerTest extends DhisConvenienceTest
     @Test
     void testAssignDataElementValueForEventsWhenDataElementIsEmpty()
     {
+        when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
+        when( preheat.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
         List<Event> events = Lists.newArrayList( getEventWithDataValueNOTSet() );
         bundle.setEvents( events );
         bundle.setRuleEffects( getRuleEventEffects( events ) );
+
         Map<String, List<ProgramRuleIssue>> eventIssues = implementerToTest.validateEvents( bundle );
+
         Event event = bundle.getEvents().stream().filter( e -> e.getEvent().equals( SECOND_EVENT_ID ) ).findAny().get();
         Optional<DataValue> newDataValue = event.getDataValues().stream()
-            .filter( dv -> dv.getDataElement().equals( dataElementA.getUid() ) ).findAny();
+            .filter( dv -> dv.getDataElement().isEqualTo( dataElementA ) ).findAny();
         assertTrue( newDataValue.isPresent() );
         assertEquals( DATA_ELEMENT_NEW_VALUE, newDataValue.get().getValue() );
         assertEquals( 1, eventIssues.size() );
@@ -195,10 +202,12 @@ class AssignValueImplementerTest extends DhisConvenienceTest
         List<Event> events = Lists.newArrayList( getEventWithDataValueNOTSetInDifferentProgramStage() );
         bundle.setEvents( events );
         bundle.setRuleEffects( getRuleEventEffects( events ) );
+
         Map<String, List<ProgramRuleIssue>> eventIssues = implementerToTest.validateEvents( bundle );
+
         Event event = bundle.getEvents().stream().filter( e -> e.getEvent().equals( SECOND_EVENT_ID ) ).findAny().get();
         Optional<DataValue> newDataValue = event.getDataValues().stream()
-            .filter( dv -> dv.getDataElement().equals( dataElementA.getUid() ) ).findAny();
+            .filter( dv -> dv.getDataElement().isEqualTo( dataElementA ) ).findAny();
         assertTrue( !newDataValue.isPresent() );
         assertTrue( eventIssues.isEmpty() );
     }
@@ -206,30 +215,65 @@ class AssignValueImplementerTest extends DhisConvenienceTest
     @Test
     void testAssignDataElementValueForEventsWhenDataElementIsAlreadyPresent()
     {
+        when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
+        when( preheat.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
         List<Event> events = Lists.newArrayList( getEventWithDataValueSet() );
         bundle.setEvents( events );
         bundle.setRuleEffects( getRuleEventEffects( events ) );
+
         Map<String, List<ProgramRuleIssue>> eventIssues = implementerToTest.validateEvents( bundle );
+
         Event event = bundle.getEvents().stream().filter( e -> e.getEvent().equals( FIRST_EVENT_ID ) ).findAny().get();
         Optional<DataValue> newDataValue = event.getDataValues().stream()
-            .filter( dv -> dv.getDataElement().equals( dataElementA.getUid() ) ).findAny();
+            .filter( dv -> dv.getDataElement().isEqualTo( dataElementA ) ).findAny();
         assertTrue( newDataValue.isPresent() );
         assertEquals( DATA_ELEMENT_OLD_VALUE, newDataValue.get().getValue() );
         assertEquals( 1, eventIssues.size() );
         assertEquals( 1, eventIssues.get( FIRST_EVENT_ID ).size() );
+        assertEquals( ERROR, eventIssues.get( FIRST_EVENT_ID ).get( 0 ).getIssueType() );
+        assertEquals( TrackerErrorCode.E1307, eventIssues.get( FIRST_EVENT_ID ).get( 0 ).getIssueCode() );
+    }
+
+    @Test
+    void testAssignDataElementValueForEventsWhenDataElementIsAlreadyPresentUsingIdSchemeCode()
+    {
+        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder()
+            .dataElementIdScheme( TrackerIdSchemeParam.CODE )
+            .build();
+        when( preheat.getIdSchemes() ).thenReturn( idSchemes );
+        when( preheat.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
+
+        List<Event> events = Lists.newArrayList( getEventWithDataValueSet( idSchemes ) );
+        bundle.setEvents( events );
+        bundle.setRuleEffects( getRuleEventEffects( events ) );
+
+        Map<String, List<ProgramRuleIssue>> eventIssues = implementerToTest.validateEvents( bundle );
+
+        Event event = bundle.getEvents().stream().filter( e -> e.getEvent().equals( FIRST_EVENT_ID ) ).findAny().get();
+        Optional<DataValue> newDataValue = event.getDataValues().stream()
+            .filter( dv -> dv.getDataElement().isEqualTo( dataElementA ) ).findAny();
+        assertTrue( newDataValue.isPresent() );
+        assertEquals( DATA_ELEMENT_OLD_VALUE, newDataValue.get().getValue() );
+        assertEquals( 1, eventIssues.size() );
+        assertEquals( 1, eventIssues.get( FIRST_EVENT_ID ).size() );
+        assertEquals( TrackerErrorCode.E1307, eventIssues.get( FIRST_EVENT_ID ).get( 0 ).getIssueCode() );
         assertEquals( ERROR, eventIssues.get( FIRST_EVENT_ID ).get( 0 ).getIssueType() );
     }
 
     @Test
     void testAssignDataElementValueForEventsWhenDataElementIsAlreadyPresentAndHasSameValue()
     {
+        when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
+        when( preheat.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
         List<Event> events = Lists.newArrayList( getEventWithDataValueSetSameValue() );
         bundle.setEvents( events );
         bundle.setRuleEffects( getRuleEventEffects( events ) );
+
         Map<String, List<ProgramRuleIssue>> eventIssues = implementerToTest.validateEvents( bundle );
+
         Event event = bundle.getEvents().stream().filter( e -> e.getEvent().equals( FIRST_EVENT_ID ) ).findAny().get();
         Optional<DataValue> newDataValue = event.getDataValues().stream()
-            .filter( dv -> dv.getDataElement().equals( dataElementA.getUid() ) ).findAny();
+            .filter( dv -> dv.getDataElement().isEqualTo( dataElementA ) ).findAny();
         assertTrue( newDataValue.isPresent() );
         assertEquals( DATA_ELEMENT_NEW_VALUE, newDataValue.get().getValue() );
         assertEquals( 1, eventIssues.size() );
@@ -240,15 +284,19 @@ class AssignValueImplementerTest extends DhisConvenienceTest
     @Test
     void testAssignDataElementValueForEventsWhenDataElementIsAlreadyPresentAndSystemSettingToOverwriteIsTrue()
     {
+        when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
+        when( preheat.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
         List<Event> events = Lists.newArrayList( getEventWithDataValueSet() );
         bundle.setEvents( events );
         bundle.setRuleEffects( getRuleEventEffects( events ) );
         when( systemSettingManager.getBooleanSetting( SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE ) )
             .thenReturn( Boolean.TRUE );
+
         Map<String, List<ProgramRuleIssue>> eventIssues = implementerToTest.validateEvents( bundle );
+
         Event event = bundle.getEvents().stream().filter( e -> e.getEvent().equals( FIRST_EVENT_ID ) ).findAny().get();
         Optional<DataValue> newDataValue = event.getDataValues().stream()
-            .filter( dv -> dv.getDataElement().equals( dataElementA.getUid() ) ).findAny();
+            .filter( dv -> dv.getDataElement().isEqualTo( dataElementA ) ).findAny();
         assertTrue( newDataValue.isPresent() );
         assertEquals( DATA_ELEMENT_NEW_VALUE, newDataValue.get().getValue() );
         assertEquals( 1, eventIssues.size() );
@@ -259,6 +307,7 @@ class AssignValueImplementerTest extends DhisConvenienceTest
     @Test
     void testAssignAttributeValueForEnrollmentsWhenAttributeIsEmpty()
     {
+        when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
         List<TrackedEntity> trackedEntities = Lists.newArrayList( getTrackedEntitiesWithAttributeNOTSet() );
         List<Enrollment> enrollments = Lists.newArrayList( getEnrollmentWithAttributeNOTSet() );
         bundle.setTrackedEntities( trackedEntities );
@@ -432,6 +481,17 @@ class AssignValueImplementerTest extends DhisConvenienceTest
         return event;
     }
 
+    private Event getEventWithDataValueSet( TrackerIdSchemeParams idSchemes )
+    {
+
+        return Event.builder()
+            .event( FIRST_EVENT_ID )
+            .status( EventStatus.ACTIVE )
+            .programStage( idSchemes.toMetadataIdentifier( firstProgramStage ) )
+            .dataValues( getEventDataValues( idSchemes ) )
+            .build();
+    }
+
     private Event getEventWithDataValueSetSameValue()
     {
         Event event = new Event();
@@ -462,17 +522,28 @@ class AssignValueImplementerTest extends DhisConvenienceTest
 
     private Set<DataValue> getEventDataValues()
     {
-        DataValue dataValue = new DataValue();
-        dataValue.setValue( DATA_ELEMENT_OLD_VALUE );
-        dataValue.setDataElement( DATA_ELEMENT_ID );
+        DataValue dataValue = DataValue.builder()
+            .value( DATA_ELEMENT_OLD_VALUE )
+            .dataElement( MetadataIdentifier.ofUid( DATA_ELEMENT_ID ) )
+            .build();
+        return Sets.newHashSet( dataValue );
+    }
+
+    private Set<DataValue> getEventDataValues( TrackerIdSchemeParams idSchemes )
+    {
+        DataValue dataValue = DataValue.builder()
+            .value( DATA_ELEMENT_OLD_VALUE )
+            .dataElement( idSchemes.toMetadataIdentifier( dataElementA ) )
+            .build();
         return Sets.newHashSet( dataValue );
     }
 
     private Set<DataValue> getEventDataValuesSameValue()
     {
-        DataValue dataValue = new DataValue();
-        dataValue.setValue( DATA_ELEMENT_NEW_VALUE_PAYLOAD );
-        dataValue.setDataElement( DATA_ELEMENT_ID );
+        DataValue dataValue = DataValue.builder()
+            .value( DATA_ELEMENT_NEW_VALUE_PAYLOAD )
+            .dataElement( MetadataIdentifier.ofUid( DATA_ELEMENT_ID ) )
+            .build();
         return Sets.newHashSet( dataValue );
     }
 

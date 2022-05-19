@@ -99,7 +99,7 @@ class EventDataValuesValidationHookTest
         TrackerIdSchemeParams params = setUpIdentifiers();
 
         DataElement dataElement = dataElement();
-        when( preheat.get( DataElement.class, dataElementUid ) ).thenReturn( dataElement );
+        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementUid ) ) ).thenReturn( dataElement );
 
         ProgramStage programStage = programStage( dataElement );
         when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStageUid ) ) )
@@ -123,7 +123,7 @@ class EventDataValuesValidationHookTest
         TrackerIdSchemeParams params = setUpIdentifiers();
 
         DataElement dataElement = dataElement();
-        when( preheat.get( DataElement.class, dataElementUid ) ).thenReturn( dataElement );
+        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementUid ) ) ).thenReturn( dataElement );
 
         ProgramStage programStage = programStage( dataElement );
         when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStageUid ) ) )
@@ -149,7 +149,7 @@ class EventDataValuesValidationHookTest
         TrackerIdSchemeParams params = setUpIdentifiers();
 
         DataElement dataElement = dataElement();
-        when( preheat.get( DataElement.class, dataElementUid ) ).thenReturn( dataElement );
+        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementUid ) ) ).thenReturn( dataElement );
 
         ProgramStage programStage = programStage( dataElement );
         when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStageUid ) ) )
@@ -175,7 +175,7 @@ class EventDataValuesValidationHookTest
         TrackerIdSchemeParams params = setUpIdentifiers();
 
         DataElement dataElement = dataElement();
-        when( preheat.get( DataElement.class, dataElementUid ) ).thenReturn( null );
+        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementUid ) ) ).thenReturn( null );
 
         ProgramStage programStage = programStage( dataElement );
         when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStageUid ) ) )
@@ -200,7 +200,7 @@ class EventDataValuesValidationHookTest
         TrackerIdSchemeParams params = setUpIdentifiers();
 
         DataElement dataElement = dataElement();
-        when( preheat.get( DataElement.class, dataElementUid ) ).thenReturn( dataElement );
+        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementUid ) ) ).thenReturn( dataElement );
 
         ProgramStage programStage = new ProgramStage();
         programStage.setAutoFields();
@@ -211,7 +211,7 @@ class EventDataValuesValidationHookTest
         mandatoryStageElement1.setCompulsory( true );
         ProgramStageDataElement mandatoryStageElement2 = new ProgramStageDataElement();
         DataElement mandatoryElement2 = new DataElement();
-        mandatoryElement2.setUid( dataValue().getDataElement() );
+        mandatoryElement2.setUid( dataElementUid );
         mandatoryStageElement2.setDataElement( mandatoryElement2 );
         mandatoryStageElement2.setCompulsory( true );
         programStage.setProgramStageDataElements( Set.of( mandatoryStageElement1, mandatoryStageElement2 ) );
@@ -237,7 +237,7 @@ class EventDataValuesValidationHookTest
         TrackerIdSchemeParams params = setUpIdentifiers();
 
         DataElement dataElement = dataElement();
-        when( preheat.get( DataElement.class, dataElementUid ) ).thenReturn( dataElement );
+        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementUid ) ) ).thenReturn( dataElement );
 
         ProgramStage programStage = new ProgramStage();
         programStage.setAutoFields();
@@ -248,7 +248,7 @@ class EventDataValuesValidationHookTest
         mandatoryStageElement1.setCompulsory( true );
         ProgramStageDataElement mandatoryStageElement2 = new ProgramStageDataElement();
         DataElement mandatoryElement2 = new DataElement();
-        mandatoryElement2.setUid( dataValue().getDataElement() );
+        mandatoryElement2.setUid( dataElementUid );
         mandatoryStageElement2.setDataElement( mandatoryElement2 );
         mandatoryStageElement2.setCompulsory( true );
         programStage.setProgramStageDataElements( Set.of( mandatoryStageElement1, mandatoryStageElement2 ) );
@@ -280,7 +280,7 @@ class EventDataValuesValidationHookTest
 
         DataElement dataElement = dataElement();
         dataElement.setCode( "DE_424050" );
-        when( preheat.get( DataElement.class, dataElement.getCode() ) ).thenReturn( dataElement );
+        when( preheat.getDataElement( MetadataIdentifier.ofCode( dataElement.getCode() ) ) ).thenReturn( dataElement );
 
         ProgramStage programStage = programStage( dataElement, true );
         when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStageUid ) ) )
@@ -289,7 +289,7 @@ class EventDataValuesValidationHookTest
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         DataValue dataValue = dataValue();
-        dataValue.setDataElement( "DE_424050" );
+        dataValue.setDataElement( MetadataIdentifier.ofCode( "DE_424050" ) );
         Event event = Event.builder()
             .programStage( params.toMetadataIdentifier( programStage ) )
             .status( EventStatus.COMPLETED )
@@ -306,17 +306,18 @@ class EventDataValuesValidationHookTest
         TrackerIdSchemeParams params = setUpIdentifiers();
 
         DataElement dataElement = dataElement();
-        when( preheat.get( DataElement.class, dataElementUid ) ).thenReturn( dataElement );
+        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementUid ) ) ).thenReturn( dataElement );
 
         DataElement notPresentDataElement = dataElement();
         notPresentDataElement.setUid( "de_not_present_in_program_stage" );
-        when( preheat.get( DataElement.class, "de_not_present_in_program_stage" ) ).thenReturn( notPresentDataElement );
+        when( preheat.getDataElement( MetadataIdentifier.ofUid( "de_not_present_in_program_stage" ) ) )
+            .thenReturn( notPresentDataElement );
 
         ProgramStage programStage = new ProgramStage();
         programStage.setAutoFields();
         ProgramStageDataElement mandatoryStageElement1 = new ProgramStageDataElement();
         DataElement mandatoryElement1 = new DataElement();
-        mandatoryElement1.setUid( dataValue().getDataElement() );
+        mandatoryElement1.setUid( dataElementUid );
         mandatoryStageElement1.setDataElement( mandatoryElement1 );
         mandatoryStageElement1.setCompulsory( true );
         programStage.setProgramStageDataElements( Set.of( mandatoryStageElement1 ) );
@@ -326,7 +327,7 @@ class EventDataValuesValidationHookTest
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         DataValue notPresentDataValue = dataValue();
-        notPresentDataValue.setDataElement( "de_not_present_in_program_stage" );
+        notPresentDataValue.setDataElement( MetadataIdentifier.ofUid( "de_not_present_in_program_stage" ) );
         Event event = Event.builder()
             .programStage( params.toMetadataIdentifier( programStage ) )
             .status( EventStatus.ACTIVE )
@@ -351,7 +352,7 @@ class EventDataValuesValidationHookTest
 
         DataElement dataElement = dataElement();
         dataElement.setCode( "DE_424050" );
-        when( preheat.get( DataElement.class, dataElement.getCode() ) ).thenReturn( dataElement );
+        when( preheat.getDataElement( MetadataIdentifier.ofCode( dataElement.getCode() ) ) ).thenReturn( dataElement );
 
         ProgramStage programStage = programStage( dataElement );
         when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStageUid ) ) )
@@ -360,7 +361,7 @@ class EventDataValuesValidationHookTest
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         DataValue dataValue = dataValue();
-        dataValue.setDataElement( "DE_424050" );
+        dataValue.setDataElement( MetadataIdentifier.ofCode( "DE_424050" ) );
         Event event = Event.builder()
             .programStage( params.toMetadataIdentifier( programStage ) )
             .status( EventStatus.ACTIVE )
@@ -378,7 +379,7 @@ class EventDataValuesValidationHookTest
 
         DataElement dataElement = dataElement();
         DataElement invalidDataElement = dataElement( null );
-        when( preheat.get( DataElement.class, dataElementUid ) ).thenReturn( invalidDataElement );
+        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementUid ) ) ).thenReturn( invalidDataElement );
 
         ProgramStage programStage = programStage( dataElement );
         when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStageUid ) ) )
@@ -404,7 +405,7 @@ class EventDataValuesValidationHookTest
         TrackerIdSchemeParams params = setUpIdentifiers();
 
         DataElement validDataElement = dataElement( ValueType.FILE_RESOURCE );
-        when( preheat.get( DataElement.class, dataElementUid ) ).thenReturn( validDataElement );
+        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementUid ) ) ).thenReturn( validDataElement );
 
         DataValue validDataValue = dataValue( "QX4LpiTZmUH" );
         when( preheat.get( FileResource.class, validDataValue.getValue() ) ).thenReturn( null );
@@ -435,7 +436,7 @@ class EventDataValuesValidationHookTest
         TrackerIdSchemeParams params = setUpIdentifiers();
 
         DataElement validDataElement = dataElement( ValueType.FILE_RESOURCE );
-        when( preheat.get( DataElement.class, dataElementUid ) ).thenReturn( validDataElement );
+        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementUid ) ) ).thenReturn( validDataElement );
 
         ProgramStage programStage = programStage( validDataElement, false );
         when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStageUid ) ) )
@@ -462,7 +463,7 @@ class EventDataValuesValidationHookTest
         TrackerIdSchemeParams params = setUpIdentifiers();
 
         DataElement validDataElement = dataElement( ValueType.FILE_RESOURCE );
-        when( preheat.get( DataElement.class, dataElementUid ) ).thenReturn( validDataElement );
+        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementUid ) ) ).thenReturn( validDataElement );
 
         ProgramStage programStage = programStage( validDataElement, true );
         when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStageUid ) ) )
@@ -490,7 +491,7 @@ class EventDataValuesValidationHookTest
         TrackerIdSchemeParams params = setUpIdentifiers();
 
         DataElement validDataElement = dataElement();
-        when( preheat.get( DataElement.class, dataElementUid ) ).thenReturn( validDataElement );
+        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementUid ) ) ).thenReturn( validDataElement );
 
         ProgramStage programStage = programStage( validDataElement, true );
         programStage.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
@@ -519,7 +520,7 @@ class EventDataValuesValidationHookTest
         TrackerIdSchemeParams params = setUpIdentifiers();
 
         DataElement validDataElement = dataElement();
-        when( preheat.get( DataElement.class, dataElementUid ) ).thenReturn( validDataElement );
+        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementUid ) ) ).thenReturn( validDataElement );
 
         ProgramStage programStage = programStage( validDataElement, true );
         programStage.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
@@ -548,7 +549,7 @@ class EventDataValuesValidationHookTest
         TrackerIdSchemeParams params = setUpIdentifiers();
 
         DataElement validDataElement = dataElement();
-        when( preheat.get( DataElement.class, dataElementUid ) ).thenReturn( validDataElement );
+        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementUid ) ) ).thenReturn( validDataElement );
 
         ProgramStage programStage = programStage( validDataElement, true );
         programStage.setValidationStrategy( ValidationStrategy.ON_COMPLETE );
@@ -576,7 +577,7 @@ class EventDataValuesValidationHookTest
         TrackerIdSchemeParams params = setUpIdentifiers();
 
         DataElement validDataElement = dataElement();
-        when( preheat.get( DataElement.class, dataElementUid ) ).thenReturn( validDataElement );
+        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementUid ) ) ).thenReturn( validDataElement );
 
         ProgramStage programStage = programStage( validDataElement, true );
         programStage.setValidationStrategy( ValidationStrategy.ON_COMPLETE );
@@ -605,7 +606,7 @@ class EventDataValuesValidationHookTest
         TrackerIdSchemeParams params = setUpIdentifiers();
 
         DataElement validDataElement = dataElement();
-        when( preheat.get( DataElement.class, dataElementUid ) ).thenReturn( validDataElement );
+        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementUid ) ) ).thenReturn( validDataElement );
 
         ProgramStage programStage = programStage( validDataElement, true );
         when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStageUid ) ) )
@@ -632,7 +633,7 @@ class EventDataValuesValidationHookTest
         TrackerIdSchemeParams params = setUpIdentifiers();
 
         DataElement validDataElement = dataElement();
-        when( preheat.get( DataElement.class, dataElementUid ) ).thenReturn( validDataElement );
+        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementUid ) ) ).thenReturn( validDataElement );
 
         ProgramStage programStage = programStage( validDataElement, true );
         when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStageUid ) ) )
@@ -659,7 +660,7 @@ class EventDataValuesValidationHookTest
         TrackerIdSchemeParams params = setUpIdentifiers();
 
         DataElement validDataElement = dataElement();
-        when( preheat.get( DataElement.class, dataElementUid ) ).thenReturn( validDataElement );
+        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementUid ) ) ).thenReturn( validDataElement );
 
         ProgramStage programStage = programStage( validDataElement, false );
         when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStageUid ) ) )
@@ -686,7 +687,7 @@ class EventDataValuesValidationHookTest
         TrackerIdSchemeParams params = setUpIdentifiers();
 
         DataElement validDataElement = dataElement( ValueType.FILE_RESOURCE );
-        when( preheat.get( DataElement.class, dataElementUid ) ).thenReturn( validDataElement );
+        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementUid ) ) ).thenReturn( validDataElement );
 
         ProgramStage programStage = programStage( validDataElement );
         when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStageUid ) ) )
@@ -755,7 +756,7 @@ class EventDataValuesValidationHookTest
 
         DataElement dataElement = dataElement();
         dataElement.setOptionSet( optionSet );
-        when( preheat.get( DataElement.class, dataElementUid ) ).thenReturn( dataElement );
+        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementUid ) ) ).thenReturn( dataElement );
 
         ProgramStage programStage = programStage( dataElement );
         when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStageUid ) ) )
@@ -780,7 +781,7 @@ class EventDataValuesValidationHookTest
         TrackerIdSchemeParams params = setUpIdentifiers();
 
         DataValue validDataValue = dataValue( "value" );
-        validDataValue.setDataElement( dataElementUid );
+        validDataValue.setDataElement( MetadataIdentifier.ofUid( dataElementUid ) );
 
         OptionSet optionSet = new OptionSet();
         Option option = new Option();
@@ -791,7 +792,7 @@ class EventDataValuesValidationHookTest
 
         DataElement dataElement = dataElement();
         dataElement.setOptionSet( optionSet );
-        when( preheat.get( DataElement.class, dataElementUid ) ).thenReturn( dataElement );
+        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementUid ) ) ).thenReturn( dataElement );
 
         ProgramStage programStage = programStage( dataElement );
         when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStageUid ) ) )
@@ -819,10 +820,10 @@ class EventDataValuesValidationHookTest
         TrackerIdSchemeParams params = setUpIdentifiers();
 
         DataElement validDataElement = dataElement( ValueType.ORGANISATION_UNIT );
-        when( preheat.get( DataElement.class, dataElementUid ) ).thenReturn( validDataElement );
+        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementUid ) ) ).thenReturn( validDataElement );
 
         DataValue invalidDataValue = dataValue( "invlaid_org_unit" );
-        when( preheat.get( OrganisationUnit.class, invalidDataValue.getValue() ) ).thenReturn( null );
+        when( preheat.getOrganisationUnit( invalidDataValue.getValue() ) ).thenReturn( null );
 
         ProgramStage programStage = programStage( validDataElement );
         when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStageUid ) ) )
@@ -848,12 +849,12 @@ class EventDataValuesValidationHookTest
         TrackerIdSchemeParams params = setUpIdentifiers();
 
         DataElement validDataElement = dataElement( ValueType.ORGANISATION_UNIT );
-        when( preheat.get( DataElement.class, dataElementUid ) ).thenReturn( validDataElement );
+        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementUid ) ) ).thenReturn( validDataElement );
 
         OrganisationUnit validOrgUnit = organisationUnit();
 
         DataValue validDataValue = dataValue( validOrgUnit.getUid() );
-        when( preheat.get( OrganisationUnit.class, validDataValue.getValue() ) ).thenReturn( validOrgUnit );
+        when( preheat.getOrganisationUnit( validDataValue.getValue() ) ).thenReturn( validOrgUnit );
 
         ProgramStage programStage = programStage( validDataElement );
         when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStageUid ) ) )
@@ -877,7 +878,7 @@ class EventDataValuesValidationHookTest
         TrackerIdSchemeParams params = setUpIdentifiers();
 
         DataElement invalidDataElement = dataElement( valueType );
-        when( preheat.get( DataElement.class, dataElementUid ) ).thenReturn( invalidDataElement );
+        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementUid ) ) ).thenReturn( invalidDataElement );
 
         ProgramStage programStage = programStage( dataElement() );
         when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStageUid ) ) )
@@ -886,7 +887,7 @@ class EventDataValuesValidationHookTest
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         DataValue validDataValue = dataValue();
-        validDataValue.setDataElement( dataElementUid );
+        validDataValue.setDataElement( MetadataIdentifier.ofUid( dataElementUid ) );
         validDataValue.setValue( value );
         Event event = Event.builder()
             .programStage( params.toMetadataIdentifier( programStage ) )
@@ -940,7 +941,7 @@ class EventDataValuesValidationHookTest
         dataValue.setCreatedAt( DateUtils.instantFromDateAsString( "2020-10-10" ) );
         dataValue.setUpdatedAt( DateUtils.instantFromDateAsString( "2020-10-10" ) );
         dataValue.setValue( "text" );
-        dataValue.setDataElement( dataElementUid );
+        dataValue.setDataElement( MetadataIdentifier.ofUid( dataElementUid ) );
         return dataValue;
     }
 
