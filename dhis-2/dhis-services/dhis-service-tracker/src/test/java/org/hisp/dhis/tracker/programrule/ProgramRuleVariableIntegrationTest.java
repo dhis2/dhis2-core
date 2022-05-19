@@ -47,7 +47,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Zubair Asghar
  */
-public class ProgramRuleVariableIntegrationTest extends TrackerTest
+class ProgramRuleVariableIntegrationTest extends TrackerTest
 {
     @Autowired
     private ProgramRuleVariableService programRuleVariableService;
