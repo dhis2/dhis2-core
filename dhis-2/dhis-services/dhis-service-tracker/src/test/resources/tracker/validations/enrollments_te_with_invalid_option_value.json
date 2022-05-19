@@ -54,12 +54,18 @@
       "relationships": [],
       "attributes": [
         {
-          "attribute": "cejWyOfXge6",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "cejWyOfXge6"
+          },
           "storedBy": "admin",
           "value": "invalid_option"
         },
         {
-          "attribute": "TGqP5JNy6Es",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "TGqP5JNy6Es"
+          },
           "storedBy": "admin",
           "value": "value"
         }

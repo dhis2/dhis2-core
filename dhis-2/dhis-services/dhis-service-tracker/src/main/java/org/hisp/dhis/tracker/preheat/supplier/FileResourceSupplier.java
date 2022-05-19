@@ -42,9 +42,11 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.DataValue;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.springframework.stereotype.Component;
 
@@ -63,9 +65,10 @@ public class FileResourceSupplier extends AbstractPreheatSupplier
     {
         List<TrackedEntityAttribute> attributes = preheat.getAll( TrackedEntityAttribute.class );
 
-        List<String> fileResourceAttributes = attributes.stream()
+        TrackerIdSchemeParams idSchemes = params.getIdSchemes();
+        List<MetadataIdentifier> fileResourceAttributes = attributes.stream()
             .filter( at -> at.getValueType().isFile() )
-            .map( BaseIdentifiableObject::getUid )
+            .map( idSchemes::toMetadataIdentifier )
             .collect( Collectors.toList() );
 
         List<DataElement> dataElements = preheat.getAll( DataElement.class );
@@ -88,7 +91,7 @@ public class FileResourceSupplier extends AbstractPreheatSupplier
         preheat.put( TrackerIdSchemeParam.UID, fileResources );
     }
 
-    private void collectResourceIds( List<String> fileResourceAttributes, List<String> fileResourceIds,
+    private void collectResourceIds( List<MetadataIdentifier> fileResourceAttributes, List<String> fileResourceIds,
         List<Attribute> attributes )
     {
         attributes.forEach( at -> {

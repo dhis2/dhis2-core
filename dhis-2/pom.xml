@@ -71,25 +71,26 @@
     <dhis-json-tree.version>0.3.0</dhis-json-tree.version>
 
     <!-- Security -->
-    <spring-security.version>5.6.3</spring-security.version>
+    <spring-security.version>5.7.0</spring-security.version>
     <spring-security-oauth2.version>2.5.2.RELEASE</spring-security-oauth2.version>
     <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
     <jasypt.version>1.9.3</jasypt.version>
+    <nimbus.jose.jwt.version>9.22</nimbus.jose.jwt.version>
 
     <!-- Spring -->
     <spring.version>5.3.20</spring.version>
     <spring-data-redis.version>2.7.0</spring-data-redis.version>
-    <spring-session-data-redis.version>2.6.3</spring-session-data-redis.version>
+    <spring-session-data-redis.version>2.7.0</spring-session-data-redis.version>
     <spring-mobile-device.version>1.1.5.RELEASE</spring-mobile-device.version>
     <spring-retry.version>1.3.3</spring-retry.version>
-    <spring-restdocs-mockmvc.version>2.0.6.RELEASE</spring-restdocs-mockmvc.version>
+    <spring-restdocs.version>2.0.6.RELEASE</spring-restdocs.version>
     <spring-ldap.version>2.4.0</spring-ldap.version>
     <cache2k-api.version>1.6.0.Final</cache2k-api.version>
     <lettuce.version>6.1.8.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-core.version>8.5.10</flyway-core.version>
+    <flyway-core.version>8.5.11</flyway-core.version>
     <hibernate.version>5.6.9.Final</hibernate.version>
     <hibernate-types.version>2.16.2</hibernate-types.version>
     <!-- Data sources,db pools and db drivers -->
@@ -109,9 +110,7 @@
 
     <!-- Jackson -->
     <jackson.version>2.13.3</jackson.version>
-    <jackson.databind.version>2.13.3</jackson.databind.version>
     <jackson-datatype-jts.version>1.0-2.7</jackson-datatype-jts.version>
-    <jackson-datatype-hibernate5.version>2.13.2</jackson-datatype-hibernate5.version>
     <geojson-jackson.version>1.14</geojson-jackson.version>
 
     <!-- JAXB -->
@@ -739,6 +738,7 @@
               <ignoredUnusedDeclaredDependency>io.lettuce:lettuce-core</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.springframework:spring-context-support</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>javax.servlet:javax.servlet-api</ignoredUnusedDeclaredDependency>
+              <ignoredUnusedDeclaredDependency>org.apache.xmlgraphics:batik-codec</ignoredUnusedDeclaredDependency>
 
               <!-- Removing these dependencies from the pom makes some tests 
                 fail -->
@@ -785,11 +785,7 @@
               <ignoredUsedUndeclaredDependency>org.apache.activemq:artemis-commons</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>io.debezium:debezium-core</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>org.apache.kafka:connect-api</ignoredUsedUndeclaredDependency>
-              <ignoredUsedUndeclaredDependency>javax.transaction:javax.transaction-api</ignoredUsedUndeclaredDependency>
-              <ignoredUsedUndeclaredDependency>org.springframework.security:spring-security-oauth2-core</ignoredUsedUndeclaredDependency>
-              <ignoredUsedUndeclaredDependency>com.nimbusds:nimbus-jose-jwt</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>io.prometheus:simpleclient_common</ignoredUsedUndeclaredDependency>
-              <ignoredUsedUndeclaredDependency>org.springframework.restdocs:spring-restdocs-core</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>org.springframework:spring-jcl</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>ognl:ognl</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>org.springframework.session:spring-session-core</ignoredUsedUndeclaredDependency>
@@ -882,6 +878,13 @@
                   <bannedImports>
                     <bannedImport>org.json.**</bannedImport>
                     <bannedImport>net.minidev.json.**</bannedImport>
+                  </bannedImports>
+                </RestrictImports>
+                <RestrictImports>
+                  <reason>Do not use this Transactional import. Use
+                    org.springframework.transaction.annotation.Transactional instead</reason>
+                  <bannedImports>
+                    <bannedImport>javax.transaction.Transactional</bannedImport>
                   </bannedImports>
                 </RestrictImports>
               </rules>
@@ -1253,6 +1256,11 @@
         <version>${spring-security-oauth2.version}</version>
       </dependency>
       <dependency>
+        <groupId>org.springframework.security</groupId>
+        <artifactId>spring-security-oauth2-core</artifactId>
+        <version>${spring-security.version}</version>
+      </dependency>
+      <dependency>
         <groupId>com.google.api-client</groupId>
         <artifactId>google-api-client</artifactId>
         <version>${google-api-client.version}</version>
@@ -1262,6 +1270,11 @@
             <artifactId>guava-jdk5</artifactId>
           </exclusion>
         </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>com.nimbusds</groupId>
+        <artifactId>nimbus-jose-jwt</artifactId>
+        <version>${nimbus.jose.jwt.version}</version>
       </dependency>
 
       <!-- Spring Mobile -->
@@ -1719,49 +1732,21 @@
         <groupId>org.apache.jclouds</groupId>
         <artifactId>jclouds-core</artifactId>
         <version>${jclouds.version}</version>
-        <exclusions>
-          <exclusion>
-            <groupId>org.apache.jclouds</groupId>
-            <artifactId>jclouds-gson</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>com.google.errorprone</groupId>
-            <artifactId>error_prone_annotations</artifactId>
-          </exclusion>
-        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.apache.jclouds</groupId>
         <artifactId>jclouds-blobstore</artifactId>
         <version>${jclouds.version}</version>
-        <exclusions>
-          <exclusion>
-            <groupId>com.google.errorprone</groupId>
-            <artifactId>error_prone_annotations</artifactId>
-          </exclusion>
-        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.apache.jclouds.api</groupId>
         <artifactId>filesystem</artifactId>
         <version>${jclouds.version}</version>
-        <exclusions>
-          <exclusion>
-            <groupId>com.google.errorprone</groupId>
-            <artifactId>error_prone_annotations</artifactId>
-          </exclusion>
-        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.apache.jclouds.api</groupId>
         <artifactId>s3</artifactId>
         <version>${jclouds.version}</version>
-        <exclusions>
-          <exclusion>
-            <groupId>com.google.errorprone</groupId>
-            <artifactId>error_prone_annotations</artifactId>
-          </exclusion>
-        </exclusions>
       </dependency>
 
       <!--ExpressionParser -->
@@ -1934,22 +1919,13 @@
         </exclusions>
       </dependency>
 
+      <dependency>
+        <groupId>org.apache.xmlgraphics</groupId>
+        <artifactId>batik-codec</artifactId>
+        <version>${batik-transcoder.version}</version>
+      </dependency>
+
       <!-- Jackson JSON Mapper -->
-      <dependency>
-        <groupId>com.fasterxml.jackson.core</groupId>
-        <artifactId>jackson-core</artifactId>
-        <version>${jackson.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.fasterxml.jackson.core</groupId>
-        <artifactId>jackson-annotations</artifactId>
-        <version>${jackson.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.fasterxml.jackson.core</groupId>
-        <artifactId>jackson-databind</artifactId>
-        <version>${jackson.databind.version}</version>
-      </dependency>
       <dependency>
         <groupId>com.fasterxml.jackson.dataformat</groupId>
         <artifactId>jackson-dataformat-xml</artifactId>
@@ -1962,34 +1938,16 @@
         </exclusions>
       </dependency>
       <dependency>
-        <groupId>com.fasterxml.jackson.dataformat</groupId>
-        <artifactId>jackson-dataformat-csv</artifactId>
+        <groupId>com.fasterxml.jackson</groupId>
+        <artifactId>jackson-bom</artifactId>
         <version>${jackson.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.fasterxml.jackson.dataformat</groupId>
-        <artifactId>jackson-dataformat-yaml</artifactId>
-        <version>${jackson.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.fasterxml.jackson.datatype</groupId>
-        <artifactId>jackson-datatype-jdk8</artifactId>
-        <version>${jackson.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.fasterxml.jackson.datatype</groupId>
-        <artifactId>jackson-datatype-jsr310</artifactId>
-        <version>${jackson.version}</version>
+        <scope>import</scope>
+        <type>pom</type>
       </dependency>
       <dependency>
         <groupId>com.graphhopper.external</groupId>
         <artifactId>jackson-datatype-jts</artifactId>
         <version>${jackson-datatype-jts.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.fasterxml.jackson.datatype</groupId>
-        <artifactId>jackson-datatype-hibernate5</artifactId>
-        <version>${jackson-datatype-hibernate5.version}</version>
       </dependency>
 
       <dependency>
@@ -2196,7 +2154,13 @@
       <dependency>
         <groupId>org.springframework.restdocs</groupId>
         <artifactId>spring-restdocs-mockmvc</artifactId>
-        <version>${spring-restdocs-mockmvc.version}</version>
+        <version>${spring-restdocs.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework.restdocs</groupId>
+        <artifactId>spring-restdocs-core</artifactId>
+        <version>${spring-restdocs.version}</version>
         <scope>test</scope>
       </dependency>
       <dependency>

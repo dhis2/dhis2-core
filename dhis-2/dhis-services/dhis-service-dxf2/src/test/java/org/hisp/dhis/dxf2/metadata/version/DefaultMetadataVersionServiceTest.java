@@ -147,7 +147,7 @@ class DefaultMetadataVersionServiceTest extends TransactionalIntegrationTest
     void testShouldReturnTheLatestVersion()
     {
         versionService.addVersion( versionA );
-        sleepFor( 100 );
+        dbmsManager.clearSession();
         versionService.addVersion( versionB );
 
         assertTrue( compareVersionsUtil( versionB, versionService.getCurrentVersion() ) );
@@ -157,7 +157,7 @@ class DefaultMetadataVersionServiceTest extends TransactionalIntegrationTest
     void testGetInitialVersion()
     {
         versionService.addVersion( versionA );
-        sleepFor( 100 );
+        dbmsManager.clearSession();
         versionService.addVersion( versionB );
 
         assertEquals( versionA, versionService.getInitialVersion() );
@@ -226,7 +226,7 @@ class DefaultMetadataVersionServiceTest extends TransactionalIntegrationTest
 
         DataElement de1 = createDataElement( 'A' );
         manager.save( de1 );
-        sleepFor( 100 );
+        dbmsManager.clearSession();
 
         versionService.saveVersion( VersionType.BEST_EFFORT );
         DatastoreEntry expectedJson = metaDataDatastoreService.getMetaDataVersion( "Version_3" );
@@ -243,11 +243,11 @@ class DefaultMetadataVersionServiceTest extends TransactionalIntegrationTest
         versionService.addVersion( versionA );
         DataElement de1 = createDataElement( 'A' );
         manager.save( de1 );
-        sleepFor( 100 );
+        dbmsManager.clearSession();
         versionService.saveVersion( VersionType.BEST_EFFORT );
         de1 = createDataElement( 'B' );
         manager.save( de1 );
-        sleepFor( 100 );
+        dbmsManager.clearSession();
         versionService.saveVersion( VersionType.BEST_EFFORT );
 
         DatastoreEntry expectedJson = metaDataDatastoreService.getMetaDataVersion( "Version_3" );
@@ -299,21 +299,5 @@ class DefaultMetadataVersionServiceTest extends TransactionalIntegrationTest
     {
         assertThrows( MetadataVersionServiceException.class,
             () -> versionService.isMetadataPassingIntegrity( null, null ) );
-    }
-
-    // --------------------------------------------------------------------------
-    // Supportive methods
-    // --------------------------------------------------------------------------
-
-    private void sleepFor( int time )
-    {
-        try
-        {
-            Thread.sleep( time );
-        }
-        catch ( InterruptedException e )
-        {
-            e.printStackTrace();
-        }
     }
 }

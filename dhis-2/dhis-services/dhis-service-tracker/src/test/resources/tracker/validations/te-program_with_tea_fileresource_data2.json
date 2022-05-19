@@ -48,7 +48,10 @@
       "relationships": [],
       "attributes": [
         {
-          "attribute": "zmdwVu2aXj2",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "zmdwVu2aXj2"
+          },
           "displayName": "Attribute_FileResource",
           "storedBy": "admin",
           "valueType": "FILE_RESOURCE",

@@ -48,21 +48,30 @@
       "relationships": [],
       "attributes": [
         {
-          "attribute": "sYn3tkL3XKa",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "sYn3tkL3XKa"
+          },
           "displayName": "Attribute_Integer",
           "storedBy": "admin",
           "valueType": "INTEGER",
           "value": "321 UPDATE"
         },
         {
-          "attribute": "TsfP85GKsU5",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "TsfP85GKsU5"
+          },
           "displayName": "Attribute_Text",
           "storedBy": "admin",
           "valueType": "TEXT",
           "value": "TEXT UPDATE"
         },
         {
-          "attribute": "sTGqP5JNy6E",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "sTGqP5JNy6E"
+          },
           "displayName": "Attribute_Date",
           "storedBy": "admin",
           "valueType": "DATE",
@@ -96,7 +105,10 @@
       "relationships": [],
       "attributes": [
         {
-          "attribute": "p5TPww5Uhrd",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "p5TPww5Uhrd"
+          },
           "displayName": "Attribute_Identifier_Integer",
           "storedBy": "admin",
           "valueType": "INTEGER_POSITIVE",

@@ -32,7 +32,6 @@ import java.util.function.Consumer;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.webapi.json.domain.JsonImportSummary.JsonConflict;
 
 /**
  * A generic error JSON as usually returned by DHIS2.
@@ -126,7 +125,7 @@ public interface JsonError extends JsonObject
         {
             for ( JsonImportSummary summary : summaries )
             {
-                for ( JsonConflict conflict : summary.getConflicts() )
+                for ( JsonImportConflict conflict : summary.getConflicts() )
                 {
                     str.append( "\n  " ).append( conflict.getObject() ).append( ' ' ).append( conflict.getValue() );
                 }

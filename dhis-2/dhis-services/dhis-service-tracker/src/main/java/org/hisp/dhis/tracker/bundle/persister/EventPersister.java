@@ -169,19 +169,16 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
                 .collect( Collectors.toMap( EventDataValue::getDataElement, Function.identity() ) ) )
             .orElse( new HashMap<>() );
 
-        Date today = new Date();
-
         for ( DataValue dv : payloadDataValues )
         {
-            AuditType auditType;
 
-            DataElement dateElement = preheat.get( DataElement.class, dv.getDataElement() );
-
-            checkNotNull( dateElement,
+            DataElement dataElement = preheat.getDataElement( dv.getDataElement() );
+            checkNotNull( dataElement,
                 "Data element should never be NULL here if validation is enforced before commit." );
 
-            EventDataValue eventDataValue = dataValueDBMap.get( dv.getDataElement() );
-
+            // EventDataValue.dataElement contains a UID
+            EventDataValue eventDataValue = dataValueDBMap.get( dataElement.getUid() );
+            AuditType auditType;
             if ( eventDataValue == null )
             {
                 eventDataValue = new EventDataValue();
@@ -200,16 +197,16 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
                 auditType = optionalAuditType.orElse( null );
             }
 
-            eventDataValue.setDataElement( dateElement.getUid() );
+            eventDataValue.setDataElement( dataElement.getUid() );
             eventDataValue.setStoredBy( dv.getStoredBy() );
 
             handleDataValueCreatedUpdatedDates( dv, eventDataValue );
 
             if ( StringUtils.isEmpty( dv.getValue() ) )
             {
-                if ( dateElement.isFileType() )
+                if ( dataElement.isFileType() )
                 {
-                    unassignFileResource( session, preheat, dataValueDBMap.get( dv.getDataElement() ).getValue() );
+                    unassignFileResource( session, preheat, eventDataValue.getValue() );
                 }
 
                 psi.getEventDataValues().remove( eventDataValue );
@@ -218,7 +215,7 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
             {
                 eventDataValue.setValue( dv.getValue() );
 
-                if ( dateElement.isFileType() )
+                if ( dataElement.isFileType() )
                 {
                     assignFileResource( session, preheat, eventDataValue.getValue() );
                 }
@@ -227,8 +224,8 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
                 psi.getEventDataValues().add( eventDataValue );
             }
 
-            logTrackedEntityDataValueHistory( preheat.getUsername(), eventDataValue, dateElement, psi, auditType,
-                today );
+            logTrackedEntityDataValueHistory( preheat.getUsername(), eventDataValue, dataElement, psi, auditType,
+                new Date() );
         }
     }
 

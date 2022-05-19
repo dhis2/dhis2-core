@@ -36,7 +36,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.io.IOException;
 import java.util.List;
 
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.tracker.TrackerImportParams;
@@ -47,7 +46,6 @@ import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.user.User;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -117,7 +115,9 @@ class EnrollmentAttrValidationTest extends AbstractImportValidationTest
         TrackerImportParams params = createBundleFromJson(
             "tracker/validations/enrollments_te_attr-missing-uuid.json", userService.getUser( ADMIN_USER_UID ) );
         params.setImportStrategy( TrackerImportStrategy.CREATE );
+
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
+
         assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
         assertThat( trackerImportReport.getValidationReport().getErrors(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1075 ) ) ) );
@@ -136,18 +136,11 @@ class EnrollmentAttrValidationTest extends AbstractImportValidationTest
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1076 ) ) ) );
     }
 
-    // TODO: Fails with: (need to figure out how to force deletion here first)
-    // * ERROR 22:47:50,353 Failed to invoke method deleteTrackedEntityAttribute
-    // on DeletionHandler 'ProgramDeletionHandler' (DefaultDeletionManager.java
-    // [main])
     @Test
-    @Disabled( "Delete not impl." )
     void testAttributesMissingTeA()
         throws IOException
     {
-        TrackedEntityAttribute sTJvSLN7Kcb = trackedEntityAttributeService.getTrackedEntityAttribute( "sTJvSLN7Kcb" );
-        trackedEntityAttributeService.deleteTrackedEntityAttribute( sTJvSLN7Kcb );
-        TrackerImportParams params = createBundleFromJson( "tracker/validations/enrollments_te_attr-data.json",
+        TrackerImportParams params = createBundleFromJson( "tracker/validations/enrollments_te_attr-non-existing.json",
             userService.getUser( ADMIN_USER_UID ) );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
         assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
@@ -220,7 +213,9 @@ class EnrollmentAttrValidationTest extends AbstractImportValidationTest
         params = createBundleFromJson( "tracker/validations/enrollments_te_unique_attr.json",
             userService.getUser( ADMIN_USER_UID ) );
         params.setImportStrategy( TrackerImportStrategy.CREATE );
+
         trackerImportReport = trackerImportService.importTracker( params );
+
         assertEquals( 2, trackerImportReport.getValidationReport().getErrors().size() );
         assertThat( trackerImportReport.getValidationReport().getErrors(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1064 ) ) ) );

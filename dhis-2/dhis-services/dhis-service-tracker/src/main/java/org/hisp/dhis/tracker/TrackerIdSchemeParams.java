@@ -35,6 +35,7 @@ import lombok.NoArgsConstructor;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -165,6 +166,19 @@ public class TrackerIdSchemeParams
     public MetadataIdentifier toMetadataIdentifier( CategoryOption categoryOption )
     {
         return categoryOptionIdScheme.toMetadataIdentifier( categoryOption );
+    }
+
+    /**
+     * Creates metadata identifier for given {@code dataElement} using
+     * {@link #dataElementIdScheme}. For more details refer to
+     * {@link TrackerIdSchemeParam#toMetadataIdentifier(IdentifiableObject)}
+     *
+     * @param dataElement to create metadata identifier for
+     * @return metadata identifier representing dataElement using the idScheme
+     */
+    public MetadataIdentifier toMetadataIdentifier( DataElement dataElement )
+    {
+        return dataElementIdScheme.toMetadataIdentifier( dataElement );
     }
 
     /**

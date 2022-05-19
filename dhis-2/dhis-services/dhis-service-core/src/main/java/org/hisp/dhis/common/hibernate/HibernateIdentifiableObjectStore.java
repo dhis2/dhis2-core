@@ -861,6 +861,23 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     @Override
+    public List<T> getByName( Collection<String> names, User user )
+    {
+        if ( names == null || names.isEmpty() )
+        {
+            return new ArrayList<>();
+        }
+
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<T> jpaQueryParameters = new JpaQueryParameters<T>()
+            .addPredicates( getSharingPredicates( builder, user ) )
+            .addPredicate( root -> root.get( "name" ).in( names ) );
+
+        return getList( builder, jpaQueryParameters );
+    }
+
+    @Override
     public List<T> getByName( Collection<String> names )
     {
         if ( names == null || names.isEmpty() )
@@ -1011,7 +1028,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     public List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, User user,
         CurrentUserGroupInfo groupInfo, String access )
     {
-        if ( !sharingEnabled( user ) || user == null || groupInfo == null )
+        if ( user == null || groupInfo == null || !sharingEnabled( user ) )
         {
             return new ArrayList<>();
         }

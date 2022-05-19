@@ -431,6 +431,16 @@ public class TrackerPreheat
         return (T) map.getOrDefault( klass, new HashMap<>() ).get( key );
     }
 
+    public DataElement getDataElement( MetadataIdentifier id )
+    {
+        return get( DataElement.class, id );
+    }
+
+    public DataElement getDataElement( String id )
+    {
+        return get( DataElement.class, id );
+    }
+
     public CategoryOption getCategoryOption( MetadataIdentifier id )
     {
         return get( CategoryOption.class, id );
@@ -633,6 +643,11 @@ public class TrackerPreheat
         return Optional.ofNullable( notes.get( uid ) );
     }
 
+    public RelationshipType getRelationshipType( MetadataIdentifier id )
+    {
+        return get( RelationshipType.class, id );
+    }
+
     public Relationship getRelationship( String relationshipUid )
     {
         return relationships.get( relationshipUid );
@@ -821,6 +836,11 @@ public class TrackerPreheat
     public TrackedEntityType getTrackedEntityType( String id )
     {
         return get( TrackedEntityType.class, id );
+    }
+
+    public TrackedEntityAttribute getTrackedEntityAttribute( MetadataIdentifier id )
+    {
+        return get( TrackedEntityAttribute.class, id );
     }
 
     public TrackedEntityAttribute getTrackedEntityAttribute( String id )

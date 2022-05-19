@@ -48,7 +48,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class Attribute
 {
     @JsonProperty
-    private String attribute;
+    private MetadataIdentifier attribute;
 
     @JsonProperty
     private String code;
