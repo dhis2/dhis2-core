@@ -35,8 +35,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import org.hisp.dhis.common.IdScheme;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Getter
@@ -58,8 +56,8 @@ public class SourceRequest
     private List<Filter> filters = new ArrayList<>();
 
     @JsonProperty
-    private IdScheme inputIdScheme;
+    private String inputIdScheme;
 
     @JsonProperty
-    private IdScheme outputIdScheme;
+    private String outputIdScheme;
 }

@@ -34,8 +34,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import org.hisp.dhis.common.IdScheme;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Getter
@@ -46,14 +44,14 @@ public class TargetRequest
     implements Serializable
 {
     @JsonProperty
-    private IdScheme dataElementIdScheme;
+    private String dataElementIdScheme;
 
     @JsonProperty
-    private IdScheme orgUnitIdScheme;
+    private String orgUnitIdScheme;
 
     @JsonProperty
-    private IdScheme categoryOptionComboIdScheme;
+    private String categoryOptionComboIdScheme;
 
     @JsonProperty
-    private IdScheme idScheme;
+    private String idScheme;
 }

@@ -49,6 +49,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 class AnalyticsDataExchangeStoreTest
     extends DhisSpringTest
 {
+    private static final String UID_SCHEME = IdScheme.UID.name();
+
     @Autowired
     private AnalyticsDataExchangeStore store;
 
@@ -84,12 +86,14 @@ class AnalyticsDataExchangeStoreTest
     private AnalyticsDataExchange getAnayticsDataExchange( char uniqueChar )
     {
         SourceRequest sourceRequest = new SourceRequest();
-        sourceRequest.setDx( List.of( "LrDpG50RAU9", "uR5HCiJhQ1w" ) );
-        sourceRequest.setPe( List.of( "202201", "202202" ) );
-        sourceRequest.setOu( List.of( "G9BuXqtNeeb", "jDgiLmYwPDm" ) );
-        sourceRequest.setFilters( List.of(
+        sourceRequest.getDx().addAll( List.of( "LrDpG50RAU9", "uR5HCiJhQ1w" ) );
+        sourceRequest.getPe().addAll( List.of( "202201", "202202" ) );
+        sourceRequest.getOu().addAll( List.of( "G9BuXqtNeeb", "jDgiLmYwPDm" ) );
+        sourceRequest.getFilters().addAll( List.of(
             new Filter( "MuTwGW0BI4o", List.of( "v9oULMMdmzE", "eJHJ0bfDCEO" ) ),
             new Filter( "dAOgE7mgysJ", List.of( "rbE2mZX86AA", "XjOFfrPwake" ) ) ) );
+        sourceRequest.setInputIdScheme( UID_SCHEME );
+        sourceRequest.setOutputIdScheme( UID_SCHEME );
 
         Source source = new Source();
         source.setRequests( List.of( sourceRequest ) );
@@ -97,7 +101,7 @@ class AnalyticsDataExchangeStoreTest
         Target target = new Target();
         target.setApi( new Api( "https://play.dhis2.org/demo", "jk6NhU4GF8I" ) );
         target.setType( TargetType.EXTERNAL );
-        target.setRequest( new TargetRequest( IdScheme.UID, IdScheme.UID, IdScheme.UID, IdScheme.UID ) );
+        target.setRequest( new TargetRequest( UID_SCHEME, UID_SCHEME, UID_SCHEME, UID_SCHEME ) );
 
         AnalyticsDataExchange exchange = new AnalyticsDataExchange();
         exchange.setAutoFields();

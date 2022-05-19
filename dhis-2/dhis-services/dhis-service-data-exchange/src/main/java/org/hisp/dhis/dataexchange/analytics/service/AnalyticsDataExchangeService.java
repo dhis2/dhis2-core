@@ -36,6 +36,7 @@ import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
@@ -137,23 +138,23 @@ public class AnalyticsDataExchangeService
      * Returns a canonical name of the given ID scheme, or the name of the
      * default ID scheme if the given ID scheme is null.
      *
-     * @param idScheme the {@link IdScheme}.
+     * @param idScheme the ID scheme string.
      * @return a canonical name.
      */
-    public static String toNameOrDefault( IdScheme idScheme )
+    public static String toNameOrDefault( String idScheme )
     {
-        return idScheme != null ? idScheme.name() : IdScheme.UID.name();
+        return ObjectUtils.firstNonNull( idScheme, IdScheme.UID.name() );
     }
 
     /**
      * Returns the given ID scheme, or the default ID scheme if null.
      *
-     * @param idScheme the {@link IdScheme}.
+     * @param idScheme the ID scheme string.
      * @return the given ID scheme, or the default ID scheme if null.
      */
-    public IdScheme getOrDefault( IdScheme idScheme )
+    public IdScheme getOrDefault( String idScheme )
     {
-        return idScheme != null ? idScheme : IdScheme.UID;
+        return idScheme != null ? IdScheme.from( idScheme ) : IdScheme.UID;
     }
 
     /**
