@@ -49,7 +49,6 @@ import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.programrule.EnrollmentActionRule;
 import org.hisp.dhis.tracker.programrule.EventActionRule;
@@ -206,7 +205,7 @@ public abstract class AbstractRuleActionImplementer<T extends RuleAction>
                             getAttributeType( effect.ruleAction() ) == TRACKED_ENTITY_ATTRIBUTE )
                         .map( effect -> new EnrollmentActionRule( effect.ruleId(),
                             enrollment.getEnrollment(), effect.data(),
-                            MetadataIdentifier.ofUid( getField( (T) effect.ruleAction() ) ),
+                            getField( (T) effect.ruleAction() ),
                             getAttributeType( effect.ruleAction() ),
                             getContent( (T) effect.ruleAction() ), attributes ) )
                         .collect( Collectors.toList() );

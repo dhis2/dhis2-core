@@ -40,6 +40,8 @@ import static org.hisp.dhis.utils.Assertions.assertMapEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -250,12 +252,15 @@ class AnalyticsServiceTest
         setUpDataValues();
         setUpValidation();
 
-        // to ensure that Hibernate has flushed validation
-        // results before generating tables.
-        Thread.sleep( 1000 );
+        // We need to make sure that table generation start time is greater than
+        // lastUpdated on tables populated in the setup
+        Date oneSecondFromNow = Date
+            .from( LocalDateTime.now().plusSeconds( 1 ).atZone( ZoneId.systemDefault() ).toInstant() );
 
         // Generate analytics tables
-        analyticsTableGenerator.generateTables( AnalyticsTableUpdateParams.newBuilder().build(),
+        analyticsTableGenerator.generateTables( AnalyticsTableUpdateParams.newBuilder()
+            .withStartTime( oneSecondFromNow )
+            .build(),
             NoopJobProgress.INSTANCE );
     }
 
