@@ -1849,6 +1849,49 @@ public abstract class DhisConvenienceTest
         return relationship;
     }
 
+    public static Relationship createTeiToProgramInstanceRelationship( TrackedEntityInstance from, ProgramInstance to,
+        RelationshipType relationshipType )
+    {
+        Relationship relationship = new Relationship();
+        RelationshipItem _from = new RelationshipItem();
+        RelationshipItem _to = new RelationshipItem();
+
+        _from.setTrackedEntityInstance( from );
+        _to.setProgramInstance( to );
+
+        relationship.setRelationshipType( relationshipType );
+        relationship.setFrom( _from );
+        relationship.setTo( _to );
+        relationship.setKey( RelationshipUtils.generateRelationshipKey( relationship ) );
+        relationship.setInvertedKey( RelationshipUtils.generateRelationshipInvertedKey( relationship ) );
+
+        relationship.setAutoFields();
+
+        return relationship;
+    }
+
+    public static Relationship createTeiToProgramStageInstanceRelationship( TrackedEntityInstance from,
+        ProgramStageInstance to,
+        RelationshipType relationshipType )
+    {
+        Relationship relationship = new Relationship();
+        RelationshipItem _from = new RelationshipItem();
+        RelationshipItem _to = new RelationshipItem();
+
+        _from.setTrackedEntityInstance( from );
+        _to.setProgramStageInstance( to );
+
+        relationship.setRelationshipType( relationshipType );
+        relationship.setFrom( _from );
+        relationship.setTo( _to );
+        relationship.setKey( RelationshipUtils.generateRelationshipKey( relationship ) );
+        relationship.setInvertedKey( RelationshipUtils.generateRelationshipInvertedKey( relationship ) );
+
+        relationship.setAutoFields();
+
+        return relationship;
+    }
+
     public static RelationshipType createPersonToPersonRelationshipType( char uniqueCharacter, Program program,
         TrackedEntityType trackedEntityType, boolean isBidirectional )
     {
@@ -2526,6 +2569,11 @@ public abstract class DhisConvenienceTest
         User user = createAndAddAdminUser( authorities );
         injectSecurityContext( user );
         return user;
+    }
+
+    protected void injectAdminUser()
+    {
+        injectSecurityContext( userService.getUser( "M5zQapPyTZI" ) );
     }
 
     protected void injectSecurityContext( User user )
