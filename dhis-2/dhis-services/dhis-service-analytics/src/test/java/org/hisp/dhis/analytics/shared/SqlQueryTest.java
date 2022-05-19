@@ -61,7 +61,7 @@ class SqlQueryTest
 
         // Then
         assertEquals(
-            "select a_alias,b_alias from table programstageinstance psi  "
+            "select a_name AS \"a_alias\",b_name AS \"b_alias\" from table programstageinstance psi  "
                 + "inner join programinstance pi on psi.programinstanceid = pi.programinstanceid  "
                 + "where psi.status in ('COMPLETED', 'ACTIVE', 'SCHEDULE')  "
                 + "order by a_alias desc limit 101 offset 0 ",
