@@ -25,37 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.dataexchange.analytics;
 
-import lombok.RequiredArgsConstructor;
+import java.io.Serializable;
+import java.util.List;
 
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.dataexchange.analytics.AnalyticsDataExchange;
-import org.hisp.dhis.dataexchange.analytics.service.AnalyticsDataExchangeService;
-import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import lombok.Getter;
+import lombok.Setter;
 
-/**
- * @author Lars Helge Overland
- */
-@RestController
-@RequiredArgsConstructor
-@RequestMapping( "/analyticsDataExchanges" )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class AnalyticsDataExchangeController
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+@Getter
+@Setter
+public class Filter
+    implements Serializable
 {
-    private final AnalyticsDataExchangeService service;
+    @JsonProperty
+    private String dimension;
 
-    @PostMapping( "/exchange" )
-    @ResponseStatus( value = HttpStatus.OK )
-    public ImportSummaries runDataExchange( @RequestBody AnalyticsDataExchange exchange )
-    {
-        return service.exchangeData( exchange );
-    }
+    @JsonProperty
+    private List<String> items;
 }

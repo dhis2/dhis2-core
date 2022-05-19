@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.dataset.DataSet" table="dataset">
+
+    <cache usage="read-write" />
+
+    <id name="id" column="datasetid">
+      <generator class="native" />
+    </id>
+    &identifiableProperties;
+
+    <property name="name" column="name" not-null="true" unique="false" length="230" />
+
+    <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_dataset_userid" />
+
+    <property name="sharing" type="jsbObjectSharing"/>
+
+    <property name="source" type="jbAnalyticsDataExchangeSource" column="source" />
+
+    <property name="target" type="jbAnalyticsDataExchangeTarget" column="target" />
+
+  </class>
+
+</hibernate-mapping>

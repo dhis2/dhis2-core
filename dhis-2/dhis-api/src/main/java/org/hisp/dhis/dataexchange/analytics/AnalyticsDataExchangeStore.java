@@ -25,10 +25,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataexchange.analytics.model;
+package org.hisp.dhis.dataexchange.analytics;
 
-public enum TargetType
+import org.hisp.dhis.common.IdentifiableObjectStore;
+
+public interface AnalyticsDataExchangeStore
+    extends IdentifiableObjectStore<AnalyticsDataExchange>
 {
-    INTERNAL,
-    EXTERNAL;
 }

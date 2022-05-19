@@ -25,23 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataexchange.analytics.model;
+package org.hisp.dhis.dataexchange.analytics.hibernate;
 
-import java.io.Serializable;
+import org.hibernate.SessionFactory;
+import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.dataexchange.analytics.AnalyticsDataExchange;
+import org.hisp.dhis.dataexchange.analytics.AnalyticsDataExchangeStore;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
-import lombok.Getter;
-import lombok.Setter;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-@Getter
-@Setter
-public class Api
-    implements Serializable
+@Repository( "org.hisp.dhis.dataexchange.analytics.AnalyticsDataExchangeStore" )
+public class HibernateAnalyticsDataExchangeStore
+    extends HibernateIdentifiableObjectStore<AnalyticsDataExchange>
+    implements AnalyticsDataExchangeStore
 {
-    @JsonProperty
-    private String url;
-
-    @JsonProperty
-    private String accessToken; // TODO Custom encryption
+    public HibernateAnalyticsDataExchangeStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
+    {
+        super( sessionFactory, jdbcTemplate, publisher,
+            AnalyticsDataExchange.class, currentUserService, aclService, false );
+    }
 }

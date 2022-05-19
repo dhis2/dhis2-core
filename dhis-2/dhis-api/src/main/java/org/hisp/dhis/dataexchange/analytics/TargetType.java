@@ -25,24 +25,10 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataexchange.analytics.model;
+package org.hisp.dhis.dataexchange.analytics;
 
-import java.io.Serializable;
-import java.util.List;
-
-import lombok.Getter;
-import lombok.Setter;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-@Getter
-@Setter
-public class Filter
-    implements Serializable
+public enum TargetType
 {
-    @JsonProperty
-    private String dimension;
-
-    @JsonProperty
-    private List<String> items;
+    INTERNAL,
+    EXTERNAL;
 }
