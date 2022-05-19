@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.analytics.shared;
 
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.wrap;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -107,6 +111,6 @@ public class Column implements Comparable<Column>
     @Override
     public String toString()
     {
-        return value + (alias.isBlank() ? "" : " AS \"" + alias + "\"");
+        return value + (isBlank( alias ) ? EMPTY : " AS " + wrap( alias, "\"" ));
     }
 }
