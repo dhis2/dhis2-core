@@ -27,23 +27,83 @@
  */
 package org.hisp.dhis.dataexchange.hibernate;
 
-import lombok.RequiredArgsConstructor;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import java.util.List;
 
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dataexchange.analytics.AnalyticsDataExchange;
 import org.hisp.dhis.dataexchange.analytics.AnalyticsDataExchangeStore;
+import org.hisp.dhis.dataexchange.analytics.Api;
+import org.hisp.dhis.dataexchange.analytics.Filter;
+import org.hisp.dhis.dataexchange.analytics.Source;
+import org.hisp.dhis.dataexchange.analytics.SourceRequest;
+import org.hisp.dhis.dataexchange.analytics.Target;
+import org.hisp.dhis.dataexchange.analytics.TargetRequest;
+import org.hisp.dhis.dataexchange.analytics.TargetType;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
-@RequiredArgsConstructor
 class AnalyticsDataExchangeStoreTest
     extends DhisSpringTest
 {
-    private final AnalyticsDataExchangeStore store;
+    @Autowired
+    private AnalyticsDataExchangeStore store;
 
+    @Test
     void testSaveGet()
     {
-        AnalyticsDataExchange deA = new AnalyticsDataExchange();
-        deA.setAutoFields();
-        deA.setName( "DataExchangeA" );
+        AnalyticsDataExchange deA = getAnayticsDataExchange( 'A' );
+        AnalyticsDataExchange deB = getAnayticsDataExchange( 'B' );
 
+        store.save( deA );
+        store.save( deB );
+
+        assertNotNull( store.getByUid( deA.getUid() ) );
+        assertNotNull( store.getByUid( deB.getUid() ) );
+    }
+
+    @Test
+    void testUpdate()
+    {
+        AnalyticsDataExchange de = getAnayticsDataExchange( 'A' );
+
+        store.save( de );
+
+        assertNotNull( de.getSource().getRequests().get( 0 ) );
+
+        de.getSource().getRequests().get( 0 ).getDx().add( "NhSFzklRD55" );
+
+        store.update( de );
+
+        assertEquals( 3, de.getSource().getRequests().get( 0 ).getDx().size() );
+    }
+
+    private AnalyticsDataExchange getAnayticsDataExchange( char uniqueChar )
+    {
+        SourceRequest sourceRequest = new SourceRequest();
+        sourceRequest.setDx( List.of( "LrDpG50RAU9", "uR5HCiJhQ1w" ) );
+        sourceRequest.setPe( List.of( "202201", "202202" ) );
+        sourceRequest.setOu( List.of( "G9BuXqtNeeb", "jDgiLmYwPDm" ) );
+        sourceRequest.setFilters( List.of(
+            new Filter( "MuTwGW0BI4o", List.of( "v9oULMMdmzE", "eJHJ0bfDCEO" ) ),
+            new Filter( "dAOgE7mgysJ", List.of( "rbE2mZX86AA", "XjOFfrPwake" ) ) ) );
+
+        Source source = new Source();
+        source.setRequests( List.of( sourceRequest ) );
+
+        Target target = new Target();
+        target.setApi( new Api( "https://play.dhis2.org/demo", "jk6NhU4GF8I" ) );
+        target.setType( TargetType.EXTERNAL );
+        target.setRequest( new TargetRequest( IdScheme.UID, IdScheme.UID, IdScheme.UID, IdScheme.UID ) );
+
+        AnalyticsDataExchange exchange = new AnalyticsDataExchange();
+        exchange.setAutoFields();
+        exchange.setName( "DataExchange" + uniqueChar );
+        exchange.setSource( source );
+        exchange.setTarget( target );
+        return exchange;
     }
 }

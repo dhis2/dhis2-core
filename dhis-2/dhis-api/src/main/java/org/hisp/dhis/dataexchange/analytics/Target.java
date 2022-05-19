@@ -30,12 +30,14 @@ package org.hisp.dhis.dataexchange.analytics;
 import java.io.Serializable;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Getter
 @Setter
+@NoArgsConstructor
 public class Target
     implements Serializable
 {

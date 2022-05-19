@@ -29,7 +29,9 @@ package org.hisp.dhis.dataexchange.analytics;
 
 import java.io.Serializable;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import org.hisp.dhis.common.IdScheme;
@@ -38,6 +40,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class TargetRequest
     implements Serializable
 {

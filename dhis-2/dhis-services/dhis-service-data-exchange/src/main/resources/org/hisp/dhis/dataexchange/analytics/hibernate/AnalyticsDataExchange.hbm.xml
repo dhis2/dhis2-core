@@ -6,7 +6,7 @@
   >
 
 <hibernate-mapping>
-  <class name="org.hisp.dhis.dataset.DataSet" table="dataset">
+  <class name="org.hisp.dhis.dataexchange.analytics.AnalyticsDataExchange" table="analyticsdataexchange">
 
     <cache usage="read-write" />
 
