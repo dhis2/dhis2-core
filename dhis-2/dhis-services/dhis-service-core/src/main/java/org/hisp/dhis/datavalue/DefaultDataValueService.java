@@ -241,22 +241,6 @@ public class DefaultDataValueService
         return dataValueStore.getDataValue( dataElement, period, source, categoryOptionCombo, attributeOptionCombo );
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public DataValue getAndValidateDataValue( DataElement dataElement, Period period, OrganisationUnit source,
-        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo )
-    {
-        DataValue dataValue = dataValueStore.getDataValue(
-            dataElement, period, source, categoryOptionCombo, attributeOptionCombo );
-
-        if ( dataValue == null )
-        {
-            throw new IllegalQueryException( ErrorCode.E2032 );
-        }
-
-        return dataValue;
-    }
-
     // -------------------------------------------------------------------------
     // Collections of DataValues
     // -------------------------------------------------------------------------
