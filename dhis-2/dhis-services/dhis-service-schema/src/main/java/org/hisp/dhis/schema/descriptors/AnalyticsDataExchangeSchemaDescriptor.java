@@ -25,39 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.schema.descriptors;
 
-import lombok.RequiredArgsConstructor;
-
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dataexchange.analytics.AnalyticsDataExchange;
-import org.hisp.dhis.dataexchange.analytics.service.AnalyticsDataExchangeService;
-import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
-import org.hisp.dhis.schema.descriptors.AnalyticsDataExchangeSchemaDescriptor;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
+import org.hisp.dhis.security.Authority;
+import org.hisp.dhis.security.AuthorityType;
 
-/**
- * @author Lars Helge Overland
- */
-@RestController
-@RequiredArgsConstructor
-@RequestMapping( value = AnalyticsDataExchangeSchemaDescriptor.API_ENDPOINT )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class AnalyticsDataExchangeController
-    extends AbstractCrudController<AnalyticsDataExchange>
+import com.google.common.collect.Lists;
+
+public class AnalyticsDataExchangeSchemaDescriptor
+    implements SchemaDescriptor
 {
-    private final AnalyticsDataExchangeService service;
+    public static final String SINGULAR = "analyticsDataExchange";
 
-    @PostMapping( "/exchange" )
-    @ResponseStatus( value = HttpStatus.OK )
-    public ImportSummaries runDataExchange( @RequestBody AnalyticsDataExchange exchange )
+    public static final String PLURAL = "analyticsDataExchanges";
+
+    public static final String API_ENDPOINT = "/" + PLURAL;
+
+    @Override
+    public Schema getSchema()
     {
-        return service.exchangeData( exchange );
+        Schema schema = new Schema( AnalyticsDataExchange.class, SINGULAR, PLURAL );
+        schema.setRelativeApiEndpoint( API_ENDPOINT );
+        schema.setOrder( 1170 );
+
+        schema.add( new Authority( AuthorityType.CREATE_PUBLIC,
+            Lists.newArrayList( "F_ANALYTICS_DATA_EXCHANGE_PUBLIC_ADD" ) ) );
+        schema.add( new Authority( AuthorityType.CREATE_PRIVATE,
+            Lists.newArrayList( "F_ANALYTICS_DATA_EXCHANGE_PRIVATE_ADD" ) ) );
+        schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_ANALYTICS_DATA_EXCHANGE_DELETE" ) ) );
+
+        return schema;
     }
 }
