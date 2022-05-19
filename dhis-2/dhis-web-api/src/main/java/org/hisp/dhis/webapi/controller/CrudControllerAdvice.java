@@ -131,7 +131,7 @@ public class CrudControllerAdvice
         return conflict( ex.getMessage(), ex.getErrorCode() );
     }
 
-    @ExceptionHandler( IllegalQueryException.class )
+    @ExceptionHandler( Dhis2ClientException.class )
     @ResponseBody
     public WebMessage dhis2ClientException( Dhis2ClientException ex )
     {
