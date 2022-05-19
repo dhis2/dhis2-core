@@ -75,9 +75,6 @@ public class Event
     private MetadataIdentifier orgUnit;
 
     @JsonProperty
-    private String orgUnitName;
-
-    @JsonProperty
     @Builder.Default
     private List<Relationship> relationships = new ArrayList<>();
 

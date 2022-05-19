@@ -43,7 +43,6 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.system.util.ValidationUtils;
@@ -223,7 +222,7 @@ public class EventDataValuesValidationHook
             return;
         }
 
-        reporter.addErrorIfNull( reporter.getBundle().getPreheat().get( OrganisationUnit.class, dataValue.getValue() ),
+        reporter.addErrorIfNull( reporter.getBundle().getPreheat().getOrganisationUnit( dataValue.getValue() ),
             event, E1007, dataValue.getValue() );
     }
 }

@@ -27,23 +27,20 @@
  */
 package org.hisp.dhis.tracker.bundle;
 
-import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
-import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplateStore;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerTest;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.tracker.report.TrackerImportReport;
+import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,21 +50,11 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 class TrackerSideEffectHandlerServiceTest extends TrackerTest
 {
-
-    @Autowired
-    private ObjectBundleService objectBundleService;
-
-    @Autowired
-    private ObjectBundleValidationService objectBundleValidationService;
-
-    @Autowired
-    private RenderService _renderService;
-
-    @Autowired
-    private UserService _userService;
-
     @Autowired
     private TrackerImportService trackerImportService;
+
+    @Autowired
+    private ProgramNotificationTemplateStore store;
 
     @Autowired
     private IdentifiableObjectManager manager;
@@ -87,15 +74,10 @@ class TrackerSideEffectHandlerServiceTest extends TrackerTest
     {
         TrackerImportParams trackerImportParams = fromJson(
             "tracker/enrollment_data_with_program_rule_side_effects.json" );
-        assertEquals( 0, trackerImportParams.getEvents().size() );
-        assertEquals( 1, trackerImportParams.getTrackedEntities().size() );
-        TrackerImportParams params = TrackerImportParams.builder().events( trackerImportParams.getEvents() )
-            .enrollments( trackerImportParams.getEnrollments() )
-            .trackedEntities( trackerImportParams.getTrackedEntities() ).build();
 
-        trackerImportService.importTracker( params );
-        await().atMost( 2, TimeUnit.SECONDS )
-            .until( () -> manager.getAll( ProgramNotificationInstance.class ).size() > 0 );
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
+        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
+
         List<ProgramNotificationInstance> instances = manager.getAll( ProgramNotificationInstance.class );
         assertFalse( instances.isEmpty() );
         ProgramNotificationInstance instance = instances.get( 0 );

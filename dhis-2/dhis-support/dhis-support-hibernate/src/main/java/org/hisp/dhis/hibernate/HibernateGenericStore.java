@@ -30,6 +30,8 @@ package org.hisp.dhis.hibernate;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -282,6 +284,28 @@ public class HibernateGenericStore<T>
     protected final List<T> getList( CriteriaBuilder builder, JpaQueryParameters<T> parameters )
     {
         return getTypedQuery( builder, parameters ).getResultList();
+    }
+
+    protected final <V> List<T> getListFromPartitions( CriteriaBuilder builder, Collection<V> values, int partitionSize,
+        Function<Collection<V>, JpaQueryParameters<T>> createPartitionParams )
+    {
+        if ( values == null || values.isEmpty() )
+        {
+            return new ArrayList<>( 0 );
+        }
+        if ( values.size() <= partitionSize )
+        {
+            // fast path: avoid aggregation collection
+            return getList( builder, createPartitionParams.apply( values ) );
+        }
+
+        List<List<V>> partitionedValues = Lists.partition( new ArrayList<>( values ), partitionSize );
+        List<T> aggregate = new ArrayList<>();
+        for ( List<V> valuesPartition : partitionedValues )
+        {
+            aggregate.addAll( getList( builder, createPartitionParams.apply( valuesPartition ) ) );
+        }
+        return aggregate;
     }
 
     /**

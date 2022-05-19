@@ -93,10 +93,8 @@ public class TrackedEntityTrackerConverterService
 
     private TrackedEntityInstance from( TrackerPreheat preheat, TrackedEntity te, TrackedEntityInstance tei )
     {
-        OrganisationUnit organisationUnit = preheat.get( OrganisationUnit.class,
-            te.getOrgUnit() );
-        TrackedEntityType trackedEntityType = preheat.get( TrackedEntityType.class,
-            te.getTrackedEntityType() );
+        OrganisationUnit organisationUnit = preheat.getOrganisationUnit( te.getOrgUnit() );
+        TrackedEntityType trackedEntityType = preheat.getTrackedEntityType( te.getTrackedEntityType() );
 
         Date now = new Date();
 

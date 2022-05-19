@@ -61,7 +61,7 @@ public class EventProgramPreProcessor
         for ( Event event : eventsToPreprocess )
         {
             // Extract program from program stage
-            if ( !event.getProgramStage().isBlank() )
+            if ( event.getProgramStage().isNotBlank() )
             {
                 ProgramStage programStage = bundle.getPreheat().getProgramStage( event.getProgramStage() );
                 if ( Objects.nonNull( programStage ) )
@@ -92,7 +92,7 @@ public class EventProgramPreProcessor
                 }
             }
             // If it is a program event, extract program stage from program
-            else if ( !event.getProgram().isBlank() )
+            else if ( event.getProgram().isNotBlank() )
             {
                 Program program = bundle.getPreheat().getProgram( event.getProgram() );
                 if ( Objects.nonNull( program ) && program.isWithoutRegistration() )
