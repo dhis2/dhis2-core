@@ -82,7 +82,7 @@ public class ProgramStageInstanceProgramStageMapSupplier
         List<String> notRepeatableProgramStageUids = params.getEvents().stream()
             .map( Event::getProgramStage )
             .filter( Objects::nonNull )
-            .map( ps -> preheat.getProgramStage( ps ) )
+            .map( preheat::getProgramStage )
             .filter( Objects::nonNull )
             .filter( ps -> !ps.getRepeatable() )
             .map( ProgramStage::getUid )
