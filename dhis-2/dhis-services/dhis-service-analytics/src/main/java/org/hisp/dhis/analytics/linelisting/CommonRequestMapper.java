@@ -56,20 +56,20 @@ import org.springframework.stereotype.Service;
 import com.google.common.collect.ImmutableMap;
 
 @Service
-public class CommonLineListingMapper
+public class CommonRequestMapper
 {
 
     private final I18nFormat i18nFormat;
 
     private final DataQueryService dataQueryService;
 
-    public CommonLineListingMapper( I18nManager i18nManager, DataQueryService dataQueryService )
+    public CommonRequestMapper( I18nManager i18nManager, DataQueryService dataQueryService )
     {
         this.i18nFormat = i18nManager.getI18nFormat();
         this.dataQueryService = dataQueryService;
     }
 
-    public CommonLineListingParams map( CommonLineListingRequest request, DhisApiVersion apiVersion )
+    public CommonLineListingParams map( CommonQueryRequest request, DhisApiVersion apiVersion )
     {
 
         List<OrganisationUnit> userOrgUnits = dataQueryService.getUserOrgUnits( null, request.getUserOrgUnit() );
@@ -90,7 +90,7 @@ public class CommonLineListingMapper
             .build();
     }
 
-    private Map<Type, List<Object>> preprocessQueryElements( CommonLineListingRequest request,
+    private Map<Type, List<Object>> preprocessQueryElements( CommonQueryRequest request,
         List<OrganisationUnit> userOrgUnits )
     {
         Map<Type, List<Object>> elementsByType = ImmutableMap.<Type, List<Object>> builder()
@@ -141,14 +141,14 @@ public class CommonLineListingMapper
     @RequiredArgsConstructor
     private enum QueryElementPreProcessorDefinition
     {
-        DIMENSIONS( Type.DIMENSIONS, Type.ITEMS, CommonLineListingRequest::getDimension ),
-        FILTERS( Type.FILTERS, Type.ITEM_FILTERS, CommonLineListingRequest::getFilter );
+        DIMENSIONS( Type.DIMENSIONS, Type.ITEMS, CommonQueryRequest::getDimension ),
+        FILTERS( Type.FILTERS, Type.ITEM_FILTERS, CommonQueryRequest::getFilter );
 
         private final Type baseType;
 
         private final Type queryItemType;
 
-        private final Function<CommonLineListingRequest, Collection<String>> uidsGetter;
+        private final Function<CommonQueryRequest, Collection<String>> uidsGetter;
     }
 
     private enum Type

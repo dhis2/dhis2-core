@@ -29,14 +29,16 @@ package org.hisp.dhis.analytics.linelisting.trackedentityinstance;
 
 import java.util.Collection;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-
-import org.hisp.dhis.analytics.linelisting.CommonLineListingRequest;
+import lombok.With;
 
 @Getter
 @Setter
-public class TeiLineListingRequest extends CommonLineListingRequest
+@With
+@AllArgsConstructor
+public class TeiQueryRequest
 {
     private String trackedEntityType;
 

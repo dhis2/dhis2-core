@@ -27,44 +27,21 @@
  */
 package org.hisp.dhis.analytics.linelisting;
 
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import lombok.RequiredArgsConstructor;
 
-import lombok.Getter;
-import lombok.Setter;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.system.grid.ListGrid;
+import org.springframework.stereotype.Service;
 
-import org.hisp.dhis.common.AnalyticsPagingCriteria;
-import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-
-@Getter
-@Setter
-public class CommonLineListingRequest extends AnalyticsPagingCriteria
+@Service
+@RequiredArgsConstructor
+public class CommonQueryService
 {
-
-    private String userOrgUnit;
-
-    private Set<String> dimension = new HashSet<>();
-
-    private Set<String> filter = new HashSet<>();
-
-    private Set<String> headers = new HashSet<>();
-
-    private OrganisationUnitSelectionMode ouMode;
-
-    private Set<String> asc = new HashSet<>();
-
-    private Set<String> desc = new HashSet<>();
-
-    private boolean skipMeta;
-
-    private boolean skipData;
-
-    private IdScheme dataIdScheme = IdScheme.UID;
-
-    private boolean totalPages;
-
-    private Date relativePeriodDate;
+    public Grid getGrid( CommonLineListingParams queryParams )
+    {
+        Grid grid = new ListGrid();
+        // TODO: prepare the grid based on CommonLineListingParams
+        return grid;
+    }
 
 }

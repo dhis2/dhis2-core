@@ -27,56 +27,22 @@
  */
 package org.hisp.dhis.analytics.linelisting.trackedentityinstance;
 
-import static org.hisp.dhis.analytics.shared.GridHeaders.from;
-import static org.springframework.util.Assert.notNull;
+import lombok.RequiredArgsConstructor;
 
-import java.util.List;
-
-import lombok.AllArgsConstructor;
-
-import org.hisp.dhis.analytics.shared.GridAdaptor;
-import org.hisp.dhis.analytics.shared.QueryExecutor;
-import org.hisp.dhis.analytics.shared.QueryGenerator;
-import org.hisp.dhis.analytics.shared.SqlQuery;
-import org.hisp.dhis.analytics.shared.SqlQueryResult;
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.analytics.linelisting.CommonValidationService;
+import org.hisp.dhis.analytics.linelisting.QueryRequestHolder;
 import org.springframework.stereotype.Service;
 
-/**
- * Service responsible exclusively for querying. Methods present on this class
- * must not change any state.
- *
- * @author maikel arabori
- */
 @Service
-@AllArgsConstructor
-public class TeiAnalyticsQueryService
+@RequiredArgsConstructor
+public class TeiAnalyticsValidationService
 {
-    private final QueryGenerator<TeiQueryParams> teiJdbcQuery;
 
-    private final QueryExecutor<SqlQuery, SqlQueryResult> queryExecutor;
+    private final CommonValidationService commonValidationService;
 
-    private final GridAdaptor gridAdaptor;
-
-    /**
-     * This method will create a query, based on the teiParams, and execute it
-     * against the underline data provider and return. The results found will be
-     * returned encapsulated on a Grid object.
-     *
-     * @param teiQueryParams
-     * @return the populated Grid object
-     * @throws IllegalArgumentException if the given teiParams is null
-     */
-    public Grid getTeiGrid( final TeiQueryParams teiQueryParams )
+    public void validateRequest( QueryRequestHolder<TeiQueryRequest> queryRequestHolder )
     {
-        notNull( teiQueryParams, "The 'teiParams' must not be null" );
-
-        final SqlQuery query = (SqlQuery) teiJdbcQuery.from( teiQueryParams );
-        final SqlQueryResult result = queryExecutor.execute( query );
-        final List<GridHeader> headers = from( query.getColumns() );
-
-        return gridAdaptor.createGrid( headers, result.result() );
+        commonValidationService.validate( queryRequestHolder.getCommonQueryRequest() );
+        // TODO: validate request based on common params
     }
-
 }

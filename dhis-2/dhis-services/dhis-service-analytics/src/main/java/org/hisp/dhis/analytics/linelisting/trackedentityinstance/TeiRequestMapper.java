@@ -29,7 +29,8 @@ package org.hisp.dhis.analytics.linelisting.trackedentityinstance;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.analytics.linelisting.CommonLineListingMapper;
+import org.hisp.dhis.analytics.linelisting.CommonRequestMapper;
+import org.hisp.dhis.analytics.linelisting.QueryRequestHolder;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
@@ -37,21 +38,22 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class TrackedEntityLineListingRequestMapper
+public class TeiRequestMapper
 {
 
-    private final CommonLineListingMapper commonLineListingMapper;
+    private final CommonRequestMapper commonRequestMapper;
 
     private final ProgramService programService;
 
     private final TrackedEntityTypeService trackedEntityTypeService;
 
-    public TeiQueryParams map( TeiLineListingRequest request, DhisApiVersion apiVersion )
+    public TeiQueryParams map( QueryRequestHolder<TeiQueryRequest> queryRequestHolder, DhisApiVersion apiVersion )
     {
         return TeiQueryParams.builder()
-            .programs( programService.getPrograms( request.getPrograms() ) )
-            .trackedEntityType( trackedEntityTypeService.getTrackedEntityType( request.getTrackedEntityType() ) )
-            .commonParams( commonLineListingMapper.map( request, apiVersion ) )
+            .programs( programService.getPrograms( queryRequestHolder.getRequest().getPrograms() ) )
+            .trackedEntityType( trackedEntityTypeService
+                .getTrackedEntityType( queryRequestHolder.getRequest().getTrackedEntityType() ) )
+            .commonParams( commonRequestMapper.map( queryRequestHolder.getCommonQueryRequest(), apiVersion ) )
             .build();
     }
 }
