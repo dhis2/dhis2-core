@@ -25,66 +25,51 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security;
+package org.hisp.dhis.webapi.json.domain;
 
-import lombok.AllArgsConstructor;
-
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.jsontree.Expected;
+import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonMap;
+import org.hisp.dhis.jsontree.JsonNumber;
+import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.JsonString;
 
 /**
- * Implementation of a runnable that makes sure the thread is run in the same
- * security context as the creator, you must implement the call method.
+ * Web API equivalent of an {@code ImportConflict}.
  *
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Jan Bernitt
  */
-@AllArgsConstructor
-public abstract class SecurityContextRunnable implements Runnable
+public interface JsonImportConflict extends JsonObject
 {
-    private final SecurityContext securityContext;
-
-    public SecurityContextRunnable()
+    default String getObject()
     {
-        this( SecurityContextHolder.getContext() );
+        return getString( "object" ).string();
     }
 
-    @Override
-    final public void run()
+    default JsonMap<JsonString> getObjects()
     {
-        try
-        {
-            SecurityContextHolder.setContext( securityContext );
-            before();
-            call();
-        }
-        catch ( Throwable ex )
-        {
-            handleError( ex );
-        }
-        finally
-        {
-            after();
-            SecurityContextHolder.clearContext();
-        }
+        return getMap( "objects", JsonString.class );
     }
 
-    public abstract void call();
-
-    /**
-     * Hook invoked before {@link #call()}.
-     */
-    public void before()
+    @Expected
+    default String getValue()
     {
+        return getString( "value" ).string();
     }
 
-    /**
-     * Hook invoked after {@link #call()}.
-     */
-    public void after()
+    default ErrorCode getErrorCode()
     {
+        return getString( "errorCode" ).parsed( ErrorCode::valueOf );
     }
 
-    public void handleError( Throwable ex )
+    default String getProperty()
     {
+        return getString( "property" ).string();
+    }
+
+    default JsonList<JsonNumber> getIndexes()
+    {
+        return getList( "indexes", JsonNumber.class );
     }
 }

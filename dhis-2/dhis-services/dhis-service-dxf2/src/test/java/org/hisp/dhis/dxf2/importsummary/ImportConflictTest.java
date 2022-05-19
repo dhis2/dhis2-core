@@ -33,7 +33,6 @@ import org.junit.jupiter.api.Test;
 
 class ImportConflictTest
 {
-
     @Test
     void testImportConflictObjectCanBeNull()
     {

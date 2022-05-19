@@ -25,66 +25,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security;
+package org.hisp.dhis.dxf2.geojson;
 
-import lombok.AllArgsConstructor;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.dxf2.importsummary.ImportConflict;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * Implementation of a runnable that makes sure the thread is run in the same
- * security context as the creator, you must implement the call method.
+ * For now just make sure that a {@link GeoJsonImportReport} can be stored in
+ * redis.
  *
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Jan Bernitt
  */
-@AllArgsConstructor
-public abstract class SecurityContextRunnable implements Runnable
+class GeoJsonServiceTest extends DhisSpringTest
 {
-    private final SecurityContext securityContext;
+    @Autowired
+    private ObjectMapper jsonMapper;
 
-    public SecurityContextRunnable()
+    @Test
+    void testReportSerialisation()
+        throws JsonProcessingException
     {
-        this( SecurityContextHolder.getContext() );
-    }
+        GeoJsonImportReport report = new GeoJsonImportReport();
+        report.getImportCount().incrementIgnored();
+        report.addConflict( new ImportConflict( "a", "b" ) );
 
-    @Override
-    final public void run()
-    {
-        try
-        {
-            SecurityContextHolder.setContext( securityContext );
-            before();
-            call();
-        }
-        catch ( Throwable ex )
-        {
-            handleError( ex );
-        }
-        finally
-        {
-            after();
-            SecurityContextHolder.clearContext();
-        }
-    }
+        String json = jsonMapper.writeValueAsString( report );
+        GeoJsonImportReport reportFromJson = jsonMapper.readValue( json, GeoJsonImportReport.class );
 
-    public abstract void call();
-
-    /**
-     * Hook invoked before {@link #call()}.
-     */
-    public void before()
-    {
-    }
-
-    /**
-     * Hook invoked after {@link #call()}.
-     */
-    public void after()
-    {
-    }
-
-    public void handleError( Throwable ex )
-    {
+        assertEquals( report.getConflictCount(), reportFromJson.getConflictCount() );
+        assertEquals( report.getImportCount().getIgnored(), reportFromJson.getImportCount().getIgnored() );
+        assertEquals( report.getTotalConflictOccurrenceCount(), reportFromJson.getTotalConflictOccurrenceCount() );
+        assertIterableEquals( report.getConflicts(), reportFromJson.getConflicts() );
     }
 }

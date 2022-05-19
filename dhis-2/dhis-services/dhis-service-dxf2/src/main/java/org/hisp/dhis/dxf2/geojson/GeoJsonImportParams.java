@@ -25,66 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security;
+package org.hisp.dhis.dxf2.geojson;
 
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
 
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.hisp.dhis.common.IdentifiableProperty;
+import org.hisp.dhis.user.User;
 
-/**
- * Implementation of a runnable that makes sure the thread is run in the same
- * security context as the creator, you must implement the call method.
- *
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@AllArgsConstructor
-public abstract class SecurityContextRunnable implements Runnable
+@Builder
+@Getter
+@AllArgsConstructor( access = AccessLevel.PRIVATE )
+public class GeoJsonImportParams
 {
-    private final SecurityContext securityContext;
+    /**
+     * If true the import is validated and processed without actually modifying
+     * any organisation unit or storing GeoJSON data.
+     */
+    private final boolean dryRun;
 
-    public SecurityContextRunnable()
-    {
-        this( SecurityContextHolder.getContext() );
-    }
+    private final String orgUnitIdProperty;
 
-    @Override
-    final public void run()
-    {
-        try
-        {
-            SecurityContextHolder.setContext( securityContext );
-            before();
-            call();
-        }
-        catch ( Throwable ex )
-        {
-            handleError( ex );
-        }
-        finally
-        {
-            after();
-            SecurityContextHolder.clearContext();
-        }
-    }
-
-    public abstract void call();
+    private final IdentifiableProperty idType;
 
     /**
-     * Hook invoked before {@link #call()}.
+     * Optional UID that refers to an {@link org.hisp.dhis.attribute.Attribute}
+     * for which the geometry is stored.
      */
-    public void before()
-    {
-    }
+    private final String attributeId;
 
-    /**
-     * Hook invoked after {@link #call()}.
-     */
-    public void after()
-    {
-    }
-
-    public void handleError( Throwable ex )
-    {
-    }
+    private final User user;
 }

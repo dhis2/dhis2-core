@@ -25,66 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security;
+package org.hisp.dhis.dxf2.geojson;
 
-import lombok.AllArgsConstructor;
-
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
+import java.io.InputStream;
 
 /**
- * Implementation of a runnable that makes sure the thread is run in the same
- * security context as the creator, you must implement the call method.
  *
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Jan Bernitt
  */
-@AllArgsConstructor
-public abstract class SecurityContextRunnable implements Runnable
+public interface GeoJsonService
 {
-    private final SecurityContext securityContext;
-
-    public SecurityContextRunnable()
-    {
-        this( SecurityContextHolder.getContext() );
-    }
-
-    @Override
-    final public void run()
-    {
-        try
-        {
-            SecurityContextHolder.setContext( securityContext );
-            before();
-            call();
-        }
-        catch ( Throwable ex )
-        {
-            handleError( ex );
-        }
-        finally
-        {
-            after();
-            SecurityContextHolder.clearContext();
-        }
-    }
-
-    public abstract void call();
-
-    /**
-     * Hook invoked before {@link #call()}.
-     */
-    public void before()
-    {
-    }
-
-    /**
-     * Hook invoked after {@link #call()}.
-     */
-    public void after()
-    {
-    }
-
-    public void handleError( Throwable ex )
-    {
-    }
+    GeoJsonImportReport importGeoData( GeoJsonImportParams params, InputStream geoJsonData );
 }

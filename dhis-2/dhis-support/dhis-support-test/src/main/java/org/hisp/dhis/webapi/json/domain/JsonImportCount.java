@@ -25,66 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security;
+package org.hisp.dhis.webapi.json.domain;
 
-import lombok.AllArgsConstructor;
-
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.hisp.dhis.jsontree.JsonObject;
 
 /**
- * Implementation of a runnable that makes sure the thread is run in the same
- * security context as the creator, you must implement the call method.
+ * Web API equivalent of an {@code ImportCount}.
  *
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Jan Bernitt
  */
-@AllArgsConstructor
-public abstract class SecurityContextRunnable implements Runnable
+public interface JsonImportCount extends JsonObject
 {
-    private final SecurityContext securityContext;
-
-    public SecurityContextRunnable()
+    default int getImported()
     {
-        this( SecurityContextHolder.getContext() );
+        return getNumber( "imported" ).intValue();
     }
 
-    @Override
-    final public void run()
+    default int getUpdated()
     {
-        try
-        {
-            SecurityContextHolder.setContext( securityContext );
-            before();
-            call();
-        }
-        catch ( Throwable ex )
-        {
-            handleError( ex );
-        }
-        finally
-        {
-            after();
-            SecurityContextHolder.clearContext();
-        }
+        return getNumber( "updated" ).intValue();
     }
 
-    public abstract void call();
-
-    /**
-     * Hook invoked before {@link #call()}.
-     */
-    public void before()
+    default int getIgnored()
     {
+        return getNumber( "ignored" ).intValue();
     }
 
-    /**
-     * Hook invoked after {@link #call()}.
-     */
-    public void after()
+    default int getDeleted()
     {
-    }
-
-    public void handleError( Throwable ex )
-    {
+        return getNumber( "deleted" ).intValue();
     }
 }
