@@ -95,7 +95,7 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
             TrackedEntityAttribute teAttribute = reporter.getBundle().getPreheat()
                 .getTrackedEntityAttribute( attribute.getAttribute() );
 
-            if ( !attribute.getAttribute().isBlank() && attribute.getValue() != null && teAttribute != null )
+            if ( attribute.getAttribute().isNotBlank() && attribute.getValue() != null && teAttribute != null )
             {
 
                 attributeValueMap.put( attribute.getAttribute(), attribute.getValue() );

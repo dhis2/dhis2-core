@@ -211,7 +211,7 @@ public class EventTrackerConverterService
 
     private ProgramStageInstance from( TrackerPreheat preheat, Event event, ProgramStageInstance programStageInstance )
     {
-        ProgramStage programStage = preheat.get( ProgramStage.class, event.getProgramStage() );
+        ProgramStage programStage = preheat.getProgramStage( event.getProgramStage() );
         Program program = preheat.getProgram( event.getProgram() );
         OrganisationUnit organisationUnit = preheat.getOrganisationUnit( event.getOrgUnit() );
 
@@ -238,7 +238,7 @@ public class EventTrackerConverterService
         programStageInstance.setExecutionDate( DateUtils.fromInstant( event.getOccurredAt() ) );
         programStageInstance.setDueDate( DateUtils.fromInstant( event.getScheduledAt() ) );
 
-        if ( !event.getAttributeOptionCombo().isBlank() )
+        if ( event.getAttributeOptionCombo().isNotBlank() )
         {
             programStageInstance.setAttributeOptionCombo(
                 preheat.getCategoryOptionCombo( event.getAttributeOptionCombo() ) );
