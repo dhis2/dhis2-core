@@ -100,15 +100,15 @@ public class AnalyticsDataExchangeService
         TargetRequest request = exchange.getTarget().getRequest();
 
         return new ImportOptions()
-            .setDataElementIdScheme( toNameOrDefault( request.getDataElementIdScheme() ) )
-            .setOrgUnitIdScheme( toNameOrDefault( request.getOrgUnitIdScheme() ) )
-            .setCategoryOptionComboIdScheme( toNameOrDefault( request.getCategoryOptionComboIdScheme() ) )
-            .setIdScheme( toNameOrDefault( request.getIdScheme() ) );
+            .setDataElementIdScheme( getOrDefault( request.getDataElementIdScheme() ) )
+            .setOrgUnitIdScheme( getOrDefault( request.getOrgUnitIdScheme() ) )
+            .setCategoryOptionComboIdScheme( getOrDefault( request.getCategoryOptionComboIdScheme() ) )
+            .setIdScheme( getOrDefault( request.getIdScheme() ) );
     }
 
     private DataQueryParams toDataQueryParams( SourceRequest request )
     {
-        IdScheme inputIdScheme = getOrDefault( request.getInputIdScheme() );
+        IdScheme inputIdScheme = toIdSchemeOrDefault( request.getInputIdScheme() );
 
         List<DimensionalObject> filters = request.getFilters().stream()
             .map( f -> toDimensionalObject( f, inputIdScheme ) )
@@ -135,24 +135,25 @@ public class AnalyticsDataExchangeService
     }
 
     /**
-     * Returns a canonical name of the given ID scheme, or the name of the
-     * default ID scheme if the given ID scheme is null.
+     * Returns the ID scheme string or the the default ID scheme if the given ID
+     * scheme string is null.
      *
      * @param idScheme the ID scheme string.
-     * @return a canonical name.
+     * @return the given ID scheme, or the default ID scheme string if null.
      */
-    public static String toNameOrDefault( String idScheme )
+    public static String getOrDefault( String idScheme )
     {
         return ObjectUtils.firstNonNull( idScheme, IdScheme.UID.name() );
     }
 
     /**
-     * Returns the given ID scheme, or the default ID scheme if null.
+     * Returns the {@link IdScheme} based on the given ID scheme string, or the
+     * default ID scheme if the given ID scheme string is null.
      *
      * @param idScheme the ID scheme string.
      * @return the given ID scheme, or the default ID scheme if null.
      */
-    public IdScheme getOrDefault( String idScheme )
+    public IdScheme toIdSchemeOrDefault( String idScheme )
     {
         return idScheme != null ? IdScheme.from( idScheme ) : IdScheme.UID;
     }
