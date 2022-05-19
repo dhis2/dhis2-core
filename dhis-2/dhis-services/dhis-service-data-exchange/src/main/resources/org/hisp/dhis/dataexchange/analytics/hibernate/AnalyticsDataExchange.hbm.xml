@@ -21,6 +21,10 @@
 
     <property name="sharing" type="jsbObjectSharing"/>
 
+    <property name="translations" type="jblTranslations"/>
+
+    <property name="attributeValues" type="jsbAttributeValues"/>
+    
     <property name="source" type="jbAnalyticsDataExchangeSource" column="source" />
 
     <property name="target" type="jbAnalyticsDataExchangeTarget" column="target" />
