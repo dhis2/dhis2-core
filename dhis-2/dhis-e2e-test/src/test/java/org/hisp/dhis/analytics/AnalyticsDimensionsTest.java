@@ -51,6 +51,7 @@ import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.matchers.CustomMatchers;
 import org.hisp.dhis.helpers.matchers.Sorted;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -183,6 +184,7 @@ public class AnalyticsDimensionsTest
     }
 
     @Test
+    @Disabled
     public void shouldOnlyReturnDataElementsAssociatedWithProgramStage()
     {
         List<String> dataElements = new ProgramStageActions()
@@ -197,6 +199,7 @@ public class AnalyticsDimensionsTest
     }
 
     @Test
+    @Disabled
     public void shouldReturnAssociatedCategoriesWhenProgramHasCatCombo()
     {
         String programWithCatCombo = programActions
