@@ -25,47 +25,51 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.domain;
+package org.hisp.dhis.webapi.json.domain;
 
-import java.time.Instant;
-
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.jsontree.Expected;
+import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonMap;
+import org.hisp.dhis.jsontree.JsonNumber;
+import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.JsonString;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Web API equivalent of an {@code ImportConflict}.
+ *
+ * @author Jan Bernitt
  */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class DataValue
+public interface JsonImportConflict extends JsonObject
 {
-    @JsonProperty
-    private Instant createdAt;
+    default String getObject()
+    {
+        return getString( "object" ).string();
+    }
 
-    @JsonProperty
-    private Instant updatedAt;
+    default JsonMap<JsonString> getObjects()
+    {
+        return getMap( "objects", JsonString.class );
+    }
 
-    @JsonProperty
-    private String storedBy;
+    @Expected
+    default String getValue()
+    {
+        return getString( "value" ).string();
+    }
 
-    @JsonProperty
-    private boolean providedElsewhere;
+    default ErrorCode getErrorCode()
+    {
+        return getString( "errorCode" ).parsed( ErrorCode::valueOf );
+    }
 
-    @JsonProperty
-    private MetadataIdentifier dataElement;
+    default String getProperty()
+    {
+        return getString( "property" ).string();
+    }
 
-    @JsonProperty
-    private String value;
-
-    @JsonProperty
-    private User createdBy;
-
-    @JsonProperty
-    private User updatedBy;
+    default JsonList<JsonNumber> getIndexes()
+    {
+        return getList( "indexes", JsonNumber.class );
+    }
 }

@@ -45,6 +45,13 @@ import org.mapstruct.Named;
 interface MetadataIdentifierMapper
 {
 
+    @Named( "dataElementToMetadataIdentifier" )
+    default MetadataIdentifier fromDataElement( String identifier,
+        @Context TrackerIdSchemeParams idSchemeParams )
+    {
+        return idSchemeParams.getDataElementIdScheme().toMetadataIdentifier( identifier );
+    }
+
     @Named( "programToMetadataIdentifier" )
     default MetadataIdentifier fromProgram( String identifier,
         @Context TrackerIdSchemeParams idSchemeParams )

@@ -55,6 +55,7 @@ import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.eventvisualization.EventVisualizationService;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.legend.LegendSetService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
@@ -87,6 +88,8 @@ public class EventVisualizationController
     AbstractCrudController<EventVisualization>
 {
     private final DimensionService dimensionService;
+
+    private final LegendSetService legendSetService;
 
     private final OrganisationUnitService organisationUnitService;
 
@@ -226,6 +229,24 @@ public class EventVisualizationController
         eventVisualization.getRowDimensions().addAll( getDimensions( eventVisualization.getRows() ) );
         eventVisualization.getFilterDimensions().addAll( getDimensions( eventVisualization.getFilters() ) );
         eventVisualization.associateSimpleDimensions();
+
+        maybeLoadLegendSetInto( eventVisualization );
+    }
+
+    /**
+     * Load the current/existing legendSet (if any is set) into the current
+     * visualization object, so the relationship can be persisted.
+     *
+     * @param eventVisualization
+     */
+    private void maybeLoadLegendSetInto( final EventVisualization eventVisualization )
+    {
+        if ( eventVisualization.getLegendDefinitions() != null
+            && eventVisualization.getLegendDefinitions().getLegendSet() != null )
+        {
+            eventVisualization.getLegendDefinitions().setLegendSet(
+                legendSetService.getLegendSet( eventVisualization.getLegendDefinitions().getLegendSet().getUid() ) );
+        }
     }
 
     private void doesNotAllowPivotAndReportChart( final EventVisualization eventVisualization )

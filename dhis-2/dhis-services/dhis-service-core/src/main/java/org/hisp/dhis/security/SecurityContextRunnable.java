@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.security;
 
+import lombok.AllArgsConstructor;
+
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -36,14 +38,14 @@ import org.springframework.security.core.context.SecurityContextHolder;
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public abstract class SecurityContextRunnable
-    implements Runnable
+@AllArgsConstructor
+public abstract class SecurityContextRunnable implements Runnable
 {
     private final SecurityContext securityContext;
 
     public SecurityContextRunnable()
     {
-        this.securityContext = SecurityContextHolder.getContext();
+        this( SecurityContextHolder.getContext() );
     }
 
     @Override

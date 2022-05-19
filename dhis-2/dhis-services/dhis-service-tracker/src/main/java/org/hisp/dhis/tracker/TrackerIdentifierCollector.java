@@ -58,8 +58,6 @@ import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.springframework.stereotype.Component;
 
-import com.google.common.collect.ImmutableSet;
-
 /**
  * This class "collects" identifiers from all input objects. This resulting map
  * of all identifiers will then be used to "preheat/cache" all the objects
@@ -89,8 +87,8 @@ public class TrackerIdentifierCollector
         collectRelationships( identifiers, params.getRelationships() );
         // Using "*" signals that all the entities of the given type have to be
         // preloaded in the Preheat
-        identifiers.put( TrackedEntityType.class, ImmutableSet.of( ID_WILDCARD ) );
-        identifiers.put( RelationshipType.class, ImmutableSet.of( ID_WILDCARD ) );
+        identifiers.put( TrackedEntityType.class, Set.of( ID_WILDCARD ) );
+        identifiers.put( RelationshipType.class, Set.of( ID_WILDCARD ) );
 
         collectProgramRulesFields( identifiers );
         return identifiers;
@@ -104,12 +102,12 @@ public class TrackerIdentifierCollector
         // dataElements/attributes from rule actions
         // out of the preheat using UIDs
         List<ProgramRule> programRules = programRuleService.getProgramRulesLinkedToTeaOrDe();
+
         Set<String> dataElements = programRules.stream()
             .flatMap( pr -> pr.getProgramRuleActions().stream() )
             .filter( a -> Objects.nonNull( a.getDataElement() ) )
             .map( a -> a.getDataElement().getUid() )
             .collect( Collectors.toSet() );
-
         dataElements.forEach( de -> addIdentifier( map, DataElement.class, de ) );
 
         Set<String> attributes = programRules.stream()
@@ -117,7 +115,6 @@ public class TrackerIdentifierCollector
             .filter( a -> Objects.nonNull( a.getAttribute() ) )
             .map( a -> a.getAttribute().getUid() )
             .collect( Collectors.toSet() );
-
         attributes.forEach( attribute -> addIdentifier( map, TrackedEntityAttribute.class, attribute ) );
     }
 

@@ -25,47 +25,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.domain;
+package org.hisp.dhis.dxf2.geojson;
 
-import java.time.Instant;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.dxf2.importsummary.ImportConflict;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * For now just make sure that a {@link GeoJsonImportReport} can be stored in
+ * redis.
+ *
+ * @author Jan Bernitt
  */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class DataValue
+class GeoJsonServiceTest extends DhisSpringTest
 {
-    @JsonProperty
-    private Instant createdAt;
+    @Autowired
+    private ObjectMapper jsonMapper;
 
-    @JsonProperty
-    private Instant updatedAt;
+    @Test
+    void testReportSerialisation()
+        throws JsonProcessingException
+    {
+        GeoJsonImportReport report = new GeoJsonImportReport();
+        report.getImportCount().incrementIgnored();
+        report.addConflict( new ImportConflict( "a", "b" ) );
 
-    @JsonProperty
-    private String storedBy;
+        String json = jsonMapper.writeValueAsString( report );
+        GeoJsonImportReport reportFromJson = jsonMapper.readValue( json, GeoJsonImportReport.class );
 
-    @JsonProperty
-    private boolean providedElsewhere;
-
-    @JsonProperty
-    private MetadataIdentifier dataElement;
-
-    @JsonProperty
-    private String value;
-
-    @JsonProperty
-    private User createdBy;
-
-    @JsonProperty
-    private User updatedBy;
+        assertEquals( report.getConflictCount(), reportFromJson.getConflictCount() );
+        assertEquals( report.getImportCount().getIgnored(), reportFromJson.getImportCount().getIgnored() );
+        assertEquals( report.getTotalConflictOccurrenceCount(), reportFromJson.getTotalConflictOccurrenceCount() );
+        assertIterableEquals( report.getConflicts(), reportFromJson.getConflicts() );
+    }
 }

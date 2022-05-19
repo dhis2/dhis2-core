@@ -25,47 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.domain;
+package org.hisp.dhis.webapi.json.domain;
 
-import java.time.Instant;
-
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.hisp.dhis.jsontree.JsonObject;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Web API equivalent of an {@code ImportCount}.
+ *
+ * @author Jan Bernitt
  */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class DataValue
+public interface JsonImportCount extends JsonObject
 {
-    @JsonProperty
-    private Instant createdAt;
+    default int getImported()
+    {
+        return getNumber( "imported" ).intValue();
+    }
 
-    @JsonProperty
-    private Instant updatedAt;
+    default int getUpdated()
+    {
+        return getNumber( "updated" ).intValue();
+    }
 
-    @JsonProperty
-    private String storedBy;
+    default int getIgnored()
+    {
+        return getNumber( "ignored" ).intValue();
+    }
 
-    @JsonProperty
-    private boolean providedElsewhere;
-
-    @JsonProperty
-    private MetadataIdentifier dataElement;
-
-    @JsonProperty
-    private String value;
-
-    @JsonProperty
-    private User createdBy;
-
-    @JsonProperty
-    private User updatedBy;
+    default int getDeleted()
+    {
+        return getNumber( "deleted" ).intValue();
+    }
 }

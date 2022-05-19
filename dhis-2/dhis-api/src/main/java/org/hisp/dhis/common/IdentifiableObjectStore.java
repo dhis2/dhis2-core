@@ -268,6 +268,14 @@ public interface IdentifiableObjectStore<T>
     List<T> getByName( Collection<String> names );
 
     /**
+     * Retrieves a list of objects referenced by the given collection of names.
+     *
+     * @param names a collection of names.
+     * @return a list of objects.
+     */
+    List<T> getByName( Collection<String> names, User user );
+
+    /**
      * Retrieves a list of objects referenced by the given List of uids.
      * Bypasses the ACL system.
      *

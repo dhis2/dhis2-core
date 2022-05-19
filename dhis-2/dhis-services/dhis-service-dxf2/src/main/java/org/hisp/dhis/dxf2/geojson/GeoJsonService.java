@@ -25,47 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.domain;
+package org.hisp.dhis.dxf2.geojson;
 
-import java.time.Instant;
-
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.io.InputStream;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ *
+ * @author Jan Bernitt
  */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class DataValue
+public interface GeoJsonService
 {
-    @JsonProperty
-    private Instant createdAt;
-
-    @JsonProperty
-    private Instant updatedAt;
-
-    @JsonProperty
-    private String storedBy;
-
-    @JsonProperty
-    private boolean providedElsewhere;
-
-    @JsonProperty
-    private MetadataIdentifier dataElement;
-
-    @JsonProperty
-    private String value;
-
-    @JsonProperty
-    private User createdBy;
-
-    @JsonProperty
-    private User updatedBy;
+    GeoJsonImportReport importGeoData( GeoJsonImportParams params, InputStream geoJsonData );
 }

@@ -25,47 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.domain;
+package org.hisp.dhis.dxf2.geojson;
 
-import java.time.Instant;
-
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.hisp.dhis.common.IdentifiableProperty;
+import org.hisp.dhis.user.User;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@Data
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class DataValue
+@Getter
+@AllArgsConstructor( access = AccessLevel.PRIVATE )
+public class GeoJsonImportParams
 {
-    @JsonProperty
-    private Instant createdAt;
+    /**
+     * If true the import is validated and processed without actually modifying
+     * any organisation unit or storing GeoJSON data.
+     */
+    private final boolean dryRun;
 
-    @JsonProperty
-    private Instant updatedAt;
+    private final String orgUnitIdProperty;
 
-    @JsonProperty
-    private String storedBy;
+    private final IdentifiableProperty idType;
 
-    @JsonProperty
-    private boolean providedElsewhere;
+    /**
+     * Optional UID that refers to an {@link org.hisp.dhis.attribute.Attribute}
+     * for which the geometry is stored.
+     */
+    private final String attributeId;
 
-    @JsonProperty
-    private MetadataIdentifier dataElement;
-
-    @JsonProperty
-    private String value;
-
-    @JsonProperty
-    private User createdBy;
-
-    @JsonProperty
-    private User updatedBy;
+    private final User user;
 }
