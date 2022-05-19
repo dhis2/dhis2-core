@@ -60,6 +60,7 @@ import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -140,6 +141,16 @@ public class GeoJsonImportController
         return toWebMessage( geoJsonService.importGeoData( params,
             toInputStream( format( "{\"features\":[{\"id\":\"%s\",\"geometry\":%s}]}", ou, geometry ),
                 StandardCharsets.UTF_8 ) ) );
+    }
+
+    @DeleteMapping( value = "/{uid}/geometry" )
+    public WebMessage deleteImportSingle(
+        @PathVariable( "uid" ) String ou,
+        @RequestParam( required = false ) String attributeId,
+        @RequestParam( required = false ) boolean dryRun,
+        @CurrentUser User currentUser )
+    {
+        return postImportSingle( ou, attributeId, dryRun, "null", currentUser );
     }
 
     private WebMessage toWebMessage( GeoJsonImportReport report )
