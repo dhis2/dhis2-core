@@ -129,14 +129,7 @@ public class CurrentUserService
 
     public CurrentUserGroupInfo getCurrentUserGroupsInfo()
     {
-        User currentUser = getCurrentUser();
-        if ( currentUser == null )
-        {
-            return null;
-        }
-
-        return currentUserGroupInfoCache
-            .get( currentUser.getUsername(), this::getCurrentUserGroupsInfo );
+        return getCurrentUserGroupsInfo( getCurrentUser() );
     }
 
     public CurrentUserGroupInfo getCurrentUserGroupsInfo( User user )
