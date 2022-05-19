@@ -29,22 +29,22 @@ package org.hisp.dhis.analytics.shared.component.builder;
 
 import java.util.List;
 
-import org.hisp.dhis.analytics.linelisting.trackedentityinstance.TeiLineListingParams;
+import org.hisp.dhis.analytics.linelisting.trackedentityinstance.TeiQueryParams;
 import org.hisp.dhis.analytics.shared.component.FromComponent;
 import org.hisp.dhis.analytics.shared.component.element.from.SimpleFromElement;
 
 public class FromComponentBuilder
 {
-    private TeiLineListingParams teiLineListingParams;
+    private TeiQueryParams teiQueryParams;
 
     public static FromComponentBuilder builder()
     {
         return new FromComponentBuilder();
     }
 
-    public FromComponentBuilder withTeiParams( TeiLineListingParams teiLineListingParams )
+    public FromComponentBuilder withTeiParams( TeiQueryParams teiQueryParams )
     {
-        this.teiLineListingParams = teiLineListingParams;
+        this.teiQueryParams = teiQueryParams;
 
         return this;
     }

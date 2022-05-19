@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
-import org.hisp.dhis.analytics.linelisting.trackedentityinstance.TeiLineListingParams;
+import org.hisp.dhis.analytics.linelisting.trackedentityinstance.TeiQueryParams;
 import org.hisp.dhis.analytics.shared.component.SelectComponent;
 import org.hisp.dhis.analytics.shared.component.element.Element;
 import org.hisp.dhis.analytics.shared.component.element.select.EnrollmentDateValueSelectElement;
@@ -48,16 +48,16 @@ import org.hisp.dhis.analytics.shared.visitor.select.SelectVisitor;
 
 public class SelectComponentBuilder
 {
-    private TeiLineListingParams teiLineListingParams;
+    private TeiQueryParams teiQueryParams;
 
     public static SelectComponentBuilder builder()
     {
         return new SelectComponentBuilder();
     }
 
-    public SelectComponentBuilder withTeiParams( TeiLineListingParams teiLineListingParams )
+    public SelectComponentBuilder withTeiParams( TeiQueryParams teiQueryParams )
     {
-        this.teiLineListingParams = teiLineListingParams;
+        this.teiQueryParams = teiQueryParams;
 
         return this;
     }

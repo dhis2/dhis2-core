@@ -54,19 +54,19 @@ import org.springframework.stereotype.Component;
  * @author maikel arabori
  */
 @Component
-public class TeiJdbcQuery implements QueryGenerator<TeiLineListingParams>
+public class TeiJdbcQuery implements QueryGenerator<TeiQueryParams>
 {
     /**
      * @see QueryGenerator#from(Object)
      *
-     * @param teiLineListingParams
+     * @param teiQueryParams
      * @return the built Query object
      * @throws IllegalArgumentException if the given teiParams is null
      */
     @Override
-    public SqlQuery from( final TeiLineListingParams teiLineListingParams )
+    public SqlQuery from( final TeiQueryParams teiQueryParams )
     {
-        notNull( teiLineListingParams, "The 'teiParams' must not be null" );
+        notNull( teiQueryParams, "The 'teiParams' must not be null" );
 
         // TODO: build objects below from the teiParams.
         // Probably merge Giuseppe's work in
@@ -74,22 +74,22 @@ public class TeiJdbcQuery implements QueryGenerator<TeiLineListingParams>
 
         return SqlQuery
             .builder()
-            .columns( getSelectClause( teiLineListingParams ) )
-            .fromClause( " FROM " + getFromClause( teiLineListingParams ) )
-            .joinClause( getJoinClause( teiLineListingParams ) )
-            .whereClause( " WHERE" + getWhereClause( teiLineListingParams ) )
-            .closingClauses( getClosingClause( teiLineListingParams ) )
+            .columns( getSelectClause( teiQueryParams ) )
+            .fromClause( " FROM " + getFromClause( teiQueryParams ) )
+            .joinClause( getJoinClause( teiQueryParams ) )
+            .whereClause( " WHERE" + getWhereClause( teiQueryParams ) )
+            .closingClauses( getClosingClause( teiQueryParams ) )
             .build();
     }
 
-    private String getClosingClause( TeiLineListingParams teiLineListingParams )
+    private String getClosingClause( TeiQueryParams teiQueryParams )
     {
         return "";
     }
 
-    private String getWhereClause( TeiLineListingParams teiLineListingParams )
+    private String getWhereClause( TeiQueryParams teiQueryParams )
     {
-        WhereComponent component = WhereComponentBuilder.builder().withTeiParams( teiLineListingParams )
+        WhereComponent component = WhereComponentBuilder.builder().withTeiParams( teiQueryParams )
             .build();
 
         WhereVisitor whereVisitor = new WhereElementVisitor();
@@ -99,14 +99,14 @@ public class TeiJdbcQuery implements QueryGenerator<TeiLineListingParams>
         return String.join( " AND ", whereVisitor.getPredicates() );
     }
 
-    private String getJoinClause( TeiLineListingParams teiLineListingParams )
+    private String getJoinClause( TeiQueryParams teiQueryParams )
     {
         return "";
     }
 
-    private String getFromClause( TeiLineListingParams teiLineListingParams )
+    private String getFromClause( TeiQueryParams teiQueryParams )
     {
-        FromComponent component = FromComponentBuilder.builder().withTeiParams( teiLineListingParams )
+        FromComponent component = FromComponentBuilder.builder().withTeiParams( teiQueryParams )
             .build();
 
         FromVisitor fromVisitor = new FromElementVisitor();
@@ -116,9 +116,9 @@ public class TeiJdbcQuery implements QueryGenerator<TeiLineListingParams>
         return String.join( ",", fromVisitor.getTables() );
     }
 
-    private List<Column> getSelectClause( TeiLineListingParams teiLineListingParams )
+    private List<Column> getSelectClause( TeiQueryParams teiQueryParams )
     {
-        SelectComponent component = SelectComponentBuilder.builder().withTeiParams( teiLineListingParams )
+        SelectComponent component = SelectComponentBuilder.builder().withTeiParams( teiQueryParams )
             .build();
 
         SelectVisitor columnVisitor = new SelectElementVisitor();

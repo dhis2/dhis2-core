@@ -53,7 +53,7 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 public class TeiAnalyticsQueryService
 {
-    private final QueryGenerator<TeiLineListingParams> teiJdbcQuery;
+    private final QueryGenerator<TeiQueryParams> teiJdbcQuery;
 
     private final QueryExecutor<SqlQuery, SqlQueryResult> queryExecutor;
 
@@ -64,15 +64,15 @@ public class TeiAnalyticsQueryService
      * against the underline data provider and return. The results found will be
      * returned encapsulated on a Grid object.
      *
-     * @param teiLineListingParams
+     * @param teiQueryParams
      * @return the populated Grid object
      * @throws IllegalArgumentException if the given teiParams is null
      */
-    public Grid getTeiGrid( final TeiLineListingParams teiLineListingParams )
+    public Grid getTeiGrid( final TeiQueryParams teiQueryParams )
     {
-        notNull( teiLineListingParams, "The 'teiParams' must not be null" );
+        notNull( teiQueryParams, "The 'teiParams' must not be null" );
 
-        final SqlQuery query = (SqlQuery) teiJdbcQuery.from( teiLineListingParams );
+        final SqlQuery query = (SqlQuery) teiJdbcQuery.from( teiQueryParams );
         final SqlQueryResult result = queryExecutor.execute( query );
         final List<GridHeader> headers = from( query.getColumns() );
 

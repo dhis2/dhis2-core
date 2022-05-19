@@ -48,7 +48,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 @Getter
 @Setter
 @Builder( toBuilder = true )
-public class TeiLineListingParams
+public class TeiQueryParams
 {
     private final TrackedEntityType trackedEntityType;
 

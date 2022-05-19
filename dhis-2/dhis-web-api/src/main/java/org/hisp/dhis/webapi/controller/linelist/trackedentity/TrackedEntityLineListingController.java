@@ -35,8 +35,8 @@ import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.linelisting.trackedentityinstance.TeiAnalyticsQueryService;
-import org.hisp.dhis.analytics.linelisting.trackedentityinstance.TeiLineListingParams;
 import org.hisp.dhis.analytics.linelisting.trackedentityinstance.TeiLineListingRequest;
+import org.hisp.dhis.analytics.linelisting.trackedentityinstance.TeiQueryParams;
 import org.hisp.dhis.analytics.linelisting.trackedentityinstance.TrackedEntityLineListingRequestMapper;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Grid;
@@ -69,7 +69,7 @@ class TrackedEntityLineListingController
     {
         request.setTrackedEntityType( trackedEntityType );
         teiAnalyticsQueryService.validateRequest( request );
-        TeiLineListingParams params = mapper.map( request, apiVersion );
+        TeiQueryParams params = mapper.map( request, apiVersion );
         contextUtils.configureResponse( response, CONTENT_TYPE_JSON, RESPECT_SYSTEM_SETTING );
         return teiAnalyticsQueryService.getTeiGrid( params );
     }

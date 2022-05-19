@@ -46,9 +46,9 @@ public class TrackedEntityLineListingRequestMapper
 
     private final TrackedEntityTypeService trackedEntityTypeService;
 
-    public TeiLineListingParams map( TeiLineListingRequest request, DhisApiVersion apiVersion )
+    public TeiQueryParams map( TeiLineListingRequest request, DhisApiVersion apiVersion )
     {
-        return TeiLineListingParams.builder()
+        return TeiQueryParams.builder()
             .programs( programService.getPrograms( request.getPrograms() ) )
             .trackedEntityType( trackedEntityTypeService.getTrackedEntityType( request.getTrackedEntityType() ) )
             .commonParams( commonLineListingMapper.map( request, apiVersion ) )
