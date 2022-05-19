@@ -44,6 +44,7 @@ import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.junit.jupiter.api.BeforeEach;
@@ -149,7 +150,7 @@ class FileResourceSupplierTest extends DhisConvenienceTest
     private TrackedEntity getTrackedEntity()
     {
         Attribute attribute = new Attribute();
-        attribute.setAttribute( NUMERIC_ATTRIBUTE_UID );
+        attribute.setAttribute( MetadataIdentifier.ofUid( NUMERIC_ATTRIBUTE_UID ) );
         attribute.setValueType( ValueType.NUMBER );
 
         TrackedEntity trackedEntity = new TrackedEntity();
@@ -161,7 +162,7 @@ class FileResourceSupplierTest extends DhisConvenienceTest
     private Enrollment getEnrollment()
     {
         Attribute attribute = new Attribute();
-        attribute.setAttribute( FILE_RESOURCE_ATTRIBUTE_UID );
+        attribute.setAttribute( MetadataIdentifier.ofUid( FILE_RESOURCE_ATTRIBUTE_UID ) );
         attribute.setValueType( ValueType.FILE_RESOURCE );
         attribute.setValue( ANOTHER_FILE_RESOURCE_UID );
 
@@ -174,19 +175,19 @@ class FileResourceSupplierTest extends DhisConvenienceTest
     private Event getEvent()
     {
         DataValue fileResourceDataValue = new DataValue();
-        fileResourceDataValue.setDataElement( FILE_RESOURCE_DATA_ELEMENT_UID );
+        fileResourceDataValue.setDataElement( MetadataIdentifier.ofUid( FILE_RESOURCE_DATA_ELEMENT_UID ) );
         fileResourceDataValue.setValue( FILE_RESOURCE_UID );
 
         DataValue emptyFileResourceDataValue = new DataValue();
-        emptyFileResourceDataValue.setDataElement( EMPTY_FILE_RESOURCE_DATA_ELEMENT_UID );
+        emptyFileResourceDataValue.setDataElement( MetadataIdentifier.ofUid( EMPTY_FILE_RESOURCE_DATA_ELEMENT_UID ) );
         emptyFileResourceDataValue.setValue( "" );
 
         DataValue nullFileResourceDataValue = new DataValue();
-        nullFileResourceDataValue.setDataElement( NULL_FILE_RESOURCE_DATA_ELEMENT_UID );
+        nullFileResourceDataValue.setDataElement( MetadataIdentifier.ofUid( NULL_FILE_RESOURCE_DATA_ELEMENT_UID ) );
         nullFileResourceDataValue.setValue( null );
 
         DataValue numericDataValue = new DataValue();
-        numericDataValue.setDataElement( NUMERIC_DATA_ELEMENT_UID );
+        numericDataValue.setDataElement( MetadataIdentifier.ofUid( NUMERIC_DATA_ELEMENT_UID ) );
         numericDataValue.setValue( "3" );
 
         Event event = new Event();

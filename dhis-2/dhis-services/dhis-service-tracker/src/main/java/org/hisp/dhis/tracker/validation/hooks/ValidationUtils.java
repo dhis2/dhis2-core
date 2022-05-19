@@ -45,6 +45,7 @@ import org.hisp.dhis.program.ValidationStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.Note;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
@@ -123,21 +124,21 @@ public class ValidationUtils
         return notes;
     }
 
-    public static List<String> validateMandatoryDataValue( ProgramStage programStage,
-        Event event, List<String> mandatoryDataElements )
+    public static List<MetadataIdentifier> validateMandatoryDataValue( ProgramStage programStage,
+        Event event, List<MetadataIdentifier> mandatoryDataElements )
     {
-        List<String> notPresentMandatoryDataElements = Lists.newArrayList();
+        List<MetadataIdentifier> notPresentMandatoryDataElements = Lists.newArrayList();
 
         if ( !needsToValidateDataValues( event, programStage ) )
         {
             return notPresentMandatoryDataElements;
         }
 
-        Set<String> eventDataElements = event.getDataValues().stream()
+        Set<MetadataIdentifier> eventDataElements = event.getDataValues().stream()
             .map( DataValue::getDataElement )
             .collect( Collectors.toSet() );
 
-        for ( String mandatoryDataElement : mandatoryDataElements )
+        for ( MetadataIdentifier mandatoryDataElement : mandatoryDataElements )
         {
             if ( !eventDataElements.contains( mandatoryDataElement ) )
             {

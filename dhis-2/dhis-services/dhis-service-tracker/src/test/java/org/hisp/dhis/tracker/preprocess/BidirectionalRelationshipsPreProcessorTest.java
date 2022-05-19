@@ -34,6 +34,7 @@ import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.junit.jupiter.api.Test;
@@ -56,10 +57,11 @@ class BidirectionalRelationshipsPreProcessorTest extends DhisConvenienceTest
     void testPreprocessorPopulateRelationshipBidirectionalFieldCorrectly()
     {
         Relationship uniDirectionalRelationship = new Relationship();
-        uniDirectionalRelationship.setRelationshipType( RELATIONSHIP_TYPE_UID );
+        uniDirectionalRelationship.setRelationshipType( MetadataIdentifier.ofUid( RELATIONSHIP_TYPE_UID ) );
         uniDirectionalRelationship.setBidirectional( true );
         Relationship biDirectionalRelationship = new Relationship();
-        biDirectionalRelationship.setRelationshipType( BIDIRECTIONAL_RELATIONSHIP_TYPE_UID );
+        biDirectionalRelationship
+            .setRelationshipType( MetadataIdentifier.ofUid( BIDIRECTIONAL_RELATIONSHIP_TYPE_UID ) );
         biDirectionalRelationship.setBidirectional( false );
         TrackerBundle bundle = TrackerBundle.builder()
             .relationships( Lists.newArrayList( uniDirectionalRelationship, biDirectionalRelationship ) )

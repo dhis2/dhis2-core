@@ -47,12 +47,18 @@
       "relationships": [],
       "attributes": [
         {
-          "attribute": "fmBIpOStKkF",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "fmBIpOStKkF"
+          },
           "storedBy": "admin",
           "value": "PersonA"
         },
         {
-          "attribute": "sTJvSLN7Kcb",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "sTJvSLN7Kcb"
+          },
           "storedBy": "admin",
           "value": "AddressA"
         }
@@ -75,12 +81,18 @@
       "relationships": [],
       "attributes": [
         {
-          "attribute": "fmBIpOStKkF",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "fmBIpOStKkF"
+          },
           "storedBy": "admin",
           "value": "PersonA"
         },
         {
-          "attribute": "sTJvSLN7Kcb",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "sTJvSLN7Kcb"
+          },
           "storedBy": "admin",
           "value": "AddressA"
         }
@@ -103,12 +115,18 @@
       "relationships": [],
       "attributes": [
         {
-          "attribute": "fmBIpOStKkF",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "fmBIpOStKkF"
+          },
           "storedBy": "admin",
           "value": "PersonA"
         },
         {
-          "attribute": "sTJvSLN7Kcb",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "sTJvSLN7Kcb"
+          },
           "storedBy": "admin",
           "value": "AddressA"
         }
@@ -131,12 +149,18 @@
       "relationships": [],
       "attributes": [
         {
-          "attribute": "fmBIpOStKkF",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "fmBIpOStKkF"
+          },
           "storedBy": "admin",
           "value": "PersonA"
         },
         {
-          "attribute": "sTJvSLN7Kcb",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "sTJvSLN7Kcb"
+          },
           "storedBy": "admin",
           "value": "AddressA"
         }
@@ -159,12 +183,18 @@
       "relationships": [],
       "attributes": [
         {
-          "attribute": "fmBIpOStKkF",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "fmBIpOStKkF"
+          },
           "storedBy": "admin",
           "value": "PersonA"
         },
         {
-          "attribute": "sTJvSLN7Kcb",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "sTJvSLN7Kcb"
+          },
           "storedBy": "admin",
           "value": "AddressA"
         }
@@ -187,12 +217,18 @@
       "relationships": [],
       "attributes": [
         {
-          "attribute": "fmBIpOStKkF",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "fmBIpOStKkF"
+          },
           "storedBy": "admin",
           "value": "PersonA"
         },
         {
-          "attribute": "sTJvSLN7Kcb",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "sTJvSLN7Kcb"
+          },
           "storedBy": "admin",
           "value": "AddressA"
         }
@@ -215,12 +251,18 @@
       "relationships": [],
       "attributes": [
         {
-          "attribute": "fmBIpOStKkF",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "fmBIpOStKkF"
+          },
           "storedBy": "admin",
           "value": "PersonA"
         },
         {
-          "attribute": "sTJvSLN7Kcb",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "sTJvSLN7Kcb"
+          },
           "storedBy": "admin",
           "value": "AddressA"
         }
@@ -243,12 +285,18 @@
       "relationships": [],
       "attributes": [
         {
-          "attribute": "fmBIpOStKkF",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "fmBIpOStKkF"
+          },
           "storedBy": "admin",
           "value": "PersonA"
         },
         {
-          "attribute": "sTJvSLN7Kcb",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "sTJvSLN7Kcb"
+          },
           "storedBy": "admin",
           "value": "AddressA"
         }
@@ -271,12 +319,18 @@
       "relationships": [],
       "attributes": [
         {
-          "attribute": "fmBIpOStKkF",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "fmBIpOStKkF"
+          },
           "storedBy": "admin",
           "value": "PersonA"
         },
         {
-          "attribute": "sTJvSLN7Kcb",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "sTJvSLN7Kcb"
+          },
           "storedBy": "admin",
           "value": "AddressA"
         }
@@ -299,12 +353,18 @@
       "relationships": [],
       "attributes": [
         {
-          "attribute": "fmBIpOStKkF",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "fmBIpOStKkF"
+          },
           "storedBy": "admin",
           "value": "PersonA"
         },
         {
-          "attribute": "sTJvSLN7Kcb",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "sTJvSLN7Kcb"
+          },
           "storedBy": "admin",
           "value": "AddressA"
         }
@@ -327,12 +387,18 @@
       "relationships": [],
       "attributes": [
         {
-          "attribute": "fmBIpOStKkF",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "fmBIpOStKkF"
+          },
           "storedBy": "admin",
           "value": "PersonA"
         },
         {
-          "attribute": "sTJvSLN7Kcb",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "sTJvSLN7Kcb"
+          },
           "storedBy": "admin",
           "value": "AddressA"
         }
@@ -355,12 +421,18 @@
       "relationships": [],
       "attributes": [
         {
-          "attribute": "fmBIpOStKkF",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "fmBIpOStKkF"
+          },
           "storedBy": "admin",
           "value": "PersonA"
         },
         {
-          "attribute": "sTJvSLN7Kcb",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "sTJvSLN7Kcb"
+          },
           "storedBy": "admin",
           "value": "AddressA"
         }
@@ -383,12 +455,18 @@
       "relationships": [],
       "attributes": [
         {
-          "attribute": "fmBIpOStKkF",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "fmBIpOStKkF"
+          },
           "storedBy": "admin",
           "value": "PersonA"
         },
         {
-          "attribute": "sTJvSLN7Kcb",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "sTJvSLN7Kcb"
+          },
           "storedBy": "admin",
           "value": "AddressA"
         }

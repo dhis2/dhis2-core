@@ -32,7 +32,6 @@ import java.sql.SQLException;
 import java.util.Date;
 
 import javax.sql.DataSource;
-import javax.transaction.Transactional;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -88,6 +87,7 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.ImmutableMap;
 

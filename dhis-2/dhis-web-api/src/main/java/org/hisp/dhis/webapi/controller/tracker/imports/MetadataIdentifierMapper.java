@@ -45,6 +45,13 @@ import org.mapstruct.Named;
 interface MetadataIdentifierMapper
 {
 
+    @Named( "dataElementToMetadataIdentifier" )
+    default MetadataIdentifier fromDataElement( String identifier,
+        @Context TrackerIdSchemeParams idSchemeParams )
+    {
+        return idSchemeParams.getDataElementIdScheme().toMetadataIdentifier( identifier );
+    }
+
     @Named( "programToMetadataIdentifier" )
     default MetadataIdentifier fromProgram( String identifier,
         @Context TrackerIdSchemeParams idSchemeParams )
@@ -89,8 +96,20 @@ interface MetadataIdentifierMapper
             .collect( Collectors.toSet() );
     }
 
-    @Named( "trackedEntityTypeToMetadataIdentifier" )
-    default MetadataIdentifier fromTrackedEntityType( String identifier,
+    /**
+     * Returns the {@code identifier} wrapped in a {@link MetadataIdentifier}
+     * thus adding the {@code idScheme}.
+     *
+     * Use this mapper only for metadata that does not have its own idScheme
+     * query parameter. So if you are for example mapping {@code orgUnit} use
+     * {@link #fromOrgUnit(String, TrackerIdSchemeParams)}.
+     *
+     * @param identifier string identifier to map
+     * @param idSchemeParams idScheme parameters set in the request
+     * @return metadata identifier
+     */
+    @Named( "toMetadataIdentifier" )
+    default MetadataIdentifier fromStringIdentifier( String identifier,
         @Context TrackerIdSchemeParams idSchemeParams )
     {
         return idSchemeParams.getIdScheme().toMetadataIdentifier( identifier );

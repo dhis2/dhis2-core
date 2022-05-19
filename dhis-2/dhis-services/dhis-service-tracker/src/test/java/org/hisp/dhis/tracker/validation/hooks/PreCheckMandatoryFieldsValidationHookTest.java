@@ -288,7 +288,7 @@ class PreCheckMandatoryFieldsValidationHookTest
     {
         Relationship relationship = Relationship.builder()
             .relationship( CodeGenerator.generateUid() )
-            .relationshipType( CodeGenerator.generateUid() )
+            .relationshipType( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
             .from( RelationshipItem.builder()
                 .trackedEntity( trackedEntity() )
                 .build() )
@@ -308,7 +308,7 @@ class PreCheckMandatoryFieldsValidationHookTest
     {
         Relationship relationship = Relationship.builder()
             .relationship( CodeGenerator.generateUid() )
-            .relationshipType( CodeGenerator.generateUid() )
+            .relationshipType( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
             .to( RelationshipItem.builder()
                 .trackedEntity( trackedEntity() )
                 .build() )
@@ -325,7 +325,7 @@ class PreCheckMandatoryFieldsValidationHookTest
     {
         Relationship relationship = Relationship.builder()
             .relationship( CodeGenerator.generateUid() )
-            .relationshipType( CodeGenerator.generateUid() )
+            .relationshipType( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
             .from( RelationshipItem.builder()
                 .trackedEntity( trackedEntity() )
                 .build() )
@@ -342,6 +342,7 @@ class PreCheckMandatoryFieldsValidationHookTest
     {
         Relationship relationship = Relationship.builder()
             .relationship( CodeGenerator.generateUid() )
+            .relationshipType( MetadataIdentifier.EMPTY_UID )
             .from( RelationshipItem.builder()
                 .trackedEntity( trackedEntity() )
                 .build() )

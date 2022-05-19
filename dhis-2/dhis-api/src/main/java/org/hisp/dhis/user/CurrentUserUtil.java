@@ -182,13 +182,24 @@ public class CurrentUserUtil
         initializeAndUnproxy( user.getTeiSearchOrganisationUnits() );
         initializeAndUnproxy( user.getDataViewOrganisationUnits() );
         user.getOrganisationUnits().stream().filter( Objects::nonNull )
-            .forEach( organisationUnit -> initializeAndUnproxy( organisationUnit.getChildren() ) );
+            .forEach( organisationUnit -> {
+                initializeAndUnproxy( organisationUnit.getChildren() );
+                initializeAndUnproxy( organisationUnit.getPrograms() );
+            } );
+
         initializeAndUnproxy( user.getTeiSearchOrganisationUnits() );
         user.getTeiSearchOrganisationUnits().stream().filter( Objects::nonNull )
-            .forEach( organisationUnit -> initializeAndUnproxy( organisationUnit.getChildren() ) );
+            .forEach( organisationUnit -> {
+                initializeAndUnproxy( organisationUnit.getChildren() );
+                initializeAndUnproxy( organisationUnit.getPrograms() );
+            } );
+
         initializeAndUnproxy( user.getDataViewOrganisationUnits() );
         user.getDataViewOrganisationUnits().stream().filter( Objects::nonNull )
-            .forEach( organisationUnit -> initializeAndUnproxy( organisationUnit.getChildren() ) );
+            .forEach( organisationUnit -> {
+                initializeAndUnproxy( organisationUnit.getChildren() );
+                initializeAndUnproxy( organisationUnit.getPrograms() );
+            } );
 
         initializeAndUnproxy( user.getUserRoles() );
         for ( UserRole userRole : user.getUserRoles() )

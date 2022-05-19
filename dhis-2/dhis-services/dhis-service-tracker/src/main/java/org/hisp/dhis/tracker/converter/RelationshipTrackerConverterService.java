@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.relationship.RelationshipKey;
 import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
@@ -78,7 +79,8 @@ public class RelationshipTrackerConverterService
             toRelationship.setFrom( convertRelationshipType( fromRelationship.getFrom() ) );
             toRelationship.setTo( convertRelationshipType( fromRelationship.getTo() ) );
             toRelationship.setUpdatedAt( DateUtils.instantFromDate( fromRelationship.getLastUpdated() ) );
-            toRelationship.setRelationshipType( fromRelationship.getRelationshipType().getUid() );
+            toRelationship
+                .setRelationshipType( MetadataIdentifier.ofUid( fromRelationship.getRelationshipType().getUid() ) );
 
             return toRelationship;
         } ).collect( Collectors.toList() );
