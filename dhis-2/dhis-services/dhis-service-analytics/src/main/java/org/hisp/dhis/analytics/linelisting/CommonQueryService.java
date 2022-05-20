@@ -25,36 +25,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.linelist.trackedentity;
+package org.hisp.dhis.analytics.linelisting;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.webapi.controller.linelist.CommonLineListingMapper;
-import org.hisp.dhis.webapi.controller.linelist.LineListingRequestMapper;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.system.grid.ListGrid;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-class TrackedEntityLineListingRequestMapper
-    implements LineListingRequestMapper<TrackedEntityLineListingRequest, TrackedEntityLineListingParams>
+public class CommonQueryService
 {
-
-    private final CommonLineListingMapper commonLineListingMapper;
-
-    private final ProgramService programService;
-
-    private final TrackedEntityTypeService trackedEntityTypeService;
-
-    @Override
-    public TrackedEntityLineListingParams map( TrackedEntityLineListingRequest request, DhisApiVersion apiVersion )
+    public Grid getGrid( CommonLineListingParams queryParams )
     {
-        return TrackedEntityLineListingParams.builder()
-            .programs( programService.getPrograms( request.getPrograms() ) )
-            .trackedEntityType( trackedEntityTypeService.getTrackedEntityType( request.getTrackedEntityType() ) )
-            .commonParams( commonLineListingMapper.map( request, apiVersion ) )
-            .build();
+        Grid grid = new ListGrid();
+        // TODO: prepare the grid based on CommonLineListingParams
+        return grid;
     }
+
 }

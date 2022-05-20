@@ -25,35 +25,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.linelist;
+package org.hisp.dhis.analytics.linelisting.trackedentityinstance;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
 
-import lombok.Builder;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.With;
 
-import org.hisp.dhis.common.QueryItem;
-
-@Builder( toBuilder = true )
-public class LineListingPagingAndSortingParams
+@Getter
+@Setter
+@With
+@AllArgsConstructor
+public class TeiQueryRequest
 {
-    private final Integer page;
+    private String trackedEntityType;
 
-    private final Integer pageSize;
-
-    private final Boolean requestPaged;
-
-    private final Boolean countRequested;
-
-    /**
-     * Columns to sort ascending.
-     */
-    @Builder.Default
-    private List<QueryItem> asc = new ArrayList<>();
-
-    /**
-     * Columns to sort descending.
-     */
-    @Builder.Default
-    private List<QueryItem> desc = new ArrayList<>();
+    private Collection<String> programs;
 }

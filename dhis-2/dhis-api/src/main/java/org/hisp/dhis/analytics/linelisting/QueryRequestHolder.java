@@ -25,17 +25,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei;
+package org.hisp.dhis.analytics.linelisting;
 
-/**
- * This class is a wrapper for all possible parameters related to a tei. All
- * attributes present here should be correctly typed and ready to be used by the
- * service layers.
- *
- * @author maikel arabori
- */
-public class TeiParams
+import lombok.Builder;
+import lombok.Data;
+
+@Data
+@Builder
+public class QueryRequestHolder<T>
 {
-    // TODO: add attributes, probably merge Giuseppe's work in
-    // https://github.com/dhis2/dhis2-core/pull/10503/files
+    private final T request;
+
+    private final CommonQueryRequest commonQueryRequest;
 }

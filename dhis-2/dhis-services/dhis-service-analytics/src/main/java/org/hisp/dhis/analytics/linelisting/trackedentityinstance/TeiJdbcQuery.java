@@ -25,14 +25,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei;
+package org.hisp.dhis.analytics.linelisting.trackedentityinstance;
 
 import static org.springframework.util.Assert.notNull;
 
 import java.util.List;
 
 import org.hisp.dhis.analytics.shared.Column;
-import org.hisp.dhis.analytics.shared.Query;
 import org.hisp.dhis.analytics.shared.QueryGenerator;
 import org.hisp.dhis.analytics.shared.SqlQuery;
 import org.hisp.dhis.analytics.shared.component.FromComponent;
@@ -55,19 +54,19 @@ import org.springframework.stereotype.Component;
  * @author maikel arabori
  */
 @Component
-public class TeiJdbcQuery implements QueryGenerator<TeiParams>
+public class TeiJdbcQuery implements QueryGenerator<TeiQueryParams>
 {
     /**
      * @see QueryGenerator#from(Object)
      *
-     * @param teiParams
+     * @param teiQueryParams
      * @return the built Query object
      * @throws IllegalArgumentException if the given teiParams is null
      */
     @Override
-    public Query from( final TeiParams teiParams )
+    public SqlQuery from( final TeiQueryParams teiQueryParams )
     {
-        notNull( teiParams, "The 'teiParams' must not be null" );
+        notNull( teiQueryParams, "The 'teiParams' must not be null" );
 
         // TODO: build objects below from the teiParams.
         // Probably merge Giuseppe's work in
@@ -75,22 +74,22 @@ public class TeiJdbcQuery implements QueryGenerator<TeiParams>
 
         return SqlQuery
             .builder()
-            .columns( getSelectClause( teiParams ) )
-            .fromClause( " FROM " + getFromClause( teiParams ) )
-            .joinClause( getJoinClause( teiParams ) )
-            .whereClause( " WHERE" + getWhereClause( teiParams ) )
-            .closingClauses( getClosingClause( teiParams ) )
+            .columns( getSelectClause( teiQueryParams ) )
+            .fromClause( " FROM " + getFromClause( teiQueryParams ) )
+            .joinClause( getJoinClause( teiQueryParams ) )
+            .whereClause( " WHERE" + getWhereClause( teiQueryParams ) )
+            .closingClauses( getClosingClause( teiQueryParams ) )
             .build();
     }
 
-    private String getClosingClause( TeiParams teiParams )
+    private String getClosingClause( TeiQueryParams teiQueryParams )
     {
         return "";
     }
 
-    private String getWhereClause( TeiParams teiParams )
+    private String getWhereClause( TeiQueryParams teiQueryParams )
     {
-        WhereComponent component = WhereComponentBuilder.builder().withTeiParams( teiParams )
+        WhereComponent component = WhereComponentBuilder.builder().withTeiParams( teiQueryParams )
             .build();
 
         WhereVisitor whereVisitor = new WhereElementVisitor();
@@ -100,14 +99,14 @@ public class TeiJdbcQuery implements QueryGenerator<TeiParams>
         return String.join( " AND ", whereVisitor.getPredicates() );
     }
 
-    private String getJoinClause( TeiParams teiParams )
+    private String getJoinClause( TeiQueryParams teiQueryParams )
     {
         return "";
     }
 
-    private String getFromClause( TeiParams teiParams )
+    private String getFromClause( TeiQueryParams teiQueryParams )
     {
-        FromComponent component = FromComponentBuilder.builder().withTeiParams( teiParams )
+        FromComponent component = FromComponentBuilder.builder().withTeiParams( teiQueryParams )
             .build();
 
         FromVisitor fromVisitor = new FromElementVisitor();
@@ -117,9 +116,9 @@ public class TeiJdbcQuery implements QueryGenerator<TeiParams>
         return String.join( ",", fromVisitor.getTables() );
     }
 
-    private List<Column> getSelectClause( TeiParams teiParams )
+    private List<Column> getSelectClause( TeiQueryParams teiQueryParams )
     {
-        SelectComponent component = SelectComponentBuilder.builder().withTeiParams( teiParams )
+        SelectComponent component = SelectComponentBuilder.builder().withTeiParams( teiQueryParams )
             .build();
 
         SelectVisitor columnVisitor = new SelectElementVisitor();

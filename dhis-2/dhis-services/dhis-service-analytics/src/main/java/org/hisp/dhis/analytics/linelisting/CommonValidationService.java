@@ -25,49 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.linelist;
+package org.hisp.dhis.analytics.linelisting;
 
-import java.util.ArrayList;
-import java.util.List;
+import org.springframework.stereotype.Service;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
-
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.QueryItem;
-
-@Getter
-@Setter
-@Builder( toBuilder = true )
-public class CommonLineListingParams
+@Service
+public class CommonValidationService
 {
-
-    /**
-     * The dimensions.
-     */
-    @Builder.Default
-    private final List<DimensionalObject> dimensions = new ArrayList<>();
-
-    /**
-     * The filters.
-     */
-    @Builder.Default
-    private final List<DimensionalObject> filters = new ArrayList<>();
-
-    /**
-     * The query items.
-     */
-    @Builder.Default
-    private final List<QueryItem> items = new ArrayList<>();
-
-    /**
-     * The query item filters.
-     */
-    @Builder.Default
-    private final List<QueryItem> itemFilters = new ArrayList<>();
-
-    @Builder.Default
-    private final LineListingPagingAndSortingParams pagingAndSortingParams = LineListingPagingAndSortingParams.builder()
-        .build();
+    public void validate( CommonQueryRequest commonQueryRequest )
+    {
+        // TODO: validate common request params
+    }
 }

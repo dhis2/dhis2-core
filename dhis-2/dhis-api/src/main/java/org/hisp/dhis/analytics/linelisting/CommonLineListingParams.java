@@ -25,46 +25,49 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.linelist;
+package org.hisp.dhis.analytics.linelisting;
 
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
-import org.hisp.dhis.common.AnalyticsPagingCriteria;
-import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.QueryItem;
 
 @Getter
 @Setter
-public class CommonLineListingRequest extends AnalyticsPagingCriteria
+@Builder( toBuilder = true )
+public class CommonLineListingParams
 {
 
-    private String userOrgUnit;
+    /**
+     * The dimensions.
+     */
+    @Builder.Default
+    private final List<DimensionalObject> dimensions = new ArrayList<>();
 
-    private Set<String> dimension = new HashSet<>();
+    /**
+     * The filters.
+     */
+    @Builder.Default
+    private final List<DimensionalObject> filters = new ArrayList<>();
 
-    private Set<String> filter = new HashSet<>();
+    /**
+     * The query items.
+     */
+    @Builder.Default
+    private final List<QueryItem> items = new ArrayList<>();
 
-    private Set<String> headers = new HashSet<>();
+    /**
+     * The query item filters.
+     */
+    @Builder.Default
+    private final List<QueryItem> itemFilters = new ArrayList<>();
 
-    private OrganisationUnitSelectionMode ouMode;
-
-    private Set<String> asc = new HashSet<>();
-
-    private Set<String> desc = new HashSet<>();
-
-    private boolean skipMeta;
-
-    private boolean skipData;
-
-    private IdScheme dataIdScheme = IdScheme.UID;
-
-    private boolean totalPages;
-
-    private Date relativePeriodDate;
-
+    @Builder.Default
+    private final LineListingPagingAndSortingParams pagingAndSortingParams = LineListingPagingAndSortingParams.builder()
+        .build();
 }

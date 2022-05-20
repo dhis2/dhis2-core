@@ -25,13 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.linelist;
+package org.hisp.dhis.analytics.linelisting.trackedentityinstance;
 
-import org.hisp.dhis.common.Grid;
+import java.util.ArrayList;
+import java.util.Collection;
 
-public interface LineListingService<R, P>
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
+
+import org.hisp.dhis.analytics.linelisting.CommonLineListingParams;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+
+/**
+ * This class is a wrapper for all possible parameters related to a tei. All
+ * attributes present here should be correctly typed and ready to be used by the
+ * service layers.
+ *
+ * @author maikel arabori
+ */
+@Getter
+@Setter
+@Builder( toBuilder = true )
+public class TeiQueryParams
 {
-    Grid getGrid( P queryParams );
+    private final TrackedEntityType trackedEntityType;
 
-    void validateRequest( R request );
+    private final CommonLineListingParams commonParams;
+
+    @Builder.Default
+    private final Collection<Program> programs = new ArrayList<>();
 }

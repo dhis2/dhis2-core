@@ -25,30 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.linelist;
+package org.hisp.dhis.analytics.linelisting.trackedentityinstance;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.system.grid.ListGrid;
+import org.hisp.dhis.analytics.linelisting.CommonRequestMapper;
+import org.hisp.dhis.analytics.linelisting.QueryRequestHolder;
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class CommonLineListingService implements LineListingService<CommonLineListingRequest, CommonLineListingParams>
+public class TeiRequestMapper
 {
 
-    @Override
-    public Grid getGrid( CommonLineListingParams queryParams )
-    {
-        Grid grid = new ListGrid();
-        // TODO: prepare the grid based on CommonLineListingParams
-        return grid;
-    }
+    private final CommonRequestMapper commonRequestMapper;
 
-    @Override
-    public void validateRequest( CommonLineListingRequest request )
+    private final ProgramService programService;
+
+    private final TrackedEntityTypeService trackedEntityTypeService;
+
+    public TeiQueryParams map( QueryRequestHolder<TeiQueryRequest> queryRequestHolder, DhisApiVersion apiVersion )
     {
-        // TODO: validate request based on common params
+        return TeiQueryParams.builder()
+            .programs( programService.getPrograms( queryRequestHolder.getRequest().getPrograms() ) )
+            .trackedEntityType( trackedEntityTypeService
+                .getTrackedEntityType( queryRequestHolder.getRequest().getTrackedEntityType() ) )
+            .commonParams( commonRequestMapper.map( queryRequestHolder.getCommonQueryRequest(), apiVersion ) )
+            .build();
     }
 }

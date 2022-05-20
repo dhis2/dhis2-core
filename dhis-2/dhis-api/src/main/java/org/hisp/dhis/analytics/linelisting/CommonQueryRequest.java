@@ -25,34 +25,46 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.linelist.trackedentity;
+package org.hisp.dhis.analytics.linelisting;
 
-import lombok.RequiredArgsConstructor;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.webapi.controller.linelist.CommonLineListingService;
-import org.hisp.dhis.webapi.controller.linelist.LineListingService;
-import org.springframework.stereotype.Service;
+import lombok.Getter;
+import lombok.Setter;
 
-@Service
-@RequiredArgsConstructor
-class TrackedEntityLineListingService
-    implements LineListingService<TrackedEntityLineListingRequest, TrackedEntityLineListingParams>
+import org.hisp.dhis.common.AnalyticsPagingCriteria;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+
+@Getter
+@Setter
+public class CommonQueryRequest extends AnalyticsPagingCriteria
 {
-    private final CommonLineListingService commonLineListingService;
 
-    @Override
-    public Grid getGrid( TrackedEntityLineListingParams queryParams )
-    {
-        Grid grid = commonLineListingService.getGrid( queryParams.getCommonParams() );
-        // TODO: do something with grid specific to TEI
-        return grid;
-    }
+    private String userOrgUnit;
 
-    @Override
-    public void validateRequest( TrackedEntityLineListingRequest request )
-    {
-        commonLineListingService.validateRequest( request );
-        // TODO: validate TEI fields in request
-    }
+    private Set<String> dimension = new HashSet<>();
+
+    private Set<String> filter = new HashSet<>();
+
+    private Set<String> headers = new HashSet<>();
+
+    private OrganisationUnitSelectionMode ouMode;
+
+    private Set<String> asc = new HashSet<>();
+
+    private Set<String> desc = new HashSet<>();
+
+    private boolean skipMeta;
+
+    private boolean skipData;
+
+    private IdScheme dataIdScheme = IdScheme.UID;
+
+    private boolean totalPages;
+
+    private Date relativePeriodDate;
+
 }
