@@ -109,21 +109,14 @@ public class CurrentUserUtil
         }
 
         Object principal = authentication.getPrincipal();
-
         if ( principal instanceof UserDetails )
         {
-            User user = (User) authentication.getPrincipal();
-            initializeUser( user );
-
-            return user;
+            return (User) authentication.getPrincipal();
         }
         else if ( principal instanceof Dhis2User )
         {
             Dhis2User dhisOidcUser = (Dhis2User) authentication.getPrincipal();
-            User user = dhisOidcUser.getDhis2User();
-            initializeUser( user );
-
-            return user;
+            return dhisOidcUser.getDhis2User();
         }
         else
         {

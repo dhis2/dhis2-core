@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.security;
 
-import static org.hisp.dhis.user.CurrentUserUtil.initializeUser;
-
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -85,10 +83,6 @@ public class DefaultLdapUserDetailsService
                 "Login attempt for disabled/locked user: '%s', enabled: %b, account non-expired: %b, user non-expired: %b, account non-locked: %b",
                 username, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked ) );
         }
-
-        initializeUser( user );
-
-        sessionFactory.getCurrentSession().evict( user );
 
         user.setAccountNonLocked( accountNonLocked );
         user.setCredentialsNonExpired( credentialsNonExpired );

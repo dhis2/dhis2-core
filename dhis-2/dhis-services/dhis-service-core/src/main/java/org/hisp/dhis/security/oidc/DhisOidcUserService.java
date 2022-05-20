@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.security.oidc;
 
-import static org.hisp.dhis.user.CurrentUserUtil.initializeUser;
-
 import java.util.Map;
 
 import lombok.extern.slf4j.Slf4j;
@@ -90,10 +88,8 @@ public class DhisOidcUserService
         if ( claimValue != null )
         {
             User user = userService.getUserByOpenId( (String) claimValue );
-
             if ( user != null )
             {
-                initializeUser( user );
                 return new DhisOidcUser( user, attributes, IdTokenClaimNames.SUB, oidcUser.getIdToken() );
             }
         }
