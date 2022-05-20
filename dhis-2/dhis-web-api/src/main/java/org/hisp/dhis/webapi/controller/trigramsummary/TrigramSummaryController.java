@@ -32,7 +32,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import javax.servlet.http.HttpServletResponse;
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
@@ -42,19 +42,14 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeTableManager;
 import org.hisp.dhis.trigramsummary.TrigramSummary;
-import org.hisp.dhis.user.CurrentUser;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-
-import com.google.common.collect.Lists;
 
 /**
  * Trigram Summary endpoint to get a summary of all the trigram indexes and
@@ -65,33 +60,28 @@ import com.google.common.collect.Lists;
 @Controller
 @RequestMapping( value = TrigramSummaryController.RESOURCE_PATH )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+@AllArgsConstructor
 public class TrigramSummaryController
 {
     public static final String RESOURCE_PATH = "/trigramSummary";
 
-    @Autowired
-    private TrackedEntityAttributeService trackedEntityAttributeService;
+    private final TrackedEntityAttributeService trackedEntityAttributeService;
 
-    @Autowired
-    private TrackedEntityAttributeTableManager trackedEntityAttributeTableManager;
+    private final TrackedEntityAttributeTableManager trackedEntityAttributeTableManager;
 
-    @Autowired
-    protected ContextService contextService;
+    protected final ContextService contextService;
 
-    @Autowired
-    protected AclService aclService;
+    protected final AclService aclService;
 
-    @Autowired
-    private FieldFilterService fieldFilterService;
+    private final FieldFilterService fieldFilterService;
 
     @GetMapping( produces = APPLICATION_JSON_VALUE )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
-    public @ResponseBody TrigramSummary getTrigramSummary( @RequestParam Map<String, String> rpParameters,
-        HttpServletResponse response, @CurrentUser User currentUser )
+    public @ResponseBody TrigramSummary getTrigramSummary( @RequestParam Map<String, String> rpParameters )
     {
         TrigramSummary trigramSummary = new TrigramSummary();
 
-        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
+        List<String> fields = new ArrayList<>( contextService.getParameterValues( "fields" ) );
 
         if ( fields.isEmpty() )
         {
@@ -111,7 +101,6 @@ public class TrigramSummaryController
         List<TrackedEntityAttribute> indexedAttributes = new ArrayList<>();
 
         Set<TrackedEntityAttribute> indexableAttributes = new HashSet<>( allIndexableAttributes );
-
         List<TrackedEntityAttribute> obsoleteIndexedAttributes = new ArrayList<>();
 
         if ( !indexedAttributeIds.isEmpty() )
@@ -137,7 +126,8 @@ public class TrigramSummaryController
         trigramSummary
             .setObsoleteIndexedAttributes( fieldFilterService.toObjectNodes( obsoleteIndexedAttributes, fields ) );
         trigramSummary
-            .setIndexableAttributes( fieldFilterService.toObjectNodes( List.copyOf( indexableAttributes ), fields ) );
+            .setIndexableAttributes(
+                fieldFilterService.toObjectNodes( new ArrayList<>( indexableAttributes ), fields ) );
 
         return trigramSummary;
     }

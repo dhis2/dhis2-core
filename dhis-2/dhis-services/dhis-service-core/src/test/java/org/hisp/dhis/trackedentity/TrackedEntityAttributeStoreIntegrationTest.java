@@ -202,6 +202,19 @@ class TrackedEntityAttributeStoreIntegrationTest
             + "where tablename= 'trackedentityattributevalue' and indexname like 'in_gin_teavalue_%'; " ).isEmpty() );
     }
 
+    @Test
+    void testTrigramIndexDetection()
+    {
+        attributeService.addTrackedEntityAttribute( attributeW );
+        trackedEntityAttributeTableManager.createTrigramIndex( attributeW );
+
+        List<Long> attributeIds = trackedEntityAttributeTableManager.getAttributeIdsWithTrigramIndexCreated();
+
+        assertNotNull( attributeIds );
+        assertEquals( 1, attributeIds.size() );
+        assertEquals( attributeW.getId(), attributeIds.get( 0 ) );
+    }
+
     @Override
     public boolean emptyDatabaseAfterTest()
     {
