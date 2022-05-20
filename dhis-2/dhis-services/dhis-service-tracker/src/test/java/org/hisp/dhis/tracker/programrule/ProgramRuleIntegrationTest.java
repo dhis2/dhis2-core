@@ -154,7 +154,6 @@ class ProgramRuleIntegrationTest extends TrackerTest
     void testImportEventInProgramStageSuccessWithWarningRaised()
         throws IOException
     {
-
         TrackerImportParams params = fromJson( "tracker/tei_enrollment_event.json" );
 
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );

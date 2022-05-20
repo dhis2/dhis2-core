@@ -74,7 +74,6 @@ class TrackerProgramRuleBundleServiceTest extends TrackerTest
         programRuleActionService.addProgramRuleAction( programRuleAction );
         programRule.setProgramRuleActions( Sets.newHashSet( programRuleAction ) );
         programRuleService.updateProgramRule( programRule );
-        manager.flush();
     }
 
     @Test

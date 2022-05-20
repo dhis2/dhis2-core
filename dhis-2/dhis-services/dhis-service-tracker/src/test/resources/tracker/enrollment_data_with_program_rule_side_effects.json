@@ -54,7 +54,10 @@
           "storedBy": "admin",
           "createdAt": "2020-02-10T10:56:07.588",
           "valueType": "INTEGER",
-          "attribute": "sYn3tkL3XKa",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "sYn3tkL3XKa"
+          },
           "value": "123"
         }
       ],

@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.tracker;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.util.List;
@@ -36,7 +36,7 @@ import java.util.Map;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.hisp.dhis.TransactionalIntegrationTest;
+import org.hisp.dhis.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -61,7 +61,7 @@ import org.springframework.core.io.ClassPathResource;
  * @author Luciano Fiandesio
  */
 @Slf4j
-public abstract class TrackerTest extends TransactionalIntegrationTest
+public abstract class TrackerTest extends SingleSetupIntegrationTestBase
 {
     @Autowired
     protected IdentifiableObjectManager manager;
@@ -89,7 +89,6 @@ public abstract class TrackerTest extends TransactionalIntegrationTest
         preCreateInjectAdminUser();
         //
         renderService = _renderService;
-        dbmsManager.clearSession();
         initTest();
     }
 
@@ -163,7 +162,7 @@ public abstract class TrackerTest extends TransactionalIntegrationTest
         return trackerImportParams;
     }
 
-    protected TrackerImportParams _fromJson( String path )
+    private TrackerImportParams _fromJson( String path )
         throws IOException
     {
         return renderService.fromJson( new ClassPathResource( path ).getInputStream(),
@@ -172,16 +171,8 @@ public abstract class TrackerTest extends TransactionalIntegrationTest
 
     protected void assertNoImportErrors( TrackerImportReport report )
     {
-        List<TrackerErrorReport> errorReports = report.getValidationReport().getErrors();
-        boolean empty = errorReports.isEmpty();
-        if ( !empty )
-        {
-            for ( TrackerErrorReport errorReport : errorReports )
-            {
-                log.error( "Import errors: " + errorReport.getErrorMessage() );
-            }
-        }
-        assertTrue( empty );
+        logTrackerErrors( report );
+        assertEquals( TrackerStatus.OK, report.getStatus() );
     }
 
     @Override
@@ -190,7 +181,7 @@ public abstract class TrackerTest extends TransactionalIntegrationTest
         return true;
     }
 
-    protected TrackerStatus logTrackerErrors( TrackerImportReport trackerImportReport )
+    private TrackerStatus logTrackerErrors( TrackerImportReport trackerImportReport )
     {
         TrackerStatus status = trackerImportReport.getStatus();
         if ( status == TrackerStatus.ERROR )
