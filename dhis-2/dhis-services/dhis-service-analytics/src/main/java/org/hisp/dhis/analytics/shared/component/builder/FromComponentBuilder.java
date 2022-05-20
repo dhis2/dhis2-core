@@ -56,7 +56,7 @@ public class FromComponentBuilder
     /**
      * with method of builder
      *
-     * @param teiParams
+     * @param teiQueryParams
      * @return
      */
 
