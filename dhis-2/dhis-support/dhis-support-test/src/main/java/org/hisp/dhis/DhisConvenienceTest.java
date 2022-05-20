@@ -2543,7 +2543,7 @@ public abstract class DhisConvenienceTest
 
         User user = createUser( username );
         user.setUuid( UUID.fromString( "6507f586-f154-4ec1-a25e-d7aa51de5216" ) );
-        user.setUid( "M5zQapPyTZI" );
+        user.setUid( ADMIN_USER_UID );
         user.setName( "Admin" );
         user.setUsername( username );
         user.setPassword( password );
