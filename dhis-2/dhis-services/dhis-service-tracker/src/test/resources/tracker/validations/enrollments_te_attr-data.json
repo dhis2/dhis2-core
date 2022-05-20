@@ -54,14 +54,20 @@
       "relationships": [],
       "attributes": [
         {
-          "attribute": "fmBIpOStKkF",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "fmBIpOStKkF"
+          },
           "displayName": "Attribute_Integer",
           "storedBy": "admin",
           "valueType": "INTEGER",
           "value": "123"
         },
         {
-          "attribute": "sTJvSLN7Kcb",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "sTJvSLN7Kcb"
+          },
           "displayName": "Attribute_Address",
           "storedBy": "admin",
           "valueType": "TEXT",

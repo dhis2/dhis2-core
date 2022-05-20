@@ -50,4 +50,8 @@ public interface TrackedEntityDataValueAuditService
 
     int countTrackedEntityDataValueAudits( List<DataElement> dataElements,
         List<ProgramStageInstance> programStageInstances, AuditType auditType );
+
+    void deleteTrackedEntityDataValueAudit( DataElement dataElement );
+
+    void deleteTrackedEntityDataValueAudit( ProgramStageInstance programStageInstance );
 }

@@ -56,9 +56,11 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAudi
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
 import org.hisp.dhis.tracker.AtomicMode;
 import org.hisp.dhis.tracker.FlushMode;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
@@ -341,10 +343,12 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
             return;
         }
 
-        Map<String, TrackedEntityAttributeValue> attributeValueByUid = trackedEntityInstance
+        TrackerIdSchemeParams idSchemes = preheat.getIdSchemes();
+        Map<MetadataIdentifier, TrackedEntityAttributeValue> attributeValueById = trackedEntityInstance
             .getTrackedEntityAttributeValues()
             .stream()
-            .collect( Collectors.toMap( teav -> teav.getAttribute().getUid(), Function.identity() ) );
+            .collect( Collectors.toMap( teav -> idSchemes.toMetadataIdentifier( teav.getAttribute() ),
+                Function.identity() ) );
 
         payloadAttributes
             .forEach( attribute -> {
@@ -353,7 +357,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
                 // encryption logic, so we need to use the one from payload
                 boolean isDelete = StringUtils.isEmpty( attribute.getValue() );
 
-                TrackedEntityAttributeValue trackedEntityAttributeValue = attributeValueByUid
+                TrackedEntityAttributeValue trackedEntityAttributeValue = attributeValueById
                     .get( attribute.getAttribute() );
 
                 boolean isUpdated = false;
@@ -450,12 +454,12 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
     }
 
     private static TrackedEntityAttribute getTrackedEntityAttributeFromPreheat( TrackerPreheat preheat,
-        String attributeUid )
+        MetadataIdentifier attribute )
     {
-        TrackedEntityAttribute trackedEntityAttribute = preheat.get( TrackedEntityAttribute.class, attributeUid );
+        TrackedEntityAttribute trackedEntityAttribute = preheat.getTrackedEntityAttribute( attribute );
 
         checkNotNull( trackedEntityAttribute,
-            "Attribute " + attributeUid
+            "Attribute " + attribute.getIdentifierOrAttributeValue()
                 + " should never be NULL here if validation is enforced before commit." );
 
         return trackedEntityAttribute;

@@ -27,10 +27,15 @@
  */
 package org.hisp.dhis.commons.util;
 
+import java.util.Objects;
+
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
+import org.hisp.dhis.relationship.RelationshipKey;
 
 public class RelationshipUtils
 {
@@ -44,9 +49,7 @@ public class RelationshipUtils
      */
     public static String generateRelationshipKey( Relationship relationship )
     {
-        return relationship.getRelationshipType().getUid() + "_" +
-            extractRelationshipItemUid( relationship.getFrom() ) + "_" +
-            extractRelationshipItemUid( relationship.getTo() );
+        return getRelationshipKey( relationship ).asString();
     }
 
     /**
@@ -59,9 +62,7 @@ public class RelationshipUtils
      */
     public static String generateRelationshipInvertedKey( Relationship relationship )
     {
-        return relationship.getRelationshipType().getUid() + "_" +
-            extractRelationshipItemUid( relationship.getTo() ) + "_" +
-            extractRelationshipItemUid( relationship.getFrom() );
+        return getRelationshipKey( relationship ).inverseKey().asString();
     }
 
     /**
@@ -81,4 +82,30 @@ public class RelationshipUtils
         return identifiableObject.getUid();
     }
 
+    private static RelationshipKey.RelationshipItemKey getRelationshipItemKey( RelationshipItem relationshipItem )
+    {
+        if ( Objects.nonNull( relationshipItem ) )
+        {
+            return RelationshipKey.RelationshipItemKey.builder()
+                .trackedEntity( getUidOrEmptyString( relationshipItem.getTrackedEntityInstance() ) )
+                .enrollment( getUidOrEmptyString( relationshipItem.getProgramInstance() ) )
+                .event( getUidOrEmptyString( relationshipItem.getProgramStageInstance() ) )
+                .build();
+        }
+        throw new IllegalStateException( "Unable to determine uid for relationship item" );
+    }
+
+    private static String getUidOrEmptyString( BaseIdentifiableObject baseIdentifiableObject )
+    {
+        return Objects.isNull( baseIdentifiableObject ) ? ""
+            : StringUtils.trimToEmpty( baseIdentifiableObject.getUid() );
+    }
+
+    private static RelationshipKey getRelationshipKey( Relationship relationship )
+    {
+        return RelationshipKey.of(
+            relationship.getRelationshipType().getUid(),
+            getRelationshipItemKey( relationship.getFrom() ),
+            getRelationshipItemKey( relationship.getTo() ) );
+    }
 }

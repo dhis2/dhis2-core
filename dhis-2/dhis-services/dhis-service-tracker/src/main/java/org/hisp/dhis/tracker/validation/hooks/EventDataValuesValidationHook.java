@@ -43,12 +43,12 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
@@ -73,7 +73,7 @@ public class EventDataValuesValidationHook
             // event dates (createdAt, updatedAt) are ignored and set by the
             // system
             TrackerPreheat preheat = reporter.getBundle().getPreheat();
-            DataElement dataElement = preheat.get( DataElement.class, dataValue.getDataElement() );
+            DataElement dataElement = preheat.getDataElement( dataValue.getDataElement() );
 
             if ( dataElement == null )
             {
@@ -97,16 +97,15 @@ public class EventDataValuesValidationHook
 
         TrackerPreheat preheat = reporter.getBundle().getPreheat();
         ProgramStage programStage = reporter.getBundle().getPreheat().getProgramStage( event.getProgramStage() );
-        final List<String> mandatoryDataElements = programStage.getProgramStageDataElements()
+        final List<MetadataIdentifier> mandatoryDataElements = programStage.getProgramStageDataElements()
             .stream()
             .filter( ProgramStageDataElement::isCompulsory )
-            .map( de -> preheat.getIdSchemes().getDataElementIdScheme()
-                .getIdentifier( de.getDataElement() ) )
+            .map( de -> preheat.getIdSchemes().toMetadataIdentifier( de.getDataElement() ) )
             .collect( Collectors.toList() );
-        List<String> missingDataValue = validateMandatoryDataValue( programStage, event,
+        List<MetadataIdentifier> missingDataValue = validateMandatoryDataValue( programStage, event,
             mandatoryDataElements );
         missingDataValue
-            .forEach( de -> reporter.addError( event, E1303, de ) );
+            .forEach( de -> reporter.addError( event, E1303, de.getIdentifierOrAttributeValue() ) );
     }
 
     private void validateDataValue( ValidationErrorReporter reporter, DataElement dataElement,
@@ -172,21 +171,20 @@ public class EventDataValuesValidationHook
         ProgramStage programStage )
     {
         TrackerPreheat preheat = reporter.getBundle().getPreheat();
-        final Set<String> dataElements = programStage.getProgramStageDataElements()
+        final Set<MetadataIdentifier> dataElements = programStage.getProgramStageDataElements()
             .stream()
-            .map( de -> preheat.getIdSchemes().getDataElementIdScheme()
-                .getIdentifier( de.getDataElement() ) )
+            .map( de -> preheat.getIdSchemes().toMetadataIdentifier( de.getDataElement() ) )
             .collect( Collectors.toSet() );
 
-        Set<String> payloadDataElements = event.getDataValues().stream()
+        Set<MetadataIdentifier> payloadDataElements = event.getDataValues().stream()
             .map( DataValue::getDataElement )
             .collect( Collectors.toSet() );
 
-        for ( String payloadDataElement : payloadDataElements )
+        for ( MetadataIdentifier payloadDataElement : payloadDataElements )
         {
             if ( !dataElements.contains( payloadDataElement ) )
             {
-                reporter.addError( event, TrackerErrorCode.E1305, payloadDataElement,
+                reporter.addError( event, TrackerErrorCode.E1305, payloadDataElement.getIdentifierOrAttributeValue(),
                     programStage.getUid() );
             }
         }
@@ -224,7 +222,7 @@ public class EventDataValuesValidationHook
             return;
         }
 
-        reporter.addErrorIfNull( reporter.getBundle().getPreheat().get( OrganisationUnit.class, dataValue.getValue() ),
+        reporter.addErrorIfNull( reporter.getBundle().getPreheat().getOrganisationUnit( dataValue.getValue() ),
             event, E1007, dataValue.getValue() );
     }
 }

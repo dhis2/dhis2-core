@@ -54,14 +54,20 @@
       "relationships": [],
       "attributes": [
         {
-          "attribute": "fmBIpOStKkF",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "fmBIpOStKkF"
+          },
           "displayName": "Attribute_Integer",
           "storedBy": "admin",
           "valueType": "INTEGER",
           "value": "123"
         },
         {
-          "attribute": "TGqP5JNy6Es",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "TGqP5JNy6Es"
+          },
           "displayName": "mandatory_program_attribute",
           "storedBy": "admin",
           "valueType": "TEXT",
@@ -92,14 +98,20 @@
       "relationships": [],
       "attributes": [
         {
-          "attribute": "fmBIpOStKkF",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "fmBIpOStKkF"
+          },
           "displayName": "Attribute_Integer",
           "storedBy": "admin",
           "valueType": "INTEGER",
           "value": "123"
         },
         {
-          "attribute": "TGqP5JNy6Es",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "TGqP5JNy6Es"
+          },
           "displayName": "mandatory_program_attribute",
           "storedBy": "admin",
           "valueType": "TEXT",

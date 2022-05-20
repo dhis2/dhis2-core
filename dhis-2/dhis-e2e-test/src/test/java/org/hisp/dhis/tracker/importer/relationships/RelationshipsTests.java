@@ -47,6 +47,7 @@ import org.hamcrest.Matchers;
 import org.hisp.dhis.actions.IdGenerator;
 import org.hisp.dhis.actions.metadata.MetadataActions;
 import org.hisp.dhis.actions.metadata.RelationshipTypeActions;
+import org.hisp.dhis.actions.tracker.RelationshipActions;
 import org.hisp.dhis.actions.tracker.TEIActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
@@ -57,6 +58,7 @@ import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.tracker.TrackerNtiApiTest;
 import org.hisp.dhis.tracker.importer.databuilder.RelationshipDataBuilder;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -85,6 +87,8 @@ public class RelationshipsTests
     private RelationshipTypeActions relationshipTypeActions;
 
     private TEIActions teiActions;
+
+    private RelationshipActions relationshipActions;
 
     private MetadataActions metadataActions;
 
@@ -131,6 +135,7 @@ public class RelationshipsTests
         teiActions = new TEIActions();
         metadataActions = new MetadataActions();
         relationshipTypeActions = new RelationshipTypeActions();
+        relationshipActions = new RelationshipActions();
 
         loginActions.loginAsSuperUser();
 
@@ -319,7 +324,6 @@ public class RelationshipsTests
         response = trackerActions.postAndGetJobReport( obj, new QueryParamsBuilder().add( "importStrategy=DELETE" ) );
 
         // assert
-
         response.validate()
             .body( "status", equalTo( "OK" ) )
             .body( "stats.deleted", equalTo( 1 ) );
@@ -474,6 +478,42 @@ public class RelationshipsTests
         responseImportAgain
             .validateErrorReport()
             .body( "errorCode", Matchers.hasItem( "E4017" ) );
+    }
+
+    @Test
+    public void shouldSuccessfullyCreateHardDeletedRelationship()
+        throws Exception
+    {
+        String trackedEntity_1 = importTei();
+        String trackedEntity_2 = importTei();
+
+        JsonObject relationships = new RelationshipDataBuilder()
+            .buildBidirectionalRelationship( trackedEntity_1, trackedEntity_2 )
+            .array();
+
+        // Create Relationship
+        TrackerApiResponse response = trackerActions
+            .postAndGetJobReport( relationships )
+            .validateSuccessfulImport();
+
+        String relationshipId = response.extractImportedRelationships().get( 0 );
+
+        // Hard Delete Relationship
+        ApiResponse deleteResponse = relationshipActions.delete( relationshipId );
+
+        Assertions.assertEquals( 200, deleteResponse.statusCode() );
+
+        JsonObject relationshipsToImportAgain = new RelationshipDataBuilder()
+            .setRelationshipId( relationshipId )
+            .buildBidirectionalRelationship( trackedEntity_1, trackedEntity_2 )
+            .array();
+
+        // Create again Relationship
+        TrackerApiResponse responseImportAgain = trackerActions.postAndGetJobReport( relationshipsToImportAgain );
+
+        responseImportAgain
+            .validateRelationships()
+            .body( "stats.created", equalTo( 1 ) );
     }
 
     private ApiResponse getEntityInRelationship( String toOrFromInstance, String id )

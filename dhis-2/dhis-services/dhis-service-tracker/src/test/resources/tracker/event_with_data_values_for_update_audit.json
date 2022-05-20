@@ -1,0 +1,113 @@
+{
+  "importMode": "COMMIT",
+  "idSchemes": {
+    "dataElementIdScheme": {
+      "idScheme": "UID"
+    },
+    "orgUnitIdScheme": {
+      "idScheme": "UID"
+    },
+    "programIdScheme": {
+      "idScheme": "UID"
+    },
+    "programStageIdScheme": {
+      "idScheme": "UID"
+    },
+    "idScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionComboIdScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionIdScheme": {
+      "idScheme": "UID"
+    }
+  },
+  "importStrategy": "CREATE_AND_UPDATE",
+  "atomicMode": "ALL",
+  "flushMode": "AUTO",
+  "validationMode": "FULL",
+  "skipPatternValidation": false,
+  "skipSideEffects": false,
+  "skipRuleEngine": false,
+  "trackedEntities": [],
+  "enrollments": [
+    {
+      "enrollment": "TvctPPhpD8u",
+      "createdAtClient": "2017-01-26T13:48:13.363",
+      "trackedEntity": "IOR1AXXl24H",
+      "program": {
+        "idScheme": "UID",
+        "identifier": "BFcipDERJnf"
+      },
+      "status": "ACTIVE",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "h4w96yEMlzO"
+      },
+      "enrolledAt": "2021-03-28T12:05:00.000",
+      "occurredAt": "2021-03-28T12:05:00.000",
+      "followUp": false,
+      "deleted": false,
+      "events": [],
+      "relationships": [],
+      "attributes": [],
+      "notes": []
+    }
+  ],
+  "events": [
+    {
+      "event": "D9PbzJY8bJO",
+      "status": "COMPLETED",
+      "program": {
+        "idScheme": "UID",
+        "identifier": "BFcipDERJnf"
+      },
+      "programStage": {
+        "idScheme": "UID",
+        "identifier": "NpsdDv6kKSO"
+      },
+      "enrollment": "TvctPPhpD8u",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "h4w96yEMlzO"
+      },
+      "relationships": [],
+      "occurredAt": "2019-01-28T00:00:00.000",
+      "scheduledAt": "2019-01-28T12:10:38.100",
+      "storedBy": "admin",
+      "followup": false,
+      "deleted": false,
+      "createdAt": "2019-01-28T12:10:38.108",
+      "updatedAt": "2019-01-28T12:10:38.109",
+      "attributeOptionCombo": {
+        "idScheme": "UID",
+        "identifier": "HllvX50cXC0"
+      },
+      "attributeCategoryOptions": [
+        {
+          "idScheme": "UID",
+          "identifier": "xYerKDKCefk"
+        }
+      ],
+      "completedBy": "admin",
+      "completedAt": "2019-01-28T00:00:00.000",
+      "dataValues": [
+        {
+          "createdAt": "2019-01-28T12:10:38.113",
+          "updatedAt": "2019-01-28T12:10:38.113",
+          "storedBy": "admin",
+          "providedElsewhere": false,
+          "dataElement": {
+            "idScheme": "UID",
+            "identifier": "DATAEL00001"
+          },
+          "value": "value2-updated"
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "relationships": [],
+  "username": "system-process"
+}

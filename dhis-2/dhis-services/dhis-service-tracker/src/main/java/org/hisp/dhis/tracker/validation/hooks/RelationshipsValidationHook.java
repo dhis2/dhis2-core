@@ -141,9 +141,9 @@ public class RelationshipsValidationHook
     }
 
     private Optional<RelationshipType> getRelationshipType( List<RelationshipType> relationshipsTypes,
-        String relationshipTypeUid )
+        MetadataIdentifier relationshipType )
     {
-        return relationshipsTypes.stream().filter( r -> r.getUid().equals( relationshipTypeUid ) ).findFirst();
+        return relationshipsTypes.stream().filter( relationshipType::isEqualTo ).findFirst();
     }
 
     private void validateAutoRelationship( ValidationErrorReporter reporter, Relationship relationship )

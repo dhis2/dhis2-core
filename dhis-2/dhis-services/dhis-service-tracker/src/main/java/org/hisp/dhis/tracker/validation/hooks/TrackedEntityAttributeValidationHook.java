@@ -46,7 +46,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -55,7 +54,9 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.domain.Attribute;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
@@ -98,17 +99,18 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
     {
         if ( trackedEntityType != null )
         {
-            Set<String> trackedEntityAttributes = trackedEntity.getAttributes()
+            Set<MetadataIdentifier> trackedEntityAttributes = trackedEntity.getAttributes()
                 .stream()
                 .map( Attribute::getAttribute )
                 .collect( Collectors.toSet() );
 
+            TrackerIdSchemeParams idSchemes = reporter.getBundle().getPreheat().getIdSchemes();
             trackedEntityType.getTrackedEntityTypeAttributes()
                 .stream()
                 .filter( trackedEntityTypeAttribute -> Boolean.TRUE.equals( trackedEntityTypeAttribute.isMandatory() ) )
                 .map( TrackedEntityTypeAttribute::getTrackedEntityAttribute )
-                .map( BaseIdentifiableObject::getUid )
-                .filter( mandatoryAttributeUid -> !trackedEntityAttributes.contains( mandatoryAttributeUid ) )
+                .map( idSchemes::toMetadataIdentifier )
+                .filter( mandatoryAttribute -> !trackedEntityAttributes.contains( mandatoryAttribute ) )
                 .forEach(
                     attribute -> reporter.addError( trackedEntity, E1090, attribute, trackedEntityType.getUid(),
                         trackedEntity.getTrackedEntity() ) );
@@ -122,12 +124,13 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
         checkNotNull( trackedEntity, TrackerImporterAssertErrors.TRACKED_ENTITY_CANT_BE_NULL );
         checkNotNull( trackedEntityType, TrackerImporterAssertErrors.TRACKED_ENTITY_TYPE_CANT_BE_NULL );
 
-        Map<String, TrackedEntityAttributeValue> valueMap = new HashMap<>();
+        Map<MetadataIdentifier, TrackedEntityAttributeValue> valueMap = new HashMap<>();
         if ( tei != null )
         {
+            TrackerIdSchemeParams idSchemes = reporter.getBundle().getPreheat().getIdSchemes();
             valueMap = tei.getTrackedEntityAttributeValues()
                 .stream()
-                .collect( Collectors.toMap( v -> v.getAttribute().getUid(), v -> v ) );
+                .collect( Collectors.toMap( v -> idSchemes.toMetadataIdentifier( v.getAttribute() ), v -> v ) );
         }
 
         for ( Attribute attribute : trackedEntity.getAttributes() )
@@ -137,7 +140,7 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
 
             if ( tea == null )
             {
-                reporter.addError( trackedEntity, E1006, attribute.getAttribute() );
+                reporter.addError( trackedEntity, E1006, attribute.getAttribute().getIdentifierOrAttributeValue() );
                 continue;
             }
 
@@ -146,13 +149,13 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
                 Optional<TrackedEntityTypeAttribute> optionalTea = Optional.of( trackedEntityType )
                     .map( tet -> tet.getTrackedEntityTypeAttributes().stream() )
                     .flatMap( tetAtts -> tetAtts.filter(
-                        teaAtt -> teaAtt.getTrackedEntityAttribute().getUid().equals( attribute.getAttribute() )
+                        teaAtt -> attribute.getAttribute().isEqualTo( teaAtt.getTrackedEntityAttribute() )
                             && teaAtt.isMandatory() != null && teaAtt.isMandatory() )
                         .findFirst() );
 
                 if ( optionalTea.isPresent() )
                     reporter.addError( trackedEntity, E1076, TrackedEntityAttribute.class.getSimpleName(),
-                        attribute.getAttribute() );
+                        attribute.getAttribute().getIdentifierOrAttributeValue() );
 
                 continue;
             }
@@ -193,7 +196,7 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
     }
 
     protected void validateFileNotAlreadyAssigned( ValidationErrorReporter reporter, TrackedEntity te,
-        Attribute attr, Map<String, TrackedEntityAttributeValue> valueMap )
+        Attribute attr, Map<MetadataIdentifier, TrackedEntityAttributeValue> valueMap )
     {
         checkNotNull( attr, ATTRIBUTE_CANT_BE_NULL );
 

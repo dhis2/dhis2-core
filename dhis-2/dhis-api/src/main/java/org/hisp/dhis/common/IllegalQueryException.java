@@ -36,10 +36,8 @@ import org.hisp.dhis.feedback.ErrorMessage;
  * @author Lars Helge Overland
  */
 public class IllegalQueryException
-    extends RuntimeException
+    extends ErrorCodeException
 {
-    private ErrorCode errorCode;
-
     /**
      * Constructor.
      *
@@ -57,8 +55,7 @@ public class IllegalQueryException
      */
     public IllegalQueryException( ErrorCode errorCode )
     {
-        super( errorCode.getMessage() );
-        this.errorCode = errorCode;
+        super( errorCode );
     }
 
     /**
@@ -68,17 +65,6 @@ public class IllegalQueryException
      */
     public IllegalQueryException( ErrorMessage errorMessage )
     {
-        super( errorMessage.getMessage() );
-        this.errorCode = errorMessage.getErrorCode();
-    }
-
-    /**
-     * Returns the {@link ErrorCode} of the exception.
-     *
-     * @return the {@link ErrorCode} of the exception.
-     */
-    public ErrorCode getErrorCode()
-    {
-        return errorCode;
+        super( errorMessage );
     }
 }

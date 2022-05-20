@@ -43,7 +43,10 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.tracker.TrackerImportParams;
+import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerTest;
+import org.hisp.dhis.tracker.report.TrackerImportReport;
+import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -54,7 +57,7 @@ class TrackedEntityProgramAttributeFileResourceTest extends TrackerTest
 {
 
     @Autowired
-    private TrackerBundleService trackerBundleService;
+    private TrackerImportService trackerImportService;
 
     @Autowired
     private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
@@ -70,6 +73,7 @@ class TrackedEntityProgramAttributeFileResourceTest extends TrackerTest
         throws IOException
     {
         setUpMetadata( "tracker/te_program_with_tea_fileresource_metadata.json" );
+        injectAdminUser();
     }
 
     @Test
@@ -83,8 +87,9 @@ class TrackedEntityProgramAttributeFileResourceTest extends TrackerTest
         fileResourceService.saveFileResource( fileResource, file );
         assertFalse( fileResource.isAssigned() );
         TrackerImportParams trackerImportParams = fromJson( "tracker/te_program_with_tea_fileresource_data.json" );
-        TrackerBundle trackerBundle = trackerBundleService.create( trackerImportParams );
-        trackerBundleService.commit( trackerBundle );
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
+        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
+
         List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
         assertEquals( 1, trackedEntityInstances.size() );
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstances.get( 0 );

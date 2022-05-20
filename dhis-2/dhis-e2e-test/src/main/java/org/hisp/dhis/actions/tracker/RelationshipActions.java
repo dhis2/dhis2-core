@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.actions.tracker;
 
+import org.hisp.dhis.actions.MaintenanceActions;
 import org.hisp.dhis.actions.RestApiActions;
+import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 
 import com.google.gson.JsonObject;
@@ -41,6 +43,20 @@ public class RelationshipActions
     public RelationshipActions()
     {
         super( "/relationships" );
+    }
+
+    /**
+     * Hard deletes relationship.
+     *
+     * @param relationshipId ID of relationship to delete
+     */
+    @Override
+    public ApiResponse delete( String relationshipId )
+    {
+        ApiResponse response = super.delete( relationshipId );
+        new MaintenanceActions().removeSoftDeletedRelationships();
+
+        return response;
     }
 
     public JsonObject createRelationshipBody( String relationshipTypeId, String fromEntity, String fromEntityId,

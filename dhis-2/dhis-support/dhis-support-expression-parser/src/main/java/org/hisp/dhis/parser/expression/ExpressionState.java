@@ -27,7 +27,10 @@
  */
 package org.hisp.dhis.parser.expression;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import org.hisp.dhis.common.QueryModifiers;
@@ -45,42 +48,52 @@ import org.hisp.dhis.system.util.ValidationUtils;
  */
 @Getter
 @Setter
+@Builder( toBuilder = true )
+@NoArgsConstructor
+@AllArgsConstructor
 public class ExpressionState
 {
     /**
      * By default, replace nulls with a default value.
      */
+    @Builder.Default
     private boolean replaceNulls = true;
 
     /**
      * Item query modifiers, if any, in effect during parsing.
      */
+    @Builder.Default
     private QueryModifiers queryMods = null;
 
     /**
      * Current program stage offset in effect.
      */
+    @Builder.Default
     private int stageOffset = Integer.MIN_VALUE;
 
     /**
      * Flag to check if a null date was found.
      */
+    @Builder.Default
     private boolean unprotectedNullDateFound = false;
 
     /**
      * Count of dimension items found.
      */
+    @Builder.Default
     private int itemsFound = 0;
 
     /**
      * Count of dimension item values found.
      */
+    @Builder.Default
     private int itemValuesFound = 0;
 
     /**
-     * True if we are currently generating SQL for a subexpression.
+     * True if we are currently within a subexpression.
      */
-    private boolean sqlForSubExpression = false;
+    @Builder.Default
+    private boolean inSubexpression = false;
 
     // -------------------------------------------------------------------------
     // Logic

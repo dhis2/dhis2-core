@@ -36,11 +36,12 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.Attribute;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.mappers.UserMapper;
 import org.hisp.dhis.user.User;
@@ -64,9 +65,10 @@ public class UsernameValueTypeSupplier extends AbstractPreheatSupplier
     {
         List<TrackedEntityAttribute> attributes = preheat.getAll( TrackedEntityAttribute.class );
 
-        List<String> usernameAttributes = attributes.stream()
+        TrackerIdSchemeParams idSchemes = preheat.getIdSchemes();
+        List<MetadataIdentifier> usernameAttributes = attributes.stream()
             .filter( at -> at.getValueType() == ValueType.USERNAME )
-            .map( BaseIdentifiableObject::getUid )
+            .map( idSchemes::toMetadataIdentifier )
             .collect( Collectors.toList() );
 
         List<String> usernames = new ArrayList<>();
@@ -81,7 +83,7 @@ public class UsernameValueTypeSupplier extends AbstractPreheatSupplier
         preheat.addUsers( new HashSet<>( DetachUtils.detach( UserMapper.INSTANCE, users ) ) );
     }
 
-    private void collectResourceIds( List<String> usernameAttributes, List<String> usernames,
+    private void collectResourceIds( List<MetadataIdentifier> usernameAttributes, List<String> usernames,
         List<Attribute> attributes )
     {
         attributes.forEach( at -> {

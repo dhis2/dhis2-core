@@ -32,7 +32,6 @@ import java.sql.SQLException;
 import java.util.Date;
 
 import javax.sql.DataSource;
-import javax.transaction.Transactional;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -61,6 +60,7 @@ import org.hisp.dhis.scheduling.AbstractSchedulingManager;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobService;
+import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.security.SystemAuthoritiesProvider;
 import org.hisp.dhis.startup.DefaultAdminUserPopulator;
@@ -87,6 +87,7 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.ImmutableMap;
 
@@ -237,6 +238,8 @@ public class WebTestConfiguration
     {
         private boolean enabled = true;
 
+        private boolean isRunning = false;
+
         public TestSchedulingManager( JobService jobService, JobConfigurationService jobConfigurationService,
             MessageService messageService, Notifier notifier, LeaderManager leaderManager, CacheProvider cacheProvider )
         {
@@ -266,15 +269,26 @@ public class WebTestConfiguration
         {
             if ( enabled )
             {
-                execute( configuration );
+                return execute( configuration );
             }
-            return true;
+            return !isRunning;
+        }
+
+        @Override
+        public boolean isRunning( JobType type )
+        {
+            return isRunning;
         }
 
         public void setEnabled( boolean enabled )
         {
 
             this.enabled = enabled;
+        }
+
+        public void setRunning( boolean running )
+        {
+            isRunning = running;
         }
     }
 }

@@ -163,66 +163,69 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
     private void handleDataValues( Session session, TrackerPreheat preheat, Set<DataValue> payloadDataValues,
         ProgramStageInstance psi )
     {
-        String persistedDataValue = "";
-
-        Map<String, EventDataValue> dataValueDBMap = psi
-            .getEventDataValues()
-            .stream()
-            .collect( Collectors.toMap( EventDataValue::getDataElement, Function.identity() ) );
-
-        Date today = new Date();
+        Map<String, EventDataValue> dataValueDBMap = Optional.ofNullable( preheat.getEvent( psi.getUid() ) )
+            .map( a -> a.getEventDataValues()
+                .stream()
+                .collect( Collectors.toMap( EventDataValue::getDataElement, Function.identity() ) ) )
+            .orElse( new HashMap<>() );
 
         for ( DataValue dv : payloadDataValues )
         {
-            AuditType auditType = null;
 
-            DataElement dateElement = preheat.get( DataElement.class, dv.getDataElement() );
-
-            checkNotNull( dateElement,
+            DataElement dataElement = preheat.getDataElement( dv.getDataElement() );
+            checkNotNull( dataElement,
                 "Data element should never be NULL here if validation is enforced before commit." );
 
-            EventDataValue eventDataValue = dataValueDBMap.get( dv.getDataElement() );
-
+            // EventDataValue.dataElement contains a UID
+            EventDataValue eventDataValue = dataValueDBMap.get( dataElement.getUid() );
+            AuditType auditType;
             if ( eventDataValue == null )
             {
                 eventDataValue = new EventDataValue();
                 auditType = AuditType.CREATE;
             }
+            else
+            {
+                final String persistedValue = eventDataValue.getValue();
 
-            persistedDataValue = eventDataValue.getValue();
-            eventDataValue.setDataElement( dateElement.getUid() );
-            eventDataValue.setValue( dv.getValue() );
+                Optional<AuditType> optionalAuditType = Optional.ofNullable( dv.getValue() )
+                    .filter( v -> !dv.getValue().equals( persistedValue ) )
+                    .map( v1 -> AuditType.UPDATE )
+                    .or( () -> Optional.ofNullable( dv.getValue() ).map( a -> AuditType.READ )
+                        .or( () -> Optional.of( AuditType.DELETE ) ) );
+
+                auditType = optionalAuditType.orElse( null );
+            }
+
+            eventDataValue.setDataElement( dataElement.getUid() );
             eventDataValue.setStoredBy( dv.getStoredBy() );
 
             handleDataValueCreatedUpdatedDates( dv, eventDataValue );
 
             if ( StringUtils.isEmpty( dv.getValue() ) )
             {
-                if ( dateElement.isFileType() )
+                if ( dataElement.isFileType() )
                 {
-                    unassignFileResource( session, preheat, dataValueDBMap.get( dv.getDataElement() ).getValue() );
+                    unassignFileResource( session, preheat, eventDataValue.getValue() );
                 }
 
                 psi.getEventDataValues().remove( eventDataValue );
-                auditType = AuditType.DELETE;
             }
             else
             {
-                if ( dateElement.isFileType() )
+                eventDataValue.setValue( dv.getValue() );
+
+                if ( dataElement.isFileType() )
                 {
                     assignFileResource( session, preheat, eventDataValue.getValue() );
                 }
 
+                psi.getEventDataValues().remove( eventDataValue );
                 psi.getEventDataValues().add( eventDataValue );
-
-                if ( !dv.getValue().equals( persistedDataValue ) )
-                {
-                    auditType = AuditType.UPDATE;
-                }
             }
 
-            logTrackedEntityDataValueHistory( preheat.getUsername(), eventDataValue, dateElement, psi, auditType,
-                today );
+            logTrackedEntityDataValueHistory( preheat.getUsername(), eventDataValue, dataElement, psi, auditType,
+                new Date() );
         }
     }
 

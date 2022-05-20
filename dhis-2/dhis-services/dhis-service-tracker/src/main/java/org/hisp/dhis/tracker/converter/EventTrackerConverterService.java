@@ -42,6 +42,7 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
@@ -120,7 +121,6 @@ public class EventTrackerConverterService
             if ( ou != null )
             {
                 event.setOrgUnit( MetadataIdentifier.ofUid( ou ) );
-                event.setOrgUnitName( ou.getName() );
             }
 
             event.setEnrollment( psi.getProgramInstance().getUid() );
@@ -138,7 +138,7 @@ public class EventTrackerConverterService
                 DataValue value = new DataValue();
                 value.setCreatedAt( DateUtils.instantFromDate( dataValue.getCreated() ) );
                 value.setUpdatedAt( DateUtils.instantFromDate( dataValue.getLastUpdated() ) );
-                value.setDataElement( dataValue.getDataElement() );
+                value.setDataElement( MetadataIdentifier.ofUid( dataValue.getDataElement() ) );
                 value.setValue( dataValue.getValue() );
                 value.setProvidedElsewhere( dataValue.getProvidedElsewhere() );
                 value.setStoredBy( dataValue.getStoredBy() );
@@ -190,9 +190,14 @@ public class EventTrackerConverterService
             return eventDataValues;
         }
 
+        // Normalize identifiers as EventDataValue.dataElement are UIDs and
+        // payload dataElements can be in any idScheme
         Set<String> dataElements = event.getDataValues()
             .stream()
             .map( DataValue::getDataElement )
+            .map( preheat::getDataElement )
+            .filter( java.util.Objects::nonNull )
+            .map( BaseIdentifiableObject::getUid )
             .collect( Collectors.toSet() );
         for ( EventDataValue eventDataValue : programStageInstance.getEventDataValues() )
         {
@@ -206,7 +211,7 @@ public class EventTrackerConverterService
 
     private ProgramStageInstance from( TrackerPreheat preheat, Event event, ProgramStageInstance programStageInstance )
     {
-        ProgramStage programStage = preheat.get( ProgramStage.class, event.getProgramStage() );
+        ProgramStage programStage = preheat.getProgramStage( event.getProgramStage() );
         Program program = preheat.getProgram( event.getProgram() );
         OrganisationUnit organisationUnit = preheat.getOrganisationUnit( event.getOrgUnit() );
 
@@ -233,7 +238,7 @@ public class EventTrackerConverterService
         programStageInstance.setExecutionDate( DateUtils.fromInstant( event.getOccurredAt() ) );
         programStageInstance.setDueDate( DateUtils.fromInstant( event.getScheduledAt() ) );
 
-        if ( !event.getAttributeOptionCombo().isBlank() )
+        if ( event.getAttributeOptionCombo().isNotBlank() )
         {
             programStageInstance.setAttributeOptionCombo(
                 preheat.getCategoryOptionCombo( event.getAttributeOptionCombo() ) );
@@ -279,7 +284,7 @@ public class EventTrackerConverterService
             eventDataValue.setProvidedElsewhere( dataValue.isProvidedElsewhere() );
             // ensure dataElement is referred to by UID as multiple
             // dataElementIdSchemes are supported
-            DataElement dataElement = preheat.get( DataElement.class, dataValue.getDataElement() );
+            DataElement dataElement = preheat.getDataElement( dataValue.getDataElement() );
             eventDataValue.setDataElement( dataElement.getUid() );
             eventDataValue.setLastUpdatedByUserInfo( UserInfoSnapshot.from( preheat.getUser() ) );
             eventDataValue.setCreatedByUserInfo( UserInfoSnapshot.from( preheat.getUser() ) );

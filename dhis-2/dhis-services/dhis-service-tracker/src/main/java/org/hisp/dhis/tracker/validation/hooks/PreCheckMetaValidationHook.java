@@ -108,7 +108,7 @@ public class PreCheckMetaValidationHook
     public void validateRelationship( ValidationErrorReporter reporter, Relationship relationship )
     {
         TrackerPreheat preheat = reporter.getBundle().getPreheat();
-        RelationshipType relationshipType = preheat.get( RelationshipType.class, relationship.getRelationshipType() );
+        RelationshipType relationshipType = preheat.getRelationshipType( relationship.getRelationshipType() );
 
         reporter.addErrorIfNull( relationshipType, relationship, E4006, relationship.getRelationshipType() );
     }

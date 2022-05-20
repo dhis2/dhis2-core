@@ -50,6 +50,7 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.junit.jupiter.api.BeforeEach;
@@ -246,7 +247,7 @@ class UniqueAttributeSupplierTest extends DhisConvenienceTest
     private org.hisp.dhis.tracker.domain.Attribute uniqueAttribute()
     {
         return org.hisp.dhis.tracker.domain.Attribute.builder()
-            .attribute( this.uniqueAttribute.getUid() )
+            .attribute( MetadataIdentifier.ofUid( this.uniqueAttribute ) )
             .value( UNIQUE_VALUE )
             .build();
     }
