@@ -29,8 +29,6 @@ package org.hisp.dhis.tracker.validation;
 
 public class Users
 {
-    public static final String ADMIN_USER_UID = "M5zQapPyTZI";
-
     public static final String USER_1 = "oZZ43IHxuUM";
 
     public static final String USER_2 = "MbkW4Bhfw7o";

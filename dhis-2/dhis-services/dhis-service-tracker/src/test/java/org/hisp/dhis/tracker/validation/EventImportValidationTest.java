@@ -35,7 +35,6 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Every.everyItem;
 import static org.hisp.dhis.tracker.TrackerImportStrategy.CREATE_AND_UPDATE;
 import static org.hisp.dhis.tracker.TrackerImportStrategy.UPDATE;
-import static org.hisp.dhis.tracker.validation.Users.ADMIN_USER_UID;
 import static org.hisp.dhis.tracker.validation.Users.USER_2;
 import static org.hisp.dhis.tracker.validation.Users.USER_6;
 import static org.junit.jupiter.api.Assertions.assertEquals;

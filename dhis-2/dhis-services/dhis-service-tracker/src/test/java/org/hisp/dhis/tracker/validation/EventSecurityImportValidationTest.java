@@ -31,7 +31,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasProperty;
-import static org.hisp.dhis.tracker.validation.Users.ADMIN_USER_UID;
 import static org.hisp.dhis.tracker.validation.Users.USER_3;
 import static org.hisp.dhis.tracker.validation.Users.USER_4;
 import static org.hisp.dhis.tracker.validation.Users.USER_5;
