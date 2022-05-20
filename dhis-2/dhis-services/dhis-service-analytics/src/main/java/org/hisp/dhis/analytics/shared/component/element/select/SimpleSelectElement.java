@@ -44,6 +44,8 @@ public class SimpleSelectElement implements Element<SelectVisitor>
 {
     private String value;
 
+    private String alias;
+
     /**
      * see Visitor design pattern
      *

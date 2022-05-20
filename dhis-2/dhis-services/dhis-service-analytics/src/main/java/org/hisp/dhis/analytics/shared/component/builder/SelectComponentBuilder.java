@@ -87,8 +87,8 @@ public class SelectComponentBuilder
     public SelectComponent build()
     {
         List<Element<SelectVisitor>> elements = new ArrayList<>(
-            List.of( new SimpleSelectElement( "t.trackedentityinstanceid" ),
-                new SimpleSelectElement( "t.uid" ) ) );
+            List.of( new SimpleSelectElement( "t.trackedentityinstanceid", "tracked entity instance id" ),
+                new SimpleSelectElement( "t.uid", "uid" ) ) );
 
         Map<String, String> inputUidMap = new HashMap<>();
         inputUidMap.put( "w75KJ2mc4zz", "First Name" );

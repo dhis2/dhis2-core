@@ -171,6 +171,6 @@ public class SelectElementVisitor implements SelectVisitor
     @Override
     public void visit( SimpleSelectElement element )
     {
-        columns.add( new Column( element.getValue(), ColumnDataType.TEXT, "", false, false ) );
+        columns.add( new Column( element.getValue(), ColumnDataType.TEXT, element.getAlias(), false, false ) );
     }
 }

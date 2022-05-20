@@ -47,8 +47,8 @@ class TeiJdbcQueryTest
     {
         // Given
         TeiJdbcQuery teiJdbcQuery = new TeiJdbcQuery();
-        String sql = "SELECT t.trackedentityinstanceid,\n" +
-            "       t.uid,\n" +
+        String sql = "SELECT t.trackedentityinstanceid AS \"tracked entity instance id\",\n" +
+            "       t.uid AS \"uid\",\n" +
             "  (SELECT teav.VALUE\n" +
             "   FROM trackedentityattributevalue teav,\n" +
             "        trackedentityattribute tea\n" +
