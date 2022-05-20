@@ -211,8 +211,7 @@ class TrackedEntityAttributeStoreIntegrationTest
         List<Long> attributeIds = trackedEntityAttributeTableManager.getAttributeIdsWithTrigramIndexCreated();
 
         assertNotNull( attributeIds );
-        assertEquals( 1, attributeIds.size() );
-        assertEquals( attributeW.getId(), attributeIds.get( 0 ) );
+        assertTrue( attributeIds.contains( attributeW.getId() ) );
     }
 
     @Override
