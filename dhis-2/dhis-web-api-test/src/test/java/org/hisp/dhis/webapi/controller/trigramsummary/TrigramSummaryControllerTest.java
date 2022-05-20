@@ -43,7 +43,6 @@ import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.*;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeTableManager;
-import org.hisp.dhis.trigramsummary.TrigramSummary;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.junit.jupiter.api.BeforeEach;
