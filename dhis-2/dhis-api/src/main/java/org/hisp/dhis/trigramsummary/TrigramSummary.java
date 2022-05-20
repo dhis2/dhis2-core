@@ -30,6 +30,8 @@ package org.hisp.dhis.trigramsummary;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.NoArgsConstructor;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
@@ -41,6 +43,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 
 @JacksonXmlRootElement
+@NoArgsConstructor
 public class TrigramSummary
 {
     private List<ObjectNode> indexedAttributes = new ArrayList<>();
@@ -48,10 +51,6 @@ public class TrigramSummary
     private List<ObjectNode> indexableAttributes = new ArrayList<>();
 
     private List<ObjectNode> obsoleteIndexedAttributes = new ArrayList<>();
-
-    public TrigramSummary()
-    {
-    }
 
     @JsonProperty
     public List<ObjectNode> getIndexedAttributes()
