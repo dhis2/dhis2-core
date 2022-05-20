@@ -33,6 +33,11 @@ import lombok.Getter;
 import org.hisp.dhis.analytics.shared.component.element.Element;
 import org.hisp.dhis.analytics.shared.visitor.select.SelectVisitor;
 
+/**
+ * EventDateValueElement is Select part of sql statement representation
+ *
+ * @author dusan bernat
+ */
 @AllArgsConstructor
 @Getter
 public class EventDateValueElement implements Element<SelectVisitor>
@@ -43,6 +48,11 @@ public class EventDateValueElement implements Element<SelectVisitor>
 
     private final String alias;
 
+    /**
+     * see Visitor design pattern
+     *
+     * @param v
+     */
     @Override
     public void accept( SelectVisitor v )
     {

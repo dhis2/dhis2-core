@@ -39,15 +39,32 @@ import org.hisp.dhis.analytics.shared.component.element.where.TeaValueWhereEleme
 import org.hisp.dhis.analytics.shared.visitor.where.WhereVisitor;
 import org.hisp.dhis.analytics.tei.TeiParams;
 
+/**
+ * WhereComponentBuilder is responsible for building the from section of sql
+ * query
+ *
+ * @author dusan bernat
+ */
 public class WhereComponentBuilder
 {
     private TeiParams teiParams;
 
+    /**
+     * Instance
+     *
+     * @return
+     */
     public static WhereComponentBuilder builder()
     {
         return new WhereComponentBuilder();
     }
 
+    /**
+     * with method of builder
+     *
+     * @param teiParams
+     * @return
+     */
     public WhereComponentBuilder withTeiParams( TeiParams teiParams )
     {
         this.teiParams = teiParams;
@@ -55,6 +72,11 @@ public class WhereComponentBuilder
         return this;
     }
 
+    /**
+     * Instance of component all element has to be included here
+     *
+     * @return
+     */
     public WhereComponent build()
     {
         Map<String, String> inputUidMap = new HashMap<>();

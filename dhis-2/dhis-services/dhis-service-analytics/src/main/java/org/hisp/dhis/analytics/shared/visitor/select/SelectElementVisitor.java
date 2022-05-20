@@ -53,6 +53,10 @@ public class SelectElementVisitor implements SelectVisitor
 {
     private final List<Column> columns = new ArrayList<>();
 
+    /**
+     * @see SelectVisitor
+     * @param element
+     */
     @Override
     public void visit( TeaValueSelectElement element )
     {
@@ -65,6 +69,10 @@ public class SelectElementVisitor implements SelectVisitor
             " LIMIT 1 ) ", ColumnDataType.TEXT, element.getAlias(), false, false ) );
     }
 
+    /**
+     * @see SelectVisitor
+     * @param element
+     */
     @Override
     public void visit( ProgramEnrollmentFlagElement element )
     {
@@ -78,6 +86,10 @@ public class SelectElementVisitor implements SelectVisitor
             " ), FALSE) ", ColumnDataType.BOOLEAN, element.getAlias(), false, false ) );
     }
 
+    /**
+     * @see SelectVisitor
+     * @param element
+     */
     @Override
     public void visit( EnrollmentDateValueSelectElement element )
     {
@@ -90,6 +102,10 @@ public class SelectElementVisitor implements SelectVisitor
             " ORDER BY enrollmentdate DESC LIMIT 1 )", ColumnDataType.DATE, element.getAlias(), false, false ) );
     }
 
+    /**
+     * @see SelectVisitor
+     * @param element
+     */
     @Override
     public void visit( ExecutionDateValueElement element )
     {
@@ -120,6 +136,10 @@ public class SelectElementVisitor implements SelectVisitor
             element.getAlias(), false, false ) );
     }
 
+    /**
+     * @see SelectVisitor
+     * @param element
+     */
     @Override
     public void visit( EventDateValueElement element )
     {
@@ -144,6 +164,10 @@ public class SelectElementVisitor implements SelectVisitor
             ColumnDataType.DATE, element.getAlias(), false, false ) );
     }
 
+    /**
+     * @see SelectVisitor
+     * @param element
+     */
     @Override
     public void visit( SimpleSelectElement element )
     {

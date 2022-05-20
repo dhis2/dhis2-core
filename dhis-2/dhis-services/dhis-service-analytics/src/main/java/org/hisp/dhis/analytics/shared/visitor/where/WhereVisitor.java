@@ -53,5 +53,10 @@ public interface WhereVisitor
      */
     void visit( EnrollmentDateValueWhereElement element );
 
+    /**
+     * Visitor produced iteratively all predicates for where part of sql
+     * statement
+     *
+     */
     List<String> getPredicates();
 }

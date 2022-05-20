@@ -33,6 +33,11 @@ import lombok.Getter;
 import org.hisp.dhis.analytics.shared.component.element.Element;
 import org.hisp.dhis.analytics.shared.visitor.where.WhereVisitor;
 
+/**
+ * TeaValueWhereElement is Where part of sql statement representation
+ *
+ * @author dusan bernat
+ */
 @AllArgsConstructor
 @Getter
 public class TeaValueWhereElement implements Element<WhereVisitor>
@@ -41,6 +46,11 @@ public class TeaValueWhereElement implements Element<WhereVisitor>
 
     private String filterValue;
 
+    /**
+     * see Visitor design pattern
+     *
+     * @param v
+     */
     @Override
     public void accept( WhereVisitor v )
     {

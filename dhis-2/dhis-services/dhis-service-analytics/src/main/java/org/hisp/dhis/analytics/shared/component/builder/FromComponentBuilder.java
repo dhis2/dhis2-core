@@ -33,15 +33,32 @@ import org.hisp.dhis.analytics.shared.component.FromComponent;
 import org.hisp.dhis.analytics.shared.component.element.from.SimpleFromElement;
 import org.hisp.dhis.analytics.tei.TeiParams;
 
+/**
+ * FromComponentBuilder is responsible for building the from section of sql
+ * query
+ *
+ * @author dusan bernat
+ */
 public class FromComponentBuilder
 {
     private TeiParams teiParams;
 
+    /**
+     * Instance
+     *
+     * @return
+     */
     public static FromComponentBuilder builder()
     {
         return new FromComponentBuilder();
     }
 
+    /**
+     * with method of builder
+     *
+     * @param teiParams
+     * @return
+     */
     public FromComponentBuilder withTeiParams( TeiParams teiParams )
     {
         this.teiParams = teiParams;
@@ -49,6 +66,11 @@ public class FromComponentBuilder
         return this;
     }
 
+    /**
+     * Instance of component all element has to be included here
+     *
+     * @return
+     */
     public FromComponent build()
     {
         return new FromComponent( List.of( new SimpleFromElement( "trackedentityinstance t" ) ) );

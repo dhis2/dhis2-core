@@ -34,10 +34,9 @@ import lombok.Getter;
 
 import org.hisp.dhis.analytics.shared.component.element.where.EnrollmentDateValueWhereElement;
 import org.hisp.dhis.analytics.shared.component.element.where.TeaValueWhereElement;
-import org.hisp.dhis.analytics.shared.visitor.select.SelectVisitor;
 
 /**
- * @see SelectVisitor
+ * @see WhereVisitor
  *
  * @author dusan bernat
  */
@@ -46,6 +45,11 @@ public class WhereElementVisitor implements WhereVisitor
 {
     private final List<String> predicates = new ArrayList<>();
 
+    /**
+     * see Visitor design pattern
+     *
+     * @param element
+     */
     @Override
     public void visit( TeaValueWhereElement element )
     {
@@ -58,6 +62,11 @@ public class WhereElementVisitor implements WhereVisitor
             "       LIMIT 1) = " + "'" + element.getFilterValue() + "'" );
     }
 
+    /**
+     * see Visitor design pattern
+     *
+     * @param element
+     */
     @Override
     public void visit( EnrollmentDateValueWhereElement element )
     {

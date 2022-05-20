@@ -31,6 +31,11 @@ import java.util.List;
 
 import org.hisp.dhis.analytics.shared.component.element.Element;
 
+/**
+ * Component is the aggregate fo element, please see visitor design pattern
+ *
+ * @author dusan bernat
+ */
 public abstract class Component<T> implements Element<T>
 {
     private final List<Element<T>> elements;
