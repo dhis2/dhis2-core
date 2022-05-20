@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.linelist;
+package org.hisp.dhis.analytics.linelisting;
 
 import lombok.RequiredArgsConstructor;
 
@@ -35,10 +35,8 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class CommonLineListingService implements LineListingService<CommonLineListingRequest, CommonLineListingParams>
+public class CommonQueryService
 {
-
-    @Override
     public Grid getGrid( CommonLineListingParams queryParams )
     {
         Grid grid = new ListGrid();
@@ -46,9 +44,4 @@ public class CommonLineListingService implements LineListingService<CommonLineLi
         return grid;
     }
 
-    @Override
-    public void validateRequest( CommonLineListingRequest request )
-    {
-        // TODO: validate request based on common params
-    }
 }

@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.view;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -56,9 +54,4 @@ public class User
 
     @JsonProperty
     private String surname;
-
-    public boolean isEmpty()
-    {
-        return isBlank( uid ) && isBlank( username );
-    }
 }

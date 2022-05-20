@@ -25,13 +25,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.linelist;
+package org.hisp.dhis.analytics.linelisting;
 
-import org.hisp.dhis.common.DhisApiVersion;
+import lombok.Builder;
+import lombok.Data;
 
-public interface LineListingRequestMapper<R, P>
+@Data
+@Builder
+public class QueryRequestHolder<T>
 {
+    private final T request;
 
-    P map( R request, DhisApiVersion apiVersion );
-
+    private final CommonQueryRequest commonQueryRequest;
 }

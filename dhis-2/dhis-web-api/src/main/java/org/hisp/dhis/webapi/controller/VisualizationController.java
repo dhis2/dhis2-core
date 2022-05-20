@@ -93,12 +93,23 @@ public class VisualizationController
             visualization.getRowDimensions().addAll( getDimensions( visualization.getRows() ) );
             visualization.getFilterDimensions().addAll( getDimensions( visualization.getFilters() ) );
 
-            if ( visualization.getLegendDefinitions() != null
-                && visualization.getLegendDefinitions().getLegendSet() != null )
-            {
-                visualization.getLegendDefinitions().setLegendSet(
-                    legendSetService.getLegendSet( visualization.getLegendDefinitions().getLegendSet().getUid() ) );
-            }
+            maybeLoadLegendSetInto( visualization );
+        }
+    }
+
+    /**
+     * Load the current/existing legendSet (if any is set) into the current
+     * visualization object, so the relationship can be persisted.
+     *
+     * @param visualization
+     */
+    private void maybeLoadLegendSetInto( final Visualization visualization )
+    {
+        if ( visualization.getLegendDefinitions() != null
+            && visualization.getLegendDefinitions().getLegendSet() != null )
+        {
+            visualization.getLegendDefinitions().setLegendSet(
+                legendSetService.getLegendSet( visualization.getLegendDefinitions().getLegendSet().getUid() ) );
         }
     }
 

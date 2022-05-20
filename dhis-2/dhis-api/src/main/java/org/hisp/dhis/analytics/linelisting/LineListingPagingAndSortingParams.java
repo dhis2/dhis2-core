@@ -25,20 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.linelist.trackedentity;
+package org.hisp.dhis.analytics.linelisting;
 
-import java.util.Collection;
+import java.util.ArrayList;
+import java.util.List;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Builder;
 
-import org.hisp.dhis.webapi.controller.linelist.CommonLineListingRequest;
+import org.hisp.dhis.common.QueryItem;
 
-@Getter
-@Setter
-public class TrackedEntityLineListingRequest extends CommonLineListingRequest
+@Builder( toBuilder = true )
+public class LineListingPagingAndSortingParams
 {
-    private String trackedEntityType;
+    private final Integer page;
 
-    private Collection<String> programs;
+    private final Integer pageSize;
+
+    private final Boolean requestPaged;
+
+    private final Boolean countRequested;
+
+    /**
+     * Columns to sort ascending.
+     */
+    @Builder.Default
+    private List<QueryItem> asc = new ArrayList<>();
+
+    /**
+     * Columns to sort descending.
+     */
+    @Builder.Default
+    private List<QueryItem> desc = new ArrayList<>();
 }

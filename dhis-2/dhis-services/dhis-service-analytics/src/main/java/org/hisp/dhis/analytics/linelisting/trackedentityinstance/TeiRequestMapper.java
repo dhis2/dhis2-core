@@ -25,49 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.linelist.trackedentity;
-
-import static org.hisp.dhis.common.cache.CacheStrategy.RESPECT_SYSTEM_SETTING;
-import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
-
-import javax.servlet.http.HttpServletResponse;
+package org.hisp.dhis.analytics.linelisting.trackedentityinstance;
 
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.analytics.linelisting.CommonRequestMapper;
+import org.hisp.dhis.analytics.linelisting.QueryRequestHolder;
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.springframework.stereotype.Service;
 
-@RestController
+@Service
 @RequiredArgsConstructor
-@RequestMapping( TrackedEntityLineListingController.TRACKED_ENTITIES )
-class TrackedEntityLineListingController
+public class TeiRequestMapper
 {
 
-    public static final String TRACKED_ENTITIES = "analytics/trackedEntities";
+    private final CommonRequestMapper commonRequestMapper;
 
-    private final TrackedEntityLineListingService service;
+    private final ProgramService programService;
 
-    private final TrackedEntityLineListingRequestMapper mapper;
+    private final TrackedEntityTypeService trackedEntityTypeService;
 
-    private final ContextUtils contextUtils;
-
-    @GetMapping( "query/{trackedEntityType}" )
-    Grid getGrid(
-        @PathVariable String trackedEntityType,
-        TrackedEntityLineListingRequest request,
-        DhisApiVersion apiVersion,
-        HttpServletResponse response )
+    public TeiQueryParams map( QueryRequestHolder<TeiQueryRequest> queryRequestHolder, DhisApiVersion apiVersion )
     {
-        request.setTrackedEntityType( trackedEntityType );
-        service.validateRequest( request );
-        TrackedEntityLineListingParams params = mapper.map( request, apiVersion );
-        contextUtils.configureResponse( response, CONTENT_TYPE_JSON, RESPECT_SYSTEM_SETTING );
-        return service.getGrid( params );
+        return TeiQueryParams.builder()
+            .programs( programService.getPrograms( queryRequestHolder.getRequest().getPrograms() ) )
+            .trackedEntityType( trackedEntityTypeService
+                .getTrackedEntityType( queryRequestHolder.getRequest().getTrackedEntityType() ) )
+            .commonParams( commonRequestMapper.map( queryRequestHolder.getCommonQueryRequest(), apiVersion ) )
+            .build();
     }
-
 }

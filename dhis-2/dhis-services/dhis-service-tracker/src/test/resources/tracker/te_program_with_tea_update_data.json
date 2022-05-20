@@ -55,7 +55,7 @@
           "displayName": "Attribute_Integer",
           "storedBy": "admin",
           "valueType": "INTEGER",
-          "value": "321 UPDATE"
+          "value": "321"
         },
         {
           "attribute": {
@@ -112,7 +112,7 @@
           "displayName": "Attribute_Identifier_Integer",
           "storedBy": "admin",
           "valueType": "INTEGER_POSITIVE",
-          "value": "321 UPDATE"
+          "value": "321"
         }
       ],
       "notes": []

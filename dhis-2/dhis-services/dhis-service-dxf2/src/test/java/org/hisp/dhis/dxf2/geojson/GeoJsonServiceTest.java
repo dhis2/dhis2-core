@@ -25,13 +25,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.linelist;
+package org.hisp.dhis.dxf2.geojson;
 
-import org.hisp.dhis.common.Grid;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 
-public interface LineListingService<R, P>
+import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.dxf2.importsummary.ImportConflict;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+/**
+ * For now just make sure that a {@link GeoJsonImportReport} can be stored in
+ * redis.
+ *
+ * @author Jan Bernitt
+ */
+class GeoJsonServiceTest extends DhisSpringTest
 {
-    Grid getGrid( P queryParams );
+    @Autowired
+    private ObjectMapper jsonMapper;
 
-    void validateRequest( R request );
+    @Test
+    void testReportSerialisation()
+        throws JsonProcessingException
+    {
+        GeoJsonImportReport report = new GeoJsonImportReport();
+        report.getImportCount().incrementIgnored();
+        report.addConflict( new ImportConflict( "a", "b" ) );
+
+        String json = jsonMapper.writeValueAsString( report );
+        GeoJsonImportReport reportFromJson = jsonMapper.readValue( json, GeoJsonImportReport.class );
+
+        assertEquals( report.getConflictCount(), reportFromJson.getConflictCount() );
+        assertEquals( report.getImportCount().getIgnored(), reportFromJson.getImportCount().getIgnored() );
+        assertEquals( report.getTotalConflictOccurrenceCount(), reportFromJson.getTotalConflictOccurrenceCount() );
+        assertIterableEquals( report.getConflicts(), reportFromJson.getConflicts() );
+    }
 }

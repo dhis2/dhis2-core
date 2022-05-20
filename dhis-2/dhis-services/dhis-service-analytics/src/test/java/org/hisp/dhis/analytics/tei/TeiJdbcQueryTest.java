@@ -29,6 +29,8 @@ package org.hisp.dhis.analytics.tei;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import org.hisp.dhis.analytics.linelisting.trackedentityinstance.TeiJdbcQuery;
+import org.hisp.dhis.analytics.linelisting.trackedentityinstance.TeiQueryParams;
 import org.hisp.dhis.analytics.shared.Query;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -54,17 +56,17 @@ class TeiJdbcQueryTest
     void testFrom()
     {
         // Given
-        final TeiParams mockTeiParams = mockTeiParams();
+        final TeiQueryParams mockTeiQueryParams = mockTeiParams();
 
         // When
-        final Query query = teiJdbcQuery.from( mockTeiParams );
+        final Query query = teiJdbcQuery.from( mockTeiQueryParams );
 
         // Then
         assertNotNull( query, "Should not be null: query" );
     }
 
-    private TeiParams mockTeiParams()
+    private TeiQueryParams mockTeiParams()
     {
-        return new TeiParams();
+        return TeiQueryParams.builder().build();
     }
 }

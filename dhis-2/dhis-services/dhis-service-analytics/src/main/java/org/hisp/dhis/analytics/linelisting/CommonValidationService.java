@@ -25,46 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.linelist;
+package org.hisp.dhis.analytics.linelisting;
 
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import org.springframework.stereotype.Service;
 
-import lombok.Getter;
-import lombok.Setter;
-
-import org.hisp.dhis.common.AnalyticsPagingCriteria;
-import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-
-@Getter
-@Setter
-public class CommonLineListingRequest extends AnalyticsPagingCriteria
+@Service
+public class CommonValidationService
 {
-
-    private String userOrgUnit;
-
-    private Set<String> dimension = new HashSet<>();
-
-    private Set<String> filter = new HashSet<>();
-
-    private Set<String> headers = new HashSet<>();
-
-    private OrganisationUnitSelectionMode ouMode;
-
-    private Set<String> asc = new HashSet<>();
-
-    private Set<String> desc = new HashSet<>();
-
-    private boolean skipMeta;
-
-    private boolean skipData;
-
-    private IdScheme dataIdScheme = IdScheme.UID;
-
-    private boolean totalPages;
-
-    private Date relativePeriodDate;
-
+    public void validate( CommonQueryRequest commonQueryRequest )
+    {
+        // TODO: validate common request params
+    }
 }

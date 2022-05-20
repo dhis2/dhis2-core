@@ -25,17 +25,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei;
+package org.hisp.dhis.analytics.linelisting.trackedentityinstance;
 
-/**
- * This class is a wrapper for all possible parameters related to a tei. All
- * attributes present here should be correctly typed and ready to be used by the
- * service layers.
- *
- * @author maikel arabori
- */
-public class TeiParams
+import java.util.Collection;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.With;
+
+@Getter
+@Setter
+@With
+@AllArgsConstructor
+public class TeiQueryRequest
 {
-    // TODO: add attributes, probably merge Giuseppe's work in
-    // https://github.com/dhis2/dhis2-core/pull/10503/files
+    private String trackedEntityType;
+
+    private Collection<String> programs;
 }

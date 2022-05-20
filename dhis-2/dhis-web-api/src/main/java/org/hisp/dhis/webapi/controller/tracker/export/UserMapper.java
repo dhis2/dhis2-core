@@ -27,11 +27,12 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
+import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.webapi.controller.tracker.view.User;
 import org.mapstruct.Mapper;
 
 @Mapper
-public interface UserMapper extends ViewMapper<User, org.hisp.dhis.tracker.domain.User>
+public interface UserMapper extends ViewMapper<UserInfoSnapshot, User>
 {
-    org.hisp.dhis.tracker.domain.User from( User user );
+    User from( UserInfoSnapshot user );
 }

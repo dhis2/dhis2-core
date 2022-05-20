@@ -29,9 +29,9 @@ package org.hisp.dhis.analytics.shared.component.builder;
 
 import java.util.List;
 
+import org.hisp.dhis.analytics.linelisting.trackedentityinstance.TeiQueryParams;
 import org.hisp.dhis.analytics.shared.component.FromComponent;
 import org.hisp.dhis.analytics.shared.component.element.from.SimpleFromElement;
-import org.hisp.dhis.analytics.tei.TeiParams;
 
 /**
  * FromComponentBuilder is responsible for building the from section of sql
@@ -41,7 +41,7 @@ import org.hisp.dhis.analytics.tei.TeiParams;
  */
 public class FromComponentBuilder
 {
-    private TeiParams teiParams;
+    private TeiQueryParams teiQueryParams;
 
     /**
      * Instance
@@ -59,9 +59,10 @@ public class FromComponentBuilder
      * @param teiParams
      * @return
      */
-    public FromComponentBuilder withTeiParams( TeiParams teiParams )
+
+    public FromComponentBuilder withTeiParams( TeiQueryParams teiQueryParams )
     {
-        this.teiParams = teiParams;
+        this.teiQueryParams = teiQueryParams;
 
         return this;
     }

@@ -75,7 +75,10 @@
           "updatedAt": "2019-01-28T12:10:38.113",
           "storedBy": "admin",
           "providedElsewhere": false,
-          "dataElement": "DSKTW8qFP0z",
+          "dataElement": {
+            "idScheme": "UID",
+            "identifier": "DSKTW8qFP0z"
+          },
           "value": "2017-01-27T17:00:00.000Z"
         }
       ],

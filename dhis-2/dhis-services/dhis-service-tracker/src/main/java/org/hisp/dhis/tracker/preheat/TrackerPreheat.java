@@ -431,6 +431,16 @@ public class TrackerPreheat
         return (T) map.getOrDefault( klass, new HashMap<>() ).get( key );
     }
 
+    public DataElement getDataElement( MetadataIdentifier id )
+    {
+        return get( DataElement.class, id );
+    }
+
+    public DataElement getDataElement( String id )
+    {
+        return get( DataElement.class, id );
+    }
+
     public CategoryOption getCategoryOption( MetadataIdentifier id )
     {
         return get( CategoryOption.class, id );

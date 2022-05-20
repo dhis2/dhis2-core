@@ -25,35 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.linelist;
+package org.hisp.dhis.analytics.linelisting.trackedentityinstance;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
 
 import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
 
-import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.analytics.linelisting.CommonLineListingParams;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 
+/**
+ * This class is a wrapper for all possible parameters related to a tei. All
+ * attributes present here should be correctly typed and ready to be used by the
+ * service layers.
+ *
+ * @author maikel arabori
+ */
+@Getter
+@Setter
 @Builder( toBuilder = true )
-public class LineListingPagingAndSortingParams
+public class TeiQueryParams
 {
-    private final Integer page;
+    private final TrackedEntityType trackedEntityType;
 
-    private final Integer pageSize;
+    private final CommonLineListingParams commonParams;
 
-    private final Boolean requestPaged;
-
-    private final Boolean countRequested;
-
-    /**
-     * Columns to sort ascending.
-     */
     @Builder.Default
-    private List<QueryItem> asc = new ArrayList<>();
-
-    /**
-     * Columns to sort descending.
-     */
-    @Builder.Default
-    private List<QueryItem> desc = new ArrayList<>();
+    private final Collection<Program> programs = new ArrayList<>();
 }

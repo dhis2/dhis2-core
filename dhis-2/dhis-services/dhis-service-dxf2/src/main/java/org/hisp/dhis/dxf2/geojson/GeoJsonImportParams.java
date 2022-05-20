@@ -25,28 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.linelist.trackedentity;
+package org.hisp.dhis.dxf2.geojson;
 
-import java.util.ArrayList;
-import java.util.Collection;
-
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
 
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.webapi.controller.linelist.CommonLineListingParams;
+import org.hisp.dhis.common.IdentifiableProperty;
+import org.hisp.dhis.user.User;
 
+@Builder
 @Getter
-@Setter
-@Builder( toBuilder = true )
-class TrackedEntityLineListingParams
+@AllArgsConstructor( access = AccessLevel.PRIVATE )
+public class GeoJsonImportParams
 {
-    private final TrackedEntityType trackedEntityType;
+    /**
+     * If true the import is validated and processed without actually modifying
+     * any organisation unit or storing GeoJSON data.
+     */
+    private final boolean dryRun;
 
-    private final CommonLineListingParams commonParams;
+    private final String orgUnitIdProperty;
 
-    @Builder.Default
-    private final Collection<Program> programs = new ArrayList<>();
+    private final IdentifiableProperty idType;
+
+    /**
+     * Optional UID that refers to an {@link org.hisp.dhis.attribute.Attribute}
+     * for which the geometry is stored.
+     */
+    private final String attributeId;
+
+    private final User user;
 }

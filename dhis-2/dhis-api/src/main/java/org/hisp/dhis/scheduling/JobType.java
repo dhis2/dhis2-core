@@ -104,6 +104,7 @@ public enum JobType
     DATAVALUE_IMPORT_INTERNAL( false ),
     METADATA_IMPORT( false ),
     DATAVALUE_IMPORT( false ),
+    GEOJSON_IMPORT( false ),
     EVENT_IMPORT( false ),
     ENROLLMENT_IMPORT( false ),
     TEI_IMPORT( false ),

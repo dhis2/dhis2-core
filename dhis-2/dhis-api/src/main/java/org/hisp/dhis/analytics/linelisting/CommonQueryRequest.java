@@ -25,49 +25,46 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.linelist;
+package org.hisp.dhis.analytics.linelisting;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.AnalyticsPagingCriteria;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 
 @Getter
 @Setter
-@Builder( toBuilder = true )
-public class CommonLineListingParams
+public class CommonQueryRequest extends AnalyticsPagingCriteria
 {
 
-    /**
-     * The dimensions.
-     */
-    @Builder.Default
-    private final List<DimensionalObject> dimensions = new ArrayList<>();
+    private String userOrgUnit;
 
-    /**
-     * The filters.
-     */
-    @Builder.Default
-    private final List<DimensionalObject> filters = new ArrayList<>();
+    private Set<String> dimension = new HashSet<>();
 
-    /**
-     * The query items.
-     */
-    @Builder.Default
-    private final List<QueryItem> items = new ArrayList<>();
+    private Set<String> filter = new HashSet<>();
 
-    /**
-     * The query item filters.
-     */
-    @Builder.Default
-    private final List<QueryItem> itemFilters = new ArrayList<>();
+    private Set<String> headers = new HashSet<>();
 
-    @Builder.Default
-    private final LineListingPagingAndSortingParams pagingAndSortingParams = LineListingPagingAndSortingParams.builder()
-        .build();
+    private OrganisationUnitSelectionMode ouMode;
+
+    private Set<String> asc = new HashSet<>();
+
+    private Set<String> desc = new HashSet<>();
+
+    private boolean skipMeta;
+
+    private boolean skipData;
+
+    private IdScheme dataIdScheme = IdScheme.UID;
+
+    private boolean totalPages;
+
+    private Date relativePeriodDate;
+
 }

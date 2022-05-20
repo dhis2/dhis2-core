@@ -32,51 +32,29 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.hisp.dhis.analytics.linelisting.trackedentityinstance.TeiQueryParams;
 import org.hisp.dhis.analytics.shared.component.WhereComponent;
 import org.hisp.dhis.analytics.shared.component.element.Element;
 import org.hisp.dhis.analytics.shared.component.element.where.EnrollmentDateValueWhereElement;
 import org.hisp.dhis.analytics.shared.component.element.where.TeaValueWhereElement;
 import org.hisp.dhis.analytics.shared.visitor.where.WhereVisitor;
-import org.hisp.dhis.analytics.tei.TeiParams;
 
-/**
- * WhereComponentBuilder is responsible for building the from section of sql
- * query
- *
- * @author dusan bernat
- */
 public class WhereComponentBuilder
 {
-    private TeiParams teiParams;
+    private TeiQueryParams teiQueryParams;
 
-    /**
-     * Instance
-     *
-     * @return
-     */
     public static WhereComponentBuilder builder()
     {
         return new WhereComponentBuilder();
     }
 
-    /**
-     * with method of builder
-     *
-     * @param teiParams
-     * @return
-     */
-    public WhereComponentBuilder withTeiParams( TeiParams teiParams )
+    public WhereComponentBuilder withTeiParams( TeiQueryParams teiQueryParams )
     {
-        this.teiParams = teiParams;
+        this.teiQueryParams = teiQueryParams;
 
         return this;
     }
 
-    /**
-     * Instance of component all element has to be included here
-     *
-     * @return
-     */
     public WhereComponent build()
     {
         Map<String, String> inputUidMap = new HashMap<>();

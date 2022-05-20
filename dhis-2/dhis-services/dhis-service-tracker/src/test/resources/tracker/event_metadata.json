@@ -125,6 +125,9 @@
       "lastUpdatedBy": {
         "id": "M5zQapPyTZI"
       },
+      "program": {
+        "id": "BFcipDERJne"
+      },
       "user": {
         "id": "M5zQapPyTZI"
       },
@@ -961,6 +964,41 @@
       "attributeValues": [],
       "userAccesses": [],
       "programStageSections": []
+    },
+    {
+      "lastUpdated": "2019-01-28T11:23:20.850",
+      "id": "NpsdDv6kKSf",
+      "created": "2019-01-28T11:23:20.850",
+      "name": "ProgramStageB",
+      "allowGenerateNextVisit": false,
+      "preGenerateUID": false,
+      "publicAccess": "rw------",
+      "openAfterEnrollment": false,
+      "repeatable": true,
+      "remindCompleted": false,
+      "displayGenerateEventBox": true,
+      "generatedByEnrollmentDate": false,
+      "validationStrategy": "ON_COMPLETE",
+      "autoGenerateEvent": true,
+      "hideDueDate": false,
+      "blockEntryForm": false,
+      "minDaysFromStart": 0,
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "program": {
+        "id": "BFcipDERJwr"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "notificationTemplates": [],
+      "programStageDataElements":[],
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "programStageSections": []
     }
   ],
   "categoryCombos": [
@@ -1064,6 +1102,9 @@
       "user": {
         "id": "M5zQapPyTZI"
       },
+      "trackedEntityType": {
+        "id": "nEenWmSyUEp"
+      },
       "programTrackedEntityAttributes": [],
       "notificationTemplates": [],
       "translations": [],
@@ -1077,7 +1118,7 @@
       "attributeValues": [],
       "programStages": [
         {
-          "id": "NpsdDv6kKSO"
+          "id": "NpsdDv6kKSf"
         }
       ],
       "userAccesses": []

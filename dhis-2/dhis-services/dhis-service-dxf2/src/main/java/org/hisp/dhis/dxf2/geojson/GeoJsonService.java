@@ -25,34 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.linelist.trackedentity;
+package org.hisp.dhis.dxf2.geojson;
 
-import lombok.RequiredArgsConstructor;
+import java.io.InputStream;
 
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.webapi.controller.linelist.CommonLineListingService;
-import org.hisp.dhis.webapi.controller.linelist.LineListingService;
-import org.springframework.stereotype.Service;
-
-@Service
-@RequiredArgsConstructor
-class TrackedEntityLineListingService
-    implements LineListingService<TrackedEntityLineListingRequest, TrackedEntityLineListingParams>
+/**
+ *
+ * @author Jan Bernitt
+ */
+public interface GeoJsonService
 {
-    private final CommonLineListingService commonLineListingService;
-
-    @Override
-    public Grid getGrid( TrackedEntityLineListingParams queryParams )
-    {
-        Grid grid = commonLineListingService.getGrid( queryParams.getCommonParams() );
-        // TODO: do something with grid specific to TEI
-        return grid;
-    }
-
-    @Override
-    public void validateRequest( TrackedEntityLineListingRequest request )
-    {
-        commonLineListingService.validateRequest( request );
-        // TODO: validate TEI fields in request
-    }
+    GeoJsonImportReport importGeoData( GeoJsonImportParams params, InputStream geoJsonData );
 }

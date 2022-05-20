@@ -25,36 +25,51 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.linelist.trackedentity;
+package org.hisp.dhis.webapi.json.domain;
 
-import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.jsontree.Expected;
+import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonMap;
+import org.hisp.dhis.jsontree.JsonNumber;
+import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.JsonString;
 
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.webapi.controller.linelist.CommonLineListingMapper;
-import org.hisp.dhis.webapi.controller.linelist.LineListingRequestMapper;
-import org.springframework.stereotype.Service;
-
-@Service
-@RequiredArgsConstructor
-class TrackedEntityLineListingRequestMapper
-    implements LineListingRequestMapper<TrackedEntityLineListingRequest, TrackedEntityLineListingParams>
+/**
+ * Web API equivalent of an {@code ImportConflict}.
+ *
+ * @author Jan Bernitt
+ */
+public interface JsonImportConflict extends JsonObject
 {
-
-    private final CommonLineListingMapper commonLineListingMapper;
-
-    private final ProgramService programService;
-
-    private final TrackedEntityTypeService trackedEntityTypeService;
-
-    @Override
-    public TrackedEntityLineListingParams map( TrackedEntityLineListingRequest request, DhisApiVersion apiVersion )
+    default String getObject()
     {
-        return TrackedEntityLineListingParams.builder()
-            .programs( programService.getPrograms( request.getPrograms() ) )
-            .trackedEntityType( trackedEntityTypeService.getTrackedEntityType( request.getTrackedEntityType() ) )
-            .commonParams( commonLineListingMapper.map( request, apiVersion ) )
-            .build();
+        return getString( "object" ).string();
+    }
+
+    default JsonMap<JsonString> getObjects()
+    {
+        return getMap( "objects", JsonString.class );
+    }
+
+    @Expected
+    default String getValue()
+    {
+        return getString( "value" ).string();
+    }
+
+    default ErrorCode getErrorCode()
+    {
+        return getString( "errorCode" ).parsed( ErrorCode::valueOf );
+    }
+
+    default String getProperty()
+    {
+        return getString( "property" ).string();
+    }
+
+    default JsonList<JsonNumber> getIndexes()
+    {
+        return getList( "indexes", JsonNumber.class );
     }
 }

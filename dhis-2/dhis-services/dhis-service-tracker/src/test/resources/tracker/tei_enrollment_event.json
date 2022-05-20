@@ -113,7 +113,10 @@
           "updatedAt": "2019-01-28T12:10:38.113",
           "storedBy": "admin",
           "providedElsewhere": false,
-          "dataElement": "DATAEL00002",
+          "dataElement": {
+            "idScheme": "UID",
+            "identifier": "DATAEL00002"
+          },
           "value": "text"
         }
       ],

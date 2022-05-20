@@ -1,13 +1,50 @@
 {
+  "importMode": "COMMIT",
+  "idSchemes": {
+    "dataElementIdScheme": {
+      "idScheme": "UID"
+    },
+    "orgUnitIdScheme": {
+      "idScheme": "UID"
+    },
+    "programIdScheme": {
+      "idScheme": "UID"
+    },
+    "programStageIdScheme": {
+      "idScheme": "UID"
+    },
+    "idScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionComboIdScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionIdScheme": {
+      "idScheme": "UID"
+    }
+  },
+  "importStrategy": "CREATE",
+  "atomicMode": "ALL",
+  "flushMode": "AUTO",
+  "validationMode": "FULL",
+  "skipPatternValidation": false,
+  "skipSideEffects": false,
+  "skipRuleEngine": false,
   "trackedEntities": [
     {
-      "trackedEntityType": "nEenWmSyUEp",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "nEenWmSyUEp"
+      },
       "trackedEntity": "IOR1AXXl24H",
       "createdAt": "2020-02-20T12:09:21.844",
       "updatedAt": "2020-02-20T12:09:21.844",
       "clientCreatedAt": "2020-02-20T12:09:21.844",
       "clientUpdatedAt": "2020-02-20T12:09:21.844",
-      "orgUnit": "PlKwabX2xRW",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "PlKwabX2xRW"
+      },
       "inactive": false,
       "deleted": false,
       "featureType": "NONE",
@@ -23,8 +60,14 @@
       ],
       "programOwners": [
         {
-          "ownerOrgUnit": "PlKwabX2xRW",
-          "program": "BFcipDERJne",
+          "ownerOrgUnit": {
+            "idScheme": "UID",
+            "identifier": "PlKwabX2xRW"
+          },
+          "program": {
+            "idScheme": "UID",
+            "identifier": "BFcipDERJne"
+          },
           "trackedEntity": "IOR1AXXl24H"
         }
       ]
@@ -36,11 +79,16 @@
       "created": "2020-02-20T12:09:21.844",
       "lastUpdated": "2020-02-20T12:09:21.844",
       "createdAtClient": "2020-02-20T12:09:21.844",
-      "trackedEntityType": "nEenWmSyUEp",
       "trackedEntity": "IOR1AXXl24H",
-      "program": "BFcipDERJne",
+      "program": {
+        "idScheme": "UID",
+        "identifier": "BFcipDERJne"
+      },
       "status": "ACTIVE",
-      "orgUnit": "PlKwabX2xRW",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "PlKwabX2xRW"
+      },
       "enrolledAt": "2020-02-20T12:09:21.844",
       "occurredAt": "2020-02-20T12:09:21.844",
       "followup": false,
