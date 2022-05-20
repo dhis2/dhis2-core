@@ -60,7 +60,7 @@ public class FromComponentBuilder
      * @return
      */
 
-    public FromComponentBuilder withTeiParams( TeiQueryParams teiQueryParams )
+    public FromComponentBuilder withTeiQueryParams( TeiQueryParams teiQueryParams )
     {
         this.teiQueryParams = teiQueryParams;
 
@@ -68,7 +68,7 @@ public class FromComponentBuilder
     }
 
     /**
-     * Instance of component all element has to be included here
+     * all elements have to be included here
      *
      * @return
      */

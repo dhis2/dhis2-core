@@ -89,7 +89,7 @@ public class TeiJdbcQuery implements QueryGenerator<TeiQueryParams>
 
     private String getWhereClause( TeiQueryParams teiQueryParams )
     {
-        WhereComponent component = WhereComponentBuilder.builder().withTeiParams( teiQueryParams )
+        WhereComponent component = WhereComponentBuilder.builder().withTeiQueryParams( teiQueryParams )
             .build();
 
         WhereVisitor whereVisitor = new WhereElementVisitor();
@@ -106,7 +106,7 @@ public class TeiJdbcQuery implements QueryGenerator<TeiQueryParams>
 
     private String getFromClause( TeiQueryParams teiQueryParams )
     {
-        FromComponent component = FromComponentBuilder.builder().withTeiParams( teiQueryParams )
+        FromComponent component = FromComponentBuilder.builder().withTeiQueryParams( teiQueryParams )
             .build();
 
         FromVisitor fromVisitor = new FromElementVisitor();
@@ -118,7 +118,7 @@ public class TeiJdbcQuery implements QueryGenerator<TeiQueryParams>
 
     private List<Column> getSelectClause( TeiQueryParams teiQueryParams )
     {
-        SelectComponent component = SelectComponentBuilder.builder().withTeiParams( teiQueryParams )
+        SelectComponent component = SelectComponentBuilder.builder().withTeiQueryParams( teiQueryParams )
             .build();
 
         SelectVisitor columnVisitor = new SelectElementVisitor();

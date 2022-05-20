@@ -39,22 +39,44 @@ import org.hisp.dhis.analytics.shared.component.element.where.EnrollmentDateValu
 import org.hisp.dhis.analytics.shared.component.element.where.TeaValueWhereElement;
 import org.hisp.dhis.analytics.shared.visitor.where.WhereVisitor;
 
+/**
+ * WhereComponentBuilder is responsible for building the select section of sql
+ * query
+ *
+ * @author dusan bernat
+ */
 public class WhereComponentBuilder
 {
     private TeiQueryParams teiQueryParams;
 
+    /**
+     * Instance
+     *
+     * @return
+     */
     public static WhereComponentBuilder builder()
     {
         return new WhereComponentBuilder();
     }
 
-    public WhereComponentBuilder withTeiParams( TeiQueryParams teiQueryParams )
+    /**
+     * with method of builder
+     *
+     * @param teiQueryParams
+     * @return
+     */
+    public WhereComponentBuilder withTeiQueryParams( TeiQueryParams teiQueryParams )
     {
         this.teiQueryParams = teiQueryParams;
 
         return this;
     }
 
+    /**
+     * all elements have to be included here
+     *
+     * @return
+     */
     public WhereComponent build()
     {
         Map<String, String> inputUidMap = new HashMap<>();
@@ -70,5 +92,4 @@ public class WhereComponentBuilder
 
         return new WhereComponent( elements );
     }
-
 }

@@ -46,22 +46,44 @@ import org.hisp.dhis.analytics.shared.component.element.select.SimpleSelectEleme
 import org.hisp.dhis.analytics.shared.component.element.select.TeaValueSelectElement;
 import org.hisp.dhis.analytics.shared.visitor.select.SelectVisitor;
 
+/**
+ * SelectComponentBuilder is responsible for building the select section of sql
+ * query
+ *
+ * @author dusan bernat
+ */
 public class SelectComponentBuilder
 {
     private TeiQueryParams teiQueryParams;
 
+    /**
+     * Instance
+     *
+     * @return
+     */
     public static SelectComponentBuilder builder()
     {
         return new SelectComponentBuilder();
     }
 
-    public SelectComponentBuilder withTeiParams( TeiQueryParams teiQueryParams )
+    /**
+     * with method of builder
+     *
+     * @param teiQueryParams
+     * @return
+     */
+    public SelectComponentBuilder withTeiQueryParams( TeiQueryParams teiQueryParams )
     {
         this.teiQueryParams = teiQueryParams;
 
         return this;
     }
 
+    /**
+     * all elements have to be included here
+     *
+     * @return
+     */
     public SelectComponent build()
     {
         List<Element<SelectVisitor>> elements = new ArrayList<>(
