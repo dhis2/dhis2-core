@@ -75,32 +75,16 @@ public class CurrentUserService
      * @return the username of the currently logged in user. If no user is
      *         logged in or the auto access admin is active, null is returned.
      */
+    @Transactional( readOnly = true )
     public String getCurrentUsername()
     {
         return CurrentUserUtil.getCurrentUsername();
     }
 
+    @Transactional( readOnly = true )
     public User getCurrentUser()
     {
-        User currentUser = CurrentUserUtil.getCurrentUser();
-
-        boolean sessionContains = sessionFactory.getCurrentSession().contains( currentUser );
-        if ( sessionContains )
-        {
-            // User in session, this should only happen in integration tests.
-            // Related to 12098
-            try
-            {
-                sessionFactory.getCurrentSession().flush();
-            }
-            catch ( Exception e )
-            {
-                log.warn( "Failed to flush session!", e );
-            }
-            sessionFactory.getCurrentSession().evict( currentUser );
-        }
-
-        return currentUser;
+        return CurrentUserUtil.getCurrentUser();
     }
 
     @Transactional( readOnly = true )
@@ -185,5 +169,4 @@ public class CurrentUserService
     {
         return CurrentUserUtil.getUserSetting( key );
     }
-
 }

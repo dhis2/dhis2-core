@@ -29,7 +29,6 @@ package org.hisp.dhis.security.spring2fa;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.LongValidator;
 import org.hisp.dhis.security.SecurityService;
@@ -85,47 +84,13 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider
             throw new BadCredentialsException( "Invalid username or password" );
         }
 
-        // Initialize all required properties of user credentials since these
-        // will become detached
-        user.getAllAuthorities();
-
         // -------------------------------------------------------------------------
         // Check two-factor authentication
         // -------------------------------------------------------------------------
 
         if ( user.isTwoFA() && auth.getDetails() instanceof TwoFactorWebAuthenticationDetails )
         {
-            TwoFactorWebAuthenticationDetails authDetails = (TwoFactorWebAuthenticationDetails) auth.getDetails();
-
-            // -------------------------------------------------------------------------
-            // Check whether account is locked due to multiple failed login
-            // attempts
-            // -------------------------------------------------------------------------
-
-            if ( authDetails == null )
-            {
-                log.info( "Missing authentication details in authentication request." );
-                throw new PreAuthenticatedCredentialsNotFoundException(
-                    "Missing authentication details in authentication request." );
-            }
-
-            String ip = authDetails.getIp();
-            String code = StringUtils.deleteWhitespace( authDetails.getCode() );
-
-            if ( securityService.isLocked( username ) )
-            {
-                log.debug( String.format( "Temporary lockout for user: %s and IP: %s", username, ip ) );
-
-                throw new LockedException( String.format( "IP is temporarily locked: %s", ip ) );
-            }
-
-            if ( !LongValidator.getInstance().isValid( code ) || !SecurityUtils.verify( user, code ) )
-            {
-                log.debug(
-                    String.format( "Two-factor authentication failure for user: %s", user.getUsername() ) );
-
-                throw new BadCredentialsException( "Invalid verification code" );
-            }
+            performTwoFAAuthentication( auth, username, user );
         }
         else if ( user.isTwoFA() && !(auth.getDetails() instanceof TwoFactorWebAuthenticationDetails) )
         {
@@ -139,17 +104,38 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider
 
         Authentication result = super.authenticate( auth );
 
-        // Put detached state of the user credentials into the session as user
-        // must not be updated during session execution
-        user = SerializationUtils.clone( user );
-
-        // Initialize cached authorities
-
-        user.isSuper();
-        user.getAllAuthorities();
-
         return new UsernamePasswordAuthenticationToken( user, result.getCredentials(),
             result.getAuthorities() );
+    }
+
+    private void performTwoFAAuthentication( Authentication auth, String username, User user )
+    {
+        TwoFactorWebAuthenticationDetails authDetails = (TwoFactorWebAuthenticationDetails) auth.getDetails();
+
+        if ( authDetails == null )
+        {
+            log.info( "Missing authentication details in authentication request." );
+            throw new PreAuthenticatedCredentialsNotFoundException(
+                "Missing authentication details in authentication request." );
+        }
+
+        String ip = authDetails.getIp();
+        String code = StringUtils.deleteWhitespace( authDetails.getCode() );
+
+        if ( securityService.isLocked( username ) )
+        {
+            log.debug( String.format( "Temporary lockout for user: %s and IP: %s", username, ip ) );
+
+            throw new LockedException( String.format( "IP is temporarily locked: %s", ip ) );
+        }
+
+        if ( !LongValidator.getInstance().isValid( code ) || !SecurityUtils.verify( user, code ) )
+        {
+            log.debug(
+                String.format( "Two-factor authentication failure for user: %s", user.getUsername() ) );
+
+            throw new BadCredentialsException( "Invalid verification code" );
+        }
     }
 
     @Override
