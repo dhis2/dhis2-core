@@ -100,6 +100,7 @@ class ReportSummaryDeleteIntegrationTest extends TrackerTest
     void testEnrollmentDeletion()
         throws IOException
     {
+        dbmsManager.clearSession();
         assertEquals( 2, manager.getAll( ProgramStageInstance.class ).size() );
         TrackerImportParams params = fromJson( "tracker/enrollment_basic_data_for_deletion.json" );
         params.setImportStrategy( TrackerImportStrategy.DELETE );
