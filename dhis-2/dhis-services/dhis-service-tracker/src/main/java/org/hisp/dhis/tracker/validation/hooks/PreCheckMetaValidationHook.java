@@ -62,14 +62,13 @@ public class PreCheckMetaValidationHook
     @Override
     public void validateTrackedEntity( ValidationErrorReporter reporter, TrackerBundle bundle, TrackedEntity tei )
     {
-        OrganisationUnit organisationUnit = reporter.getBundle().getPreheat().getOrganisationUnit( tei.getOrgUnit() );
+        OrganisationUnit organisationUnit = bundle.getPreheat().getOrganisationUnit( tei.getOrgUnit() );
         if ( organisationUnit == null )
         {
             reporter.addError( tei, TrackerErrorCode.E1049, tei.getOrgUnit() );
         }
 
-        TrackedEntityType entityType = reporter.getBundle().getPreheat()
-            .getTrackedEntityType( tei.getTrackedEntityType() );
+        TrackedEntityType entityType = bundle.getPreheat().getTrackedEntityType( tei.getTrackedEntityType() );
         if ( entityType == null )
         {
             reporter.addError( tei, E1005, tei.getTrackedEntityType() );
@@ -79,14 +78,13 @@ public class PreCheckMetaValidationHook
     @Override
     public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
-        OrganisationUnit organisationUnit = reporter.getBundle().getPreheat()
-            .getOrganisationUnit( enrollment.getOrgUnit() );
+        OrganisationUnit organisationUnit = bundle.getPreheat().getOrganisationUnit( enrollment.getOrgUnit() );
         reporter.addErrorIfNull( organisationUnit, enrollment, E1070, enrollment.getOrgUnit() );
 
-        Program program = reporter.getBundle().getPreheat().getProgram( enrollment.getProgram() );
+        Program program = bundle.getPreheat().getProgram( enrollment.getProgram() );
         reporter.addErrorIfNull( program, enrollment, E1069, enrollment.getProgram() );
 
-        reporter.addErrorIf( () -> !trackedEntityInstanceExist( reporter.getBundle(), enrollment.getTrackedEntity() ),
+        reporter.addErrorIf( () -> !trackedEntityInstanceExist( bundle, enrollment.getTrackedEntity() ),
             enrollment,
             E1068, enrollment.getTrackedEntity() );
     }
@@ -94,13 +92,13 @@ public class PreCheckMetaValidationHook
     @Override
     public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
     {
-        OrganisationUnit organisationUnit = reporter.getBundle().getPreheat().getOrganisationUnit( event.getOrgUnit() );
+        OrganisationUnit organisationUnit = bundle.getPreheat().getOrganisationUnit( event.getOrgUnit() );
         reporter.addErrorIfNull( organisationUnit, event, E1011, event.getOrgUnit() );
 
-        Program program = reporter.getBundle().getPreheat().getProgram( event.getProgram() );
+        Program program = bundle.getPreheat().getProgram( event.getProgram() );
         reporter.addErrorIfNull( program, event, E1010, event.getProgram() );
 
-        ProgramStage programStage = reporter.getBundle().getPreheat().getProgramStage( event.getProgramStage() );
+        ProgramStage programStage = bundle.getPreheat().getProgramStage( event.getProgramStage() );
         reporter.addErrorIfNull( programStage, event, E1013, event.getProgramStage() );
     }
 
@@ -108,7 +106,7 @@ public class PreCheckMetaValidationHook
     public void validateRelationship( ValidationErrorReporter reporter, TrackerBundle bundle,
         Relationship relationship )
     {
-        TrackerPreheat preheat = reporter.getBundle().getPreheat();
+        TrackerPreheat preheat = bundle.getPreheat();
         RelationshipType relationshipType = preheat.getRelationshipType( relationship.getRelationshipType() );
 
         reporter.addErrorIfNull( relationshipType, relationship, E4006, relationship.getRelationshipType() );

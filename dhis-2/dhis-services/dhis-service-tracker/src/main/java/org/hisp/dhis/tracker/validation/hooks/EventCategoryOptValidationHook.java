@@ -68,13 +68,13 @@ public class EventCategoryOptValidationHook
     @Override
     public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
     {
-        Program program = reporter.getBundle().getPreheat().getProgram( event.getProgram() );
+        Program program = bundle.getPreheat().getProgram( event.getProgram() );
         checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
-        checkNotNull( reporter.getBundle().getUser(), TrackerImporterAssertErrors.USER_CANT_BE_NULL );
+        checkNotNull( bundle.getUser(), TrackerImporterAssertErrors.USER_CANT_BE_NULL );
         checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
         checkNotNull( event, TrackerImporterAssertErrors.EVENT_CANT_BE_NULL );
 
-        TrackerPreheat preheat = reporter.getBundle().getPreheat();
+        TrackerPreheat preheat = bundle.getPreheat();
         CategoryOptionCombo categoryOptionCombo;
         if ( program.getCategoryCombo().isDefault() )
         {

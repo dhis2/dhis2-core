@@ -59,7 +59,7 @@ public class PreCheckUpdatableFieldsValidationHook
     public void validateTrackedEntity( ValidationErrorReporter reporter,
         TrackerBundle bundle, TrackedEntity trackedEntity )
     {
-        TrackedEntityInstance trackedEntityInstance = reporter.getBundle()
+        TrackedEntityInstance trackedEntityInstance = bundle
             .getTrackedEntityInstance( trackedEntity.getTrackedEntity() );
 
         reporter.addErrorIf(
@@ -70,7 +70,7 @@ public class PreCheckUpdatableFieldsValidationHook
     @Override
     public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
-        ProgramInstance pi = reporter.getBundle().getProgramInstance( enrollment.getEnrollment() );
+        ProgramInstance pi = bundle.getProgramInstance( enrollment.getEnrollment() );
         Program program = pi.getProgram();
         TrackedEntityInstance trackedEntityInstance = pi.getEntityInstance();
 
@@ -83,7 +83,7 @@ public class PreCheckUpdatableFieldsValidationHook
     @Override
     public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
     {
-        ProgramStageInstance programStageInstance = reporter.getBundle().getProgramStageInstance( event.getEvent() );
+        ProgramStageInstance programStageInstance = bundle.getProgramStageInstance( event.getEvent() );
         ProgramStage programStage = programStageInstance.getProgramStage();
         ProgramInstance programInstance = programStageInstance.getProgramInstance();
 

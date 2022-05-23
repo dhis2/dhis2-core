@@ -78,7 +78,7 @@ public class RelationshipsValidationHook
         if ( isValid )
         {
             validateRelationshipLinkToOneEntity( reporter, relationship );
-            validateRelationshipConstraint( reporter, relationship, bundle );
+            validateRelationshipConstraint( reporter, bundle, relationship );
 
             validateAutoRelationship( reporter, relationship );
 
@@ -115,14 +115,14 @@ public class RelationshipsValidationHook
             relationship, E4001, "to", relationship.getRelationship() );
     }
 
-    private void validateRelationshipConstraint( ValidationErrorReporter reporter, Relationship relationship,
-        TrackerBundle bundle )
+    private void validateRelationshipConstraint( ValidationErrorReporter reporter, TrackerBundle bundle,
+        Relationship relationship )
     {
         getRelationshipType( bundle.getPreheat().getAll( RelationshipType.class ),
             relationship.getRelationshipType() ).ifPresent( relationshipType -> {
-                validateRelationshipConstraint( reporter, relationship, "from", relationship.getFrom(),
+                validateRelationshipConstraint( reporter, bundle, relationship, "from", relationship.getFrom(),
                     relationshipType.getFromConstraint() );
-                validateRelationshipConstraint( reporter, relationship, "to", relationship.getTo(),
+                validateRelationshipConstraint( reporter, bundle, relationship, "to", relationship.getTo(),
                     relationshipType.getToConstraint() );
             } );
     }
@@ -153,7 +153,8 @@ public class RelationshipsValidationHook
         }
     }
 
-    private void validateRelationshipConstraint( ValidationErrorReporter reporter, Relationship relationship,
+    private void validateRelationshipConstraint( ValidationErrorReporter reporter, TrackerBundle bundle,
+        Relationship relationship,
         String relSide,
         RelationshipItem item,
         RelationshipConstraint constraint )
@@ -178,7 +179,7 @@ public class RelationshipsValidationHook
                 // Check tracked entity type matches the type specified in the
                 // constraint
                 //
-                getRelationshipTypeUidFromTrackedEntity( reporter.getBundle(),
+                getRelationshipTypeUidFromTrackedEntity( bundle,
                     item.getTrackedEntity() )
                         .ifPresent( type -> {
 

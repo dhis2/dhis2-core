@@ -62,7 +62,7 @@ public class EnrollmentRuleValidationHook
     {
         List<ProgramRuleIssue> programRuleIssues = validators
             .stream()
-            .flatMap( v -> v.validateEnrollments( reporter.getBundle() )
+            .flatMap( v -> v.validateEnrollments( bundle )
                 .getOrDefault( enrollment.getEnrollment(), Lists.newArrayList() ).stream() )
             .collect( Collectors.toList() );
 

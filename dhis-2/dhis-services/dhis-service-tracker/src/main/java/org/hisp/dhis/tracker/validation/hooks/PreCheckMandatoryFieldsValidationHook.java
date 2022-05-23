@@ -77,7 +77,7 @@ public class PreCheckMandatoryFieldsValidationHook
         reporter.addErrorIf( () -> event.getProgramStage().isBlank(), event, E1123, "programStage" );
 
         // TODO remove if once metadata import is fixed
-        ProgramStage programStage = reporter.getBundle().getPreheat().getProgramStage( event.getProgramStage() );
+        ProgramStage programStage = bundle.getPreheat().getProgramStage( event.getProgramStage() );
         if ( programStage != null )
         {
             // Program stages should always have a program! Due to how metadata

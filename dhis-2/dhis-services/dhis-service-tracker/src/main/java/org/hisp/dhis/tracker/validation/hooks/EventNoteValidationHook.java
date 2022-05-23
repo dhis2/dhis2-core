@@ -42,6 +42,6 @@ public class EventNoteValidationHook extends AbstractTrackerDtoValidationHook
     public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
     {
         event
-            .setNotes( ValidationUtils.validateNotes( reporter, event, event.getNotes() ) );
+            .setNotes( ValidationUtils.validateNotes( reporter, bundle.getPreheat(), event, event.getNotes() ) );
     }
 }

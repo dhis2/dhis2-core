@@ -63,7 +63,7 @@ public class EventRuleValidationHook
         List<ProgramRuleIssue> programRuleIssues = validators
             .stream()
             .flatMap(
-                v -> v.validateEvents( reporter.getBundle() )
+                v -> v.validateEvents( bundle )
                     .getOrDefault( event.getEvent(), Lists.newArrayList() ).stream() )
             .collect( Collectors.toList() );
 

@@ -45,7 +45,7 @@ public class EventGeoValidationHook
     @Override
     public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
     {
-        ProgramStage programStage = reporter.getBundle().getPreheat().getProgramStage( event.getProgramStage() );
+        ProgramStage programStage = bundle.getPreheat().getProgramStage( event.getProgramStage() );
         checkNotNull( programStage, TrackerImporterAssertErrors.PROGRAM_STAGE_CANT_BE_NULL );
 
         if ( event.getGeometry() != null )

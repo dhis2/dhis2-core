@@ -63,7 +63,7 @@ public class EventDateValidationHook
     @Override
     public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
     {
-        TrackerPreheat preheat = reporter.getBundle().getPreheat();
+        TrackerPreheat preheat = bundle.getPreheat();
 
         Program program = preheat.getProgram( event.getProgram() );
 
@@ -79,13 +79,14 @@ public class EventDateValidationHook
             return;
         }
 
-        validateExpiryDays( reporter, event, program );
+        validateExpiryDays( reporter, bundle, event, program );
         validatePeriodType( reporter, event, program );
     }
 
-    private void validateExpiryDays( ValidationErrorReporter reporter, Event event, Program program )
+    private void validateExpiryDays( ValidationErrorReporter reporter, TrackerBundle bundle, Event event,
+        Program program )
     {
-        User actingUser = reporter.getBundle().getUser();
+        User actingUser = bundle.getUser();
 
         checkNotNull( actingUser, TrackerImporterAssertErrors.USER_CANT_BE_NULL );
         checkNotNull( event, TrackerImporterAssertErrors.EVENT_CANT_BE_NULL );

@@ -45,7 +45,7 @@ public class EnrollmentGeoValidationHook
     @Override
     public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
-        Program program = reporter.getBundle().getPreheat().getProgram( enrollment.getProgram() );
+        Program program = bundle.getPreheat().getProgram( enrollment.getProgram() );
 
         checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
 
