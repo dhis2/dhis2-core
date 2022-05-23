@@ -101,9 +101,8 @@ class JdbcEventStoreTest
         when( jdbcTemplate.getDataSource() ).thenReturn( mock( DataSource.class ) );
 
         ObjectMapper objectMapper = new ObjectMapper();
-        subject = new JdbcEventStore( new PostgreSQLStatementBuilder(), namedParameterJdbcTemplate, objectMapper,
-            currentUserService,
-            manager, eventStore, skipLockedProvider );
+        subject = new JdbcEventStore( organisationUnitStore, new PostgreSQLStatementBuilder(),
+            namedParameterJdbcTemplate, objectMapper, currentUserService, manager, eventStore, skipLockedProvider );
     }
 
     @Test
