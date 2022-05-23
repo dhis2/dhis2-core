@@ -80,6 +80,23 @@ public class DefaultGeoJsonService implements GeoJsonService
 
     private final AclService aclService;
 
+    @Override
+    @Transactional
+    public GeoJsonImportReport deleteGeoData( String attributeId )
+    {
+        GeoJsonImportReport report = new GeoJsonImportReport();
+        Attribute attribute = validateAttribute( attributeId, report );
+        if ( report.hasConflicts() )
+        {
+            return report;
+        }
+        int deletions = attribute == null
+            ? organisationUnitStore.updateAllOrganisationUnitsGeometryToNull()
+            : organisationUnitStore.updateAllAttributeValues( attribute, "null", false );
+        report.getImportCount().incrementDeleted( deletions );
+        return report;
+    }
+
     /**
      * Imports the provided (file) content.
      *
