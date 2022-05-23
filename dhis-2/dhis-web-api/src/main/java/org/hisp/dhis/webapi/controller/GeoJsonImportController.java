@@ -60,6 +60,7 @@ import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -120,6 +121,13 @@ public class GeoJsonImportController
         }
 
         return toWebMessage( geoJsonService.importGeoData( params, data ) );
+    }
+
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
+    @DeleteMapping( value = "/geometry" )
+    public WebMessage deleteImport( @RequestParam( required = false ) String attributeId )
+    {
+        return toWebMessage( geoJsonService.deleteGeoData( attributeId ) );
     }
 
     @PostMapping( value = "/{uid}/geometry", consumes = { "application/geo+json", "application/json" } )

@@ -45,4 +45,6 @@ public interface GeoJsonService
      * @return a report with statistics and conflicts
      */
     GeoJsonImportReport importGeoData( GeoJsonImportParams params, InputStream geoJsonData );
+
+    GeoJsonImportReport deleteGeoData( String attributeId );
 }

@@ -378,6 +378,12 @@ public class HibernateOrganisationUnitStore
         return jdbcTemplate.queryForList( sql, String.class );
     }
 
+    @Override
+    public int updateAllOrganisationUnitsGeometryToNull()
+    {
+        return getQuery( "update OrganisationUnit o set o.geometry = null" ).executeUpdate();
+    }
+
     private String buildOrganisationUnitDistinctUidsSql( OrganisationUnitQueryParams params )
     {
         SqlHelper hlp = new SqlHelper();
