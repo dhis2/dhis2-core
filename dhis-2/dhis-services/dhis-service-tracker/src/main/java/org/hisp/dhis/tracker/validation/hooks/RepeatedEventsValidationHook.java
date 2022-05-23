@@ -73,8 +73,7 @@ public class RepeatedEventsValidationHook
             {
                 for ( Event event : mapEntry.getValue() )
                 {
-                    reporter.addError( event, TrackerErrorCode.E1039,
-                        mapEntry.getKey().getLeft().getIdentifierOrAttributeValue() );
+                    reporter.addError( event, TrackerErrorCode.E1039, mapEntry.getKey().getLeft() );
                 }
             }
         }
@@ -95,7 +94,7 @@ public class RepeatedEventsValidationHook
             && reporter.getBundle().getPreheat().hasProgramStageWithEvents( event.getProgramStage(),
                 event.getEnrollment() ) )
         {
-            reporter.addError( event, TrackerErrorCode.E1039, event.getProgramStage().getIdentifierOrAttributeValue() );
+            reporter.addError( event, TrackerErrorCode.E1039, event.getProgramStage() );
         }
     }
 

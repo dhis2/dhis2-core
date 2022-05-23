@@ -35,7 +35,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import lombok.Builder;
-import lombok.Data;
+import lombok.Value;
 
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -46,13 +46,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * @author Enrico Colasante
  */
-@Data
+@Value
 @Builder
 public class TrackerWarningReport
 {
     private final String warningMessage;
 
-    private TrackerErrorCode warningCode;
+    private final TrackerErrorCode warningCode;
 
     private final TrackerType trackerType;
 
