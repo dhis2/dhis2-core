@@ -39,6 +39,7 @@ import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
@@ -66,6 +67,10 @@ class TrackerReportUtils
         if ( String.class.isAssignableFrom( ObjectUtils.firstNonNull( argument, "NULL" ).getClass() ) )
         {
             return ObjectUtils.firstNonNull( argument, "NULL" ).toString();
+        }
+        else if ( MetadataIdentifier.class.isAssignableFrom( argument.getClass() ) )
+        {
+            return ((MetadataIdentifier) argument).getIdentifierOrAttributeValue();
         }
         else if ( IdentifiableObject.class.isAssignableFrom( argument.getClass() ) )
         {

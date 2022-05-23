@@ -35,7 +35,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import lombok.Builder;
-import lombok.Data;
+import lombok.Value;
 
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -47,7 +47,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Data
+@Value
 @Builder
 public class TrackerErrorReport
 {
