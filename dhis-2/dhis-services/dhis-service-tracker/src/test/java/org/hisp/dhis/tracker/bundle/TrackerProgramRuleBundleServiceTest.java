@@ -44,8 +44,6 @@ import org.hisp.dhis.tracker.TrackerTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Sets;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -72,7 +70,7 @@ class TrackerProgramRuleBundleServiceTest extends TrackerTest
         ProgramRuleAction programRuleAction = createProgramRuleAction( 'A', programRule );
         programRuleAction.setProgramRuleActionType( ProgramRuleActionType.SENDMESSAGE );
         programRuleActionService.addProgramRuleAction( programRuleAction );
-        programRule.setProgramRuleActions( Sets.newHashSet( programRuleAction ) );
+        programRule.getProgramRuleActions().add( programRuleAction );
         programRuleService.updateProgramRule( programRule );
     }
 

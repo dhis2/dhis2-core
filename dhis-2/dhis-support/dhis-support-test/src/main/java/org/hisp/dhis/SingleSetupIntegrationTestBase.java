@@ -69,7 +69,7 @@ public abstract class SingleSetupIntegrationTestBase
     }
 
     @Override
-    protected boolean emptyDatabaseAfterTest()
+    protected final boolean emptyDatabaseAfterTest()
     {
         return true;
     }

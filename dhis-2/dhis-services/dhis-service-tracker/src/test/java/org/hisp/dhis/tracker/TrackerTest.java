@@ -175,21 +175,13 @@ public abstract class TrackerTest extends SingleSetupIntegrationTestBase
         assertEquals( TrackerStatus.OK, report.getStatus() );
     }
 
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
     private TrackerStatus logTrackerErrors( TrackerImportReport trackerImportReport )
     {
         TrackerStatus status = trackerImportReport.getStatus();
         if ( status == TrackerStatus.ERROR )
         {
             List<TrackerErrorReport> errors = trackerImportReport.getValidationReport().getErrors();
-            errors.forEach( error -> {
-                log.error( error.getErrorCode() + ": " + error.getMessage() );
-            } );
+            errors.forEach( e -> log.error( e.getErrorCode() + ": " + e.getMessage() ) );
         }
         return status;
     }
