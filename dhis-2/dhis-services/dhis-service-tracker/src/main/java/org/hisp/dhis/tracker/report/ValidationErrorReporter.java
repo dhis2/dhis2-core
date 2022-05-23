@@ -34,7 +34,7 @@ import java.util.Map;
 import java.util.function.BooleanSupplier;
 import java.util.function.Predicate;
 
-import lombok.Data;
+import lombok.Value;
 
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.ValidationMode;
@@ -48,7 +48,7 @@ import org.hisp.dhis.tracker.validation.ValidationFailFastException;
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Data
+@Value
 // TODO: should this be "ValidationReporter" since it does not only report
 // errors ?
 public class ValidationErrorReporter

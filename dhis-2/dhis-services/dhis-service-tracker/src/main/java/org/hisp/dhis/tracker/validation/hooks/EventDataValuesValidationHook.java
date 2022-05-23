@@ -105,7 +105,7 @@ public class EventDataValuesValidationHook
         List<MetadataIdentifier> missingDataValue = validateMandatoryDataValue( programStage, event,
             mandatoryDataElements );
         missingDataValue
-            .forEach( de -> reporter.addError( event, E1303, de.getIdentifierOrAttributeValue() ) );
+            .forEach( de -> reporter.addError( event, E1303, de ) );
     }
 
     private void validateDataValue( ValidationErrorReporter reporter, DataElement dataElement,
@@ -184,8 +184,7 @@ public class EventDataValuesValidationHook
         {
             if ( !dataElements.contains( payloadDataElement ) )
             {
-                reporter.addError( event, TrackerErrorCode.E1305, payloadDataElement.getIdentifierOrAttributeValue(),
-                    programStage.getUid() );
+                reporter.addError( event, TrackerErrorCode.E1305, payloadDataElement, programStage.getUid() );
             }
         }
     }

@@ -28,6 +28,7 @@
 package org.hisp.dhis.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.lang.String.format;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -666,6 +667,17 @@ public class HibernateGenericStore<T>
             builder.literal( attribute.getUid() ), builder.literal( "value" ) ).in( values ) );
 
         return getSession().createQuery( query ).list();
+    }
+
+    @Override
+    public int updateAllAttributeValues( Attribute attribute, String newValue, boolean createMissing )
+    {
+        String template = "update %s set attributevalues = jsonb_strip_nulls("
+            + "jsonb_set(cast(attributevalues as jsonb), '{%s}', cast(:value as jsonb), :createMissing))";
+        return getSession().createSQLQuery( format( template, getClazz().getSimpleName(), attribute.getUid() ) )
+            .setParameter( "value", newValue )
+            .setParameter( "createMissing", createMissing )
+            .executeUpdate();
     }
 
     /**
