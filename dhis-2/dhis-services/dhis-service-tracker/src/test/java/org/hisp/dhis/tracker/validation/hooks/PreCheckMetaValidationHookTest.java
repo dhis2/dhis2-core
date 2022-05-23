@@ -118,7 +118,7 @@ class PreCheckMetaValidationHookTest
         when( preheat.getTrackedEntityType( MetadataIdentifier.ofUid( TRACKED_ENTITY_TYPE_UID ) ) )
             .thenReturn( new TrackedEntityType() );
 
-        validatorToTest.validateTrackedEntity( reporter, tei );
+        validatorToTest.validateTrackedEntity( reporter, bundle, tei );
 
         // then
         assertFalse( reporter.hasErrors() );
@@ -136,7 +136,7 @@ class PreCheckMetaValidationHookTest
         when( preheat.getTrackedEntityType( MetadataIdentifier.ofUid( TRACKED_ENTITY_TYPE_UID ) ) )
             .thenReturn( new TrackedEntityType() );
 
-        validatorToTest.validateTrackedEntity( reporter, tei );
+        validatorToTest.validateTrackedEntity( reporter, bundle, tei );
 
         // then
         hasTrackerError( reporter, E1049, TRACKED_ENTITY, tei.getUid() );
@@ -154,7 +154,7 @@ class PreCheckMetaValidationHookTest
         when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_UID ) ) )
             .thenReturn( new OrganisationUnit() );
 
-        validatorToTest.validateTrackedEntity( reporter, tei );
+        validatorToTest.validateTrackedEntity( reporter, bundle, tei );
 
         // then
         hasTrackerError( reporter, E1005, TRACKED_ENTITY, tei.getUid() );

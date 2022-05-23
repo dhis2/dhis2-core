@@ -53,7 +53,8 @@ public class PreCheckMandatoryFieldsValidationHook
     private static final String ORG_UNIT = "orgUnit";
 
     @Override
-    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity trackedEntity )
+    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackerBundle bundle,
+        TrackedEntity trackedEntity )
     {
         reporter.addErrorIf( () -> trackedEntity.getTrackedEntityType().isBlank(), trackedEntity, E1121,
             "trackedEntityType" );

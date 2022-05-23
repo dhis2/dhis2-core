@@ -84,7 +84,7 @@ public class PreCheckDataRelationsValidationHook
 {
     @Override
     public void validateTrackedEntity( ValidationErrorReporter reporter,
-        TrackedEntity trackedEntity )
+        TrackerBundle bundle, TrackedEntity trackedEntity )
     {
         // NOTHING TO DO HERE
     }

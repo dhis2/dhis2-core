@@ -66,7 +66,7 @@ public abstract class AbstractTrackerDtoValidationHook
     private final Map<TrackerType, TriConsumer<ValidationErrorReporter, TrackerBundle, TrackerDto>> validationMap = ImmutableMap
         .<TrackerType, TriConsumer<ValidationErrorReporter, TrackerBundle, TrackerDto>> builder()
         .put( TrackerType.TRACKED_ENTITY,
-            ( report, bundle, dto ) -> validateTrackedEntity( report, (TrackedEntity) dto ) )
+            ( report, bundle, dto ) -> validateTrackedEntity( report, bundle, (TrackedEntity) dto ) )
         .put( TrackerType.ENROLLMENT, ( report, bundle, dto ) -> validateEnrollment( report, (Enrollment) dto ) )
         .put( TrackerType.EVENT, ( report, bundle, dto ) -> validateEvent( report, bundle, (Event) dto ) )
         .put( TrackerType.RELATIONSHIP, ( report, bundle, dto ) -> validateRelationship( report, (Relationship) dto ) )
@@ -118,9 +118,10 @@ public abstract class AbstractTrackerDtoValidationHook
      * dtoTypeClass == null
      *
      * @param reporter ValidationErrorReporter instance
+     * @param bundle tracker bundle
      * @param tei entity to validate
      */
-    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity tei )
+    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackerBundle bundle, TrackedEntity tei )
     {
     }
 

@@ -49,7 +49,8 @@ public class PreCheckUidValidationHook
     extends AbstractTrackerDtoValidationHook
 {
     @Override
-    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity trackedEntity )
+    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackerBundle bundle,
+        TrackedEntity trackedEntity )
     {
         checkUidFormat( trackedEntity.getTrackedEntity(), reporter, trackedEntity, trackedEntity,
             trackedEntity.getTrackedEntity() );

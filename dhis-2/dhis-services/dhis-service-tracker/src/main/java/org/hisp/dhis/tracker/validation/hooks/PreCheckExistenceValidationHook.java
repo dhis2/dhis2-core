@@ -60,7 +60,8 @@ public class PreCheckExistenceValidationHook
     extends AbstractTrackerDtoValidationHook
 {
     @Override
-    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity trackedEntity )
+    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackerBundle bundle,
+        TrackedEntity trackedEntity )
     {
         TrackerImportStrategy importStrategy = reporter.getBundle().getStrategy( trackedEntity );
 

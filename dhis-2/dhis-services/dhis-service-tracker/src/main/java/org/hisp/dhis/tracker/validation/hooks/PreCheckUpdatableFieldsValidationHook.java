@@ -57,7 +57,7 @@ public class PreCheckUpdatableFieldsValidationHook
 {
     @Override
     public void validateTrackedEntity( ValidationErrorReporter reporter,
-        TrackedEntity trackedEntity )
+        TrackerBundle bundle, TrackedEntity trackedEntity )
     {
         TrackedEntityInstance trackedEntityInstance = reporter.getBundle()
             .getTrackedEntityInstance( trackedEntity.getTrackedEntity() );

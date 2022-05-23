@@ -169,7 +169,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( true );
         reporter = new ValidationErrorReporter( bundle );
 
-        validatorToTest.validateTrackedEntity( reporter, trackedEntity );
+        validatorToTest.validateTrackedEntity( reporter, bundle, trackedEntity );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -192,7 +192,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( true );
         reporter = new ValidationErrorReporter( bundle );
 
-        validatorToTest.validateTrackedEntity( reporter, trackedEntity );
+        validatorToTest.validateTrackedEntity( reporter, bundle, trackedEntity );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -215,7 +215,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( true );
         reporter = new ValidationErrorReporter( bundle );
 
-        validatorToTest.validateTrackedEntity( reporter, trackedEntity );
+        validatorToTest.validateTrackedEntity( reporter, bundle, trackedEntity );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -238,7 +238,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( true );
         reporter = new ValidationErrorReporter( bundle );
 
-        validatorToTest.validateTrackedEntity( reporter, trackedEntity );
+        validatorToTest.validateTrackedEntity( reporter, bundle, trackedEntity );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -261,7 +261,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( true );
         reporter = new ValidationErrorReporter( bundle );
 
-        validatorToTest.validateTrackedEntity( reporter, trackedEntity );
+        validatorToTest.validateTrackedEntity( reporter, bundle, trackedEntity );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -284,7 +284,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( true );
         reporter = new ValidationErrorReporter( bundle );
 
-        validatorToTest.validateTrackedEntity( reporter, trackedEntity );
+        validatorToTest.validateTrackedEntity( reporter, bundle, trackedEntity );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -309,7 +309,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( true );
         reporter = new ValidationErrorReporter( bundle );
 
-        validatorToTest.validateTrackedEntity( reporter, trackedEntity );
+        validatorToTest.validateTrackedEntity( reporter, bundle, trackedEntity );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -334,7 +334,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( true );
         reporter = new ValidationErrorReporter( bundle );
 
-        validatorToTest.validateTrackedEntity( reporter, trackedEntity );
+        validatorToTest.validateTrackedEntity( reporter, bundle, trackedEntity );
 
         hasTrackerError( reporter, E1100, TrackerType.TRACKED_ENTITY, trackedEntity.getUid() );
     }
@@ -358,9 +358,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( true );
         reporter = new ValidationErrorReporter( bundle );
 
-        validatorToTest.validateTrackedEntity( reporter, trackedEntity );
-
-        validatorToTest.validateTrackedEntity( reporter, trackedEntity );
+        validatorToTest.validateTrackedEntity( reporter, bundle, trackedEntity );
 
         hasTrackerError( reporter, E1000, TrackerType.TRACKED_ENTITY, trackedEntity.getUid() );
     }
@@ -384,7 +382,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( true );
         reporter = new ValidationErrorReporter( bundle );
 
-        validatorToTest.validateTrackedEntity( reporter, trackedEntity );
+        validatorToTest.validateTrackedEntity( reporter, bundle, trackedEntity );
 
         hasTrackerError( reporter, E1003, TrackerType.TRACKED_ENTITY, trackedEntity.getUid() );
     }
@@ -408,7 +406,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( false );
         reporter = new ValidationErrorReporter( bundle );
 
-        validatorToTest.validateTrackedEntity( reporter, trackedEntity );
+        validatorToTest.validateTrackedEntity( reporter, bundle, trackedEntity );
 
         hasTrackerError( reporter, E1001, TrackerType.TRACKED_ENTITY, trackedEntity.getUid() );
     }

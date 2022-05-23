@@ -97,10 +97,10 @@ public class PreCheckSecurityOwnershipValidationHook
     private static final String ORG_UNIT_NO_USER_ASSIGNED = " has no organisation unit assigned, so we skip user validation";
 
     @Override
-    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity trackedEntity )
+    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackerBundle bundle,
+        TrackedEntity trackedEntity )
     {
         TrackerImportStrategy strategy = reporter.getBundle().getStrategy( trackedEntity );
-        TrackerBundle bundle = reporter.getBundle();
         User user = bundle.getUser();
 
         checkNotNull( user, USER_CANT_BE_NULL );

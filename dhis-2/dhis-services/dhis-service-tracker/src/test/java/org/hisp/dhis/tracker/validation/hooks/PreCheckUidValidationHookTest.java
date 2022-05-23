@@ -82,7 +82,7 @@ class PreCheckUidValidationHookTest
             .orgUnit( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
             .build();
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateTrackedEntity( reporter, trackedEntity );
+        validationHook.validateTrackedEntity( reporter, bundle, trackedEntity );
         assertFalse( reporter.hasErrors() );
     }
 
@@ -96,7 +96,7 @@ class PreCheckUidValidationHookTest
             .build();
         // when
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateTrackedEntity( reporter, trackedEntity );
+        validationHook.validateTrackedEntity( reporter, bundle, trackedEntity );
         // then
         hasTrackerError( reporter, E1048, TRACKED_ENTITY, trackedEntity.getUid() );
     }
