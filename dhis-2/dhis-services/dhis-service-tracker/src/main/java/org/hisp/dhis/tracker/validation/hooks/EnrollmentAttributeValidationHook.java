@@ -74,9 +74,8 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
     }
 
     @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
+    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
-        TrackerBundle bundle = reporter.getBundle();
         TrackerPreheat preheat = bundle.getPreheat();
         Program program = preheat.getProgram( enrollment.getProgram() );
         checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );

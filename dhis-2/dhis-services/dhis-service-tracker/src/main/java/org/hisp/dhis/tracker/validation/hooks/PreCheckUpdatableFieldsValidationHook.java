@@ -68,7 +68,7 @@ public class PreCheckUpdatableFieldsValidationHook
     }
 
     @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
+    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
         ProgramInstance pi = reporter.getBundle().getProgramInstance( enrollment.getEnrollment() );
         Program program = pi.getProgram();

@@ -160,10 +160,9 @@ public class PreCheckSecurityOwnershipValidationHook
     }
 
     @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
+    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
         TrackerImportStrategy strategy = reporter.getBundle().getStrategy( enrollment );
-        TrackerBundle bundle = reporter.getBundle();
         TrackerPreheat preheat = bundle.getPreheat();
         User user = bundle.getUser();
         Program program = strategy.isUpdateOrDelete()

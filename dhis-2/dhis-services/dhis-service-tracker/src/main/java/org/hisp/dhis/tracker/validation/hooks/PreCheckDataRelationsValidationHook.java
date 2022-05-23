@@ -90,7 +90,7 @@ public class PreCheckDataRelationsValidationHook
     }
 
     @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
+    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
         Program program = reporter.getBundle().getPreheat().getProgram( enrollment.getProgram() );
         OrganisationUnit organisationUnit = reporter.getBundle().getPreheat()

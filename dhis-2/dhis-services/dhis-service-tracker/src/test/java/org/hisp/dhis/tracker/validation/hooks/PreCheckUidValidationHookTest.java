@@ -109,7 +109,7 @@ class PreCheckUidValidationHookTest
         Enrollment enrollment = Enrollment.builder().enrollment( CodeGenerator.generateUid() )
             .notes( Lists.newArrayList( note ) ).build();
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEnrollment( reporter, enrollment );
+        validationHook.validateEnrollment( reporter, bundle, enrollment );
         // then
         assertFalse( reporter.hasErrors() );
     }
@@ -120,7 +120,7 @@ class PreCheckUidValidationHookTest
         // given
         Enrollment enrollment = Enrollment.builder().enrollment( INVALID_UID ).build();
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEnrollment( reporter, enrollment );
+        validationHook.validateEnrollment( reporter, bundle, enrollment );
         // then
         hasTrackerError( reporter, E1048, ENROLLMENT, enrollment.getUid() );
     }
@@ -133,7 +133,7 @@ class PreCheckUidValidationHookTest
         Enrollment enrollment = Enrollment.builder().enrollment( CodeGenerator.generateUid() )
             .notes( Lists.newArrayList( note ) ).build();
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEnrollment( reporter, enrollment );
+        validationHook.validateEnrollment( reporter, bundle, enrollment );
         // then
         hasTrackerError( reporter, E1048, ENROLLMENT, enrollment.getUid() );
     }

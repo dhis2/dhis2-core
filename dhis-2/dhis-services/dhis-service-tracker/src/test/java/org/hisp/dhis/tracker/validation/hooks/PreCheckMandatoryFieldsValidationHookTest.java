@@ -145,7 +145,7 @@ class PreCheckMandatoryFieldsValidationHookTest
             .build();
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEnrollment( reporter, enrollment );
+        validationHook.validateEnrollment( reporter, bundle, enrollment );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -161,7 +161,7 @@ class PreCheckMandatoryFieldsValidationHookTest
             .build();
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEnrollment( reporter, enrollment );
+        validationHook.validateEnrollment( reporter, bundle, enrollment );
 
         assertMissingPropertyForEnrollment( reporter, enrollment.getUid(), "trackedEntity" );
     }
@@ -177,7 +177,7 @@ class PreCheckMandatoryFieldsValidationHookTest
             .build();
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEnrollment( reporter, enrollment );
+        validationHook.validateEnrollment( reporter, bundle, enrollment );
 
         assertMissingPropertyForEnrollment( reporter, enrollment.getUid(), "program" );
     }
@@ -193,7 +193,7 @@ class PreCheckMandatoryFieldsValidationHookTest
             .build();
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEnrollment( reporter, enrollment );
+        validationHook.validateEnrollment( reporter, bundle, enrollment );
 
         assertMissingPropertyForEnrollment( reporter, enrollment.getUid(), "orgUnit" );
     }

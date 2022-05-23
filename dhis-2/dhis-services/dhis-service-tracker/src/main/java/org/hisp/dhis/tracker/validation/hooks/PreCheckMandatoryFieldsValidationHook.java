@@ -62,7 +62,7 @@ public class PreCheckMandatoryFieldsValidationHook
     }
 
     @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
+    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
         reporter.addErrorIf( () -> enrollment.getOrgUnit().isBlank(), enrollment, E1122, ORG_UNIT );
         reporter.addErrorIf( () -> enrollment.getProgram().isBlank(), enrollment, E1122, "program" );

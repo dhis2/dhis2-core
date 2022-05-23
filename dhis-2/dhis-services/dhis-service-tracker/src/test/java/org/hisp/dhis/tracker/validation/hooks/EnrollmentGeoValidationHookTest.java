@@ -95,7 +95,7 @@ class EnrollmentGeoValidationHookTest
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         // when
-        this.hookToTest.validateEnrollment( reporter, enrollment );
+        this.hookToTest.validateEnrollment( reporter, bundle, enrollment );
 
         // then
         assertFalse( reporter.hasErrors() );
@@ -111,7 +111,8 @@ class EnrollmentGeoValidationHookTest
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
-        assertThrows( NullPointerException.class, () -> this.hookToTest.validateEnrollment( reporter, enrollment ) );
+        assertThrows( NullPointerException.class,
+            () -> this.hookToTest.validateEnrollment( reporter, bundle, enrollment ) );
     }
 
     @Test
@@ -130,7 +131,7 @@ class EnrollmentGeoValidationHookTest
         Program program = new Program();
         when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM ) ) ).thenReturn( program );
 
-        this.hookToTest.validateEnrollment( reporter, enrollment );
+        this.hookToTest.validateEnrollment( reporter, bundle, enrollment );
 
         // then
         hasTrackerError( reporter, E1074, ENROLLMENT, enrollment.getUid() );
@@ -153,7 +154,7 @@ class EnrollmentGeoValidationHookTest
         program.setFeatureType( FeatureType.NONE );
         when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM ) ) ).thenReturn( program );
 
-        this.hookToTest.validateEnrollment( reporter, enrollment );
+        this.hookToTest.validateEnrollment( reporter, bundle, enrollment );
 
         // then
         hasTrackerError( reporter, E1012, ENROLLMENT, enrollment.getUid() );
@@ -176,7 +177,7 @@ class EnrollmentGeoValidationHookTest
         program.setFeatureType( FeatureType.MULTI_POLYGON );
         when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM ) ) ).thenReturn( program );
 
-        this.hookToTest.validateEnrollment( reporter, enrollment );
+        this.hookToTest.validateEnrollment( reporter, bundle, enrollment );
 
         // then
         hasTrackerError( reporter, E1012, ENROLLMENT, enrollment.getUid() );

@@ -77,7 +77,7 @@ public class PreCheckMetaValidationHook
     }
 
     @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
+    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
         OrganisationUnit organisationUnit = reporter.getBundle().getPreheat()
             .getOrganisationUnit( enrollment.getOrgUnit() );

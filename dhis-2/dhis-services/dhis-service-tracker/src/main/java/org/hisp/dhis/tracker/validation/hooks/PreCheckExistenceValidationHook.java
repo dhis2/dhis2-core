@@ -86,7 +86,7 @@ public class PreCheckExistenceValidationHook
     }
 
     @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
+    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
         TrackerImportStrategy importStrategy = reporter.getBundle().getStrategy( enrollment );
 

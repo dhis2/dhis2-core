@@ -147,7 +147,7 @@ class PreCheckUpdatableFieldsValidationHookTest
 
         // when
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEnrollment( reporter, enrollment );
+        validationHook.validateEnrollment( reporter, bundle, enrollment );
 
         // then
         assertFalse( reporter.hasErrors() );
@@ -161,7 +161,7 @@ class PreCheckUpdatableFieldsValidationHookTest
 
         // when
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEnrollment( reporter, enrollment );
+        validationHook.validateEnrollment( reporter, bundle, enrollment );
 
         // then
         hasTrackerError( reporter, E1127, ENROLLMENT, enrollment.getUid() );
@@ -177,7 +177,7 @@ class PreCheckUpdatableFieldsValidationHookTest
 
         // when
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEnrollment( reporter, enrollment );
+        validationHook.validateEnrollment( reporter, bundle, enrollment );
 
         // then
         hasTrackerError( reporter, E1127, ENROLLMENT, enrollment.getUid() );

@@ -40,6 +40,7 @@ import java.time.ZoneOffset;
 import java.util.Objects;
 
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.springframework.stereotype.Component;
@@ -52,7 +53,7 @@ public class EnrollmentDateValidationHook
     extends AbstractTrackerDtoValidationHook
 {
     @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
+    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
         validateMandatoryDates( reporter, enrollment );
 

@@ -67,7 +67,8 @@ public abstract class AbstractTrackerDtoValidationHook
         .<TrackerType, TriConsumer<ValidationErrorReporter, TrackerBundle, TrackerDto>> builder()
         .put( TrackerType.TRACKED_ENTITY,
             ( report, bundle, dto ) -> validateTrackedEntity( report, bundle, (TrackedEntity) dto ) )
-        .put( TrackerType.ENROLLMENT, ( report, bundle, dto ) -> validateEnrollment( report, (Enrollment) dto ) )
+        .put( TrackerType.ENROLLMENT,
+            ( report, bundle, dto ) -> validateEnrollment( report, bundle, (Enrollment) dto ) )
         .put( TrackerType.EVENT, ( report, bundle, dto ) -> validateEvent( report, bundle, (Event) dto ) )
         .put( TrackerType.RELATIONSHIP,
             ( report, bundle, dto ) -> validateRelationship( report, bundle, (Relationship) dto ) )
@@ -97,9 +98,10 @@ public abstract class AbstractTrackerDtoValidationHook
      * dtoTypeClass == null
      *
      * @param reporter ValidationErrorReporter instance
+     * @param bundle tracker bundle
      * @param enrollment entity to validate
      */
-    public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
+    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
     }
 

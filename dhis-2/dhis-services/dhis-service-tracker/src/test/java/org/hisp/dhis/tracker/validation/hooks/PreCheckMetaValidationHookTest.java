@@ -174,7 +174,7 @@ class PreCheckMetaValidationHookTest
         when( bundle.getTrackedEntityInstance( TRACKED_ENTITY_UID ) ).thenReturn( new TrackedEntityInstance() );
         when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_UID ) ) ).thenReturn( new Program() );
 
-        validatorToTest.validateEnrollment( reporter, enrollment );
+        validatorToTest.validateEnrollment( reporter, bundle, enrollment );
 
         // then
         assertFalse( reporter.hasErrors() );
@@ -195,7 +195,7 @@ class PreCheckMetaValidationHookTest
             .thenReturn( new OrganisationUnit() );
         when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_UID ) ) ).thenReturn( new Program() );
 
-        validatorToTest.validateEnrollment( reporter, enrollment );
+        validatorToTest.validateEnrollment( reporter, bundle, enrollment );
 
         // then
         assertFalse( reporter.hasErrors() );
@@ -213,7 +213,7 @@ class PreCheckMetaValidationHookTest
         when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_UID ) ) ).thenReturn( new Program() );
         when( bundle.getTrackedEntityInstance( TRACKED_ENTITY_UID ) ).thenReturn( new TrackedEntityInstance() );
 
-        validatorToTest.validateEnrollment( reporter, enrollment );
+        validatorToTest.validateEnrollment( reporter, bundle, enrollment );
 
         // then
         hasTrackerError( reporter, E1070, ENROLLMENT, enrollment.getUid() );
@@ -232,7 +232,7 @@ class PreCheckMetaValidationHookTest
             .thenReturn( new OrganisationUnit() );
         when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_UID ) ) ).thenReturn( new Program() );
 
-        validatorToTest.validateEnrollment( reporter, enrollment );
+        validatorToTest.validateEnrollment( reporter, bundle, enrollment );
 
         // then
         hasTrackerError( reporter, E1068, ENROLLMENT, enrollment.getUid() );
@@ -251,7 +251,7 @@ class PreCheckMetaValidationHookTest
             .thenReturn( new OrganisationUnit() );
         when( bundle.getTrackedEntityInstance( TRACKED_ENTITY_UID ) ).thenReturn( new TrackedEntityInstance() );
 
-        validatorToTest.validateEnrollment( reporter, enrollment );
+        validatorToTest.validateEnrollment( reporter, bundle, enrollment );
 
         // then
         hasTrackerError( reporter, E1069, ENROLLMENT, enrollment.getUid() );

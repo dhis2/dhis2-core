@@ -140,7 +140,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .trackedEntity( TEI_ID )
             .build();
 
-        hook.validateEnrollment( reporter, enrollment );
+        hook.validateEnrollment( reporter, bundle, enrollment );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -162,7 +162,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .program( MetadataIdentifier.ofUid( PROGRAM_UID ) )
             .build();
 
-        hook.validateEnrollment( reporter, enrollment );
+        hook.validateEnrollment( reporter, bundle, enrollment );
 
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1014 ) );
     }
@@ -186,7 +186,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
             .build();
 
-        hook.validateEnrollment( reporter, enrollment );
+        hook.validateEnrollment( reporter, bundle, enrollment );
 
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1041 ) );
     }
@@ -212,7 +212,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .trackedEntity( TEI_ID )
             .build();
 
-        hook.validateEnrollment( reporter, enrollment );
+        hook.validateEnrollment( reporter, bundle, enrollment );
 
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1022 ) );
     }
@@ -242,7 +242,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .trackedEntity( TEI_ID )
             .build();
 
-        hook.validateEnrollment( reporter, enrollment );
+        hook.validateEnrollment( reporter, bundle, enrollment );
 
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1022 ) );
     }

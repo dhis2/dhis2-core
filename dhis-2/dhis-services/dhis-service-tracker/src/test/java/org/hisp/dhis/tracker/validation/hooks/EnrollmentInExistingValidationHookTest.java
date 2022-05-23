@@ -117,7 +117,7 @@ class EnrollmentInExistingValidationHookTest
     void shouldExitCancelledStatus()
     {
         when( enrollment.getStatus() ).thenReturn( EnrollmentStatus.CANCELLED );
-        hookToTest.validateEnrollment( reporter, enrollment );
+        hookToTest.validateEnrollment( reporter, bundle, enrollment );
 
         verify( preheat, times( 0 ) ).getProgram( programUid );
     }
@@ -127,7 +127,7 @@ class EnrollmentInExistingValidationHookTest
     {
         when( enrollment.getProgram() ).thenReturn( null );
         assertThrows( NullPointerException.class,
-            () -> hookToTest.validateEnrollment( reporter, enrollment ) );
+            () -> hookToTest.validateEnrollment( reporter, bundle, enrollment ) );
     }
 
     @Test
@@ -138,7 +138,7 @@ class EnrollmentInExistingValidationHookTest
         when( preheat.getProgram( MetadataIdentifier.ofUid( programUid ) ) ).thenReturn( program );
         when( enrollment.getStatus() ).thenReturn( EnrollmentStatus.COMPLETED );
 
-        hookToTest.validateEnrollment( reporter, enrollment );
+        hookToTest.validateEnrollment( reporter, bundle, enrollment );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -153,7 +153,7 @@ class EnrollmentInExistingValidationHookTest
 
         when( enrollment.getTrackedEntity() ).thenReturn( null );
         assertThrows( NullPointerException.class,
-            () -> hookToTest.validateEnrollment( reporter, enrollment ) );
+            () -> hookToTest.validateEnrollment( reporter, bundle, enrollment ) );
     }
 
     @Test
@@ -164,7 +164,7 @@ class EnrollmentInExistingValidationHookTest
 
         when( preheat.getProgram( MetadataIdentifier.ofUid( programUid ) ) ).thenReturn( program );
 
-        hookToTest.validateEnrollment( reporter, enrollment );
+        hookToTest.validateEnrollment( reporter, bundle, enrollment );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -174,7 +174,7 @@ class EnrollmentInExistingValidationHookTest
     {
         setEnrollmentInPayload( EnrollmentStatus.ACTIVE );
 
-        hookToTest.validateEnrollment( reporter, enrollment );
+        hookToTest.validateEnrollment( reporter, bundle, enrollment );
 
         assertTrue( reporter.hasErrors() );
         assertEquals( 1, reporter.getReportList().size() );
@@ -192,7 +192,7 @@ class EnrollmentInExistingValidationHookTest
         when( preheat.getProgram( MetadataIdentifier.ofUid( programUid ) ) ).thenReturn( program );
         setEnrollmentInPayload( EnrollmentStatus.COMPLETED );
 
-        hookToTest.validateEnrollment( reporter, enrollment );
+        hookToTest.validateEnrollment( reporter, bundle, enrollment );
 
         assertTrue( reporter.hasErrors() );
         assertEquals( 1, reporter.getReportList().size() );
@@ -205,7 +205,7 @@ class EnrollmentInExistingValidationHookTest
     {
         setEnrollmentInPayload( EnrollmentStatus.COMPLETED );
 
-        hookToTest.validateEnrollment( reporter, enrollment );
+        hookToTest.validateEnrollment( reporter, bundle, enrollment );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -215,7 +215,7 @@ class EnrollmentInExistingValidationHookTest
     {
         setTeiInDb();
 
-        hookToTest.validateEnrollment( reporter, enrollment );
+        hookToTest.validateEnrollment( reporter, bundle, enrollment );
 
         assertTrue( reporter.hasErrors() );
         assertEquals( 1, reporter.getReportList().size() );
@@ -233,7 +233,7 @@ class EnrollmentInExistingValidationHookTest
         when( preheat.getProgram( MetadataIdentifier.ofUid( programUid ) ) ).thenReturn( program );
         setTeiInDb( ProgramStatus.COMPLETED );
 
-        hookToTest.validateEnrollment( reporter, enrollment );
+        hookToTest.validateEnrollment( reporter, bundle, enrollment );
 
         assertTrue( reporter.hasErrors() );
         assertEquals( 1, reporter.getReportList().size() );
@@ -245,7 +245,7 @@ class EnrollmentInExistingValidationHookTest
     {
         setTeiInDb( ProgramStatus.COMPLETED );
 
-        hookToTest.validateEnrollment( reporter, enrollment );
+        hookToTest.validateEnrollment( reporter, bundle, enrollment );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -261,7 +261,7 @@ class EnrollmentInExistingValidationHookTest
         setEnrollmentInPayload( EnrollmentStatus.COMPLETED );
         setTeiInDb();
 
-        hookToTest.validateEnrollment( reporter, enrollment );
+        hookToTest.validateEnrollment( reporter, bundle, enrollment );
 
         assertTrue( reporter.hasErrors() );
         assertEquals( 1, reporter.getReportList().size() );
@@ -279,7 +279,7 @@ class EnrollmentInExistingValidationHookTest
         setEnrollmentInPayload( EnrollmentStatus.COMPLETED );
         setTeiInDb();
 
-        hookToTest.validateEnrollment( reporter, enrollment );
+        hookToTest.validateEnrollment( reporter, bundle, enrollment );
 
         assertFalse( reporter.hasErrors() );
 
