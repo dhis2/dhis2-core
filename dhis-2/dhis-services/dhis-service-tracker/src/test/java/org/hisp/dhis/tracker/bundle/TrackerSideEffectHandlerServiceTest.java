@@ -64,7 +64,7 @@ class TrackerSideEffectHandlerServiceTest extends TrackerTest
         throws IOException
     {
         setUpMetadata( "tracker/tracker_metadata_with_program_rules.json" );
-        createAndInjectAdminUser();
+        injectAdminUser();
     }
 
     @Test

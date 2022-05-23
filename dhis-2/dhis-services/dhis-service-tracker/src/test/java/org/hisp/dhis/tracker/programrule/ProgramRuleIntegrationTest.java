@@ -28,23 +28,13 @@
 package org.hisp.dhis.tracker.programrule;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
-import org.hisp.dhis.TransactionalIntegrationTest;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
-import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
-import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -55,33 +45,22 @@ import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
-import org.hisp.dhis.render.RenderFormat;
-import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.tracker.report.TrackerWarningReport;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
 
-class ProgramRuleIntegrationTest extends TransactionalIntegrationTest
+class ProgramRuleIntegrationTest extends TrackerTest
 {
-
     @Autowired
     private TrackerImportService trackerImportService;
-
-    @Autowired
-    private RenderService _renderService;
-
-    @Autowired
-    private UserService _userService;
 
     @Autowired
     private ProgramRuleService programRuleService;
@@ -92,30 +71,11 @@ class ProgramRuleIntegrationTest extends TransactionalIntegrationTest
     @Autowired
     private ProgramRuleVariableService programRuleVariableService;
 
-    @Autowired
-    private ObjectBundleService objectBundleService;
-
-    @Autowired
-    private ObjectBundleValidationService objectBundleValidationService;
-
-    private User userA;
-
     @Override
-    public void setUpTest()
-        throws Exception
+    public void initTest()
+        throws IOException
     {
-        renderService = _renderService;
-        userService = _userService;
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "tracker/simple_metadata.json" ).getInputStream(), RenderFormat.JSON );
-        ObjectBundleParams params = new ObjectBundleParams();
-        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.CREATE );
-        params.setObjects( metadata );
-        ObjectBundle bundle = objectBundleService.create( params );
-        ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
-        assertFalse( validationReport.hasErrorReports() );
-        objectBundleService.commit( bundle );
+        ObjectBundle bundle = setUpMetadata( "tracker/simple_metadata.json" );
         Program program = bundle.getPreheat().get( PreheatIdentifier.UID, Program.class, "BFcipDERJnf" );
         Program programWithoutRegistration = bundle.getPreheat().get( PreheatIdentifier.UID, Program.class,
             "BFcipDERJne" );
@@ -153,8 +113,7 @@ class ProgramRuleIntegrationTest extends TransactionalIntegrationTest
         programRuleB.getProgramRuleActions().add( programRuleActionShowWarningForProgramStage );
         programRuleService.updateProgramRule( programRuleB );
 
-        userA = userService.getUser( "M5zQapPyTZI" );
-        injectSecurityContext( userA );
+        injectAdminUser();
     }
 
     @Test
@@ -183,7 +142,6 @@ class ProgramRuleIntegrationTest extends TransactionalIntegrationTest
         assertEquals( TrackerStatus.OK, trackerImportTeiReport.getStatus() );
 
         TrackerImportParams enrollmentParams = fromJson( "tracker/single_enrollment.json" );
-        enrollmentParams.setUserId( userA.getUid() );
 
         TrackerImportReport trackerImportEnrollmentReport = trackerImportService.importTracker( enrollmentParams );
 
@@ -237,14 +195,5 @@ class ProgramRuleIntegrationTest extends TransactionalIntegrationTest
         assertEquals(
             "Generated by program rule (`ProgramRule`) - DataElement `DATAEL00001` is being replaced in event `EVENT123456`",
             warningReports.get( 0 ).getWarningMessage() );
-    }
-
-    protected TrackerImportParams fromJson( String path )
-        throws IOException
-    {
-        TrackerImportParams params = renderService.fromJson( new ClassPathResource( path ).getInputStream(),
-            TrackerImportParams.class );
-        params.setUserId( userA.getUid() );
-        return params;
     }
 }

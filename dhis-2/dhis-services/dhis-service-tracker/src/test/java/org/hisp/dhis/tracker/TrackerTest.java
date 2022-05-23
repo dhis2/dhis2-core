@@ -63,7 +63,6 @@ import org.springframework.core.io.ClassPathResource;
 @Slf4j
 public abstract class TrackerTest extends TransactionalIntegrationTest
 {
-
     @Autowired
     protected IdentifiableObjectManager manager;
 
