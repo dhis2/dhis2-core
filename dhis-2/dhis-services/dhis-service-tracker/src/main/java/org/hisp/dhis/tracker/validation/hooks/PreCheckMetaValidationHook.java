@@ -83,7 +83,7 @@ public class PreCheckMetaValidationHook
         reporter.addErrorIfNull( organisationUnit, enrollment, E1070, enrollment.getOrgUnit() );
 
         Program program = reporter.getBundle().getPreheat().getProgram( enrollment.getProgram() );
-        reporter.addErrorIfNull( program, enrollment, E1069, enrollment.getProgram().getIdentifierOrAttributeValue() );
+        reporter.addErrorIfNull( program, enrollment, E1069, enrollment.getProgram() );
 
         reporter.addErrorIf( () -> !trackedEntityInstanceExist( reporter.getBundle(), enrollment.getTrackedEntity() ),
             enrollment,
@@ -97,8 +97,7 @@ public class PreCheckMetaValidationHook
         reporter.addErrorIfNull( organisationUnit, event, E1011, event.getOrgUnit() );
 
         Program program = reporter.getBundle().getPreheat().getProgram( event.getProgram() );
-        reporter.addErrorIfNull( program, event, E1010,
-            event.getProgram().getIdentifierOrAttributeValue() );
+        reporter.addErrorIfNull( program, event, E1010, event.getProgram() );
 
         ProgramStage programStage = reporter.getBundle().getPreheat().getProgramStage( event.getProgramStage() );
         reporter.addErrorIfNull( programStage, event, E1013, event.getProgramStage() );

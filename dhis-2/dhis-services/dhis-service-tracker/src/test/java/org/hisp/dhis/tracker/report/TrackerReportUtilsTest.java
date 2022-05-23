@@ -38,6 +38,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -76,5 +77,13 @@ class TrackerReportUtilsTest
     {
         List<String> args = TrackerReportUtils.buildArgumentList( bundle, Arrays.asList( "foo", "faa" ) );
         assertThat( args, contains( "foo", "faa" ) );
+    }
+
+    @Test
+    void buildArgumentListShouldTurnMetadataIdentifierIntoArguments()
+    {
+        List<String> args = TrackerReportUtils.buildArgumentList( bundle, Arrays.asList(
+            MetadataIdentifier.ofUid( "iB8AZpf681V" ), MetadataIdentifier.ofAttribute( "zwccdzhk5zc", "GREEN" ) ) );
+        assertThat( args, contains( "iB8AZpf681V", "GREEN" ) );
     }
 }
