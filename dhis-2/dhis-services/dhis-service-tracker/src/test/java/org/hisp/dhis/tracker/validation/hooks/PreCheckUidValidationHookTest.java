@@ -179,7 +179,7 @@ class PreCheckUidValidationHookTest
         // given
         Relationship relationship = Relationship.builder().relationship( CodeGenerator.generateUid() ).build();
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateRelationship( reporter, relationship );
+        validationHook.validateRelationship( reporter, bundle, relationship );
         // then
         assertFalse( reporter.hasErrors() );
     }
@@ -190,7 +190,7 @@ class PreCheckUidValidationHookTest
         // given
         Relationship relationship = Relationship.builder().relationship( INVALID_UID ).build();
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateRelationship( reporter, relationship );
+        validationHook.validateRelationship( reporter, bundle, relationship );
         // then
         hasTrackerError( reporter, E1048, RELATIONSHIP, relationship.getUid() );
     }

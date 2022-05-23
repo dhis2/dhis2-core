@@ -101,7 +101,8 @@ public class PreCheckUpdatableFieldsValidationHook
     }
 
     @Override
-    public void validateRelationship( ValidationErrorReporter reporter, Relationship relationship )
+    public void validateRelationship( ValidationErrorReporter reporter, TrackerBundle bundle,
+        Relationship relationship )
     {
         // Nothing to do
     }

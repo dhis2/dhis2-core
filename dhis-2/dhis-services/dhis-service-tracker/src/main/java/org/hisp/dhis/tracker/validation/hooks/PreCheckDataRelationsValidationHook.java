@@ -454,7 +454,8 @@ public class PreCheckDataRelationsValidationHook
     }
 
     @Override
-    public void validateRelationship( ValidationErrorReporter reporter, Relationship relationship )
+    public void validateRelationship( ValidationErrorReporter reporter, TrackerBundle bundle,
+        Relationship relationship )
     {
         validateRelationshipReference( reporter, relationship, relationship.getFrom() );
         validateRelationshipReference( reporter, relationship, relationship.getTo() );

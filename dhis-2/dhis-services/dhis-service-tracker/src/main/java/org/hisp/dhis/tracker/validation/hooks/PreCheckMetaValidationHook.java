@@ -105,7 +105,8 @@ public class PreCheckMetaValidationHook
     }
 
     @Override
-    public void validateRelationship( ValidationErrorReporter reporter, Relationship relationship )
+    public void validateRelationship( ValidationErrorReporter reporter, TrackerBundle bundle,
+        Relationship relationship )
     {
         TrackerPreheat preheat = reporter.getBundle().getPreheat();
         RelationshipType relationshipType = preheat.getRelationshipType( relationship.getRelationshipType() );

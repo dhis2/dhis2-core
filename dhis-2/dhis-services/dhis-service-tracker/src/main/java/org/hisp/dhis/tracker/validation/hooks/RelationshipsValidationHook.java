@@ -67,10 +67,9 @@ public class RelationshipsValidationHook
 {
 
     @Override
-    public void validateRelationship( ValidationErrorReporter reporter, Relationship relationship )
+    public void validateRelationship( ValidationErrorReporter reporter, TrackerBundle bundle,
+        Relationship relationship )
     {
-        TrackerBundle bundle = reporter.getBundle();
-
         boolean isValid = validateMandatoryData( reporter, relationship,
             bundle.getPreheat().getAll( RelationshipType.class ) );
 

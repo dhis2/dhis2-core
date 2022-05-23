@@ -396,7 +396,7 @@ class PreCheckExistenceValidationHookTest
         when( bundle.getStrategy( rel ) ).thenReturn( TrackerImportStrategy.CREATE );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateRelationship( reporter, rel );
+        validationHook.validateRelationship( reporter, bundle, rel );
 
         assertFalse( reporter.hasErrors() );
         assertThat( reporter.getWarningsReportList(), empty() );
@@ -411,7 +411,7 @@ class PreCheckExistenceValidationHookTest
         when( bundle.getRelationship( RELATIONSHIP_UID ) ).thenReturn( getRelationship() );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateRelationship( reporter, rel );
+        validationHook.validateRelationship( reporter, bundle, rel );
 
         assertFalse( reporter.hasErrors() );
         assertTrue( reporter.hasWarningReport( r -> E4015.equals( r.getWarningCode() ) &&
@@ -428,7 +428,7 @@ class PreCheckExistenceValidationHookTest
         when( bundle.getRelationship( RELATIONSHIP_UID ) ).thenReturn( getRelationship() );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateRelationship( reporter, rel );
+        validationHook.validateRelationship( reporter, bundle, rel );
 
         hasTrackerError( reporter, E4015, RELATIONSHIP, rel.getUid() );
     }
@@ -443,7 +443,7 @@ class PreCheckExistenceValidationHookTest
         when( bundle.getStrategy( rel ) ).thenReturn( TrackerImportStrategy.DELETE );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateRelationship( reporter, rel );
+        validationHook.validateRelationship( reporter, bundle, rel );
 
         hasTrackerError( reporter, E4016, RELATIONSHIP, rel.getUid() );
     }
@@ -457,7 +457,7 @@ class PreCheckExistenceValidationHookTest
 
         when( bundle.getRelationship( SOFT_DELETED_RELATIONSHIP_UID ) ).thenReturn( softDeletedRelationship() );
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateRelationship( reporter, rel );
+        validationHook.validateRelationship( reporter, bundle, rel );
 
         hasTrackerError( reporter, E4017, RELATIONSHIP, rel.getUid() );
     }

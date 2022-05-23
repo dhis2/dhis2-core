@@ -69,7 +69,8 @@ public abstract class AbstractTrackerDtoValidationHook
             ( report, bundle, dto ) -> validateTrackedEntity( report, bundle, (TrackedEntity) dto ) )
         .put( TrackerType.ENROLLMENT, ( report, bundle, dto ) -> validateEnrollment( report, (Enrollment) dto ) )
         .put( TrackerType.EVENT, ( report, bundle, dto ) -> validateEvent( report, bundle, (Event) dto ) )
-        .put( TrackerType.RELATIONSHIP, ( report, bundle, dto ) -> validateRelationship( report, (Relationship) dto ) )
+        .put( TrackerType.RELATIONSHIP,
+            ( report, bundle, dto ) -> validateRelationship( report, bundle, (Relationship) dto ) )
         .build();
 
     /**
@@ -107,9 +108,11 @@ public abstract class AbstractTrackerDtoValidationHook
      * dtoTypeClass == null
      *
      * @param reporter ValidationErrorReporter instance
+     * @param bundle tracker bundle
      * @param relationship entity to validate
      */
-    public void validateRelationship( ValidationErrorReporter reporter, Relationship relationship )
+    public void validateRelationship( ValidationErrorReporter reporter, TrackerBundle bundle,
+        Relationship relationship )
     {
     }
 

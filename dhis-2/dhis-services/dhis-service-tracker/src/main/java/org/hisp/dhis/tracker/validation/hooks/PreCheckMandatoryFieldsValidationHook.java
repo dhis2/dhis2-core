@@ -99,7 +99,8 @@ public class PreCheckMandatoryFieldsValidationHook
     }
 
     @Override
-    public void validateRelationship( ValidationErrorReporter reporter, Relationship relationship )
+    public void validateRelationship( ValidationErrorReporter reporter, TrackerBundle bundle,
+        Relationship relationship )
     {
         reporter.addErrorIfNull( relationship.getFrom(), relationship, E1124, "from" );
         reporter.addErrorIfNull( relationship.getTo(), relationship, E1124, "to" );

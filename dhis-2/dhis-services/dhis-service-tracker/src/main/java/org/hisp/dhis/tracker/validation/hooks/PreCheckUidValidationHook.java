@@ -73,7 +73,8 @@ public class PreCheckUidValidationHook
     }
 
     @Override
-    public void validateRelationship( ValidationErrorReporter reporter, Relationship relationship )
+    public void validateRelationship( ValidationErrorReporter reporter, TrackerBundle bundle,
+        Relationship relationship )
     {
         checkUidFormat( relationship.getRelationship(), reporter, relationship, relationship,
             relationship.getRelationship() );

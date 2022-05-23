@@ -134,7 +134,8 @@ public class PreCheckExistenceValidationHook
     }
 
     @Override
-    public void validateRelationship( ValidationErrorReporter reporter, Relationship relationship )
+    public void validateRelationship( ValidationErrorReporter reporter, TrackerBundle bundle,
+        Relationship relationship )
     {
 
         org.hisp.dhis.relationship.Relationship existingRelationship = reporter.getBundle()

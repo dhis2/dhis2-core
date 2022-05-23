@@ -348,7 +348,7 @@ class PreCheckMetaValidationHookTest
         when( preheat.getRelationshipType( MetadataIdentifier.ofUid( RELATIONSHIP_TYPE_UID ) ) )
             .thenReturn( new RelationshipType() );
 
-        validatorToTest.validateRelationship( reporter, relationship );
+        validatorToTest.validateRelationship( reporter, bundle, relationship );
 
         // then
         assertFalse( reporter.hasErrors() );
@@ -363,7 +363,7 @@ class PreCheckMetaValidationHookTest
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         // when
-        validatorToTest.validateRelationship( reporter, relationship );
+        validatorToTest.validateRelationship( reporter, bundle, relationship );
 
         // then
         hasTrackerError( reporter, E4006, RELATIONSHIP, relationship.getUid() );

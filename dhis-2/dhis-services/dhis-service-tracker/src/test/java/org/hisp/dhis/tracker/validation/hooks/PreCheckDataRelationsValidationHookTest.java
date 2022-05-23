@@ -928,7 +928,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .relationshipType( MetadataIdentifier.ofUid( relType.getUid() ) )
             .build();
 
-        hook.validateRelationship( reporter, relationship );
+        hook.validateRelationship( reporter, bundle, relationship );
 
         assertTrue( reporter.hasErrors() );
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E4012 ) );
@@ -962,7 +962,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .relationshipType( MetadataIdentifier.ofUid( relType.getUid() ) )
             .build();
 
-        hook.validateRelationship( reporter, relationship );
+        hook.validateRelationship( reporter, bundle, relationship );
 
         assertFalse( reporter.hasErrors() );
     }

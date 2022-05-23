@@ -314,7 +314,8 @@ public class PreCheckSecurityOwnershipValidationHook
     }
 
     @Override
-    public void validateRelationship( ValidationErrorReporter reporter, Relationship relationship )
+    public void validateRelationship( ValidationErrorReporter reporter, TrackerBundle bundle,
+        Relationship relationship )
     {
         // NOTHING TO DO HERE
     }
