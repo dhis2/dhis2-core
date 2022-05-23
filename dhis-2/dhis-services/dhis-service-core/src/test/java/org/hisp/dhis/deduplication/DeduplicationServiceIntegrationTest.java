@@ -141,12 +141,16 @@ public class DeduplicationServiceIntegrationTest
         throws PotentialDuplicateConflictException
     {
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
-        potentialDuplicate.setStatus( DeduplicationStatus.INVALID );
         deduplicationService.addPotentialDuplicate( potentialDuplicate );
 
         PotentialDuplicate potentialDuplicate1 = new PotentialDuplicate( teiC, teiB );
-        potentialDuplicate1.setStatus( DeduplicationStatus.MERGED );
         deduplicationService.addPotentialDuplicate( potentialDuplicate1 );
+
+        potentialDuplicate.setStatus( DeduplicationStatus.INVALID );
+        deduplicationService.updatePotentialDuplicate( potentialDuplicate );
+
+        potentialDuplicate1.setStatus( DeduplicationStatus.MERGED );
+        deduplicationService.updatePotentialDuplicate( potentialDuplicate1 );
 
         PotentialDuplicateQuery potentialDuplicateQuery = new PotentialDuplicateQuery();
         potentialDuplicateQuery.setTeis( Collections.singletonList( teiB ) );
