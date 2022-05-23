@@ -30,10 +30,19 @@ package org.hisp.dhis.dxf2.geojson;
 import java.io.InputStream;
 
 /**
+ * Service for handling import/export of GeoJSON.
  *
  * @author Jan Bernitt
  */
 public interface GeoJsonService
 {
+    /**
+     * Imports the data provided as {@link InputStream}.
+     *
+     * @param params on how to process and match the data to organisation units
+     * @param geoJsonData expected to be a GeoJSON feature-collection root
+     *        object
+     * @return a report with statistics and conflicts
+     */
     GeoJsonImportReport importGeoData( GeoJsonImportParams params, InputStream geoJsonData );
 }

@@ -78,6 +78,8 @@ class ReportSummaryDeleteIntegrationTest extends TrackerTest
         assertEquals( 6, manager.getAll( ProgramInstance.class ).size() );
         assertEquals( bundleReport.getTypeReportMap().get( TrackerType.EVENT ).getStats().getCreated(),
             manager.getAll( ProgramStageInstance.class ).size() );
+
+        dbmsManager.clearSession();
     }
 
     @Test
