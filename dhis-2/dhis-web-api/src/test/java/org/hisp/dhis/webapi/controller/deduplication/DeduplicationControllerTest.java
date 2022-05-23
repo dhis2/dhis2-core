@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -115,15 +114,15 @@ class DeduplicationControllerTest
     void setUpTest()
     {
         when( currentUserService.getCurrentUser() ).thenReturn( user );
-        lenient().when( trackedEntityInstanceA.getUid() ).thenReturn( teiA );
-        lenient().when( trackedEntityInstanceB.getUid() ).thenReturn( teiB );
-        lenient().when( trackedEntityInstanceService.getTrackedEntityInstance( teiA ) )
+        when( trackedEntityInstanceA.getUid() ).thenReturn( teiA );
+        when( trackedEntityInstanceB.getUid() ).thenReturn( teiB );
+        when( trackedEntityInstanceService.getTrackedEntityInstance( teiA ) )
             .thenReturn( trackedEntityInstanceA );
-        lenient().when( trackedEntityInstanceService.getTrackedEntityInstance( teiB ) )
+        when( trackedEntityInstanceService.getTrackedEntityInstance( teiB ) )
             .thenReturn( trackedEntityInstanceB );
-        lenient().when( trackerAccessManager.canRead( any(), eq( trackedEntityInstanceA ) ) )
+        when( trackerAccessManager.canRead( any(), eq( trackedEntityInstanceA ) ) )
             .thenReturn( Lists.newArrayList() );
-        lenient().when( trackerAccessManager.canRead( any(), eq( trackedEntityInstanceB ) ) )
+        when( trackerAccessManager.canRead( any(), eq( trackedEntityInstanceB ) ) )
             .thenReturn( Lists.newArrayList() );
     }
 
