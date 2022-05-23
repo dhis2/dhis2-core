@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.relationship.hibernate;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
@@ -40,6 +41,7 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Subquery;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
@@ -272,6 +274,11 @@ public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<R
     @Override
     public List<String> getUidsByRelationshipKeys( List<String> relationshipKeyList )
     {
+        if ( CollectionUtils.isEmpty( relationshipKeyList ) )
+        {
+            return Collections.emptyList();
+        }
+
         List<Object> c = getSession().createNativeQuery( new StringBuilder().append( "SELECT R.uid " )
             .append( "FROM relationship R " )
             .append( "INNER JOIN relationshiptype RT ON RT.relationshiptypeid = R.relationshiptypeid " )

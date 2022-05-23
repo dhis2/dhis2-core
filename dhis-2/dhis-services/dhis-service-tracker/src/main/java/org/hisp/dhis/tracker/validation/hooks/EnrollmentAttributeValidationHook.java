@@ -132,14 +132,12 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
         if ( optionalTrackedAttr.isPresent() )
         {
             reporter.addErrorIfNull( attribute.getValue(), enrollment, E1076,
-                TrackedEntityAttribute.class.getSimpleName(),
-                attribute.getAttribute().getIdentifierOrAttributeValue() );
+                TrackedEntityAttribute.class.getSimpleName(), attribute.getAttribute() );
         }
 
         TrackedEntityAttribute teAttribute = reporter.getBundle().getPreheat()
             .getTrackedEntityAttribute( attribute.getAttribute() );
-        reporter.addErrorIfNull( teAttribute, enrollment, E1006,
-            attribute.getAttribute().getIdentifierOrAttributeValue() );
+        reporter.addErrorIfNull( teAttribute, enrollment, E1006, attribute.getAttribute() );
     }
 
     private void validateMandatoryAttributes( ValidationErrorReporter reporter,
@@ -175,17 +173,14 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
             .map( Map.Entry::getKey )
             .forEach( mandatoryProgramAttribute -> reporter.addErrorIf(
                 () -> !mergedAttributes.contains( mandatoryProgramAttribute ),
-                enrollment, E1018,
-                mandatoryProgramAttribute.getIdentifierOrAttributeValue(), program.getUid(),
-                enrollment.getEnrollment() ) );
+                enrollment, E1018, mandatoryProgramAttribute, program.getUid(), enrollment.getEnrollment() ) );
 
         // enrollment must not contain any attribute which is not defined in
         // program
         enrollmentNonEmptyAttributes
             .forEach(
                 ( attrId, attrVal ) -> reporter.addErrorIf( () -> !programAttributesMap.containsKey( attrId ),
-                    enrollment, E1019,
-                    attrId.getIdentifierOrAttributeValue() + "=" + attrVal ) );
+                    enrollment, E1019, attrId.getIdentifierOrAttributeValue() + "=" + attrVal ) );
     }
 
     private Set<MetadataIdentifier> buildTeiAttributes( ValidationErrorReporter reporter,

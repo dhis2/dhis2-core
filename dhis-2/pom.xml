@@ -134,7 +134,7 @@
     <batik-transcoder.version>1.14</batik-transcoder.version>
     <fop.version>2.7</fop.version>
     <mapstruct.version>1.4.2.Final</mapstruct.version>
-    <geotools.version>26.4</geotools.version>
+    <geotools.version>27.0</geotools.version>
     <jts.version>1.18.2</jts.version>
 
     <!-- Apache Artemis -->
@@ -209,7 +209,7 @@
     <maven-enforcer-plugin.version>3.0.0</maven-enforcer-plugin.version>
     <maven-dependency-plugin.version>3.3.0</maven-dependency-plugin.version>
     <restrict-imports-enforcer.version>2.0.0</restrict-imports-enforcer.version>
-    <versions-maven-plugin.version>2.10.0</versions-maven-plugin.version>
+    <versions-maven-plugin.version>2.11.0</versions-maven-plugin.version>
     <dependency-check-maven.version>7.1.0</dependency-check-maven.version>
     <spotbugs-maven-plugin.version>4.6.0.0</spotbugs-maven-plugin.version>
     <speedy-spotless-maven-plugin.version>0.1.3</speedy-spotless-maven-plugin.version>
