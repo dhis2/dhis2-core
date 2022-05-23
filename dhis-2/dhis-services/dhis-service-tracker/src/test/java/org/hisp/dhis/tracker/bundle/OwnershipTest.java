@@ -234,7 +234,6 @@ class OwnershipTest extends TrackerTest
     void testCreateEnrollmentWithoutOwnership()
         throws IOException
     {
-        // dbmsManager.clearSession();
         injectSecurityContext( userService.getUser( nonSuperUser.getUid() ) );
         TrackerImportParams enrollmentParams = fromJson( "tracker/ownership_enrollment.json", nonSuperUser );
         List<ProgramInstance> pis = manager.getAll( ProgramInstance.class );

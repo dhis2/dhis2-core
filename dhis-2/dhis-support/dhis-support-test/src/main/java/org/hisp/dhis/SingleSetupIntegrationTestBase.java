@@ -30,6 +30,7 @@ package org.hisp.dhis;
 import org.hisp.dhis.config.IntegrationTestConfig;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.test.context.ActiveProfiles;
@@ -52,6 +53,13 @@ import org.springframework.transaction.annotation.Transactional;
 public abstract class SingleSetupIntegrationTestBase
     extends BaseSpringTest
 {
+    @BeforeEach
+    public final void beforeEach()
+        throws Exception
+    {
+        dbmsManager.clearSession();
+    }
+
     @BeforeAll
     public final void before()
         throws Exception
