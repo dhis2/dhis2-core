@@ -48,7 +48,6 @@ import org.hisp.dhis.rules.models.RuleEffects;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.AtomicMode;
 import org.hisp.dhis.tracker.FlushMode;
-import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.ValidationMode;
@@ -81,12 +80,6 @@ public class TrackerBundle
      */
     @Builder.Default
     private TrackerBundleMode importMode = TrackerBundleMode.COMMIT;
-
-    /**
-     * What identifiers to match on.
-     */
-    @Builder.Default
-    private TrackerIdScheme identifier = TrackerIdScheme.UID;
 
     /**
      * Sets import strategy (create, update, etc).
