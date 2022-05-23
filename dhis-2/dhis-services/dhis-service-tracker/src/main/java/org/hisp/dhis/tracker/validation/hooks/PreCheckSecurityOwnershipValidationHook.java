@@ -63,7 +63,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
-import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
@@ -72,7 +71,6 @@ import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
@@ -143,10 +141,10 @@ public class PreCheckSecurityOwnershipValidationHook
             }
         }
 
-        checkTeiTypeWriteAccess( reporter, trackedEntity.getUid(), trackedEntityType );
+        checkTeiTypeWriteAccess( reporter, trackedEntity, trackedEntityType );
     }
 
-    private void checkTeiTypeWriteAccess( ValidationErrorReporter reporter, String teUid,
+    private void checkTeiTypeWriteAccess( ValidationErrorReporter reporter, TrackedEntity trackedEntity,
         TrackedEntityType trackedEntityType )
     {
         TrackerBundle bundle = reporter.getBundle();
@@ -157,14 +155,7 @@ public class PreCheckSecurityOwnershipValidationHook
 
         if ( !aclService.canDataWrite( user, trackedEntityType ) )
         {
-            TrackerErrorReport error = TrackerErrorReport.builder()
-                .uid( teUid )
-                .trackerType( TrackerType.TRACKED_ENTITY )
-                .errorCode( TrackerErrorCode.E1001 )
-                .addArg( user )
-                .addArg( trackedEntityType )
-                .build( bundle.getPreheat().getIdSchemes() );
-            reporter.addError( error );
+            reporter.addError( trackedEntity, TrackerErrorCode.E1001, user, trackedEntityType );
         }
     }
 
