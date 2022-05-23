@@ -192,7 +192,7 @@ class PreCheckUpdatableFieldsValidationHookTest
 
         // when
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEvent( reporter, event );
+        validationHook.validateEvent( reporter, bundle, event );
 
         // then
         assertFalse( reporter.hasErrors() );
@@ -207,7 +207,7 @@ class PreCheckUpdatableFieldsValidationHookTest
 
         // when
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEvent( reporter, event );
+        validationHook.validateEvent( reporter, bundle, event );
 
         // then
         hasTrackerError( reporter, E1128, EVENT, event.getUid() );
@@ -223,7 +223,7 @@ class PreCheckUpdatableFieldsValidationHookTest
 
         // when
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEvent( reporter, event );
+        validationHook.validateEvent( reporter, bundle, event );
 
         // then
         hasTrackerError( reporter, E1128, EVENT, event.getUid() );

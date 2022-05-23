@@ -32,6 +32,7 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1120;
 
 import java.util.Optional;
 
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.springframework.stereotype.Component;
@@ -41,7 +42,7 @@ public class AssignedUserValidationHook
     extends AbstractTrackerDtoValidationHook
 {
     @Override
-    public void validateEvent( ValidationErrorReporter reporter, Event event )
+    public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
     {
         if ( event.getAssignedUser() != null && !event.getAssignedUser().isEmpty() )
         {

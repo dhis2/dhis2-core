@@ -145,7 +145,7 @@ class PreCheckUidValidationHookTest
         Note note = Note.builder().note( CodeGenerator.generateUid() ).build();
         Event event = Event.builder().event( CodeGenerator.generateUid() ).notes( Lists.newArrayList( note ) ).build();
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEvent( reporter, event );
+        validationHook.validateEvent( reporter, bundle, event );
         // then
         assertFalse( reporter.hasErrors() );
     }
@@ -156,7 +156,7 @@ class PreCheckUidValidationHookTest
         // given
         Event event = Event.builder().event( INVALID_UID ).build();
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEvent( reporter, event );
+        validationHook.validateEvent( reporter, bundle, event );
         // then
         hasTrackerError( reporter, E1048, EVENT, event.getUid() );
     }
@@ -168,7 +168,7 @@ class PreCheckUidValidationHookTest
         Note note = Note.builder().note( INVALID_UID ).build();
         Event event = Event.builder().event( CodeGenerator.generateUid() ).notes( Lists.newArrayList( note ) ).build();
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEvent( reporter, event );
+        validationHook.validateEvent( reporter, bundle, event );
         // then
         hasTrackerError( reporter, E1048, EVENT, event.getUid() );
     }

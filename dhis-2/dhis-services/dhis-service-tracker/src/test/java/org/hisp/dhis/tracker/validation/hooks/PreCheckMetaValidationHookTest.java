@@ -272,7 +272,7 @@ class PreCheckMetaValidationHookTest
         when( preheat.getProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_UID ) ) )
             .thenReturn( new ProgramStage() );
 
-        validatorToTest.validateEvent( reporter, event );
+        validatorToTest.validateEvent( reporter, bundle, event );
 
         // then
         assertFalse( reporter.hasErrors() );
@@ -292,7 +292,7 @@ class PreCheckMetaValidationHookTest
         when( preheat.getProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_UID ) ) )
             .thenReturn( new ProgramStage() );
 
-        validatorToTest.validateEvent( reporter, event );
+        validatorToTest.validateEvent( reporter, bundle, event );
 
         // then
         hasTrackerError( reporter, E1010, EVENT, event.getUid() );
@@ -311,7 +311,7 @@ class PreCheckMetaValidationHookTest
             .thenReturn( new OrganisationUnit() );
         when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_UID ) ) ).thenReturn( new Program() );
 
-        validatorToTest.validateEvent( reporter, event );
+        validatorToTest.validateEvent( reporter, bundle, event );
 
         // then
         hasTrackerError( reporter, E1013, EVENT, event.getUid() );
@@ -330,7 +330,7 @@ class PreCheckMetaValidationHookTest
         when( preheat.getProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_UID ) ) )
             .thenReturn( new ProgramStage() );
 
-        validatorToTest.validateEvent( reporter, event );
+        validatorToTest.validateEvent( reporter, bundle, event );
 
         // then
         hasTrackerError( reporter, E1011, EVENT, event.getUid() );

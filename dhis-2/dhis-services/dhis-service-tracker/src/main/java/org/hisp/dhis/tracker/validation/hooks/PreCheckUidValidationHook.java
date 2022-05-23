@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.validation.hooks;
 import java.util.List;
 
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Note;
@@ -63,7 +64,7 @@ public class PreCheckUidValidationHook
     }
 
     @Override
-    public void validateEvent( ValidationErrorReporter reporter, Event event )
+    public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
     {
         checkUidFormat( event.getEvent(), reporter, event, event, event.getEvent() );
 

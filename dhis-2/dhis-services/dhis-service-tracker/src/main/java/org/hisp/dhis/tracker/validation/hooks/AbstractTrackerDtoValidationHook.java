@@ -34,7 +34,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
@@ -58,18 +57,25 @@ import com.google.common.collect.ImmutableMap;
 public abstract class AbstractTrackerDtoValidationHook
     implements TrackerValidationHook
 {
-    private final Map<TrackerType, BiConsumer<ValidationErrorReporter, TrackerDto>> validationMap = ImmutableMap
-        .<TrackerType, BiConsumer<ValidationErrorReporter, TrackerDto>> builder()
-        .put( TrackerType.TRACKED_ENTITY, (( report, dto ) -> validateTrackedEntity( report, (TrackedEntity) dto )) )
-        .put( TrackerType.ENROLLMENT, (( report, dto ) -> validateEnrollment( report, (Enrollment) dto )) )
-        .put( TrackerType.EVENT, (( report, dto ) -> validateEvent( report, (Event) dto )) )
-        .put( TrackerType.RELATIONSHIP, (( report, dto ) -> validateRelationship( report, (Relationship) dto )) )
+    @FunctionalInterface
+    interface TriConsumer<A, B, C>
+    {
+        void accept( A a, B b, C c );
+    }
+
+    private final Map<TrackerType, TriConsumer<ValidationErrorReporter, TrackerBundle, TrackerDto>> validationMap = ImmutableMap
+        .<TrackerType, TriConsumer<ValidationErrorReporter, TrackerBundle, TrackerDto>> builder()
+        .put( TrackerType.TRACKED_ENTITY,
+            ( report, bundle, dto ) -> validateTrackedEntity( report, (TrackedEntity) dto ) )
+        .put( TrackerType.ENROLLMENT, ( report, bundle, dto ) -> validateEnrollment( report, (Enrollment) dto ) )
+        .put( TrackerType.EVENT, ( report, bundle, dto ) -> validateEvent( report, bundle, (Event) dto ) )
+        .put( TrackerType.RELATIONSHIP, ( report, bundle, dto ) -> validateRelationship( report, (Relationship) dto ) )
         .build();
 
     /**
      * This constructor is used by the PreCheck* hooks
      */
-    public AbstractTrackerDtoValidationHook()
+    protected AbstractTrackerDtoValidationHook()
     {
     }
 
@@ -78,9 +84,10 @@ public abstract class AbstractTrackerDtoValidationHook
      * dtoTypeClass == null
      *
      * @param reporter ValidationErrorReporter instance
+     * @param bundle tracker bundle
      * @param event entity to validate
      */
-    public void validateEvent( ValidationErrorReporter reporter, Event event )
+    public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
     {
     }
 
@@ -168,7 +175,7 @@ public abstract class AbstractTrackerDtoValidationHook
             TrackerDto dto = iter.next();
             if ( needsToRun( bundle.getStrategy( dto ) ) )
             {
-                validationMap.get( dto.getTrackerType() ).accept( reporter, dto );
+                validationMap.get( dto.getTrackerType() ).accept( reporter, bundle, dto );
                 if ( removeOnError() && didNotPassValidation( reporter, dto.getUid() ) )
                 {
                     iter.remove();

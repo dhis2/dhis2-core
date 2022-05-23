@@ -120,7 +120,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         // when
-        this.hookToTest.validateEvent( reporter, event );
+        this.hookToTest.validateEvent( reporter, bundle, event );
 
         // then
         assertFalse( reporter.hasErrors() );
@@ -137,7 +137,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         // when
-        this.hookToTest.validateEvent( reporter, event );
+        this.hookToTest.validateEvent( reporter, bundle, event );
 
         // then
         hasTrackerError( reporter, E1031, EVENT, event.getUid() );
@@ -155,7 +155,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         // when
-        this.hookToTest.validateEvent( reporter, event );
+        this.hookToTest.validateEvent( reporter, bundle, event );
 
         // then
         hasTrackerError( reporter, E1031, EVENT, event.getUid() );
@@ -173,7 +173,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         // when
-        this.hookToTest.validateEvent( reporter, event );
+        this.hookToTest.validateEvent( reporter, bundle, event );
 
         // then
         hasTrackerError( reporter, E1031, EVENT, event.getUid() );
@@ -192,7 +192,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         // when
-        this.hookToTest.validateEvent( reporter, event );
+        this.hookToTest.validateEvent( reporter, bundle, event );
 
         // then
         hasTrackerError( reporter, E1050, EVENT, event.getUid() );
@@ -211,7 +211,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         // when
-        this.hookToTest.validateEvent( reporter, event );
+        this.hookToTest.validateEvent( reporter, bundle, event );
 
         // then
         hasTrackerError( reporter, E1042, EVENT, event.getUid() );
@@ -231,7 +231,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         // when
-        this.hookToTest.validateEvent( reporter, event );
+        this.hookToTest.validateEvent( reporter, bundle, event );
 
         // then
         hasTrackerError( reporter, E1043, EVENT, event.getUid() );
@@ -251,7 +251,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         // when
-        this.hookToTest.validateEvent( reporter, event );
+        this.hookToTest.validateEvent( reporter, bundle, event );
 
         // then
         hasTrackerError( reporter, E1046, EVENT, event.getUid() );
@@ -270,7 +270,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         // when
-        this.hookToTest.validateEvent( reporter, event );
+        this.hookToTest.validateEvent( reporter, bundle, event );
 
         // then
         hasTrackerError( reporter, E1047, EVENT, event.getUid() );

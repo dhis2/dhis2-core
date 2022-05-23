@@ -246,10 +246,9 @@ public class PreCheckSecurityOwnershipValidationHook
     }
 
     @Override
-    public void validateEvent( ValidationErrorReporter reporter, Event event )
+    public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
     {
         TrackerImportStrategy strategy = reporter.getBundle().getStrategy( event );
-        TrackerBundle bundle = reporter.getBundle();
         TrackerPreheat preheat = bundle.getPreheat();
         User user = bundle.getUser();
 

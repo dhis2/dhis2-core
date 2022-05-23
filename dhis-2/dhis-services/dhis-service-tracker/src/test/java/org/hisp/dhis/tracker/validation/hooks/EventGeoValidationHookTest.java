@@ -97,7 +97,7 @@ class EventGeoValidationHookTest
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         // when
-        this.hookToTest.validateEvent( reporter, event );
+        this.hookToTest.validateEvent( reporter, bundle, event );
 
         // then
         assertFalse( reporter.hasErrors() );
@@ -114,7 +114,7 @@ class EventGeoValidationHookTest
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         // when
-        assertThrows( NullPointerException.class, () -> this.hookToTest.validateEvent( reporter, event ) );
+        assertThrows( NullPointerException.class, () -> this.hookToTest.validateEvent( reporter, bundle, event ) );
     }
 
     @Test
@@ -131,7 +131,7 @@ class EventGeoValidationHookTest
         // when
         when( preheat.getProgramStage( event.getProgramStage() ) ).thenReturn( new ProgramStage() );
 
-        this.hookToTest.validateEvent( reporter, event );
+        this.hookToTest.validateEvent( reporter, bundle, event );
 
         // then
         hasTrackerError( reporter, E1074, EVENT, event.getUid() );
@@ -153,7 +153,7 @@ class EventGeoValidationHookTest
         programStage.setFeatureType( NONE );
         when( preheat.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
 
-        this.hookToTest.validateEvent( reporter, event );
+        this.hookToTest.validateEvent( reporter, bundle, event );
 
         // then
         hasTrackerError( reporter, E1012, EVENT, event.getUid() );
@@ -175,7 +175,7 @@ class EventGeoValidationHookTest
         programStage.setFeatureType( MULTI_POLYGON );
         when( preheat.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
 
-        this.hookToTest.validateEvent( reporter, event );
+        this.hookToTest.validateEvent( reporter, bundle, event );
 
         // then
         hasTrackerError( reporter, E1012, EVENT, event.getUid() );

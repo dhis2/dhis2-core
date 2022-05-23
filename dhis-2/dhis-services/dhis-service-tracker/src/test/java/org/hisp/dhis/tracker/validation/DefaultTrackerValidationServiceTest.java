@@ -156,7 +156,7 @@ class DefaultTrackerValidationServiceTest
         }
 
         @Override
-        public void validateEvent( ValidationErrorReporter reporter, Event event )
+        public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
         {
             if ( this.validateEvent != null )
             {
