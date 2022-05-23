@@ -58,7 +58,9 @@ class TrackerReportUtilsTest
     void buildArgumentListShouldTurnInstantIntoArgument()
     {
         final Instant now = Instant.now();
+
         List<String> args = TrackerReportUtils.buildArgumentList( bundle, Arrays.asList( now ) );
+
         assertThat( args.size(), is( 1 ) );
         assertThat( args.get( 0 ), is( DateUtils.getIso8601NoTz( DateUtils.fromInstant( now ) ) ) );
     }
@@ -67,7 +69,9 @@ class TrackerReportUtilsTest
     void buildArgumentListShouldTurnDateIntoArgument()
     {
         final Date now = Date.from( Instant.now() );
+
         List<String> args = TrackerReportUtils.buildArgumentList( bundle, Arrays.asList( now ) );
+
         assertThat( args.size(), is( 1 ) );
         assertThat( args.get( 0 ), is( DateFormat.getInstance().format( now ) ) );
     }
@@ -76,6 +80,7 @@ class TrackerReportUtilsTest
     void buildArgumentListShouldTurnStringsIntoArguments()
     {
         List<String> args = TrackerReportUtils.buildArgumentList( bundle, Arrays.asList( "foo", "faa" ) );
+
         assertThat( args, contains( "foo", "faa" ) );
     }
 
@@ -84,6 +89,7 @@ class TrackerReportUtilsTest
     {
         List<String> args = TrackerReportUtils.buildArgumentList( bundle, Arrays.asList(
             MetadataIdentifier.ofUid( "iB8AZpf681V" ), MetadataIdentifier.ofAttribute( "zwccdzhk5zc", "GREEN" ) ) );
+
         assertThat( args, contains( "iB8AZpf681V", "GREEN" ) );
     }
 }
