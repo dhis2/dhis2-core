@@ -48,6 +48,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.Collections;
+import java.util.Date;
 
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.EventOutputType;
@@ -135,7 +136,8 @@ class QueryItemLocatorTest
     {
         String dimension = "dynamicDimension";
 
-        when( dataQueryService.getDimension( dimension, Collections.emptyList(), null, Collections.emptyList(), null,
+        when( dataQueryService.getDimension( dimension, Collections.emptyList(), (Date) null, Collections.emptyList(),
+            null,
             true, IdScheme.UID ) )
                 .thenReturn( new BaseDimensionalObject( dimension ) );
 
