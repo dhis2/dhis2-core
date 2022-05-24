@@ -35,10 +35,10 @@ import java.util.Arrays;
 import java.util.List;
 
 import lombok.Builder;
-import lombok.Data;
+import lombok.Value;
 
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -47,7 +47,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Data
+@Value
 @Builder
 public class TrackerErrorReport
 {
@@ -110,11 +110,11 @@ public class TrackerErrorReport
             return this;
         }
 
-        public TrackerErrorReport build( TrackerBundle bundle )
+        public TrackerErrorReport build( TrackerIdSchemeParams idSchemes )
         {
             return new TrackerErrorReport(
                 MessageFormat.format( errorCode.getMessage(),
-                    buildArgumentList( bundle, arguments ).toArray( new Object[0] ) ),
+                    buildArgumentList( idSchemes, arguments ).toArray( new Object[0] ) ),
                 this.errorCode, this.trackerType, this.uid );
         }
     }

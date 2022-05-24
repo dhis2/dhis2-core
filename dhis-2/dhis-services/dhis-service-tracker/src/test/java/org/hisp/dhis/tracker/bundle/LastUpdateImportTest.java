@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.tracker.bundle;
 
-import static org.hisp.dhis.tracker.validation.AbstractImportValidationTest.ADMIN_USER_UID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -49,14 +48,11 @@ import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
-import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 
 class LastUpdateImportTest extends TrackerTest
 {
-
     @Autowired
     private TrackerImportService trackerImportService;
 
@@ -66,21 +62,18 @@ class LastUpdateImportTest extends TrackerTest
     @Autowired
     private TrackedEntityInstanceService trackedEntityInstanceService;
 
-    private static User superuser;
-
-    private static TrackedEntity trackedEntity;
+    private TrackedEntity trackedEntity;
 
     @Override
-    @Transactional
     protected void initTest()
         throws IOException
     {
         setUpMetadata( "tracker/simple_metadata.json" );
-        superuser = userService.getUser( "M5zQapPyTZI" );
-        TrackerImportParams trackerImportParams = fromJson( "tracker/single_tei.json", superuser.getUid() );
+        injectAdminUser();
+        TrackerImportParams trackerImportParams = fromJson( "tracker/single_tei.json" );
         assertNoImportErrors( trackerImportService.importTracker( trackerImportParams ) );
         trackedEntity = trackerImportParams.getTrackedEntities().get( 0 );
-        TrackerImportParams enrollmentParams = fromJson( "tracker/single_enrollment.json", superuser.getUid() );
+        TrackerImportParams enrollmentParams = fromJson( "tracker/single_enrollment.json" );
         assertNoImportErrors( trackerImportService.importTracker( enrollmentParams ) );
         manager.flush();
     }
@@ -89,7 +82,7 @@ class LastUpdateImportTest extends TrackerTest
     void shouldUpdateTeiIfTeiIsUpdated()
         throws IOException
     {
-        TrackerImportParams trackerImportParams = fromJson( "tracker/single_tei.json", superuser.getUid() );
+        TrackerImportParams trackerImportParams = fromJson( "tracker/single_tei.json" );
         trackerImportParams.setImportStrategy( TrackerImportStrategy.UPDATE );
         Attribute attribute = Attribute.builder()
             .attribute( MetadataIdentifier.ofUid( "toUpdate000" ) )
@@ -107,8 +100,7 @@ class LastUpdateImportTest extends TrackerTest
     void shouldUpdateTeiIfEventIsUpdated()
         throws IOException
     {
-        TrackerImportParams trackerImportParams = fromJson( "tracker/event_with_data_values.json",
-            userService.getUser( ADMIN_USER_UID ) );
+        TrackerImportParams trackerImportParams = fromJson( "tracker/event_with_data_values.json" );
         Date lastUpdateBefore = trackedEntityInstanceService
             .getTrackedEntityInstance( trackedEntity.getTrackedEntity() ).getLastUpdated();
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
@@ -126,7 +118,7 @@ class LastUpdateImportTest extends TrackerTest
     void shouldUpdateTeiIfEnrollmentIsUpdated()
         throws IOException
     {
-        TrackerImportParams trackerImportParams = fromJson( "tracker/single_enrollment.json", superuser.getUid() );
+        TrackerImportParams trackerImportParams = fromJson( "tracker/single_enrollment.json" );
         Date lastUpdateBefore = trackedEntityInstanceService
             .getTrackedEntityInstance( trackedEntity.getTrackedEntity() ).getLastUpdated();
         Enrollment enrollment = trackerImportParams.getEnrollments().get( 0 );

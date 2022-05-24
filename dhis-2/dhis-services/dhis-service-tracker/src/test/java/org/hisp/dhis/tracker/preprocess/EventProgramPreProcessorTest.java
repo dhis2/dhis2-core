@@ -131,8 +131,8 @@ class EventProgramPreProcessorTest
 
         preprocessor.process( bundle );
 
-        verify( preheat, never() ).get( Program.class, PROGRAM_WITH_REGISTRATION );
-        verify( preheat, never() ).get( ProgramStage.class, PROGRAM_STAGE_WITH_REGISTRATION );
+        verify( preheat, never() ).getProgram( PROGRAM_WITH_REGISTRATION );
+        verify( preheat, never() ).getProgramStage( PROGRAM_STAGE_WITH_REGISTRATION );
         assertEquals( MetadataIdentifier.ofUid( PROGRAM_WITH_REGISTRATION ),
             bundle.getEvents().get( 0 ).getProgram() );
         assertEquals( MetadataIdentifier.ofUid( PROGRAM_STAGE_WITH_REGISTRATION ),
@@ -144,7 +144,7 @@ class EventProgramPreProcessorTest
     {
         ProgramStage programStage = new ProgramStage();
         programStage.setUid( "LGSWs20XFvy" );
-        when( preheat.get( ProgramStage.class, "LGSWs20XFvy" ) ).thenReturn( programStage );
+        when( preheat.getProgramStage( "LGSWs20XFvy" ) ).thenReturn( programStage );
 
         Event event = Event.builder()
             .program( MetadataIdentifier.EMPTY_UID )
@@ -209,8 +209,8 @@ class EventProgramPreProcessorTest
 
         preprocessor.process( bundle );
 
-        verify( preheat, never() ).get( Program.class, PROGRAM_WITHOUT_REGISTRATION );
-        verify( preheat, never() ).get( ProgramStage.class, PROGRAM_STAGE_WITHOUT_REGISTRATION );
+        verify( preheat, never() ).getProgram( PROGRAM_WITHOUT_REGISTRATION );
+        verify( preheat, never() ).getProgramStage( PROGRAM_STAGE_WITHOUT_REGISTRATION );
         assertEquals( MetadataIdentifier.ofUid( PROGRAM_WITHOUT_REGISTRATION ),
             bundle.getEvents().get( 0 ).getProgram() );
         assertEquals( MetadataIdentifier.ofUid( PROGRAM_STAGE_WITHOUT_REGISTRATION ),

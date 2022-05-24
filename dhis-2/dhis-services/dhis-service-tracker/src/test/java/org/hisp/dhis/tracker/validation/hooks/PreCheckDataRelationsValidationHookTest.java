@@ -58,6 +58,7 @@ import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
@@ -114,6 +115,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         hook = new PreCheckDataRelationsValidationHook();
 
         bundle = TrackerBundle.builder().preheat( preheat ).build();
+        when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
         reporter = new ValidationErrorReporter( bundle );
     }
 

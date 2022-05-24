@@ -31,34 +31,21 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasProperty;
+import static org.hisp.dhis.tracker.validation.Users.USER_2;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.io.IOException;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
 
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
-import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitReport;
-import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
-import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.render.RenderFormat;
-import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -66,40 +53,26 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
 
 import com.google.common.collect.Sets;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-class EnrollmentSecurityImportValidationTest extends AbstractImportValidationTest
+class EnrollmentSecurityImportValidationTest extends TrackerTest
 {
-
     @Autowired
     protected TrackedEntityInstanceService trackedEntityInstanceService;
 
     @Autowired
-    private ObjectBundleService objectBundleService;
-
-    @Autowired
     private TrackerImportService trackerImportService;
-
-    @Autowired
-    private ObjectBundleValidationService objectBundleValidationService;
-
-    @Autowired
-    private RenderService _renderService;
-
-    @Autowired
-    private UserService _userService;
 
     @Autowired
     private IdentifiableObjectManager manager;
@@ -134,7 +107,7 @@ class EnrollmentSecurityImportValidationTest extends AbstractImportValidationTes
 
     private TrackedEntityType trackedEntityType;
 
-    private void setupMetadata()
+    private void setup()
     {
         organisationUnitA = createOrganisationUnit( 'A' );
         organisationUnitB = createOrganisationUnit( 'B' );
@@ -192,27 +165,12 @@ class EnrollmentSecurityImportValidationTest extends AbstractImportValidationTes
     }
 
     @Override
-    protected void setUpTest()
+    protected void initTest()
         throws IOException
     {
-        renderService = _renderService;
-        userService = _userService;
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "tracker/tracker_basic_metadata.json" ).getInputStream(), RenderFormat.JSON );
-        ObjectBundleParams params = new ObjectBundleParams();
-        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.CREATE );
-        params.setObjects( metadata );
-        ObjectBundle bundle = objectBundleService.create( params );
-        ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
-        assertFalse( validationReport.hasErrorReports() );
-        ObjectBundleCommitReport commit = objectBundleService.commit( bundle );
-        assertFalse( commit.hasErrorReports() );
-        TrackerImportParams trackerBundleParams = createBundleFromJson(
-            "tracker/validations/enrollments_te_te-data.json" );
-        User user = userService.getUser( ADMIN_USER_UID );
-        trackerBundleParams.setUserId( user.getUid() );
-        injectSecurityContext( user );
+        setUpMetadata( "tracker/tracker_basic_metadata.json" );
+        injectAdminUser();
+        TrackerImportParams trackerBundleParams = fromJson( "tracker/validations/enrollments_te_te-data.json" );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
         assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
         assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
@@ -222,7 +180,7 @@ class EnrollmentSecurityImportValidationTest extends AbstractImportValidationTes
     void testNoWriteAccessToOrg()
         throws IOException
     {
-        TrackerImportParams params = createBundleFromJson( "tracker/validations/enrollments_te_enrollments-data.json" );
+        TrackerImportParams params = fromJson( "tracker/validations/enrollments_te_enrollments-data.json" );
         User user = userService.getUser( USER_2 );
         injectSecurityContext( user );
         params.setUser( user );
@@ -239,7 +197,7 @@ class EnrollmentSecurityImportValidationTest extends AbstractImportValidationTes
     {
         clearSecurityContext();
 
-        setupMetadata();
+        setup();
         programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
         TrackedEntityType bPJ0FMtcnEh = trackedEntityTypeService.getTrackedEntityType( "bPJ0FMtcnEh" );
         programA.setTrackedEntityType( bPJ0FMtcnEh );
@@ -247,7 +205,7 @@ class EnrollmentSecurityImportValidationTest extends AbstractImportValidationTes
         User user = createUserWithAuth( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         userService.addUser( user );
         injectSecurityContext( user );
-        TrackerImportParams params = createBundleFromJson( "tracker/validations/enrollments_no-access-tei.json" );
+        TrackerImportParams params = fromJson( "tracker/validations/enrollments_no-access-tei.json" );
         params.setUser( user );
         params.setImportStrategy( TrackerImportStrategy.CREATE );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
@@ -262,7 +220,7 @@ class EnrollmentSecurityImportValidationTest extends AbstractImportValidationTes
     {
         clearSecurityContext();
 
-        setupMetadata();
+        setup();
         programA.setPublicAccess( AccessStringHelper.DATA_READ );
         trackedEntityType.setPublicAccess( AccessStringHelper.DATA_READ );
         programA.setTrackedEntityType( trackedEntityType );
@@ -270,7 +228,7 @@ class EnrollmentSecurityImportValidationTest extends AbstractImportValidationTes
         User user = createUserWithAuth( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         userService.addUser( user );
         injectSecurityContext( user );
-        TrackerImportParams params = createBundleFromJson( "tracker/validations/enrollments_no-access-program.json" );
+        TrackerImportParams params = fromJson( "tracker/validations/enrollments_no-access-program.json" );
         params.setUser( user );
         params.setImportStrategy( TrackerImportStrategy.CREATE );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
@@ -285,7 +243,7 @@ class EnrollmentSecurityImportValidationTest extends AbstractImportValidationTes
     {
         clearSecurityContext();
 
-        setupMetadata();
+        setup();
         programA.setPublicAccess( AccessStringHelper.FULL );
         trackedEntityType.setPublicAccess( AccessStringHelper.DATA_READ );
         programA.setTrackedEntityType( trackedEntityType );
@@ -293,7 +251,7 @@ class EnrollmentSecurityImportValidationTest extends AbstractImportValidationTes
         User user = createUserWithAuth( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         userService.addUser( user );
         injectSecurityContext( user );
-        TrackerImportParams params = createBundleFromJson( "tracker/validations/enrollments_no-access-program.json" );
+        TrackerImportParams params = fromJson( "tracker/validations/enrollments_no-access-program.json" );
         params.setUser( user );
         params.setImportStrategy( TrackerImportStrategy.CREATE );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
@@ -306,14 +264,14 @@ class EnrollmentSecurityImportValidationTest extends AbstractImportValidationTes
     {
         clearSecurityContext();
 
-        setupMetadata();
+        setup();
         programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
         programA.setTrackedEntityType( trackedEntityType );
         manager.update( programA );
         manager.flush();
         User user = createUserWithAuth( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         injectSecurityContext( user );
-        TrackerImportParams params = createBundleFromJson(
+        TrackerImportParams params = fromJson(
             "tracker/validations/enrollments_program-teitype-missmatch.json" );
         params.setUser( user );
         params.setImportStrategy( TrackerImportStrategy.CREATE );

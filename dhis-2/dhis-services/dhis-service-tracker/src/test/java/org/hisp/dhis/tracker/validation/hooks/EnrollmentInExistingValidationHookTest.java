@@ -46,7 +46,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.tracker.TrackerIdScheme;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
@@ -94,7 +94,7 @@ class EnrollmentInExistingValidationHookTest
         hookToTest = new EnrollmentInExistingValidationHook();
 
         when( bundle.getPreheat() ).thenReturn( preheat );
-        when( bundle.getIdentifier() ).thenReturn( TrackerIdScheme.UID );
+        when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
         when( enrollment.getProgram() ).thenReturn( MetadataIdentifier.ofUid( programUid ) );
         when( enrollment.getTrackedEntity() ).thenReturn( trackedEntity );
         when( enrollment.getStatus() ).thenReturn( EnrollmentStatus.ACTIVE );
