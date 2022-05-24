@@ -27,9 +27,6 @@
  */
 package org.hisp.dhis.tracker.report;
 
-import static org.hisp.dhis.tracker.report.MessageFormatter.buildArgumentList;
-
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -111,15 +108,9 @@ public class TrackerWarningReport
 
         public TrackerWarningReport build( TrackerIdSchemeParams idSchemes )
         {
-            return new TrackerWarningReport( MessageFormat.format( warningCode.getMessage(),
-                buildArgumentList( idSchemes, arguments ).toArray( new Object[0] ) ), this.warningCode, trackerType,
-                uid );
+            return new TrackerWarningReport( MessageFormatter.format( idSchemes, warningCode.getMessage(), arguments ),
+                this.warningCode, trackerType, uid );
         }
-    }
-
-    public static TrackerWarningReportBuilder newWarningReport( TrackerErrorCode errorCode )
-    {
-        return builder().warningCode( errorCode );
     }
 
     @Override

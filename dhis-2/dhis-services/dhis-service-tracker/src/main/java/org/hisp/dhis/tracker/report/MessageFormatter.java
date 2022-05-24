@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.report;
 
 import java.text.DateFormat;
+import java.text.MessageFormat;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
@@ -63,6 +64,19 @@ class MessageFormatter
     protected static List<String> buildArgumentList( TrackerIdSchemeParams params, List<Object> arguments )
     {
         return arguments.stream().map( arg -> parseArgs( params, arg ) ).collect( Collectors.toList() );
+    }
+
+    /**
+     *
+     * @param idSchemes
+     * @param messagePattern
+     * @param arguments
+     * @return
+     */
+    protected static String format( TrackerIdSchemeParams idSchemes, String messagePattern, List<Object> arguments )
+    {
+        return MessageFormat.format( messagePattern,
+            buildArgumentList( idSchemes, arguments ).toArray( new Object[0] ) );
     }
 
     private static String parseArgs( TrackerIdSchemeParams idSchemeParams, Object argument )

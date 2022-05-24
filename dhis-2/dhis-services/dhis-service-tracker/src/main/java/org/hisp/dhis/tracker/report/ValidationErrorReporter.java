@@ -162,8 +162,7 @@ public class ValidationErrorReporter
         return this.isInvalid( dto.getTrackerType(), dto.getUid() );
     }
 
-    public void addWarning( TrackerDto dto, TrackerErrorCode code,
-        Object... args )
+    public void addWarning( TrackerDto dto, TrackerErrorCode code, Object... args )
     {
         TrackerWarningReport warn = TrackerWarningReport.builder()
             .uid( dto.getUid() )
@@ -174,8 +173,7 @@ public class ValidationErrorReporter
         addWarning( warn );
     }
 
-    public void addWarningIf( BooleanSupplier expression, TrackerDto dto,
-        TrackerErrorCode code, Object... args )
+    public void addWarningIf( BooleanSupplier expression, TrackerDto dto, TrackerErrorCode code, Object... args )
     {
         if ( expression.getAsBoolean() )
         {
@@ -183,8 +181,7 @@ public class ValidationErrorReporter
         }
     }
 
-    public void addErrorIf( BooleanSupplier expression, TrackerDto dto,
-        TrackerErrorCode code, Object... args )
+    public void addErrorIf( BooleanSupplier expression, TrackerDto dto, TrackerErrorCode code, Object... args )
     {
         if ( expression.getAsBoolean() )
         {
@@ -192,9 +189,7 @@ public class ValidationErrorReporter
         }
     }
 
-    public void addErrorIfNull( Object object, TrackerDto dto,
-        TrackerErrorCode code,
-        Object... args )
+    public void addErrorIfNull( Object object, TrackerDto dto, TrackerErrorCode code, Object... args )
     {
         if ( object == null )
         {
