@@ -32,13 +32,17 @@ import java.util.Collection;
 import java.util.Map;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
 
 import org.springframework.security.core.GrantedAuthority;
 
 @AllArgsConstructor
+@Getter
+@Builder
 public class CurrentUserDetailsImpl implements CurrentUserDetails
 {
-    private final String uuid;
+    private final String uid;
 
     private final String username;
 
@@ -55,58 +59,4 @@ public class CurrentUserDetailsImpl implements CurrentUserDetails
     private final Collection<GrantedAuthority> authorities;
 
     private final Map<String, Serializable> userSettings;
-
-    @Override
-    public Map<String, Serializable> getUserSettings()
-    {
-        return userSettings;
-    }
-
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities()
-    {
-        return authorities;
-    }
-
-    @Override
-    public String getPassword()
-    {
-        return password;
-    }
-
-    @Override
-    public String getUsername()
-    {
-        return username;
-    }
-
-    @Override
-    public boolean isAccountNonExpired()
-    {
-        return accountNonExpired;
-    }
-
-    @Override
-    public boolean isAccountNonLocked()
-    {
-        return accountNonLocked;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired()
-    {
-        return credentialsNonExpired;
-    }
-
-    @Override
-    public boolean isEnabled()
-    {
-        return enabled;
-    }
-
-    @Override
-    public String getUid()
-    {
-        return uuid;
-    }
 }

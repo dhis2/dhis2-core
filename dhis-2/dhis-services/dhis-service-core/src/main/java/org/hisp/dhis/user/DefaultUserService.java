@@ -826,15 +826,16 @@ public class DefaultUserService
     public CurrentUserDetailsImpl createUserDetails( User user, String password, boolean accountNonLocked,
         boolean credentialsNonExpired )
     {
-        return new CurrentUserDetailsImpl(
-            user.getUid(),
-            user.getUsername(),
-            password,
-            user.isEnabled(),
-            user.isAccountNonExpired(),
-            accountNonLocked,
-            credentialsNonExpired,
-            user.getAuthorities(),
-            new HashMap<>() );
+        return CurrentUserDetailsImpl.builder()
+            .uid( user.getUid() )
+            .username( user.getUsername() )
+            .password( user.getPassword() )
+            .enabled( user.isEnabled() )
+            .accountNonExpired( user.isAccountNonExpired() )
+            .accountNonLocked( user.isAccountNonLocked() )
+            .credentialsNonExpired( user.isCredentialsNonExpired() )
+            .authorities( user.getAuthorities() )
+            .userSettings( new HashMap<>() )
+            .build();
     }
 }
