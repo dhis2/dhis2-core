@@ -273,7 +273,7 @@ public class DataValidator
      *
      * @param uid the DataSet uid.
      * @param dataElement the {@link DataElement} to be checked in the DataSet.
-     * @return the valid DataSet.
+     * @return the {@link DataSet}.
      * @throws IllegalQueryException if the validation fails.
      */
     public DataSet getAndValidateOptionalDataSet( String uid, DataElement dataElement )
@@ -294,21 +294,22 @@ public class DataValidator
     }
 
     /**
-     * Validates and retrieves a data value.
+     * Validates and retrieves a data value follow up request.
      *
-     * @param dataValueRequest the {@link DataValueFollowUpRequest}.
-     * @return a data value.
+     * @param request the {@link DataValueFollowUpRequest}.
+     * @return a {@link DataValue}.
      * @throws IllegalQueryException if the validation fails.
      */
-    public DataValue getAndValidateDataValue( DataValueFollowUpRequest dataValueRequest )
+    public DataValue getAndValidateDataValueFollowUp( DataValueFollowUpRequest request )
     {
-        DataElement dataElement = getAndValidateDataElement( dataValueRequest.getDataElement() );
-        Period period = PeriodType.getPeriodFromIsoString( dataValueRequest.getPeriod() );
-        OrganisationUnit orgUnit = getAndValidateOrganisationUnit( dataValueRequest.getOrgUnit() );
+        DataElement dataElement = getAndValidateDataElement( request.getDataElement() );
+        Period period = PeriodType.getPeriodFromIsoString( request.getPeriod() );
+        OrganisationUnit orgUnit = getAndValidateOrganisationUnit( request.getOrgUnit() );
         CategoryOptionCombo categoryOptionCombo = getAndValidateCategoryOptionCombo(
-            dataValueRequest.getCategoryOptionCombo(), false );
-        CategoryOptionCombo attributeOptionCombo = getAndValidateCategoryOptionCombo(
-            dataValueRequest.getAttributeOptionCombo(), false );
+            request.getCategoryOptionCombo(), false );
+        CategoryOptionCombo attributeOptionCombo = request.hasAttribute()
+            ? getAndValidateAttributeOptionCombo( request.getAttribute() )
+            : getAndValidateCategoryOptionCombo( request.getAttributeOptionCombo(), false );
         DataValue dataValue = dataValueService.getDataValue( dataElement, period, orgUnit, categoryOptionCombo,
             attributeOptionCombo );
 
