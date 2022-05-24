@@ -44,7 +44,7 @@ public class PotentialDuplicatesActions
         super( "/potentialDuplicates" );
     }
 
-    public ApiResponse createPotentialDuplicate( String teiA, String teiB)
+    public ApiResponse createPotentialDuplicate( String teiA, String teiB )
     {
         JsonObject object = new JsonObjectBuilder()
             .addProperty( "original", teiA )
