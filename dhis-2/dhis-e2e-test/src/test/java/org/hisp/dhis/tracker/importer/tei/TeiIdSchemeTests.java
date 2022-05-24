@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.importer.events;
+package org.hisp.dhis.tracker.importer.tei;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -37,11 +37,12 @@ import org.hisp.dhis.actions.UserActions;
 import org.hisp.dhis.actions.metadata.AttributeActions;
 import org.hisp.dhis.actions.metadata.OrgUnitActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
+import org.hisp.dhis.actions.metadata.TrackedEntityTypeActions;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.tracker.TrackerNtiApiTest;
-import org.hisp.dhis.tracker.importer.databuilder.EventDataBuilder;
+import org.hisp.dhis.tracker.importer.databuilder.TeiDataBuilder;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -53,7 +54,7 @@ import com.google.gson.JsonObject;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class EventIdSchemeTests
+public class TeiIdSchemeTests
     extends TrackerNtiApiTest
 {
     private static final String OU_NAME = "TA EventsImportIdSchemeTests ou name " + DataGenerator.randomString();
@@ -71,13 +72,15 @@ public class EventIdSchemeTests
 
     private static String ATTRIBUTE_ID;
 
+    private static String TRACKED_ENTITY_TYPE;
+
     private OrgUnitActions orgUnitActions;
 
     private ProgramActions programActions;
 
     private AttributeActions attributeActions;
 
-    private static Stream<Arguments> provideIdSchemeArguments()
+    private static Stream<Arguments> idSchemeArguments()
     {
         return Stream.of(
             Arguments.arguments( "CODE", "code" ),
@@ -99,91 +102,54 @@ public class EventIdSchemeTests
         setupData();
     }
 
+    @MethodSource( "idSchemeArguments" )
     @ParameterizedTest
-    @MethodSource( "provideIdSchemeArguments" )
-    public void eventsShouldBeImportedWithOrgUnitScheme( String ouScheme, String ouProperty )
+    public void shouldImportWithOrgUnitScheme( String scheme, String property )
     {
-        String ouPropertyValue = orgUnitActions.get( ORG_UNIT_ID ).extractString( ouProperty );
-        assertNotNull( ouPropertyValue, String.format( "Org unit property %s was not present.", ouProperty ) );
+        String orgUnit = orgUnitActions.get( ORG_UNIT_ID ).extractString( property );
+        assertNotNull( orgUnit, String.format( "OrgUnit property %s was not present.", property ) );
 
-        JsonObject event = new EventDataBuilder()
-            .setProgram( PROGRAM_ID )
-            .setProgramStage( PROGRAM_STAGE_ID )
-            .setOu( ouPropertyValue )
-            .array();
+        JsonObject payload = new TeiDataBuilder()
+            .buildWithEnrollmentAndEvent( TRACKED_ENTITY_TYPE, orgUnit, PROGRAM_ID, PROGRAM_STAGE_ID );
 
         TrackerApiResponse response = trackerActions
-            .postAndGetJobReport( event, new QueryParamsBuilder().add( "orgUnitIdScheme=" + ouScheme ) );
+            .postAndGetJobReport( payload, new QueryParamsBuilder().add( "orgUnitIdScheme=" + scheme ) )
+            .validateSuccessfulImport();
 
-        String eventId = response.validateSuccessfulImport()
-            .extractImportedEvents().get( 0 );
-
-        trackerActions.get( "/events/" + eventId ).validate()
+        trackerActions.getTrackedEntity( response.extractImportedTeis().get( 0 ) )
+            .validate()
             .statusCode( 200 )
             .body( "orgUnit", equalTo( ORG_UNIT_ID ) );
     }
 
+    @MethodSource( "idSchemeArguments" )
     @ParameterizedTest
-    @MethodSource( "provideIdSchemeArguments" )
-    public void eventsShouldBeImportedWithIdScheme( String scheme, String property )
+    public void shouldImportWithProgramScheme( String scheme, String property )
     {
-        String ouPropertyValue = orgUnitActions.get( ORG_UNIT_ID ).extractString( property );
-        String programPropertyValue = programActions.get( PROGRAM_ID ).extractString( property );
-        String programStagePropertyValue = programActions.programStageActions.get( PROGRAM_STAGE_ID )
-            .extractString( property );
+        String program = programActions.get( PROGRAM_ID ).extractString( property );
+        assertNotNull( program, String.format( "Program property %s was not present.", property ) );
 
-        JsonObject event = new EventDataBuilder()
-            .setProgram( programPropertyValue )
-            .setProgramStage( programStagePropertyValue )
-            .setOu( ouPropertyValue )
-            .array();
+        JsonObject payload = new TeiDataBuilder()
+            .buildWithEnrollmentAndEvent( TRACKED_ENTITY_TYPE, ORG_UNIT_ID, program, PROGRAM_STAGE_ID );
 
         TrackerApiResponse response = trackerActions
-            .postAndGetJobReport( event, new QueryParamsBuilder().add( "idScheme=" + scheme ) )
+            .postAndGetJobReport( payload,
+                new QueryParamsBuilder().add( "programIdScheme=" + scheme ).add( "async=false" ) )
             .validateSuccessfulImport();
 
-        trackerActions.getEvent( response.extractImportedEvents().get( 0 ) ).validate()
-            .statusCode( 200 )
-            .body( "orgUnit", equalTo( ORG_UNIT_ID ) )
-            .body( "program", equalTo( PROGRAM_ID ) )
-            .body( "programStage", equalTo( PROGRAM_STAGE_ID ) );
-    }
-
-    @ParameterizedTest
-    @MethodSource( "provideIdSchemeArguments" )
-    public void eventsShouldBeImportedWithProgramScheme( String scheme, String property )
-        throws Exception
-    {
-        // arrange
-        String programPropertyValue = programActions.get( PROGRAM_ID ).extractString( property );
-
-        assertNotNull( programPropertyValue, String.format( "Program property %s was not present.", property ) );
-
-        JsonObject event = new EventDataBuilder()
-            .setProgram( programPropertyValue )
-            .setProgramStage( PROGRAM_STAGE_ID )
-            .setOu( ORG_UNIT_ID )
-            .array();
-
-        // act
-        TrackerApiResponse response = trackerActions
-            .postAndGetJobReport( event, new QueryParamsBuilder().add( "programIdScheme=" + scheme ) );
-
-        // assert
-        String eventId = response.validateSuccessfulImport()
-            .extractImportedEvents().get( 0 );
-        assertNotNull( "Event was not created", eventId );
-
-        trackerActions.get( "/events/" + eventId ).validate()
+        trackerActions.getEnrollment( response.extractImportedEnrollments().get( 0 ) )
+            .validate()
             .statusCode( 200 )
             .body( "program", equalTo( PROGRAM_ID ) );
     }
 
     private void setupData()
     {
-        PROGRAM_ID = programActions.createEventProgram( Constants.ORG_UNIT_IDS ).extractUid();
-        PROGRAM_STAGE_ID = programActions.programStageActions.get( "?filter=program.id:eq:" + PROGRAM_ID )
-            .extractString( "programStages[0].id" );
+        TrackedEntityTypeActions trackedEntityTypeActions = new TrackedEntityTypeActions();
+        TRACKED_ENTITY_TYPE = trackedEntityTypeActions.create();
+        PROGRAM_ID = programActions.createTrackerProgram( TRACKED_ENTITY_TYPE, Constants.ORG_UNIT_IDS ).extractUid();
+        PROGRAM_STAGE_ID = programActions
+            .createProgramStage( PROGRAM_ID, "TeiIdSchemeTests program stage " + DataGenerator.randomString() );
         ATTRIBUTE_ID = attributeActions.createUniqueAttribute( "TEXT", "organisationUnit", "program", "programStage" );
 
         assertNotNull( ATTRIBUTE_ID, "Failed to setup attribute" );
@@ -218,13 +184,13 @@ public class EventIdSchemeTests
 
     public JsonObject addAttributeValuePayload( JsonObject json, String attributeId, String attributeValue )
     {
+        // TODO should we not return the newly built JsonObject instead of the
+        // json var?
         JsonObjectBuilder.jsonObject( json )
             .addArray( "attributeValues", JsonObjectBuilder.jsonObject()
                 .addProperty( "value", attributeValue )
                 .addObject( "attribute", new JsonObjectBuilder().addProperty( "id", attributeId ) )
                 .build() );
-
         return json;
-
     }
 }
