@@ -49,9 +49,9 @@ public class EventWithoutRegistrationPreProcessor
     {
         for ( Event event : bundle.getEvents() )
         {
-            if ( !event.getProgramStage().isBlank() )
+            if ( event.getProgramStage().isNotBlank() )
             {
-                ProgramStage programStage = bundle.getPreheat().get( ProgramStage.class, event.getProgramStage() );
+                ProgramStage programStage = bundle.getPreheat().getProgramStage( event.getProgramStage() );
 
                 if ( programStage != null )
                 {
@@ -78,7 +78,7 @@ public class EventWithoutRegistrationPreProcessor
                     setEnrollment( bundle, programStage.getProgram().getUid(), event );
                 }
             }
-            else if ( !event.getProgram().isBlank() )
+            else if ( event.getProgram().isNotBlank() )
             {
                 Program program = bundle.getPreheat().getProgram( event.getProgram() );
 

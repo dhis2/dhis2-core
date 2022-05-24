@@ -321,7 +321,7 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest
     private void setUpMocks()
     {
         when( preheat.getUser() ).thenReturn( user );
-        when( preheat.get( ProgramStage.class, MetadataIdentifier.ofUid( programStage ) ) )
+        when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStage ) ) )
             .thenReturn( programStage );
         when( preheat.getProgram( MetadataIdentifier.ofUid( program ) ) ).thenReturn( program );
         when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( organisationUnit ) ) )

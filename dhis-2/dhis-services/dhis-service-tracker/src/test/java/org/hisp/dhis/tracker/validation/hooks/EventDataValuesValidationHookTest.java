@@ -823,7 +823,7 @@ class EventDataValuesValidationHookTest
         when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementUid ) ) ).thenReturn( validDataElement );
 
         DataValue invalidDataValue = dataValue( "invlaid_org_unit" );
-        when( preheat.get( OrganisationUnit.class, invalidDataValue.getValue() ) ).thenReturn( null );
+        when( preheat.getOrganisationUnit( invalidDataValue.getValue() ) ).thenReturn( null );
 
         ProgramStage programStage = programStage( validDataElement );
         when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStageUid ) ) )
@@ -854,7 +854,7 @@ class EventDataValuesValidationHookTest
         OrganisationUnit validOrgUnit = organisationUnit();
 
         DataValue validDataValue = dataValue( validOrgUnit.getUid() );
-        when( preheat.get( OrganisationUnit.class, validDataValue.getValue() ) ).thenReturn( validOrgUnit );
+        when( preheat.getOrganisationUnit( validDataValue.getValue() ) ).thenReturn( validOrgUnit );
 
         ProgramStage programStage = programStage( validDataElement );
         when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStageUid ) ) )

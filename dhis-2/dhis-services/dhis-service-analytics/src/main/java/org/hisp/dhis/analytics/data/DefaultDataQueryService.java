@@ -94,6 +94,8 @@ import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DimensionalObjectUtils;
+import org.hisp.dhis.common.DisplayProperty;
+import org.hisp.dhis.common.EventDataQueryRequest;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableProperty;
@@ -320,8 +322,25 @@ public class DefaultDataQueryService
     // instead of fetching all org units one by one.
 
     @Override
+    public DimensionalObject getDimension( String dimension, List<String> items, EventDataQueryRequest request,
+        List<OrganisationUnit> userOrgUnits, I18nFormat format, boolean allowNull, IdScheme inputIdScheme )
+    {
+        return getDimension( dimension, items, request.getRelativePeriodDate(), request.getDisplayProperty(),
+            userOrgUnits,
+            format, allowNull, inputIdScheme );
+    }
+
+    @Override
     public DimensionalObject getDimension( String dimension, List<String> items, Date relativePeriodDate,
         List<OrganisationUnit> userOrgUnits, I18nFormat format, boolean allowNull, IdScheme inputIdScheme )
+    {
+        return getDimension( dimension, items, relativePeriodDate, DisplayProperty.NAME, userOrgUnits,
+            format, allowNull, inputIdScheme );
+    }
+
+    private DimensionalObject getDimension( String dimension, List<String> items, Date relativePeriodDate,
+        DisplayProperty displayProperty, List<OrganisationUnit> userOrgUnits, I18nFormat format, boolean allowNull,
+        IdScheme inputIdScheme )
     {
         final boolean allItems = items.isEmpty();
         User user = currentUserService.getCurrentUser();
@@ -570,7 +589,8 @@ public class DefaultDataQueryService
                 orgUnits.addAll( sort( organisationUnitService.getOrganisationUnits( groups, ousList ) ) );
 
                 dimensionalKeywords.addKeywords( groups.stream()
-                    .map( group -> new BaseNameableObject( group.getUid(), group.getCode(), group.getName() ) )
+                    .map( group -> new BaseNameableObject( group.getUid(), group.getCode(),
+                        group.getDisplayProperty( displayProperty ) ) )
                     .collect( Collectors.toList() ) );
             }
 
@@ -648,8 +668,7 @@ public class DefaultDataQueryService
                     : getCanReadItems( user, dimObject );
 
                 return new BaseDimensionalObject( dimObject.getDimension(), dimObject.getDimensionType(), null,
-                    dimObject.getName(),
-                    dimItems, allItems );
+                    dimObject.getDisplayProperty( displayProperty ), dimItems, allItems );
             }
         }
 

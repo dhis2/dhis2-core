@@ -111,7 +111,7 @@ public class DuplicateRelationshipsPreProcessor implements BundlePreProcessor
     public void process( TrackerBundle bundle )
     {
         Predicate<Relationship> validRelationship = rel -> StringUtils.isNotEmpty( rel.getRelationship() )
-            && !rel.getRelationshipType().isBlank() &&
+            && rel.getRelationshipType().isNotBlank() &&
             rel.getFrom() != null && rel.getTo() != null
             && bundle.getPreheat().getRelationshipType( rel.getRelationshipType() ) != null;
 

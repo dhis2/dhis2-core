@@ -226,6 +226,15 @@ public interface IdentifiableObjectStore<T>
     List<T> getById( Collection<Long> ids );
 
     /**
+     * Retrieves a list of objects referenced by the given collection of ids.
+     *
+     * @param ids a collection of ids.
+     * @param user the {@link User} for sharing restrictions
+     * @return a list of objects.
+     */
+    List<T> getById( Collection<Long> ids, User user );
+
+    /**
      * Retrieves a list of objects referenced by the given collection of uids.
      *
      * @param uids a collection of uids.
@@ -239,6 +248,7 @@ public interface IdentifiableObjectStore<T>
      * Objects which are soft-deleted (deleted=true) are filtered out
      *
      * @param uids a collection of uids.
+     * @param user the {@link User} for sharing restrictions
      * @return a list of objects.
      */
     List<T> getByUid( Collection<String> uids, User user );
@@ -255,6 +265,7 @@ public interface IdentifiableObjectStore<T>
      * Retrieves a list of objects referenced by the given collection of codes.
      *
      * @param codes a collection of codes.
+     * @param user the {@link User} for sharing restrictions
      * @return a list of objects.
      */
     List<T> getByCode( Collection<String> codes, User user );
@@ -271,6 +282,7 @@ public interface IdentifiableObjectStore<T>
      * Retrieves a list of objects referenced by the given collection of names.
      *
      * @param names a collection of names.
+     * @param user the {@link User} for sharing restrictions
      * @return a list of objects.
      */
     List<T> getByName( Collection<String> names, User user );

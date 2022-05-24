@@ -43,7 +43,6 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.system.util.ValidationUtils;
@@ -106,7 +105,7 @@ public class EventDataValuesValidationHook
         List<MetadataIdentifier> missingDataValue = validateMandatoryDataValue( programStage, event,
             mandatoryDataElements );
         missingDataValue
-            .forEach( de -> reporter.addError( event, E1303, de.getIdentifierOrAttributeValue() ) );
+            .forEach( de -> reporter.addError( event, E1303, de ) );
     }
 
     private void validateDataValue( ValidationErrorReporter reporter, DataElement dataElement,
@@ -185,8 +184,7 @@ public class EventDataValuesValidationHook
         {
             if ( !dataElements.contains( payloadDataElement ) )
             {
-                reporter.addError( event, TrackerErrorCode.E1305, payloadDataElement.getIdentifierOrAttributeValue(),
-                    programStage.getUid() );
+                reporter.addError( event, TrackerErrorCode.E1305, payloadDataElement, programStage.getUid() );
             }
         }
     }
@@ -223,7 +221,7 @@ public class EventDataValuesValidationHook
             return;
         }
 
-        reporter.addErrorIfNull( reporter.getBundle().getPreheat().get( OrganisationUnit.class, dataValue.getValue() ),
+        reporter.addErrorIfNull( reporter.getBundle().getPreheat().getOrganisationUnit( dataValue.getValue() ),
             event, E1007, dataValue.getValue() );
     }
 }

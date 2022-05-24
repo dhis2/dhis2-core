@@ -392,7 +392,7 @@ class RelationshipsValidationHookTest
             .uid( relationship.getTo().getTrackedEntity() )
             .trackerType( TRACKED_ENTITY )
             .errorCode( TrackerErrorCode.E9999 )
-            .build( bundle );
+            .build( TrackerIdSchemeParams.builder().build() );
         reporter.addError( error );
 
         validationHook.validateRelationship( reporter, relationship );
@@ -422,7 +422,7 @@ class RelationshipsValidationHookTest
             .uid( "notValidTrackedEntity" )
             .trackerType( TRACKED_ENTITY )
             .errorCode( TrackerErrorCode.E9999 )
-            .build( bundle );
+            .build( TrackerIdSchemeParams.builder().build() );
         reporter.addError( error );
 
         validationHook.validateRelationship( reporter, relationship );

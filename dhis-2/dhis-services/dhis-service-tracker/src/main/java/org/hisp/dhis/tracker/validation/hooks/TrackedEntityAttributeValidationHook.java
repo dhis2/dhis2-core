@@ -140,7 +140,7 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
 
             if ( tea == null )
             {
-                reporter.addError( trackedEntity, E1006, attribute.getAttribute().getIdentifierOrAttributeValue() );
+                reporter.addError( trackedEntity, E1006, attribute.getAttribute() );
                 continue;
             }
 
@@ -155,7 +155,7 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
 
                 if ( optionalTea.isPresent() )
                     reporter.addError( trackedEntity, E1076, TrackedEntityAttribute.class.getSimpleName(),
-                        attribute.getAttribute().getIdentifierOrAttributeValue() );
+                        attribute.getAttribute() );
 
                 continue;
             }
