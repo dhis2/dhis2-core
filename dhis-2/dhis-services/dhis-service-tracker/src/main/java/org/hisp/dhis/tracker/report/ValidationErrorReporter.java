@@ -38,8 +38,6 @@ import lombok.Value;
 
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.ValidationMode;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.validation.ValidationFailFastException;
 
@@ -66,16 +64,7 @@ public class ValidationErrorReporter
      * A map that keep tracks of all the invalid Tracker objects encountered
      * during the validation process
      */
-    private Map<TrackerType, List<String>> invalidDTOs;
-
-    public ValidationErrorReporter( TrackerBundle bundle )
-    {
-        this.reportList = new ArrayList<>();
-        this.warningsReportList = new ArrayList<>();
-        this.isFailFast = bundle.getValidationMode() == ValidationMode.FAIL_FAST;
-        this.idSchemes = bundle.getPreheat().getIdSchemes();
-        this.invalidDTOs = new HashMap<>();
-    }
+    private final Map<TrackerType, List<String>> invalidDTOs;
 
     /**
      * Create a {@link ValidationErrorReporter} reporting all errors and

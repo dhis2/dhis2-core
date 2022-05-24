@@ -115,8 +115,8 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         hook = new PreCheckDataRelationsValidationHook();
 
         bundle = TrackerBundle.builder().preheat( preheat ).build();
-        when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
-        reporter = new ValidationErrorReporter( bundle );
+        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
+        reporter = new ValidationErrorReporter( idSchemes );
     }
 
     @Test

@@ -83,6 +83,8 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
     @Mock
     private TrackerPreheat preheat;
 
+    private ValidationErrorReporter errorReporter;
+
     @BeforeEach
     public void setUp()
     {
@@ -90,6 +92,9 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
 
         bundle = TrackerBundle.builder().build();
         bundle.setPreheat( preheat );
+
+        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
+        errorReporter = new ValidationErrorReporter( idSchemes );
     }
 
     @Test
@@ -100,7 +105,6 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
         List<Event> events = Lists.newArrayList( notRepeatableEvent( "A" ) );
         bundle.setEvents( events );
         events.forEach( e -> bundle.setStrategy( e, TrackerImportStrategy.CREATE_AND_UPDATE ) );
-        ValidationErrorReporter errorReporter = errorReporter();
 
         validatorToTest.validate( errorReporter, bundle );
 
@@ -123,7 +127,6 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
         when( preheat.getEnrollment( event.getEnrollment() ) ).thenReturn( programInstance );
         when( preheat.hasProgramStageWithEvents( event.getProgramStage(), event.getEnrollment() ) ).thenReturn( true );
         bundle.setEvents( Lists.newArrayList( event ) );
-        ValidationErrorReporter errorReporter = new ValidationErrorReporter( bundle );
 
         validatorToTest.validate( errorReporter, bundle );
 
@@ -145,7 +148,6 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
         List<Event> events = Lists.newArrayList( notRepeatableEvent( "A" ), notRepeatableEvent( "B" ) );
         bundle.setEvents( events );
         events.forEach( e -> bundle.setStrategy( e, TrackerImportStrategy.CREATE_AND_UPDATE ) );
-        ValidationErrorReporter errorReporter = new ValidationErrorReporter( bundle );
 
         validatorToTest.validate( errorReporter, bundle );
 
@@ -172,7 +174,6 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
         List<Event> events = Lists.newArrayList( repeatableEvent( "A" ), repeatableEvent( "B" ) );
         bundle.setEvents( events );
         events.forEach( e -> bundle.setStrategy( e, TrackerImportStrategy.CREATE_AND_UPDATE ) );
-        ValidationErrorReporter errorReporter = errorReporter();
 
         validatorToTest.validate( errorReporter, bundle );
 
@@ -188,7 +189,6 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
         List<Event> events = Lists.newArrayList( invalidEvent, notRepeatableEvent( "B" ) );
         bundle.setEvents( events );
         events.forEach( e -> bundle.setStrategy( e, TrackerImportStrategy.CREATE_AND_UPDATE ) );
-        ValidationErrorReporter errorReporter = errorReporter();
         errorReporter.getInvalidDTOs().put( EVENT, Lists.newArrayList( invalidEvent.getUid() ) );
 
         validatorToTest.validate( errorReporter, bundle );
@@ -207,7 +207,6 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
         List<Event> events = Lists.newArrayList( eventEnrollmentA, eventEnrollmentB );
         bundle.setEvents( events );
         events.forEach( e -> bundle.setStrategy( e, TrackerImportStrategy.CREATE_AND_UPDATE ) );
-        ValidationErrorReporter errorReporter = errorReporter();
 
         validatorToTest.validate( errorReporter, bundle );
 
@@ -224,7 +223,6 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
         List<Event> events = Lists.newArrayList( eventProgramA, eventProgramB );
         bundle.setEvents( events );
         events.forEach( e -> bundle.setStrategy( e, TrackerImportStrategy.CREATE_AND_UPDATE ) );
-        ValidationErrorReporter errorReporter = errorReporter();
 
         validatorToTest.validate( errorReporter, bundle );
 
@@ -301,11 +299,5 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
         event.setEnrollment( ENROLLMENT_A );
         event.setProgramStage( MetadataIdentifier.ofUid( REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION ) );
         return event;
-    }
-
-    private ValidationErrorReporter errorReporter()
-    {
-        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
-        return new ValidationErrorReporter( idSchemes );
     }
 }

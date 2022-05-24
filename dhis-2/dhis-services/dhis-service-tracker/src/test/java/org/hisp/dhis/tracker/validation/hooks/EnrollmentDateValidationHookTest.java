@@ -41,6 +41,7 @@ import java.time.Instant;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
@@ -66,6 +67,8 @@ class EnrollmentDateValidationHookTest
 
     private TrackerBundle bundle;
 
+    private ValidationErrorReporter reporter;
+
     @BeforeEach
     public void setUp()
     {
@@ -74,6 +77,9 @@ class EnrollmentDateValidationHookTest
         bundle = TrackerBundle.builder()
             .preheat( preheat )
             .build();
+
+        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
+        reporter = new ValidationErrorReporter( idSchemes );
     }
 
     @Test
@@ -84,8 +90,6 @@ class EnrollmentDateValidationHookTest
             .program( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
             .occurredAt( Instant.now() )
             .build();
-
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         when( preheat.getProgram( enrollment.getProgram() ) ).thenReturn( new Program() );
 
@@ -104,8 +108,6 @@ class EnrollmentDateValidationHookTest
             .occurredAt( dateInTheFuture )
             .enrolledAt( dateInTheFuture )
             .build();
-
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         when( preheat.getProgram( enrollment.getProgram() ) ).thenReturn( new Program() );
 
@@ -126,8 +128,6 @@ class EnrollmentDateValidationHookTest
             .enrolledAt( today )
             .build();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-
         when( preheat.getProgram( enrollment.getProgram() ) ).thenReturn( new Program() );
 
         this.hookToTest.validateEnrollment( reporter, bundle, enrollment );
@@ -145,8 +145,6 @@ class EnrollmentDateValidationHookTest
             .occurredAt( dateInTheFuture )
             .enrolledAt( dateInTheFuture )
             .build();
-
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         Program program = new Program();
         program.setSelectEnrollmentDatesInFuture( true );
@@ -166,8 +164,6 @@ class EnrollmentDateValidationHookTest
             .program( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
             .enrolledAt( Instant.now() )
             .build();
-
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         Program program = new Program();
         program.setDisplayIncidentDate( true );

@@ -110,7 +110,9 @@ class EnrollmentInExistingValidationHookTest
         program.setUid( programUid );
 
         when( preheat.getProgram( MetadataIdentifier.ofUid( programUid ) ) ).thenReturn( program );
-        reporter = new ValidationErrorReporter( bundle );
+
+        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
+        reporter = new ValidationErrorReporter( idSchemes );
     }
 
     @Test

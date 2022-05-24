@@ -90,6 +90,8 @@ class PreCheckUpdatableFieldsValidationHookTest
 
     private TrackerPreheat preheat;
 
+    private ValidationErrorReporter reporter;
+
     @BeforeEach
     public void setUp()
     {
@@ -106,7 +108,9 @@ class PreCheckUpdatableFieldsValidationHookTest
         when( bundle.getProgramStageInstance( EVENT_ID ) ).thenReturn( programStageInstance() );
 
         preheat = new TrackerPreheat();
-        preheat.setIdSchemes( TrackerIdSchemeParams.builder().build() );
+        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
+        preheat.setIdSchemes( idSchemes );
+        reporter = new ValidationErrorReporter( idSchemes );
         when( bundle.getPreheat() ).thenReturn( preheat );
     }
 
@@ -117,7 +121,6 @@ class PreCheckUpdatableFieldsValidationHookTest
         TrackedEntity trackedEntity = validTei();
 
         // when
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
         validationHook.validateTrackedEntity( reporter, bundle, trackedEntity );
 
         // then
@@ -132,7 +135,6 @@ class PreCheckUpdatableFieldsValidationHookTest
         trackedEntity.setTrackedEntityType( MetadataIdentifier.ofUid( "NewTrackedEntityTypeId" ) );
 
         // when
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
         validationHook.validateTrackedEntity( reporter, bundle, trackedEntity );
 
         // then
@@ -146,7 +148,6 @@ class PreCheckUpdatableFieldsValidationHookTest
         Enrollment enrollment = validEnrollment();
 
         // when
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
         validationHook.validateEnrollment( reporter, bundle, enrollment );
 
         // then
@@ -160,7 +161,6 @@ class PreCheckUpdatableFieldsValidationHookTest
         Enrollment enrollment = validEnrollment( "NewProgramId" );
 
         // when
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
         validationHook.validateEnrollment( reporter, bundle, enrollment );
 
         // then
@@ -176,7 +176,6 @@ class PreCheckUpdatableFieldsValidationHookTest
         enrollment.setTrackedEntity( "NewTrackedEntityId" );
 
         // when
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
         validationHook.validateEnrollment( reporter, bundle, enrollment );
 
         // then
@@ -191,7 +190,6 @@ class PreCheckUpdatableFieldsValidationHookTest
         Event event = validEvent();
 
         // when
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
         validationHook.validateEvent( reporter, bundle, event );
 
         // then
@@ -206,7 +204,6 @@ class PreCheckUpdatableFieldsValidationHookTest
         event.setProgramStage( MetadataIdentifier.ofUid( "NewProgramStageId" ) );
 
         // when
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
         validationHook.validateEvent( reporter, bundle, event );
 
         // then
@@ -222,7 +219,6 @@ class PreCheckUpdatableFieldsValidationHookTest
         event.setEnrollment( "NewEnrollmentId" );
 
         // when
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
         validationHook.validateEvent( reporter, bundle, event );
 
         // then

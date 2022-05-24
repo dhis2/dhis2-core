@@ -43,7 +43,7 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
-import org.hisp.dhis.tracker.ValidationMode;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Note;
@@ -72,6 +72,8 @@ class EnrollmentNoteValidationHookTest
 
     private TrackerBundle bundle;
 
+    private ValidationErrorReporter reporter;
+
     @BeforeEach
     public void setUp()
     {
@@ -80,8 +82,10 @@ class EnrollmentNoteValidationHookTest
 
         preheat = mock( TrackerPreheat.class );
         bundle = mock( TrackerBundle.class );
-        when( bundle.getValidationMode() ).thenReturn( ValidationMode.FULL );
         when( bundle.getPreheat() ).thenReturn( preheat );
+
+        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
+        reporter = new ValidationErrorReporter( idSchemes );
     }
 
     @Test
@@ -92,7 +96,6 @@ class EnrollmentNoteValidationHookTest
 
         when( preheat.getNote( note.getNote() ) ).thenReturn( Optional.of( new TrackedEntityComment() ) );
         enrollment.setNotes( Collections.singletonList( note ) );
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         // When
         this.hook.validateEnrollment( reporter, bundle, enrollment );
@@ -111,7 +114,6 @@ class EnrollmentNoteValidationHookTest
         // Given
         final Note note = rnd.nextObject( Note.class );
         note.setValue( null );
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         enrollment.setNotes( Collections.singletonList( note ) );
 
@@ -128,7 +130,6 @@ class EnrollmentNoteValidationHookTest
     {
         // Given
         final List<Note> notes = rnd.objects( Note.class, 5 ).collect( Collectors.toList() );
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         enrollment.setNotes( notes );
 

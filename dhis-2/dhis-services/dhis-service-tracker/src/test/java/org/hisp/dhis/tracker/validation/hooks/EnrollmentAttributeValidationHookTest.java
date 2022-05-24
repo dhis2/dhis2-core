@@ -97,6 +97,8 @@ class EnrollmentAttributeValidationHookTest
 
     private TrackedEntityAttribute trackedEntityAttribute1;
 
+    private ValidationErrorReporter reporter;
+
     @BeforeEach
     public void setUp()
     {
@@ -126,6 +128,9 @@ class EnrollmentAttributeValidationHookTest
         bundle = TrackerBundle.builder()
             .preheat( preheat )
             .build();
+
+        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
+        reporter = new ValidationErrorReporter( idSchemes );
     }
 
     @Test
@@ -151,7 +156,6 @@ class EnrollmentAttributeValidationHookTest
         when( preheat.getTrackedEntity( enrollment.getTrackedEntity() ) )
             .thenReturn( trackedEntityInstance );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
         hookToTest.validateEnrollment( reporter, bundle, enrollment );
 
         assertThat( reporter.getReportList(), hasSize( 1 ) );
@@ -181,7 +185,6 @@ class EnrollmentAttributeValidationHookTest
         when( preheat.getTrackedEntity( enrollment.getTrackedEntity() ) )
             .thenReturn( trackedEntityInstance );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
         hookToTest.validateEnrollment( reporter, bundle, enrollment );
 
         assertThat( reporter.getReportList(), hasSize( 0 ) );
@@ -209,7 +212,6 @@ class EnrollmentAttributeValidationHookTest
         when( preheat.getTrackedEntity( enrollment.getTrackedEntity() ) )
             .thenReturn( trackedEntityInstance );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
         hookToTest.validateEnrollment( reporter, bundle, enrollment );
 
         hasTrackerError( reporter, TrackerErrorCode.E1076, TrackerType.ENROLLMENT, enrollment.getUid() );
@@ -235,7 +237,6 @@ class EnrollmentAttributeValidationHookTest
         when( preheat.getTrackedEntity( enrollment.getTrackedEntity() ) )
             .thenReturn( trackedEntityInstance );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
         hookToTest.validateEnrollment( reporter, bundle, enrollment );
 
         assertThat( reporter.getReportList(), hasSize( 1 ) );

@@ -86,13 +86,17 @@ class TrackedEntityAttributeValidationHookTest
 
     private TrackerBundle bundle;
 
+    private ValidationErrorReporter reporter;
+
     @BeforeEach
     public void setUp()
     {
         bundle = TrackerBundle.builder()
             .preheat( preheat )
             .build();
-        when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
+        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
+        when( preheat.getIdSchemes() ).thenReturn( idSchemes );
+        reporter = new ValidationErrorReporter( idSchemes );
         when( dhisConfigurationProvider.getEncryptionStatus() ).thenReturn( EncryptionStatus.OK );
     }
 
@@ -113,7 +117,6 @@ class TrackedEntityAttributeValidationHookTest
             .trackedEntityType( MetadataIdentifier.ofUid( "trackedEntityType" ) )
             .build();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
         trackedEntityAttributeValidationHook.validateTrackedEntity( reporter, bundle,
             trackedEntity );
 
@@ -151,7 +154,6 @@ class TrackedEntityAttributeValidationHookTest
 
         when( preheat.getTrackedEntityAttribute( (MetadataIdentifier) any() ) ).thenReturn( contextAttribute );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
         trackedEntityAttributeValidationHook.validateTrackedEntity( reporter, bundle,
             trackedEntity );
 
@@ -172,7 +174,6 @@ class TrackedEntityAttributeValidationHookTest
 
         when( preheat.getTrackedEntityType( (MetadataIdentifier) any() ) ).thenReturn( new TrackedEntityType() );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
         trackedEntityAttributeValidationHook.validateTrackedEntity( reporter, bundle,
             trackedEntity );
 
@@ -208,7 +209,6 @@ class TrackedEntityAttributeValidationHookTest
         when( preheat.getTrackedEntityAttribute( MetadataIdentifier.ofUid( tea ) ) )
             .thenReturn( trackedEntityAttribute );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
         trackedEntityAttributeValidationHook.validateTrackedEntity( reporter, bundle,
             trackedEntity );
 
@@ -221,7 +221,6 @@ class TrackedEntityAttributeValidationHookTest
     @Test
     void shouldFailValueTooLong()
     {
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         when( trackedEntityAttribute.getValueType() ).thenReturn( ValueType.TEXT );
 
@@ -246,7 +245,6 @@ class TrackedEntityAttributeValidationHookTest
     @Test
     void shouldFailDataValueIsValid()
     {
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         when( trackedEntityAttribute.getValueType() ).thenReturn( ValueType.NUMBER );
 
@@ -274,7 +272,6 @@ class TrackedEntityAttributeValidationHookTest
 
         when( preheat.getTrackedEntityAttribute( (MetadataIdentifier) any() ) ).thenReturn( trackedEntityAttribute );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
         TrackedEntity te = TrackedEntity.builder().trackedEntity( CodeGenerator.generateUid() ).build();
         trackedEntityAttributeValidationHook.validateAttributeValue( reporter, te,
             trackedEntityAttribute, "value" );
@@ -301,7 +298,6 @@ class TrackedEntityAttributeValidationHookTest
             .trackedEntityType( MetadataIdentifier.ofUid( "trackedEntityType" ) )
             .build();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
         trackedEntityAttributeValidationHook.validateTrackedEntity( reporter, bundle,
             trackedEntity );
 
@@ -326,7 +322,6 @@ class TrackedEntityAttributeValidationHookTest
             .trackedEntityType( MetadataIdentifier.ofUid( "trackedEntityType" ) )
             .build();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
         trackedEntityAttributeValidationHook.validateTrackedEntity( reporter, bundle,
             trackedEntity );
 
@@ -358,7 +353,6 @@ class TrackedEntityAttributeValidationHookTest
             .trackedEntityType( MetadataIdentifier.ofUid( "trackedEntityType" ) )
             .build();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
         trackedEntityAttributeValidationHook.validateTrackedEntity( reporter, bundle,
             trackedEntity );
 
@@ -392,7 +386,6 @@ class TrackedEntityAttributeValidationHookTest
 
         when( preheat.getTrackedEntityType( (MetadataIdentifier) any() ) ).thenReturn( trackedEntityType );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
         trackedEntityAttributeValidationHook.validateTrackedEntity( reporter, bundle,
             trackedEntity );
 
