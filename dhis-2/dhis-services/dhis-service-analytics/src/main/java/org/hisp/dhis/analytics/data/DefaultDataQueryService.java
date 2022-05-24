@@ -326,8 +326,7 @@ public class DefaultDataQueryService
         List<OrganisationUnit> userOrgUnits, I18nFormat format, boolean allowNull, IdScheme inputIdScheme )
     {
         return getDimension( dimension, items, request.getRelativePeriodDate(), request.getDisplayProperty(),
-            userOrgUnits,
-            format, allowNull, inputIdScheme );
+            userOrgUnits, format, allowNull, inputIdScheme );
     }
 
     @Override

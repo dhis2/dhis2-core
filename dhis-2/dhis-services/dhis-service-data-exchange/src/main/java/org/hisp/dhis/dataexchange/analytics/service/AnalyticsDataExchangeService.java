@@ -31,6 +31,7 @@ import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -125,13 +126,13 @@ public class AnalyticsDataExchangeService
     private DimensionalObject toDimensionalObject( String dimension, List<String> items, IdScheme inputIdScheme )
     {
         return dataQueryService.getDimension(
-            dimension, items, null, null, null, false, inputIdScheme );
+            dimension, items, new Date(), null, null, false, inputIdScheme );
     }
 
     private DimensionalObject toDimensionalObject( Filter filter, IdScheme inputIdScheme )
     {
         return dataQueryService.getDimension(
-            filter.getDimension(), filter.getItems(), null, null, null, false, inputIdScheme );
+            filter.getDimension(), filter.getItems(), new Date(), null, null, false, inputIdScheme );
     }
 
     /**

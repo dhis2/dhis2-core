@@ -85,16 +85,31 @@ public class Dhis2Client
         }
     }
 
+    /**
+     * Returns a map of HTTP headers indicating JSON format and DHIS 2 access
+     * token-based authorization.
+     *
+     * @return a {@link MultiValueMap}.
+     */
     private MultiValueMap<String, String> getJsonAuthHeaders()
     {
         MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
         headers.add( HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE );
         headers.add( HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE );
         headers.add( HttpHeaders.AUTHORIZATION, config.getAccessTokenHeader() );
-        log.info( "{}: {}", HttpHeaders.AUTHORIZATION, config.getAccessTokenHeader() );
+        log.info( "{}: {}", HttpHeaders.AUTHORIZATION, config.getAccessTokenHeader() ); // TODO
+                                                                                        // remove
         return headers;
     }
 
+    /**
+     * Executes a HTTP POST request with the given body in JSON format.
+     *
+     * @param <T>
+     * @param uri the request URI.
+     * @param body the request body.
+     * @return a {@link ResponseEntity}.
+     */
     private <T> ResponseEntity<WebMessage> executeJsonPostRequest( URI uri, T body )
     {
         HttpEntity<T> requestEntity = new HttpEntity<>( body, getJsonAuthHeaders() );
@@ -104,12 +119,16 @@ public class Dhis2Client
         return response;
     }
 
+    /**
+     * Saves the given data value set.
+     *
+     * @param dataValueSet the {@link DataValueSet}.
+     * @return an {@link ImportSummary}.
+     */
     public ImportSummary saveDataValueSet( DataValueSet dataValueSet )
     {
         URI uri = config.getResolvedUri( "/dataValueSets" );
-
         WebMessage response = executeJsonPostRequest( uri, dataValueSet ).getBody();
-
         return response != null ? (ImportSummary) response.getResponse() : null;
     }
 }
