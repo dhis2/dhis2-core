@@ -40,11 +40,12 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import com.google.gson.JsonObject;
+
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class PotentialDuplicatesTests
-    extends PotentialDuplicatesApiTest
+public class PotentialDuplicatesTests extends PotentialDuplicatesApiTest
 {
     @BeforeEach
     public void beforeEach()
@@ -52,76 +53,71 @@ public class PotentialDuplicatesTests
         loginActions.loginAsAdmin();
     }
 
-    @ParameterizedTest
-    @ValueSource( strings = { "OPEN", "INVALID", "MERGED" } )
-    public void shouldFilterByStatus( String status )
-    {
-        String teiA = createTei();
-        String teiB = createTei();
-
-        potentialDuplicatesActions.createPotentialDuplicate( teiA, teiB, status ).validate().statusCode( 200 );
-
-        ApiResponse response = potentialDuplicatesActions.get( "", new QueryParamsBuilder().add( "status=" + status ) );
-        response
-            .validate()
-            .body( "identifiableObjects", hasSize( greaterThanOrEqualTo( 1 ) ) )
-            .body( "identifiableObjects.status", everyItem( equalTo( status ) ) );
-    }
-
     @Test
-    public void shouldReturnAllStatuses()
+    public void shouldFilterByStatus()
     {
-        Arrays.asList( "OPEN", "MERGED", "INVALID" ).forEach( status -> {
-            String teiA = createTei();
-            String teiB = createTei();
+        // OPEN
+        potentialDuplicatesActions.createAndValidatePotentialDuplicate( createTei(), createTei() );
 
-            potentialDuplicatesActions.createPotentialDuplicate( teiA, teiB, status ).validate().statusCode( 200 );
-        } );
+        // INVALID
+        String duplicateId = potentialDuplicatesActions.createAndValidatePotentialDuplicate( createTei(), createTei() );
+
+        potentialDuplicatesActions.update( duplicateId + "?status=" + "INVALID", new JsonObjectBuilder().build() )
+            .validate()
+            .statusCode( 200 );
+
+        // MERGED
+        String potentialDuplicate = potentialDuplicatesActions.createAndValidatePotentialDuplicate( createTei(),
+            createTei() );
+
+        potentialDuplicatesActions.autoMergePotentialDuplicate( potentialDuplicate ).validate()
+            .statusCode( 200 );
 
         potentialDuplicatesActions.get( "", new QueryParamsBuilder().add( "status=ALL" ) )
             .validate()
-            .body( "identifiableObjects", hasSize( greaterThanOrEqualTo( 1 ) ) )
+            .body( "identifiableObjects", hasSize( greaterThanOrEqualTo( 3 ) ) )
             .body( "identifiableObjects.status",
                 allOf( hasItem( "OPEN" ), hasItem( "INVALID" ), hasItem( "MERGED" ) ) );
+
+        potentialDuplicatesActions.get( "", new QueryParamsBuilder().add( "status=" + "OPEN" ) )
+            .validate()
+            .body( "identifiableObjects", hasSize( greaterThanOrEqualTo( 1 ) ) )
+            .body( "identifiableObjects.status", everyItem( equalTo( "OPEN" ) ) );
+
+        potentialDuplicatesActions.get( "", new QueryParamsBuilder().add( "status=" + "INVALID" ) )
+            .validate()
+            .body( "identifiableObjects", hasSize( greaterThanOrEqualTo( 1 ) ) )
+            .body( "identifiableObjects.status", everyItem( equalTo( "INVALID" ) ) );
+
+        potentialDuplicatesActions.get( "", new QueryParamsBuilder().add( "status=" + "MERGED" ) )
+            .validate()
+            .body( "identifiableObjects", hasSize( greaterThanOrEqualTo( 1 ) ) )
+            .body( "identifiableObjects.status", everyItem( equalTo( "MERGED" ) ) );
+
     }
 
     @Test
     public void shouldRequireBothTeis()
     {
-        potentialDuplicatesActions.createPotentialDuplicate( null, createTei(), "OPEN" )
+        potentialDuplicatesActions.createPotentialDuplicate( null, createTei() )
             .validate()
             .statusCode( equalTo( 400 ) )
             .body( "status", equalTo( "ERROR" ) )
             .body( "message", containsStringIgnoringCase( "missing required input property" ) );
     }
 
-    @CsvSource( {
-        "MERGED,INVALID,false",
-        "OPEN,INVALID,true",
-        "OPEN,MERGED,false",
-        "INVALID,OPEN,true",
-        "MERGED,OPEN,false"
-    } )
+    @CsvSource( { "MERGED" } )
     @ParameterizedTest
-    public void shouldUpdateStatus( String status, String newStatus, boolean shouldUpdate )
+    public void shouldNotUpdate( String newStatus )
     {
-        String duplicateId = potentialDuplicatesActions.createAndValidatePotentialDuplicate( createTei(), createTei(),
-            status );
+        String duplicateId = potentialDuplicatesActions.createAndValidatePotentialDuplicate( createTei(), createTei() );
 
         ApiResponse response = potentialDuplicatesActions.update( duplicateId + "?status=" + newStatus,
             new JsonObjectBuilder().build() );
 
-        if ( shouldUpdate )
-        {
-            response.validate().statusCode( 200 );
-
-            potentialDuplicatesActions.get( duplicateId ).validate()
-                .statusCode( 200 )
-                .body( "status", equalTo( newStatus ) );
-            return;
-        }
-
-        response.validate().statusCode( 400 ).body( "status", equalTo( "ERROR" ) );
+        response.validate()
+            .statusCode( 400 )
+            .body( "status", equalTo( "ERROR" ) );
     }
 
     @Test
@@ -132,33 +128,61 @@ public class PotentialDuplicatesTests
         String teiC = createTei();
         String teiD = createTei();
 
-        potentialDuplicatesActions.createPotentialDuplicate( teiA, teiB, "OPEN" ).validate().statusCode( 200 );
-        potentialDuplicatesActions.createPotentialDuplicate( teiC, teiA, "INVALID" ).validate().statusCode( 200 );
-        potentialDuplicatesActions.createPotentialDuplicate( teiD, teiA, "OPEN" ).validate().statusCode( 200 );
+        String potentialDuplicateAToB = potentialDuplicatesActions.createAndValidatePotentialDuplicate( teiA, teiB );
+
+        String duplicateId = potentialDuplicatesActions.createAndValidatePotentialDuplicate( teiC, teiA );
+
+        potentialDuplicatesActions.update( duplicateId + "?status=" + "INVALID",
+            new JsonObjectBuilder().build() )
+            .validate()
+            .statusCode( 200 );
+
+        potentialDuplicatesActions.createPotentialDuplicate( teiD, teiA )
+            .validate()
+            .statusCode( 200 );
 
         potentialDuplicatesActions.get( "", new QueryParamsBuilder().add( "teis=" + teiA ) )
-            .validate().statusCode( 200 )
+            .validate()
+            .statusCode( 200 )
             .body( "identifiableObjects", hasSize( 2 ) );
 
         potentialDuplicatesActions
             .get( "", new QueryParamsBuilder().addAll( "teis=" + teiB + "," + teiC, "status=ALL" ) )
-            .validate().statusCode( 200 )
+            .validate()
+            .statusCode( 200 )
             .body( "identifiableObjects", hasSize( 2 ) );
 
         potentialDuplicatesActions.get( "", new QueryParamsBuilder().addAll( "teis=" + teiA, "status=INVALID" ) )
-            .validate().statusCode( 200 )
+            .validate()
+            .statusCode( 200 )
             .body( "identifiableObjects", hasSize( 1 ) );
 
         potentialDuplicatesActions.get( "", new QueryParamsBuilder().addAll( "teis=" + teiA, "status=OPEN" ) )
-            .validate().statusCode( 200 )
+            .validate()
+            .statusCode( 200 )
             .body( "identifiableObjects", hasSize( 2 ) );
 
         potentialDuplicatesActions.get( "", new QueryParamsBuilder().addAll( "teis=" + teiA, "status=MERGED" ) )
-            .validate().statusCode( 200 )
+            .validate()
+            .statusCode( 200 )
             .body( "identifiableObjects", hasSize( 0 ) );
 
         potentialDuplicatesActions.get( "", new QueryParamsBuilder().addAll( "teis=" + teiA, "status=ALL" ) )
-            .validate().statusCode( 200 )
+            .validate()
+            .statusCode( 200 )
             .body( "identifiableObjects", hasSize( 3 ) );
+
+        potentialDuplicatesActions.autoMergePotentialDuplicate( potentialDuplicateAToB ).validate()
+            .statusCode( 200 );
+
+        potentialDuplicatesActions.get( "", new QueryParamsBuilder().addAll( "teis=" + teiA, "status=MERGED" ) )
+            .validate()
+            .statusCode( 200 )
+            .body( "identifiableObjects", hasSize( 1 ) );
+
+        potentialDuplicatesActions.get( "", new QueryParamsBuilder().addAll( "teis=" + teiB, "status=MERGED" ) )
+            .validate()
+            .statusCode( 200 )
+            .body( "identifiableObjects", hasSize( 1 ) );
     }
 }

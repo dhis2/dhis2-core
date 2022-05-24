@@ -44,20 +44,20 @@ public class PotentialDuplicatesActions
         super( "/potentialDuplicates" );
     }
 
-    public ApiResponse createPotentialDuplicate( String teiA, String teiB, String status )
+    public ApiResponse createPotentialDuplicate( String teiA, String teiB)
     {
         JsonObject object = new JsonObjectBuilder()
             .addProperty( "original", teiA )
             .addProperty( "duplicate", teiB )
-            .addProperty( "status", status )
+            .addProperty( "status", "OPEN" )
             .build();
 
         return this.post( object );
     }
 
-    public String createAndValidatePotentialDuplicate( String teiA, String teiB, String status )
+    public String createAndValidatePotentialDuplicate( String teiA, String teiB )
     {
-        return createPotentialDuplicate( teiA, teiB, status )
+        return createPotentialDuplicate( teiA, teiB )
             .validateStatus( 200 )
             .extractString( "id" );
     }
