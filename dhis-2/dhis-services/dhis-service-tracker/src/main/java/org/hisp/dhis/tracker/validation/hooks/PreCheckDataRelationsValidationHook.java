@@ -229,7 +229,7 @@ public class PreCheckDataRelationsValidationHook
         {
             if ( preheat.getCategoryOption( id ) == null )
             {
-                reporter.addError( event, E1116, id.getIdentifierOrAttributeValue() );
+                reporter.addError( event, E1116, id );
                 allCOsExist = false;
             }
         }
@@ -291,8 +291,8 @@ public class PreCheckDataRelationsValidationHook
             .getCategoryOptionCombo( event.getAttributeOptionCombo() );
         if ( !program.getCategoryCombo().equals( aoc.getCategoryCombo() ) )
         {
-            reporter.addError( event, TrackerErrorCode.E1054,
-                event.getAttributeOptionCombo().getIdentifierOrAttributeValue(), program.getCategoryCombo() );
+            reporter.addError( event, TrackerErrorCode.E1054, event.getAttributeOptionCombo(),
+                program.getCategoryCombo() );
             return false;
         }
 
@@ -374,7 +374,7 @@ public class PreCheckDataRelationsValidationHook
         else
         {
             reporter.addError( event, TrackerErrorCode.E1117,
-                event.getAttributeOptionCombo().getIdentifierOrAttributeValue(),
+                event.getAttributeOptionCombo(),
                 event.getAttributeCategoryOptions().stream().map( MetadataIdentifier::getIdentifierOrAttributeValue )
                     .collect( Collectors.toSet() ).toString() );
         }
