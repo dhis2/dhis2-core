@@ -49,12 +49,14 @@ import java.util.function.BiConsumer;
 import lombok.Builder;
 
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
@@ -488,6 +490,8 @@ class DefaultTrackerValidationServiceTest
 
     private TrackerBundle.TrackerBundleBuilder newBundle()
     {
-        return TrackerBundle.builder().skipRuleEngine( true );
+        TrackerPreheat preheat = new TrackerPreheat();
+        preheat.setIdSchemes( TrackerIdSchemeParams.builder().build() );
+        return TrackerBundle.builder().preheat( preheat ).skipRuleEngine( true );
     }
 }

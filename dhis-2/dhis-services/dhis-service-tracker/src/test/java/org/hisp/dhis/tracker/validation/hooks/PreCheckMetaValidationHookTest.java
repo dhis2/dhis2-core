@@ -115,7 +115,8 @@ class PreCheckMetaValidationHookTest
         // when
         when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_UID ) ) )
             .thenReturn( new OrganisationUnit() );
-        when( preheat.getTrackedEntityType( TRACKED_ENTITY_TYPE_UID ) ).thenReturn( new TrackedEntityType() );
+        when( preheat.getTrackedEntityType( MetadataIdentifier.ofUid( TRACKED_ENTITY_TYPE_UID ) ) )
+            .thenReturn( new TrackedEntityType() );
 
         validatorToTest.validateTrackedEntity( reporter, tei );
 
@@ -132,7 +133,8 @@ class PreCheckMetaValidationHookTest
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         // when
-        when( preheat.getTrackedEntityType( TRACKED_ENTITY_TYPE_UID ) ).thenReturn( new TrackedEntityType() );
+        when( preheat.getTrackedEntityType( MetadataIdentifier.ofUid( TRACKED_ENTITY_TYPE_UID ) ) )
+            .thenReturn( new TrackedEntityType() );
 
         validatorToTest.validateTrackedEntity( reporter, tei );
 
@@ -343,7 +345,8 @@ class PreCheckMetaValidationHookTest
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         // when
-        when( preheat.get( RelationshipType.class, RELATIONSHIP_TYPE_UID ) ).thenReturn( new RelationshipType() );
+        when( preheat.getRelationshipType( MetadataIdentifier.ofUid( RELATIONSHIP_TYPE_UID ) ) )
+            .thenReturn( new RelationshipType() );
 
         validatorToTest.validateRelationship( reporter, relationship );
 
