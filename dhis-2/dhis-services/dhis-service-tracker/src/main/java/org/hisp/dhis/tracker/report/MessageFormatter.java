@@ -62,29 +62,36 @@ class MessageFormatter
     }
 
     /**
+     * Creates an interpolated string using given {@code messagePattern}
+     * ({@link MessageFormat}) and {@code arguments}. {@code arguments} are
+     * pre-processed to be rendered in a type specific manner. For example
+     * {@link Instant} are displayed in ISO 8601, without any TZ info.
+     * Identifiers for {@link IdentifiableObject} are displayed in the user
+     * chosen idScheme ({@code idSchemes}).
      *
-     * @param idSchemes
-     * @param messagePattern
-     * @param arguments
-     * @return
+     * @param idSchemes idSchemes to use when rendering identifiers
+     * @param messagePattern message format pattern
+     * @param arguments arguments representing format elements in the message
+     *        pattern
+     * @return interpolated string of given message pattern and arguments
      */
     protected static String format( TrackerIdSchemeParams idSchemes, String messagePattern, Object... arguments )
     {
-        List<String> args = buildArgumentList( idSchemes, arguments );
+        List<String> args = formatArguments( idSchemes, arguments );
         return MessageFormat.format( messagePattern, args.toArray( new Object[0] ) );
     }
 
-    protected static List<String> buildArgumentList( TrackerIdSchemeParams idSchemes, Object... arguments )
+    protected static List<String> formatArguments( TrackerIdSchemeParams idSchemes, Object... arguments )
     {
         List<String> args = new ArrayList<>();
         for ( Object arg : arguments )
         {
-            args.add( parseArgs( idSchemes, arg ) );
+            args.add( formatArgument( idSchemes, arg ) );
         }
         return args;
     }
 
-    private static String parseArgs( TrackerIdSchemeParams idSchemes, Object argument )
+    private static String formatArgument( TrackerIdSchemeParams idSchemes, Object argument )
     {
         if ( String.class.isAssignableFrom( ObjectUtils.firstNonNull( argument, "NULL" ).getClass() ) )
         {
