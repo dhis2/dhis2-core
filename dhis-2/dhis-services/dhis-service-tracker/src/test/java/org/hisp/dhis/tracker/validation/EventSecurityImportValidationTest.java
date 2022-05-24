@@ -31,6 +31,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasProperty;
+import static org.hisp.dhis.tracker.validation.Users.USER_3;
+import static org.hisp.dhis.tracker.validation.Users.USER_4;
+import static org.hisp.dhis.tracker.validation.Users.USER_5;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
@@ -62,18 +65,18 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-class EventSecurityImportValidationTest extends AbstractImportValidationTest
+class EventSecurityImportValidationTest extends TrackerTest
 {
 
     @Autowired
@@ -135,17 +138,13 @@ class EventSecurityImportValidationTest extends AbstractImportValidationTest
         throws IOException
     {
         setUpMetadata( "tracker/tracker_basic_metadata.json" );
-        TrackerImportParams trackerBundleParams = createBundleFromJson(
+        injectAdminUser();
+        TrackerImportParams trackerBundleParams = fromJson(
             "tracker/validations/enrollments_te_te-data.json" );
-        User user = userService.getUser( "M5zQapPyTZI" );
-        trackerBundleParams.setUser( user );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
         assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
         assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
-        trackerBundleParams = renderService.fromJson(
-            new ClassPathResource( "tracker/validations/enrollments_te_enrollments-data.json" ).getInputStream(),
-            TrackerImportParams.class );
-        trackerBundleParams.setUser( user );
+        trackerBundleParams = fromJson( "tracker/validations/enrollments_te_enrollments-data.json" );
         trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
         assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
         assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
@@ -237,7 +236,7 @@ class EventSecurityImportValidationTest extends AbstractImportValidationTest
         throws IOException
     {
         setupMetadata();
-        TrackerImportParams trackerBundleParams = createBundleFromJson(
+        TrackerImportParams trackerBundleParams = fromJson(
             "tracker/validations/events_error-no-programStage-access.json" );
         User user = userService.getUser( USER_3 );
         trackerBundleParams.setUser( user );
@@ -256,7 +255,7 @@ class EventSecurityImportValidationTest extends AbstractImportValidationTest
         throws IOException
     {
         setupMetadata();
-        TrackerImportParams params = createBundleFromJson( "tracker/validations/events_error-no-uncomplete.json" );
+        TrackerImportParams params = fromJson( "tracker/validations/events_error-no-uncomplete.json" );
         params.setImportStrategy( TrackerImportStrategy.CREATE );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
         assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
@@ -265,7 +264,7 @@ class EventSecurityImportValidationTest extends AbstractImportValidationTest
         ProgramStageInstance zwwuwNp6gVd = programStageServiceInstance.getProgramStageInstance( "ZwwuwNp6gVd" );
         zwwuwNp6gVd.setStatus( EventStatus.COMPLETED );
         manager.update( zwwuwNp6gVd );
-        TrackerImportParams trackerBundleParams = createBundleFromJson(
+        TrackerImportParams trackerBundleParams = fromJson(
             "tracker/validations/events_error-no-uncomplete.json" );
         programA.setPublicAccess( AccessStringHelper.FULL );
         manager.update( programA );

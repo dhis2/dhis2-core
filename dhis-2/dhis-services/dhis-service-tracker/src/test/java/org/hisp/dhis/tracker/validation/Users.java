@@ -27,35 +27,8 @@
  */
 package org.hisp.dhis.tracker.validation;
 
-import java.io.IOException;
-
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
-import org.hisp.dhis.tracker.TrackerImportParams;
-import org.hisp.dhis.tracker.TrackerTest;
-import org.hisp.dhis.tracker.bundle.TrackerBundleService;
-import org.hisp.dhis.user.User;
-import org.springframework.beans.factory.annotation.Autowired;
-
-/**
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-public abstract class AbstractImportValidationTest extends TrackerTest
+public class Users
 {
-    @Autowired
-    protected TrackerBundleService trackerBundleService;
-
-    @Autowired
-    protected ObjectBundleService objectBundleService;
-
-    @Autowired
-    protected ObjectBundleValidationService objectBundleValidationService;
-
-    @Autowired
-    protected DefaultTrackerValidationService trackerValidationService;
-
-    public static final String ADMIN_USER_UID = "M5zQapPyTZI";
-
     public static final String USER_1 = "oZZ43IHxuUM";
 
     public static final String USER_2 = "MbkW4Bhfw7o";
@@ -71,25 +44,4 @@ public abstract class AbstractImportValidationTest extends TrackerTest
     public static final String USER_7 = "E5AiPnHG3t5";
 
     public static final String USER_8 = "xbgFeL0l3Ap";
-
-    protected TrackerImportParams createBundleFromJson( String jsonFile )
-        throws IOException
-    {
-        return createBundleFromJson( jsonFile, userService.getUser( ADMIN_USER_UID ) );
-    }
-
-    protected TrackerImportParams createBundleFromJson( String jsonFile, User user )
-        throws IOException
-    {
-        TrackerImportParams params = _fromJson( jsonFile );
-        params.setUser( user );
-
-        return params;
-    }
-
-    @Override
-    protected void initTest()
-        throws IOException
-    {
-    }
 }

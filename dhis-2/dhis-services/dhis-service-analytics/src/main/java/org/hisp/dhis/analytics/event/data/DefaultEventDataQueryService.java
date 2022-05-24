@@ -354,7 +354,7 @@ public class DefaultEventDataQueryService
                     List<String> items = getDimensionItemsFromParam( dim );
 
                     GroupableItem groupableItem = dataQueryService.getDimension( dimensionId,
-                        items, request.getRelativePeriodDate(), userOrgUnits, format, true, idScheme );
+                        items, request, userOrgUnits, format, true, idScheme );
 
                     if ( groupableItem != null )
                     {

@@ -232,6 +232,8 @@ public abstract class DhisConvenienceTest
 
     private static final String EXT_TEST_DIR = System.getProperty( "user.home" ) + File.separator + "dhis2_test_dir";
 
+    public static final String ADMIN_USER_UID = "M5zQapPyTZI";
+
     public static final String DEFAULT_ADMIN_PASSWORD = "district";
 
     public static final String DEFAULT_USERNAME = "admin";
@@ -2546,7 +2548,7 @@ public abstract class DhisConvenienceTest
 
         User user = createUser( username );
         user.setUuid( UUID.fromString( "6507f586-f154-4ec1-a25e-d7aa51de5216" ) );
-        user.setUid( "M5zQapPyTZI" );
+        user.setUid( ADMIN_USER_UID );
         user.setName( "Admin" );
         user.setUsername( username );
         user.setPassword( password );
@@ -2578,7 +2580,7 @@ public abstract class DhisConvenienceTest
 
     protected void injectAdminUser()
     {
-        injectSecurityContext( userService.getUser( "M5zQapPyTZI" ) );
+        injectSecurityContext( userService.getUser( ADMIN_USER_UID ) );
     }
 
     protected void injectSecurityContext( User user )

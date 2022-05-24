@@ -28,78 +28,35 @@
 package org.hisp.dhis.tracker.params;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
 
-import org.hisp.dhis.TransactionalIntegrationTest;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
-import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
-import org.hisp.dhis.importexport.ImportStrategy;
-import org.hisp.dhis.render.RenderFormat;
-import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.tracker.AtomicMode;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
+import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
 
-class AtomicModeIntegrationTest extends TransactionalIntegrationTest
+class AtomicModeIntegrationTest extends TrackerTest
 {
-
     @Autowired
     private TrackerImportService trackerImportService;
 
     @Autowired
-    private RenderService _renderService;
-
-    @Autowired
-    private UserService _userService;
-
-    @Autowired
-    private ObjectBundleService objectBundleService;
-
-    @Autowired
-    private ObjectBundleValidationService objectBundleValidationService;
-
-    @Autowired
     private TrackedEntityInstanceService trackedEntityInstanceService;
 
-    private User userA;
-
     @Override
-    public void setUpTest()
-        throws Exception
+    public void initTest()
+        throws IOException
     {
-        renderService = _renderService;
-        userService = _userService;
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "tracker/simple_metadata.json" ).getInputStream(), RenderFormat.JSON );
-        ObjectBundleParams params = new ObjectBundleParams();
-        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.CREATE );
-        params.setObjects( metadata );
-        ObjectBundle bundle = objectBundleService.create( params );
-        ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
-        assertFalse( validationReport.hasErrorReports() );
-        objectBundleService.commit( bundle );
-        userA = userService.getUser( "M5zQapPyTZI" );
-        injectSecurityContext( userA );
+        setUpMetadata( "tracker/simple_metadata.json" );
+        injectAdminUser();
     }
 
     @Test
@@ -130,14 +87,5 @@ class AtomicModeIntegrationTest extends TransactionalIntegrationTest
         assertEquals( 1, trackerImportTeiReport.getValidationReport().getErrors().size() );
         assertNull( trackedEntityInstanceService.getTrackedEntityInstance( "VALIDTEIAAA" ) );
         assertNull( trackedEntityInstanceService.getTrackedEntityInstance( "INVALIDTEIA" ) );
-    }
-
-    private TrackerImportParams fromJson( String path )
-        throws IOException
-    {
-        TrackerImportParams params = renderService.fromJson( new ClassPathResource( path ).getInputStream(),
-            TrackerImportParams.class );
-        params.setUserId( userA.getUid() );
-        return params;
     }
 }

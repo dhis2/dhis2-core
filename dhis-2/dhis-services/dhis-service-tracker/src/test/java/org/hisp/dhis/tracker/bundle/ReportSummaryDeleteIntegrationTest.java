@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.tracker.bundle;
 
-import static org.hisp.dhis.tracker.validation.AbstractImportValidationTest.ADMIN_USER_UID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -47,7 +46,6 @@ import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
-import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -65,9 +63,8 @@ class ReportSummaryDeleteIntegrationTest extends TrackerTest
         throws IOException
     {
         setUpMetadata( "tracker/tracker_basic_metadata.json" );
-        dbmsManager.clearSession();
-        TrackerImportParams params = fromJson( "tracker/tracker_basic_data_before_deletion.json",
-            userService.getUser( ADMIN_USER_UID ) );
+        injectAdminUser();
+        TrackerImportParams params = fromJson( "tracker/tracker_basic_data_before_deletion.json" );
         assertEquals( 13, params.getTrackedEntities().size() );
         assertEquals( 2, params.getEnrollments().size() );
         assertEquals( 2, params.getEvents().size() );
@@ -81,22 +78,19 @@ class ReportSummaryDeleteIntegrationTest extends TrackerTest
         assertEquals( 6, manager.getAll( ProgramInstance.class ).size() );
         assertEquals( bundleReport.getTypeReportMap().get( TrackerType.EVENT ).getStats().getCreated(),
             manager.getAll( ProgramStageInstance.class ).size() );
+
+        dbmsManager.clearSession();
     }
 
     @Test
     void testTrackedEntityInstanceDeletion()
         throws IOException
     {
-        dbmsManager.clearSession();
-        User superUser = userService.getUser( ADMIN_USER_UID );
-        injectSecurityContext( superUser );
-
-        TrackerImportParams params = fromJson( "tracker/tracked_entity_basic_data_for_deletion.json", superUser );
+        TrackerImportParams params = fromJson( "tracker/tracked_entity_basic_data_for_deletion.json" );
         params.setImportStrategy( TrackerImportStrategy.DELETE );
         assertEquals( 9, params.getTrackedEntities().size() );
 
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
-
         assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
         assertDeletedObjects( 9, trackerImportReport.getBundleReport(), TrackerType.TRACKED_ENTITY );
         // remaining
@@ -108,11 +102,8 @@ class ReportSummaryDeleteIntegrationTest extends TrackerTest
     void testEnrollmentDeletion()
         throws IOException
     {
-        dbmsManager.clearSession();
-        User superUser = userService.getUser( ADMIN_USER_UID );
-        injectSecurityContext( superUser );
         assertEquals( 2, manager.getAll( ProgramStageInstance.class ).size() );
-        TrackerImportParams params = fromJson( "tracker/enrollment_basic_data_for_deletion.json", superUser );
+        TrackerImportParams params = fromJson( "tracker/enrollment_basic_data_for_deletion.json" );
         params.setImportStrategy( TrackerImportStrategy.DELETE );
 
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
@@ -129,8 +120,7 @@ class ReportSummaryDeleteIntegrationTest extends TrackerTest
     void testEventDeletion()
         throws IOException
     {
-        TrackerImportParams params = fromJson( "tracker/event_basic_data_for_deletion.json",
-            userService.getUser( ADMIN_USER_UID ) );
+        TrackerImportParams params = fromJson( "tracker/event_basic_data_for_deletion.json" );
         params.setImportStrategy( TrackerImportStrategy.DELETE );
 
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
@@ -145,8 +135,7 @@ class ReportSummaryDeleteIntegrationTest extends TrackerTest
     void testNonExistentEnrollment()
         throws IOException
     {
-        TrackerImportParams params = fromJson( "tracker/non_existent_enrollment_basic_data_for_deletion.json",
-            userService.getUser( ADMIN_USER_UID ) );
+        TrackerImportParams params = fromJson( "tracker/non_existent_enrollment_basic_data_for_deletion.json" );
         params.setImportStrategy( TrackerImportStrategy.DELETE );
 
         TrackerImportReport importReport = trackerImportService.importTracker( params );
@@ -161,8 +150,7 @@ class ReportSummaryDeleteIntegrationTest extends TrackerTest
     void testDeleteMultipleEntities()
         throws IOException
     {
-        TrackerImportParams params = fromJson( "tracker/tracker_data_for_deletion.json",
-            userService.getUser( ADMIN_USER_UID ) );
+        TrackerImportParams params = fromJson( "tracker/tracker_data_for_deletion.json" );
         params.setImportStrategy( TrackerImportStrategy.DELETE );
 
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );

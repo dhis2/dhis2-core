@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.tracker.bundle;
 
-import static org.hisp.dhis.tracker.validation.AbstractImportValidationTest.ADMIN_USER_UID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -74,6 +73,7 @@ public class TrackedEntityDataValueAuditTest extends TrackerTest
         throws IOException
     {
         setUpMetadata( "tracker/simple_metadata.json" );
+        injectAdminUser();
     }
 
     @Test
@@ -81,21 +81,18 @@ public class TrackedEntityDataValueAuditTest extends TrackerTest
         throws IOException
     {
         TrackerImportParams trackerImportParams = fromJson( "tracker/event_and_enrollment_with_data_values.json" );
-        trackerImportParams.setUser( userService.getUser( ADMIN_USER_UID ) );
 
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
         logTrackerErrors( trackerImportReport );
         assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
 
         trackerImportParams = fromJson( "tracker/event_with_data_values_for_update_audit.json" );
-        trackerImportParams.setUser( userService.getUser( ADMIN_USER_UID ) );
 
         trackerImportReport = trackerImportService.importTracker( trackerImportParams );
         logTrackerErrors( trackerImportReport );
         assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
 
         trackerImportParams = fromJson( "tracker/event_with_data_values_for_delete_audit.json" );
-        trackerImportParams.setUser( userService.getUser( ADMIN_USER_UID ) );
 
         trackerImportReport = trackerImportService.importTracker( trackerImportParams );
         logTrackerErrors( trackerImportReport );

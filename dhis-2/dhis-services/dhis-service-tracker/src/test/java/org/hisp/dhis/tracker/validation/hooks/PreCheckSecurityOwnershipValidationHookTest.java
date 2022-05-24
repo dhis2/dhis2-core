@@ -61,7 +61,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
-import org.hisp.dhis.tracker.TrackerIdScheme;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -162,7 +162,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
 
         when( bundle.getPreheat() ).thenReturn( preheat );
         when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) ).thenReturn( organisationUnit );
-        when( preheat.getTrackedEntityType( TEI_TYPE_ID ) ).thenReturn( trackedEntityType );
+        when( preheat.getTrackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) ) ).thenReturn( trackedEntityType );
         when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
         when( organisationUnitService.isInUserSearchHierarchyCached( user, organisationUnit ) )
             .thenReturn( true );
@@ -183,6 +183,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .trackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) )
             .build();
 
+        when( bundle.getPreheat() ).thenReturn( preheat );
         when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.DELETE );
         when( bundle.getTrackedEntityInstance( TEI_ID ) ).thenReturn( getTEIWithNoProgramInstances() );
 
@@ -207,7 +208,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
 
         when( bundle.getPreheat() ).thenReturn( preheat );
         when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) ).thenReturn( organisationUnit );
-        when( preheat.getTrackedEntityType( TEI_TYPE_ID ) ).thenReturn( trackedEntityType );
+        when( preheat.getTrackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) ) ).thenReturn( trackedEntityType );
         when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.CREATE );
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
             .thenReturn( true );
@@ -230,7 +231,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
 
         when( bundle.getPreheat() ).thenReturn( preheat );
         when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) ).thenReturn( organisationUnit );
-        when( preheat.getTrackedEntityType( TEI_TYPE_ID ) ).thenReturn( trackedEntityType );
+        when( preheat.getTrackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) ) ).thenReturn( trackedEntityType );
         when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
         when( organisationUnitService.isInUserSearchHierarchyCached( user, organisationUnit ) )
             .thenReturn( true );
@@ -251,6 +252,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .trackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) )
             .build();
 
+        when( bundle.getPreheat() ).thenReturn( preheat );
         when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.DELETE );
         when( bundle.getTrackedEntityInstance( TEI_ID ) ).thenReturn( getTEIWithNoProgramInstances() );
 
@@ -273,6 +275,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .trackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) )
             .build();
 
+        when( bundle.getPreheat() ).thenReturn( preheat );
         when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.DELETE );
         when( bundle.getTrackedEntityInstance( TEI_ID ) ).thenReturn( getTEIWithDeleteProgramInstances() );
 
@@ -295,6 +298,8 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .trackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) )
             .build();
 
+        when( bundle.getPreheat() ).thenReturn( preheat );
+        when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
         when( bundle.getUser() ).thenReturn( deleteTeiAuthorisedUser() );
         when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.DELETE );
         when( bundle.getTrackedEntityInstance( TEI_ID ) ).thenReturn( getTEIWithProgramInstances() );
@@ -318,8 +323,10 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .trackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) )
             .build();
 
+        when( bundle.getPreheat() ).thenReturn( preheat );
+        when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
         when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.DELETE );
-        when( bundle.getIdentifier() ).thenReturn( TrackerIdScheme.UID );
+        when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
         when( bundle.getTrackedEntityInstance( TEI_ID ) ).thenReturn( getTEIWithProgramInstances() );
 
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
@@ -342,10 +349,10 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .build();
 
         when( bundle.getPreheat() ).thenReturn( preheat );
+        when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
         when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) ).thenReturn( organisationUnit );
-        when( preheat.getTrackedEntityType( TEI_TYPE_ID ) ).thenReturn( trackedEntityType );
+        when( preheat.getTrackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) ) ).thenReturn( trackedEntityType );
         when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.CREATE );
-        when( bundle.getIdentifier() ).thenReturn( TrackerIdScheme.UID );
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
             .thenReturn( false );
         when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( true );
@@ -368,10 +375,10 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .build();
 
         when( bundle.getPreheat() ).thenReturn( preheat );
+        when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
         when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) ).thenReturn( organisationUnit );
-        when( preheat.getTrackedEntityType( TEI_TYPE_ID ) ).thenReturn( trackedEntityType );
+        when( preheat.getTrackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) ) ).thenReturn( trackedEntityType );
         when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
-        when( bundle.getIdentifier() ).thenReturn( TrackerIdScheme.UID );
         when( organisationUnitService.isInUserSearchHierarchyCached( user, organisationUnit ) )
             .thenReturn( false );
         when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( true );
@@ -392,10 +399,10 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .build();
 
         when( bundle.getPreheat() ).thenReturn( preheat );
+        when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
         when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) ).thenReturn( organisationUnit );
-        when( preheat.getTrackedEntityType( TEI_TYPE_ID ) ).thenReturn( trackedEntityType );
+        when( preheat.getTrackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) ) ).thenReturn( trackedEntityType );
         when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
-        when( bundle.getIdentifier() ).thenReturn( TrackerIdScheme.UID );
         when( organisationUnitService.isInUserSearchHierarchyCached( user, organisationUnit ) )
             .thenReturn( true );
         when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( false );
@@ -609,7 +616,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         when( preheat.getProgramInstanceWithOneOrMoreNonDeletedEvent() ).thenReturn( Collections.emptyList() );
         when( bundle.getProgramInstance( enrollment.getEnrollment() ) )
             .thenReturn( getEnrollment( enrollment.getEnrollment() ) );
-        when( bundle.getIdentifier() ).thenReturn( TrackerIdScheme.UID );
+        when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
             .thenReturn( false );
         when( aclService.canDataWrite( user, program ) ).thenReturn( true );
@@ -633,7 +640,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
 
         when( bundle.getPreheat() ).thenReturn( preheat );
         when( bundle.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.DELETE );
-        when( bundle.getIdentifier() ).thenReturn( TrackerIdScheme.UID );
+        when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
         when( preheat.getProgramInstanceWithOneOrMoreNonDeletedEvent() )
             .thenReturn( Collections.singletonList( enrollment.getEnrollment() ) );
         when( bundle.getProgramInstance( enrollment.getEnrollment() ) )
@@ -662,7 +669,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
 
         when( bundle.getPreheat() ).thenReturn( preheat );
         when( bundle.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.DELETE );
-        when( bundle.getIdentifier() ).thenReturn( TrackerIdScheme.UID );
+        when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
         when( bundle.getProgramInstance( enrollment.getEnrollment() ) )
             .thenReturn( getEnrollment( enrollment.getEnrollment() ) );
         when( aclService.canDataWrite( user, program ) ).thenReturn( false );
@@ -689,7 +696,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
 
         when( bundle.getPreheat() ).thenReturn( preheat );
         when( bundle.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.DELETE );
-        when( bundle.getIdentifier() ).thenReturn( TrackerIdScheme.UID );
+        when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
         when( bundle.getProgramInstance( enrollment.getEnrollment() ) )
             .thenReturn( getEnrollment( enrollment.getEnrollment() ) );
         when( aclService.canDataWrite( user, program ) ).thenReturn( true );
@@ -869,7 +876,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
 
         when( bundle.getPreheat() ).thenReturn( preheat );
         when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.UPDATE );
-        when( bundle.getIdentifier() ).thenReturn( TrackerIdScheme.UID );
+        when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
         when( preheat.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
         ProgramInstance programInstance = getEnrollment( enrollmentUid );
         ProgramStageInstance programStageInstance = getEvent();
@@ -939,7 +946,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
 
         when( bundle.getPreheat() ).thenReturn( preheat );
         when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.CREATE );
-        when( bundle.getIdentifier() ).thenReturn( TrackerIdScheme.UID );
+        when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
         when( preheat.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
         when( bundle.getProgramInstance( event.getEnrollment() ) ).thenReturn( getEnrollment( null ) );
         when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_ID ) ) ).thenReturn( program );
@@ -970,7 +977,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
 
         when( bundle.getPreheat() ).thenReturn( preheat );
         when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.CREATE );
-        when( bundle.getIdentifier() ).thenReturn( TrackerIdScheme.UID );
+        when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
         when( preheat.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
         when( bundle.getProgramInstance( event.getEnrollment() ) ).thenReturn( getEnrollment( null ) );
         when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_ID ) ) ).thenReturn( program );
@@ -1001,7 +1008,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
 
         when( bundle.getPreheat() ).thenReturn( preheat );
         when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.UPDATE );
-        when( bundle.getIdentifier() ).thenReturn( TrackerIdScheme.UID );
+        when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
         ProgramInstance programInstance = getEnrollment( enrollmentUid );
         ProgramStageInstance programStageInstance = getEvent();
         programStageInstance.setProgramInstance( programInstance );
