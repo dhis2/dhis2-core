@@ -34,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 
 @Slf4j
 public class CurrentUserUtil
@@ -65,9 +66,9 @@ public class CurrentUserUtil
             return (String) principal;
         }
 
-        if ( principal instanceof CurrentUserDetails )
+        if ( principal instanceof UserDetails )
         {
-            CurrentUserDetails userDetails = (CurrentUserDetails) authentication.getPrincipal();
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
             return userDetails.getUsername();
         }
         else

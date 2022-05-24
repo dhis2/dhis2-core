@@ -164,6 +164,7 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityfilter.EntityQueryCriteria;
 import org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilter;
 import org.hisp.dhis.trackerdataview.TrackerDataView;
+import org.hisp.dhis.user.CurrentUserDetails;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
@@ -2586,7 +2587,10 @@ public abstract class DhisConvenienceTest
 
         user = userService.getUser( user.getUid() );
 
-        Authentication authentication = new UsernamePasswordAuthenticationToken( user, "", user.getAuthorities() );
+        CurrentUserDetails currentUserDetails = userService.validateAndCreateUserDetails( user, user.getPassword() );
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken( currentUserDetails, "",
+            currentUserDetails.getAuthorities() );
         SecurityContext context = SecurityContextHolder.createEmptyContext();
         context.setAuthentication( authentication );
         SecurityContextHolder.setContext( context );
@@ -2830,7 +2834,9 @@ public abstract class DhisConvenienceTest
         user.setPassword( DEFAULT_ADMIN_PASSWORD );
         user.getUserRoles().add( role );
 
-        Authentication authentication = new UsernamePasswordAuthenticationToken( user, DEFAULT_ADMIN_PASSWORD,
+        CurrentUserDetails currentUserDetails = userService.validateAndCreateUserDetails( user, user.getPassword() );
+        Authentication authentication = new UsernamePasswordAuthenticationToken( currentUserDetails,
+            DEFAULT_ADMIN_PASSWORD,
             List.of( new SimpleGrantedAuthority( "ALL" ) ) );
 
         SecurityContext context = SecurityContextHolder.createEmptyContext();

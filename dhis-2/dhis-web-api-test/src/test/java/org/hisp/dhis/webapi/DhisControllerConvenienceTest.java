@@ -158,6 +158,7 @@ public abstract class DhisControllerConvenienceTest extends DhisMockMvcControlle
     protected void switchContextToUser( User user )
     {
         injectSecurityContext( user );
+
         session = new MockHttpSession();
         session.setAttribute( HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
             SecurityContextHolder.getContext() );
