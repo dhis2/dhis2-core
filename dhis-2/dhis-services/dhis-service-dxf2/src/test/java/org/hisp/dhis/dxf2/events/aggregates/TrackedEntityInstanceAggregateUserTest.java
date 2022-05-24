@@ -38,7 +38,8 @@ import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
-import org.junit.jupiter.api.Disabled;
+import org.hisp.dhis.user.User;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -55,8 +56,29 @@ class TrackedEntityInstanceAggregateUserTest extends TrackerTest
     @Autowired
     private TrackedEntityInstanceAggregate trackedEntityInstanceAggregate;
 
+    private User superUser;
+
+    private User nonSuperUser;
+
+    @BeforeEach
+    void setUp()
+    {
+        doInTransaction( () -> {
+            superUser = preCreateInjectAdminUser();
+            injectSecurityContext( superUser );
+
+            nonSuperUser = createUserWithAuth( "testUser2" );
+            nonSuperUser.addOrganisationUnit( organisationUnitA );
+            nonSuperUser.getTeiSearchOrganisationUnits().add( organisationUnitA );
+            nonSuperUser.getTeiSearchOrganisationUnits().add( organisationUnitB );
+            userService.updateUser( nonSuperUser );
+
+            dbmsManager.clearSession();
+        } );
+
+    }
+
     @Test
-    @Disabled( "12098 This test is not working" )
     void testFetchTrackedEntityInstances()
     {
         doInTransaction( () -> {
