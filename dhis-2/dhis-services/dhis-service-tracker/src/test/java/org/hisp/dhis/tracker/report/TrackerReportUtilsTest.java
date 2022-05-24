@@ -36,8 +36,19 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,12 +57,62 @@ import org.junit.jupiter.api.Test;
 class TrackerReportUtilsTest
 {
 
-    private TrackerBundle bundle;
+    private TrackerIdSchemeParams params;
 
     @BeforeEach
     void setUp()
     {
-        bundle = TrackerBundle.builder().build();
+        params = TrackerIdSchemeParams.builder().build();
+    }
+
+    @Test
+    void buildArgumentListShouldTurnIdentifiableObjectIntoArgument()
+    {
+        TrackerIdSchemeParams params = TrackerIdSchemeParams.builder()
+            .idScheme( TrackerIdSchemeParam.UID )
+            .programIdScheme( TrackerIdSchemeParam.NAME )
+            .programStageIdScheme( TrackerIdSchemeParam.NAME )
+            .orgUnitIdScheme( TrackerIdSchemeParam.ofAttribute( "HpSAvRWtdDR" ) )
+            .dataElementIdScheme( TrackerIdSchemeParam.ofAttribute( "m0GpPuMUfFW" ) )
+            .categoryOptionComboIdScheme( TrackerIdSchemeParam.ofAttribute( "qAvXlaodIZ9" ) )
+            .categoryOptionIdScheme( TrackerIdSchemeParam.ofAttribute( "y0Yxr50hAbP" ) )
+            .build();
+        RelationshipType relationshipType = new RelationshipType();
+        relationshipType.setUid( "WTTYiPQDqh1" );
+        Program program = new Program( "friendship" );
+        ProgramStage programStage = new ProgramStage( "meet", program );
+        OrganisationUnit orgUnit = new OrganisationUnit();
+        orgUnit.setAttributeValues( attributeValues( "HpSAvRWtdDR", "sunshine" ) );
+        DataElement dataElement = new DataElement();
+        dataElement.setAttributeValues( attributeValues( "m0GpPuMUfFW", "ice" ) );
+        CategoryOptionCombo coc = new CategoryOptionCombo();
+        coc.setAttributeValues( attributeValues( "qAvXlaodIZ9", "wheat" ) );
+        CategoryOption co = new CategoryOption();
+        co.setAttributeValues( attributeValues( "y0Yxr50hAbP", "red" ) );
+
+        List<String> args = TrackerReportUtils.buildArgumentList( params,
+            Arrays.asList( relationshipType, program, programStage, orgUnit, dataElement, coc, co ) );
+
+        assertThat( args,
+            contains( "RelationshipType (WTTYiPQDqh1)",
+                "Program (friendship)",
+                "ProgramStage (meet)",
+                "OrganisationUnit (sunshine)",
+                "DataElement (ice)",
+                "CategoryOptionCombo (wheat)",
+                "CategoryOption (red)" ) );
+    }
+
+    private Set<AttributeValue> attributeValues( String uid, String value )
+    {
+        return Set.of( new AttributeValue( attribute( uid ), value ) );
+    }
+
+    private Attribute attribute( String attributeUid )
+    {
+        Attribute att = new Attribute();
+        att.setUid( attributeUid );
+        return att;
     }
 
     @Test
@@ -59,7 +120,7 @@ class TrackerReportUtilsTest
     {
         final Instant now = Instant.now();
 
-        List<String> args = TrackerReportUtils.buildArgumentList( bundle, Arrays.asList( now ) );
+        List<String> args = TrackerReportUtils.buildArgumentList( params, Arrays.asList( now ) );
 
         assertThat( args.size(), is( 1 ) );
         assertThat( args.get( 0 ), is( DateUtils.getIso8601NoTz( DateUtils.fromInstant( now ) ) ) );
@@ -70,7 +131,7 @@ class TrackerReportUtilsTest
     {
         final Date now = Date.from( Instant.now() );
 
-        List<String> args = TrackerReportUtils.buildArgumentList( bundle, Arrays.asList( now ) );
+        List<String> args = TrackerReportUtils.buildArgumentList( params, Arrays.asList( now ) );
 
         assertThat( args.size(), is( 1 ) );
         assertThat( args.get( 0 ), is( DateFormat.getInstance().format( now ) ) );
@@ -79,7 +140,7 @@ class TrackerReportUtilsTest
     @Test
     void buildArgumentListShouldTurnStringsIntoArguments()
     {
-        List<String> args = TrackerReportUtils.buildArgumentList( bundle, Arrays.asList( "foo", "faa" ) );
+        List<String> args = TrackerReportUtils.buildArgumentList( params, Arrays.asList( "foo", "faa" ) );
 
         assertThat( args, contains( "foo", "faa" ) );
     }
@@ -87,7 +148,7 @@ class TrackerReportUtilsTest
     @Test
     void buildArgumentListShouldTurnMetadataIdentifierIntoArguments()
     {
-        List<String> args = TrackerReportUtils.buildArgumentList( bundle, Arrays.asList(
+        List<String> args = TrackerReportUtils.buildArgumentList( params, Arrays.asList(
             MetadataIdentifier.ofUid( "iB8AZpf681V" ), MetadataIdentifier.ofAttribute( "zwccdzhk5zc", "GREEN" ) ) );
 
         assertThat( args, contains( "iB8AZpf681V", "GREEN" ) );

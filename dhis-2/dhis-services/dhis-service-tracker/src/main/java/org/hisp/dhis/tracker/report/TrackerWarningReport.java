@@ -37,8 +37,8 @@ import java.util.List;
 import lombok.Builder;
 import lombok.Value;
 
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -109,10 +109,11 @@ public class TrackerWarningReport
             return this;
         }
 
-        public TrackerWarningReport build( TrackerBundle bundle )
+        public TrackerWarningReport build( TrackerIdSchemeParams idSchemes )
         {
             return new TrackerWarningReport( MessageFormat.format( warningCode.getMessage(),
-                buildArgumentList( bundle, arguments ).toArray( new Object[0] ) ), this.warningCode, trackerType, uid );
+                buildArgumentList( idSchemes, arguments ).toArray( new Object[0] ) ), this.warningCode, trackerType,
+                uid );
         }
     }
 

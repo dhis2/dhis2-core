@@ -36,6 +36,7 @@ import java.util.function.Predicate;
 
 import lombok.Value;
 
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -61,6 +62,8 @@ public class ValidationErrorReporter
 
     private final TrackerBundle bundle;
 
+    private final TrackerIdSchemeParams idSchemes;
+
     /*
      * A map that keep tracks of all the invalid Tracker objects encountered
      * during the validation process
@@ -78,6 +81,7 @@ public class ValidationErrorReporter
         this.reportList = new ArrayList<>();
         this.isFailFast = false;
         this.bundle = null;
+        this.idSchemes = TrackerIdSchemeParams.builder().build();
         this.invalidDTOs = new HashMap<>();
     }
 
@@ -87,6 +91,7 @@ public class ValidationErrorReporter
         this.warningsReportList = new ArrayList<>();
         this.isFailFast = bundle.getValidationMode() == ValidationMode.FAIL_FAST;
         this.bundle = bundle;
+        this.idSchemes = bundle.getPreheat().getIdSchemes();
         this.invalidDTOs = new HashMap<>();
     }
 
@@ -117,7 +122,7 @@ public class ValidationErrorReporter
             .trackerType( dto.getTrackerType() )
             .errorCode( code )
             .addArgs( args )
-            .build( bundle );
+            .build( idSchemes );
         addError( error );
     }
 
@@ -159,7 +164,7 @@ public class ValidationErrorReporter
             .trackerType( dto.getTrackerType() )
             .warningCode( code )
             .addArgs( args )
-            .build( bundle );
+            .build( idSchemes );
         addWarning( warn );
     }
 

@@ -54,6 +54,7 @@ import static org.mockito.Mockito.when;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -61,7 +62,9 @@ import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -100,7 +103,18 @@ class PreCheckExistenceValidationHookTest
     @Mock
     private TrackerBundle bundle;
 
+    @Mock
+    private TrackerPreheat preheat;
+
     private PreCheckExistenceValidationHook validationHook = new PreCheckExistenceValidationHook();
+
+    @BeforeEach
+    void setUp()
+    {
+
+        when( bundle.getPreheat() ).thenReturn( preheat );
+        when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
+    }
 
     @Test
     void verifyTrackedEntityValidationSuccessWhenIsCreateAndTeiIsNotPresent()
