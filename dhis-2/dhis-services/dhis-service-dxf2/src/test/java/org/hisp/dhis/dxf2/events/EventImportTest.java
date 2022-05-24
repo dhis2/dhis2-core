@@ -538,11 +538,9 @@ class EventImportTest extends TransactionalIntegrationTest
     }
 
     @Test
-    @Disabled( "12098 This test is not working" )
     void testVerifyEventCanBeUpdatedUsingProgramOnly()
         throws IOException
     {
-
         // CREATE A NEW EVENT
         InputStream is = createEventJsonInputStream( programB.getUid(), programStageB.getUid(),
             organisationUnitB.getUid(), null, dataElementB, "10" );
@@ -580,7 +578,6 @@ class EventImportTest extends TransactionalIntegrationTest
     }
 
     @Test
-    @Disabled( "12098 This test is not working" )
     void testVerifyEventUncompleteSetsCompletedDateToNull()
         throws IOException
     {

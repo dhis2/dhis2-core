@@ -583,7 +583,6 @@ class TrackedEntityInstanceAggregateTest extends TrackerTest
     }
 
     @Test
-    @Disabled( "12098 This test is not working" )
     void testTrackedEntityInstanceRelationshipsTei2Enrollment()
     {
         User currentUser = currentUserService.getCurrentUser();

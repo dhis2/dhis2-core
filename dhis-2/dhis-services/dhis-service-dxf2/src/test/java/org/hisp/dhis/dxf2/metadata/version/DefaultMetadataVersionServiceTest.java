@@ -47,7 +47,6 @@ import org.hisp.dhis.dxf2.metadata.version.exception.MetadataVersionServiceExcep
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.MetadataVersionService;
 import org.hisp.dhis.metadata.version.VersionType;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -145,7 +144,6 @@ class DefaultMetadataVersionServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    @Disabled( "12098 This test is not working" )
     void testShouldReturnTheLatestVersion()
     {
         versionService.addVersion( versionA );
