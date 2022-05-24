@@ -832,8 +832,8 @@ public class DefaultUserService
             .password( user.getPassword() )
             .enabled( user.isEnabled() )
             .accountNonExpired( user.isAccountNonExpired() )
-            .accountNonLocked( user.isAccountNonLocked() )
-            .credentialsNonExpired( user.isCredentialsNonExpired() )
+            .accountNonLocked( accountNonLocked )
+            .credentialsNonExpired( credentialsNonExpired )
             .authorities( user.getAuthorities() )
             .userSettings( new HashMap<>() )
             .build();
