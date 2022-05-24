@@ -30,9 +30,9 @@ package org.hisp.dhis.tracker.report;
 import java.text.DateFormat;
 import java.text.MessageFormat;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOption;
@@ -61,11 +61,6 @@ class MessageFormatter
         // not meant to be inherited from
     }
 
-    protected static List<String> buildArgumentList( TrackerIdSchemeParams params, List<Object> arguments )
-    {
-        return arguments.stream().map( arg -> parseArgs( params, arg ) ).collect( Collectors.toList() );
-    }
-
     /**
      *
      * @param idSchemes
@@ -73,13 +68,23 @@ class MessageFormatter
      * @param arguments
      * @return
      */
-    protected static String format( TrackerIdSchemeParams idSchemes, String messagePattern, List<Object> arguments )
+    protected static String format( TrackerIdSchemeParams idSchemes, String messagePattern, Object... arguments )
     {
-        return MessageFormat.format( messagePattern,
-            buildArgumentList( idSchemes, arguments ).toArray( new Object[0] ) );
+        List<String> args = buildArgumentList( idSchemes, arguments );
+        return MessageFormat.format( messagePattern, args.toArray( new Object[0] ) );
     }
 
-    private static String parseArgs( TrackerIdSchemeParams idSchemeParams, Object argument )
+    protected static List<String> buildArgumentList( TrackerIdSchemeParams idSchemes, Object... arguments )
+    {
+        List<String> args = new ArrayList<>();
+        for ( Object arg : arguments )
+        {
+            args.add( parseArgs( idSchemes, arg ) );
+        }
+        return args;
+    }
+
+    private static String parseArgs( TrackerIdSchemeParams idSchemes, Object argument )
     {
         if ( String.class.isAssignableFrom( ObjectUtils.firstNonNull( argument, "NULL" ).getClass() ) )
         {
@@ -91,36 +96,36 @@ class MessageFormatter
         }
         else if ( CategoryOptionCombo.class.isAssignableFrom( argument.getClass() ) )
         {
-            return getIdAndName( idSchemeParams.toMetadataIdentifier( (CategoryOptionCombo) argument ),
+            return getIdAndName( idSchemes.toMetadataIdentifier( (CategoryOptionCombo) argument ),
                 (CategoryOptionCombo) argument );
         }
         else if ( CategoryOption.class.isAssignableFrom( argument.getClass() ) )
         {
-            return getIdAndName( idSchemeParams.toMetadataIdentifier( (CategoryOption) argument ),
+            return getIdAndName( idSchemes.toMetadataIdentifier( (CategoryOption) argument ),
                 (CategoryOption) argument );
         }
         else if ( DataElement.class.isAssignableFrom( argument.getClass() ) )
         {
-            return getIdAndName( idSchemeParams.toMetadataIdentifier( (DataElement) argument ),
+            return getIdAndName( idSchemes.toMetadataIdentifier( (DataElement) argument ),
                 (DataElement) argument );
         }
         else if ( OrganisationUnit.class.isAssignableFrom( argument.getClass() ) )
         {
-            return getIdAndName( idSchemeParams.toMetadataIdentifier( (OrganisationUnit) argument ),
+            return getIdAndName( idSchemes.toMetadataIdentifier( (OrganisationUnit) argument ),
                 (OrganisationUnit) argument );
         }
         else if ( Program.class.isAssignableFrom( argument.getClass() ) )
         {
-            return getIdAndName( idSchemeParams.toMetadataIdentifier( (Program) argument ), (Program) argument );
+            return getIdAndName( idSchemes.toMetadataIdentifier( (Program) argument ), (Program) argument );
         }
         else if ( ProgramStage.class.isAssignableFrom( argument.getClass() ) )
         {
-            return getIdAndName( idSchemeParams.toMetadataIdentifier( (ProgramStage) argument ),
+            return getIdAndName( idSchemes.toMetadataIdentifier( (ProgramStage) argument ),
                 (ProgramStage) argument );
         }
         else if ( IdentifiableObject.class.isAssignableFrom( argument.getClass() ) )
         {
-            return getIdAndName( idSchemeParams.toMetadataIdentifier( (IdentifiableObject) argument ),
+            return getIdAndName( idSchemes.toMetadataIdentifier( (IdentifiableObject) argument ),
                 (IdentifiableObject) argument );
         }
         else if ( Date.class.isAssignableFrom( argument.getClass() ) )

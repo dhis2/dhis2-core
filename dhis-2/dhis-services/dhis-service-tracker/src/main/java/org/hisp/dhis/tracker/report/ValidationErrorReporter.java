@@ -123,13 +123,8 @@ public class ValidationErrorReporter
 
     public void addError( TrackerDto dto, TrackerErrorCode code, Object... args )
     {
-        TrackerErrorReport error = TrackerErrorReport.builder()
-            .uid( dto.getUid() )
-            .trackerType( dto.getTrackerType() )
-            .errorCode( code )
-            .addArgs( args )
-            .build( idSchemes );
-        addError( error );
+        addError( new TrackerErrorReport( MessageFormatter.format( idSchemes, code.getMessage(), args ),
+            code, dto.getTrackerType(), dto.getUid() ) );
     }
 
     public void addError( TrackerErrorReport error )
@@ -164,13 +159,8 @@ public class ValidationErrorReporter
 
     public void addWarning( TrackerDto dto, TrackerErrorCode code, Object... args )
     {
-        TrackerWarningReport warn = TrackerWarningReport.builder()
-            .uid( dto.getUid() )
-            .trackerType( dto.getTrackerType() )
-            .warningCode( code )
-            .addArgs( args )
-            .build( idSchemes );
-        addWarning( warn );
+        addWarning( new TrackerWarningReport( MessageFormatter.format( idSchemes, code.getMessage(), args ),
+            code, dto.getTrackerType(), dto.getUid() ) );
     }
 
     public void addWarningIf( BooleanSupplier expression, TrackerDto dto, TrackerErrorCode code, Object... args )

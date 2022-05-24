@@ -27,14 +27,9 @@
  */
 package org.hisp.dhis.tracker.report;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import lombok.Builder;
 import lombok.Value;
 
-import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerType;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -89,29 +84,6 @@ public class TrackerErrorReport
     public String getUid()
     {
         return uid;
-    }
-
-    public static class TrackerErrorReportBuilder
-    {
-        private final List<Object> arguments = new ArrayList<>();
-
-        public TrackerErrorReportBuilder addArg( Object arg )
-        {
-            this.arguments.add( arg );
-            return this;
-        }
-
-        public TrackerErrorReportBuilder addArgs( Object... args )
-        {
-            this.arguments.addAll( Arrays.asList( args ) );
-            return this;
-        }
-
-        public TrackerErrorReport build( TrackerIdSchemeParams idSchemes )
-        {
-            return new TrackerErrorReport( MessageFormatter.format( idSchemes, errorCode.getMessage(), arguments ),
-                this.errorCode, this.trackerType, this.uid );
-        }
     }
 
     @Override

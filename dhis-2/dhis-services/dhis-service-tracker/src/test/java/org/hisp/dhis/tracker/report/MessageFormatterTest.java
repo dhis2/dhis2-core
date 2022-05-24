@@ -33,7 +33,6 @@ import static org.hamcrest.Matchers.is;
 
 import java.text.DateFormat;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -90,8 +89,8 @@ class MessageFormatterTest
         CategoryOption co = new CategoryOption();
         co.setAttributeValues( attributeValues( "y0Yxr50hAbP", "red" ) );
 
-        List<String> args = MessageFormatter.buildArgumentList( params,
-            Arrays.asList( relationshipType, program, programStage, orgUnit, dataElement, coc, co ) );
+        List<String> args = MessageFormatter.buildArgumentList( params, relationshipType, program, programStage,
+            orgUnit, dataElement, coc, co );
 
         assertThat( args,
             contains( "RelationshipType (WTTYiPQDqh1)",
@@ -120,7 +119,7 @@ class MessageFormatterTest
     {
         final Instant now = Instant.now();
 
-        List<String> args = MessageFormatter.buildArgumentList( params, Arrays.asList( now ) );
+        List<String> args = MessageFormatter.buildArgumentList( params, Instant.now() );
 
         assertThat( args.size(), is( 1 ) );
         assertThat( args.get( 0 ), is( DateUtils.getIso8601NoTz( DateUtils.fromInstant( now ) ) ) );
@@ -131,7 +130,7 @@ class MessageFormatterTest
     {
         final Date now = Date.from( Instant.now() );
 
-        List<String> args = MessageFormatter.buildArgumentList( params, Arrays.asList( now ) );
+        List<String> args = MessageFormatter.buildArgumentList( params, now );
 
         assertThat( args.size(), is( 1 ) );
         assertThat( args.get( 0 ), is( DateFormat.getInstance().format( now ) ) );
@@ -140,7 +139,7 @@ class MessageFormatterTest
     @Test
     void buildArgumentListShouldTurnStringsIntoArguments()
     {
-        List<String> args = MessageFormatter.buildArgumentList( params, Arrays.asList( "foo", "faa" ) );
+        List<String> args = MessageFormatter.buildArgumentList( params, "foo", "faa" );
 
         assertThat( args, contains( "foo", "faa" ) );
     }
@@ -148,8 +147,8 @@ class MessageFormatterTest
     @Test
     void buildArgumentListShouldTurnMetadataIdentifierIntoArguments()
     {
-        List<String> args = MessageFormatter.buildArgumentList( params, Arrays.asList(
-            MetadataIdentifier.ofUid( "iB8AZpf681V" ), MetadataIdentifier.ofAttribute( "zwccdzhk5zc", "GREEN" ) ) );
+        List<String> args = MessageFormatter.buildArgumentList( params,
+            MetadataIdentifier.ofUid( "iB8AZpf681V" ), MetadataIdentifier.ofAttribute( "zwccdzhk5zc", "GREEN" ) );
 
         assertThat( args, contains( "iB8AZpf681V", "GREEN" ) );
     }
