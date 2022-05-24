@@ -52,10 +52,10 @@ import org.hisp.dhis.util.ObjectUtils;
 /**
  * @author Luciano Fiandesio
  */
-class TrackerReportUtils
+class MessageFormatter
 {
 
-    private TrackerReportUtils()
+    private MessageFormatter()
     {
         // not meant to be inherited from
     }

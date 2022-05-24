@@ -54,7 +54,7 @@ import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class TrackerReportUtilsTest
+class MessageFormatterTest
 {
 
     private TrackerIdSchemeParams params;
@@ -90,7 +90,7 @@ class TrackerReportUtilsTest
         CategoryOption co = new CategoryOption();
         co.setAttributeValues( attributeValues( "y0Yxr50hAbP", "red" ) );
 
-        List<String> args = TrackerReportUtils.buildArgumentList( params,
+        List<String> args = MessageFormatter.buildArgumentList( params,
             Arrays.asList( relationshipType, program, programStage, orgUnit, dataElement, coc, co ) );
 
         assertThat( args,
@@ -120,7 +120,7 @@ class TrackerReportUtilsTest
     {
         final Instant now = Instant.now();
 
-        List<String> args = TrackerReportUtils.buildArgumentList( params, Arrays.asList( now ) );
+        List<String> args = MessageFormatter.buildArgumentList( params, Arrays.asList( now ) );
 
         assertThat( args.size(), is( 1 ) );
         assertThat( args.get( 0 ), is( DateUtils.getIso8601NoTz( DateUtils.fromInstant( now ) ) ) );
@@ -131,7 +131,7 @@ class TrackerReportUtilsTest
     {
         final Date now = Date.from( Instant.now() );
 
-        List<String> args = TrackerReportUtils.buildArgumentList( params, Arrays.asList( now ) );
+        List<String> args = MessageFormatter.buildArgumentList( params, Arrays.asList( now ) );
 
         assertThat( args.size(), is( 1 ) );
         assertThat( args.get( 0 ), is( DateFormat.getInstance().format( now ) ) );
@@ -140,7 +140,7 @@ class TrackerReportUtilsTest
     @Test
     void buildArgumentListShouldTurnStringsIntoArguments()
     {
-        List<String> args = TrackerReportUtils.buildArgumentList( params, Arrays.asList( "foo", "faa" ) );
+        List<String> args = MessageFormatter.buildArgumentList( params, Arrays.asList( "foo", "faa" ) );
 
         assertThat( args, contains( "foo", "faa" ) );
     }
@@ -148,7 +148,7 @@ class TrackerReportUtilsTest
     @Test
     void buildArgumentListShouldTurnMetadataIdentifierIntoArguments()
     {
-        List<String> args = TrackerReportUtils.buildArgumentList( params, Arrays.asList(
+        List<String> args = MessageFormatter.buildArgumentList( params, Arrays.asList(
             MetadataIdentifier.ofUid( "iB8AZpf681V" ), MetadataIdentifier.ofAttribute( "zwccdzhk5zc", "GREEN" ) ) );
 
         assertThat( args, contains( "iB8AZpf681V", "GREEN" ) );

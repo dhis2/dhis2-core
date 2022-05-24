@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.tracker.report;
 
-import static org.hisp.dhis.tracker.report.TrackerReportUtils.buildArgumentList;
+import static org.hisp.dhis.tracker.report.MessageFormatter.buildArgumentList;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
