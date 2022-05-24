@@ -737,13 +737,15 @@ public class AnalyticsUtils
             if ( stage != null )
             {
                 map.put( stage.getUid(),
-                    new MetadataItem( stage.getDisplayName(), includeMetadataDetails ? stage : null ) );
+                    new MetadataItem( stage.getDisplayProperty( params.getDisplayProperty() ),
+                        includeMetadataDetails ? stage : null ) );
             }
             else
             {
                 for ( ProgramStage ps : program.getProgramStages() )
                 {
-                    map.put( ps.getUid(), new MetadataItem( ps.getDisplayName(), includeMetadataDetails ? ps : null ) );
+                    map.put( ps.getUid(), new MetadataItem( ps.getDisplayProperty( params.getDisplayProperty() ),
+                        includeMetadataDetails ? ps : null ) );
                 }
             }
         }
