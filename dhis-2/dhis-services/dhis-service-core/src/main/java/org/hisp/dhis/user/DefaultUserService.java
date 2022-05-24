@@ -822,7 +822,8 @@ public class DefaultUserService
         return createUserDetails( user, password, accountNonLocked, credentialsNonExpired );
     }
 
-    private CurrentUserDetailsImpl createUserDetails( User user, String password, boolean accountNonLocked,
+    @Override
+    public CurrentUserDetailsImpl createUserDetails( User user, String password, boolean accountNonLocked,
         boolean credentialsNonExpired )
     {
         return new CurrentUserDetailsImpl(

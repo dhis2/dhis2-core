@@ -117,8 +117,10 @@ public class Dhis2ApiTokenFilter extends OncePerRequestFilter
 
         try
         {
+            ApiTokenAuthenticationToken authentication = new ApiTokenAuthenticationToken( hashedKey );
+
             ApiTokenAuthenticationToken authenticationToken = (ApiTokenAuthenticationToken) apiTokenAuthManager
-                .authenticate( new ApiTokenAuthenticationToken( hashedKey ) );
+                .authenticate( authentication );
 
             // Set values unique to each request
             authenticationToken.setDetails( this.authenticationDetailsSource.buildDetails( request ) );

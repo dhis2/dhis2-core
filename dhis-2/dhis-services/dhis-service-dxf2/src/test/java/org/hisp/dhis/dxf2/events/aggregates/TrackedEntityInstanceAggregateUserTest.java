@@ -38,7 +38,6 @@ import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
-import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -54,16 +53,6 @@ class TrackedEntityInstanceAggregateUserTest extends TrackerTest
 
     @Autowired
     private TrackedEntityInstanceAggregate trackedEntityInstanceAggregate;
-
-    @Override
-    protected void mockCurrentUserService()
-    {
-        User user = createUserWithAuth( "testUser" );
-        user.addOrganisationUnit( organisationUnitA );
-        userService.updateUser( user );
-        makeUserSuper( user );
-        injectSecurityContext( user );
-    }
 
     @Test
     void testFetchTrackedEntityInstances()

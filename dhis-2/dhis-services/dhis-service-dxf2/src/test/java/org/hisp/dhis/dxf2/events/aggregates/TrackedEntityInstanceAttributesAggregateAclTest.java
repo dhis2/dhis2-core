@@ -69,17 +69,6 @@ class TrackedEntityInstanceAttributesAggregateAclTest extends TrackerTest
 
     private User nonSuperUser;
 
-    @Override
-    protected void mockCurrentUserService()
-    {
-        superUser = preCreateInjectAdminUser();
-        injectSecurityContext( superUser );
-
-        nonSuperUser = createUserWithAuth( "testUser" );
-        setUserAuthorityToNonSuper( nonSuperUser );
-        injectSecurityContext( nonSuperUser );
-    }
-
     @Test
     void verifyTeiCantBeAccessedNoPublicAccessOnTrackedEntityType()
     {

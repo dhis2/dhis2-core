@@ -70,7 +70,6 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -99,16 +98,6 @@ class TrackedEntityInstanceAggregateTest extends TrackerTest
     private TrackedEntityProgramOwnerService programOwnerService;
 
     private final static String DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS";
-
-    @Override
-    protected void mockCurrentUserService()
-    {
-        User user = createUserWithAuth( "[Unknown]" );
-        user.addOrganisationUnit( organisationUnitA );
-        userService.updateUser( user );
-        makeUserSuper( user );
-        injectSecurityContext( user );
-    }
 
     @Test
     void testFetchTrackedEntityInstances()

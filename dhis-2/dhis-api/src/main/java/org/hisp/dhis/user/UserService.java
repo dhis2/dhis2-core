@@ -431,4 +431,7 @@ public interface UserService
     List<User> getUsersWithAuthority( String authority );
 
     CurrentUserDetails validateAndCreateUserDetails( User user, String password );
+
+    CurrentUserDetailsImpl createUserDetails( User user, String password, boolean accountNonLocked,
+        boolean credentialsNonExpired );
 }
