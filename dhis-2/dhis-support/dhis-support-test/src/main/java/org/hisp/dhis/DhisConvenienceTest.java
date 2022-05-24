@@ -100,6 +100,7 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.fileresource.ExternalFileResource;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
+import org.hisp.dhis.hibernate.HibernateService;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.indicator.IndicatorGroupSet;
@@ -251,6 +252,9 @@ public abstract class DhisConvenienceTest
 
     @Autowired( required = false )
     protected CategoryService internalCategoryService;
+
+    @Autowired
+    protected HibernateService hibernateService;
 
     protected static CategoryService categoryService;
 
@@ -2585,6 +2589,7 @@ public abstract class DhisConvenienceTest
             return;
         }
 
+        hibernateService.flushSession();
         user = userService.getUser( user.getUid() );
 
         CurrentUserDetails currentUserDetails = userService.validateAndCreateUserDetails( user, user.getPassword() );

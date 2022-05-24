@@ -189,7 +189,8 @@ public abstract class TrackerTest extends IntegrationTestBase
             Stream.of( programStageA1, programStageA2 ).collect( Collectors.toCollection( HashSet::new ) ) );
         manager.update( programA );
 
-        mockCurrentUserService();
+        User user = createUserWithAuth( "testUser" );
+        injectSecurityContext( user );
     }
 
     public TrackedEntityInstance persistTrackedEntityInstance()
@@ -372,12 +373,6 @@ public abstract class TrackerTest extends IntegrationTestBase
             }
         }
         return enrollment;
-    }
-
-    protected void mockCurrentUserService()
-    {
-        User user = createUserWithAuth( "testUser" );
-        injectSecurityContext( user );
     }
 
     protected ProgramStage createProgramStage( Program program, boolean publicAccess )
