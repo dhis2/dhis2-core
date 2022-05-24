@@ -305,7 +305,7 @@ public class JdbcEventStore implements EventStore
      * actual UPDATE statement. This prevents deadlocks when Postgres tries to
      * update the same TEI.
      */
-    private static final String UPDATE_TEI_SQL = "SELECT * FROM trackedentityinstance where uid in (:teiUids) FOR UPDATE :skip;"
+    private static final String UPDATE_TEI_SQL = "SELECT * FROM trackedentityinstance where uid in (:teiUids) FOR UPDATE SKIP LOCKED;"
         + "update trackedentityinstance set lastupdated = :lastUpdated, lastupdatedby = :lastUpdatedBy where uid in (:teiUids)";
 
     static
@@ -1642,7 +1642,7 @@ public class JdbcEventStore implements EventStore
     {
 
         JdbcUtils.batchUpdateWithKeyHolder( jdbcTemplate.getJdbcTemplate(), INSERT_EVENT_SQL,
-            new BatchPreparedStatementSetterWithKeyHolder<ProgramStageInstance>( sort( batch ) )
+            new BatchPreparedStatementSetterWithKeyHolder<>( sort( batch ) )
             {
                 @Override
                 protected void setValues( PreparedStatement ps, ProgramStageInstance event )
@@ -1723,7 +1723,14 @@ public class JdbcEventStore implements EventStore
         {
             Timestamp timestamp = new Timestamp( System.currentTimeMillis() );
 
-            jdbcTemplate.execute( UPDATE_TEI_SQL, new MapSqlParameterSource()
+            String sql = UPDATE_TEI_SQL;
+
+            if ( skipLockedProvider.getSkipLocked().isEmpty() )
+            {
+                sql = sql.replace( "SKIP LOCKED", "" );
+            }
+
+            jdbcTemplate.execute( sql, new MapSqlParameterSource()
                 .addValue( "teiUids", teiUids )
                 .addValue( "skip", skipLockedProvider.getSkipLocked() )
                 .addValue( "lastUpdated", timestamp )
