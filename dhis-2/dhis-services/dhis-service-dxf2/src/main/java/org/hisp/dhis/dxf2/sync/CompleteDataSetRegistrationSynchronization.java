@@ -132,7 +132,7 @@ public class CompleteDataSetRegistrationSynchronization implements DataSynchroni
 
         if ( objectsToSynchronize != 0 )
         {
-            SystemInstance instance = SyncUtils.getRemoteInstanceWithSyncImportStrategy( settings,
+            SystemInstance instance = SyncUtils.getRemoteInstance( settings,
                 SyncEndpoint.COMPLETE_DATA_SET_REGISTRATIONS );
 
             return new CompleteDataSetRegistrationSynchronizationContext( skipChangedBefore, objectsToSynchronize,
