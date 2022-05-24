@@ -60,6 +60,16 @@ public class CategoryOptionDeletionHandler
     }
 
     @Override
+    public void deleteOrganisationUnit( OrganisationUnit unit )
+    {
+        for ( CategoryOption option : unit.getCategoryOptions() )
+        {
+            option.getOrganisationUnits().remove( unit );
+            idObjectManager.updateNoAcl( option );
+        }
+    }
+
+    @Override
     public void deleteCategory( Category category )
     {
         for ( CategoryOption categoryOption : category.getCategoryOptions() )
