@@ -27,9 +27,38 @@
  */
 package org.hisp.dhis.user;
 
-public interface Dhis2User
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.Map;
+
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
+public interface CurrentUserDetails extends UserDetails
 {
+
+    @Override
+    Collection<? extends GrantedAuthority> getAuthorities();
+
+    @Override
+    String getPassword();
+
+    @Override
     String getUsername();
 
-    User getDhis2User();
+    @Override
+    boolean isAccountNonExpired();
+
+    @Override
+    boolean isAccountNonLocked();
+
+    @Override
+    boolean isCredentialsNonExpired();
+
+    @Override
+    boolean isEnabled();
+
+    String getUid();
+
+    Map<String, Serializable> getUserSettings();
 }

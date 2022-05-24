@@ -53,6 +53,7 @@ import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.translation.Translation;
+import org.hisp.dhis.user.CurrentUserDetails;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
@@ -561,8 +562,8 @@ public class BaseIdentifiableObject
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isFavorite()
     {
-        User user = CurrentUserUtil.getCurrentUser();
-        return user != null && favorites != null ? favorites.contains( user.getUid() ) : false;
+        CurrentUserDetails user = CurrentUserUtil.getCurrentUserDetails();
+        return user != null && favorites != null && favorites.contains( user.getUid() );
     }
 
     @Override

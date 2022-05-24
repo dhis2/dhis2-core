@@ -30,11 +30,9 @@ package org.hisp.dhis.security;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -51,13 +49,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultLdapUserDetailsService
     implements UserDetailsService
 {
-    public static final String ID = UserDetailsService.class.getName();
-
     private final UserService userService;
-
-    private final SecurityService securityService;
-
-    private final SessionFactory sessionFactory;
 
     @Override
     @Transactional( readOnly = true )
@@ -66,29 +58,19 @@ public class DefaultLdapUserDetailsService
         DataAccessException
     {
         User user = userService.getUserByUsername( username );
+        if ( user == null )
+        {
+            throw new UsernameNotFoundException( String.format( "Username '%s' not found.", username ) );
+        }
 
         if ( !user.isExternalAuth() || !user.hasLdapId() )
         {
             throw new UsernameNotFoundException( "Wrong type of user, is not LDAP user." );
         }
 
-        boolean enabled = !user.isDisabled();
-        boolean credentialsNonExpired = userService.userNonExpired( user );
-        boolean accountNonLocked = !securityService.isLocked( user.getUsername() );
-        boolean accountNonExpired = !userService.isAccountExpired( user );
+        String password = "EXTERNAL_LDAP_" + CodeGenerator.generateCode( 10 );
 
-        if ( ObjectUtils.anyIsFalse( enabled, credentialsNonExpired, accountNonLocked, accountNonExpired ) )
-        {
-            log.info( String.format(
-                "Login attempt for disabled/locked user: '%s', enabled: %b, account non-expired: %b, user non-expired: %b, account non-locked: %b",
-                username, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked ) );
-        }
-
-        user.setAccountNonLocked( accountNonLocked );
-        user.setCredentialsNonExpired( credentialsNonExpired );
-
-        user.setPassword( "EXTERNAL_LDAP_" + CodeGenerator.generateCode( 10 ) );
-
-        return user;
+        return userService.validateAndCreateUserDetails( user, password );
     }
+
 }

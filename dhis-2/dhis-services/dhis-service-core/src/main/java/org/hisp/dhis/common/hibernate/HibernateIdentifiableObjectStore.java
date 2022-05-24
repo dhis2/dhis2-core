@@ -67,6 +67,7 @@ import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserDetails;
 import org.hisp.dhis.user.CurrentUserGroupInfo;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.CurrentUserServiceTarget;
@@ -243,7 +244,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         if ( object != null )
         {
-            User currentUser = CurrentUserUtil.getCurrentUser();
+            CurrentUserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
             if ( currentUser != null && currentUser.getUid().equals( object.getUid() ) )
             {
                 // If we are changing current user we need to merge instead of

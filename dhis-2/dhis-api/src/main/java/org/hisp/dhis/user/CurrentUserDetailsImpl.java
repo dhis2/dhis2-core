@@ -25,35 +25,88 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.jwt;
+package org.hisp.dhis.user;
 
+import java.io.Serializable;
 import java.util.Collection;
+import java.util.Map;
 
-import org.hisp.dhis.security.oidc.DhisOidcUser;
-import org.hisp.dhis.user.CurrentUserDetails;
+import lombok.AllArgsConstructor;
+
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
-/**
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-public class DhisJwtAuthenticationToken extends JwtAuthenticationToken
+@AllArgsConstructor
+public class CurrentUserDetailsImpl implements CurrentUserDetails
 {
-    private final DhisOidcUser dhisOidcUser;
+    private final String uuid;
 
-    public DhisJwtAuthenticationToken( Jwt jwt, Collection<? extends GrantedAuthority> authorities, String name,
-        CurrentUserDetails user )
+    private final String username;
+
+    private final String password;
+
+    private final boolean enabled;
+
+    private final boolean accountNonExpired;
+
+    private final boolean accountNonLocked;
+
+    private final boolean credentialsNonExpired;
+
+    private final Collection<GrantedAuthority> authorities;
+
+    private final Map<String, Serializable> userSettings;
+
+    @Override
+    public Map<String, Serializable> getUserSettings()
     {
-        super( jwt, authorities, name );
-
-        this.dhisOidcUser = new DhisOidcUser( user, jwt.getClaims(), IdTokenClaimNames.SUB, null );
+        return userSettings;
     }
 
     @Override
-    public Object getPrincipal()
+    public Collection<? extends GrantedAuthority> getAuthorities()
     {
-        return this.dhisOidcUser;
+        return authorities;
+    }
+
+    @Override
+    public String getPassword()
+    {
+        return password;
+    }
+
+    @Override
+    public String getUsername()
+    {
+        return username;
+    }
+
+    @Override
+    public boolean isAccountNonExpired()
+    {
+        return accountNonExpired;
+    }
+
+    @Override
+    public boolean isAccountNonLocked()
+    {
+        return accountNonLocked;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired()
+    {
+        return credentialsNonExpired;
+    }
+
+    @Override
+    public boolean isEnabled()
+    {
+        return enabled;
+    }
+
+    @Override
+    public String getUid()
+    {
+        return uuid;
     }
 }

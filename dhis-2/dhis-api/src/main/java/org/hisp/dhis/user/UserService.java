@@ -429,4 +429,6 @@ public interface UserService
      * authority.
      */
     List<User> getUsersWithAuthority( String authority );
+
+    CurrentUserDetails validateAndCreateUserDetails( User user, String password );
 }

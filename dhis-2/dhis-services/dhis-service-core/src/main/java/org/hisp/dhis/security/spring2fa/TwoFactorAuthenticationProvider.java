@@ -33,6 +33,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.LongValidator;
 import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.security.SecurityUtils;
+import org.hisp.dhis.user.CurrentUserDetails;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,7 +79,6 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider
         String username = auth.getName();
 
         User user = userService.getUserWithEagerFetchAuthorities( username );
-
         if ( user == null )
         {
             throw new BadCredentialsException( "Invalid username or password" );
@@ -87,7 +87,6 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider
         // -------------------------------------------------------------------------
         // Check two-factor authentication
         // -------------------------------------------------------------------------
-
         if ( user.isTwoFA() && auth.getDetails() instanceof TwoFactorWebAuthenticationDetails )
         {
             performTwoFAAuthentication( auth, username, user );
@@ -104,7 +103,9 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider
 
         Authentication result = super.authenticate( auth );
 
-        return new UsernamePasswordAuthenticationToken( user, result.getCredentials(),
+        CurrentUserDetails currentUserDetails = userService.validateAndCreateUserDetails( user, user.getPassword() );
+
+        return new UsernamePasswordAuthenticationToken( currentUserDetails, result.getCredentials(),
             result.getAuthorities() );
     }
 

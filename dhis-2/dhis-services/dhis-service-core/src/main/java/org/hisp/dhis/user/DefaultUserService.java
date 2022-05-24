@@ -39,7 +39,9 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Matcher;
@@ -61,10 +63,12 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.PasswordManager;
+import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.filter.UserRoleCanIssueFilter;
 import org.hisp.dhis.util.DateUtils;
+import org.hisp.dhis.util.ObjectUtils;
 import org.joda.time.DateTime;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.session.SessionInformation;
@@ -105,13 +109,16 @@ public class DefaultUserService
 
     private final SessionRegistry sessionRegistry;
 
+    private final SecurityService securityService;
+
     private final Cache<String> userDisplayNameCache;
 
     public DefaultUserService( UserStore userStore, UserGroupService userGroupService,
         UserRoleStore userRoleStore,
         CurrentUserService currentUserService, SystemSettingManager systemSettingManager,
         CacheProvider cacheProvider,
-        @Lazy PasswordManager passwordManager, @Lazy SessionRegistry sessionRegistry )
+        @Lazy PasswordManager passwordManager, @Lazy SessionRegistry sessionRegistry,
+        @Lazy SecurityService securityService )
     {
         checkNotNull( userStore );
         checkNotNull( userGroupService );
@@ -119,6 +126,7 @@ public class DefaultUserService
         checkNotNull( systemSettingManager );
         checkNotNull( passwordManager );
         checkNotNull( sessionRegistry );
+        checkNotNull( securityService );
 
         this.userStore = userStore;
         this.userGroupService = userGroupService;
@@ -127,7 +135,8 @@ public class DefaultUserService
         this.systemSettingManager = systemSettingManager;
         this.passwordManager = passwordManager;
         this.sessionRegistry = sessionRegistry;
-        userDisplayNameCache = cacheProvider.createUserDisplayNameCache();
+        this.securityService = securityService;
+        this.userDisplayNameCache = cacheProvider.createUserDisplayNameCache();
     }
 
     // -------------------------------------------------------------------------
@@ -788,5 +797,42 @@ public class DefaultUserService
     public List<User> getUsersWithAuthority( String authority )
     {
         return userStore.getHasAuthority( authority );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public CurrentUserDetails validateAndCreateUserDetails( User user, String password )
+    {
+        Objects.requireNonNull( user );
+
+        String username = user.getUsername();
+        boolean enabled = !user.isDisabled();
+        boolean credentialsNonExpired = userNonExpired( user );
+        boolean accountNonLocked = !securityService.isLocked( user.getUsername() );
+        boolean accountNonExpired = !isAccountExpired( user );
+
+        if ( ObjectUtils.anyIsFalse( enabled, credentialsNonExpired, accountNonLocked, accountNonExpired ) )
+        {
+            log.info( String.format(
+                "Login attempt for disabled/locked user: '%s', enabled: %b, account non-expired: %b, user non-expired: %b, account non-locked: %b",
+                username, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked ) );
+        }
+
+        return createUserDetails( user, password, accountNonLocked, credentialsNonExpired );
+    }
+
+    private CurrentUserDetailsImpl createUserDetails( User user, String password, boolean accountNonLocked,
+        boolean credentialsNonExpired )
+    {
+        return new CurrentUserDetailsImpl(
+            user.getUid(),
+            user.getUsername(),
+            password,
+            user.isEnabled(),
+            user.isAccountNonExpired(),
+            accountNonLocked,
+            credentialsNonExpired,
+            user.getAuthorities(),
+            new HashMap<>() );
     }
 }

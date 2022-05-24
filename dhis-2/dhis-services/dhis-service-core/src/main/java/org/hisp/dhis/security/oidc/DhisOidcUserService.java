@@ -31,6 +31,7 @@ import java.util.Map;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.hisp.dhis.user.CurrentUserDetails;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -90,7 +91,8 @@ public class DhisOidcUserService
             User user = userService.getUserByOpenId( (String) claimValue );
             if ( user != null )
             {
-                return new DhisOidcUser( user, attributes, IdTokenClaimNames.SUB, oidcUser.getIdToken() );
+                CurrentUserDetails userDetails = userService.validateAndCreateUserDetails( user, user.getPassword() );
+                return new DhisOidcUser( userDetails, attributes, IdTokenClaimNames.SUB, oidcUser.getIdToken() );
             }
         }
 

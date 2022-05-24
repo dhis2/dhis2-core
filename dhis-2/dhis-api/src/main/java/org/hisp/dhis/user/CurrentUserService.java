@@ -29,13 +29,11 @@ package org.hisp.dhis.user;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -57,16 +55,12 @@ public class CurrentUserService
 {
     private final UserStore userStore;
 
-    private final SessionFactory sessionFactory;
-
     private final Cache<CurrentUserGroupInfo> currentUserGroupInfoCache;
 
-    public CurrentUserService( @Lazy UserStore userStore, SessionFactory sessionFactory, CacheProvider cacheProvider )
+    public CurrentUserService( @Lazy UserStore userStore, CacheProvider cacheProvider )
     {
         checkNotNull( userStore );
-        checkNotNull( sessionFactory );
 
-        this.sessionFactory = sessionFactory;
         this.userStore = userStore;
         this.currentUserGroupInfoCache = cacheProvider.createCurrentUserGroupInfoCache();
     }
@@ -75,7 +69,6 @@ public class CurrentUserService
      * @return the username of the currently logged in user. If no user is
      *         logged in or the auto access admin is active, null is returned.
      */
-    @Transactional( readOnly = true )
     public String getCurrentUsername()
     {
         return CurrentUserUtil.getCurrentUsername();
@@ -84,7 +77,9 @@ public class CurrentUserService
     @Transactional( readOnly = true )
     public User getCurrentUser()
     {
-        return CurrentUserUtil.getCurrentUser();
+        String username = CurrentUserUtil.getCurrentUsername();
+
+        return userStore.getUserByUsername( username );
     }
 
     @Transactional( readOnly = true )
@@ -111,11 +106,13 @@ public class CurrentUserService
         return user != null && user.isAuthorized( auth );
     }
 
+    @Transactional( readOnly = true )
     public CurrentUserGroupInfo getCurrentUserGroupsInfo()
     {
         return getCurrentUserGroupsInfo( getCurrentUser() );
     }
 
+    @Transactional( readOnly = true )
     public CurrentUserGroupInfo getCurrentUserGroupsInfo( User user )
     {
         if ( user == null )
@@ -127,6 +124,7 @@ public class CurrentUserService
             .get( user.getUsername(), this::getCurrentUserGroupsInfo );
     }
 
+    @Transactional( readOnly = true )
     public void invalidateUserGroupCache( String username )
     {
         try
@@ -153,20 +151,5 @@ public class CurrentUserService
             return null;
         }
         return userStore.getCurrentUserGroupInfo( currentUser );
-    }
-
-    public void setUserSetting( UserSettingKey key, Serializable value )
-    {
-        setUserSettingInternal( key.getName(), value );
-    }
-
-    private void setUserSettingInternal( String key, Serializable value )
-    {
-        CurrentUserUtil.setUserSettingInternal( key, value );
-    }
-
-    public static <T> T getUserSetting( UserSettingKey key )
-    {
-        return CurrentUserUtil.getUserSetting( key );
     }
 }
