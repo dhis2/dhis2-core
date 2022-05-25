@@ -32,21 +32,20 @@ import static org.hisp.dhis.tracker.preheat.mappers.AttributeCreator.attributeVa
 import static org.hisp.dhis.tracker.preheat.mappers.AttributeCreator.setIdSchemeFields;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
-import org.hisp.dhis.DhisConvenienceTest;
-import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageDataElement;
 import org.junit.jupiter.api.Test;
 
-class ProgramMapperTest extends DhisConvenienceTest
+class ProgramStageMapperTest
 {
+
     @Test
     void testIdSchemeRelatedFieldsAreMapped()
     {
@@ -58,58 +57,42 @@ class ProgramMapperTest extends DhisConvenienceTest
             "red",
             attributeValues( "m0GpPuMUfFW", "yellow" ) );
 
-        TrackedEntityAttribute attribute = setIdSchemeFields(
-            new TrackedEntityAttribute(),
+        DataElement dataElement = setIdSchemeFields(
+            new DataElement(),
             "khBzbxTLo8k",
             "clouds",
             "orange",
             attributeValues( "m0GpPuMUfFW", "purple" ) );
-        ProgramTrackedEntityAttribute programAttribute = new ProgramTrackedEntityAttribute();
-        programAttribute.setAttribute( attribute );
-        program.setProgramAttributes( List.of( programAttribute ) );
+        ProgramStageDataElement programStageDataElement = new ProgramStageDataElement();
+        programStageDataElement.setDataElement( dataElement );
 
-        Program mapped = ProgramMapper.INSTANCE.map( program );
+        ProgramStage programStage = setIdSchemeFields(
+            new ProgramStage(),
+            "HpSAvRWtdDR",
+            "meet",
+            "green",
+            attributeValues( "m0GpPuMUfFW", "purple" ) );
+        programStage.setProgram( program );
+        programStage.setProgramStageDataElements( Set.of( programStageDataElement ) );
 
-        assertEquals( "WTTYiPQDqh1", mapped.getUid() );
-        assertEquals( "friendship", mapped.getName() );
-        assertEquals( "red", mapped.getCode() );
-        assertContainsOnly( mapped.getAttributeValues(), attributeValue( "m0GpPuMUfFW", "yellow" ) );
+        ProgramStage mapped = ProgramStageMapper.INSTANCE.map( programStage );
 
-        Optional<ProgramTrackedEntityAttribute> actual = mapped.getProgramAttributes().stream().findFirst();
+        assertEquals( "HpSAvRWtdDR", mapped.getUid() );
+        assertEquals( "meet", mapped.getName() );
+        assertEquals( "green", mapped.getCode() );
+        assertContainsOnly( mapped.getAttributeValues(), attributeValue( "m0GpPuMUfFW", "purple" ) );
+
+        assertEquals( "WTTYiPQDqh1", mapped.getProgram().getUid() );
+        assertEquals( "friendship", mapped.getProgram().getName() );
+        assertEquals( "red", mapped.getProgram().getCode() );
+        assertContainsOnly( mapped.getProgram().getAttributeValues(), attributeValue( "m0GpPuMUfFW", "yellow" ) );
+
+        Optional<ProgramStageDataElement> actual = mapped.getProgramStageDataElements().stream().findFirst();
         assertTrue( actual.isPresent() );
-        ProgramTrackedEntityAttribute value = actual.get();
-        assertEquals( "khBzbxTLo8k", value.getAttribute().getUid() );
-        assertEquals( "clouds", value.getAttribute().getName() );
-        assertEquals( "orange", value.getAttribute().getCode() );
-        assertContainsOnly( value.getAttribute().getAttributeValues(), attributeValue( "m0GpPuMUfFW", "purple" ) );
-    }
-
-    @Test
-    void testCategoryComboIsSetForDefaultCategoryCombos()
-    {
-
-        Program program = new Program();
-        CategoryCombo cc = createCategoryCombo( 'A' );
-        cc.setName( CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME );
-        assertTrue( cc.isDefault(), "tests rely on this CC being the default one" );
-        program.setCategoryCombo( cc );
-
-        Program mappedProgram = ProgramMapper.INSTANCE.map( program );
-
-        assertEquals( cc, mappedProgram.getCategoryCombo() );
-    }
-
-    @Test
-    void testCategoryComboIsSetForNonDefaultCategoryCombos()
-    {
-
-        Program program = new Program();
-        CategoryCombo cc = createCategoryCombo( 'A' );
-        assertFalse( cc.isDefault(), "tests rely on this CC NOT being the default one" );
-        program.setCategoryCombo( cc );
-
-        Program mappedProgram = ProgramMapper.INSTANCE.map( program );
-
-        assertEquals( cc, mappedProgram.getCategoryCombo() );
+        ProgramStageDataElement value = actual.get();
+        assertEquals( "khBzbxTLo8k", value.getDataElement().getUid() );
+        assertEquals( "clouds", value.getDataElement().getName() );
+        assertEquals( "orange", value.getDataElement().getCode() );
+        assertContainsOnly( value.getDataElement().getAttributeValues(), attributeValue( "m0GpPuMUfFW", "purple" ) );
     }
 }

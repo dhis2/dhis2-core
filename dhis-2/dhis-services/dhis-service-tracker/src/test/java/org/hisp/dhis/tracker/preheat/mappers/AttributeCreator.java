@@ -27,36 +27,39 @@
  */
 package org.hisp.dhis.tracker.preheat.mappers;
 
-import java.util.List;
+import java.util.Set;
 
-import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
-import org.mapstruct.BeanMapping;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.factory.Mappers;
+import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 
-@Mapper( uses = {
-    DebugMapper.class,
-    TrackedEntityTypeAttributeMapper.class,
-    AttributeValueMapper.class
-} )
-public interface TrackedEntityTypeMapper
-    extends PreheatMapper<TrackedEntityType>
+class AttributeCreator
 {
-    TrackedEntityTypeMapper INSTANCE = Mappers.getMapper( TrackedEntityTypeMapper.class );
+    static Set<AttributeValue> attributeValues( String uid, String value )
+    {
+        return Set.of( attributeValue( uid, value ) );
+    }
 
-    @BeanMapping( ignoreByDefault = true )
-    @Mapping( target = "id" )
-    @Mapping( target = "uid" )
-    @Mapping( target = "name" )
-    @Mapping( target = "code" )
-    @Mapping( target = "attributeValues" )
-    @Mapping( target = "featureType" )
-    @Mapping( target = "sharing" )
-    @Mapping( target = "trackedEntityTypeAttributes" )
-    @Mapping( target = "allowAuditLog" )
-    TrackedEntityType map( TrackedEntityType trackedEntityType );
+    static AttributeValue attributeValue( String uid, String value )
+    {
+        return new AttributeValue( attribute( uid ), value );
+    }
 
-    List<TrackedEntityTypeAttribute> map( List<TrackedEntityTypeAttribute> trackedEntityTypeAttributes );
+    static Attribute attribute( String attributeUid )
+    {
+        Attribute att = new Attribute();
+        att.setUid( attributeUid );
+        return att;
+    }
+
+    static <T extends BaseIdentifiableObject> T setIdSchemeFields( T identifiable, String uid, String name, String code,
+        Set<AttributeValue> attributeValues )
+    {
+        identifiable.setUid( uid );
+        identifiable.setName( name );
+        identifiable.setCode( code );
+        identifiable.setAttributeValues( attributeValues );
+        return identifiable;
+    }
+
 }
