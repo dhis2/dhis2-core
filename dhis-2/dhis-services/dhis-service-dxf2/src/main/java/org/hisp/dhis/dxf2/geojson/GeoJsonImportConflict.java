@@ -93,7 +93,11 @@ public enum GeoJsonImportConflict implements ImportConflictDescriptor
      * When the current user is not allowed to update the target organisation
      * unit
      */
-    ORG_UNIT_NOT_ACCESSIBLE( ErrorCode.E7710, "" );
+    ORG_UNIT_NOT_ACCESSIBLE( ErrorCode.E7710, "" ),
+    /**
+     * When the name used to identify the target organisation unit is not unique
+     */
+    ORG_UNIT_NOT_UNIQUE( ErrorCode.E7711, "" );
 
     private final ErrorCode errorCode;
 
