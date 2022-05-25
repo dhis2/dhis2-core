@@ -27,39 +27,44 @@
  */
 package org.hisp.dhis.category;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Lars Helge Overland
  */
-@Component( "org.hisp.dhis.category.CategoryOptionDeletionHandler" )
-public class CategoryOptionDeletionHandler
-    extends DeletionHandler
+@Component
+@AllArgsConstructor
+public class CategoryOptionDeletionHandler extends DeletionHandler
 {
     private final IdentifiableObjectManager idObjectManager;
-
-    public CategoryOptionDeletionHandler( IdentifiableObjectManager idObjectManager )
-    {
-        checkNotNull( idObjectManager );
-        this.idObjectManager = idObjectManager;
-    }
 
     @Override
     protected void register()
     {
         whenDeleting( Category.class, this::deleteCategory );
+        whenDeleting( OrganisationUnit.class, this::deleteOrgUnit );
+    }
+
+    private void deleteOrgUnit( OrganisationUnit unit )
+    {
+        for ( CategoryOption option : unit.getCategoryOptions() )
+        {
+            option.getOrganisationUnits().remove( unit );
+            idObjectManager.updateNoAcl( option );
+        }
     }
 
     private void deleteCategory( Category category )
     {
-        for ( CategoryOption categoryOption : category.getCategoryOptions() )
+        for ( CategoryOption option : category.getCategoryOptions() )
         {
-            categoryOption.getCategories().remove( category );
-            idObjectManager.updateNoAcl( categoryOption );
+            option.getCategories().remove( category );
+            idObjectManager.updateNoAcl( option );
         }
     }
 }
