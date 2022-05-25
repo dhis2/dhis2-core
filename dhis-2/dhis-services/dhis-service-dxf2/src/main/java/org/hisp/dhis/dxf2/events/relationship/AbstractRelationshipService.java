@@ -326,13 +326,24 @@ public abstract class AbstractRelationshipService
         }
 
         org.hisp.dhis.relationship.Relationship daoRelationship = relationshipService
-            .getRelationship( relationship.getRelationship() );
+            .getRelationshipIncludeDeleted( relationship.getRelationship() );
 
         checkRelationship( relationship, importSummary );
 
         if ( daoRelationship == null )
         {
             String message = "Relationship '" + relationship.getRelationship() + "' does not exist";
+            importSummary.addConflict( "Relationship", message );
+
+            importSummary.setStatus( ImportStatus.ERROR );
+            importSummary.getImportCount().incrementIgnored();
+
+            return importSummary;
+        }
+        else if ( daoRelationship.isDeleted() )
+        {
+            String message = "Relationship '" + relationship.getRelationship()
+                + "' is already deleted and cannot be modified.";
             importSummary.addConflict( "Relationship", message );
 
             importSummary.setStatus( ImportStatus.ERROR );
@@ -869,7 +880,7 @@ public abstract class AbstractRelationshipService
         }
         else
         {
-            if ( !relationshipService.relationshipExists( relationship.getRelationship() ) )
+            if ( !relationshipService.relationshipExistsIncludingDeleted( relationship.getRelationship() ) )
             {
                 create.add( relationship );
             }
