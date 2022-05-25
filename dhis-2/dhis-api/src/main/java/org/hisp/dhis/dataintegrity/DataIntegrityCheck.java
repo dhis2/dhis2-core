@@ -75,6 +75,9 @@ public final class DataIntegrityCheck implements Serializable
     @JsonProperty
     private final String recommendation;
 
+    @JsonProperty
+    private final String issuesIdType;
+
     private final transient Function<DataIntegrityCheck, DataIntegritySummary> runSummaryCheck;
 
     private final transient Function<DataIntegrityCheck, DataIntegrityDetails> runDetailsCheck;
