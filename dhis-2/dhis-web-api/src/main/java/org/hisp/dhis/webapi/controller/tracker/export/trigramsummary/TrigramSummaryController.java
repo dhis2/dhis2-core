@@ -25,11 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.trigramsummary;
+package org.hisp.dhis.webapi.controller.tracker.export.trigramsummary;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import lombok.AllArgsConstructor;
@@ -93,7 +97,7 @@ public class TrigramSummaryController
         Set<String> allIndexableAttributeUids = allIndexableAttributes.stream().map( TrackedEntityAttribute::getUid )
             .collect( Collectors.toSet() );
 
-        List<Long> indexedAttributeIds = trackedEntityAttributeTableManager.getAttributeIdsWithTrigramIndexCreated();
+        List<Long> indexedAttributeIds = trackedEntityAttributeTableManager.getAttributeIdsWithTrigramIndex();
 
         List<TrackedEntityAttribute> allIndexedAttributes;
 

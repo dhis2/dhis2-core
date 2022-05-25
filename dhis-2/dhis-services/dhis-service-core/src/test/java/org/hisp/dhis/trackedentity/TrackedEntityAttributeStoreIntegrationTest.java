@@ -208,7 +208,7 @@ class TrackedEntityAttributeStoreIntegrationTest
         attributeService.addTrackedEntityAttribute( attributeW );
         trackedEntityAttributeTableManager.createTrigramIndex( attributeW );
 
-        List<Long> attributeIds = trackedEntityAttributeTableManager.getAttributeIdsWithTrigramIndexCreated();
+        List<Long> attributeIds = trackedEntityAttributeTableManager.getAttributeIdsWithTrigramIndex();
 
         assertNotNull( attributeIds );
         assertTrue( attributeIds.contains( attributeW.getId() ) );

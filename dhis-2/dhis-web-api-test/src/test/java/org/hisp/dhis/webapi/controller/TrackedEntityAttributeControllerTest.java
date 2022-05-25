@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.webapi.controller.TrackerControllerAssertions.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 import java.util.Date;
 import java.util.Set;
@@ -158,120 +158,95 @@ class TrackedEntityAttributeControllerTest extends DhisControllerConvenienceTest
     @Test
     void getIndexableOnlyAttributes()
     {
-
         JsonObject json = GET( "/trackedEntityAttributes?indexableOnly=true" ).content( HttpStatus.OK );
-        assertFalse( json.isEmpty() );
 
-        Set<String> expected = Set.of( "AttributeA", "AttributeB" );
-        assertAttributeList( json, expected );
-
+        assertAttributeList( json, Set.of( "AttributeA", "AttributeB" ) );
     }
 
     @Test
     void getIndexableOnlyAttributesWithDateAndTextValueType()
     {
-
         teaA.setValueType( ValueType.DATE );
         manager.update( teaA );
         teaB.setValueType( ValueType.TEXT );
         manager.update( teaB );
+
         JsonObject json = GET( "/trackedEntityAttributes?indexableOnly=true" ).content( HttpStatus.OK );
-        assertFalse( json.isEmpty() );
 
-        Set<String> expected = Set.of( "AttributeB" );
-        assertAttributeList( json, expected );
-
+        assertAttributeList( json, Set.of( "AttributeB" ) );
     }
 
     @Test
     void getIndexableOnlyAttributesWithLongTextAndBooleanValueType()
     {
-
         teaA.setValueType( ValueType.LONG_TEXT );
         manager.update( teaA );
         teaB.setValueType( ValueType.BOOLEAN );
         manager.update( teaB );
+
         JsonObject json = GET( "/trackedEntityAttributes?indexableOnly=true" ).content( HttpStatus.OK );
-        assertFalse( json.isEmpty() );
 
-        Set<String> expected = Set.of( "AttributeA" );
-        assertAttributeList( json, expected );
-
+        assertAttributeList( json, Set.of( "AttributeA" ) );
     }
 
     @Test
     void getIndexableOnlyAttributesWithNumberAndPhoneNumberValueType()
     {
-
         teaA.setValueType( ValueType.NUMBER );
         manager.update( teaA );
         teaB.setValueType( ValueType.PHONE_NUMBER );
         manager.update( teaB );
+
         JsonObject json = GET( "/trackedEntityAttributes?indexableOnly=true" ).content( HttpStatus.OK );
-        assertFalse( json.isEmpty() );
 
-        Set<String> expected = Set.of( "AttributeB" );
-        assertAttributeList( json, expected );
-
+        assertAttributeList( json, Set.of( "AttributeB" ) );
     }
 
     @Test
     void getIndexableOnlyAttributesWithEmailAndPercentageValueType()
     {
-
         teaA.setValueType( ValueType.EMAIL );
         manager.update( teaA );
         teaB.setValueType( ValueType.PERCENTAGE );
         manager.update( teaB );
+
         JsonObject json = GET( "/trackedEntityAttributes?indexableOnly=true" ).content( HttpStatus.OK );
-        assertFalse( json.isEmpty() );
 
-        Set<String> expected = Set.of( "AttributeA" );
-        assertAttributeList( json, expected );
-
+        assertAttributeList( json, Set.of( "AttributeA" ) );
     }
 
     @Test
     void getIndexableOnlyAttributesWithTimeAndUserNameValueType()
     {
-
         teaA.setValueType( ValueType.TIME );
         manager.update( teaA );
         teaB.setValueType( ValueType.USERNAME );
         manager.update( teaB );
+
         JsonObject json = GET( "/trackedEntityAttributes?indexableOnly=true" ).content( HttpStatus.OK );
-        assertFalse( json.isEmpty() );
 
-        Set<String> expected = Set.of( "AttributeB" );
-        assertAttributeList( json, expected );
-
+        assertAttributeList( json, Set.of( "AttributeB" ) );
     }
 
     @Test
     void getIndexableOnlyAttributesWithUrlAndCoordinateValueType()
     {
-
         teaA.setValueType( ValueType.URL );
         manager.update( teaA );
         teaB.setValueType( ValueType.COORDINATE );
         manager.update( teaB );
+
         JsonObject json = GET( "/trackedEntityAttributes?indexableOnly=true" ).content( HttpStatus.OK );
-        assertFalse( json.isEmpty() );
 
-        Set<String> expected = Set.of( "AttributeA" );
-        assertAttributeList( json, expected );
-
+        assertAttributeList( json, Set.of( "AttributeA" ) );
     }
 
     @Test
     void getAllAttributes()
     {
-
         JsonObject json = GET( "/trackedEntityAttributes?indexableOnly=false" ).content( HttpStatus.OK );
-        assertFalse( json.isEmpty() );
 
-        Set<String> expected = Set.of( "AttributeA", "AttributeB", "AttributeC", "AttributeD", "AttributeE" );
-        assertAttributeList( json, expected );
+        assertAttributeList( json, Set.of( "AttributeA", "AttributeB", "AttributeC", "AttributeD", "AttributeE" ) );
     }
 
     @Test
@@ -288,10 +263,8 @@ class TrackedEntityAttributeControllerTest extends DhisControllerConvenienceTest
         JsonObject json = GET(
             "/trackedEntityAttributes?indexableOnly=true&filter=name:in:[AttributeB,AttributeC]" ).content(
                 HttpStatus.OK );
-        assertFalse( json.isEmpty() );
 
-        Set<String> expected = Set.of( "AttributeB" );
-        assertAttributeList( json, expected );
+        assertAttributeList( json, Set.of( "AttributeB" ) );
     }
 
     @Test
@@ -300,10 +273,8 @@ class TrackedEntityAttributeControllerTest extends DhisControllerConvenienceTest
         JsonObject json = GET(
             "/trackedEntityAttributes?indexableOnly=false&filter=name:in:[AttributeB,AttributeC]" ).content(
                 HttpStatus.OK );
-        assertFalse( json.isEmpty() );
 
-        Set<String> expected = Set.of( "AttributeB", "AttributeC" );
-        assertAttributeList( json, expected );
+        assertAttributeList( json, Set.of( "AttributeB", "AttributeC" ) );
     }
 
     @Test
@@ -311,26 +282,22 @@ class TrackedEntityAttributeControllerTest extends DhisControllerConvenienceTest
     {
         tetaA.setSearchable( false );
         manager.update( tetaA );
-
         tetaB.setSearchable( false );
         manager.update( tetaB );
-
         pteaA.setSearchable( false );
         manager.update( pteaA );
-
         pteaB.setSearchable( false );
         manager.update( pteaB );
 
         JsonObject json = GET( "/trackedEntityAttributes?indexableOnly=true&filter=name:in:[AttributeB,AttributeC]" )
             .content( HttpStatus.OK );
-        assertFalse( json.isEmpty() );
 
-        Set<String> expected = Set.of();
-        assertAttributeList( json, expected );
+        assertAttributeList( json, Set.of() );
     }
 
     private static void assertAttributeList( JsonObject actualJson, Set<String> expected )
     {
+        assertFalse( actualJson.isEmpty() );
         assertEquals( expected.size(), actualJson.getArray( "trackedEntityAttributes" ).size() );
         assertEquals( expected, actualJson.getArray( "trackedEntityAttributes" )
             .viewAsList( e -> e.asObject().getString( "displayName" ) )

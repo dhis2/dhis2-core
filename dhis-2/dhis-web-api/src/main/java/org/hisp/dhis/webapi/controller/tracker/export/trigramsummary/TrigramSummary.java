@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.trigramsummary;
+package org.hisp.dhis.webapi.controller.tracker.export.trigramsummary;
 
 import java.util.ArrayList;
 import java.util.List;

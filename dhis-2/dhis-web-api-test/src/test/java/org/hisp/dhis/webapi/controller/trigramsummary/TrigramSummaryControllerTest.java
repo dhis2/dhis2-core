@@ -27,10 +27,16 @@
  */
 package org.hisp.dhis.webapi.controller.trigramsummary;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.Mockito.when;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -41,9 +47,15 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentity.*;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeTableManager;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.controller.tracker.export.trigramsummary.TrigramSummary;
+import org.hisp.dhis.webapi.controller.tracker.export.trigramsummary.TrigramSummaryController;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -185,70 +197,51 @@ class TrigramSummaryControllerTest extends DhisControllerConvenienceTest
     void getTrigramIndexSummaryWhenNoIndexesAreCreated()
     {
 
-        when( trackedEntityAttributeTableManager.getAttributeIdsWithTrigramIndexCreated() )
+        when( trackedEntityAttributeTableManager.getAttributeIdsWithTrigramIndex() )
             .thenReturn( new ArrayList<>() );
+
         TrigramSummary trigramSummary = controller.getTrigramSummary( new HashMap<>() );
 
         assertNotNull( trigramSummary );
-
-        Set<String> expected = Set.of( "\"AttributeA\"", "\"AttributeB\"", "\"AttributeF\"" );
-        assertAttributeList( trigramSummary.getIndexableAttributes(), expected );
-
-        Set<String> expected2 = Set.of();
-        assertAttributeList( trigramSummary.getIndexedAttributes(), expected2 );
-
-        Set<String> expected3 = Set.of();
-        assertAttributeList( trigramSummary.getObsoleteIndexedAttributes(), expected3 );
-
+        assertAttributeList( trigramSummary.getIndexableAttributes(),
+            Set.of( "\"AttributeA\"", "\"AttributeB\"", "\"AttributeF\"" ) );
+        assertAttributeList( trigramSummary.getIndexedAttributes(), Set.of() );
+        assertAttributeList( trigramSummary.getObsoleteIndexedAttributes(), Set.of() );
     }
 
     @Test
     void getTrigramIndexSummaryWithOneIndexAlreadyCreated()
     {
 
-        when( trackedEntityAttributeTableManager.getAttributeIdsWithTrigramIndexCreated() )
+        when( trackedEntityAttributeTableManager.getAttributeIdsWithTrigramIndex() )
             .thenReturn( List.of( teaB.getId() ) );
+
         TrigramSummary trigramSummary = controller.getTrigramSummary( new HashMap<>() );
 
         assertNotNull( trigramSummary );
-
-        Set<String> expected = Set.of( "\"AttributeA\"", "\"AttributeF\"" );
-        assertAttributeList( trigramSummary.getIndexableAttributes(), expected );
-
-        Set<String> expected2 = Set.of( "\"AttributeB\"" );
-        assertAttributeList( trigramSummary.getIndexedAttributes(), expected2 );
-
-        Set<String> expected3 = Set.of();
-        assertAttributeList( trigramSummary.getObsoleteIndexedAttributes(), expected3 );
-
+        assertAttributeList( trigramSummary.getIndexableAttributes(), Set.of( "\"AttributeA\"", "\"AttributeF\"" ) );
+        assertAttributeList( trigramSummary.getIndexedAttributes(), Set.of( "\"AttributeB\"" ) );
+        assertAttributeList( trigramSummary.getObsoleteIndexedAttributes(), Set.of() );
     }
 
     @Test
     void getTrigramIndexSummaryWithAnObsoleteIndex()
     {
 
-        when( trackedEntityAttributeTableManager.getAttributeIdsWithTrigramIndexCreated() )
+        when( trackedEntityAttributeTableManager.getAttributeIdsWithTrigramIndex() )
             .thenReturn( List.of( teaB.getId(), teaC.getId() ) );
         TrigramSummary trigramSummary = controller.getTrigramSummary( new HashMap<>() );
 
         assertNotNull( trigramSummary );
-
-        Set<String> expected = Set.of( "\"AttributeA\"", "\"AttributeF\"" );
-        assertAttributeList( trigramSummary.getIndexableAttributes(), expected );
-
-        Set<String> expected2 = Set.of( "\"AttributeB\"" );
-        assertAttributeList( trigramSummary.getIndexedAttributes(), expected2 );
-
-        Set<String> expected3 = Set.of( "\"AttributeC\"" );
-        assertAttributeList( trigramSummary.getObsoleteIndexedAttributes(), expected3 );
-
+        assertAttributeList( trigramSummary.getIndexableAttributes(), Set.of( "\"AttributeA\"", "\"AttributeF\"" ) );
+        assertAttributeList( trigramSummary.getIndexedAttributes(), Set.of( "\"AttributeB\"" ) );
+        assertAttributeList( trigramSummary.getObsoleteIndexedAttributes(), Set.of( "\"AttributeC\"" ) );
     }
 
     private static void assertAttributeList( List<ObjectNode> attributes, Set<String> expected )
     {
-        assertEquals( expected.size(), attributes.size() );
-        assertEquals( expected, attributes.stream().map( e -> e.get( "displayName" ).toString() )
-            .collect( Collectors.toSet() ) );
+        assertAll( () -> assertEquals( expected.size(), attributes.size() ),
+            () -> assertEquals( expected, attributes.stream().map( e -> e.get( "displayName" ).toString() )
+                .collect( Collectors.toSet() ) ) );
     }
-
 }
