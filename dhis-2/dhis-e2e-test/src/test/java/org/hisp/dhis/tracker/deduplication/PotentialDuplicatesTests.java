@@ -112,6 +112,12 @@ public class PotentialDuplicatesTests extends PotentialDuplicatesApiTest
             .statusCode( equalTo( 409 ) )
             .body( "httpStatus", equalTo( "Conflict" ) )
             .body( "status", equalTo( "ERROR" ) );
+
+        potentialDuplicatesActions.createPotentialDuplicate( createTei(), createTei(), "ALL" )
+            .validate()
+            .statusCode( equalTo( 409 ) )
+            .body( "httpStatus", equalTo( "Conflict" ) )
+            .body( "status", equalTo( "ERROR" ) );
     }
 
     @Test

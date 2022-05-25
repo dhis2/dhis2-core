@@ -263,12 +263,12 @@ public class DefaultDeduplicationService
     public void addPotentialDuplicate( PotentialDuplicate potentialDuplicate )
         throws PotentialDuplicateConflictException
     {
-        if ( !potentialDuplicate.getStatus().equals( DeduplicationStatus.OPEN ) )
+        if ( !(potentialDuplicate.getStatus() == DeduplicationStatus.OPEN) )
         {
             throw new PotentialDuplicateConflictException(
                 String.format(
-                    "Invalid status %s, creating potential duplicate is allowed using: " + DeduplicationStatus.OPEN,
-                    potentialDuplicate.getStatus() ) );
+                    "Invalid status %s, creating potential duplicate is allowed using: %s",
+                    potentialDuplicate.getStatus(), DeduplicationStatus.OPEN ) );
         }
 
         setPotentialDuplicateUserNameInfo( potentialDuplicate );

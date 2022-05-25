@@ -218,10 +218,10 @@ public class DeduplicationController
         DeduplicationStatus deduplicationStatus )
         throws BadRequestException
     {
-        if ( deduplicationStatus.equals( DeduplicationStatus.MERGED ) )
+        if ( deduplicationStatus == DeduplicationStatus.MERGED )
             throw new BadRequestException(
                 "Can't update a potential duplicate to " + DeduplicationStatus.MERGED.name() );
-        if ( potentialDuplicate.getStatus().equals( DeduplicationStatus.MERGED ) )
+        if ( potentialDuplicate.getStatus() == DeduplicationStatus.MERGED )
             throw new BadRequestException( "Can't update a potential duplicate that is already "
                 + DeduplicationStatus.MERGED.name() );
     }
