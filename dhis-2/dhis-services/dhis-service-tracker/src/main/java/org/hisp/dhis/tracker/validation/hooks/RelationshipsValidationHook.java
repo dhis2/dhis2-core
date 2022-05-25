@@ -185,10 +185,8 @@ public class RelationshipsValidationHook
 
                             if ( !type.isEqualTo( constraint.getTrackedEntityType() ) )
                             {
-                                reporter.addError( relationship,
-                                    TrackerErrorCode.E4014, relSide,
-                                    type.identifierOf( constraint.getTrackedEntityType() ),
-                                    type.getIdentifierOrAttributeValue() );
+                                reporter.addError( relationship, TrackerErrorCode.E4014, relSide,
+                                    type.identifierOf( constraint.getTrackedEntityType() ), type );
                             }
 
                         } );

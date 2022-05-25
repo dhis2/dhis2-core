@@ -63,7 +63,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith( MockitoExtension.class )
 class DataValidatorTest
 {
-
     @Mock
     private CategoryService categoryService;
 
@@ -94,19 +93,19 @@ class DataValidatorTest
     @Mock
     private DataValidator dataValidator;
 
-    private Period periodJan;
+    private Period peJan;
 
-    private Period periodFeb;
+    private Period peFeb;
 
-    private Period periodMar;
+    private Period peMar;
 
-    private DataSet dataSetA;
+    private DataSet dsA;
 
-    private DataElement dataElementA;
+    private DataElement deA;
 
-    private CategoryOption categoryOptionA;
+    private CategoryOption coA;
 
-    private CategoryOptionCombo optionComboA;
+    private CategoryOptionCombo cocA;
 
     private Date jan15;
 
@@ -118,19 +117,19 @@ class DataValidatorTest
         dataValidator = new DataValidator( categoryService, organisationUnitService, dataSetService,
             idObjectManager, dataValueService, inputUtils, fileResourceService, calendarService, accessManager );
 
-        periodJan = createPeriod( "202001" );
-        periodFeb = createPeriod( "202002" );
-        periodMar = createPeriod( "202003" );
+        peJan = createPeriod( "202001" );
+        peFeb = createPeriod( "202002" );
+        peMar = createPeriod( "202003" );
 
-        dataSetA = new DataSet( "dataSet", new MonthlyPeriodType() );
-        dataElementA = new DataElement();
-        categoryOptionA = new CategoryOption();
-        optionComboA = new CategoryOptionCombo();
+        dsA = new DataSet( "dataSet", new MonthlyPeriodType() );
+        deA = new DataElement();
+        coA = new CategoryOption();
+        cocA = new CategoryOptionCombo();
 
-        dataSetA.addDataSetElement( dataElementA );
-        dataElementA.getDataSetElements().addAll( dataSetA.getDataSetElements() );
+        dsA.addDataSetElement( deA );
+        deA.getDataSetElements().addAll( dsA.getDataSetElements() );
 
-        optionComboA.addCategoryOption( categoryOptionA );
+        cocA.addCategoryOption( coA );
 
         jan15 = getDate( 2020, 1, 15 );
         feb15 = getDate( 2020, 2, 15 );
@@ -144,16 +143,19 @@ class DataValidatorTest
      * @param day the day of month.
      * @return a date.
      */
-    public static Date getDate( int year, int month, int day )
+    private static Date getDate( int year, int month, int day )
     {
         LocalDateTime dateTime = new LocalDateTime( year, month, day, 0, 0 );
         return dateTime.toDate();
     }
 
     /**
+     * Creates a period.
+     *
      * @param isoPeriod the ISO period string.
+     * @return a {@link Period}.
      */
-    public static Period createPeriod( String isoPeriod )
+    private static Period createPeriod( String isoPeriod )
     {
         return PeriodType.getPeriodFromIsoString( isoPeriod );
     }
@@ -162,39 +164,39 @@ class DataValidatorTest
     void testValidateAttributeOptionComboWithValidData()
     {
         // Initially
-        dataValidator.validateAttributeOptionCombo( optionComboA, periodJan, dataSetA, dataElementA );
-        dataValidator.validateAttributeOptionCombo( optionComboA, periodJan, dataSetA, null );
-        dataValidator.validateAttributeOptionCombo( optionComboA, periodJan, null, dataElementA );
+        dataValidator.validateAttributeOptionCombo( cocA, peJan, dsA, deA );
+        dataValidator.validateAttributeOptionCombo( cocA, peJan, dsA, null );
+        dataValidator.validateAttributeOptionCombo( cocA, peJan, null, deA );
 
-        dataValidator.validateAttributeOptionCombo( optionComboA, periodFeb, dataSetA, dataElementA );
-        dataValidator.validateAttributeOptionCombo( optionComboA, periodMar, dataSetA, dataElementA );
+        dataValidator.validateAttributeOptionCombo( cocA, peFeb, dsA, deA );
+        dataValidator.validateAttributeOptionCombo( cocA, peMar, dsA, deA );
 
         // Given
-        categoryOptionA.setStartDate( jan15 );
+        coA.setStartDate( jan15 );
 
         // Then
-        dataValidator.validateAttributeOptionCombo( optionComboA, periodJan, dataSetA, dataElementA );
-        dataValidator.validateAttributeOptionCombo( optionComboA, periodJan, dataSetA, null );
-        dataValidator.validateAttributeOptionCombo( optionComboA, periodJan, null, dataElementA );
+        dataValidator.validateAttributeOptionCombo( cocA, peJan, dsA, deA );
+        dataValidator.validateAttributeOptionCombo( cocA, peJan, dsA, null );
+        dataValidator.validateAttributeOptionCombo( cocA, peJan, null, deA );
 
-        dataValidator.validateAttributeOptionCombo( optionComboA, periodFeb, dataSetA, dataElementA );
-        dataValidator.validateAttributeOptionCombo( optionComboA, periodMar, dataSetA, dataElementA );
+        dataValidator.validateAttributeOptionCombo( cocA, peFeb, dsA, deA );
+        dataValidator.validateAttributeOptionCombo( cocA, peMar, dsA, deA );
 
         // And given
-        categoryOptionA.setEndDate( jan15 );
+        coA.setEndDate( jan15 );
 
         // Then
-        dataValidator.validateAttributeOptionCombo( optionComboA, periodJan, dataSetA, dataElementA );
-        dataValidator.validateAttributeOptionCombo( optionComboA, periodJan, dataSetA, null );
-        dataValidator.validateAttributeOptionCombo( optionComboA, periodJan, null, dataElementA );
+        dataValidator.validateAttributeOptionCombo( cocA, peJan, dsA, deA );
+        dataValidator.validateAttributeOptionCombo( cocA, peJan, dsA, null );
+        dataValidator.validateAttributeOptionCombo( cocA, peJan, null, deA );
 
         // And given
-        dataSetA.setOpenPeriodsAfterCoEndDate( 1 );
+        dsA.setOpenPeriodsAfterCoEndDate( 1 );
 
         // Then
-        dataValidator.validateAttributeOptionCombo( optionComboA, periodFeb, dataSetA, dataElementA );
-        dataValidator.validateAttributeOptionCombo( optionComboA, periodFeb, dataSetA, null );
-        dataValidator.validateAttributeOptionCombo( optionComboA, periodFeb, null, dataElementA );
+        dataValidator.validateAttributeOptionCombo( cocA, peFeb, dsA, deA );
+        dataValidator.validateAttributeOptionCombo( cocA, peFeb, dsA, null );
+        dataValidator.validateAttributeOptionCombo( cocA, peFeb, null, deA );
     }
 
     @Test
@@ -217,29 +219,29 @@ class DataValidatorTest
     @Test
     void testValidateAttributeOptionComboWithEarlyData()
     {
-        categoryOptionA.setStartDate( feb15 );
+        coA.setStartDate( feb15 );
 
         assertThrows( IllegalQueryException.class,
-            () -> dataValidator.validateAttributeOptionCombo( optionComboA, periodJan, dataSetA, dataElementA ) );
+            () -> dataValidator.validateAttributeOptionCombo( cocA, peJan, dsA, deA ) );
     }
 
     @Test
     void testValidateAttributeOptionComboWithLateData()
     {
-        categoryOptionA.setEndDate( jan15 );
+        coA.setEndDate( jan15 );
 
         assertThrows( IllegalQueryException.class,
-            () -> dataValidator.validateAttributeOptionCombo( optionComboA, periodFeb, null, dataElementA ) );
+            () -> dataValidator.validateAttributeOptionCombo( cocA, peFeb, null, deA ) );
     }
 
     @Test
     void testValidateAttributeOptionComboWithLateAdjustedData()
     {
-        categoryOptionA.setEndDate( jan15 );
-        dataSetA.setOpenPeriodsAfterCoEndDate( 1 );
+        coA.setEndDate( jan15 );
+        dsA.setOpenPeriodsAfterCoEndDate( 1 );
 
         assertThrows( IllegalQueryException.class,
-            () -> dataValidator.validateAttributeOptionCombo( optionComboA, periodMar, dataSetA, dataElementA ) );
+            () -> dataValidator.validateAttributeOptionCombo( cocA, peMar, dsA, deA ) );
     }
 
     @Test

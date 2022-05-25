@@ -33,6 +33,7 @@ import static org.hisp.dhis.common.DimensionalObject.ITEM_SEP;
 import static org.hisp.dhis.common.DimensionalObject.PROGRAMSTAGE_SEP;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -119,7 +120,7 @@ public class DefaultQueryItemLocator
     private Optional<QueryItem> getDynamicDimension( String dimension )
     {
         return Optional.ofNullable(
-            dataQueryService.getDimension( dimension, Collections.emptyList(), null,
+            dataQueryService.getDimension( dimension, Collections.emptyList(), (Date) null,
                 Collections.emptyList(), null, true, IdScheme.UID ) )
             .map( PrimaryKeyObject::getUid )
             .map( BaseDimensionalItemObject::new )

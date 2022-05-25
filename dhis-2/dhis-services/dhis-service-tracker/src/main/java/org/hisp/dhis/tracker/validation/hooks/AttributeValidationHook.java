@@ -38,12 +38,10 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.preheat.UniqueAttributeValue;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.service.attribute.TrackedAttributeValidationService;
 
@@ -99,15 +97,7 @@ public abstract class AttributeValidationHook extends AbstractTrackerDtoValidati
 
         if ( error != null )
         {
-            TrackerBundle bundle = reporter.getBundle();
-            TrackerErrorReport err = TrackerErrorReport.builder()
-                .uid( dto.getUid() )
-                .trackerType( dto.getTrackerType() )
-                .errorCode( TrackerErrorCode.E1007 )
-                .addArg( valueType.toString() )
-                .addArg( error )
-                .build( bundle );
-            reporter.addError( err );
+            reporter.addError( dto, TrackerErrorCode.E1007, valueType, error );
         }
     }
 
@@ -142,15 +132,7 @@ public abstract class AttributeValidationHook extends AbstractTrackerDtoValidati
                 && hasTheSameValue
                 && isNotSameTei )
             {
-                TrackerBundle bundle = reporter.getBundle();
-                TrackerErrorReport err = TrackerErrorReport.builder()
-                    .uid( dto.getUid() )
-                    .trackerType( dto.getTrackerType() )
-                    .errorCode( TrackerErrorCode.E1064 )
-                    .addArg( value )
-                    .addArg( trackedEntityAttribute.getUid() )
-                    .build( bundle );
-                reporter.addError( err );
+                reporter.addError( dto, TrackerErrorCode.E1064, value, trackedEntityAttribute );
                 return;
             }
         }

@@ -94,12 +94,6 @@ public class TrackerIdSchemeParam
         throw new RuntimeException( "Unhandled identifier type." );
     }
 
-    public <T extends IdentifiableObject> String getIdAndName( T object )
-    {
-        String identifier = getIdentifier( object );
-        return object.getClass().getSimpleName() + " (" + identifier + ")";
-    }
-
     /**
      * Creates an identifier for given {@code metadata} using this idScheme
      * parameter. This means the metadata identifier will have the this

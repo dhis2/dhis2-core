@@ -107,4 +107,20 @@ public interface GenericStore<T>
     <P extends IdentifiableObject> boolean isAttributeValueUnique( P object, Attribute attribute, String value );
 
     List<T> getAllByAttributeAndValues( Attribute attribute, List<String> values );
+
+    /**
+     * Update a specific attribute of all objects.
+     *
+     * This can be used to both set (init) or clear a particular attribute.
+     *
+     * @param attribute the attribute to update for all objects
+     * @param newValue the attribute value to store (might override existing
+     *        value for that attribute)
+     * @param createMissing true, if a attribute should be created should it not
+     *        yet exist, false to skip such objects
+     * @return number of objects affected (note that this will not distinguish
+     *         between attribute values that changed by this update and those
+     *         that stay the same)
+     */
+    int updateAllAttributeValues( Attribute attribute, String newValue, boolean createMissing );
 }
