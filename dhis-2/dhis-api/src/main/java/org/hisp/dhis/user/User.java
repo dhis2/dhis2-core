@@ -672,6 +672,7 @@ public class User
     @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( value = PropertyType.USERNAME, required = Property.Value.FALSE )
     public String getUsername()
     {
         return username;

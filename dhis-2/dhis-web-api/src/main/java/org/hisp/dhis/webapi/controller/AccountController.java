@@ -512,7 +512,7 @@ public class AccountController
     {
         boolean isNull = username == null;
         boolean usernameNotTaken = userService.getUserByUsername( username ) == null;
-        boolean isValidSyntax = ValidationUtils.usernameIsValid( username );
+        boolean isValidSyntax = ValidationUtils.usernameIsValid( username, false );
         boolean isValid = !isNull && usernameNotTaken && isValidSyntax;
 
         // Custom code required because of our hacked jQuery validation
