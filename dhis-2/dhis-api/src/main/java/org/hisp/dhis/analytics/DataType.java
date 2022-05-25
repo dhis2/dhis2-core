@@ -40,11 +40,11 @@ public enum DataType
 
     public static DataType fromValueType( ValueType valueType )
     {
-        if ( ValueType.NUMERIC_TYPES.contains( valueType ) )
+        if ( valueType != null && valueType.isNumeric() )
         {
             return DataType.NUMERIC;
         }
-        else if ( ValueType.BOOLEAN_TYPES.contains( valueType ) )
+        else if ( valueType != null && valueType.isBoolean() )
         {
             return DataType.BOOLEAN;
         }
