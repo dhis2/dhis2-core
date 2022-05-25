@@ -59,7 +59,8 @@ public class PotentialDuplicatesMergeTests
         String teiA = createTei( Constants.TRACKED_ENTITY_TYPE );
         String teiB = createTeiWithEnrollmentsAndEvents().extractImportedTeis().get( 0 );
 
-        String potentialDuplicate = potentialDuplicatesActions.createAndValidatePotentialDuplicate( teiA, teiB );
+        String potentialDuplicate = potentialDuplicatesActions.createAndValidatePotentialDuplicate( teiA, teiB,
+            "OPEN" );
 
         String admin_username = "taadmin";
         loginActions.loginAsUser( admin_username, USER_PASSWORD );
@@ -89,7 +90,8 @@ public class PotentialDuplicatesMergeTests
         String teiA = createTei( Constants.TRACKED_ENTITY_TYPE );
         String teiB = createTei( Constants.TRACKED_ENTITY_TYPE );
 
-        String potentialDuplicate = potentialDuplicatesActions.createAndValidatePotentialDuplicate( teiA, teiB );
+        String potentialDuplicate = potentialDuplicatesActions.createAndValidatePotentialDuplicate( teiA, teiB,
+            "OPEN" );
 
         potentialDuplicatesActions
             .manualMergePotentialDuplicate( potentialDuplicate, new JsonObjectBuilder().addArray( property,
@@ -107,7 +109,8 @@ public class PotentialDuplicatesMergeTests
         String teiA = createTei( Constants.TRACKED_ENTITY_TYPE );
         String teiB = createTei( trackedEntityType );
 
-        String potentialDuplicate = potentialDuplicatesActions.createAndValidatePotentialDuplicate( teiA, teiB );
+        String potentialDuplicate = potentialDuplicatesActions.createAndValidatePotentialDuplicate( teiA, teiB,
+            "OPEN" );
 
         potentialDuplicatesActions.autoMergePotentialDuplicate( potentialDuplicate )
             .validate().statusCode( 409 )

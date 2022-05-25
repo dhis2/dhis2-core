@@ -44,7 +44,7 @@ public class PotentialDuplicatesActions
         super( "/potentialDuplicates" );
     }
 
-    public ApiResponse createPotentialDuplicate( String teiA, String teiB )
+    public String createAndValidatePotentialDuplicate( String teiA, String teiB, String status )
     {
         JsonObject object = new JsonObjectBuilder()
             .addProperty( "original", teiA )
@@ -52,14 +52,30 @@ public class PotentialDuplicatesActions
             .addProperty( "status", "OPEN" )
             .build();
 
-        return this.post( object );
+        String uid = this.post( object ).validateStatus( 200 ).extractUid();
+
+        if ( status.equals( "MERGED" ) )
+        {
+            this.autoMergePotentialDuplicate( uid ).validateStatus( 200 );
+        }
+
+        if ( status.equals( "INVALID" ) )
+        {
+            this.update( uid + "?status=INVALID", new JsonObjectBuilder().build() ).validateStatus( 200 );
+        }
+
+        return uid;
     }
 
-    public String createAndValidatePotentialDuplicate( String teiA, String teiB )
+    public ApiResponse createPotentialDuplicate( String teiA, String teiB, String status )
     {
-        return createPotentialDuplicate( teiA, teiB )
-            .validateStatus( 200 )
-            .extractString( "id" );
+        JsonObject object = new JsonObjectBuilder()
+            .addProperty( "original", teiA )
+            .addProperty( "duplicate", teiB )
+            .addProperty( "status", status )
+            .build();
+
+        return this.post( object );
     }
 
     public ApiResponse manualMergePotentialDuplicate( String potentialDuplicate, JsonObject jsonObject )

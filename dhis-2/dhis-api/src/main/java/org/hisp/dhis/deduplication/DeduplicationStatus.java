@@ -32,21 +32,8 @@ import lombok.Getter;
 @Getter
 public enum DeduplicationStatus
 {
-    ALL( true, false, false ),
-    OPEN( true, true, false ),
-    INVALID( true, false, false ),
-    MERGED( true, false, true );
-
-    private final boolean forFilter;
-
-    private final boolean forCreation;
-
-    private final boolean forMerge;
-
-    DeduplicationStatus( boolean forFilter, boolean forCreation, boolean forMerge )
-    {
-        this.forFilter = forFilter;
-        this.forCreation = forCreation;
-        this.forMerge = forMerge;
-    }
+    ALL,
+    OPEN,
+    INVALID,
+    MERGED
 }

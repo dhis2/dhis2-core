@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.deduplication;
 
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -264,13 +263,12 @@ public class DefaultDeduplicationService
     public void addPotentialDuplicate( PotentialDuplicate potentialDuplicate )
         throws PotentialDuplicateConflictException
     {
-        if ( !potentialDuplicate.getStatus().isForCreation() )
+        if ( !potentialDuplicate.getStatus().equals( DeduplicationStatus.OPEN ) )
         {
             throw new PotentialDuplicateConflictException(
-                "Potential Duplicate creation must have one of following status : "
-                    + Arrays.stream( DeduplicationStatus.values() ).filter( DeduplicationStatus::isForCreation )
-                        .map( Enum::name )
-                        .collect( Collectors.joining( "," ) ) );
+                String.format(
+                    "Invalid status %s, creating potential duplicate is allowed using: " + DeduplicationStatus.OPEN,
+                    potentialDuplicate.getStatus() ) );
         }
 
         setPotentialDuplicateUserNameInfo( potentialDuplicate );

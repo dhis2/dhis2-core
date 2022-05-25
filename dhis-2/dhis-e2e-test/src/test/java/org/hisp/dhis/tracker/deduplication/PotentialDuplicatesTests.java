@@ -34,8 +34,6 @@ import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -52,21 +50,14 @@ public class PotentialDuplicatesTests extends PotentialDuplicatesApiTest
     public void shouldFilterByStatus()
     {
         // OPEN
-        potentialDuplicatesActions.createAndValidatePotentialDuplicate( createTei(), createTei() );
+        potentialDuplicatesActions.createAndValidatePotentialDuplicate( createTei(), createTei(), "OPEN" );
 
         // INVALID
-        String duplicateId = potentialDuplicatesActions.createAndValidatePotentialDuplicate( createTei(), createTei() );
-
-        potentialDuplicatesActions.update( duplicateId + "?status=" + "INVALID", new JsonObjectBuilder().build() )
-            .validate()
-            .statusCode( 200 );
+        potentialDuplicatesActions.createAndValidatePotentialDuplicate( createTei(), createTei(), "INVALID" );
 
         // MERGED
-        String potentialDuplicate = potentialDuplicatesActions.createAndValidatePotentialDuplicate( createTei(),
-            createTei() );
-
-        potentialDuplicatesActions.autoMergePotentialDuplicate( potentialDuplicate ).validate()
-            .statusCode( 200 );
+        potentialDuplicatesActions.createAndValidatePotentialDuplicate( createTei(),
+            createTei(), "MERGED" );
 
         potentialDuplicatesActions.get( "", new QueryParamsBuilder().add( "status=ALL" ) )
             .validate()
@@ -94,20 +85,42 @@ public class PotentialDuplicatesTests extends PotentialDuplicatesApiTest
     @Test
     public void shouldRequireBothTeis()
     {
-        potentialDuplicatesActions.createPotentialDuplicate( null, createTei() )
+        potentialDuplicatesActions.createPotentialDuplicate( null, createTei(), "OPEN" )
+            .validate()
+            .statusCode( equalTo( 400 ) )
+            .body( "status", equalTo( "ERROR" ) )
+            .body( "message", containsStringIgnoringCase( "missing required input property" ) );
+
+        potentialDuplicatesActions.createPotentialDuplicate( createTei(), null, "OPEN" )
             .validate()
             .statusCode( equalTo( 400 ) )
             .body( "status", equalTo( "ERROR" ) )
             .body( "message", containsStringIgnoringCase( "missing required input property" ) );
     }
 
-    @CsvSource( { "MERGED" } )
-    @ParameterizedTest
-    public void shouldNotUpdate( String newStatus )
+    @Test
+    public void shouldNotCreateWithStatusNotAllowed()
     {
-        String duplicateId = potentialDuplicatesActions.createAndValidatePotentialDuplicate( createTei(), createTei() );
+        potentialDuplicatesActions.createPotentialDuplicate( createTei(), createTei(), "INVALID" )
+            .validate()
+            .statusCode( equalTo( 409 ) )
+            .body( "httpStatus", equalTo( "Conflict" ) )
+            .body( "status", equalTo( "ERROR" ) );
 
-        ApiResponse response = potentialDuplicatesActions.update( duplicateId + "?status=" + newStatus,
+        potentialDuplicatesActions.createPotentialDuplicate( createTei(), createTei(), "MERGED" )
+            .validate()
+            .statusCode( equalTo( 409 ) )
+            .body( "httpStatus", equalTo( "Conflict" ) )
+            .body( "status", equalTo( "ERROR" ) );
+    }
+
+    @Test
+    public void shouldNotUpdateToMerged()
+    {
+        String duplicateId = potentialDuplicatesActions.createAndValidatePotentialDuplicate( createTei(), createTei(),
+            "OPEN" );
+
+        ApiResponse response = potentialDuplicatesActions.update( duplicateId + "?status=" + "MERGED",
             new JsonObjectBuilder().build() );
 
         response.validate()
@@ -123,16 +136,12 @@ public class PotentialDuplicatesTests extends PotentialDuplicatesApiTest
         String teiC = createTei();
         String teiD = createTei();
 
-        String potentialDuplicateAToB = potentialDuplicatesActions.createAndValidatePotentialDuplicate( teiA, teiB );
+        String potentialDuplicateAToB = potentialDuplicatesActions.createAndValidatePotentialDuplicate( teiA, teiB,
+            "OPEN" );
 
-        String duplicateId = potentialDuplicatesActions.createAndValidatePotentialDuplicate( teiC, teiA );
+        potentialDuplicatesActions.createAndValidatePotentialDuplicate( teiC, teiA, "INVALID" );
 
-        potentialDuplicatesActions.update( duplicateId + "?status=" + "INVALID",
-            new JsonObjectBuilder().build() )
-            .validate()
-            .statusCode( 200 );
-
-        potentialDuplicatesActions.createPotentialDuplicate( teiD, teiA )
+        potentialDuplicatesActions.createPotentialDuplicate( teiD, teiA, "OPEN" )
             .validate()
             .statusCode( 200 );
 

@@ -71,7 +71,7 @@ public class PotentialDuplicatesAttributeMergeTests
         String teiA = createTeiWithAttributes( createAttribute( attributes.get( 1 ), "TEST" ) );
         String teiB = createTeiWithAttributes( createAttribute( attributes.get( 0 ), "TEST" ) );
 
-        String potentialDuplicate = potentialDuplicatesActions.createPotentialDuplicate( teiA, teiB )
+        String potentialDuplicate = potentialDuplicatesActions.createPotentialDuplicate( teiA, teiB, "OPEN" )
             .validateStatus( 200 )
             .extractString( "id" );
 
@@ -89,7 +89,8 @@ public class PotentialDuplicatesAttributeMergeTests
         String teiA = createTeiWithAttributes( createAttribute( attributes.get( 0 ), "attribute 1" ) );
         String teiB = createTeiWithAttributes( createAttribute( attributes.get( 0 ), "attribute 2" ) );
 
-        String potentialDuplicate = potentialDuplicatesActions.createAndValidatePotentialDuplicate( teiA, teiB );
+        String potentialDuplicate = potentialDuplicatesActions.createAndValidatePotentialDuplicate( teiA, teiB,
+            "OPEN" );
 
         potentialDuplicatesActions.manualMergePotentialDuplicate( potentialDuplicate,
             new JsonObjectBuilder().addArray( "trackedEntityAttributes", Arrays.asList( attributes.get( 0 ) ) )
@@ -109,7 +110,8 @@ public class PotentialDuplicatesAttributeMergeTests
         String teiB = createTeiWithAttributes( createAttribute( attributes.get( 0 ), "attribute A - changed" ),
             createAttribute( attributes.get( 1 ), "attribute B" ) );
 
-        String potentialDuplicate = potentialDuplicatesActions.createAndValidatePotentialDuplicate( teiA, teiB );
+        String potentialDuplicate = potentialDuplicatesActions.createAndValidatePotentialDuplicate( teiA, teiB,
+            "OPEN" );
 
         potentialDuplicatesActions.manualMergePotentialDuplicate( potentialDuplicate,
             new JsonObjectBuilder()

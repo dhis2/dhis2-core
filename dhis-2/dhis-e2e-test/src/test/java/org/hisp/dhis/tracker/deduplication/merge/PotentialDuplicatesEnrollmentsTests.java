@@ -69,7 +69,7 @@ public class PotentialDuplicatesEnrollmentsTests
             .extractImportedTeis()
             .get( 0 );
 
-        String potentialDuplicate = potentialDuplicatesActions.createPotentialDuplicate( teiA, teiB )
+        String potentialDuplicate = potentialDuplicatesActions.createPotentialDuplicate( teiA, teiB, "OPEN" )
             .validateStatus( 200 )
             .extractString( "id" );
 
@@ -90,7 +90,7 @@ public class PotentialDuplicatesEnrollmentsTests
         String teiB = teiBResponse.extractImportedTeis().get( 0 );
         String enrollmentToMerge = teiBResponse.extractImportedEnrollments().get( 0 );
 
-        String potentialDuplicate = potentialDuplicatesActions.createPotentialDuplicate( teiA, teiB )
+        String potentialDuplicate = potentialDuplicatesActions.createPotentialDuplicate( teiA, teiB, "OPEN" )
             .validateStatus( 200 )
             .extractString( "id" );
 
@@ -123,7 +123,8 @@ public class PotentialDuplicatesEnrollmentsTests
         String teiB = duplicateTeiResponse.extractImportedTeis().get( 0 );
         String enrollmentB = duplicateTeiResponse.extractImportedEnrollments().get( 0 );
 
-        String potentialDuplicate = potentialDuplicatesActions.createAndValidatePotentialDuplicate( teiA, teiB );
+        String potentialDuplicate = potentialDuplicatesActions.createAndValidatePotentialDuplicate( teiA, teiB,
+            "OPEN" );
 
         // act
         potentialDuplicatesActions.autoMergePotentialDuplicate( potentialDuplicate )
@@ -165,7 +166,8 @@ public class PotentialDuplicatesEnrollmentsTests
         String enrollment = imported.extractImportedEnrollments().get( 0 );
         assertThat( enrollment, notNullValue() );
 
-        String potentialDuplicate = potentialDuplicatesActions.createAndValidatePotentialDuplicate( teiA, teiB );
+        String potentialDuplicate = potentialDuplicatesActions.createAndValidatePotentialDuplicate( teiA, teiB,
+            "OPEN" );
 
         String username = createUserWithAccessToMerge();
         loginActions.loginAsUser( username, USER_PASSWORD );
