@@ -541,7 +541,6 @@ class EventImportTest extends TransactionalIntegrationTest
     void testVerifyEventCanBeUpdatedUsingProgramOnly()
         throws IOException
     {
-
         // CREATE A NEW EVENT
         InputStream is = createEventJsonInputStream( programB.getUid(), programStageB.getUid(),
             organisationUnitB.getUid(), null, dataElementB, "10" );

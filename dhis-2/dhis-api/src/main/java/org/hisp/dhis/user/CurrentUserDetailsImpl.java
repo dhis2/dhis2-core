@@ -25,35 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.jwt;
+package org.hisp.dhis.user;
 
+import java.io.Serializable;
 import java.util.Collection;
+import java.util.Map;
 
-import org.hisp.dhis.security.oidc.DhisOidcUser;
-import org.hisp.dhis.user.CurrentUserDetails;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
-/**
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-public class DhisJwtAuthenticationToken extends JwtAuthenticationToken
+@AllArgsConstructor
+@Getter
+@Builder
+public class CurrentUserDetailsImpl implements CurrentUserDetails
 {
-    private final DhisOidcUser dhisOidcUser;
+    private final String uid;
 
-    public DhisJwtAuthenticationToken( Jwt jwt, Collection<? extends GrantedAuthority> authorities, String name,
-        CurrentUserDetails user )
-    {
-        super( jwt, authorities, name );
+    private final String username;
 
-        this.dhisOidcUser = new DhisOidcUser( user, jwt.getClaims(), IdTokenClaimNames.SUB, null );
-    }
+    private final String password;
 
-    @Override
-    public Object getPrincipal()
-    {
-        return this.dhisOidcUser;
-    }
+    private final boolean enabled;
+
+    private final boolean accountNonExpired;
+
+    private final boolean accountNonLocked;
+
+    private final boolean credentialsNonExpired;
+
+    private final Collection<GrantedAuthority> authorities;
+
+    private final Map<String, Serializable> userSettings;
 }

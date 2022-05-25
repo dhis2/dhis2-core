@@ -52,7 +52,6 @@ import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
@@ -253,17 +252,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
 
             handleNoAccessRoles( user, bundle, userRoles );
 
-            User currentUser = CurrentUserUtil.getCurrentUser();
-            if ( currentUser != null && currentUser.getUid().equals( user.getUid() ) )
-            {
-                // If we are changing current user we need to merge instead of
-                // update. 12098
-                sessionFactory.getCurrentSession().merge( user );
-            }
-            else
-            {
-                sessionFactory.getCurrentSession().update( user );
-            }
+            sessionFactory.getCurrentSession().update( user );
         }
     }
 

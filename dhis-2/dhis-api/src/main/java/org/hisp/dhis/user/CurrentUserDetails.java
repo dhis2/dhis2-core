@@ -25,35 +25,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.jwt;
+package org.hisp.dhis.user;
 
+import java.io.Serializable;
 import java.util.Collection;
+import java.util.Map;
 
-import org.hisp.dhis.security.oidc.DhisOidcUser;
-import org.hisp.dhis.user.CurrentUserDetails;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
 
-/**
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-public class DhisJwtAuthenticationToken extends JwtAuthenticationToken
+public interface CurrentUserDetails extends UserDetails
 {
-    private final DhisOidcUser dhisOidcUser;
-
-    public DhisJwtAuthenticationToken( Jwt jwt, Collection<? extends GrantedAuthority> authorities, String name,
-        CurrentUserDetails user )
-    {
-        super( jwt, authorities, name );
-
-        this.dhisOidcUser = new DhisOidcUser( user, jwt.getClaims(), IdTokenClaimNames.SUB, null );
-    }
 
     @Override
-    public Object getPrincipal()
-    {
-        return this.dhisOidcUser;
-    }
+    Collection<? extends GrantedAuthority> getAuthorities();
+
+    @Override
+    String getPassword();
+
+    @Override
+    String getUsername();
+
+    @Override
+    boolean isAccountNonExpired();
+
+    @Override
+    boolean isAccountNonLocked();
+
+    @Override
+    boolean isCredentialsNonExpired();
+
+    @Override
+    boolean isEnabled();
+
+    String getUid();
+
+    Map<String, Serializable> getUserSettings();
 }

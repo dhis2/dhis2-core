@@ -29,15 +29,12 @@ package org.hisp.dhis.user;
 
 import static org.springframework.beans.BeanUtils.copyProperties;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -1508,15 +1505,6 @@ public class User
     protected void setUserCredentials( UserCredentialsDto user )
     {
         this.userCredentialsRaw = user;
-    }
-
-    @JsonIgnore
-    private transient Map<String, Serializable> userSettings = new HashMap<>();
-
-    @JsonIgnore
-    public Map<String, Serializable> getUserSettings()
-    {
-        return userSettings;
     }
 
     public static void populateUserCredentialsDtoFields( User user )

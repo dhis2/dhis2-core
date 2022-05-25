@@ -69,6 +69,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
@@ -618,7 +619,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     protected final void setTranslationParams( TranslateParams translateParams )
     {
         Locale dbLocale = getLocaleWithDefault( translateParams );
-        currentUserService.setUserSetting( UserSettingKey.DB_LOCALE, dbLocale );
+        CurrentUserUtil.setUserSetting( UserSettingKey.DB_LOCALE, dbLocale );
     }
 
     private Locale getLocaleWithDefault( TranslateParams translateParams )
