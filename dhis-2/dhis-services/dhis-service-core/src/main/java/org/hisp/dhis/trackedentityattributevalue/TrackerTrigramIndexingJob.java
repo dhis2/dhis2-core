@@ -159,7 +159,7 @@ public class TrackerTrigramIndexingJob implements Job
          * in_gin_teavalue_XXXXX where the last XXXXX denotes the attribute id
          * which will be matched and extracted in the query.
          */
-        List<Long> teaIdList = trackedEntityAttributeTableManager.getAttributeIdsWithTrigramIndexCreated();
+        List<Long> teaIdList = trackedEntityAttributeTableManager.getAttributeIdsWithTrigramIndex();
 
         if ( teaIdList.isEmpty() )
         {
