@@ -149,6 +149,37 @@ public class RelationshipsTest
             .body( "importCount.ignored", equalTo( 1 ) );
     }
 
+    @Test
+    public void softDeletedRelationshipsShouldNotBeUpdated()
+    {
+        // create a relationship
+        JsonObject object = relationshipActions
+            .createRelationshipBody( "xLmPUYJX8Ks", "trackedEntityInstance", teis.get( 0 ), "trackedEntityInstance",
+                teis.get( 1 ) );
+
+        ApiResponse response = relationshipActions.post( object );
+
+        response.validate().statusCode( 200 );
+        createdRelationship = response.extractUid();
+
+        relationshipActions.softDelete( createdRelationship );
+
+        // Update soft deleted relationship
+        object.addProperty( "uid", createdRelationship );
+        response = relationshipActions.post( object );
+
+        response.validate().statusCode( 409 )
+            .body( "status", equalTo( "ERROR" ) )
+            .body( "response.status", equalTo( "ERROR" ) )
+            .body( "response.ignored", equalTo( 1 ) )
+            .body( "response.total", equalTo( 1 ) )
+            .rootPath( "response.importSummaries[0]" )
+            .body( "status", equalTo( "ERROR" ) )
+            .body( "description", Matchers.containsString(
+                "Relationship '" + createdRelationship + "' is already deleted and cannot be modified." ) )
+            .body( "importCount.ignored", equalTo( 1 ) );
+    }
+
     @MethodSource( "provideRelationshipData" )
     @ParameterizedTest( name = "{index} {1} to {3}" )
     public void bidirectionalRelationshipFromTrackedEntityInstanceToEventCanBeAdded( String relationshipType,

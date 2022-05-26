@@ -56,8 +56,6 @@ public class Relationship
 
     private String lastUpdated;
 
-    private Boolean deleted = false;
-
     public Relationship()
     {
     }
