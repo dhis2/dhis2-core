@@ -34,6 +34,8 @@ import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -98,22 +100,11 @@ public class PotentialDuplicatesTests extends PotentialDuplicatesApiTest
             .body( "message", containsStringIgnoringCase( "missing required input property" ) );
     }
 
-    @Test
-    public void shouldNotCreateWithStatusNotAllowed()
+    @ParameterizedTest
+    @ValueSource( strings = { "ALL", "INVALID", "MERGED" } )
+    public void shouldNotCreateWithStatusNotAllowed( String status )
     {
-        potentialDuplicatesActions.createPotentialDuplicate( createTei(), createTei(), "INVALID" )
-            .validate()
-            .statusCode( equalTo( 409 ) )
-            .body( "httpStatus", equalTo( "Conflict" ) )
-            .body( "status", equalTo( "ERROR" ) );
-
-        potentialDuplicatesActions.createPotentialDuplicate( createTei(), createTei(), "MERGED" )
-            .validate()
-            .statusCode( equalTo( 409 ) )
-            .body( "httpStatus", equalTo( "Conflict" ) )
-            .body( "status", equalTo( "ERROR" ) );
-
-        potentialDuplicatesActions.createPotentialDuplicate( createTei(), createTei(), "ALL" )
+        potentialDuplicatesActions.createPotentialDuplicate( createTei(), createTei(), status )
             .validate()
             .statusCode( equalTo( 409 ) )
             .body( "httpStatus", equalTo( "Conflict" ) )

@@ -263,7 +263,7 @@ public class DefaultDeduplicationService
     public void addPotentialDuplicate( PotentialDuplicate potentialDuplicate )
         throws PotentialDuplicateConflictException
     {
-        if ( !(potentialDuplicate.getStatus() == DeduplicationStatus.OPEN) )
+        if ( potentialDuplicate.getStatus() != DeduplicationStatus.OPEN )
         {
             throw new PotentialDuplicateConflictException(
                 String.format(
