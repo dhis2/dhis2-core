@@ -193,7 +193,7 @@ public class QueryItem implements GroupableItem
 
     private String maybeGetProgramUid()
     {
-        return program != null ? program.getUid() : "";
+        return program != null ? program.getUid() : null;
     }
 
     /**
