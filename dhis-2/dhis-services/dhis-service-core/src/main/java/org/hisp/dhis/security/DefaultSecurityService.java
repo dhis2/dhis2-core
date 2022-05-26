@@ -241,6 +241,13 @@ public class DefaultSecurityService
     {
         Objects.requireNonNull( user, "User object can't be null" );
 
+        if ( user.getUsername() == null || user.getUsername().isEmpty() )
+        {
+            String username = "invite" + CodeGenerator.generateUid().toLowerCase();
+
+            user.setUsername( username );
+        }
+
         String rawPassword = CodeGenerator.getRandomSecureToken( INVITED_USER_PASSWORD_LENGTH_BYTES );
 
         user.setSurname( StringUtils.isEmpty( user.getSurname() ) ? TBD_NAME : user.getSurname() );
@@ -353,6 +360,7 @@ public class DefaultSecurityService
         // Send emails
         // -------------------------------------------------------------------------
 
+        log.warn( "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM:" + messageBody );
         emailMessageSender
             .sendMessage( messageSubject, messageBody, null, null, Set.of( persistedUser ), true );
 
