@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.importer.tei;
+package org.hisp.dhis.tracker.importer;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -54,7 +54,7 @@ import com.google.gson.JsonObject;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class TeiIdSchemeTests
+public class IdSchemeTests
     extends TrackerNtiApiTest
 {
     private static final String OU_NAME = "TA EventsImportIdSchemeTests ou name " + DataGenerator.randomString();
@@ -80,6 +80,8 @@ public class TeiIdSchemeTests
 
     private AttributeActions attributeActions;
 
+    private TrackedEntityTypeActions trackedEntityTypeActions;
+
     private static Stream<Arguments> idSchemeArguments()
     {
         return Stream.of(
@@ -96,73 +98,81 @@ public class TeiIdSchemeTests
         orgUnitActions = new OrgUnitActions();
         programActions = new ProgramActions();
         attributeActions = new AttributeActions();
+        trackedEntityTypeActions = new TrackedEntityTypeActions();
 
         loginActions.loginAsSuperUser();
 
         setupData();
     }
 
-    // @Gintare: I ported these tests below from yours in DHIS2-12228. Just
-    // keeping them here, so you can verify that DHIS2-12228
-    // is fixed. The IdSchemeTests.shouldBeImportedWithIdScheme covers these
-    // cases. So we can remove these 2 IMHO.
-    @MethodSource( "idSchemeArguments" )
+    // @Gintare: this is what I envision. One NTI test importing a payload with
+    // all metadata types we support using
+    // idScheme=ATTRIBUTE so without the parametrization. Keeping the
+    // parametrized test for now just to ensure that
+    // indeed all idSchemes work.
     @ParameterizedTest
-    public void shouldImportWithOrgUnitScheme( String scheme, String property )
+    @MethodSource( "idSchemeArguments" )
+    public void shouldBeImportedWithIdScheme( String scheme, String property )
     {
         String orgUnit = orgUnitActions.get( ORG_UNIT_ID ).extractString( property );
         assertNotNull( orgUnit, String.format( "OrgUnit property %s was not present.", property ) );
-
-        JsonObject payload = new TeiDataBuilder()
-            .buildWithEnrollmentAndEvent( TRACKED_ENTITY_TYPE, orgUnit, PROGRAM_ID, PROGRAM_STAGE_ID );
-
-        TrackerApiResponse response = trackerActions
-            .postAndGetJobReport( payload, new QueryParamsBuilder().add( "orgUnitIdScheme=" + scheme ) )
-            .validateSuccessfulImport();
-
-        trackerActions.getTrackedEntity( response.extractImportedTeis().get( 0 ) )
-            .validate()
-            .statusCode( 200 )
-            .body( "orgUnit", equalTo( ORG_UNIT_ID ) );
-    }
-
-    @MethodSource( "idSchemeArguments" )
-    @ParameterizedTest
-    public void shouldImportWithProgramScheme( String scheme, String property )
-    {
         String program = programActions.get( PROGRAM_ID ).extractString( property );
         assertNotNull( program, String.format( "Program property %s was not present.", property ) );
+        String programStage = programActions.programStageActions.get( PROGRAM_STAGE_ID ).extractString( property );
+        assertNotNull( programStage, String.format( "ProgramStage property %s was not present.", property ) );
+        String trackedEntityType = trackedEntityTypeActions.get( TRACKED_ENTITY_TYPE ).extractString( property );
+        assertNotNull( programStage, String.format( "TrackedEntityType property %s was not present.", property ) );
+        // TODO add more fields, these are the fields we support idSchemes for
+        // * Event.orgUnit
+        // * Event.program
+        // * Event.programStage
+        // * Event.attributeOptionCombo
+        // * Event.attributeCategoryOptions
+        // * Event.DataValue.dataElement
+        // * Relationship.relationshipType
+        // * Enrollment.program
+        // * Enrollment.orgUnit
+        // * TrackedEntity.trackedEntityType
+        // * TrackedEntity.orgUnit
+        // * TrackedEntity.Attribute.attribute
 
         JsonObject payload = new TeiDataBuilder()
-            .buildWithEnrollmentAndEvent( TRACKED_ENTITY_TYPE, ORG_UNIT_ID, program, PROGRAM_STAGE_ID );
+            .buildWithEnrollmentAndEvent( trackedEntityType, orgUnit, program, programStage );
 
         TrackerApiResponse response = trackerActions
-            .postAndGetJobReport( payload,
-                new QueryParamsBuilder().add( "programIdScheme=" + scheme ).add( "async=false" ) )
+            .postAndGetJobReport( payload, new QueryParamsBuilder().add( "idScheme=" + scheme ) )
             .validateSuccessfulImport();
 
-        trackerActions.getEnrollment( response.extractImportedEnrollments().get( 0 ) )
-            .validate()
+        // TODO assert trackedEntityType in the response?
+        trackerActions.getEvent( response.extractImportedEvents().get( 0 ) ).validate()
             .statusCode( 200 )
-            .body( "program", equalTo( PROGRAM_ID ) );
+            .body( "orgUnit", equalTo( ORG_UNIT_ID ) )
+            .body( "program", equalTo( PROGRAM_ID ) )
+            .body( "programStage", equalTo( PROGRAM_STAGE_ID ) );
     }
 
     private void setupData()
     {
-        TrackedEntityTypeActions trackedEntityTypeActions = new TrackedEntityTypeActions();
-        TRACKED_ENTITY_TYPE = trackedEntityTypeActions.create();
+        JsonObject trackedEntityType = JsonObjectBuilder.jsonObject()
+            .addProperty( "name", DataGenerator.randomEntityName() )
+            .addProperty( "shortName", DataGenerator.randomEntityName() )
+            .addProperty( "code", DataGenerator.randomEntityName() )
+            .addUserGroupAccess()
+            .build();
+        TRACKED_ENTITY_TYPE = trackedEntityTypeActions.create( trackedEntityType );
+
         PROGRAM_ID = programActions.createTrackerProgram( TRACKED_ENTITY_TYPE, Constants.ORG_UNIT_IDS ).extractUid();
         PROGRAM_STAGE_ID = programActions
             .createProgramStage( PROGRAM_ID, "TeiIdSchemeTests program stage " + DataGenerator.randomString() );
-        ATTRIBUTE_ID = attributeActions.createUniqueAttribute( "TEXT", "organisationUnit", "program", "programStage" );
 
+        ATTRIBUTE_ID = attributeActions.createUniqueAttribute( "TEXT", "organisationUnit", "program", "programStage",
+            "trackedEntityType" );
         assertNotNull( ATTRIBUTE_ID, "Failed to setup attribute" );
 
         JsonObject orgUnit = JsonObjectBuilder.jsonObject( orgUnitActions.createOrgUnitBody() )
             .addProperty( "code", OU_CODE )
             .addProperty( "name", OU_NAME )
             .build();
-
         ORG_UNIT_ID = orgUnitActions.create( orgUnit );
         assertNotNull( ORG_UNIT_ID, "Failed to setup org unit" );
 
@@ -182,6 +192,11 @@ public class TeiIdSchemeTests
         programActions.programStageActions.update( PROGRAM_STAGE_ID,
             addAttributeValuePayload( programActions.programStageActions.get( PROGRAM_STAGE_ID ).getBody(),
                 ATTRIBUTE_ID,
+                ATTRIBUTE_VALUE ) )
+            .validate().statusCode( 200 );
+
+        trackedEntityTypeActions.update( TRACKED_ENTITY_TYPE,
+            addAttributeValuePayload( trackedEntityTypeActions.get( TRACKED_ENTITY_TYPE ).getBody(), ATTRIBUTE_ID,
                 ATTRIBUTE_VALUE ) )
             .validate().statusCode( 200 );
     }
