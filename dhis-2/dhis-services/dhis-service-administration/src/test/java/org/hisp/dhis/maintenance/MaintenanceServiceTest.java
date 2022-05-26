@@ -34,7 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -161,8 +160,6 @@ class MaintenanceServiceTest extends IntegrationTestBase
 
     private TrackedEntityInstance entityInstanceWithAssociations;
 
-    private Collection<Long> orgunitIds;
-
     private RelationshipType relationshipType;
 
     @Override
@@ -170,8 +167,6 @@ class MaintenanceServiceTest extends IntegrationTestBase
     {
         organisationUnit = createOrganisationUnit( 'A' );
         long idA = organisationUnitService.addOrganisationUnit( organisationUnit );
-        orgunitIds = new HashSet<>();
-        orgunitIds.add( idA );
         program = createProgram( 'A', new HashSet<>(), organisationUnit );
         programService.addProgram( program );
         stageA = createProgramStage( 'A', program );
