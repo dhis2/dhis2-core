@@ -179,7 +179,9 @@ public class QueryItem implements GroupableItem
     {
         QueryKey key = new QueryKey();
 
-        key.add( "item", getItemId() ).addIgnoreNull( "filter", getFiltersAsString() );
+        key.add( "item", getItemId() )
+            .addIgnoreNull( "filter", getFiltersAsString() )
+            .addIgnoreNull( "program", maybeGetProgramUid() );
 
         if ( legendSet != null )
         {
@@ -187,6 +189,11 @@ public class QueryItem implements GroupableItem
         }
 
         return key.build();
+    }
+
+    private String maybeGetProgramUid()
+    {
+        return program != null ? program.getUid() : "";
     }
 
     /**
