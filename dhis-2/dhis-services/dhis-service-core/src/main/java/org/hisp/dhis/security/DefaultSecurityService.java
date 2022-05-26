@@ -358,9 +358,7 @@ public class DefaultSecurityService
 
         // -------------------------------------------------------------------------
         // Send emails
-        // -------------------------------------------------------------------------
-
-        log.warn( "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM:" + messageBody );
+        // -------------------------------------------------------------------------       
         emailMessageSender
             .sendMessage( messageSubject, messageBody, null, null, Set.of( persistedUser ), true );
 
