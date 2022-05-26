@@ -47,7 +47,6 @@ import org.hisp.dhis.actions.tracker.RelationshipActions;
 import org.hisp.dhis.actions.tracker.TEIActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
-import org.hisp.dhis.helpers.TestCleanUp;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.tracker.TrackerApiTest;
 import org.junit.jupiter.api.AfterEach;
@@ -165,7 +164,7 @@ public class RelationshipsTest
         relationshipActions.softDelete( createdRelationship );
 
         // Update soft deleted relationship
-        object.addProperty( "uid", createdRelationship );
+        object.addProperty( "relationship", createdRelationship );
         response = relationshipActions.post( object );
 
         response.validate().statusCode( 409 )
@@ -245,6 +244,6 @@ public class RelationshipsTest
     @AfterEach
     public void cleanup()
     {
-        new TestCleanUp().deleteEntity( "relationships", createdRelationship );
+        relationshipActions.delete( createdRelationship );
     }
 }

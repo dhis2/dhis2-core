@@ -344,12 +344,9 @@ public abstract class AbstractRelationshipService
         {
             String message = "Relationship '" + relationship.getRelationship()
                 + "' is already deleted and cannot be modified.";
-            importSummary.addConflict( "Relationship", message );
-
-            importSummary.setStatus( ImportStatus.ERROR );
-            importSummary.getImportCount().incrementIgnored();
-
-            return importSummary;
+            return new ImportSummary( ImportStatus.ERROR, message )
+                .setReference( relationship.getRelationship() )
+                .incrementIgnored();
         }
 
         List<String> errors = trackerAccessManager.canWrite( importOptions.getUser(), daoRelationship );
