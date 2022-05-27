@@ -276,6 +276,10 @@ public class AnalyticsController
         return AnalyticsTableType.values();
     }
 
+    // -------------------------------------------------------------------------
+    // Private methods
+    // -------------------------------------------------------------------------
+
     private Grid getGrid( AggregateAnalyticsQueryCriteria criteria, DhisApiVersion apiVersion, String contentType,
         HttpServletResponse response )
     {
