@@ -83,4 +83,10 @@ class PagerTest
     {
         assertEquals( 0, new Pager( 4, -5, 50 ).getTotal() );
     }
+
+    @Test
+    void testGetOffsetWithTotalZero()
+    {
+        assertEquals( 0, new Pager( 2, 0, 50 ).getOffset() );
+    }
 }
