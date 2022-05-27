@@ -41,8 +41,6 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.programrule.ProgramRuleService;
-import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.junit.jupiter.api.BeforeEach;
@@ -90,8 +88,6 @@ class TrackerIdentifierCollectorTest
         assertContainsOnly( ids.get( Enrollment.class ), enrollment.getUid() );
         assertContainsOnly( ids.get( Program.class ), "sunshine" );
         assertContainsOnly( ids.get( OrganisationUnit.class ), orgUnit.getUid() );
-        assertContainsOnly( ids.get( TrackedEntityType.class ), "*" );
-        assertContainsOnly( ids.get( RelationshipType.class ), "*" );
     }
 
     @Test
@@ -111,8 +107,6 @@ class TrackerIdentifierCollectorTest
 
         assertNotNull( ids );
         assertContainsOnly( ids.get( Enrollment.class ), enrollment.getUid() );
-        assertContainsOnly( ids.get( TrackedEntityType.class ), "*" );
-        assertContainsOnly( ids.get( RelationshipType.class ), "*" );
     }
 
     private AttributeValue attributeValue( String value )
