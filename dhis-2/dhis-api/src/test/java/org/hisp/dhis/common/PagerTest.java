@@ -25,23 +25,68 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentityattributevalue;
+package org.hisp.dhis.common;
 
-import java.util.List;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.junit.jupiter.api.Test;
 
-/**
- * Interface for administrative/maintenance tasks on trackedentityattributevalue
- * table
- *
- * @author Ameen Mohamed
- */
-public interface TrackedEntityAttributeTableManager
+class PagerTest
 {
-    void createTrigramIndex( TrackedEntityAttribute trackedEntityAttribute );
+    @Test
+    void testGetPageCount()
+    {
+        assertEquals( 5, new Pager( 1, 214, 50 ).getPageCount() );
+        assertEquals( 1, new Pager( 2, 35, 50 ).getPageCount() );
+        assertEquals( 4, new Pager( 3, 35, 10 ).getPageCount() );
+    }
 
-    void dropTrigramIndex( Long trackedEntityAttributeId );
+    @Test
+    void testGetOffset()
+    {
+        assertEquals( 125, new Pager( 6, 500, 25 ).getOffset() );
+        assertEquals( 45, new Pager( 10, 500, 5 ).getOffset() );
+    }
 
-    List<Long> getAttributeIdsWithTrigramIndex();
+    @Test
+    void testGetPage()
+    {
+        assertEquals( 3, new Pager( 3, 240, 50 ).getPage() );
+    }
+
+    @Test
+    void testGetPageWhenGreaterThanTotalPages()
+    {
+        assertEquals( 5, new Pager( 8, 240, 50 ).getPage() );
+    }
+
+    @Test
+    void testGetPageWhenLessThanOne()
+    {
+        assertEquals( 1, new Pager( -1, 240, 50 ).getPage() );
+    }
+
+    @Test
+    void testGetTotal()
+    {
+        assertEquals( 200, new Pager( 2, 200, 50 ).getTotal() );
+    }
+
+    @Test
+    void testTotalZero()
+    {
+        assertEquals( 0, new Pager( 1, 0, 50 ).getTotal() );
+    }
+
+    @Test
+    void testTotalWhenLessThanZero()
+    {
+        assertEquals( 0, new Pager( 4, -5, 50 ).getTotal() );
+    }
+
+    @Test
+    void testGetOffsetWithTotalZero()
+    {
+        assertEquals( 0, new Pager( 2, 0, 50 ).getOffset() );
+    }
 }

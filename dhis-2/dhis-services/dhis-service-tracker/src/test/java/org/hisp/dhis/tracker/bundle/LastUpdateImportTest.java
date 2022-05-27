@@ -103,9 +103,8 @@ class LastUpdateImportTest extends TrackerTest
         TrackerImportParams trackerImportParams = fromJson( "tracker/event_with_data_values.json" );
         Date lastUpdateBefore = trackedEntityInstanceService
             .getTrackedEntityInstance( trackedEntity.getTrackedEntity() ).getLastUpdated();
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        logTrackerErrors( trackerImportReport );
-        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
+        assertNoImportErrors( trackerImportService.importTracker( trackerImportParams ) );
+
         trackerImportParams = fromJson( "tracker/event_with_updated_data_values.json" );
         trackerImportParams.setImportStrategy( TrackerImportStrategy.UPDATE );
         assertNoImportErrors( trackerImportService.importTracker( trackerImportParams ) );

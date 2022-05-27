@@ -122,6 +122,16 @@ public class DefaultRelationshipService
 
     @Override
     @Transactional( readOnly = true )
+    public Relationship getRelationshipIncludeDeleted( String uid )
+    {
+        return relationshipStore.getByUidsIncludeDeleted( List.of( uid ) )
+            .stream()
+            .findAny()
+            .orElse( null );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
     public List<Relationship> getRelationships( List<String> uids )
     {
         return relationshipStore.getByUid( uids );

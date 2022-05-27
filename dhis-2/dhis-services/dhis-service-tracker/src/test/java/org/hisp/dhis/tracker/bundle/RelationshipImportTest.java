@@ -58,12 +58,6 @@ class RelationshipImportTest extends TrackerTest
     private User userA;
 
     @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
-    @Override
     protected void initTest()
         throws IOException
     {

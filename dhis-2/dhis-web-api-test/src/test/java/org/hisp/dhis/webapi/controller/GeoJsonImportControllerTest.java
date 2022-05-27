@@ -124,9 +124,10 @@ class GeoJsonImportControllerTest extends DhisControllerConvenienceTest
             POST( "/organisationUnits/geometry?attributeId=" + attrId, "geo-json/sierra-leone-districts.geojson" )
                 .content() );
 
-        assertImportedAndIgnored( msg, 7, 8 );
+        assertImportedAndIgnored( msg, 4, 11 );
         assertReportError( msg, ErrorCode.E7708, List.of( 0, 2, 4, 6, 8, 10, 12, 14 ) );
-        assertGeometryAttributeIsNotNull( attrId, ouIds, List.of( 1, 3, 5, 7, 9, 11, 13 ) );
+        assertReportError( msg, ErrorCode.E7707, List.of( 9, 11, 13 ) );
+        assertGeometryAttributeIsNotNull( attrId, ouIds, List.of( 1, 3, 5, 7 ) );
     }
 
     @Test
@@ -156,9 +157,10 @@ class GeoJsonImportControllerTest extends DhisControllerConvenienceTest
                     + attrId,
                 "geo-json/sierra-leone-districts.geojson" ).content() );
 
-        assertImportedAndIgnored( msg, 11, 4 );
+        assertImportedAndIgnored( msg, 6, 9 );
         assertReportError( msg, ErrorCode.E7708, List.of( 0, 1, 2, 14 ) );
-        assertGeometryAttributeIsNotNull( attrId, ouIds, List.of( 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 ) );
+        assertReportError( msg, ErrorCode.E7707, List.of( 8, 9, 11, 12, 13 ) );
+        assertGeometryAttributeIsNotNull( attrId, ouIds, List.of( 3, 4, 5, 6, 7, 10 ) );
     }
 
     @Test
@@ -240,6 +242,22 @@ class GeoJsonImportControllerTest extends DhisControllerConvenienceTest
                 "{'features':[{'id':'foo', 'geometry': {'type':'MultiPolygon', 'coordinates': [ [ [ [ -12, 9 ], [ -13, 10 ], [ -11, 8 ] ] ] ]}}]}" )
                     .content( HttpStatus.CONFLICT ) );
         assertReportError( msg, ErrorCode.E7708, List.of( 0 ) );
+    }
+
+    @Test
+    void testPostImport_ErrorOrgUnitIsNotUnique()
+    {
+        postNewOrganisationUnit( "Alpha", "Alpha", "ALP" );
+        postNewOrganisationUnit( "Alpha", "Beta", "BET" );
+
+        JsonWebMessage msg = assertWebMessage( "Conflict", 409, "ERROR", "Import failed.",
+            POST( "/organisationUnits/geometry?geoJsonId=false&geoJsonProperty=name&orgUnitProperty=name",
+                "{'features':[{"
+                    + "'properties': { 'name': 'Alpha'}, "
+                    + "'geometry': {'type':'MultiPolygon', 'coordinates': [ [ [ [ 1,1 ], [ 2,2 ], [ 1,3 ], [1,1] ] ] ] }"
+                    + "}]}" )
+                        .content( HttpStatus.CONFLICT ) );
+        assertReportError( msg, ErrorCode.E7711, List.of( 0 ) );
     }
 
     @Test
@@ -434,13 +452,18 @@ class GeoJsonImportControllerTest extends DhisControllerConvenienceTest
 
     private String postNewOrganisationUnit( String name )
     {
+        return postNewOrganisationUnit( name, name, name.substring( 0, 3 ).toUpperCase() );
+    }
+
+    private String postNewOrganisationUnit( String name, String id, String code )
+    {
         return assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnits/",
                 "{"
-                    + "'id':'" + name.substring( 0, 4 ) + "5678901', "
+                    + "'id':'" + id.substring( 0, 4 ) + "5678901', "
                     + "'name':'" + name + "', "
-                    + "'shortName':'" + name + "', "
-                    + "'code':'" + name.substring( 0, 3 ).toUpperCase() + "', "
+                    + "'shortName':'" + id + "', "
+                    + "'code':'" + code + "', "
                     + "'openingDate':'2021-01-01'}" ) );
     }
 }

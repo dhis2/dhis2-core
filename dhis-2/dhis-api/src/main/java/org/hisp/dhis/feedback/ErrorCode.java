@@ -420,7 +420,8 @@ public enum ErrorCode
     E7707( "GeoJSON geometry is not valid" ),
     E7708( "GeoJSON target organisation unit does not exist" ),
     E7709( "Organisation unit could not be updated with new GeoJSON geometry" ),
-    E7710( "User is not allowed to update the target organisation unit" );
+    E7710( "User is not allowed to update the target organisation unit" ),
+    E7711( "Organisation unit cannot be uniquely identified by its name" );
 
     private String message;
 

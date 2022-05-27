@@ -136,8 +136,6 @@ public abstract class DhisControllerConvenienceTest extends DhisMockMvcControlle
 
     protected final User switchToSuperuser()
     {
-        // Need to refetch the user here if it has changed since the last time
-        // we switched to superuser F:12098
         switchContextToUser( userService.getUser( superUser.getUid() ) );
         return superUser;
     }
@@ -158,6 +156,7 @@ public abstract class DhisControllerConvenienceTest extends DhisMockMvcControlle
     protected void switchContextToUser( User user )
     {
         injectSecurityContext( user );
+
         session = new MockHttpSession();
         session.setAttribute( HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
             SecurityContextHolder.getContext() );
