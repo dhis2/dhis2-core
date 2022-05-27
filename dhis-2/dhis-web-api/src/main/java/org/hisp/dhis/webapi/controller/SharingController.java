@@ -46,6 +46,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.SystemDefaultMetadataObject;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -57,7 +58,6 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.system.paging.Paging;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
@@ -387,7 +387,7 @@ public class SharingController
             throw new WebMessageException( conflict( "Search key not specified" ) );
         }
 
-        int max = pageSize != null ? pageSize : Paging.DEFAULT_PAGE_SIZE;
+        int max = pageSize != null ? pageSize : Pager.DEFAULT_PAGE_SIZE;
 
         List<SharingUserGroupAccess> userGroupAccesses = getSharingUserGroups( key, max );
         List<SharingUserAccess> userAccesses = getSharingUser( key, max );
