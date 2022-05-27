@@ -56,7 +56,7 @@ public class Pager
 
     public Pager( int page, long total )
     {
-        this.total = total;
+        this.total = Math.max( total, 0 );
         this.page = getPageInternal( page );
     }
 
