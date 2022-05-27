@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.validation.hooks;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.springframework.stereotype.Component;
@@ -42,9 +43,9 @@ public class EnrollmentGeoValidationHook
     extends AbstractTrackerDtoValidationHook
 {
     @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
+    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
-        Program program = reporter.getBundle().getPreheat().getProgram( enrollment.getProgram() );
+        Program program = bundle.getPreheat().getProgram( enrollment.getProgram() );
 
         checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
 

@@ -45,6 +45,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
@@ -58,7 +59,7 @@ public class EnrollmentInExistingValidationHook
     extends AbstractTrackerDtoValidationHook
 {
     @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
+    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
         checkNotNull( enrollment, ENROLLMENT_CANT_BE_NULL );
 
@@ -67,7 +68,7 @@ public class EnrollmentInExistingValidationHook
             return;
         }
 
-        Program program = reporter.getBundle().getPreheat().getProgram( enrollment.getProgram() );
+        Program program = bundle.getPreheat().getProgram( enrollment.getProgram() );
 
         checkNotNull( program, PROGRAM_CANT_BE_NULL );
 
@@ -77,17 +78,17 @@ public class EnrollmentInExistingValidationHook
             return;
         }
 
-        validateTeiNotEnrolledAlready( reporter, enrollment, program );
+        validateTeiNotEnrolledAlready( reporter, bundle, enrollment, program );
     }
 
-    private void validateTeiNotEnrolledAlready( ValidationErrorReporter reporter,
+    private void validateTeiNotEnrolledAlready( ValidationErrorReporter reporter, TrackerBundle bundle,
         Enrollment enrollment, Program program )
     {
         checkNotNull( enrollment.getTrackedEntity(), TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
 
-        TrackedEntityInstance tei = getTrackedEntityInstance( reporter, enrollment.getTrackedEntity() );
+        TrackedEntityInstance tei = getTrackedEntityInstance( bundle, enrollment.getTrackedEntity() );
 
-        Set<Enrollment> payloadEnrollment = reporter.getBundle().getEnrollments()
+        Set<Enrollment> payloadEnrollment = bundle.getEnrollments()
             .stream().filter( Objects::nonNull )
             .filter( pi -> pi.getProgram().isEqualTo( program ) )
             .filter( pi -> pi.getTrackedEntity().equals( tei.getUid() )
@@ -95,7 +96,7 @@ public class EnrollmentInExistingValidationHook
             .filter( pi -> EnrollmentStatus.ACTIVE == pi.getStatus() || EnrollmentStatus.COMPLETED == pi.getStatus() )
             .collect( Collectors.toSet() );
 
-        Set<Enrollment> dbEnrollment = reporter.getBundle().getPreheat()
+        Set<Enrollment> dbEnrollment = bundle.getPreheat()
             .getTrackedEntityToProgramInstanceMap().getOrDefault( enrollment.getTrackedEntity(), new ArrayList<>() )
             .stream()
             .filter( Objects::nonNull )
@@ -141,11 +142,11 @@ public class EnrollmentInExistingValidationHook
         return enrollment;
     }
 
-    private TrackedEntityInstance getTrackedEntityInstance( ValidationErrorReporter reporter, String uid )
+    private TrackedEntityInstance getTrackedEntityInstance( TrackerBundle bundle, String uid )
     {
-        TrackedEntityInstance tei = reporter.getBundle().getTrackedEntityInstance( uid );
+        TrackedEntityInstance tei = bundle.getTrackedEntityInstance( uid );
 
-        if ( tei == null && reporter.getBundle().getPreheat().getReference( uid ).isPresent() )
+        if ( tei == null && bundle.getPreheat().getReference( uid ).isPresent() )
         {
             tei = new TrackedEntityInstance();
             tei.setUid( uid );

@@ -39,8 +39,12 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
-@Mapper( uses = { DebugMapper.class, UserGroupAccessMapper.class, UserGroupAccessMapper.class,
-    TrackedEntityTypeMapper.class } )
+@Mapper( uses = {
+    DebugMapper.class,
+    UserGroupAccessMapper.class,
+    TrackedEntityTypeMapper.class,
+    AttributeValueMapper.class
+} )
 public interface ProgramStageMapper extends PreheatMapper<ProgramStage>
 {
     ProgramStageMapper INSTANCE = Mappers.getMapper( ProgramStageMapper.class );
@@ -50,6 +54,7 @@ public interface ProgramStageMapper extends PreheatMapper<ProgramStage>
     @Mapping( target = "uid" )
     @Mapping( target = "code" )
     @Mapping( target = "name" )
+    @Mapping( target = "attributeValues" )
     @Mapping( target = "user" )
     @Mapping( target = "publicAccess" )
     @Mapping( target = "externalAccess" )
@@ -75,6 +80,7 @@ public interface ProgramStageMapper extends PreheatMapper<ProgramStage>
     @Mapping( target = "uid" )
     @Mapping( target = "code" )
     @Mapping( target = "name" )
+    @Mapping( target = "attributeValues" )
     @Mapping( target = "trackedEntityType" )
     @Mapping( target = "programType" )
     @Mapping( target = "categoryCombo" )

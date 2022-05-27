@@ -40,6 +40,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.TrackerDto;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.UniqueAttributeValue;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
@@ -58,7 +59,8 @@ public abstract class AttributeValidationHook extends AbstractTrackerDtoValidati
         this.teAttrService = teAttrService;
     }
 
-    protected void validateAttrValueType( ValidationErrorReporter reporter, TrackerDto dto, Attribute attr,
+    protected void validateAttrValueType( ValidationErrorReporter reporter, TrackerPreheat preheat, TrackerDto dto,
+        Attribute attr,
         TrackedEntityAttribute teAttr )
     {
         checkNotNull( attr, ATTRIBUTE_CANT_BE_NULL );
@@ -70,13 +72,13 @@ public abstract class AttributeValidationHook extends AbstractTrackerDtoValidati
 
         if ( valueType.equals( ValueType.ORGANISATION_UNIT ) )
         {
-            error = reporter.getBundle().getPreheat().getOrganisationUnit( attr.getValue() ) == null
+            error = preheat.getOrganisationUnit( attr.getValue() ) == null
                 ? " Value " + attr.getValue() + " is not a valid org unit value"
                 : null;
         }
         else if ( valueType.equals( ValueType.USERNAME ) )
         {
-            error = reporter.getBundle().getPreheat().getUserByUsername( attr.getValue() ).isPresent() ? null
+            error = preheat.getUserByUsername( attr.getValue() ).isPresent() ? null
                 : " Value " + attr.getValue() + " is not a valid username value";
         }
         else
@@ -102,7 +104,7 @@ public abstract class AttributeValidationHook extends AbstractTrackerDtoValidati
     }
 
     protected void validateAttributeUniqueness( ValidationErrorReporter reporter,
-        TrackerDto dto,
+        TrackerPreheat preheat, TrackerDto dto,
         String value,
         TrackedEntityAttribute trackedEntityAttribute,
         TrackedEntityInstance trackedEntityInstance,
@@ -113,8 +115,7 @@ public abstract class AttributeValidationHook extends AbstractTrackerDtoValidati
         if ( Boolean.FALSE.equals( trackedEntityAttribute.isUnique() ) )
             return;
 
-        List<UniqueAttributeValue> uniqueAttributeValues = reporter
-            .getBundle().getPreheat().getUniqueAttributeValues();
+        List<UniqueAttributeValue> uniqueAttributeValues = preheat.getUniqueAttributeValues();
 
         for ( UniqueAttributeValue uniqueAttributeValue : uniqueAttributeValues )
         {

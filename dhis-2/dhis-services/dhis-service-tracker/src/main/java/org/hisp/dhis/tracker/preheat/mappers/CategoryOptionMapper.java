@@ -31,7 +31,10 @@ import org.hisp.dhis.category.CategoryOption;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
-@Mapper( uses = DebugMapper.class )
+@Mapper( uses = {
+    DebugMapper.class,
+    AttributeValueMapper.class
+} )
 public interface CategoryOptionMapper extends PreheatMapper<CategoryOption>
 {
     CategoryOptionMapper INSTANCE = Mappers.getMapper( CategoryOptionMapper.class );

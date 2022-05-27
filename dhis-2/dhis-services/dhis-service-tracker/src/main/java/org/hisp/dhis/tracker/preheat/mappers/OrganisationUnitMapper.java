@@ -34,7 +34,9 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
-@Mapper( )
+@Mapper( uses = {
+    AttributeValueMapper.class
+} )
 public interface OrganisationUnitMapper
     extends PreheatMapper<OrganisationUnit>
 {
@@ -46,6 +48,7 @@ public interface OrganisationUnitMapper
     @Mapping( target = "uid" )
     @Mapping( target = "code" )
     @Mapping( target = "name" )
+    @Mapping( target = "attributeValues" )
     @Mapping( target = "user" )
     @Mapping( target = "publicAccess" )
     @Mapping( target = "externalAccess" )
