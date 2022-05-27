@@ -145,13 +145,12 @@ public class JdbcMaintenanceStore
         List<String> deletedRelationships = getDeletionEntities(
             "(select uid from relationship where deleted is true)" );
 
-        String relationships = "(select relationshipid from relationship where deleted is true)";
         /*
-         * Delete relationship items and relationships
+         * Delete relationship items and relationships. There is a `on cascade
+         * delete` constraints between relationship and relationshipitem tables
          *
          */
         String[] sqlStmts = new String[] {
-            "delete from relationshipitem where relationshipid in " + relationships,
             "delete from relationship where deleted is true" };
 
         int result = jdbcTemplate.batchUpdate( sqlStmts )[sqlStmts.length - 1];
