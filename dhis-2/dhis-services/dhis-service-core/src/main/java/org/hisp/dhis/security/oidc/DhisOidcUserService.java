@@ -27,12 +27,11 @@
  */
 package org.hisp.dhis.security.oidc;
 
-import static org.hisp.dhis.user.CurrentUserUtil.initializeUser;
-
 import java.util.Map;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.hisp.dhis.user.CurrentUserDetails;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -90,11 +89,10 @@ public class DhisOidcUserService
         if ( claimValue != null )
         {
             User user = userService.getUserByOpenId( (String) claimValue );
-
             if ( user != null )
             {
-                initializeUser( user );
-                return new DhisOidcUser( user, attributes, IdTokenClaimNames.SUB, oidcUser.getIdToken() );
+                CurrentUserDetails userDetails = userService.validateAndCreateUserDetails( user, user.getPassword() );
+                return new DhisOidcUser( userDetails, attributes, IdTokenClaimNames.SUB, oidcUser.getIdToken() );
             }
         }
 

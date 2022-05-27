@@ -422,7 +422,6 @@ class DataSetServiceTest extends DhisTest
     @Disabled( "TODO: fix this test 12098" )
     void testIsLockedDataSet()
     {
-
         injectSecurityContext( superUser );
 
         DataSet dataSetA = createDataSet( 'A', periodType );
@@ -444,9 +443,6 @@ class DataSetServiceTest extends DhisTest
             dataSetService.getLockStatus( superUser, dataSetA, period, unitA, attributeOptionCombo,
                 getDate( 2000, 4, 5 ) ),
             LockStatus.OPEN );
-        // 12098 org.opentest4j.AssertionFailedError:
-        // Expected :OPEN
-        // Actual :LOCKED
         assertEquals(
             dataSetService.getLockStatus( superUser, dataSetA, period, unitA, attributeOptionCombo,
                 getDate( 2000, 4, 15 ) ),

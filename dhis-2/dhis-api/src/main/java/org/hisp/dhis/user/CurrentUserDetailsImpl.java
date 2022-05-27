@@ -25,23 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentityattributevalue;
+package org.hisp.dhis.user;
 
-import java.util.List;
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.Map;
 
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
 
-/**
- * Interface for administrative/maintenance tasks on trackedentityattributevalue
- * table
- *
- * @author Ameen Mohamed
- */
-public interface TrackedEntityAttributeTableManager
+import org.springframework.security.core.GrantedAuthority;
+
+@AllArgsConstructor
+@Getter
+@Builder
+public class CurrentUserDetailsImpl implements CurrentUserDetails
 {
-    void createTrigramIndex( TrackedEntityAttribute trackedEntityAttribute );
+    private final String uid;
 
-    void dropTrigramIndex( Long trackedEntityAttributeId );
+    private final String username;
 
-    List<Long> getAttributeIdsWithTrigramIndex();
+    private final String password;
+
+    private final boolean enabled;
+
+    private final boolean accountNonExpired;
+
+    private final boolean accountNonLocked;
+
+    private final boolean credentialsNonExpired;
+
+    private final Collection<GrantedAuthority> authorities;
+
+    private final Map<String, Serializable> userSettings;
 }

@@ -52,7 +52,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 class ApiTokenServiceImplTest extends DhisSpringTest
 {
-
     @Autowired
     private ApiTokenStore apiTokenStore;
 

@@ -38,6 +38,7 @@ import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingService;
 import org.springframework.beans.factory.InitializingBean;
@@ -89,7 +90,7 @@ public class UserContextInterceptor extends HandlerInterceptorAdapter implements
         if ( user != null )
         {
             final Locale dbLocale = getLocaleWithDefault( new TranslateParams( translate, locale ), user );
-            currentUserService.setUserSetting( DB_LOCALE, dbLocale );
+            CurrentUserUtil.setUserSetting( DB_LOCALE, dbLocale );
         }
 
         return true;

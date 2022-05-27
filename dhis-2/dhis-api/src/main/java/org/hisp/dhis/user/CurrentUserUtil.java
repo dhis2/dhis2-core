@@ -27,16 +27,11 @@
  */
 package org.hisp.dhis.user;
 
-import static org.hisp.dhis.hibernate.HibernateProxyUtils.initializeAndUnproxy;
-
 import java.io.Serializable;
 import java.util.Map;
-import java.util.Objects;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.hisp.dhis.category.CategoryOptionGroupSet;
-import org.hisp.dhis.common.DimensionalObject;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -52,7 +47,6 @@ public class CurrentUserUtil
     public static String getCurrentUsername()
     {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
         if ( authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal() == null )
         {
             return null;
@@ -77,53 +71,37 @@ public class CurrentUserUtil
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
             return userDetails.getUsername();
         }
-        else if ( principal instanceof Dhis2User )
-        {
-            Dhis2User dhisOidcUser = (Dhis2User) authentication.getPrincipal();
-            return dhisOidcUser.getUsername();
-        }
         else
         {
             throw new RuntimeException( "Authentication principal is not supported; principal:" + principal );
         }
     }
 
-    public static User getCurrentUser()
+    public static CurrentUserDetails getCurrentUserDetails()
     {
-        String username = getCurrentUsername();
-
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if ( authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal() == null )
         {
             return null;
         }
 
-        if ( username == null )
-        {
-            throw new IllegalStateException( "No current user" );
-        }
+        Object principal = authentication.getPrincipal();
 
-        if ( username.equals( "anonymousUser" ) )
+        // Principal being a string implies anonymous authentication
+        // This is the state before the user is authenticated.
+        if ( principal instanceof String )
         {
+            if ( !"anonymousUser".equals( principal ) )
+            {
+                return null;
+            }
+
             return null;
         }
 
-        Object principal = authentication.getPrincipal();
-
-        if ( principal instanceof UserDetails )
+        if ( principal instanceof CurrentUserDetails )
         {
-            User user = (User) authentication.getPrincipal();
-            initializeUser( user );
-
-            return user;
-        }
-        else if ( principal instanceof Dhis2User )
-        {
-            Dhis2User dhisOidcUser = (Dhis2User) authentication.getPrincipal();
-            User user = dhisOidcUser.getDhis2User();
-            initializeUser( user );
-
-            return user;
+            return (CurrentUserDetails) authentication.getPrincipal();
         }
         else
         {
@@ -131,34 +109,9 @@ public class CurrentUserUtil
         }
     }
 
-    public static void setUserSetting( UserSettingKey key, Serializable value )
-    {
-        setUserSettingInternal( key.getName(), value );
-    }
-
-    public static void setUserSettingInternal( String key, Serializable value )
-    {
-        User currentUser = getCurrentUser();
-        if ( currentUser != null )
-        {
-            Map<String, Serializable> userSettings = currentUser.getUserSettings();
-            if ( userSettings != null )
-            {
-                if ( value != null )
-                {
-                    userSettings.put( key, value );
-                }
-                else
-                {
-                    userSettings.remove( key );
-                }
-            }
-        }
-    }
-
     public static <T> T getUserSetting( UserSettingKey key )
     {
-        User currentUser = getCurrentUser();
+        CurrentUserDetails currentUser = getCurrentUserDetails();
         if ( currentUser == null )
         {
             return null;
@@ -173,101 +126,28 @@ public class CurrentUserUtil
         return (T) userSettings.get( key.getName() );
     }
 
-    public static void initializeUser( User user )
+    public static void setUserSetting( UserSettingKey key, Serializable value )
     {
-        initializeAndUnproxy( user );
-        initializeAndUnproxy( user.getPreviousPasswords() );
-        initializeAndUnproxy( user.getApps() );
-        initializeAndUnproxy( user.getOrganisationUnits() );
-        initializeAndUnproxy( user.getTeiSearchOrganisationUnits() );
-        initializeAndUnproxy( user.getDataViewOrganisationUnits() );
-        user.getOrganisationUnits().stream().filter( Objects::nonNull )
-            .forEach( organisationUnit -> {
-                initializeAndUnproxy( organisationUnit.getChildren() );
-                initializeAndUnproxy( organisationUnit.getPrograms() );
-            } );
+        setUserSettingInternal( key.getName(), value );
+    }
 
-        initializeAndUnproxy( user.getTeiSearchOrganisationUnits() );
-        user.getTeiSearchOrganisationUnits().stream().filter( Objects::nonNull )
-            .forEach( organisationUnit -> {
-                initializeAndUnproxy( organisationUnit.getChildren() );
-                initializeAndUnproxy( organisationUnit.getPrograms() );
-            } );
-
-        initializeAndUnproxy( user.getDataViewOrganisationUnits() );
-        user.getDataViewOrganisationUnits().stream().filter( Objects::nonNull )
-            .forEach( organisationUnit -> {
-                initializeAndUnproxy( organisationUnit.getChildren() );
-                initializeAndUnproxy( organisationUnit.getPrograms() );
-            } );
-
-        initializeAndUnproxy( user.getUserRoles() );
-        for ( UserRole userRole : user.getUserRoles() )
+    private static void setUserSettingInternal( String key, Serializable value )
+    {
+        CurrentUserDetails currentUser = getCurrentUserDetails();
+        if ( currentUser != null )
         {
-            if ( userRole == null )
+            Map<String, Serializable> userSettings = currentUser.getUserSettings();
+            if ( userSettings != null )
             {
-                continue;
+                if ( value != null )
+                {
+                    userSettings.put( key, value );
+                }
+                else
+                {
+                    userSettings.remove( key );
+                }
             }
-            initializeAndUnproxy( userRole );
-            initializeAndUnproxy( userRole.getAuthorities() );
-            initializeAndUnproxy( userRole.getMembers() );
-            initializeAndUnproxy( userRole.getAttributeValues() );
-        }
-
-        initializeAndUnproxy( user.getGroups() );
-        for ( UserGroup group : user.getGroups() )
-        {
-            if ( group == null )
-            {
-                continue;
-            }
-            initializeAndUnproxy( group.getManagedByGroups() );
-            initializeAndUnproxy( group.getManagedGroups() );
-            initializeAndUnproxy( group.getMembers() );
-            initializeAndUnproxy( group.getAttributeValues() );
-            initializeAndUnproxy( group.getTranslations() );
-        }
-
-        initializeAndUnproxy( user.getCogsDimensionConstraints() );
-        for ( CategoryOptionGroupSet groupSet : user.getCogsDimensionConstraints() )
-        {
-            if ( groupSet == null )
-            {
-                continue;
-            }
-            initializeAndUnproxy( groupSet.getMembers() );
-            initializeAndUnproxy( groupSet.getItems() );
-            initializeAndUnproxy( groupSet.getFilterItemsAsList() );
-            initializeAndUnproxy( groupSet.getAttributeValues() );
-            initializeAndUnproxy( groupSet.getFavorites() );
-            initializeAndUnproxy( groupSet.getTranslations() );
-
-        }
-
-        initializeAndUnproxy( user.getDimensionConstraints() );
-        for ( DimensionalObject dimension : user.getDimensionConstraints() )
-        {
-            if ( dimension == null )
-            {
-                continue;
-            }
-            initializeAndUnproxy( dimension.getItems() );
-            initializeAndUnproxy( dimension.getAttributeValues() );
-            initializeAndUnproxy( dimension.getFavorites() );
-            initializeAndUnproxy( dimension.getTranslations() );
-        }
-
-        initializeAndUnproxy( user.getCatDimensionConstraints() );
-        for ( DimensionalObject dimension : user.getCatDimensionConstraints() )
-        {
-            if ( dimension == null )
-            {
-                continue;
-            }
-            initializeAndUnproxy( dimension.getItems() );
-            initializeAndUnproxy( dimension.getAttributeValues() );
-            initializeAndUnproxy( dimension.getFavorites() );
-            initializeAndUnproxy( dimension.getTranslations() );
         }
     }
 }

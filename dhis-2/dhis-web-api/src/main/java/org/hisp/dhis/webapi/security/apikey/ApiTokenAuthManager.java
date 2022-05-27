@@ -36,6 +36,7 @@ import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.security.apikey.ApiTokenService;
+import org.hisp.dhis.user.CurrentUserDetails;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.ObjectUtils;
@@ -93,20 +94,18 @@ public class ApiTokenAuthManager implements AuthenticationManager
 
             validateTokenExpiry( apiToken.getExpire() );
 
-            User user = validateUser( apiToken );
+            CurrentUserDetails currentUserDetails = validateAndCreateUserDetails( apiToken.getCreatedBy() );
 
             ApiTokenAuthenticationToken authenticationToken = new ApiTokenAuthenticationToken( apiToken,
-                user );
-
+                currentUserDetails );
             apiTokenCache.put( tokenKey, authenticationToken );
 
             return authenticationToken;
         }
     }
 
-    private User validateUser( ApiToken apiToken )
+    private CurrentUserDetails validateAndCreateUserDetails( User createdBy )
     {
-        User createdBy = apiToken.getCreatedBy();
         if ( createdBy == null )
         {
             throw new ApiTokenAuthenticationException(
@@ -134,7 +133,7 @@ public class ApiTokenAuthManager implements AuthenticationManager
                 ApiTokenErrors.invalidToken( "The API token is disabled, locked or 2FA is enabled." ) );
         }
 
-        return user;
+        return userService.createUserDetails( user, user.getPassword(), accountNonLocked, credentialsNonExpired );
     }
 
     private void validateTokenExpiry( Long expiry )

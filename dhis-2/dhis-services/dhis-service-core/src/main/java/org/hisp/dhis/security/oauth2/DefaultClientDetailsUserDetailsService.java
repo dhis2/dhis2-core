@@ -30,6 +30,7 @@ package org.hisp.dhis.security.oauth2;
 import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -49,27 +50,34 @@ public class DefaultClientDetailsUserDetailsService implements UserDetailsServic
 
     private final PasswordEncoder passwordEncoder;
 
+    private final UserService userService;
+
     public UserDetails loadUserByUsername( String username )
+    {
+        ClientDetails clientDetails = getClientDetails( username );
+
+        String clientSecret = clientDetails.getClientSecret();
+        if ( clientSecret == null || clientSecret.trim().length() == 0 )
+        {
+            clientSecret = passwordEncoder.encode( "" );
+        }
+
+        User user = new User();
+        user.setUsername( username );
+        user.setPassword( clientSecret );
+        user.setDisabled( false );
+        user.setAccountNonLocked( true );
+        user.setCredentialsNonExpired( true );
+        user.setAccountExpiry( null );
+
+        return userService.validateAndCreateUserDetails( user, user.getPassword() );
+    }
+
+    private ClientDetails getClientDetails( String username )
     {
         try
         {
-            ClientDetails clientDetails = clientDetailsService.loadClientByClientId( username );
-
-            String clientSecret = clientDetails.getClientSecret();
-            if ( clientSecret == null || clientSecret.trim().length() == 0 )
-            {
-                clientSecret = passwordEncoder.encode( "" );
-            }
-
-            User user = new User();
-            user.setUsername( username );
-            user.setPassword( clientSecret );
-            user.setDisabled( false );
-            user.setAccountNonLocked( true );
-            user.setCredentialsNonExpired( true );
-            user.setAccountExpiry( null );
-
-            return user;
+            return clientDetailsService.loadClientByClientId( username );
         }
         catch ( NoSuchClientException e )
         {

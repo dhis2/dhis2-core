@@ -59,6 +59,15 @@ public class RelationshipActions
         return response;
     }
 
+    public ApiResponse softDelete( String relationshipId )
+    {
+        ApiResponse response = super.delete( relationshipId );
+
+        response.validate().statusCode( 200 );
+
+        return response;
+    }
+
     public JsonObject createRelationshipBody( String relationshipTypeId, String fromEntity, String fromEntityId,
         String toEntity,
         String toEntityId )

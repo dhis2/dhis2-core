@@ -81,7 +81,7 @@ public class JdbcTrackedEntityAttributeTableManager implements TrackedEntityAttr
     }
 
     @Override
-    public List<Long> getAttributeIdsWithTrigramIndexCreated()
+    public List<Long> getAttributeIdsWithTrigramIndex()
     {
         return jdbcTemplate.queryForList( LIST_TRIGRAM_INDEXED_ATTRIBUTE_ID_QUERY, Long.class );
     }

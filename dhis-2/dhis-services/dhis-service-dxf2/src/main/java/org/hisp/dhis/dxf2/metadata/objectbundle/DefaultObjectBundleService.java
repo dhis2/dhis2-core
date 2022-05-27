@@ -316,7 +316,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
                 }
             }
 
-            session.merge( persistedObject );
+            session.update( persistedObject );
 
             bundle.getPreheat().replace( bundle.getPreheatIdentifier(), persistedObject );
 

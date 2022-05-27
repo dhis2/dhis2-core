@@ -96,6 +96,8 @@ public interface RelationshipService
 
     Relationship getRelationship( String uid );
 
+    Relationship getRelationshipIncludeDeleted( String uid );
+
     List<Relationship> getRelationships( List<String> uids );
 
     default List<Relationship> getRelationshipsByTrackedEntityInstance( TrackedEntityInstance tei,

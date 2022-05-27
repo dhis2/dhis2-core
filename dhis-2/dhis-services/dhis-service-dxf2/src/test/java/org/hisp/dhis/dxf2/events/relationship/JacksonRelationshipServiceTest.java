@@ -118,12 +118,15 @@ class JacksonRelationshipServiceTest
 
     private final BeanRandomizer rnd = BeanRandomizer.create();
 
+    private static final String RELATIONSHIP_UID = "relationship uid";
+
     @BeforeEach
     public void setUp()
         throws IllegalAccessException
     {
         RelationshipType relationshipType = createRelationshipTypeWithTeiConstraint();
         relationship = createTei2TeiRelationship( relationshipType );
+        relationship.setRelationship( RELATIONSHIP_UID );
 
         initFakeCaches( relationship, relationshipType );
     }
@@ -158,6 +161,24 @@ class JacksonRelationshipServiceTest
         assertThat( importSummary.getReference(), is( daoRelationship.getUid() ) );
         assertThat( importSummary.getDescription(),
             is( "Relationship " + daoRelationship.getUid() + " already exists" ) );
+    }
+
+    @Test
+    void verifySoftRelationshipIsNotUpdated()
+    {
+        org.hisp.dhis.relationship.Relationship daoRelationship = new org.hisp.dhis.relationship.Relationship();
+        daoRelationship.setUid( RELATIONSHIP_UID );
+        daoRelationship.setDeleted( true );
+
+        when( relationshipService.getRelationshipIncludeDeleted( RELATIONSHIP_UID ) ).thenReturn( daoRelationship );
+
+        ImportSummary importSummary = subject.updateRelationship( relationship, rnd.nextObject( ImportOptions.class ) );
+
+        assertThat( importSummary.getStatus(), is( ImportStatus.ERROR ) );
+        assertThat( importSummary.getImportCount().getImported(), is( 0 ) );
+        assertThat( importSummary.getReference(), is( RELATIONSHIP_UID ) );
+        assertThat( importSummary.getDescription(),
+            is( "Relationship '" + RELATIONSHIP_UID + "' is already deleted and cannot be modified." ) );
     }
 
     private void initFakeCaches( Relationship relationship, RelationshipType relationshipType )

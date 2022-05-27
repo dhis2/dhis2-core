@@ -88,6 +88,7 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingKey;
@@ -1387,7 +1388,7 @@ class ValidationServiceTest extends DhisTest
     {
         User user = createUserAndInjectSecurityContext( true );
         Locale locale = Locale.FRENCH;
-        currentUserService.setUserSetting( UserSettingKey.DB_LOCALE, locale );
+        CurrentUserUtil.setUserSetting( UserSettingKey.DB_LOCALE, locale );
 
         useDataValue( dataElementA, periodA, sourceA, "10" );
         useDataValue( dataElementB, periodA, sourceA, "20" );
