@@ -56,41 +56,34 @@ public class Pager
 
     public Pager( int page, long total )
     {
-        this.page = page;
         this.total = total;
-
-        if ( this.page > getPageCount() )
-        {
-            this.page = getPageCount();
-        }
-
-        if ( this.page < 1 )
-        {
-            this.page = 1;
-        }
+        this.page = getPageInternal( page );
     }
 
     public Pager( int page, long total, int pageSize )
     {
-        this.page = page;
         this.total = total >= 0 ? total : 0;
         this.pageSize = pageSize > 0 ? pageSize : 1;
-
-        if ( this.page > getPageCount() )
-        {
-            this.page = getPageCount();
-        }
-
-        if ( this.page < 1 )
-        {
-            this.page = 1;
-        }
+        this.page = getPageInternal( page );
     }
 
     @Override
     public String toString()
     {
         return "[Page: " + page + " total: " + total + " size: " + pageSize + " offset: " + getOffset() + "]";
+    }
+
+    /**
+     * Returns the page, ensuring the value is greater or equal to 1 and less or
+     * equal to total page count.
+     *
+     * @param page the page.
+     * @return the page.
+     */
+    private int getPageInternal( int page )
+    {
+        page = Math.max( page, 1 );
+        return Math.min( page, getPageCount() );
     }
 
     public boolean pageSizeIsDefault()

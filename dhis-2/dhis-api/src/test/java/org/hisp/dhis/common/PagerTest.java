@@ -47,4 +47,16 @@ class PagerTest
         assertEquals( 125, new Pager( 6, 500, 25 ).getOffset() );
         assertEquals( 45, new Pager( 10, 500, 5 ).getOffset() );
     }
+
+    @Test
+    void testGetPageWhenGreaterThanTotalPages()
+    {
+        assertEquals( 5, new Pager( 8, 240, 50 ).getPage() );
+    }
+
+    @Test
+    void testTotalWhenLessThanZero()
+    {
+        assertEquals( 0, new Pager( 4, -5, 50 ).getTotal() );
+    }
 }
