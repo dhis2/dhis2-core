@@ -35,6 +35,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Base for integration tests that use a single setup for the class instead of a
@@ -47,6 +48,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @IntegrationTest
 @ActiveProfiles( profiles = { "test-postgres" } )
 @TestInstance( TestInstance.Lifecycle.PER_CLASS )
+@Transactional
 public abstract class SingleSetupIntegrationTestBase
     extends BaseSpringTest
 {
@@ -67,7 +69,7 @@ public abstract class SingleSetupIntegrationTestBase
     }
 
     @Override
-    protected boolean emptyDatabaseAfterTest()
+    protected final boolean emptyDatabaseAfterTest()
     {
         return true;
     }

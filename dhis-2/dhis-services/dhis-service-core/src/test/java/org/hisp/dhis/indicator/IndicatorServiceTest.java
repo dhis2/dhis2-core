@@ -41,6 +41,7 @@ import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingKey;
@@ -285,7 +286,7 @@ class IndicatorServiceTest extends DhisSpringTest
     void testNumeratorTranslation()
     {
         Locale locale = Locale.FRENCH;
-        currentUserService.setUserSetting( UserSettingKey.DB_LOCALE, locale );
+        CurrentUserUtil.setUserSetting( UserSettingKey.DB_LOCALE, locale );
         IndicatorType type = new IndicatorType( "IndicatorType", 100, false );
         indicatorService.addIndicatorType( type );
         Indicator indicatorA = createIndicator( 'A', type );

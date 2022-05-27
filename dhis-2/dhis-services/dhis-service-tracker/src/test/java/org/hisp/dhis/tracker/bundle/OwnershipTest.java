@@ -54,7 +54,6 @@ import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
-import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.Test;
@@ -92,8 +91,6 @@ class OwnershipTest extends TrackerTest
         assertNoImportErrors( trackerImportService.importTracker( teiParams ) );
         TrackerImportParams enrollmentParams = fromJson( "tracker/ownership_enrollment.json", superUser.getUid() );
         assertNoImportErrors( trackerImportService.importTracker( enrollmentParams ) );
-
-        dbmsManager.clearSession();
     }
 
     @Test
@@ -132,8 +129,8 @@ class OwnershipTest extends TrackerTest
         manager.flush();
         TrackerImportParams teiParams = fromJson( "tracker/ownership_tei.json", nonSuperUser );
         TrackerImportParams enrollmentParams = fromJson( "tracker/ownership_enrollment.json", nonSuperUser );
-        logTrackerErrors( trackerImportReport );
-        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
+        assertNoImportErrors( trackerImportReport );
+
         List<TrackedEntityInstance> teis = manager.getAll( TrackedEntityInstance.class );
         assertEquals( 1, teis.size() );
         TrackedEntityInstance tei = teis.get( 0 );
@@ -237,14 +234,12 @@ class OwnershipTest extends TrackerTest
     void testCreateEnrollmentWithoutOwnership()
         throws IOException
     {
-        // dbmsManager.clearSession();
         injectSecurityContext( userService.getUser( nonSuperUser.getUid() ) );
         TrackerImportParams enrollmentParams = fromJson( "tracker/ownership_enrollment.json", nonSuperUser );
         List<ProgramInstance> pis = manager.getAll( ProgramInstance.class );
         assertEquals( 2, pis.size() );
         enrollmentParams.setImportStrategy( TrackerImportStrategy.DELETE );
         TrackerImportReport updatedReport = trackerImportService.importTracker( enrollmentParams );
-        logTrackerErrors( updatedReport );
         assertNoImportErrors( updatedReport );
         assertEquals( 1, updatedReport.getStats().getDeleted() );
         TrackedEntityInstance tei = manager.get( TrackedEntityInstance.class, "IOR1AXXl24H" );

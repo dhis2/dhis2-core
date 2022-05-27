@@ -63,6 +63,7 @@ import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingKey;
@@ -97,7 +98,7 @@ class TranslationServiceTest extends DhisSpringTest
         this.userService = injectUserService;
         user = createUserAndInjectSecurityContext( true );
         locale = Locale.FRENCH;
-        currentUserService.setUserSetting( UserSettingKey.DB_LOCALE, locale );
+        CurrentUserUtil.setUserSetting( UserSettingKey.DB_LOCALE, locale );
     }
 
     @Test

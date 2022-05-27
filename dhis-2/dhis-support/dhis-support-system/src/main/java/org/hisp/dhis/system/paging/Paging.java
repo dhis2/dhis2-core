@@ -43,9 +43,7 @@ public class Paging
 
     private static final int PAGE_OFFSET = 2; // Each side of current page
 
-    private static final int PAGE_TOTAL_OFFSET = PAGE_OFFSET * 2; // Both sides
-                                                                  // of current
-                                                                  // page
+    private static final int PAGE_TOTAL_OFFSET = PAGE_OFFSET * 2;
 
     private int currentPage;
 

@@ -27,15 +27,11 @@
  */
 package org.hisp.dhis.security;
 
-import static org.hisp.dhis.user.CurrentUserUtil.initializeUser;
-
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -54,10 +50,6 @@ public class DefaultUserDetailsService
 {
     private final UserService userService;
 
-    private final SecurityService securityService;
-
-    private final SessionFactory sessionFactory;
-
     @Override
     @Transactional( readOnly = true )
     public UserDetails loadUserByUsername( String username )
@@ -65,26 +57,11 @@ public class DefaultUserDetailsService
         DataAccessException
     {
         User user = userService.getUserByUsername( username );
-
-        boolean enabled = !user.isDisabled();
-        boolean credentialsNonExpired = userService.userNonExpired( user );
-        boolean accountNonLocked = !securityService.isLocked( user.getUsername() );
-        boolean accountNonExpired = !userService.isAccountExpired( user );
-
-        if ( ObjectUtils.anyIsFalse( enabled, credentialsNonExpired, accountNonLocked, accountNonExpired ) )
+        if ( user == null )
         {
-            log.debug( String.format(
-                "Login attempt for disabled/locked user: '%s', enabled: %b, account non-expired: %b, user non-expired: %b, account non-locked: %b",
-                username, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked ) );
+            throw new UsernameNotFoundException( String.format( "Username '%s' not found.", username ) );
         }
 
-        initializeUser( user );
-
-        sessionFactory.getCurrentSession().evict( user );
-
-        user.setAccountNonLocked( accountNonLocked );
-        user.setCredentialsNonExpired( credentialsNonExpired );
-
-        return user;
+        return userService.validateAndCreateUserDetails( user, user.getPassword() );
     }
 }
