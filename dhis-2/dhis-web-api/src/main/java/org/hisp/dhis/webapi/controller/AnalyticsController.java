@@ -269,7 +269,7 @@ public class AnalyticsController
         return analyticsService.getAggregatedDataValueSet( params );
     }
 
-    @GetMapping( value = RESOURCE_PATH + DATA_VALUE_SET_PATH + ".json" )
+    @GetMapping( value = RESOURCE_PATH + DATA_VALUE_SET_PATH + ".csv" )
     public void getDataValueSetCsv(
         AggregateAnalyticsQueryCriteria criteria,
         DhisApiVersion apiVersion,
