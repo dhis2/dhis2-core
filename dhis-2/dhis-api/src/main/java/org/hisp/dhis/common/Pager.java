@@ -82,8 +82,8 @@ public class Pager
      */
     private int getPageInternal( int page )
     {
-        page = Math.max( page, 1 );
-        return Math.min( page, getPageCount() );
+        page = Math.min( page, getPageCount() );
+        return Math.max( page, 1 );
     }
 
     public boolean pageSizeIsDefault()
