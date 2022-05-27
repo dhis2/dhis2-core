@@ -134,6 +134,14 @@ public class DefaultAnalyticsService
     @Override
     public DataValueSet getAggregatedDataValueSet( DataQueryParams params )
     {
+        Grid grid = getAggregatedDataValueSetAsGrid( params );
+
+        return getDataValueSetFromGrid( params, grid );
+    }
+
+    @Override
+    public Grid getAggregatedDataValueSetAsGrid( DataQueryParams params )
+    {
         DataQueryParams query = newBuilder( params )
             .withSkipMeta( false )
             .withSkipData( false )
@@ -141,9 +149,7 @@ public class DefaultAnalyticsService
             .withOutputFormat( DATA_VALUE_SET )
             .build();
 
-        Grid grid = dataAggregator.getAggregatedDataValueGrid( query );
-
-        return getDataValueSetFromGrid( params, grid );
+        return dataAggregator.getAggregatedDataValueGrid( query );
     }
 
     @Override
