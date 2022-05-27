@@ -55,6 +55,12 @@ class PagerTest
     }
 
     @Test
+    void testGetPageWhenLessThanOne()
+    {
+        assertEquals( 1, new Pager( -1, 240, 50 ).getPage() );
+    }
+
+    @Test
     void testTotalWhenLessThanZero()
     {
         assertEquals( 0, new Pager( 4, -5, 50 ).getTotal() );
