@@ -62,7 +62,7 @@ public class Pager
 
     public Pager( int page, long total, int pageSize )
     {
-        this.total = total >= 0 ? total : 0;
+        this.total = Math.max( total, 0 );
         this.pageSize = pageSize > 0 ? pageSize : 1;
         this.page = getPageInternal( page );
     }

@@ -49,6 +49,12 @@ class PagerTest
     }
 
     @Test
+    void testGetPage()
+    {
+        assertEquals( 3, new Pager( 3, 240, 50 ).getPage() );
+    }
+
+    @Test
     void testGetPageWhenGreaterThanTotalPages()
     {
         assertEquals( 5, new Pager( 8, 240, 50 ).getPage() );
@@ -58,6 +64,18 @@ class PagerTest
     void testGetPageWhenLessThanOne()
     {
         assertEquals( 1, new Pager( -1, 240, 50 ).getPage() );
+    }
+
+    @Test
+    void testGetTotal()
+    {
+        assertEquals( 200, new Pager( 2, 200, 50 ).getTotal() );
+    }
+
+    @Test
+    void testTotalZero()
+    {
+        assertEquals( 0, new Pager( 1, 0, 50 ).getTotal() );
     }
 
     @Test
