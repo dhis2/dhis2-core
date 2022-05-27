@@ -87,6 +87,7 @@ public class Pager
         }
     }
 
+    @Override
     public String toString()
     {
         return "[Page: " + page + " total: " + total + " size: " + pageSize + " offset: " + getOffset() + "]";
@@ -112,9 +113,9 @@ public class Pager
     }
 
     /**
-     * How many items per page.
+     * Returns the number of items per page.
      *
-     * @return Number of items per page.
+     * @return The number of items per page.
      */
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
@@ -124,30 +125,21 @@ public class Pager
     }
 
     /**
-     * How many pages in total
+     * Returns the total number of pages.
      *
-     * @return Total number of pages
+     * @return The total number of pages.
      */
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public int getPageCount()
     {
-        int pageCount = 1;
-        long totalTmp = total;
-
-        while ( totalTmp > pageSize )
-        {
-            totalTmp -= pageSize;
-            pageCount++;
-        }
-
-        return pageCount;
+        return (int) Math.ceil( total / (double) pageSize );
     }
 
     /**
      * Return the current offset to start at.
      *
-     * @return Offset to start at
+     * @return The offset to start at.
      */
     public int getOffset()
     {
@@ -179,11 +171,10 @@ public class Pager
     }
 
     /**
-     * Method used when we don't need any pagination logic. We just want to
-     * simply set the current page and page size.
+     * Sets pagination directly.
      *
-     * @param page
-     * @param pageSize
+     * @param page the page.
+     * @param pageSize the page size.
      */
     public void force( int page, int pageSize )
     {
