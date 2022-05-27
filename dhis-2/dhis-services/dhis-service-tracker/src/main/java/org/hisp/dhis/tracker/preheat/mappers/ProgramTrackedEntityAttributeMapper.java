@@ -29,8 +29,7 @@ package org.hisp.dhis.tracker.preheat.mappers;
 
 import java.util.List;
 
-import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
+import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -38,25 +37,17 @@ import org.mapstruct.factory.Mappers;
 
 @Mapper( uses = {
     DebugMapper.class,
-    TrackedEntityTypeAttributeMapper.class,
-    AttributeValueMapper.class
+    TrackedEntityAttributeMapper.class
 } )
-public interface TrackedEntityTypeMapper
-    extends PreheatMapper<TrackedEntityType>
+public interface ProgramTrackedEntityAttributeMapper extends PreheatMapper<ProgramTrackedEntityAttribute>
 {
-    TrackedEntityTypeMapper INSTANCE = Mappers.getMapper( TrackedEntityTypeMapper.class );
+    ProgramTrackedEntityAttributeMapper INSTANCE = Mappers.getMapper( ProgramTrackedEntityAttributeMapper.class );
 
     @BeanMapping( ignoreByDefault = true )
-    @Mapping( target = "id" )
-    @Mapping( target = "uid" )
-    @Mapping( target = "name" )
-    @Mapping( target = "code" )
-    @Mapping( target = "attributeValues" )
-    @Mapping( target = "featureType" )
-    @Mapping( target = "sharing" )
-    @Mapping( target = "trackedEntityTypeAttributes" )
-    @Mapping( target = "allowAuditLog" )
-    TrackedEntityType map( TrackedEntityType trackedEntityType );
+    @Mapping( target = "mandatory" )
+    @Mapping( target = "attribute" )
+    ProgramTrackedEntityAttribute map( ProgramTrackedEntityAttribute programTrackedEntityAttribute );
 
-    List<TrackedEntityTypeAttribute> map( List<TrackedEntityTypeAttribute> trackedEntityTypeAttributes );
+    List<ProgramTrackedEntityAttribute> mapProgramAttributes(
+        List<ProgramTrackedEntityAttribute> programTrackedEntityAttributes );
 }
