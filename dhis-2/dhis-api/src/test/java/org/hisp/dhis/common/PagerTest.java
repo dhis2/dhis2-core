@@ -67,6 +67,18 @@ class PagerTest
     }
 
     @Test
+    void testGetPageSize()
+    {
+        assertEquals( 30, new Pager( 3, 240, 30 ).getPageSize() );
+    }
+
+    @Test
+    void testGetPageSizeWhenLessThan1()
+    {
+        assertEquals( 1, new Pager( 3, 240, 0 ).getPageSize() );
+    }
+
+    @Test
     void testGetTotal()
     {
         assertEquals( 200, new Pager( 2, 200, 50 ).getTotal() );
