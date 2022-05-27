@@ -60,7 +60,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
-import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.Relationship;
@@ -98,8 +97,10 @@ class RelationshipsValidationHookTest
     {
         validationHook = new RelationshipsValidationHook();
 
-        when( bundle.getValidationMode() ).thenReturn( ValidationMode.FULL );
         when( bundle.getPreheat() ).thenReturn( preheat );
+
+        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
+        reporter = new ValidationErrorReporter( idSchemes );
     }
 
     @Test
@@ -112,8 +113,7 @@ class RelationshipsValidationHookTest
             .to( trackedEntityRelationshipItem() )
             .build();
 
-        reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateRelationship( reporter, relationship );
+        validationHook.validateRelationship( reporter, bundle, relationship );
 
         hasTrackerError( reporter, E4009, RELATIONSHIP, relationship.getUid() );
     }
@@ -142,8 +142,7 @@ class RelationshipsValidationHookTest
         when( preheat.getAll( RelationshipType.class ) )
             .thenReturn( Collections.singletonList( relationshipType ) );
 
-        reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateRelationship( reporter, relationship );
+        validationHook.validateRelationship( reporter, bundle, relationship );
 
         assertTrue( reporter.hasErrors() );
         assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E4001 ) );
@@ -172,8 +171,7 @@ class RelationshipsValidationHookTest
         when( preheat.getAll( RelationshipType.class ) )
             .thenReturn( Collections.singletonList( relationshipType ) );
 
-        reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateRelationship( reporter, relationship );
+        validationHook.validateRelationship( reporter, bundle, relationship );
 
         hasTrackerError( reporter, E4013, RELATIONSHIP, relationship.getUid() );
         assertThat( reporter.getReportList().get( 0 ).getErrorMessage(), is(
@@ -204,8 +202,7 @@ class RelationshipsValidationHookTest
         when( preheat.getAll( RelationshipType.class ) )
             .thenReturn( Collections.singletonList( relationshipType ) );
 
-        reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateRelationship( reporter, relationship );
+        validationHook.validateRelationship( reporter, bundle, relationship );
 
         hasTrackerError( reporter, E4001, RELATIONSHIP, relationship.getUid() );
         assertThat( reporter.getReportList().get( 0 ).getErrorMessage(), is(
@@ -227,8 +224,7 @@ class RelationshipsValidationHookTest
         when( preheat.getAll( RelationshipType.class ) )
             .thenReturn( Collections.singletonList( relType ) );
 
-        reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateRelationship( reporter, relationship );
+        validationHook.validateRelationship( reporter, bundle, relationship );
 
         hasTrackerError( reporter, E4010, RELATIONSHIP, relationship.getUid() );
         assertThat( reporter.getReportList().get( 0 ).getErrorMessage(),
@@ -250,8 +246,7 @@ class RelationshipsValidationHookTest
         when( preheat.getAll( RelationshipType.class ) )
             .thenReturn( Collections.singletonList( relType ) );
 
-        reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateRelationship( reporter, relationship );
+        validationHook.validateRelationship( reporter, bundle, relationship );
 
         hasTrackerError( reporter, E4010, RELATIONSHIP, relationship.getUid() );
         assertThat( reporter.getReportList().get( 0 ).getErrorMessage(),
@@ -275,8 +270,7 @@ class RelationshipsValidationHookTest
         when( preheat.getAll( RelationshipType.class ) )
             .thenReturn( Collections.singletonList( relType ) );
 
-        reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateRelationship( reporter, relationship );
+        validationHook.validateRelationship( reporter, bundle, relationship );
 
         hasTrackerError( reporter, E4010, RELATIONSHIP, relationship.getUid() );
         assertThat( reporter.getReportList().get( 0 ).getErrorMessage(),
@@ -326,9 +320,7 @@ class RelationshipsValidationHookTest
 
         when( bundle.getTrackedEntityInstance( trackedEntityUid ) ).thenReturn( trackedEntityInstance );
 
-        reporter = new ValidationErrorReporter( bundle );
-
-        validationHook.validateRelationship( reporter, relationship );
+        validationHook.validateRelationship( reporter, bundle, relationship );
 
         hasTrackerError( reporter, E4014, RELATIONSHIP, relationship.getUid() );
         assertThat( reporter.getReportList().get( 0 ).getErrorMessage(),
@@ -365,8 +357,7 @@ class RelationshipsValidationHookTest
 
         when( bundle.getTrackedEntities() ).thenReturn( trackedEntities );
 
-        reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateRelationship( reporter, relationship );
+        validationHook.validateRelationship( reporter, bundle, relationship );
 
         hasTrackerError( reporter, E4014, RELATIONSHIP, relationship.getUid() );
         assertThat( reporter.getReportList().get( 0 ).getErrorMessage(),
@@ -381,7 +372,6 @@ class RelationshipsValidationHookTest
         when( preheat.getAll( RelationshipType.class ) )
             .thenReturn( Collections.singletonList( relType ) );
 
-        reporter = new ValidationErrorReporter( bundle );
         Relationship relationship = Relationship.builder()
             .relationship( CodeGenerator.generateUid() )
             .from( trackedEntityRelationshipItem( "validTrackedEntity" ) )
@@ -395,7 +385,7 @@ class RelationshipsValidationHookTest
             .build( TrackerIdSchemeParams.builder().build() );
         reporter.addError( error );
 
-        validationHook.validateRelationship( reporter, relationship );
+        validationHook.validateRelationship( reporter, bundle, relationship );
 
         hasTrackerError( reporter, TrackerErrorCode.E4011, RELATIONSHIP, relationship.getUid() );
         assertThat(
@@ -411,7 +401,6 @@ class RelationshipsValidationHookTest
         when( preheat.getAll( RelationshipType.class ) )
             .thenReturn( Collections.singletonList( relType ) );
 
-        reporter = new ValidationErrorReporter( bundle );
         Relationship relationship = Relationship.builder()
             .relationship( CodeGenerator.generateUid() )
             .from( trackedEntityRelationshipItem( "validTrackedEntity" ) )
@@ -425,7 +414,7 @@ class RelationshipsValidationHookTest
             .build( TrackerIdSchemeParams.builder().build() );
         reporter.addError( error );
 
-        validationHook.validateRelationship( reporter, relationship );
+        validationHook.validateRelationship( reporter, bundle, relationship );
 
         assertTrue( reporter.hasErrors() );
         assertThat(
@@ -448,8 +437,7 @@ class RelationshipsValidationHookTest
         when( preheat.getAll( RelationshipType.class ) )
             .thenReturn( Collections.singletonList( relType ) );
 
-        reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateRelationship( reporter, relationship );
+        validationHook.validateRelationship( reporter, bundle, relationship );
 
         hasTrackerError( reporter, E4000, RELATIONSHIP, relationship.getUid() );
         assertThat( reporter.getReportList().get( 0 ).getErrorMessage(),
@@ -472,8 +460,7 @@ class RelationshipsValidationHookTest
         when( preheat.getAll( RelationshipType.class ) ).thenReturn( Collections.singletonList( relType ) );
         when( preheat.isDuplicate( relationship ) ).thenReturn( true );
 
-        reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateRelationship( reporter, relationship );
+        validationHook.validateRelationship( reporter, bundle, relationship );
 
         hasTrackerError( reporter, E4018, RELATIONSHIP, relationship.getUid() );
     }

@@ -33,7 +33,10 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-@Mapper( uses = DebugMapper.class )
+@Mapper( uses = {
+    DebugMapper.class,
+    AttributeValueMapper.class
+} )
 public interface CategoryMapper
     extends PreheatMapper<Category>
 {
@@ -44,6 +47,7 @@ public interface CategoryMapper
     @Mapping( target = "uid" )
     @Mapping( target = "name" )
     @Mapping( target = "code" )
+    @Mapping( target = "attributeValues" )
     @Mapping( target = "sharing" )
     Category map( Category category );
 }

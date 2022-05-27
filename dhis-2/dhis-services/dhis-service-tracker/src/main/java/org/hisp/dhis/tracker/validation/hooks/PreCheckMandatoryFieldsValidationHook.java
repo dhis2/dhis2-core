@@ -35,6 +35,7 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1124;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
@@ -52,7 +53,8 @@ public class PreCheckMandatoryFieldsValidationHook
     private static final String ORG_UNIT = "orgUnit";
 
     @Override
-    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity trackedEntity )
+    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackerBundle bundle,
+        TrackedEntity trackedEntity )
     {
         reporter.addErrorIf( () -> trackedEntity.getTrackedEntityType().isBlank(), trackedEntity, E1121,
             "trackedEntityType" );
@@ -60,7 +62,7 @@ public class PreCheckMandatoryFieldsValidationHook
     }
 
     @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
+    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
         reporter.addErrorIf( () -> enrollment.getOrgUnit().isBlank(), enrollment, E1122, ORG_UNIT );
         reporter.addErrorIf( () -> enrollment.getProgram().isBlank(), enrollment, E1122, "program" );
@@ -69,13 +71,13 @@ public class PreCheckMandatoryFieldsValidationHook
     }
 
     @Override
-    public void validateEvent( ValidationErrorReporter reporter, Event event )
+    public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
     {
         reporter.addErrorIf( () -> event.getOrgUnit().isBlank(), event, E1123, ORG_UNIT );
         reporter.addErrorIf( () -> event.getProgramStage().isBlank(), event, E1123, "programStage" );
 
         // TODO remove if once metadata import is fixed
-        ProgramStage programStage = reporter.getBundle().getPreheat().getProgramStage( event.getProgramStage() );
+        ProgramStage programStage = bundle.getPreheat().getProgramStage( event.getProgramStage() );
         if ( programStage != null )
         {
             // Program stages should always have a program! Due to how metadata
@@ -97,7 +99,8 @@ public class PreCheckMandatoryFieldsValidationHook
     }
 
     @Override
-    public void validateRelationship( ValidationErrorReporter reporter, Relationship relationship )
+    public void validateRelationship( ValidationErrorReporter reporter, TrackerBundle bundle,
+        Relationship relationship )
     {
         reporter.addErrorIfNull( relationship.getFrom(), relationship, E1124, "from" );
         reporter.addErrorIfNull( relationship.getTo(), relationship, E1124, "to" );

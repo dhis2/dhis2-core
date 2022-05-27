@@ -80,11 +80,9 @@ public class ValidationUtils
         }
     }
 
-    protected static List<Note> validateNotes( ValidationErrorReporter reporter, TrackerDto dto,
+    protected static List<Note> validateNotes( ValidationErrorReporter reporter, TrackerPreheat preheat, TrackerDto dto,
         List<Note> notesToCheck )
     {
-        TrackerPreheat preheat = reporter.getBundle().getPreheat();
-
         final List<Note> notes = new ArrayList<>();
         for ( Note note : notesToCheck )
         {

@@ -55,6 +55,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
@@ -81,20 +82,22 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
     }
 
     @Override
-    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity trackedEntity )
+    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackerBundle bundle,
+        TrackedEntity trackedEntity )
     {
-        TrackedEntityType trackedEntityType = reporter.getBundle().getPreheat()
+        TrackedEntityType trackedEntityType = bundle.getPreheat()
             .getTrackedEntityType( trackedEntity.getTrackedEntityType() );
 
-        TrackedEntityInstance tei = reporter.getBundle().getTrackedEntityInstance( trackedEntity.getTrackedEntity() );
-        OrganisationUnit organisationUnit = reporter.getBundle().getPreheat()
+        TrackedEntityInstance tei = bundle.getTrackedEntityInstance( trackedEntity.getTrackedEntity() );
+        OrganisationUnit organisationUnit = bundle.getPreheat()
             .getOrganisationUnit( trackedEntity.getOrgUnit() );
 
-        validateMandatoryAttributes( reporter, trackedEntity, trackedEntityType );
-        validateAttributes( reporter, trackedEntity, tei, organisationUnit, trackedEntityType );
+        validateMandatoryAttributes( reporter, bundle, trackedEntity, trackedEntityType );
+        validateAttributes( reporter, bundle, trackedEntity, tei, organisationUnit, trackedEntityType );
     }
 
-    private void validateMandatoryAttributes( ValidationErrorReporter reporter, TrackedEntity trackedEntity,
+    private void validateMandatoryAttributes( ValidationErrorReporter reporter, TrackerBundle bundle,
+        TrackedEntity trackedEntity,
         TrackedEntityType trackedEntityType )
     {
         if ( trackedEntityType != null )
@@ -104,7 +107,7 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
                 .map( Attribute::getAttribute )
                 .collect( Collectors.toSet() );
 
-            TrackerIdSchemeParams idSchemes = reporter.getBundle().getPreheat().getIdSchemes();
+            TrackerIdSchemeParams idSchemes = bundle.getPreheat().getIdSchemes();
             trackedEntityType.getTrackedEntityTypeAttributes()
                 .stream()
                 .filter( trackedEntityTypeAttribute -> Boolean.TRUE.equals( trackedEntityTypeAttribute.isMandatory() ) )
@@ -118,16 +121,17 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
     }
 
     protected void validateAttributes( ValidationErrorReporter reporter,
-        TrackedEntity trackedEntity, TrackedEntityInstance tei, OrganisationUnit orgUnit,
+        TrackerBundle bundle, TrackedEntity trackedEntity, TrackedEntityInstance tei, OrganisationUnit orgUnit,
         TrackedEntityType trackedEntityType )
     {
         checkNotNull( trackedEntity, TrackerImporterAssertErrors.TRACKED_ENTITY_CANT_BE_NULL );
         checkNotNull( trackedEntityType, TrackerImporterAssertErrors.TRACKED_ENTITY_TYPE_CANT_BE_NULL );
 
+        TrackerPreheat preheat = bundle.getPreheat();
         Map<MetadataIdentifier, TrackedEntityAttributeValue> valueMap = new HashMap<>();
         if ( tei != null )
         {
-            TrackerIdSchemeParams idSchemes = reporter.getBundle().getPreheat().getIdSchemes();
+            TrackerIdSchemeParams idSchemes = preheat.getIdSchemes();
             valueMap = tei.getTrackedEntityAttributeValues()
                 .stream()
                 .collect( Collectors.toMap( v -> idSchemes.toMetadataIdentifier( v.getAttribute() ), v -> v ) );
@@ -135,8 +139,7 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
 
         for ( Attribute attribute : trackedEntity.getAttributes() )
         {
-            TrackedEntityAttribute tea = reporter.getBundle().getPreheat()
-                .getTrackedEntityAttribute( attribute.getAttribute() );
+            TrackedEntityAttribute tea = preheat.getTrackedEntityAttribute( attribute.getAttribute() );
 
             if ( tea == null )
             {
@@ -161,13 +164,12 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
             }
 
             validateAttributeValue( reporter, trackedEntity, tea, attribute.getValue() );
-            validateAttrValueType( reporter, trackedEntity, attribute, tea );
-            validateOptionSet( reporter, trackedEntity, tea,
-                attribute.getValue() );
+            validateAttrValueType( reporter, preheat, trackedEntity, attribute, tea );
+            validateOptionSet( reporter, trackedEntity, tea, attribute.getValue() );
 
-            validateAttributeUniqueness( reporter, trackedEntity, attribute.getValue(), tea, tei, orgUnit );
+            validateAttributeUniqueness( reporter, preheat, trackedEntity, attribute.getValue(), tea, tei, orgUnit );
 
-            validateFileNotAlreadyAssigned( reporter, trackedEntity, attribute, valueMap );
+            validateFileNotAlreadyAssigned( reporter, bundle, trackedEntity, attribute, valueMap );
         }
     }
 
@@ -195,7 +197,8 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
         reporter.addErrorIf( () -> result != null, te, E1085, tea, result );
     }
 
-    protected void validateFileNotAlreadyAssigned( ValidationErrorReporter reporter, TrackedEntity te,
+    protected void validateFileNotAlreadyAssigned( ValidationErrorReporter reporter, TrackerBundle bundle,
+        TrackedEntity te,
         Attribute attr, Map<MetadataIdentifier, TrackedEntityAttributeValue> valueMap )
     {
         checkNotNull( attr, ATTRIBUTE_CANT_BE_NULL );
@@ -215,12 +218,11 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
             return;
         }
 
-        TrackerPreheat preheat = reporter.getBundle().getPreheat();
-        FileResource fileResource = preheat.get( FileResource.class, attr.getValue() );
+        FileResource fileResource = bundle.getPreheat().get( FileResource.class, attr.getValue() );
 
         reporter.addErrorIfNull( fileResource, te, E1084, attr.getValue() );
 
-        if ( reporter.getBundle().getStrategy( te ).isCreate() )
+        if ( bundle.getStrategy( te ).isCreate() )
         {
             reporter.addErrorIf( () -> fileResource != null && fileResource.isAssigned(), te, E1009, attr.getValue() );
         }

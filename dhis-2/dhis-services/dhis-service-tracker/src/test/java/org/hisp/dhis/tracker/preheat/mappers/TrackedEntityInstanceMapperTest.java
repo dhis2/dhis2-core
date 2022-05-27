@@ -32,31 +32,37 @@ import static org.hisp.dhis.tracker.preheat.mappers.AttributeCreator.attributeVa
 import static org.hisp.dhis.tracker.preheat.mappers.AttributeCreator.setIdSchemeFields;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
-import org.hisp.dhis.DhisConvenienceTest;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.junit.jupiter.api.Test;
 
-class ProgramMapperTest extends DhisConvenienceTest
+class TrackedEntityInstanceMapperTest
 {
     @Test
     void testIdSchemeRelatedFieldsAreMapped()
     {
 
-        Program program = setIdSchemeFields(
-            new Program(),
+        TrackedEntityType trackedEntityType = setIdSchemeFields(
+            new TrackedEntityType(),
             "WTTYiPQDqh1",
             "friendship",
             "red",
             attributeValues( "m0GpPuMUfFW", "yellow" ) );
+
+        OrganisationUnit orgUnit = setIdSchemeFields(
+            new OrganisationUnit(),
+            "HpSAvRWtdDR",
+            "meet",
+            "green",
+            attributeValues( "m0GpPuMUfFW", "purple" ) );
 
         TrackedEntityAttribute attribute = setIdSchemeFields(
             new TrackedEntityAttribute(),
@@ -64,52 +70,35 @@ class ProgramMapperTest extends DhisConvenienceTest
             "clouds",
             "orange",
             attributeValues( "m0GpPuMUfFW", "purple" ) );
-        ProgramTrackedEntityAttribute programAttribute = new ProgramTrackedEntityAttribute();
-        programAttribute.setAttribute( attribute );
-        program.setProgramAttributes( List.of( programAttribute ) );
+        TrackedEntityAttributeValue attributeValue = new TrackedEntityAttributeValue();
+        attributeValue.setAttribute( attribute );
 
-        Program mapped = ProgramMapper.INSTANCE.map( program );
+        TrackedEntityInstance tei = new TrackedEntityInstance();
+        tei.setTrackedEntityType( trackedEntityType );
+        tei.setOrganisationUnit( orgUnit );
+        tei.setTrackedEntityAttributeValues( Set.of( attributeValue ) );
 
-        assertEquals( "WTTYiPQDqh1", mapped.getUid() );
-        assertEquals( "friendship", mapped.getName() );
-        assertEquals( "red", mapped.getCode() );
-        assertContainsOnly( mapped.getAttributeValues(), attributeValue( "m0GpPuMUfFW", "yellow" ) );
+        TrackedEntityInstance mapped = TrackedEntityInstanceMapper.INSTANCE.map( tei );
 
-        Optional<ProgramTrackedEntityAttribute> actual = mapped.getProgramAttributes().stream().findFirst();
+        assertEquals( "WTTYiPQDqh1", mapped.getTrackedEntityType().getUid() );
+        assertEquals( "friendship", mapped.getTrackedEntityType().getName() );
+        assertEquals( "red", mapped.getTrackedEntityType().getCode() );
+        assertContainsOnly( mapped.getTrackedEntityType().getAttributeValues(),
+            attributeValue( "m0GpPuMUfFW", "yellow" ) );
+
+        assertEquals( "HpSAvRWtdDR", mapped.getOrganisationUnit().getUid() );
+        assertEquals( "meet", mapped.getOrganisationUnit().getName() );
+        assertEquals( "green", mapped.getOrganisationUnit().getCode() );
+        assertContainsOnly( mapped.getOrganisationUnit().getAttributeValues(),
+            attributeValue( "m0GpPuMUfFW", "purple" ) );
+
+        Optional<TrackedEntityAttributeValue> actual = mapped.getTrackedEntityAttributeValues().stream().findFirst();
         assertTrue( actual.isPresent() );
-        ProgramTrackedEntityAttribute value = actual.get();
+        TrackedEntityAttributeValue value = actual.get();
         assertEquals( "khBzbxTLo8k", value.getAttribute().getUid() );
         assertEquals( "clouds", value.getAttribute().getName() );
         assertEquals( "orange", value.getAttribute().getCode() );
         assertContainsOnly( value.getAttribute().getAttributeValues(), attributeValue( "m0GpPuMUfFW", "purple" ) );
     }
 
-    @Test
-    void testCategoryComboIsSetForDefaultCategoryCombos()
-    {
-
-        Program program = new Program();
-        CategoryCombo cc = createCategoryCombo( 'A' );
-        cc.setName( CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME );
-        assertTrue( cc.isDefault(), "tests rely on this CC being the default one" );
-        program.setCategoryCombo( cc );
-
-        Program mappedProgram = ProgramMapper.INSTANCE.map( program );
-
-        assertEquals( cc, mappedProgram.getCategoryCombo() );
-    }
-
-    @Test
-    void testCategoryComboIsSetForNonDefaultCategoryCombos()
-    {
-
-        Program program = new Program();
-        CategoryCombo cc = createCategoryCombo( 'A' );
-        assertFalse( cc.isDefault(), "tests rely on this CC NOT being the default one" );
-        program.setCategoryCombo( cc );
-
-        Program mappedProgram = ProgramMapper.INSTANCE.map( program );
-
-        assertEquals( cc, mappedProgram.getCategoryCombo() );
-    }
 }

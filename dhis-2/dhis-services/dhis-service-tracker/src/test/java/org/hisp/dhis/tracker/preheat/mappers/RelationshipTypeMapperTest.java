@@ -27,36 +27,34 @@
  */
 package org.hisp.dhis.tracker.preheat.mappers;
 
-import java.util.List;
+import static org.hisp.dhis.tracker.preheat.mappers.AttributeCreator.attributeValue;
+import static org.hisp.dhis.tracker.preheat.mappers.AttributeCreator.attributeValues;
+import static org.hisp.dhis.tracker.preheat.mappers.AttributeCreator.setIdSchemeFields;
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
-import org.mapstruct.BeanMapping;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.factory.Mappers;
+import org.hisp.dhis.relationship.RelationshipType;
+import org.junit.jupiter.api.Test;
 
-@Mapper( uses = {
-    DebugMapper.class,
-    TrackedEntityTypeAttributeMapper.class,
-    AttributeValueMapper.class
-} )
-public interface TrackedEntityTypeMapper
-    extends PreheatMapper<TrackedEntityType>
+class RelationshipTypeMapperTest
 {
-    TrackedEntityTypeMapper INSTANCE = Mappers.getMapper( TrackedEntityTypeMapper.class );
+    @Test
+    void testIdSchemeRelatedFieldsAreMapped()
+    {
 
-    @BeanMapping( ignoreByDefault = true )
-    @Mapping( target = "id" )
-    @Mapping( target = "uid" )
-    @Mapping( target = "name" )
-    @Mapping( target = "code" )
-    @Mapping( target = "attributeValues" )
-    @Mapping( target = "featureType" )
-    @Mapping( target = "sharing" )
-    @Mapping( target = "trackedEntityTypeAttributes" )
-    @Mapping( target = "allowAuditLog" )
-    TrackedEntityType map( TrackedEntityType trackedEntityType );
+        RelationshipType relationshipType = setIdSchemeFields(
+            new RelationshipType(),
+            "WTTYiPQDqh1",
+            "friendship",
+            "red",
+            attributeValues( "m0GpPuMUfFW", "yellow" ) );
 
-    List<TrackedEntityTypeAttribute> map( List<TrackedEntityTypeAttribute> trackedEntityTypeAttributes );
+        RelationshipType mapped = RelationshipTypeMapper.INSTANCE.map( relationshipType );
+
+        assertEquals( "WTTYiPQDqh1", mapped.getUid() );
+        assertEquals( "friendship", mapped.getName() );
+        assertEquals( "red", mapped.getCode() );
+        assertContainsOnly( mapped.getAttributeValues(), attributeValue( "m0GpPuMUfFW", "yellow" ) );
+    }
+
 }
