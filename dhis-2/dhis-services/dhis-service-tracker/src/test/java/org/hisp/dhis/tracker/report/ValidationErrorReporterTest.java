@@ -41,8 +41,8 @@ class ValidationErrorReporterTest
     void hasErrorReportFound()
     {
 
-        ValidationErrorReporter reporter = ValidationErrorReporter.emptyReporter();
         TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
+        ValidationErrorReporter reporter = new ValidationErrorReporter( idSchemes );
         TrackerErrorReport error = TrackerErrorReport.builder()
             .errorCode( TrackerErrorCode.E1000 )
             .trackerType( TrackerType.EVENT )
@@ -56,8 +56,8 @@ class ValidationErrorReporterTest
     void hasErrorReportNotFound()
     {
 
-        ValidationErrorReporter reporter = ValidationErrorReporter.emptyReporter();
         TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
+        ValidationErrorReporter reporter = new ValidationErrorReporter( idSchemes );
         TrackerErrorReport error = TrackerErrorReport.builder()
             .errorCode( TrackerErrorCode.E1000 )
             .trackerType( TrackerType.EVENT )
@@ -71,8 +71,8 @@ class ValidationErrorReporterTest
     void hasWarningReportFound()
     {
 
-        ValidationErrorReporter reporter = ValidationErrorReporter.emptyReporter();
         TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
+        ValidationErrorReporter reporter = new ValidationErrorReporter( idSchemes );
         TrackerWarningReport warning = TrackerWarningReport.builder()
             .warningCode( TrackerErrorCode.E1000 )
             .trackerType( TrackerType.EVENT )
@@ -86,8 +86,8 @@ class ValidationErrorReporterTest
     void hasWarningReportNotFound()
     {
 
-        ValidationErrorReporter reporter = ValidationErrorReporter.emptyReporter();
         TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
+        ValidationErrorReporter reporter = new ValidationErrorReporter( idSchemes );
         TrackerWarningReport warning = TrackerWarningReport.builder()
             .warningCode( TrackerErrorCode.E1000 )
             .trackerType( TrackerType.EVENT )
