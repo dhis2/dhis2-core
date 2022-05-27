@@ -117,7 +117,7 @@ public class BaseIdentifiableObject
      * Cache of attribute values which allows for lookup by attribute
      * identifier.
      */
-    protected Map<String, AttributeValue> cacheAttributeValues = new HashMap<>();
+    protected transient Map<String, AttributeValue> cacheAttributeValues = new HashMap<>();
 
     /**
      * Set of available object translation, normally filtered by locale.
@@ -128,7 +128,7 @@ public class BaseIdentifiableObject
      * Cache for object translations, where the cache key is a combination of
      * locale and translation property, and value is the translated value.
      */
-    private Map<String, String> translationCache = new ConcurrentHashMap<>();
+    private transient Map<String, String> translationCache = new ConcurrentHashMap<>();
 
     /**
      * This object is available as external read-only.
@@ -141,7 +141,7 @@ public class BaseIdentifiableObject
     protected transient String publicAccess;
 
     /**
-     * User who created this object This field is immutable and must not be
+     * User who created this object. This field is immutable and must not be
      * updated.
      */
     @Immutable

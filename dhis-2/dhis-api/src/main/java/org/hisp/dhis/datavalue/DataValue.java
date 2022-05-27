@@ -48,7 +48,6 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 /**
  * @author Kristian Nordal
- * @version $Id: DataValue.java 4638 2008-02-25 10:06:47Z larshelg $
  */
 @Auditable( scope = AuditScope.AGGREGATE )
 public class DataValue
