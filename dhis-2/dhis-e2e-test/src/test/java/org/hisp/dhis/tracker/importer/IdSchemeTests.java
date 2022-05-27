@@ -37,6 +37,7 @@ import org.hisp.dhis.actions.UserActions;
 import org.hisp.dhis.actions.metadata.AttributeActions;
 import org.hisp.dhis.actions.metadata.OrgUnitActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
+import org.hisp.dhis.actions.metadata.TrackedEntityAttributeActions;
 import org.hisp.dhis.actions.metadata.TrackedEntityTypeActions;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
@@ -82,6 +83,10 @@ public class IdSchemeTests
 
     private TrackedEntityTypeActions trackedEntityTypeActions;
 
+    private TrackedEntityAttributeActions teaAttributeActions;
+
+    private String TRACKED_ENTITY_ATTRIBUTE;
+
     private static Stream<Arguments> idSchemeArguments()
     {
         return Stream.of(
@@ -99,6 +104,7 @@ public class IdSchemeTests
         programActions = new ProgramActions();
         attributeActions = new AttributeActions();
         trackedEntityTypeActions = new TrackedEntityTypeActions();
+        teaAttributeActions = new TrackedEntityAttributeActions();
 
         loginActions.loginAsSuperUser();
 
@@ -164,6 +170,12 @@ public class IdSchemeTests
         PROGRAM_ID = programActions.createTrackerProgram( TRACKED_ENTITY_TYPE, Constants.ORG_UNIT_IDS ).extractUid();
         PROGRAM_STAGE_ID = programActions
             .createProgramStage( PROGRAM_ID, "TeiIdSchemeTests program stage " + DataGenerator.randomString() );
+
+        // TODO @Gintare if I uncomment this I need to pass the attribute in the
+        // enrollment. Havent managed to do that yet.
+        // TRACKED_ENTITY_ATTRIBUTE = teaAttributeActions.create( "TEXT" );
+        // programActions.addAttribute( PROGRAM_ID, TRACKED_ENTITY_ATTRIBUTE,
+        // true );
 
         ATTRIBUTE_ID = attributeActions.createUniqueAttribute( "TEXT", "organisationUnit", "program", "programStage",
             "trackedEntityType" );
