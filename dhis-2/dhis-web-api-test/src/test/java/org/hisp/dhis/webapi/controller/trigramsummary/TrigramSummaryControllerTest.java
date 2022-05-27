@@ -25,39 +25,70 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.webapi.controller.trigramsummary;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.jsontree.JsonString;
+import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeTableManager;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.controller.tracker.export.trigramsummary.TrigramSummary;
+import org.hisp.dhis.webapi.controller.tracker.export.trigramsummary.TrigramSummaryController;
+import org.hisp.dhis.webapi.service.ContextService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 
-class TrackedEntityAttributeControllerTest extends DhisControllerConvenienceTest
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
+@ExtendWith( MockitoExtension.class )
+class TrigramSummaryControllerTest extends DhisControllerConvenienceTest
 {
 
     @Autowired
     private IdentifiableObjectManager manager;
+
+    @Mock
+    private TrackedEntityAttributeTableManager trackedEntityAttributeTableManager;
+
+    @Autowired
+    private TrackedEntityAttributeService trackedEntityAttributeService;
+
+    @Autowired
+    private ContextService contextService;
+
+    @Autowired
+    private AclService aclService;
+
+    @Autowired
+    private FieldFilterService fieldFilterService;
+
+    private TrigramSummaryController controller;
 
     private OrganisationUnit orgUnit;
 
@@ -77,6 +108,8 @@ class TrackedEntityAttributeControllerTest extends DhisControllerConvenienceTest
 
     private TrackedEntityAttribute teaE;
 
+    private TrackedEntityAttribute teaF;
+
     ProgramTrackedEntityAttribute pteaA;
 
     ProgramTrackedEntityAttribute pteaB;
@@ -90,6 +123,8 @@ class TrackedEntityAttributeControllerTest extends DhisControllerConvenienceTest
     @BeforeEach
     void setUp()
     {
+        controller = new TrigramSummaryController( trackedEntityAttributeService, trackedEntityAttributeTableManager,
+            contextService, aclService, fieldFilterService );
         orgUnit = createOrganisationUnit( 'A' );
         manager.save( orgUnit );
 
@@ -101,11 +136,14 @@ class TrackedEntityAttributeControllerTest extends DhisControllerConvenienceTest
         teaC = createTrackedEntityAttribute( 'C' );
         teaD = createTrackedEntityAttribute( 'D' );
         teaE = createTrackedEntityAttribute( 'E' );
+        teaF = createTrackedEntityAttribute( 'F' );
+        teaF.setUnique( true );
         manager.save( teaA );
         manager.save( teaB );
         manager.save( teaC );
         manager.save( teaD );
         manager.save( teaE );
+        manager.save( teaF );
 
         trackedEntityType = createTrackedEntityType( 'A' );
         manager.save( trackedEntityType );
@@ -156,152 +194,54 @@ class TrackedEntityAttributeControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    void getIndexableOnlyAttributes()
+    void getTrigramIndexSummaryWhenNoIndexesAreCreated()
     {
-        JsonObject json = GET( "/trackedEntityAttributes?indexableOnly=true" ).content( HttpStatus.OK );
 
-        assertAttributeList( json, Set.of( "AttributeA", "AttributeB" ) );
+        when( trackedEntityAttributeTableManager.getAttributeIdsWithTrigramIndex() )
+            .thenReturn( new ArrayList<>() );
+
+        TrigramSummary trigramSummary = controller.getTrigramSummary( new HashMap<>() );
+
+        assertNotNull( trigramSummary );
+        assertAttributeList( trigramSummary.getIndexableAttributes(),
+            Set.of( "\"AttributeA\"", "\"AttributeB\"", "\"AttributeF\"" ) );
+        assertAttributeList( trigramSummary.getIndexedAttributes(), Set.of() );
+        assertAttributeList( trigramSummary.getObsoleteIndexedAttributes(), Set.of() );
     }
 
     @Test
-    void getIndexableOnlyAttributesWithDateAndTextValueType()
+    void getTrigramIndexSummaryWithOneIndexAlreadyCreated()
     {
-        teaA.setValueType( ValueType.DATE );
-        manager.update( teaA );
-        teaB.setValueType( ValueType.TEXT );
-        manager.update( teaB );
 
-        JsonObject json = GET( "/trackedEntityAttributes?indexableOnly=true" ).content( HttpStatus.OK );
+        when( trackedEntityAttributeTableManager.getAttributeIdsWithTrigramIndex() )
+            .thenReturn( List.of( teaB.getId() ) );
 
-        assertAttributeList( json, Set.of( "AttributeB" ) );
+        TrigramSummary trigramSummary = controller.getTrigramSummary( new HashMap<>() );
+
+        assertNotNull( trigramSummary );
+        assertAttributeList( trigramSummary.getIndexableAttributes(), Set.of( "\"AttributeA\"", "\"AttributeF\"" ) );
+        assertAttributeList( trigramSummary.getIndexedAttributes(), Set.of( "\"AttributeB\"" ) );
+        assertAttributeList( trigramSummary.getObsoleteIndexedAttributes(), Set.of() );
     }
 
     @Test
-    void getIndexableOnlyAttributesWithLongTextAndBooleanValueType()
+    void getTrigramIndexSummaryWithAnObsoleteIndex()
     {
-        teaA.setValueType( ValueType.LONG_TEXT );
-        manager.update( teaA );
-        teaB.setValueType( ValueType.BOOLEAN );
-        manager.update( teaB );
 
-        JsonObject json = GET( "/trackedEntityAttributes?indexableOnly=true" ).content( HttpStatus.OK );
+        when( trackedEntityAttributeTableManager.getAttributeIdsWithTrigramIndex() )
+            .thenReturn( List.of( teaB.getId(), teaC.getId() ) );
+        TrigramSummary trigramSummary = controller.getTrigramSummary( new HashMap<>() );
 
-        assertAttributeList( json, Set.of( "AttributeA" ) );
+        assertNotNull( trigramSummary );
+        assertAttributeList( trigramSummary.getIndexableAttributes(), Set.of( "\"AttributeA\"", "\"AttributeF\"" ) );
+        assertAttributeList( trigramSummary.getIndexedAttributes(), Set.of( "\"AttributeB\"" ) );
+        assertAttributeList( trigramSummary.getObsoleteIndexedAttributes(), Set.of( "\"AttributeC\"" ) );
     }
 
-    @Test
-    void getIndexableOnlyAttributesWithNumberAndPhoneNumberValueType()
+    private static void assertAttributeList( List<ObjectNode> attributes, Set<String> expected )
     {
-        teaA.setValueType( ValueType.NUMBER );
-        manager.update( teaA );
-        teaB.setValueType( ValueType.PHONE_NUMBER );
-        manager.update( teaB );
-
-        JsonObject json = GET( "/trackedEntityAttributes?indexableOnly=true" ).content( HttpStatus.OK );
-
-        assertAttributeList( json, Set.of( "AttributeB" ) );
-    }
-
-    @Test
-    void getIndexableOnlyAttributesWithEmailAndPercentageValueType()
-    {
-        teaA.setValueType( ValueType.EMAIL );
-        manager.update( teaA );
-        teaB.setValueType( ValueType.PERCENTAGE );
-        manager.update( teaB );
-
-        JsonObject json = GET( "/trackedEntityAttributes?indexableOnly=true" ).content( HttpStatus.OK );
-
-        assertAttributeList( json, Set.of( "AttributeA" ) );
-    }
-
-    @Test
-    void getIndexableOnlyAttributesWithTimeAndUserNameValueType()
-    {
-        teaA.setValueType( ValueType.TIME );
-        manager.update( teaA );
-        teaB.setValueType( ValueType.USERNAME );
-        manager.update( teaB );
-
-        JsonObject json = GET( "/trackedEntityAttributes?indexableOnly=true" ).content( HttpStatus.OK );
-
-        assertAttributeList( json, Set.of( "AttributeB" ) );
-    }
-
-    @Test
-    void getIndexableOnlyAttributesWithUrlAndCoordinateValueType()
-    {
-        teaA.setValueType( ValueType.URL );
-        manager.update( teaA );
-        teaB.setValueType( ValueType.COORDINATE );
-        manager.update( teaB );
-
-        JsonObject json = GET( "/trackedEntityAttributes?indexableOnly=true" ).content( HttpStatus.OK );
-
-        assertAttributeList( json, Set.of( "AttributeA" ) );
-    }
-
-    @Test
-    void getAllAttributes()
-    {
-        JsonObject json = GET( "/trackedEntityAttributes?indexableOnly=false" ).content( HttpStatus.OK );
-
-        assertAttributeList( json, Set.of( "AttributeA", "AttributeB", "AttributeC", "AttributeD", "AttributeE" ) );
-    }
-
-    @Test
-    void getIndexableAttributesAndFilterByIdShouldThrowError()
-    {
-        assertEquals( "indexableOnly parameter cannot be set if a separate filter for id is specified",
-            GET( "/trackedEntityAttributes?indexableOnly=true&filter=id:eq:ImspTQPwCqd" ).error(
-                HttpStatus.BAD_REQUEST ).getMessage() );
-    }
-
-    @Test
-    void getIndexableAttributesAndFilterByOtherParameters()
-    {
-        JsonObject json = GET(
-            "/trackedEntityAttributes?indexableOnly=true&filter=name:in:[AttributeB,AttributeC]" ).content(
-                HttpStatus.OK );
-
-        assertAttributeList( json, Set.of( "AttributeB" ) );
-    }
-
-    @Test
-    void getAttributesWithNameFilter()
-    {
-        JsonObject json = GET(
-            "/trackedEntityAttributes?indexableOnly=false&filter=name:in:[AttributeB,AttributeC]" ).content(
-                HttpStatus.OK );
-
-        assertAttributeList( json, Set.of( "AttributeB", "AttributeC" ) );
-    }
-
-    @Test
-    void shouldNotFailIfNoIndexableAttributesAreConfigured()
-    {
-        tetaA.setSearchable( false );
-        manager.update( tetaA );
-        tetaB.setSearchable( false );
-        manager.update( tetaB );
-        pteaA.setSearchable( false );
-        manager.update( pteaA );
-        pteaB.setSearchable( false );
-        manager.update( pteaB );
-
-        JsonObject json = GET( "/trackedEntityAttributes?indexableOnly=true&filter=name:in:[AttributeB,AttributeC]" )
-            .content( HttpStatus.OK );
-
-        assertAttributeList( json, Set.of() );
-    }
-
-    private static void assertAttributeList( JsonObject actualJson, Set<String> expected )
-    {
-        assertFalse( actualJson.isEmpty() );
-        assertEquals( expected.size(), actualJson.getArray( "trackedEntityAttributes" ).size() );
-        assertEquals( expected, actualJson.getArray( "trackedEntityAttributes" )
-            .viewAsList( e -> e.asObject().getString( "displayName" ) )
-            .stream().map( JsonString::string )
-            .collect( Collectors.toSet() ) );
+        assertAll( () -> assertEquals( expected.size(), attributes.size() ),
+            () -> assertEquals( expected, attributes.stream().map( e -> e.get( "displayName" ).toString() )
+                .collect( Collectors.toSet() ) ) );
     }
 }

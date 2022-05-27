@@ -70,7 +70,7 @@ public class TrackerTrigramIndexingJobTest
         // mock normal run conditions
         when( trackedEntityAttributeService.getAllTrigramIndexableTrackedEntityAttributes() ).thenReturn(
             Collections.emptySet() );
-        when( trackedEntityAttributeTableManager.getAttributeIdsWithTrigramIndexCreated() ).thenReturn(
+        when( trackedEntityAttributeTableManager.getAttributeIdsWithTrigramIndex() ).thenReturn(
             Collections.emptyList() );
     }
 
@@ -90,7 +90,7 @@ public class TrackerTrigramIndexingJobTest
     @Test
     public void testRunJobWithoutAnyAttributesInJobParametersButWithObsoleteIndexes()
     {
-        when( trackedEntityAttributeTableManager.getAttributeIdsWithTrigramIndexCreated() ).thenReturn(
+        when( trackedEntityAttributeTableManager.getAttributeIdsWithTrigramIndex() ).thenReturn(
             Arrays.asList( 12l, 13l ) );
 
         JobConfiguration jobConfiguration = new JobConfiguration();

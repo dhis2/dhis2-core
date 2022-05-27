@@ -192,6 +192,13 @@ public class DefaultTrackedEntityAttributeService
 
     @Override
     @Transactional( readOnly = true )
+    public List<TrackedEntityAttribute> getTrackedEntityAttributesById( List<Long> ids )
+    {
+        return attributeStore.getById( ids );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
     public List<TrackedEntityAttribute> getTrackedEntityAttributesByDisplayOnVisitSchedule(
         boolean displayOnVisitSchedule )
     {
