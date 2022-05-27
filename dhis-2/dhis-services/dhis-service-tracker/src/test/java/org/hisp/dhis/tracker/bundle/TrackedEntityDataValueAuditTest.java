@@ -43,8 +43,6 @@ import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerTest;
-import org.hisp.dhis.tracker.report.TrackerImportReport;
-import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -82,21 +80,15 @@ public class TrackedEntityDataValueAuditTest extends TrackerTest
     {
         TrackerImportParams trackerImportParams = fromJson( "tracker/event_and_enrollment_with_data_values.json" );
 
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        logTrackerErrors( trackerImportReport );
-        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
+        assertNoImportErrors( trackerImportService.importTracker( trackerImportParams ) );
 
         trackerImportParams = fromJson( "tracker/event_with_data_values_for_update_audit.json" );
 
-        trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        logTrackerErrors( trackerImportReport );
-        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
+        assertNoImportErrors( trackerImportService.importTracker( trackerImportParams ) );
 
         trackerImportParams = fromJson( "tracker/event_with_data_values_for_delete_audit.json" );
 
-        trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        logTrackerErrors( trackerImportReport );
-        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
+        assertNoImportErrors( trackerImportService.importTracker( trackerImportParams ) );
 
         DataElement dataElement = manager.search( DataElement.class, DE );
         ProgramStageInstance psi = manager.search( ProgramStageInstance.class, PSI );
