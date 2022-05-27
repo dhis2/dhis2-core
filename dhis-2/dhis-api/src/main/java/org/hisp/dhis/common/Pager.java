@@ -74,8 +74,8 @@ public class Pager
     }
 
     /**
-     * Returns the page, ensuring the value is greater or equal to 1 and less or
-     * equal to total page count.
+     * Returns the page, ensuring the value is less or equal to total page count
+     * and greater or equal to 1.
      *
      * @param page the page.
      * @return the page.
