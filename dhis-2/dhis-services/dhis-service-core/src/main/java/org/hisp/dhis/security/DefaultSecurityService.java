@@ -358,7 +358,7 @@ public class DefaultSecurityService
 
         // -------------------------------------------------------------------------
         // Send emails
-        // -------------------------------------------------------------------------       
+        // -------------------------------------------------------------------------
         emailMessageSender
             .sendMessage( messageSubject, messageBody, null, null, Set.of( persistedUser ), true );
 
