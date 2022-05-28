@@ -72,6 +72,9 @@ public class Event
     private String enrollment;
 
     @JsonProperty
+    private String trackedEntityInstance;
+
+    @JsonProperty
     private String orgUnit;
 
     @JsonProperty
