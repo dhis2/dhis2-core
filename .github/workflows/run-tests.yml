@@ -19,7 +19,9 @@ jobs:
           distribution: temurin
           cache: maven
       - name: Test core
-        run: mvn clean install --threads 2C --batch-mode --no-transfer-progress --update-snapshots -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty
+        run: mvn clean verify --threads 2C --batch-mode --no-transfer-progress --update-snapshots -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty
+      - name: Sonarqube
+        run: mvn --threads 2C --batch-mode --no-transfer-progress -f dhis-2/pom.xml sonar:sonar -Dsonar.internal.analysis.dbd=false -Dsonar.scm.revision=${{ github.event.pull_request.head.sha }} -Dsonar.projectKey=dhis2_dhis2-core -Dsonar.coverage.jacoco.xmlReportPaths=$(find "$(pwd)" -path '*jacoco.xml' | sed 's/.*/&/' | tr '\n' ',')
       - name: Test dhis-web
         run: mvn verify --threads 2C --batch-mode --no-transfer-progress --update-snapshots -f ./dhis-2/dhis-web/pom.xml
 
