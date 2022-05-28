@@ -348,7 +348,9 @@
               <threadCount>10</threadCount>
               <skipTests>${skipTests}</skipTests>
               <trimStackTrace>false</trimStackTrace>
-              <argLine>${surefireArgLine}</argLine>
+<!--              <argLine>@{surefireArgLine}</argLine>-->
+<!--              TODO this is the one we have in the sonarqube profile, is this one working?-->
+<!--              <argLine>${argLine} ${surefireArgLine}</argLine>-->
               <excludedGroups>integration,integrationH2</excludedGroups>
             </configuration>
             <dependencies>
@@ -796,6 +798,26 @@
             </ignoredNonTestScopedDependencies>
           </configuration>
         </plugin>
+        <plugin>
+          <groupId>org.jacoco</groupId>
+          <artifactId>jacoco-maven-plugin</artifactId>
+          <version>${jacoco-maven-plugin.version}</version>
+          <executions>
+            <execution>
+              <id>prepare-agent</id>
+              <goals>
+                <goal>prepare-agent</goal>
+              </goals>
+            </execution>
+            <execution>
+              <id>report</id>
+              <phase>verify</phase>
+              <goals>
+                <goal>report</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
       </plugins>
     </pluginManagement>
 
@@ -908,6 +930,10 @@
             <phase>process-test-classes</phase>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
       </plugin>
     </plugins>
 
