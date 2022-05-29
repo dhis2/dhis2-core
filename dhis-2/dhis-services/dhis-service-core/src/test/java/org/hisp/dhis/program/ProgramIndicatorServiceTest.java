@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.program;
 
+import static org.hisp.dhis.analytics.DataType.BOOLEAN;
+import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.program.ProgramIndicator.KEY_ATTRIBUTE;
 import static org.hisp.dhis.program.ProgramIndicator.KEY_DATAELEMENT;
 import static org.hisp.dhis.program.ProgramIndicator.KEY_PROGRAM_VARIABLE;
@@ -427,7 +429,8 @@ class ProgramIndicatorServiceTest extends DhisSpringTest
         String expected = "coalesce(\"" + deAInteger.getUid() + "\"::numeric,0) + coalesce(\"" + atA.getUid()
             + "\"::numeric,0) > 10";
         assertEquals( expected,
-            programIndicatorService.getAnalyticsSql( indicatorE.getFilter(), indicatorE, new Date(), new Date() ) );
+            programIndicatorService.getAnalyticsSql( indicatorE.getFilter(), BOOLEAN, indicatorE, new Date(),
+                new Date() ) );
     }
 
     @Test
@@ -435,7 +438,8 @@ class ProgramIndicatorServiceTest extends DhisSpringTest
     {
         String expected = "((cast(incidentdate as date) - cast(enrollmentdate as date))) / 7.0";
         assertEquals( expected,
-            programIndicatorService.getAnalyticsSql( indicatorA.getExpression(), indicatorA, new Date(), new Date() ) );
+            programIndicatorService.getAnalyticsSql( indicatorA.getExpression(), NUMERIC, indicatorA, new Date(),
+                new Date() ) );
     }
 
     @Test
@@ -476,6 +480,34 @@ class ProgramIndicatorServiceTest extends DhisSpringTest
     }
 
     @Test
+    void testBooleanAsNumeric()
+    {
+        assertEquals( "coalesce(\"DataElmentG\"::numeric,0)",
+            sql( "#{ProgrmStagA.DataElmentG}" ) );
+    }
+
+    @Test
+    void testBooleanAsBoolean()
+    {
+        assertEquals( "coalesce(\"DataElmentG\"::numeric!=0,false)",
+            filter( "#{ProgrmStagA.DataElmentG}" ) );
+    }
+
+    @Test
+    void testBooleanAsBooleanWithinIf()
+    {
+        assertEquals( " case when coalesce(\"DataElmentG\"::numeric!=0,false) then 4 else 5 end",
+            sql( "if(#{ProgrmStagA.DataElmentG},4,5)" ) );
+    }
+
+    @Test
+    void testBooleanAsNumericWithinIf()
+    {
+        assertEquals( " case when coalesce(\"DataElmentG\"::numeric,0) > 1 then 4 else 5 end",
+            sql( "if(#{ProgrmStagA.DataElmentG} > 1,4,5)" ) );
+    }
+
+    @Test
     void testValueCount()
     {
         String expected = "nullif(cast((" +
@@ -484,7 +516,7 @@ class ProgramIndicatorServiceTest extends DhisSpringTest
             "case when \"Attribute0B\" is not null then 1 else 0 end) as double),0)";
         String expression = "V{value_count}";
         assertEquals( expected,
-            programIndicatorService.getAnalyticsSql( expression, indicatorE, new Date(), new Date() ) );
+            programIndicatorService.getAnalyticsSql( expression, NUMERIC, indicatorE, new Date(), new Date() ) );
     }
 
     @Test
@@ -493,7 +525,7 @@ class ProgramIndicatorServiceTest extends DhisSpringTest
         String expected = "coalesce(\"DataElmentA\"::numeric,0) = 'Ongoing'";
         String expression = "#{ProgrmStagA.DataElmentA} == 'Ongoing'";
         assertEquals( expected,
-            programIndicatorService.getAnalyticsSql( expression, indicatorA, new Date(), new Date() ) );
+            programIndicatorService.getAnalyticsSql( expression, NUMERIC, indicatorA, new Date(), new Date() ) );
     }
 
     @Test
@@ -508,6 +540,26 @@ class ProgramIndicatorServiceTest extends DhisSpringTest
             + "2020-01-11" + "' as date ) and ps = 'ProgrmStagB' order by executiondate desc limit 1 )::numeric,0)";
         String expression = "#{ProgrmStagA.DataElmentA} - #{ProgrmStagB.DataElmentC}";
         assertEquals( expected,
-            programIndicatorService.getAnalyticsSql( expression, indicatorF, dateFrom, dateTo, "axx1" ) );
+            programIndicatorService.getAnalyticsSql( expression, NUMERIC, indicatorF, dateFrom, dateTo, "axx1" ) );
+    }
+
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
+
+    /**
+     * Test as expression within Program A returning numeric.
+     */
+    private String sql( String expression )
+    {
+        return programIndicatorService.getAnalyticsSql( expression, NUMERIC, indicatorA, new Date(), new Date() );
+    }
+
+    /**
+     * Test as filter within Program A returning boolean.
+     */
+    private String filter( String expression )
+    {
+        return programIndicatorService.getAnalyticsSql( expression, BOOLEAN, indicatorA, new Date(), new Date() );
     }
 }
