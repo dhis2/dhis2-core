@@ -57,6 +57,8 @@ import org.hisp.dhis.system.util.ValidationUtils;
 public abstract class ProgramExpressionItem
     implements ExpressionItem
 {
+    private final static String COALESCE = "coalesce(";
+
     @Override
     public final Object getExpressionInfo( ExprContext ctx, CommonExpressionVisitor visitor )
     {
@@ -128,14 +130,14 @@ public abstract class ProgramExpressionItem
         {
             if ( visitor.getParams().getDataType() == DataType.BOOLEAN )
             {
-                return "coalesce(" + column + "::numeric!=0,false)";
+                return COALESCE + column + "::numeric!=0,false)";
             }
             else
             {
-                return "coalesce(" + column + "::numeric,0)";
+                return COALESCE + column + "::numeric,0)";
             }
         }
 
-        return "coalesce(" + column + ",'')";
+        return COALESCE + column + ",'')";
     }
 }
