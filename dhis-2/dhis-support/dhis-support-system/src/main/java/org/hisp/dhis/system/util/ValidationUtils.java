@@ -708,7 +708,7 @@ public class ValidationUtils
      */
     public static String normalizeBoolean( String bool, ValueType valueType )
     {
-        if ( ValueType.BOOLEAN_TYPES.contains( valueType ) )
+        if ( valueType != null && valueType.isBoolean() )
         {
             if ( BOOL_FALSE_VARIANTS.contains( bool ) && valueType != ValueType.TRUE_ONLY )
             {
