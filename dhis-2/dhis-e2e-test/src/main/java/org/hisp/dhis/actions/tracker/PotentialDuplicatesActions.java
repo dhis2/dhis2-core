@@ -27,10 +27,11 @@
  */
 package org.hisp.dhis.actions.tracker;
 
-import com.google.gson.JsonObject;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
+
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -43,7 +44,30 @@ public class PotentialDuplicatesActions
         super( "/potentialDuplicates" );
     }
 
-    public ApiResponse createPotentialDuplicate( String teiA, String teiB, String status )
+    public String createAndValidatePotentialDuplicate( String teiA, String teiB, String status )
+    {
+        JsonObject object = new JsonObjectBuilder()
+            .addProperty( "original", teiA )
+            .addProperty( "duplicate", teiB )
+            .addProperty( "status", "OPEN" )
+            .build();
+
+        String uid = this.post( object ).validateStatus( 200 ).extractUid();
+
+        if ( status.equals( "MERGED" ) )
+        {
+            this.autoMergePotentialDuplicate( uid ).validateStatus( 200 );
+        }
+
+        if ( status.equals( "INVALID" ) )
+        {
+            this.update( uid + "?status=INVALID", new JsonObjectBuilder().build() ).validateStatus( 200 );
+        }
+
+        return uid;
+    }
+
+    public ApiResponse postPotentialDuplicate( String teiA, String teiB, String status )
     {
         JsonObject object = new JsonObjectBuilder()
             .addProperty( "original", teiA )
@@ -52,13 +76,6 @@ public class PotentialDuplicatesActions
             .build();
 
         return this.post( object );
-    }
-
-    public String createAndValidatePotentialDuplicate( String teiA, String teiB, String status )
-    {
-        return createPotentialDuplicate( teiA, teiB, status )
-            .validateStatus( 200 )
-            .extractString( "id" );
     }
 
     public ApiResponse manualMergePotentialDuplicate( String potentialDuplicate, JsonObject jsonObject )

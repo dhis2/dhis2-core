@@ -177,6 +177,7 @@ class DeduplicationControllerTest
 
     @Test
     void postPotentialDuplicateInvalidUid()
+        throws PotentialDuplicateConflictException
     {
         try
         {
@@ -192,6 +193,7 @@ class DeduplicationControllerTest
 
     @Test
     void postPotentialDuplicateInvalidUidTeiB()
+        throws PotentialDuplicateConflictException
     {
         try
         {
@@ -207,6 +209,7 @@ class DeduplicationControllerTest
 
     @Test
     void postPotentialDuplicateMissingRequiredTeis()
+        throws PotentialDuplicateConflictException
     {
         try
         {
@@ -222,6 +225,7 @@ class DeduplicationControllerTest
 
     @Test
     void postPotentialDuplicateOnlyOneTei()
+        throws PotentialDuplicateConflictException
     {
         try
         {
@@ -237,6 +241,7 @@ class DeduplicationControllerTest
 
     @Test
     void postPotentialDuplicateTeiNotFound()
+        throws PotentialDuplicateConflictException
     {
         when( trackedEntityInstanceService.getTrackedEntityInstance( teiA ) ).thenReturn( null );
         try
@@ -253,6 +258,7 @@ class DeduplicationControllerTest
 
     @Test
     void postPotentialDuplicateNoAccessToTeiA()
+        throws PotentialDuplicateConflictException
     {
         when( trackerAccessManager.canRead( Mockito.any(), eq( trackedEntityInstanceA ) ) )
             .thenReturn( Lists.newArrayList( "Error" ) );
@@ -271,6 +277,7 @@ class DeduplicationControllerTest
 
     @Test
     void postPotentialDuplicateNoAccessToTeiB()
+        throws PotentialDuplicateConflictException
     {
         when( trackerAccessManager.canRead( Mockito.any(), eq( trackedEntityInstanceA ) ) )
             .thenReturn( Lists.newArrayList() );
