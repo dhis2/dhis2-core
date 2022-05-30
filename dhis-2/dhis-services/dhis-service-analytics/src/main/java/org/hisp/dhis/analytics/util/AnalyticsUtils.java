@@ -428,12 +428,12 @@ public class AnalyticsUtils
         int aoInx = grid.getIndexOfHeader( ATTRIBUTEOPTIONCOMBO_DIM_ID );
         int vlInx = grid.getHeaderWidth() - 1;
 
-        Assert.isTrue( dxInx >= 0, "Data dimension index must be greater than or equal to zero" );
-        Assert.isTrue( peInx >= 0, "Period dimension index must be greater than or equal to zero" );
-        Assert.isTrue( ouInx >= 0, "Org unit dimension index must be greater than or equal to zero" );
-        Assert.isTrue( coInx >= 0, "Category option combo dimension index must be greater than or equal to zero" );
-        Assert.isTrue( aoInx >= 0, "Attribute option combo dimension index must be greater than or equal to zero" );
-        Assert.isTrue( vlInx >= 0, "Value index must be greater than or equal to zero" );
+        Assert.isTrue( dxInx >= 0, "Data header does not exist" );
+        Assert.isTrue( peInx >= 0, "Period header does not exist" );
+        Assert.isTrue( ouInx >= 0, "Org unit header does not exist" );
+        Assert.isTrue( coInx >= 0, "Category option combo header does not exist" );
+        Assert.isTrue( aoInx >= 0, "Attribute option combo header does not exist" );
+        Assert.isTrue( vlInx >= 0, "Value header does not exist" );
 
         String created = DateUtils.getMediumDateString();
 
