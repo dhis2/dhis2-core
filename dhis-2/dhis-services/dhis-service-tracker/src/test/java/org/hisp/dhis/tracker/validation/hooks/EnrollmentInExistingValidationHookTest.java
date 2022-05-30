@@ -128,6 +128,8 @@ class EnrollmentInExistingValidationHookTest
     void shouldThrowProgramNotFound()
     {
         when( enrollment.getProgram() ).thenReturn( null );
+        when( preheat.getProgram( (MetadataIdentifier) null ) ).thenReturn( null );
+
         assertThrows( NullPointerException.class,
             () -> hookToTest.validateEnrollment( reporter, bundle, enrollment ) );
     }
