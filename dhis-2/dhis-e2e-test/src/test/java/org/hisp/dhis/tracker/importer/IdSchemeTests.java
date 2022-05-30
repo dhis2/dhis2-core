@@ -37,15 +37,7 @@ import lombok.Setter;
 
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.IdGenerator;
-import org.hisp.dhis.actions.RestApiActions;
-import org.hisp.dhis.actions.metadata.DataElementActions;
 import org.hisp.dhis.actions.metadata.MetadataActions;
-import org.hisp.dhis.actions.metadata.OrgUnitActions;
-import org.hisp.dhis.actions.metadata.ProgramActions;
-import org.hisp.dhis.actions.metadata.ProgramStageActions;
-import org.hisp.dhis.actions.metadata.RelationshipTypeActions;
-import org.hisp.dhis.actions.metadata.TrackedEntityAttributeActions;
-import org.hisp.dhis.actions.metadata.TrackedEntityTypeActions;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.tracker.TrackerNtiApiTest;
 import org.hisp.dhis.tracker.importer.databuilder.EnrollmentDataBuilder;
@@ -60,6 +52,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import com.google.gson.JsonObject;
+import io.restassured.path.json.JsonPath;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -67,6 +60,8 @@ import com.google.gson.JsonObject;
 public class IdSchemeTests
     extends TrackerNtiApiTest
 {
+    private final static String METADATA_FILE_PATH = "src/test/resources/tracker/idSchemesMetadata.json";
+
     private final static String ATTRIBUTE_ID = "f3JrwRTeSSz";
 
     @BeforeAll
@@ -75,7 +70,7 @@ public class IdSchemeTests
         loginActions.loginAsAdmin();
 
         new MetadataActions()
-            .importAndValidateMetadata( new File( "src/test/resources/tracker/idSchemesMetadata.json" ) );
+            .importAndValidateMetadata( new File( METADATA_FILE_PATH ) );
     }
 
     private static Stream<Arguments> provideIdSchemeArguments()
@@ -169,6 +164,8 @@ public class IdSchemeTests
     @Setter
     private static class TestData
     {
+        private JsonPath jsonPath;
+
         private String trackedEntityType = "mthkj6qr5y9";
 
         private String orgUnit = "yMXcwGmzIWY";
@@ -191,10 +188,12 @@ public class IdSchemeTests
 
         public TestData()
         {
+
         }
 
         public TestData( String idScheme )
         {
+            jsonPath = JsonPath.from( new File( METADATA_FILE_PATH ) );
             String propertyName;
             if ( idScheme.toLowerCase().contains( "attribute" ) )
             {
@@ -205,27 +204,24 @@ public class IdSchemeTests
                 propertyName = idScheme.toLowerCase( Locale.ROOT );
             }
 
-            this.setOrgUnit( new OrgUnitActions().get( this.orgUnit ).validateStatus( 200 )
-                .extractStringFailIfEmpty( propertyName ) );
-            this.setTrackedEntityType( new TrackedEntityTypeActions().get( trackedEntityType ).validateStatus( 200 )
-                .extractStringFailIfEmpty( propertyName ) );
-            this.setTrackerProgram( new ProgramActions().get( trackerProgram ).validateStatus( 200 )
-                .extractStringFailIfEmpty( propertyName ) );
-            this.setTrackerProgramStage( new ProgramStageActions().get( trackerProgramStage ).validateStatus( 200 )
-                .extractStringFailIfEmpty( propertyName ) );
+            this.setOrgUnit( extractProperty( "organisationUnits", orgUnit, propertyName ) );
+            this.setTrackedEntityType( extractProperty( "trackedEntityTypes", trackedEntityType, propertyName ) );
+            this.setTrackerProgram( extractProperty( "programs", trackerProgram, propertyName ) );
+            this.setTrackerProgramStage( extractProperty( "programStages", trackerProgramStage, propertyName ) );
             this.setTrackedEntityAttribute(
-                new TrackedEntityAttributeActions().get( trackedEntityAttribute ).validateStatus( 200 )
-                    .extractStringFailIfEmpty( propertyName ) );
-            this.setDataElement( new DataElementActions().get( dataElement ).extractStringFailIfEmpty( propertyName ) );
-            this.setEventProgram( new ProgramActions().get( eventProgram ).extractStringFailIfEmpty( propertyName ) );
+                extractProperty( "trackedEntityAttributes", trackedEntityAttribute, propertyName ) );
+            this.setDataElement( extractProperty( "dataElements", dataElement, propertyName ) );
+            this.setEventProgram( extractProperty( "programs", eventProgram, propertyName ) );
             this.setEventProgramStage(
-                new ProgramStageActions().get( eventProgramStage ).extractStringFailIfEmpty( propertyName ) );
-            this.setCategoryOption(
-                new RestApiActions( "/categoryOptions" ).get( categoryOption )
-                    .extractStringFailIfEmpty( propertyName ) );
-            this.setRelationshipType(
-                new RelationshipTypeActions().get( relationshipType ).extractStringFailIfEmpty( propertyName ) );
+                extractProperty( "programStages", eventProgramStage, propertyName ) );
+            this.setCategoryOption( extractProperty( "categoryOptions", categoryOption, propertyName ) );
+            this.setRelationshipType( extractProperty( "relationshipTypes", relationshipType, propertyName ) );
+        }
 
+        private String extractProperty( String metadataCollection, String id, String propertyName )
+        {
+            return jsonPath
+                .getString( String.format( "%s.find{it.id=='%s'}.%s", metadataCollection, id, propertyName ) );
         }
     }
 
