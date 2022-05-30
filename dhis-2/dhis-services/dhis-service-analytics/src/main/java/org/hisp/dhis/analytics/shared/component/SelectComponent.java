@@ -32,6 +32,11 @@ import java.util.List;
 import org.hisp.dhis.analytics.shared.component.element.Element;
 import org.hisp.dhis.analytics.shared.visitor.select.SelectVisitor;
 
+/**
+ * @see Component
+ *
+ * @author dusan bernat
+ */
 public class SelectComponent extends Component<SelectVisitor>
 {
     public SelectComponent( final List<Element<SelectVisitor>> elements )
