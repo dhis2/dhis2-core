@@ -31,16 +31,20 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.linelisting.CommonValidationService;
 import org.hisp.dhis.analytics.linelisting.QueryRequestHolder;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
-@Service
+/**
+ * Component responsible for validation rules on top of analytics tracker entity
+ * queries.
+ */
+@Component
 @RequiredArgsConstructor
-public class TeiAnalyticsValidationService
+public class TeiAnalyticsValidator
 {
 
     private final CommonValidationService commonValidationService;
 
-    public void validateRequest( QueryRequestHolder<TeiQueryRequest> queryRequestHolder )
+    public void validateRequest( final QueryRequestHolder<TeiQueryRequest> queryRequestHolder )
     {
         commonValidationService.validate( queryRequestHolder.getCommonQueryRequest() );
         // TODO: validate request based on common params
