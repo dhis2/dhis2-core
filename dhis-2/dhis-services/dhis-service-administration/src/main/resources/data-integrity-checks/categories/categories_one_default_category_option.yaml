@@ -35,6 +35,7 @@ details_sql: >-
   SELECT uid, name FROM dataelementcategoryoption
   WHERE name = 'default' AND uid != 'xYerKDKCefk'
   ORDER BY categoryoptionid;
+details_id_type: categoryOptions
 severity: SEVERE
 introduction: >
   There should only exist one category option with name and code "default".

@@ -35,6 +35,7 @@ details_sql: >-
   SELECT uid, name FROM categoryoptioncombo
   WHERE name = 'default' AND uid != 'HllvX50cXC0'
   ORDER BY categoryoptioncomboid;
+details_id_type: categoryOptionCombos
 severity: SEVERE
 introduction: >
   There should only exist one category option with name and code "default".

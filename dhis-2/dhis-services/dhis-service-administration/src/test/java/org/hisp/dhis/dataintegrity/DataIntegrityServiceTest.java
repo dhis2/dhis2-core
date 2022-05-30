@@ -96,6 +96,7 @@ import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.random.BeanRandomizer;
+import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.validation.ValidationRuleService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -218,7 +219,7 @@ class DataIntegrityServiceTest
             programRuleVariableService, dataElementService, indicatorService, dataSetService,
             organisationUnitService, organisationUnitGroupService, validationRuleService, expressionService,
             dataEntryFormService, categoryService, periodService, programIndicatorService,
-            mock( CacheProvider.class ), mock( DataIntegrityStore.class ) );
+            mock( CacheProvider.class ), mock( DataIntegrityStore.class ), mock( SchemaService.class ) );
         setUpFixtures();
     }
 
