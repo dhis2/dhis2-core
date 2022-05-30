@@ -30,7 +30,9 @@ package org.hisp.dhis.user;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import javax.annotation.Nullable;
@@ -416,7 +418,7 @@ public interface UserService
      * @param to end of the selected time-frame (exclusive)
      * @return user emails having a last login within the given time-frame.
      */
-    Set<String> findNotifiableUsersWithLastLoginBetween( Date from, Date to );
+    Map<String, Optional<Locale>> findNotifiableUsersWithLastLoginBetween( Date from, Date to );
 
     /**
      * Get user display name by concat( firstname,' ', surname ) Return null if

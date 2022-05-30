@@ -29,7 +29,6 @@ package org.hisp.dhis.user;
 
 import static com.google.common.collect.Sets.newHashSet;
 import static java.util.Arrays.asList;
-import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toSet;
 import static org.hisp.dhis.setting.SettingKey.CAN_GRANT_OWN_USER_ROLES;
@@ -44,6 +43,9 @@ import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.hisp.dhis.DhisSpringTest;
@@ -64,6 +66,9 @@ class UserServiceTest extends DhisSpringTest
 
     @Autowired
     private UserGroupService userGroupService;
+
+    @Autowired
+    private UserSettingService userSettingService;
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
@@ -546,18 +551,23 @@ class UserServiceTest extends DhisSpringTest
         Date threeMonthAgo = Date.from( now.minusMonths( 3 ).toInstant() );
         Date fourMonthAgo = Date.from( now.minusMonths( 4 ).toInstant() );
         Date twentyTwoDaysAgo = Date.from( now.minusDays( 22 ).toInstant() );
-        addUser( "A", User::setLastLogin, threeMonthAgo );
+        User userA = addUser( "A", User::setLastLogin, threeMonthAgo );
         addUser( "B", credentials -> {
             credentials.setDisabled( true );
             credentials.setLastLogin( Date.from( now.minusMonths( 4 ).plusDays( 2 ).toInstant() ) );
         } );
         addUser( "C", User::setLastLogin, twentyTwoDaysAgo );
         addUser( "D" );
-        assertEquals( singleton( "emaila" ),
-            userService.findNotifiableUsersWithLastLoginBetween( threeMonthAgo, twoMonthsAgo ) );
-        assertEquals( singleton( "emaila" ),
-            userService.findNotifiableUsersWithLastLoginBetween( fourMonthAgo, oneMonthsAgo ) );
-        assertEquals( new HashSet<>( asList( "emaila", "emailc" ) ),
-            userService.findNotifiableUsersWithLastLoginBetween( fourMonthAgo, Date.from( now.toInstant() ) ) );
+        userSettingService.saveUserSetting( UserSettingKey.UI_LOCALE, Locale.CANADA, userA );
+
+        Map<String, Optional<Locale>> users = userService.findNotifiableUsersWithLastLoginBetween(
+            threeMonthAgo, twoMonthsAgo );
+        assertEquals( Set.of( "emaila" ), users.keySet() );
+        assertEquals( Locale.CANADA, users.values().iterator().next().orElse( null ) );
+        assertEquals( Set.of( "emaila" ),
+            userService.findNotifiableUsersWithLastLoginBetween( fourMonthAgo, oneMonthsAgo ).keySet() );
+        assertEquals( Set.of( "emaila", "emailc" ),
+            userService.findNotifiableUsersWithLastLoginBetween( fourMonthAgo, Date.from( now.toInstant() ) )
+                .keySet() );
     }
 }

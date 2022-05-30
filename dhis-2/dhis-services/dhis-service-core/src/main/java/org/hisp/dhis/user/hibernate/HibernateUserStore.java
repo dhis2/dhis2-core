@@ -30,7 +30,7 @@ package org.hisp.dhis.user.hibernate;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
 import static java.time.ZoneId.systemDefault;
-import static java.util.stream.Collectors.toSet;
+import static java.util.stream.Collectors.toMap;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -38,7 +38,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -582,15 +585,18 @@ public class HibernateUserStore
     }
 
     @Override
-    public Set<String> findNotifiableUsersWithLastLoginBetween( Date from, Date to )
+    public Map<String, Optional<Locale>> findNotifiableUsersWithLastLoginBetween( Date from, Date to )
     {
-        String hql = "select u.email " +
+        String hql = "select u.email, s.value " +
             "from User u " +
+            "left outer join UserSetting s on u.id = s.user " +
             "where u.email is not null and u.disabled = false and u.lastLogin >= :from and u.lastLogin < :to";
-        return getSession().createQuery( hql, String.class )
+        return getSession().createQuery( hql, Object[].class )
             .setParameter( "from", from )
             .setParameter( "to", to )
-            .stream().collect( toSet() );
+            .stream().collect( toMap(
+                ( Object[] columns ) -> (String) columns[0],
+                ( Object[] columns ) -> Optional.ofNullable( (Locale) columns[1] ) ) );
     }
 
     @Override
