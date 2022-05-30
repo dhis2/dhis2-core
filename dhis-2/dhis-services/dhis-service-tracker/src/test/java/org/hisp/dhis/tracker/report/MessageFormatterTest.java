@@ -30,10 +30,11 @@ package org.hisp.dhis.tracker.report;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.text.DateFormat;
 import java.time.Instant;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -49,26 +50,45 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class TrackerReportUtilsTest
+class MessageFormatterTest
 {
 
-    private TrackerIdSchemeParams params;
+    private TrackerIdSchemeParams idSchemes;
 
     @BeforeEach
     void setUp()
     {
-        params = TrackerIdSchemeParams.builder().build();
+        idSchemes = TrackerIdSchemeParams.builder().build();
     }
 
     @Test
-    void buildArgumentListShouldTurnIdentifiableObjectIntoArgument()
+    void format()
     {
-        TrackerIdSchemeParams params = TrackerIdSchemeParams.builder()
+
+        assertEquals( "User: `Snow`, has no write access to OrganisationUnit: `ward`.", MessageFormatter
+            .format( idSchemes, "User: `{0}`, has no write access to OrganisationUnit: `{1}`.", "Snow", "ward" ) );
+    }
+
+    @Test
+    void formatWithoutArgs()
+    {
+
+        assertEquals( "User has no write access to OrganisationUnit.",
+            MessageFormatter.format( idSchemes, "User has no write access to OrganisationUnit." ) );
+    }
+
+    @Test
+    void formatArgumentsShouldTurnIdentifiableObjectIntoArgument()
+    {
+        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder()
             .idScheme( TrackerIdSchemeParam.UID )
             .programIdScheme( TrackerIdSchemeParam.NAME )
             .programStageIdScheme( TrackerIdSchemeParam.NAME )
@@ -90,8 +110,8 @@ class TrackerReportUtilsTest
         CategoryOption co = new CategoryOption();
         co.setAttributeValues( attributeValues( "y0Yxr50hAbP", "red" ) );
 
-        List<String> args = TrackerReportUtils.buildArgumentList( params,
-            Arrays.asList( relationshipType, program, programStage, orgUnit, dataElement, coc, co ) );
+        List<String> args = MessageFormatter.formatArguments( idSchemes, relationshipType, program, programStage,
+            orgUnit, dataElement, coc, co );
 
         assertThat( args,
             contains( "RelationshipType (WTTYiPQDqh1)",
@@ -116,41 +136,80 @@ class TrackerReportUtilsTest
     }
 
     @Test
-    void buildArgumentListShouldTurnInstantIntoArgument()
+    void formatArgumentsShouldTurnInstantIntoArgument()
     {
         final Instant now = Instant.now();
 
-        List<String> args = TrackerReportUtils.buildArgumentList( params, Arrays.asList( now ) );
+        List<String> args = MessageFormatter.formatArguments( idSchemes, Instant.now() );
 
         assertThat( args.size(), is( 1 ) );
         assertThat( args.get( 0 ), is( DateUtils.getIso8601NoTz( DateUtils.fromInstant( now ) ) ) );
     }
 
     @Test
-    void buildArgumentListShouldTurnDateIntoArgument()
+    void formatArgumentsShouldTurnDateIntoArgument()
     {
         final Date now = Date.from( Instant.now() );
 
-        List<String> args = TrackerReportUtils.buildArgumentList( params, Arrays.asList( now ) );
+        List<String> args = MessageFormatter.formatArguments( idSchemes, now );
 
         assertThat( args.size(), is( 1 ) );
         assertThat( args.get( 0 ), is( DateFormat.getInstance().format( now ) ) );
     }
 
     @Test
-    void buildArgumentListShouldTurnStringsIntoArguments()
+    void formatArgumentsShouldTurnStringsIntoArguments()
     {
-        List<String> args = TrackerReportUtils.buildArgumentList( params, Arrays.asList( "foo", "faa" ) );
+        List<String> args = MessageFormatter.formatArguments( idSchemes, "foo", "faa" );
 
         assertThat( args, contains( "foo", "faa" ) );
     }
 
     @Test
-    void buildArgumentListShouldTurnMetadataIdentifierIntoArguments()
+    void formatArgumentsShouldTurnMetadataIdentifierIntoArguments()
     {
-        List<String> args = TrackerReportUtils.buildArgumentList( params, Arrays.asList(
-            MetadataIdentifier.ofUid( "iB8AZpf681V" ), MetadataIdentifier.ofAttribute( "zwccdzhk5zc", "GREEN" ) ) );
+        List<String> args = MessageFormatter.formatArguments( idSchemes,
+            MetadataIdentifier.ofUid( "iB8AZpf681V" ), MetadataIdentifier.ofAttribute( "zwccdzhk5zc", "GREEN" ) );
 
         assertThat( args, contains( "iB8AZpf681V", "GREEN" ) );
+    }
+
+    @Test
+    void formatArgumentsShouldTurnTrackedEntityIntoArguments()
+    {
+        List<String> args = MessageFormatter.formatArguments( idSchemes,
+            TrackedEntity.builder().trackedEntity( "zwccdzhk5zc" ).build() );
+
+        assertThat( args, contains( "TrackedEntity (zwccdzhk5zc)" ) );
+    }
+
+    @Test
+    void formatArgumentsShouldTurnEnrollmentIntoArguments()
+    {
+        List<String> args = MessageFormatter.formatArguments( idSchemes,
+            Enrollment.builder().enrollment( "zwccdzhk5zc" ).build() );
+
+        assertThat( args, contains( "Enrollment (zwccdzhk5zc)" ) );
+    }
+
+    @Test
+    void formatArgumentsShouldTurnEventIntoArguments()
+    {
+        List<String> args = MessageFormatter.formatArguments( idSchemes,
+            Event.builder().event( "zwccdzhk5zc" ).build() );
+
+        assertThat( args, contains( "Event (zwccdzhk5zc)" ) );
+    }
+
+    @Test
+    void formatArgumentsWithNumber()
+    {
+        assertEquals( List.of( "" ), MessageFormatter.formatArguments( idSchemes, 2 ) );
+    }
+
+    @Test
+    void formatArgumentsWithoutArgument()
+    {
+        assertEquals( Collections.emptyList(), MessageFormatter.formatArguments( idSchemes ) );
     }
 }
