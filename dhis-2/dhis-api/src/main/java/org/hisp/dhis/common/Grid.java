@@ -101,6 +101,9 @@ public interface Grid
      */
     Map<String, Object> getInternalMetaData();
 
+    /**
+     * Returns performance metrics.
+     */
     PerformanceMetrics getPerformanceMetrics();
 
     /**
@@ -119,7 +122,8 @@ public interface Grid
     List<GridHeader> getMetadataHeaders();
 
     /**
-     * Returns the index of the header with the given name.
+     * Returns the index of the header with the given name, or -1 if no matching
+     * header exist.
      *
      * @param name the name of the grid header.
      */
