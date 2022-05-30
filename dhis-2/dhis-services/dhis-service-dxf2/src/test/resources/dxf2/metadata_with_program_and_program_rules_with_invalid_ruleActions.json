@@ -699,7 +699,7 @@
       "created": "2020-12-17T12:52:51.569",
       "lastUpdated": "2020-12-17T12:52:51.569",
       "id": "hyJMNkTi9YE",
-      "programRuleActionType": "ERRORONCOMPLETE",
+      "programRuleActionType": "SETMANDATORYFIELD",
       "evaluationTime": "ALWAYS",
       "content": "ON COMPLETE",
       "lastUpdatedBy": {

@@ -62,6 +62,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.category.CategoryService;
@@ -573,5 +574,64 @@ public class DataIntegrityServiceTest
             d.setUid( uidSeed + i );
             return d;
         } ).collect( Collectors.toMap( DataElement::getUid, Function.identity() ) );
+    }
+
+    @Test
+    public void programIndicatorGetAggregationTypeFallbackReturnsRelatedAggregationType()
+    {
+        // arrange
+        ProgramIndicator programIndicator = new ProgramIndicator();
+        programIndicator.setName( "Test-PI" );
+        programIndicator.setExpression( "#{someuid} + 1" );
+
+        // act
+        // assert
+        programIndicator.setAggregationType( AggregationType.AVERAGE_SUM_ORG_UNIT );
+        assertEquals( AggregationType.SUM, programIndicator.getAggregationTypeFallback() );
+
+        programIndicator.setAggregationType( AggregationType.LAST_IN_PERIOD );
+        assertEquals( AggregationType.SUM, programIndicator.getAggregationTypeFallback() );
+
+        programIndicator.setAggregationType( AggregationType.LAST );
+        assertEquals( AggregationType.SUM, programIndicator.getAggregationTypeFallback() );
+
+        programIndicator.setAggregationType( AggregationType.FIRST );
+        assertEquals( AggregationType.SUM, programIndicator.getAggregationTypeFallback() );
+
+        programIndicator.setAggregationType( AggregationType.LAST_IN_PERIOD_AVERAGE_ORG_UNIT );
+        assertEquals( AggregationType.AVERAGE, programIndicator.getAggregationTypeFallback() );
+
+        programIndicator.setAggregationType( AggregationType.FIRST_AVERAGE_ORG_UNIT );
+        assertEquals( AggregationType.AVERAGE, programIndicator.getAggregationTypeFallback() );
+
+        programIndicator.setAggregationType( AggregationType.LAST_AVERAGE_ORG_UNIT );
+        assertEquals( AggregationType.AVERAGE, programIndicator.getAggregationTypeFallback() );
+
+        programIndicator.setAggregationType( null );
+        assertEquals( AggregationType.AVERAGE, programIndicator.getAggregationTypeFallback() );
+
+        programIndicator.setAggregationType( AggregationType.CUSTOM );
+        assertEquals( AggregationType.CUSTOM, programIndicator.getAggregationTypeFallback() );
+
+        programIndicator.setAggregationType( AggregationType.AVERAGE );
+        assertEquals( AggregationType.AVERAGE, programIndicator.getAggregationTypeFallback() );
+
+        programIndicator.setAggregationType( AggregationType.SUM );
+        assertEquals( AggregationType.SUM, programIndicator.getAggregationTypeFallback() );
+
+        programIndicator.setAggregationType( AggregationType.STDDEV );
+        assertEquals( AggregationType.STDDEV, programIndicator.getAggregationTypeFallback() );
+
+        programIndicator.setAggregationType( AggregationType.COUNT );
+        assertEquals( AggregationType.COUNT, programIndicator.getAggregationTypeFallback() );
+
+        programIndicator.setAggregationType( AggregationType.MAX );
+        assertEquals( AggregationType.MAX, programIndicator.getAggregationTypeFallback() );
+
+        programIndicator.setAggregationType( AggregationType.MIN );
+        assertEquals( AggregationType.MIN, programIndicator.getAggregationTypeFallback() );
+
+        programIndicator.setAggregationType( AggregationType.DEFAULT );
+        assertEquals( AggregationType.AVERAGE, programIndicator.getAggregationTypeFallback() );
     }
 }

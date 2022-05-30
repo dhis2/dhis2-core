@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,46 +25,51 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.category;
+package org.hisp.dhis.relationship;
 
-import lombok.AllArgsConstructor;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.springframework.stereotype.Component;
+import org.junit.jupiter.api.Test;
 
-/**
- * @author Lars Helge Overland
- */
-@Component
-@AllArgsConstructor
-public class CategoryOptionDeletionHandler extends DeletionHandler
+class RelationshipKeyTest
 {
-    private final IdentifiableObjectManager idObjectManager;
 
-    @Override
-    protected void register()
+    @Test
+    void asStringForRelationshipTeiToTei()
     {
-        whenDeleting( Category.class, this::deleteCategory );
-        whenDeleting( OrganisationUnit.class, this::deleteOrgUnit );
+
+        RelationshipKey key = RelationshipKey.of( "dDrh5UyCyvQ",
+            RelationshipKey.RelationshipItemKey.builder()
+                .trackedEntity( "Ea0rRdBPAIp" ).build(),
+            RelationshipKey.RelationshipItemKey.builder()
+                .trackedEntity( "G1afLIEKt8A" ).build() );
+
+        assertEquals( "dDrh5UyCyvQ-Ea0rRdBPAIp-G1afLIEKt8A", key.asString() );
     }
 
-    private void deleteOrgUnit( OrganisationUnit unit )
+    @Test
+    void asStringForRelationshipTeiToEnrollment()
     {
-        for ( CategoryOption option : unit.getCategoryOptions() )
-        {
-            option.getOrganisationUnits().remove( unit );
-            idObjectManager.updateNoAcl( option );
-        }
+
+        RelationshipKey key = RelationshipKey.of( "dDrh5UyCyvQ",
+            RelationshipKey.RelationshipItemKey.builder()
+                .trackedEntity( "Ea0rRdBPAIp" ).build(),
+            RelationshipKey.RelationshipItemKey.builder()
+                .enrollment( "G1afLIEKt8A" ).build() );
+
+        assertEquals( "dDrh5UyCyvQ-Ea0rRdBPAIp-G1afLIEKt8A", key.asString() );
     }
 
-    private void deleteCategory( Category category )
+    @Test
+    void asStringForRelationshipTeiToEvent()
     {
-        for ( CategoryOption option : category.getCategoryOptions() )
-        {
-            option.getCategories().remove( category );
-            idObjectManager.updateNoAcl( option );
-        }
+
+        RelationshipKey key = RelationshipKey.of( "dDrh5UyCyvQ",
+            RelationshipKey.RelationshipItemKey.builder()
+                .trackedEntity( "Ea0rRdBPAIp" ).build(),
+            RelationshipKey.RelationshipItemKey.builder()
+                .event( "G1afLIEKt8A" ).build() );
+
+        assertEquals( "dDrh5UyCyvQ-Ea0rRdBPAIp-G1afLIEKt8A", key.asString() );
     }
 }
