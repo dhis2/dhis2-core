@@ -47,6 +47,7 @@ import org.hisp.dhis.email.EmailService;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.i18n.locale.LocaleManager;
+import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
@@ -104,23 +105,24 @@ public class DisableInactiveUsersJob implements Job
         int daysUntilDisable = reminderDaysBefore;
         do
         {
-            final int daysUntilDisableInRun = daysUntilDisable;
-            progress.startingStage( format( "Sending reminder for %d days until disable", daysUntilDisableInRun ) );
-            progress.runStage( () -> sendReminderEmail( since, daysUntilDisableInRun ) );
+            sendReminderEmail( since, daysUntilDisable, progress );
             daysUntilDisable = daysUntilDisable / 2;
         }
         while ( daysUntilDisable > 0 );
         progress.completedProcess( null );
     }
 
-    private void sendReminderEmail( LocalDate since, int daysUntilDisable )
+    private void sendReminderEmail( LocalDate since, int daysUntilDisable, JobProgress progress )
     {
         LocalDate reference = since.plusDays( daysUntilDisable );
         ZonedDateTime nDaysPriorToDisabling = reference.atStartOfDay( systemDefault() );
         ZonedDateTime nDaysPriorToDisablingEod = reference.plusDays( 1 ).atStartOfDay( systemDefault() );
-        Map<String, Optional<Locale>> receivers = userService.findNotifiableUsersWithLastLoginBetween(
-            Date.from( nDaysPriorToDisabling.toInstant() ),
-            Date.from( nDaysPriorToDisablingEod.toInstant() ) );
+        progress.startingStage( format( "Fetching users for reminder, %d days until disable", daysUntilDisable ) );
+        Map<String, Optional<Locale>> receivers = progress.runStage( Map.of(),
+            map -> format( "Found %d receivers", map.size() ),
+            () -> userService.findNotifiableUsersWithLastLoginBetween(
+                Date.from( nDaysPriorToDisabling.toInstant() ),
+                Date.from( nDaysPriorToDisablingEod.toInstant() ) ) );
         if ( receivers.isEmpty() )
         {
             return;
@@ -132,15 +134,19 @@ public class DisableInactiveUsersJob implements Job
             receiversByLocale.computeIfAbsent( e.getValue().orElse( fallback ), key -> new HashSet<>() )
                 .add( e.getKey() );
         }
-        for ( Map.Entry<Locale, Set<String>> e : receiversByLocale.entrySet() )
-        {
-            I18n i18n = i18nManager.getI18n( e.getKey() );
-            String subject = i18n.getString( "notification.user_inactive.subject",
-                "Your DHIS2 account gets disabled soon" );
-            String body = i18n.getString( "notification.user_inactive.body",
-                "Your DHIS2 user account was inactive for a while. Login during the next {0} days to prevent your account from being disabled." );
-            emailService.sendEmail( subject, format( body.replace( "{0}", "%d" ), daysUntilDisable ),
-                receivers.keySet() );
-        }
+        progress.startingStage( format( "Sending reminder for %d days until disable", daysUntilDisable ),
+            receiversByLocale.size(), JobProgress.FailurePolicy.SKIP_ITEM );
+        progress.runStage( receiversByLocale.entrySet().stream(),
+            e -> format( "Sending %s email to %d users", e.getKey(), e.getValue().size() ),
+            OutboundMessageResponse::getDescription,
+            e -> {
+                I18n i18n = i18nManager.getI18n( e.getKey() );
+                String subject = i18n.getString( "notification.user_inactive.subject",
+                    "Your DHIS2 account gets disabled soon" );
+                String body = i18n.getString( "notification.user_inactive.body",
+                    "Your DHIS2 user account was inactive for a while. Login during the next {0} days to prevent your account from being disabled." );
+                return emailService.sendEmail( subject, format( body.replace( "{0}", "%d" ), daysUntilDisable ),
+                    receivers.keySet() );
+            }, null );
     }
 }
