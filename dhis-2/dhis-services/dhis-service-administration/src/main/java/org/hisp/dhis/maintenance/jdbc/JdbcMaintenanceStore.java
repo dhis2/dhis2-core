@@ -61,6 +61,7 @@ public class JdbcMaintenanceStore
         .put( ProgramInstance.class, new ProgramInstance() )
         .put( ProgramStageInstance.class, new ProgramStageInstance() )
         .put( TrackedEntityInstance.class, new TrackedEntityInstance() )
+        .put( Relationship.class, new Relationship() )
         .build();
     // -------------------------------------------------------------------------
     // Dependencies
