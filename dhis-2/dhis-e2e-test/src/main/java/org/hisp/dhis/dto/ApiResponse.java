@@ -27,22 +27,24 @@
  */
 package org.hisp.dhis.dto;
 
-import com.google.gson.JsonObject;
-import io.restassured.path.json.config.JsonParserType;
-import io.restassured.path.json.config.JsonPathConfig;
-import io.restassured.response.Response;
-import io.restassured.response.ValidatableResponse;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.helpers.JsonObjectBuilder;
-import org.hisp.dhis.jsontree.JsonResponse;
+import static org.hamcrest.core.IsNot.not;
+import static org.hamcrest.text.IsEmptyString.emptyOrNullString;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.hamcrest.core.IsNot.not;
-import static org.hamcrest.text.IsEmptyString.emptyOrNullString;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.helpers.JsonObjectBuilder;
+import org.hisp.dhis.jsontree.JsonResponse;
+
+import com.google.gson.JsonObject;
+
+import io.restassured.path.json.config.JsonParserType;
+import io.restassured.path.json.config.JsonPathConfig;
+import io.restassured.response.Response;
+import io.restassured.response.ValidatableResponse;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>

@@ -25,12 +25,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.tracker.importer;
 
-import com.google.gson.JsonObject;
+import java.io.File;
+import java.util.Arrays;
+import java.util.Locale;
+import java.util.stream.Stream;
+
 import lombok.Getter;
 import lombok.Setter;
+
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.IdGenerator;
 import org.hisp.dhis.actions.RestApiActions;
@@ -55,10 +59,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.io.File;
-import java.util.Arrays;
-import java.util.Locale;
-import java.util.stream.Stream;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -73,7 +74,8 @@ public class IdSchemeTests
     {
         loginActions.loginAsAdmin();
 
-        new MetadataActions().importAndValidateMetadata( new File( "src/test/resources/tracker/idSchemesMetadata.json" ) );
+        new MetadataActions()
+            .importAndValidateMetadata( new File( "src/test/resources/tracker/idSchemesMetadata.json" ) );
     }
 
     private static Stream<Arguments> provideIdSchemeArguments()
@@ -135,7 +137,8 @@ public class IdSchemeTests
             .setAttributeCategoryOptions( Arrays.asList( data.categoryOption ) )
             .array();
 
-        trackerActions.postAndGetJobReport( object, new QueryParamsBuilder().addAll( "async=false", "idScheme=" + idScheme ) )
+        trackerActions
+            .postAndGetJobReport( object, new QueryParamsBuilder().addAll( "async=false", "idScheme=" + idScheme ) )
             .validateSuccessfulImport();
     }
 
@@ -212,14 +215,16 @@ public class IdSchemeTests
                 .extractStringFailIfEmpty( propertyName ) );
             this.setTrackerProgramStage( new ProgramStageActions().get( trackerProgramStage ).validateStatus( 200 )
                 .extractStringFailIfEmpty( propertyName ) );
-            this.setTrackedEntityAttribute( new TrackedEntityAttributeActions().get( trackedEntityAttribute ).validateStatus( 200 )
-                .extractStringFailIfEmpty( propertyName ) );
+            this.setTrackedEntityAttribute(
+                new TrackedEntityAttributeActions().get( trackedEntityAttribute ).validateStatus( 200 )
+                    .extractStringFailIfEmpty( propertyName ) );
             this.setDataElement( new DataElementActions().get( dataElement ).extractStringFailIfEmpty( propertyName ) );
             this.setEventProgram( new ProgramActions().get( eventProgram ).extractStringFailIfEmpty( propertyName ) );
             this.setEventProgramStage(
                 new ProgramStageActions().get( eventProgramStage ).extractStringFailIfEmpty( propertyName ) );
             this.setCategoryOption(
-                new RestApiActions( "/categoryOptions" ).get( categoryOption ).extractStringFailIfEmpty( propertyName ) );
+                new RestApiActions( "/categoryOptions" ).get( categoryOption )
+                    .extractStringFailIfEmpty( propertyName ) );
             this.setRelationshipType(
                 new RelationshipTypeActions().get( relationshipType ).extractStringFailIfEmpty( propertyName ) );
 
@@ -229,7 +234,8 @@ public class IdSchemeTests
     private String createTei()
     {
         return trackerActions
-            .postAndGetJobReport( new TeiDataBuilder().array( new TestData().getTrackedEntityType(), new TestData().getOrgUnit() ) )
+            .postAndGetJobReport(
+                new TeiDataBuilder().array( new TestData().getTrackedEntityType(), new TestData().getOrgUnit() ) )
             .validateSuccessfulImport()
             .extractImportedTeis().get( 0 );
     }
