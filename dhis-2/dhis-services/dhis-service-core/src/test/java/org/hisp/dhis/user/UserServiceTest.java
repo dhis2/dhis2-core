@@ -559,6 +559,9 @@ class UserServiceTest extends DhisSpringTest
         addUser( "C", User::setLastLogin, twentyTwoDaysAgo );
         addUser( "D" );
         userSettingService.saveUserSetting( UserSettingKey.UI_LOCALE, Locale.CANADA, userA );
+        // the point of setting this setting is to see that the query does not
+        // get confused by other setting existing for the same user
+        userSettingService.saveUserSetting( UserSettingKey.DB_LOCALE, Locale.FRANCE, userA );
 
         Map<String, Optional<Locale>> users = userService.findNotifiableUsersWithLastLoginBetween(
             threeMonthAgo, twoMonthsAgo );

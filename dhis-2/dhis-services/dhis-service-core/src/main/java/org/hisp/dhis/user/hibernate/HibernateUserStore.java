@@ -589,7 +589,7 @@ public class HibernateUserStore
     {
         String hql = "select u.email, s.value " +
             "from User u " +
-            "left outer join UserSetting s on u.id = s.user " +
+            "left outer join UserSetting s on u.id = s.user and s.name = 'keyUiLocale' " +
             "where u.email is not null and u.disabled = false and u.lastLogin >= :from and u.lastLogin < :to";
         return getSession().createQuery( hql, Object[].class )
             .setParameter( "from", from )
