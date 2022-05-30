@@ -117,7 +117,8 @@ public class DisableInactiveUsersJob implements Job
         LocalDate reference = since.plusDays( daysUntilDisable );
         ZonedDateTime nDaysPriorToDisabling = reference.atStartOfDay( systemDefault() );
         ZonedDateTime nDaysPriorToDisablingEod = reference.plusDays( 1 ).atStartOfDay( systemDefault() );
-        progress.startingStage( format( "Fetching users for reminder, %d days until disable", daysUntilDisable ) );
+        progress.startingStage( format( "Fetching users for reminder, %d days until disable", daysUntilDisable ),
+            SKIP_STAGE );
         Map<String, Optional<Locale>> receivers = progress.runStage( Map.of(),
             map -> format( "Found %d receivers", map.size() ),
             () -> userService.findNotifiableUsersWithLastLoginBetween(
