@@ -41,8 +41,6 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
@@ -71,16 +69,6 @@ class TrackerPreheatServiceTest extends TrackerTest
     @Override
     protected void initTest()
     {
-    }
-
-    @Test
-    void testCollectIdentifiersSimple()
-    {
-        TrackerImportParams params = new TrackerImportParams();
-        Map<Class<?>, Set<String>> collectedMap = identifierCollector.collect( params );
-        assertEquals( 2, collectedMap.keySet().size() );
-        assertTrue( collectedMap.containsKey( TrackedEntityType.class ) );
-        assertTrue( collectedMap.containsKey( RelationshipType.class ) );
     }
 
     @Test

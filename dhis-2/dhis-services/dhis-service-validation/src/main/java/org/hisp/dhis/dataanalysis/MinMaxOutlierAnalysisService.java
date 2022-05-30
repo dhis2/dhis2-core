@@ -35,7 +35,6 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.jdbc.batchhandler.MinMaxDataElementBatchHandler;
@@ -90,7 +89,7 @@ public class MinMaxOutlierAnalysisService
         Collection<DataElement> dataElements, Collection<Period> periods, Double stdDevFactor, Date from )
     {
         Set<DataElement> elements = dataElements.stream()
-            .filter( de -> ValueType.NUMERIC_TYPES.contains( de.getValueType() ) )
+            .filter( de -> de.getValueType().isNumeric() )
             .collect( Collectors.toSet() );
         Set<CategoryOptionCombo> categoryOptionCombos = new HashSet<>();
 

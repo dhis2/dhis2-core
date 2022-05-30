@@ -36,6 +36,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
+import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -59,6 +60,7 @@ import org.springframework.core.OrderComparator;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -273,7 +275,23 @@ public class FieldFilterService
                 AttributeValue value = ((BaseIdentifiableObject) object).getAttributeValue( path.getFullPath() );
                 if ( value != null )
                 {
-                    objectNode.put( path.getFullPath(), value.getValue() );
+                    String v = value.getValue();
+                    Attribute attribute = attributeService.getAttribute( value.getAttribute().getUid() );
+                    if ( v != null && !v.isBlank() && attribute.getValueType().isJson() )
+                    {
+                        try
+                        {
+                            objectNode.set( path.getFullPath(), jsonMapper.readTree( v ) );
+                        }
+                        catch ( JsonProcessingException e )
+                        {
+                            objectNode.put( path.getFullPath(), v );
+                        }
+                    }
+                    else
+                    {
+                        objectNode.put( path.getFullPath(), v );
+                    }
                 }
             }
         }

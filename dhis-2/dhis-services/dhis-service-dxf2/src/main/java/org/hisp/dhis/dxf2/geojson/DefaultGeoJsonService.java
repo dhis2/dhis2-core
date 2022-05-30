@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.dxf2.geojson;
 
-import static java.util.stream.Collectors.toUnmodifiableMap;
+import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.hisp.dhis.dxf2.importsummary.ImportConflict.createConflict;
@@ -79,6 +79,23 @@ public class DefaultGeoJsonService implements GeoJsonService
     private final OrganisationUnitStore organisationUnitStore;
 
     private final AclService aclService;
+
+    @Override
+    @Transactional
+    public GeoJsonImportReport deleteGeoData( String attributeId )
+    {
+        GeoJsonImportReport report = new GeoJsonImportReport();
+        Attribute attribute = validateAttribute( attributeId, report );
+        if ( report.hasConflicts() )
+        {
+            return report;
+        }
+        int deletions = attribute == null
+            ? organisationUnitStore.updateAllOrganisationUnitsGeometryToNull()
+            : organisationUnitStore.updateAllAttributeValues( attribute, "null", false );
+        report.getImportCount().incrementDeleted( deletions );
+        return report;
+    }
 
     /**
      * Imports the provided (file) content.
@@ -135,8 +152,7 @@ public class DefaultGeoJsonService implements GeoJsonService
 
         List<OrganisationUnit> units = fetchOrganisationUnits( params, ouIdentifiers );
         Function<OrganisationUnit, String> toKey = getGeoJsonFeatureToOrgUnitIdentifier( params );
-        Map<String, OrganisationUnit> unitsByIdentifier = units.stream()
-            .collect( toUnmodifiableMap( toKey, Function.identity() ) );
+        Map<String, List<OrganisationUnit>> unitsByIdentifier = units.stream().collect( groupingBy( toKey ) );
 
         int index = 0;
         for ( JsonObject feature : features )
@@ -150,9 +166,18 @@ public class DefaultGeoJsonService implements GeoJsonService
             }
             else
             {
-                OrganisationUnit target = unitsByIdentifier.get( identifier );
-                JsonObject geometry = feature.getObject( "geometry" );
-                updateGeometry( params, attribute, target, geometry, report, index );
+                List<OrganisationUnit> targets = unitsByIdentifier.getOrDefault( identifier, List.of() );
+                if ( targets.size() <= 1 )
+                {
+                    OrganisationUnit target = targets.isEmpty() ? null : targets.get( 0 );
+                    JsonObject geometry = feature.getObject( "geometry" );
+                    updateGeometry( params, attribute, target, geometry, report, index );
+                }
+                else
+                {
+                    report.addConflict( createConflict( index, GeoJsonImportConflict.ORG_UNIT_NOT_UNIQUE ) );
+                    report.getImportCount().incrementIgnored();
+                }
             }
             index++;
         }
@@ -262,6 +287,20 @@ public class DefaultGeoJsonService implements GeoJsonService
         }
     }
 
+    private Geometry validateGeometry( GeoJsonImportReport report, GeometryUpdate update )
+    {
+        try
+        {
+            return new GeometryJSON().read( update.newValue() );
+        }
+        catch ( Exception ex )
+        {
+            report.addConflict( createConflict( update.index(), GeoJsonImportConflict.GEOMETRY_INVALID ) );
+            report.getImportCount().incrementIgnored();
+            return null;
+        }
+    }
+
     private void updateGeometry( GeoJsonImportParams params, Attribute attribute, OrganisationUnit target,
         JsonObject geometry, GeoJsonImportReport report, int index )
     {
@@ -273,22 +312,28 @@ public class DefaultGeoJsonService implements GeoJsonService
         GeometryUpdate update = new GeometryUpdate( index, target, geometry.node().getDeclaration() );
         if ( attribute != null )
         {
-            updateGeometryAttribute( attribute, report, update );
-        }
-        else
-        {
-            if ( !updateGeometryProperty( report, update ) )
+            if ( !updateGeometryAttribute( attribute, report, update ) )
+            {
                 return;
+            }
+        }
+        else if ( !updateGeometryProperty( report, update ) )
+        {
+            return;
         }
         executeUpdate( params, report, update );
     }
 
-    private void updateGeometryAttribute( Attribute attribute, GeoJsonImportReport report, GeometryUpdate update )
+    private boolean updateGeometryAttribute( Attribute attribute, GeoJsonImportReport report, GeometryUpdate update )
     {
         ImportCount stats = report.getImportCount();
         OrganisationUnit target = update.target();
         AttributeValue attributeValue = target.getAttributeValue( attribute );
         String newValue = update.newValue();
+        if ( !update.isDeletion() && validateGeometry( report, update ) == null )
+        {
+            return false;
+        }
         if ( attributeValue != null )
         {
             String old = attributeValue.getValue();
@@ -317,34 +362,30 @@ public class DefaultGeoJsonService implements GeoJsonService
                 update.inc( stats::incrementImported );
             }
         }
+        return true;
     }
 
     private boolean updateGeometryProperty( GeoJsonImportReport report, GeometryUpdate update )
     {
         ImportCount stats = report.getImportCount();
-        try
+        OrganisationUnit target = update.target();
+        Geometry old = target.getGeometry();
+        if ( update.isDeletion() )
         {
-            OrganisationUnit target = update.target();
-            Geometry old = target.getGeometry();
-            if ( update.isDeletion() )
-            {
-                target.setGeometry( null );
-                update.inc( stats::incrementDeleted ).needsUpdate( old != null );
-            }
-            else
-            {
-                Geometry updated = new GeometryJSON().read( update.newValue() );
-                updated.setSRID( GeoUtils.SRID );
-                target.setGeometry( updated );
-                Runnable inc = old != null ? stats::incrementUpdated : stats::incrementImported;
-                update.inc( inc ).needsUpdate( !Objects.equals( updated, old ) );
-            }
+            target.setGeometry( null );
+            update.inc( stats::incrementDeleted ).needsUpdate( old != null );
         }
-        catch ( Exception ex )
+        else
         {
-            report.addConflict( createConflict( update.index(), GeoJsonImportConflict.GEOMETRY_INVALID ) );
-            stats.incrementIgnored();
-            return false;
+            Geometry updated = validateGeometry( report, update );
+            if ( updated == null )
+            {
+                return false;
+            }
+            updated.setSRID( GeoUtils.SRID );
+            target.setGeometry( updated );
+            Runnable inc = old != null ? stats::incrementUpdated : stats::incrementImported;
+            update.inc( inc ).needsUpdate( !Objects.equals( updated, old ) );
         }
         return true;
     }

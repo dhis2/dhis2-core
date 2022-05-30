@@ -86,7 +86,8 @@ public class DefaultTrackerValidationService
 
         // Note that the bundle gets cloned internally, so the original bundle
         // is always available
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle.getPreheat().getIdSchemes(),
+            bundle.getValidationMode() == ValidationMode.FAIL_FAST );
 
         try
         {

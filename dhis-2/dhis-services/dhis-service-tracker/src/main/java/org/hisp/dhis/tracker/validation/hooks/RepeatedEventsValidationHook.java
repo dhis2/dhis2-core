@@ -91,7 +91,7 @@ public class RepeatedEventsValidationHook
 
         if ( strategy == TrackerImportStrategy.CREATE && programStage != null && programInstance != null
             && !programStage.getRepeatable()
-            && reporter.getBundle().getPreheat().hasProgramStageWithEvents( event.getProgramStage(),
+            && bundle.getPreheat().hasProgramStageWithEvents( event.getProgramStage(),
                 event.getEnrollment() ) )
         {
             reporter.addError( event, TrackerErrorCode.E1039, event.getProgramStage() );

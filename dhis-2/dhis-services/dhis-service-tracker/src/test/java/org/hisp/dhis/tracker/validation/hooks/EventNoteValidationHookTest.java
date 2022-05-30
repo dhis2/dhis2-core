@@ -41,8 +41,8 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Note;
@@ -72,6 +72,8 @@ class EventNoteValidationHookTest
 
     private TrackerPreheat preheat;
 
+    private ValidationErrorReporter reporter;
+
     @BeforeEach
     public void setUp()
     {
@@ -80,8 +82,10 @@ class EventNoteValidationHookTest
 
         bundle = mock( TrackerBundle.class );
         preheat = mock( TrackerPreheat.class );
-        when( bundle.getValidationMode() ).thenReturn( ValidationMode.FULL );
         when( bundle.getPreheat() ).thenReturn( preheat );
+
+        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
+        reporter = new ValidationErrorReporter( idSchemes );
     }
 
     @Test
@@ -90,12 +94,11 @@ class EventNoteValidationHookTest
         // Given
         final Note note = rnd.nextObject( Note.class );
         when( preheat.getNote( note.getNote() ) ).thenReturn( Optional.of( new TrackedEntityComment() ) );
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         event.setNotes( Collections.singletonList( note ) );
 
         // When
-        this.hook.validateEvent( reporter, event );
+        this.hook.validateEvent( reporter, bundle, event );
 
         // Then
         assertTrue( reporter.hasWarnings() );
@@ -111,12 +114,11 @@ class EventNoteValidationHookTest
         // Given
         final Note note = rnd.nextObject( Note.class );
         note.setValue( null );
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         event.setNotes( Collections.singletonList( note ) );
 
         // When
-        this.hook.validateEvent( reporter, event );
+        this.hook.validateEvent( reporter, bundle, event );
 
         // Then
         assertFalse( reporter.hasErrors() );
@@ -128,12 +130,11 @@ class EventNoteValidationHookTest
     {
         // Given
         final List<Note> notes = rnd.objects( Note.class, 5 ).collect( Collectors.toList() );
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         event.setNotes( notes );
 
         // When
-        this.hook.validateEvent( reporter, event );
+        this.hook.validateEvent( reporter, bundle, event );
 
         // Then
         assertFalse( reporter.hasErrors() );

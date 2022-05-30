@@ -25,11 +25,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.user;
+package org.hisp.dhis.hibernate;
 
-public interface Dhis2User
+import lombok.AllArgsConstructor;
+
+import org.hisp.dhis.dbms.DbmsManager;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+@AllArgsConstructor
+public class HibernateService
 {
-    String getUsername();
+    private final DbmsManager dbmsManager;
 
-    User getDhis2User();
+    @Transactional
+    public void flushSession()
+    {
+        dbmsManager.flushSession();
+    }
 }

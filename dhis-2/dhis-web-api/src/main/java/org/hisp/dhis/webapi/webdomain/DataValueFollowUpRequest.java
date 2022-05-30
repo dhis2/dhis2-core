@@ -29,6 +29,9 @@ package org.hisp.dhis.webapi.webdomain;
 
 import lombok.Data;
 
+import org.hisp.dhis.webapi.webdomain.datavalue.DataValueCategoryDto;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -53,5 +56,14 @@ public class DataValueFollowUpRequest
     private String attributeOptionCombo;
 
     @JsonProperty
+    private DataValueCategoryDto attribute;
+
+    @JsonProperty
     private Boolean followup;
+
+    @JsonIgnore
+    public boolean hasAttribute()
+    {
+        return attribute != null;
+    }
 }

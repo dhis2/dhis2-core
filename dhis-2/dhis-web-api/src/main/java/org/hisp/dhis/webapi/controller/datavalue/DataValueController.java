@@ -545,7 +545,7 @@ public class DataValueController
             throw new IllegalQueryException( ErrorCode.E2033 );
         }
 
-        DataValue dataValue = dataValidator.getAndValidateDataValue( request );
+        DataValue dataValue = dataValidator.getAndValidateDataValueFollowUp( request );
         dataValue.setFollowup( request.getFollowup() );
         dataValueService.updateDataValue( dataValue );
     }
@@ -561,11 +561,13 @@ public class DataValueController
         }
 
         List<DataValue> dataValues = new ArrayList<>();
-        for ( DataValueFollowUpRequest e : values )
+
+        for ( DataValueFollowUpRequest value : values )
         {
-            DataValue dataValue = dataValidator.getAndValidateDataValue( e );
-            dataValue.setFollowup( e.getFollowup() );
+            DataValue dataValue = dataValidator.getAndValidateDataValueFollowUp( value );
+            dataValue.setFollowup( value.getFollowup() );
         }
+
         dataValueService.updateDataValues( dataValues );
     }
 

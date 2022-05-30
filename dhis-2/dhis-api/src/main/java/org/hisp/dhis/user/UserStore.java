@@ -109,7 +109,7 @@ public interface UserStore
      * Return CurrentUserGroupInfo used for ACL check in
      * {@link IdentifiableObjectStore}
      *
-     * @param userId
+     * @param user
      * @return
      */
     CurrentUserGroupInfo getCurrentUserGroupInfo( User user );

@@ -51,8 +51,6 @@ import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
-import org.hisp.dhis.tracker.report.TrackerWarningReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.locationtech.jts.geom.Geometry;
 
@@ -70,12 +68,7 @@ public class ValidationUtils
 
         if ( featureType == null )
         {
-            TrackerErrorReport error = TrackerErrorReport.builder()
-                .uid( dto.getUid() )
-                .trackerType( dto.getTrackerType() )
-                .errorCode( TrackerErrorCode.E1074 )
-                .build( reporter.getBundle() );
-            reporter.addError( error );
+            reporter.addError( dto, TrackerErrorCode.E1074 );
             return;
         }
 
@@ -83,21 +76,13 @@ public class ValidationUtils
 
         if ( FeatureType.NONE == featureType || featureType != typeFromName )
         {
-            TrackerErrorReport error = TrackerErrorReport.builder()
-                .uid( dto.getUid() )
-                .trackerType( dto.getTrackerType() )
-                .errorCode( TrackerErrorCode.E1012 )
-                .addArg( featureType.name() )
-                .build( reporter.getBundle() );
-            reporter.addError( error );
+            reporter.addError( dto, TrackerErrorCode.E1012, featureType.name() );
         }
     }
 
-    protected static List<Note> validateNotes( ValidationErrorReporter reporter, TrackerDto dto,
+    protected static List<Note> validateNotes( ValidationErrorReporter reporter, TrackerPreheat preheat, TrackerDto dto,
         List<Note> notesToCheck )
     {
-        TrackerPreheat preheat = reporter.getBundle().getPreheat();
-
         final List<Note> notes = new ArrayList<>();
         for ( Note note : notesToCheck )
         {
@@ -107,13 +92,7 @@ public class ValidationUtils
                 // warning, ignore the note and continue
                 if ( isNotEmpty( note.getNote() ) && preheat.getNote( note.getNote() ).isPresent() )
                 {
-                    TrackerWarningReport warning = TrackerWarningReport.builder()
-                        .uid( dto.getUid() )
-                        .trackerType( dto.getTrackerType() )
-                        .warningCode( TrackerErrorCode.E1119 )
-                        .addArg( note.getNote() )
-                        .build( reporter.getBundle() );
-                    reporter.addWarning( warning );
+                    reporter.addWarning( dto, TrackerErrorCode.E1119, note.getNote() );
                 }
                 else
                 {
@@ -175,13 +154,7 @@ public class ValidationUtils
             .forEach( issue -> {
                 List<String> args = Lists.newArrayList( issue.getRuleUid() );
                 args.addAll( issue.getArgs() );
-                TrackerErrorReport error = TrackerErrorReport.builder()
-                    .uid( dto.getUid() )
-                    .trackerType( dto.getTrackerType() )
-                    .errorCode( issue.getIssueCode() )
-                    .addArgs( args.toArray() )
-                    .build( reporter.getBundle() );
-                reporter.addError( error );
+                reporter.addError( dto, issue.getIssueCode(), args.toArray() );
             } );
 
         programRuleIssues
@@ -191,13 +164,7 @@ public class ValidationUtils
                 issue -> {
                     List<String> args = Lists.newArrayList( issue.getRuleUid() );
                     args.addAll( issue.getArgs() );
-                    TrackerWarningReport warning = TrackerWarningReport.builder()
-                        .uid( dto.getUid() )
-                        .trackerType( dto.getTrackerType() )
-                        .warningCode( issue.getIssueCode() )
-                        .addArgs( args.toArray() )
-                        .build( reporter.getBundle() );
-                    reporter.addWarning( warning );
+                    reporter.addWarning( dto, issue.getIssueCode(), args.toArray() );
                 } );
     }
 

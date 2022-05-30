@@ -738,10 +738,6 @@ public class UserController
     {
         User user = userService.getUser( pvUid );
 
-        // current user may have been changed and detached and must become
-        // managed again
-        // 12098, handle update to current user if needed since now it's static?
-        // Do wee still need it?
         if ( currentUser != null && currentUser.getId() == user.getId() )
         {
             currentUser = currentUserService.getCurrentUser();

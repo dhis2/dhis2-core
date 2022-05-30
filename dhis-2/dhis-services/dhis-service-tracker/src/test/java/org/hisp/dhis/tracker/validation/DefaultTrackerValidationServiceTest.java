@@ -49,12 +49,14 @@ import java.util.function.BiConsumer;
 import lombok.Builder;
 
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
@@ -136,7 +138,8 @@ class DefaultTrackerValidationServiceTest
         private BiConsumer<ValidationErrorReporter, Event> validateEvent;
 
         @Override
-        public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity trackedEntity )
+        public void validateTrackedEntity( ValidationErrorReporter reporter, TrackerBundle bundle,
+            TrackedEntity trackedEntity )
         {
             if ( this.validateTrackedEntity != null )
             {
@@ -145,7 +148,7 @@ class DefaultTrackerValidationServiceTest
         }
 
         @Override
-        public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
+        public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
         {
             if ( this.validateEnrollment != null )
             {
@@ -154,7 +157,7 @@ class DefaultTrackerValidationServiceTest
         }
 
         @Override
-        public void validateEvent( ValidationErrorReporter reporter, Event event )
+        public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
         {
             if ( this.validateEvent != null )
             {
@@ -488,6 +491,8 @@ class DefaultTrackerValidationServiceTest
 
     private TrackerBundle.TrackerBundleBuilder newBundle()
     {
-        return TrackerBundle.builder().skipRuleEngine( true );
+        TrackerPreheat preheat = new TrackerPreheat();
+        preheat.setIdSchemes( TrackerIdSchemeParams.builder().build() );
+        return TrackerBundle.builder().preheat( preheat ).skipRuleEngine( true );
     }
 }

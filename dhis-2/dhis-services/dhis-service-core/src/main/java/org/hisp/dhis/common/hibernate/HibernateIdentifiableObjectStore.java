@@ -70,7 +70,6 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserGroupInfo;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.CurrentUserServiceTarget;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.SharingUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -243,17 +242,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         if ( object != null )
         {
-            User currentUser = CurrentUserUtil.getCurrentUser();
-            if ( currentUser != null && currentUser.getUid().equals( object.getUid() ) )
-            {
-                // If we are changing current user we need to merge instead of
-                // update. 12098
-                getSession().merge( object );
-            }
-            else
-            {
-                getSession().update( object );
-            }
+            getSession().update( object );
         }
     }
 
