@@ -138,7 +138,7 @@ public class DisableInactiveUsersJob implements Job
         progress.startingStage( format( "Sending reminder for %d days until disable", daysUntilDisable ),
             receiversByLocale.size(), JobProgress.FailurePolicy.SKIP_ITEM );
         progress.runStage( receiversByLocale.entrySet().stream(),
-            e -> format( "Sending %s email to %d users", e.getKey(), e.getValue().size() ),
+            e -> format( "Sending email to %d user(s) in %s", e.getValue().size(), e.getKey().getDisplayLanguage() ),
             OutboundMessageResponse::getDescription,
             e -> {
                 I18n i18n = i18nManager.getI18n( e.getKey() );
