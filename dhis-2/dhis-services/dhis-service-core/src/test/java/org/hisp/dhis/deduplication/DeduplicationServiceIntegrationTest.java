@@ -31,6 +31,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -77,6 +78,8 @@ public class DeduplicationServiceIntegrationTest
 
     @Test
     public void testGetAllPotentialDuplicateByDifferentStatus()
+        throws PotentialDuplicateConflictException
+
     {
         assertEquals( 0, deduplicationService.getAllPotentialDuplicates().size() );
 
@@ -109,6 +112,7 @@ public class DeduplicationServiceIntegrationTest
 
     @Test
     public void testAddPotentialDuplicate()
+        throws PotentialDuplicateConflictException
     {
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
         deduplicationService.addPotentialDuplicate( potentialDuplicate );
@@ -121,6 +125,7 @@ public class DeduplicationServiceIntegrationTest
 
     @Test
     public void testGetPotentialDuplicateByUid()
+        throws PotentialDuplicateConflictException
     {
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
         deduplicationService.addPotentialDuplicate( potentialDuplicate );
@@ -133,6 +138,7 @@ public class DeduplicationServiceIntegrationTest
 
     @Test
     public void testGetPotentialDuplicateDifferentStatus()
+        throws PotentialDuplicateConflictException
     {
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
         potentialDuplicate.setStatus( DeduplicationStatus.INVALID );
@@ -152,6 +158,7 @@ public class DeduplicationServiceIntegrationTest
 
     @Test
     public void testGetAllPotentialDuplicates()
+        throws PotentialDuplicateConflictException
     {
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
         PotentialDuplicate potentialDuplicate1 = new PotentialDuplicate( teiC, teiD );
@@ -175,14 +182,13 @@ public class DeduplicationServiceIntegrationTest
         assertTrue( deduplicationService.exists( potentialDuplicate ) );
     }
 
-    @Test( expected = PotentialDuplicateConflictException.class )
     public void testShouldThrowWhenMissingTeiBProperty()
         throws PotentialDuplicateConflictException
     {
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
         deduplicationService.addPotentialDuplicate( potentialDuplicate );
-
-        assertTrue( deduplicationService.exists( new PotentialDuplicate( teiA, null ) ) );
+        assertThrows( PotentialDuplicateConflictException.class,
+            () -> deduplicationService.exists( new PotentialDuplicate( teiA, null ) ) );
     }
 
     @Test( expected = PotentialDuplicateConflictException.class )
@@ -208,6 +214,7 @@ public class DeduplicationServiceIntegrationTest
 
     @Test
     public void testGetAllPotentialDuplicatedByQuery()
+        throws PotentialDuplicateConflictException
     {
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
         PotentialDuplicate potentialDuplicate1 = new PotentialDuplicate( teiC, teiD );
@@ -230,6 +237,7 @@ public class DeduplicationServiceIntegrationTest
 
     @Test
     public void testCountPotentialDuplicates()
+        throws PotentialDuplicateConflictException
     {
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
         PotentialDuplicate potentialDuplicate1 = new PotentialDuplicate( teiC, teiD );
@@ -260,6 +268,7 @@ public class DeduplicationServiceIntegrationTest
 
     @Test
     public void testUpdatePotentialDuplicate()
+        throws PotentialDuplicateConflictException
     {
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
         deduplicationService.addPotentialDuplicate( potentialDuplicate );
