@@ -110,10 +110,10 @@ public class IdSchemeTests
             .setId( teiId )
             .setTeiType( data.getTrackedEntityType() )
             .setOu( data.getOrgUnit() )
-            .addAttribute( data.trackedEntityAttribute, DataGenerator.randomString() )
+            .addAttribute( data.getTrackedEntityAttribute(), DataGenerator.randomString() )
             .addEnrollment( enrollmentDataBuilder )
             .addRelationship( new RelationshipDataBuilder()
-                .setRelationshipType( data.relationshipType )
+                .setRelationshipType( data.getRelationshipType() )
                 .setFromTrackedEntity( this.createTei() )
                 .setToTrackedEntity( teiId ) )
             .array();
@@ -134,7 +134,7 @@ public class IdSchemeTests
             .setOu( data.getOrgUnit() )
             .setProgramStage( data.getEventProgramStage() )
             .setProgram( data.getEventProgram() )
-            .setAttributeCategoryOptions( Arrays.asList( data.categoryOption ) )
+            .setAttributeCategoryOptions( Arrays.asList( data.getCategoryOption() ) )
             .array();
 
         trackerActions
@@ -143,7 +143,7 @@ public class IdSchemeTests
     }
 
     @Test
-    public void shouldImportEventsWithDifferentProgramSchemes()
+    public void shouldImportEventsWithDifferentIdSchemes()
     {
         String programIdScheme = "CODE";
         String ouIdScheme = "NAME";
@@ -157,7 +157,6 @@ public class IdSchemeTests
             .setAttributeCategoryOptions( Arrays.asList( data.getCategoryOption() ) )
             .array();
 
-        // act
         trackerActions
             .postAndGetJobReport( event, new QueryParamsBuilder()
                 .add( "programIdScheme", programIdScheme )
@@ -201,7 +200,6 @@ public class IdSchemeTests
             {
                 propertyName = "attributeValues.value[0]";
             }
-
             else
             {
                 propertyName = idScheme.toLowerCase( Locale.ROOT );
