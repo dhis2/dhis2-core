@@ -29,6 +29,8 @@ package org.hisp.dhis.tracker.deduplication;
 
 import static org.hamcrest.Matchers.*;
 
+import java.util.Arrays;
+
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
@@ -48,52 +50,36 @@ public class PotentialDuplicatesTests extends PotentialDuplicatesApiTest
         loginActions.loginAsAdmin();
     }
 
-    @Test
-    public void shouldFilterByStatus()
+    @ParameterizedTest
+    @ValueSource( strings = { "OPEN", "INVALID", "MERGED" } )
+    public void shouldFilterByStatus( String status )
     {
-        // OPEN
-        potentialDuplicatesActions.createAndValidatePotentialDuplicate( createTei(), createTei(), "OPEN" );
+        potentialDuplicatesActions.createAndValidatePotentialDuplicate( createTei(), createTei(), status );
 
-        // INVALID
-        potentialDuplicatesActions.createAndValidatePotentialDuplicate( createTei(), createTei(), "INVALID" );
+        potentialDuplicatesActions.get( "", new QueryParamsBuilder().add( "status=" + status ) )
+            .validate()
+            .body( "identifiableObjects", hasSize( greaterThanOrEqualTo( 1 ) ) )
+            .body( "identifiableObjects.status", everyItem( equalTo( status ) ) );
+    }
 
-        // MERGED
-        potentialDuplicatesActions.createAndValidatePotentialDuplicate( createTei(),
-            createTei(), "MERGED" );
+    @Test
+    public void shouldReturnAllStatuses()
+    {
+        Arrays.asList( "OPEN", "MERGED", "INVALID" ).forEach( status -> {
+            potentialDuplicatesActions.createAndValidatePotentialDuplicate( createTei(), createTei(), status );
+        } );
 
         potentialDuplicatesActions.get( "", new QueryParamsBuilder().add( "status=ALL" ) )
             .validate()
-            .body( "identifiableObjects", hasSize( greaterThanOrEqualTo( 3 ) ) )
+            .body( "identifiableObjects", hasSize( greaterThanOrEqualTo( 1 ) ) )
             .body( "identifiableObjects.status",
                 allOf( hasItem( "OPEN" ), hasItem( "INVALID" ), hasItem( "MERGED" ) ) );
-
-        potentialDuplicatesActions.get( "", new QueryParamsBuilder().add( "status=" + "OPEN" ) )
-            .validate()
-            .body( "identifiableObjects", hasSize( greaterThanOrEqualTo( 1 ) ) )
-            .body( "identifiableObjects.status", everyItem( equalTo( "OPEN" ) ) );
-
-        potentialDuplicatesActions.get( "", new QueryParamsBuilder().add( "status=" + "INVALID" ) )
-            .validate()
-            .body( "identifiableObjects", hasSize( greaterThanOrEqualTo( 1 ) ) )
-            .body( "identifiableObjects.status", everyItem( equalTo( "INVALID" ) ) );
-
-        potentialDuplicatesActions.get( "", new QueryParamsBuilder().add( "status=" + "MERGED" ) )
-            .validate()
-            .body( "identifiableObjects", hasSize( greaterThanOrEqualTo( 1 ) ) )
-            .body( "identifiableObjects.status", everyItem( equalTo( "MERGED" ) ) );
-
     }
 
     @Test
     public void shouldRequireBothTeis()
     {
-        potentialDuplicatesActions.createPotentialDuplicate( null, createTei(), "OPEN" )
-            .validate()
-            .statusCode( equalTo( 400 ) )
-            .body( "status", equalTo( "ERROR" ) )
-            .body( "message", containsStringIgnoringCase( "missing required input property" ) );
-
-        potentialDuplicatesActions.createPotentialDuplicate( createTei(), null, "OPEN" )
+        potentialDuplicatesActions.postPotentialDuplicate( null, createTei(), "OPEN" )
             .validate()
             .statusCode( equalTo( 400 ) )
             .body( "status", equalTo( "ERROR" ) )
@@ -104,7 +90,7 @@ public class PotentialDuplicatesTests extends PotentialDuplicatesApiTest
     @ValueSource( strings = { "ALL", "INVALID", "MERGED" } )
     public void shouldNotCreateWithStatusNotAllowed( String status )
     {
-        potentialDuplicatesActions.createPotentialDuplicate( createTei(), createTei(), status )
+        potentialDuplicatesActions.postPotentialDuplicate( createTei(), createTei(), status )
             .validate()
             .statusCode( equalTo( 409 ) )
             .body( "httpStatus", equalTo( "Conflict" ) )
@@ -138,7 +124,7 @@ public class PotentialDuplicatesTests extends PotentialDuplicatesApiTest
 
         potentialDuplicatesActions.createAndValidatePotentialDuplicate( teiC, teiA, "INVALID" );
 
-        potentialDuplicatesActions.createPotentialDuplicate( teiD, teiA, "OPEN" )
+        potentialDuplicatesActions.postPotentialDuplicate( teiD, teiA, "OPEN" )
             .validate()
             .statusCode( 200 );
 

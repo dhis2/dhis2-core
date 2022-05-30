@@ -67,7 +67,7 @@ public class PotentialDuplicatesActions
         return uid;
     }
 
-    public ApiResponse createPotentialDuplicate( String teiA, String teiB, String status )
+    public ApiResponse postPotentialDuplicate( String teiA, String teiB, String status )
     {
         JsonObject object = new JsonObjectBuilder()
             .addProperty( "original", teiA )
