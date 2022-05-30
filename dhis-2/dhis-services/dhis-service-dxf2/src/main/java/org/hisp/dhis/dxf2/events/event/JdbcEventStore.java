@@ -1906,11 +1906,11 @@ public class JdbcEventStore implements EventStore
     {
         if ( isNotEmpty( events ) )
         {
-            final List<String> psiUids = events.stream().map( event -> "'" + event.getEvent() + "'" )
+            final List<String> psiUids = events.stream().map( Event::getEvent )
                 .collect( toList() );
 
-            jdbcTemplate.execute( "UPDATE programstageinstance SET deleted = true where uid in (:uids)",
-                new MapSqlParameterSource().addValue( "uids", psiUids ), ps -> null );
+            jdbcTemplate.update( "UPDATE programstageinstance SET deleted = true where uid in (:uids)",
+                new MapSqlParameterSource().addValue( "uids", psiUids ) );
         }
     }
 
