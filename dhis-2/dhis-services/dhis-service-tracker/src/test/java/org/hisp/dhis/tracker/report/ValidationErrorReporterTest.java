@@ -41,13 +41,8 @@ class ValidationErrorReporterTest
     void hasErrorReportFound()
     {
 
-        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
-        ValidationErrorReporter reporter = new ValidationErrorReporter( idSchemes );
-        TrackerErrorReport error = TrackerErrorReport.builder()
-            .errorCode( TrackerErrorCode.E1000 )
-            .trackerType( TrackerType.EVENT )
-            .build( idSchemes );
-        reporter.getReportList().add( error );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( TrackerIdSchemeParams.builder().build() );
+        reporter.addError( eventError() );
 
         assertTrue( reporter.hasErrorReport( r -> TrackerType.EVENT.equals( r.getTrackerType() ) ) );
     }
@@ -56,13 +51,8 @@ class ValidationErrorReporterTest
     void hasErrorReportNotFound()
     {
 
-        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
-        ValidationErrorReporter reporter = new ValidationErrorReporter( idSchemes );
-        TrackerErrorReport error = TrackerErrorReport.builder()
-            .errorCode( TrackerErrorCode.E1000 )
-            .trackerType( TrackerType.EVENT )
-            .build( idSchemes );
-        reporter.getReportList().add( error );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( TrackerIdSchemeParams.builder().build() );
+        reporter.addError( eventError() );
 
         assertFalse( reporter.hasErrorReport( r -> TrackerType.TRACKED_ENTITY.equals( r.getTrackerType() ) ) );
     }
@@ -71,13 +61,8 @@ class ValidationErrorReporterTest
     void hasWarningReportFound()
     {
 
-        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
-        ValidationErrorReporter reporter = new ValidationErrorReporter( idSchemes );
-        TrackerWarningReport warning = TrackerWarningReport.builder()
-            .warningCode( TrackerErrorCode.E1000 )
-            .trackerType( TrackerType.EVENT )
-            .build( idSchemes );
-        reporter.getWarningsReportList().add( warning );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( TrackerIdSchemeParams.builder().build() );
+        reporter.addWarning( eventWarning() );
 
         assertTrue( reporter.hasWarningReport( r -> TrackerType.EVENT.equals( r.getTrackerType() ) ) );
     }
@@ -86,14 +71,19 @@ class ValidationErrorReporterTest
     void hasWarningReportNotFound()
     {
 
-        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
-        ValidationErrorReporter reporter = new ValidationErrorReporter( idSchemes );
-        TrackerWarningReport warning = TrackerWarningReport.builder()
-            .warningCode( TrackerErrorCode.E1000 )
-            .trackerType( TrackerType.EVENT )
-            .build( idSchemes );
-        reporter.getWarningsReportList().add( warning );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( TrackerIdSchemeParams.builder().build() );
+        reporter.addWarning( eventWarning() );
 
         assertFalse( reporter.hasWarningReport( r -> TrackerType.TRACKED_ENTITY.equals( r.getTrackerType() ) ) );
+    }
+
+    private TrackerErrorReport eventError()
+    {
+        return new TrackerErrorReport( "some error", TrackerErrorCode.E1000, TrackerType.EVENT, "JgDfHAGzzfS" );
+    }
+
+    private TrackerWarningReport eventWarning()
+    {
+        return new TrackerWarningReport( "some warning", TrackerErrorCode.E1000, TrackerType.EVENT, "JgDfHAGzzfS" );
     }
 }

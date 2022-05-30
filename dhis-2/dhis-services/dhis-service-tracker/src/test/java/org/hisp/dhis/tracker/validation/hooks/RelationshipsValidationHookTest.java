@@ -378,12 +378,8 @@ class RelationshipsValidationHookTest
             .to( trackedEntityRelationshipItem( "notValidTrackedEntity" ) )
             .relationshipType( MetadataIdentifier.ofUid( relType.getUid() ) )
             .build();
-        TrackerErrorReport error = TrackerErrorReport.builder()
-            .uid( relationship.getTo().getTrackedEntity() )
-            .trackerType( TRACKED_ENTITY )
-            .errorCode( TrackerErrorCode.E9999 )
-            .build( TrackerIdSchemeParams.builder().build() );
-        reporter.addError( error );
+        reporter.addError( new TrackerErrorReport( "some error", TrackerErrorCode.E9999, TRACKED_ENTITY,
+            relationship.getTo().getTrackedEntity() ) );
 
         validationHook.validateRelationship( reporter, bundle, relationship );
 
@@ -407,12 +403,8 @@ class RelationshipsValidationHookTest
             .to( trackedEntityRelationshipItem( "anotherValidTrackedEntity" ) )
             .relationshipType( MetadataIdentifier.ofUid( relType.getUid() ) )
             .build();
-        TrackerErrorReport error = TrackerErrorReport.builder()
-            .uid( "notValidTrackedEntity" )
-            .trackerType( TRACKED_ENTITY )
-            .errorCode( TrackerErrorCode.E9999 )
-            .build( TrackerIdSchemeParams.builder().build() );
-        reporter.addError( error );
+        reporter.addError(
+            new TrackerErrorReport( "some error", TrackerErrorCode.E9999, TRACKED_ENTITY, "notValidTrackedEntity" ) );
 
         validationHook.validateRelationship( reporter, bundle, relationship );
 

@@ -114,7 +114,8 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
         throws IOException
     {
         gistToCsvResponse( response, createGistQuery( request, getEntityClass(), GistAutoType.L )
-            .withFilter( new Filter( "id", Comparison.EQ, uid ) ) );
+            .withFilter( new Filter( "id", Comparison.EQ, uid ) )
+            .toBuilder().typedAttributeValues( false ).build() );
     }
 
     @GetMapping( value = "/gist", produces = APPLICATION_JSON_VALUE )
@@ -129,7 +130,8 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
     public void getObjectListGistAsCsv( HttpServletRequest request, HttpServletResponse response )
         throws IOException
     {
-        gistToCsvResponse( response, createGistQuery( request, getEntityClass(), GistAutoType.S ) );
+        gistToCsvResponse( response, createGistQuery( request, getEntityClass(), GistAutoType.S )
+            .toBuilder().typedAttributeValues( false ).build() );
     }
 
     @GetMapping( value = "/{uid}/{property}/gist", produces = APPLICATION_JSON_VALUE )
@@ -168,7 +170,8 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
         {
             throw new BadRequestException( "No such property: " + property );
         }
-        gistToCsvResponse( response, createPropertyQuery( uid, property, request, objProperty ) );
+        gistToCsvResponse( response, createPropertyQuery( uid, property, request, objProperty )
+            .toBuilder().typedAttributeValues( false ).build() );
     }
 
     @SuppressWarnings( "unchecked" )
@@ -195,6 +198,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
             .autoType( params.getEnum( "auto", autoDefault ) )
             .contextRoot( ContextUtils.getRootPath( request ) )
             .translationLocale( translationLocale )
+            .typedAttributeValues( true )
             .build()
             .with( params );
     }

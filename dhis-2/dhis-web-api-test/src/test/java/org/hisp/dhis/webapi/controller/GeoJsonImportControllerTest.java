@@ -30,7 +30,6 @@ package org.hisp.dhis.webapi.controller;
 import static java.lang.String.format;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -44,7 +43,6 @@ import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonNumber;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonImportConflict;
 import org.hisp.dhis.webapi.json.domain.JsonImportCount;
@@ -398,10 +396,10 @@ class GeoJsonImportControllerTest extends DhisControllerConvenienceTest
     {
         JsonObject unit = GET( "/organisationUnits/{uid}/gist?fields=geometry,{attr}~rename(geo2)", uid, attributeId )
             .content();
-        String geometry = unit.getString( "geo2" ).string();
-        assertNotNull( geometry, uid + " has no geometry" );
+        JsonObject geometry = unit.getObject( "geo2" );
+        assertTrue( geometry.exists() && geometry.isObject(), uid + " has no geometry" );
         // need to un-quote the value to make it into a JSON document
-        assertIsGeometryValue( JsonValue.of( geometry.replace( "\\\"", "\"" ) ).asObject() );
+        assertIsGeometryValue( geometry );
         assertTrue( unit.getObject( "geometry" ).isUndefined(),
             "unit should not have a geometry value set when an attribute is used" );
     }
