@@ -37,7 +37,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.linelisting.CommonQueryRequest;
 import org.hisp.dhis.analytics.linelisting.QueryRequestHolder;
 import org.hisp.dhis.analytics.linelisting.trackedentityinstance.TeiAnalyticsQueryService;
-import org.hisp.dhis.analytics.linelisting.trackedentityinstance.TeiAnalyticsValidationService;
+import org.hisp.dhis.analytics.linelisting.trackedentityinstance.TeiAnalyticsValidator;
 import org.hisp.dhis.analytics.linelisting.trackedentityinstance.TeiQueryParams;
 import org.hisp.dhis.analytics.linelisting.trackedentityinstance.TeiQueryRequest;
 import org.hisp.dhis.analytics.linelisting.trackedentityinstance.TeiRequestMapper;
@@ -49,17 +49,23 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * Controller class responsible exclusively for querying operations on top of
+ * tracker entity instances objects.
+ *
+ * Methods in this controller should not change any state.
+ */
 @RestController
 @RequiredArgsConstructor
 @RequestMapping( TeiQueryController.TRACKED_ENTITIES )
 class TeiQueryController
 {
 
-    public static final String TRACKED_ENTITIES = "analytics/trackedEntities";
+    static final String TRACKED_ENTITIES = "analytics/trackedEntities";
 
     private final TeiAnalyticsQueryService teiAnalyticsQueryService;
 
-    private final TeiAnalyticsValidationService teiAnalyticsValidationService;
+    private final TeiAnalyticsValidator teiAnalyticsValidationService;
 
     private final TeiRequestMapper mapper;
 
@@ -67,20 +73,22 @@ class TeiQueryController
 
     @GetMapping( "query/{trackedEntityType}" )
     Grid getGrid(
-        @PathVariable String trackedEntityType,
-        TeiQueryRequest teiQueryRequest,
-        CommonQueryRequest commonQueryRequest,
-        DhisApiVersion apiVersion,
-        HttpServletResponse response )
+        @PathVariable
+        final String trackedEntityType,
+        final TeiQueryRequest teiQueryRequest,
+        final CommonQueryRequest commonQueryRequest,
+        final DhisApiVersion apiVersion,
+        final HttpServletResponse response )
     {
-        QueryRequestHolder<TeiQueryRequest> queryRequestHolder = QueryRequestHolder.<TeiQueryRequest> builder()
+        final QueryRequestHolder<TeiQueryRequest> queryRequestHolder = QueryRequestHolder.<TeiQueryRequest> builder()
             .request( teiQueryRequest.withTrackedEntityType( trackedEntityType ) )
             .commonQueryRequest( commonQueryRequest )
             .build();
 
         teiAnalyticsValidationService.validateRequest( queryRequestHolder );
-        TeiQueryParams params = mapper.map( queryRequestHolder, apiVersion );
         contextUtils.configureResponse( response, CONTENT_TYPE_JSON, RESPECT_SYSTEM_SETTING );
+
+        final TeiQueryParams params = mapper.map( queryRequestHolder, apiVersion );
 
         return teiAnalyticsQueryService.getTeiGrid( params );
     }

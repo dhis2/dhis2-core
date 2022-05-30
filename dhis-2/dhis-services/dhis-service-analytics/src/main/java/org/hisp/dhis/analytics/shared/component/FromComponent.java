@@ -32,6 +32,11 @@ import java.util.List;
 import org.hisp.dhis.analytics.shared.component.element.Element;
 import org.hisp.dhis.analytics.shared.visitor.from.FromVisitor;
 
+/**
+ * @see Component
+ *
+ * @author dusan bernat
+ */
 public class FromComponent extends Component<FromVisitor>
 {
     public FromComponent( final List<Element<FromVisitor>> elements )

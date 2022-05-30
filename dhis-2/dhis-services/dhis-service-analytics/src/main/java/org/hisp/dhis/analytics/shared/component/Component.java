@@ -32,7 +32,9 @@ import java.util.List;
 import org.hisp.dhis.analytics.shared.component.element.Element;
 
 /**
- * Component is the aggregate fo element, please see visitor design pattern
+ * A Component is the aggregate for an element. Please see
+ * <a href="https://java-design-patterns.com/patterns/visitor/">visitor design *
+ * pattern</a>
  *
  * @author dusan bernat
  */
