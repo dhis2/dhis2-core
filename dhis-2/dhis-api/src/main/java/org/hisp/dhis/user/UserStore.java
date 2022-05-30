@@ -133,7 +133,8 @@ public interface UserStore
      *
      * @param from start of the selected time-frame (inclusive)
      * @param to end of the selected time-frame (exclusive)
-     * @return user emails having a last login within the given time-frame.
+     * @return user emails having a last login within the given time-frame as
+     *         keys and if available their preferred locale as value
      */
     Map<String, Optional<Locale>> findNotifiableUsersWithLastLoginBetween( Date from, Date to );
 
