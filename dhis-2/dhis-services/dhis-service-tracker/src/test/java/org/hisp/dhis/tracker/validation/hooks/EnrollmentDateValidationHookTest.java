@@ -41,6 +41,7 @@ import java.time.Instant;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
@@ -66,6 +67,8 @@ class EnrollmentDateValidationHookTest
 
     private TrackerBundle bundle;
 
+    private ValidationErrorReporter reporter;
+
     @BeforeEach
     public void setUp()
     {
@@ -74,6 +77,9 @@ class EnrollmentDateValidationHookTest
         bundle = TrackerBundle.builder()
             .preheat( preheat )
             .build();
+
+        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
+        reporter = new ValidationErrorReporter( idSchemes );
     }
 
     @Test
@@ -85,11 +91,9 @@ class EnrollmentDateValidationHookTest
             .occurredAt( Instant.now() )
             .build();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-
         when( preheat.getProgram( enrollment.getProgram() ) ).thenReturn( new Program() );
 
-        this.hookToTest.validateEnrollment( reporter, enrollment );
+        this.hookToTest.validateEnrollment( reporter, bundle, enrollment );
 
         hasTrackerError( reporter, E1025, ENROLLMENT, enrollment.getUid() );
     }
@@ -105,11 +109,9 @@ class EnrollmentDateValidationHookTest
             .enrolledAt( dateInTheFuture )
             .build();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-
         when( preheat.getProgram( enrollment.getProgram() ) ).thenReturn( new Program() );
 
-        this.hookToTest.validateEnrollment( reporter, enrollment );
+        this.hookToTest.validateEnrollment( reporter, bundle, enrollment );
 
         hasTrackerError( reporter, E1020, ENROLLMENT, enrollment.getUid() );
         hasTrackerError( reporter, E1021, ENROLLMENT, enrollment.getUid() );
@@ -126,11 +128,9 @@ class EnrollmentDateValidationHookTest
             .enrolledAt( today )
             .build();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-
         when( preheat.getProgram( enrollment.getProgram() ) ).thenReturn( new Program() );
 
-        this.hookToTest.validateEnrollment( reporter, enrollment );
+        this.hookToTest.validateEnrollment( reporter, bundle, enrollment );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -146,14 +146,12 @@ class EnrollmentDateValidationHookTest
             .enrolledAt( dateInTheFuture )
             .build();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-
         Program program = new Program();
         program.setSelectEnrollmentDatesInFuture( true );
         program.setSelectIncidentDatesInFuture( true );
         when( preheat.getProgram( enrollment.getProgram() ) ).thenReturn( program );
 
-        this.hookToTest.validateEnrollment( reporter, enrollment );
+        this.hookToTest.validateEnrollment( reporter, bundle, enrollment );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -167,13 +165,11 @@ class EnrollmentDateValidationHookTest
             .enrolledAt( Instant.now() )
             .build();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-
         Program program = new Program();
         program.setDisplayIncidentDate( true );
         when( preheat.getProgram( enrollment.getProgram() ) ).thenReturn( program );
 
-        this.hookToTest.validateEnrollment( reporter, enrollment );
+        this.hookToTest.validateEnrollment( reporter, bundle, enrollment );
 
         hasTrackerError( reporter, E1023, ENROLLMENT, enrollment.getUid() );
     }

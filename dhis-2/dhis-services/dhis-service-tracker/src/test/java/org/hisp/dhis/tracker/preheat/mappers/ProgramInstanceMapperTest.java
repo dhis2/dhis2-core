@@ -27,36 +27,37 @@
  */
 package org.hisp.dhis.tracker.preheat.mappers;
 
-import java.util.List;
+import static org.hisp.dhis.tracker.preheat.mappers.AttributeCreator.attributeValue;
+import static org.hisp.dhis.tracker.preheat.mappers.AttributeCreator.attributeValues;
+import static org.hisp.dhis.tracker.preheat.mappers.AttributeCreator.setIdSchemeFields;
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
-import org.mapstruct.BeanMapping;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.factory.Mappers;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.junit.jupiter.api.Test;
 
-@Mapper( uses = {
-    DebugMapper.class,
-    TrackedEntityTypeAttributeMapper.class,
-    AttributeValueMapper.class
-} )
-public interface TrackedEntityTypeMapper
-    extends PreheatMapper<TrackedEntityType>
+class ProgramInstanceMapperTest
 {
-    TrackedEntityTypeMapper INSTANCE = Mappers.getMapper( TrackedEntityTypeMapper.class );
 
-    @BeanMapping( ignoreByDefault = true )
-    @Mapping( target = "id" )
-    @Mapping( target = "uid" )
-    @Mapping( target = "name" )
-    @Mapping( target = "code" )
-    @Mapping( target = "attributeValues" )
-    @Mapping( target = "featureType" )
-    @Mapping( target = "sharing" )
-    @Mapping( target = "trackedEntityTypeAttributes" )
-    @Mapping( target = "allowAuditLog" )
-    TrackedEntityType map( TrackedEntityType trackedEntityType );
+    @Test
+    void testIdSchemeRelatedFieldsAreMapped()
+    {
 
-    List<TrackedEntityTypeAttribute> map( List<TrackedEntityTypeAttribute> trackedEntityTypeAttributes );
+        Program program = setIdSchemeFields(
+            new Program(),
+            "WTTYiPQDqh1",
+            "friendship",
+            "red",
+            attributeValues( "m0GpPuMUfFW", "yellow" ) );
+        ProgramInstance programInstance = new ProgramInstance();
+        programInstance.setProgram( program );
+
+        ProgramInstance mapped = ProgramInstanceMapper.INSTANCE.map( programInstance );
+
+        assertEquals( "WTTYiPQDqh1", mapped.getProgram().getUid() );
+        assertEquals( "friendship", mapped.getProgram().getName() );
+        assertEquals( "red", mapped.getProgram().getCode() );
+        assertContainsOnly( mapped.getProgram().getAttributeValues(), attributeValue( "m0GpPuMUfFW", "yellow" ) );
+    }
 }

@@ -29,10 +29,12 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.function.Function;
 
 import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.junit.jupiter.api.BeforeEach;
@@ -66,20 +68,9 @@ class GistAttributeControllerTest extends AbstractGistControllerTest
     void setUp()
     {
         // create user group with custom attribute value
-        attrId = assertStatus( HttpStatus.CREATED, POST( "/attributes", "{" + "'name':'extra', "
-            + "'valueType':'TEXT', " + "'" + Attribute.ObjectType.USER_GROUP.getPropertyName() + "':true}" ) );
-        group1Id = assertStatus( HttpStatus.CREATED,
-            POST( "/userGroups/",
-                "{"
-                    + "'name':'G1', "
-                    + "'attributeValues':[{'attribute': {'id':'" + attrId + "'}, 'value':'extra-value'}]"
-                    + "}" ) );
-        group2Id = assertStatus( HttpStatus.CREATED,
-            POST( "/userGroups/",
-                "{"
-                    + "'name':'G2', "
-                    + "'attributeValues':[{'attribute': {'id':'" + attrId + "'}, 'value':'different'}]"
-                    + "}" ) );
+        attrId = postNewAttribute( "extra", ValueType.TEXT, Attribute.ObjectType.USER_GROUP );
+        group1Id = postNewUserGroupWithAttributeValue( "G1", attrId, "extra-value" );
+        group2Id = postNewUserGroupWithAttributeValue( "G2", attrId, "different" );
     }
 
     @Test
@@ -127,6 +118,35 @@ class GistAttributeControllerTest extends AbstractGistControllerTest
     }
 
     @Test
+    void testField_ObjectGeoJsonPlainValue()
+    {
+        String geoAttrId = postNewAttribute( "geo", ValueType.GEOJSON, Attribute.ObjectType.USER_GROUP );
+        String geoJsonValue = "{'type':'MultiPolygon', 'coordinates': [ [ [ [ 1,1 ], [ 2,2 ], [ 1,3 ], [1,1] ] ] ] }";
+        String geoGroupId = postNewUserGroupWithAttributeValue( "gg", geoAttrId, geoJsonValue.replace( "'", "\\\"" ) );
+        JsonObject group = GET( "/userGroups/{uid}/gist?fields=id,name,{attr}::rename(geo)", geoGroupId, geoAttrId )
+            .content();
+        assertTrue( group.get( "geo" ).isObject() );
+        assertEquals( "MultiPolygon", group.getString( "geo.type" ).string() );
+    }
+
+    /**
+     * Pluck extracts the attribute value directly in the database using JSONB
+     * functions
+     */
+    @Test
+    void testField_ObjectGeoJsonPlainValuePluck()
+    {
+        String geoAttrId = postNewAttribute( "geo", ValueType.GEOJSON, Attribute.ObjectType.USER_GROUP );
+        String geoJsonValue = "{'type':'MultiPolygon', 'coordinates': [ [ [ [ 1,1 ], [ 2,2 ], [ 1,3 ], [1,1] ] ] ] }";
+        String geoGroupId = postNewUserGroupWithAttributeValue( "gg", geoAttrId, geoJsonValue.replace( "'", "\\\"" ) );
+        JsonObject group = GET( "/userGroups/{uid}/gist?fields=id,name,{attr}::rename(geo)::pluck", geoGroupId,
+            geoAttrId )
+                .content();
+        assertTrue( group.get( "geo" ).isObject() );
+        assertEquals( "MultiPolygon", group.getString( "geo.type" ).string() );
+    }
+
+    @Test
     void testFilter_Eq()
     {
         String url = "/userGroups/gist?fields=id,name&headless=true&filter={attr}:eq:extra-value";
@@ -140,5 +160,21 @@ class GistAttributeControllerTest extends AbstractGistControllerTest
         JsonArray groups = GET( url, attrId, attrId ).content();
         assertEquals( 1, groups.size() );
         assertEquals( "different", groups.getObject( 0 ).getString( attrId ).string() );
+    }
+
+    private String postNewUserGroupWithAttributeValue( String name, String attrId, String value )
+    {
+        return assertStatus( HttpStatus.CREATED,
+            POST( "/userGroups/",
+                "{"
+                    + "'name':'" + name + "', "
+                    + "'attributeValues':[{'attribute': {'id':'" + attrId + "'}, 'value':'" + value + "'}]"
+                    + "}" ) );
+    }
+
+    private String postNewAttribute( String name, ValueType valueType, Attribute.ObjectType objectType )
+    {
+        return assertStatus( HttpStatus.CREATED, POST( "/attributes", "{" + "'name':'" + name + "', "
+            + "'valueType':'" + valueType.name() + "', " + "'" + objectType.getPropertyName() + "':true}" ) );
     }
 }

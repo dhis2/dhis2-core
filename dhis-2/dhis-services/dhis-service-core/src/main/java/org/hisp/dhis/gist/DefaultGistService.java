@@ -42,6 +42,8 @@ import lombok.AllArgsConstructor;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
+import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.schema.RelativePropertyContext;
 import org.hisp.dhis.schema.Schema;
@@ -60,7 +62,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 @Service
 @AllArgsConstructor
-public class DefaultGistService implements GistService
+public class DefaultGistService implements GistService, GistBuilder.GistBuilderSupport
 {
 
     /**
@@ -78,6 +80,8 @@ public class DefaultGistService implements GistService
     private final CurrentUserService currentUserService;
 
     private final AclService aclService;
+
+    private final AttributeService attributeService;
 
     private final ObjectMapper jsonMapper;
 
@@ -98,8 +102,7 @@ public class DefaultGistService implements GistService
         GistAccessControl access = createGistAccessControl();
         RelativePropertyContext context = createPropertyContext( query );
         new GistValidator( query, context, access ).validateQuery();
-        GistBuilder queryBuilder = createFetchBuilder( query, context, access,
-            this::getUserGroupIdsByUserId );
+        GistBuilder queryBuilder = createFetchBuilder( query, context, access, this );
         List<Object[]> rows = fetchWithParameters( query, queryBuilder,
             getSession().createQuery( queryBuilder.buildFetchHQL(), Object[].class ) );
         queryBuilder.transform( rows );
@@ -126,8 +129,7 @@ public class DefaultGistService implements GistService
             {
                 GistAccessControl access = createGistAccessControl();
                 RelativePropertyContext context = createPropertyContext( query );
-                GistBuilder countBuilder = createCountBuilder( query, context, access,
-                    this::getUserGroupIdsByUserId );
+                GistBuilder countBuilder = createCountBuilder( query, context, access, this );
                 total = countWithParameters( countBuilder,
                     getSession().createQuery( countBuilder.buildCountHQL(), Long.class ) );
             }
@@ -193,9 +195,9 @@ public class DefaultGistService implements GistService
             if ( planned.isTotal() )
             {
                 description.put( "hql.count",
-                    createCountBuilder( planned, context, access, this::getUserGroupIdsByUserId ).buildCountHQL() );
+                    createCountBuilder( planned, context, access, this ).buildCountHQL() );
             }
-            GistBuilder fetchBuilder = createFetchBuilder( planned, context, access, this::getUserGroupIdsByUserId );
+            GistBuilder fetchBuilder = createFetchBuilder( planned, context, access, this );
             description.put( "hql.fetch", fetchBuilder.buildFetchHQL() );
             Map<String, Object> params = new LinkedHashMap<>();
             fetchBuilder.addFetchParameters( params::put, this::parseFilterArgument );
@@ -255,8 +257,33 @@ public class DefaultGistService implements GistService
         }
     }
 
-    private List<String> getUserGroupIdsByUserId( String userId )
+    @Override
+    public List<String> getUserGroupIdsByUserId( String userId )
     {
         return userService.getUser( userId ).getGroups().stream().map( IdentifiableObject::getUid ).collect( toList() );
     }
+
+    @Override
+    public Attribute getAttributeById( String attributeId )
+    {
+        return attributeService.getAttribute( attributeId );
+    }
+
+    @Override
+    public Object getTypedAttributeValue( Attribute attribute, String value )
+    {
+        if ( value == null || value.isBlank() )
+        {
+            return value;
+        }
+        try
+        {
+            return attribute.getValueType().isJson() ? jsonMapper.readTree( value ) : value;
+        }
+        catch ( JsonProcessingException e )
+        {
+            return value;
+        }
+    }
+
 }

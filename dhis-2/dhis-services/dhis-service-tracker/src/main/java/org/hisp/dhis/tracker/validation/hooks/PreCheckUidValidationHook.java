@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.validation.hooks;
 import java.util.List;
 
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Note;
@@ -48,14 +49,15 @@ public class PreCheckUidValidationHook
     extends AbstractTrackerDtoValidationHook
 {
     @Override
-    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity trackedEntity )
+    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackerBundle bundle,
+        TrackedEntity trackedEntity )
     {
         checkUidFormat( trackedEntity.getTrackedEntity(), reporter, trackedEntity, trackedEntity,
             trackedEntity.getTrackedEntity() );
     }
 
     @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
+    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
         checkUidFormat( enrollment.getEnrollment(), reporter, enrollment, enrollment, enrollment.getEnrollment() );
 
@@ -63,7 +65,7 @@ public class PreCheckUidValidationHook
     }
 
     @Override
-    public void validateEvent( ValidationErrorReporter reporter, Event event )
+    public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
     {
         checkUidFormat( event.getEvent(), reporter, event, event, event.getEvent() );
 
@@ -71,7 +73,8 @@ public class PreCheckUidValidationHook
     }
 
     @Override
-    public void validateRelationship( ValidationErrorReporter reporter, Relationship relationship )
+    public void validateRelationship( ValidationErrorReporter reporter, TrackerBundle bundle,
+        Relationship relationship )
     {
         checkUidFormat( relationship.getRelationship(), reporter, relationship, relationship,
             relationship.getRelationship() );
