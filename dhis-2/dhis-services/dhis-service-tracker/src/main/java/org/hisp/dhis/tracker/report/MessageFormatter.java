@@ -28,15 +28,21 @@
 package org.hisp.dhis.tracker.report;
 
 import java.text.DateFormat;
+import java.text.MessageFormat;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.tracker.TrackerIdSchemeParam;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
@@ -47,22 +53,45 @@ import org.hisp.dhis.util.ObjectUtils;
 /**
  * @author Luciano Fiandesio
  */
-class TrackerReportUtils
+class MessageFormatter
 {
 
-    private TrackerReportUtils()
+    private MessageFormatter()
     {
         // not meant to be inherited from
     }
 
-    protected static List<String> buildArgumentList( TrackerBundle bundle, List<Object> arguments )
+    /**
+     * Creates an interpolated string using given {@code messagePattern}
+     * ({@link MessageFormat}) and {@code arguments}. {@code arguments} are
+     * pre-processed to be rendered in a type specific manner. For example
+     * {@link Instant} are displayed in ISO 8601, without any TZ info.
+     * Identifiers for {@link IdentifiableObject} are displayed in the user
+     * chosen idScheme ({@code idSchemes}).
+     *
+     * @param idSchemes idSchemes to use when rendering identifiers
+     * @param messagePattern message format pattern
+     * @param arguments arguments representing format elements in the message
+     *        pattern
+     * @return interpolated string of given message pattern and arguments
+     */
+    protected static String format( TrackerIdSchemeParams idSchemes, String messagePattern, Object... arguments )
     {
-        final TrackerIdSchemeParam idSchemeParam = TrackerIdSchemeParam.builder().idScheme( bundle.getIdentifier() )
-            .build();
-        return arguments.stream().map( arg -> parseArgs( idSchemeParam, arg ) ).collect( Collectors.toList() );
+        List<String> args = formatArguments( idSchemes, arguments );
+        return MessageFormat.format( messagePattern, args.toArray( new Object[0] ) );
     }
 
-    private static String parseArgs( TrackerIdSchemeParam idSchemeParam, Object argument )
+    protected static List<String> formatArguments( TrackerIdSchemeParams idSchemes, Object... arguments )
+    {
+        List<String> args = new ArrayList<>();
+        for ( Object arg : arguments )
+        {
+            args.add( formatArgument( idSchemes, arg ) );
+        }
+        return args;
+    }
+
+    private static String formatArgument( TrackerIdSchemeParams idSchemes, Object argument )
     {
         if ( String.class.isAssignableFrom( ObjectUtils.firstNonNull( argument, "NULL" ).getClass() ) )
         {
@@ -72,9 +101,39 @@ class TrackerReportUtils
         {
             return ((MetadataIdentifier) argument).getIdentifierOrAttributeValue();
         }
+        else if ( CategoryOptionCombo.class.isAssignableFrom( argument.getClass() ) )
+        {
+            return getIdAndName( idSchemes.toMetadataIdentifier( (CategoryOptionCombo) argument ),
+                (CategoryOptionCombo) argument );
+        }
+        else if ( CategoryOption.class.isAssignableFrom( argument.getClass() ) )
+        {
+            return getIdAndName( idSchemes.toMetadataIdentifier( (CategoryOption) argument ),
+                (CategoryOption) argument );
+        }
+        else if ( DataElement.class.isAssignableFrom( argument.getClass() ) )
+        {
+            return getIdAndName( idSchemes.toMetadataIdentifier( (DataElement) argument ),
+                (DataElement) argument );
+        }
+        else if ( OrganisationUnit.class.isAssignableFrom( argument.getClass() ) )
+        {
+            return getIdAndName( idSchemes.toMetadataIdentifier( (OrganisationUnit) argument ),
+                (OrganisationUnit) argument );
+        }
+        else if ( Program.class.isAssignableFrom( argument.getClass() ) )
+        {
+            return getIdAndName( idSchemes.toMetadataIdentifier( (Program) argument ), (Program) argument );
+        }
+        else if ( ProgramStage.class.isAssignableFrom( argument.getClass() ) )
+        {
+            return getIdAndName( idSchemes.toMetadataIdentifier( (ProgramStage) argument ),
+                (ProgramStage) argument );
+        }
         else if ( IdentifiableObject.class.isAssignableFrom( argument.getClass() ) )
         {
-            return idSchemeParam.getIdAndName( (IdentifiableObject) argument );
+            return getIdAndName( idSchemes.toMetadataIdentifier( (IdentifiableObject) argument ),
+                (IdentifiableObject) argument );
         }
         else if ( Date.class.isAssignableFrom( argument.getClass() ) )
         {
@@ -102,4 +161,10 @@ class TrackerReportUtils
 
         return StringUtils.EMPTY;
     }
+
+    private static <T extends IdentifiableObject> String getIdAndName( MetadataIdentifier identifier, T object )
+    {
+        return object.getClass().getSimpleName() + " (" + identifier.getIdentifierOrAttributeValue() + ")";
+    }
+
 }

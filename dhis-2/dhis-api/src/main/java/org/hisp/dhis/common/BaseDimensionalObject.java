@@ -278,7 +278,8 @@ public class BaseDimensionalObject
         }
         else
         {
-            return getDimensionDisplayName();
+            String name = getDimensionDisplayName();
+            return name == null || name.isBlank() ? getDisplayName() : name;
         }
     }
 

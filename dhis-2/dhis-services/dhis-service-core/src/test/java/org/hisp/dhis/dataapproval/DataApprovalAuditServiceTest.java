@@ -412,9 +412,6 @@ class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
         // User C can see only level 3, optionA from sourceB.
         injectSecurityContext( userC );
         audits = dataApprovalAuditService.getDataApprovalAudits( params );
-        // TODO: 12098 AssertionFailedError:
-        // Expected :1
-        // Actual :2
         assertEquals( 1, audits.size() );
         assertTrue( audits.contains( auditBA3 ) );
         // User D can see only level 3, optionB from sourceB.

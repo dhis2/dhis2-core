@@ -40,6 +40,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
 import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
+import org.hisp.dhis.user.CurrentUserDetails;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -183,9 +184,12 @@ public class Dhis2JwtAuthenticationManagerResolver implements AuthenticationMana
                     mappingClaimKey, mappingValue ) );
             }
 
+            CurrentUserDetails currentUserDetails = userService.validateAndCreateUserDetails( user,
+                user.getPassword() );
+
             Collection<GrantedAuthority> grantedAuthorities = user.getAuthorities();
 
-            return new DhisJwtAuthenticationToken( jwt, grantedAuthorities, mappingValue, user );
+            return new DhisJwtAuthenticationToken( jwt, grantedAuthorities, mappingValue, currentUserDetails );
         };
     }
 

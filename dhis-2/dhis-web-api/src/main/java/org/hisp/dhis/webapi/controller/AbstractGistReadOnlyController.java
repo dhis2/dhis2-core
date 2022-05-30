@@ -54,6 +54,7 @@ import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.webapi.CsvBuilder;
 import org.hisp.dhis.webapi.JsonBuilder;
@@ -90,6 +91,9 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
     @Autowired
     private GistService gistService;
 
+    @Autowired
+    private CurrentUserService currentUserService;
+
     // --------------------------------------------------------------------------
     // GET Gist
     // --------------------------------------------------------------------------
@@ -110,7 +114,8 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
         throws IOException
     {
         gistToCsvResponse( response, createGistQuery( request, getEntityClass(), GistAutoType.L )
-            .withFilter( new Filter( "id", Comparison.EQ, uid ) ) );
+            .withFilter( new Filter( "id", Comparison.EQ, uid ) )
+            .toBuilder().typedAttributeValues( false ).build() );
     }
 
     @GetMapping( value = "/gist", produces = APPLICATION_JSON_VALUE )
@@ -125,7 +130,8 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
     public void getObjectListGistAsCsv( HttpServletRequest request, HttpServletResponse response )
         throws IOException
     {
-        gistToCsvResponse( response, createGistQuery( request, getEntityClass(), GistAutoType.S ) );
+        gistToCsvResponse( response, createGistQuery( request, getEntityClass(), GistAutoType.S )
+            .toBuilder().typedAttributeValues( false ).build() );
     }
 
     @GetMapping( value = "/{uid}/{property}/gist", produces = APPLICATION_JSON_VALUE )
@@ -164,7 +170,8 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
         {
             throw new BadRequestException( "No such property: " + property );
         }
-        gistToCsvResponse( response, createPropertyQuery( uid, property, request, objProperty ) );
+        gistToCsvResponse( response, createPropertyQuery( uid, property, request, objProperty )
+            .toBuilder().typedAttributeValues( false ).build() );
     }
 
     @SuppressWarnings( "unchecked" )
@@ -179,18 +186,19 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
                 .build() );
     }
 
-    private static GistQuery createGistQuery( HttpServletRequest request,
+    private GistQuery createGistQuery( HttpServletRequest request,
         Class<? extends PrimaryKeyObject> elementType, GistAutoType autoDefault )
     {
         NamedParams params = new NamedParams( request::getParameter, request::getParameterValues );
         Locale translationLocale = !params.getString( "locale", "" ).isEmpty()
             ? Locale.forLanguageTag( params.getString( "locale" ) )
-            : CurrentUserService.getUserSetting( UserSettingKey.DB_LOCALE );
+            : CurrentUserUtil.getUserSetting( UserSettingKey.DB_LOCALE );
         return GistQuery.builder()
             .elementType( elementType )
             .autoType( params.getEnum( "auto", autoDefault ) )
             .contextRoot( ContextUtils.getRootPath( request ) )
             .translationLocale( translationLocale )
+            .typedAttributeValues( true )
             .build()
             .with( params );
     }

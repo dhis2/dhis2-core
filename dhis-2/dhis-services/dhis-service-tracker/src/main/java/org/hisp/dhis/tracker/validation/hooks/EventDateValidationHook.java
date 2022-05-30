@@ -46,6 +46,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.Authorities;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
@@ -60,9 +61,9 @@ public class EventDateValidationHook
     extends AbstractTrackerDtoValidationHook
 {
     @Override
-    public void validateEvent( ValidationErrorReporter reporter, Event event )
+    public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
     {
-        TrackerPreheat preheat = reporter.getBundle().getPreheat();
+        TrackerPreheat preheat = bundle.getPreheat();
 
         Program program = preheat.getProgram( event.getProgram() );
 
@@ -78,13 +79,14 @@ public class EventDateValidationHook
             return;
         }
 
-        validateExpiryDays( reporter, event, program );
+        validateExpiryDays( reporter, bundle, event, program );
         validatePeriodType( reporter, event, program );
     }
 
-    private void validateExpiryDays( ValidationErrorReporter reporter, Event event, Program program )
+    private void validateExpiryDays( ValidationErrorReporter reporter, TrackerBundle bundle, Event event,
+        Program program )
     {
-        User actingUser = reporter.getBundle().getUser();
+        User actingUser = bundle.getUser();
 
         checkNotNull( actingUser, TrackerImporterAssertErrors.USER_CANT_BE_NULL );
         checkNotNull( event, TrackerImporterAssertErrors.EVENT_CANT_BE_NULL );

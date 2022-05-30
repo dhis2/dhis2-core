@@ -34,7 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -71,6 +70,8 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
 import org.joda.time.DateTime;
@@ -126,6 +127,9 @@ class MaintenanceServiceTest extends IntegrationTestBase
     private TrackedEntityInstanceService trackedEntityInstanceService;
 
     @Autowired
+    private TrackedEntityTypeService trackedEntityTypeService;
+
+    @Autowired
     private AuditService auditService;
 
     private Date incidenDate;
@@ -148,21 +152,21 @@ class MaintenanceServiceTest extends IntegrationTestBase
 
     private ProgramStageInstance programStageInstanceWithTeiAssociation;
 
+    private TrackedEntityType trackedEntityType;
+
     private TrackedEntityInstance entityInstance;
 
     private TrackedEntityInstance entityInstanceB;
 
     private TrackedEntityInstance entityInstanceWithAssociations;
 
-    private Collection<Long> orgunitIds;
+    private RelationshipType relationshipType;
 
     @Override
     public void setUpTest()
     {
         organisationUnit = createOrganisationUnit( 'A' );
         long idA = organisationUnitService.addOrganisationUnit( organisationUnit );
-        orgunitIds = new HashSet<>();
-        orgunitIds.add( idA );
         program = createProgram( 'A', new HashSet<>(), organisationUnit );
         programService.addProgram( program );
         stageA = createProgramStage( 'A', program );
@@ -176,9 +180,14 @@ class MaintenanceServiceTest extends IntegrationTestBase
         programStages.add( stageB );
         program.setProgramStages( programStages );
         programService.updateProgram( program );
+        trackedEntityType = createTrackedEntityType( 'A' );
+        trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
         entityInstance = createTrackedEntityInstance( organisationUnit );
+        entityInstance.setTrackedEntityType( trackedEntityType );
         entityInstanceService.addTrackedEntityInstance( entityInstance );
         entityInstanceB = createTrackedEntityInstance( organisationUnit );
+        entityInstanceB.setTrackedEntityType( trackedEntityType );
+        entityInstanceService.addTrackedEntityInstance( entityInstanceB );
         entityInstanceWithAssociations = createTrackedEntityInstance( 'T', organisationUnit );
         DateTime testDate1 = DateTime.now();
         testDate1.withTimeAtStartOfDay();
@@ -208,6 +217,8 @@ class MaintenanceServiceTest extends IntegrationTestBase
         programStageInstanceWithTeiAssociation.setProgramInstance( programInstanceWithTeiAssociation );
         programStageInstanceWithTeiAssociation.setExecutionDate( new Date() );
         programStageInstanceService.addProgramStageInstance( programStageInstanceWithTeiAssociation );
+        relationshipType = createPersonToPersonRelationshipType( 'A', program, trackedEntityType, false );
+        relationshipTypeService.addRelationshipType( relationshipType );
     }
 
     @Test
@@ -422,5 +433,20 @@ class MaintenanceServiceTest extends IntegrationTestBase
         assertEquals( 1, audits.stream()
             .filter( a -> a.getKlass().equals( "org.hisp.dhis.trackedentity.TrackedEntityInstance" ) ).count() );
         audits.forEach( a -> assertSame( a.getAuditType(), AuditType.DELETE ) );
+    }
+
+    @Test
+    void testDeleteSoftDeletedRelationship()
+    {
+        Relationship relationship = createTeiToTeiRelationship( entityInstance, entityInstanceB, relationshipType );
+        relationshipService.addRelationship( relationship );
+        assertNotNull( relationshipService.getRelationship( relationship.getUid() ) );
+
+        relationshipService.deleteRelationship( relationship );
+        assertNull( relationshipService.getRelationship( relationship.getUid() ) );
+        assertNotNull( relationshipService.getRelationshipIncludeDeleted( relationship.getUid() ) );
+
+        maintenanceService.deleteSoftDeletedRelationships();
+        assertNull( relationshipService.getRelationshipIncludeDeleted( relationship.getUid() ) );
     }
 }

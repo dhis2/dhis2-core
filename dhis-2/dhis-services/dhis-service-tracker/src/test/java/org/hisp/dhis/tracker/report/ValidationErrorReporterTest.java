@@ -29,10 +29,9 @@ package org.hisp.dhis.tracker.report;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.mock;
 
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.junit.jupiter.api.Test;
 
 class ValidationErrorReporterTest
@@ -42,13 +41,8 @@ class ValidationErrorReporterTest
     void hasErrorReportFound()
     {
 
-        ValidationErrorReporter reporter = ValidationErrorReporter.emptyReporter();
-        TrackerBundle bundle = mock( TrackerBundle.class );
-        TrackerErrorReport error = TrackerErrorReport.builder()
-            .errorCode( TrackerErrorCode.E1000 )
-            .trackerType( TrackerType.EVENT )
-            .build( bundle );
-        reporter.getReportList().add( error );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( TrackerIdSchemeParams.builder().build() );
+        reporter.addError( eventError() );
 
         assertTrue( reporter.hasErrorReport( r -> TrackerType.EVENT.equals( r.getTrackerType() ) ) );
     }
@@ -57,13 +51,8 @@ class ValidationErrorReporterTest
     void hasErrorReportNotFound()
     {
 
-        ValidationErrorReporter reporter = ValidationErrorReporter.emptyReporter();
-        TrackerBundle bundle = mock( TrackerBundle.class );
-        TrackerErrorReport error = TrackerErrorReport.builder()
-            .errorCode( TrackerErrorCode.E1000 )
-            .trackerType( TrackerType.EVENT )
-            .build( bundle );
-        reporter.getReportList().add( error );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( TrackerIdSchemeParams.builder().build() );
+        reporter.addError( eventError() );
 
         assertFalse( reporter.hasErrorReport( r -> TrackerType.TRACKED_ENTITY.equals( r.getTrackerType() ) ) );
     }
@@ -72,13 +61,8 @@ class ValidationErrorReporterTest
     void hasWarningReportFound()
     {
 
-        ValidationErrorReporter reporter = ValidationErrorReporter.emptyReporter();
-        TrackerBundle bundle = mock( TrackerBundle.class );
-        TrackerWarningReport warning = TrackerWarningReport.builder()
-            .warningCode( TrackerErrorCode.E1000 )
-            .trackerType( TrackerType.EVENT )
-            .build( bundle );
-        reporter.getWarningsReportList().add( warning );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( TrackerIdSchemeParams.builder().build() );
+        reporter.addWarning( eventWarning() );
 
         assertTrue( reporter.hasWarningReport( r -> TrackerType.EVENT.equals( r.getTrackerType() ) ) );
     }
@@ -87,14 +71,19 @@ class ValidationErrorReporterTest
     void hasWarningReportNotFound()
     {
 
-        ValidationErrorReporter reporter = ValidationErrorReporter.emptyReporter();
-        TrackerBundle bundle = mock( TrackerBundle.class );
-        TrackerWarningReport warning = TrackerWarningReport.builder()
-            .warningCode( TrackerErrorCode.E1000 )
-            .trackerType( TrackerType.EVENT )
-            .build( bundle );
-        reporter.getWarningsReportList().add( warning );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( TrackerIdSchemeParams.builder().build() );
+        reporter.addWarning( eventWarning() );
 
         assertFalse( reporter.hasWarningReport( r -> TrackerType.TRACKED_ENTITY.equals( r.getTrackerType() ) ) );
+    }
+
+    private TrackerErrorReport eventError()
+    {
+        return new TrackerErrorReport( "some error", TrackerErrorCode.E1000, TrackerType.EVENT, "JgDfHAGzzfS" );
+    }
+
+    private TrackerWarningReport eventWarning()
+    {
+        return new TrackerWarningReport( "some warning", TrackerErrorCode.E1000, TrackerType.EVENT, "JgDfHAGzzfS" );
     }
 }

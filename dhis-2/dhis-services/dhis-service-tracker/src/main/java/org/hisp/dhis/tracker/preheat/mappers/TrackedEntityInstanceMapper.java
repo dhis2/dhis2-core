@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.preheat.mappers;
 
 import java.util.Set;
 
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserGroupAccess;
@@ -38,7 +39,11 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
-@Mapper( uses = DebugMapper.class )
+@Mapper( uses = {
+    DebugMapper.class,
+    TrackedEntityTypeMapper.class,
+    AttributeValueMapper.class
+} )
 public interface TrackedEntityInstanceMapper extends PreheatMapper<TrackedEntityInstance>
 {
     TrackedEntityInstanceMapper INSTANCE = Mappers.getMapper( TrackedEntityInstanceMapper.class );
@@ -52,7 +57,7 @@ public interface TrackedEntityInstanceMapper extends PreheatMapper<TrackedEntity
     @Mapping( target = "externalAccess" )
     @Mapping( target = "userGroupAccesses", qualifiedByName = "userGroupAccesses" )
     @Mapping( target = "userAccesses", qualifiedByName = "userAccesses" )
-    @Mapping( target = "organisationUnit" )
+    @Mapping( target = "organisationUnit", qualifiedByName = "organisationUnit" )
     @Mapping( target = "trackedEntityType" )
     @Mapping( target = "inactive" )
     @Mapping( target = "programInstances" )
@@ -69,4 +74,17 @@ public interface TrackedEntityInstanceMapper extends PreheatMapper<TrackedEntity
     @Named( "userAccesses" )
     Set<UserAccess> mapUserAccessProgramInstance( Set<UserAccess> userAccesses );
 
+    @Named( "organisationUnit" )
+    @BeanMapping( ignoreByDefault = true )
+    @Mapping( target = "id" )
+    @Mapping( target = "uid" )
+    @Mapping( target = "code" )
+    @Mapping( target = "name" )
+    @Mapping( target = "attributeValues" )
+    @Mapping( target = "user" )
+    @Mapping( target = "publicAccess" )
+    @Mapping( target = "externalAccess" )
+    @Mapping( target = "userGroupAccesses" )
+    @Mapping( target = "userAccesses" )
+    OrganisationUnit map( OrganisationUnit organisationUnit );
 }

@@ -39,6 +39,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -364,7 +365,8 @@ class DataQueryServiceTest extends DhisSpringTest
     {
         List<DimensionalItemObject> items = Lists.newArrayList( deA, deB, deC, rrA, rrB );
         List<String> itemUids = DimensionalObjectUtils.getDimensionalItemIds( items );
-        DimensionalObject actual = dataQueryService.getDimension( DimensionalObject.DATA_X_DIM_ID, itemUids, null, null,
+        DimensionalObject actual = dataQueryService.getDimension( DimensionalObject.DATA_X_DIM_ID, itemUids,
+            (Date) null, null,
             null, false, IdScheme.UID );
         assertEquals( DimensionalObject.DATA_X_DIM_ID, actual.getDimension() );
         assertEquals( DimensionType.DATA_X, actual.getDimensionType() );
@@ -377,7 +379,8 @@ class DataQueryServiceTest extends DhisSpringTest
     {
         List<DimensionalItemObject> items = Lists.newArrayList( deA, deB, deC );
         List<String> itemCodes = Lists.newArrayList( deA.getCode(), deB.getCode(), deC.getCode() );
-        DimensionalObject actual = dataQueryService.getDimension( DimensionalObject.DATA_X_DIM_ID, itemCodes, null,
+        DimensionalObject actual = dataQueryService.getDimension( DimensionalObject.DATA_X_DIM_ID, itemCodes,
+            (Date) null,
             null, null, false, IdScheme.CODE );
         assertEquals( DimensionalObject.DATA_X_DIM_ID, actual.getDimension() );
         assertEquals( DimensionType.DATA_X, actual.getDimensionType() );
@@ -390,7 +393,7 @@ class DataQueryServiceTest extends DhisSpringTest
     {
         List<DimensionalItemObject> items = Lists.newArrayList( ouGroupA, ouGroupB, ouGroupC );
         List<String> itemCodes = Lists.newArrayList( ouGroupA.getCode(), ouGroupB.getCode(), ouGroupC.getCode() );
-        DimensionalObject actual = dataQueryService.getDimension( ouGroupSetA.getCode(), itemCodes, null, null,
+        DimensionalObject actual = dataQueryService.getDimension( ouGroupSetA.getCode(), itemCodes, (Date) null, null,
             null, false, IdScheme.CODE );
         assertEquals( ouGroupSetA.getDimension(), actual.getDimension() );
         assertEquals( DimensionType.ORGANISATION_UNIT_GROUP_SET, actual.getDimensionType() );
@@ -405,7 +408,8 @@ class DataQueryServiceTest extends DhisSpringTest
         DataElementOperand opC = new DataElementOperand( deC, cocA );
         List<DimensionalItemObject> items = Lists.newArrayList( opA, opB, opC );
         List<String> itemUids = DimensionalObjectUtils.getDimensionalItemIds( items );
-        DimensionalObject actual = dataQueryService.getDimension( DimensionalObject.DATA_X_DIM_ID, itemUids, null, null,
+        DimensionalObject actual = dataQueryService.getDimension( DimensionalObject.DATA_X_DIM_ID, itemUids,
+            (Date) null, null,
             null, false, IdScheme.UID );
         assertEquals( DimensionalObject.DATA_X_DIM_ID, actual.getDimension() );
         assertEquals( DimensionType.DATA_X, actual.getDimensionType() );
@@ -418,7 +422,8 @@ class DataQueryServiceTest extends DhisSpringTest
     {
         List<DimensionalItemObject> items = Lists.newArrayList( ouA, ouB, ouC );
         List<String> itemUids = DimensionalObjectUtils.getDimensionalItemIds( items );
-        DimensionalObject actual = dataQueryService.getDimension( DimensionalObject.ORGUNIT_DIM_ID, itemUids, null,
+        DimensionalObject actual = dataQueryService.getDimension( DimensionalObject.ORGUNIT_DIM_ID, itemUids,
+            (Date) null,
             null, null, false, IdScheme.UID );
         assertEquals( DimensionalObject.ORGUNIT_DIM_ID, actual.getDimension() );
         assertEquals( DimensionType.ORGANISATION_UNIT, actual.getDimensionType() );
@@ -431,7 +436,8 @@ class DataQueryServiceTest extends DhisSpringTest
     {
         String ouGroupAUid = OrganisationUnit.KEY_ORGUNIT_GROUP + ouGroupA.getUid();
         List<String> itemUids = Lists.newArrayList( ouGroupAUid );
-        DimensionalObject actual = dataQueryService.getDimension( DimensionalObject.ORGUNIT_DIM_ID, itemUids, null,
+        DimensionalObject actual = dataQueryService.getDimension( DimensionalObject.ORGUNIT_DIM_ID, itemUids,
+            (Date) null,
             null, null, false, IdScheme.UID );
         assertEquals( DimensionalObject.ORGUNIT_DIM_ID, actual.getDimension() );
         assertEquals( DimensionType.ORGANISATION_UNIT, actual.getDimensionType() );
@@ -444,7 +450,8 @@ class DataQueryServiceTest extends DhisSpringTest
     {
         String deGroupAId = DataQueryParams.KEY_DE_GROUP + deGroupA.getUid();
         List<String> itemUids = Lists.newArrayList( deGroupAId );
-        DimensionalObject actual = dataQueryService.getDimension( DimensionalObject.DATA_X_DIM_ID, itemUids, null, null,
+        DimensionalObject actual = dataQueryService.getDimension( DimensionalObject.DATA_X_DIM_ID, itemUids,
+            (Date) null, null,
             null, false, IdScheme.UID );
         assertEquals( DimensionalObject.DATA_X_DIM_ID, actual.getDimension() );
         assertEquals( DimensionType.DATA_X, actual.getDimensionType() );
@@ -457,7 +464,8 @@ class DataQueryServiceTest extends DhisSpringTest
     {
         String inGroupAId = DataQueryParams.KEY_IN_GROUP + inGroupA.getUid();
         List<String> itemUids = Lists.newArrayList( inGroupAId );
-        DimensionalObject actual = dataQueryService.getDimension( DimensionalObject.DATA_X_DIM_ID, itemUids, null, null,
+        DimensionalObject actual = dataQueryService.getDimension( DimensionalObject.DATA_X_DIM_ID, itemUids,
+            (Date) null, null,
             null, false, IdScheme.UID );
         assertEquals( DimensionalObject.DATA_X_DIM_ID, actual.getDimension() );
         assertEquals( DimensionType.DATA_X, actual.getDimensionType() );
@@ -470,7 +478,8 @@ class DataQueryServiceTest extends DhisSpringTest
     {
         List<String> itemUids = Lists.newArrayList( "199501", "1999", RelativePeriodEnum.LAST_4_QUARTERS.toString(),
             RelativePeriodEnum.THIS_YEAR.toString() );
-        DimensionalObject actual = dataQueryService.getDimension( DimensionalObject.PERIOD_DIM_ID, itemUids, null, null,
+        DimensionalObject actual = dataQueryService.getDimension( DimensionalObject.PERIOD_DIM_ID, itemUids,
+            (Date) null, null,
             null, false, IdScheme.UID );
         assertEquals( DimensionalObject.PERIOD_DIM_ID, actual.getDimension() );
         assertEquals( DimensionType.PERIOD, actual.getDimensionType() );
@@ -482,7 +491,7 @@ class DataQueryServiceTest extends DhisSpringTest
     void testGetDimensionPeriodAndStartEndDates()
     {
         DimensionalObject actual = dataQueryService.getDimension( DimensionalObject.PERIOD_DIM_ID, Lists.newArrayList(),
-            null, null, null, false, IdScheme.UID );
+            (Date) null, null, null, false, IdScheme.UID );
         assertEquals( DimensionalObject.PERIOD_DIM_ID, actual.getDimension() );
         assertEquals( DimensionType.PERIOD, actual.getDimensionType() );
         assertEquals( DataQueryParams.DISPLAY_NAME_PERIOD, actual.getDimensionDisplayName() );
@@ -494,7 +503,8 @@ class DataQueryServiceTest extends DhisSpringTest
     {
         List<DimensionalItemObject> items = Lists.newArrayList( ouGroupA, ouGroupB );
         List<String> itemUids = DimensionalObjectUtils.getDimensionalItemIds( items );
-        DimensionalObject actual = dataQueryService.getDimension( ouGroupSetA.getUid(), itemUids, null, null, null,
+        DimensionalObject actual = dataQueryService.getDimension( ouGroupSetA.getUid(), itemUids, (Date) null, null,
+            null,
             false, IdScheme.UID );
         assertEquals( ouGroupSetA.getUid(), actual.getDimension() );
         assertEquals( DimensionType.ORGANISATION_UNIT_GROUP_SET, actual.getDimensionType() );
@@ -507,7 +517,8 @@ class DataQueryServiceTest extends DhisSpringTest
     {
         List<DimensionalItemObject> items = Lists.newArrayList( deGroupA, deGroupB );
         List<String> itemUids = DimensionalObjectUtils.getDimensionalItemIds( items );
-        DimensionalObject actual = dataQueryService.getDimension( deGroupSetA.getUid(), itemUids, null, null, null,
+        DimensionalObject actual = dataQueryService.getDimension( deGroupSetA.getUid(), itemUids, (Date) null, null,
+            null,
             false, IdScheme.UID );
         assertEquals( deGroupSetA.getUid(), actual.getDimension() );
         assertEquals( DimensionType.DATA_ELEMENT_GROUP_SET, actual.getDimensionType() );
@@ -852,7 +863,7 @@ class DataQueryServiceTest extends DhisSpringTest
                 "20210101:INCIDENT_DATE",
                 "20210101_20210201:LAST_UPDATED",
                 "2021-02-01_2021-03-01:SCHEDULED_DATE" ),
-            null, null, null, true, null );
+            (Date) null, null, null, true, null );
 
         assertThat( dimension.getItems(), hasSize( 5 ) );
         assertThat( dimension.getItems().stream()

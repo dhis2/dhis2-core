@@ -85,12 +85,6 @@ class EventImportValidationTest extends TrackerTest
     protected TrackerImportService trackerImportService;
 
     @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
-    @Override
     protected void initTest()
         throws IOException
     {

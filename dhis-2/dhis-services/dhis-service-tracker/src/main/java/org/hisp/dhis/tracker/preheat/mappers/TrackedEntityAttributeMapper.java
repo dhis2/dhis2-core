@@ -33,7 +33,11 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-@Mapper( uses = { DebugMapper.class, OptionSetMapper.class } )
+@Mapper( uses = {
+    DebugMapper.class,
+    OptionSetMapper.class,
+    AttributeValueMapper.class
+} )
 public interface TrackedEntityAttributeMapper extends PreheatMapper<TrackedEntityAttribute>
 {
     TrackedEntityAttributeMapper INSTANCE = Mappers.getMapper( TrackedEntityAttributeMapper.class );
@@ -43,6 +47,8 @@ public interface TrackedEntityAttributeMapper extends PreheatMapper<TrackedEntit
     @Mapping( target = "id" )
     @Mapping( target = "uid" )
     @Mapping( target = "code" )
+    @Mapping( target = "name" )
+    @Mapping( target = "attributeValues" )
     @Mapping( target = "confidential" )
     @Mapping( target = "unique" )
     @Mapping( target = "generated" )

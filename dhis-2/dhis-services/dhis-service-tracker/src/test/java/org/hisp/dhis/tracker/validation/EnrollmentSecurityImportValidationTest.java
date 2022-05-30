@@ -280,10 +280,4 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest
         assertThat( trackerImportReport.getValidationReport().getErrors(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1104 ) ) ) );
     }
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
 }
