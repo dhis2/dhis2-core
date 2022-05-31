@@ -226,7 +226,7 @@ public class DataHandler
 
             List<ExecutionPlan> plans = executionPlanStore.getExecutionPlans( key );
 
-            grid.maybeAddPerformanceMetrics( plans );
+            grid.addPerformanceMetrics( plans );
 
             executionPlanStore.removeExecutionPlans( key );
         }
