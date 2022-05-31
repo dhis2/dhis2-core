@@ -67,7 +67,6 @@ import com.google.common.collect.Lists;
  */
 class GridTest
 {
-
     private Grid gridA;
 
     private Grid gridB;
@@ -623,9 +622,9 @@ class GridTest
     void testGridRowComparator()
     {
         List<List<Object>> lists = new ArrayList<>();
-        List<Object> l1 = getList( "b", "b", 50 );
-        List<Object> l2 = getList( "c", "c", 400 );
-        List<Object> l3 = getList( "a", "a", 6 );
+        List<Object> l1 = List.of( "b", "b", 50 );
+        List<Object> l2 = List.of( "c", "c", 400 );
+        List<Object> l3 = List.of( "a", "a", 6 );
         lists.add( l1 );
         lists.add( l2 );
         lists.add( l3 );
@@ -875,7 +874,7 @@ class GridTest
     }
 
     @Test
-    void referenceTest()
+    void testAddReference()
     {
         String jsonString = "{ \"id\" : \n" +
             "      {\n" +
@@ -907,7 +906,7 @@ class GridTest
     }
 
     @Test
-    void repeatableStageParamInHeaderTest()
+    void testRepeatableStageParamInHeaderTest()
     {
         // arrange act assert
         assertEquals( "startIndex:0 count:1 startDate:null endDate: null",
@@ -918,18 +917,5 @@ class GridTest
         assertEquals( 0, gridA.getHeaders().get( 0 ).getStageOffset() );
 
         assertNull( gridA.getHeaders().get( 1 ).getStageOffset() );
-    }
-
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
-    private static List<Object> getList( Object... items )
-    {
-        List<Object> list = new ArrayList<>();
-        for ( Object item : items )
-        {
-            list.add( item );
-        }
-        return list;
     }
 }
