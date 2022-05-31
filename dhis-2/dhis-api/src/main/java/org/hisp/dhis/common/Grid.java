@@ -533,12 +533,12 @@ public interface Grid
     void retainColumns( Set<String> headers );
 
     /**
-     * Reorders the headers of the grid based on the given list of headers.
+     * Reorders the headers of the grid based on the given list of header names.
      *
-     * @param headers the list of headers.
+     * @param headers the list of header names.
      * @return a set of indexes which holds the holds the new header order.
      */
-    List<Integer> repositionHeaders( List<String> headers );
+    List<Integer> repositionColumnsByHeaders( List<String> headers );
 
     /**
      * Reorders the headers and columns of the grid based on the given column

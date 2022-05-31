@@ -1174,7 +1174,7 @@ public class ListGrid
     }
 
     @Override
-    public List<Integer> repositionHeaders( List<String> headers )
+    public List<Integer> repositionColumnsByHeaders( List<String> headers )
     {
         verifyGridState();
 
