@@ -48,7 +48,6 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.QueryItem;
-import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.springframework.stereotype.Service;
@@ -59,13 +58,13 @@ import com.google.common.collect.ImmutableMap;
 public class CommonRequestMapper
 {
 
-    private final I18nFormat i18nFormat;
+    private final I18nManager i18nManager;
 
     private final DataQueryService dataQueryService;
 
     public CommonRequestMapper( I18nManager i18nManager, DataQueryService dataQueryService )
     {
-        this.i18nFormat = i18nManager.getI18nFormat();
+        this.i18nManager = i18nManager;
         this.dataQueryService = dataQueryService;
     }
 
@@ -114,7 +113,7 @@ public class CommonRequestMapper
                         items,
                         request.getRelativePeriodDate(),
                         userOrgUnits,
-                        i18nFormat, true,
+                        i18nManager.getI18nFormat(), true,
                         IdScheme.UID );
 
                     if ( dimensionalObject != null )
