@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.event.data;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
+import org.hisp.dhis.analytics.shared.LabelMapper;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.junit.jupiter.api.Test;

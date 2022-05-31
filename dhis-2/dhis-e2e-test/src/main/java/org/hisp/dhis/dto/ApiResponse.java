@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.dto;
 
+import static org.hamcrest.core.IsNot.not;
+import static org.hamcrest.text.IsEmptyString.emptyOrNullString;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -88,6 +91,14 @@ public class ApiResponse
 
     public String extractString( String path )
     {
+        return raw.jsonPath().getString( path );
+    }
+
+    public String extractStringFailIfEmpty( String path )
+    {
+        this.validate()
+            .body( path, not( emptyOrNullString() ) );
+
         return raw.jsonPath().getString( path );
     }
 

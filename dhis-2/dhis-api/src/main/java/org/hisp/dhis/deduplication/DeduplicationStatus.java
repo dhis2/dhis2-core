@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.deduplication;
 
+import lombok.Getter;
+
+@Getter
 public enum DeduplicationStatus
 {
     ALL,

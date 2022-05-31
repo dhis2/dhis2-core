@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.event.data;
+package org.hisp.dhis.analytics.shared;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
@@ -45,12 +45,29 @@ public class LabelMapper
     }
 
     /**
+     * This method maps the given column to its respective label representation.
+     * The label is mainly needed to expose a more "user-friendly" name to the
+     * client.
+     *
+     * @param column
+     * @return the column's label
+     */
+    public static String getLabelOf( final Column column )
+    {
+        // TODO: Implement the logic to get the correct label of the respective
+        // column. See:
+        // org.hisp.dhis.analytics.event.data.DefaultEventAnalyticsService#createGridWithHeaders
+
+        return column.getAlias();
+    }
+
+    /**
      * Finds for a custom label for event date if one exists.
      *
      * @param programStage
      * @return the custom label, otherwise the default one
      */
-    static String getEventDateLabel( final ProgramStage programStage, final String defaultLabel )
+    public static String getEventDateLabel( final ProgramStage programStage, final String defaultLabel )
     {
         if ( programStage != null && isNotBlank( programStage.getDisplayExecutionDateLabel() ) )
         {
@@ -66,7 +83,7 @@ public class LabelMapper
      * @param programStage
      * @return the custom label, otherwise the default one
      */
-    static String getEnrollmentDateLabel( final ProgramStage programStage, final String defaultLabel )
+    public static String getEnrollmentDateLabel( final ProgramStage programStage, final String defaultLabel )
     {
         if ( programStage != null && programStage.getProgram() != null
             && isNotBlank( programStage.getProgram().getDisplayEnrollmentDateLabel() ) )
@@ -83,7 +100,7 @@ public class LabelMapper
      * @param programStage
      * @return the custom label, otherwise the default one
      */
-    static String getIncidentDateLabel( final ProgramStage programStage, final String defaultLabel )
+    public static String getIncidentDateLabel( final ProgramStage programStage, final String defaultLabel )
     {
         if ( programStage != null && programStage.getProgram() != null
             && isNotBlank( programStage.getProgram().getDisplayIncidentDateLabel() ) )
@@ -100,7 +117,7 @@ public class LabelMapper
      * @param program
      * @return the custom label, otherwise the default one
      */
-    static String getEnrollmentDateLabel( final Program program, final String defaultLabel )
+    public static String getEnrollmentDateLabel( final Program program, final String defaultLabel )
     {
         if ( program != null && isNotBlank( program.getDisplayEnrollmentDateLabel() ) )
         {
@@ -116,7 +133,7 @@ public class LabelMapper
      * @param program
      * @return the custom label, otherwise the default one
      */
-    static String getIncidentDateLabel( final Program program, final String defaultLabel )
+    public static String getIncidentDateLabel( final Program program, final String defaultLabel )
     {
         if ( program != null && isNotBlank( program.getDisplayIncidentDateLabel() ) )
         {
