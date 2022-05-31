@@ -1186,7 +1186,7 @@ public class ListGrid
         {
             if ( gridHeaders.contains( header ) )
             {
-                final int gridHeaderIndex = getIndexOfHeader( header );
+                int gridHeaderIndex = getIndexOfHeader( header );
                 orderedHeaders.add( getHeaders().get( gridHeaderIndex ) );
 
                 newColumnIndexes.add( gridHeaderIndex );
