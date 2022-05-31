@@ -542,7 +542,7 @@ public interface Grid
 
     /**
      * Reorders the headers and columns of the grid based on the given column
-     * indexes. The new positions of the columns will respect the new indexes.
+     * indexes. The given column indexes refer to the current column indexes.
      *
      * @param columnIndexes the new column indexes.
      */
