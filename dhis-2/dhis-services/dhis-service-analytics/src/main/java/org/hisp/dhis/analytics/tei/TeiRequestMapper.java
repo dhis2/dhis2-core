@@ -54,9 +54,9 @@ public class TeiRequestMapper
             .trackedEntityType( trackedEntityTypeService
                 .getTrackedEntityType( queryRequestHolder.getRequest().getTrackedEntityType() ) )
             .commonParams( commonRequestMapper.map(
-                    queryRequestHolder.getCommonQueryRequest(),
-                    queryRequestHolder.getPagingCriteria(),
-                    apiVersion ))
+                queryRequestHolder.getCommonQueryRequest(),
+                queryRequestHolder.getPagingCriteria(),
+                apiVersion ) )
             .build();
     }
 }

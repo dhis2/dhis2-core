@@ -69,7 +69,8 @@ public class CommonRequestMapper
         this.dataQueryService = dataQueryService;
     }
 
-    public CommonParams map(CommonQueryRequest request, AnalyticsPagingCriteria pagingCriteria, DhisApiVersion apiVersion )
+    public CommonParams map( CommonQueryRequest request, AnalyticsPagingCriteria pagingCriteria,
+        DhisApiVersion apiVersion )
     {
 
         List<OrganisationUnit> userOrgUnits = dataQueryService.getUserOrgUnits( null, request.getUserOrgUnit() );
@@ -82,7 +83,8 @@ public class CommonRequestMapper
                 .requestPaged( pagingCriteria.isPaging() )
                 .page( pagingCriteria.getPage() )
                 .pageSize( pagingCriteria.getPageSize() )
-                    // not mapping EndpointItem and RequestType -- not needed at the moment
+                // not mapping EndpointItem and RequestType -- not needed at the
+                // moment
                 .build() )
             .dimensions( castTo( queryElementsByType.get( Type.DIMENSIONS ), DimensionalObject.class ) )
             .filters( castTo( queryElementsByType.get( Type.FILTERS ), DimensionalObject.class ) )

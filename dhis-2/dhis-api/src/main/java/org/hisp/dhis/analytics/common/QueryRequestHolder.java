@@ -29,8 +29,8 @@ package org.hisp.dhis.analytics.common;
 
 import lombok.Builder;
 import lombok.Data;
+
 import org.hisp.dhis.common.AnalyticsPagingCriteria;
-import org.hisp.dhis.webapi.controller.event.webrequest.PagingCriteria;
 
 @Data
 @Builder

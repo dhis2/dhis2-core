@@ -34,7 +34,6 @@ import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
 
-import org.hisp.dhis.common.AnalyticsPagingCriteria;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 

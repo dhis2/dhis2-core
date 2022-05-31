@@ -45,8 +45,6 @@ import org.hisp.dhis.analytics.tei.TeiRequestMapper;
 import org.hisp.dhis.common.AnalyticsPagingCriteria;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.RequestTypeAware;
-import org.hisp.dhis.webapi.controller.event.webrequest.PagingCriteria;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -77,21 +75,21 @@ class TeiQueryController
 
     @GetMapping( "query/{trackedEntityType}" )
     Grid getGrid(
-            @PathVariable
+        @PathVariable
         final String trackedEntityType,
-            final TeiQueryRequest teiQueryRequest,
-            final CommonQueryRequest commonQueryRequest,
-            final AnalyticsPagingCriteria pagingRequest,
-            final DhisApiVersion apiVersion,
-            final HttpServletResponse response )
+        final TeiQueryRequest teiQueryRequest,
+        final CommonQueryRequest commonQueryRequest,
+        final AnalyticsPagingCriteria pagingRequest,
+        final DhisApiVersion apiVersion,
+        final HttpServletResponse response )
     {
         final QueryRequestHolder<TeiQueryRequest> queryRequestHolder = QueryRequestHolder.<TeiQueryRequest> builder()
             .request( teiQueryRequest.withTrackedEntityType( trackedEntityType ) )
             .commonQueryRequest( commonQueryRequest )
             .pagingCriteria(
-                    (AnalyticsPagingCriteria) pagingRequest
-                            .withEndpointItem(TRACKED_ENTITY_INSTANCE)
-                            .withQueryEndpointAction())
+                (AnalyticsPagingCriteria) pagingRequest
+                    .withEndpointItem( TRACKED_ENTITY_INSTANCE )
+                    .withQueryEndpointAction() )
             .build();
 
         teiAnalyticsValidationService.validateRequest( queryRequestHolder );
