@@ -35,6 +35,7 @@ details_sql: >-
   SELECT uid, name FROM dataelementcategory
   WHERE name = 'default' AND uid != 'GLevLNI9wkl'
   ORDER BY categoryid;
+details_id_type: categories
 severity: SEVERE
 introduction: >
   There should only exist one category with name and code "default".

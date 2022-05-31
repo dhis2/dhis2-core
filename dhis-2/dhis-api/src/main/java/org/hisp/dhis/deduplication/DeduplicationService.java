@@ -44,7 +44,8 @@ public interface DeduplicationService
 
     List<PotentialDuplicate> getAllPotentialDuplicatesBy( PotentialDuplicateQuery query );
 
-    void addPotentialDuplicate( PotentialDuplicate potentialDuplicate );
+    void addPotentialDuplicate( PotentialDuplicate potentialDuplicate )
+        throws PotentialDuplicateConflictException;
 
     void updatePotentialDuplicate( PotentialDuplicate potentialDuplicate );
 

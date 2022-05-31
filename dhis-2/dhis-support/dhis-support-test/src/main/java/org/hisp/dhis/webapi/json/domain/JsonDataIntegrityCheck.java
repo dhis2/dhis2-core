@@ -76,4 +76,8 @@ public interface JsonDataIntegrityCheck extends JsonObject
         return getString( "recommendation" ).string();
     }
 
+    default String getIssuesIdType()
+    {
+        return getString( "issuesIdType" ).string();
+    }
 }

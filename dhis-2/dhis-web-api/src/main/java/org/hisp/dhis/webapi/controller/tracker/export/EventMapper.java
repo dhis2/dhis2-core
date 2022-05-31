@@ -52,6 +52,7 @@ interface EventMapper extends ViewMapper<org.hisp.dhis.dxf2.events.event.Event, 
     @Mapping( target = "createdBy", source = "createdByUserInfo" )
     @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
     @Mapping( target = "assignedUser", source = ".", qualifiedByName = "toUserInfo" )
+    @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )
     Event from( org.hisp.dhis.dxf2.events.event.Event event );
 
     @Named( "toUserInfo" )

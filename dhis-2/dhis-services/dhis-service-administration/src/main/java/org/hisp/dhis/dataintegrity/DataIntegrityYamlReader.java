@@ -79,6 +79,9 @@ class DataIntegrityYamlReader
         @JsonProperty( "details_sql" )
         String detailsSql;
 
+        @JsonProperty( "details_id_type" )
+        String detailsIdType;
+
         @JsonProperty
         String introduction;
 
@@ -122,6 +125,7 @@ class DataIntegrityYamlReader
                     .description( info.apply( name + ".description", trim( e.description ) ) )
                     .introduction( info.apply( name + ".introduction", trim( e.introduction ) ) )
                     .recommendation( info.apply( name + ".recommendation", trim( e.recommendation ) ) )
+                    .issuesIdType( trim( e.detailsIdType ) )
                     .section( trim( e.section ) )
                     .severity( e.severity )
                     .runSummaryCheck( sqlToSummary.apply( sanitiseSQL( e.summarySql ) ) )

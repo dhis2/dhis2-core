@@ -39,6 +39,7 @@ details_sql: >-
     where categoryid
     not in (select distinct categoryid from categories_categoryoptions)
     ORDER BY name;
+details_id_type: categories
 severity: WARNING
 introduction: >
     Categories should always have at least a single category options.

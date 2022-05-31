@@ -59,6 +59,7 @@ details_sql: >-
   from combo_sets a
   left join categorycombo cca on a.id = cca.categorycomboid
   where exists (select 1 from combo_sets c where c.id != a.id and c.cats @> a.cats and a.cats @> c.cats)
+details_id_type: categoryCombos
 severity: SEVERE
 introduction: >
   A category combo should be a unique combination of categories
