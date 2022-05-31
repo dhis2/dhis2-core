@@ -52,6 +52,7 @@ import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.expression.MissingValueStrategy;
+import org.hisp.dhis.expression.ParseType;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -196,6 +197,11 @@ public class CommonExpressionVisitor
      * Strategy for handling missing values.
      */
     private MissingValueStrategy missingValueStrategy = NEVER_SKIP;
+
+    /**
+     * Type of expression being parsed.
+     */
+    private ParseType parseType;
 
     /**
      * Current program indicator.
@@ -652,6 +658,11 @@ public class CommonExpressionVisitor
         return missingValueStrategy;
     }
 
+    public ParseType getParseType()
+    {
+        return parseType;
+    }
+
     // -------------------------------------------------------------------------
     // Builder
     // -------------------------------------------------------------------------
@@ -755,6 +766,12 @@ public class CommonExpressionVisitor
         public Builder withMissingValueStrategy( MissingValueStrategy missingValueStrategy )
         {
             this.visitor.missingValueStrategy = missingValueStrategy;
+            return this;
+        }
+
+        public Builder withParseType( ParseType parseType )
+        {
+            this.visitor.parseType = parseType;
             return this;
         }
 
