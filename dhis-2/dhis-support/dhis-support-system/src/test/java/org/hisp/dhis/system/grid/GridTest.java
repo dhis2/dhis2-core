@@ -776,7 +776,7 @@ class GridTest
     }
 
     @Test
-    void testRepositionHeaders()
+    void testRepositionHeadersA()
     {
         // Given
         final GridHeader headerA = new GridHeader( "headerA", "Header A" );
@@ -832,7 +832,7 @@ class GridTest
     }
 
     @Test
-    void testRepositionHeaders()
+    void testRepositionColumns()
     {
         // Given
         final GridHeader headerA = new GridHeader( "headerA", "Header A" );
