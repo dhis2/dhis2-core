@@ -136,7 +136,7 @@ public class EventQueryParams
     private List<QueryItem> itemFilters = new ArrayList<>();
 
     /**
-     * The headers.
+     * TODO Change to List? TODO Add Javadoc
      */
     protected Set<String> headers = new LinkedHashSet<>();
 
@@ -1073,6 +1073,7 @@ public class EventQueryParams
         return outputType;
     }
 
+    @Override
     public IdScheme getOutputIdScheme()
     {
         return outputIdScheme;
@@ -1234,6 +1235,7 @@ public class EventQueryParams
             return this;
         }
 
+        @Override
         public Builder addDimension( DimensionalObject dimension )
         {
             this.params.addDimension( dimension );
@@ -1246,6 +1248,7 @@ public class EventQueryParams
             return this;
         }
 
+        @Override
         public Builder removeDimensionOrFilter( String dimension )
         {
             this.params.dimensions.remove( new BaseDimensionalObject( dimension ) );
@@ -1260,6 +1263,7 @@ public class EventQueryParams
             return this;
         }
 
+        @Override
         public Builder addFilter( DimensionalObject filter )
         {
             this.params.addFilter( filter );
