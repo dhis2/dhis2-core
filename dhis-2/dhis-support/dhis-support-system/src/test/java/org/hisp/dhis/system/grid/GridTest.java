@@ -751,11 +751,11 @@ class GridTest
     void testRetainColumns()
     {
         // Given
-        final GridHeader headerA = new GridHeader( "headerA", "Header A" );
-        final GridHeader headerB = new GridHeader( "headerB", "Header B" );
-        final GridHeader headerC = new GridHeader( "headerC", "Header C" );
+        GridHeader headerA = new GridHeader( "headerA", "Header A" );
+        GridHeader headerB = new GridHeader( "headerB", "Header B" );
+        GridHeader headerC = new GridHeader( "headerC", "Header C" );
 
-        final Grid grid = new ListGrid();
+        Grid grid = new ListGrid();
         grid.addHeader( headerA );
         grid.addHeader( headerB );
         grid.addHeader( headerC );
@@ -763,7 +763,7 @@ class GridTest
         grid.addRow().addValue( 2 ).addValue( "b" ).addValue( "b-1" );
         grid.addRow().addValue( 3 ).addValue( "c" ).addValue( "c-1" );
 
-        final Set<String> headers = new LinkedHashSet<>( List.of( "headerA", "headerB" ) );
+        Set<String> headers = new LinkedHashSet<>( List.of( "headerA", "headerB" ) );
 
         // When
         grid.retainColumns( headers );
@@ -778,11 +778,11 @@ class GridTest
     void testRepositionHeadersA()
     {
         // Given
-        final GridHeader headerA = new GridHeader( "headerA", "Header A" );
-        final GridHeader headerB = new GridHeader( "headerB", "Header B" );
-        final GridHeader headerC = new GridHeader( "headerC", "Header C" );
+        GridHeader headerA = new GridHeader( "headerA", "Header A" );
+        GridHeader headerB = new GridHeader( "headerB", "Header B" );
+        GridHeader headerC = new GridHeader( "headerC", "Header C" );
 
-        final Grid grid = new ListGrid();
+        Grid grid = new ListGrid();
         grid.addHeader( headerA );
         grid.addHeader( headerB );
         grid.addHeader( headerC );
@@ -790,7 +790,7 @@ class GridTest
         grid.addRow().addValue( 2 ).addValue( "b" ).addValue( "b-1" );
         grid.addRow().addValue( 3 ).addValue( "c" ).addValue( "c-1" );
 
-        final Set<String> headers = new LinkedHashSet<>( List.of( "headerC", "headerB", "headerA" ) );
+        List<String> headers = List.of( "headerC", "headerB", "headerA" );
 
         // When
         grid.repositionHeaders( headers );
@@ -806,11 +806,11 @@ class GridTest
     void testRepositionHeadersUsingInvalidHeader()
     {
         // Given
-        final GridHeader headerA = new GridHeader( "headerA", "Header A" );
-        final GridHeader headerB = new GridHeader( "headerB", "Header B" );
-        final GridHeader headerC = new GridHeader( "headerC", "Header C" );
+        GridHeader headerA = new GridHeader( "headerA", "Header A" );
+        GridHeader headerB = new GridHeader( "headerB", "Header B" );
+        GridHeader headerC = new GridHeader( "headerC", "Header C" );
 
-        final Grid grid = new ListGrid();
+        Grid grid = new ListGrid();
         grid.addHeader( headerA );
         grid.addHeader( headerB );
         grid.addHeader( headerC );
@@ -818,10 +818,10 @@ class GridTest
         grid.addRow().addValue( 2 ).addValue( "b" ).addValue( "b-1" );
         grid.addRow().addValue( 3 ).addValue( "c" ).addValue( "c-1" );
 
-        final Set<String> headers = new LinkedHashSet<>( List.of( "invalidHeader", "headerB", "headerA" ) );
+        List<String> headers = List.of( "invalidHeader", "headerB", "headerA" );
 
         // When
-        final IllegalQueryException expectedException = assertThrows(
+        IllegalQueryException expectedException = assertThrows(
             IllegalQueryException.class, () -> grid.repositionHeaders( headers ) );
 
         // Then
@@ -834,25 +834,23 @@ class GridTest
     void testRepositionColumns()
     {
         // Given
-        final GridHeader headerA = new GridHeader( "headerA", "Header A" );
-        final GridHeader headerB = new GridHeader( "headerB", "Header B" );
-        final GridHeader headerC = new GridHeader( "headerC", "Header C" );
+        GridHeader headerA = new GridHeader( "headerA", "Header A" );
+        GridHeader headerB = new GridHeader( "headerB", "Header B" );
+        GridHeader headerC = new GridHeader( "headerC", "Header C" );
 
-        final Grid grid = new ListGrid();
+        Grid grid = new ListGrid();
         grid.addHeader( headerA );
         grid.addHeader( headerB );
         grid.addHeader( headerC );
-        grid.addRow().addValue( 1 ).addValue( "a" ).addValue( "a-1" ); // first
-                                                                       // row +
-                                                                       // columns
+        grid.addRow().addValue( 1 ).addValue( "a" ).addValue( "a-1" );
         grid.addRow().addValue( 2 ).addValue( "b" ).addValue( "b-1" );
         grid.addRow().addValue( 3 ).addValue( "c" ).addValue( "c-1" );
 
-        final Set<String> headers = new LinkedHashSet<>( List.of( "headerC", "headerB", "headerA" ) );
-        final Set<Integer> newColumnIndexes = grid.repositionHeaders( headers );
+        List<String> headers = List.of( "headerC", "headerB", "headerA" );
+        List<Integer> columnIndexes = grid.repositionHeaders( headers );
 
         // When
-        grid.repositionColumns( newColumnIndexes );
+        grid.repositionColumns( columnIndexes );
 
         // Then
         assertThat( grid.getHeaderWidth(), is( equalTo( 3 ) ) );

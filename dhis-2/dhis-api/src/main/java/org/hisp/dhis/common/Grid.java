@@ -535,10 +535,10 @@ public interface Grid
     /**
      * Reorders the headers of the grid based on the given list of headers.
      *
-     * @param headers the set of headers.
+     * @param headers the list of headers.
      * @return a set of indexes which holds the holds the new header order.
      */
-    Set<Integer> repositionHeaders( Set<String> headers );
+    List<Integer> repositionHeaders( List<String> headers );
 
     /**
      * Reorders the headers and columns of the grid based on the given column
@@ -546,7 +546,7 @@ public interface Grid
      *
      * @param columnIndexes the new column indexes.
      */
-    void repositionColumns( Set<Integer> columnIndexes );
+    void repositionColumns( List<Integer> columnIndexes );
 
     boolean hasLastDataRow();
 

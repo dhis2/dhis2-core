@@ -46,6 +46,7 @@ import static org.hisp.dhis.common.ValueType.COORDINATE;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentGraphMap;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraphMap;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -276,7 +277,7 @@ public abstract class AbstractAnalyticsService
         if ( params.hasHeaders() )
         {
             grid.retainColumns( params.getHeaders() );
-            grid.repositionColumns( grid.repositionHeaders( params.getHeaders() ) );
+            grid.repositionColumns( grid.repositionHeaders( new ArrayList<>( params.getHeaders() ) ) );
         }
     }
 
