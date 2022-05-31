@@ -196,7 +196,6 @@ class FileResourceSupplierTest extends DhisConvenienceTest
 
     private Attribute numericAttribute()
     {
-
         return Attribute.builder()
             .attribute( MetadataIdentifier.ofUid( "numeric" ) )
             .valueType( ValueType.NUMBER )
@@ -205,7 +204,6 @@ class FileResourceSupplierTest extends DhisConvenienceTest
 
     private Attribute fileAttribute( String uid, String value )
     {
-
         return Attribute.builder()
             .attribute( MetadataIdentifier.ofUid( uid ) )
             .valueType( ValueType.FILE_RESOURCE )
@@ -272,7 +270,6 @@ class FileResourceSupplierTest extends DhisConvenienceTest
 
     private DataValue dataValue( String uid, String value )
     {
-
         return DataValue.builder()
             .dataElement( MetadataIdentifier.ofUid( uid ) )
             .value( value )
