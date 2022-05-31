@@ -260,6 +260,9 @@ public interface Grid
      */
     List<List<Object>> getRows();
 
+    /**
+     * Returns references.
+     */
     List<Reference> getRefs();
 
     /**
