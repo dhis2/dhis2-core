@@ -275,7 +275,7 @@ public abstract class AbstractAnalyticsService
     {
         if ( params.hasHeaders() )
         {
-            grid.keepOnlyThese( params.getHeaders() );
+            grid.retainColumns( params.getHeaders() );
             grid.repositionColumns( grid.repositionHeaders( params.getHeaders() ) );
         }
     }

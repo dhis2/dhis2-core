@@ -767,7 +767,7 @@ class GridTest
         final Set<String> headers = new LinkedHashSet<>( List.of( "headerA", "headerB" ) );
 
         // When
-        grid.keepOnlyThese( headers );
+        grid.retainColumns( headers );
 
         // Then
         assertThat( grid.getHeaderWidth(), is( equalTo( 2 ) ) );

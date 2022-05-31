@@ -128,7 +128,7 @@ public class EventAnalyticsController
 
         if ( params.analyzeOnly() )
         {
-            grid.maybeAddPerformanceMetrics( executionPlanStore.getExecutionPlans( params.getExplainOrderId() ) );
+            grid.addPerformanceMetrics( executionPlanStore.getExecutionPlans( params.getExplainOrderId() ) );
         }
 
         return grid;
@@ -298,7 +298,7 @@ public class EventAnalyticsController
 
         if ( params.analyzeOnly() )
         {
-            grid.maybeAddPerformanceMetrics( executionPlanStore.getExecutionPlans( params.getExplainOrderId() ) );
+            grid.addPerformanceMetrics( executionPlanStore.getExecutionPlans( params.getExplainOrderId() ) );
         }
 
         return grid;

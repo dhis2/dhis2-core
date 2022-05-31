@@ -121,6 +121,9 @@ public class ListGrid
      */
     private List<List<Object>> grid;
 
+    /**
+     * References.
+     */
     private List<Reference> refs;
 
     /**
@@ -1115,19 +1118,19 @@ public class ListGrid
     }
 
     @Override
-    public Grid maybeAddPerformanceMetrics( List<ExecutionPlan> plans )
+    public Grid addPerformanceMetrics( List<ExecutionPlan> plans )
     {
         if ( plans.isEmpty() )
         {
             return this;
         }
 
+        double total = plans.stream()
+            .map( ExecutionPlan::getTimeInMillis )
+            .reduce( 0.0, Double::sum );
+
         performanceMetrics = new PerformanceMetrics();
-
-        double total = plans.stream().map( ExecutionPlan::getTimeInMillis ).reduce( 0.0, Double::sum );
-
         performanceMetrics.setTotalTimeInMillis( Precision.round( total, 3 ) );
-
         performanceMetrics.setExecutionPlans( plans );
 
         return this;
@@ -1152,18 +1155,8 @@ public class ListGrid
         return addRows( rs, -1 );
     }
 
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
-
-    /**
-     * This method will take a Grid and keep only the given list of headers. All
-     * other GridHeaders and respective columns will be removed from the Grid.
-     *
-     * @param headers
-     */
     @Override
-    public void keepOnlyThese( final Set<String> headers )
+    public void retainColumns( Set<String> headers )
     {
         final List<String> exclusions = getHeaders().stream().map( GridHeader::getName ).collect( toList() );
         exclusions.removeAll( headers );
@@ -1180,16 +1173,8 @@ public class ListGrid
         }
     }
 
-    /**
-     * Re-order the GridHeaders of the given Grid based on the List headers. The
-     * final Grid will have the all its headers defined in the same order as the
-     * given List of headers.
-     *
-     * @param headers
-     * @return a Set of indexes that holds the holds the new order
-     */
     @Override
-    public Set<Integer> repositionHeaders( final Set<String> headers )
+    public Set<Integer> repositionHeaders( Set<String> headers )
     {
         verifyGridState();
 
@@ -1197,7 +1182,7 @@ public class ListGrid
         final List<GridHeader> orderedHeaders = new ArrayList<>();
         final Set<Integer> newColumnIndexes = new LinkedHashSet<>();
 
-        for ( final String header : headers )
+        for ( String header : headers )
         {
             if ( gridHeaders.contains( header ) )
             {
@@ -1217,24 +1202,18 @@ public class ListGrid
         return newColumnIndexes;
     }
 
-    /**
-     * Based on the given column indexes, this method will order the current
-     * columns in the Grid. The new positions of the columns will respect the
-     * new indexes.
-     *
-     * @param newColumnsIndexes
-     */
     @Override
-    public void repositionColumns( final Set<Integer> newColumnsIndexes )
+    public void repositionColumns( final Set<Integer> columnsIndexes )
     {
         verifyGridState();
 
-        final List<List<Object>> allRows = getRows();
-        final List<Integer> newIndexes = new ArrayList<>( newColumnsIndexes );
+        List<List<Object>> allRows = getRows();
+        List<Integer> newIndexes = new ArrayList<>( columnsIndexes );
 
-        for ( final List<Object> columns : allRows )
+        for ( List<Object> columns : allRows )
         {
-            final List<Object> orderedColumns = new ArrayList<>();
+            List<Object> orderedColumns = new ArrayList<>();
+
             for ( int i = 0; i < columns.size(); i++ )
             {
                 orderedColumns.add( columns.get( newIndexes.get( i ) ) );
@@ -1256,6 +1235,10 @@ public class ListGrid
     {
         this.lastDataRow = lastDataRow;
     }
+
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
 
     /**
      * Verifies that all grid rows are of the same length.
