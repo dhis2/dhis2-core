@@ -25,35 +25,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.linelisting.trackedentityinstance;
+package org.hisp.dhis.analytics.common;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import lombok.RequiredArgsConstructor;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.system.grid.ListGrid;
+import org.springframework.stereotype.Service;
 
-import org.hisp.dhis.analytics.linelisting.CommonLineListingParams;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
-
-/**
- * This class is a wrapper for all possible parameters related to a tei. All
- * attributes present here should be correctly typed and ready to be used by the
- * service layers.
- *
- * @author maikel arabori
- */
-@Getter
-@Setter
-@Builder( toBuilder = true )
-public class TeiQueryParams
+@Service
+@RequiredArgsConstructor
+public class CommonQueryService
 {
-    private final TrackedEntityType trackedEntityType;
+    public Grid getGrid( CommonParams queryParams )
+    {
+        Grid grid = new ListGrid();
+        // TODO: prepare the grid based on CommonLineListingParams
+        return grid;
+    }
 
-    private final CommonLineListingParams commonParams;
-
-    @Builder.Default
-    private final Collection<Program> programs = new ArrayList<>();
 }

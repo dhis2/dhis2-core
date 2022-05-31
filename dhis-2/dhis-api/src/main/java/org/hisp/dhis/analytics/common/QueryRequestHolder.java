@@ -25,23 +25,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.linelisting;
+package org.hisp.dhis.analytics.common;
 
-import lombok.RequiredArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import org.hisp.dhis.common.AnalyticsPagingCriteria;
+import org.hisp.dhis.webapi.controller.event.webrequest.PagingCriteria;
 
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.system.grid.ListGrid;
-import org.springframework.stereotype.Service;
-
-@Service
-@RequiredArgsConstructor
-public class CommonQueryService
+@Data
+@Builder
+public class QueryRequestHolder<T>
 {
-    public Grid getGrid( CommonLineListingParams queryParams )
-    {
-        Grid grid = new ListGrid();
-        // TODO: prepare the grid based on CommonLineListingParams
-        return grid;
-    }
+    private final T request;
 
+    private final CommonQueryRequest commonQueryRequest;
+
+    private final AnalyticsPagingCriteria pagingCriteria;
 }

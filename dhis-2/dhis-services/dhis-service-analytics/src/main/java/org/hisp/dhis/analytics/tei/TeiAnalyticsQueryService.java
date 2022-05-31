@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.linelisting.trackedentityinstance;
+package org.hisp.dhis.analytics.tei;
 
 import static org.hisp.dhis.analytics.shared.GridHeaders.from;
 import static org.springframework.util.Assert.notNull;

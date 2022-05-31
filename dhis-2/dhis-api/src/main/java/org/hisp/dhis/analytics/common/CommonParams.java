@@ -25,28 +25,49 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.linelisting.trackedentityinstance;
+package org.hisp.dhis.analytics.common;
 
-import lombok.RequiredArgsConstructor;
+import java.util.ArrayList;
+import java.util.List;
 
-import org.hisp.dhis.analytics.linelisting.CommonValidationService;
-import org.hisp.dhis.analytics.linelisting.QueryRequestHolder;
-import org.springframework.stereotype.Component;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
 
-/**
- * Component responsible for validation rules on top of analytics tracker entity
- * queries.
- */
-@Component
-@RequiredArgsConstructor
-public class TeiAnalyticsValidator
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.QueryItem;
+
+@Getter
+@Setter
+@Builder( toBuilder = true )
+public class CommonParams
 {
 
-    private final CommonValidationService commonValidationService;
+    /**
+     * The dimensions.
+     */
+    @Builder.Default
+    private final List<DimensionalObject> dimensions = new ArrayList<>();
 
-    public void validateRequest( final QueryRequestHolder<TeiQueryRequest> queryRequestHolder )
-    {
-        commonValidationService.validate( queryRequestHolder.getCommonQueryRequest() );
-        // TODO: validate request based on common params
-    }
+    /**
+     * The filters.
+     */
+    @Builder.Default
+    private final List<DimensionalObject> filters = new ArrayList<>();
+
+    /**
+     * The query items.
+     */
+    @Builder.Default
+    private final List<QueryItem> items = new ArrayList<>();
+
+    /**
+     * The query item filters.
+     */
+    @Builder.Default
+    private final List<QueryItem> itemFilters = new ArrayList<>();
+
+    @Builder.Default
+    private final AnalyticsPagingAndSortingParams pagingAndSortingParams = AnalyticsPagingAndSortingParams.builder()
+        .build();
 }

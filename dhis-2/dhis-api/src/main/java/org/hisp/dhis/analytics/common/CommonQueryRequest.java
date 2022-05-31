@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.linelisting;
+package org.hisp.dhis.analytics.common;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -40,7 +40,7 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 
 @Getter
 @Setter
-public class CommonQueryRequest extends AnalyticsPagingCriteria
+public class CommonQueryRequest
 {
 
     private String userOrgUnit;

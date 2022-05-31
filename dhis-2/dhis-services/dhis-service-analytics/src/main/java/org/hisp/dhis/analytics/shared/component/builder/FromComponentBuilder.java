@@ -29,7 +29,7 @@ package org.hisp.dhis.analytics.shared.component.builder;
 
 import java.util.List;
 
-import org.hisp.dhis.analytics.linelisting.trackedentityinstance.TeiQueryParams;
+import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.analytics.shared.component.FromComponent;
 import org.hisp.dhis.analytics.shared.component.element.from.SimpleFromElement;
 

@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.analytics.linelisting.trackedentityinstance.TeiQueryParams;
+import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.analytics.shared.component.WhereComponent;
 import org.hisp.dhis.analytics.shared.component.element.Element;
 import org.hisp.dhis.analytics.shared.component.element.where.EnrollmentDateValueWhereElement;

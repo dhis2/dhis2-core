@@ -29,8 +29,6 @@ package org.hisp.dhis.analytics.tei;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import org.hisp.dhis.analytics.linelisting.trackedentityinstance.TeiJdbcQuery;
-import org.hisp.dhis.analytics.linelisting.trackedentityinstance.TeiQueryParams;
 import org.hisp.dhis.analytics.shared.Query;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
