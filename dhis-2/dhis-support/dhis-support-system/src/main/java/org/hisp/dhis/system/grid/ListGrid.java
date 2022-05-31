@@ -1210,17 +1210,17 @@ public class ListGrid
         List<List<Object>> allRows = getRows();
         List<Integer> indexes = new ArrayList<>( columnsIndexes );
 
-        for ( List<Object> columns : allRows )
+        for ( List<Object> column : allRows )
         {
             List<Object> orderedColumns = new ArrayList<>();
 
-            for ( int i = 0; i < columns.size(); i++ )
+            for ( int i = 0; i < column.size(); i++ )
             {
-                orderedColumns.add( columns.get( indexes.get( i ) ) );
+                orderedColumns.add( column.get( indexes.get( i ) ) );
             }
 
-            columns.clear();
-            columns.addAll( orderedColumns );
+            column.clear();
+            column.addAll( orderedColumns );
         }
     }
 
