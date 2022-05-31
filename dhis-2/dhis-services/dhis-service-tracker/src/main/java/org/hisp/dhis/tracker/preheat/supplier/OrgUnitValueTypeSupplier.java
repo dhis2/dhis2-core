@@ -36,7 +36,6 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -65,23 +64,19 @@ public class OrgUnitValueTypeSupplier extends AbstractPreheatSupplier
     @Override
     public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
     {
-        List<DataElement> dataElements = preheat.getAll( DataElement.class );
-
-        List<String> orgUnitDataElements = dataElements.stream()
-            .filter( de -> de.getValueType() == ValueType.ORGANISATION_UNIT )
-            .map( BaseIdentifiableObject::getUid )
-            .collect( Collectors.toList() );
-
-        List<TrackedEntityAttribute> attributes = preheat.getAll( TrackedEntityAttribute.class );
-
         TrackerIdSchemeParams idSchemes = preheat.getIdSchemes();
-        List<MetadataIdentifier> orgUnitAttributes = attributes.stream()
+
+        List<MetadataIdentifier> orgUnitAttributes = preheat.getAll( TrackedEntityAttribute.class ).stream()
             .filter( at -> at.getValueType() == ValueType.ORGANISATION_UNIT )
             .map( idSchemes::toMetadataIdentifier )
             .collect( Collectors.toList() );
 
-        List<String> orgUnitIds = new ArrayList<>();
+        List<MetadataIdentifier> orgUnitDataElements = preheat.getAll( DataElement.class ).stream()
+            .filter( de -> de.getValueType() == ValueType.ORGANISATION_UNIT )
+            .map( idSchemes::toMetadataIdentifier )
+            .collect( Collectors.toList() );
 
+        List<String> orgUnitIds = new ArrayList<>();
         params.getTrackedEntities()
             .forEach( te -> collectResourceIds( orgUnitAttributes, orgUnitIds, te.getAttributes() ) );
         params.getEnrollments()
@@ -103,7 +98,7 @@ public class OrgUnitValueTypeSupplier extends AbstractPreheatSupplier
         } );
     }
 
-    private void collectResourceIds( List<String> orgUnitDataElements, List<String> orgUnitIds,
+    private void collectResourceIds( List<MetadataIdentifier> orgUnitDataElements, List<String> orgUnitIds,
         Set<DataValue> dataValues )
     {
         dataValues.forEach( dv -> {
