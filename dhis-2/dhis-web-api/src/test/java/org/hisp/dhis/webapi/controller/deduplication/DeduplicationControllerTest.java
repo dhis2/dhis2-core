@@ -114,7 +114,10 @@ public class DeduplicationControllerTest
         lenient().when( trackedEntityInstanceA.getUid() ).thenReturn( teiA );
         lenient().when( trackedEntityInstanceB.getUid() ).thenReturn( teiB );
 
-        lenient().when( trackedEntityInstanceService.getTrackedEntityInstance( teiA ) );
+        lenient().when( trackedEntityInstanceService.getTrackedEntityInstance( teiA ) )
+            .thenReturn( trackedEntityInstanceA );
+        lenient().when( trackedEntityInstanceService.getTrackedEntityInstance( teiB ) )
+            .thenReturn( trackedEntityInstanceB );
 
         lenient().when( trackerAccessManager.canRead( any(), eq( trackedEntityInstanceA ) ) ).thenReturn(
             Lists.newArrayList() );
