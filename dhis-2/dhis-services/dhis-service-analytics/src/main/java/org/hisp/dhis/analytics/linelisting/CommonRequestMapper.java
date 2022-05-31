@@ -50,11 +50,11 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import com.google.common.collect.ImmutableMap;
 
-@Service
+@Component
 public class CommonRequestMapper
 {
 

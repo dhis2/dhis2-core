@@ -30,7 +30,6 @@ package org.hisp.dhis.analytics.shared;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
 
 /**
  * Specific component responsible mapping custom labels for specific cases where
@@ -64,48 +63,14 @@ public class LabelMapper
     /**
      * Finds for a custom label for event date if one exists.
      *
-     * @param programStage
+     * @param program
      * @return the custom label, otherwise the default one
      */
-    public static String getEventDateLabel( final ProgramStage programStage, final String defaultLabel )
+    public static String getEventDateLabel( final Program program, final String defaultLabel )
     {
-        if ( programStage != null && isNotBlank( programStage.getDisplayExecutionDateLabel() ) )
+        if ( program != null && isNotBlank( program.getDisplayIncidentDateLabel() ) )
         {
-            return programStage.getDisplayExecutionDateLabel();
-        }
-
-        return defaultLabel;
-    }
-
-    /**
-     * Finds for a custom label for enrollment date if one exists.
-     *
-     * @param programStage
-     * @return the custom label, otherwise the default one
-     */
-    public static String getEnrollmentDateLabel( final ProgramStage programStage, final String defaultLabel )
-    {
-        if ( programStage != null && programStage.getProgram() != null
-            && isNotBlank( programStage.getProgram().getDisplayEnrollmentDateLabel() ) )
-        {
-            return programStage.getProgram().getDisplayEnrollmentDateLabel();
-        }
-
-        return defaultLabel;
-    }
-
-    /**
-     * Finds for a custom label for incident date if one exists.
-     *
-     * @param programStage
-     * @return the custom label, otherwise the default one
-     */
-    public static String getIncidentDateLabel( final ProgramStage programStage, final String defaultLabel )
-    {
-        if ( programStage != null && programStage.getProgram() != null
-            && isNotBlank( programStage.getProgram().getDisplayIncidentDateLabel() ) )
-        {
-            return programStage.getProgram().getDisplayIncidentDateLabel();
+            return program.getDisplayIncidentDateLabel();
         }
 
         return defaultLabel;
