@@ -748,7 +748,7 @@ class GridTest
     }
 
     @Test
-    void testKeepOnlyThese()
+    void testRetainColumns()
     {
         // Given
         final GridHeader headerA = new GridHeader( "headerA", "Header A" );
