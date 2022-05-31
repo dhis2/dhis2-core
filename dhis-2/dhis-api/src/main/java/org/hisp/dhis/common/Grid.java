@@ -130,6 +130,13 @@ public interface Grid
     int getIndexOfHeader( String name );
 
     /**
+     * Indicates whether a header with the given name exists.
+     *
+     * @param name the name of the grid header.
+     */
+    boolean headerExists( String name );
+
+    /**
      * Adds a header.
      *
      * @param header the grid header.
@@ -541,7 +548,7 @@ public interface Grid
      * @param headers the list of header names.
      * @return a set of indexes which holds the holds the new header order.
      */
-    List<Integer> repositionColumnsByHeaders( List<String> headers );
+    List<Integer> repositionHeaders( List<String> headers );
 
     /**
      * Reorders the headers and columns of the grid based on the given column

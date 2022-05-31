@@ -313,6 +313,12 @@ public class ListGrid
     }
 
     @Override
+    public boolean headerExists( String name )
+    {
+        return getIndexOfHeader( name ) != -1;
+    }
+
+    @Override
     @JsonProperty
     public int getHeight()
     {
@@ -1174,17 +1180,17 @@ public class ListGrid
     }
 
     @Override
-    public List<Integer> repositionColumnsByHeaders( List<String> headers )
+    public List<Integer> repositionHeaders( List<String> headers )
     {
         verifyGridState();
 
-        final List<String> gridHeaders = mapToList( getHeaders(), GridHeader::getName );
+        final List<String> headerNames = mapToList( getHeaders(), GridHeader::getName );
         final List<GridHeader> orderedHeaders = new ArrayList<>();
         final List<Integer> columnIndexes = new ArrayList<>();
 
         for ( String header : headers )
         {
-            if ( gridHeaders.contains( header ) )
+            if ( headerNames.contains( header ) )
             {
                 int headerIndex = getIndexOfHeader( header );
                 orderedHeaders.add( getHeaders().get( headerIndex ) );
@@ -1210,15 +1216,15 @@ public class ListGrid
 
         for ( List<Object> row : rows )
         {
-            List<Object> orderedColumns = new ArrayList<>();
+            List<Object> orderedValues = new ArrayList<>();
 
             for ( int i = 0; i < row.size(); i++ )
             {
-                orderedColumns.add( row.get( columnIndexes.get( i ) ) );
+                orderedValues.add( row.get( columnIndexes.get( i ) ) );
             }
 
             row.clear();
-            row.addAll( orderedColumns );
+            row.addAll( orderedValues );
         }
     }
 

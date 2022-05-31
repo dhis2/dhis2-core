@@ -120,6 +120,17 @@ public class GridHeader
     /**
      * @param name formal header name.
      * @param column readable header title.
+     */
+    public GridHeader( String name, String column, ValueType valueType )
+    {
+        this( name, column );
+        this.valueType = valueType;
+        this.type = valueType.getJavaClass().getName();
+    }
+
+    /**
+     * @param name formal header name.
+     * @param column readable header title.
      * @param valueType header value type.
      * @param hidden indicates whether header is hidden.
      * @param meta indicates whether header is meta data.

@@ -775,7 +775,7 @@ class GridTest
     }
 
     @Test
-    void testRepositionHeadersByHeadersA()
+    void testRepositionHeadersA()
     {
         // Given
         GridHeader headerA = new GridHeader( "headerA", "Header A" );
@@ -793,7 +793,7 @@ class GridTest
         List<String> headers = List.of( "headerC", "headerB", "headerA" );
 
         // When
-        grid.repositionColumnsByHeaders( headers );
+        grid.repositionHeaders( headers );
 
         // Then
         assertThat( grid.getHeaderWidth(), is( equalTo( 3 ) ) );
@@ -803,7 +803,41 @@ class GridTest
     }
 
     @Test
-    void testRepositionColumnsByHeadersUsingInvalidHeader()
+    void testGetIndexOfHeader()
+    {
+        Grid grid = new ListGrid();
+        grid.addHeader( new GridHeader( "headerA", "Header A" ) );
+        grid.addHeader( new GridHeader( "headerB", "Header B" ) );
+        grid.addHeader( new GridHeader( "headerC", "Header C" ) );
+        grid.addRow().addValue( 1 ).addValue( "a" ).addValue( "a-1" );
+        grid.addRow().addValue( 2 ).addValue( "b" ).addValue( "b-1" );
+        grid.addRow().addValue( 3 ).addValue( "c" ).addValue( "c-1" );
+
+        assertEquals( 0, grid.getIndexOfHeader( "headerA" ) );
+        assertEquals( 1, grid.getIndexOfHeader( "headerB" ) );
+        assertEquals( 2, grid.getIndexOfHeader( "headerC" ) );
+        assertEquals( -1, grid.getIndexOfHeader( "headerX" ) );
+    }
+
+    @Test
+    void testHeaderExists()
+    {
+        Grid grid = new ListGrid();
+        grid.addHeader( new GridHeader( "headerA", "Header A" ) );
+        grid.addHeader( new GridHeader( "headerB", "Header B" ) );
+        grid.addHeader( new GridHeader( "headerC", "Header C" ) );
+        grid.addRow().addValue( 1 ).addValue( "a" ).addValue( "a-1" );
+        grid.addRow().addValue( 2 ).addValue( "b" ).addValue( "b-1" );
+        grid.addRow().addValue( 3 ).addValue( "c" ).addValue( "c-1" );
+
+        assertTrue( grid.headerExists( "headerA" ) );
+        assertTrue( grid.headerExists( "headerB" ) );
+        assertTrue( grid.headerExists( "headerC" ) );
+        assertFalse( grid.headerExists( "headerX" ) );
+    }
+
+    @Test
+    void testRepositionHeadersUsingInvalidHeader()
     {
         // Given
         GridHeader headerA = new GridHeader( "headerA", "Header A" );
@@ -822,7 +856,7 @@ class GridTest
 
         // When
         IllegalQueryException expectedException = assertThrows(
-            IllegalQueryException.class, () -> grid.repositionColumnsByHeaders( headers ) );
+            IllegalQueryException.class, () -> grid.repositionHeaders( headers ) );
 
         // Then
         assertThat( expectedException.getMessage(),
@@ -831,7 +865,7 @@ class GridTest
     }
 
     @Test
-    void testRepositionColumnsByHeadersB()
+    void testRepositionHeadersB()
     {
         // Given
         GridHeader headerA = new GridHeader( "headerA", "Header A" );
@@ -847,7 +881,7 @@ class GridTest
         grid.addRow().addValue( 3 ).addValue( "c" ).addValue( "c-1" );
 
         List<String> headers = List.of( "headerC", "headerB", "headerA" );
-        List<Integer> columnIndexes = grid.repositionColumnsByHeaders( headers );
+        List<Integer> columnIndexes = grid.repositionHeaders( headers );
 
         // When
         grid.repositionColumns( columnIndexes );
