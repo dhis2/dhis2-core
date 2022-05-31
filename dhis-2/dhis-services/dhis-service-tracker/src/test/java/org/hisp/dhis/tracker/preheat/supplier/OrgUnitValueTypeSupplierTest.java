@@ -194,7 +194,6 @@ class OrgUnitValueTypeSupplierTest extends DhisConvenienceTest
 
     private Attribute numericAttribute()
     {
-
         return Attribute.builder()
             .attribute( MetadataIdentifier.ofUid( "numeric" ) )
             .valueType( ValueType.NUMBER )
@@ -203,7 +202,6 @@ class OrgUnitValueTypeSupplierTest extends DhisConvenienceTest
 
     private Attribute orgUnitAttribute( String uid, String value )
     {
-
         return Attribute.builder()
             .attribute( MetadataIdentifier.ofUid( uid ) )
             .valueType( ValueType.ORGANISATION_UNIT )
@@ -270,7 +268,6 @@ class OrgUnitValueTypeSupplierTest extends DhisConvenienceTest
 
     private DataValue dataValue( String uid, String value )
     {
-
         return DataValue.builder()
             .dataElement( MetadataIdentifier.ofUid( uid ) )
             .value( value )
