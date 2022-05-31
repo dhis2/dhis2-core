@@ -25,16 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.linelisting;
+package org.hisp.dhis.analytics.common;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import lombok.Builder;
-import lombok.Data;
 
-@Data
-@Builder
-public class QueryRequestHolder<T>
+import org.hisp.dhis.common.QueryItem;
+
+@Builder( toBuilder = true )
+public class AnalyticsPagingAndSortingParams
 {
-    private final T request;
+    private final Integer page;
 
-    private final CommonQueryRequest commonQueryRequest;
+    private final Integer pageSize;
+
+    private final Boolean requestPaged;
+
+    private final Boolean countRequested;
+
+    /**
+     * Columns to sort ascending.
+     */
+    @Builder.Default
+    private List<QueryItem> asc = new ArrayList<>();
+
+    /**
+     * Columns to sort descending.
+     */
+    @Builder.Default
+    private List<QueryItem> desc = new ArrayList<>();
 }

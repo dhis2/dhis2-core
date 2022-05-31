@@ -25,35 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.linelisting.trackedentityinstance;
+package org.hisp.dhis.analytics.tei;
 
-import lombok.RequiredArgsConstructor;
+import java.util.ArrayList;
+import java.util.Collection;
 
-import org.hisp.dhis.analytics.linelisting.CommonRequestMapper;
-import org.hisp.dhis.analytics.linelisting.QueryRequestHolder;
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.springframework.stereotype.Service;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
 
-@Service
-@RequiredArgsConstructor
-public class TeiRequestMapper
+import org.hisp.dhis.analytics.common.CommonParams;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+
+/**
+ * This class is a wrapper for all possible parameters related to a tei. All
+ * attributes present here should be correctly typed and ready to be used by the
+ * service layers.
+ *
+ * @author maikel arabori
+ */
+@Getter
+@Setter
+@Builder( toBuilder = true )
+public class TeiQueryParams
 {
+    private final TrackedEntityType trackedEntityType;
 
-    private final CommonRequestMapper commonRequestMapper;
+    private final CommonParams commonParams;
 
-    private final ProgramService programService;
-
-    private final TrackedEntityTypeService trackedEntityTypeService;
-
-    public TeiQueryParams map( QueryRequestHolder<TeiQueryRequest> queryRequestHolder, DhisApiVersion apiVersion )
-    {
-        return TeiQueryParams.builder()
-            .programs( programService.getPrograms( queryRequestHolder.getRequest().getPrograms() ) )
-            .trackedEntityType( trackedEntityTypeService
-                .getTrackedEntityType( queryRequestHolder.getRequest().getTrackedEntityType() ) )
-            .commonParams( commonRequestMapper.map( queryRequestHolder.getCommonQueryRequest(), apiVersion ) )
-            .build();
-    }
+    @Builder.Default
+    private final Collection<Program> programs = new ArrayList<>();
 }

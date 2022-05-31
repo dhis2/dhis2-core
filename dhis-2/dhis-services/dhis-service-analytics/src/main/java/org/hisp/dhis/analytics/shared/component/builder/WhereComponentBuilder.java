@@ -32,12 +32,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.analytics.linelisting.trackedentityinstance.TeiQueryParams;
 import org.hisp.dhis.analytics.shared.component.WhereComponent;
 import org.hisp.dhis.analytics.shared.component.element.Element;
 import org.hisp.dhis.analytics.shared.component.element.where.EnrollmentDateValueWhereElement;
 import org.hisp.dhis.analytics.shared.component.element.where.TeaValueWhereElement;
 import org.hisp.dhis.analytics.shared.visitor.where.WhereVisitor;
+import org.hisp.dhis.analytics.tei.TeiQueryParams;
 
 /**
  * WhereComponentBuilder is responsible for building the select section of sql
