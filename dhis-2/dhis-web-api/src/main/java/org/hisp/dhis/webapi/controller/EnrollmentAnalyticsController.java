@@ -116,7 +116,7 @@ public class EnrollmentAnalyticsController
         if ( params.analyzeOnly() )
         {
             String key = params.getExplainOrderId();
-            grid.maybeAddPerformanceMetrics( executionPlanStore.getExecutionPlans( key ) );
+            grid.addPerformanceMetrics( executionPlanStore.getExecutionPlans( key ) );
         }
 
         return grid;

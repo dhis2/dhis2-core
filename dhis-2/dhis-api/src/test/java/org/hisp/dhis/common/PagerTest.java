@@ -91,7 +91,13 @@ class PagerTest
     }
 
     @Test
-    void testTotalWhenLessThanZero()
+    void testTotalWhenLessThanZeroA()
+    {
+        assertEquals( 0, new Pager( 4, -5 ).getTotal() );
+    }
+
+    @Test
+    void testTotalWhenLessThanZeroB()
     {
         assertEquals( 0, new Pager( 4, -5, 50 ).getTotal() );
     }
