@@ -1203,12 +1203,12 @@ public class ListGrid
     }
 
     @Override
-    public void repositionColumns( final Set<Integer> columnsIndexes )
+    public void repositionColumns( Set<Integer> columnsIndexes )
     {
         verifyGridState();
 
         List<List<Object>> allRows = getRows();
-        List<Integer> newIndexes = new ArrayList<>( columnsIndexes );
+        List<Integer> indexes = new ArrayList<>( columnsIndexes );
 
         for ( List<Object> columns : allRows )
         {
@@ -1216,7 +1216,7 @@ public class ListGrid
 
             for ( int i = 0; i < columns.size(); i++ )
             {
-                orderedColumns.add( columns.get( newIndexes.get( i ) ) );
+                orderedColumns.add( columns.get( indexes.get( i ) ) );
             }
 
             columns.clear();

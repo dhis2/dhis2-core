@@ -541,9 +541,8 @@ public interface Grid
     Set<Integer> repositionHeaders( Set<String> headers );
 
     /**
-     * Based on the given column indexes, this method will order the current
-     * columns in the Grid. The new positions of the columns will respect the
-     * new indexes.
+     * Reorders the headers and columns of the grid based on the given column
+     * indexes. The new positions of the columns will respect the new indexes.
      *
      * @param columnIndexes the new column indexes.
      */
