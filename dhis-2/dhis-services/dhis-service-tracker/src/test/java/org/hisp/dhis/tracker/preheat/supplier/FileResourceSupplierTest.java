@@ -27,10 +27,15 @@
  */
 package org.hisp.dhis.tracker.preheat.supplier;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.hasSize;
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.ValueType;
@@ -39,6 +44,7 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.DataValue;
@@ -53,9 +59,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-
 /**
  * @author Enrico Colasante
  */
@@ -63,25 +66,9 @@ import com.google.common.collect.Sets;
 class FileResourceSupplierTest extends DhisConvenienceTest
 {
 
-    private static final String NUMERIC_DATA_ELEMENT_UID = "numericDataElement";
+    private FileResourceSupplier supplier;
 
-    private static final String FILE_RESOURCE_DATA_ELEMENT_UID = "fileResourceDataElement";
-
-    private static final String EMPTY_FILE_RESOURCE_DATA_ELEMENT_UID = "emptyFileResourceDataElement";
-
-    private static final String NULL_FILE_RESOURCE_DATA_ELEMENT_UID = "nullFileResourceDataElement";
-
-    private static final String NUMERIC_ATTRIBUTE_UID = "numericAttribute";
-
-    private static final String FILE_RESOURCE_ATTRIBUTE_UID = "fileResourceAttribute";
-
-    private static final String FILE_RESOURCE_UID = "FileResourceUid";
-
-    private static final String ANOTHER_FILE_RESOURCE_UID = "AnotherFileResourceUid";
-
-    private FileResourceSupplier supplierToTest;
-
-    private TrackerPreheat preheat = new TrackerPreheat();
+    private TrackerPreheat preheat;
 
     @Mock
     private FileResourceService fileResourceService;
@@ -89,112 +76,203 @@ class FileResourceSupplierTest extends DhisConvenienceTest
     @BeforeEach
     public void setUp()
     {
-        DataElement numericDataElement = createDataElement( 'A' );
-        numericDataElement.setUid( NUMERIC_DATA_ELEMENT_UID );
-        numericDataElement.setValueType( ValueType.NUMBER );
-
-        DataElement fileResourceDataElement = createDataElement( 'B' );
-        fileResourceDataElement.setUid( FILE_RESOURCE_DATA_ELEMENT_UID );
-        fileResourceDataElement.setValueType( ValueType.FILE_RESOURCE );
-
-        DataElement emptyFileResourceDataElement = createDataElement( 'C' );
-        emptyFileResourceDataElement.setUid( EMPTY_FILE_RESOURCE_DATA_ELEMENT_UID );
-        emptyFileResourceDataElement.setValueType( ValueType.FILE_RESOURCE );
-
-        DataElement nullFileResourceDataElement = createDataElement( 'D' );
-        nullFileResourceDataElement.setUid( NULL_FILE_RESOURCE_DATA_ELEMENT_UID );
-        nullFileResourceDataElement.setValueType( ValueType.FILE_RESOURCE );
-
-        preheat.put( TrackerIdSchemeParam.UID, Lists
-            .newArrayList( numericDataElement, fileResourceDataElement, emptyFileResourceDataElement,
-                nullFileResourceDataElement ) );
-
-        TrackedEntityAttribute numericAttribute = createTrackedEntityAttribute( 'A' );
-        numericAttribute.setUid( NUMERIC_ATTRIBUTE_UID );
-        numericAttribute.setValueType( ValueType.NUMBER );
-
-        TrackedEntityAttribute fileResourceAttribute = createTrackedEntityAttribute( 'A' );
-        fileResourceAttribute.setUid( FILE_RESOURCE_ATTRIBUTE_UID );
-        fileResourceAttribute.setValueType( ValueType.FILE_RESOURCE );
-
-        preheat.put( TrackerIdSchemeParam.UID, Lists.newArrayList( numericAttribute, fileResourceAttribute ) );
-
-        supplierToTest = new FileResourceSupplier( fileResourceService );
+        preheat = new TrackerPreheat();
+        supplier = new FileResourceSupplier( fileResourceService );
     }
 
     @Test
-    void verifySupplier()
+    void testSupplierAddsFileResourcesReferencedByTEIAttributes()
     {
-        FileResource fileResource = createFileResource( 'A', "FileResource".getBytes() );
-        fileResource.setUid( FILE_RESOURCE_UID );
-        FileResource anotherFileResource = createFileResource( 'B', "AnotherFileResource".getBytes() );
-        anotherFileResource.setUid( ANOTHER_FILE_RESOURCE_UID );
+        preheat.put( TrackerIdSchemeParam.UID,
+            List.of( teaNumericAttribute( "numeric" ), teaFileResource( "hQKI6KcEu5t" ) ) );
 
-        when( fileResourceService
-            .getFileResources( Lists.newArrayList( ANOTHER_FILE_RESOURCE_UID, FILE_RESOURCE_UID ) ) )
-                .thenReturn( Lists.newArrayList( fileResource, anotherFileResource ) );
+        FileResource fileResource = fileResource( "kKacJUdANDC" );
+        when( fileResourceService.getFileResources( List.of( "kKacJUdANDC" ) ) )
+            .thenReturn( List.of( fileResource ) );
 
-        final TrackerImportParams params = TrackerImportParams
-            .builder()
-            .trackedEntities( Lists.newArrayList( getTrackedEntity() ) )
-            .enrollments( Lists.newArrayList( getEnrollment() ) )
-            .events( Lists.newArrayList( getEvent() ) )
+        TrackerImportParams params = params( TrackerIdSchemeParams.builder().build() )
+            .trackedEntities(
+                List.of( trackedEntity( numericAttribute(), fileAttribute( "hQKI6KcEu5t", "kKacJUdANDC" ) ) ) )
             .build();
 
-        this.supplierToTest.preheatAdd( params, preheat );
+        supplier.preheatAdd( params, preheat );
 
-        assertThat( preheat.getAll( FileResource.class ), hasSize( 2 ) );
-        assertThat( preheat.getAll( FileResource.class ), containsInAnyOrder( fileResource, anotherFileResource ) );
+        assertContainsOnly( preheat.getAll( FileResource.class ), fileResource );
     }
 
-    private TrackedEntity getTrackedEntity()
+    @Test
+    void testSupplierDoesNotAddFileResourceIfTEIAttributeValueIsEmpty()
     {
-        Attribute attribute = new Attribute();
-        attribute.setAttribute( MetadataIdentifier.ofUid( NUMERIC_ATTRIBUTE_UID ) );
+        preheat.put( TrackerIdSchemeParam.UID, List.of( teaFileResource( "hQKI6KcEu5t" ) ) );
+
+        TrackerImportParams params = params( TrackerIdSchemeParams.builder().build() )
+            .trackedEntities( List.of( trackedEntity( fileAttribute( "hQKI6KcEu5t", "" ) ) ) )
+            .build();
+
+        supplier.preheatAdd( params, preheat );
+
+        assertEquals( Collections.emptyList(), preheat.getAll( FileResource.class ) );
+    }
+
+    @Test
+    void testSupplierAddsFileResourcesReferencedByEnrollmentAttributes()
+    {
+        preheat.put( TrackerIdSchemeParam.UID,
+            List.of( teaNumericAttribute( "numeric" ), teaFileResource( "hQKI6KcEu5t" ) ) );
+
+        FileResource fileResource = fileResource( "kKacJUdANDC" );
+        when( fileResourceService.getFileResources( List.of( "kKacJUdANDC" ) ) )
+            .thenReturn( List.of( fileResource ) );
+
+        TrackerImportParams params = params( TrackerIdSchemeParams.builder().build() )
+            .enrollments( List.of( enrollment( numericAttribute(), fileAttribute( "hQKI6KcEu5t", "kKacJUdANDC" ) ) ) )
+            .build();
+
+        supplier.preheatAdd( params, preheat );
+
+        assertContainsOnly( preheat.getAll( FileResource.class ), fileResource );
+    }
+
+    @Test
+    void testSupplierAddsFileResourcesReferencedByEventDataElement()
+    {
+        preheat.put( TrackerIdSchemeParam.UID,
+            List.of( numericDataElement( "numeric" ), fileDataElement( "hQKI6KcEu5t" ) ) );
+
+        FileResource fileResource = fileResource( "kKacJUdANDC" );
+        when( fileResourceService.getFileResources( List.of( "kKacJUdANDC" ) ) )
+            .thenReturn( List.of( fileResource ) );
+
+        TrackerImportParams params = params( TrackerIdSchemeParams.builder().build() )
+            .events( List.of( event( dataValue( "numeric", "2" ), dataValue( "hQKI6KcEu5t", "kKacJUdANDC" ) ) ) )
+            .build();
+
+        supplier.preheatAdd( params, preheat );
+
+        assertContainsOnly( preheat.getAll( FileResource.class ), fileResource );
+    }
+
+    @Test
+    void testSupplierDoesNotAddFileResourceIfEventDataValueValueIsEmpty()
+    {
+        preheat.put( TrackerIdSchemeParam.UID, List.of( fileDataElement( "hQKI6KcEu5t" ) ) );
+
+        TrackerImportParams params = params( TrackerIdSchemeParams.builder().build() )
+            .events( List.of( event( dataValue( "hQKI6KcEu5t", "" ) ) ) )
+            .build();
+
+        supplier.preheatAdd( params, preheat );
+
+        assertEquals( Collections.emptyList(), preheat.getAll( FileResource.class ) );
+    }
+
+    private TrackedEntityAttribute teaNumericAttribute( String uid )
+    {
+        TrackedEntityAttribute attribute = createTrackedEntityAttribute( 'A' );
+        attribute.setUid( uid );
         attribute.setValueType( ValueType.NUMBER );
-
-        TrackedEntity trackedEntity = new TrackedEntity();
-        trackedEntity.setAttributes( Lists.newArrayList( attribute ) );
-
-        return trackedEntity;
+        return attribute;
     }
 
-    private Enrollment getEnrollment()
+    private TrackedEntityAttribute teaFileResource( String uid )
     {
-        Attribute attribute = new Attribute();
-        attribute.setAttribute( MetadataIdentifier.ofUid( FILE_RESOURCE_ATTRIBUTE_UID ) );
+        TrackedEntityAttribute attribute = createTrackedEntityAttribute( 'A' );
+        attribute.setUid( uid );
         attribute.setValueType( ValueType.FILE_RESOURCE );
-        attribute.setValue( ANOTHER_FILE_RESOURCE_UID );
-
-        Enrollment enrollment = new Enrollment();
-        enrollment.setAttributes( Lists.newArrayList( attribute ) );
-
-        return enrollment;
+        return attribute;
     }
 
-    private Event getEvent()
+    private FileResource fileResource( String uid )
     {
-        DataValue fileResourceDataValue = new DataValue();
-        fileResourceDataValue.setDataElement( MetadataIdentifier.ofUid( FILE_RESOURCE_DATA_ELEMENT_UID ) );
-        fileResourceDataValue.setValue( FILE_RESOURCE_UID );
+        FileResource fileResource = createFileResource( 'A', "FileResource".getBytes() );
+        fileResource.setUid( uid );
+        return fileResource;
+    }
 
-        DataValue emptyFileResourceDataValue = new DataValue();
-        emptyFileResourceDataValue.setDataElement( MetadataIdentifier.ofUid( EMPTY_FILE_RESOURCE_DATA_ELEMENT_UID ) );
-        emptyFileResourceDataValue.setValue( "" );
+    private TrackerImportParams.TrackerImportParamsBuilder params( TrackerIdSchemeParams idSchemes )
+    {
+        return TrackerImportParams.builder().idSchemes( idSchemes );
+    }
 
-        DataValue nullFileResourceDataValue = new DataValue();
-        nullFileResourceDataValue.setDataElement( MetadataIdentifier.ofUid( NULL_FILE_RESOURCE_DATA_ELEMENT_UID ) );
-        nullFileResourceDataValue.setValue( null );
+    private Attribute numericAttribute()
+    {
+        return Attribute.builder()
+            .attribute( MetadataIdentifier.ofUid( "numeric" ) )
+            .valueType( ValueType.NUMBER )
+            .build();
+    }
 
-        DataValue numericDataValue = new DataValue();
-        numericDataValue.setDataElement( MetadataIdentifier.ofUid( NUMERIC_DATA_ELEMENT_UID ) );
-        numericDataValue.setValue( "3" );
+    private Attribute fileAttribute( String uid, String value )
+    {
+        return Attribute.builder()
+            .attribute( MetadataIdentifier.ofUid( uid ) )
+            .valueType( ValueType.FILE_RESOURCE )
+            .value( value )
+            .build();
+    }
 
-        Event event = new Event();
-        event.setDataValues(
-            Sets.newHashSet( fileResourceDataValue, emptyFileResourceDataValue, nullFileResourceDataValue,
-                numericDataValue ) );
+    private TrackedEntity trackedEntity( Attribute... attributes )
+    {
+        return TrackedEntity.builder()
+            .attributes( attributes( attributes ) )
+            .build();
+    }
 
-        return event;
+    private Enrollment enrollment( Attribute... attributes )
+    {
+        return Enrollment.builder()
+            .attributes( attributes( attributes ) )
+            .build();
+    }
+
+    private List<Attribute> attributes( Attribute[] attributes )
+    {
+        List<Attribute> attrs = new ArrayList<>();
+        for ( Attribute at : attributes )
+        {
+            attrs.add( at );
+        }
+        return attrs;
+    }
+
+    private DataElement numericDataElement( String uid )
+    {
+        DataElement element = createDataElement( 'A' );
+        element.setUid( uid );
+        element.setValueType( ValueType.NUMBER );
+        return element;
+    }
+
+    private DataElement fileDataElement( String uid )
+    {
+        DataElement element = createDataElement( 'A' );
+        element.setUid( uid );
+        element.setValueType( ValueType.FILE_RESOURCE );
+        return element;
+    }
+
+    private Event event( DataValue... dataValues )
+    {
+        return Event.builder()
+            .dataValues( dataValues( dataValues ) )
+            .build();
+    }
+
+    private Set<DataValue> dataValues( DataValue[] dataValues )
+    {
+        Set<DataValue> dvs = new HashSet<>();
+        for ( DataValue dv : dataValues )
+        {
+            dvs.add( dv );
+        }
+        return dvs;
+    }
+
+    private DataValue dataValue( String uid, String value )
+    {
+        return DataValue.builder()
+            .dataElement( MetadataIdentifier.ofUid( uid ) )
+            .value( value )
+            .build();
     }
 }
