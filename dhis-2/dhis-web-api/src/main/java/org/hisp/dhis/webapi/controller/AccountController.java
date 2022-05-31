@@ -47,6 +47,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
@@ -222,225 +224,6 @@ public class AccountController
         return ok( "Account restored" );
     }
 
-    public WebMessage createAccount222(
-        @RequestParam String username,
-        @RequestParam String firstName,
-        @RequestParam String surname,
-        @RequestParam String password,
-        @RequestParam String email,
-        @RequestParam String phoneNumber,
-        @RequestParam String employer,
-        @RequestParam( required = false ) String inviteUsername,
-        @RequestParam( required = false ) String inviteToken,
-        @RequestParam( value = "g-recaptcha-response", required = false ) String recapResponse,
-        HttpServletRequest request )
-        throws IOException
-    {
-        User user = null;
-        String restoreToken = null;
-
-        boolean invitedByEmail = (inviteUsername != null && !inviteUsername.isEmpty());
-
-        boolean canChooseUsername = true;
-
-        if ( invitedByEmail )
-        {
-            String[] idAndRestoreToken = securityService.decodeEncodedTokens( inviteToken );
-
-            String idToken = idAndRestoreToken[0];
-            restoreToken = idAndRestoreToken[1];
-
-            user = userService.getUserByIdToken( idToken );
-
-            if ( user == null )
-            {
-                return badRequest( "Invitation link not valid" );
-            }
-
-            boolean canRestore = securityService.canRestore( user, restoreToken, RestoreType.INVITE );
-
-            if ( !canRestore )
-            {
-                return badRequest( "Invitation code not valid" );
-            }
-
-            RestoreOptions restoreOptions = securityService.getRestoreOptions( restoreToken );
-
-            canChooseUsername = restoreOptions.isUsernameChoice();
-
-            if ( !email.equals( user.getEmail() ) )
-            {
-                return badRequest( "Email don't match invited email" );
-            }
-        }
-        else
-        {
-            boolean allowed = configurationService.getConfiguration().selfRegistrationAllowed();
-
-            if ( !allowed )
-            {
-                return badRequest( "User self registration is not allowed" );
-            }
-        }
-
-        // ---------------------------------------------------------------------
-        // Trim input
-        // ---------------------------------------------------------------------
-
-        username = StringUtils.trimToNull( username );
-        firstName = StringUtils.trimToNull( firstName );
-        surname = StringUtils.trimToNull( surname );
-        password = StringUtils.trimToNull( password );
-        email = StringUtils.trimToNull( email );
-        phoneNumber = StringUtils.trimToNull( phoneNumber );
-        employer = StringUtils.trimToNull( employer );
-        recapResponse = StringUtils.trimToNull( recapResponse );
-
-        CredentialsInfo credentialsInfo = new CredentialsInfo( username, password, email, true );
-
-        // ---------------------------------------------------------------------
-        // Validate input, return 400 if invalid
-        // ---------------------------------------------------------------------
-
-        if ( username == null || username.trim().length() > MAX_LENGTH )
-        {
-            return badRequest( "User name is not specified or invalid" );
-        }
-
-        User usernameAlreadyTakenCredentials = userService.getUserByUsername( username );
-
-        if ( canChooseUsername && usernameAlreadyTakenCredentials != null )
-        {
-            return badRequest( "User name is already taken" );
-        }
-
-        if ( firstName == null || firstName.trim().length() > MAX_LENGTH )
-        {
-            return badRequest( "First name is not specified or invalid" );
-        }
-
-        if ( surname == null || surname.trim().length() > MAX_LENGTH )
-        {
-            return badRequest( "Last name is not specified or invalid" );
-        }
-
-        if ( password == null )
-        {
-            return badRequest( "Password is not specified" );
-        }
-
-        PasswordValidationResult result = passwordValidationService.validate( credentialsInfo );
-
-        if ( !result.isValid() )
-        {
-            return badRequest( result.getErrorMessage() );
-        }
-
-        if ( email == null || !ValidationUtils.emailIsValid( email ) )
-        {
-            return badRequest( "Email is not specified or invalid" );
-        }
-
-        if ( phoneNumber == null || phoneNumber.trim().length() > MAX_PHONE_NO_LENGTH )
-        {
-            return badRequest( "Phone number is not specified or invalid" );
-        }
-
-        if ( employer == null || employer.trim().length() > MAX_LENGTH )
-        {
-            return badRequest( "Employer is not specified or invalid" );
-        }
-
-        if ( !systemSettingManager.selfRegistrationNoRecaptcha() )
-        {
-            if ( recapResponse == null )
-            {
-                return badRequest( "Please verify that you are not a robot" );
-            }
-
-            // ---------------------------------------------------------------------
-            // Check result from API, return 500 if validation failed
-            // ---------------------------------------------------------------------
-
-            RecaptchaResponse recaptchaResponse = securityService
-                .verifyRecaptcha( recapResponse, request.getRemoteAddr() );
-
-            if ( !recaptchaResponse.success() )
-            {
-                log.warn( "Recaptcha validation failed: " + recaptchaResponse.getErrorCodes() );
-                return badRequest( "Recaptcha validation failed: " + recaptchaResponse.getErrorCodes() );
-            }
-        }
-
-        // ---------------------------------------------------------------------
-        // Create and save user, return 201
-        // ---------------------------------------------------------------------
-
-        if ( invitedByEmail )
-        {
-            boolean restored = securityService.restore( user, restoreToken, password, RestoreType.INVITE );
-
-            if ( !restored )
-            {
-                log.info( "Invite restore failed for: " + inviteUsername );
-
-                return badRequest( "Unable to create invited user account" );
-            }
-
-            user = new User();
-            user.setFirstName( firstName );
-            user.setSurname( surname );
-            user.setEmail( email );
-            user.setPhoneNumber( phoneNumber );
-            user.setEmployer( employer );
-
-            if ( canChooseUsername )
-            {
-                user.setUsername( username );
-            }
-            else
-            {
-                username = user.getUsername();
-            }
-
-            userService.encodeAndSetPassword( user, password );
-
-            userService.updateUser( user );
-
-            log.info( "User " + username + " accepted invitation for " + inviteUsername );
-        }
-        else
-        {
-            UserRole userRole = configurationService.getConfiguration().getSelfRegistrationRole();
-            OrganisationUnit orgUnit = configurationService.getConfiguration().getSelfRegistrationOrgUnit();
-
-            user = new User();
-            user.setFirstName( firstName );
-            user.setSurname( surname );
-            user.setEmail( email );
-            user.setPhoneNumber( phoneNumber );
-            user.setEmployer( employer );
-            user.getOrganisationUnits().add( orgUnit );
-            user.getDataViewOrganisationUnits().add( orgUnit );
-            user.setUsername( username );
-
-            userService.encodeAndSetPassword( user, password );
-
-            user.setSelfRegistered( true );
-            user.getUserRoles().add( userRole );
-
-            userService.addUser( user );
-
-            log.info( "Created user with username: " + username );
-        }
-
-        Set<GrantedAuthority> authorities = getAuthorities( user.getUserRoles() );
-
-        authenticate( username, password, authorities, request );
-
-        return ok( "Account created" );
-    }
-
     @PostMapping
     @ResponseBody
     public WebMessage createAccount(
@@ -457,68 +240,26 @@ public class AccountController
         HttpServletRequest request )
         throws IOException
     {
+        UserRegistration userRegistration = UserRegistration.builder()
+            .username( StringUtils.trimToNull( username ) )
+            .firstName( StringUtils.trimToNull( firstName ) )
+            .surname( StringUtils.trimToNull( surname ) )
+            .password( StringUtils.trimToNull( password ) )
+            .email( StringUtils.trimToNull( email ) )
+            .phoneNumber( StringUtils.trimToNull( phoneNumber ) )
+            .employer( StringUtils.trimToNull( employer ) )
+            .build();
+
+        WebMessage badRequestMessage = validateInput( userRegistration );
+        if ( badRequestMessage != null )
+        {
+            return badRequestMessage;
+        }
+
         boolean invitedByEmail = (inviteUsername != null && !inviteUsername.isEmpty());
-
-        username = StringUtils.trimToNull( username );
-        firstName = StringUtils.trimToNull( firstName );
-        surname = StringUtils.trimToNull( surname );
-        password = StringUtils.trimToNull( password );
-        email = StringUtils.trimToNull( email );
-        phoneNumber = StringUtils.trimToNull( phoneNumber );
-        employer = StringUtils.trimToNull( employer );
-        recapResponse = StringUtils.trimToNull( recapResponse );
-
-        // ---------------------------------------------------------------------
-        // Validate input, return 400 if invalid
-        // ---------------------------------------------------------------------
-
-        if ( username == null || username.trim().length() > MAX_LENGTH )
-        {
-            return badRequest( "User name is not specified or invalid" );
-        }
-
-        if ( firstName == null || firstName.trim().length() > MAX_LENGTH )
-        {
-            return badRequest( "First name is not specified or invalid" );
-        }
-
-        if ( surname == null || surname.trim().length() > MAX_LENGTH )
-        {
-            return badRequest( "Last name is not specified or invalid" );
-        }
-
-        if ( password == null )
-        {
-            return badRequest( "Password is not specified" );
-        }
-
-        PasswordValidationResult passwordValidationResult = passwordValidationService.validate(
-            new CredentialsInfo( username, password, email, true ) );
-
-        if ( !passwordValidationResult.isValid() )
-        {
-            return badRequest( passwordValidationResult.getErrorMessage() );
-        }
-
-        if ( email == null || !ValidationUtils.emailIsValid( email ) )
-        {
-            return badRequest( "Email is not specified or invalid" );
-        }
-
-        if ( phoneNumber == null || phoneNumber.trim().length() > MAX_PHONE_NO_LENGTH )
-        {
-            return badRequest( "Phone number is not specified or invalid" );
-        }
-
-        if ( employer == null || employer.trim().length() > MAX_LENGTH )
-        {
-            return badRequest( "Employer is not specified or invalid" );
-        }
-
         if ( invitedByEmail )
         {
             String[] idAndRestoreToken = securityService.decodeEncodedTokens( inviteToken );
-
             String idToken = idAndRestoreToken[0];
             String restoreToken = idAndRestoreToken[1];
 
@@ -528,11 +269,7 @@ public class AccountController
                 return badRequest( "Invitation link not valid" );
             }
 
-            RestoreOptions restoreOptions = securityService.getRestoreOptions( restoreToken );
-            boolean canChooseUsername = restoreOptions.isUsernameChoice();
-
-            boolean canRestore = securityService.canRestore( user, restoreToken, RestoreType.INVITE );
-            if ( !canRestore )
+            if ( !securityService.canRestore( user, restoreToken, RestoreType.INVITE ) )
             {
                 return badRequest( "Invitation code not valid" );
             }
@@ -542,42 +279,18 @@ public class AccountController
                 return badRequest( "Email don't match invited email" );
             }
 
-            boolean restored = securityService.restore( user, restoreToken, password, RestoreType.INVITE );
-            if ( !restored )
+            if ( !securityService.restore( user, restoreToken, password, RestoreType.INVITE ) )
             {
-                log.info( "Invite restore failed for: " + inviteUsername );
-
+                log.warn( "Invite restore failed for: " + inviteUsername );
                 return badRequest( "Unable to create invited user account" );
             }
 
-            user.setFirstName( firstName );
-            user.setSurname( surname );
-            user.setPhoneNumber( phoneNumber );
-            user.setEmployer( employer );
-            user.setEmail( email );
-            user.setPhoneNumber( phoneNumber );
-            user.setEmployer( employer );
-
-            if ( canChooseUsername )
-            {
-                user.setUsername( username );
-            }
-            else
-            {
-                username = user.getUsername();
-            }
-
-            userService.updateUser( user );
-
-            log.info( "User " + user.getUsername() + " accepted invitation for " + inviteUsername );
-
-            authenticateUser( user, username, password, request );
+            updateInvitedByEmailUser( user, userRegistration, inviteUsername, request,
+                securityService.getRestoreOptions( restoreToken ).isUsernameChoice() );
         }
         else // Self registration
         {
-            boolean allowed = configurationService.getConfiguration().selfRegistrationAllowed();
-
-            if ( !allowed )
+            if ( !configurationService.getConfiguration().selfRegistrationAllowed() )
             {
                 return badRequest( "User self registration is not allowed" );
             }
@@ -589,13 +302,8 @@ public class AccountController
                     return badRequest( "Please verify that you are not a robot" );
                 }
 
-                // ---------------------------------------------------------------------
-                // Check result from API, return 500 if validation failed
-                // ---------------------------------------------------------------------
-
                 RecaptchaResponse recaptchaResponse = securityService
                     .verifyRecaptcha( recapResponse, request.getRemoteAddr() );
-
                 if ( !recaptchaResponse.success() )
                 {
                     log.warn( "Recaptcha validation failed: " + recaptchaResponse.getErrorCodes() );
@@ -603,39 +311,139 @@ public class AccountController
                 }
             }
 
-            User existingUser = userService.getUserByUsername( username );
-
-            if ( existingUser != null )
+            if ( userService.getUserByUsername( username ) != null )
             {
                 return badRequest( "Username already exists!" );
             }
 
-            UserRole userRole = configurationService.getConfiguration().getSelfRegistrationRole();
-            OrganisationUnit orgUnit = configurationService.getConfiguration().getSelfRegistrationOrgUnit();
-
-            User user = new User();
-            user.setFirstName( firstName );
-            user.setSurname( surname );
-            user.setEmail( email );
-            user.setPhoneNumber( phoneNumber );
-            user.setEmployer( employer );
-            user.getOrganisationUnits().add( orgUnit );
-            user.getDataViewOrganisationUnits().add( orgUnit );
-            user.setUsername( username );
-
-            userService.encodeAndSetPassword( user, password );
-
-            user.setSelfRegistered( true );
-            user.getUserRoles().add( userRole );
-
-            userService.addUser( user );
-
-            log.info( "Created user with username: " + username );
-
-            authenticateUser( user, username, password, request );
+            createAndAddSelfRegisteredUser( userRegistration, request );
         }
 
         return ok( "Account created" );
+    }
+
+    private WebMessage validateInput( UserRegistration userRegistration )
+    {
+        if ( userRegistration.getUsername() == null || userRegistration.getUsername().trim().length() > MAX_LENGTH )
+        {
+            return badRequest( "User name is not specified or invalid" );
+        }
+
+        if ( userRegistration.getFirstName() == null || userRegistration.getFirstName().trim().length() > MAX_LENGTH )
+        {
+            return badRequest( "First name is not specified or invalid" );
+        }
+
+        if ( userRegistration.getSurname() == null || userRegistration.getSurname().trim().length() > MAX_LENGTH )
+        {
+            return badRequest( "Last name is not specified or invalid" );
+        }
+
+        if ( userRegistration.getPassword() == null )
+        {
+            return badRequest( "Password is not specified" );
+        }
+
+        PasswordValidationResult passwordValidationResult = passwordValidationService.validate(
+            new CredentialsInfo( userRegistration.getUsername(), userRegistration.getPassword(),
+                userRegistration.getEmail(), true ) );
+        if ( !passwordValidationResult.isValid() )
+        {
+            return badRequest( passwordValidationResult.getErrorMessage() );
+        }
+
+        if ( userRegistration.getEmail() == null || !ValidationUtils.emailIsValid( userRegistration.getEmail() ) )
+        {
+            return badRequest( "Email is not specified or invalid" );
+        }
+
+        if ( userRegistration.getPhoneNumber() == null
+            || userRegistration.getPhoneNumber().trim().length() > MAX_PHONE_NO_LENGTH )
+        {
+            return badRequest( "Phone number is not specified or invalid" );
+        }
+
+        if ( userRegistration.getEmployer() == null || userRegistration.getEmployer().trim().length() > MAX_LENGTH )
+        {
+            return badRequest( "Employer is not specified or invalid" );
+        }
+
+        return null;
+    }
+
+    @Data
+    @Builder
+    private static class UserRegistration
+    {
+        private final String username;
+
+        private final String firstName;
+
+        private final String surname;
+
+        private final String password;
+
+        private final String email;
+
+        private final String phoneNumber;
+
+        private final String employer;
+    }
+
+    private void createAndAddSelfRegisteredUser(
+        UserRegistration userRegistration,
+        HttpServletRequest request )
+    {
+        UserRole userRole = configurationService.getConfiguration().getSelfRegistrationRole();
+        OrganisationUnit orgUnit = configurationService.getConfiguration().getSelfRegistrationOrgUnit();
+
+        User user = new User();
+        user.setUsername( userRegistration.getUsername() );
+        user.setFirstName( userRegistration.getFirstName() );
+        user.setSurname( userRegistration.getSurname() );
+        user.setEmail( userRegistration.getEmail() );
+        user.setPhoneNumber( userRegistration.getPhoneNumber() );
+        user.setEmployer( userRegistration.getEmployer() );
+        user.getOrganisationUnits().add( orgUnit );
+        user.getDataViewOrganisationUnits().add( orgUnit );
+
+        userService.encodeAndSetPassword( user, userRegistration.getPassword() );
+
+        user.setSelfRegistered( true );
+        user.getUserRoles().add( userRole );
+
+        userService.addUser( user );
+
+        log.info( "Created user with username: " + user.getUsername() );
+
+        authenticateUser( user, user.getUsername(), userRegistration.getPassword(), request );
+    }
+
+    private void updateInvitedByEmailUser( User user,
+        UserRegistration userRegistration,
+        String inviteUsername,
+        HttpServletRequest request,
+        boolean canChooseUsername )
+    {
+        user.setPassword( userRegistration.getPassword() );
+        user.setFirstName( userRegistration.getFirstName() );
+        user.setSurname( userRegistration.getSurname() );
+        user.setPhoneNumber( userRegistration.getPhoneNumber() );
+        user.setEmployer( userRegistration.getEmployer() );
+        user.setEmail( userRegistration.getEmail() );
+        user.setPhoneNumber( userRegistration.getPhoneNumber() );
+        user.setEmployer( userRegistration.getEmployer() );
+
+        if ( canChooseUsername )
+        {
+            user.setUsername( userRegistration.getUsername() );
+        }
+
+        userService.updateUser( user );
+
+        log.info( "User " + user.getUsername() + " accepted invitation for " + inviteUsername );
+
+        authenticateUser( user, user.getUsername(), userRegistration.getPassword(), request );
     }
 
     private void authenticateUser( User user, String username, String password, HttpServletRequest request )

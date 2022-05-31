@@ -38,7 +38,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -82,8 +81,6 @@ public class DefaultSecurityService
     implements SecurityService
 {
     private static final String RESTORE_PATH = "/dhis-web-commons/security/";
-
-    private static final Pattern INVITE_USERNAME_PATTERN = Pattern.compile( "^invite\\-(.+?)\\-(\\w{11})$" );
 
     private static final String TBD_NAME = "(TBD)";
 
@@ -555,17 +552,6 @@ public class DefaultSecurityService
         }
 
         return validToken ? null : "restore_token_does_not_match_supplied_token";
-    }
-
-    @Override
-    public boolean isInviteUsername( String username )
-    {
-        if ( username == null || username.isEmpty() )
-        {
-            return true;
-        }
-
-        return INVITE_USERNAME_PATTERN.matcher( username ).matches();
     }
 
     @Override

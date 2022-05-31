@@ -402,7 +402,6 @@ public class UserController
         throws Exception
     {
         User user = userService.getUser( id );
-
         if ( user == null )
         {
             throw new WebMessageException( conflict( "User not found: " + id ) );
@@ -414,20 +413,14 @@ public class UserController
         }
 
         String valid = securityService.validateRestore( user );
-
         if ( valid != null )
         {
             throw new WebMessageException( conflict( valid ) );
         }
 
-        boolean isInviteUsername = securityService.isInviteUsername( user.getUsername() );
-
-        RestoreOptions restoreOptions = isInviteUsername ? RestoreOptions.INVITE_WITH_USERNAME_CHOICE
-            : RestoreOptions.INVITE_WITH_DEFINED_USERNAME;
-
         if ( !securityService
             .sendRestoreOrInviteMessage( user, ContextUtils.getContextPath( request ),
-                restoreOptions ) )
+                securityService.getRestoreOptions( user.getRestoreToken() ) ) )
         {
             throw new WebMessageException( error( "Failed to send invite message" ) );
         }
