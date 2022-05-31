@@ -355,7 +355,7 @@ public interface JobProgress
                 }
             }
         }
-        completedStage( summary.apply( i - failed, failed ) );
+        completedStage( summary == null ? null : summary.apply( i - failed, failed ) );
     }
 
     /**

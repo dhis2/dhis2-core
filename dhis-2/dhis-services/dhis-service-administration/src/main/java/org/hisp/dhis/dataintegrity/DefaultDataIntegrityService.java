@@ -72,6 +72,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
@@ -90,6 +91,7 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorGroupSet;
 import org.hisp.dhis.indicator.IndicatorService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
@@ -105,6 +107,8 @@ import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleService;
 import org.springframework.stereotype.Service;
@@ -155,6 +159,8 @@ public class DefaultDataIntegrityService
     private final CacheProvider cacheProvider;
 
     private final DataIntegrityStore dataIntegrityStore;
+
+    private final SchemaService schemaService;
 
     private Cache<DataIntegritySummary> summaryCache;
 
@@ -516,6 +522,7 @@ public class DefaultDataIntegrityService
     }
 
     private void registerNonDatabaseIntegrityCheck( DataIntegrityCheckType type,
+        Class<? extends IdentifiableObject> issueIdType,
         Supplier<List<DataIntegrityIssue>> check )
     {
         String name = type.getName();
@@ -525,6 +532,8 @@ public class DefaultDataIntegrityService
 
         try
         {
+            Schema issueSchema = issueIdType == null ? null : schemaService.getDynamicSchema( issueIdType );
+            String issueIdTypeName = issueSchema == null ? null : issueSchema.getPlural();
             checksByName.put( name, DataIntegrityCheck.builder()
                 .name( name )
                 .displayName( info.apply( "name", name.replace( '_', ' ' ) ) )
@@ -534,6 +543,7 @@ public class DefaultDataIntegrityService
                 .description( info.apply( "description", null ) )
                 .introduction( info.apply( "introduction", null ) )
                 .recommendation( info.apply( "recommendation", null ) )
+                .issuesIdType( issueIdTypeName )
                 .runDetailsCheck( c -> new DataIntegrityDetails( c, new Date(), null, check.get() ) )
                 .runSummaryCheck( c -> new DataIntegritySummary( c, new Date(), null, check.get().size(), null ) )
                 .build() );
@@ -552,83 +562,83 @@ public class DefaultDataIntegrityService
     public void initIntegrityChecks()
     {
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.DATA_ELEMENTS_WITHOUT_DATA_SETS,
-            this::getDataElementsWithoutDataSet );
+            DataElement.class, this::getDataElementsWithoutDataSet );
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.DATA_ELEMENTS_WITHOUT_GROUPS,
-            this::getDataElementsWithoutGroups );
+            DataElement.class, this::getDataElementsWithoutGroups );
         registerNonDatabaseIntegrityCheck(
             DataIntegrityCheckType.DATA_ELEMENTS_ASSIGNED_TO_DATA_SETS_WITH_DIFFERENT_PERIOD_TYPES,
-            this::getDataElementsAssignedToDataSetsWithDifferentPeriodTypes );
+            DataElement.class, this::getDataElementsAssignedToDataSetsWithDifferentPeriodTypes );
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.DATA_ELEMENTS_VIOLATING_EXCLUSIVE_GROUP_SETS,
-            this::getDataElementsViolatingExclusiveGroupSets );
+            DataElement.class, this::getDataElementsViolatingExclusiveGroupSets );
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.DATA_ELEMENTS_IN_DATA_SET_NOT_IN_FORM,
-            this::getDataElementsInDataSetNotInForm );
+            DataSet.class, this::getDataElementsInDataSetNotInForm );
 
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.CATEGORY_COMBOS_BEING_INVALID,
-            this::getInvalidCategoryCombos );
+            CategoryCombo.class, this::getInvalidCategoryCombos );
 
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.DATA_SETS_NOT_ASSIGNED_TO_ORG_UNITS,
-            this::getDataSetsNotAssignedToOrganisationUnits );
+            DataSet.class, this::getDataSetsNotAssignedToOrganisationUnits );
 
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.INDICATORS_WITH_IDENTICAL_FORMULAS,
-            this::getIndicatorsWithIdenticalFormulas );
+            null, this::getIndicatorsWithIdenticalFormulas );
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.INDICATORS_WITHOUT_GROUPS,
-            this::getIndicatorsWithoutGroups );
+            Indicator.class, this::getIndicatorsWithoutGroups );
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.INDICATORS_WITH_INVALID_NUMERATOR,
-            this::getInvalidIndicatorNumerators );
+            Indicator.class, this::getInvalidIndicatorNumerators );
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.INDICATORS_WITH_INVALID_DENOMINATOR,
-            this::getInvalidIndicatorDenominators );
+            Indicator.class, this::getInvalidIndicatorDenominators );
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.INDICATORS_VIOLATING_EXCLUSIVE_GROUP_SETS,
-            this::getIndicatorsViolatingExclusiveGroupSets );
+            Indicator.class, this::getIndicatorsViolatingExclusiveGroupSets );
 
-        registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.PERIODS_DUPLICATES, this::getDuplicatePeriods );
+        registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.PERIODS_DUPLICATES, null, this::getDuplicatePeriods );
 
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.ORG_UNITS_WITH_CYCLIC_REFERENCES,
-            this::getOrganisationUnitsWithCyclicReferences );
+            OrganisationUnit.class, this::getOrganisationUnitsWithCyclicReferences );
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.ORG_UNITS_BEING_ORPHANED,
-            this::getOrphanedOrganisationUnits );
+            OrganisationUnit.class, this::getOrphanedOrganisationUnits );
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.ORG_UNITS_WITHOUT_GROUPS,
-            this::getOrganisationUnitsWithoutGroups );
+            OrganisationUnit.class, this::getOrganisationUnitsWithoutGroups );
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.ORG_UNITS_VIOLATING_EXCLUSIVE_GROUP_SETS,
-            this::getOrganisationUnitsViolatingExclusiveGroupSets );
+            OrganisationUnit.class, this::getOrganisationUnitsViolatingExclusiveGroupSets );
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.ORG_UNIT_GROUPS_WITHOUT_GROUP_SETS,
-            this::getOrganisationUnitGroupsWithoutGroupSets );
+            OrganisationUnitGroup.class, this::getOrganisationUnitGroupsWithoutGroupSets );
 
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.VALIDATION_RULES_WITHOUT_GROUPS,
-            this::getValidationRulesWithoutGroups );
+            ValidationRule.class, this::getValidationRulesWithoutGroups );
         registerNonDatabaseIntegrityCheck(
             DataIntegrityCheckType.VALIDATION_RULES_WITH_INVALID_LEFT_SIDE_EXPRESSION,
-            this::getInvalidValidationRuleLeftSideExpressions );
+            ValidationRule.class, this::getInvalidValidationRuleLeftSideExpressions );
         registerNonDatabaseIntegrityCheck(
             DataIntegrityCheckType.VALIDATION_RULES_WITH_INVALID_RIGHT_SIDE_EXPRESSION,
-            this::getInvalidValidationRuleRightSideExpressions );
+            ValidationRule.class, this::getInvalidValidationRuleRightSideExpressions );
 
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.PROGRAM_INDICATORS_WITH_INVALID_EXPRESSIONS,
-            this::getInvalidProgramIndicatorExpressions );
+            ProgramIndicator.class, this::getInvalidProgramIndicatorExpressions );
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.PROGRAM_INDICATORS_WITH_INVALID_FILTERS,
-            this::getInvalidProgramIndicatorFilters );
+            ProgramIndicator.class, this::getInvalidProgramIndicatorFilters );
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.PROGRAM_INDICATORS_WITHOUT_EXPRESSION,
-            this::getProgramIndicatorsWithNoExpression );
+            ProgramIndicator.class, this::getProgramIndicatorsWithNoExpression );
 
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.PROGRAM_RULES_WITHOUT_CONDITION,
-            this::getProgramRulesWithNoCondition );
+            Program.class, this::getProgramRulesWithNoCondition );
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.PROGRAM_RULES_WITHOUT_PRIORITY,
-            this::getProgramRulesWithNoPriority );
+            Program.class, this::getProgramRulesWithNoPriority );
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.PROGRAM_RULES_WITHOUT_ACTION,
-            this::getProgramRulesWithNoAction );
+            Program.class, this::getProgramRulesWithNoAction );
 
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.PROGRAM_RULE_VARIABLES_WITHOUT_DATA_ELEMENT,
-            this::getProgramRuleVariablesWithNoDataElement );
+            Program.class, this::getProgramRuleVariablesWithNoDataElement );
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.PROGRAM_RULE_VARIABLES_WITHOUT_ATTRIBUTE,
-            this::getProgramRuleVariablesWithNoAttribute );
+            Program.class, this::getProgramRuleVariablesWithNoAttribute );
 
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.PROGRAM_RULE_ACTIONS_WITHOUT_DATA_OBJECT,
-            this::getProgramRuleActionsWithNoDataObject );
+            ProgramRule.class, this::getProgramRuleActionsWithNoDataObject );
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.PROGRAM_RULE_ACTIONS_WITHOUT_NOTIFICATION,
-            this::getProgramRuleActionsWithNoNotificationTemplate );
+            ProgramRule.class, this::getProgramRuleActionsWithNoNotificationTemplate );
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.PROGRAM_RULE_ACTIONS_WITHOUT_SECTION,
-            this::getProgramRuleActionsWithNoSectionId );
+            ProgramRule.class, this::getProgramRuleActionsWithNoSectionId );
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.PROGRAM_RULE_ACTIONS_WITHOUT_STAGE,
-            this::getProgramRuleActionsWithNoProgramStageId );
+            ProgramRule.class, this::getProgramRuleActionsWithNoProgramStageId );
     }
 
     @Override

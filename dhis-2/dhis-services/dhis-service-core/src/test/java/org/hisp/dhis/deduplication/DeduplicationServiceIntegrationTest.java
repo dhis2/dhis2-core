@@ -73,6 +73,7 @@ class DeduplicationServiceIntegrationTest extends IntegrationTestBase
 
     @Test
     void testGetAllPotentialDuplicateByDifferentStatus()
+        throws PotentialDuplicateConflictException
     {
         assertEquals( 0, deduplicationService.getAllPotentialDuplicates().size() );
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
@@ -96,6 +97,7 @@ class DeduplicationServiceIntegrationTest extends IntegrationTestBase
 
     @Test
     void testAddPotentialDuplicate()
+        throws PotentialDuplicateConflictException
     {
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
         deduplicationService.addPotentialDuplicate( potentialDuplicate );
@@ -106,6 +108,7 @@ class DeduplicationServiceIntegrationTest extends IntegrationTestBase
 
     @Test
     void testGetPotentialDuplicateByUid()
+        throws PotentialDuplicateConflictException
     {
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
         deduplicationService.addPotentialDuplicate( potentialDuplicate );
@@ -116,13 +119,19 @@ class DeduplicationServiceIntegrationTest extends IntegrationTestBase
 
     @Test
     void testGetPotentialDuplicateDifferentStatus()
+        throws PotentialDuplicateConflictException
     {
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
-        potentialDuplicate.setStatus( DeduplicationStatus.INVALID );
         deduplicationService.addPotentialDuplicate( potentialDuplicate );
         PotentialDuplicate potentialDuplicate1 = new PotentialDuplicate( teiC, teiB );
-        potentialDuplicate1.setStatus( DeduplicationStatus.MERGED );
         deduplicationService.addPotentialDuplicate( potentialDuplicate1 );
+
+        potentialDuplicate.setStatus( DeduplicationStatus.INVALID );
+        deduplicationService.updatePotentialDuplicate( potentialDuplicate );
+
+        potentialDuplicate1.setStatus( DeduplicationStatus.MERGED );
+        deduplicationService.updatePotentialDuplicate( potentialDuplicate1 );
+
         PotentialDuplicateQuery potentialDuplicateQuery = new PotentialDuplicateQuery();
         potentialDuplicateQuery.setTeis( Collections.singletonList( teiB ) );
         potentialDuplicateQuery.setStatus( DeduplicationStatus.INVALID );
@@ -131,7 +140,18 @@ class DeduplicationServiceIntegrationTest extends IntegrationTestBase
     }
 
     @Test
+    void testCreatePotentialDuplicateNotCreationStatus()
+    {
+        PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
+        potentialDuplicate.setStatus( DeduplicationStatus.ALL );
+
+        assertThrows( PotentialDuplicateConflictException.class,
+            () -> deduplicationService.addPotentialDuplicate( potentialDuplicate ) );
+    }
+
+    @Test
     void testGetAllPotentialDuplicates()
+        throws PotentialDuplicateConflictException
     {
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
         PotentialDuplicate potentialDuplicate1 = new PotentialDuplicate( teiC, teiD );
@@ -153,6 +173,7 @@ class DeduplicationServiceIntegrationTest extends IntegrationTestBase
 
     @Test
     void testShouldThrowWhenMissingTeiBProperty()
+        throws PotentialDuplicateConflictException
     {
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
         deduplicationService.addPotentialDuplicate( potentialDuplicate );
@@ -182,6 +203,7 @@ class DeduplicationServiceIntegrationTest extends IntegrationTestBase
 
     @Test
     void testGetAllPotentialDuplicatedByQuery()
+        throws PotentialDuplicateConflictException
     {
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
         PotentialDuplicate potentialDuplicate1 = new PotentialDuplicate( teiC, teiD );
@@ -199,6 +221,7 @@ class DeduplicationServiceIntegrationTest extends IntegrationTestBase
 
     @Test
     void testCountPotentialDuplicates()
+        throws PotentialDuplicateConflictException
     {
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
         PotentialDuplicate potentialDuplicate1 = new PotentialDuplicate( teiC, teiD );
@@ -218,6 +241,7 @@ class DeduplicationServiceIntegrationTest extends IntegrationTestBase
 
     @Test
     void testUpdatePotentialDuplicate()
+        throws PotentialDuplicateConflictException
     {
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
         deduplicationService.addPotentialDuplicate( potentialDuplicate );

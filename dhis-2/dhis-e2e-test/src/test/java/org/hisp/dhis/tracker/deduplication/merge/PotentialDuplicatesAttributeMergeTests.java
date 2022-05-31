@@ -71,7 +71,7 @@ public class PotentialDuplicatesAttributeMergeTests
         String teiA = createTeiWithAttributes( createAttribute( attributes.get( 1 ), "TEST" ) );
         String teiB = createTeiWithAttributes( createAttribute( attributes.get( 0 ), "TEST" ) );
 
-        String potentialDuplicate = potentialDuplicatesActions.createPotentialDuplicate( teiA, teiB, "OPEN" )
+        String potentialDuplicate = potentialDuplicatesActions.postPotentialDuplicate( teiA, teiB, "OPEN" )
             .validateStatus( 200 )
             .extractString( "id" );
 
