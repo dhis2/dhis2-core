@@ -27,9 +27,12 @@
  */
 package org.hisp.dhis.commons.collection;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -56,6 +59,22 @@ public class CollectionUtils
         Set<T> set1 = new HashSet<>( c1 );
         set1.retainAll( new HashSet<>( c2 ) );
         return set1;
+    }
+    
+    /**
+     * Returns all elements which are contained by {@code collection1} but not
+     * contained by {@code collection2} as an immutable list.
+     *
+     * @param <T>
+     * @param collection1 the first collection.
+     * @param collection2 the second collection.
+     * @return all elements in {@code collection1} not in {@code collection2}.
+     */
+    public static <A> List<A> difference( Collection<A> collection1, Collection<A> collection2 )
+    {
+        List<A> list = new ArrayList<>( collection1 );
+        list.removeAll( collection2 );
+        return Collections.unmodifiableList( list );
     }
 
     /**
