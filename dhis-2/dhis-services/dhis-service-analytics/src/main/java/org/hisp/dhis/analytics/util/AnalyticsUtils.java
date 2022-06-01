@@ -525,6 +525,7 @@ public class AnalyticsUtils
      * Validates that the required headers for a data value set exist.
      *
      * @param grid the {@link Grid}.
+     * @throws IllegalArgumentException if validation fails.
      */
     private static void validateGridForDataValueSet( Grid grid )
     {

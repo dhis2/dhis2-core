@@ -41,7 +41,7 @@ import org.apache.commons.validator.routines.IntegerValidator;
  */
 public class MathUtils
 {
-    public static final Double ZERO = new Double( 0 );
+    public static final Double ZERO = 0d;
 
     private static final Locale LOCALE = new Locale( "en" );
 
@@ -194,7 +194,7 @@ public class MathUtils
 
         if ( d >= n )
         {
-            return (double) Math.round( value );
+            return Math.round( value );
         }
 
         return roundToSignificantDigits( value, n );
