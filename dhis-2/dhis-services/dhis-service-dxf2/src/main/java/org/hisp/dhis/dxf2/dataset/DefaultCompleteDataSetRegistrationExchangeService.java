@@ -637,7 +637,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
             {
                 // CDSR already exists
 
-                if ( strategy.isCreateAndUpdate() || strategy.isUpdate() )
+                if ( strategy.isCreateAndUpdate() || strategy.isUpdate() || strategy.isSync() )
                 {
                     // Update existing CDSR
 
@@ -666,7 +666,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
             {
                 // CDSR does not already exist
 
-                if ( strategy.isCreateAndUpdate() || strategy.isCreate() )
+                if ( strategy.isCreateAndUpdate() || strategy.isCreate() || strategy.isSync() )
                 {
                     if ( existingCdsr != null )
                     {
