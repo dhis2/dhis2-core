@@ -134,7 +134,10 @@ public interface Grid
      *
      * @param name the name of the grid header.
      */
-    boolean headerExists( String name );
+    default boolean headerExists( String name )
+    {
+        return getIndexOfHeader( name ) != -1;
+    }
 
     /**
      * Adds a header.
