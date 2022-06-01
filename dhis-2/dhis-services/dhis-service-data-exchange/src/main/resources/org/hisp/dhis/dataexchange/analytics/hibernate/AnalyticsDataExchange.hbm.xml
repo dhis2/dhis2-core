@@ -10,14 +10,14 @@
 
     <cache usage="read-write" />
 
-    <id name="id" column="datasetid">
+    <id name="id" column="analyticsdataexchangeid">
       <generator class="native" />
     </id>
     &identifiableProperties;
 
     <property name="name" column="name" not-null="true" unique="false" length="230" />
 
-    <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_dataset_userid" />
+    <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_analyticsdataexchange_userid" />
 
     <property name="sharing" type="jsbObjectSharing"/>
 
