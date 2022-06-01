@@ -512,12 +512,18 @@ class AnalyticsUtilsTest extends DhisConvenienceTest
         assertEquals( 10, dvs.getHeight() );
         assertEquals( 10, dvs.getWidth() );
 
+        assertEquals( "data_element", dvs.getHeaders().get( 0 ).getName() );
+        assertEquals( "organisation_unit", dvs.getHeaders().get( 2 ).getName() );
+        assertEquals( "value", dvs.getHeaders().get( 5 ).getName() );
+        assertEquals( "comment", dvs.getHeaders().get( 6 ).getName() );
+
         assertEquals( "dxA", dvs.getRow( 1 ).get( 0 ) );
         assertEquals( "peB", dvs.getRow( 1 ).get( 1 ) );
         assertEquals( "ouA", dvs.getRow( 1 ).get( 2 ) );
         assertEquals( "coB", dvs.getRow( 1 ).get( 3 ) );
         assertEquals( "aoB", dvs.getRow( 1 ).get( 4 ) );
         assertEquals( 2d, dvs.getRow( 1 ).get( 5 ) );
+        assertEquals( "[aggregated]", dvs.getRow( 1 ).get( 6 ) );
 
         assertEquals( "dxA", dvs.getRow( 3 ).get( 0 ) );
         assertEquals( "peB", dvs.getRow( 3 ).get( 1 ) );
@@ -525,6 +531,7 @@ class AnalyticsUtilsTest extends DhisConvenienceTest
         assertEquals( "coA", dvs.getRow( 3 ).get( 3 ) );
         assertNull( dvs.getRow( 3 ).get( 4 ) );
         assertEquals( 4d, dvs.getRow( 3 ).get( 5 ) );
+        assertEquals( "[aggregated]", dvs.getRow( 3 ).get( 6 ) );
 
         assertEquals( "dxC", dvs.getRow( 6 ).get( 0 ) );
         assertEquals( "peA", dvs.getRow( 6 ).get( 1 ) );
@@ -532,6 +539,7 @@ class AnalyticsUtilsTest extends DhisConvenienceTest
         assertNull( dvs.getRow( 6 ).get( 3 ) );
         assertEquals( "aoA", dvs.getRow( 6 ).get( 4 ) );
         assertEquals( 7, dvs.getRow( 6 ).get( 5 ) );
+        assertEquals( "[aggregated]", dvs.getRow( 6 ).get( 6 ) );
     }
 
     @Test
