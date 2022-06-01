@@ -29,6 +29,7 @@ package org.hisp.dhis.program;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.antlr.AntlrParserUtils.castString;
 import static org.hisp.dhis.common.ValueType.TEXT;
 import static org.hisp.dhis.parser.expression.ExpressionItem.ITEM_GET_DESCRIPTIONS;
@@ -36,6 +37,7 @@ import static org.hisp.dhis.parser.expression.ExpressionItem.ITEM_GET_SQL;
 import static org.hisp.dhis.program.AnalyticsType.ENROLLMENT;
 import static org.hisp.dhis.program.DefaultProgramIndicatorService.PROGRAM_INDICATOR_ITEMS;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -46,6 +48,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.antlr.AntlrExprLiteral;
 import org.hisp.dhis.antlr.Parser;
 import org.hisp.dhis.antlr.ParserException;
@@ -55,6 +58,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
+import org.hisp.dhis.expression.ExpressionParams;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
@@ -88,6 +92,8 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     private DataElement dataElementC;
 
     private DataElement dataElementD;
+
+    private DataElement dataElementE;
 
     private ProgramStage programStageA;
 
@@ -136,6 +142,11 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
         dataElementD.setUid( "DataElmentD" );
         dataElementD.setValueType( ValueType.DATE );
 
+        dataElementE = createDataElement( 'E' );
+        dataElementE.setDomainType( DataElementDomain.TRACKER );
+        dataElementE.setUid( "DataElmentE" );
+        dataElementE.setValueType( ValueType.BOOLEAN );
+
         attributeA = createTrackedEntityAttribute( 'A', ValueType.NUMBER );
         attributeA.setUid( "Attribute0A" );
 
@@ -172,12 +183,38 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     {
         when( idObjectManager.get( DataElement.class, dataElementA.getUid() ) ).thenReturn( dataElementA );
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
-        when( programIndicatorService.getAnalyticsSql( anyString(), eq( programIndicator ), eq( startDate ),
-            eq( endDate ) ) )
-                .thenAnswer( i -> test( (String) i.getArguments()[0] ) );
+        when( programIndicatorService.getAnalyticsSql( anyString(), any( DataType.class ), eq( programIndicator ),
+            eq( startDate ), eq( endDate ) ) )
+                .thenAnswer( i -> test( (String) i.getArguments()[0], (DataType) i.getArguments()[1] ) );
 
         String sql = test( "d2:condition('#{ProgrmStagA.DataElmentA} > 3',10 + 5,3 * 2)" );
         assertThat( sql, is( "case when (coalesce(\"DataElmentA\"::numeric,0) > 3) then 10 + 5 else 3 * 2 end" ) );
+    }
+
+    @Test
+    void testConditionWithBooleanAsBoolean()
+    {
+        when( idObjectManager.get( DataElement.class, dataElementE.getUid() ) ).thenReturn( dataElementE );
+        when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
+        when( programIndicatorService.getAnalyticsSql( anyString(), any( DataType.class ), eq( programIndicator ),
+            eq( startDate ), eq( endDate ) ) )
+                .thenAnswer( i -> test( (String) i.getArguments()[0], (DataType) i.getArguments()[1] ) );
+
+        String sql = test( "d2:condition('#{ProgrmStagA.DataElmentE}',10 + 5,3 * 2)" );
+        assertThat( sql, is( "case when (coalesce(\"DataElmentE\"::numeric!=0,false)) then 10 + 5 else 3 * 2 end" ) );
+    }
+
+    @Test
+    void testConditionWithBooleanAsNumeric()
+    {
+        when( idObjectManager.get( DataElement.class, dataElementE.getUid() ) ).thenReturn( dataElementE );
+        when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
+        when( programIndicatorService.getAnalyticsSql( anyString(), any( DataType.class ), eq( programIndicator ),
+            eq( startDate ), eq( endDate ) ) )
+                .thenAnswer( i -> test( (String) i.getArguments()[0], (DataType) i.getArguments()[1] ) );
+
+        String sql = test( "d2:condition('#{ProgrmStagA.DataElmentE} > 0',10 + 5,3 * 2)" );
+        assertThat( sql, is( "case when (coalesce(\"DataElmentE\"::numeric,0) > 0) then 10 + 5 else 3 * 2 end" ) );
     }
 
     @Test
@@ -250,15 +287,36 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     {
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
         when( idObjectManager.get( DataElement.class, dataElementA.getUid() ) ).thenReturn( dataElementA );
-        when( programIndicatorService.getAnalyticsSql( anyString(), eq( programIndicator ), eq( startDate ),
-            eq( endDate ) ) )
-                .thenAnswer( i -> test( (String) i.getArguments()[0] ) );
+        when( programIndicatorService.getAnalyticsSql( anyString(), any( DataType.class ), eq( programIndicator ),
+            eq( startDate ), eq( endDate ) ) )
+                .thenAnswer( i -> test( (String) i.getArguments()[0], (DataType) i.getArguments()[1] ) );
 
         String sql = test( "d2:countIfCondition(#{ProgrmStagA.DataElmentA},'>5')" );
         assertThat( sql, is( "(select count(\"DataElmentA\") " +
             "from analytics_event_Program000A " +
             "where analytics_event_Program000A.pi = ax.pi " +
             "and \"DataElmentA\" is not null and \"DataElmentA\" > 5 and ps = 'ProgrmStagA')" ) );
+    }
+
+    @Test
+    void testCountIfConditionWithBooleanAsNumeric()
+    {
+        // Note: A boolean within a comparison should be treated as numeric.
+        // PostgreSQL allows comparision of a text column with a numeric value.
+
+        when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
+        when( idObjectManager.get( DataElement.class, dataElementA.getUid() ) ).thenReturn( dataElementA );
+        when( idObjectManager.get( DataElement.class, dataElementE.getUid() ) ).thenReturn( dataElementE );
+        when( programIndicatorService.getAnalyticsSql( anyString(), any( DataType.class ), eq( programIndicator ),
+            eq( startDate ), eq( endDate ) ) )
+                .thenAnswer( i -> test( (String) i.getArguments()[0], (DataType) i.getArguments()[1] ) );
+
+        String sql = test( "d2:countIfCondition(#{ProgrmStagA.DataElmentA},'>#{ProgrmStagA.DataElmentE}')" );
+        assertThat( sql, is( "(select count(\"DataElmentA\") " +
+            "from analytics_event_Program000A " +
+            "where analytics_event_Program000A.pi = ax.pi " +
+            "and \"DataElmentA\" is not null and \"DataElmentA\" > coalesce(\"DataElmentE\"::numeric,0) " +
+            "and ps = 'ProgrmStagA')" ) );
     }
 
     @Test
@@ -575,20 +633,35 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
 
     private String test( String expression )
     {
-        test( expression, new DefaultLiteral(), ITEM_GET_DESCRIPTIONS );
+        return test( expression, NUMERIC );
+    }
 
-        return castString( test( expression, new SqlLiteral(), ITEM_GET_SQL ) );
+    private String test( String expression, DataType dataType )
+    {
+        test( expression, new DefaultLiteral(), ITEM_GET_DESCRIPTIONS, dataType );
+
+        return castString( test( expression, new SqlLiteral(), ITEM_GET_SQL, dataType ) );
     }
 
     private Object test( String expression, AntlrExprLiteral exprLiteral,
         ExpressionItemMethod itemMethod )
+    {
+        return test( expression, exprLiteral, itemMethod, NUMERIC );
+    }
+
+    private Object test( String expression, AntlrExprLiteral exprLiteral,
+        ExpressionItemMethod itemMethod, DataType dataType )
     {
         Set<String> dataElementsAndAttributesIdentifiers = new LinkedHashSet<>();
         dataElementsAndAttributesIdentifiers.add( BASE_UID + "a" );
         dataElementsAndAttributesIdentifiers.add( BASE_UID + "b" );
         dataElementsAndAttributesIdentifiers.add( BASE_UID + "c" );
 
-        ProgramExpressionParams params = ProgramExpressionParams.builder()
+        ExpressionParams params = ExpressionParams.builder()
+            .dataType( dataType )
+            .build();
+
+        ProgramExpressionParams progParams = ProgramExpressionParams.builder()
             .programIndicator( programIndicator )
             .reportingStartDate( startDate )
             .reportingEndDate( endDate )
@@ -604,7 +677,8 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
             .i18n( new I18n( null, null ) )
             .itemMap( PROGRAM_INDICATOR_ITEMS )
             .itemMethod( itemMethod )
-            .progParams( params )
+            .params( params )
+            .progParams( progParams )
             .build();
 
         visitor.setExpressionLiteral( exprLiteral );
