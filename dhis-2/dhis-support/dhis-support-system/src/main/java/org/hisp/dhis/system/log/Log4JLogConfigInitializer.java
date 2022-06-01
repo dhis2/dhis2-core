@@ -161,7 +161,7 @@ public class Log4JLogConfigInitializer
             .setName( "appender_" + file )
             .withFilePattern( file + ".%i" )
             .setLayout( PATTERN_LAYOUT )
-            .withPolicy( CronTriggeringPolicy.createPolicy( getLogConfiguration(), "true", "0 0 * * *" ) )
+            .withPolicy( CronTriggeringPolicy.createPolicy( getLogConfiguration(), "true", "0 0 * * * ?" ) )
             .withStrategy( DefaultRolloverStrategy.newBuilder()
                 .withCompressionLevelStr( String.valueOf( Deflater.BEST_COMPRESSION ) )
                 .withFileIndex( "nomax" )
