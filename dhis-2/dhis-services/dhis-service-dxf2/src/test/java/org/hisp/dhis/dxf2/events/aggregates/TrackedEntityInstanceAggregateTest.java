@@ -71,11 +71,12 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import com.google.common.collect.Sets;
 
@@ -100,19 +101,28 @@ class TrackedEntityInstanceAggregateTest extends TrackerTest
     @Autowired
     private TrackedEntityProgramOwnerService programOwnerService;
 
+    @Autowired
+    private CurrentUserService currentUserService;
+
     private final static String DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS";
 
     @Override
-    protected void mockCurrentUserService()
+    protected void setUpTest()
     {
         User user = createUser( "testUser" );
         user.addOrganisationUnit( organisationUnitA );
         userService.updateUser( user );
         makeUserSuper( user );
-        currentUserService = new MockCurrentUserService( user );
-        ReflectionTestUtils.setField( trackedEntityInstanceAggregate, "currentUserService", currentUserService );
-        ReflectionTestUtils.setField( trackedEntityInstanceService, "currentUserService", currentUserService );
-        ReflectionTestUtils.setField( teiService, "currentUserService", currentUserService );
+        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
+            new MockCurrentUserService( user ), trackedEntityInstanceAggregate, trackedEntityInstanceService,
+            teiService );
+    }
+
+    @Override
+    public void tearDownTest()
+    {
+        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
+            currentUserService, trackedEntityInstanceAggregate, trackedEntityInstanceService, teiService );
     }
 
     @Test

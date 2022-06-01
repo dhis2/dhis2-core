@@ -39,9 +39,10 @@ import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import com.google.common.collect.Sets;
 
@@ -56,13 +57,22 @@ class TrackedEntityInstanceAggregateUserTest extends TrackerTest
     @Autowired
     private TrackedEntityInstanceAggregate trackedEntityInstanceAggregate;
 
+    @Autowired
+    private CurrentUserService currentUserService;
+
     @Override
-    protected void mockCurrentUserService()
+    protected void setUpTest()
     {
-        currentUserService = new MockCurrentUserService( null );
-        ReflectionTestUtils.setField( trackedEntityInstanceAggregate, "currentUserService", currentUserService );
-        ReflectionTestUtils.setField( trackedEntityInstanceService, "currentUserService", currentUserService );
-        ReflectionTestUtils.setField( teiService, "currentUserService", currentUserService );
+        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
+            new MockCurrentUserService( null ), trackedEntityInstanceAggregate, trackedEntityInstanceService,
+            teiService );
+    }
+
+    @Override
+    public void tearDownTest()
+    {
+        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
+            currentUserService, trackedEntityInstanceAggregate, trackedEntityInstanceService, teiService );
     }
 
     @Test

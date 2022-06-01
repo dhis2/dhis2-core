@@ -62,12 +62,12 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccess;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.testcontainers.shaded.com.google.common.collect.ImmutableMap;
 
 import com.google.common.collect.Sets;
@@ -109,25 +109,27 @@ class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
 
     private final static int F = 70;
 
+    @Autowired
+    private CurrentUserService currentUserService;
+
     @Override
-    protected void mockCurrentUserService()
+    protected void setUpTest()
     {
         User user = createUser( "testUser" );
         user.addOrganisationUnit( organisationUnitA );
         user.getTeiSearchOrganisationUnits().add( organisationUnitA );
         user.getTeiSearchOrganisationUnits().add( organisationUnitB );
-        // makeUserSuper( user );
         manager.update( user );
-        currentUserService = new MockCurrentUserService( user );
-        ReflectionTestUtils.setField( trackedEntityInstanceAggregate, "currentUserService", currentUserService );
-        ReflectionTestUtils.setField( trackedEntityInstanceService, "currentUserService", currentUserService );
-        ReflectionTestUtils.setField( teiService, "currentUserService", currentUserService );
+        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
+            new MockCurrentUserService( user ), trackedEntityInstanceAggregate, trackedEntityInstanceService,
+            teiService );
     }
 
-    @BeforeEach
-    void setUp()
+    @Override
+    public void tearDownTest()
     {
-        ReflectionTestUtils.setField( trackedEntityInstanceAggregate, "currentUserService", currentUserService );
+        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
+            currentUserService, trackedEntityInstanceAggregate, trackedEntityInstanceService, teiService );
     }
 
     @Test
