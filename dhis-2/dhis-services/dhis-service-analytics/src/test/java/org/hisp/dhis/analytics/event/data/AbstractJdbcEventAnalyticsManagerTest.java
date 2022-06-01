@@ -39,6 +39,7 @@ import static org.hisp.dhis.DhisConvenienceTest.createProgram;
 import static org.hisp.dhis.DhisConvenienceTest.createProgramIndicator;
 import static org.hisp.dhis.DhisConvenienceTest.getDate;
 import static org.hisp.dhis.analytics.AnalyticsAggregationType.fromAggregationType;
+import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -135,8 +136,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends
 
         subject.getSelectSql( new QueryFilter(), item, from, to );
 
-        verify( programIndicatorService ).getAnalyticsSql( programIndicator.getExpression(), programIndicator, from,
-            to );
+        verify( programIndicatorService ).getAnalyticsSql( programIndicator.getExpression(), NUMERIC, programIndicator,
+            from, to );
     }
 
     @Test
@@ -254,7 +255,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
             .withProgramIndicator( programIndicator )
             .build();
 
-        when( programIndicatorService.getAnalyticsSql( programIndicator.getExpression(), programIndicator,
+        when( programIndicatorService.getAnalyticsSql( programIndicator.getExpression(), NUMERIC, programIndicator,
             params.getEarliestStartDate(), params.getLatestEndDate() ) )
                 .thenReturn( "select * from table" );
 
@@ -272,7 +273,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
         EventQueryParams params = new EventQueryParams.Builder( createRequestParams() )
             .withProgramIndicator( programIndicator ).build();
 
-        when( programIndicatorService.getAnalyticsSql( programIndicator.getExpression(), programIndicator,
+        when( programIndicatorService.getAnalyticsSql( programIndicator.getExpression(), NUMERIC, programIndicator,
             params.getEarliestStartDate(), params.getLatestEndDate() ) )
                 .thenReturn( "select * from table" );
 
@@ -290,7 +291,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
             .withProgramIndicator( programIndicator )
             .build();
 
-        when( programIndicatorService.getAnalyticsSql( programIndicator.getExpression(), programIndicator,
+        when( programIndicatorService.getAnalyticsSql( programIndicator.getExpression(), NUMERIC, programIndicator,
             params.getEarliestStartDate(), params.getLatestEndDate() ) )
                 .thenReturn( "select * from table" );
 

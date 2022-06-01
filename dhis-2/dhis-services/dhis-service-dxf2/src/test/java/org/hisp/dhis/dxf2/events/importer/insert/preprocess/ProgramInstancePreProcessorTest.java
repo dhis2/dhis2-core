@@ -136,10 +136,7 @@ class ProgramInstancePreProcessorTest extends BasePreProcessTest
         Map<String, Pair<TrackedEntityInstance, Boolean>> teiMap = new HashMap<>();
         teiMap.put( event.getUid(), Pair.of( tei, true ) );
         when( workContext.getTrackedEntityInstanceMap() ).thenReturn( teiMap );
-        ProgramInstance programInstance1 = new ProgramInstance();
-        ProgramInstance programInstance2 = new ProgramInstance();
-        when( programInstanceStore.get( tei, program, ProgramStatus.ACTIVE ) )
-            .thenReturn( Lists.newArrayList( programInstance1, programInstance2 ) );
+
         event.setProgram( program.getUid() );
         subject.process( event, workContext );
         assertThat( event.getEnrollment(), is( nullValue() ) );

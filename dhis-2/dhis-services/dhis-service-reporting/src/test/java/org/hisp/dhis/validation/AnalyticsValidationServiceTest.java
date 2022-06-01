@@ -326,17 +326,17 @@ class AnalyticsValidationServiceTest extends TransactionalIntegrationTest
         grid.addValue( "ProgramABCD.DataElement" );
         grid.addValue( orgUnitA.getUid() );
         grid.addValue( "HllvX50cXC0" );
-        grid.addValue( new Double( dataElementVal ) );
+        grid.addValue( Double.valueOf( dataElementVal ) );
         grid.addRow();
         grid.addValue( "ProgramABCD.TEAttribute" );
         grid.addValue( orgUnitA.getUid() );
         grid.addValue( "HllvX50cXC0" );
-        grid.addValue( new Double( teAttributeVal ) );
+        grid.addValue( Double.valueOf( teAttributeVal ) );
         grid.addRow();
         grid.addValue( "ProgramIndA" );
         grid.addValue( orgUnitA.getUid() );
         grid.addValue( "HllvX50cXC0" );
-        grid.addValue( new Double( piVal ) );
+        grid.addValue( Double.valueOf( piVal ) );
         return grid;
     }
 

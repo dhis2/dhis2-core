@@ -402,7 +402,6 @@ public class UserController
         throws Exception
     {
         User user = userService.getUser( id );
-
         if ( user == null )
         {
             throw new WebMessageException( conflict( "User not found: " + id ) );
@@ -414,7 +413,6 @@ public class UserController
         }
 
         String valid = securityService.validateRestore( user );
-
         if ( valid != null )
         {
             throw new WebMessageException( conflict( valid ) );
@@ -422,7 +420,7 @@ public class UserController
 
         if ( !securityService
             .sendRestoreOrInviteMessage( user, ContextUtils.getContextPath( request ),
-                RestoreOptions.INVITE_WITH_DEFINED_USERNAME ) )
+                securityService.getRestoreOptions( user.getRestoreToken() ) ) )
         {
             throw new WebMessageException( error( "Failed to send invite message" ) );
         }
@@ -885,7 +883,7 @@ public class UserController
      *
      * @param user user object parsed from the POST request.
      */
-    private ObjectReport inviteUser( User user, User currentUser, HttpServletRequest request )
+    private ObjectReport inviteUser2( User user, User currentUser, HttpServletRequest request )
     {
         securityService.prepareUserForInvite( user );
 
@@ -899,6 +897,31 @@ public class UserController
             securityService
                 .sendRestoreOrInviteMessage( user, ContextUtils.getContextPath( request ),
                     RestoreOptions.INVITE_WITH_DEFINED_USERNAME );
+
+            log.info( String.format( "An invite email was successfully sent to: %s", user.getEmail() ) );
+        }
+
+        return objectReport;
+    }
+
+    private ObjectReport inviteUser( User user, User currentUser, HttpServletRequest request )
+    {
+        RestoreOptions restoreOptions = user.getUsername() == null || user.getUsername().isEmpty()
+            ? RestoreOptions.INVITE_WITH_USERNAME_CHOICE
+            : RestoreOptions.INVITE_WITH_DEFINED_USERNAME;
+
+        securityService.prepareUserForInvite( user );
+
+        ImportReport importReport = createUser( user, currentUser );
+        ObjectReport objectReport = getObjectReport( importReport );
+
+        if ( importReport.getStatus() == Status.OK &&
+            importReport.getStats().getCreated() == 1 &&
+            objectReport != null )
+        {
+            securityService
+                .sendRestoreOrInviteMessage( user, ContextUtils.getContextPath( request ),
+                    restoreOptions );
 
             log.info( String.format( "An invite email was successfully sent to: %s", user.getEmail() ) );
         }

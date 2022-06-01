@@ -29,8 +29,8 @@ package org.hisp.dhis.analytics.shared;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.hisp.dhis.analytics.linelisting.trackedentityinstance.TeiJdbcQuery;
-import org.hisp.dhis.analytics.linelisting.trackedentityinstance.TeiQueryParams;
+import org.hisp.dhis.analytics.tei.TeiJdbcQuery;
+import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.junit.jupiter.api.Test;
 
 /**
