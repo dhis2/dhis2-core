@@ -30,10 +30,10 @@ package org.hisp.dhis.dataexchange.analytics.service;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.hisp.dhis.commons.collection.CollectionUtils.mapToList;
 
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
@@ -111,9 +111,8 @@ public class AnalyticsDataExchangeService
     {
         IdScheme inputIdScheme = toIdSchemeOrDefault( request.getInputIdScheme() );
 
-        List<DimensionalObject> filters = request.getFilters().stream()
-            .map( f -> toDimensionalObject( f, inputIdScheme ) )
-            .collect( Collectors.toList() );
+        List<DimensionalObject> filters = mapToList(
+            request.getFilters(), f -> toDimensionalObject( f, inputIdScheme ) );
 
         return DataQueryParams.newBuilder()
             .addDimension( toDimensionalObject( DATA_X_DIM_ID, request.getDx(), inputIdScheme ) )
