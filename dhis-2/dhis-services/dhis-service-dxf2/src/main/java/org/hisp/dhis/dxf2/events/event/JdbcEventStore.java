@@ -305,8 +305,8 @@ public class JdbcEventStore implements EventStore
      * actual UPDATE statement. This prevents deadlocks when Postgres tries to
      * update the same TEI.
      */
-    private static final String UPDATE_TEI_SQL = "SELECT * FROM trackedentityinstance where uid in (:teiUids) FOR UPDATE SKIP LOCKED;"
-        + "update trackedentityinstance set lastupdated = :lastUpdated, lastupdatedby = :lastUpdatedBy where uid in (:teiUids)";
+    private static final String UPDATE_TEI_SQL = "SELECT * FROM trackedentityinstance WHERE uid IN (:teiUids) FOR UPDATE SKIP LOCKED;"
+        + "UPDATE trackedentityinstance SET lastupdated = :lastUpdated, lastupdatedby = :lastUpdatedBy WHERE uid IN (:teiUids)";
 
     static
     {
@@ -1716,31 +1716,18 @@ public class JdbcEventStore implements EventStore
             return;
         }
 
-        // make sure the list is sorted, to prevent deadlocks
-        teiUids.sort( Comparator.naturalOrder() );
+        String sql = UPDATE_TEI_SQL;
 
-        try
+        if ( skipLockedProvider.getSkipLocked().isEmpty() )
         {
-            Timestamp timestamp = new Timestamp( System.currentTimeMillis() );
-
-            String sql = UPDATE_TEI_SQL;
-
-            if ( skipLockedProvider.getSkipLocked().isEmpty() )
-            {
-                sql = sql.replace( "SKIP LOCKED", "" );
-            }
-
-            jdbcTemplate.execute( sql, new MapSqlParameterSource()
-                .addValue( "teiUids", teiUids )
-                .addValue( "skip", skipLockedProvider.getSkipLocked() )
-                .addValue( "lastUpdated", timestamp )
-                .addValue( "lastUpdatedBy", (user != null ? user.getId() : null) ), ps -> null );
+            sql = sql.replace( "SKIP LOCKED", "" );
         }
-        catch ( DataAccessException e )
-        {
-            log.error( "An error occurred updating one or more Tracked Entity Instances", e );
-            throw e;
-        }
+
+        jdbcTemplate.execute( sql, new MapSqlParameterSource()
+            .addValue( "teiUids", teiUids )
+            .addValue( "lastUpdated", new Timestamp( System.currentTimeMillis() ) )
+            .addValue( "lastUpdatedBy", (user != null ? user.getId() : null) ),
+            PreparedStatement::execute );
     }
 
     private void bindEventParamsForInsert( PreparedStatement ps, ProgramStageInstance event )
