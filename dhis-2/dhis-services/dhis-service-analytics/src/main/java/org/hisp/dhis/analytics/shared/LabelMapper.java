@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.shared;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 
 /**
  * Specific component responsible mapping custom labels for specific cases where
@@ -63,14 +64,14 @@ public class LabelMapper
     /**
      * Finds for a custom label for event date if one exists.
      *
-     * @param program
+     * @param programStage
      * @return the custom label, otherwise the default one
      */
-    public static String getEventDateLabel( final Program program, final String defaultLabel )
+    public static String getEventDateLabel( final ProgramStage programStage, final String defaultLabel )
     {
-        if ( program != null && isNotBlank( program.getDisplayIncidentDateLabel() ) )
+        if ( programStage != null && isNotBlank( programStage.getDisplayExecutionDateLabel() ) )
         {
-            return program.getDisplayIncidentDateLabel();
+            return programStage.getDisplayExecutionDateLabel();
         }
 
         return defaultLabel;

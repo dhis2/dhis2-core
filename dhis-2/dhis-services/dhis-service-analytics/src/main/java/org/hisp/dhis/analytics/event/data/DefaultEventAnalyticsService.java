@@ -721,7 +721,7 @@ public class DefaultEventAnalyticsService
             .addHeader( new GridHeader( ITEM_EVENT, NAME_EVENT, TEXT, false, true ) )
             .addHeader( new GridHeader( ITEM_PROGRAM_STAGE, NAME_PROGRAM_STAGE, TEXT, false, true ) )
             .addHeader( new GridHeader( ITEM_EVENT_DATE,
-                LabelMapper.getEventDateLabel( params.getProgram(), NAME_EVENT_DATE ), DATE, false, true ) )
+                LabelMapper.getEventDateLabel( params.getProgramStage(), NAME_EVENT_DATE ), DATE, false, true ) )
             .addHeader( new GridHeader( ITEM_STORED_BY, NAME_STORED_BY, TEXT, false, true ) )
             .addHeader( new GridHeader(
                 ITEM_CREATED_BY_DISPLAY_NAME, NAME_CREATED_BY_DISPLAY_NAME, TEXT, false, true ) )

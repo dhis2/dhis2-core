@@ -32,6 +32,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 import org.hisp.dhis.analytics.shared.LabelMapper;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -51,13 +52,13 @@ class LabelMapperTest
     void testGetHeaderNameFor_NAME_EVENT_DATE()
     {
         // Given
-        final Program aMockedProgramWithLabels = mockProgramWithLabels();
+        final ProgramStage aMockedProgramStageWithLabels = mockProgramStageWithLabels();
 
         // When
-        final String actualName = LabelMapper.getEventDateLabel( aMockedProgramWithLabels, EVENT_DATE );
+        final String actualName = LabelMapper.getEventDateLabel( aMockedProgramStageWithLabels, EVENT_DATE );
 
         // Then
-        assertThat( actualName, is( aMockedProgramWithLabels.getIncidentDateLabel() ) );
+        assertThat( actualName, is( aMockedProgramStageWithLabels.getDisplayExecutionDateLabel() ) );
     }
 
     @Test
@@ -90,10 +91,10 @@ class LabelMapperTest
     void testGetHeaderNameWhenNoLabelIsSetFor_NAME_EVENT_DATE()
     {
         // Given
-        final Program aMockedProgramWithLabels = mockProgramWithoutLabels();
+        final ProgramStage aMockedProgramStageWithNoLabels = mockProgramStageWithoutLabels();
 
         // When
-        final String actualName = LabelMapper.getEventDateLabel( aMockedProgramWithLabels, EVENT_DATE );
+        final String actualName = LabelMapper.getEventDateLabel( aMockedProgramStageWithNoLabels, EVENT_DATE );
 
         // Then
         assertThat( actualName, is( EVENT_DATE ) );
@@ -151,5 +152,24 @@ class LabelMapperTest
     {
         final Program program = new Program();
         return program;
+    }
+
+    private ProgramStage mockProgramStageWithLabels()
+    {
+        final ProgramStage programStage = new ProgramStage();
+        programStage.setExecutionDateLabel( "execution date label" );
+        final Program program = new Program();
+        program.setEnrollmentDateLabel( "enrollment date label" );
+        program.setIncidentDateLabel( "incident date label" );
+        programStage.setProgram( program );
+        return programStage;
+    }
+
+    private ProgramStage mockProgramStageWithoutLabels()
+    {
+        final ProgramStage programStage = new ProgramStage();
+        final Program program = new Program();
+        programStage.setProgram( program );
+        return programStage;
     }
 }
