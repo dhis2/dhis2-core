@@ -86,6 +86,7 @@ public class GridHeader
     public GridHeader( String name )
     {
         this.name = name;
+        this.column = name;
         this.type = String.class.getName();
         this.hidden = false;
         this.meta = false;
@@ -102,6 +103,17 @@ public class GridHeader
     }
 
     /**
+     * @param name formal header name.
+     * @param valueType the header value type.
+     */
+    public GridHeader( String name, ValueType valueType )
+    {
+        this( name );
+        this.valueType = valueType;
+        this.type = valueType.getJavaClass().getName();
+    }
+
+    /**
      * Sets the column property to the name value. Sets the type property to
      * String.
      *
@@ -115,17 +127,6 @@ public class GridHeader
         this.column = name;
         this.hidden = hidden;
         this.meta = meta;
-    }
-
-    /**
-     * @param name formal header name.
-     * @param column readable header title.
-     */
-    public GridHeader( String name, String column, ValueType valueType )
-    {
-        this( name, column );
-        this.valueType = valueType;
-        this.type = valueType.getJavaClass().getName();
     }
 
     /**

@@ -309,7 +309,7 @@ public class ListGrid
     @Override
     public int getIndexOfHeader( String name )
     {
-        return headers.indexOf( new GridHeader( name, null ) );
+        return headers.indexOf( new GridHeader( name ) );
     }
 
     @Override

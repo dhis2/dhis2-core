@@ -489,16 +489,16 @@ public class AnalyticsUtils
 
         Grid dvs = new ListGrid();
 
-        dvs.addHeader( grid.getHeaders().get( dxInx ) );
-        dvs.addHeader( grid.getHeaders().get( peInx ) );
-        dvs.addHeader( grid.getHeaders().get( ouInx ) );
-        dvs.addHeader( grid.getHeaders().get( coInx ) );
-        dvs.addHeader( grid.getHeaders().get( aoInx ) );
-        dvs.addHeader( grid.getHeaders().get( vlInx ) );
-        dvs.addHeader( new GridHeader( "comment", "Comment", ValueType.TEXT ) );
-        dvs.addHeader( new GridHeader( "storedBy", "Stored by", ValueType.TEXT ) );
-        dvs.addHeader( new GridHeader( "created", "Created", ValueType.DATETIME ) );
-        dvs.addHeader( new GridHeader( "lastUpdated", "Last updated", ValueType.DATETIME ) );
+        dvs.addHeader( new GridHeader( "data_element", ValueType.TEXT ) );
+        dvs.addHeader( new GridHeader( "period", ValueType.TEXT ) );
+        dvs.addHeader( new GridHeader( "organisation_unit", ValueType.TEXT ) );
+        dvs.addHeader( new GridHeader( "category_option_combo", ValueType.TEXT ) );
+        dvs.addHeader( new GridHeader( "attribute_option_combo", ValueType.TEXT ) );
+        dvs.addHeader( new GridHeader( "value", ValueType.TEXT ) );
+        dvs.addHeader( new GridHeader( "comment", ValueType.TEXT ) );
+        dvs.addHeader( new GridHeader( "stored_by", ValueType.TEXT ) );
+        dvs.addHeader( new GridHeader( "created", ValueType.DATETIME ) );
+        dvs.addHeader( new GridHeader( "last_updated", ValueType.DATETIME ) );
 
         for ( List<Object> row : grid.getRows() )
         {
@@ -833,16 +833,13 @@ public class AnalyticsUtils
 
         List<DimensionalItemObject> des = params.getAllDataElements();
 
-        if ( !des.isEmpty() )
+        for ( DimensionalItemObject de : des )
         {
-            for ( DimensionalItemObject de : des )
-            {
-                DataElement dataElement = (DataElement) de;
+            DataElement dataElement = (DataElement) de;
 
-                for ( CategoryOptionCombo coc : dataElement.getCategoryOptionCombos() )
-                {
-                    metaData.put( coc.getUid(), coc.getName() );
-                }
+            for ( CategoryOptionCombo coc : dataElement.getCategoryOptionCombos() )
+            {
+                metaData.put( coc.getUid(), coc.getName() );
             }
         }
 
