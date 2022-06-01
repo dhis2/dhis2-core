@@ -198,16 +198,6 @@ public interface SecurityService
     String verifyRestoreToken( User user, String token, RestoreType restoreType );
 
     /**
-     * Indicates whether the given username is an invite. The username is
-     * considered an invite if it is null or matches the invite username pattern
-     * of invite-<email>-<uid>.
-     *
-     * @param username the username.
-     * @return true if the username represents an account invitation.
-     */
-    boolean isInviteUsername( String username );
-
-    /**
      * Checks whether current user has read access to object.
      *
      * @param identifiableObject Object to check for read access.
