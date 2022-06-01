@@ -269,6 +269,23 @@ public class AnalyticsController
         return analyticsService.getAggregatedDataValueSet( params );
     }
 
+    @GetMapping( value = RESOURCE_PATH + DATA_VALUE_SET_PATH + ".csv" )
+    public void getDataValueSetCsv(
+        AggregateAnalyticsQueryCriteria criteria,
+        DhisApiVersion apiVersion,
+        HttpServletResponse response )
+        throws Exception
+    {
+        DataQueryParams params = dataQueryService.getFromRequest( mapFromCriteria( criteria, apiVersion ) );
+
+        contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_CSV,
+            CacheStrategy.RESPECT_SYSTEM_SETTING, "data.csv", true, params.getLatestEndDate() );
+
+        Grid grid = analyticsService.getAggregatedDataValueSetAsGrid( params );
+
+        GridUtils.toCsv( grid, response.getWriter() );
+    }
+
     @GetMapping( value = RESOURCE_PATH + "/tableTypes", produces = { APPLICATION_JSON_VALUE,
         "application/javascript" } )
     public @ResponseBody AnalyticsTableType[] getTableTypes()

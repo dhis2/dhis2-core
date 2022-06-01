@@ -803,7 +803,41 @@ class GridTest
     }
 
     @Test
-    void testRepositionColumnsByHeadersUsingInvalidHeader()
+    void testGetIndexOfHeader()
+    {
+        Grid grid = new ListGrid();
+        grid.addHeader( new GridHeader( "headerA", "Header A" ) );
+        grid.addHeader( new GridHeader( "headerB", "Header B" ) );
+        grid.addHeader( new GridHeader( "headerC", "Header C" ) );
+        grid.addRow().addValue( 1 ).addValue( "a" ).addValue( "a-1" );
+        grid.addRow().addValue( 2 ).addValue( "b" ).addValue( "b-1" );
+        grid.addRow().addValue( 3 ).addValue( "c" ).addValue( "c-1" );
+
+        assertEquals( 0, grid.getIndexOfHeader( "headerA" ) );
+        assertEquals( 1, grid.getIndexOfHeader( "headerB" ) );
+        assertEquals( 2, grid.getIndexOfHeader( "headerC" ) );
+        assertEquals( -1, grid.getIndexOfHeader( "headerX" ) );
+    }
+
+    @Test
+    void testHeaderExists()
+    {
+        Grid grid = new ListGrid();
+        grid.addHeader( new GridHeader( "headerA", "Header A" ) );
+        grid.addHeader( new GridHeader( "headerB", "Header B" ) );
+        grid.addHeader( new GridHeader( "headerC", "Header C" ) );
+        grid.addRow().addValue( 1 ).addValue( "a" ).addValue( "a-1" );
+        grid.addRow().addValue( 2 ).addValue( "b" ).addValue( "b-1" );
+        grid.addRow().addValue( 3 ).addValue( "c" ).addValue( "c-1" );
+
+        assertTrue( grid.headerExists( "headerA" ) );
+        assertTrue( grid.headerExists( "headerB" ) );
+        assertTrue( grid.headerExists( "headerC" ) );
+        assertFalse( grid.headerExists( "headerX" ) );
+    }
+
+    @Test
+    void testRepositionHeadersUsingInvalidHeader()
     {
         // Given
         GridHeader headerA = new GridHeader( "headerA", "Header A" );

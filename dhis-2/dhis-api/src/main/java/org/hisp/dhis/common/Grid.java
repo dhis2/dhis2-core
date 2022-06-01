@@ -130,6 +130,16 @@ public interface Grid
     int getIndexOfHeader( String name );
 
     /**
+     * Indicates whether a header with the given name exists.
+     *
+     * @param name the name of the grid header.
+     */
+    default boolean headerExists( String name )
+    {
+        return getIndexOfHeader( name ) != -1;
+    }
+
+    /**
      * Adds a header.
      *
      * @param header the grid header.
