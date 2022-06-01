@@ -64,6 +64,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
 
@@ -75,9 +76,7 @@ import com.google.common.collect.Multimap;
  */
 @Component
 @RequiredArgsConstructor
-public class TrackedEntityInstanceAggregate
-    extends
-    AbstractAggregate
+public class TrackedEntityInstanceAggregate extends AbstractAggregate implements CurrentUserServiceTarget
 {
     @NonNull
     private final TrackedEntityInstanceStore trackedEntityInstanceStore;
@@ -86,7 +85,7 @@ public class TrackedEntityInstanceAggregate
     private final EnrollmentAggregate enrollmentAggregate;
 
     @NonNull
-    private final CurrentUserService currentUserService;
+    private CurrentUserService currentUserService;
 
     @NonNull
     private final AclStore aclStore;
@@ -242,6 +241,12 @@ public class TrackedEntityInstanceAggregate
                 } ).collect( Collectors.toList() );
             }, getPool() ).join();
 
+    }
+
+    @Override
+    public void setCurrentUserService( CurrentUserService currentUserService )
+    {
+        this.currentUserService = currentUserService;
     }
 
     /**
