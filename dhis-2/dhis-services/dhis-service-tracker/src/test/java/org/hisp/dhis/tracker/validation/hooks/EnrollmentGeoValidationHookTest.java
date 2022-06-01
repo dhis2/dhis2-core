@@ -113,6 +113,8 @@ class EnrollmentGeoValidationHookTest
         enrollment.setProgram( null );
         enrollment.setGeometry( new GeometryFactory().createPoint() );
 
+        when( preheat.getProgram( (MetadataIdentifier) null ) ).thenReturn( null );
+
         assertThrows( NullPointerException.class,
             () -> this.hookToTest.validateEnrollment( reporter, bundle, enrollment ) );
     }

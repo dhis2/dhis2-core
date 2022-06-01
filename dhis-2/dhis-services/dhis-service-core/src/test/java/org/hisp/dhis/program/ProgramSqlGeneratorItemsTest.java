@@ -168,7 +168,6 @@ class ProgramSqlGeneratorItemsTest extends DhisConvenienceTest
     @Test
     void testDataElementNotFound()
     {
-        when( idObjectManager.get( TrackedEntityAttribute.class, attributeA.getUid() ) ).thenReturn( attributeA );
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
 
         assertThrows( org.hisp.dhis.antlr.ParserException.class, () -> test( "#{ProgrmStagA.NotElementA}" ) );
