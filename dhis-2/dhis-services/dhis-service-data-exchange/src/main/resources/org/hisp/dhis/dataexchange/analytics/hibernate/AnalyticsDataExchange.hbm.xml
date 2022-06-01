@@ -19,11 +19,11 @@
 
     <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_analyticsdataexchange_userid" />
 
-    <property name="sharing" type="jsbObjectSharing"/>
+    <property name="translations" column="translations" type="jblTranslations"/>
 
-    <property name="translations" type="jblTranslations"/>
+    <property name="sharing" column="sharing" type="jsbObjectSharing"/>
 
-    <property name="attributeValues" type="jsbAttributeValues"/>
+    <property name="attributeValues" column="attributevalues" type="jsbAttributeValues"/>
     
     <property name="source" type="jbAnalyticsDataExchangeSource" column="source" />
 

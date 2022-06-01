@@ -13,6 +13,7 @@ create table public.analyticsdataexchange (
     lastupdatedby int8 null,
     translations jsonb null,
     sharing jsonb null default '{}'::jsonb,
+    attributevalues jsonb null default '{}'::jsonb,
     name varchar(230) not null,
     "source" jsonb not null,
     "target" jsonb not null,
