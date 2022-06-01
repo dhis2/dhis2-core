@@ -97,8 +97,10 @@ public class Dhis2Client
         headers.add( HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE );
         headers.add( HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE );
         headers.add( HttpHeaders.AUTHORIZATION, config.getAccessTokenHeader() );
-        log.info( "{}: {}", HttpHeaders.AUTHORIZATION, config.getAccessTokenHeader() ); // TODO
-                                                                                        // remove
+
+        // TODO remove
+        log.info( "{}: {}", HttpHeaders.AUTHORIZATION, config.getAccessTokenHeader() );
+
         return headers;
     }
 
