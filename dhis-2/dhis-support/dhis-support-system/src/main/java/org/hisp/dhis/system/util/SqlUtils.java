@@ -92,7 +92,7 @@ public class SqlUtils
      */
     public static String singleQuote( String relation )
     {
-        String rel = relation.replaceAll( SINGLE_QUOTE, (SINGLE_QUOTE + SINGLE_QUOTE) );
+        String rel = relation.replace( SINGLE_QUOTE, (SINGLE_QUOTE + SINGLE_QUOTE) );
 
         return SINGLE_QUOTE + rel + SINGLE_QUOTE;
     }
