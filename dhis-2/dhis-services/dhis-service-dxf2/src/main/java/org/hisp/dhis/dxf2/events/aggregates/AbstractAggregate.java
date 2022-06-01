@@ -33,14 +33,20 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Supplier;
 
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserServiceTarget;
+
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 
 /**
  * @author Luciano Fiandesio
  */
-public abstract class AbstractAggregate
+public abstract class AbstractAggregate implements CurrentUserServiceTarget
 {
+
+    protected CurrentUserService currentUserService;
+
     /**
      * Executes the Supplier asynchronously using the thread pool from the
      * provided {@see Executor}
@@ -69,6 +75,12 @@ public abstract class AbstractAggregate
     <T> CompletableFuture<Multimap<String, T>> asyncFetch( Supplier<Multimap<String, T>> supplier, Executor executor )
     {
         return supplyAsync( supplier, executor );
+    }
+
+    @Override
+    public void setCurrentUserService( CurrentUserService currentUserService )
+    {
+        this.currentUserService = currentUserService;
     }
 
 }

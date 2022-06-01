@@ -73,19 +73,21 @@ class TrackedEntityInstanceAttributesAggregateAclTest extends TrackerTest
 
     @Override
     protected void setUpTest()
+        throws Exception
     {
+        super.setUpTest();
         User user = createUser( "testUser" );
         setUserAuthorityToNonSuper( user );
         setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
-            new MockCurrentUserService( user ), trackedEntityInstanceAggregate, trackedEntityInstanceService,
-            teiService );
+            new MockCurrentUserService( user ), trackedEntityInstanceAggregate, teiService,
+            trackedEntityInstanceService );
     }
 
     @Override
     public void tearDownTest()
     {
         setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
-            currentUserService, trackedEntityInstanceAggregate, trackedEntityInstanceService, teiService );
+            currentUserService, trackedEntityInstanceAggregate, teiService, trackedEntityInstanceService );
     }
 
     @Test

@@ -109,17 +109,20 @@ class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
 
     private final static int F = 70;
 
+    private User user;
+
     @Autowired
     private CurrentUserService currentUserService;
 
     @Override
     protected void setUpTest()
+        throws Exception
     {
-        User user = createUser( "testUser" );
+        super.setUpTest();
+        user = createUser( "testUser" );
         user.addOrganisationUnit( organisationUnitA );
         user.getTeiSearchOrganisationUnits().add( organisationUnitA );
         user.getTeiSearchOrganisationUnits().add( organisationUnitB );
-        manager.update( user );
         setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
             new MockCurrentUserService( user ), trackedEntityInstanceAggregate, trackedEntityInstanceService,
             teiService );
@@ -129,7 +132,7 @@ class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
     public void tearDownTest()
     {
         setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
-            currentUserService, trackedEntityInstanceAggregate, trackedEntityInstanceService, teiService );
+            currentUserService, trackedEntityInstanceAggregate, teiService, trackedEntityInstanceService );
     }
 
     @Test
@@ -246,7 +249,7 @@ class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
             programB.setUid( CodeGenerator.generateUid() );
             programB.setCode( RandomStringUtils.randomAlphanumeric( 10 ) );
             Set<UserAccess> programBUserAccess = new HashSet<>();
-            programBUserAccess.add( new UserAccess( currentUserService.getCurrentUser(), AccessStringHelper.FULL ) );
+            programBUserAccess.add( new UserAccess( user, AccessStringHelper.FULL ) );
             programB.setUserAccesses( programBUserAccess );
             programB.setProgramStages(
                 Stream.of( programStageA, programStageB ).collect( Collectors.toCollection( HashSet::new ) ) );

@@ -108,21 +108,23 @@ class TrackedEntityInstanceAggregateTest extends TrackerTest
 
     @Override
     protected void setUpTest()
+        throws Exception
     {
+        super.setUpTest();
         User user = createUser( "testUser" );
         user.addOrganisationUnit( organisationUnitA );
         userService.updateUser( user );
         makeUserSuper( user );
         setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
-            new MockCurrentUserService( user ), trackedEntityInstanceAggregate, trackedEntityInstanceService,
-            teiService );
+            new MockCurrentUserService( user ), trackedEntityInstanceAggregate, teiService,
+            trackedEntityInstanceService );
     }
 
     @Override
     public void tearDownTest()
     {
         setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
-            currentUserService, trackedEntityInstanceAggregate, trackedEntityInstanceService, teiService );
+            currentUserService, trackedEntityInstanceAggregate, teiService, trackedEntityInstanceService );
     }
 
     @Test
