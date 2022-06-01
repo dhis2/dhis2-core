@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.program.function;
 
+import static org.hisp.dhis.analytics.DataType.BOOLEAN;
 import static org.hisp.dhis.antlr.AntlrParserUtils.castClass;
 import static org.hisp.dhis.antlr.AntlrParserUtils.trimQuotes;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
@@ -66,7 +67,7 @@ public class D2Condition
 
         ProgramExpressionParams params = visitor.getProgParams();
 
-        String testSql = visitor.getProgramIndicatorService().getAnalyticsSql( testExpression,
+        String testSql = visitor.getProgramIndicatorService().getAnalyticsSql( testExpression, BOOLEAN,
             params.getProgramIndicator(), params.getReportingStartDate(),
             params.getReportingEndDate() );
 
