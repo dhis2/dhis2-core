@@ -63,6 +63,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
@@ -71,6 +72,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Lars Helge Overland
  */
+@DirtiesContext
 class DataValueSetExportAccessControlTest extends TransactionalIntegrationTest
 {
 
