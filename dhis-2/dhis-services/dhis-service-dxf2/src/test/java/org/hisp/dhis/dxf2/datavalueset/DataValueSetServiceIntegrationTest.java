@@ -61,14 +61,12 @@ import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.test.annotation.DirtiesContext;
 
 import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland
  */
-@DirtiesContext
 class DataValueSetServiceIntegrationTest extends DhisTest
 {
 
@@ -92,6 +90,9 @@ class DataValueSetServiceIntegrationTest extends DhisTest
 
     @Autowired
     private UserService _userService;
+
+    @Autowired
+    private CurrentUserService currentUserService;
 
     private DataElement deA;
 
@@ -157,6 +158,13 @@ class DataValueSetServiceIntegrationTest extends DhisTest
         user = createAndInjectAdminUser();
         user.setOrganisationUnits( Sets.newHashSet( ouA, ouB, ouC ) );
         CurrentUserService currentUserService = new MockCurrentUserService( user );
+        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
+            currentUserService, dataValueSetService );
+    }
+
+    @Override
+    public void tearDownTest()
+    {
         setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
             currentUserService, dataValueSetService );
     }

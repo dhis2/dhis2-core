@@ -95,7 +95,6 @@ import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.test.annotation.DirtiesContext;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -103,7 +102,6 @@ import com.google.common.collect.Sets;
 /**
  * @author Lars Helge Overland
  */
-@DirtiesContext
 class DataValueSetServiceTest extends TransactionalIntegrationTest
 {
 
@@ -141,6 +139,9 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
 
     @Autowired
     private UserService _userService;
+
+    @Autowired
+    private CurrentUserService currentUserService;
 
     private Attribute attribute;
 
@@ -330,6 +331,13 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
         CompleteDataSetRegistration completeDataSetRegistration = new CompleteDataSetRegistration( dsA, peA, ouA,
             categoryOptionCombo, getDate( 2012, 1, 9 ), "userA", new Date(), "userA", true );
         registrationService.saveCompleteDataSetRegistration( completeDataSetRegistration );
+    }
+
+    @Override
+    public void tearDownTest()
+    {
+        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
+            currentUserService, dataValueSetService );
     }
 
     // -------------------------------------------------------------------------

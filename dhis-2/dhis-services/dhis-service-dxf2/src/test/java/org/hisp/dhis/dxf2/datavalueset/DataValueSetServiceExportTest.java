@@ -71,7 +71,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.annotation.DirtiesContext;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
@@ -79,7 +78,6 @@ import com.google.common.collect.Sets;
 /**
  * @author Lars Helge Overland
  */
-@DirtiesContext
 class DataValueSetServiceExportTest extends IntegrationTestBase
 {
 
@@ -112,6 +110,9 @@ class DataValueSetServiceExportTest extends IntegrationTestBase
 
     @Autowired
     private UserService _userService;
+
+    @Autowired
+    private CurrentUserService currentUserService;
 
     @Autowired
     private ObjectMapper jsonMapper;
@@ -240,6 +241,13 @@ class DataValueSetServiceExportTest extends IntegrationTestBase
         enableDataSharing( user, dsB, AccessStringHelper.DATA_READ_WRITE );
         dataSetService.updateDataSet( dsA );
         dataSetService.updateDataSet( dsB );
+    }
+
+    @Override
+    public void tearDownTest()
+    {
+        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
+            currentUserService, dataValueSetService, organisationUnitService );
     }
 
     // -------------------------------------------------------------------------

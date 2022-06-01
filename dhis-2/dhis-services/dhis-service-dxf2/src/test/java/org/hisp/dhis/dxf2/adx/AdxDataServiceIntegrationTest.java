@@ -73,7 +73,6 @@ import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.test.annotation.DirtiesContext;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -81,7 +80,6 @@ import com.google.common.collect.Sets;
 /*
  * @author Jim Grace
  */
-@DirtiesContext
 class AdxDataServiceIntegrationTest extends DhisTest
 {
 
@@ -108,6 +106,9 @@ class AdxDataServiceIntegrationTest extends DhisTest
 
     @Autowired
     private UserService _userService;
+
+    @Autowired
+    private CurrentUserService currentUserService;
 
     private CategoryOption coUnder5;
 
@@ -323,6 +324,13 @@ class AdxDataServiceIntegrationTest extends DhisTest
         user.setOrganisationUnits( Sets.newHashSet( ouA, ouB ) );
         userService.addUser( user );
         CurrentUserService currentUserService = new MockCurrentUserService( user );
+        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
+            currentUserService, dataValueSetService, organisationUnitService );
+    }
+
+    @Override
+    public void tearDownTest()
+    {
         setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
             currentUserService, dataValueSetService, organisationUnitService );
     }
