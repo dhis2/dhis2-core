@@ -1007,25 +1007,25 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
     @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public WebMessage addCollectionItemsJson(
+    public void addCollectionItemsJson(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
         HttpServletRequest request )
         throws Exception
     {
-        return addCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
+        addCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
             renderService.fromJson( request.getInputStream(), IdentifiableObjects.class ) );
     }
 
     @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.POST, consumes = MediaType.APPLICATION_XML_VALUE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public WebMessage addCollectionItemsXml(
+    public void addCollectionItemsXml(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
         HttpServletRequest request )
         throws Exception
     {
-        return addCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
+        addCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
             renderService.fromXml( request.getInputStream(), IdentifiableObjects.class ) );
     }
 
@@ -1076,7 +1076,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
     @RequestMapping( value = "/{uid}/{property}/{itemId}", method = RequestMethod.POST )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public WebMessage addCollectionItem(
+    public void addCollectionItem(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
         @PathVariable( "itemId" ) String pvItemId,
@@ -1094,10 +1094,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         items.setAdditions( singletonList( new BaseIdentifiableObject( pvItemId, "", "" ) ) );
 
         preUpdateItems( object, items );
-        TypeReport report = collectionService.addCollectionItems( object, pvProperty, items.getIdentifiableObjects() );
+        collectionService.addCollectionItems( object, pvProperty, items.getIdentifiableObjects() );
         postUpdateItems( object, items );
         hibernateCacheManager.clearCache();
-        return typeReport( report );
     }
 
     @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.DELETE, consumes = MediaType.APPLICATION_JSON_VALUE )
