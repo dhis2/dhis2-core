@@ -30,7 +30,8 @@ package org.hisp.dhis.analytics.data;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.DataQueryParams.newBuilder;
 import static org.hisp.dhis.analytics.OutputFormat.DATA_VALUE_SET;
-import static org.hisp.dhis.analytics.util.AnalyticsUtils.getDataValueSetFromGrid;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.getDataValueSet;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.getDataValueSetAsGrid;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.isTableLayout;
 import static org.hisp.dhis.commons.collection.ListUtils.removeEmptys;
 import static org.hisp.dhis.visualization.Visualization.addListIfEmpty;
@@ -134,16 +135,17 @@ public class DefaultAnalyticsService
     @Override
     public DataValueSet getAggregatedDataValueSet( DataQueryParams params )
     {
-        DataQueryParams query = newBuilder( params )
-            .withSkipMeta( false )
-            .withSkipData( false )
-            .withIncludeNumDen( false )
-            .withOutputFormat( DATA_VALUE_SET )
-            .build();
+        Grid grid = getAggregatedDataValueSetGrid( params );
 
-        Grid grid = dataAggregator.getAggregatedDataValueGrid( query );
+        return getDataValueSet( params, grid );
+    }
 
-        return getDataValueSetFromGrid( params, grid );
+    @Override
+    public Grid getAggregatedDataValueSetAsGrid( DataQueryParams params )
+    {
+        Grid grid = getAggregatedDataValueSetGrid( params );
+
+        return getDataValueSetAsGrid( grid );
     }
 
     @Override
@@ -174,6 +176,24 @@ public class DefaultAnalyticsService
     // -------------------------------------------------------------------------
     // Private business logic methods
     // -------------------------------------------------------------------------
+
+    /**
+     * Returns a grid with aggregated data in data value set format.
+     *
+     * @param params the {@link DataQueryParams}.
+     * @return a grid with aggregated data in data value set format.
+     */
+    private Grid getAggregatedDataValueSetGrid( DataQueryParams params )
+    {
+        DataQueryParams query = newBuilder( params )
+            .withSkipMeta( false )
+            .withSkipData( false )
+            .withIncludeNumDen( false )
+            .withOutputFormat( DATA_VALUE_SET )
+            .build();
+
+        return dataAggregator.getAggregatedDataValueGrid( query );
+    }
 
     /**
      * Check the common security constraints that should be applied to the given

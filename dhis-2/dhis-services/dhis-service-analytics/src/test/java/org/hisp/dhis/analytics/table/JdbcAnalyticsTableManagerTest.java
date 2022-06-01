@@ -181,6 +181,8 @@ class JdbcAnalyticsTableManagerTest
             .withLatestPartition()
             .build();
 
+        when( systemSettingManager.getDateSetting( SettingKey.LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE ) )
+            .thenReturn( null );
         when( systemSettingManager.getDateSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE ) )
             .thenReturn( null );
         when( systemSettingManager.getDateSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE ) )

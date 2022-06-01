@@ -41,7 +41,10 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Matcher;
@@ -228,7 +231,7 @@ public class DefaultUserService
             return user;
         }
 
-        if ( usernameIsValid( id ) && (user = getUserByUsername( id )) != null )
+        if ( usernameIsValid( id, false ) && (user = getUserByUsername( id )) != null )
         {
             return user;
         }
@@ -782,7 +785,7 @@ public class DefaultUserService
 
     @Override
     @Transactional( readOnly = true )
-    public Set<String> findNotifiableUsersWithLastLoginBetween( Date from, Date to )
+    public Map<String, Optional<Locale>> findNotifiableUsersWithLastLoginBetween( Date from, Date to )
     {
         return userStore.findNotifiableUsersWithLastLoginBetween( from, to );
     }

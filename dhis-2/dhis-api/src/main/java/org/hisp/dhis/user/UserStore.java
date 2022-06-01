@@ -30,7 +30,9 @@ package org.hisp.dhis.user;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import javax.annotation.Nullable;
@@ -131,9 +133,10 @@ public interface UserStore
      *
      * @param from start of the selected time-frame (inclusive)
      * @param to end of the selected time-frame (exclusive)
-     * @return user emails having a last login within the given time-frame.
+     * @return user emails having a last login within the given time-frame as
+     *         keys and if available their preferred locale as value
      */
-    Set<String> findNotifiableUsersWithLastLoginBetween( Date from, Date to );
+    Map<String, Optional<Locale>> findNotifiableUsersWithLastLoginBetween( Date from, Date to );
 
     String getDisplayName( String userUid );
 

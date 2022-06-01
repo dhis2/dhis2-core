@@ -80,7 +80,6 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 @ExtendWith( MockitoExtension.class )
 class AnalyticsControllerTest
 {
-
     private final static String ENDPOINT = "/analytics";
 
     private MockMvc mockMvc;
@@ -141,9 +140,8 @@ class AnalyticsControllerTest
         mockMvc.perform( get( ENDPOINT + ".xml" )
             .param( "dimension", "dx:fbfJHSPpUQD;cYeuwXTCPkU" )
             .param( "filter", "pe:2014Q1;2014Q2" ) )
-            // .andExpect( content().contentType( "application/xml" ) ) // Note:
-            // we do not
-            // send contentType with xml payload
+            // .andExpect( content().contentType( "application/xml" ) )
+            // Note: we do not send contentType with xml payload
             .andExpect( content().string( notNullValue() ) )
             .andExpect( content().string( startsWith( "<?xml version='1.0' encoding='UTF-8'?>" ) ) )
             .andExpect( status().isOk() );
@@ -157,9 +155,8 @@ class AnalyticsControllerTest
         mockMvc.perform( get( ENDPOINT + ".html" )
             .param( "dimension", "dx:fbfJHSPpUQD;cYeuwXTCPkU" )
             .param( "filter", "pe:2014Q1;2014Q2" ) )
-            // .andExpect( content().contentType( "application/xml" ) ) // Note:
-            // we do not
-            // send contentType with html payload
+            // .andExpect( content().contentType( "text/html" ) )
+            // Note: we do not send contentType with html payload
             .andExpect( content().string( notNullValue() ) )
             .andExpect( content().string( startsWith( "<div class=\"gridDiv\">" ) ) )
             .andExpect( status().isOk() );
@@ -173,9 +170,8 @@ class AnalyticsControllerTest
         mockMvc.perform( get( ENDPOINT + ".html+css" )
             .param( "dimension", "dx:fbfJHSPpUQD;cYeuwXTCPkU" )
             .param( "filter", "pe:2014Q1;2014Q2" ) )
-            // .andExpect( content().contentType( "application/xml" ) ) // Note:
-            // we do not
-            // send contentType with html+css payload
+            // .andExpect( content().contentType( "text/html" ) )
+            // Note: we do not send contentType with html+css payload
             .andExpect( content().string( notNullValue() ) )
             .andExpect( content().string( startsWith( "<style type=\"text/css\">" ) ) )
             .andExpect( status().isOk() );
@@ -189,11 +185,10 @@ class AnalyticsControllerTest
         mockMvc.perform( get( ENDPOINT + ".csv" )
             .param( "dimension", "dx:fbfJHSPpUQD;cYeuwXTCPkU" )
             .param( "filter", "pe:2014Q1;2014Q2" ) )
-            // .andExpect( content().contentType( "application/xml" ) ) // Note:
-            // we do not
-            // send contentType with csv payload
+            // .andExpect( content().contentType( "application/csv" ) )
+            // Note: we do not send contentType with csv payload
             .andExpect( content().string( notNullValue() ) )
-            .andExpect( content().string( "\"\",,,\nde1,ou2,pe1,3\n" +
+            .andExpect( content().string( "a,b,c,d\nde1,ou2,pe1,3\n" +
                 "de2,ou3,pe2,5\n" ) )
             .andExpect( status().isOk() );
     }
@@ -206,7 +201,7 @@ class AnalyticsControllerTest
         final ResultActions resultActions = mockMvc.perform( get( ENDPOINT + ".xls" )
             .param( "dimension", "dx:fbfJHSPpUQD;cYeuwXTCPkU" )
             .param( "filter", "pe:2014Q1;2014Q2" ) )
-            // .andExpect( content().contentType( "application/xml" ) )
+            // .andExpect( content().contentType( "application/xls" ) )
             // Note: we do not send contentType with xsl payload
             .andExpect( status().isOk() );
 
@@ -231,9 +226,8 @@ class AnalyticsControllerTest
         mockMvc.perform( get( ENDPOINT + ".jrxml" )
             .param( "dimension", "dx:fbfJHSPpUQD;cYeuwXTCPkU" )
             .param( "filter", "pe:2014Q1;2014Q2" ) )
-            // .andExpect( content().contentType( "application/xml" ) ) // Note:
-            // we do not
-            // send contentType with jrxml payload
+            // .andExpect( content().contentType( "application/xml" ) )
+            // Note: we do not send contentType with jrxml payload
             .andExpect( content().string( notNullValue() ) )
             .andExpect( content().string( startsWith( "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" ) ) )
             .andExpect( status().isOk() );

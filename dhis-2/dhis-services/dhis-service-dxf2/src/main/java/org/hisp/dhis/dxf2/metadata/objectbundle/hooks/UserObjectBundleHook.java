@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
@@ -84,7 +85,8 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
     public void validate( User user, ObjectBundle bundle,
         Consumer<ErrorReport> addReports )
     {
-        if ( bundle.getImportMode().isCreate() && !ValidationUtils.usernameIsValid( user.getUsername() ) )
+        if ( bundle.getImportMode().isCreate() && !ValidationUtils.usernameIsValid( user.getUsername(),
+            user.isInvitation() ) )
         {
             addReports.accept(
                 new ErrorReport( User.class, ErrorCode.E4049, USERNAME, user.getUsername() )
@@ -263,7 +265,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
         userGroupService.removeUserFromGroups( user, getUids( groups ) );
 
         Set<UserRole> userRoles = user.getUserRoles();
-        for ( UserRole userRole : userRoles )
+        for ( UserRole userRole : new ArrayList<>( userRoles ) )
         {
             userRole.removeUser( user );
             sessionFactory.getCurrentSession().update( userRole );

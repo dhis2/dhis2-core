@@ -32,6 +32,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.DhisConvenienceTest.createProgram;
 import static org.hisp.dhis.DhisConvenienceTest.createProgramIndicator;
 import static org.hisp.dhis.DhisConvenienceTest.getDate;
+import static org.hisp.dhis.analytics.DataType.BOOLEAN;
+import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.mockito.Mockito.when;
 
 import java.util.Date;
@@ -87,7 +89,7 @@ class ProgramIndicatorSubqueryBuilderTest
     {
         ProgramIndicator pi = createProgramIndicator( 'A', program, DUMMY_EXPRESSION, "" );
 
-        when( programIndicatorService.getAnalyticsSql( DUMMY_EXPRESSION, pi, startDate, endDate, "subax" ) )
+        when( programIndicatorService.getAnalyticsSql( DUMMY_EXPRESSION, NUMERIC, pi, startDate, endDate, "subax" ) )
             .thenReturn( "distinct psi" );
 
         String sql = subject.getAggregateClauseForProgramIndicator( pi, AnalyticsType.ENROLLMENT, startDate, endDate );
@@ -106,7 +108,7 @@ class ProgramIndicatorSubqueryBuilderTest
         ProgramIndicator pi = createProgramIndicator( 'A', program, DUMMY_EXPRESSION, "" );
         pi.setAggregationType( null );
 
-        when( programIndicatorService.getAnalyticsSql( DUMMY_EXPRESSION, pi, startDate, endDate, "subax" ) )
+        when( programIndicatorService.getAnalyticsSql( DUMMY_EXPRESSION, NUMERIC, pi, startDate, endDate, "subax" ) )
             .thenReturn( "distinct psi" );
 
         String sql = subject.getAggregateClauseForProgramIndicator( pi, AnalyticsType.EVENT, startDate, endDate );
@@ -120,7 +122,7 @@ class ProgramIndicatorSubqueryBuilderTest
     {
         ProgramIndicator pi = createProgramIndicator( 'A', program, DUMMY_EXPRESSION, "" );
 
-        when( programIndicatorService.getAnalyticsSql( DUMMY_EXPRESSION, pi, startDate, endDate, "subax" ) )
+        when( programIndicatorService.getAnalyticsSql( DUMMY_EXPRESSION, NUMERIC, pi, startDate, endDate, "subax" ) )
             .thenReturn( "distinct psi" );
 
         String sql = subject.getAggregateClauseForProgramIndicator( pi, AnalyticsType.ENROLLMENT, startDate, endDate );
@@ -139,7 +141,7 @@ class ProgramIndicatorSubqueryBuilderTest
         relationshipType.getFromConstraint().setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
         relationshipType.getToConstraint().setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
 
-        when( programIndicatorService.getAnalyticsSql( DUMMY_EXPRESSION, pi, startDate, endDate, "subax" ) )
+        when( programIndicatorService.getAnalyticsSql( DUMMY_EXPRESSION, NUMERIC, pi, startDate, endDate, "subax" ) )
             .thenReturn( "distinct psi" );
 
         String sql = subject.getAggregateClauseForProgramIndicator( pi, relationshipType, AnalyticsType.ENROLLMENT,
@@ -161,10 +163,10 @@ class ProgramIndicatorSubqueryBuilderTest
         ProgramIndicator pi = createProgramIndicator( 'A', program, DUMMY_EXPRESSION, "" );
         pi.setFilter( DUMMY_FILTER_EXPRESSION );
 
-        when( programIndicatorService.getAnalyticsSql( DUMMY_EXPRESSION, pi, startDate, endDate, "subax" ) )
-            .thenReturn( "distinct psi" );
-        when( programIndicatorService.getAnalyticsSql( DUMMY_FILTER_EXPRESSION, pi, startDate, endDate, "subax" ) )
-            .thenReturn( "a = b" );
+        when( programIndicatorService.getAnalyticsSql( DUMMY_EXPRESSION, NUMERIC, pi, startDate, endDate,
+            "subax" ) ).thenReturn( "distinct psi" );
+        when( programIndicatorService.getAnalyticsSql( DUMMY_FILTER_EXPRESSION, BOOLEAN, pi, startDate, endDate,
+            "subax" ) ).thenReturn( "a = b" );
 
         String sql = subject.getAggregateClauseForProgramIndicator( pi, AnalyticsType.ENROLLMENT, startDate, endDate );
 
