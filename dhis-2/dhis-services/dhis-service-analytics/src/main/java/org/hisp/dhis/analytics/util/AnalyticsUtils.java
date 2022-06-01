@@ -836,13 +836,16 @@ public class AnalyticsUtils
 
         List<DimensionalItemObject> des = params.getAllDataElements();
 
-        for ( DimensionalItemObject de : des )
+        if ( !des.isEmpty() )
         {
-            DataElement dataElement = (DataElement) de;
-
-            for ( CategoryOptionCombo coc : dataElement.getCategoryOptionCombos() )
+            for ( DimensionalItemObject de : des )
             {
-                metaData.put( coc.getUid(), coc.getName() );
+                DataElement dataElement = (DataElement) de;
+
+                for ( CategoryOptionCombo coc : dataElement.getCategoryOptionCombos() )
+                {
+                    metaData.put( coc.getUid(), coc.getName() );
+                }
             }
         }
 
