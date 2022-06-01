@@ -510,12 +510,12 @@ class AnalyticsUtilsTest extends DhisConvenienceTest
         Grid dvs = AnalyticsUtils.getDataValueSetAsGrid( grid );
         assertNotNull( dvs );
         assertEquals( 10, dvs.getHeight() );
-        assertEquals( 10, dvs.getWidth() );
+        assertEquals( 11, dvs.getWidth() );
 
         assertEquals( "data_element", dvs.getHeaders().get( 0 ).getName() );
         assertEquals( "organisation_unit", dvs.getHeaders().get( 2 ).getName() );
         assertEquals( "value", dvs.getHeaders().get( 5 ).getName() );
-        assertEquals( "comment", dvs.getHeaders().get( 6 ).getName() );
+        assertEquals( "comment", dvs.getHeaders().get( 9 ).getName() );
 
         assertEquals( "dxA", dvs.getRow( 1 ).get( 0 ) );
         assertEquals( "peB", dvs.getRow( 1 ).get( 1 ) );

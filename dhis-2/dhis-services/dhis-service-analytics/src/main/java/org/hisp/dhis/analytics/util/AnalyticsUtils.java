@@ -495,10 +495,11 @@ public class AnalyticsUtils
         dvs.addHeader( new GridHeader( "category_option_combo", ValueType.TEXT ) );
         dvs.addHeader( new GridHeader( "attribute_option_combo", ValueType.TEXT ) );
         dvs.addHeader( new GridHeader( "value", ValueType.TEXT ) );
-        dvs.addHeader( new GridHeader( "comment", ValueType.TEXT ) );
         dvs.addHeader( new GridHeader( "stored_by", ValueType.TEXT ) );
         dvs.addHeader( new GridHeader( "created", ValueType.DATETIME ) );
         dvs.addHeader( new GridHeader( "last_updated", ValueType.DATETIME ) );
+        dvs.addHeader( new GridHeader( "comment", ValueType.TEXT ) );
+        dvs.addHeader( new GridHeader( "follow_up", ValueType.BOOLEAN ) );
 
         for ( List<Object> row : grid.getRows() )
         {
@@ -511,9 +512,10 @@ public class AnalyticsUtils
             objects.add( row.get( aoInx ) );
             objects.add( row.get( vlInx ) );
             objects.add( KEY_AGG_VALUE );
+            objects.add( created );
+            objects.add( created );
             objects.add( KEY_AGG_VALUE );
-            objects.add( created );
-            objects.add( created );
+            objects.add( false );
 
             dvs.addRow().addValuesAsList( objects );
         }
