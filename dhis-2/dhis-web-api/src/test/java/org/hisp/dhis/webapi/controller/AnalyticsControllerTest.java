@@ -190,7 +190,7 @@ class AnalyticsControllerTest
             // .andExpect( content().contentType( "application/csv" ) )
             // Note: we do not send contentType with csv payload
             .andExpect( content().string( notNullValue() ) )
-            .andExpect( content().string( "\"\"a,b,c,d\nde1,ou2,pe1,3\n" +
+            .andExpect( content().string( "a,b,c,d\nde1,ou2,pe1,3\n" +
                 "de2,ou3,pe2,5\n" ) )
             .andExpect( status().isOk() );
     }
