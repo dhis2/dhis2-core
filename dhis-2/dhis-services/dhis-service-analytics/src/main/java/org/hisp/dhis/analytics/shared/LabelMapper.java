@@ -80,40 +80,6 @@ public class LabelMapper
     /**
      * Finds for a custom label for enrollment date if one exists.
      *
-     * @param programStage
-     * @return the custom label, otherwise the default one
-     */
-    public static String getEnrollmentDateLabel( final ProgramStage programStage, final String defaultLabel )
-    {
-        if ( programStage != null && programStage.getProgram() != null
-            && isNotBlank( programStage.getProgram().getDisplayEnrollmentDateLabel() ) )
-        {
-            return programStage.getProgram().getDisplayEnrollmentDateLabel();
-        }
-
-        return defaultLabel;
-    }
-
-    /**
-     * Finds for a custom label for incident date if one exists.
-     *
-     * @param programStage
-     * @return the custom label, otherwise the default one
-     */
-    public static String getIncidentDateLabel( final ProgramStage programStage, final String defaultLabel )
-    {
-        if ( programStage != null && programStage.getProgram() != null
-            && isNotBlank( programStage.getProgram().getDisplayIncidentDateLabel() ) )
-        {
-            return programStage.getProgram().getDisplayIncidentDateLabel();
-        }
-
-        return defaultLabel;
-    }
-
-    /**
-     * Finds for a custom label for enrollment date if one exists.
-     *
      * @param program
      * @return the custom label, otherwise the default one
      */
