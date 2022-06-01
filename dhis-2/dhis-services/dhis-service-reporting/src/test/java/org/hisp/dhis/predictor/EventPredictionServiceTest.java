@@ -367,7 +367,7 @@ class EventPredictionServiceTest extends IntegrationTestBase
             grid.addValue( Integer.toString( month++ ) );
             grid.addValue( orgUnitA.getUid() );
             grid.addValue( "HllvX50cXC0" );
-            grid.addValue( new Double( value ) );
+            grid.addValue( Double.valueOf( value ) );
         }
         return grid;
     }

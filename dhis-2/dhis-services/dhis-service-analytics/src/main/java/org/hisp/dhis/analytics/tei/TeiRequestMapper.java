@@ -25,35 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.linelisting;
+package org.hisp.dhis.analytics.tei;
 
-import java.util.ArrayList;
-import java.util.List;
+import lombok.RequiredArgsConstructor;
 
-import lombok.Builder;
+import org.hisp.dhis.analytics.common.CommonRequestMapper;
+import org.hisp.dhis.analytics.common.QueryRequestHolder;
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.springframework.stereotype.Service;
 
-import org.hisp.dhis.common.QueryItem;
-
-@Builder( toBuilder = true )
-public class LineListingPagingAndSortingParams
+@Service
+@RequiredArgsConstructor
+public class TeiRequestMapper
 {
-    private final Integer page;
 
-    private final Integer pageSize;
+    private final CommonRequestMapper commonRequestMapper;
 
-    private final Boolean requestPaged;
+    private final ProgramService programService;
 
-    private final Boolean countRequested;
+    private final TrackedEntityTypeService trackedEntityTypeService;
 
-    /**
-     * Columns to sort ascending.
-     */
-    @Builder.Default
-    private List<QueryItem> asc = new ArrayList<>();
-
-    /**
-     * Columns to sort descending.
-     */
-    @Builder.Default
-    private List<QueryItem> desc = new ArrayList<>();
+    public TeiQueryParams map( QueryRequestHolder<TeiQueryRequest> queryRequestHolder, DhisApiVersion apiVersion )
+    {
+        return TeiQueryParams.builder()
+            .programs( programService.getPrograms( queryRequestHolder.getRequest().getPrograms() ) )
+            .trackedEntityType( trackedEntityTypeService
+                .getTrackedEntityType( queryRequestHolder.getRequest().getTrackedEntityType() ) )
+            .commonParams( commonRequestMapper.map(
+                queryRequestHolder.getCommonQueryRequest(),
+                queryRequestHolder.getPagingCriteria(),
+                apiVersion ) )
+            .build();
+    }
 }

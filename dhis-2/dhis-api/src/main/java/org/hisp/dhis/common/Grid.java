@@ -123,7 +123,7 @@ public interface Grid
 
     /**
      * Returns the index of the header with the given name, or -1 if no matching
-     * if no matching header exists.
+     * header exists.
      *
      * @param name the name of the grid header.
      */
@@ -260,6 +260,9 @@ public interface Grid
      */
     List<List<Object>> getRows();
 
+    /**
+     * Returns references.
+     */
     List<Reference> getRefs();
 
     /**
@@ -538,7 +541,7 @@ public interface Grid
      * @param headers the list of header names.
      * @return a set of indexes which holds the holds the new header order.
      */
-    List<Integer> repositionColumnsByHeaders( List<String> headers );
+    List<Integer> repositionHeaders( List<String> headers );
 
     /**
      * Reorders the headers and columns of the grid based on the given column

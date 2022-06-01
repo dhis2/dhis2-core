@@ -25,46 +25,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.linelisting;
+package org.hisp.dhis.analytics.common;
 
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
-
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Builder;
+import lombok.Data;
 
 import org.hisp.dhis.common.AnalyticsPagingCriteria;
-import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 
-@Getter
-@Setter
-public class CommonQueryRequest extends AnalyticsPagingCriteria
+@Data
+@Builder
+public class QueryRequestHolder<T>
 {
+    private final T request;
 
-    private String userOrgUnit;
+    private final CommonQueryRequest commonQueryRequest;
 
-    private Set<String> dimension = new HashSet<>();
-
-    private Set<String> filter = new HashSet<>();
-
-    private Set<String> headers = new HashSet<>();
-
-    private OrganisationUnitSelectionMode ouMode;
-
-    private Set<String> asc = new HashSet<>();
-
-    private Set<String> desc = new HashSet<>();
-
-    private boolean skipMeta;
-
-    private boolean skipData;
-
-    private IdScheme dataIdScheme = IdScheme.UID;
-
-    private boolean totalPages;
-
-    private Date relativePeriodDate;
-
+    private final AnalyticsPagingCriteria pagingCriteria;
 }

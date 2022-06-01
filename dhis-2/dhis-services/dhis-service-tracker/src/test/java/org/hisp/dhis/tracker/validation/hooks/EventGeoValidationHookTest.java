@@ -115,6 +115,8 @@ class EventGeoValidationHookTest
         event.setProgramStage( null );
         event.setGeometry( new GeometryFactory().createPoint() );
 
+        when( preheat.getProgramStage( (MetadataIdentifier) null ) ).thenReturn( null );
+
         // when
         assertThrows( NullPointerException.class, () -> this.hookToTest.validateEvent( reporter, bundle, event ) );
     }
