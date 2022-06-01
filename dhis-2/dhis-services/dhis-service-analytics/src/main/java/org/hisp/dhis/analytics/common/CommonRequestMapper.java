@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.linelisting;
+package org.hisp.dhis.analytics.common;
 
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionFromParam;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionItemsFromParam;
@@ -44,6 +44,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.DataQueryService;
+import org.hisp.dhis.common.AnalyticsPagingCriteria;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdScheme;
@@ -68,19 +69,22 @@ public class CommonRequestMapper
         this.dataQueryService = dataQueryService;
     }
 
-    public CommonLineListingParams map( CommonQueryRequest request, DhisApiVersion apiVersion )
+    public CommonParams map( CommonQueryRequest request, AnalyticsPagingCriteria pagingCriteria,
+        DhisApiVersion apiVersion )
     {
 
         List<OrganisationUnit> userOrgUnits = dataQueryService.getUserOrgUnits( null, request.getUserOrgUnit() );
 
         Map<Type, List<Object>> queryElementsByType = preprocessQueryElements( request, userOrgUnits );
 
-        return CommonLineListingParams.builder()
-            .pagingAndSortingParams( LineListingPagingAndSortingParams.builder()
-                .countRequested( request.isTotalPages() )
-                .requestPaged( request.isPaging() )
-                .page( request.getPage() )
-                .pageSize( request.getPageSize() )
+        return CommonParams.builder()
+            .pagingAndSortingParams( AnalyticsPagingAndSortingParams.builder()
+                .countRequested( pagingCriteria.isTotalPages() )
+                .requestPaged( pagingCriteria.isPaging() )
+                .page( pagingCriteria.getPage() )
+                .pageSize( pagingCriteria.getPageSize() )
+                // not mapping EndpointItem and RequestType -- not needed at the
+                // moment
                 .build() )
             .dimensions( castTo( queryElementsByType.get( Type.DIMENSIONS ), DimensionalObject.class ) )
             .filters( castTo( queryElementsByType.get( Type.FILTERS ), DimensionalObject.class ) )

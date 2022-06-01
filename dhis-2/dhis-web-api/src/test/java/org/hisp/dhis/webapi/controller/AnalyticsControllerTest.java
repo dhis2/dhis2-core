@@ -140,9 +140,8 @@ class AnalyticsControllerTest
         mockMvc.perform( get( ENDPOINT + ".xml" )
             .param( "dimension", "dx:fbfJHSPpUQD;cYeuwXTCPkU" )
             .param( "filter", "pe:2014Q1;2014Q2" ) )
-            // .andExpect( content().contentType( "application/xml" ) ) // Note:
-            // we do not
-            // send contentType with xml payload
+            // .andExpect( content().contentType( "application/xml" ) )
+            // Note: we do not send contentType with xml payload
             .andExpect( content().string( notNullValue() ) )
             .andExpect( content().string( startsWith( "<?xml version='1.0' encoding='UTF-8'?>" ) ) )
             .andExpect( status().isOk() );
@@ -156,9 +155,8 @@ class AnalyticsControllerTest
         mockMvc.perform( get( ENDPOINT + ".html" )
             .param( "dimension", "dx:fbfJHSPpUQD;cYeuwXTCPkU" )
             .param( "filter", "pe:2014Q1;2014Q2" ) )
-            // .andExpect( content().contentType( "application/xml" ) ) // Note:
-            // we do not
-            // send contentType with html payload
+            // .andExpect( content().contentType( "text/html" ) )
+            // Note: we do not send contentType with html payload
             .andExpect( content().string( notNullValue() ) )
             .andExpect( content().string( startsWith( "<div class=\"gridDiv\">" ) ) )
             .andExpect( status().isOk() );

@@ -25,8 +25,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.linelist.trackedentity;
+package org.hisp.dhis.webapi.controller.tei;
 
+import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.TRACKED_ENTITY_INSTANCE;
 import static org.hisp.dhis.common.cache.CacheStrategy.RESPECT_SYSTEM_SETTING;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
 
@@ -34,13 +35,14 @@ import javax.servlet.http.HttpServletResponse;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.analytics.linelisting.CommonQueryRequest;
-import org.hisp.dhis.analytics.linelisting.QueryRequestHolder;
-import org.hisp.dhis.analytics.linelisting.trackedentityinstance.TeiAnalyticsQueryService;
-import org.hisp.dhis.analytics.linelisting.trackedentityinstance.TeiAnalyticsValidator;
-import org.hisp.dhis.analytics.linelisting.trackedentityinstance.TeiQueryParams;
-import org.hisp.dhis.analytics.linelisting.trackedentityinstance.TeiQueryRequest;
-import org.hisp.dhis.analytics.linelisting.trackedentityinstance.TeiRequestMapper;
+import org.hisp.dhis.analytics.common.CommonQueryRequest;
+import org.hisp.dhis.analytics.common.QueryRequestHolder;
+import org.hisp.dhis.analytics.tei.TeiAnalyticsQueryService;
+import org.hisp.dhis.analytics.tei.TeiAnalyticsValidator;
+import org.hisp.dhis.analytics.tei.TeiQueryParams;
+import org.hisp.dhis.analytics.tei.TeiQueryRequest;
+import org.hisp.dhis.analytics.tei.TeiRequestMapper;
+import org.hisp.dhis.common.AnalyticsPagingCriteria;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -77,12 +79,17 @@ class TeiQueryController
         final String trackedEntityType,
         final TeiQueryRequest teiQueryRequest,
         final CommonQueryRequest commonQueryRequest,
+        final AnalyticsPagingCriteria pagingRequest,
         final DhisApiVersion apiVersion,
         final HttpServletResponse response )
     {
         final QueryRequestHolder<TeiQueryRequest> queryRequestHolder = QueryRequestHolder.<TeiQueryRequest> builder()
             .request( teiQueryRequest.withTrackedEntityType( trackedEntityType ) )
             .commonQueryRequest( commonQueryRequest )
+            .pagingCriteria(
+                (AnalyticsPagingCriteria) pagingRequest
+                    .withEndpointItem( TRACKED_ENTITY_INSTANCE )
+                    .withQueryEndpointAction() )
             .build();
 
         teiAnalyticsValidationService.validateRequest( queryRequestHolder );

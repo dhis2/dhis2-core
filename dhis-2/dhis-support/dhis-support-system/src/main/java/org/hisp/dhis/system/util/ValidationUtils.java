@@ -229,15 +229,21 @@ public class ValidationUtils
      * Validates whether a username is valid.
      *
      * @param username the username.
+     * @param isInvite
      *
      * @return true if the username is valid, false otherwise.
      */
-    public static boolean usernameIsValid( String username )
+    public static boolean usernameIsValid( String username, boolean isInvite )
     {
-        if ( username == null )
+        if ( (username == null || username.length() == 0) && !isInvite )
         {
             return false;
         }
+        else if ( isInvite )
+        {
+            return true;
+        }
+
         Matcher matcher = USERNAME_PATTERN.matcher( username );
         return matcher.matches();
     }

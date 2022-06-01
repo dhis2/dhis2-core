@@ -25,15 +25,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.linelisting;
+package org.hisp.dhis.analytics.tei;
 
-import org.springframework.stereotype.Service;
+import java.util.Collection;
 
-@Service
-public class CommonValidationService
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.With;
+
+@Getter
+@Setter
+@With
+@AllArgsConstructor
+public class TeiQueryRequest
 {
-    public void validate( CommonQueryRequest commonQueryRequest )
-    {
-        // TODO: validate common request params
-    }
+    private String trackedEntityType;
+
+    private Collection<String> programs;
 }
