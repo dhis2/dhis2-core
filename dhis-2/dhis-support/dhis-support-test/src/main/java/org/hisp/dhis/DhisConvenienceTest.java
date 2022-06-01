@@ -187,6 +187,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.util.Assert;
 import org.springframework.util.MimeTypeUtils;
@@ -406,6 +407,7 @@ public abstract class DhisConvenienceTest
     // Dependency injection methods
     // -------------------------------------------------------------------------
 
+    @DirtiesContext
     protected final <T, D> void setDependency( Class<T> role, BiConsumer<T, D> setter, D dependency,
         Object... targetServices )
     {
