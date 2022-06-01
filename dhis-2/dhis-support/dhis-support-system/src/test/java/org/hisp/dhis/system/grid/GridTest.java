@@ -775,7 +775,7 @@ class GridTest
     }
 
     @Test
-    void testRepositionHeadersByHeadersA()
+    void testRepositionHeadersA()
     {
         // Given
         GridHeader headerA = new GridHeader( "headerA", "Header A" );
@@ -793,7 +793,7 @@ class GridTest
         List<String> headers = List.of( "headerC", "headerB", "headerA" );
 
         // When
-        grid.repositionColumnsByHeaders( headers );
+        grid.repositionHeaders( headers );
 
         // Then
         assertThat( grid.getHeaderWidth(), is( equalTo( 3 ) ) );
@@ -822,7 +822,7 @@ class GridTest
 
         // When
         IllegalQueryException expectedException = assertThrows(
-            IllegalQueryException.class, () -> grid.repositionColumnsByHeaders( headers ) );
+            IllegalQueryException.class, () -> grid.repositionHeaders( headers ) );
 
         // Then
         assertThat( expectedException.getMessage(),
@@ -831,7 +831,7 @@ class GridTest
     }
 
     @Test
-    void testRepositionColumnsByHeadersB()
+    void testRepositionHeadersB()
     {
         // Given
         GridHeader headerA = new GridHeader( "headerA", "Header A" );
@@ -847,7 +847,7 @@ class GridTest
         grid.addRow().addValue( 3 ).addValue( "c" ).addValue( "c-1" );
 
         List<String> headers = List.of( "headerC", "headerB", "headerA" );
-        List<Integer> columnIndexes = grid.repositionColumnsByHeaders( headers );
+        List<Integer> columnIndexes = grid.repositionHeaders( headers );
 
         // When
         grid.repositionColumns( columnIndexes );
