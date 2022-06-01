@@ -35,6 +35,7 @@ import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_DENOMINATOR_PROPERTIES_COUNT;
+import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.analytics.QueryKey.NV;
 import static org.hisp.dhis.analytics.SortOrder.ASC;
 import static org.hisp.dhis.analytics.SortOrder.DESC;
@@ -670,7 +671,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
             function = TextUtils.emptyIfEqual( function, AggregationType.CUSTOM.getValue() );
 
             String expression = programIndicatorService.getAnalyticsSql( params.getProgramIndicator().getExpression(),
-                params.getProgramIndicator(), params.getEarliestStartDate(), params.getLatestEndDate() );
+                NUMERIC, params.getProgramIndicator(), params.getEarliestStartDate(), params.getLatestEndDate() );
 
             return function + "(" + expression + ")";
         }
@@ -787,7 +788,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
         if ( item.isProgramIndicator() )
         {
             ProgramIndicator programIndicator = (ProgramIndicator) item.getItem();
-            return programIndicatorService.getAnalyticsSql( programIndicator.getExpression(), programIndicator,
+            return programIndicatorService.getAnalyticsSql( programIndicator.getExpression(), NUMERIC, programIndicator,
                 startDate, endDate );
         }
         else

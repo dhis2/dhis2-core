@@ -25,22 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.linelisting.trackedentityinstance;
+package org.hisp.dhis.analytics.tei;
 
-import java.util.Collection;
+import lombok.RequiredArgsConstructor;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.With;
+import org.hisp.dhis.analytics.common.CommonValidationService;
+import org.hisp.dhis.analytics.common.QueryRequestHolder;
+import org.springframework.stereotype.Component;
 
-@Getter
-@Setter
-@With
-@AllArgsConstructor
-public class TeiQueryRequest
+/**
+ * Component responsible for validation rules on top of analytics tracker entity
+ * queries.
+ */
+@Component
+@RequiredArgsConstructor
+public class TeiAnalyticsValidator
 {
-    private String trackedEntityType;
 
-    private Collection<String> programs;
+    private final CommonValidationService commonValidationService;
+
+    public void validateRequest( final QueryRequestHolder<TeiQueryRequest> queryRequestHolder )
+    {
+        commonValidationService.validate( queryRequestHolder.getCommonQueryRequest() );
+        // TODO: validate request based on common params
+    }
 }

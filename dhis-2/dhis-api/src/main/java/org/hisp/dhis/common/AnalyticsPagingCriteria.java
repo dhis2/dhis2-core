@@ -37,7 +37,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public abstract class AnalyticsPagingCriteria extends RequestTypeAware
+public class AnalyticsPagingCriteria extends RequestTypeAware
 {
     /**
      * The page number. Default page is 1.

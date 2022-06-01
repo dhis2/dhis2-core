@@ -84,7 +84,8 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
     public void validate( User user, ObjectBundle bundle,
         Consumer<ErrorReport> addReports )
     {
-        if ( bundle.getImportMode().isCreate() && !ValidationUtils.usernameIsValid( user.getUsername() ) )
+        if ( bundle.getImportMode().isCreate() && !ValidationUtils.usernameIsValid( user.getUsername(),
+            user.isInvitation() ) )
         {
             addReports.accept(
                 new ErrorReport( User.class, ErrorCode.E4049, USERNAME, user.getUsername() )

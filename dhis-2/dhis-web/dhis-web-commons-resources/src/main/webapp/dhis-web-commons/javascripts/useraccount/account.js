@@ -8,6 +8,13 @@ var validationRules = {
       required: true,
       rangelength: [2, 80]
     },
+     username: {
+          required: true,
+          rangelength: [4, 80],
+          remote: {
+                url: "../../api/account/validateUsername",
+                type: "post"}
+        },
     password: {
       required: true,
       rangelength: [8, 40],
