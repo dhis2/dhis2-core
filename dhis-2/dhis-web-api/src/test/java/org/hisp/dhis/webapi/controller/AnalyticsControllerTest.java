@@ -80,7 +80,6 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 @ExtendWith( MockitoExtension.class )
 class AnalyticsControllerTest
 {
-
     private final static String ENDPOINT = "/analytics";
 
     private MockMvc mockMvc;
@@ -189,7 +188,7 @@ class AnalyticsControllerTest
             // .andExpect( content().contentType( "application/csv" ) )
             // Note: we do not send contentType with csv payload
             .andExpect( content().string( notNullValue() ) )
-            .andExpect( content().string( "\"\",,,\nde1,ou2,pe1,3\n" +
+            .andExpect( content().string( "a,b,c,d\nde1,ou2,pe1,3\n" +
                 "de2,ou3,pe2,5\n" ) )
             .andExpect( status().isOk() );
     }

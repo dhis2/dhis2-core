@@ -107,6 +107,12 @@ public class MockAnalyticsService
     }
 
     @Override
+    public Grid getAggregatedDataValueSetAsGrid( DataQueryParams params )
+    {
+        throw new NotImplementedException( "" );
+    }
+
+    @Override
     public Grid getAggregatedDataValues( AnalyticalObject object )
     {
         throw new NotImplementedException( "" );
