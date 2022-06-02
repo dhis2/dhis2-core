@@ -34,6 +34,7 @@ import static org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions.EXTRACT_PATH_TEX
 import static org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions.HAS_USER_GROUP_IDS;
 import static org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions.HAS_USER_ID;
 import static org.hisp.dhis.security.acl.AclService.LIKE_READ_METADATA;
+import static org.hisp.dhis.system.util.SqlUtils.singleQuote;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -43,6 +44,7 @@ import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.commons.collection.CollectionUtils;
+import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.user.CurrentUserGroupInfo;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -133,14 +135,14 @@ public class ProgramOrganisationUnitAssociationsQueryBuilder
     private String getOwnerCondition( CurrentUserGroupInfo currentUserGroupInfo )
     {
         return String.join( " or ",
-            jsonbFunction( EXTRACT_PATH_TEXT, "owner" ) + " = " + withQuotes( currentUserGroupInfo.getUserUID() ),
+            jsonbFunction( EXTRACT_PATH_TEXT, "owner" ) + " = " + singleQuote( currentUserGroupInfo.getUserUID() ),
             jsonbFunction( EXTRACT_PATH_TEXT, "owner" ) + " is null" );
     }
 
     private String getPublicSharingCondition( String access )
     {
         return String.join( " or ",
-            jsonbFunction( EXTRACT_PATH_TEXT, "public" ) + " like " + withQuotes( access ),
+            jsonbFunction( EXTRACT_PATH_TEXT, "public" ) + " like " + singleQuote( access ),
             jsonbFunction( EXTRACT_PATH_TEXT, "public" ) + " is null" );
     }
 
@@ -173,7 +175,7 @@ public class ProgramOrganisationUnitAssociationsQueryBuilder
             "(",
             String.join( ",", "prg.sharing",
                 Arrays.stream( params )
-                    .map( this::withQuotes )
+                    .map( SqlUtils::singleQuote )
                     .collect( joining( "," ) ) ),
             ")" );
     }
@@ -187,14 +189,9 @@ public class ProgramOrganisationUnitAssociationsQueryBuilder
     {
         return "pr.uid in (" +
             programUids.stream()
-                .map( this::withQuotes )
+                .map( SqlUtils::singleQuote )
                 .collect( joining( "," ) )
             + ")";
-    }
-
-    private String withQuotes( String programUid )
-    {
-        return String.join( "", "'", programUid, "'" );
     }
 
     private String getUserOrgUnitPathsFilter( Set<String> userOrgUnitPaths )
