@@ -7,7 +7,8 @@
       "shortName": "DEA",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "valueType": "INTEGER"
+      "valueType": "INTEGER",
+      "zeroIsSignificant": false
     },
     {
       "id": "cYeuwXTCPkU",
@@ -16,7 +17,8 @@
       "shortName": "DEB",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "valueType": "INTEGER"
+      "valueType": "INTEGER",
+      "zeroIsSignificant": false
     }
   ],
   "organisationUnits": [
