@@ -940,10 +940,10 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
 
         AnalyticsDataExchange aeB = manager.get( AnalyticsDataExchange.class, "PnWccbwCJLQ" );
         assertNotNull( aeB );
-        assertNotNull( aeA.getSource() );
-        assertNotNull( aeA.getTarget() );
-        assertEquals( "iFOyIpQciyk", aeA.getUid() );
-        assertEquals( TargetType.EXTERNAL, aeA.getTarget().getType() );
+        assertNotNull( aeB.getSource() );
+        assertNotNull( aeB.getTarget() );
+        assertEquals( "iFOyIpQciyk", aeB.getUid() );
+        assertEquals( TargetType.EXTERNAL, aeB.getTarget().getType() );
     }
 
     private MetadataImportParams createParams( ImportStrategy importStrategy,
