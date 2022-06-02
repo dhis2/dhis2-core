@@ -25,49 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.aggregates;
+package org.hisp.dhis.schema.descriptors;
 
-import static java.util.concurrent.CompletableFuture.supplyAsync;
-
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
-import java.util.function.Supplier;
-
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
+import org.hisp.dhis.relationship.RelationshipItem;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
 
 /**
- * @author Luciano Fiandesio
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public abstract class AbstractAggregate
+public class RelationshipItemSchemaDescriptor implements SchemaDescriptor
 {
-    /**
-     * Executes the Supplier asynchronously using the thread pool from the
-     * provided {@see Executor}
-     *
-     * @param condition A condition that, if true, executes the Supplier, if
-     *        false, returns an empty Multimap
-     * @param supplier The Supplier to execute
-     * @param executor an Executor instance
-     *
-     * @return A CompletableFuture with the result of the Supplier
-     */
-    <T> CompletableFuture<Multimap<String, T>> conditionalAsyncFetch( boolean condition,
-        Supplier<Multimap<String, T>> supplier, Executor executor )
-    {
-        return (condition ? supplyAsync( supplier, executor ) : supplyAsync( ArrayListMultimap::create, executor ));
-    }
+    public static final String SINGULAR = "relationshipItem";
 
-    /**
-     * Executes the Supplier asynchronously using the thread pool from the
-     * provided {@see Executor}
-     *
-     * @param supplier The Supplier to execute
-     *
-     * @return A CompletableFuture with the result of the Supplier
-     */
-    <T> CompletableFuture<Multimap<String, T>> asyncFetch( Supplier<Multimap<String, T>> supplier, Executor executor )
+    public static final String PLURAL = "relationshipItems";
+
+    @Override
+    public Schema getSchema()
     {
-        return supplyAsync( supplier, executor );
+        return new Schema( RelationshipItem.class, SINGULAR, PLURAL );
     }
 }

@@ -93,6 +93,9 @@ class DataValueSetExportAccessControlTest extends TransactionalIntegrationTest
     private UserService _userService;
 
     @Autowired
+    private CurrentUserService currentUserService;
+
+    @Autowired
     private DataValueSetStore dataValueSetStore;
 
     @Autowired
@@ -317,4 +320,12 @@ class DataValueSetExportAccessControlTest extends TransactionalIntegrationTest
         setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
             currentUserService, dataValueSetService, dataValueSetStore, organisationUnitService );
     }
+
+    @Override
+    public void tearDownTest()
+    {
+        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
+            currentUserService, dataValueSetService, dataValueSetStore, organisationUnitService );
+    }
+
 }
