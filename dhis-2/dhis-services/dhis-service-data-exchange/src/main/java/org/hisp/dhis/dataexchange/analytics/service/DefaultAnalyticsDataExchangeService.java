@@ -44,6 +44,7 @@ import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dataexchange.analytics.AnalyticsDataExchange;
+import org.hisp.dhis.dataexchange.analytics.AnalyticsDataExchangeService;
 import org.hisp.dhis.dataexchange.analytics.Api;
 import org.hisp.dhis.dataexchange.analytics.Filter;
 import org.hisp.dhis.dataexchange.analytics.SourceRequest;
@@ -60,7 +61,8 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class AnalyticsDataExchangeService
+public class DefaultAnalyticsDataExchangeService
+    implements AnalyticsDataExchangeService
 {
     private final AnalyticsService analyticsService;
 
@@ -68,6 +70,7 @@ public class AnalyticsDataExchangeService
 
     private final DataValueSetService dataValueSetService;
 
+    @Override
     public ImportSummaries exchangeData( AnalyticsDataExchange exchange )
     {
         ImportSummaries summaries = new ImportSummaries();
@@ -78,7 +81,7 @@ public class AnalyticsDataExchangeService
         return summaries;
     }
 
-    private ImportSummary exchangeData( AnalyticsDataExchange exchange, SourceRequest request )
+    ImportSummary exchangeData( AnalyticsDataExchange exchange, SourceRequest request )
     {
         DataValueSet dataValueSet = analyticsService.getAggregatedDataValueSet( toDataQueryParams( request ) );
 
@@ -86,17 +89,17 @@ public class AnalyticsDataExchangeService
             : pushToExternal( exchange, dataValueSet );
     }
 
-    private ImportSummary pushToInternal( AnalyticsDataExchange exchange, DataValueSet dataValueSet )
+    ImportSummary pushToInternal( AnalyticsDataExchange exchange, DataValueSet dataValueSet )
     {
         return dataValueSetService.importDataValueSet( dataValueSet, toImportOptions( exchange ) );
     }
 
-    private ImportSummary pushToExternal( AnalyticsDataExchange exchange, DataValueSet dataValueSet )
+    ImportSummary pushToExternal( AnalyticsDataExchange exchange, DataValueSet dataValueSet )
     {
         return getDhis2Client( exchange ).saveDataValueSet( dataValueSet );
     }
 
-    private ImportOptions toImportOptions( AnalyticsDataExchange exchange )
+    ImportOptions toImportOptions( AnalyticsDataExchange exchange )
     {
         TargetRequest request = exchange.getTarget().getRequest();
 
@@ -107,7 +110,7 @@ public class AnalyticsDataExchangeService
             .setIdScheme( getOrDefault( request.getIdScheme() ) );
     }
 
-    private DataQueryParams toDataQueryParams( SourceRequest request )
+    DataQueryParams toDataQueryParams( SourceRequest request )
     {
         IdScheme inputIdScheme = toIdSchemeOrDefault( request.getInputIdScheme() );
 
@@ -122,13 +125,13 @@ public class AnalyticsDataExchangeService
             .build();
     }
 
-    private DimensionalObject toDimensionalObject( String dimension, List<String> items, IdScheme inputIdScheme )
+    DimensionalObject toDimensionalObject( String dimension, List<String> items, IdScheme inputIdScheme )
     {
         return dataQueryService.getDimension(
             dimension, items, new Date(), null, null, false, inputIdScheme );
     }
 
-    private DimensionalObject toDimensionalObject( Filter filter, IdScheme inputIdScheme )
+    DimensionalObject toDimensionalObject( Filter filter, IdScheme inputIdScheme )
     {
         return dataQueryService.getDimension(
             filter.getDimension(), filter.getItems(), new Date(), null, null, false, inputIdScheme );
@@ -141,7 +144,7 @@ public class AnalyticsDataExchangeService
      * @param idScheme the ID scheme string.
      * @return the given ID scheme, or the default ID scheme string if null.
      */
-    public static String getOrDefault( String idScheme )
+    String getOrDefault( String idScheme )
     {
         return ObjectUtils.firstNonNull( idScheme, IdScheme.UID.name() );
     }
@@ -153,7 +156,7 @@ public class AnalyticsDataExchangeService
      * @param idScheme the ID scheme string.
      * @return the given ID scheme, or the default ID scheme if null.
      */
-    public IdScheme toIdSchemeOrDefault( String idScheme )
+    IdScheme toIdSchemeOrDefault( String idScheme )
     {
         return idScheme != null ? IdScheme.from( idScheme ) : IdScheme.UID;
     }
@@ -165,7 +168,7 @@ public class AnalyticsDataExchangeService
      * @param exchange the {@link AnalyticsDataExchange}.
      * @return a {@link Dhis2Client}.
      */
-    public Dhis2Client getDhis2Client( AnalyticsDataExchange exchange )
+    Dhis2Client getDhis2Client( AnalyticsDataExchange exchange )
     {
         Api api = exchange.getTarget().getApi();
 

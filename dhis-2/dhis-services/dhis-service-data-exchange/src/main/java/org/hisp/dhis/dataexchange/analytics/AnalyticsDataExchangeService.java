@@ -25,40 +25,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataexchange.analytics.service;
+package org.hisp.dhis.dataexchange.analytics;
 
-import org.hisp.dhis.analytics.AnalyticsService;
-import org.hisp.dhis.analytics.DataQueryService;
-import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 
-@ExtendWith( MockitoExtension.class )
-class AnalyticsDataExchangeServiceTest
+public interface AnalyticsDataExchangeService
 {
-    @Mock
-    private AnalyticsService analyticsService;
-
-    @Mock
-    private DataQueryService dataQueryService;
-
-    @Autowired
-    private DataValueSetService dataValueSetService;
-
-    private DefaultAnalyticsDataExchangeService service;
-
-    @BeforeEach
-    void beforeEach()
-    {
-        service = new DefaultAnalyticsDataExchangeService( analyticsService, dataQueryService, dataValueSetService );
-    }
-
-    @Test
-    void testInternalDataExchange()
-    {
-    }
+    ImportSummaries exchangeData( AnalyticsDataExchange exchange );
 }

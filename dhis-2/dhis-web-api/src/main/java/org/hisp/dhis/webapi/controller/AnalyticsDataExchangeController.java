@@ -31,7 +31,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dataexchange.analytics.AnalyticsDataExchange;
-import org.hisp.dhis.dataexchange.analytics.service.AnalyticsDataExchangeService;
+import org.hisp.dhis.dataexchange.analytics.service.DefaultAnalyticsDataExchangeService;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.schema.descriptors.AnalyticsDataExchangeSchemaDescriptor;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -52,7 +52,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AnalyticsDataExchangeController
     extends AbstractCrudController<AnalyticsDataExchange>
 {
-    private final AnalyticsDataExchangeService service;
+    private final DefaultAnalyticsDataExchangeService service;
 
     @PostMapping( "/exchange" )
     @ResponseStatus( value = HttpStatus.OK )
