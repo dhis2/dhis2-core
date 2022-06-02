@@ -38,6 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -89,6 +90,7 @@ import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -130,6 +132,9 @@ class EventImportTest extends TransactionalIntegrationTest
 
     @Autowired
     private SessionFactory sessionFactory;
+
+    @Autowired
+    JdbcTemplate jdbcTemplate;
 
     private TrackedEntityInstance trackedEntityInstanceMaleA;
 
@@ -339,10 +344,19 @@ class EventImportTest extends TransactionalIntegrationTest
         ImportSummaries importSummaries = eventService.addEventsJson( is, null );
         assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
         cleanSession();
+
+        // We use JDBC to get the timestamp, since it's stored using JDBC not
+        // hibernate.
+        String lastupdateDateNew = DateUtils.getIso8601NoTz( this.jdbcTemplate.queryForObject(
+            "SELECT lastupdated FROM trackedentityinstance WHERE uid IN ('"
+                + trackedEntityInstanceMaleA.getTrackedEntityInstance() + "')",
+            Timestamp.class ) );
+
         assertTrue( simpleDateFormat
-            .parse( trackedEntityInstanceService
-                .getTrackedEntityInstance( trackedEntityInstanceMaleA.getTrackedEntityInstance() ).getLastUpdated() )
-            .getTime() > simpleDateFormat.parse( lastupdateDateBefore ).getTime() );
+            .parse( lastupdateDateNew )
+            .getTime() > simpleDateFormat
+                .parse( lastupdateDateBefore )
+                .getTime() );
     }
 
     @Test
