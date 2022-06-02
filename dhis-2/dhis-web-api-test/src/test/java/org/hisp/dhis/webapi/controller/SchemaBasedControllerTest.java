@@ -38,6 +38,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.attribute.Attribute.ObjectType;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
@@ -59,6 +61,7 @@ import org.springframework.http.MediaType;
  *
  * @author Jan Bernitt
  */
+@Slf4j
 class SchemaBasedControllerTest extends DhisControllerConvenienceTest
 {
     private static final Set<String> IGNORED_SCHEMAS = Set.of(
@@ -92,9 +95,7 @@ class SchemaBasedControllerTest extends DhisControllerConvenienceTest
      */
     private static final Set<String> IGNORED_GIST_ENDPOINTS = Set.of(
         "reportTable",
-        "chart",
-        "documents",
-        "analyticsDataExchange" );
+        "chart" );
 
     @Test
     void testCreateAndDeleteSchemaObjects()
@@ -149,6 +150,7 @@ class SchemaBasedControllerTest extends DhisControllerConvenienceTest
             return;
         }
         String endpoint = schema.getRelativeApiEndpoint();
+        log.warn( "Asserting Gist endpoint: '{}', schema: '{}', uid: '{}'", endpoint, schema.getName(), uid );
         // test gist list of object for the schema
         JsonObject gist = GET( endpoint + "/gist" ).content();
         assertTrue( gist.getObject( "pager" ).exists() );
