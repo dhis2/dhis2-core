@@ -949,10 +949,9 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
     private MetadataImportParams createParams( ImportStrategy importStrategy,
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata )
     {
-        MetadataImportParams params = new MetadataImportParams();
-        params.setImportMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( importStrategy );
-        params.setObjects( metadata );
-        return params;
+        return new MetadataImportParams()
+            .setImportMode( ObjectBundleMode.COMMIT )
+            .setImportStrategy( importStrategy )
+            .setObjects( metadata );
     }
 }
