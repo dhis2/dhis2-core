@@ -82,8 +82,7 @@ class TrackedEntityProgramAttributeEncryptionTest extends TrackerTest
     {
         TrackerImportParams trackerImportParams = fromJson( "tracker/te_program_with_tea_encryption_data.json" );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        log.warn( "Import report ----" );
-        log.warn( trackerImportReport.toString() );
+        log.info( trackerImportReport.toString() );
         assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
 
         List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
