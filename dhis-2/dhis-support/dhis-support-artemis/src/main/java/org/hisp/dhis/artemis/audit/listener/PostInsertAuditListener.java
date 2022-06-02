@@ -28,6 +28,7 @@
 package org.hisp.dhis.artemis.audit.listener;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -40,8 +41,11 @@ import org.hisp.dhis.artemis.audit.AuditableEntity;
 import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
 import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.hisp.dhis.audit.AuditType;
+import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.schema.SchemaService;
 import org.springframework.stereotype.Component;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
 
 /**
  * @author Luciano Fiandesio
@@ -92,7 +96,23 @@ public class PostInsertAuditListener
     @Override
     public void onPostInsertCommitFailed( PostInsertEvent event )
     {
-        log.debug( "onPostInsertCommitFailed: " + event );
+        log.info( "onPostInsertCommitFailed:event: " + event );
+        log.info( "onPostInsertCommitFailed:id: " + event.getId() );
+        log.info( "onPostInsertCommitFailed:state: " + Arrays.toString( event.getState() ) );
+
+        try
+        {
+            if ( event.getEntity() != null )
+            {
+                log.info( "onPostInsertCommitFailed:entity.class: " + event.getEntity().getClass() );
+                log.info( "onPostInsertCommitFailed:entity: "
+                    + JacksonObjectMapperConfig.staticJsonMapper().writeValueAsString( event.getEntity() ) );
+            }
+        }
+        catch ( JsonProcessingException e )
+        {
+            throw new RuntimeException( e );
+        }
     }
 
     /**

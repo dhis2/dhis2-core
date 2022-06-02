@@ -40,8 +40,11 @@ import org.hisp.dhis.artemis.audit.AuditableEntity;
 import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
 import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.hisp.dhis.audit.AuditType;
+import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.schema.SchemaService;
 import org.springframework.stereotype.Component;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
 
 /**
  * @author Luciano Fiandesio
@@ -89,6 +92,21 @@ public class PostDeleteAuditListener
     @Override
     public void onPostDeleteCommitFailed( PostDeleteEvent event )
     {
-        log.debug( "onPostDeleteCommitFailed: " + event );
+        log.info( "onPostDeleteCommitFailed:event: " + event );
+        log.info( "onPostDeleteCommitFailed:id: " + event.getId() );
+
+        try
+        {
+            if ( event.getEntity() != null )
+            {
+                log.info( "onPostDeleteCommitFailed:entity.class: " + event.getEntity().getClass() );
+                log.info( "onPostDeleteCommitFailed:entity: "
+                    + JacksonObjectMapperConfig.staticJsonMapper().writeValueAsString( event.getEntity() ) );
+            }
+        }
+        catch ( JsonProcessingException e )
+        {
+            throw new RuntimeException( e );
+        }
     }
 }
