@@ -49,8 +49,8 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dashboard.Dashboard;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataexchange.analytics.AnalyticsDataExchange;
+import org.hisp.dhis.dataexchange.analytics.TargetType;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
@@ -62,7 +62,6 @@ import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.mapping.ThematicMapType;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageSection;
@@ -923,29 +922,28 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
             new ClassPathResource( "dxf2/analytics_data_exchange.json" ).getInputStream(), RenderFormat.JSON );
         MetadataImportParams params = createParams( ImportStrategy.CREATE_AND_UPDATE, metadata );
         ImportReport report = importService.importMetadata( params );
+        TypeReport typeReport = report.getTypeReport( AnalyticsDataExchange.class );
+
+        assertNotNull( report.getStats() );
+        assertNotNull( typeReport );
         assertEquals( Status.OK, report.getStatus() );
         assertEquals( 0, report.getErrorReportsCount() );
-        assertNotNull( report.getStats() );
-        System.out.println( report );
-        System.out.println( report.getStats() );
-        TypeReport typeReport = report.getTypeReport( AnalyticsDataExchange.class );
-        System.out.println( typeReport );
-
-        int size = manager.getAll( AnalyticsDataExchange.class ).size();
-        System.out.println( "Size: " + size );
-
-        DataElement deA = manager.get( DataElement.class, "fbfJHSPpUQD" );
-        assertNotNull( deA );
-
-        OrganisationUnit ouA = manager.get( OrganisationUnit.class, "ImspTQPwCqd" );
-        assertNotNull( ouA );
+        assertEquals( 5, report.getStats().getCreated() );
+        assertEquals( 2, typeReport.getStats().getCreated() );
 
         AnalyticsDataExchange aeA = manager.get( AnalyticsDataExchange.class, "iFOyIpQciyk" );
         assertNotNull( aeA );
+        assertNotNull( aeA.getSource() );
+        assertNotNull( aeA.getTarget() );
         assertEquals( "iFOyIpQciyk", aeA.getUid() );
+        assertEquals( TargetType.INTERNAL, aeA.getTarget().getType() );
+
         AnalyticsDataExchange aeB = manager.get( AnalyticsDataExchange.class, "PnWccbwCJLQ" );
         assertNotNull( aeB );
-        assertEquals( "PnWccbwCJLQ", aeB.getUid() );
+        assertNotNull( aeA.getSource() );
+        assertNotNull( aeA.getTarget() );
+        assertEquals( "iFOyIpQciyk", aeA.getUid() );
+        assertEquals( TargetType.EXTERNAL, aeA.getTarget().getType() );
     }
 
     private MetadataImportParams createParams( ImportStrategy importStrategy,

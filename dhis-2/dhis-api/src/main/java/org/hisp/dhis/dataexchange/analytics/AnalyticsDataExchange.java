@@ -29,6 +29,7 @@ package org.hisp.dhis.dataexchange.analytics;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.MetadataObject;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -37,6 +38,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 @JacksonXmlRootElement( localName = "analyticsDataExchange", namespace = DxfNamespaces.DXF_2_0 )
 public class AnalyticsDataExchange
     extends BaseIdentifiableObject
+    implements MetadataObject
 {
     private Source source;
 
