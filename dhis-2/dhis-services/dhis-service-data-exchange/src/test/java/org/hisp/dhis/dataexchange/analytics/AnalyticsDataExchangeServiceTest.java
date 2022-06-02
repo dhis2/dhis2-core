@@ -25,17 +25,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataexchange.analytics.service;
+package org.hisp.dhis.dataexchange.analytics;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryService;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
 
 @ExtendWith( MockitoExtension.class )
 class AnalyticsDataExchangeServiceTest
@@ -46,19 +48,22 @@ class AnalyticsDataExchangeServiceTest
     @Mock
     private DataQueryService dataQueryService;
 
-    @Autowired
+    @Mock
     private DataValueSetService dataValueSetService;
 
-    private DefaultAnalyticsDataExchangeService service;
+    private AnalyticsDataExchangeService service;
 
     @BeforeEach
     void beforeEach()
     {
-        service = new DefaultAnalyticsDataExchangeService( analyticsService, dataQueryService, dataValueSetService );
+        service = new AnalyticsDataExchangeService( analyticsService, dataQueryService, dataValueSetService );
     }
 
     @Test
-    void testInternalDataExchange()
+    void testToIdSchemeOrDefault()
     {
+        assertEquals( IdScheme.CODE, service.toIdSchemeOrDefault( "code" ) );
+        assertEquals( IdScheme.UID, service.toIdSchemeOrDefault( "UID" ) );
+        assertEquals( IdScheme.UID, service.toIdSchemeOrDefault( null ) );
     }
 }

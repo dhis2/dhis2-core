@@ -27,9 +27,158 @@
  */
 package org.hisp.dhis.dataexchange.analytics;
 
-import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
+import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.hisp.dhis.commons.collection.CollectionUtils.mapToList;
 
-public interface AnalyticsDataExchangeService
+import java.util.Date;
+import java.util.List;
+
+import lombok.RequiredArgsConstructor;
+
+import org.apache.commons.lang3.ObjectUtils;
+import org.hisp.dhis.analytics.AnalyticsService;
+import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.DataQueryService;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.dataexchange.client.Dhis2Client;
+import org.hisp.dhis.dataexchange.client.Dhis2Config;
+import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
+import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
+import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
+import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.springframework.stereotype.Service;
+
+@Service
+@RequiredArgsConstructor
+public class AnalyticsDataExchangeService
 {
-    ImportSummaries exchangeData( AnalyticsDataExchange exchange );
+    private final AnalyticsService analyticsService;
+
+    private final DataQueryService dataQueryService;
+
+    private final DataValueSetService dataValueSetService;
+
+    public ImportSummaries exchangeData( AnalyticsDataExchange exchange )
+    {
+        ImportSummaries summaries = new ImportSummaries();
+
+        exchange.getSource().getRequests()
+            .forEach( request -> summaries.addImportSummary( exchangeData( exchange, request ) ) );
+
+        return summaries;
+    }
+
+    ImportSummary exchangeData( AnalyticsDataExchange exchange, SourceRequest request )
+    {
+        DataValueSet dataValueSet = analyticsService.getAggregatedDataValueSet( toDataQueryParams( request ) );
+
+        return exchange.getTarget().getType() == TargetType.INTERNAL ? pushToInternal( exchange, dataValueSet )
+            : pushToExternal( exchange, dataValueSet );
+    }
+
+    ImportSummary pushToInternal( AnalyticsDataExchange exchange, DataValueSet dataValueSet )
+    {
+        return dataValueSetService.importDataValueSet( dataValueSet, toImportOptions( exchange ) );
+    }
+
+    ImportSummary pushToExternal( AnalyticsDataExchange exchange, DataValueSet dataValueSet )
+    {
+        return getDhis2Client( exchange ).saveDataValueSet( dataValueSet );
+    }
+
+    ImportOptions toImportOptions( AnalyticsDataExchange exchange )
+    {
+        TargetRequest request = exchange.getTarget().getRequest();
+
+        return new ImportOptions()
+            .setDataElementIdScheme( getOrDefault( request.getDataElementIdScheme() ) )
+            .setOrgUnitIdScheme( getOrDefault( request.getOrgUnitIdScheme() ) )
+            .setCategoryOptionComboIdScheme( getOrDefault( request.getCategoryOptionComboIdScheme() ) )
+            .setIdScheme( getOrDefault( request.getIdScheme() ) );
+    }
+
+    DataQueryParams toDataQueryParams( SourceRequest request )
+    {
+        IdScheme inputIdScheme = toIdSchemeOrDefault( request.getInputIdScheme() );
+
+        List<DimensionalObject> filters = mapToList(
+            request.getFilters(), f -> toDimensionalObject( f, inputIdScheme ) );
+
+        return DataQueryParams.newBuilder()
+            .addDimension( toDimensionalObject( DATA_X_DIM_ID, request.getDx(), inputIdScheme ) )
+            .addDimension( toDimensionalObject( PERIOD_DIM_ID, request.getPe(), inputIdScheme ) )
+            .addDimension( toDimensionalObject( ORGUNIT_DIM_ID, request.getOu(), inputIdScheme ) )
+            .addFilters( filters )
+            .build();
+    }
+
+    /**
+     * Creates a dimensional object based on the given dimension, items and
+     * input ID scheme.
+     *
+     * @param dimension the dimension.
+     * @param items the list of dimension items.
+     * @param inputIdScheme the {@link IdScheme}.
+     * @return a {@link DimensionalObject}.
+     */
+    DimensionalObject toDimensionalObject( String dimension, List<String> items, IdScheme inputIdScheme )
+    {
+        return dataQueryService.getDimension(
+            dimension, items, new Date(), null, null, false, inputIdScheme );
+    }
+
+    /**
+     * Creates a dimensional object based on the given filter and ID scheme.
+     *
+     * @param filter the {@link Filter}.
+     * @param inputIdScheme the {@link IdScheme}.
+     * @return a {@link DimensionalObject}.
+     */
+    DimensionalObject toDimensionalObject( Filter filter, IdScheme inputIdScheme )
+    {
+        return dataQueryService.getDimension(
+            filter.getDimension(), filter.getItems(), new Date(), null, null, false, inputIdScheme );
+    }
+
+    /**
+     * Returns the ID scheme string or the the default ID scheme if the given ID
+     * scheme string is null.
+     *
+     * @param idScheme the ID scheme string.
+     * @return the given ID scheme, or the default ID scheme string if null.
+     */
+    String getOrDefault( String idScheme )
+    {
+        return ObjectUtils.firstNonNull( idScheme, IdScheme.UID.name() );
+    }
+
+    /**
+     * Returns the {@link IdScheme} based on the given ID scheme string, or the
+     * default ID scheme if the given ID scheme string is null.
+     *
+     * @param idScheme the ID scheme string.
+     * @return the given ID scheme, or the default ID scheme if null.
+     */
+    IdScheme toIdSchemeOrDefault( String idScheme )
+    {
+        return idScheme != null ? IdScheme.from( idScheme ) : IdScheme.UID;
+    }
+
+    /**
+     * Returns a {@link Dhis2Client} based on the given
+     * {@link AnalyticsDataExchange}.
+     *
+     * @param exchange the {@link AnalyticsDataExchange}.
+     * @return a {@link Dhis2Client}.
+     */
+    Dhis2Client getDhis2Client( AnalyticsDataExchange exchange )
+    {
+        Api api = exchange.getTarget().getApi();
+
+        return new Dhis2Client( new Dhis2Config( api.getUrl(), api.getAccessToken() ) );
+    }
 }
