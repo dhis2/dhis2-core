@@ -33,8 +33,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
@@ -50,10 +48,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
-@Slf4j
 class TrackedEntityTypeValidationTest extends DhisSpringTest
 {
-
     @Autowired
     private RenderService _renderService;
 
