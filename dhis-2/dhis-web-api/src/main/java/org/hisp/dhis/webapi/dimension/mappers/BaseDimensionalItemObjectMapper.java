@@ -25,30 +25,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.dimension.mappers;
+package org.hisp.dhis.webapi.dimension.mappers;
 
-import static org.hisp.dhis.analytics.dimension.DimensionMapperTestSupport.asserter;
+import java.util.Set;
 
-import org.apache.commons.lang3.tuple.Pair;
+import lombok.Getter;
+
 import org.hisp.dhis.common.BaseDimensionalItemObject;
-import org.hisp.dhis.common.DimensionItemType;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
+import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.webapi.dimension.BaseDimensionMapper;
 import org.hisp.dhis.webapi.dimension.DimensionResponse;
-import org.hisp.dhis.webapi.dimension.mappers.BaseDimensionalItemObjectMapper;
-import org.junit.jupiter.api.Test;
+import org.springframework.stereotype.Service;
 
-import com.google.common.collect.ImmutableList;
-
-class BaseDimensionalItemObjectMapperTest
+@Service
+public class BaseDimensionalItemObjectMapper extends BaseDimensionMapper
 {
 
-    private static final DimensionItemType DIMENSION_ITEM_TYPE = DimensionItemType.INDICATOR;
+    @Getter
+    private final Set<Class<? extends BaseIdentifiableObject>> supportedClasses = Set.of(
+        ProgramIndicator.class,
+        TrackedEntityAttribute.class );
 
-    @Test
-    void testDimensionalItemObjectMapper()
+    @Override
+    public DimensionResponse map( BaseIdentifiableObject dimension, String prefix )
     {
-        asserter( new BaseDimensionalItemObjectMapper(),
-            BaseDimensionalItemObject::new,
-            ImmutableList.of( b -> b.setDimensionItemType( DIMENSION_ITEM_TYPE ) ),
-            ImmutableList.of( Pair.of( DimensionResponse::getDimensionType, DIMENSION_ITEM_TYPE ) ) );
+        BaseDimensionalItemObject baseDimensionalItemObject = (BaseDimensionalItemObject) dimension;
+        DimensionResponse responseWithDimensionType = super.map( dimension, prefix )
+            .withDimensionType( baseDimensionalItemObject.getDimensionItemType().name() );
+        if ( dimension instanceof ValueTypedDimensionalItemObject )
+        {
+            ValueTypedDimensionalItemObject valueTypedDimensionalItemObject = (ValueTypedDimensionalItemObject) dimension;
+            return responseWithDimensionType
+                .withValueType( valueTypedDimensionalItemObject.getValueType().name() )
+                .withOptionSet( valueTypedDimensionalItemObject.getOptionSet() != null
+                    ? valueTypedDimensionalItemObject.getOptionSet().getUid()
+                    : null );
+        }
+
+        return responseWithDimensionType;
     }
+
 }

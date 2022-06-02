@@ -25,32 +25,51 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.dimension;
+package org.hisp.dhis.webapi.dimension;
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.BaseNameableObject;
+import java.util.Date;
 
-public abstract class BaseDimensionMapper implements DimensionMapper
+import lombok.Builder;
+import lombok.Data;
+import lombok.With;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+@Data
+@Builder
+@With
+public class DimensionResponse
 {
+    @JsonProperty
+    private final String valueType;
 
-    @Override
-    public DimensionResponse map( BaseIdentifiableObject dimension, String prefix )
-    {
-        DimensionResponse mapped = DimensionResponse.builder()
-            .id( dimension.getUid() )
-            .uid( dimension.getUid() )
-            .displayName( dimension.getDisplayName() )
-            .created( dimension.getCreated() )
-            .code( dimension.getCode() )
-            .lastUpdated( dimension.getLastUpdated() )
-            .name( dimension.getName() )
-            .build();
+    @JsonProperty
+    private final String dimensionType;
 
-        if ( dimension instanceof BaseNameableObject )
-        {
-            return mapped.withDisplayShortName(
-                ((BaseNameableObject) dimension).getDisplayShortName() );
-        }
-        return mapped;
-    }
+    @JsonProperty
+    private final Date created;
+
+    @JsonProperty
+    private final Date lastUpdated;
+
+    @JsonProperty
+    private final String name;
+
+    @JsonProperty
+    private final String displayName;
+
+    @JsonProperty
+    private final String id;
+
+    @JsonProperty
+    private final String uid;
+
+    @JsonProperty
+    private final String code;
+
+    @JsonProperty
+    private final String displayShortName;
+
+    @JsonProperty
+    private final String optionSet;
 }
