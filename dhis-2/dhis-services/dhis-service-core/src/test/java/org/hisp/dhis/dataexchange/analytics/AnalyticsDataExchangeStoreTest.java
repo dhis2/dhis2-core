@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataexchange.hibernate;
+package org.hisp.dhis.dataexchange.analytics;
 
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -35,15 +35,6 @@ import java.util.List;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.dataexchange.analytics.AnalyticsDataExchange;
-import org.hisp.dhis.dataexchange.analytics.AnalyticsDataExchangeStore;
-import org.hisp.dhis.dataexchange.analytics.Api;
-import org.hisp.dhis.dataexchange.analytics.Filter;
-import org.hisp.dhis.dataexchange.analytics.Source;
-import org.hisp.dhis.dataexchange.analytics.SourceRequest;
-import org.hisp.dhis.dataexchange.analytics.Target;
-import org.hisp.dhis.dataexchange.analytics.TargetRequest;
-import org.hisp.dhis.dataexchange.analytics.TargetType;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
