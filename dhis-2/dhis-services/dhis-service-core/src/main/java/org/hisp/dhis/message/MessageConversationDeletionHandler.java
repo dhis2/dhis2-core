@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.message;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.user.User;
@@ -36,17 +36,11 @@ import org.springframework.stereotype.Component;
 /**
  * @author Lars Helge Overland
  */
-@Component( "org.hisp.dhis.message.MessageConversationDeletionHandler" )
-public class MessageConversationDeletionHandler
-    extends DeletionHandler
+@Component
+@AllArgsConstructor
+public class MessageConversationDeletionHandler extends DeletionHandler
 {
     private final MessageService messageService;
-
-    public MessageConversationDeletionHandler( MessageService messageService )
-    {
-        checkNotNull( messageService );
-        this.messageService = messageService;
-    }
 
     @Override
     protected void register()

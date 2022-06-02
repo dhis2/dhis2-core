@@ -27,8 +27,9 @@
  */
 package org.hisp.dhis.report;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
+
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionVeto;
@@ -38,17 +39,11 @@ import org.springframework.stereotype.Component;
 /**
  * @author Lars Helge Overland
  */
-@Component( "org.hisp.dhis.report.ReportDeletionHandler" )
-public class ReportDeletionHandler
-    extends DeletionHandler
+@Component
+@AllArgsConstructor
+public class ReportDeletionHandler extends DeletionHandler
 {
     private final ReportService reportService;
-
-    public ReportDeletionHandler( ReportService reportService )
-    {
-        checkNotNull( reportService );
-        this.reportService = reportService;
-    }
 
     @Override
     protected void register()
@@ -65,7 +60,6 @@ public class ReportDeletionHandler
                 return new DeletionVeto( Visualization.class, report.getName() );
             }
         }
-
         return ACCEPT;
     }
 }

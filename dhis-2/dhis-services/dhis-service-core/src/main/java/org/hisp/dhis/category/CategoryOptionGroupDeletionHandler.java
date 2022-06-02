@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.category;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
@@ -35,18 +35,12 @@ import org.springframework.stereotype.Component;
 /**
  * @author Lars Helge Overland
  */
-@Component( "org.hisp.dhis.category.CategoryOptionGroupDeletionHandler" )
+@Component
+@AllArgsConstructor
 public class CategoryOptionGroupDeletionHandler
     extends DeletionHandler
 {
     private final CategoryService categoryService;
-
-    public CategoryOptionGroupDeletionHandler( CategoryService categoryService )
-    {
-        checkNotNull( categoryService );
-
-        this.categoryService = categoryService;
-    }
 
     @Override
     protected void register()
