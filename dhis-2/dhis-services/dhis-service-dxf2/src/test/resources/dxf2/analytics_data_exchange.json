@@ -66,38 +66,38 @@
     {
       "id": "PnWccbwCJLQ",
       "name": "External data exchange",
-	  "source":{
-	    "requests": [
-	      {
-	        "dx": [
-	          "fbfJHSPpUQD",
-	          "cYeuwXTCPkU"
-	        ],
-	        "pe": [
-	          "LAST_3_MONTHS",
-	          "202202"
-	        ],
-	        "ou": [
-	          "ImspTQPwCqd"
-	        ],
-	        "inputIdScheme": "UID",
-	        "outputIdscheme": "UID"
-	      }
-	    ]
-	  },
-	  "target":{
-	    "type": "EXTERNAL",
-	    "api": {
-	      "url": "https://play.dhis2.org/2.38.0",
-	      "accessToken": "d2pat_92GyjFFutm8Ul9y3TjJ5xVMcSV4xQkMY0920394251"
-	    },
-	    "request": {
-	      "dataElementIdScheme": "UID",
-	      "orgUnitIdScheme": "UID",
-	      "categoryOptionComboIdScheme": "UID",
-	      "idScheme": "UID"
-	    }
-	  }
-	}
+      "source":{
+        "requests": [
+          {
+            "dx": [
+              "fbfJHSPpUQD",
+              "cYeuwXTCPkU"
+            ],
+            "pe": [
+              "LAST_3_MONTHS",
+              "202202"
+            ],
+            "ou": [
+              "ImspTQPwCqd"
+            ],
+            "inputIdScheme": "UID",
+            "outputIdscheme": "UID"
+          }
+        ]
+      },
+      "target":{
+        "type": "EXTERNAL",
+        "api": {
+          "url": "https://play.dhis2.org/2.38.0",
+          "accessToken": "d2pat_92GyjFFutm8Ul9y3TjJ5xVMcSV4xQkMY0920394251"
+        },
+        "request": {
+          "dataElementIdScheme": "UID",
+          "orgUnitIdScheme": "UID",
+          "categoryOptionComboIdScheme": "UID",
+          "idScheme": "UID"
+        }
+      }
+    }
   ]
 }
