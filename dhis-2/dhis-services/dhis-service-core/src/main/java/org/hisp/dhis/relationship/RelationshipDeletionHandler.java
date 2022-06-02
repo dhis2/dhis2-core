@@ -31,6 +31,8 @@ import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import java.util.Collection;
 
+import lombok.AllArgsConstructor;
+
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.system.deletion.DeletionHandler;
@@ -41,18 +43,13 @@ import org.springframework.stereotype.Component;
 /**
  * @author Chau Thu Tran
  */
-@Component( "org.hisp.dhis.relationship.RelationshipDeletionHandler" )
-public class RelationshipDeletionHandler
-    extends DeletionHandler
+@Component
+@AllArgsConstructor
+public class RelationshipDeletionHandler extends DeletionHandler
 {
     private static final DeletionVeto VETO = new DeletionVeto( Relationship.class );
 
     private final RelationshipService relationshipService;
-
-    public RelationshipDeletionHandler( RelationshipService relationshipService )
-    {
-        this.relationshipService = relationshipService;
-    }
 
     @Override
     protected void register()

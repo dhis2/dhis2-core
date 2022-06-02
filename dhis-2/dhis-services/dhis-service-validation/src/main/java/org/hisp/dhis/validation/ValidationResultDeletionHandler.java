@@ -27,8 +27,9 @@
  */
 package org.hisp.dhis.validation;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
+
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -41,19 +42,13 @@ import org.springframework.stereotype.Component;
  *
  * @author Stian Sandvold
  */
-@Component( "org.hisp.dhis.validation.ValidationResultDeletionHandler" )
-public class ValidationResultDeletionHandler
-    extends DeletionHandler
+@Component
+@AllArgsConstructor
+public class ValidationResultDeletionHandler extends DeletionHandler
 {
     private static final DeletionVeto VETO = new DeletionVeto( ValidationResult.class );
 
     private final ValidationResultService validationResultService;
-
-    public ValidationResultDeletionHandler( ValidationResultService validationResultService )
-    {
-        checkNotNull( validationResultService );
-        this.validationResultService = validationResultService;
-    }
 
     @Override
     protected void register()

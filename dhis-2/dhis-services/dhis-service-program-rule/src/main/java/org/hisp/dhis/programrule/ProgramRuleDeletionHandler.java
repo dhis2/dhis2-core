@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.programrule;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.Objects;
 import java.util.stream.Collectors;
+
+import lombok.AllArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -44,22 +44,11 @@ import org.springframework.stereotype.Component;
 /**
  * @author markusbekken
  */
-@Component( "org.hisp.dhis.programrule.ProgramRuleDeletionHandler" )
-public class ProgramRuleDeletionHandler
-    extends DeletionHandler
+@Component
+@AllArgsConstructor
+public class ProgramRuleDeletionHandler extends DeletionHandler
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final ProgramRuleService programRuleService;
-
-    public ProgramRuleDeletionHandler( ProgramRuleService programRuleService )
-    {
-        checkNotNull( programRuleService );
-
-        this.programRuleService = programRuleService;
-    }
 
     @Override
     protected void register()

@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.interpretation;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.List;
+
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.mapping.Map;
@@ -41,18 +41,11 @@ import org.springframework.stereotype.Component;
 /**
  * @author Lars Helge Overland
  */
-@Component( "org.hisp.dhis.interpretation.InterpretationDeletionHandler" )
-public class InterpretationDeletionHandler
-    extends DeletionHandler
+@Component
+@AllArgsConstructor
+public class InterpretationDeletionHandler extends DeletionHandler
 {
     private final InterpretationService interpretationService;
-
-    public InterpretationDeletionHandler( InterpretationService interpretationService )
-    {
-        checkNotNull( interpretationService );
-
-        this.interpretationService = interpretationService;
-    }
 
     @Override
     protected void register()
