@@ -92,7 +92,7 @@ public class DefaultSchemaService
 
     private void init()
     {
-        register( new MetadataVersionSchemaDescriptor() );
+        register( new AnalyticsDataExchangeSchemaDescriptor() );
         register( new AnalyticsTableHookSchemaDescriptor() );
         register( new AttributeSchemaDescriptor() );
         register( new AttributeValueSchemaDescriptor() );
@@ -134,6 +134,7 @@ public class DefaultSchemaService
         register( new MapSchemaDescriptor() );
         register( new MapViewSchemaDescriptor() );
         register( new MessageConversationSchemaDescriptor() );
+        register( new MetadataVersionSchemaDescriptor() );
         register( new OAuth2ClientSchemaDescriptor() );
         register( new OptionSchemaDescriptor() );
         register( new OptionSetSchemaDescriptor() );

@@ -49,7 +49,7 @@ public class AnalyticsDataExchangeSchemaDescriptor
     {
         Schema schema = new Schema( AnalyticsDataExchange.class, SINGULAR, PLURAL );
         schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 1170 );
+        schema.setOrder( 1900 );
 
         schema.add( new Authority( AuthorityType.CREATE_PUBLIC,
             Lists.newArrayList( "F_ANALYTICS_DATA_EXCHANGE_PUBLIC_ADD" ) ) );

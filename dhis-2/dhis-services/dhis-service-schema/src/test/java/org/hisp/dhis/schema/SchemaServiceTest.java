@@ -35,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.HashSet;
 
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.dataexchange.analytics.AnalyticsDataExchange;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
@@ -77,6 +78,14 @@ class SchemaServiceTest extends DhisSpringTest
         assertNotNull( groups );
         assertFalse( groups.isSimple() );
         assertTrue( groups.isCollection() );
+    }
+
+    @Test
+    void testGetSchema()
+    {
+        Schema schema = schemaService.getSchema( AnalyticsDataExchange.class );
+        assertNotNull( schema );
+        assertEquals( AnalyticsDataExchange.class, schema.getKlass() );
     }
 
     @Test
