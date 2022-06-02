@@ -30,7 +30,7 @@ package org.hisp.dhis.analytics.dimension;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.hisp.dhis.analytics.dimension.DimensionFilters.EMPTY_DATA_DIMENSION_FILTER;
+import static org.hisp.dhis.webapi.dimension.DimensionFilters.EMPTY_DATA_DIMENSION_FILTER;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.Collections;
@@ -41,6 +41,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.hisp.dhis.webapi.dimension.DimensionFilters;
+import org.hisp.dhis.webapi.dimension.DimensionResponse;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
