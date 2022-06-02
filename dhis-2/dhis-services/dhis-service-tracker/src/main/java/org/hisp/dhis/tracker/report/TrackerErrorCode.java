@@ -104,7 +104,7 @@ public enum TrackerErrorCode
     E1102( "User: `{0}`, does not have access to the tracked entity: `{1}`, Program: `{2}`, combination." ),
     E1103( "User: `{0}`, is lacking 'F_ENROLLMENT_CASCADE_DELETE' authority to delete Enrollment : `{1}`." ),
     E1104( "User: `{0}`, has no data read access to program: `{1}`, TrackedEntityType: `{2}`." ),
-    E1112( "Attribute value: `{0}`, is set to confidential but system is not properly configured to encrypt data." ),
+    E1112( "Attribute value: `{0}`, is set to confidential but systems encryption status is not ok. Reason: `{1}`" ),
     E1113( "Enrollment: `{0}`, is already deleted and cannot be modified." ),
     E1114( "TrackedEntity: `{0}`, is already deleted and cannot be modified." ),
     E1115( "Could not find CategoryOptionCombo: `{0}`." ),

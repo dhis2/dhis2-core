@@ -33,8 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import java.io.IOException;
 import java.util.List;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -43,7 +41,6 @@ import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
-import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -52,7 +49,6 @@ import org.springframework.jdbc.core.RowCallbackHandler;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Slf4j
 class TrackedEntityProgramAttributeEncryptionTest extends TrackerTest
 {
 
@@ -82,8 +78,7 @@ class TrackedEntityProgramAttributeEncryptionTest extends TrackerTest
     {
         TrackerImportParams trackerImportParams = fromJson( "tracker/te_program_with_tea_encryption_data.json" );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        log.info( trackerImportReport.toString() );
-        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
+        assertNoImportErrors( trackerImportReport );
 
         List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
         assertEquals( 1, trackedEntityInstances.size() );
