@@ -53,8 +53,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -69,6 +69,9 @@ class JdbcEventStoreTest
     private JdbcEventStore subject;
 
     @Mock
+    private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+
+    @Mock
     private JdbcTemplate jdbcTemplate;
 
     @Mock
@@ -79,9 +82,6 @@ class JdbcEventStoreTest
 
     @Mock
     protected SqlRowSet rowSet;
-
-    @Mock
-    private Environment env;
 
     @Mock
     private EventStore eventStore;
@@ -97,12 +97,12 @@ class JdbcEventStoreTest
     {
         when( jdbcTemplate.queryForRowSet( anyString() ) ).thenReturn( this.rowSet );
 
+        when( namedParameterJdbcTemplate.getJdbcTemplate() ).thenReturn( jdbcTemplate );
         when( jdbcTemplate.getDataSource() ).thenReturn( mock( DataSource.class ) );
 
         ObjectMapper objectMapper = new ObjectMapper();
-        subject = new JdbcEventStore( organisationUnitStore, new PostgreSQLStatementBuilder(), jdbcTemplate,
-            objectMapper, currentUserService,
-            manager, env, eventStore, skipLockedProvider );
+        subject = new JdbcEventStore( organisationUnitStore, new PostgreSQLStatementBuilder(),
+            namedParameterJdbcTemplate, objectMapper, currentUserService, manager, eventStore, skipLockedProvider );
     }
 
     @Test

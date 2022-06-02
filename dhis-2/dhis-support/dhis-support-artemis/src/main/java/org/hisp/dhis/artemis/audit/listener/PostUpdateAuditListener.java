@@ -91,7 +91,7 @@ public class PostUpdateAuditListener
     @Override
     public void onPostUpdateCommitFailed( PostUpdateEvent event )
     {
-        log.warn( "onPostUpdateCommitFailed: " + event );
+        log.debug( "onPostUpdateCommitFailed: " + event );
     }
 
     /**
