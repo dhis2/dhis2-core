@@ -38,11 +38,11 @@ jobs:
           PR: ${{ github.event.number }}
         if: github.event_name == 'pull_request'
         run: |
-          mvn -f dhis-2/pom.xml clean install --batch-mode --no-transfer-progress -Psonarqube
+          mvn -f dhis-2/pom.xml clean install --threads 2C --batch-mode --no-transfer-progress -Psonarqube
           mvn -f dhis-2/pom.xml sonar:sonar -Dsonar.internal.analysis.dbd=false --batch-mode --no-transfer-progress -Dsonar.scm.revision=${{ github.event.pull_request.head.sha }} -Dsonar.projectKey=dhis2_dhis2-core -Dsonar.coverage.jacoco.xmlReportPaths=$(find "$(pwd)" -path '*jacoco.xml' | sed 's/.*/&/' | tr '\n' ',')
 
       - name: Analyse long-living branch
         if: github.event_name != 'pull_request'
         run: |
-          mvn -f dhis-2/pom.xml clean install --batch-mode --no-transfer-progress -Psonarqube
+          mvn -f dhis-2/pom.xml clean install --threads 2C --batch-mode --no-transfer-progress -Psonarqube
           mvn -f dhis-2/pom.xml sonar:sonar -Dsonar.internal.analysis.dbd=false --batch-mode --no-transfer-progress -Dsonar.branch.name=${GITHUB_REF#refs/heads/} -Dsonar.projectKey=dhis2_dhis2-core -Dsonar.coverage.jacoco.xmlReportPaths=$(find "$(pwd)" -path '*jacoco.xml' | sed 's/.*/&/' | tr '\n' ',')
