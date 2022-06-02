@@ -36,6 +36,8 @@ import java.util.Set;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseNameableObject;
+import org.hisp.dhis.webapi.dimension.BaseDimensionMapper;
+import org.hisp.dhis.webapi.dimension.DimensionResponse;
 import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.ImmutableList;
