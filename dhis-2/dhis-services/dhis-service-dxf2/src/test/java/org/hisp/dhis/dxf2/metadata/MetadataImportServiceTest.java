@@ -942,7 +942,7 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
         assertNotNull( aeB );
         assertNotNull( aeB.getSource() );
         assertNotNull( aeB.getTarget() );
-        assertEquals( "iFOyIpQciyk", aeB.getUid() );
+        assertEquals( "PnWccbwCJLQ", aeB.getUid() );
         assertEquals( TargetType.EXTERNAL, aeB.getTarget().getType() );
     }
 
