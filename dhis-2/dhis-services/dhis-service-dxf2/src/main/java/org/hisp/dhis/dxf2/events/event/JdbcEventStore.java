@@ -70,7 +70,6 @@ import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EventQuery.COL
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EventQuery.COLUMNS.UPDATED;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EventQuery.COLUMNS.UPDATEDCLIENT;
 import static org.hisp.dhis.system.util.SqlUtils.castToNumber;
-import static org.hisp.dhis.system.util.SqlUtils.escapeSql;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
 import static org.hisp.dhis.util.DateUtils.getDateAfterAddition;
 import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
@@ -88,7 +87,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -140,9 +138,10 @@ import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
 import org.postgresql.util.PGobject;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.core.env.Environment;
 import org.springframework.dao.DataAccessException;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
 
@@ -154,6 +153,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.gson.Gson;
 
@@ -305,10 +305,8 @@ public class JdbcEventStore implements EventStore
      * actual UPDATE statement. This prevents deadlocks when Postgres tries to
      * update the same TEI.
      */
-    private static final String UPDATE_TEI_SQL = "SELECT * FROM trackedentityinstance where uid in (%s) FOR UPDATE %s;"
-        + "update trackedentityinstance set lastupdated = %s, lastupdatedby = %s where uid in (%s)";
-
-    private static final String NULL = "null";
+    private static final String UPDATE_TEI_SQL = "SELECT * FROM trackedentityinstance WHERE uid IN (:teiUids) FOR UPDATE SKIP LOCKED;"
+        + "UPDATE trackedentityinstance SET lastupdated = :lastUpdated, lastupdatedby = :lastUpdatedBy WHERE uid IN (:teiUids)";
 
     static
     {
@@ -323,10 +321,10 @@ public class JdbcEventStore implements EventStore
 
         UPDATE_EVENT_SQL = "update programstageinstance set " +
             UPDATE_COLUMNS.stream()
-                .map( column -> column + " = ?" )
+                .map( column -> column + " = :" + column )
                 .limit( UPDATE_COLUMNS.size() - 1 )
                 .collect( Collectors.joining( "," ) )
-            + " where uid = ?;";
+            + " where uid = :uid;";
     }
 
     // -------------------------------------------------------------------------
@@ -342,7 +340,7 @@ public class JdbcEventStore implements EventStore
 
     private final StatementBuilder statementBuilder;
 
-    private final JdbcTemplate jdbcTemplate;
+    private final NamedParameterJdbcTemplate jdbcTemplate;
 
     @Qualifier( "dataValueJsonMapper" )
     private final ObjectMapper jsonMapper;
@@ -350,8 +348,6 @@ public class JdbcEventStore implements EventStore
     private final CurrentUserService currentUserService;
 
     private final IdentifiableObjectManager manager;
-
-    private final Environment env;
 
     private final org.hisp.dhis.dxf2.events.trackedentity.store.EventStore eventStore;
 
@@ -376,7 +372,7 @@ public class JdbcEventStore implements EventStore
         final Gson gson = new Gson();
 
         String sql = buildSql( params, organisationUnits, user );
-        SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
+        SqlRowSet rowSet = jdbcTemplate.getJdbcTemplate().queryForRowSet( sql );
 
         log.debug( "Event query SQL: " + sql );
 
@@ -602,18 +598,23 @@ public class JdbcEventStore implements EventStore
     {
         try
         {
-            jdbcTemplate.batchUpdate( UPDATE_EVENT_SQL, sort( programStageInstances ), programStageInstances.size(),
-                ( ps, programStageInstance ) -> {
-                    try
-                    {
-                        bindEventParamsForUpdate( ps, programStageInstance );
-                    }
-                    catch ( JsonProcessingException | SQLException e )
-                    {
-                        log.warn( "PSI failed to update and will be ignored. PSI UID: " + programStageInstance.getUid(),
-                            programStageInstance.getUid(), e );
-                    }
-                } );
+            SqlParameterSource[] parameters = new SqlParameterSource[programStageInstances.size()];
+
+            for ( int i = 0; i < programStageInstances.size(); i++ )
+            {
+                try
+                {
+                    parameters[i] = getSqlParameters( programStageInstances.get( i ) );
+                }
+                catch ( SQLException | JsonProcessingException e )
+                {
+                    log.warn(
+                        "PSI failed to update and will be ignored. PSI UID: " + programStageInstances.get( i ).getUid(),
+                        programStageInstances.get( i ).getUid(), e );
+                }
+            }
+
+            jdbcTemplate.batchUpdate( UPDATE_EVENT_SQL, parameters );
         }
         catch ( DataAccessException e )
         {
@@ -633,7 +634,7 @@ public class JdbcEventStore implements EventStore
 
         String sql = buildGridSql( params, organisationUnits );
 
-        SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
+        SqlRowSet rowSet = jdbcTemplate.getJdbcTemplate().queryForRowSet( sql );
 
         log.debug( "Event query SQL: " + sql );
 
@@ -670,7 +671,7 @@ public class JdbcEventStore implements EventStore
 
         String sql = buildSql( params, organisationUnits, user );
 
-        SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
+        SqlRowSet rowSet = jdbcTemplate.getJdbcTemplate().queryForRowSet( sql );
 
         log.debug( "Event query SQL: " + sql );
 
@@ -883,7 +884,7 @@ public class JdbcEventStore implements EventStore
 
         log.debug( "Event query count SQL: " + sql );
 
-        return jdbcTemplate.queryForObject( sql, Integer.class );
+        return jdbcTemplate.getJdbcTemplate().queryForObject( sql, Integer.class );
     }
 
     private DataValue convertEventDataValueIntoDtoDataValue( EventDataValue eventDataValue )
@@ -1639,8 +1640,9 @@ public class JdbcEventStore implements EventStore
      */
     private List<ProgramStageInstance> saveAllEvents( List<ProgramStageInstance> batch )
     {
-        JdbcUtils.batchUpdateWithKeyHolder( jdbcTemplate, INSERT_EVENT_SQL,
-            new BatchPreparedStatementSetterWithKeyHolder<ProgramStageInstance>( sort( batch ) )
+
+        JdbcUtils.batchUpdateWithKeyHolder( jdbcTemplate.getJdbcTemplate(), INSERT_EVENT_SQL,
+            new BatchPreparedStatementSetterWithKeyHolder<>( sort( batch ) )
             {
                 @Override
                 protected void setValues( PreparedStatement ps, ProgramStageInstance event )
@@ -1684,7 +1686,8 @@ public class JdbcEventStore implements EventStore
             Map<String, Long> persisted = jdbcTemplate
                 .queryForList(
                     "SELECT uid, programstageinstanceid from programstageinstance where programstageinstanceid in ( "
-                        + Joiner.on( ";" ).join( eventIds ) + ")" )
+                        + Joiner.on( ";" ).join( eventIds ) + ")",
+                    Maps.newHashMap() )
                 .stream().collect(
                     Collectors.toMap( s -> (String) s.get( "uid" ), s -> (Long) s.get( "programstageinstanceid" ) ) );
 
@@ -1708,31 +1711,23 @@ public class JdbcEventStore implements EventStore
     @Override
     public void updateTrackedEntityInstances( List<String> teiUids, User user )
     {
-        Optional.ofNullable( teiUids ).filter( s -> !s.isEmpty() )
-            .ifPresent( teis -> updateTrackedEntityInstances( teis.stream()
-                .sorted() // make sure the list is sorted, to prevent
-                // deadlocks
-                .map( s -> "'" + s + "'" )
-                .collect( Collectors.joining( ", " ) ), user ) );
-    }
-
-    private void updateTrackedEntityInstances( String teisInCondition, User user )
-    {
-        try
+        if ( teiUids.isEmpty() )
         {
-            Timestamp timestamp = new Timestamp( System.currentTimeMillis() );
-
-            String sql = String.format( UPDATE_TEI_SQL, teisInCondition, skipLockedProvider.getSkipLocked(),
-                "'" + timestamp + "'",
-                user != null ? user.getId() : NULL, teisInCondition );
-
-            jdbcTemplate.execute( sql );
+            return;
         }
-        catch ( DataAccessException e )
+
+        String sql = UPDATE_TEI_SQL;
+
+        if ( skipLockedProvider.getSkipLocked().isEmpty() )
         {
-            log.error( "An error occurred updating one or more Tracked Entity Instances", e );
-            throw e;
+            sql = sql.replace( "SKIP LOCKED", "" );
         }
+
+        jdbcTemplate.execute( sql, new MapSqlParameterSource()
+            .addValue( "teiUids", teiUids )
+            .addValue( "lastUpdated", new Timestamp( System.currentTimeMillis() ) )
+            .addValue( "lastUpdatedBy", (user != null ? user.getId() : null) ),
+            PreparedStatement::execute );
     }
 
     private void bindEventParamsForInsert( PreparedStatement ps, ProgramStageInstance event )
@@ -1772,47 +1767,41 @@ public class JdbcEventStore implements EventStore
         // @formatter:on
     }
 
-    private void bindEventParamsForUpdate( PreparedStatement ps, ProgramStageInstance programStageInstance )
+    private MapSqlParameterSource getSqlParameters( ProgramStageInstance programStageInstance )
         throws SQLException,
         JsonProcessingException
     {
-
-        ps.setLong( 1, programStageInstance.getProgramInstance().getId() );
-        ps.setLong( 2, programStageInstance.getProgramStage().getId() );
-        ps.setTimestamp( 3, new Timestamp( programStageInstance.getDueDate().getTime() ) );
-        if ( programStageInstance.getExecutionDate() != null )
-        {
-            ps.setTimestamp( 4, new Timestamp( programStageInstance.getExecutionDate().getTime() ) );
-        }
-        else
-        {
-            ps.setObject( 4, null );
-        }
-        ps.setLong( 5, programStageInstance.getOrganisationUnit().getId() );
-        ps.setString( 6, programStageInstance.getStatus().toString() );
-        ps.setTimestamp( 7, JdbcEventSupport.toTimestamp( programStageInstance.getCompletedDate() ) );
-        ps.setTimestamp( 8, JdbcEventSupport.toTimestamp( new Date() ) );
-        ps.setLong( 9, programStageInstance.getAttributeOptionCombo().getId() );
-        ps.setString( 10, programStageInstance.getStoredBy() );
-        ps.setObject( 11, userInfoToJson( programStageInstance.getLastUpdatedByUserInfo(), jsonMapper ) );
-        ps.setString( 12, programStageInstance.getCompletedBy() );
-        ps.setBoolean( 13, programStageInstance.isDeleted() );
-        ps.setString( 14, programStageInstance.getCode() );
-        ps.setTimestamp( 15, JdbcEventSupport.toTimestamp( programStageInstance.getCreatedAtClient() ) );
-        ps.setTimestamp( 16, JdbcEventSupport.toTimestamp( programStageInstance.getLastUpdatedAtClient() ) );
-        ps.setObject( 17, JdbcEventSupport.toGeometry( programStageInstance.getGeometry() ) );
-
-        if ( programStageInstance.getAssignedUser() != null )
-        {
-            ps.setLong( 18, programStageInstance.getAssignedUser().getId() );
-        }
-        else
-        {
-            ps.setObject( 18, null );
-        }
-
-        ps.setObject( 19, eventDataValuesToJson( programStageInstance.getEventDataValues(), this.jsonMapper ) );
-        ps.setString( 20, programStageInstance.getUid() );
+        return new MapSqlParameterSource()
+            .addValue( "programInstanceId", programStageInstance.getProgramInstance().getId() )
+            .addValue( "programstageid", programStageInstance.getProgramStage().getId() )
+            .addValue( DUE_DATE.getColumnName(), new Timestamp( programStageInstance.getDueDate().getTime() ) )
+            .addValue( EXECUTION_DATE.getColumnName(),
+                (programStageInstance.getExecutionDate() != null
+                    ? new Timestamp( programStageInstance.getExecutionDate().getTime() )
+                    : null) )
+            .addValue( "organisationunitid", programStageInstance.getOrganisationUnit().getId() )
+            .addValue( STATUS.getColumnName(), programStageInstance.getStatus().toString() )
+            .addValue( COMPLETEDDATE.getColumnName(),
+                JdbcEventSupport.toTimestamp( programStageInstance.getCompletedDate() ) )
+            .addValue( UPDATED.getColumnName(), JdbcEventSupport.toTimestamp( new Date() ) )
+            .addValue( "attributeoptioncomboid", programStageInstance.getAttributeOptionCombo().getId() )
+            .addValue( STOREDBY.getColumnName(), programStageInstance.getStoredBy() )
+            .addValue( "lastupdatedbyuserinfo",
+                userInfoToJson( programStageInstance.getLastUpdatedByUserInfo(), jsonMapper ) )
+            .addValue( COMPLETEDBY.getColumnName(), programStageInstance.getCompletedBy() )
+            .addValue( DELETED.getColumnName(), programStageInstance.isDeleted() )
+            .addValue( "code", programStageInstance.getCode() )
+            .addValue( CREATEDCLIENT.getColumnName(),
+                JdbcEventSupport.toTimestamp( programStageInstance.getCreatedAtClient() ) )
+            .addValue( UPDATEDCLIENT.getColumnName(),
+                JdbcEventSupport.toTimestamp( programStageInstance.getLastUpdatedAtClient() ) )
+            .addValue( GEOMETRY.getColumnName(), JdbcEventSupport.toGeometry( programStageInstance.getGeometry() ) )
+            .addValue( "assigneduserid",
+                (programStageInstance.getAssignedUser() != null ? programStageInstance.getAssignedUser().getId()
+                    : null) )
+            .addValue( "eventdatavalues",
+                eventDataValuesToJson( programStageInstance.getEventDataValues(), jsonMapper ) )
+            .addValue( UID.getColumnName(), programStageInstance.getUid() );
     }
 
     private boolean userHasAccess( SqlRowSet rowSet )
@@ -1882,13 +1871,14 @@ public class JdbcEventStore implements EventStore
         {
             if ( !deUids.isEmpty() )
             {
-                String dataElementsUidsSqlString = getQuotedCommaDelimitedString( deUids );
+                String sql = "select de.uid, de.attributevalues #>> :attributeValuePath::text[] as value "
+                    + "from dataelement de where de.uid in (:dataElementUids) "
+                    + "and de.attributevalues ?? :attributeUid";
 
-                String deSql = "select de.uid, de.attributevalues #>> '{" + escapeSql( idScheme.getAttribute() )
-                    + ", value}' as value from dataelement de where de.uid in (" + dataElementsUidsSqlString + ") "
-                    + "and de.attributevalues ? '" + escapeSql( idScheme.getAttribute() ) + "'";
-
-                SqlRowSet deRowSet = jdbcTemplate.queryForRowSet( deSql );
+                SqlRowSet deRowSet = jdbcTemplate.queryForRowSet( sql, new MapSqlParameterSource()
+                    .addValue( "attributeValuePath", "{" + idScheme.getAttribute() + ",value}" )
+                    .addValue( "attributeUid", idScheme.getAttribute() )
+                    .addValue( "dataElementUids", deUids ) );
 
                 while ( deRowSet.next() )
                 {
@@ -1903,11 +1893,11 @@ public class JdbcEventStore implements EventStore
     {
         if ( isNotEmpty( events ) )
         {
-            final List<String> psiUids = events.stream().map( event -> "'" + event.getEvent() + "'" )
+            final List<String> psiUids = events.stream().map( Event::getEvent )
                 .collect( toList() );
-            final String uids = Joiner.on( "," ).join( psiUids );
 
-            jdbcTemplate.execute( "UPDATE programstageinstance SET deleted = true where uid in ( " + uids + ")" );
+            jdbcTemplate.update( "UPDATE programstageinstance SET deleted = true where uid in (:uids)",
+                new MapSqlParameterSource().addValue( "uids", psiUids ) );
         }
     }
 

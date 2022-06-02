@@ -31,7 +31,6 @@ import static java.lang.String.format;
 import static org.apache.commons.io.IOUtils.toBufferedInputStream;
 import static org.apache.commons.io.IOUtils.toInputStream;
 import static org.hisp.dhis.common.IdentifiableProperty.UID;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 
@@ -52,6 +51,7 @@ import org.hisp.dhis.dxf2.geojson.GeoJsonImportReport;
 import org.hisp.dhis.dxf2.geojson.GeoJsonService;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.security.SecurityContextRunnable;
@@ -163,13 +163,19 @@ public class GeoJsonImportController
 
     private WebMessage toWebMessage( GeoJsonImportReport report )
     {
+        String msg = "Import successful.";
+        Status status = Status.OK;
         if ( report.getStatus() == ImportStatus.ERROR )
         {
-            return conflict( "Import failed." ).setResponse( report );
+            msg = "Import failed.";
+            status = Status.ERROR;
         }
-        return report.getImportCount().getIgnored() > 0
-            ? ok( "Import partially successful." ).setResponse( report )
-            : ok( "Import successful." ).setResponse( report );
+        else if ( report.getImportCount().getIgnored() > 0 )
+        {
+            msg = "Import partially successful.";
+            status = Status.WARNING;
+        }
+        return ok( msg ).setStatus( status ).setResponse( report );
     }
 
     @AllArgsConstructor
@@ -198,7 +204,7 @@ public class GeoJsonImportController
         public void call()
         {
             notifier.clear( config );
-            notifier.notify( config, NotificationLevel.INFO, "GeoJSON import stared", true );
+            notifier.notify( config, NotificationLevel.INFO, "GeoJSON import stared", false );
             GeoJsonImportReport report = geoJsonService.importGeoData( params, data );
             notifier.notify( config, NotificationLevel.INFO, "GeoJSON import complete. " + report.getImportCount(),
                 true );
