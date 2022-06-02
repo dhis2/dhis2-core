@@ -27,12 +27,19 @@
  */
 package org.hisp.dhis.analytics.tei;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.common.CommonRequestMapper;
 import org.hisp.dhis.analytics.common.QueryRequestHolder;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.springframework.stereotype.Service;
 
@@ -50,13 +57,42 @@ public class TeiRequestMapper
     public TeiQueryParams map( QueryRequestHolder<TeiQueryRequest> queryRequestHolder, DhisApiVersion apiVersion )
     {
         return TeiQueryParams.builder()
-            .programs( programService.getPrograms( queryRequestHolder.getRequest().getPrograms() ) )
-            .trackedEntityType( trackedEntityTypeService
-                .getTrackedEntityType( queryRequestHolder.getRequest().getTrackedEntityType() ) )
+            .programs( getPrograms( queryRequestHolder ) )
+            .trackedEntityType( getTrackedEntityType( queryRequestHolder ) )
             .commonParams( commonRequestMapper.map(
                 queryRequestHolder.getCommonQueryRequest(),
                 queryRequestHolder.getPagingCriteria(),
                 apiVersion ) )
             .build();
+    }
+
+    private TrackedEntityType getTrackedEntityType( QueryRequestHolder<TeiQueryRequest> queryRequestHolder )
+    {
+        return Optional.of( queryRequestHolder.getRequest().getTrackedEntityType() )
+            .map( trackedEntityTypeService::getTrackedEntityType )
+            .orElseThrow( () -> new IllegalArgumentException( "Unable to find TrackedEntityType with UID: "
+                + queryRequestHolder.getRequest().getTrackedEntityType() ) );
+    }
+
+    private Collection<Program> getPrograms( QueryRequestHolder<TeiQueryRequest> queryRequestHolder )
+    {
+        Collection<Program> programs = programService.getPrograms( queryRequestHolder.getRequest().getPrograms() );
+
+        if ( programs.size() != queryRequestHolder.getRequest().getPrograms().size() )
+        {
+            Collection<String> foundProgramUids = programs.stream()
+                .map( Program::getUid )
+                .collect( Collectors.toList() );
+
+            Collection<String> missingProgramUids = Optional.of( queryRequestHolder )
+                .map( QueryRequestHolder::getRequest )
+                .map( TeiQueryRequest::getPrograms )
+                .orElse( Collections.emptyList() ).stream()
+                .filter( uidFromRequest -> !foundProgramUids.contains( uidFromRequest ) )
+                .collect( Collectors.toList() );
+
+            throw new IllegalArgumentException( "The following programs couldn't be found: " + missingProgramUids );
+        }
+        return programs;
     }
 }

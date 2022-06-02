@@ -42,6 +42,7 @@ import org.hisp.dhis.analytics.tei.TeiAnalyticsValidator;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.analytics.tei.TeiQueryRequest;
 import org.hisp.dhis.analytics.tei.TeiRequestMapper;
+import org.hisp.dhis.analytics.tei.TeiRequestPreProcessor;
 import org.hisp.dhis.common.AnalyticsPagingCriteria;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Grid;
@@ -67,6 +68,8 @@ class TeiQueryController
 
     private final TeiAnalyticsQueryService teiAnalyticsQueryService;
 
+    private final TeiRequestPreProcessor teiRequestPreProcessor;
+
     private final TeiAnalyticsValidator teiAnalyticsValidationService;
 
     private final TeiRequestMapper mapper;
@@ -83,16 +86,18 @@ class TeiQueryController
         final DhisApiVersion apiVersion,
         final HttpServletResponse response )
     {
-        final QueryRequestHolder<TeiQueryRequest> queryRequestHolder = QueryRequestHolder.<TeiQueryRequest> builder()
-            .request( teiQueryRequest.withTrackedEntityType( trackedEntityType ) )
-            .commonQueryRequest( commonQueryRequest )
-            .pagingCriteria(
-                (AnalyticsPagingCriteria) pagingRequest
-                    .withEndpointItem( TRACKED_ENTITY_INSTANCE )
-                    .withQueryEndpointAction() )
-            .build();
+        QueryRequestHolder<TeiQueryRequest> queryRequestHolder = teiRequestPreProcessor.preProcessRequest(
+            QueryRequestHolder.<TeiQueryRequest> builder()
+                .request( teiQueryRequest.withTrackedEntityType( trackedEntityType ) )
+                .commonQueryRequest( commonQueryRequest )
+                .pagingCriteria(
+                    (AnalyticsPagingCriteria) pagingRequest
+                        .withEndpointItem( TRACKED_ENTITY_INSTANCE )
+                        .withQueryEndpointAction() )
+                .build() );
 
         teiAnalyticsValidationService.validateRequest( queryRequestHolder );
+
         contextUtils.configureResponse( response, CONTENT_TYPE_JSON, RESPECT_SYSTEM_SETTING );
 
         final TeiQueryParams params = mapper.map( queryRequestHolder, apiVersion );

@@ -27,18 +27,42 @@
  */
 package org.hisp.dhis.analytics.common;
 
-import lombok.Builder;
-import lombok.Data;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.AnalyticsPagingCriteria;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
+import org.springframework.stereotype.Component;
 
-@Data
-@Builder( toBuilder = true )
-public class QueryRequestHolder<T>
+@Component
+@RequiredArgsConstructor
+public class CommonRequestPreProcessor
 {
-    private final T request;
+    private final SystemSettingManager systemSettingManager;
 
-    private final CommonQueryRequest commonQueryRequest;
+    public CommonQueryRequest preProcessCommonRequest( CommonQueryRequest commonQueryRequest )
+    {
+        // here we should refactor/preprocess dimensions and filters for 2
+        // specific purposes:
+        // 1 - support custom date filters, like enrollmentDate=TODAY, but this
+        // is pending discussions on whether the time
+        // fields should be applied to all programs, or it is possible to
+        // specify date filters for each programs
+        //
+        // 2 - in event/enrollments we supported _OR_ separator to handle
+        // enhanced conditions
+        // left both as TODO for now
+        return commonQueryRequest;
+    }
 
-    private final AnalyticsPagingCriteria pagingCriteria;
+    // TODO: we would really like to have all criteria/request/params to be
+    // immutable, but PagingCriteria is not
+    // returning it for now, should be converted to use builders
+    public AnalyticsPagingCriteria preProcessPagingCriteria( AnalyticsPagingCriteria pagingCriteria )
+    {
+        int analyticsMaxPageSize = systemSettingManager.getIntSetting( SettingKey.ANALYTICS_MAX_LIMIT );
+        pagingCriteria.definePageSize( analyticsMaxPageSize );
+        return pagingCriteria;
+    }
+
 }

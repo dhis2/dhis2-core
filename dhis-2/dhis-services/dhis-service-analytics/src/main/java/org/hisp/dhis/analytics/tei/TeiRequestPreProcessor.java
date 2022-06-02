@@ -25,20 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.common;
+package org.hisp.dhis.analytics.tei;
 
-import lombok.Builder;
-import lombok.Data;
+import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.common.AnalyticsPagingCriteria;
+import org.hisp.dhis.analytics.common.CommonRequestPreProcessor;
+import org.hisp.dhis.analytics.common.QueryRequestHolder;
+import org.springframework.stereotype.Component;
 
-@Data
-@Builder( toBuilder = true )
-public class QueryRequestHolder<T>
+@Component
+@RequiredArgsConstructor
+public class TeiRequestPreProcessor
 {
-    private final T request;
 
-    private final CommonQueryRequest commonQueryRequest;
+    private final CommonRequestPreProcessor commonRequestPreProcessor;
 
-    private final AnalyticsPagingCriteria pagingCriteria;
+    /**
+     * A hook to transform a QueryRequest before mapping it into Params
+     *
+     * @param queryRequestHolder
+     * @return a queryRequestHolder where inner components might have changed
+     */
+    public QueryRequestHolder<TeiQueryRequest> preProcessRequest(
+        QueryRequestHolder<TeiQueryRequest> queryRequestHolder )
+    {
+        return queryRequestHolder.toBuilder()
+            .commonQueryRequest(
+                commonRequestPreProcessor.preProcessCommonRequest( queryRequestHolder.getCommonQueryRequest() ) )
+            .pagingCriteria(
+                commonRequestPreProcessor.preProcessPagingCriteria( queryRequestHolder.getPagingCriteria() ) )
+            .request( preProcessInternal( queryRequestHolder.getRequest() ) )
+            .build();
+    }
+
+    private TeiQueryRequest preProcessInternal( TeiQueryRequest request )
+    {
+        // TODO: nothing to do here for now
+        return request;
+    }
 }
