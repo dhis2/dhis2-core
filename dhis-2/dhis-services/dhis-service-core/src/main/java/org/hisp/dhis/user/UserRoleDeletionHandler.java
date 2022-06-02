@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.user;
 
+import java.util.HashSet;
+
 import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.system.deletion.DeletionHandler;
@@ -49,10 +51,12 @@ public class UserRoleDeletionHandler extends DeletionHandler
 
     private void deleteUser( User user )
     {
-        for ( UserRole group : user.getUserRoles() )
+        for ( UserRole role : user.getUserRoles() )
         {
-            group.getMembers().remove( user );
-            userService.updateUserRole( group );
+            role.getMembers().remove( user );
+            userService.updateUserRole( role );
         }
+
+        user.setUserRoles( new HashSet<>() );
     }
 }
