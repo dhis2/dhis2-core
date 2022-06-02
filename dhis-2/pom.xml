@@ -747,6 +747,7 @@
               <ignoredUnusedDeclaredDependency>org.springframework.security:spring-security-aspects</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.skyscreamer:jsonassert</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>commons-fileupload:commons-fileupload</ignoredUnusedDeclaredDependency>
+              <ignoredUnusedDeclaredDependency>org.apache.httpcomponents:httpcore</ignoredUnusedDeclaredDependency>
               <!-- Removing makes the startup fail -->
               <ignoredUnusedDeclaredDependency>org.hibernate:hibernate-ehcache</ignoredUnusedDeclaredDependency>
               <!-- Removing makes the startup with Jetty fail -->
