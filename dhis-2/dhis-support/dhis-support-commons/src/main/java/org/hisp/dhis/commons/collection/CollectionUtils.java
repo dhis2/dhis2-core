@@ -60,7 +60,7 @@ public class CollectionUtils
         set1.retainAll( new HashSet<>( c2 ) );
         return set1;
     }
-    
+
     /**
      * Returns all elements which are contained by {@code collection1} but not
      * contained by {@code collection2} as an immutable list.

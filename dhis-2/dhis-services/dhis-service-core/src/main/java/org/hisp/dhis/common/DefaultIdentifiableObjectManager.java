@@ -621,7 +621,7 @@ public class DefaultIdentifiableObjectManager
 
         return (List<T>) store.getByUid( uids );
     }
-    
+
     @Override
     @Transactional( readOnly = true )
     public <T extends IdentifiableObject> List<T> getAndValidateByUid( Class<T> type, Collection<String> uids )

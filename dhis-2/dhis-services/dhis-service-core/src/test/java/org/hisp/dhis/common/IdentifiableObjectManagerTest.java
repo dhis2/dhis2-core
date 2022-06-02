@@ -446,7 +446,7 @@ public class IdentifiableObjectManagerTest
         assertTrue( cd.contains( dataElementC ) );
         assertTrue( cd.contains( dataElementD ) );
     }
-    
+
     @Test
     public void getAndValidateByUidTest()
     {
