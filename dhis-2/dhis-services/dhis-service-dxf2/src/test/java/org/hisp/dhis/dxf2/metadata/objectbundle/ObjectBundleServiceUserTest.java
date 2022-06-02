@@ -34,7 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -279,13 +278,5 @@ class ObjectBundleServiceUserTest extends TransactionalIntegrationTest
         throws IOException
     {
         return renderService.fromMetadata( new ClassPathResource( fileName ).getInputStream(), RenderFormat.JSON );
-    }
-
-    private static void assertUsernameEquals( User actual, Function<User, User> property, String expected )
-    {
-        assertNotNull( actual );
-        User user = property.apply( actual );
-        assertNotNull( user );
-        assertEquals( expected, user.getUsername() );
     }
 }
