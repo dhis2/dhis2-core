@@ -57,8 +57,6 @@ public class H2DhisConfigurationProvider implements DhisConfigurationProvider
 
     protected Properties properties;
 
-    private EncryptionStatus encryptionStatus = EncryptionStatus.OK;
-
     public H2DhisConfigurationProvider()
     {
         this.properties = getPropertiesFromFile( DEFAULT_CONFIGURATION_FILE_NAME );
@@ -163,12 +161,7 @@ public class H2DhisConfigurationProvider implements DhisConfigurationProvider
     @Override
     public EncryptionStatus getEncryptionStatus()
     {
-        return encryptionStatus;
-    }
-
-    public void setEncryptionStatus( EncryptionStatus status )
-    {
-        this.encryptionStatus = status;
+        return EncryptionStatus.OK;
     }
 
     @Override
