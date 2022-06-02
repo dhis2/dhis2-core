@@ -14,7 +14,7 @@
         aggregating and reporting statistical health data. The goal is to allow users to analyze
         and use this data to guide local action. The system is based around an goals of empowering
         users, by allowing them to decide what to register and report data for.
-    </description>
+  </description>
 
   <organization>
     <name>UiO</name>
@@ -119,14 +119,16 @@
     <javax.annotation-api.version>1.3.2</javax.annotation-api.version>
     <xercesImpl.version>2.12.2</xercesImpl.version>
 
-    <!--Reporting -->
+    <!--- Apache jclouds -->
+    <jclouds.version>2.5.0</jclouds.version>
+
+    <!-- Reporting -->
     <jasperreports.version>6.19.1</jasperreports.version>
     <jfreechart.version>1.5.3</jfreechart.version>
     <htmlparser.version>2.1</htmlparser.version>
     <htmllexer.version>2.1</htmllexer.version>
     <poi.version>5.2.2</poi.version>
     <itext.version>2.1.7</itext.version>
-    <jclouds.version>2.5.0</jclouds.version>
     <antlr.version>4.9.3</antlr.version>
 
     <!-- GIS -->
@@ -738,6 +740,7 @@
               <ignoredUnusedDeclaredDependency>org.springframework:spring-context-support</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>javax.servlet:javax.servlet-api</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.apache.xmlgraphics:batik-codec</ignoredUnusedDeclaredDependency>
+              <ignoredUnusedDeclaredDependency>org.apache.jclouds.provider:aws-s3</ignoredUnusedDeclaredDependency>
 
               <!-- Removing these dependencies from the pom makes some tests 
                 fail -->
@@ -1166,7 +1169,7 @@
         <version>${spring-ldap.version}</version>
       </dependency>
 
-      <!--Spring Security -->
+      <!-- Spring Security -->
       <dependency>
         <groupId>org.springframework.security</groupId>
         <artifactId>spring-security-core</artifactId>
@@ -1721,12 +1724,14 @@
         <version>${flyway-core.version}</version>
       </dependency>
 
-      <!-- Apache jClouds -->
+      <!-- Google gson -->
       <dependency>
         <groupId>com.google.code.gson</groupId>
         <artifactId>gson</artifactId>
         <version>${gson.version}</version>
       </dependency>
+
+      <!--- Apache jclouds -->
       <dependency>
         <groupId>org.apache.jclouds</groupId>
         <artifactId>jclouds-core</artifactId>
@@ -1747,15 +1752,20 @@
         <artifactId>s3</artifactId>
         <version>${jclouds.version}</version>
       </dependency>
+      <dependency>
+        <groupId>org.apache.jclouds.provider</groupId>
+        <artifactId>aws-s3</artifactId>
+        <version>${jclouds.version}</version>
+      </dependency>
 
-      <!--ExpressionParser -->
+      <!-- ExpressionParser -->
       <dependency>
         <groupId>org.antlr</groupId>
         <artifactId>antlr4-runtime</artifactId>
         <version>${antlr.version}</version>
       </dependency>
 
-      <!--Reporting -->
+      <!-- Reporting -->
       <dependency>
         <groupId>net.sf.jasperreports</groupId>
         <artifactId>jasperreports</artifactId>
