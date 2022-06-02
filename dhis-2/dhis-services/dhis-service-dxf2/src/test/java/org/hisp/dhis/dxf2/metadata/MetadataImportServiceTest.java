@@ -49,8 +49,8 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dashboard.Dashboard;
+import org.hisp.dhis.dataexchange.analytics.AnalyticsDataExchange;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
@@ -98,9 +98,6 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
 
     @Autowired
     private IdentifiableObjectManager manager;
-
-    @Autowired
-    private DataSetService dataSetService;
 
     @Autowired
     private ProgramStageService programStageService;
@@ -635,7 +632,7 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
         ImportReport report = importService.importMetadata( params );
         assertEquals( Status.OK, report.getStatus() );
         dbmsManager.clearSession();
-        DataSet dataset = dataSetService.getDataSet( "em8Bg4LCr5k" );
+        DataSet dataset = manager.get( DataSet.class, "em8Bg4LCr5k" );
         assertNotNull( dataset.getSections() );
         assertNotNull( manager.get( Section.class, "JwcV2ZifEQf" ) );
         metadata = renderService.fromMetadata(
@@ -707,7 +704,7 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
         MetadataImportParams params = createParams( ImportStrategy.CREATE_AND_UPDATE, metadata );
         ImportReport report = importService.importMetadata( params );
         assertEquals( Status.OK, report.getStatus() );
-        DataSet dataset = dataSetService.getDataSet( "em8Bg4LCr5k" );
+        DataSet dataset = manager.get( DataSet.class, "em8Bg4LCr5k" );
         assertNotNull( dataset.getSections() );
         assertNotNull( dataset.getDataElements() );
         assertTrue( dataset.getDataElements().stream().map( de -> de.getUid() ).collect( Collectors.toList() )
@@ -816,7 +813,7 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
     void testImportMapCreateAndUpdate()
         throws IOException
     {
-        java.util.Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService
             .fromMetadata( new ClassPathResource( "dxf2/map_new.json" ).getInputStream(), RenderFormat.JSON );
         MetadataImportParams params = new MetadataImportParams();
         params.setImportMode( ObjectBundleMode.COMMIT );
@@ -913,6 +910,24 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
         Visualization visualization = manager.get( Visualization.class, "gyYXi0rXAIc" );
         assertNotNull( visualization.getLegendDefinitions().getLegendSet() );
         assertEquals( "CGWUjDCWaMA", visualization.getLegendDefinitions().getLegendSet().getUid() );
+    }
+
+    @Test
+    void testImportAnalyticsDataExchange()
+        throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/analytics_data_exchange.json" ).getInputStream(), RenderFormat.JSON );
+        MetadataImportParams params = createParams( ImportStrategy.CREATE_AND_UPDATE, metadata );
+        ImportReport report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+
+        AnalyticsDataExchange aeA = manager.get( AnalyticsDataExchange.class, "iFOyIpQciyk" );
+        assertNotNull( aeA );
+        assertEquals( "iFOyIpQciyk", aeA.getUid() );
+        AnalyticsDataExchange aeB = manager.get( AnalyticsDataExchange.class, "PnWccbwCJLQ" );
+        assertNotNull( aeB );
+        assertEquals( "PnWccbwCJLQ", aeB.getUid() );
     }
 
     private MetadataImportParams createParams( ImportStrategy importStrategy,
