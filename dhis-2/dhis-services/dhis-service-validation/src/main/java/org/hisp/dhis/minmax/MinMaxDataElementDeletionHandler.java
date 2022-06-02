@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.minmax;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
@@ -38,18 +38,11 @@ import org.springframework.stereotype.Component;
 /**
  * @author Lars Helge Overland
  */
-@Component( "org.hisp.dhis.minmax.MinMaxDataElementDeletionHandler" )
-public class MinMaxDataElementDeletionHandler
-    extends DeletionHandler
+@Component
+@AllArgsConstructor
+public class MinMaxDataElementDeletionHandler extends DeletionHandler
 {
     private final MinMaxDataElementService minMaxDataElementService;
-
-    public MinMaxDataElementDeletionHandler( MinMaxDataElementService minMaxDataElementService )
-    {
-        checkNotNull( minMaxDataElementService );
-
-        this.minMaxDataElementService = minMaxDataElementService;
-    }
 
     @Override
     protected void register()

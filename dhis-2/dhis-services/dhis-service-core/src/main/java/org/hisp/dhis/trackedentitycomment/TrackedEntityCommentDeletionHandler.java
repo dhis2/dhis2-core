@@ -38,8 +38,7 @@ import org.hisp.dhis.system.deletion.DeletionHandler;
  *
  */
 @AllArgsConstructor
-public class TrackedEntityCommentDeletionHandler
-    extends DeletionHandler
+public class TrackedEntityCommentDeletionHandler extends DeletionHandler
 {
     private final TrackedEntityCommentService commentService;
 

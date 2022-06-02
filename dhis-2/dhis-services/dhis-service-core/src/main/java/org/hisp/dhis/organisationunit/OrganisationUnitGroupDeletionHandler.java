@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.organisationunit;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.system.deletion.DeletionHandler;
@@ -36,17 +36,11 @@ import org.springframework.stereotype.Component;
 /**
  * @author Lars Helge Overland
  */
-@Component( "org.hisp.dhis.organisationunit.OrganisationUnitGroupDeletionHandler" )
-public class OrganisationUnitGroupDeletionHandler
-    extends DeletionHandler
+@Component
+@AllArgsConstructor
+public class OrganisationUnitGroupDeletionHandler extends DeletionHandler
 {
     private final IdentifiableObjectManager idObjectManager;
-
-    public OrganisationUnitGroupDeletionHandler( IdentifiableObjectManager idObjectManager )
-    {
-        checkNotNull( idObjectManager );
-        this.idObjectManager = idObjectManager;
-    }
 
     @Override
     protected void register()

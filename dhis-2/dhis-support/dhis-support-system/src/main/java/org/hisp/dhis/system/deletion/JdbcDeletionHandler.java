@@ -25,46 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataapproval;
+package org.hisp.dhis.system.deletion;
 
 import java.util.Map;
 
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
-import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
-/**
- * @author Jim Grace
- */
-@Component
-public class DataApprovalDeletionHandler extends JdbcDeletionHandler
+public abstract class JdbcDeletionHandler extends DeletionHandler
 {
-    private static final DeletionVeto VETO = new DeletionVeto( DataApproval.class );
+    private NamedParameterJdbcTemplate npTemplate;
 
-    @Override
-    protected void register()
+    @Autowired
+    public void setNamedParameterJdbcTemplate( NamedParameterJdbcTemplate npTemplate )
     {
-        whenVetoing( DataApprovalLevel.class, this::allowDeleteDataApprovalLevel );
-        whenVetoing( DataApprovalWorkflow.class, this::allowDeleteDataApprovalWorkflow );
-        whenVetoing( CategoryOptionCombo.class, this::allowDeleteCategoryOptionCombo );
+        this.npTemplate = npTemplate;
     }
 
-    private DeletionVeto allowDeleteDataApprovalLevel( DataApprovalLevel dataApprovalLevel )
+    protected final int count( String sql, Map<String, Object> parameters )
     {
-        String sql = "select count(*) from dataapproval where dataapprovallevelid=:id";
-        return vetoIfExists( VETO, sql, Map.of( "id", dataApprovalLevel.getId() ) );
+        Integer count = npTemplate.queryForObject( sql, new MapSqlParameterSource( parameters ), Integer.class );
+        return count == null ? 0 : count;
     }
 
-    private DeletionVeto allowDeleteDataApprovalWorkflow( DataApprovalWorkflow workflow )
+    protected final boolean exists( String sql, Map<String, Object> parameters )
     {
-        String sql = "select count(*) from dataapproval where workflowid=:id";
-        return vetoIfExists( VETO, sql, Map.of( "id", workflow.getId() ) );
+        return count( sql, parameters ) > 0;
     }
 
-    private DeletionVeto allowDeleteCategoryOptionCombo( CategoryOptionCombo optionCombo )
+    protected final DeletionVeto vetoIfExists( DeletionVeto veto, String sql, Map<String, Object> parameters )
     {
-        String sql = "select count(*) from dataapproval where attributeoptioncomboid=:id";
-        return vetoIfExists( VETO, sql, Map.of( "id", optionCombo.getId() ) );
+        return exists( sql, parameters ) ? veto : DeletionVeto.ACCEPT;
+    }
+
+    protected final int delete( String sql, Map<String, Object> parameters )
+    {
+        return npTemplate.update( sql, parameters );
     }
 }

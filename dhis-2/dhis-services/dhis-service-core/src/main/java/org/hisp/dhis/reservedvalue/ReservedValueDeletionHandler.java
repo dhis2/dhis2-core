@@ -27,23 +27,17 @@
  */
 package org.hisp.dhis.reservedvalue;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.stereotype.Component;
 
-@Component( "org.hisp.dhis.reservedvalue.ReservedValueDeletionHandler" )
+@Component
+@AllArgsConstructor
 public class ReservedValueDeletionHandler extends DeletionHandler
 {
-
     private final ReservedValueService reservedValueService;
-
-    public ReservedValueDeletionHandler( ReservedValueService reservedValueService )
-    {
-        checkNotNull( reservedValueService );
-        this.reservedValueService = reservedValueService;
-    }
 
     @Override
     protected void register()

@@ -44,7 +44,7 @@ import org.springframework.stereotype.Component;
 /**
  * @author Chau Thu Tran
  */
-@Component( "org.hisp.dhis.eventreport.EventReportDeletionHandler" )
+@Component
 public class EventReportDeletionHandler
     extends GenericAnalyticalObjectDeletionHandler<EventReport, EventReportService>
 {

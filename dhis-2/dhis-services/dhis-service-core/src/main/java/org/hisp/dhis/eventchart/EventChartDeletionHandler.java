@@ -44,7 +44,7 @@ import org.springframework.stereotype.Component;
 /**
  * @author Chau Thu Tran
  */
-@Component( "org.hisp.dhis.eventchart.EventChartDeletionHandler" )
+@Component
 public class EventChartDeletionHandler
     extends GenericAnalyticalObjectDeletionHandler<EventChart, EventChartService>
 {
