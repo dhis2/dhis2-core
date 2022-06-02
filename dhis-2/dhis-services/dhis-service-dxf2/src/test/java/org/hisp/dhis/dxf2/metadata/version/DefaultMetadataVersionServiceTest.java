@@ -48,14 +48,11 @@ import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.MetadataVersionService;
 import org.hisp.dhis.metadata.version.VersionType;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author sultanm
  */
-@ExtendWith( MockitoExtension.class )
 class DefaultMetadataVersionServiceTest extends TransactionalIntegrationTest
 {
     @Autowired
