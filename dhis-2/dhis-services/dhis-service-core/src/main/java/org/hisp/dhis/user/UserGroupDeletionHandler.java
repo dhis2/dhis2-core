@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.user;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.Set;
+
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.system.deletion.DeletionHandler;
@@ -38,22 +38,13 @@ import org.springframework.stereotype.Component;
 /**
  * @author Lars Helge Overland
  */
-@Component( "org.hisp.dhis.user.UserGroupDeletionHandler" )
-public class UserGroupDeletionHandler
-    extends DeletionHandler
+@Component
+@AllArgsConstructor
+public class UserGroupDeletionHandler extends DeletionHandler
 {
     private final IdentifiableObjectManager idObjectManager;
 
     private final CurrentUserService currentUserService;
-
-    public UserGroupDeletionHandler( IdentifiableObjectManager idObjectManager, CurrentUserService currentUserService )
-    {
-        checkNotNull( idObjectManager );
-        checkNotNull( currentUserService );
-
-        this.idObjectManager = idObjectManager;
-        this.currentUserService = currentUserService;
-    }
 
     @Override
     protected void register()

@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.user;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.Iterator;
+
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
@@ -37,18 +37,11 @@ import org.springframework.stereotype.Component;
 /**
  * @author Lars Helge Overland
  */
-@Component( "org.hisp.dhis.user.UserSettingDeletionHandler" )
-public class UserSettingDeletionHandler
-    extends DeletionHandler
+@Component
+@AllArgsConstructor
+public class UserSettingDeletionHandler extends DeletionHandler
 {
     private final UserSettingService userSettingService;
-
-    public UserSettingDeletionHandler( UserSettingService userSettingService )
-    {
-        checkNotNull( userSettingService );
-
-        this.userSettingService = userSettingService;
-    }
 
     @Override
     protected void register()

@@ -27,8 +27,9 @@
  */
 package org.hisp.dhis.sms.command;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
+
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.system.deletion.DeletionHandler;
@@ -38,19 +39,13 @@ import org.springframework.stereotype.Component;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Component( "org.hisp.dhis.sms.command.SMSCommandDeletionHandler" )
-public class SMSCommandDeletionHandler
-    extends DeletionHandler
+@Component
+@AllArgsConstructor
+public class SMSCommandDeletionHandler extends DeletionHandler
 {
     private static final DeletionVeto VETO = new DeletionVeto( SMSCommand.class );
 
     private final SMSCommandService smsCommandService;
-
-    public SMSCommandDeletionHandler( SMSCommandService smsCommandService )
-    {
-        checkNotNull( smsCommandService );
-        this.smsCommandService = smsCommandService;
-    }
 
     @Override
     protected void register()

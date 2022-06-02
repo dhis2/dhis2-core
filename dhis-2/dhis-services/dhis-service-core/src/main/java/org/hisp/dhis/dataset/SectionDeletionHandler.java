@@ -27,11 +27,11 @@
  */
 package org.hisp.dhis.dataset;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -42,17 +42,11 @@ import org.springframework.stereotype.Component;
  * @author Lars Helge Overland
  * @version $Id$
  */
-@Component( "org.hisp.dhis.dataset.SectionDeletionHandler" )
-public class SectionDeletionHandler
-    extends DeletionHandler
+@Component
+@AllArgsConstructor
+public class SectionDeletionHandler extends DeletionHandler
 {
     private final SectionService sectionService;
-
-    public SectionDeletionHandler( SectionService sectionService )
-    {
-        checkNotNull( sectionService );
-        this.sectionService = sectionService;
-    }
 
     @Override
     protected void register()
@@ -72,7 +66,6 @@ public class SectionDeletionHandler
                 .collect( Collectors.toList() );
 
             operandsToRemove
-                .stream()
                 .forEach( operand -> section.getGreyedFields().remove( operand ) );
 
             if ( section.getDataElements().remove( dataElement ) || !operandsToRemove.isEmpty() )

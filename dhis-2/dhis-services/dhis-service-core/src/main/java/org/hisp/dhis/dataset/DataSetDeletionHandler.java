@@ -27,12 +27,13 @@
  */
 package org.hisp.dhis.dataset;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.category.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
 
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -50,27 +51,15 @@ import org.springframework.stereotype.Component;
 /**
  * @author Lars Helge Overland
  */
-@Component( "org.hisp.dhis.dataset.DataSetDeletionHandler" )
-public class DataSetDeletionHandler
-    extends DeletionHandler
+@Component
+@AllArgsConstructor
+public class DataSetDeletionHandler extends DeletionHandler
 {
     private final IdentifiableObjectManager idObjectManager;
 
     private final DataSetService dataSetService;
 
     private final CategoryService categoryService;
-
-    public DataSetDeletionHandler( IdentifiableObjectManager idObjectManager, DataSetService dataSetService,
-        CategoryService categoryService )
-    {
-        checkNotNull( idObjectManager );
-        checkNotNull( dataSetService );
-        checkNotNull( categoryService );
-
-        this.idObjectManager = idObjectManager;
-        this.dataSetService = dataSetService;
-        this.categoryService = categoryService;
-    }
 
     @Override
     protected void register()
