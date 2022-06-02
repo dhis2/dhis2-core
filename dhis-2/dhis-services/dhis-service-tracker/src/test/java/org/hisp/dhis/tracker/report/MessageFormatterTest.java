@@ -140,7 +140,7 @@ class MessageFormatterTest
     {
         final Instant now = Instant.now();
 
-        List<String> args = MessageFormatter.formatArguments( idSchemes, Instant.now() );
+        List<String> args = MessageFormatter.formatArguments( idSchemes, now );
 
         assertThat( args.size(), is( 1 ) );
         assertThat( args.get( 0 ), is( DateUtils.getIso8601NoTz( DateUtils.fromInstant( now ) ) ) );
