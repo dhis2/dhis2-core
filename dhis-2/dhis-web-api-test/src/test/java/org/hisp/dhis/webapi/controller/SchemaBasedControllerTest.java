@@ -93,6 +93,7 @@ class SchemaBasedControllerTest extends DhisControllerConvenienceTest
     private static final Set<String> IGNORED_GIST_ENDPOINTS = Set.of(
         "reportTable",
         "chart",
+        "documents",
         "analyticsDataExchange" );
 
     @Test
