@@ -25,39 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.dimension.mappers;
+package org.hisp.dhis.webapi.dimension;
 
-import java.util.Optional;
-import java.util.Set;
-
-import lombok.Getter;
-
-import org.hisp.dhis.analytics.dimension.DimensionResponse;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.dataelement.DataElement;
-import org.springframework.stereotype.Service;
+import org.hisp.dhis.common.BaseNameableObject;
 
-@Service
-public class DataElementMapper extends BaseDimensionalItemObjectMapper
+public abstract class BaseDimensionMapper implements DimensionMapper
 {
-    @Getter
-    private final Set<Class<? extends BaseIdentifiableObject>> supportedClasses = Set.of(
-        DataElement.class );
 
     @Override
     public DimensionResponse map( BaseIdentifiableObject dimension, String prefix )
     {
-        DataElement dataElement = (DataElement) dimension;
+        DimensionResponse mapped = DimensionResponse.builder()
+            .id( dimension.getUid() )
+            .uid( dimension.getUid() )
+            .displayName( dimension.getDisplayName() )
+            .created( dimension.getCreated() )
+            .code( dimension.getCode() )
+            .lastUpdated( dimension.getLastUpdated() )
+            .name( dimension.getName() )
+            .build();
 
-        final DimensionResponse mapped = super.map( dataElement, prefix )
-            .withValueType( dataElement.getValueType().name() )
-            .withId( String.join( ".", prefix, dataElement.getUid() ) );
-
-        return Optional.of( dataElement )
-            .map( DataElement::getOptionSet )
-            .map( BaseIdentifiableObject::getUid )
-            .map( mapped::withOptionSet )
-            .orElse( mapped );
+        if ( dimension instanceof BaseNameableObject )
+        {
+            return mapped.withDisplayShortName(
+                ((BaseNameableObject) dimension).getDisplayShortName() );
+        }
+        return mapped;
     }
-
 }

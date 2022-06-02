@@ -25,47 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.dimension.mappers;
+package org.hisp.dhis.webapi.dimension.mappers;
 
+import java.util.Optional;
 import java.util.Set;
 
 import lombok.Getter;
 
-import org.hisp.dhis.analytics.dimension.BaseDimensionMapper;
-import org.hisp.dhis.analytics.dimension.DimensionResponse;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
-import org.hisp.dhis.program.ProgramIndicator;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.webapi.dimension.DimensionResponse;
 import org.springframework.stereotype.Service;
 
 @Service
-public class BaseDimensionalItemObjectMapper extends BaseDimensionMapper
+public class DataElementMapper extends BaseDimensionalItemObjectMapper
 {
-
     @Getter
     private final Set<Class<? extends BaseIdentifiableObject>> supportedClasses = Set.of(
-        ProgramIndicator.class,
-        TrackedEntityAttribute.class );
+        DataElement.class );
 
     @Override
     public DimensionResponse map( BaseIdentifiableObject dimension, String prefix )
     {
-        BaseDimensionalItemObject baseDimensionalItemObject = (BaseDimensionalItemObject) dimension;
-        DimensionResponse responseWithDimensionType = super.map( dimension, prefix )
-            .withDimensionType( baseDimensionalItemObject.getDimensionItemType().name() );
-        if ( dimension instanceof ValueTypedDimensionalItemObject )
-        {
-            ValueTypedDimensionalItemObject valueTypedDimensionalItemObject = (ValueTypedDimensionalItemObject) dimension;
-            return responseWithDimensionType
-                .withValueType( valueTypedDimensionalItemObject.getValueType().name() )
-                .withOptionSet( valueTypedDimensionalItemObject.getOptionSet() != null
-                    ? valueTypedDimensionalItemObject.getOptionSet().getUid()
-                    : null );
-        }
+        DataElement dataElement = (DataElement) dimension;
 
-        return responseWithDimensionType;
+        final DimensionResponse mapped = super.map( dataElement, prefix )
+            .withValueType( dataElement.getValueType().name() )
+            .withId( String.join( ".", prefix, dataElement.getUid() ) );
+
+        return Optional.of( dataElement )
+            .map( DataElement::getOptionSet )
+            .map( BaseIdentifiableObject::getUid )
+            .map( mapped::withOptionSet )
+            .orElse( mapped );
     }
 
 }
