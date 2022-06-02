@@ -44,8 +44,8 @@ jobs:
           MAVEN_BUILD_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=125
         if: github.event_name == 'pull_request'
         run: |
-          mvn -f dhis-2/pom.xml clean install -Psonarqube -Pjdk11 $MAVEN_BUILD_OPTS
-          mvn -f dhis-2/pom.xml sonar:sonar -Dsonar.internal.analysis.dbd=false -Dsonar.scm.revision=${{ github.event.pull_request.head.sha }} -Dsonar.projectKey=dhis2_dhis2-core -Dsonar.coverage.jacoco.xmlReportPaths=$(find "$(pwd)" -path '*jacoco.xml' | sed 's/.*/&/' | tr '\n' ',') $MAVEN_BUILD_OPTS
+          mvn -f dhis-2/pom.xml clean install --threads 2C --batch-mode --no-transfer-progress -Psonarqube
+          mvn -f dhis-2/pom.xml sonar:sonar -Dsonar.internal.analysis.dbd=false --batch-mode --no-transfer-progress -Dsonar.scm.revision=${{ github.event.pull_request.head.sha }} -Dsonar.projectKey=dhis2_dhis2-core -Dsonar.coverage.jacoco.xmlReportPaths=$(find "$(pwd)" -path '*jacoco.xml' | sed 's/.*/&/' | tr '\n' ',')
 
       - name: Analyse long-living branch
         env:
@@ -54,5 +54,5 @@ jobs:
           MAVEN_BUILD_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=125
         if: github.event_name != 'pull_request'
         run: |
-          mvn -f dhis-2/pom.xml clean install -Psonarqube -Pjdk11 $MAVEN_BUILD_OPTS
-          mvn -f dhis-2/pom.xml sonar:sonar -Dsonar.internal.analysis.dbd=false -Dsonar.branch.name=${GITHUB_REF#refs/heads/} -Dsonar.projectKey=dhis2_dhis2-core -Dsonar.coverage.jacoco.xmlReportPaths=$(find "$(pwd)" -path '*jacoco.xml' | sed 's/.*/&/' | tr '\n' ',') $MAVEN_BUILD_OPTS
+          mvn -f dhis-2/pom.xml clean install --threads 2C --batch-mode --no-transfer-progress -Psonarqube
+          mvn -f dhis-2/pom.xml sonar:sonar -Dsonar.internal.analysis.dbd=false --batch-mode --no-transfer-progress -Dsonar.branch.name=${GITHUB_REF#refs/heads/} -Dsonar.projectKey=dhis2_dhis2-core -Dsonar.coverage.jacoco.xmlReportPaths=$(find "$(pwd)" -path '*jacoco.xml' | sed 's/.*/&/' | tr '\n' ',')
