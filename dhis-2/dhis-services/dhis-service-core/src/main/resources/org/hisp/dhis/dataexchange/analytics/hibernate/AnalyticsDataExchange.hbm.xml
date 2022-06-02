@@ -25,9 +25,9 @@
 
     <property name="attributeValues" column="attributevalues" type="jsbAttributeValues"/>
     
-    <property name="source" type="jbAnalyticsDataExchangeSource" column="source" />
+    <property name="source" type="jbAnalyticsDataExchangeSource" column="source" not-null="true" />
 
-    <property name="target" type="jbAnalyticsDataExchangeTarget" column="target" />
+    <property name="target" type="jbAnalyticsDataExchangeTarget" column="target" not-null="true" />
 
   </class>
 
