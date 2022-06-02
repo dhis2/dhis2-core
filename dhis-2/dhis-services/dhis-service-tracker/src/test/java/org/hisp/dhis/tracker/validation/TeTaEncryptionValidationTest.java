@@ -35,8 +35,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 
-import org.hisp.dhis.config.H2DhisConfigurationProvider;
-import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
@@ -63,20 +61,6 @@ class TeTaEncryptionValidationTest extends TrackerTest
     {
         setUpMetadata( "tracker/validations/te-program_with_tea_encryption_metadata.json" );
         injectAdminUser();
-    }
-
-    @Test
-    void testEncryptedAttrFail()
-        throws IOException
-    {
-        TrackerImportParams trackerImportParams = fromJson(
-            "tracker/validations/te-program_with_tea_encryption_data.json" );
-        H2DhisConfigurationProvider dhisConfigurationProvider = (H2DhisConfigurationProvider) this.dhisConfigurationProvider;
-        dhisConfigurationProvider.setEncryptionStatus( EncryptionStatus.MISSING_ENCRYPTION_PASSWORD );
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
-        assertThat( trackerImportReport.getValidationReport().getErrors(),
-            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1112 ) ) ) );
     }
 
     @Test
