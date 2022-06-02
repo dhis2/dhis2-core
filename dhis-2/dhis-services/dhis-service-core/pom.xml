@@ -185,7 +185,6 @@
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-slf4j-impl</artifactId>
     </dependency>
-
     <dependency>
       <groupId>com.google.code.findbugs</groupId>
       <artifactId>jsr305</artifactId>
@@ -229,7 +228,15 @@
       <groupId>org.apache.jclouds</groupId>
       <artifactId>jclouds-blobstore</artifactId>
     </dependency>
-
+    <dependency>
+      <groupId>org.apache.jclouds.api</groupId>
+      <artifactId>filesystem</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.jclouds.api</groupId>
+      <artifactId>s3</artifactId>
+    </dependency>
+    
     <!-- Image Processing -->
 
     <dependency>
