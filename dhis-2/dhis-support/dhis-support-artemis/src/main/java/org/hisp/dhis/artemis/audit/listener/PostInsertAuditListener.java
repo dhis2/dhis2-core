@@ -92,7 +92,7 @@ public class PostInsertAuditListener
     @Override
     public void onPostInsertCommitFailed( PostInsertEvent event )
     {
-        log.warn( "onPostInsertCommitFailed: " + event );
+        log.debug( "onPostInsertCommitFailed: " + event );
     }
 
     /**
