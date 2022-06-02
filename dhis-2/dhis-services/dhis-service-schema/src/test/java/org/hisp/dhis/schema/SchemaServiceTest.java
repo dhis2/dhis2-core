@@ -88,6 +88,7 @@ class SchemaServiceTest extends DhisSpringTest
         assertEquals( AnalyticsDataExchange.class, schema.getKlass() );
     }
 
+    @Test
     void testGetSchemaByPluralName()
     {
         Schema schema = schemaService.getSchemaByPluralName( "analyticsDataExchanges" );
