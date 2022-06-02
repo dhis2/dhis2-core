@@ -70,7 +70,7 @@ public class StoreConfig
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
-g
+
     @Autowired
     private ApplicationEventPublisher publisher;
 
