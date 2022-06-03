@@ -33,7 +33,9 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Every.everyItem;
+import static org.hisp.dhis.tracker.Assertions.assertNoImportErrors;
 import static org.hisp.dhis.tracker.TrackerImportStrategy.CREATE_AND_UPDATE;
+import static org.hisp.dhis.tracker.TrackerImportStrategy.DELETE;
 import static org.hisp.dhis.tracker.TrackerImportStrategy.UPDATE;
 import static org.hisp.dhis.tracker.validation.Users.USER_2;
 import static org.hisp.dhis.tracker.validation.Users.USER_6;
@@ -64,7 +66,6 @@ import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
-import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.tracker.report.TrackerTypeReport;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
@@ -90,26 +91,20 @@ class EventImportValidationTest extends TrackerTest
     {
         setUpMetadata( "tracker/tracker_basic_metadata.json" );
         injectAdminUser();
-        TrackerImportParams trackerImportParams = fromJson(
-            "tracker/validations/enrollments_te_te-data.json" );
 
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
-        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
-        trackerImportParams = fromJson( "tracker/validations/enrollments_te_enrollments-data.json" );
-
-        trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
-        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
+        assertNoImportErrors( trackerImportService.importTracker( fromJson(
+            "tracker/validations/enrollments_te_te-data.json" ) ) );
+        assertNoImportErrors( trackerImportService
+            .importTracker( fromJson( "tracker/validations/enrollments_te_enrollments-data.json" ) ) );
     }
 
     @Test
     void failValidationWhenTrackedEntityAttributeHasWrongOptionValue()
         throws IOException
     {
-        TrackerImportParams params = fromJson(
-            "tracker/validations/events-with_invalid_option_value.json" );
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( fromJson(
+            "tracker/validations/events-with_invalid_option_value.json" ) );
+
         assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
         assertThat( trackerImportReport.getValidationReport().getErrors(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1125 ) ) ) );
@@ -119,33 +114,30 @@ class EventImportValidationTest extends TrackerTest
     void successWhenTrackedEntityAttributeHasValidOptionValue()
         throws IOException
     {
-        TrackerImportParams params = fromJson( "tracker/validations/events-with_valid_option_value.json" );
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
-        assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
+        TrackerImportReport trackerImportReport = trackerImportService
+            .importTracker( fromJson( "tracker/validations/events-with_valid_option_value.json" ) );
+
+        assertNoImportErrors( trackerImportReport );
     }
 
     @Test
     void testEventValidationOkAll()
         throws IOException
     {
-        TrackerImportParams trackerBundleParams = fromJson( "tracker/validations/events-with-registration.json" );
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
+        TrackerImportReport trackerImportReport = trackerImportService
+            .importTracker( fromJson( "tracker/validations/events-with-registration.json" ) );
 
-        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
-        assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
+        assertNoImportErrors( trackerImportReport );
     }
 
     @Test
     void testEventValidationOkWithoutAttributeOptionCombo()
         throws IOException
     {
-        TrackerImportParams trackerBundleParams = fromJson(
-            "tracker/validations/events-without-attribute-option-combo.json" );
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( fromJson(
+            "tracker/validations/events-without-attribute-option-combo.json" ) );
 
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
-
-        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
-        assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
+        assertNoImportErrors( trackerImportReport );
     }
 
     @Test
@@ -157,14 +149,12 @@ class EventImportValidationTest extends TrackerTest
 
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
 
-        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
-        assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
+        assertNoImportErrors( trackerImportReport );
 
         trackerBundleParams.setImportStrategy( UPDATE );
         trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
 
-        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
-        assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
+        assertNoImportErrors( trackerImportReport );
     }
 
     @Test
@@ -227,10 +217,8 @@ class EventImportValidationTest extends TrackerTest
     void testEventProgramHasNonDefaultCategoryCombo()
         throws IOException
     {
-        TrackerImportParams trackerBundleParams = fromJson(
-            "tracker/validations/events_non-default-combo.json" );
-
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( fromJson(
+            "tracker/validations/events_non-default-combo.json" ) );
 
         assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
         assertThat( trackerImportReport.getValidationReport().getErrors(),
@@ -241,10 +229,8 @@ class EventImportValidationTest extends TrackerTest
     void testCategoryOptionComboNotFound()
         throws IOException
     {
-        TrackerImportParams trackerBundleParams = fromJson(
-            "tracker/validations/events_cant-find-cat-opt-combo.json" );
-
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( fromJson(
+            "tracker/validations/events_cant-find-cat-opt-combo.json" ) );
 
         assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
         assertThat( trackerImportReport.getValidationReport().getErrors(),
@@ -255,10 +241,8 @@ class EventImportValidationTest extends TrackerTest
     void testCategoryOptionComboNotFoundGivenSubsetOfCategoryOptions()
         throws IOException
     {
-        TrackerImportParams trackerBundleParams = fromJson(
-            "tracker/validations/events_cant-find-aoc-with-subset-of-cos.json" );
-
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( fromJson(
+            "tracker/validations/events_cant-find-aoc-with-subset-of-cos.json" ) );
 
         assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
         assertThat( trackerImportReport.getValidationReport().getErrors(),
@@ -269,10 +253,8 @@ class EventImportValidationTest extends TrackerTest
     void testCOFoundButAOCNotFound()
         throws IOException
     {
-        TrackerImportParams trackerBundleParams = fromJson(
-            "tracker/validations/events_cant-find-aoc-but-co-exists.json" );
-
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( fromJson(
+            "tracker/validations/events_cant-find-aoc-but-co-exists.json" ) );
 
         assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
         assertThat( trackerImportReport.getValidationReport().getErrors(),
@@ -283,10 +265,8 @@ class EventImportValidationTest extends TrackerTest
     void testCategoryOptionsNotFound()
         throws IOException
     {
-        TrackerImportParams trackerBundleParams = fromJson(
-            "tracker/validations/events_cant-find-cat-option.json" );
-
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( fromJson(
+            "tracker/validations/events_cant-find-cat-option.json" ) );
 
         assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
         assertThat( trackerImportReport.getValidationReport().getErrors(),
@@ -297,10 +277,8 @@ class EventImportValidationTest extends TrackerTest
     void testAttributeCategoryOptionNotInProgramCC()
         throws IOException
     {
-        TrackerImportParams trackerBundleParams = fromJson(
-            "tracker/validations/events-aoc-not-in-program-cc.json" );
-
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( fromJson(
+            "tracker/validations/events-aoc-not-in-program-cc.json" ) );
 
         assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
         assertThat( trackerImportReport.getValidationReport().getErrors(),
@@ -311,10 +289,8 @@ class EventImportValidationTest extends TrackerTest
     void testAttributeCategoryOptionAndCODoNotMatch()
         throws IOException
     {
-        TrackerImportParams trackerBundleParams = fromJson(
-            "tracker/validations/events-aoc-and-co-dont-match.json" );
-
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( fromJson(
+            "tracker/validations/events-aoc-and-co-dont-match.json" ) );
 
         assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
         assertThat( trackerImportReport.getValidationReport().getErrors(),
@@ -325,10 +301,8 @@ class EventImportValidationTest extends TrackerTest
     void testAttributeCategoryOptionCannotBeFoundForEventProgramCCAndGivenCategoryOption()
         throws IOException
     {
-        TrackerImportParams trackerBundleParams = fromJson(
-            "tracker/validations/events_cant-find-cat-option-combo-for-given-cc-and-co.json" );
-
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( fromJson(
+            "tracker/validations/events_cant-find-cat-option-combo-for-given-cc-and-co.json" ) );
 
         assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
         assertThat( trackerImportReport.getValidationReport().getErrors(),
@@ -339,10 +313,8 @@ class EventImportValidationTest extends TrackerTest
     void testWrongDatesInCatCombo()
         throws IOException
     {
-        TrackerImportParams trackerBundleParams = fromJson(
-            "tracker/validations/events_combo-date-wrong.json" );
-
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( fromJson(
+            "tracker/validations/events_combo-date-wrong.json" ) );
 
         assertEquals( 2, trackerImportReport.getValidationReport().getErrors().size() );
         assertThat( trackerImportReport.getValidationReport().getErrors(),
@@ -437,19 +409,17 @@ class EventImportValidationTest extends TrackerTest
 
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
 
-        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
-        assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
+        assertNoImportErrors( trackerImportReport );
 
         manager.flush();
         manager.clear();
 
         TrackerImportParams paramsDelete = fromJson(
             "tracker/validations/event-data-delete.json" );
-        paramsDelete.setImportStrategy( TrackerImportStrategy.DELETE );
+        paramsDelete.setImportStrategy( DELETE );
 
         TrackerImportReport trackerImportReportDelete = trackerImportService.importTracker( paramsDelete );
-        assertEquals( 0, trackerImportReportDelete.getValidationReport().getErrors().size() );
-        assertEquals( TrackerStatus.OK, trackerImportReportDelete.getStatus() );
+        assertNoImportErrors( trackerImportReportDelete );
         assertEquals( 1, trackerImportReportDelete.getStats().getDeleted() );
     }
 
@@ -462,8 +432,7 @@ class EventImportValidationTest extends TrackerTest
         // When
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
         // Then
-        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
-        assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
+        assertNoImportErrors( trackerImportReport );
         return trackerImportReport;
     }
 

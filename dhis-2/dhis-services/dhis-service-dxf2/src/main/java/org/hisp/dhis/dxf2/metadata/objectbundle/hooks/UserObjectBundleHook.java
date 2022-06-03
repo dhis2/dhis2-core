@@ -27,9 +27,6 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
-
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
@@ -54,7 +51,6 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
@@ -255,20 +251,6 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
             handleNoAccessRoles( user, bundle, userRoles );
 
             sessionFactory.getCurrentSession().update( user );
-        }
-    }
-
-    @Override
-    public void preDelete( User user, ObjectBundle bundle )
-    {
-        Set<UserGroup> groups = user.getGroups();
-        userGroupService.removeUserFromGroups( user, getUids( groups ) );
-
-        Set<UserRole> userRoles = user.getUserRoles();
-        for ( UserRole userRole : new ArrayList<>( userRoles ) )
-        {
-            userRole.removeUser( user );
-            sessionFactory.getCurrentSession().update( userRole );
         }
     }
 
