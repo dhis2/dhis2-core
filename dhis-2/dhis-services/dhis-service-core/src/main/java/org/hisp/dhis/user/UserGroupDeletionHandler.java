@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.user;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import lombok.AllArgsConstructor;
@@ -62,6 +63,8 @@ public class UserGroupDeletionHandler extends DeletionHandler
             group.getMembers().remove( user );
             idObjectManager.updateNoAcl( group );
         }
+
+        user.setGroups( new HashSet<>() );
     }
 
     private void deleteUserGroup( UserGroup userGroup )
