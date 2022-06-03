@@ -112,6 +112,9 @@ class DataValueSetServiceExportTest extends IntegrationTestBase
     private UserService _userService;
 
     @Autowired
+    private CurrentUserService currentUserService;
+
+    @Autowired
     private ObjectMapper jsonMapper;
 
     private DataElement deA;
@@ -238,6 +241,13 @@ class DataValueSetServiceExportTest extends IntegrationTestBase
         enableDataSharing( user, dsB, AccessStringHelper.DATA_READ_WRITE );
         dataSetService.updateDataSet( dsA );
         dataSetService.updateDataSet( dsB );
+    }
+
+    @Override
+    public void tearDownTest()
+    {
+        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
+            currentUserService, dataValueSetService, organisationUnitService );
     }
 
     // -------------------------------------------------------------------------

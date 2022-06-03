@@ -55,9 +55,7 @@ import com.google.common.collect.Multimap;
  */
 @Component
 @RequiredArgsConstructor
-public class EventAggregate
-    extends
-    AbstractAggregate
+public class EventAggregate extends AbstractAggregate
 {
     @NonNull
     private final EventStore eventStore;

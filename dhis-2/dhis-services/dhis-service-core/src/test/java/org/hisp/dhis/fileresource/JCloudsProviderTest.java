@@ -25,49 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.aggregates;
+package org.hisp.dhis.fileresource;
 
-import static java.util.concurrent.CompletableFuture.supplyAsync;
+import static org.jclouds.ContextBuilder.newBuilder;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
-import java.util.function.Supplier;
-
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
+import org.junit.jupiter.api.Test;
 
 /**
- * @author Luciano Fiandesio
+ * Verify that the supported jclouds providers can be selected.
+ *
+ * @author Jim Grace
  */
-public abstract class AbstractAggregate
+class JCloudsProviderTest
 {
-    /**
-     * Executes the Supplier asynchronously using the thread pool from the
-     * provided {@see Executor}
-     *
-     * @param condition A condition that, if true, executes the Supplier, if
-     *        false, returns an empty Multimap
-     * @param supplier The Supplier to execute
-     * @param executor an Executor instance
-     *
-     * @return A CompletableFuture with the result of the Supplier
-     */
-    <T> CompletableFuture<Multimap<String, T>> conditionalAsyncFetch( boolean condition,
-        Supplier<Multimap<String, T>> supplier, Executor executor )
+    @Test
+    void verifyFilesystem()
     {
-        return (condition ? supplyAsync( supplier, executor ) : supplyAsync( ArrayListMultimap::create, executor ));
+        assertDoesNotThrow( () -> newBuilder( "filesystem" ) );
     }
 
-    /**
-     * Executes the Supplier asynchronously using the thread pool from the
-     * provided {@see Executor}
-     *
-     * @param supplier The Supplier to execute
-     *
-     * @return A CompletableFuture with the result of the Supplier
-     */
-    <T> CompletableFuture<Multimap<String, T>> asyncFetch( Supplier<Multimap<String, T>> supplier, Executor executor )
+    @Test
+    void verifyAwsS3()
     {
-        return supplyAsync( supplier, executor );
+        assertDoesNotThrow( () -> newBuilder( "aws-s3" ) );
+    }
+
+    @Test
+    void verifyTransient()
+    {
+        assertDoesNotThrow( () -> newBuilder( "transient" ) );
     }
 }
