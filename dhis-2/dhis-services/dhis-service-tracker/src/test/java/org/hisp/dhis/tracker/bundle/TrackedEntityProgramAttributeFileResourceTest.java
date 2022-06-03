@@ -43,7 +43,6 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
@@ -86,8 +85,8 @@ class TrackedEntityProgramAttributeFileResourceTest extends TrackerTest
         File file = File.createTempFile( "file-resource", "test" );
         fileResourceService.saveFileResource( fileResource, file );
         assertFalse( fileResource.isAssigned() );
-        TrackerImportParams trackerImportParams = fromJson( "tracker/te_program_with_tea_fileresource_data.json" );
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
+        TrackerImportReport trackerImportReport = trackerImportService
+            .importTracker( fromJson( "tracker/te_program_with_tea_fileresource_data.json" ) );
         assertNoImportErrors( trackerImportReport );
 
         List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );

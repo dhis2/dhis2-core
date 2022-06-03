@@ -72,8 +72,7 @@ class LastUpdateImportTest extends TrackerTest
         TrackerImportParams trackerImportParams = fromJson( "tracker/single_tei.json" );
         assertNoImportErrors( trackerImportService.importTracker( trackerImportParams ) );
         trackedEntity = trackerImportParams.getTrackedEntities().get( 0 );
-        TrackerImportParams enrollmentParams = fromJson( "tracker/single_enrollment.json" );
-        assertNoImportErrors( trackerImportService.importTracker( enrollmentParams ) );
+        assertNoImportErrors( trackerImportService.importTracker( fromJson( "tracker/single_enrollment.json" ) ) );
         manager.flush();
     }
 

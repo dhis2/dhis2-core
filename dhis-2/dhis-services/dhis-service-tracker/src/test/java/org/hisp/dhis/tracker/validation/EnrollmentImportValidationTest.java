@@ -77,8 +77,8 @@ class EnrollmentImportValidationTest extends TrackerTest
     {
         setUpMetadata( "tracker/tracker_basic_metadata.json" );
         injectAdminUser();
-        TrackerImportParams trackerBundleParams = fromJson( "tracker/validations/enrollments_te_te-data.json" );
-        assertNoImportErrors( trackerImportService.importTracker( trackerBundleParams ) );
+        assertNoImportErrors(
+            trackerImportService.importTracker( fromJson( "tracker/validations/enrollments_te_te-data.json" ) ) );
         manager.flush();
     }
 

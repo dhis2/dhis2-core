@@ -69,8 +69,8 @@ class EventExporterTest extends TrackerTest
     {
         setUpMetadata( "tracker/simple_metadata.json" );
         userA = userService.getUser( "M5zQapPyTZI" );
-        TrackerImportParams enrollmentParams = fromJson( "tracker/event_and_enrollment.json", userA.getUid() );
-        assertNoImportErrors( trackerImportService.importTracker( enrollmentParams ) );
+        assertNoImportErrors(
+            trackerImportService.importTracker( fromJson( "tracker/event_and_enrollment.json", userA.getUid() ) ) );
         orgUnit = manager.get( OrganisationUnit.class, "h4w96yEMlzO" );
         manager.flush();
     }

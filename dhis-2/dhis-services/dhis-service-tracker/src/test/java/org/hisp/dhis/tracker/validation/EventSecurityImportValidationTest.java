@@ -139,13 +139,10 @@ class EventSecurityImportValidationTest extends TrackerTest
     {
         setUpMetadata( "tracker/tracker_basic_metadata.json" );
         injectAdminUser();
-        TrackerImportParams trackerBundleParams = fromJson(
-            "tracker/validations/enrollments_te_te-data.json" );
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
-        assertNoImportErrors( trackerImportReport );
-        trackerBundleParams = fromJson( "tracker/validations/enrollments_te_enrollments-data.json" );
-        trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
-        assertNoImportErrors( trackerImportReport );
+        assertNoImportErrors( trackerImportService.importTracker( fromJson(
+            "tracker/validations/enrollments_te_te-data.json" ) ) );
+        assertNoImportErrors( trackerImportService
+            .importTracker( fromJson( "tracker/validations/enrollments_te_enrollments-data.json" ) ) );
         manager.flush();
     }
 

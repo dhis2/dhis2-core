@@ -80,8 +80,8 @@ class TrackedEntityAttributeValueAuditTest extends TrackerTest
     void testTrackedEntityAttributeValueAuditCreate()
         throws IOException
     {
-        TrackerImportParams trackerImportParams = fromJson( "tracker/te_program_with_tea_data.json" );
-        assertNoImportErrors( trackerImportService.importTracker( trackerImportParams ) );
+        assertNoImportErrors(
+            trackerImportService.importTracker( fromJson( "tracker/te_program_with_tea_data.json" ) ) );
 
         List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
         assertEquals( 1, trackedEntityInstances.size() );

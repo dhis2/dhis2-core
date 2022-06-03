@@ -129,10 +129,8 @@ class ProgramRuleIntegrationTest extends TrackerTest
     void testImportProgramEventSuccessWithWarningRaised()
         throws IOException
     {
-
-        TrackerImportParams params = fromJson( "tracker/program_event.json" );
-
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
+        TrackerImportReport trackerImportReport = trackerImportService
+            .importTracker( fromJson( "tracker/program_event.json" ) );
 
         assertNoImportErrors( trackerImportReport );
         assertEquals( 1, trackerImportReport.getValidationReport().getWarnings().size() );
@@ -142,15 +140,12 @@ class ProgramRuleIntegrationTest extends TrackerTest
     void testImportEnrollmentSuccessWithWarningRaised()
         throws IOException
     {
-
-        TrackerImportParams params = fromJson( "tracker/single_tei.json" );
-
-        TrackerImportReport trackerImportTeiReport = trackerImportService.importTracker( params );
+        TrackerImportReport trackerImportTeiReport = trackerImportService
+            .importTracker( fromJson( "tracker/single_tei.json" ) );
         assertNoImportErrors( trackerImportTeiReport );
 
-        TrackerImportParams enrollmentParams = fromJson( "tracker/single_enrollment.json" );
-
-        TrackerImportReport trackerImportEnrollmentReport = trackerImportService.importTracker( enrollmentParams );
+        TrackerImportReport trackerImportEnrollmentReport = trackerImportService
+            .importTracker( fromJson( "tracker/single_enrollment.json" ) );
 
         assertNoImportErrors( trackerImportEnrollmentReport );
         assertEquals( 1, trackerImportEnrollmentReport.getValidationReport().getWarnings().size() );

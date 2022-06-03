@@ -88,10 +88,10 @@ class OwnershipTest extends TrackerTest
         injectSecurityContext( superUser );
 
         nonSuperUser = userService.getUser( "Tu9fv8ezgHl" );
-        TrackerImportParams teiParams = fromJson( "tracker/ownership_tei.json", superUser.getUid() );
-        assertNoImportErrors( trackerImportService.importTracker( teiParams ) );
-        TrackerImportParams enrollmentParams = fromJson( "tracker/ownership_enrollment.json", superUser.getUid() );
-        assertNoImportErrors( trackerImportService.importTracker( enrollmentParams ) );
+        assertNoImportErrors(
+            trackerImportService.importTracker( fromJson( "tracker/ownership_tei.json", superUser.getUid() ) ) );
+        assertNoImportErrors(
+            trackerImportService.importTracker( fromJson( "tracker/ownership_enrollment.json", superUser.getUid() ) ) );
     }
 
     @Test

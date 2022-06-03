@@ -30,7 +30,6 @@ package org.hisp.dhis.tracker.bundle;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hisp.dhis.tracker.Assertions.assertNoImportErrors;
-import static org.hisp.dhis.tracker.TrackerImportStrategy.CREATE_AND_UPDATE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
@@ -44,6 +43,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.user.User;
@@ -84,8 +84,9 @@ class EventDataValueTest extends TrackerTest
     void successWhenEventHasNoProgramAndHasProgramStage()
         throws IOException
     {
-        TrackerImportParams params = fromJson( "tracker/validations/events-with_no_program.json" );
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
+        TrackerImportReport trackerImportReport = trackerImportService
+            .importTracker( fromJson( "tracker/validations/events-with_no_program.json" ) );
+
         assertNoImportErrors( trackerImportReport );
     }
 
@@ -93,8 +94,9 @@ class EventDataValueTest extends TrackerTest
     void testEventDataValue()
         throws IOException
     {
-        TrackerImportParams trackerImportParams = fromJson( "tracker/event_with_data_values.json" );
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
+        TrackerImportReport trackerImportReport = trackerImportService
+            .importTracker( fromJson( "tracker/event_with_data_values.json" ) );
+
         assertNoImportErrors( trackerImportReport );
         List<ProgramStageInstance> events = manager.getAll( ProgramStageInstance.class );
         assertEquals( 1, events.size() );
@@ -107,8 +109,9 @@ class EventDataValueTest extends TrackerTest
     void testTrackedEntityProgramAttributeValueUpdate()
         throws IOException
     {
-        TrackerImportParams trackerImportParams = fromJson( "tracker/event_with_data_values.json" );
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
+        TrackerImportReport trackerImportReport = trackerImportService
+            .importTracker( fromJson( "tracker/event_with_data_values.json" ) );
+
         assertNoImportErrors( trackerImportReport );
         List<ProgramStageInstance> events = manager.getAll( ProgramStageInstance.class );
         assertEquals( 1, events.size() );
@@ -116,12 +119,12 @@ class EventDataValueTest extends TrackerTest
         Set<EventDataValue> eventDataValues = psi.getEventDataValues();
         assertEquals( 4, eventDataValues.size() );
         // update
-        trackerImportParams = fromJson( "tracker/event_with_updated_data_values.json" );
+        TrackerImportParams trackerImportParams = fromJson( "tracker/event_with_updated_data_values.json" );
         // make sure that the uid property is populated as well - otherwise
         // update will
         // not work
         trackerImportParams.getEvents().get( 0 ).setEvent( trackerImportParams.getEvents().get( 0 ).getEvent() );
-        trackerImportParams.setImportStrategy( CREATE_AND_UPDATE );
+        trackerImportParams.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
         trackerImportReport = trackerImportService.importTracker( trackerImportParams );
         assertNoImportErrors( trackerImportReport );
         List<ProgramStageInstance> updatedEvents = manager.getAll( ProgramStageInstance.class );

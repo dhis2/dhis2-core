@@ -93,8 +93,8 @@ class TrackedEntityAttributeTest extends TrackerTest
     void testTrackedAttributeValueBundleImporter()
         throws IOException
     {
-        TrackerImportParams trackerImportParams = fromJson( "tracker/te_with_tea_data.json" );
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
+        TrackerImportReport trackerImportReport = trackerImportService
+            .importTracker( fromJson( "tracker/te_with_tea_data.json" ) );
         assertNoImportErrors( trackerImportReport );
 
         List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
