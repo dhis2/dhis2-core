@@ -47,6 +47,6 @@ public class TeiAnalyticsValidator
     public void validateRequest( final QueryRequestHolder<TeiQueryRequest> queryRequestHolder )
     {
         commonValidationService.validate( queryRequestHolder.getCommonQueryRequest() );
-        // TODO: validate request based on common params
+        // TODO: DHIS2-13382 validate the TEI part of the request
     }
 }
