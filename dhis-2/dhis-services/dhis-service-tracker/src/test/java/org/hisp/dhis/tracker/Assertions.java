@@ -25,46 +25,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataapproval;
+package org.hisp.dhis.tracker;
 
-import java.util.Map;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
-import org.springframework.stereotype.Component;
+import java.util.function.Supplier;
 
-/**
- * @author Jim Grace
- */
-@Component
-public class DataApprovalDeletionHandler extends JdbcDeletionHandler
+import org.hisp.dhis.tracker.report.TrackerImportReport;
+import org.hisp.dhis.tracker.report.TrackerStatus;
+
+public class Assertions
 {
-    private static final DeletionVeto VETO = new DeletionVeto( DataApproval.class );
 
-    @Override
-    protected void register()
+    public static void assertNoImportErrors( TrackerImportReport report )
     {
-        whenVetoing( DataApprovalLevel.class, this::allowDeleteDataApprovalLevel );
-        whenVetoing( DataApprovalWorkflow.class, this::allowDeleteDataApprovalWorkflow );
-        whenVetoing( CategoryOptionCombo.class, this::allowDeleteCategoryOptionCombo );
+        assertNotNull( report );
+        assertEquals( TrackerStatus.OK, report.getStatus(), errorMessage( report ) );
     }
 
-    private DeletionVeto allowDeleteDataApprovalLevel( DataApprovalLevel dataApprovalLevel )
+    private static Supplier<String> errorMessage( TrackerImportReport report )
     {
-        String sql = "select count(*) from dataapproval where dataapprovallevelid=:id";
-        return vetoIfExists( VETO, sql, Map.of( "id", dataApprovalLevel.getId() ) );
-    }
-
-    private DeletionVeto allowDeleteDataApprovalWorkflow( DataApprovalWorkflow workflow )
-    {
-        String sql = "select count(*) from dataapproval where workflowid=:id";
-        return vetoIfExists( VETO, sql, Map.of( "id", workflow.getId() ) );
-    }
-
-    private DeletionVeto allowDeleteCategoryOptionCombo( CategoryOptionCombo optionCombo )
-    {
-        String sql = "select count(*) from dataapproval where attributeoptioncomboid=:id";
-        return vetoIfExists( VETO, sql, Map.of( "id", optionCombo.getId() ) );
+        return () -> {
+            StringBuilder msg = new StringBuilder( "Expected import with status OK, instead got:\n" );
+            report.getValidationReport().getErrors()
+                .forEach( e -> {
+                    msg.append( e.getErrorCode() );
+                    msg.append( ": " );
+                    msg.append( e.getMessage() );
+                    msg.append( '\n' );
+                } );
+            return msg.toString();
+        };
     }
 }

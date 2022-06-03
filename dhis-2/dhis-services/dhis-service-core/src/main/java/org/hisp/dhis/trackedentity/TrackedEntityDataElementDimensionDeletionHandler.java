@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.trackedentity;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.List;
+
+import lombok.AllArgsConstructor;
 
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
@@ -41,16 +41,10 @@ import org.springframework.stereotype.Component;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Component
-public class TrackedEntityDataElementDimensionDeletionHandler
-    extends DeletionHandler
+@AllArgsConstructor
+public class TrackedEntityDataElementDimensionDeletionHandler extends DeletionHandler
 {
     private final SessionFactory sessionFactory;
-
-    public TrackedEntityDataElementDimensionDeletionHandler( SessionFactory sessionFactory )
-    {
-        checkNotNull( sessionFactory );
-        this.sessionFactory = sessionFactory;
-    }
 
     @Override
     protected void register()

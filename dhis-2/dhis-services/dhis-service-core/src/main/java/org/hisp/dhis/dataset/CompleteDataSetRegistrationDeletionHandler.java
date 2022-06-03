@@ -27,16 +27,15 @@
  */
 package org.hisp.dhis.dataset;
 
-import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
+import java.util.Map;
 
 import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
 import org.springframework.stereotype.Component;
 
 /**
@@ -44,13 +43,11 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
-public class CompleteDataSetRegistrationDeletionHandler extends DeletionHandler
+public class CompleteDataSetRegistrationDeletionHandler extends JdbcDeletionHandler
 {
     private static final DeletionVeto VETO = new DeletionVeto( CompleteDataSetRegistration.class );
 
     private final CompleteDataSetRegistrationService completeDataSetRegistrationService;
-
-    private final JdbcTemplate jdbcTemplate;
 
     @Override
     protected void register()
@@ -68,7 +65,8 @@ public class CompleteDataSetRegistrationDeletionHandler extends DeletionHandler
 
     private DeletionVeto allowDeletePeriod( Period period )
     {
-        return vetoIfExists( "SELECT COUNT(*) FROM completedatasetregistration where periodid=" + period.getId() );
+        return vetoIfExists( VETO, "SELECT COUNT(*) FROM completedatasetregistration where periodid= :id",
+            Map.of( "id", period.getId() ) );
     }
 
     private void deleteOrganisationUnit( OrganisationUnit unit )
@@ -78,14 +76,9 @@ public class CompleteDataSetRegistrationDeletionHandler extends DeletionHandler
 
     private DeletionVeto allowDeleteCategoryOptionCombo( CategoryOptionCombo optionCombo )
     {
-
-        return vetoIfExists( "SELECT COUNT(*) FROM completedatasetregistration where attributeoptioncomboid="
-            + optionCombo.getId() );
+        return vetoIfExists( VETO,
+            "SELECT COUNT(*) FROM completedatasetregistration where attributeoptioncomboid= :id",
+            Map.of( "id", optionCombo.getId() ) );
     }
 
-    private DeletionVeto vetoIfExists( String sql )
-    {
-        Integer count = jdbcTemplate.queryForObject( sql, Integer.class );
-        return count == null || count == 0 ? ACCEPT : VETO;
-    }
 }

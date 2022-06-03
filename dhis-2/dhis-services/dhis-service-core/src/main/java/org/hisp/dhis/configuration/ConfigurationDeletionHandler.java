@@ -27,8 +27,9 @@
  */
 package org.hisp.dhis.configuration;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
+
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.indicator.IndicatorGroup;
@@ -44,20 +45,13 @@ import org.springframework.stereotype.Component;
 /**
  * @author Chau Thu Tran
  */
-@Component( "org.hisp.dhis.configuration.ConfigurationDeletionHandler" )
-public class ConfigurationDeletionHandler
-    extends DeletionHandler
+@Component
+@AllArgsConstructor
+public class ConfigurationDeletionHandler extends DeletionHandler
 {
     private static final DeletionVeto VETO = new DeletionVeto( Configuration.class );
 
     private final ConfigurationService configService;
-
-    public ConfigurationDeletionHandler( ConfigurationService configService )
-    {
-        checkNotNull( configService );
-
-        this.configService = configService;
-    }
 
     @Override
     protected void register()

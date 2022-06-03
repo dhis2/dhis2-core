@@ -29,6 +29,8 @@ package org.hisp.dhis.relationship;
 
 import java.util.Objects;
 
+import lombok.AllArgsConstructor;
+
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
@@ -36,17 +38,11 @@ import org.springframework.stereotype.Component;
 /**
  * @author Enrico Colasante
  */
-@Component( "org.hisp.dhis.relationship.RelationshipTypeDeletionHandler" )
-public class RelationshipTypeDeletionHandler
-    extends
-    DeletionHandler
+@Component
+@AllArgsConstructor
+public class RelationshipTypeDeletionHandler extends DeletionHandler
 {
     private final RelationshipTypeService relationshipTypeService;
-
-    public RelationshipTypeDeletionHandler( RelationshipTypeService relationshipTypeService )
-    {
-        this.relationshipTypeService = relationshipTypeService;
-    }
 
     @Override
     protected void register()

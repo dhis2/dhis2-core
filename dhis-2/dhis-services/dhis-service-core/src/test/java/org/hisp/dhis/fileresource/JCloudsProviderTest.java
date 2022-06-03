@@ -25,46 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataapproval;
+package org.hisp.dhis.fileresource;
 
-import java.util.Map;
+import static org.jclouds.ContextBuilder.newBuilder;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
-import org.springframework.stereotype.Component;
+import org.junit.jupiter.api.Test;
 
 /**
+ * Verify that the supported jclouds providers can be selected.
+ *
  * @author Jim Grace
  */
-@Component
-public class DataApprovalDeletionHandler extends JdbcDeletionHandler
+class JCloudsProviderTest
 {
-    private static final DeletionVeto VETO = new DeletionVeto( DataApproval.class );
-
-    @Override
-    protected void register()
+    @Test
+    void verifyFilesystem()
     {
-        whenVetoing( DataApprovalLevel.class, this::allowDeleteDataApprovalLevel );
-        whenVetoing( DataApprovalWorkflow.class, this::allowDeleteDataApprovalWorkflow );
-        whenVetoing( CategoryOptionCombo.class, this::allowDeleteCategoryOptionCombo );
+        assertDoesNotThrow( () -> newBuilder( "filesystem" ) );
     }
 
-    private DeletionVeto allowDeleteDataApprovalLevel( DataApprovalLevel dataApprovalLevel )
+    @Test
+    void verifyAwsS3()
     {
-        String sql = "select count(*) from dataapproval where dataapprovallevelid=:id";
-        return vetoIfExists( VETO, sql, Map.of( "id", dataApprovalLevel.getId() ) );
+        assertDoesNotThrow( () -> newBuilder( "aws-s3" ) );
     }
 
-    private DeletionVeto allowDeleteDataApprovalWorkflow( DataApprovalWorkflow workflow )
+    @Test
+    void verifyTransient()
     {
-        String sql = "select count(*) from dataapproval where workflowid=:id";
-        return vetoIfExists( VETO, sql, Map.of( "id", workflow.getId() ) );
-    }
-
-    private DeletionVeto allowDeleteCategoryOptionCombo( CategoryOptionCombo optionCombo )
-    {
-        String sql = "select count(*) from dataapproval where attributeoptioncomboid=:id";
-        return vetoIfExists( VETO, sql, Map.of( "id", optionCombo.getId() ) );
+        assertDoesNotThrow( () -> newBuilder( "transient" ) );
     }
 }

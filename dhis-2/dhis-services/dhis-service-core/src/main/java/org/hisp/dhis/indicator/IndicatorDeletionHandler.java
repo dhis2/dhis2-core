@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.indicator;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.collections4.CollectionUtils.containsAny;
 import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
@@ -35,6 +34,8 @@ import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -49,22 +50,13 @@ import org.springframework.stereotype.Component;
 /**
  * @author Lars Helge Overland
  */
-@Component( "org.hisp.dhis.indicator.IndicatorDeletionHandler" )
-public class IndicatorDeletionHandler
-    extends DeletionHandler
+@Component
+@AllArgsConstructor
+public class IndicatorDeletionHandler extends DeletionHandler
 {
     private final IndicatorService indicatorService;
 
     private final ExpressionService expressionService;
-
-    public IndicatorDeletionHandler( IndicatorService indicatorService, ExpressionService expressionService )
-    {
-        checkNotNull( indicatorService );
-        checkNotNull( expressionService );
-
-        this.indicatorService = indicatorService;
-        this.expressionService = expressionService;
-    }
 
     @Override
     protected void register()

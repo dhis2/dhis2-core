@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.user;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import java.util.HashSet;
+
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
@@ -35,18 +37,11 @@ import org.springframework.stereotype.Component;
 /**
  * @author Lars Helge Overland
  */
-@Component( "org.hisp.dhis.user.UserRoleDeletionHandler" )
-public class UserRoleDeletionHandler
-    extends DeletionHandler
+@Component
+@AllArgsConstructor
+public class UserRoleDeletionHandler extends DeletionHandler
 {
     private final UserService userService;
-
-    public UserRoleDeletionHandler( UserService userService )
-    {
-        checkNotNull( userService );
-
-        this.userService = userService;
-    }
 
     @Override
     protected void register()
@@ -56,10 +51,12 @@ public class UserRoleDeletionHandler
 
     private void deleteUser( User user )
     {
-        for ( UserRole group : user.getUserRoles() )
+        for ( UserRole role : user.getUserRoles() )
         {
-            group.getMembers().remove( user );
-            userService.updateUserRole( group );
+            role.getMembers().remove( user );
+            userService.updateUserRole( role );
         }
+
+        user.setUserRoles( new HashSet<>() );
     }
 }
