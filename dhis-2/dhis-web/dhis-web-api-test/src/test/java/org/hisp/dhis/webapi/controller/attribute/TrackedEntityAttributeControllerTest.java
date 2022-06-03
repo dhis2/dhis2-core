@@ -44,7 +44,7 @@ import org.junit.Test;
 public class TrackedEntityAttributeControllerTest extends DhisControllerConvenienceTest
 {
     @Test
-    public void shouldGenerateRandomValuesOrgUnitCodeAndRandom()
+    public void shouIldGenerateRandomValuesOrgUnitCodeAndRandom()
         throws Exception
     {
         TrackedEntityAttribute trackedEntityAttribute = createTrackedEntityAttribute( 'A' );
