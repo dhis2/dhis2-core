@@ -335,7 +335,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
         }
 
         fileResource.setAssigned( isAssign );
-        fileResource.setOwner( fileResourceOwner );
+        fileResource.setFileResourceOwner( fileResourceOwner );
         session.merge( fileResource );
     }
 
