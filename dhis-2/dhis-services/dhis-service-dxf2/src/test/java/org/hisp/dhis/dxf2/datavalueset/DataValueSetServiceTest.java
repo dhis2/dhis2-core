@@ -140,6 +140,9 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
     @Autowired
     private UserService _userService;
 
+    @Autowired
+    private CurrentUserService currentUserService;
+
     private Attribute attribute;
 
     private CategoryOptionCombo ocDef;
@@ -328,6 +331,13 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
         CompleteDataSetRegistration completeDataSetRegistration = new CompleteDataSetRegistration( dsA, peA, ouA,
             categoryOptionCombo, getDate( 2012, 1, 9 ), "userA", new Date(), "userA", true );
         registrationService.saveCompleteDataSetRegistration( completeDataSetRegistration );
+    }
+
+    @Override
+    public void tearDownTest()
+    {
+        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
+            currentUserService, dataValueSetService );
     }
 
     // -------------------------------------------------------------------------

@@ -91,6 +91,9 @@ class DataValueSetServiceIntegrationTest extends DhisTest
     @Autowired
     private UserService _userService;
 
+    @Autowired
+    private CurrentUserService currentUserService;
+
     private DataElement deA;
 
     private DataElement deB;
@@ -155,6 +158,13 @@ class DataValueSetServiceIntegrationTest extends DhisTest
         user = createAndInjectAdminUser();
         user.setOrganisationUnits( Sets.newHashSet( ouA, ouB, ouC ) );
         CurrentUserService currentUserService = new MockCurrentUserService( user );
+        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
+            currentUserService, dataValueSetService );
+    }
+
+    @Override
+    public void tearDownTest()
+    {
         setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
             currentUserService, dataValueSetService );
     }

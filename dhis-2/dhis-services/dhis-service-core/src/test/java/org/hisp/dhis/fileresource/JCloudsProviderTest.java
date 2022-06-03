@@ -25,46 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.category;
+package org.hisp.dhis.fileresource;
 
-import lombok.AllArgsConstructor;
+import static org.jclouds.ContextBuilder.newBuilder;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.springframework.stereotype.Component;
+import org.junit.jupiter.api.Test;
 
 /**
- * @author Lars Helge Overland
+ * Verify that the supported jclouds providers can be selected.
+ *
+ * @author Jim Grace
  */
-@Component
-@AllArgsConstructor
-public class CategoryOptionDeletionHandler extends DeletionHandler
+class JCloudsProviderTest
 {
-    private final IdentifiableObjectManager idObjectManager;
-
-    @Override
-    protected void register()
+    @Test
+    void verifyFilesystem()
     {
-        whenDeleting( Category.class, this::deleteCategory );
-        whenDeleting( OrganisationUnit.class, this::deleteOrgUnit );
+        assertDoesNotThrow( () -> newBuilder( "filesystem" ) );
     }
 
-    private void deleteOrgUnit( OrganisationUnit unit )
+    @Test
+    void verifyAwsS3()
     {
-        for ( CategoryOption option : unit.getCategoryOptions() )
-        {
-            option.getOrganisationUnits().remove( unit );
-            idObjectManager.updateNoAcl( option );
-        }
+        assertDoesNotThrow( () -> newBuilder( "aws-s3" ) );
     }
 
-    private void deleteCategory( Category category )
+    @Test
+    void verifyTransient()
     {
-        for ( CategoryOption option : category.getCategoryOptions() )
-        {
-            option.getCategories().remove( category );
-            idObjectManager.updateNoAcl( option );
-        }
+        assertDoesNotThrow( () -> newBuilder( "transient" ) );
     }
 }

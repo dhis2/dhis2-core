@@ -158,7 +158,7 @@
       <artifactId>jasperreports</artifactId>
     </dependency>
 
-    <!-- JClouds -->
+    <!-- Apache jclouds -->
 
     <dependency>
       <groupId>org.apache.jclouds</groupId>
@@ -175,6 +175,10 @@
     <dependency>
       <groupId>org.apache.jclouds.api</groupId>
       <artifactId>s3</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.jclouds.provider</groupId>
+      <artifactId>aws-s3</artifactId>
     </dependency>
 
     <!-- Image Processing -->
@@ -228,7 +232,7 @@
       <artifactId>spring-web</artifactId>
     </dependency>
 
-    <!--Spring Security -->
+    <!-- Spring Security -->
 
     <dependency>
       <groupId>org.springframework.security</groupId>

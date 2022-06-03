@@ -25,46 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.category;
+package org.hisp.dhis.schema.descriptors;
 
-import lombok.AllArgsConstructor;
-
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
+import org.hisp.dhis.security.acl.Access;
 
 /**
- * @author Lars Helge Overland
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Component
-@AllArgsConstructor
-public class CategoryOptionDeletionHandler extends DeletionHandler
+public class AccessSchemaDescriptor implements SchemaDescriptor
 {
-    private final IdentifiableObjectManager idObjectManager;
+    public static final String SINGULAR = "access";
+
+    public static final String PLURAL = "accesses";
 
     @Override
-    protected void register()
+    public Schema getSchema()
     {
-        whenDeleting( Category.class, this::deleteCategory );
-        whenDeleting( OrganisationUnit.class, this::deleteOrgUnit );
-    }
-
-    private void deleteOrgUnit( OrganisationUnit unit )
-    {
-        for ( CategoryOption option : unit.getCategoryOptions() )
-        {
-            option.getOrganisationUnits().remove( unit );
-            idObjectManager.updateNoAcl( option );
-        }
-    }
-
-    private void deleteCategory( Category category )
-    {
-        for ( CategoryOption option : category.getCategoryOptions() )
-        {
-            option.getCategories().remove( category );
-            idObjectManager.updateNoAcl( option );
-        }
+        return new Schema( Access.class, SINGULAR, PLURAL );
     }
 }

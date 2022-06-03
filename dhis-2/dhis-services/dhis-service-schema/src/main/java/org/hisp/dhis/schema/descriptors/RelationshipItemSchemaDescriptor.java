@@ -25,46 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.category;
+package org.hisp.dhis.schema.descriptors;
 
-import lombok.AllArgsConstructor;
-
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.relationship.RelationshipItem;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
 
 /**
- * @author Lars Helge Overland
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Component
-@AllArgsConstructor
-public class CategoryOptionDeletionHandler extends DeletionHandler
+public class RelationshipItemSchemaDescriptor implements SchemaDescriptor
 {
-    private final IdentifiableObjectManager idObjectManager;
+    public static final String SINGULAR = "relationshipItem";
+
+    public static final String PLURAL = "relationshipItems";
 
     @Override
-    protected void register()
+    public Schema getSchema()
     {
-        whenDeleting( Category.class, this::deleteCategory );
-        whenDeleting( OrganisationUnit.class, this::deleteOrgUnit );
-    }
-
-    private void deleteOrgUnit( OrganisationUnit unit )
-    {
-        for ( CategoryOption option : unit.getCategoryOptions() )
-        {
-            option.getOrganisationUnits().remove( unit );
-            idObjectManager.updateNoAcl( option );
-        }
-    }
-
-    private void deleteCategory( Category category )
-    {
-        for ( CategoryOption option : category.getCategoryOptions() )
-        {
-            option.getCategories().remove( category );
-            idObjectManager.updateNoAcl( option );
-        }
+        return new Schema( RelationshipItem.class, SINGULAR, PLURAL );
     }
 }
