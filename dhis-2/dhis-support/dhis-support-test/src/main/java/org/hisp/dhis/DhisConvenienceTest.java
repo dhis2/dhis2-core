@@ -1707,6 +1707,7 @@ public abstract class DhisConvenienceTest
         programStage.setDescription( "description" + uniqueCharacter );
         programStage.setMinDaysFromStart( minDays );
         programStage.setRepeatable( repeatable );
+        programStage.setReferral( false );
 
         return programStage;
     }
