@@ -81,7 +81,7 @@ public class SchemaBasedControllerTest extends DhisControllerConvenienceTest
             "programStage", // required Program not required in schema
             // presumably server errors/bugs
             "trackedEntityInstance", // conflict (no details)
-            "Predictor" // NPE in preheat when creating objects
+            "predictor" // NPE in preheat when creating objects
         ) );
 
     /**
