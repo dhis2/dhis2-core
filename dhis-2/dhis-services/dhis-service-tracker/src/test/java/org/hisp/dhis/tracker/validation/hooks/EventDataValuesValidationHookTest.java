@@ -677,7 +677,7 @@ class EventDataValuesValidationHookTest
         assertEquals( TrackerErrorCode.E1009, reporter.getReportList().get( 0 ).getErrorCode() );
 
         event.setEvent( "XYZ" );
-        fileResource.setOwner( "ABC" );
+        fileResource.setFileResourceOwner( "ABC" );
 
         when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.UPDATE );
 
@@ -689,7 +689,7 @@ class EventDataValuesValidationHookTest
         assertEquals( TrackerErrorCode.E1009, reporter.getReportList().get( 0 ).getErrorCode() );
 
         event.setEvent( "ABC" );
-        fileResource.setOwner( "ABC" );
+        fileResource.setFileResourceOwner( "ABC" );
 
         when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.UPDATE );
 
