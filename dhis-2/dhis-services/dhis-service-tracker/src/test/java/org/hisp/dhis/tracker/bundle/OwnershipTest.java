@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.bundle;
 
+import static org.hisp.dhis.tracker.Assertions.assertNoImportErrors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;

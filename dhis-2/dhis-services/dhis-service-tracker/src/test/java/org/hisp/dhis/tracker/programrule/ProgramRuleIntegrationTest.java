@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.tracker.programrule;
 
+import static org.hisp.dhis.tracker.Assertions.assertNoImportErrors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
 import java.util.List;
@@ -52,7 +52,6 @@ import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
-import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.tracker.report.TrackerWarningReport;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -135,8 +134,7 @@ class ProgramRuleIntegrationTest extends TrackerTest
 
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
 
-        assertNotNull( trackerImportReport );
-        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
+        assertNoImportErrors( trackerImportReport );
         assertEquals( 1, trackerImportReport.getValidationReport().getWarnings().size() );
     }
 
@@ -148,15 +146,13 @@ class ProgramRuleIntegrationTest extends TrackerTest
         TrackerImportParams params = fromJson( "tracker/single_tei.json" );
 
         TrackerImportReport trackerImportTeiReport = trackerImportService.importTracker( params );
-        assertNotNull( trackerImportTeiReport );
-        assertEquals( TrackerStatus.OK, trackerImportTeiReport.getStatus() );
+        assertNoImportErrors( trackerImportTeiReport );
 
         TrackerImportParams enrollmentParams = fromJson( "tracker/single_enrollment.json" );
 
         TrackerImportReport trackerImportEnrollmentReport = trackerImportService.importTracker( enrollmentParams );
 
-        assertNotNull( trackerImportEnrollmentReport );
-        assertEquals( TrackerStatus.OK, trackerImportEnrollmentReport.getStatus() );
+        assertNoImportErrors( trackerImportEnrollmentReport );
         assertEquals( 1, trackerImportEnrollmentReport.getValidationReport().getWarnings().size() );
     }
 
@@ -168,8 +164,7 @@ class ProgramRuleIntegrationTest extends TrackerTest
 
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
 
-        assertNotNull( trackerImportReport );
-        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
+        assertNoImportErrors( trackerImportReport );
         List<TrackerWarningReport> warningReports = trackerImportReport.getValidationReport().getWarnings();
         assertEquals( 4, warningReports.size() );
         assertEquals( 3,
@@ -182,8 +177,7 @@ class ProgramRuleIntegrationTest extends TrackerTest
 
         trackerImportReport = trackerImportService.importTracker( params );
 
-        assertNotNull( trackerImportReport );
-        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
+        assertNoImportErrors( trackerImportReport );
         warningReports = trackerImportReport.getValidationReport().getWarnings();
         assertEquals( 3, warningReports.size() );
         assertEquals( TrackerErrorCode.E1308, warningReports.get( 0 ).getWarningCode() );
@@ -196,8 +190,7 @@ class ProgramRuleIntegrationTest extends TrackerTest
 
         trackerImportReport = trackerImportService.importTracker( params );
 
-        assertNotNull( trackerImportReport );
-        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
+        assertNoImportErrors( trackerImportReport );
         warningReports = trackerImportReport.getValidationReport().getWarnings();
         assertEquals( 3, warningReports.size() );
         assertEquals( TrackerErrorCode.E1308, warningReports.get( 0 ).getWarningCode() );

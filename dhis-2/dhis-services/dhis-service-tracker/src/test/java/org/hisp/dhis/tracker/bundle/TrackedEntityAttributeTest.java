@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.bundle;
 
+import static org.hisp.dhis.tracker.Assertions.assertNoImportErrors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -46,7 +47,6 @@ import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
-import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -95,7 +95,7 @@ class TrackedEntityAttributeTest extends TrackerTest
     {
         TrackerImportParams trackerImportParams = fromJson( "tracker/te_with_tea_data.json" );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
+        assertNoImportErrors( trackerImportReport );
 
         List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
         assertEquals( 1, trackedEntityInstances.size() );

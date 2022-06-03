@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.bundle;
 
+import static org.hisp.dhis.tracker.Assertions.assertNoImportErrors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
@@ -39,7 +40,6 @@ import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
-import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -69,7 +69,7 @@ class TrackerEventBundleServiceTest extends TrackerTest
         TrackerImportParams trackerImportParams = fromJson( "tracker/event_events_and_enrollment.json" );
         assertEquals( 8, trackerImportParams.getEvents().size() );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
+        assertNoImportErrors( trackerImportReport );
 
         List<ProgramStageInstance> programStageInstances = programStageInstanceStore.getAll();
         assertEquals( 8, programStageInstances.size() );
@@ -82,11 +82,11 @@ class TrackerEventBundleServiceTest extends TrackerTest
         TrackerImportParams trackerImportParams = fromJson( "tracker/event_events_and_enrollment.json" );
         trackerImportParams.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
+        assertNoImportErrors( trackerImportReport );
         assertEquals( 8, programStageInstanceStore.getAll().size() );
 
         trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
+        assertNoImportErrors( trackerImportReport );
 
         assertEquals( 8, programStageInstanceStore.getAll().size() );
     }

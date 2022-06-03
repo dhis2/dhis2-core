@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.bundle;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.hisp.dhis.tracker.Assertions.assertNoImportErrors;
 
 import java.io.IOException;
 

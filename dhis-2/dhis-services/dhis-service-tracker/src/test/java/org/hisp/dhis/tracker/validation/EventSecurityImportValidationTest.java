@@ -31,6 +31,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasProperty;
+import static org.hisp.dhis.tracker.Assertions.assertNoImportErrors;
 import static org.hisp.dhis.tracker.validation.Users.USER_3;
 import static org.hisp.dhis.tracker.validation.Users.USER_4;
 import static org.hisp.dhis.tracker.validation.Users.USER_5;
@@ -68,7 +69,6 @@ import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
-import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -142,12 +142,10 @@ class EventSecurityImportValidationTest extends TrackerTest
         TrackerImportParams trackerBundleParams = fromJson(
             "tracker/validations/enrollments_te_te-data.json" );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
-        assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
-        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
+        assertNoImportErrors( trackerImportReport );
         trackerBundleParams = fromJson( "tracker/validations/enrollments_te_enrollments-data.json" );
         trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
-        assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
-        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
+        assertNoImportErrors( trackerImportReport );
         manager.flush();
     }
 
@@ -258,8 +256,7 @@ class EventSecurityImportValidationTest extends TrackerTest
         TrackerImportParams params = fromJson( "tracker/validations/events_error-no-uncomplete.json" );
         params.setImportStrategy( TrackerImportStrategy.CREATE );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
-        assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
-        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
+        assertNoImportErrors( trackerImportReport );
         // Change just inserted Event to status COMPLETED...
         ProgramStageInstance zwwuwNp6gVd = programStageServiceInstance.getProgramStageInstance( "ZwwuwNp6gVd" );
         zwwuwNp6gVd.setStatus( EventStatus.COMPLETED );

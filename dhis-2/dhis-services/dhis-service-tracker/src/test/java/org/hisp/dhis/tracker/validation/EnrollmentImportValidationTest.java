@@ -32,6 +32,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.core.Every.everyItem;
+import static org.hisp.dhis.tracker.Assertions.assertNoImportErrors;
 import static org.hisp.dhis.tracker.validation.Users.USER_2;
 import static org.hisp.dhis.tracker.validation.Users.USER_4;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -50,7 +51,6 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
-import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
@@ -88,8 +88,7 @@ class EnrollmentImportValidationTest extends TrackerTest
     {
         TrackerImportParams params = fromJson( "tracker/validations/enrollments_te_enrollments-data.json" );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
-        assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
-        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
+        assertNoImportErrors( trackerImportReport );
     }
 
     @Test
@@ -98,8 +97,7 @@ class EnrollmentImportValidationTest extends TrackerTest
     {
         TrackerImportParams params = fromJson( "tracker/validations/enrollments_te_enrollments-data.json" );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
-        assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
-        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
+        assertNoImportErrors( trackerImportReport );
         TrackerImportParams secondParams = fromJson(
             "tracker/validations/enrollments_te_enrollments-data.json" );
         TrackerPreheat preheat = trackerPreheatService.preheat( secondParams );
@@ -163,8 +161,7 @@ class EnrollmentImportValidationTest extends TrackerTest
         TrackerImportParams params = fromJson( "tracker/validations/enrollments_te_attr-data.json" );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
 
-        assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
-        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
+        assertNoImportErrors( trackerImportReport );
         manager.flush();
         importProgramStageInstances();
         manager.flush();
@@ -186,8 +183,7 @@ class EnrollmentImportValidationTest extends TrackerTest
         TrackerImportParams params = fromJson( "tracker/validations/events-with-registration.json" );
         params.setImportStrategy( TrackerImportStrategy.CREATE );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
-        assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
-        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
+        assertNoImportErrors( trackerImportReport );
     }
 
     @Test
@@ -215,8 +211,7 @@ class EnrollmentImportValidationTest extends TrackerTest
         TrackerImportParams paramsCreate = fromJson(
             "tracker/validations/enrollments_te_enrollments-data.json" );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( paramsCreate );
-        assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
-        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
+        assertNoImportErrors( trackerImportReport );
 
         manager.flush();
         manager.clear();
@@ -226,8 +221,7 @@ class EnrollmentImportValidationTest extends TrackerTest
         paramsDelete.setImportStrategy( TrackerImportStrategy.DELETE );
 
         TrackerImportReport trackerImportReportDelete = trackerImportService.importTracker( paramsDelete );
-        assertEquals( 0, trackerImportReportDelete.getValidationReport().getErrors().size() );
-        assertEquals( TrackerStatus.OK, trackerImportReportDelete.getStatus() );
+        assertNoImportErrors( trackerImportReportDelete );
         assertEquals( 1, trackerImportReportDelete.getStats().getDeleted() );
     }
 
