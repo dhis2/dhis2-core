@@ -25,39 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.dimension.mappers;
+package org.hisp.dhis.schema.descriptors;
 
-import java.util.Optional;
-import java.util.Set;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
+import org.hisp.dhis.security.acl.Access;
 
-import lombok.Getter;
-
-import org.hisp.dhis.analytics.dimension.DimensionResponse;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.dataelement.DataElement;
-import org.springframework.stereotype.Service;
-
-@Service
-public class DataElementMapper extends BaseDimensionalItemObjectMapper
+/**
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
+ */
+public class AccessSchemaDescriptor implements SchemaDescriptor
 {
-    @Getter
-    private final Set<Class<? extends BaseIdentifiableObject>> supportedClasses = Set.of(
-        DataElement.class );
+    public static final String SINGULAR = "access";
+
+    public static final String PLURAL = "accesses";
 
     @Override
-    public DimensionResponse map( BaseIdentifiableObject dimension, String prefix )
+    public Schema getSchema()
     {
-        DataElement dataElement = (DataElement) dimension;
-
-        final DimensionResponse mapped = super.map( dataElement, prefix )
-            .withValueType( dataElement.getValueType().name() )
-            .withId( String.join( ".", prefix, dataElement.getUid() ) );
-
-        return Optional.of( dataElement )
-            .map( DataElement::getOptionSet )
-            .map( BaseIdentifiableObject::getUid )
-            .map( mapped::withOptionSet )
-            .orElse( mapped );
+        return new Schema( Access.class, SINGULAR, PLURAL );
     }
-
 }

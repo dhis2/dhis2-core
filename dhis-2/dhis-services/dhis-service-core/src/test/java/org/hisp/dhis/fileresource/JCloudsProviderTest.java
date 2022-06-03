@@ -25,21 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.dimension;
+package org.hisp.dhis.fileresource;
 
-import java.util.Set;
+import static org.jclouds.ContextBuilder.newBuilder;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.hibernate.HibernateProxyUtils;
+import org.junit.jupiter.api.Test;
 
-public interface DimensionMapper
+/**
+ * Verify that the supported jclouds providers can be selected.
+ *
+ * @author Jim Grace
+ */
+class JCloudsProviderTest
 {
-    DimensionResponse map( BaseIdentifiableObject dimension, String prefix );
-
-    Set<Class<? extends BaseIdentifiableObject>> getSupportedClasses();
-
-    default boolean supports( BaseIdentifiableObject dimension )
+    @Test
+    void verifyFilesystem()
     {
-        return getSupportedClasses().contains( HibernateProxyUtils.getRealClass( dimension ) );
+        assertDoesNotThrow( () -> newBuilder( "filesystem" ) );
+    }
+
+    @Test
+    void verifyAwsS3()
+    {
+        assertDoesNotThrow( () -> newBuilder( "aws-s3" ) );
+    }
+
+    @Test
+    void verifyTransient()
+    {
+        assertDoesNotThrow( () -> newBuilder( "transient" ) );
     }
 }

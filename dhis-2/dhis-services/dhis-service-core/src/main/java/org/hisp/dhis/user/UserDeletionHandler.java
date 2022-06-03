@@ -29,27 +29,25 @@ package org.hisp.dhis.user;
 
 import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
+import java.util.Map;
+
 import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Lars Helge Overland
  */
 @AllArgsConstructor
-@Component( "org.hisp.dhis.user.UserDeletionHandler" )
-public class UserDeletionHandler
-    extends DeletionHandler
+@Component
+public class UserDeletionHandler extends JdbcDeletionHandler
 {
     private final IdentifiableObjectManager idObjectManager;
-
-    private final JdbcTemplate jdbcTemplate;
 
     private static final DeletionVeto VETO = new DeletionVeto( User.class );
 
@@ -107,8 +105,7 @@ public class UserDeletionHandler
 
     private DeletionVeto allowDeleteFileResource( FileResource fileResource )
     {
-        String sql = "SELECT COUNT(*) FROM userinfo where avatar=" + fileResource.getId();
-
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
+        String sql = "SELECT COUNT(*) FROM userinfo where avatar=:id";
+        return vetoIfExists( VETO, sql, Map.of( "id", fileResource.getId() ) );
     }
 }

@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.program;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.Collection;
 import java.util.HashSet;
+
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
@@ -38,16 +38,11 @@ import org.springframework.stereotype.Component;
 /**
  * @author Chau Thu Tran
  */
-@Component( "org.hisp.dhis.program.ProgramIndicatorDeletionHandler" )
+@Component
+@AllArgsConstructor
 public class ProgramIndicatorDeletionHandler extends DeletionHandler
 {
     private final ProgramIndicatorService programIndicatorService;
-
-    public ProgramIndicatorDeletionHandler( ProgramIndicatorService programIndicatorService )
-    {
-        checkNotNull( programIndicatorService );
-        this.programIndicatorService = programIndicatorService;
-    }
 
     @Override
     protected void register()

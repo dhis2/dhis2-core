@@ -25,33 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.dimension.mappers;
+package org.hisp.dhis.schema.descriptors;
 
-import java.util.Set;
+import org.hisp.dhis.relationship.RelationshipItem;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
 
-import lombok.Getter;
-
-import org.hisp.dhis.analytics.dimension.BaseDimensionMapper;
-import org.hisp.dhis.analytics.dimension.DimensionResponse;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryOptionGroupSet;
-import org.hisp.dhis.common.BaseDimensionalObject;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.springframework.stereotype.Service;
-
-@Service
-public class BaseDimensionalObjectMapper extends BaseDimensionMapper
+/**
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
+ */
+public class RelationshipItemSchemaDescriptor implements SchemaDescriptor
 {
+    public static final String SINGULAR = "relationshipItem";
 
-    @Getter
-    private final Set<Class<? extends BaseIdentifiableObject>> supportedClasses = Set.of(
-        CategoryOptionGroupSet.class,
-        Category.class );
+    public static final String PLURAL = "relationshipItems";
 
     @Override
-    public DimensionResponse map( BaseIdentifiableObject dimension, String prefix )
+    public Schema getSchema()
     {
-        return super.map( dimension, prefix )
-            .withDimensionType( ((BaseDimensionalObject) dimension).getDimensionType().name() );
+        return new Schema( RelationshipItem.class, SINGULAR, PLURAL );
     }
 }

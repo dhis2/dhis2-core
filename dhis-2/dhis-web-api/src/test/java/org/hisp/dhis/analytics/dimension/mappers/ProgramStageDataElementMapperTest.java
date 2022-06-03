@@ -30,11 +30,12 @@ package org.hisp.dhis.analytics.dimension.mappers;
 import static org.hisp.dhis.analytics.dimension.DimensionMapperTestSupport.asserter;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.hisp.dhis.analytics.dimension.DimensionResponse;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
+import org.hisp.dhis.webapi.dimension.DimensionResponse;
+import org.hisp.dhis.webapi.dimension.mappers.ProgramStageDataElementMapper;
 import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.ImmutableList;

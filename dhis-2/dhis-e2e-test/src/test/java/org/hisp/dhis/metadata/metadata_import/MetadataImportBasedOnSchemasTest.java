@@ -99,6 +99,7 @@ public class MetadataImportBasedOnSchemasTest
     {
         RestApiActions apiActions = new RestApiActions( endpoint );
 
+        // Contains conditionally required properties not marked as required
         List<String> blacklistedEndpoints = Arrays.asList( "jobConfigurations",
             "relationshipTypes",
             "messageConversations",
@@ -107,9 +108,7 @@ public class MetadataImportBasedOnSchemasTest
             "programRuleActions",
             "programRuleVariables",
             "eventCharts",
-            "programStages" ); // blacklisted because contains
-                               // conditionally required properties, which
-                               // are not marked as required
+            "programStages" );
 
         List<SchemaProperty> schemaProperties = schemasActions.getRequiredProperties( schema );
 
