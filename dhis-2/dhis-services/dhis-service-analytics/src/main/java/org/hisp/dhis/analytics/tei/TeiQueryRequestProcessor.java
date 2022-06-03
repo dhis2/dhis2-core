@@ -25,20 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.common;
+package org.hisp.dhis.analytics.tei;
 
-import lombok.Builder;
-import lombok.Data;
+import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.common.AnalyticsPagingCriteria;
+import org.springframework.stereotype.Component;
 
-@Data
-@Builder( toBuilder = true )
-public class QueryRequestHolder<T>
+@Component
+@RequiredArgsConstructor
+public class TeiQueryRequestProcessor
 {
-    private final T request;
-
-    private final CommonQueryRequest commonQueryRequest;
-
-    private final AnalyticsPagingCriteria pagingCriteria;
+    /**
+     * A hook to transform a QueryRequest before mapping it into Params
+     *
+     * @param queryRequest
+     * @return a queryRequestHolder where inner components might have changed
+     */
+    public TeiQueryRequest processRequest(
+        TeiQueryRequest queryRequest )
+    {
+        return queryRequest;
+    }
 }

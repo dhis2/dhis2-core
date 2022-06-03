@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.common.CommonRequestMapper;
-import org.hisp.dhis.analytics.common.QueryRequestHolder;
+import org.hisp.dhis.analytics.common.QueryRequest;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
@@ -54,38 +54,38 @@ public class TeiRequestMapper
 
     private final TrackedEntityTypeService trackedEntityTypeService;
 
-    public TeiQueryParams map( QueryRequestHolder<TeiQueryRequest> queryRequestHolder, DhisApiVersion apiVersion )
+    public TeiQueryParams map( QueryRequest<TeiQueryRequest> queryRequest, DhisApiVersion apiVersion )
     {
         return TeiQueryParams.builder()
-            .programs( getPrograms( queryRequestHolder ) )
-            .trackedEntityType( getTrackedEntityType( queryRequestHolder ) )
+            .programs( getPrograms( queryRequest ) )
+            .trackedEntityType( getTrackedEntityType( queryRequest ) )
             .commonParams( commonRequestMapper.map(
-                queryRequestHolder.getCommonQueryRequest(),
-                queryRequestHolder.getPagingCriteria(),
+                queryRequest.getCommonQueryRequest(),
+                queryRequest.getPagingCriteria(),
                 apiVersion ) )
             .build();
     }
 
-    private TrackedEntityType getTrackedEntityType( QueryRequestHolder<TeiQueryRequest> queryRequestHolder )
+    private TrackedEntityType getTrackedEntityType( QueryRequest<TeiQueryRequest> queryRequest )
     {
-        return Optional.of( queryRequestHolder.getRequest().getTrackedEntityType() )
+        return Optional.of( queryRequest.getRequest().getTrackedEntityType() )
             .map( trackedEntityTypeService::getTrackedEntityType )
             .orElseThrow( () -> new IllegalArgumentException( "Unable to find TrackedEntityType with UID: "
-                + queryRequestHolder.getRequest().getTrackedEntityType() ) );
+                + queryRequest.getRequest().getTrackedEntityType() ) );
     }
 
-    private Collection<Program> getPrograms( QueryRequestHolder<TeiQueryRequest> queryRequestHolder )
+    private Collection<Program> getPrograms( QueryRequest<TeiQueryRequest> queryRequest )
     {
-        Collection<Program> programs = programService.getPrograms( queryRequestHolder.getRequest().getPrograms() );
+        Collection<Program> programs = programService.getPrograms( queryRequest.getRequest().getPrograms() );
 
-        if ( programs.size() != queryRequestHolder.getRequest().getPrograms().size() )
+        if ( programs.size() != queryRequest.getRequest().getPrograms().size() )
         {
             Collection<String> foundProgramUids = programs.stream()
                 .map( Program::getUid )
                 .collect( Collectors.toList() );
 
-            Collection<String> missingProgramUids = Optional.of( queryRequestHolder )
-                .map( QueryRequestHolder::getRequest )
+            Collection<String> missingProgramUids = Optional.of( queryRequest )
+                .map( QueryRequest::getRequest )
                 .map( TeiQueryRequest::getPrograms )
                 .orElse( Collections.emptyList() ).stream()
                 .filter( uidFromRequest -> !foundProgramUids.contains( uidFromRequest ) )

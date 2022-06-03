@@ -25,42 +25,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei;
+package org.hisp.dhis.analytics.common;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.analytics.common.CommonRequestPreProcessor;
-import org.hisp.dhis.analytics.common.QueryRequestHolder;
+import org.hisp.dhis.common.AnalyticsPagingCriteria;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class TeiQueryRequestHolderPreProcessor
+public class CommonQueryRequestProcessor
 {
+    private final SystemSettingManager systemSettingManager;
 
-    private final CommonRequestPreProcessor commonRequestPreProcessor;
-
-    /**
-     * A hook to transform a QueryRequest before mapping it into Params
-     *
-     * @param queryRequestHolder
-     * @return a queryRequestHolder where inner components might have changed
-     */
-    public QueryRequestHolder<TeiQueryRequest> preProcessRequestHolder(
-        QueryRequestHolder<TeiQueryRequest> queryRequestHolder )
+    public CommonQueryRequest processCommonRequest( CommonQueryRequest commonQueryRequest )
     {
-        return queryRequestHolder.toBuilder()
-            .commonQueryRequest(
-                commonRequestPreProcessor.preProcessCommonRequest( queryRequestHolder.getCommonQueryRequest() ) )
-            .pagingCriteria(
-                commonRequestPreProcessor.preProcessPagingCriteria( queryRequestHolder.getPagingCriteria() ) )
-            .request( preProcessInternal( queryRequestHolder.getRequest() ) )
-            .build();
+        // here we should refactor/preprocess dimensions and filters for 2
+        // specific purposes:
+        // 1 - support custom date filters, like enrollmentDate=TODAY, but this
+        // is pending discussions on whether the time
+        // fields should be applied to all programs, or it is possible to
+        // specify date filters for each programs
+        //
+        // 2 - in event/enrollments we supported _OR_ separator to handle
+        // enhanced conditions
+        // TODO: DHIS2-13383
+        return commonQueryRequest;
     }
 
-    private TeiQueryRequest preProcessInternal( TeiQueryRequest request )
+    // TODO: DHIS2-13384 we would really like to have all
+    // criteria/request/params to be
+    // immutable, but PagingCriteria is not
+    // returning it for now, should be converted to use builders
+    public AnalyticsPagingCriteria processPagingCriteria( AnalyticsPagingCriteria pagingCriteria )
     {
-        // TODO: nothing to do here for now
-        return request;
+        int analyticsMaxPageSize = systemSettingManager.getIntSetting( SettingKey.ANALYTICS_MAX_LIMIT );
+        pagingCriteria.definePageSize( analyticsMaxPageSize );
+        return pagingCriteria;
     }
+
 }

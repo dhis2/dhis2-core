@@ -36,12 +36,13 @@ import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
-import org.hisp.dhis.analytics.common.QueryRequestHolder;
+import org.hisp.dhis.analytics.common.CommonQueryRequestProcessor;
+import org.hisp.dhis.analytics.common.QueryRequest;
 import org.hisp.dhis.analytics.tei.TeiAnalyticsQueryService;
 import org.hisp.dhis.analytics.tei.TeiAnalyticsValidator;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.analytics.tei.TeiQueryRequest;
-import org.hisp.dhis.analytics.tei.TeiQueryRequestHolderPreProcessor;
+import org.hisp.dhis.analytics.tei.TeiQueryRequestProcessor;
 import org.hisp.dhis.analytics.tei.TeiRequestMapper;
 import org.hisp.dhis.common.AnalyticsPagingCriteria;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -68,7 +69,9 @@ class TeiQueryController
 
     private final TeiAnalyticsQueryService teiAnalyticsQueryService;
 
-    private final TeiQueryRequestHolderPreProcessor teiQueryRequestHolderPreProcessor;
+    private final TeiQueryRequestProcessor teiQueryRequestProcessor;
+
+    private final CommonQueryRequestProcessor commonQueryRequestProcessor;
 
     private final TeiAnalyticsValidator teiAnalyticsValidationService;
 
@@ -86,22 +89,22 @@ class TeiQueryController
         final DhisApiVersion apiVersion,
         final HttpServletResponse response )
     {
-        QueryRequestHolder<TeiQueryRequest> queryRequestHolder = teiQueryRequestHolderPreProcessor
-            .preProcessRequestHolder(
-                QueryRequestHolder.<TeiQueryRequest> builder()
-                    .request( teiQueryRequest.withTrackedEntityType( trackedEntityType ) )
-                    .commonQueryRequest( commonQueryRequest )
-                    .pagingCriteria(
-                        (AnalyticsPagingCriteria) pagingRequest
-                            .withEndpointItem( TRACKED_ENTITY_INSTANCE )
-                            .withQueryEndpointAction() )
-                    .build() );
+        QueryRequest<TeiQueryRequest> queryRequest = QueryRequest.<TeiQueryRequest> builder()
+            .request(
+                teiQueryRequestProcessor.processRequest(
+                    teiQueryRequest.withTrackedEntityType( trackedEntityType ) ) )
+            .commonQueryRequest( commonQueryRequestProcessor.processCommonRequest( commonQueryRequest ) )
+            .pagingCriteria( commonQueryRequestProcessor.processPagingCriteria(
+                (AnalyticsPagingCriteria) pagingRequest
+                    .withEndpointItem( TRACKED_ENTITY_INSTANCE )
+                    .withQueryEndpointAction() ) )
+            .build();
 
-        teiAnalyticsValidationService.validateRequest( queryRequestHolder );
+        teiAnalyticsValidationService.validateRequest( queryRequest );
 
         contextUtils.configureResponse( response, CONTENT_TYPE_JSON, RESPECT_SYSTEM_SETTING );
 
-        final TeiQueryParams params = mapper.map( queryRequestHolder, apiVersion );
+        final TeiQueryParams params = mapper.map( queryRequest, apiVersion );
 
         return teiAnalyticsQueryService.getTeiGrid( params );
     }

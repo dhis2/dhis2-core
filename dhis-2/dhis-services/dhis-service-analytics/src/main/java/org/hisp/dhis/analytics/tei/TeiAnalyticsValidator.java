@@ -30,7 +30,7 @@ package org.hisp.dhis.analytics.tei;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.common.CommonValidationService;
-import org.hisp.dhis.analytics.common.QueryRequestHolder;
+import org.hisp.dhis.analytics.common.QueryRequest;
 import org.springframework.stereotype.Component;
 
 /**
@@ -44,9 +44,9 @@ public class TeiAnalyticsValidator
 
     private final CommonValidationService commonValidationService;
 
-    public void validateRequest( final QueryRequestHolder<TeiQueryRequest> queryRequestHolder )
+    public void validateRequest( final QueryRequest<TeiQueryRequest> queryRequest )
     {
-        commonValidationService.validate( queryRequestHolder.getCommonQueryRequest() );
+        commonValidationService.validate( queryRequest.getCommonQueryRequest() );
         // TODO: DHIS2-13382 validate the TEI part of the request
     }
 }
