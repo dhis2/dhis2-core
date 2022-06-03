@@ -10,10 +10,10 @@
   <url>http://dhis2.org</url>
 
   <description>
-        The District Health Information System 2 deals with
-        aggregating and reporting statistical health data. The goal is to allow users to analyze
-        and use this data to guide local action. The system is based around an goals of empowering
-        users, by allowing them to decide what to register and report data for.
+    The District Health Information System 2 deals with
+    aggregating and reporting statistical health data. The goal is to allow users to analyze
+    and use this data to guide local action. The system is based around an goals of empowering
+    users, by allowing them to decide what to register and report data for.
   </description>
 
   <organization>
@@ -365,7 +365,8 @@
       </build>
     </profile>
 
-    <!-- Integration test profile, runs all integrations tests, not unit tests -->
+    <!-- Integration test profile, runs all integrations tests, not unit 
+      tests -->
     <profile>
       <id>integration</id>
       <build>
@@ -746,9 +747,7 @@
               <ignoredUnusedDeclaredDependency>javax.servlet:javax.servlet-api</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.apache.xmlgraphics:batik-codec</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.apache.jclouds.provider:aws-s3</ignoredUnusedDeclaredDependency>
-
-              <!-- Removing these dependencies from the pom makes some tests 
-                fail -->
+              <!-- Removing makes some tests fail -->
               <ignoredUnusedDeclaredDependency>io.netty:netty-all</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.hibernate.validator:hibernate-validator</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>com.cronutils:cron-utils</ignoredUnusedDeclaredDependency>
@@ -757,16 +756,13 @@
               <ignoredUnusedDeclaredDependency>org.springframework.security:spring-security-aspects</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.skyscreamer:jsonassert</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>commons-fileupload:commons-fileupload</ignoredUnusedDeclaredDependency>
-
-              <!-- Removing these dependency makes the startup fail -->
+              <ignoredUnusedDeclaredDependency>org.apache.jclouds.api:filesystem</ignoredUnusedDeclaredDependency>
+              <ignoredUnusedDeclaredDependency>org.apache.jclouds.api:s3</ignoredUnusedDeclaredDependency>
+              <!-- Removing makes the startup fail -->
               <ignoredUnusedDeclaredDependency>org.hibernate:hibernate-ehcache</ignoredUnusedDeclaredDependency>
-
-              <!-- Removing these dependency makes the startup with Jetty 
-                fail -->
+              <!-- Removing makes the startup with Jetty fail -->
               <ignoredUnusedDeclaredDependency>javax.media:jai_imageio</ignoredUnusedDeclaredDependency>
-
-              <!-- These are some module dependencies that only exist at 
-                runtime -->
+              <!-- Only exist at runtime -->
               <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-hibernate</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-db-migration</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-audit</ignoredUnusedDeclaredDependency>
@@ -798,8 +794,7 @@
               <ignoredUsedUndeclaredDependency>org.springframework.session:spring-session-core</ignoredUsedUndeclaredDependency>
             </ignoredUsedUndeclaredDependencies>
             <ignoredNonTestScopedDependencies>
-              <!-- Setting the scope of this dependency to test makes the 
-                build fail -->
+              <!-- Setting the scope to test makes the build fail -->
               <ignoredNonTestScopedDependency>org.springframework:spring-beans</ignoredNonTestScopedDependency>
             </ignoredNonTestScopedDependencies>
           </configuration>
@@ -889,7 +884,8 @@
                 </RestrictImports>
                 <RestrictImports>
                   <reason>Do not use this Transactional import. Use
-                    org.springframework.transaction.annotation.Transactional instead</reason>
+                    org.springframework.transaction.annotation.Transactional
+                    instead</reason>
                   <bannedImports>
                     <bannedImport>javax.transaction.Transactional</bannedImport>
                   </bannedImports>
