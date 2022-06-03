@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.failOnException;
 
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.config.ConfigConfiguration;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.utils.TestUtils;
@@ -59,7 +60,7 @@ import org.springframework.web.filter.CharacterEncodingFilter;
  */
 @RunWith( SpringRunner.class )
 @WebAppConfiguration
-@ContextConfiguration( classes = { MvcTestConfig.class, WebTestConfiguration.class } )
+@ContextConfiguration( classes = { ConfigConfiguration.class, MvcTestConfig.class, WebTestConfiguration.class } )
 @ActiveProfiles( "test-h2" )
 @Transactional
 public abstract class DhisControllerConvenienceTest extends DhisConvenienceTest implements WebClient
