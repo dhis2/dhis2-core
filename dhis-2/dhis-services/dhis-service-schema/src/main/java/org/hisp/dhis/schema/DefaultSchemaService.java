@@ -201,6 +201,10 @@ public class DefaultSchemaService
         register( new ProgramStageInstanceFilterSchemaDescriptor() );
         register( new VisualizationSchemaDescriptor() );
         register( new ApiTokenSchemaDescriptor() );
+        register( new AccessSchemaDescriptor() );
+        register( new ObjectStyleSchemaDescriptor() );
+        register( new RelationshipConstraintSchemaDescriptor() );
+        register( new RelationshipItemSchemaDescriptor() );
     }
 
     private final Map<Class<?>, Schema> classSchemaMap = new HashMap<>();

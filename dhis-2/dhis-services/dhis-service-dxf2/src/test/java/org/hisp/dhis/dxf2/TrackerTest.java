@@ -65,7 +65,6 @@ import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -81,7 +80,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
@@ -124,8 +122,6 @@ public abstract class TrackerTest extends IntegrationTestBase
 
     @Autowired
     private RelationshipService relationshipService;
-
-    protected CurrentUserService currentUserService;
 
     protected TrackedEntityType trackedEntityTypeA;
 
@@ -192,7 +188,6 @@ public abstract class TrackerTest extends IntegrationTestBase
             Stream.of( programStageA1, programStageA2 ).collect( Collectors.toCollection( HashSet::new ) ) );
         manager.update( programA );
         super.userService = this.userService;
-        mockCurrentUserService();
     }
 
     public TrackedEntityInstance persistTrackedEntityInstance()
@@ -375,12 +370,6 @@ public abstract class TrackerTest extends IntegrationTestBase
             }
         }
         return enrollment;
-    }
-
-    protected void mockCurrentUserService()
-    {
-        User user = createUser( "testUser" );
-        currentUserService = new MockCurrentUserService( user );
     }
 
     protected ProgramStage createProgramStage( Program program, boolean publicAccess )

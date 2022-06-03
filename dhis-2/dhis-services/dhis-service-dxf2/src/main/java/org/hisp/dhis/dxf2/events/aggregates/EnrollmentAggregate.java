@@ -53,9 +53,7 @@ import com.google.common.collect.Multimap;
  */
 @Component
 @RequiredArgsConstructor
-public class EnrollmentAggregate
-    extends
-    AbstractAggregate
+public class EnrollmentAggregate extends AbstractAggregate
 {
     @NonNull
     private final EnrollmentStore enrollmentStore;

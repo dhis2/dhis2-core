@@ -25,33 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentitydatavalue;
+package org.hisp.dhis.schema.descriptors;
 
-import java.util.List;
-
-import org.hisp.dhis.common.AuditType;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
+import org.hisp.dhis.security.acl.Access;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface TrackedEntityDataValueAuditService
+public class AccessSchemaDescriptor implements SchemaDescriptor
 {
-    void addTrackedEntityDataValueAudit( TrackedEntityDataValueAudit trackedEntityDataValueAudit );
+    public static final String SINGULAR = "access";
 
-    List<TrackedEntityDataValueAudit> getTrackedEntityDataValueAudits( List<DataElement> dataElements,
-        List<ProgramStageInstance> programStageInstances,
-        AuditType auditType );
+    public static final String PLURAL = "accesses";
 
-    List<TrackedEntityDataValueAudit> getTrackedEntityDataValueAudits( List<DataElement> dataElements,
-        List<ProgramStageInstance> programStageInstances,
-        AuditType auditType, int first, int max );
-
-    int countTrackedEntityDataValueAudits( List<DataElement> dataElements,
-        List<ProgramStageInstance> programStageInstances, AuditType auditType );
-
-    void deleteTrackedEntityDataValueAudit( DataElement dataElement );
-
-    void deleteTrackedEntityDataValueAudit( ProgramStageInstance programStageInstance );
+    @Override
+    public Schema getSchema()
+    {
+        return new Schema( Access.class, SINGULAR, PLURAL );
+    }
 }
