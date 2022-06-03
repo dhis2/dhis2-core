@@ -79,7 +79,6 @@ class SchemaBasedControllerTest extends DhisControllerConvenienceTest
         "programRuleAction", // needs DataElement and TrackedEntityAttribute
         "validationRule", // generator insufficient (embedded fields)
         "programStage", // presumably server errors/bugs
-        // presumably server errors/bugs
         "trackedEntityInstance", // conflict (no details)
         "predictor", // NPE in preheat when creating objects
         "analyticsDataExchange" // required JSONB objects not working
