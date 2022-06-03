@@ -31,7 +31,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
@@ -47,8 +46,16 @@ public class Assertions
 
     private static Supplier<String> errorMessage( TrackerImportReport report )
     {
-        return () -> report.getValidationReport().getErrors().stream()
-            .map( e -> e.getErrorCode() + ": " + e.getMessage() )
-            .collect( Collectors.joining( "\n" ) );
+        return () -> {
+            StringBuilder msg = new StringBuilder( "Expected import with status OK, instead got:\n" );
+            report.getValidationReport().getErrors()
+                .forEach( e -> {
+                    msg.append( e.getErrorCode() );
+                    msg.append( ": " );
+                    msg.append( e.getMessage() );
+                    msg.append( '\n' );
+                } );
+            return msg.toString();
+        };
     }
 }
