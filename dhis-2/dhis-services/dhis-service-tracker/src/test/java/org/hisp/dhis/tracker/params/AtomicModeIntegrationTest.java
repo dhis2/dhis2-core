@@ -67,6 +67,7 @@ class AtomicModeIntegrationTest extends TrackerTest
         params.setAtomicMode( AtomicMode.OBJECT );
 
         TrackerImportReport trackerImportTeiReport = trackerImportService.importTracker( params );
+
         assertNotNull( trackerImportTeiReport );
         assertEquals( TrackerStatus.OK, trackerImportTeiReport.getStatus() );
         assertEquals( 1, trackerImportTeiReport.getValidationReport().getErrors().size() );
