@@ -66,7 +66,10 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 /**
  * @author Lars Helge Overland
  */
-@Profile( "!test-h2" )
+@Profile( {
+    "!test-h2",
+    "!test-postgres",
+} )
 @Component( "dhisConfigurationProvider" )
 @Slf4j
 public class DefaultDhisConfigurationProvider extends LogOnceLogger
