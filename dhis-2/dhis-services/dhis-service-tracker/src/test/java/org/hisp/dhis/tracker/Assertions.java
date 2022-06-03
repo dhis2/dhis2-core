@@ -25,38 +25,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.user;
+package org.hisp.dhis.tracker;
 
-import java.util.HashSet;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import lombok.AllArgsConstructor;
+import java.util.function.Supplier;
 
-import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.tracker.report.TrackerImportReport;
+import org.hisp.dhis.tracker.report.TrackerStatus;
 
-/**
- * @author Lars Helge Overland
- */
-@Component
-@AllArgsConstructor
-public class UserRoleDeletionHandler extends DeletionHandler
+public class Assertions
 {
-    private final UserService userService;
 
-    @Override
-    protected void register()
+    public static void assertNoImportErrors( TrackerImportReport report )
     {
-        whenDeleting( User.class, this::deleteUser );
+        assertNotNull( report );
+        assertEquals( TrackerStatus.OK, report.getStatus(), errorMessage( report ) );
     }
 
-    private void deleteUser( User user )
+    private static Supplier<String> errorMessage( TrackerImportReport report )
     {
-        for ( UserRole role : user.getUserRoles() )
-        {
-            role.getMembers().remove( user );
-            userService.updateUserRole( role );
-        }
-
-        user.setUserRoles( new HashSet<>() );
+        return () -> {
+            StringBuilder msg = new StringBuilder( "Expected import with status OK, instead got:\n" );
+            report.getValidationReport().getErrors()
+                .forEach( e -> {
+                    msg.append( e.getErrorCode() );
+                    msg.append( ": " );
+                    msg.append( e.getMessage() );
+                    msg.append( '\n' );
+                } );
+            return msg.toString();
+        };
     }
 }
