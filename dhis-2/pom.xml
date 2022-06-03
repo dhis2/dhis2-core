@@ -188,7 +188,7 @@
 
     <!-- Test -->
     <junit.version>5.8.2</junit.version>
-    <mockito.version>4.6.0</mockito.version>
+    <mockito.version>4.6.1</mockito.version>
     <powermock.version>2.0.9</powermock.version>
     <hamcrest.version>2.2</hamcrest.version>
     <hamcrest-date.version>2.0.8</hamcrest-date.version>
@@ -365,7 +365,8 @@
       </build>
     </profile>
 
-    <!-- Integration test profile, runs all integrations tests, not unit tests -->
+    <!-- Integration test profile, runs all integrations tests, not unit 
+      tests -->
     <profile>
       <id>integration</id>
       <build>
@@ -755,7 +756,8 @@
               <ignoredUnusedDeclaredDependency>org.springframework.security:spring-security-aspects</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.skyscreamer:jsonassert</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>commons-fileupload:commons-fileupload</ignoredUnusedDeclaredDependency>
-              <ignoredUnusedDeclaredDependency>org.apache.httpcomponents:httpcore</ignoredUnusedDeclaredDependency>
+              <ignoredUnusedDeclaredDependency>org.apache.jclouds.api:filesystem</ignoredUnusedDeclaredDependency>
+              <ignoredUnusedDeclaredDependency>org.apache.jclouds.api:s3</ignoredUnusedDeclaredDependency>
               <!-- Removing makes the startup fail -->
               <ignoredUnusedDeclaredDependency>org.hibernate:hibernate-ehcache</ignoredUnusedDeclaredDependency>
               <!-- Removing makes the startup with Jetty fail -->
@@ -884,7 +886,8 @@
                 </RestrictImports>
                 <RestrictImports>
                   <reason>Do not use this Transactional import. Use
-                    org.springframework.transaction.annotation.Transactional instead</reason>
+                    org.springframework.transaction.annotation.Transactional
+                    instead</reason>
                   <bannedImports>
                     <bannedImport>javax.transaction.Transactional</bannedImport>
                   </bannedImports>

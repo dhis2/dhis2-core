@@ -218,7 +218,7 @@
       <artifactId>gson</artifactId>
     </dependency>
 
-    <!-- Apache jclouds -->
+    <!-- Apache JClouds -->
 
     <dependency>
       <groupId>org.apache.jclouds</groupId>
@@ -347,6 +347,7 @@
     </dependency>
 
     <!-- Test -->
+
     <dependency>
       <groupId>org.hamcrest</groupId>
       <artifactId>hamcrest</artifactId>
