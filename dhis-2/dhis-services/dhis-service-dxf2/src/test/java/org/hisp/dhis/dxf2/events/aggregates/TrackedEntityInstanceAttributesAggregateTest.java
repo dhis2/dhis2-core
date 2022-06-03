@@ -104,6 +104,8 @@ public class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
 
     private Program programB;
 
+    private User user;
+
     private final static int A = 65;
 
     private final static int C = 67;
@@ -115,7 +117,7 @@ public class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
     @Override
     protected void mockCurrentUserService()
     {
-        User user = createUser( "testUser" );
+        user = createUser( "testUser" );
 
         user.addOrganisationUnit( organisationUnitA );
         user.getTeiSearchOrganisationUnits().add( organisationUnitA );
@@ -290,7 +292,8 @@ public class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
             programB.setCode( RandomStringUtils.randomAlphanumeric( 10 ) );
 
             Set<UserAccess> programBUserAccess = new HashSet<>();
-            programBUserAccess.add( new UserAccess( currentUserService.getCurrentUser(), AccessStringHelper.FULL ) );
+            programBUserAccess
+                .add( new UserAccess( user, AccessStringHelper.FULL ) );
             programB.setUserAccesses( programBUserAccess );
             programB.setProgramStages(
                 Stream.of( programStageA, programStageB ).collect( Collectors.toCollection( HashSet::new ) ) );
