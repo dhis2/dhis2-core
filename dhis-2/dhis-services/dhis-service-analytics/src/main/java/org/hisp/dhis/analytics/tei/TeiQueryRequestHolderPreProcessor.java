@@ -35,7 +35,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class TeiRequestPreProcessor
+public class TeiQueryRequestHolderPreProcessor
 {
 
     private final CommonRequestPreProcessor commonRequestPreProcessor;
@@ -46,7 +46,7 @@ public class TeiRequestPreProcessor
      * @param queryRequestHolder
      * @return a queryRequestHolder where inner components might have changed
      */
-    public QueryRequestHolder<TeiQueryRequest> preProcessRequest(
+    public QueryRequestHolder<TeiQueryRequest> preProcessRequestHolder(
         QueryRequestHolder<TeiQueryRequest> queryRequestHolder )
     {
         return queryRequestHolder.toBuilder()

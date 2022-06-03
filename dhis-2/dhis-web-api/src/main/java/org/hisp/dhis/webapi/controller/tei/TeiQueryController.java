@@ -41,8 +41,8 @@ import org.hisp.dhis.analytics.tei.TeiAnalyticsQueryService;
 import org.hisp.dhis.analytics.tei.TeiAnalyticsValidator;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.analytics.tei.TeiQueryRequest;
+import org.hisp.dhis.analytics.tei.TeiQueryRequestHolderPreProcessor;
 import org.hisp.dhis.analytics.tei.TeiRequestMapper;
-import org.hisp.dhis.analytics.tei.TeiRequestPreProcessor;
 import org.hisp.dhis.common.AnalyticsPagingCriteria;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Grid;
@@ -68,7 +68,7 @@ class TeiQueryController
 
     private final TeiAnalyticsQueryService teiAnalyticsQueryService;
 
-    private final TeiRequestPreProcessor teiRequestPreProcessor;
+    private final TeiQueryRequestHolderPreProcessor teiQueryRequestHolderPreProcessor;
 
     private final TeiAnalyticsValidator teiAnalyticsValidationService;
 
@@ -86,15 +86,16 @@ class TeiQueryController
         final DhisApiVersion apiVersion,
         final HttpServletResponse response )
     {
-        QueryRequestHolder<TeiQueryRequest> queryRequestHolder = teiRequestPreProcessor.preProcessRequest(
-            QueryRequestHolder.<TeiQueryRequest> builder()
-                .request( teiQueryRequest.withTrackedEntityType( trackedEntityType ) )
-                .commonQueryRequest( commonQueryRequest )
-                .pagingCriteria(
-                    (AnalyticsPagingCriteria) pagingRequest
-                        .withEndpointItem( TRACKED_ENTITY_INSTANCE )
-                        .withQueryEndpointAction() )
-                .build() );
+        QueryRequestHolder<TeiQueryRequest> queryRequestHolder = teiQueryRequestHolderPreProcessor
+            .preProcessRequestHolder(
+                QueryRequestHolder.<TeiQueryRequest> builder()
+                    .request( teiQueryRequest.withTrackedEntityType( trackedEntityType ) )
+                    .commonQueryRequest( commonQueryRequest )
+                    .pagingCriteria(
+                        (AnalyticsPagingCriteria) pagingRequest
+                            .withEndpointItem( TRACKED_ENTITY_INSTANCE )
+                            .withQueryEndpointAction() )
+                    .build() );
 
         teiAnalyticsValidationService.validateRequest( queryRequestHolder );
 
