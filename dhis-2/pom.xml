@@ -10,10 +10,10 @@
   <url>http://dhis2.org</url>
 
   <description>
-        The District Health Information System 2 deals with
-        aggregating and reporting statistical health data. The goal is to allow users to analyze
-        and use this data to guide local action. The system is based around an goals of empowering
-        users, by allowing them to decide what to register and report data for.
+    The District Health Information System 2 deals with
+    aggregating and reporting statistical health data. The goal is to allow users to analyze
+    and use this data to guide local action. The system is based around an goals of empowering
+    users, by allowing them to decide what to register and report data for.
   </description>
 
   <organization>
@@ -350,7 +350,7 @@
               <threadCount>10</threadCount>
               <skipTests>${skipTests}</skipTests>
               <trimStackTrace>false</trimStackTrace>
-              <argLine>${surefireArgLine}</argLine>
+              <argLine>@{argLine} ${surefireArgLine}</argLine>
               <excludedGroups>integration,integrationH2</excludedGroups>
             </configuration>
             <dependencies>
@@ -365,7 +365,8 @@
       </build>
     </profile>
 
-    <!-- Integration test profile, runs all integrations tests, not unit tests -->
+    <!-- Integration test profile, runs all integrations tests, not unit 
+      tests -->
     <profile>
       <id>integration</id>
       <build>
@@ -376,7 +377,7 @@
             <configuration>
               <skipTests>false</skipTests>
               <trimStackTrace>false</trimStackTrace>
-              <argLine>${surefireArgLine}</argLine>
+              <argLine>@{argLine} ${surefireArgLine}</argLine>
               <groups>integration</groups>
             </configuration>
             <dependencies>
@@ -403,7 +404,7 @@
             <configuration>
               <skipTests>false</skipTests>
               <trimStackTrace>false</trimStackTrace>
-              <argLine>${surefireArgLine}</argLine>
+              <argLine>@{argLine} ${surefireArgLine}</argLine>
               <groups>integrationH2</groups>
             </configuration>
             <dependencies>
@@ -431,7 +432,7 @@
             <configuration>
               <skipTests>true</skipTests>
               <trimStackTrace>false</trimStackTrace>
-              <argLine>${argLine} ${surefireArgLine}</argLine>
+              <argLine>@{argLine} ${surefireArgLine}</argLine>
               <excludedGroups>org.hisp.dhis.IntegrationTest</excludedGroups>
             </configuration>
             <dependencies>
@@ -441,26 +442,6 @@
                 <version>${ow2.asm.version}</version>
               </dependency>
             </dependencies>
-          </plugin>
-          <plugin>
-            <groupId>org.jacoco</groupId>
-            <artifactId>jacoco-maven-plugin</artifactId>
-            <version>${jacoco-maven-plugin.version}</version>
-            <executions>
-              <execution>
-                <id>prepare-agent</id>
-                <goals>
-                  <goal>prepare-agent</goal>
-                </goals>
-              </execution>
-              <execution>
-                <id>report</id>
-                <phase>test</phase>
-                <goals>
-                  <goal>report</goal>
-                </goals>
-              </execution>
-            </executions>
           </plugin>
         </plugins>
       </build>
@@ -479,7 +460,7 @@
             <configuration>
               <skipTests>true</skipTests>
               <trimStackTrace>false</trimStackTrace>
-              <argLine>${surefireArgLine}</argLine>
+              <argLine>@{argLine} ${surefireArgLine}</argLine>
               <excludedGroups>integration,integrationH2</excludedGroups>
             </configuration>
             <dependencies>
@@ -746,9 +727,7 @@
               <ignoredUnusedDeclaredDependency>javax.servlet:javax.servlet-api</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.apache.xmlgraphics:batik-codec</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.apache.jclouds.provider:aws-s3</ignoredUnusedDeclaredDependency>
-
-              <!-- Removing these dependencies from the pom makes some tests 
-                fail -->
+              <!-- Removing makes some tests fail -->
               <ignoredUnusedDeclaredDependency>io.netty:netty-all</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.hibernate.validator:hibernate-validator</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>com.cronutils:cron-utils</ignoredUnusedDeclaredDependency>
@@ -757,16 +736,13 @@
               <ignoredUnusedDeclaredDependency>org.springframework.security:spring-security-aspects</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.skyscreamer:jsonassert</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>commons-fileupload:commons-fileupload</ignoredUnusedDeclaredDependency>
-
-              <!-- Removing these dependency makes the startup fail -->
+              <ignoredUnusedDeclaredDependency>org.apache.jclouds.api:filesystem</ignoredUnusedDeclaredDependency>
+              <ignoredUnusedDeclaredDependency>org.apache.jclouds.api:s3</ignoredUnusedDeclaredDependency>
+              <!-- Removing makes the startup fail -->
               <ignoredUnusedDeclaredDependency>org.hibernate:hibernate-ehcache</ignoredUnusedDeclaredDependency>
-
-              <!-- Removing these dependency makes the startup with Jetty 
-                fail -->
+              <!-- Removing makes the startup with Jetty fail -->
               <ignoredUnusedDeclaredDependency>javax.media:jai_imageio</ignoredUnusedDeclaredDependency>
-
-              <!-- These are some module dependencies that only exist at 
-                runtime -->
+              <!-- Only exist at runtime -->
               <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-hibernate</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-db-migration</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-audit</ignoredUnusedDeclaredDependency>
@@ -798,11 +774,30 @@
               <ignoredUsedUndeclaredDependency>org.springframework.session:spring-session-core</ignoredUsedUndeclaredDependency>
             </ignoredUsedUndeclaredDependencies>
             <ignoredNonTestScopedDependencies>
-              <!-- Setting the scope of this dependency to test makes the 
-                build fail -->
+              <!-- Setting the scope to test makes the build fail -->
               <ignoredNonTestScopedDependency>org.springframework:spring-beans</ignoredNonTestScopedDependency>
             </ignoredNonTestScopedDependencies>
           </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.jacoco</groupId>
+          <artifactId>jacoco-maven-plugin</artifactId>
+          <version>${jacoco-maven-plugin.version}</version>
+          <executions>
+            <execution>
+              <id>prepare-agent</id>
+              <goals>
+                <goal>prepare-agent</goal>
+              </goals>
+            </execution>
+            <execution>
+              <id>report</id>
+              <phase>verify</phase>
+              <goals>
+                <goal>report</goal>
+              </goals>
+            </execution>
+          </executions>
         </plugin>
       </plugins>
     </pluginManagement>
@@ -889,7 +884,8 @@
                 </RestrictImports>
                 <RestrictImports>
                   <reason>Do not use this Transactional import. Use
-                    org.springframework.transaction.annotation.Transactional instead</reason>
+                    org.springframework.transaction.annotation.Transactional
+                    instead</reason>
                   <bannedImports>
                     <bannedImport>javax.transaction.Transactional</bannedImport>
                   </bannedImports>
@@ -916,6 +912,10 @@
             <phase>process-test-classes</phase>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
       </plugin>
     </plugins>
 

@@ -101,12 +101,11 @@ import com.google.common.collect.ImmutableList;
 @ExtendWith( MockitoExtension.class )
 class EventsAnalyticsManagerTest extends EventAnalyticsTest
 {
-
     @Mock
     private JdbcTemplate jdbcTemplate;
 
     @Mock
-    ExecutionPlanStore executionPlanStore;
+    private ExecutionPlanStore executionPlanStore;
 
     private JdbcEventAnalyticsManager subject;
 
