@@ -59,6 +59,8 @@ public class RelationshipType
 
     private String toFromName;
 
+    private boolean referral = false;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -160,5 +162,17 @@ public class RelationshipType
     public void setToFromName( String toFromName )
     {
         this.toFromName = toFromName;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isReferral()
+    {
+        return referral;
+    }
+
+    public void setReferral( boolean referral )
+    {
+        this.referral = referral;
     }
 }

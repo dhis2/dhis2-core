@@ -23,6 +23,8 @@
 
         <property name="bidirectional" column="bidirectional" not-null="true" />
 
+        <property name="referral" column="referral" not-null="true" />
+
         <property name="fromToName" column="fromToName" not-null="true" />
 
         <property name="toFromName" column="toFromName" />
