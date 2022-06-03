@@ -107,6 +107,9 @@ class AdxDataServiceIntegrationTest extends DhisTest
     @Autowired
     private UserService _userService;
 
+    @Autowired
+    private CurrentUserService currentUserService;
+
     private CategoryOption coUnder5;
 
     private CategoryOption coOver5;
@@ -321,6 +324,13 @@ class AdxDataServiceIntegrationTest extends DhisTest
         user.setOrganisationUnits( Sets.newHashSet( ouA, ouB ) );
         userService.addUser( user );
         CurrentUserService currentUserService = new MockCurrentUserService( user );
+        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
+            currentUserService, dataValueSetService, organisationUnitService );
+    }
+
+    @Override
+    public void tearDownTest()
+    {
         setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
             currentUserService, dataValueSetService, organisationUnitService );
     }

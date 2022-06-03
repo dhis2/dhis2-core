@@ -100,6 +100,7 @@ import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
@@ -113,7 +114,8 @@ import com.google.common.collect.Lists;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Slf4j
-public abstract class AbstractTrackedEntityInstanceService implements TrackedEntityInstanceService
+public abstract class AbstractTrackedEntityInstanceService
+    implements TrackedEntityInstanceService, CurrentUserServiceTarget
 {
     // -------------------------------------------------------------------------
     // Dependencies
@@ -979,6 +981,12 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
         clearSession();
 
         return importSummaries;
+    }
+
+    @Override
+    public void setCurrentUserService( CurrentUserService currentUserService )
+    {
+        this.currentUserService = currentUserService;
     }
 
     // -------------------------------------------------------------------------

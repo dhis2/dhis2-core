@@ -29,6 +29,9 @@ package org.hisp.dhis.webapi;
 
 import static org.hisp.dhis.webapi.utils.WebClientUtils.failOnException;
 
+import javax.sql.DataSource;
+
+import org.hisp.dhis.h2.H2SqlFunction;
 import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.utils.TestUtils;
@@ -73,6 +76,9 @@ public abstract class DhisControllerWithJwtTokenAuthTest extends DhisMockMvcCont
 
     protected MockMvc mvc;
 
+    @Autowired
+    private DataSource dataSource;
+
     @BeforeEach
     final void setup()
         throws Exception
@@ -81,6 +87,7 @@ public abstract class DhisControllerWithJwtTokenAuthTest extends DhisMockMvcCont
         mvc = MockMvcBuilders.webAppContextSetup( webApplicationContext ).addFilter( springSecurityFilterChain )
             .build();
         TestUtils.executeStartupRoutines( webApplicationContext );
+        H2SqlFunction.registerH2Functions( dataSource );
     }
 
     @Override
