@@ -216,8 +216,8 @@ public class EventDataValuesValidationHook
         if ( bundle.getStrategy( event ).isUpdate() )
         {
             reporter.addErrorIf(
-                () -> fileResource != null && fileResource.getOwner() != null
-                    && !fileResource.getOwner().equals( event.getEvent() ),
+                () -> fileResource != null && fileResource.getFileResourceOwner() != null
+                    && !fileResource.getFileResourceOwner().equals( event.getEvent() ),
                 event,
                 E1009, dataValue.getValue() );
         }
