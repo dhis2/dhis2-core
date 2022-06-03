@@ -62,6 +62,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccess;
 import org.junit.Before;
@@ -98,6 +99,9 @@ public class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
     @Autowired
     private TrackerOwnershipManager trackerOwnershipManager;
 
+    @Autowired
+    private CurrentUserService currentUserService;
+
     private Program programB;
 
     private final static int A = 65;
@@ -118,12 +122,19 @@ public class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
         user.getTeiSearchOrganisationUnits().add( organisationUnitB );
         // makeUserSuper( user );
         manager.update( user );
-        currentUserService = new MockCurrentUserService( user );
+        CurrentUserService currentUserService = new MockCurrentUserService( user );
 
         ReflectionTestUtils.setField( trackedEntityInstanceAggregate, "currentUserService", currentUserService );
         ReflectionTestUtils.setField( trackedEntityInstanceService, "currentUserService", currentUserService );
         ReflectionTestUtils.setField( teiService, "currentUserService", currentUserService );
+    }
 
+    @Override
+    protected void tearDownTest()
+    {
+        ReflectionTestUtils.setField( trackedEntityInstanceAggregate, "currentUserService", currentUserService );
+        ReflectionTestUtils.setField( trackedEntityInstanceService, "currentUserService", currentUserService );
+        ReflectionTestUtils.setField( teiService, "currentUserService", currentUserService );
     }
 
     @Before
