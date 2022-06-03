@@ -350,7 +350,7 @@
               <threadCount>10</threadCount>
               <skipTests>${skipTests}</skipTests>
               <trimStackTrace>false</trimStackTrace>
-              <argLine>${surefireArgLine}</argLine>
+              <argLine>@{argLine} ${surefireArgLine}</argLine>
               <excludedGroups>integration,integrationH2</excludedGroups>
             </configuration>
             <dependencies>
@@ -377,7 +377,7 @@
             <configuration>
               <skipTests>false</skipTests>
               <trimStackTrace>false</trimStackTrace>
-              <argLine>${surefireArgLine}</argLine>
+              <argLine>@{argLine} ${surefireArgLine}</argLine>
               <groups>integration</groups>
             </configuration>
             <dependencies>
@@ -404,7 +404,7 @@
             <configuration>
               <skipTests>false</skipTests>
               <trimStackTrace>false</trimStackTrace>
-              <argLine>${surefireArgLine}</argLine>
+              <argLine>@{argLine} ${surefireArgLine}</argLine>
               <groups>integrationH2</groups>
             </configuration>
             <dependencies>
@@ -432,7 +432,7 @@
             <configuration>
               <skipTests>true</skipTests>
               <trimStackTrace>false</trimStackTrace>
-              <argLine>${argLine} ${surefireArgLine}</argLine>
+              <argLine>@{argLine} ${surefireArgLine}</argLine>
               <excludedGroups>org.hisp.dhis.IntegrationTest</excludedGroups>
             </configuration>
             <dependencies>
@@ -442,26 +442,6 @@
                 <version>${ow2.asm.version}</version>
               </dependency>
             </dependencies>
-          </plugin>
-          <plugin>
-            <groupId>org.jacoco</groupId>
-            <artifactId>jacoco-maven-plugin</artifactId>
-            <version>${jacoco-maven-plugin.version}</version>
-            <executions>
-              <execution>
-                <id>prepare-agent</id>
-                <goals>
-                  <goal>prepare-agent</goal>
-                </goals>
-              </execution>
-              <execution>
-                <id>report</id>
-                <phase>test</phase>
-                <goals>
-                  <goal>report</goal>
-                </goals>
-              </execution>
-            </executions>
           </plugin>
         </plugins>
       </build>
@@ -480,7 +460,7 @@
             <configuration>
               <skipTests>true</skipTests>
               <trimStackTrace>false</trimStackTrace>
-              <argLine>${surefireArgLine}</argLine>
+              <argLine>@{argLine} ${surefireArgLine}</argLine>
               <excludedGroups>integration,integrationH2</excludedGroups>
             </configuration>
             <dependencies>
@@ -799,6 +779,26 @@
             </ignoredNonTestScopedDependencies>
           </configuration>
         </plugin>
+        <plugin>
+          <groupId>org.jacoco</groupId>
+          <artifactId>jacoco-maven-plugin</artifactId>
+          <version>${jacoco-maven-plugin.version}</version>
+          <executions>
+            <execution>
+              <id>prepare-agent</id>
+              <goals>
+                <goal>prepare-agent</goal>
+              </goals>
+            </execution>
+            <execution>
+              <id>report</id>
+              <phase>verify</phase>
+              <goals>
+                <goal>report</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
       </plugins>
     </pluginManagement>
 
@@ -912,6 +912,10 @@
             <phase>process-test-classes</phase>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
       </plugin>
     </plugins>
 
