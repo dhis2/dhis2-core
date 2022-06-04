@@ -54,6 +54,7 @@ jobs:
         with:
           name: integration-test-logs
           path: "**/target/test.log"
+          if-no-files-found: error # check our logging configuration if that happens
           retention-days: 3
       - name: Report coverage to codecov
         uses: codecov/codecov-action@v3
@@ -88,6 +89,7 @@ jobs:
         with:
           name: integration-h2-test-logs
           path: "**/target/test.log"
+          if-no-files-found: error # check our logging configuration if that happens
           retention-days: 3
       - name: Report coverage to codecov
         uses: codecov/codecov-action@v3
@@ -124,6 +126,7 @@ jobs:
         with:
           name: integration-test-analytics-logs
           path: "**/target/test.log"
+          if-no-files-found: error # check our logging configuration if that happens
           retention-days: 3
       - name: Report coverage to codecov
         uses: codecov/codecov-action@v3
