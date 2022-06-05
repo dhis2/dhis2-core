@@ -31,6 +31,7 @@ import static com.google.common.collect.Sets.newHashSet;
 import static java.util.Arrays.asList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.hisp.dhis.common.DataDimensionType.DISAGGREGATION;
 import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
 
 import java.io.File;
@@ -555,6 +556,23 @@ public abstract class DhisConvenienceTest
     }
 
     /**
+     * Creates a {@see CategoryCombo} with name, uid, and categories.
+     *
+     * @param name desired name
+     * @param uid desired uid
+     * @param categories categories for this combo
+     * @return {@see CategoryCombo}
+     */
+    public static CategoryCombo createCategoryCombo( String name, String uid, Category... categories )
+    {
+        CategoryCombo categoryCombo = new CategoryCombo( name, DISAGGREGATION, Arrays.asList( categories ) );
+        categoryCombo.setAutoFields();
+        categoryCombo.setUid( uid );
+
+        return categoryCombo;
+    }
+
+    /**
      * @param categoryComboUniqueIdentifier A unique character to identify the
      *        category combo.
      * @param categoryOptionUniqueIdentifiers Unique characters to identify the
@@ -576,6 +594,26 @@ public abstract class DhisConvenienceTest
             categoryOptionCombo.getCategoryOptions()
                 .add( new CategoryOption( "CategoryOption" + identifier ) );
         }
+
+        return categoryOptionCombo;
+    }
+
+    /**
+     * Creates a {@see CategoryOptionCombo} with name, uid, and options.
+     *
+     * @param name desired name
+     * @param uid desired uid
+     * @param categoryCombo category combination for this option combo
+     * @param categoryOptions category options for this option combo
+     * @return {@see CategoryOptionCombo}
+     */
+    public static CategoryOptionCombo createCategoryOptionCombo( String name, String uid, CategoryCombo categoryCombo,
+        CategoryOption... categoryOptions )
+    {
+        CategoryOptionCombo categoryOptionCombo = createCategoryOptionCombo( categoryCombo, categoryOptions );
+        categoryOptionCombo.setName( name );
+        categoryOptionCombo.setShortName( name );
+        categoryOptionCombo.setUid( uid );
 
         return categoryOptionCombo;
     }
@@ -647,10 +685,45 @@ public abstract class DhisConvenienceTest
         return category;
     }
 
+    /**
+     * Creates a {@see Category} with name, uid, and options.
+     *
+     * @param name desired name
+     * @param uid desired uid
+     * @param categoryOptions options for this category
+     * @return {@see Category}
+     */
+    public static Category createCategory( String name, String uid,
+        CategoryOption... categoryOptions )
+    {
+        Category category = new Category( name, DISAGGREGATION, Arrays.asList( categoryOptions ) );
+        category.setAutoFields();
+        category.setShortName( name );
+        category.setUid( uid );
+
+        return category;
+    }
+
     public static CategoryOption createCategoryOption( char uniqueIdentifier )
     {
         CategoryOption categoryOption = new CategoryOption( "CategoryOption" + uniqueIdentifier );
         categoryOption.setAutoFields();
+
+        return categoryOption;
+    }
+
+    /**
+     * Creates a {@see CategoryOption} with name and uid.
+     *
+     * @param name desired name
+     * @param uid desired uid
+     * @return {@see CategoryOption}
+     */
+    public static CategoryOption createCategoryOption( String name, String uid )
+    {
+        CategoryOption categoryOption = new CategoryOption( name );
+        categoryOption.setAutoFields();
+        categoryOption.setUid( uid );
 
         return categoryOption;
     }
