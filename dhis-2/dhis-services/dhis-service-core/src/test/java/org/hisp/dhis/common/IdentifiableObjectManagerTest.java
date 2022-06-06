@@ -43,6 +43,10 @@ import java.util.Set;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.TransactionalIntegrationTest;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -702,5 +706,16 @@ public class IdentifiableObjectManagerTest
 
         de = identifiableObjectManager.get( de.getUid() );
         assertEquals( 0, de.getSharing().getUserGroups().size() );
+    }
+
+    @Test
+    void testGetDefaults()
+    {
+        Map<Class<? extends IdentifiableObject>, IdentifiableObject> objects = identifiableObjectManager.getDefaults();
+        assertEquals( 4, objects.size() );
+        assertNotNull( objects.get( Category.class ) );
+        assertNotNull( objects.get( CategoryCombo.class ) );
+        assertNotNull( objects.get( CategoryOptionCombo.class ) );
+        assertNotNull( objects.get( CategoryOption.class ) );
     }
 }
