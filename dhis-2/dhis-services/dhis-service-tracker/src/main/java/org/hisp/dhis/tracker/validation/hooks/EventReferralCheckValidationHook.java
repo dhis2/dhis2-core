@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.validation.hooks;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1311;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1312;
 
 import java.util.List;
 
@@ -37,6 +38,7 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.stereotype.Component;
 
 /**
@@ -70,6 +72,10 @@ public class EventReferralCheckValidationHook extends AbstractTrackerDtoValidati
             reporter.addErrorIf( relationships::isEmpty, event, E1311,
                 "programStage" );
 
+            relationships.forEach( r -> {
+                reporter.addErrorIf( () -> !ObjectUtils.allNonNull( r.getFrom(), r.getTo() ), event, E1312,
+                    "programStage" );
+            } );
         }
     }
 }
