@@ -692,25 +692,25 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
     @PostMapping( value = "/{uid}/{property}", consumes = APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public WebMessage addCollectionItemsJson(
+    public void addCollectionItemsJson(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
         HttpServletRequest request )
         throws Exception
     {
-        return addCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
+        addCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
             renderService.fromJson( request.getInputStream(), IdentifiableObjects.class ) );
     }
 
     @PostMapping( value = "/{uid}/{property}", consumes = APPLICATION_XML_VALUE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public WebMessage addCollectionItemsXml(
+    public void addCollectionItemsXml(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
         HttpServletRequest request )
         throws Exception
     {
-        return addCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
+        addCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
             renderService.fromXml( request.getInputStream(), IdentifiableObjects.class ) );
     }
 
@@ -761,7 +761,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
     @PostMapping( value = "/{uid}/{property}/{itemId}" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public WebMessage addCollectionItem(
+    public void addCollectionItem(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
         @PathVariable( "itemId" ) String pvItemId,
@@ -779,10 +779,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         items.setAdditions( singletonList( new BaseIdentifiableObject( pvItemId, "", "" ) ) );
 
         preUpdateItems( object, items );
-        TypeReport report = collectionService.addCollectionItems( object, pvProperty, items.getIdentifiableObjects() );
+        collectionService.addCollectionItems( object, pvProperty, items.getIdentifiableObjects() );
         postUpdateItems( object, items );
         hibernateCacheManager.clearCache();
-        return typeReport( report );
     }
 
     @DeleteMapping( value = "/{uid}/{property}", consumes = APPLICATION_JSON_VALUE )
