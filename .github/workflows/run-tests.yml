@@ -23,8 +23,10 @@ jobs:
           cache: maven
       - name: Test core # NOTE: dhis-2/pom.xml needs to be installed as built artifacts are needed by dhis-web
         run: mvn clean install --threads 2C --batch-mode --no-transfer-progress --update-snapshots -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty
+        timeout-minutes: 30
       - name: Test dhis-web
         run: mvn verify --threads 2C --batch-mode --no-transfer-progress --update-snapshots -f ./dhis-2/dhis-web/pom.xml
+        timeout-minutes: 30
       - name: Report coverage to codecov
         uses: codecov/codecov-action@v3
         with:
@@ -45,6 +47,7 @@ jobs:
           cache: maven
       - name: Run integration tests
         run: mvn clean verify --threads 2C --batch-mode --no-transfer-progress -Pintegration -DexcludeAnalyticsTests=true -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty
+        timeout-minutes: 30
       - name: Report coverage to codecov
         uses: codecov/codecov-action@v3
         with:
@@ -71,6 +74,7 @@ jobs:
           cache: maven
       - name: Run integration h2 tests
         run: mvn clean verify --threads 2C --batch-mode --no-transfer-progress -PintegrationH2 -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty
+        timeout-minutes: 30
       - name: Report coverage to codecov
         uses: codecov/codecov-action@v3
         with:
@@ -96,13 +100,10 @@ jobs:
           distribution: temurin
           cache: maven
       - name: Build analytics with dependencies
-        env:
-          MAVEN_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=125
         run: mvn clean install --threads 2C -DskipTests -Dmaven.test.skip=true --batch-mode --no-transfer-progress -f dhis-2/pom.xml -pl=dhis-services/dhis-service-analytics/pom.xml --also-make
       - name: Run analytics integration tests
-        env:
-          MAVEN_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=125
         run: mvn verify -Pintegration --batch-mode --no-transfer-progress -f ./dhis-2/dhis-services/dhis-service-analytics/pom.xml
+        timeout-minutes: 30
       - name: Report coverage to codecov
         uses: codecov/codecov-action@v3
         with:
