@@ -38,8 +38,11 @@ public enum AnalyticsTableType
     ORG_UNIT_TARGET( "analytics_orgunittarget", false, false ),
     EVENT( "analytics_event", false, true ),
     ENROLLMENT( "analytics_enrollment", false, false ),
-    VALIDATION_RESULT( "analytics_validationresult", true, false );
-
+    VALIDATION_RESULT( "analytics_validationresult", true, false ),
+    TRACKED_ENTITY_INSTANCE( "analytics_tracked_entity_instance", false, false ),
+    TRACKED_ENTITY_INSTANCE_EVENTS( "analytics_tei_events", false, false ),
+    TRACKED_ENTITY_INSTANCE_ENROLLMENTS( "analytics_tei_enrollments", false, false ),
+    TRACKED_ENTITY_INSTANCE_TEI( "analytics_tei_tei", false, false );
     private String tableName;
 
     private boolean periodDimension;

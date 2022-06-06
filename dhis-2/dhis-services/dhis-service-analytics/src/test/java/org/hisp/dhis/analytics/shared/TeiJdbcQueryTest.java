@@ -28,10 +28,14 @@
 package org.hisp.dhis.analytics.shared;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.analytics.tei.TeiJdbcQuery;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 /**
  * // TODO: Improve unit tests and coverage
@@ -46,148 +50,96 @@ class TeiJdbcQueryTest
     void testFullStatementSuccessfully()
     {
         // Given
+        String trackedEntityTypeUid = CodeGenerator.generateUid();
         TeiJdbcQuery teiJdbcQuery = new TeiJdbcQuery();
-        String sql = "SELECT t.trackedentityinstanceid AS \"tracked entity instance id\",\n" +
-            "       t.uid AS \"uid\",\n" +
-            "  (SELECT teav.VALUE\n" +
-            "   FROM trackedentityattributevalue teav,\n" +
-            "        trackedentityattribute tea\n" +
-            "   WHERE teav.trackedentityinstanceid = t.trackedentityinstanceid\n" +
-            "     AND teav.trackedentityattributeid = tea.trackedentityattributeid\n" +
-            "     AND tea.uid = 'zDhUuAYrxNC'\n" +
-            "   LIMIT 1) AS \"LastName\",\n" +
-            "\n" +
-            "  (SELECT teav.VALUE\n" +
-            "   FROM trackedentityattributevalue teav,\n" +
-            "        trackedentityattribute tea\n" +
-            "   WHERE teav.trackedentityinstanceid = t.trackedentityinstanceid\n" +
-            "     AND teav.trackedentityattributeid = tea.trackedentityattributeid\n" +
-            "     AND tea.uid = 'w75KJ2mc4zz'\n" +
-            "   LIMIT 1) AS \"First Name\",\n" +
-            "\n" +
-            "  (SELECT teav.VALUE\n" +
-            "   FROM trackedentityattributevalue teav,\n" +
-            "        trackedentityattribute tea\n" +
-            "   WHERE teav.trackedentityinstanceid = t.trackedentityinstanceid\n" +
-            "     AND teav.trackedentityattributeid = tea.trackedentityattributeid\n" +
-            "     AND tea.uid = 'iESIqZ0R0R0'\n" +
-            "   LIMIT 1) AS \"DOB\",\n" +
-            "       COALESCE(\n" +
+        String analyticsTableName = "analytics_tracked_entity_instance_" + trackedEntityTypeUid;
+
+        String sql = "select distinct atei.trackedentityinstanceid as \"tracked entity instance id\" , \n" +
+            "atei.trackedentityinstanceuid as \"tracked entity instance uid\",\n" +
+            "atei.\"zDhUuAYrxNC\" as \"last name\", atei.\"w75KJ2mc4zz\" as \"first name\",\n" +
+            "atei.\"lzgmxybs97q\" as \"unique id\", \n" +
+            "COALESCE(\n" +
             "                  (SELECT TRUE\n" +
-            "                   FROM program p, programinstance pi\n" +
-            "                   WHERE p.programid = pi.programid\n" +
-            "                     AND pi.trackedentityinstanceid = t.trackedentityinstanceid\n" +
-            "                     AND p.uid = 'IpHINAT79UW'\n" +
+            "                   FROM " + analyticsTableName + " ateiin\n" +
+            "                   WHERE ateiin.trackedentityinstanceid = atei.trackedentityinstanceid\n" +
+            "                     AND ateiin.programuid = 'IpHINAT79UW'\n" +
             "                   LIMIT 1), FALSE) AS \"Child Program Enrollment Date\",\n" +
-            "       COALESCE(\n" +
+            "COALESCE(\n" +
             "                  (SELECT TRUE\n" +
-            "                   FROM program p, programinstance pi\n" +
-            "                   WHERE p.programid = pi.programid\n" +
-            "                     AND pi.trackedentityinstanceid = t.trackedentityinstanceid\n" +
-            "                     AND p.uid = 'ur1Edk5Oe2n'\n" +
+            "                   FROM " + analyticsTableName + " ateiin\n" +
+            "                   WHERE ateiin.trackedentityinstanceid = atei.trackedentityinstanceid\n" +
+            "                     AND ateiin.programuid = 'ur1Edk5Oe2n'\n" +
             "                   LIMIT 1), FALSE) AS \"TB Program Enrollment Date\",\n" +
-            "\n" +
-            "  (SELECT pi.enrollmentdate\n" +
-            "   FROM programinstance pi,\n" +
-            "        program p\n" +
-            "   WHERE pi.trackedentityinstanceid = t.trackedentityinstanceid\n" +
-            "     AND pi.programid = p.programid\n" +
-            "     AND p.uid = 'IpHINAT79UW'\n" +
-            "   ORDER BY enrollmentdate DESC\n" +
-            "   LIMIT 1) AS \"is enrolled in Child Program\",\n" +
-            "\n" +
-            "  (SELECT pi.enrollmentdate\n" +
-            "   FROM programinstance pi,\n" +
-            "        program p\n" +
-            "   WHERE pi.trackedentityinstanceid = t.trackedentityinstanceid\n" +
-            "     AND pi.programid = p.programid\n" +
-            "     AND p.uid = 'ur1Edk5Oe2n'\n" +
-            "   ORDER BY enrollmentdate DESC\n" +
+            "(SELECT ateiin.enrollmentdate\n" +
+            "   FROM " + analyticsTableName + " ateiin\n" +
+            "   WHERE ateiin.trackedentityinstanceid = atei.trackedentityinstanceid\n" +
+            "     AND ateiin.programuid = 'IpHINAT79UW'\n" +
+            "   ORDER BY ateiin.enrollmentdate DESC\n" +
+            "   LIMIT 1) AS \"is enrolled in Child Program\",\t\t\t\t   \n" +
+            "(SELECT ateiin.enrollmentdate\n" +
+            "   FROM " + analyticsTableName + " ateiin\n" +
+            "   WHERE ateiin.trackedentityinstanceid = atei.trackedentityinstanceid\n" +
+            "     AND ateiin.programuid = 'ur1Edk5Oe2n'\n" +
+            "   ORDER BY ateiin.enrollmentdate DESC\n" +
             "   LIMIT 1) AS \"is enrolled in TB Program\",\n" +
-            "\n" +
-            "  (SELECT psi.executiondate\n" +
-            "   FROM programstageinstance psi,\n" +
-            "        programinstance pi,\n" +
-            "        program p,\n" +
-            "        programstage ps\n" +
-            "   WHERE psi.programinstanceid = pi.programinstanceid\n" +
-            "     AND pi.trackedentityinstanceid = t.trackedentityinstanceid\n" +
-            "     AND pi.programid = p.programid\n" +
-            "     AND p.uid = 'IpHINAT79UW'\n" +
-            "     AND ps.uid = 'ZzYYXq4fJie'\n" +
-            "     AND ps.programid = p.programid\n" +
-            "   ORDER BY pi.enrollmentdate DESC, psi.executiondate DESC\n" +
-            "   LIMIT 1) AS \"Report Date\",\n" +
-            "\n" +
-            "  (SELECT psi.executiondate\n" +
-            "   FROM programstageinstance psi,\n" +
-            "        programinstance pi,\n" +
-            "        programstage ps\n" +
-            "   WHERE psi.programinstanceid = pi.programinstanceid\n" +
-            "     AND pi.trackedentityinstanceid = t.trackedentityinstanceid\n" +
-            "     AND ps.uid = 'jdRD35YwbRH'\n" +
-            "     AND psi.programstageid = ps.programstageid\n" +
-            "   ORDER BY pi.enrollmentdate DESC, psi.executiondate DESC\n" +
+            "(SELECT ateiin.executiondate\n" +
+            "   FROM " + analyticsTableName + " ateiin\n" +
+            "   WHERE ateiin.programinstanceuid = atei.programinstanceuid\n" +
+            "     AND ateiin.trackedentityinstanceid = atei.trackedentityinstanceid\n" +
+            "     AND ateiin.programuid = atei.programuid\n" +
+            "     AND ateiin.programuid = 'IpHINAT79UW'\n" +
+            "     AND ateiin.programstageuid = 'ZzYYXq4fJie'\n" +
+            "   ORDER BY ateiin.enrollmentdate DESC, ateiin.executiondate DESC\n" +
+            "   LIMIT 1) AS \"Report Date\",   \n" +
+            "(SELECT ateiin.executiondate\n" +
+            "   FROM " + analyticsTableName + " ateiin\n" +
+            "   WHERE ateiin.trackedentityinstanceid = atei.trackedentityinstanceid\n" +
+            "     AND ateiin.programstageuid = 'jdRD35YwbRH'\n" +
+            "   ORDER BY ateiin.enrollmentdate DESC, ateiin.executiondate DESC\n" +
             "   LIMIT 1) AS \"Stage Sputum Test Report Date\",\n" +
-            "\n" +
-            "  (SELECT psi.eventdatavalues -> 'cYGaxwK615G' -> 'value'\n" +
-            "   FROM programstageinstance psi,\n" +
-            "        programinstance pi,\n" +
-            "        program p\n" +
-            "   WHERE psi.programinstanceid = pi.programinstanceid\n" +
-            "     AND pi.trackedentityinstanceid = t.trackedentityinstanceid\n" +
-            "     AND pi.programid = p.programid\n" +
-            "     AND p.uid = 'IpHINAT79UW'\n" +
-            "   ORDER BY pi.enrollmentdate DESC, psi.executiondate DESC\n" +
+            "(SELECT ateiin.eventdatavalues -> 'cYGaxwK615G' -> 'value'\n" +
+            "   FROM " + analyticsTableName + " ateiin\n" +
+            "   WHERE ateiin.programinstanceuid = atei.programinstanceuid\n" +
+            "     AND ateiin.trackedentityinstanceid = atei.trackedentityinstanceid\n" +
+            "     AND ateiin.programuid = 'IpHINAT79UW'\n" +
+            "   ORDER BY ateiin.enrollmentdate DESC, ateiin.executiondate DESC\n" +
             "   LIMIT 1) AS \"Infant HIV test Result\",\n" +
-            "\n" +
-            "  (SELECT psi.eventdatavalues -> 'sj3j9Hwc7so' -> 'value'\n" +
-            "   FROM programstageinstance psi,\n" +
-            "        programinstance pi,\n" +
-            "        program p\n" +
-            "   WHERE psi.programinstanceid = pi.programinstanceid\n" +
-            "     AND pi.trackedentityinstanceid = t.trackedentityinstanceid\n" +
-            "     AND pi.programid = p.programid\n" +
-            "     AND p.uid = 'IpHINAT79UW'\n" +
-            "   ORDER BY pi.enrollmentdate DESC, psi.executiondate DESC\n" +
+            "(SELECT ateiin.eventdatavalues -> 'sj3j9Hwc7so' -> 'value'\n" +
+            "   FROM " + analyticsTableName + " ateiin\n" +
+            "   WHERE ateiin.programinstanceuid = atei.programinstanceuid\n" +
+            "     AND ateiin.trackedentityinstanceid = atei.trackedentityinstanceid\n" +
+            "     AND ateiin.programuid = 'IpHINAT79UW'\n" +
+            "   ORDER BY ateiin.enrollmentdate DESC, ateiin.executiondate DESC\n" +
             "   LIMIT 1) AS \"Child ARVs\",\n" +
-            "\n" +
-            "  (SELECT psi.eventdatavalues -> 'zocHNQIQBIN' -> 'value'\n" +
-            "   FROM programstageinstance psi,\n" +
-            "        programinstance pi\n" +
-            "   WHERE psi.programinstanceid = pi.programinstanceid\n" +
-            "     AND pi.trackedentityinstanceid = t.trackedentityinstanceid\n" +
-            "   ORDER BY pi.enrollmentdate DESC, psi.executiondate DESC\n" +
+            "(SELECT ateiin.eventdatavalues -> 'zocHNQIQBIN' -> 'value'\n" +
+            "   FROM " + analyticsTableName + " ateiin\n" +
+            "   WHERE ateiin.trackedentityinstanceid = atei.trackedentityinstanceid\n" +
+            "   ORDER BY ateiin.enrollmentdate DESC, ateiin.executiondate DESC\n" +
             "   LIMIT 1) AS \"TB  smear microscopy test outcome\"\n" +
-            "FROM trackedentityinstance t where\n" +
-            "  (SELECT teav.VALUE\n" +
-            "   FROM trackedentityattributevalue teav, trackedentityattribute tea\n" +
-            "   WHERE teav.trackedentityinstanceid = t.trackedentityinstanceid\n" +
-            "     AND teav.trackedentityattributeid = tea.trackedentityattributeid\n" +
-            "     AND tea.uid = 'zDhUuAYrxNC'\n" +
-            "   LIMIT 1) = 'Kelly'\n" +
-            "AND\n" +
-            "  (SELECT teav.VALUE\n" +
-            "   FROM trackedentityattributevalue teav,\n" +
-            "        trackedentityattribute tea\n" +
-            "   WHERE teav.trackedentityinstanceid = t.trackedentityinstanceid\n" +
-            "     AND teav.trackedentityattributeid = tea.trackedentityattributeid\n" +
-            "     AND tea.uid = 'w75KJ2mc4zz'\n" +
-            "   LIMIT 1) = 'John'\n" +
-            "AND exists\n" +
-            "  (SELECT 1\n" +
-            "   FROM programinstance pi, program p\n" +
-            "   WHERE pi.programid = p.programid\n" +
-            "     AND pi.trackedentityinstanceid = t.trackedentityinstanceid\n" +
-            "     AND p.uid IN ('ur1Edk5Oe2n', 'IpHINAT79UW')\n" +
-            "     AND pi.enrollmentdate > '2022-01-01' )";
+            "from " + analyticsTableName + " atei\n" +
+            "where atei.\"zDhUuAYrxNC\" = 'Kelly'\n" +
+            "and atei.\"w75KJ2mc4zz\" = 'John'\n" +
+            "and atei.enrollmentdate  > '2022-01-01'\n" +
+            "and atei.programuid in ('ur1Edk5Oe2n', 'IpHINAT79UW')";
         // When
-        final Query query = teiJdbcQuery.from( TeiQueryParams.builder().build() );
+        final Query query = teiJdbcQuery.from( mockTeiParams( trackedEntityTypeUid ) );
         final String fullStatement = query.fullStatement();
 
         // Then
         assertEquals( sql.replaceAll( "[\\n\\t ]", "" ).toLowerCase(),
             fullStatement.replaceAll( "[\\n\\t ]", "" ).toLowerCase(),
             fullStatement );
+    }
+
+    private TeiQueryParams mockTeiParams( String trackedEntityTypeUid )
+    {
+        TrackedEntityType trackedEntityType = Mockito.mock( TrackedEntityType.class );
+
+        when( trackedEntityType.getUid() ).thenReturn( trackedEntityTypeUid );
+
+        return TeiQueryParams
+            .builder()
+            .trackedEntityType( trackedEntityType )
+            .build();
     }
 }

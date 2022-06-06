@@ -28,10 +28,14 @@
 package org.hisp.dhis.analytics.tei;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.analytics.shared.Query;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 /**
  * // TODO: Improve unit tests and coverage
@@ -65,6 +69,13 @@ class TeiJdbcQueryTest
 
     private TeiQueryParams mockTeiParams()
     {
-        return TeiQueryParams.builder().build();
+        TrackedEntityType trackedEntityType = Mockito.mock( TrackedEntityType.class );
+
+        when( trackedEntityType.getUid() ).thenReturn( CodeGenerator.generateUid() );
+
+        return TeiQueryParams
+            .builder()
+            .trackedEntityType( trackedEntityType )
+            .build();
     }
 }
