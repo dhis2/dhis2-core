@@ -111,7 +111,7 @@ public class CommonRequestMapper
                     String dimensionId = getDimensionFromParam( uid );
                     List<String> items = getDimensionItemsFromParam( uid );
 
-                    // TODO: understand if we want to still use
+                    // TODO: DHIS2-13357 understand if we want to still use
                     // DimensionalObject or define new ones.
                     DimensionalObject dimensionalObject = dataQueryService.getDimension( dimensionId,
                         items,
@@ -126,7 +126,7 @@ public class CommonRequestMapper
                     }
                     else
                     {
-                        // TODO: retrieve query items
+                        // TODO: DHIS2-13357 retrieve query items
                         elementsByType.get( definition.getQueryItemType() ).add( null );
                     }
                 } ) );
