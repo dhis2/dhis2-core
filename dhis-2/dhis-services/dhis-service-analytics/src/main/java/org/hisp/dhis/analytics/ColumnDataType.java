@@ -35,6 +35,7 @@ public enum ColumnDataType
     CHARACTER_11( "character(11)" ),
     VARCHAR_50( "varchar(50)" ),
     VARCHAR_255( "varchar(255)" ),
+    VARCHAR_1200( "varchar(1200)" ),
     TEXT( "text" ),
     DATE( "date" ),
     TIMESTAMP( "timestamp" ),
@@ -43,8 +44,8 @@ public enum ColumnDataType
     DOUBLE( "double precision" ),
     BOOLEAN( "boolean" ),
     GEOMETRY( "geometry" ),
-    GEOMETRY_POINT( "geometry(Point, 4326)" );
-
+    GEOMETRY_POINT( "geometry(Point, 4326)" ),
+    JSONB( "jsonb" );
     String value;
 
     ColumnDataType( String value )

@@ -113,4 +113,14 @@ public class ServiceConfig
         return new DefaultAnalyticsTableService( tableManager, organisationUnitService, dataElementService,
             resourceTableService, systemSettingManager );
     }
+
+    @Bean( "org.hisp.dhis.analytics.TrackedEntityInstanceAnalyticsTableService" )
+    public DefaultAnalyticsTableService trackedEntityInstanceAnalyticsTableManager(
+        @Qualifier( "org.hisp.dhis.analytics.TrackedEntityInstanceAnalyticsTableManager" ) AnalyticsTableManager tableManager,
+        OrganisationUnitService organisationUnitService, DataElementService dataElementService,
+        ResourceTableService resourceTableService, Notifier notifier, SystemSettingManager systemSettingManager )
+    {
+        return new DefaultAnalyticsTableService( tableManager, organisationUnitService, dataElementService,
+            resourceTableService, systemSettingManager );
+    }
 }
