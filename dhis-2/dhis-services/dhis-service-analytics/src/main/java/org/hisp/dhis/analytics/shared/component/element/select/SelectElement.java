@@ -25,36 +25,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.analytics.shared.component.element.select;
 
-/**
- * @author Lars Helge Overland
- */
-public enum ColumnDataType
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import lombok.Getter;
+
+@Getter
+public abstract class SelectElement
 {
-    CHARACTER_11( "character(11)" ),
-    VARCHAR_50( "varchar(50)" ),
-    VARCHAR_255( "varchar(255)" ),
-    VARCHAR_1200( "varchar(1200)" ),
-    TEXT( "text" ),
-    DATE( "date" ),
-    TIMESTAMP( "timestamp" ),
-    INTEGER( "integer" ),
-    BIGINT( "bigint" ),
-    DOUBLE( "double precision" ),
-    BOOLEAN( "boolean" ),
-    GEOMETRY( "geometry" ),
-    GEOMETRY_POINT( "geometry(Point, 4326)" ),
-    JSONB( "jsonb" );
-    String value;
+    protected final String trackedEntityTypeUid;
 
-    ColumnDataType( String value )
+    protected SelectElement( String trackedEntityTypeUid )
     {
-        this.value = value;
-    }
-
-    public String getValue()
-    {
-        return value;
+        checkNotNull( trackedEntityTypeUid );
+        this.trackedEntityTypeUid = trackedEntityTypeUid.toLowerCase();
     }
 }

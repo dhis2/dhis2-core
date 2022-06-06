@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.analytics.shared.component.element.where;
 
-import java.util.List;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -45,8 +43,6 @@ import org.hisp.dhis.analytics.shared.visitor.where.WhereVisitor;
 @Getter
 public class EnrollmentDateValueWhereElement implements Element<WhereVisitor>
 {
-    private List<String> programUidList;
-
     private String date;
 
     /**

@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.shared.visitor.where;
 import java.util.List;
 
 import org.hisp.dhis.analytics.shared.component.element.where.EnrollmentDateValueWhereElement;
+import org.hisp.dhis.analytics.shared.component.element.where.ProgramUidWhereElement;
 import org.hisp.dhis.analytics.shared.component.element.where.TeaValueWhereElement;
 
 /**
@@ -52,6 +53,13 @@ public interface WhereVisitor
      * @param element
      */
     void visit( EnrollmentDateValueWhereElement element );
+
+    /**
+     * ProgramUid visit method
+     *
+     * @param element
+     */
+    void visit( ProgramUidWhereElement element );
 
     /**
      * Visitor produced iteratively all predicates for where part of sql

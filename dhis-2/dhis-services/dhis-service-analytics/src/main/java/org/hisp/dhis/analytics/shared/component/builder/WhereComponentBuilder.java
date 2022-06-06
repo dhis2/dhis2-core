@@ -35,6 +35,7 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.analytics.shared.component.WhereComponent;
 import org.hisp.dhis.analytics.shared.component.element.Element;
 import org.hisp.dhis.analytics.shared.component.element.where.EnrollmentDateValueWhereElement;
+import org.hisp.dhis.analytics.shared.component.element.where.ProgramUidWhereElement;
 import org.hisp.dhis.analytics.shared.component.element.where.TeaValueWhereElement;
 import org.hisp.dhis.analytics.shared.visitor.where.WhereVisitor;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
@@ -80,6 +81,7 @@ public class WhereComponentBuilder
     public WhereComponent build()
     {
         Map<String, String> inputUidMap = new HashMap<>();
+
         inputUidMap.put( "w75KJ2mc4zz", "John" );
         inputUidMap.put( "zDhUuAYrxNC", "Kelly" );
 
@@ -88,7 +90,9 @@ public class WhereComponentBuilder
             .stream()
             .map( k -> new TeaValueWhereElement( k, inputUidMap.get( k ) ) ).collect( Collectors.toList() );
 
-        elements.add( new EnrollmentDateValueWhereElement( List.of( "ur1Edk5Oe2n", "IpHINAT79UW" ), "2022-01-01" ) );
+        elements.add( new EnrollmentDateValueWhereElement( "2022-01-01" ) );
+
+        elements.add( new ProgramUidWhereElement( List.of( "ur1Edk5Oe2n", "IpHINAT79UW" ) ) );
 
         return new WhereComponent( elements );
     }

@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.analytics.shared.component.builder;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -38,11 +40,10 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.analytics.shared.component.SelectComponent;
 import org.hisp.dhis.analytics.shared.component.element.Element;
 import org.hisp.dhis.analytics.shared.component.element.select.EnrollmentDateValueSelectElement;
-import org.hisp.dhis.analytics.shared.component.element.select.EventDateValueElement;
+import org.hisp.dhis.analytics.shared.component.element.select.EventDataValueElement;
 import org.hisp.dhis.analytics.shared.component.element.select.ExecutionDateValueElement;
 import org.hisp.dhis.analytics.shared.component.element.select.ProgramEnrollmentFlagElement;
 import org.hisp.dhis.analytics.shared.component.element.select.SimpleSelectElement;
-import org.hisp.dhis.analytics.shared.component.element.select.TeaValueSelectElement;
 import org.hisp.dhis.analytics.shared.visitor.select.SelectVisitor;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 
@@ -86,26 +87,33 @@ public class SelectComponentBuilder
      */
     public SelectComponent build()
     {
+        checkNotNull( teiQueryParams );
+
+        checkNotNull( teiQueryParams.getTrackedEntityType() );
+
+        checkNotNull( teiQueryParams.getTrackedEntityType().getUid() );
+
+        String trackedEntityUid = teiQueryParams.getTrackedEntityType().getUid();
+
         List<Element<SelectVisitor>> elements = new ArrayList<>(
-            List.of( new SimpleSelectElement( "t.trackedentityinstanceid", "tracked entity instance id" ),
-                new SimpleSelectElement( "t.uid", "uid" ) ) );
+            List.of(
+                new SimpleSelectElement( trackedEntityUid, "atei.trackedentityinstanceid",
+                    "tracked entity instance id" ),
+                new SimpleSelectElement( trackedEntityUid, "atei.trackedentityinstanceuid",
+                    "tracked entity instance uid" ),
+                new SimpleSelectElement( trackedEntityUid, "atei.\"zDhUuAYrxNC\"", "last name" ),
+                new SimpleSelectElement( trackedEntityUid, "atei.\"w75KJ2mc4zz\"", "first name" ),
+                new SimpleSelectElement( trackedEntityUid, "atei.\"lZGmxYbs97q\"", "unique id" ) ) );
 
         Map<String, String> inputUidMap = new HashMap<>();
-        inputUidMap.put( "w75KJ2mc4zz", "First Name" );
-        inputUidMap.put( "zDhUuAYrxNC", "LastName" );
-        inputUidMap.put( "iESIqZ0R0R0", "DOB" );
-        elements.addAll( inputUidMap
-            .keySet()
-            .stream()
-            .map( k -> new TeaValueSelectElement( k, inputUidMap.get( k ) ) ).collect( Collectors.toList() ) );
 
-        inputUidMap.clear();
         inputUidMap.put( "IpHINAT79UW", "Child Program Enrollment Date" );
         inputUidMap.put( "ur1Edk5Oe2n", "TB Program Enrollment Date" );
         elements.addAll( inputUidMap
             .keySet()
             .stream()
-            .map( k -> new ProgramEnrollmentFlagElement( k, inputUidMap.get( k ) ) ).collect( Collectors.toList() ) );
+            .map( k -> new ProgramEnrollmentFlagElement( trackedEntityUid, k, inputUidMap.get( k ) ) )
+            .collect( Collectors.toList() ) );
 
         inputUidMap.clear();
         inputUidMap.put( "IpHINAT79UW", "is enrolled in Child Program" );
@@ -113,7 +121,7 @@ public class SelectComponentBuilder
         elements.addAll( inputUidMap
             .keySet()
             .stream()
-            .map( k -> new EnrollmentDateValueSelectElement( k, inputUidMap.get( k ) ) )
+            .map( k -> new EnrollmentDateValueSelectElement( trackedEntityUid, k, inputUidMap.get( k ) ) )
             .collect( Collectors.toList() ) );
 
         Map<Pair<String, String>, String> pJsonNodeWithPUidMap = new HashMap<>();
@@ -122,18 +130,19 @@ public class SelectComponentBuilder
         elements.addAll( pJsonNodeWithPUidMap
             .keySet()
             .stream()
-            .map( k -> new ExecutionDateValueElement( getJsonNodeUid( k ), getProgramUid( k ),
+            .map( k -> new ExecutionDateValueElement( trackedEntityUid, getJsonNodeUid( k ), getProgramUid( k ),
                 pJsonNodeWithPUidMap.get( k ) ) )
             .collect( Collectors.toList() ) );
 
         pJsonNodeWithPUidMap.clear();
         pJsonNodeWithPUidMap.put( new ImmutablePair<>( "cYGaxwK615G", "IpHINAT79UW" ), "Infant HIV test Result" );
-        pJsonNodeWithPUidMap.put( new ImmutablePair<>( "sj3j9Hwc7so", "IpHINAT79UW" ), "Child ARVs" );
         pJsonNodeWithPUidMap.put( new ImmutablePair<>( "zocHNQIQBIN", null ), "TB  smear microscopy test outcome" );
+        pJsonNodeWithPUidMap.put( new ImmutablePair<>( "sj3j9Hwc7so", "IpHINAT79UW" ), "Child ARVs" );
+
         elements.addAll( pJsonNodeWithPUidMap
             .keySet()
             .stream()
-            .map( k -> new EventDateValueElement( getProgramStageUid( k ), getProgramUid( k ),
+            .map( k -> new EventDataValueElement( trackedEntityUid, getProgramStageUid( k ), getProgramUid( k ),
                 pJsonNodeWithPUidMap.get( k ) ) )
             .collect( Collectors.toList() ) );
 

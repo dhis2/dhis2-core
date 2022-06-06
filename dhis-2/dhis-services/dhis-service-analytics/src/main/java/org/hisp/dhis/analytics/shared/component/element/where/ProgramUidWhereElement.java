@@ -25,26 +25,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.shared.component.element.select;
+package org.hisp.dhis.analytics.shared.component.element.where;
+
+import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import org.hisp.dhis.analytics.shared.component.element.Element;
-import org.hisp.dhis.analytics.shared.visitor.select.SelectVisitor;
+import org.hisp.dhis.analytics.shared.visitor.where.WhereVisitor;
 
-/**
- * TeaValueSelectElement represents the "select" clause of a SQL statement.
- *
- * @author dusan bernat
- */
 @AllArgsConstructor
 @Getter
-public class TeaValueSelectElement implements Element<SelectVisitor>
+public class ProgramUidWhereElement implements Element<WhereVisitor>
 {
-    private String uid;
-
-    private String alias;
+    private List<String> programUidList;
 
     /**
      * see Visitor design pattern
@@ -52,7 +47,7 @@ public class TeaValueSelectElement implements Element<SelectVisitor>
      * @param v
      */
     @Override
-    public void accept( SelectVisitor v )
+    public void accept( WhereVisitor v )
     {
         v.visit( this );
     }

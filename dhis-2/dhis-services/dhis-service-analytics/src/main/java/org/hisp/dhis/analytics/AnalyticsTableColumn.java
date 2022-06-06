@@ -56,7 +56,7 @@ public class AnalyticsTableColumn
     /**
      * The column SQL alias.
      */
-    private String alias;
+    private final String alias;
 
     /**
      * Date of creation of the underlying data dimension.
@@ -67,6 +67,11 @@ public class AnalyticsTableColumn
      * Whether to skip building an index for this column.
      */
     private boolean skipIndex = false;
+
+    /**
+     * Whether to skip column and just build an index based on column name.
+     */
+    private boolean virtual = false;
 
     /**
      * Explicit index type, defaults to database default type
@@ -94,7 +99,6 @@ public class AnalyticsTableColumn
     {
         this.name = name;
         this.dataType = dataType;
-        this.notNull = ColumnNotNullConstraint.NULL;
         this.alias = alias;
     }
 
@@ -110,6 +114,21 @@ public class AnalyticsTableColumn
     {
         this( name, dataType, alias );
         this.notNull = notNull;
+    }
+
+    /**
+     * Constructor
+     *
+     * @param name
+     * @param dataType
+     * @param virtual
+     */
+    public AnalyticsTableColumn( String name, ColumnDataType dataType, boolean virtual )
+    {
+        this.name = name;
+        this.dataType = dataType;
+        this.virtual = virtual;
+        this.alias = "";
     }
 
     // -------------------------------------------------------------------------
@@ -215,5 +234,10 @@ public class AnalyticsTableColumn
     public List<String> getIndexColumns()
     {
         return indexColumns;
+    }
+
+    public boolean isVirtual()
+    {
+        return virtual;
     }
 }

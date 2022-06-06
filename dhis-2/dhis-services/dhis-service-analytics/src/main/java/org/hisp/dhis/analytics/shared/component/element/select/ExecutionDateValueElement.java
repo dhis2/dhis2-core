@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.shared.component.element.select;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import org.hisp.dhis.analytics.shared.component.element.Element;
@@ -38,15 +37,24 @@ import org.hisp.dhis.analytics.shared.visitor.select.SelectVisitor;
  *
  * @author dusan bernat
  */
-@AllArgsConstructor
+
 @Getter
-public class ExecutionDateValueElement implements Element<SelectVisitor>
+public class ExecutionDateValueElement extends SelectElement implements Element<SelectVisitor>
 {
     private final String programStageUid;
 
     private final String programUid;
 
     private final String alias;
+
+    public ExecutionDateValueElement( String trackedEntityTypeUid, String programStageUid, String programUid,
+        String alias )
+    {
+        super( trackedEntityTypeUid );
+        this.programStageUid = programStageUid;
+        this.programUid = programUid;
+        this.alias = alias;
+    }
 
     /**
      * see Visitor design pattern
