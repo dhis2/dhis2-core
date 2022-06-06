@@ -71,6 +71,7 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.Test;
@@ -99,6 +100,9 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
     @Autowired
     private TrackedEntityProgramOwnerService programOwnerService;
 
+    @Autowired
+    private CurrentUserService currentUserService;
+
     private final static String DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS";
 
     @Override
@@ -110,8 +114,16 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
 
         makeUserSuper( user );
 
-        currentUserService = new MockCurrentUserService( user );
+        CurrentUserService currentUserService = new MockCurrentUserService( user );
 
+        ReflectionTestUtils.setField( trackedEntityInstanceAggregate, "currentUserService", currentUserService );
+        ReflectionTestUtils.setField( trackedEntityInstanceService, "currentUserService", currentUserService );
+        ReflectionTestUtils.setField( teiService, "currentUserService", currentUserService );
+    }
+
+    @Override
+    protected void tearDownTest()
+    {
         ReflectionTestUtils.setField( trackedEntityInstanceAggregate, "currentUserService", currentUserService );
         ReflectionTestUtils.setField( trackedEntityInstanceService, "currentUserService", currentUserService );
         ReflectionTestUtils.setField( teiService, "currentUserService", currentUserService );
