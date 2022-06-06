@@ -29,24 +29,21 @@ package org.hisp.dhis.analytics.tei;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.analytics.common.CommonValidationService;
-import org.hisp.dhis.analytics.common.QueryRequest;
 import org.springframework.stereotype.Component;
 
-/**
- * Component responsible for validation rules on top of analytics tracker entity
- * queries.
- */
 @Component
 @RequiredArgsConstructor
-public class TeiAnalyticsValidator
+public class TeiQueryRequestProcessor
 {
-
-    private final CommonValidationService commonValidationService;
-
-    public void validateRequest( final QueryRequest<TeiQueryRequest> queryRequest )
+    /**
+     * A hook to transform a QueryRequest before mapping it into Params
+     *
+     * @param queryRequest
+     * @return a queryRequestHolder where inner components might have changed
+     */
+    public TeiQueryRequest processRequest(
+        TeiQueryRequest queryRequest )
     {
-        commonValidationService.validate( queryRequest.getCommonQueryRequest() );
-        // TODO: DHIS2-13382 validate the TEI part of the request
+        return queryRequest;
     }
 }

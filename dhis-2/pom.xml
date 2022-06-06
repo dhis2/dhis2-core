@@ -97,7 +97,7 @@
     <HikariCP.version>5.0.1</HikariCP.version>
     <postgresql-driver.version>42.3.6</postgresql-driver.version>
     <postgis-jdbc.version>2.5.1</postgis-jdbc.version>
-    <datasource-proxy.version>1.7</datasource-proxy.version>
+    <datasource-proxy.version>1.8</datasource-proxy.version>
 
     <!-- Servlet -->
     <javax.servlet-api.version>4.0.1</javax.servlet-api.version>
@@ -134,7 +134,7 @@
     <!-- GIS -->
     <batik-transcoder.version>1.14</batik-transcoder.version>
     <fop.version>2.7</fop.version>
-    <mapstruct.version>1.5.0.Final</mapstruct.version>
+    <mapstruct.version>1.5.1.Final</mapstruct.version>
     <geotools.version>27.0</geotools.version>
     <jts.version>1.18.2</jts.version>
 
@@ -406,34 +406,6 @@
               <trimStackTrace>false</trimStackTrace>
               <argLine>@{argLine} ${surefireArgLine}</argLine>
               <groups>integrationH2</groups>
-            </configuration>
-            <dependencies>
-              <dependency>
-                <groupId>org.ow2.asm</groupId>
-                <artifactId>asm</artifactId>
-                <version>${ow2.asm.version}</version>
-              </dependency>
-            </dependencies>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <profile>
-      <id>sonarqube</id>
-      <properties>
-        <skipTests>true</skipTests>
-      </properties>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <configuration>
-              <skipTests>true</skipTests>
-              <trimStackTrace>false</trimStackTrace>
-              <argLine>@{argLine} ${surefireArgLine}</argLine>
-              <excludedGroups>org.hisp.dhis.IntegrationTest</excludedGroups>
             </configuration>
             <dependencies>
               <dependency>
@@ -794,7 +766,7 @@
               <id>report</id>
               <phase>verify</phase>
               <goals>
-                <goal>report</goal>
+                <goal>report-aggregate</goal>
               </goals>
             </execution>
           </executions>
