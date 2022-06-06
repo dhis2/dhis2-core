@@ -38,7 +38,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -93,7 +92,7 @@ public class DefaultIdentifiableObjectManager
     /**
      * Cache for default category objects. Disabled during test phase.
      */
-    private final Cache<IdentifiableObject> defaultObjectCache;
+    private final Cache<Long> defaultObjectCache;
 
     private final Set<IdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStores;
 
@@ -1180,21 +1179,22 @@ public class DefaultIdentifiableObjectManager
     @Override
     public Map<Class<? extends IdentifiableObject>, IdentifiableObject> getDefaults()
     {
-        Optional<IdentifiableObject> categoryObjects = defaultObjectCache.get( Category.class.getName(),
-            key -> HibernateProxyUtils.unproxy( getByName( Category.class, DEFAULT ) ) );
-        Optional<IdentifiableObject> categoryComboObjects = defaultObjectCache.get( CategoryCombo.class.getName(),
-            key -> HibernateProxyUtils.unproxy( getByName( CategoryCombo.class, DEFAULT ) ) );
-        Optional<IdentifiableObject> categoryOptionObjects = defaultObjectCache.get( CategoryOption.class.getName(),
-            key -> HibernateProxyUtils.unproxy( getByName( CategoryOption.class, DEFAULT ) ) );
-        Optional<IdentifiableObject> categoryOptionCombo = defaultObjectCache.get(
+        Long catId = defaultObjectCache.get( Category.class.getName(),
+            key -> Objects.requireNonNull( getByName( Category.class, DEFAULT ) ).getId() ).get();
+        Long cateComboId = defaultObjectCache.get( CategoryCombo.class.getName(),
+            key -> Objects.requireNonNull( getByName( CategoryCombo.class, DEFAULT ) ).getId() ).get();
+        Long catOptionId = defaultObjectCache.get( CategoryOption.class.getName(),
+            key -> Objects.requireNonNull( getByName( CategoryOption.class, DEFAULT ) ).getId() ).get();
+        Long catOptionComboId = defaultObjectCache.get(
             CategoryOptionCombo.class.getName(),
-            key -> HibernateProxyUtils.unproxy( getByName( CategoryOptionCombo.class, DEFAULT ) ) );
+            key -> Objects.requireNonNull( getByName( CategoryOptionCombo.class, DEFAULT ) ).getId() ).get();
 
         return new ImmutableMap.Builder<Class<? extends IdentifiableObject>, IdentifiableObject>()
-            .put( Category.class, Objects.requireNonNull( categoryObjects.orElse( null ) ) )
-            .put( CategoryCombo.class, Objects.requireNonNull( categoryComboObjects.orElse( null ) ) )
-            .put( CategoryOption.class, Objects.requireNonNull( categoryOptionObjects.orElse( null ) ) )
-            .put( CategoryOptionCombo.class, Objects.requireNonNull( categoryOptionCombo.orElse( null ) ) )
+            .put( Category.class, Objects.requireNonNull( get( Category.class, catId ) ) )
+            .put( CategoryCombo.class, Objects.requireNonNull( get( CategoryCombo.class, cateComboId ) ) )
+            .put( CategoryOption.class, Objects.requireNonNull( get( CategoryOption.class, catOptionId ) ) )
+            .put( CategoryOptionCombo.class,
+                Objects.requireNonNull( get( CategoryOptionCombo.class, catOptionComboId ) ) )
             .build();
     }
 
