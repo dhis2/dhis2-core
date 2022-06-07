@@ -114,6 +114,8 @@ public class Dhis2Client
      */
     private <T> ResponseEntity<WebMessage> executeJsonPostRequest( URI uri, T body )
     {
+        // TODO Remove
+        log.info( "URI: {}" + uri.toString() );
         HttpEntity<T> requestEntity = new HttpEntity<>( body, getJsonAuthHeaders() );
         ResponseEntity<WebMessage> response = restTemplate.exchange(
             uri, HttpMethod.POST, requestEntity, WebMessage.class );
