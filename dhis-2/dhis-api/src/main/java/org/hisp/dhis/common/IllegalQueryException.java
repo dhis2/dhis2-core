@@ -67,4 +67,15 @@ public class IllegalQueryException
     {
         super( errorMessage );
     }
+
+    /**
+     * Constructor. Sets the message based on the error code and arguments.
+     *
+     * @param errorCode the {@link ErrorCode}.
+     * @param args the message format arguments.
+     */
+    public IllegalQueryException( ErrorCode errorCode, Object... args )
+    {
+        super( errorCode, args );
+    }
 }

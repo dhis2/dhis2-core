@@ -36,6 +36,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.schema.descriptors.AnalyticsDataExchangeSchemaDescriptor;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -59,5 +60,12 @@ public class AnalyticsDataExchangeController
     public ImportSummaries runDataExchange( @RequestBody AnalyticsDataExchange exchange )
     {
         return service.exchangeData( exchange );
+    }
+
+    @PostMapping( "/{uid}/exchange" )
+    @ResponseStatus( value = HttpStatus.OK )
+    public ImportSummaries runDataExchangeByUid( @PathVariable String uid )
+    {
+        return service.exchangeData( uid );
     }
 }

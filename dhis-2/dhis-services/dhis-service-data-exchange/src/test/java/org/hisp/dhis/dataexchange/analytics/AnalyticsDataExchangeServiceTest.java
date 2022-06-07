@@ -47,6 +47,9 @@ class AnalyticsDataExchangeServiceTest
     private AnalyticsService analyticsService;
 
     @Mock
+    private AnalyticsDataExchangeStore analyticsDataExchangeStore;
+
+    @Mock
     private DataQueryService dataQueryService;
 
     @Mock
@@ -57,7 +60,8 @@ class AnalyticsDataExchangeServiceTest
     @BeforeEach
     void beforeEach()
     {
-        service = new AnalyticsDataExchangeService( analyticsService, dataQueryService, dataValueSetService );
+        service = new AnalyticsDataExchangeService(
+            analyticsService, analyticsDataExchangeStore, dataQueryService, dataValueSetService );
     }
 
     @Test
