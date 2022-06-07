@@ -47,6 +47,7 @@ import org.hisp.dhis.attribute.exception.NonUniqueAttributeValueException;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -353,7 +354,9 @@ class DataElementStoreTest extends DhisSpringTest
         dataElementStore.save( dataElementC );
         assertNotNull( dataElementStore.loadByUid( dataElementA.getUid() ) );
         assertNotNull( dataElementStore.loadByUid( dataElementB.getUid() ) );
-        assertThrows( IllegalQueryException.class, () -> dataElementStore.loadByUid( "nonExisting" ) );
+        IllegalQueryException ex = assertThrows( IllegalQueryException.class,
+            () -> dataElementStore.loadByUid( "nonExisting" ) );
+        assertEquals( ErrorCode.E1113, ex.getErrorCode() );
     }
 
     @Test
@@ -367,7 +370,9 @@ class DataElementStoreTest extends DhisSpringTest
         dataElementStore.save( dataElementC );
         assertNotNull( dataElementStore.loadByCode( dataElementA.getCode() ) );
         assertNotNull( dataElementStore.loadByCode( dataElementB.getCode() ) );
-        assertThrows( IllegalQueryException.class, () -> dataElementStore.loadByCode( "nonExisting" ) );
+        IllegalQueryException ex = assertThrows( IllegalQueryException.class,
+            () -> dataElementStore.loadByCode( "nonExisting" ) );
+        assertEquals( ErrorCode.E1113, ex.getErrorCode() );
     }
 
     @Test
