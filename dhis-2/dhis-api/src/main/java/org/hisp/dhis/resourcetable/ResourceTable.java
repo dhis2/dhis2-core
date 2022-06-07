@@ -39,7 +39,7 @@ import org.hisp.dhis.common.CodeGenerator;
  */
 public abstract class ResourceTable<T>
 {
-    public static final int FIRST_SUPPORTED_YEAR = 1975;
+    public static final int FIRST_YEAR_SUPPORTED = 1975;
 
     public static final int LATEST_YEAR_SUPPORTED = now().plusYears( 2 ).getYear();
 
