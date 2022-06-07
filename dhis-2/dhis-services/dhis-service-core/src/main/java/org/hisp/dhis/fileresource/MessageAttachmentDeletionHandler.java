@@ -53,12 +53,12 @@ public class MessageAttachmentDeletionHandler extends JdbcDeletionHandler
         {
             return ACCEPT;
         }
-        String sql = "SELECT COUNT(*) FROM messageattachments WHERE fileresourceid=:id";
+        String sql = "select count(*) from messageattachments where fileresourceid=:id";
         return vetoIfExists( VETO, sql, Map.of( "id", fileResource.getId() ) );
     }
 
     private void deleteFileResource( FileResource fileResource )
     {
-        delete( "DELETE FROM messageattachments WHERE fileresourceid=:id", Map.of( "id", fileResource.getId() ) );
+        delete( "delete from messageattachments where fileresourceid=:id", Map.of( "id", fileResource.getId() ) );
     }
 }
