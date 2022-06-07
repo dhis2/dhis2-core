@@ -97,7 +97,7 @@
     <HikariCP.version>5.0.1</HikariCP.version>
     <postgresql-driver.version>42.3.6</postgresql-driver.version>
     <postgis-jdbc.version>2.5.1</postgis-jdbc.version>
-    <datasource-proxy.version>1.7</datasource-proxy.version>
+    <datasource-proxy.version>1.8</datasource-proxy.version>
 
     <!-- Servlet -->
     <javax.servlet-api.version>4.0.1</javax.servlet-api.version>
@@ -201,10 +201,10 @@
     <javax.persistence-api.version>2.2</javax.persistence-api.version>
 
     <!-- Maven plugin versions -->
-    <maven-surefire-plugin.version>3.0.0-M6</maven-surefire-plugin.version>
+    <maven-surefire-plugin.version>3.0.0-M7</maven-surefire-plugin.version>
     <maven-compiler-plugin.version>3.10.1</maven-compiler-plugin.version>
     <maven-resources-plugin.version>3.2.0</maven-resources-plugin.version>
-    <maven-failsafe-plugin.version>3.0.0-M6</maven-failsafe-plugin.version>
+    <maven-failsafe-plugin.version>3.0.0-M7</maven-failsafe-plugin.version>
     <maven-javadoc-plugin.version>3.4.0</maven-javadoc-plugin.version>
     <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
     <maven-enforcer-plugin.version>3.0.0</maven-enforcer-plugin.version>
