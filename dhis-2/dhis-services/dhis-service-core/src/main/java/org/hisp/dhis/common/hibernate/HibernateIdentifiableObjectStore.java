@@ -350,6 +350,8 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         {
             throw new IllegalQueryException( ErrorCode.E1113, getClazz().getSimpleName(), uid );
         }
+
+        return object;
     }
 
     @Override
@@ -411,6 +413,8 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         {
             throw new IllegalQueryException( ErrorCode.E1113, getClazz().getSimpleName(), code );
         }
+
+        return object;
     }
 
     @Override
