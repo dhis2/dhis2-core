@@ -109,10 +109,10 @@ class DataStatisticsEventStoreTest extends TransactionalIntegrationTest
     {
         dataStatisticsEventStore.save( dse1 );
         dataStatisticsEventStore.save( dse4 );
-        Map<DataStatisticsEventType, Double> dsList = dataStatisticsEventStore.getDataStatisticsEventCount( start,
-            end );
+        Map<DataStatisticsEventType, Double> dsList = dataStatisticsEventStore
+            .getDataStatisticsEventCount( start, end );
         // Test for 3 objects because TOTAL_VIEWS is always present
-        assertTrue( dsList.size() == 3 );
+        assertEquals( 3, dsList.size() );
     }
 
     @Test
@@ -120,8 +120,8 @@ class DataStatisticsEventStoreTest extends TransactionalIntegrationTest
     {
         dataStatisticsEventStore.save( dse1 );
         dataStatisticsEventStore.save( dse4 );
-        Map<DataStatisticsEventType, Double> dsList = dataStatisticsEventStore.getDataStatisticsEventCount( start,
-            end );
+        Map<DataStatisticsEventType, Double> dsList = dataStatisticsEventStore
+            .getDataStatisticsEventCount( start, end );
         double expected = 1.0;
         double firstActual = dsList.get( DataStatisticsEventType.VISUALIZATION_VIEW );
         double secondActual = dsList.get( DataStatisticsEventType.DASHBOARD_VIEW );
@@ -135,10 +135,10 @@ class DataStatisticsEventStoreTest extends TransactionalIntegrationTest
         dataStatisticsEventStore.save( dse1 );
         dataStatisticsEventStore.save( dse4 );
         dataStatisticsEventStore.save( dse2 );
-        Map<DataStatisticsEventType, Double> dsList = dataStatisticsEventStore.getDataStatisticsEventCount( start,
-            end );
+        Map<DataStatisticsEventType, Double> dsList = dataStatisticsEventStore
+            .getDataStatisticsEventCount( start, end );
         // Test for 4 objects, because TOTAL_VIEW is always present
-        assertTrue( dsList.size() == 4 );
+        assertEquals( 4, dsList.size() );
     }
 
     @Test
@@ -146,10 +146,10 @@ class DataStatisticsEventStoreTest extends TransactionalIntegrationTest
     {
         dataStatisticsEventStore.save( dse1 );
         dataStatisticsEventStore.save( dse4 );
-        Map<DataStatisticsEventType, Double> dsList = dataStatisticsEventStore.getDataStatisticsEventCount( start,
-            end );
+        Map<DataStatisticsEventType, Double> dsList = dataStatisticsEventStore
+            .getDataStatisticsEventCount( start, end );
         // Test for 3 objects because TOTAL_VIEW is always present
-        assertTrue( dsList.size() == 3 );
+        assertEquals( 3, dsList.size() );
     }
 
     @Test
@@ -160,10 +160,10 @@ class DataStatisticsEventStoreTest extends TransactionalIntegrationTest
         dashboardService.saveDashboard( dashboard1 );
         List<FavoriteStatistics> stats1 = dataStatisticsEventStore
             .getFavoritesData( DataStatisticsEventType.DASHBOARD_VIEW, 100, SortOrder.ASC, null );
-        assertTrue( stats1.size() == 1 );
+        assertEquals( 1, stats1.size() );
         List<FavoriteStatistics> stats2 = dataStatisticsEventStore
             .getFavoritesData( DataStatisticsEventType.PASSIVE_DASHBOARD_VIEW, 100, SortOrder.ASC, null );
-        assertTrue( stats2.size() == 1 );
+        assertEquals( 1, stats2.size() );
     }
 
     @Test
@@ -172,9 +172,9 @@ class DataStatisticsEventStoreTest extends TransactionalIntegrationTest
         dataStatisticsEventStore.save( dse4 );
         dataStatisticsEventStore.save( dse5 );
         FavoriteStatistics fs1 = dataStatisticsEventStore.getFavoriteStatistics( DASHBOARD_UID );
-        assertTrue( fs1.getViews() == 1 );
+        assertEquals( 1, fs1.getViews() );
         systemSettingManager.saveSystemSetting( COUNT_PASSIVE_DASHBOARD_VIEWS_IN_USAGE_ANALYTICS, true );
         FavoriteStatistics fs2 = dataStatisticsEventStore.getFavoriteStatistics( DASHBOARD_UID );
-        assertTrue( fs2.getViews() == 2 );
+        assertEquals( 2, fs2.getViews() );
     }
 }
