@@ -35,7 +35,7 @@ import com.google.common.base.MoreObjects;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class DeserializeTest
+class DeserializeTestBean
 {
     private String a;
 
@@ -45,7 +45,7 @@ class DeserializeTest
 
     private Date d;
 
-    public DeserializeTest()
+    public DeserializeTestBean()
     {
     }
 
