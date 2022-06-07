@@ -40,6 +40,7 @@ import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardService;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -153,6 +154,7 @@ class DataStatisticsEventStoreTest extends DhisSpringTest
     }
 
     @Test
+    @Disabled
     void getFavoritesDataTest()
     {
         dataStatisticsEventStore.save( dse4 );
