@@ -70,9 +70,9 @@ class DataStatisticsEventStoreTest extends IntegrationTestBase
     @Autowired
     private DataStatisticsService dataStatisticsService;
 
-    private static Date start = getDate( 2016, 3, 19 );
+    private static final Date start = getDate( 2016, 3, 19 );
 
-    private static Date end = getDate( 2016, 3, 21 );
+    private static final Date end = getDate( 2016, 3, 21 );
 
     private static final Date eventDate = getDate( 2016, 3, 20 );
 

@@ -118,8 +118,10 @@ public class Cal
         {
         case Calendar.YEAR:
             dateTimeUnit = getCalendar().plusYears( dateTimeUnit, amount );
+            break;
         case Calendar.MONTH:
             dateTimeUnit = getCalendar().plusMonths( dateTimeUnit, amount );
+            break;
         case Calendar.DAY_OF_MONTH:
         case Calendar.DAY_OF_YEAR:
             dateTimeUnit = getCalendar().plusDays( dateTimeUnit, amount );
@@ -143,8 +145,10 @@ public class Cal
         {
         case Calendar.YEAR:
             dateTimeUnit = getCalendar().minusYears( dateTimeUnit, amount );
+            break;
         case Calendar.MONTH:
             dateTimeUnit = getCalendar().minusMonths( dateTimeUnit, amount );
+            break;
         case Calendar.DAY_OF_MONTH:
         case Calendar.DAY_OF_YEAR:
             dateTimeUnit = getCalendar().minusDays( dateTimeUnit, amount );

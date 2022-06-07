@@ -49,7 +49,7 @@ import static org.hisp.dhis.analytics.ColumnDataType.GEOMETRY_POINT;
 import static org.hisp.dhis.analytics.ColumnDataType.INTEGER;
 import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
 import static org.hisp.dhis.analytics.ColumnDataType.TIMESTAMP;
-import static org.hisp.dhis.resourcetable.ResourceTable.NEWEST_YEAR_PERIOD_SUPPORTED;
+import static org.hisp.dhis.resourcetable.ResourceTable.LATEST_YEAR_SUPPORTED;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -474,7 +474,7 @@ class JdbcEventAnalyticsTableManagerTest
                 + "from programstageinstance psi inner join programinstance pi on psi.programinstanceid = pi.programinstanceid "
                 + "where psi.lastupdated <= '2019-08-01T00:00:00' and pi.programid = 0 and (" + getDateLinkedToStatus()
                 + ") is not null " + "and (" + getDateLinkedToStatus() + ") > '1000-01-01' and psi.deleted is false ) "
-                + "as temp where temp.supportedyear >= 1975 and temp.supportedyear <= " + NEWEST_YEAR_PERIOD_SUPPORTED,
+                + "as temp where temp.supportedyear >= 1975 and temp.supportedyear <= " + LATEST_YEAR_SUPPORTED,
             Integer.class ) ).thenReturn( Lists.newArrayList( 2018, 2019 ) );
 
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withStartTime( START_TIME ).build();
@@ -612,7 +612,7 @@ class JdbcEventAnalyticsTableManagerTest
                 + "where psi.lastupdated <= '2019-08-01T00:00:00' and pi.programid = 0 and (" + getDateLinkedToStatus()
                 + ") is not null " + "and (" + getDateLinkedToStatus()
                 + ") > '1000-01-01' and psi.deleted is false and (" + getDateLinkedToStatus() + ") >= '2018-01-01') "
-                + "as temp where temp.supportedyear >= 1975 and temp.supportedyear <= " + NEWEST_YEAR_PERIOD_SUPPORTED,
+                + "as temp where temp.supportedyear >= 1975 and temp.supportedyear <= " + LATEST_YEAR_SUPPORTED,
             Integer.class ) ).thenReturn( Lists.newArrayList( 2018, 2019 ) );
 
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 )
@@ -656,7 +656,7 @@ class JdbcEventAnalyticsTableManagerTest
             sql += "and (" + getDateLinkedToStatus() + ") >= '2018-01-01'";
         }
 
-        sql += ") as temp where temp.supportedyear >= 1975 and temp.supportedyear <= " + NEWEST_YEAR_PERIOD_SUPPORTED;
+        sql += ") as temp where temp.supportedyear >= 1975 and temp.supportedyear <= " + LATEST_YEAR_SUPPORTED;
 
         return sql;
     }
