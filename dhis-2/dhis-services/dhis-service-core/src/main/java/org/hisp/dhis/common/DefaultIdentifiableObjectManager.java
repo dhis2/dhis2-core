@@ -292,21 +292,21 @@ public class DefaultIdentifiableObjectManager
     }
 
     @Override
-    public <T extends IdentifiableObject> T getAndValidate( Class<T> type, String uid )
+    public <T extends IdentifiableObject> T load( Class<T> type, String uid )
         throws IllegalQueryException
     {
-        T object = get( type, uid );
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( type );
 
-        if ( object == null )
+        if ( store == null )
         {
-            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E1113, type.getSimpleName(), uid ) );
+            return null;
         }
 
-        return object;
+        return (T) store.loadByUid( uid );
     }
 
     @Override
-    public <T extends IdentifiableObject> T getAndValidate( Class<T> type, ErrorCode errorCode, String uid )
+    public <T extends IdentifiableObject> T load( Class<T> type, ErrorCode errorCode, String uid )
         throws IllegalQueryException
     {
         T object = get( type, uid );
@@ -391,6 +391,22 @@ public class DefaultIdentifiableObjectManager
         }
 
         return (T) store.getByCode( code );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    @SuppressWarnings( "unchecked" )
+    public <T extends IdentifiableObject> T loadByCode( Class<T> type, String code )
+        throws IllegalQueryException
+    {
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( type );
+
+        if ( store == null )
+        {
+            return null;
+        }
+
+        return (T) store.loadByCode( code );
     }
 
     @Override
