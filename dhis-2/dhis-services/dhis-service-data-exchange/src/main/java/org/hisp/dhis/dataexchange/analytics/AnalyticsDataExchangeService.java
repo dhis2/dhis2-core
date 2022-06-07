@@ -109,7 +109,8 @@ public class AnalyticsDataExchangeService
     }
 
     /**
-     * Converts a {@link SourceRequest} into a {@link DataQueryParams}.
+     * Retrieves and creates a {@link DataQueryParams} based on the given
+     * {@link SourceRequest}.
      *
      * @param request the {@link SourceRequest}.
      * @return the {@link DataQueryParams}.
