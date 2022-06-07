@@ -122,6 +122,16 @@ public class Dhis2Client
     }
 
     /**
+     * Returns the base URL to the target DHIS 2 instance.
+     *
+     * @return the base URL.
+     */
+    public String getUrl()
+    {
+        return config.getUrl();
+    }
+
+    /**
      * Saves the given data value set.
      *
      * @param dataValueSet the {@link DataValueSet}.

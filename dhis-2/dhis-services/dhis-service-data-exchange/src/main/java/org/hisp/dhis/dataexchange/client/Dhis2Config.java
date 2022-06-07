@@ -39,9 +39,16 @@ import org.springframework.web.util.UriComponentsBuilder;
 @RequiredArgsConstructor
 public class Dhis2Config
 {
+    /**
+     * Base URL to the target DHIS 2 instance, excluding the <code>/api</code>
+     * path.
+     */
     @NonNull
     private final String url;
 
+    /**
+     * Valid access token for the target DHIS 2 instance.
+     */
     @NonNull
     private final String accessToken;
 

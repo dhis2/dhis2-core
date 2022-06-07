@@ -32,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.dataexchange.client.Dhis2Client;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -60,10 +61,34 @@ class AnalyticsDataExchangeServiceTest
     }
 
     @Test
+    void testGetOrDefault()
+    {
+        assertEquals( "CODE", service.getOrDefault( "CODE" ) );
+        assertEquals( "UID", service.getOrDefault( null ) );
+    }
+
+    @Test
     void testToIdSchemeOrDefault()
     {
         assertEquals( IdScheme.CODE, service.toIdSchemeOrDefault( "code" ) );
         assertEquals( IdScheme.UID, service.toIdSchemeOrDefault( "UID" ) );
         assertEquals( IdScheme.UID, service.toIdSchemeOrDefault( null ) );
+    }
+
+    @Test
+    void testGetDhis2Client()
+    {
+        Api api = new Api( "https://play.dhis2.org/demo", "d2pat_5xVA12xyUbWNedQxy4ohH77WlxRGVvZZ1151814092" );
+
+        Target target = new Target();
+        target.setType( TargetType.EXTERNAL );
+        target.setApi( api );
+
+        AnalyticsDataExchange exchange = new AnalyticsDataExchange();
+        exchange.setTarget( target );
+
+        Dhis2Client client = service.getDhis2Client( exchange );
+
+        assertEquals( "https://play.dhis2.org/demo", client.getUrl() );
     }
 }
