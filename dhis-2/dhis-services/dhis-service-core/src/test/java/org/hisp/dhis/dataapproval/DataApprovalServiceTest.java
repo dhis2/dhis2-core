@@ -32,6 +32,7 @@ import static com.google.common.collect.Sets.newHashSet;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static org.hisp.dhis.security.acl.AccessStringHelper.CATEGORY_OPTION_DEFAULT;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -616,7 +617,7 @@ class DataApprovalServiceTest extends IntegrationTestBase
             userA );
         dataApprovalService.approveData( newArrayList( dataApprovalA ) );
         // Redundant, so call is ignored.
-        dataApprovalService.approveData( newArrayList( dataApprovalB ) );
+        assertDoesNotThrow( () -> dataApprovalService.approveData( newArrayList( dataApprovalB ) ) );
     }
 
     @Test

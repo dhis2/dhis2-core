@@ -122,7 +122,7 @@ public class Cal
         case Calendar.MONTH:
             dateTimeUnit = getCalendar().plusMonths( dateTimeUnit, amount );
             break;
-        case Calendar.DAY_OF_MONTH:
+        case Calendar.DAY_OF_MONTH: // fallthrough
         case Calendar.DAY_OF_YEAR:
             dateTimeUnit = getCalendar().plusDays( dateTimeUnit, amount );
             break;
@@ -149,7 +149,7 @@ public class Cal
         case Calendar.MONTH:
             dateTimeUnit = getCalendar().minusMonths( dateTimeUnit, amount );
             break;
-        case Calendar.DAY_OF_MONTH:
+        case Calendar.DAY_OF_MONTH: // fallthrough
         case Calendar.DAY_OF_YEAR:
             dateTimeUnit = getCalendar().minusDays( dateTimeUnit, amount );
             break;
