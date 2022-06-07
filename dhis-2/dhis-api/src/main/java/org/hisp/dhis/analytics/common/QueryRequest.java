@@ -33,8 +33,8 @@ import lombok.Data;
 import org.hisp.dhis.common.AnalyticsPagingCriteria;
 
 @Data
-@Builder
-public class QueryRequestHolder<T>
+@Builder( toBuilder = true )
+public class QueryRequest<T>
 {
     private final T request;
 
