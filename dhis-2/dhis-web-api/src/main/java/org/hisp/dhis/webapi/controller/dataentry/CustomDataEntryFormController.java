@@ -53,7 +53,7 @@ public class CustomDataEntryFormController
     @GetMapping( "/customForms/{uid}" )
     public CustomDataEntryFormDto getForm( @PathVariable String uid )
     {
-        DataSet dataSet = idObjectManager.getAndValidate( DataSet.class, uid );
+        DataSet dataSet = idObjectManager.load( DataSet.class, uid );
 
         String form = dataEntryFormService.prepareDataEntryFormForEntry( dataSet );
 

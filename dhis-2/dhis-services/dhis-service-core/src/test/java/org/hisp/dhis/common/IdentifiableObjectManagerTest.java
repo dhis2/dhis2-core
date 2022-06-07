@@ -43,6 +43,10 @@ import java.util.Set;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.TransactionalIntegrationTest;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -128,33 +132,46 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testGetAndValidate()
+    void testLoad()
     {
         DataElement dataElementA = createDataElement( 'A' );
         dataElementService.addDataElement( dataElementA );
 
-        assertEquals( dataElementA, idObjectManager.getAndValidate( DataElement.class, dataElementA.getUid() ) );
+        assertEquals( dataElementA, idObjectManager.load( DataElement.class, dataElementA.getUid() ) );
 
         IllegalQueryException ex = assertThrows( IllegalQueryException.class,
-            () -> idObjectManager.getAndValidate( DataElement.class, "nonExisting" ) );
+            () -> idObjectManager.load( DataElement.class, "nonExisting" ) );
         assertEquals( ErrorCode.E1113, ex.getErrorCode() );
     }
 
     @Test
-    void testGetAndValidateWithErrorCode()
+    void testLoadByCode()
+    {
+        DataElement dataElementA = createDataElement( 'A' );
+        dataElementService.addDataElement( dataElementA );
+
+        assertEquals( dataElementA, idObjectManager.loadByCode( DataElement.class, "DataElementCodeA" ) );
+
+        IllegalQueryException ex = assertThrows( IllegalQueryException.class,
+            () -> idObjectManager.loadByCode( DataElement.class, "nonExisting" ) );
+        assertEquals( ErrorCode.E1113, ex.getErrorCode() );
+    }
+
+    @Test
+    void testLoadWithErrorCode()
     {
         DataElement dataElementA = createDataElement( 'A' );
         dataElementService.addDataElement( dataElementA );
 
         assertEquals( dataElementA,
-            idObjectManager.getAndValidate( DataElement.class, ErrorCode.E1100, dataElementA.getUid() ) );
+            idObjectManager.load( DataElement.class, ErrorCode.E1100, dataElementA.getUid() ) );
 
         IllegalQueryException exA = assertThrows( IllegalQueryException.class,
-            () -> idObjectManager.getAndValidate( DataElement.class, ErrorCode.E1100, "nonExisting" ) );
+            () -> idObjectManager.load( DataElement.class, ErrorCode.E1100, "nonExisting" ) );
         assertEquals( ErrorCode.E1100, exA.getErrorCode() );
 
         IllegalQueryException exB = assertThrows( IllegalQueryException.class,
-            () -> idObjectManager.getAndValidate( OrganisationUnit.class, ErrorCode.E1102, "nonExisting" ) );
+            () -> idObjectManager.load( OrganisationUnit.class, ErrorCode.E1102, "nonExisting" ) );
         assertEquals( ErrorCode.E1102, exB.getErrorCode() );
     }
 
@@ -626,5 +643,16 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest
         dbmsManager.clearSession();
         de = idObjectManager.get( de.getUid() );
         assertEquals( 0, de.getSharing().getUserGroups().size() );
+    }
+
+    @Test
+    void testGetDefaults()
+    {
+        Map<Class<? extends IdentifiableObject>, IdentifiableObject> objects = idObjectManager.getDefaults();
+        assertEquals( 4, objects.size() );
+        assertNotNull( objects.get( Category.class ) );
+        assertNotNull( objects.get( CategoryCombo.class ) );
+        assertNotNull( objects.get( CategoryOptionCombo.class ) );
+        assertNotNull( objects.get( CategoryOption.class ) );
     }
 }
