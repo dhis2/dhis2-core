@@ -149,7 +149,7 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest
         assertEquals( dataElementA, idObjectManager.loadByCode( DataElement.class, "DataElementCodeA" ) );
 
         IllegalQueryException ex = assertThrows( IllegalQueryException.class,
-            () -> idObjectManager.load( DataElement.class, "nonExisting" ) );
+            () -> idObjectManager.loadByCode( DataElement.class, "nonExisting" ) );
         assertEquals( ErrorCode.E1113, ex.getErrorCode() );
     }
 
