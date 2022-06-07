@@ -28,6 +28,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle;
 
 import static org.hisp.dhis.dxf2.metadata.AtomicMode.NONE;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -778,7 +779,7 @@ class ObjectBundleServiceTest extends TransactionalIntegrationTest
         params.setObjectBundleMode( ObjectBundleMode.COMMIT );
         params.setImportStrategy( ImportStrategy.CREATE );
         params.setObjects( metadata );
-        objectBundleService.create( params );
+        assertDoesNotThrow( () -> objectBundleService.create( params ) );
     }
 
     @Test

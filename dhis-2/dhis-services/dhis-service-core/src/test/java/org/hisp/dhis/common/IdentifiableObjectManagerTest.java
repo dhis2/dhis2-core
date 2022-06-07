@@ -28,6 +28,7 @@
 package org.hisp.dhis.common;
 
 import static java.util.Collections.singleton;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -290,8 +291,9 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest
     void userDeniedCreateObject()
     {
         createUserAndInjectSecurityContext( false );
+        DataElement dataElement = createDataElement( 'A' );
         assertThrows( CreateAccessDeniedException.class,
-            () -> idObjectManager.save( createDataElement( 'A' ) ) );
+            () -> idObjectManager.save( dataElement ) );
     }
 
     @Test
@@ -312,6 +314,8 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest
         DataElement dataElement = createDataElement( 'A' );
         dataElement.setPublicAccess( AccessStringHelper.READ_WRITE );
         idObjectManager.save( dataElement, false );
+        assertTrue( AccessStringHelper.canRead( dataElement.getPublicAccess() ) );
+        assertTrue( AccessStringHelper.canWrite( dataElement.getPublicAccess() ) );
     }
 
     @Test
@@ -329,7 +333,7 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest
         createUserAndInjectSecurityContext( false, "F_DATAELEMENT_PRIVATE_ADD" );
         DataElement dataElement = createDataElement( 'A' );
         dataElement.setPublicAccess( AccessStringHelper.DEFAULT );
-        idObjectManager.save( dataElement, false );
+        assertDoesNotThrow( () -> idObjectManager.save( dataElement, false ) );
     }
 
     @Test
@@ -477,8 +481,9 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest
     {
         DataElement dataElementA = createDataElement( 'A' );
         idObjectManager.save( dataElementA );
+        List<String> ids = List.of( dataElementA.getUid(), "xhjG82jHaky" );
         IllegalQueryException ex = assertThrows( IllegalQueryException.class, () -> idObjectManager
-            .getAndValidateByUid( DataElement.class, Arrays.asList( dataElementA.getUid(), "xhjG82jHaky" ) ) );
+            .getAndValidateByUid( DataElement.class, ids ) );
         assertEquals( ErrorCode.E1112, ex.getErrorCode() );
     }
 
