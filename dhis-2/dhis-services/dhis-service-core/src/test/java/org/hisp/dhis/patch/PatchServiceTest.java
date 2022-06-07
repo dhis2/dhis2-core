@@ -28,6 +28,7 @@
 package org.hisp.dhis.patch;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
@@ -264,7 +265,8 @@ class PatchServiceTest extends DhisSpringTest
         deA.getSharing().addUserAccess( new UserAccess( adminUser, "rw------" ) );
         deB.getSharing().addUserGroupAccess( new UserGroupAccess( userGroup, "rw------" ) );
         deB.getSharing().addUserAccess( new UserAccess( adminUser, "rw------" ) );
-        patchService.diff( new PatchParams( deA, deB ) );
+        Patch diff = patchService.diff( new PatchParams( deA, deB ) );
+        assertEquals( 0, diff.getMutations().size() );
     }
 
     @Test
@@ -323,7 +325,8 @@ class PatchServiceTest extends DhisSpringTest
     void testPatchFromJsonNode3()
     {
         JsonNode jsonNode = loadJsonNodeFromFile( "patch/complex.json" );
-        patchService.diff( new PatchParams( jsonNode ) );
+        Patch diff = patchService.diff( new PatchParams( jsonNode ) );
+        assertFalse( diff.getMutations().isEmpty() );
     }
 
     private JsonNode loadJsonNodeFromFile( String path )

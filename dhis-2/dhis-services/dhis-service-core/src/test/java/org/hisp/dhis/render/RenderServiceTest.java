@@ -121,7 +121,7 @@ class RenderServiceTest extends DhisSpringTest
         throws IOException
     {
         String json = "{\"a\": null, \"b\": \"\", \"c\": \"abc\"}";
-        DeserializeTest deserializeTest = renderService.fromJson( json, DeserializeTest.class );
+        DeserializeTestBean deserializeTest = renderService.fromJson( json, DeserializeTestBean.class );
         assertNull( deserializeTest.getA() );
         assertNull( deserializeTest.getB() );
         assertNotNull( deserializeTest.getC() );
@@ -131,11 +131,11 @@ class RenderServiceTest extends DhisSpringTest
     void testShouldSupportMultipleDateFormats()
         throws IOException
     {
-        Date y2011 = renderService.fromJson( "{\"d\": \"2011\"}", DeserializeTest.class ).getD();
-        Date y201105 = renderService.fromJson( "{\"d\": \"2011-05\"}", DeserializeTest.class ).getD();
-        Date y2012 = renderService.fromJson( "{\"d\": \"2012\"}", DeserializeTest.class ).getD();
-        Date y2013 = renderService.fromJson( "{\"d\": \"2013\"}", DeserializeTest.class ).getD();
-        Date y201312 = renderService.fromJson( "{\"d\": \"2013-12\"}", DeserializeTest.class ).getD();
+        Date y2011 = renderService.fromJson( "{\"d\": \"2011\"}", DeserializeTestBean.class ).getD();
+        Date y201105 = renderService.fromJson( "{\"d\": \"2011-05\"}", DeserializeTestBean.class ).getD();
+        Date y2012 = renderService.fromJson( "{\"d\": \"2012\"}", DeserializeTestBean.class ).getD();
+        Date y2013 = renderService.fromJson( "{\"d\": \"2013\"}", DeserializeTestBean.class ).getD();
+        Date y201312 = renderService.fromJson( "{\"d\": \"2013-12\"}", DeserializeTestBean.class ).getD();
         assertNotNull( y2011 );
         assertNotNull( y201105 );
         assertNotNull( y2012 );

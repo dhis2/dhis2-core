@@ -500,7 +500,7 @@ class InMemoryQueryEngineTest extends DhisSpringTest
         Query query = Query.from( schemaService.getDynamicSchema( DataElementGroup.class ) );
         query.setObjects( dataElementGroups );
         query.add( Restrictions.like( "dataElements.dataElementGroups.name", "A", MatchMode.END ) );
-        queryEngine.query( query );
+        assertEquals( 1, queryEngine.query( query ).size() );
     }
 
     @Test

@@ -171,8 +171,7 @@ public class DefaultAppHubService implements AppHubService
         try ( FileOutputStream out = new FileOutputStream( tempFile ) )
         {
             IOUtils.copy( in, out );
-
-            return tempFile;
         }
+        return tempFile;
     }
 }
