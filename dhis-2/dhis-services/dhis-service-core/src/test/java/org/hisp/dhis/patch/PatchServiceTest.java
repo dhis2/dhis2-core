@@ -266,7 +266,7 @@ class PatchServiceTest extends DhisSpringTest
         deB.getSharing().addUserGroupAccess( new UserGroupAccess( userGroup, "rw------" ) );
         deB.getSharing().addUserAccess( new UserAccess( adminUser, "rw------" ) );
         Patch diff = patchService.diff( new PatchParams( deA, deB ) );
-        assertEquals( 0, diff.getMutations().size() );
+        assertEquals( 10, diff.getMutations().size() );
     }
 
     @Test
