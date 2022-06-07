@@ -35,7 +35,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardService;
@@ -47,9 +47,8 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Yrjan A. F. Fraschetti
  * @author Julie Hill Roa
  */
-class DataStatisticsEventStoreTest extends DhisSpringTest
+class DataStatisticsEventStoreTest extends TransactionalIntegrationTest
 {
-
     @Autowired
     private DataStatisticsEventStore dataStatisticsEventStore;
 
@@ -85,7 +84,6 @@ class DataStatisticsEventStoreTest extends DhisSpringTest
         end = getDate( 2016, 3, 21 );
         start = getDate( 2016, 3, 19 );
         Date endDate = getDate( 2016, 3, 20 );
-        Date testDate = getDate( 2016, 3, 16 );
         dse1 = new DataStatisticsEvent( DataStatisticsEventType.VISUALIZATION_VIEW, endDate, "Testuser" );
         dse2 = new DataStatisticsEvent( DataStatisticsEventType.EVENT_CHART_VIEW, endDate, "TestUser" );
         dse4 = new DataStatisticsEvent( DataStatisticsEventType.DASHBOARD_VIEW, endDate, "TestUser", DASHBOARD_UID );
