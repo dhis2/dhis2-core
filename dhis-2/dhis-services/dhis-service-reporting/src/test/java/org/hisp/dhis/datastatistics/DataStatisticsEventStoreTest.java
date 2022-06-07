@@ -35,7 +35,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import org.hisp.dhis.TransactionalIntegrationTest;
+import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardService;
@@ -47,7 +47,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Yrjan A. F. Fraschetti
  * @author Julie Hill Roa
  */
-class DataStatisticsEventStoreTest extends TransactionalIntegrationTest
+class DataStatisticsEventStoreTest extends DhisSpringTest
 {
     @Autowired
     private DataStatisticsEventStore dataStatisticsEventStore;
