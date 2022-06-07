@@ -128,33 +128,46 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testGetAndValidate()
+    void testLoad()
     {
         DataElement dataElementA = createDataElement( 'A' );
         dataElementService.addDataElement( dataElementA );
 
-        assertEquals( dataElementA, idObjectManager.getAndValidate( DataElement.class, dataElementA.getUid() ) );
+        assertEquals( dataElementA, idObjectManager.load( DataElement.class, dataElementA.getUid() ) );
 
         IllegalQueryException ex = assertThrows( IllegalQueryException.class,
-            () -> idObjectManager.getAndValidate( DataElement.class, "nonExisting" ) );
+            () -> idObjectManager.load( DataElement.class, "nonExisting" ) );
         assertEquals( ErrorCode.E1113, ex.getErrorCode() );
     }
 
     @Test
-    void testGetAndValidateWithErrorCode()
+    void testLoadByCode()
+    {
+        DataElement dataElementA = createDataElement( 'A' );
+        dataElementService.addDataElement( dataElementA );
+
+        assertEquals( dataElementA, idObjectManager.loadByCode( DataElement.class, "DataElementCodeA" ) );
+
+        IllegalQueryException ex = assertThrows( IllegalQueryException.class,
+            () -> idObjectManager.load( DataElement.class, "nonExisting" ) );
+        assertEquals( ErrorCode.E1113, ex.getErrorCode() );
+    }
+
+    @Test
+    void testLoadWithErrorCode()
     {
         DataElement dataElementA = createDataElement( 'A' );
         dataElementService.addDataElement( dataElementA );
 
         assertEquals( dataElementA,
-            idObjectManager.getAndValidate( DataElement.class, ErrorCode.E1100, dataElementA.getUid() ) );
+            idObjectManager.load( DataElement.class, ErrorCode.E1100, dataElementA.getUid() ) );
 
         IllegalQueryException exA = assertThrows( IllegalQueryException.class,
-            () -> idObjectManager.getAndValidate( DataElement.class, ErrorCode.E1100, "nonExisting" ) );
+            () -> idObjectManager.load( DataElement.class, ErrorCode.E1100, "nonExisting" ) );
         assertEquals( ErrorCode.E1100, exA.getErrorCode() );
 
         IllegalQueryException exB = assertThrows( IllegalQueryException.class,
-            () -> idObjectManager.getAndValidate( OrganisationUnit.class, ErrorCode.E1102, "nonExisting" ) );
+            () -> idObjectManager.load( OrganisationUnit.class, ErrorCode.E1102, "nonExisting" ) );
         assertEquals( ErrorCode.E1102, exB.getErrorCode() );
     }
 

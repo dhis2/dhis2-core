@@ -31,6 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
@@ -44,10 +45,10 @@ import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.attribute.exception.NonUniqueAttributeValueException;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testcontainers.shaded.com.google.common.collect.Lists;
 
 /**
  * @author Torgeir Lorange Ostby
@@ -333,12 +334,40 @@ class DataElementStoreTest extends DhisSpringTest
         dataElementStore.save( dataElementA );
         dataElementStore.save( dataElementB );
         dataElementStore.save( dataElementC );
-        List<String> uids = Lists.newArrayList( dataElementA.getUid(), dataElementB.getUid(), dataElementC.getUid() );
+        List<String> uids = List.of( dataElementA.getUid(), dataElementB.getUid(), dataElementC.getUid() );
         List<DataElement> dataElements = dataElementStore.getByUidNoAcl( uids );
         assertEquals( 3, dataElements.size() );
         assertTrue( dataElements.contains( dataElementA ) );
         assertTrue( dataElements.contains( dataElementB ) );
         assertTrue( dataElements.contains( dataElementC ) );
+    }
+
+    @Test
+    void testLoadDataElementByUid()
+    {
+        DataElement dataElementA = createDataElement( 'A' );
+        DataElement dataElementB = createDataElement( 'B' );
+        DataElement dataElementC = createDataElement( 'C' );
+        dataElementStore.save( dataElementA );
+        dataElementStore.save( dataElementB );
+        dataElementStore.save( dataElementC );
+        assertNotNull( dataElementStore.loadByUid( dataElementA.getUid() ) );
+        assertNotNull( dataElementStore.loadByUid( dataElementB.getUid() ) );
+        assertThrows( IllegalQueryException.class, () -> dataElementStore.loadByUid( "nonExisting" ) );
+    }
+
+    @Test
+    void testLoadDataElementByCode()
+    {
+        DataElement dataElementA = createDataElement( 'A' );
+        DataElement dataElementB = createDataElement( 'B' );
+        DataElement dataElementC = createDataElement( 'C' );
+        dataElementStore.save( dataElementA );
+        dataElementStore.save( dataElementB );
+        dataElementStore.save( dataElementC );
+        assertNotNull( dataElementStore.loadByCode( dataElementA.getCode() ) );
+        assertNotNull( dataElementStore.loadByCode( dataElementB.getCode() ) );
+        assertThrows( IllegalQueryException.class, () -> dataElementStore.loadByCode( "nonExisting" ) );
     }
 
     @Test
