@@ -43,7 +43,6 @@ import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataexchange.client.Dhis2Client;
 import org.hisp.dhis.dataexchange.client.Dhis2Config;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -51,7 +50,6 @@ import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.feedback.ErrorCode;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -68,14 +66,7 @@ public class AnalyticsDataExchangeService
 
     public ImportSummaries exchangeData( String uid )
     {
-        AnalyticsDataExchange exchange = analyticsDataExchangeStore.getByUid( uid );
-
-        if ( exchange == null )
-        {
-            throw new IllegalQueryException( ErrorCode.E6301, uid );
-        }
-
-        return exchangeData( exchange );
+        return exchangeData( analyticsDataExchangeStore.loadByUid( uid ) );
     }
 
     public ImportSummaries exchangeData( AnalyticsDataExchange exchange )
@@ -117,6 +108,12 @@ public class AnalyticsDataExchangeService
             .setIdScheme( getOrDefault( request.getIdScheme() ) );
     }
 
+    /**
+     * Converts a {@link SourceRequest} into a {@link DataQueryParams}.
+     *
+     * @param request the {@link SourceRequest}.
+     * @return the {@link DataQueryParams}.
+     */
     DataQueryParams toDataQueryParams( SourceRequest request )
     {
         IdScheme inputIdScheme = toIdSchemeOrDefault( request.getInputIdScheme() );
