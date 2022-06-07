@@ -59,7 +59,7 @@ public class RelationshipType
 
     private String toFromName;
 
-    private boolean referral = false;
+    private boolean referral;
 
     // -------------------------------------------------------------------------
     // Constructors
