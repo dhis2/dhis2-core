@@ -25,28 +25,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei;
+package org.hisp.dhis.analytics.common;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.analytics.common.CommonValidationService;
-import org.hisp.dhis.analytics.common.QueryRequest;
+import org.hisp.dhis.common.AnalyticsPagingCriteria;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.stereotype.Component;
 
-/**
- * Component responsible for validation rules on top of analytics tracker entity
- * queries.
- */
 @Component
 @RequiredArgsConstructor
-public class TeiAnalyticsValidator
+public class CommonQueryRequestProcessor
 {
+    private final SystemSettingManager systemSettingManager;
 
-    private final CommonValidationService commonValidationService;
-
-    public void validateRequest( final QueryRequest<TeiQueryRequest> queryRequest )
+    public CommonQueryRequest processCommonRequest( CommonQueryRequest commonQueryRequest )
     {
-        commonValidationService.validate( queryRequest.getCommonQueryRequest() );
-        // TODO: DHIS2-13382 validate the TEI part of the request
+        // here we should refactor/preprocess dimensions and filters for 2
+        // specific purposes:
+        // 1 - support custom date filters, like enrollmentDate=TODAY, but this
+        // is pending discussions on whether the time
+        // fields should be applied to all programs, or it is possible to
+        // specify date filters for each programs
+        //
+        // 2 - in event/enrollments we supported _OR_ separator to handle
+        // enhanced conditions
+        // TODO: DHIS2-13383
+        return commonQueryRequest;
     }
+
+    // TODO: DHIS2-13384 we would really like to have all
+    // criteria/request/params to be
+    // immutable, but PagingCriteria is not
+    // returning it for now, should be converted to use builders
+    public AnalyticsPagingCriteria processPagingCriteria( AnalyticsPagingCriteria pagingCriteria )
+    {
+        int analyticsMaxPageSize = systemSettingManager.getIntSetting( SettingKey.ANALYTICS_MAX_LIMIT );
+        pagingCriteria.definePageSize( analyticsMaxPageSize );
+        return pagingCriteria;
+    }
+
 }
