@@ -216,7 +216,7 @@ public class DefaultSchemaValidator implements SchemaValidator
 
     private boolean isInvalidUsername( Property property, String value )
     {
-        return PropertyType.USERNAME == property.getPropertyType() && !ValidationUtils.usernameIsValid( value );
+        return PropertyType.USERNAME == property.getPropertyType() && !ValidationUtils.usernameIsValid( value, false );
     }
 
     private boolean isInvalidEmail( Property property, String value )

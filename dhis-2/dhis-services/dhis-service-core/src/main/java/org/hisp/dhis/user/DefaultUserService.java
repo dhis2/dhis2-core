@@ -218,7 +218,7 @@ public class DefaultUserService
             return user;
         }
 
-        if ( usernameIsValid( id ) && (user = getUserByUsername( id )) != null )
+        if ( usernameIsValid( id, false ) && (user = getUserByUsername( id )) != null )
         {
             return user;
         }
