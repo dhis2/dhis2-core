@@ -43,7 +43,6 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 class DataStatisticsStoreTest extends DhisSpringTest
 {
-
     @Autowired
     private DataStatisticsStore dataStatisticsStore;
 
@@ -169,40 +168,32 @@ class DataStatisticsStoreTest extends DhisSpringTest
             getDate( 2015, 3, 21 ), getDate( 2016, 3, 21 ) );
         assertEquals( 1, asList.size() );
         AggregatedStatistics as = asList.get( 0 );
-        assertEqualsInt( 6, as.getMapViews() );
-        assertEqualsInt( 12, as.getVisualizationViews() );
-        assertEqualsInt( 18, as.getEventReportViews() );
-        assertEqualsInt( 21, as.getEventChartViews() );
-        assertEqualsInt( 18, as.getEventVisualizationViews() );
-        assertEqualsInt( 24, as.getDashboardViews() );
-        assertEqualsInt( 66, as.getPassiveDashboardViews() );
-        assertEqualsInt( 34, as.getDataSetReportViews() );
-        assertEqualsInt( 39, as.getTotalViews() );
-        assertEqualsInt( 13, as.getAverageViews() );
-        assertEqualsInt( 2, as.getAverageMapViews() );
-        assertEqualsInt( 4, as.getAverageVisualizationViews() );
-        assertEqualsInt( 6, as.getAverageEventReportViews() );
-        assertEqualsInt( 7, as.getAverageEventChartViews() );
-        assertEqualsInt( 6, as.getAverageEventVisualizationViews() );
-        assertEqualsInt( 8, as.getAverageDashboardViews() );
-        assertEqualsInt( 22, as.getAveragePassiveDashboardViews() );
-        assertEqualsInt( 29, as.getSavedMaps() );
-        assertEqualsInt( 46, as.getSavedVisualizations() );
-        assertEqualsInt( 38, as.getSavedEventReports() );
-        assertEqualsInt( 61, as.getSavedEventCharts() );
-        assertEqualsInt( 86, as.getSavedEventVisualizations() );
-        assertEqualsInt( 48, as.getSavedDashboards() );
-        assertEqualsInt( 49, as.getSavedIndicators() );
-        assertEqualsInt( 45, as.getSavedDataValues() );
-        assertEqualsInt( 3, as.getActiveUsers() );
-        assertEqualsInt( 19, as.getUsers() );
-    }
-
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
-    private void assertEqualsInt( int expected, int actual )
-    {
-        assertEquals( expected, actual );
+        assertEquals( 6, as.getMapViews() );
+        assertEquals( 12, as.getVisualizationViews() );
+        assertEquals( 18, as.getEventReportViews() );
+        assertEquals( 21, as.getEventChartViews() );
+        assertEquals( 18, as.getEventVisualizationViews() );
+        assertEquals( 24, as.getDashboardViews() );
+        assertEquals( 66, as.getPassiveDashboardViews() );
+        assertEquals( 34, as.getDataSetReportViews() );
+        assertEquals( 39, as.getTotalViews() );
+        assertEquals( 13, as.getAverageViews() );
+        assertEquals( 2, as.getAverageMapViews() );
+        assertEquals( 4, as.getAverageVisualizationViews() );
+        assertEquals( 6, as.getAverageEventReportViews() );
+        assertEquals( 7, as.getAverageEventChartViews() );
+        assertEquals( 6, as.getAverageEventVisualizationViews() );
+        assertEquals( 8, as.getAverageDashboardViews() );
+        assertEquals( 22, as.getAveragePassiveDashboardViews() );
+        assertEquals( 29, as.getSavedMaps() );
+        assertEquals( 46, as.getSavedVisualizations() );
+        assertEquals( 38, as.getSavedEventReports() );
+        assertEquals( 61, as.getSavedEventCharts() );
+        assertEquals( 86, as.getSavedEventVisualizations() );
+        assertEquals( 48, as.getSavedDashboards() );
+        assertEquals( 49, as.getSavedIndicators() );
+        assertEquals( 45, as.getSavedDataValues() );
+        assertEquals( 3, as.getActiveUsers() );
+        assertEquals( 19, as.getUsers() );
     }
 }
