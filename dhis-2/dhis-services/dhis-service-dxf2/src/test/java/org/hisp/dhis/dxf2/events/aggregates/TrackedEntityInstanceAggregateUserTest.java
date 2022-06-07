@@ -39,6 +39,7 @@ import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
+import org.hisp.dhis.user.CurrentUserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -56,10 +57,21 @@ public class TrackedEntityInstanceAggregateUserTest extends TrackerTest
     @Autowired
     private TrackedEntityInstanceAggregate trackedEntityInstanceAggregate;
 
+    @Autowired
+    private CurrentUserService currentUserService;
+
     @Override
     protected void mockCurrentUserService()
     {
-        currentUserService = new MockCurrentUserService( null );
+        CurrentUserService currentUserService = new MockCurrentUserService( null );
+        ReflectionTestUtils.setField( trackedEntityInstanceAggregate, "currentUserService", currentUserService );
+        ReflectionTestUtils.setField( trackedEntityInstanceService, "currentUserService", currentUserService );
+        ReflectionTestUtils.setField( teiService, "currentUserService", currentUserService );
+    }
+
+    @Override
+    protected void tearDownTest()
+    {
         ReflectionTestUtils.setField( trackedEntityInstanceAggregate, "currentUserService", currentUserService );
         ReflectionTestUtils.setField( trackedEntityInstanceService, "currentUserService", currentUserService );
         ReflectionTestUtils.setField( teiService, "currentUserService", currentUserService );
