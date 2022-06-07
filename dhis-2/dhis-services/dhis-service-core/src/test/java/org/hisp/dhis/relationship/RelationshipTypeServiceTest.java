@@ -25,30 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sms.command.code;
+package org.hisp.dhis.relationship;
 
-import java.util.Map;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
+import org.hisp.dhis.DhisSpringTest;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public class SMSCodesDeletionHandler extends JdbcDeletionHandler
+class RelationshipTypeServiceTest extends DhisSpringTest
 {
-    private static final DeletionVeto VETO = new DeletionVeto( SMSCode.class );
+    @Autowired
+    private RelationshipTypeService relationshipTypeService;
 
-    @Override
-    protected void register()
+    @Test
+    void testAllRelationshipTypeFieldsAreSavedAndRetrieved()
     {
-        whenVetoing( DataElement.class, this::allowDeleteDataElement );
-    }
+        RelationshipType relationshipType = createRelationshipType( 'A' );
+        relationshipType.setReferral( true );
+        relationshipType.setBidirectional( true );
+        relationshipTypeService.addRelationshipType( relationshipType );
 
-    private DeletionVeto allowDeleteDataElement( DataElement dataElement )
-    {
-        String sql = "select count(*) from smscodes where dataelementid=:id";
-        return vetoIfExists( VETO, sql, Map.of( "id", dataElement.getId() ) );
+        RelationshipType retrievedRelationshipType = relationshipTypeService
+            .getRelationshipType( relationshipType.getUid() );
+
+        assertEquals( relationshipType, retrievedRelationshipType );
     }
 }
