@@ -51,7 +51,7 @@ public class DataDimensionItemDeletionHandler extends JdbcDeletionHandler
 
     private DeletionVeto allowDeleteCategoryOptionCombo( CategoryOptionCombo optionCombo )
     {
-        String sql = "SELECT COUNT(*) FROM datadimensionitem where dataelementoperand_categoryoptioncomboid=:id";
+        String sql = "select count(*) from datadimensionitem where dataelementoperand_categoryoptioncomboid=:id";
         return vetoIfExists( VETO, sql, Map.of( "id", optionCombo.getId() ) );
     }
 }

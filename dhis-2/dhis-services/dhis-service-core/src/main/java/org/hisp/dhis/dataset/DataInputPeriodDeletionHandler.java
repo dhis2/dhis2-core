@@ -50,7 +50,7 @@ public class DataInputPeriodDeletionHandler extends JdbcDeletionHandler
 
     private DeletionVeto allowDeletePeriod( Period period )
     {
-        String sql = "SELECT COUNT(*) FROM datainputperiod where periodid= :id";
+        String sql = "select count(*) from datainputperiod where periodid= :id";
         return vetoIfExists( VETO, sql, Map.of( "id", period.getId() ) );
     }
 }
