@@ -80,6 +80,7 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.context.annotation.Lazy;
@@ -92,7 +93,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Service( "org.hisp.dhis.trackedentity.TrackedEntityInstanceService" )
 public class DefaultTrackedEntityInstanceService
-    implements TrackedEntityInstanceService
+    implements TrackedEntityInstanceService, CurrentUserServiceTarget
 {
     // -------------------------------------------------------------------------
     // Dependencies
@@ -108,7 +109,7 @@ public class DefaultTrackedEntityInstanceService
 
     private final OrganisationUnitService organisationUnitService;
 
-    private final CurrentUserService currentUserService;
+    private CurrentUserService currentUserService;
 
     private final AclService aclService;
 
@@ -978,5 +979,11 @@ public class DefaultTrackedEntityInstanceService
                 trackedEntityInstance.getUid(), user, auditType );
             trackedEntityInstanceAuditService.addTrackedEntityInstanceAudit( trackedEntityInstanceAudit );
         }
+    }
+
+    @Override
+    public void setCurrentUserService( CurrentUserService currentUserService )
+    {
+        this.currentUserService = currentUserService;
     }
 }

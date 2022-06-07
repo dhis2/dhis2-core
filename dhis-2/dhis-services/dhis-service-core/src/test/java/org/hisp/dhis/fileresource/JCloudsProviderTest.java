@@ -25,33 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentitydatavalue;
+package org.hisp.dhis.fileresource;
 
-import java.util.List;
+import static org.jclouds.ContextBuilder.newBuilder;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
-import org.hisp.dhis.common.AuditType;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.junit.jupiter.api.Test;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Verify that the supported jclouds providers can be selected.
+ *
+ * @author Jim Grace
  */
-public interface TrackedEntityDataValueAuditService
+class JCloudsProviderTest
 {
-    void addTrackedEntityDataValueAudit( TrackedEntityDataValueAudit trackedEntityDataValueAudit );
+    @Test
+    void verifyFilesystem()
+    {
+        assertDoesNotThrow( () -> newBuilder( "filesystem" ) );
+    }
 
-    List<TrackedEntityDataValueAudit> getTrackedEntityDataValueAudits( List<DataElement> dataElements,
-        List<ProgramStageInstance> programStageInstances,
-        AuditType auditType );
+    @Test
+    void verifyAwsS3()
+    {
+        assertDoesNotThrow( () -> newBuilder( "aws-s3" ) );
+    }
 
-    List<TrackedEntityDataValueAudit> getTrackedEntityDataValueAudits( List<DataElement> dataElements,
-        List<ProgramStageInstance> programStageInstances,
-        AuditType auditType, int first, int max );
-
-    int countTrackedEntityDataValueAudits( List<DataElement> dataElements,
-        List<ProgramStageInstance> programStageInstances, AuditType auditType );
-
-    void deleteTrackedEntityDataValueAudit( DataElement dataElement );
-
-    void deleteTrackedEntityDataValueAudit( ProgramStageInstance programStageInstance );
+    @Test
+    void verifyTransient()
+    {
+        assertDoesNotThrow( () -> newBuilder( "transient" ) );
+    }
 }

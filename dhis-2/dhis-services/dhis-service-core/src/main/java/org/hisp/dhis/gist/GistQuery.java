@@ -169,6 +169,8 @@ public final class GistQuery
     @JsonProperty
     private final boolean references;
 
+    private final boolean typedAttributeValues;
+
     /**
      * The extend to which fields are included by default
      */

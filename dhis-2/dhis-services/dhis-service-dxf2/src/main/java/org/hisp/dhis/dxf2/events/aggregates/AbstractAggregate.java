@@ -70,5 +70,4 @@ public abstract class AbstractAggregate
     {
         return supplyAsync( supplier, executor );
     }
-
 }

@@ -34,9 +34,11 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
+import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.fieldfiltering.transformers.IsEmptyFieldTransformer;
 import org.hisp.dhis.fieldfiltering.transformers.IsNotEmptyFieldTransformer;
@@ -54,6 +56,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.OrderComparator;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -214,12 +217,49 @@ public class FieldFilterService
                 } );
 
             ObjectNode objectNode = objectMapper.valueToTree( object );
+
+            applyAttributeValueFields( object, objectNode, fieldPaths );
             applyTransformers( objectNode, null, "", fieldTransformers );
 
             objectNodes.add( objectNode );
         }
 
         return objectNodes;
+    }
+
+    private void applyAttributeValueFields( Object object, ObjectNode objectNode, List<FieldPath> fieldPaths )
+    {
+        if ( !(object instanceof BaseIdentifiableObject) )
+        {
+            return;
+        }
+        for ( FieldPath path : fieldPaths )
+        {
+            if ( path.getProperty() == null && CodeGenerator.isValidUid( path.getFullPath() ) )
+            {
+                AttributeValue value = ((BaseIdentifiableObject) object).getAttributeValue( path.getFullPath() );
+                if ( value != null )
+                {
+                    String v = value.getValue();
+                    Attribute attribute = attributeService.getAttribute( value.getAttribute().getUid() );
+                    if ( v != null && !v.isBlank() && attribute.getValueType().isJson() )
+                    {
+                        try
+                        {
+                            objectNode.set( path.getFullPath(), jsonMapper.readTree( v ) );
+                        }
+                        catch ( JsonProcessingException e )
+                        {
+                            objectNode.put( path.getFullPath(), v );
+                        }
+                    }
+                    else
+                    {
+                        objectNode.put( path.getFullPath(), v );
+                    }
+                }
+            }
+        }
     }
 
     private void applyFieldPathVisitor( Object object, List<FieldPath> fieldPaths,

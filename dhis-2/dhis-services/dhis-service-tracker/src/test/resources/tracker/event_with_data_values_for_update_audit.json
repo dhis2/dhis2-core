@@ -1,0 +1,39 @@
+{
+  "importStrategy": "CREATE_AND_UPDATE",
+  "atomicMode": "ALL",
+  "flushMode": "AUTO",
+  "validationMode": "FULL",
+  "skipPatternValidation": false,
+  "skipSideEffects": false,
+  "skipRuleEngine": false,
+
+  "events": [
+    {
+      "event": "D9PbzJY8bJO",
+      "enrollment": "TvctPPhpD8u",
+      "storedBy": "admin",
+      "scheduledAt": "2019-01-28T12:10:38.100",
+      "program": "BFcipDERJnf",
+      "programStage": "NpsdDv6kKSO",
+      "orgUnit": "h4w96yEMlzO",
+      "status": "COMPLETED",
+      "occurredAt": "2019-01-28T00:00:00.000",
+      "attributeCategoryOptions": "xYerKDKCefk",
+      "updatedAt": "2019-01-28T12:10:38.109",
+      "createdAt": "2019-01-28T12:10:38.108",
+      "completedAt": "2019-01-28T00:00:00.000",
+      "attributeOptionCombo": "HllvX50cXC0",
+      "completedBy": "admin",
+      "dataValues": [
+        {
+          "updatedAt": "2019-01-28T12:10:38.113",
+          "storedBy": "admin",
+          "createdAt": "2019-01-28T12:10:38.113",
+          "dataElement": "DATAEL00001",
+          "value": "First2-updated",
+          "providedElsewhere": false
+        }
+      ]
+    }
+  ]
+}
