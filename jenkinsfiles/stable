@@ -6,7 +6,7 @@ pipeline {
     }
 
     options {
-        timeout(time: 20, activity: true)
+        timeout(time: 30)
     }
 
     environment {
@@ -51,7 +51,7 @@ pipeline {
 
         aborted {
             script {
-                slack.sendInactivityMessage(20)
+                slack.sendTimedoutMessage(30)
             }
         }
     }
