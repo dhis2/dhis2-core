@@ -30,6 +30,7 @@ package org.hisp.dhis.program;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.startsWith;
+import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.antlr.AntlrParserUtils.castString;
 import static org.hisp.dhis.parser.expression.ExpressionItem.ITEM_GET_SQL;
 import static org.hisp.dhis.program.DefaultProgramIndicatorService.PROGRAM_INDICATOR_ITEMS;
@@ -46,6 +47,7 @@ import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.antlr.literal.DefaultLiteral;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.expression.ExpressionParams;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
@@ -302,7 +304,11 @@ class ProgramSqlGeneratorVariablesTest extends DhisConvenienceTest
         dataElementsAndAttributesIdentifiers.add( BASE_UID + "b" );
         dataElementsAndAttributesIdentifiers.add( BASE_UID + "c" );
 
-        ProgramExpressionParams params = ProgramExpressionParams.builder()
+        ExpressionParams params = ExpressionParams.builder()
+            .dataType( NUMERIC )
+            .build();
+
+        ProgramExpressionParams progParams = ProgramExpressionParams.builder()
             .programIndicator( programIndicator )
             .reportingStartDate( startDate )
             .reportingEndDate( endDate )
@@ -318,7 +324,8 @@ class ProgramSqlGeneratorVariablesTest extends DhisConvenienceTest
             .i18n( new I18n( null, null ) )
             .itemMap( PROGRAM_INDICATOR_ITEMS )
             .itemMethod( ITEM_GET_SQL )
-            .progParams( params )
+            .params( params )
+            .progParams( progParams )
             .build();
 
         subject.setExpressionLiteral( exprLiteral );

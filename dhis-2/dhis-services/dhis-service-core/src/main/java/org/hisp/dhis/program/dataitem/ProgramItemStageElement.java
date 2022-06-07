@@ -42,7 +42,6 @@ import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.system.util.SqlUtils;
-import org.hisp.dhis.system.util.ValidationUtils;
 
 /**
  * Program indicator expression data item ProgramItemStageElement
@@ -86,7 +85,7 @@ public class ProgramItemStageElement
 
         visitor.getItemDescriptions().put( ctx.getText(), description );
 
-        return ValidationUtils.getNullReplacementValue( dataElement.getValueType() );
+        return getNullReplacementValue( dataElement.getValueType() );
     }
 
     @Override
@@ -136,7 +135,7 @@ public class ProgramItemStageElement
                     "Data element " + dataElementId + " not found during SQL generation." );
             }
 
-            column = replaceNullSqlValues( column, dataElement.getValueType() );
+            column = replaceNullSqlValues( column, visitor, dataElement.getValueType() );
         }
 
         return column;
