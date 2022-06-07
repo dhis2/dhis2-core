@@ -1051,7 +1051,7 @@ public abstract class AbstractEventService implements EventService
         {
             validUsername = User.getSafeUsername( fallbackUsername );
         }
-        else if ( !ValidationUtils.usernameIsValid( userName ) )
+        else if ( !ValidationUtils.usernameIsValid( userName, false ) )
         {
             if ( importConflicts != null )
             {
