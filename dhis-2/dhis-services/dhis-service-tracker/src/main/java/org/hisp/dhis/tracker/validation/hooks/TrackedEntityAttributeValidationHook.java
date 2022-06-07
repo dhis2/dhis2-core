@@ -46,6 +46,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -187,9 +188,9 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
         // Validate if that encryption is configured properly if someone sets
         // value to (confidential)
         boolean isConfidential = tea.isConfidentialBool();
-        boolean encryptionStatusOk = dhisConfigurationProvider.getEncryptionStatus().isOk();
-        reporter.addErrorIf( () -> isConfidential && !encryptionStatusOk, te, E1112,
-            value );
+        EncryptionStatus encryptionStatus = dhisConfigurationProvider.getEncryptionStatus();
+        reporter.addErrorIf( () -> isConfidential && !encryptionStatus.isOk(), te, E1112,
+            value, encryptionStatus.getKey() );
 
         // Uses ValidationUtils to check that the data value corresponds to the
         // data value type set on the attribute

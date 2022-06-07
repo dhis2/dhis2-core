@@ -25,44 +25,51 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.dimension;
+package org.hisp.dhis.webapi.dimension;
 
-import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
+import java.util.Date;
 
-import java.util.Collection;
-import java.util.stream.Collectors;
+import lombok.Builder;
+import lombok.Data;
+import lombok.With;
 
-import lombok.RequiredArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.springframework.stereotype.Service;
-
-@Service
-@RequiredArgsConstructor
-public class DimensionMapperService
+@Data
+@Builder
+@With
+public class DimensionResponse
 {
-    private final Collection<DimensionMapper> mappers;
+    @JsonProperty
+    private final String valueType;
 
-    public Collection<DimensionResponse> toDimensionResponse( Collection<BaseIdentifiableObject> dimensions )
-    {
-        return toDimensionResponse( dimensions, null );
-    }
+    @JsonProperty
+    private final String dimensionType;
 
-    public Collection<DimensionResponse> toDimensionResponse( Collection<BaseIdentifiableObject> dimensions,
-        String prefix )
-    {
-        return dimensions.stream()
-            .map( bio -> toDimensionResponse( bio, prefix ) )
-            .collect( Collectors.toList() );
-    }
+    @JsonProperty
+    private final Date created;
 
-    private DimensionResponse toDimensionResponse( BaseIdentifiableObject dimension, String prefix )
-    {
-        return mappers.stream()
-            .filter( dimensionMapper -> dimensionMapper.supports( dimension ) )
-            .findFirst()
-            .map( dimensionMapper -> dimensionMapper.map( dimension, prefix ) )
-            .orElseThrow( () -> new IllegalArgumentException(
-                "Unsupported dimension type: " + getRealClass( dimension ) ) );
-    }
+    @JsonProperty
+    private final Date lastUpdated;
+
+    @JsonProperty
+    private final String name;
+
+    @JsonProperty
+    private final String displayName;
+
+    @JsonProperty
+    private final String id;
+
+    @JsonProperty
+    private final String uid;
+
+    @JsonProperty
+    private final String code;
+
+    @JsonProperty
+    private final String displayShortName;
+
+    @JsonProperty
+    private final String optionSet;
 }

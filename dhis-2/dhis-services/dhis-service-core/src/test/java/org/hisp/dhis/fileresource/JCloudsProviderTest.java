@@ -25,20 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.common;
+package org.hisp.dhis.fileresource;
 
-import lombok.Builder;
-import lombok.Data;
+import static org.jclouds.ContextBuilder.newBuilder;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
-import org.hisp.dhis.common.AnalyticsPagingCriteria;
+import org.junit.jupiter.api.Test;
 
-@Data
-@Builder
-public class QueryRequestHolder<T>
+/**
+ * Verify that the supported jclouds providers can be selected.
+ *
+ * @author Jim Grace
+ */
+class JCloudsProviderTest
 {
-    private final T request;
+    @Test
+    void verifyFilesystem()
+    {
+        assertDoesNotThrow( () -> newBuilder( "filesystem" ) );
+    }
 
-    private final CommonQueryRequest commonQueryRequest;
+    @Test
+    void verifyAwsS3()
+    {
+        assertDoesNotThrow( () -> newBuilder( "aws-s3" ) );
+    }
 
-    private final AnalyticsPagingCriteria pagingCriteria;
+    @Test
+    void verifyTransient()
+    {
+        assertDoesNotThrow( () -> newBuilder( "transient" ) );
+    }
 }

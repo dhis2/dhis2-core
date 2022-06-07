@@ -31,12 +31,11 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.core.Every.everyItem;
+import static org.hisp.dhis.tracker.Assertions.assertNoImportErrors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 
-import org.hisp.dhis.config.H2DhisConfigurationProvider;
-import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
@@ -44,7 +43,6 @@ import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
-import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -66,37 +64,23 @@ class TeTaEncryptionValidationTest extends TrackerTest
     }
 
     @Test
-    void testEncryptedAttrFail()
-        throws IOException
-    {
-        TrackerImportParams trackerImportParams = fromJson(
-            "tracker/validations/te-program_with_tea_encryption_data.json" );
-        H2DhisConfigurationProvider dhisConfigurationProvider = (H2DhisConfigurationProvider) this.dhisConfigurationProvider;
-        dhisConfigurationProvider.setEncryptionStatus( EncryptionStatus.MISSING_ENCRYPTION_PASSWORD );
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
-        assertThat( trackerImportReport.getValidationReport().getErrors(),
-            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1112 ) ) ) );
-    }
-
-    @Test
     void testUniqueFailInOrgUnit()
         throws IOException
     {
         TrackerImportParams trackerImportParams = fromJson(
             "tracker/validations/te-program_with_tea_unique_data_in_country.json" );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
+        assertNoImportErrors( trackerImportReport );
 
         trackerImportParams = fromJson(
             "tracker/validations/te-program_with_tea_unique_data_in_country.json" );
         trackerImportParams.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
         trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
+        assertNoImportErrors( trackerImportReport );
         trackerImportParams = fromJson(
             "tracker/validations/te-program_with_tea_unique_data_in_region.json" );
         trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
+        assertNoImportErrors( trackerImportReport );
     }
 
     @Test
@@ -106,7 +90,7 @@ class TeTaEncryptionValidationTest extends TrackerTest
         TrackerImportParams trackerImportParams = fromJson(
             "tracker/validations/te-program_with_tea_unique_data.json" );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
+        assertNoImportErrors( trackerImportReport );
 
         trackerImportParams = fromJson( "tracker/validations/te-program_with_tea_unique_data2.json" );
         trackerImportReport = trackerImportService.importTracker( trackerImportParams );

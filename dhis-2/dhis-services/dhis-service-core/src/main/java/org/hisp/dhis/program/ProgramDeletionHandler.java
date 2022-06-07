@@ -27,13 +27,14 @@
  */
 package org.hisp.dhis.program;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.category.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
 import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -50,9 +51,9 @@ import org.springframework.stereotype.Component;
 /**
  * @author Chau Thu Tran
  */
-@Component( "org.hisp.dhis.program.ProgramDeletionHandler" )
-public class ProgramDeletionHandler
-    extends DeletionHandler
+@Component
+@AllArgsConstructor
+public class ProgramDeletionHandler extends DeletionHandler
 {
     private static final DeletionVeto VETO = new DeletionVeto( Program.class );
 
@@ -61,18 +62,6 @@ public class ProgramDeletionHandler
     private final IdentifiableObjectManager idObjectManager;
 
     private final CategoryService categoryService;
-
-    public ProgramDeletionHandler( ProgramService programService, IdentifiableObjectManager idObjectManager,
-        CategoryService categoryService )
-    {
-        checkNotNull( programService );
-        checkNotNull( idObjectManager );
-        checkNotNull( categoryService );
-
-        this.programService = programService;
-        this.idObjectManager = idObjectManager;
-        this.categoryService = categoryService;
-    }
 
     @Override
     protected void register()

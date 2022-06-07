@@ -44,7 +44,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * override the allowDeleteDataElement() method and return a non-null String
  * value if there exists objects that are dependent on the DataElement and are
  * considered not be deleted. The return value could be a hint for which object
- * is denying the delete, like the name.
+ * is denying the deletion, like the name.
  *
  * @author Lars Helge Overland
  */
@@ -81,4 +81,5 @@ public abstract class DeletionHandler
     }
 
     protected abstract void register();
+
 }

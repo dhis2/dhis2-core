@@ -27,29 +27,18 @@
  */
 package org.hisp.dhis.sms.command.code;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
+import java.util.Map;
 
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class SMSCodesDeletionHandler
-    extends DeletionHandler
+public class SMSCodesDeletionHandler extends JdbcDeletionHandler
 {
     private static final DeletionVeto VETO = new DeletionVeto( SMSCode.class );
-
-    private final JdbcTemplate jdbcTemplate;
-
-    public SMSCodesDeletionHandler( JdbcTemplate jdbcTemplate )
-    {
-        checkNotNull( jdbcTemplate );
-        this.jdbcTemplate = jdbcTemplate;
-    }
 
     @Override
     protected void register()
@@ -59,8 +48,7 @@ public class SMSCodesDeletionHandler
 
     private DeletionVeto allowDeleteDataElement( DataElement dataElement )
     {
-        String sql = "SELECT COUNT(*) FROM smscodes where dataelementid=" + dataElement.getId();
-
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
+        String sql = "SELECT COUNT(*) FROM smscodes where dataelementid=:id";
+        return vetoIfExists( VETO, sql, Map.of( "id", dataElement.getId() ) );
     }
 }

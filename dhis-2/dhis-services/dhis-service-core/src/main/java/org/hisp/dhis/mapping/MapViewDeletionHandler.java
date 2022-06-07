@@ -48,7 +48,7 @@ import org.springframework.stereotype.Component;
 /**
  * @author Lars Helge Overland
  */
-@Component( "org.hisp.dhis.mapping.MapViewDeletionHandler" )
+@Component
 public class MapViewDeletionHandler
     extends GenericAnalyticalObjectDeletionHandler<MapView, MappingService>
 {

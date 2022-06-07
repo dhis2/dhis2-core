@@ -27,11 +27,11 @@
  */
 package org.hisp.dhis.program;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.system.deletion.DeletionHandler;
@@ -40,23 +40,13 @@ import org.springframework.stereotype.Component;
 /**
  * @author Chau Thu Tran
  */
-@Component( "org.hisp.dhis.program.ProgramStageSectionDeletionHandler" )
-public class ProgramStageSectionDeletionHandler
-    extends DeletionHandler
+@Component
+@AllArgsConstructor
+public class ProgramStageSectionDeletionHandler extends DeletionHandler
 {
     private final IdentifiableObjectManager idObjectManager;
 
     private final ProgramStageSectionService programStageSectionService;
-
-    public ProgramStageSectionDeletionHandler( IdentifiableObjectManager idObjectManager,
-        ProgramStageSectionService programStageSectionService )
-    {
-        checkNotNull( idObjectManager );
-        checkNotNull( programStageSectionService );
-
-        this.idObjectManager = idObjectManager;
-        this.programStageSectionService = programStageSectionService;
-    }
 
     @Override
     protected void register()

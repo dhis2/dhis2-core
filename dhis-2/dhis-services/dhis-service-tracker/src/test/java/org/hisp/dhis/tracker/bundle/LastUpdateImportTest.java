@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.tracker.bundle;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.hisp.dhis.tracker.Assertions.assertNoImportErrors;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
@@ -47,7 +47,6 @@ import org.hisp.dhis.tracker.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
-import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -73,8 +72,7 @@ class LastUpdateImportTest extends TrackerTest
         TrackerImportParams trackerImportParams = fromJson( "tracker/single_tei.json" );
         assertNoImportErrors( trackerImportService.importTracker( trackerImportParams ) );
         trackedEntity = trackerImportParams.getTrackedEntities().get( 0 );
-        TrackerImportParams enrollmentParams = fromJson( "tracker/single_enrollment.json" );
-        assertNoImportErrors( trackerImportService.importTracker( enrollmentParams ) );
+        assertNoImportErrors( trackerImportService.importTracker( fromJson( "tracker/single_enrollment.json" ) ) );
         manager.flush();
     }
 
@@ -124,7 +122,7 @@ class LastUpdateImportTest extends TrackerTest
         enrollment.setStatus( EnrollmentStatus.COMPLETED );
         trackerImportParams.setImportStrategy( TrackerImportStrategy.UPDATE );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
+        assertNoImportErrors( trackerImportReport );
         manager.clear();
         assertTrue( manager.get( TrackedEntityInstance.class, trackedEntity.getTrackedEntity() ).getLastUpdated()
             .getTime() > lastUpdateBefore.getTime() );

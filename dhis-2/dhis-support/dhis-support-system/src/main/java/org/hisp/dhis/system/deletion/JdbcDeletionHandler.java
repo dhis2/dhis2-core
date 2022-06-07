@@ -25,51 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.dimension;
+package org.hisp.dhis.system.deletion;
 
-import java.util.Date;
+import java.util.Map;
 
-import lombok.Builder;
-import lombok.Data;
-import lombok.With;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-@Data
-@Builder
-@With
-public class DimensionResponse
+public abstract class JdbcDeletionHandler extends DeletionHandler
 {
-    @JsonProperty
-    private final String valueType;
+    private NamedParameterJdbcTemplate npTemplate;
 
-    @JsonProperty
-    private final String dimensionType;
+    @Autowired
+    public void setNamedParameterJdbcTemplate( NamedParameterJdbcTemplate npTemplate )
+    {
+        this.npTemplate = npTemplate;
+    }
 
-    @JsonProperty
-    private final Date created;
+    protected final int count( String sql, Map<String, Object> parameters )
+    {
+        Integer count = npTemplate.queryForObject( sql, new MapSqlParameterSource( parameters ), Integer.class );
+        return count == null ? 0 : count;
+    }
 
-    @JsonProperty
-    private final Date lastUpdated;
+    protected final boolean exists( String sql, Map<String, Object> parameters )
+    {
+        return count( sql, parameters ) > 0;
+    }
 
-    @JsonProperty
-    private final String name;
+    protected final DeletionVeto vetoIfExists( DeletionVeto veto, String sql, Map<String, Object> parameters )
+    {
+        return exists( sql, parameters ) ? veto : DeletionVeto.ACCEPT;
+    }
 
-    @JsonProperty
-    private final String displayName;
-
-    @JsonProperty
-    private final String id;
-
-    @JsonProperty
-    private final String uid;
-
-    @JsonProperty
-    private final String code;
-
-    @JsonProperty
-    private final String displayShortName;
-
-    @JsonProperty
-    private final String optionSet;
+    protected final int delete( String sql, Map<String, Object> parameters )
+    {
+        return npTemplate.update( sql, parameters );
+    }
 }

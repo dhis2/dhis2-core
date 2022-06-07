@@ -136,7 +136,8 @@ public class DefaultEventPersistenceService
             .map( e -> context.getTrackedEntityInstance( e.getUid() ) )
             .filter( Optional::isPresent )
             .map( o -> o.get().getUid() )
-            .distinct().collect( Collectors.toList() );
+            .distinct()
+            .collect( Collectors.toList() );
 
         jdbcEventStore.updateTrackedEntityInstances( distinctTeiList, context.getImportOptions().getUser() );
     }

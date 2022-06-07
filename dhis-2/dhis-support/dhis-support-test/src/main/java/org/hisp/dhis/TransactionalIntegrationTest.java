@@ -41,6 +41,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
 /*
+ * Runs with profile 'integration'.
+ *
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 @ExtendWith( SpringExtension.class )
@@ -92,6 +94,7 @@ public abstract class TransactionalIntegrationTest extends BaseSpringTest
         }
     }
 
+    @Override
     protected boolean emptyDatabaseAfterTest()
     {
         return true;
