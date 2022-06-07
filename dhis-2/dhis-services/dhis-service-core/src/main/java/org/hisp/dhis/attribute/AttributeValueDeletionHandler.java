@@ -27,8 +27,9 @@
  */
 package org.hisp.dhis.attribute;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Collections.singletonList;
+
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -36,18 +37,11 @@ import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.springframework.stereotype.Component;
 
-@Component( "org.hisp.dhis.attribute.AttributeValueDeletionHandler" )
-public class AttributeValueDeletionHandler
-    extends DeletionHandler
+@Component
+@AllArgsConstructor
+public class AttributeValueDeletionHandler extends DeletionHandler
 {
     private final IdentifiableObjectManager identifiableObjectManager;
-
-    public AttributeValueDeletionHandler( IdentifiableObjectManager identifiableObjectManager )
-    {
-        checkNotNull( identifiableObjectManager );
-
-        this.identifiableObjectManager = identifiableObjectManager;
-    }
 
     @Override
     protected void register()

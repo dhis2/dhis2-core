@@ -28,6 +28,7 @@
 package org.hisp.dhis.common;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import java.util.List;
 import java.util.Set;
@@ -161,5 +162,25 @@ class QueryItemTest
         QueryItem qiF = new QueryItem( deB );
         Set<QueryItem> items = Sets.newHashSet( qiA, qiB, qiC, qiD, qiE, qiF );
         assertEquals( 4, items.size() );
+    }
+
+    @Test
+    void testGetKeyForSameDataElementInTwoPrograms()
+    {
+        // arrange
+        QueryItem qiA = new QueryItem( deA, prA, null, ValueType.TEXT, AggregationType.NONE, null );
+        QueryItem qiB = new QueryItem( deA, prB, null, ValueType.TEXT, AggregationType.NONE, null );
+        // act, assert
+        assertNotEquals( qiA.getKey(), qiB.getKey() );
+    }
+
+    @Test
+    void testGetKeyForSameDataElementWithNoPrograms()
+    {
+        // arrange
+        QueryItem qiA = new QueryItem( deA, (Program) null, null, ValueType.TEXT, AggregationType.NONE, null );
+        QueryItem qiB = new QueryItem( deA, (Program) null, null, ValueType.TEXT, AggregationType.NONE, null );
+        // act, assert
+        assertEquals( qiA.getKey(), qiB.getKey() );
     }
 }

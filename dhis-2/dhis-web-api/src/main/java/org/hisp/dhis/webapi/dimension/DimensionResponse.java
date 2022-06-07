@@ -25,39 +25,51 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.dimension.mappers;
+package org.hisp.dhis.webapi.dimension;
 
-import java.util.Optional;
-import java.util.Set;
+import java.util.Date;
 
-import lombok.Getter;
+import lombok.Builder;
+import lombok.Data;
+import lombok.With;
 
-import org.hisp.dhis.analytics.dimension.DimensionResponse;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.dataelement.DataElement;
-import org.springframework.stereotype.Service;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-@Service
-public class DataElementMapper extends BaseDimensionalItemObjectMapper
+@Data
+@Builder
+@With
+public class DimensionResponse
 {
-    @Getter
-    private final Set<Class<? extends BaseIdentifiableObject>> supportedClasses = Set.of(
-        DataElement.class );
+    @JsonProperty
+    private final String valueType;
 
-    @Override
-    public DimensionResponse map( BaseIdentifiableObject dimension, String prefix )
-    {
-        DataElement dataElement = (DataElement) dimension;
+    @JsonProperty
+    private final String dimensionType;
 
-        final DimensionResponse mapped = super.map( dataElement, prefix )
-            .withValueType( dataElement.getValueType().name() )
-            .withId( String.join( ".", prefix, dataElement.getUid() ) );
+    @JsonProperty
+    private final Date created;
 
-        return Optional.of( dataElement )
-            .map( DataElement::getOptionSet )
-            .map( BaseIdentifiableObject::getUid )
-            .map( mapped::withOptionSet )
-            .orElse( mapped );
-    }
+    @JsonProperty
+    private final Date lastUpdated;
 
+    @JsonProperty
+    private final String name;
+
+    @JsonProperty
+    private final String displayName;
+
+    @JsonProperty
+    private final String id;
+
+    @JsonProperty
+    private final String uid;
+
+    @JsonProperty
+    private final String code;
+
+    @JsonProperty
+    private final String displayShortName;
+
+    @JsonProperty
+    private final String optionSet;
 }

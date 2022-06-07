@@ -27,10 +27,11 @@
  */
 package org.hisp.dhis.program;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import java.util.List;
+
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceParam;
@@ -43,21 +44,13 @@ import org.springframework.stereotype.Component;
  * @author Zubair Asghar
  */
 
-@Component( "org.hisp.dhis.program.ProgramNotificationInstanceDeletionHandler" )
-public class ProgramNotificationInstanceDeletionHandler
-    extends DeletionHandler
+@Component
+@AllArgsConstructor
+public class ProgramNotificationInstanceDeletionHandler extends DeletionHandler
 {
     private static final DeletionVeto VETO = new DeletionVeto( ProgramNotificationInstance.class );
 
     private final ProgramNotificationInstanceService programNotificationInstanceService;
-
-    public ProgramNotificationInstanceDeletionHandler(
-        ProgramNotificationInstanceService programNotificationInstanceService )
-    {
-        checkNotNull( programNotificationInstanceService );
-
-        this.programNotificationInstanceService = programNotificationInstanceService;
-    }
 
     @Override
     protected void register()

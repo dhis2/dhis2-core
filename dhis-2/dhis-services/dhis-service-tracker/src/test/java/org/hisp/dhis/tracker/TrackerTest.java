@@ -27,14 +27,11 @@
  */
 package org.hisp.dhis.tracker;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -50,8 +47,6 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationR
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.tracker.report.TrackerImportReport;
-import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -168,17 +163,5 @@ public abstract class TrackerTest extends SingleSetupIntegrationTestBase
     {
         return renderService.fromJson( new ClassPathResource( path ).getInputStream(),
             TrackerImportParams.class );
-    }
-
-    protected void assertNoImportErrors( TrackerImportReport report )
-    {
-        assertEquals( TrackerStatus.OK, report.getStatus(), logTrackerErrors( report ) );
-    }
-
-    private Supplier<String> logTrackerErrors( TrackerImportReport trackerImportReport )
-    {
-        return () -> trackerImportReport.getValidationReport().getErrors().stream()
-            .map( e -> e.getErrorCode() + ": " + e.getMessage() )
-            .collect( Collectors.joining( "\n" ) );
     }
 }

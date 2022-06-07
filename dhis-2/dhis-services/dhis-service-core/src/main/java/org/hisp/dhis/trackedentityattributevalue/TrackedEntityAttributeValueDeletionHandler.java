@@ -27,10 +27,11 @@
  */
 package org.hisp.dhis.trackedentityattributevalue;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import java.util.Collection;
+
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionVeto;
@@ -41,20 +42,14 @@ import org.springframework.stereotype.Component;
 /**
  * @author Chau Thu Tran
  */
-@Component( "org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueDeletionHandler" )
-public class TrackedEntityAttributeValueDeletionHandler
-    extends DeletionHandler
+@Component
+@AllArgsConstructor
+public class TrackedEntityAttributeValueDeletionHandler extends DeletionHandler
 {
     private static final DeletionVeto VETO = new DeletionVeto( TrackedEntityAttributeValue.class,
         "Some values are still assigned to this attribute" );
 
     private final TrackedEntityAttributeValueService attributeValueService;
-
-    public TrackedEntityAttributeValueDeletionHandler( TrackedEntityAttributeValueService attributeValueService )
-    {
-        checkNotNull( attributeValueService );
-        this.attributeValueService = attributeValueService;
-    }
 
     @Override
     protected void register()

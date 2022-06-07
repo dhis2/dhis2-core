@@ -25,33 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.dimension.mappers;
+package org.hisp.dhis.fileresource;
 
-import java.util.Set;
+import static org.jclouds.ContextBuilder.newBuilder;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
-import lombok.Getter;
+import org.junit.jupiter.api.Test;
 
-import org.hisp.dhis.analytics.dimension.BaseDimensionMapper;
-import org.hisp.dhis.analytics.dimension.DimensionResponse;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryOptionGroupSet;
-import org.hisp.dhis.common.BaseDimensionalObject;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.springframework.stereotype.Service;
-
-@Service
-public class BaseDimensionalObjectMapper extends BaseDimensionMapper
+/**
+ * Verify that the supported jclouds providers can be selected.
+ *
+ * @author Jim Grace
+ */
+class JCloudsProviderTest
 {
-
-    @Getter
-    private final Set<Class<? extends BaseIdentifiableObject>> supportedClasses = Set.of(
-        CategoryOptionGroupSet.class,
-        Category.class );
-
-    @Override
-    public DimensionResponse map( BaseIdentifiableObject dimension, String prefix )
+    @Test
+    void verifyFilesystem()
     {
-        return super.map( dimension, prefix )
-            .withDimensionType( ((BaseDimensionalObject) dimension).getDimensionType().name() );
+        assertDoesNotThrow( () -> newBuilder( "filesystem" ) );
+    }
+
+    @Test
+    void verifyAwsS3()
+    {
+        assertDoesNotThrow( () -> newBuilder( "aws-s3" ) );
+    }
+
+    @Test
+    void verifyTransient()
+    {
+        assertDoesNotThrow( () -> newBuilder( "transient" ) );
     }
 }

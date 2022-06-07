@@ -41,8 +41,8 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getClosingParenthes
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
 import static org.hisp.dhis.analytics.util.DisplayNameUtils.getDisplayName;
-import static org.hisp.dhis.resourcetable.ResourceTable.NEWEST_YEAR_PERIOD_SUPPORTED;
-import static org.hisp.dhis.resourcetable.ResourceTable.OLDEST_YEAR_PERIOD_SUPPORTED;
+import static org.hisp.dhis.resourcetable.ResourceTable.FIRST_YEAR_SUPPORTED;
+import static org.hisp.dhis.resourcetable.ResourceTable.LATEST_YEAR_SUPPORTED;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
@@ -383,8 +383,8 @@ public class JdbcEventAnalyticsTableManager
             "and pr.programid=" + program.getId() + " " +
             "and psi.organisationunitid is not null " +
             "and (" + getDateLinkedToStatus() + ") is not null " +
-            "and dps.year >= " + OLDEST_YEAR_PERIOD_SUPPORTED + " " +
-            "and dps.year <= " + NEWEST_YEAR_PERIOD_SUPPORTED + " " +
+            "and dps.year >= " + FIRST_YEAR_SUPPORTED + " " +
+            "and dps.year <= " + LATEST_YEAR_SUPPORTED + " " +
             "and psi.status in (" + String.join( ",", EXPORTABLE_EVENT_STATUSES ) + ")" +
             "and psi.deleted is false ";
 
@@ -444,6 +444,7 @@ public class JdbcEventAnalyticsTableManager
         if ( program.isRegistration() )
         {
             columns.add( new AnalyticsTableColumn( quote( "tei" ), CHARACTER_11, "tei.uid" ) );
+            columns.add( new AnalyticsTableColumn( quote( "teigeometry" ), GEOMETRY, "tei.geometry" ) );
         }
 
         return filterDimensionColumns( columns );
@@ -625,8 +626,8 @@ public class JdbcEventAnalyticsTableManager
                 DateUtils.getMediumDateString( params.getFromDate() ) + "'";
         }
 
-        sql += ") as temp where temp.supportedyear >= " + OLDEST_YEAR_PERIOD_SUPPORTED +
-            " and temp.supportedyear <= " + NEWEST_YEAR_PERIOD_SUPPORTED;
+        sql += ") as temp where temp.supportedyear >= " + FIRST_YEAR_SUPPORTED +
+            " and temp.supportedyear <= " + LATEST_YEAR_SUPPORTED;
 
         return jdbcTemplate.queryForList( sql, Integer.class );
     }

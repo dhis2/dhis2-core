@@ -25,51 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.dimension;
+package org.hisp.dhis.schema.descriptors;
 
-import java.util.Date;
+import org.hisp.dhis.relationship.RelationshipItem;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
 
-import lombok.Builder;
-import lombok.Data;
-import lombok.With;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-@Data
-@Builder
-@With
-public class DimensionResponse
+/**
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
+ */
+public class RelationshipItemSchemaDescriptor implements SchemaDescriptor
 {
-    @JsonProperty
-    private final String valueType;
+    public static final String SINGULAR = "relationshipItem";
 
-    @JsonProperty
-    private final String dimensionType;
+    public static final String PLURAL = "relationshipItems";
 
-    @JsonProperty
-    private final Date created;
-
-    @JsonProperty
-    private final Date lastUpdated;
-
-    @JsonProperty
-    private final String name;
-
-    @JsonProperty
-    private final String displayName;
-
-    @JsonProperty
-    private final String id;
-
-    @JsonProperty
-    private final String uid;
-
-    @JsonProperty
-    private final String code;
-
-    @JsonProperty
-    private final String displayShortName;
-
-    @JsonProperty
-    private final String optionSet;
+    @Override
+    public Schema getSchema()
+    {
+        return new Schema( RelationshipItem.class, SINGULAR, PLURAL );
+    }
 }

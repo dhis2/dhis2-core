@@ -25,44 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.dimension;
+package org.hisp.dhis.relationship;
 
-import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.util.Collection;
-import java.util.stream.Collectors;
+import org.hisp.dhis.DhisSpringTest;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
-import lombok.RequiredArgsConstructor;
-
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.springframework.stereotype.Service;
-
-@Service
-@RequiredArgsConstructor
-public class DimensionMapperService
+class RelationshipTypeServiceTest extends DhisSpringTest
 {
-    private final Collection<DimensionMapper> mappers;
+    @Autowired
+    private RelationshipTypeService relationshipTypeService;
 
-    public Collection<DimensionResponse> toDimensionResponse( Collection<BaseIdentifiableObject> dimensions )
+    @Test
+    void testAllRelationshipTypeFieldsAreSavedAndRetrieved()
     {
-        return toDimensionResponse( dimensions, null );
-    }
+        RelationshipType relationshipType = createRelationshipType( 'A' );
+        relationshipType.setReferral( true );
+        relationshipType.setBidirectional( true );
+        relationshipTypeService.addRelationshipType( relationshipType );
 
-    public Collection<DimensionResponse> toDimensionResponse( Collection<BaseIdentifiableObject> dimensions,
-        String prefix )
-    {
-        return dimensions.stream()
-            .map( bio -> toDimensionResponse( bio, prefix ) )
-            .collect( Collectors.toList() );
-    }
+        RelationshipType retrievedRelationshipType = relationshipTypeService
+            .getRelationshipType( relationshipType.getUid() );
 
-    private DimensionResponse toDimensionResponse( BaseIdentifiableObject dimension, String prefix )
-    {
-        return mappers.stream()
-            .filter( dimensionMapper -> dimensionMapper.supports( dimension ) )
-            .findFirst()
-            .map( dimensionMapper -> dimensionMapper.map( dimension, prefix ) )
-            .orElseThrow( () -> new IllegalArgumentException(
-                "Unsupported dimension type: " + getRealClass( dimension ) ) );
+        assertEquals( relationshipType, retrievedRelationshipType );
     }
 }

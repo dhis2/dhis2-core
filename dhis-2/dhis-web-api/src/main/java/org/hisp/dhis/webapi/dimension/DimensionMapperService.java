@@ -25,47 +25,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.dimension.mappers;
+package org.hisp.dhis.webapi.dimension;
 
-import java.util.Optional;
-import java.util.Set;
+import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
 
-import lombok.Getter;
+import java.util.Collection;
+import java.util.stream.Collectors;
 
-import org.hisp.dhis.analytics.dimension.DimensionResponse;
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.program.ProgramStageDataElement;
 import org.springframework.stereotype.Service;
 
 @Service
-public class ProgramStageDataElementMapper extends BaseDimensionalItemObjectMapper
+@RequiredArgsConstructor
+public class DimensionMapperService
 {
-    @Getter
-    private final Set<Class<? extends BaseIdentifiableObject>> supportedClasses = Set.of(
-        ProgramStageDataElement.class );
+    private final Collection<DimensionMapper> mappers;
 
-    @Override
-    public DimensionResponse map( BaseIdentifiableObject dimension, String prefix )
+    public Collection<DimensionResponse> toDimensionResponse( Collection<BaseIdentifiableObject> dimensions )
     {
-        ProgramStageDataElement programStageDataElement = (ProgramStageDataElement) dimension;
-
-        final DimensionResponse mapped = super.map( programStageDataElement.getDataElement(), prefix )
-            .withValueType( programStageDataElement.getDataElement().getValueType().name() )
-            .withId( getProgramStageDataElementUid( programStageDataElement ) );
-
-        return Optional.of( programStageDataElement )
-            .map( ProgramStageDataElement::getDataElement )
-            .map( DataElement::getOptionSet )
-            .map( BaseIdentifiableObject::getUid )
-            .map( mapped::withOptionSet )
-            .orElse( mapped );
+        return toDimensionResponse( dimensions, null );
     }
 
-    private static String getProgramStageDataElementUid( ProgramStageDataElement programStageDataElement )
+    public Collection<DimensionResponse> toDimensionResponse( Collection<BaseIdentifiableObject> dimensions,
+        String prefix )
     {
-        return String.format( "%s.%s",
-            programStageDataElement.getProgramStage().getUid(),
-            programStageDataElement.getDataElement().getUid() );
+        return dimensions.stream()
+            .map( bio -> toDimensionResponse( bio, prefix ) )
+            .collect( Collectors.toList() );
+    }
+
+    private DimensionResponse toDimensionResponse( BaseIdentifiableObject dimension, String prefix )
+    {
+        return mappers.stream()
+            .filter( dimensionMapper -> dimensionMapper.supports( dimension ) )
+            .findFirst()
+            .map( dimensionMapper -> dimensionMapper.map( dimension, prefix ) )
+            .orElseThrow( () -> new IllegalArgumentException(
+                "Unsupported dimension type: " + getRealClass( dimension ) ) );
     }
 }

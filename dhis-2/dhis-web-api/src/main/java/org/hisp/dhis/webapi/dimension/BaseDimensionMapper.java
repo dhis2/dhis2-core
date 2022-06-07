@@ -25,20 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.common;
+package org.hisp.dhis.webapi.dimension;
 
-import lombok.Builder;
-import lombok.Data;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.BaseNameableObject;
 
-import org.hisp.dhis.common.AnalyticsPagingCriteria;
-
-@Data
-@Builder
-public class QueryRequestHolder<T>
+public abstract class BaseDimensionMapper implements DimensionMapper
 {
-    private final T request;
 
-    private final CommonQueryRequest commonQueryRequest;
+    @Override
+    public DimensionResponse map( BaseIdentifiableObject dimension, String prefix )
+    {
+        DimensionResponse mapped = DimensionResponse.builder()
+            .id( dimension.getUid() )
+            .uid( dimension.getUid() )
+            .displayName( dimension.getDisplayName() )
+            .created( dimension.getCreated() )
+            .code( dimension.getCode() )
+            .lastUpdated( dimension.getLastUpdated() )
+            .name( dimension.getName() )
+            .build();
 
-    private final AnalyticsPagingCriteria pagingCriteria;
+        if ( dimension instanceof BaseNameableObject )
+        {
+            return mapped.withDisplayShortName(
+                ((BaseNameableObject) dimension).getDisplayShortName() );
+        }
+        return mapped;
+    }
 }

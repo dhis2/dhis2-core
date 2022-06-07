@@ -31,6 +31,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasProperty;
+import static org.hisp.dhis.tracker.Assertions.assertNoImportErrors;
 import static org.hisp.dhis.tracker.validation.Users.USER_2;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -56,7 +57,6 @@ import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
-import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -170,10 +170,8 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest
     {
         setUpMetadata( "tracker/tracker_basic_metadata.json" );
         injectAdminUser();
-        TrackerImportParams trackerBundleParams = fromJson( "tracker/validations/enrollments_te_te-data.json" );
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
-        assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
-        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
+        assertNoImportErrors(
+            trackerImportService.importTracker( fromJson( "tracker/validations/enrollments_te_te-data.json" ) ) );
     }
 
     @Test

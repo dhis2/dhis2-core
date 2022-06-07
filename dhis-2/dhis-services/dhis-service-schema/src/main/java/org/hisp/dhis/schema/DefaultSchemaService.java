@@ -92,7 +92,6 @@ public class DefaultSchemaService
 
     private void init()
     {
-        register( new MetadataVersionSchemaDescriptor() );
         register( new AnalyticsTableHookSchemaDescriptor() );
         register( new AttributeSchemaDescriptor() );
         register( new AttributeValueSchemaDescriptor() );
@@ -134,6 +133,7 @@ public class DefaultSchemaService
         register( new MapSchemaDescriptor() );
         register( new MapViewSchemaDescriptor() );
         register( new MessageConversationSchemaDescriptor() );
+        register( new MetadataVersionSchemaDescriptor() );
         register( new OAuth2ClientSchemaDescriptor() );
         register( new OptionSchemaDescriptor() );
         register( new OptionSetSchemaDescriptor() );
@@ -201,6 +201,10 @@ public class DefaultSchemaService
         register( new ProgramStageInstanceFilterSchemaDescriptor() );
         register( new VisualizationSchemaDescriptor() );
         register( new ApiTokenSchemaDescriptor() );
+        register( new AccessSchemaDescriptor() );
+        register( new ObjectStyleSchemaDescriptor() );
+        register( new RelationshipConstraintSchemaDescriptor() );
+        register( new RelationshipItemSchemaDescriptor() );
     }
 
     private final Map<Class<?>, Schema> classSchemaMap = new HashMap<>();

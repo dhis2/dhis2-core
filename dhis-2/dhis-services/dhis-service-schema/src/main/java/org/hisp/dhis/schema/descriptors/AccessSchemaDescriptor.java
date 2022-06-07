@@ -25,21 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.dimension;
+package org.hisp.dhis.schema.descriptors;
 
-import java.util.Set;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
+import org.hisp.dhis.security.acl.Access;
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.hibernate.HibernateProxyUtils;
-
-public interface DimensionMapper
+/**
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
+ */
+public class AccessSchemaDescriptor implements SchemaDescriptor
 {
-    DimensionResponse map( BaseIdentifiableObject dimension, String prefix );
+    public static final String SINGULAR = "access";
 
-    Set<Class<? extends BaseIdentifiableObject>> getSupportedClasses();
+    public static final String PLURAL = "accesses";
 
-    default boolean supports( BaseIdentifiableObject dimension )
+    @Override
+    public Schema getSchema()
     {
-        return getSupportedClasses().contains( HibernateProxyUtils.getRealClass( dimension ) );
+        return new Schema( Access.class, SINGULAR, PLURAL );
     }
 }

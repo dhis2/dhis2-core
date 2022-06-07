@@ -27,27 +27,20 @@
  */
 package org.hisp.dhis.dataapproval;
 
-import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
-
-import lombok.AllArgsConstructor;
+import java.util.Map;
 
 import org.hisp.dhis.category.CategoryOptionGroupSet;
-import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Jim Grace
  */
 @Component
-@AllArgsConstructor
-public class DataApprovalLevelDeletionHandler
-    extends DeletionHandler
+public class DataApprovalLevelDeletionHandler extends JdbcDeletionHandler
 {
     private static final DeletionVeto VETO = new DeletionVeto( DataApproval.class );
-
-    private final JdbcTemplate jdbcTemplate;
 
     @Override
     protected void register()
@@ -58,16 +51,13 @@ public class DataApprovalLevelDeletionHandler
 
     public DeletionVeto allowDeleteCategoryOptionGroupSet( CategoryOptionGroupSet categoryOptionGroupSet )
     {
-        String sql = "select count(*) from dataapprovallevel where categoryoptiongroupsetid="
-            + categoryOptionGroupSet.getId();
-
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
+        String sql = "select count(*) from dataapprovallevel where categoryoptiongroupsetid=:id";
+        return vetoIfExists( VETO, sql, Map.of( "id", categoryOptionGroupSet.getId() ) );
     }
 
     public DeletionVeto allowDeleteDataApprovalWorkflow( DataApprovalWorkflow workflow )
     {
-        String sql = "select count(*) from dataapprovalworkflowlevels where workflowid=" + workflow.getId();
-
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
+        String sql = "select count(*) from dataapprovalworkflowlevels where workflowid=:id";
+        return vetoIfExists( VETO, sql, Map.of( "id", workflow.getId() ) );
     }
 }

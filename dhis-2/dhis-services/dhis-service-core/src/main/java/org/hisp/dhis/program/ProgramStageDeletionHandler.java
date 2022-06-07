@@ -27,39 +27,28 @@
  */
 package org.hisp.dhis.program;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
-
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataentryform.DataEntryForm;
-import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Lars Helge Overland
  */
-@Component( "org.hisp.dhis.program.ProgramStageDeletionHandler" )
-public class ProgramStageDeletionHandler
-    extends DeletionHandler
+@Component
+@AllArgsConstructor
+public class ProgramStageDeletionHandler extends JdbcDeletionHandler
 {
     private static final DeletionVeto VETO = new DeletionVeto( ProgramStage.class );
 
     private final ProgramStageService programStageService;
-
-    private final JdbcTemplate jdbcTemplate;
-
-    public ProgramStageDeletionHandler( ProgramStageService programStageService, JdbcTemplate jdbcTemplate )
-    {
-        checkNotNull( programStageService );
-        checkNotNull( jdbcTemplate );
-        this.programStageService = programStageService;
-        this.jdbcTemplate = jdbcTemplate;
-    }
 
     @Override
     protected void register()
@@ -95,8 +84,7 @@ public class ProgramStageDeletionHandler
 
     private DeletionVeto allowDeleteDataElement( DataElement dataElement )
     {
-        String sql = "SELECT COUNT(*) FROM programstagedataelement WHERE dataelementid=" + dataElement.getId();
-
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
+        String sql = "SELECT COUNT(*) FROM programstagedataelement WHERE dataelementid=:id";
+        return vetoIfExists( VETO, sql, Map.of( "id", dataElement.getId() ) );
     }
 }

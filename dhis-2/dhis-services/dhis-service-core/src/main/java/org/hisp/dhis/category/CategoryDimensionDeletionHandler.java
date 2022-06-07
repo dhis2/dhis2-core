@@ -27,31 +27,19 @@
  */
 package org.hisp.dhis.category;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
+import java.util.Map;
 
-import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Lars Helge Overland
  */
-@Component( "org.hisp.dhis.category.CategoryDimensionDeletionHandler" )
-public class CategoryDimensionDeletionHandler
-    extends DeletionHandler
+@Component
+public class CategoryDimensionDeletionHandler extends JdbcDeletionHandler
 {
     private static final DeletionVeto VETO = new DeletionVeto( CategoryDimension.class );
-
-    private final JdbcTemplate jdbcTemplate;
-
-    public CategoryDimensionDeletionHandler( JdbcTemplate jdbcTemplate )
-    {
-        checkNotNull( jdbcTemplate );
-
-        this.jdbcTemplate = jdbcTemplate;
-    }
 
     @Override
     protected void register()
@@ -62,15 +50,13 @@ public class CategoryDimensionDeletionHandler
 
     private DeletionVeto allowDeleteCategoryOption( CategoryOption categoryOption )
     {
-        String sql = "select count(*) from categorydimension_items where categoryoptionid = " + categoryOption.getId();
-
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
+        String sql = "select count(*) from categorydimension_items where categoryoptionid = :id";
+        return vetoIfExists( VETO, sql, Map.of( "id", categoryOption.getId() ) );
     }
 
     private DeletionVeto allowDeleteCategory( Category category )
     {
-        String sql = "select count(*) from categorydimension where categoryid = " + category.getId();
-
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
+        String sql = "select count(*) from categorydimension where categoryid = :id";
+        return vetoIfExists( VETO, sql, Map.of( "id", category.getId() ) );
     }
 }

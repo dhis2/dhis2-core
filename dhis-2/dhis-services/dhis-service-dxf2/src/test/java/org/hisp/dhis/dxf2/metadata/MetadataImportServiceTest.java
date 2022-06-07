@@ -816,7 +816,7 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
     void testImportMapCreateAndUpdate()
         throws IOException
     {
-        java.util.Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService
             .fromMetadata( new ClassPathResource( "dxf2/map_new.json" ).getInputStream(), RenderFormat.JSON );
         MetadataImportParams params = new MetadataImportParams();
         params.setImportMode( ObjectBundleMode.COMMIT );
@@ -918,10 +918,9 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
     private MetadataImportParams createParams( ImportStrategy importStrategy,
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata )
     {
-        MetadataImportParams params = new MetadataImportParams();
-        params.setImportMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( importStrategy );
-        params.setObjects( metadata );
-        return params;
+        return new MetadataImportParams()
+            .setImportMode( ObjectBundleMode.COMMIT )
+            .setImportStrategy( importStrategy )
+            .setObjects( metadata );
     }
 }

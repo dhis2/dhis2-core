@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.dashboard;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.eventchart.EventChart;
@@ -43,16 +43,11 @@ import org.springframework.stereotype.Component;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Component( "org.hisp.dhis.dashboard.DashboardItemDeletionHandler" )
+@Component
+@AllArgsConstructor
 public class DashboardItemDeletionHandler extends DeletionHandler
 {
     private final DashboardService dashboardService;
-
-    public DashboardItemDeletionHandler( DashboardService dashboardService )
-    {
-        checkNotNull( dashboardService );
-        this.dashboardService = dashboardService;
-    }
 
     @Override
     protected void register()
