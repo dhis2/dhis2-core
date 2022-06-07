@@ -25,10 +25,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.tracker.deduplication.merge;
 
-import com.google.gson.JsonObject;
+import static org.hamcrest.Matchers.*;
+
+import java.util.Arrays;
+import java.util.List;
+
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.AuditActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
@@ -39,10 +42,7 @@ import org.hisp.dhis.tracker.importer.databuilder.TeiDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
-import java.util.List;
-
-import static org.hamcrest.Matchers.*;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -60,7 +60,8 @@ public class PotentialDuplicatesAttributeMergeTests
         loginActions.loginAsAdmin();
 
         attributes = new ProgramActions()
-            .get( program, new QueryParamsBuilder().addAll( "filter=programTrackedEntityAttributes.valueType:eq:TEXT" ) )
+            .get( program,
+                new QueryParamsBuilder().addAll( "filter=programTrackedEntityAttributes.valueType:eq:TEXT" ) )
             .extractList( "programTrackedEntityAttributes.trackedEntityAttribute.id", String.class );
     }
 
@@ -70,7 +71,7 @@ public class PotentialDuplicatesAttributeMergeTests
         String teiA = createTeiWithAttributes( createAttribute( attributes.get( 1 ), "TEST" ) );
         String teiB = createTeiWithAttributes( createAttribute( attributes.get( 0 ), "TEST" ) );
 
-        String potentialDuplicate = potentialDuplicatesActions.createPotentialDuplicate( teiA, teiB, "OPEN" )
+        String potentialDuplicate = potentialDuplicatesActions.postPotentialDuplicate( teiA, teiB, "OPEN" )
             .validateStatus( 200 )
             .extractString( "id" );
 
@@ -88,10 +89,12 @@ public class PotentialDuplicatesAttributeMergeTests
         String teiA = createTeiWithAttributes( createAttribute( attributes.get( 0 ), "attribute 1" ) );
         String teiB = createTeiWithAttributes( createAttribute( attributes.get( 0 ), "attribute 2" ) );
 
-        String potentialDuplicate = potentialDuplicatesActions.createAndValidatePotentialDuplicate( teiA, teiB, "OPEN" );
+        String potentialDuplicate = potentialDuplicatesActions.createAndValidatePotentialDuplicate( teiA, teiB,
+            "OPEN" );
 
         potentialDuplicatesActions.manualMergePotentialDuplicate( potentialDuplicate,
-            new JsonObjectBuilder().addArray( "trackedEntityAttributes", Arrays.asList( attributes.get( 0 ) ) ).build() )
+            new JsonObjectBuilder().addArray( "trackedEntityAttributes", Arrays.asList( attributes.get( 0 ) ) )
+                .build() )
             .validate().statusCode( 200 );
 
         trackerActions.getTrackedEntity( teiA )
@@ -107,10 +110,12 @@ public class PotentialDuplicatesAttributeMergeTests
         String teiB = createTeiWithAttributes( createAttribute( attributes.get( 0 ), "attribute A - changed" ),
             createAttribute( attributes.get( 1 ), "attribute B" ) );
 
-        String potentialDuplicate = potentialDuplicatesActions.createAndValidatePotentialDuplicate( teiA, teiB, "OPEN" );
+        String potentialDuplicate = potentialDuplicatesActions.createAndValidatePotentialDuplicate( teiA, teiB,
+            "OPEN" );
 
         potentialDuplicatesActions.manualMergePotentialDuplicate( potentialDuplicate,
-            new JsonObjectBuilder().addArray( "trackedEntityAttributes", Arrays.asList( attributes.get( 0 ), attributes.get( 1 ) ) )
+            new JsonObjectBuilder()
+                .addArray( "trackedEntityAttributes", Arrays.asList( attributes.get( 0 ), attributes.get( 1 ) ) )
                 .build() )
             .validate().statusCode( 200 );
 
@@ -122,7 +127,8 @@ public class PotentialDuplicatesAttributeMergeTests
             .body( "value", equalTo( "attribute B" ) )
             .body( "auditType", equalTo( "CREATE" ) )
             .rootPath(
-                String.format( "trackedEntityAttributeValueAudits.find{it.trackedEntityAttribute.id=='%s'}", attributes.get( 0 ) ) )
+                String.format( "trackedEntityAttributeValueAudits.find{it.trackedEntityAttribute.id=='%s'}",
+                    attributes.get( 0 ) ) )
             .body( "value", equalTo( "attribute A - changed" ) )
             .body( "auditType", equalTo( "UPDATE" ) );
     }
@@ -137,14 +143,15 @@ public class PotentialDuplicatesAttributeMergeTests
 
     private String createTeiWithAttributes( JsonObject... attributes )
     {
-        JsonObjectBuilder tei =
-            JsonObjectBuilder.jsonObject( new TeiDataBuilder().array( Constants.TRACKED_ENTITY_TYPE, Constants.ORG_UNIT_IDS[0] ) );
+        JsonObjectBuilder tei = JsonObjectBuilder
+            .jsonObject( new TeiDataBuilder().array( Constants.TRACKED_ENTITY_TYPE, Constants.ORG_UNIT_IDS[0] ) );
 
         for ( JsonObject attribute : attributes )
         {
             tei.addOrAppendToArrayByJsonPath( "trackedEntities[0]", "attributes", attribute );
         }
 
-        return trackerActions.postAndGetJobReport( tei.build() ).validateSuccessfulImport().extractImportedTeis().get( 0 );
+        return trackerActions.postAndGetJobReport( tei.build() ).validateSuccessfulImport().extractImportedTeis()
+            .get( 0 );
     }
 }
