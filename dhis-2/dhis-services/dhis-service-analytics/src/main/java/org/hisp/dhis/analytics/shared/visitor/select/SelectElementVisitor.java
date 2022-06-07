@@ -76,14 +76,13 @@ public class SelectElementVisitor implements SelectVisitor
     @Override
     public void visit( ProgramEnrollmentFlagElement element )
     {
-        columns.add( new Column( " COALESCE((SELECT TRUE " +
-            " FROM program p, " +
-            " programinstance pi " +
-            " WHERE p.programid = pi.programid " +
-            " AND pi.trackedentityinstanceid = t.trackedentityinstanceid " +
-            " AND p.uid = '" + element.getUid() + "' " +
-            " LIMIT 1 " +
-            " ), FALSE) ", ColumnDataType.BOOLEAN, element.getAlias(), false, false ) );
+        columns.add( new Column( " COALESCE( " +
+            "                           (SELECT TRUE " +
+            "                            FROM analytics_tracked_entity_instance ateiin " +
+            "                            WHERE ateiin.trackedentityinstanceid = atei.trackedentityinstanceid " +
+            "                              AND ateiin.programuid = '" + element.getUid() + "' " +
+            "                            LIMIT 1), FALSE)", ColumnDataType.BOOLEAN, element.getAlias(), false,
+            false ) );
     }
 
     /**
@@ -93,13 +92,12 @@ public class SelectElementVisitor implements SelectVisitor
     @Override
     public void visit( EnrollmentDateValueSelectElement element )
     {
-        columns.add( new Column( " ( SELECT pi.enrollmentdate " +
-            " FROM programinstance pi, " +
-            " program p " +
-            " WHERE pi.trackedentityinstanceid = t.trackedentityinstanceid " +
-            " AND pi.programid = p.programid " +
-            " AND p.uid = '" + element.getUid() + "' " +
-            " ORDER BY enrollmentdate DESC LIMIT 1 )", ColumnDataType.DATE, element.getAlias(), false, false ) );
+        columns.add( new Column( " (SELECT ateiin.enrollmentdate " +
+            "   FROM analytics_tracked_entity_instance ateiin " +
+            "   WHERE ateiin.trackedentityinstanceid = atei.trackedentityinstanceid " +
+            "     AND ateiin.programuid = '" + element.getUid() + "' " +
+            "   ORDER BY ateiin.enrollmentdate DESC " +
+            "   LIMIT 1) ", ColumnDataType.DATE, element.getAlias(), false, false ) );
     }
 
     /**
@@ -109,29 +107,21 @@ public class SelectElementVisitor implements SelectVisitor
     @Override
     public void visit( ExecutionDateValueElement element )
     {
-        columns.add( new Column( isBlank( element.getProgramUid() ) ? " ( SELECT psi.executiondate" +
-            " FROM programstageinstance psi," +
-            " programinstance pi," +
-            " programstage ps" +
-            " WHERE psi.programinstanceid = pi.programinstanceid" +
-            " AND pi.trackedentityinstanceid = t.trackedentityinstanceid" +
-            " AND ps.uid = '" + element.getProgramStageUid() + "'" +
-            " AND psi.programstageid = ps.programstageid" +
-            " ORDER BY pi.enrollmentdate DESC, psi.executiondate DESC" +
-            " LIMIT 1 ) "
-            : " ( SELECT psi.executiondate" +
-                " FROM programstageinstance psi," +
-                " programinstance pi," +
-                " program p," +
-                " programstage ps" +
-                " WHERE psi.programinstanceid = pi.programinstanceid" +
-                " AND pi.trackedentityinstanceid = t.trackedentityinstanceid" +
-                " AND pi.programid = p.programid" +
-                " AND p.uid = '" + element.getProgramUid() + "'" +
-                " AND ps.uid = '" + element.getProgramStageUid() + "'" +
-                " AND ps.programid = p.programid" +
-                " ORDER BY pi.enrollmentdate DESC, psi.executiondate DESC" +
-                "  LIMIT 1 ) ",
+        columns.add( new Column( isBlank( element.getProgramUid() ) ? " (SELECT ateiin.executiondate " +
+            "   FROM analytics_tracked_entity_instance ateiin " +
+            "   WHERE ateiin.trackedentityinstanceid = atei.trackedentityinstanceid " +
+            "     AND ateiin.programstageuid = '" + element.getProgramStageUid() + "' " +
+            "   ORDER BY ateiin.enrollmentdate DESC, ateiin.executiondate DESC " +
+            "   LIMIT 1) "
+            : " (SELECT ateiin.executiondate " +
+                "   FROM analytics_tracked_entity_instance ateiin " +
+                "   WHERE ateiin.programinstanceid = atei.programinstanceid " +
+                "     AND ateiin.trackedentityinstanceid = atei.trackedentityinstanceid " +
+                "     AND ateiin.programuid = atei.programuid " +
+                "     AND ateiin.programuid = '" + element.getProgramUid() + "' " +
+                "     AND ateiin.programstageuid = '" + element.getProgramStageUid() + "' " +
+                "   ORDER BY ateiin.enrollmentdate DESC, ateiin.executiondate DESC " +
+                "   LIMIT 1) ",
             ColumnDataType.DATE,
             element.getAlias(), false, false ) );
     }
@@ -143,24 +133,19 @@ public class SelectElementVisitor implements SelectVisitor
     @Override
     public void visit( EventDateValueElement element )
     {
-        columns.add( new Column( !isBlank( element.getProgramUid() )
-            ? " ( SELECT psi.eventdatavalues -> '" + element.getEventDataValue() + "' -> 'value'" +
-                "  FROM programstageinstance psi," +
-                "  programinstance pi," +
-                "  program p" +
-                "  WHERE psi.programinstanceid = pi.programinstanceid" +
-                "  AND pi.trackedentityinstanceid = t.trackedentityinstanceid" +
-                "  AND pi.programid = p.programid" +
-                "  AND p.uid = '" + element.getProgramUid() + "'" +
-                "  ORDER BY pi.enrollmentdate DESC, psi.executiondate DESC" +
-                "  LIMIT 1 ) "
-            : " ( SELECT psi.eventdatavalues -> '" + element.getEventDataValue() + "' -> 'value'" +
-                "  FROM programstageinstance psi," +
-                "  programinstance pi" +
-                "  WHERE psi.programinstanceid = pi.programinstanceid" +
-                "  AND pi.trackedentityinstanceid = t.trackedentityinstanceid" +
-                "  ORDER BY pi.enrollmentdate DESC, psi.executiondate DESC" +
-                "  LIMIT 1 )",
+        columns.add( new Column( isBlank( element.getProgramUid() )
+            ? " (SELECT ateiin.eventdatavalues -> '" + element.getEventDataValue() + "' -> 'value' " +
+                "   FROM analytics_tracked_entity_instance ateiin " +
+                "   WHERE ateiin.trackedentityinstanceid = atei.trackedentityinstanceid " +
+                "   ORDER BY ateiin.enrollmentdate DESC, ateiin.executiondate DESC " +
+                "   LIMIT 1) "
+            : " (SELECT ateiin.eventdatavalues -> '" + element.getEventDataValue() + "' -> 'value' " +
+                "   FROM analytics_tracked_entity_instance ateiin " +
+                "   WHERE ateiin.programinstanceid = atei.programinstanceid " +
+                "     AND ateiin.trackedentityinstanceid = atei.trackedentityinstanceid " +
+                "     AND ateiin.programuid = '" + element.getProgramUid() + "' " +
+                "   ORDER BY ateiin.enrollmentdate DESC, ateiin.executiondate DESC " +
+                "   LIMIT 1) ",
             ColumnDataType.DATE, element.getAlias(), false, false ) );
     }
 

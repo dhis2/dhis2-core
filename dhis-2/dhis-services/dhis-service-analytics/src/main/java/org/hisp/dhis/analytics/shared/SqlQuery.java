@@ -99,7 +99,8 @@ public class SqlQuery implements Query
     {
         validate();
 
-        return "select " + join( columns, "," ) + spaced( fromClause ) + spaced( joinClause ) + spaced( whereClause )
+        return "select distinct " + join( columns, "," ) + spaced( fromClause ) + spaced( joinClause )
+            + spaced( whereClause )
             + spaced( closingClauses );
     }
 

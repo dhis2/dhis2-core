@@ -25,46 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.shared.visitor.where;
+package org.hisp.dhis.analytics.shared.component.element.where;
 
 import java.util.List;
 
-import org.hisp.dhis.analytics.shared.component.element.where.EnrollmentDateValueWhereElement;
-import org.hisp.dhis.analytics.shared.component.element.where.ProgramUidWhereElement;
-import org.hisp.dhis.analytics.shared.component.element.where.TeaValueWhereElement;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
-/**
- * Visitor for 'where' section element of sql statement
- *
- * @author dusan bernat
- */
-public interface WhereVisitor
+import org.hisp.dhis.analytics.shared.component.element.Element;
+import org.hisp.dhis.analytics.shared.visitor.where.WhereVisitor;
+
+@AllArgsConstructor
+@Getter
+public class ProgramUidWhereElement implements Element<WhereVisitor>
 {
-    /**
-     * TeavValue visit method
-     *
-     * @param element
-     */
-    void visit( TeaValueWhereElement element );
+    private List<String> programUidList;
 
     /**
-     * EnrollmentDateValue visit method
+     * see Visitor design pattern
      *
-     * @param element
+     * @param v
      */
-    void visit( EnrollmentDateValueWhereElement element );
-
-    /**
-     * ProgramUid visit method
-     *
-     * @param element
-     */
-    void visit( ProgramUidWhereElement element );
-
-    /**
-     * Visitor produced iteratively all predicates for where part of sql
-     * statement
-     *
-     */
-    List<String> getPredicates();
+    @Override
+    public void accept( WhereVisitor v )
+    {
+        v.visit( this );
+    }
 }

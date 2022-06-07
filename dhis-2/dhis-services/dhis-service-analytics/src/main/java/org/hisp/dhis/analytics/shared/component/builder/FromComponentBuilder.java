@@ -74,6 +74,6 @@ public class FromComponentBuilder
      */
     public FromComponent build()
     {
-        return new FromComponent( List.of( new SimpleFromElement( "trackedentityinstance t" ) ) );
+        return new FromComponent( List.of( new SimpleFromElement( "analytics_tracked_entity_instance atei" ) ) );
     }
 }

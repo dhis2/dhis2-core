@@ -33,6 +33,7 @@ import java.util.List;
 import lombok.Getter;
 
 import org.hisp.dhis.analytics.shared.component.element.where.EnrollmentDateValueWhereElement;
+import org.hisp.dhis.analytics.shared.component.element.where.ProgramUidWhereElement;
 import org.hisp.dhis.analytics.shared.component.element.where.TeaValueWhereElement;
 
 /**
@@ -53,13 +54,7 @@ public class WhereElementVisitor implements WhereVisitor
     @Override
     public void visit( TeaValueWhereElement element )
     {
-        predicates.add( "(SELECT teav.VALUE" +
-            "       FROM trackedentityattributevalue teav," +
-            "            trackedentityattribute tea" +
-            "       WHERE teav.trackedentityinstanceid = t.trackedentityinstanceid" +
-            "         AND teav.trackedentityattributeid = tea.trackedentityattributeid" +
-            "         AND tea.uid = '" + element.getUid() + "'" +
-            "       LIMIT 1) = " + "'" + element.getFilterValue() + "'" );
+        predicates.add( "atei.\"" + element.getUid() + "\" = " + "'" + element.getFilterValue() + "'" );
     }
 
     /**
@@ -70,14 +65,17 @@ public class WhereElementVisitor implements WhereVisitor
     @Override
     public void visit( EnrollmentDateValueWhereElement element )
     {
-        predicates.add( "exists(" +
-            "        SELECT 1" +
-            "        FROM programinstance pi," +
-            "             program p" +
-            "        WHERE pi.programid = p.programid" +
-            "          AND pi.trackedentityinstanceid = t.trackedentityinstanceid" +
-            "          AND p.uid IN ('" + String.join( "','", element.getProgramUidList() ) + "')" +
-            "          AND pi.enrollmentdate > '" + element.getDate() + "'" +
-            "    )" );
+        predicates.add( "atei.enrollmentdate > '" + element.getDate() + "'" );
+    }
+
+    /**
+     * see Visitor design pattern
+     *
+     * @param element
+     */
+    @Override
+    public void visit( ProgramUidWhereElement element )
+    {
+        predicates.add( "atei.programuid in ('" + String.join( "','", element.getProgramUidList() ) + "')" );
     }
 }

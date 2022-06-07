@@ -42,7 +42,6 @@ import org.hisp.dhis.analytics.shared.component.element.select.EventDateValueEle
 import org.hisp.dhis.analytics.shared.component.element.select.ExecutionDateValueElement;
 import org.hisp.dhis.analytics.shared.component.element.select.ProgramEnrollmentFlagElement;
 import org.hisp.dhis.analytics.shared.component.element.select.SimpleSelectElement;
-import org.hisp.dhis.analytics.shared.component.element.select.TeaValueSelectElement;
 import org.hisp.dhis.analytics.shared.visitor.select.SelectVisitor;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 
@@ -87,19 +86,14 @@ public class SelectComponentBuilder
     public SelectComponent build()
     {
         List<Element<SelectVisitor>> elements = new ArrayList<>(
-            List.of( new SimpleSelectElement( "t.trackedentityinstanceid", "tracked entity instance id" ),
-                new SimpleSelectElement( "t.uid", "uid" ) ) );
+            List.of( new SimpleSelectElement( "atei.trackedentityinstanceid", "tracked entity instance id" ),
+                new SimpleSelectElement( "atei.trackedentityinstanceuid", "tracked entity instance uid" ),
+                new SimpleSelectElement( "atei.\"zDhUuAYrxNC\"", "last name" ),
+                new SimpleSelectElement( "atei.\"w75KJ2mc4zz\"", "first name" ),
+                new SimpleSelectElement( "atei.\"iESIqZ0R0R0\"", "date of birth" ) ) );
 
         Map<String, String> inputUidMap = new HashMap<>();
-        inputUidMap.put( "w75KJ2mc4zz", "First Name" );
-        inputUidMap.put( "zDhUuAYrxNC", "LastName" );
-        inputUidMap.put( "iESIqZ0R0R0", "DOB" );
-        elements.addAll( inputUidMap
-            .keySet()
-            .stream()
-            .map( k -> new TeaValueSelectElement( k, inputUidMap.get( k ) ) ).collect( Collectors.toList() ) );
 
-        inputUidMap.clear();
         inputUidMap.put( "IpHINAT79UW", "Child Program Enrollment Date" );
         inputUidMap.put( "ur1Edk5Oe2n", "TB Program Enrollment Date" );
         elements.addAll( inputUidMap
@@ -128,8 +122,9 @@ public class SelectComponentBuilder
 
         pJsonNodeWithPUidMap.clear();
         pJsonNodeWithPUidMap.put( new ImmutablePair<>( "cYGaxwK615G", "IpHINAT79UW" ), "Infant HIV test Result" );
-        pJsonNodeWithPUidMap.put( new ImmutablePair<>( "sj3j9Hwc7so", "IpHINAT79UW" ), "Child ARVs" );
         pJsonNodeWithPUidMap.put( new ImmutablePair<>( "zocHNQIQBIN", null ), "TB  smear microscopy test outcome" );
+        pJsonNodeWithPUidMap.put( new ImmutablePair<>( "sj3j9Hwc7so", "IpHINAT79UW" ), "Child ARVs" );
+
         elements.addAll( pJsonNodeWithPUidMap
             .keySet()
             .stream()
