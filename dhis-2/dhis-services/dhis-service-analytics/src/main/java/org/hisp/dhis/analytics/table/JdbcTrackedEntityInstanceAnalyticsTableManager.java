@@ -92,6 +92,7 @@ public class JdbcTrackedEntityInstanceAnalyticsTableManager extends AbstractJdbc
         new AnalyticsTableColumn( quote( "programuid" ), CHARACTER_11, NOT_NULL, "p.uid" ),
         new AnalyticsTableColumn( quote( "trackedentityinstanceuid" ), CHARACTER_11, NOT_NULL, "tei.uid" ),
         new AnalyticsTableColumn( quote( "programstageuid" ), CHARACTER_11, NOT_NULL, "ps.uid" ),
+        new AnalyticsTableColumn( quote( "programinstanceid" ), INTEGER, "pi.programinstanceid" ),
         new AnalyticsTableColumn( quote( "enrollmentdate" ), TIMESTAMP, "pi.enrollmentdate" ),
         new AnalyticsTableColumn( quote( "executiondate" ), TIMESTAMP, "psi.executiondate" ),
         new AnalyticsTableColumn( quote( "eventdatavalues" ), JSONB, "psi.eventdatavalues" ) );
@@ -158,8 +159,8 @@ public class JdbcTrackedEntityInstanceAnalyticsTableManager extends AbstractJdbc
                 " (SELECT teavin.value from trackedentityattribute teain " +
                     " INNER JOIN trackedentityattributevalue teavin ON teain.trackedentityattributeid = teavin.trackedentityattributeid "
                     +
-                    " WHERE tei.trackedentityinstanceid = teavin.trackedentityinstanceid AND teain.uid = '"
-                    + att.getUid() + "')" ) )
+                    " WHERE tei.trackedentityinstanceid = teavin.trackedentityinstanceid AND teain.uid = '" +
+                    att.getUid() + "')" ) )
             .collect( Collectors.toList() );
     }
 
