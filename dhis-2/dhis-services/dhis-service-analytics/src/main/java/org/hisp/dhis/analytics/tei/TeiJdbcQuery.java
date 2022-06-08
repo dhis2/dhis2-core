@@ -78,7 +78,7 @@ public class TeiJdbcQuery implements QueryGenerator<TeiQueryParams>
             .withDistinct( true )
             .fromClause( " FROM " + getFromClause( teiQueryParams ) )
             .joinClause( getJoinClause( teiQueryParams ) )
-            .whereClause( " WHERE" + getWhereClause( teiQueryParams ) )
+            .whereClause( " WHERE " + getWhereClause( teiQueryParams ) )
             .closingClauses( getClosingClause( teiQueryParams ) )
             .build();
     }
