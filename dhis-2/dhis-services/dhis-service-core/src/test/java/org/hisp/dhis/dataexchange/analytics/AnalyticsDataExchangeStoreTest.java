@@ -49,8 +49,8 @@ class AnalyticsDataExchangeStoreTest
     @Test
     void testSaveGet()
     {
-        AnalyticsDataExchange deA = getAnayticsDataExchange( 'A' );
-        AnalyticsDataExchange deB = getAnayticsDataExchange( 'B' );
+        AnalyticsDataExchange deA = getAnalyticsDataExchange( 'A' );
+        AnalyticsDataExchange deB = getAnalyticsDataExchange( 'B' );
 
         store.save( deA );
         store.save( deB );
@@ -62,7 +62,7 @@ class AnalyticsDataExchangeStoreTest
     @Test
     void testUpdate()
     {
-        AnalyticsDataExchange de = getAnayticsDataExchange( 'A' );
+        AnalyticsDataExchange de = getAnalyticsDataExchange( 'A' );
 
         store.save( de );
 
@@ -81,7 +81,7 @@ class AnalyticsDataExchangeStoreTest
         assertEquals( "https://play.dhis2.org/dev", de.getTarget().getApi().getUrl() );
     }
 
-    private AnalyticsDataExchange getAnayticsDataExchange( char uniqueChar )
+    private AnalyticsDataExchange getAnalyticsDataExchange( char uniqueChar )
     {
         SourceRequest sourceRequest = new SourceRequest();
         sourceRequest.getDx().addAll( List.of( "LrDpG50RAU9", "uR5HCiJhQ1w" ) );
