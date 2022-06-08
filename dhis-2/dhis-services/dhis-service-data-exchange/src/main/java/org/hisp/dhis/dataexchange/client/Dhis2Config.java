@@ -28,7 +28,6 @@
 package org.hisp.dhis.dataexchange.client;
 
 import java.net.URI;
-import java.util.Base64;
 
 import lombok.Getter;
 import lombok.NonNull;
@@ -62,12 +61,6 @@ public class Dhis2Config
     private final String password;
 
     /**
-     * Value to use for authentication for the Authorization HTTP header.
-     */
-    @NonNull
-    private final String authHeaderValue;
-
-    /**
      * Constructor for access token.
      *
      * @param url the base URL of the DHIS 2 instance.
@@ -79,7 +72,6 @@ public class Dhis2Config
         this.accessToken = accessToken;
         this.username = null;
         this.password = null;
-        this.authHeaderValue = getAccessTokenHeaderValue();
         Validate.notBlank( accessToken );
     }
 
@@ -96,7 +88,6 @@ public class Dhis2Config
         this.accessToken = null;
         this.username = username;
         this.password = password;
-        this.authHeaderValue = getBasicAuthHeaderValue();
         Validate.notBlank( username );
         Validate.notBlank( password );
     }
@@ -110,13 +101,8 @@ public class Dhis2Config
             .toUri();
     }
 
-    private String getAccessTokenHeaderValue()
+    public String getAccessTokenHeaderValue()
     {
         return String.format( "ApiToken %s", accessToken );
-    }
-
-    private String getBasicAuthHeaderValue()
-    {
-        return "Basic " + Base64.getEncoder().encodeToString( (username + ":" + password).getBytes() );
     }
 }

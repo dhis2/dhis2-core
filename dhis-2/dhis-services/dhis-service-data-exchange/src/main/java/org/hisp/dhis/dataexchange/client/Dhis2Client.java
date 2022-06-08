@@ -32,6 +32,7 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
 import java.net.URI;
+import java.util.List;
 import java.util.Set;
 
 import lombok.Getter;
@@ -47,7 +48,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
@@ -94,14 +94,10 @@ public class Dhis2Client
      */
     private MultiValueMap<String, String> getJsonAuthHeaders()
     {
-        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-        headers.add( HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE );
-        headers.add( HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE );
-        headers.add( HttpHeaders.AUTHORIZATION, config.getAuthHeaderValue() );
-
-        log.info( "{}: {}", HttpHeaders.AUTHORIZATION,
-            config.getAuthHeaderValue() ); // TODO remove
-
+        HttpHeaders headers = new HttpHeaders();
+        headers.setAccept( List.of( MediaType.APPLICATION_JSON ) );
+        headers.setContentType( MediaType.APPLICATION_JSON );
+        headers.setBasicAuth( config.getUsername(), config.getPassword() );
         return headers;
     }
 
