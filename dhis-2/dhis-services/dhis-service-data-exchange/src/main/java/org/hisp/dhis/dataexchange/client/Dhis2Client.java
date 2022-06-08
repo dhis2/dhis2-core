@@ -37,9 +37,10 @@ import java.util.Set;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import org.hisp.dhis.dataexchange.client.response.Dhis2Response;
+import org.hisp.dhis.dataexchange.client.response.ImportSummaryResponse;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -107,18 +108,19 @@ public class Dhis2Client
     /**
      * Executes a HTTP POST request with the given body in JSON format.
      *
-     * @param <T>
+     * @param <T> the request body type.
+     * @param <U> the response type.
      * @param uri the request URI.
      * @param body the request body.
+     * @param type the response type.
      * @return a {@link ResponseEntity}.
      */
-    private <T> ResponseEntity<WebMessage> executeJsonPostRequest( URI uri, T body )
+    private <T, U extends Dhis2Response> ResponseEntity<U> executeJsonPostRequest( URI uri, T body, Class<U> type )
     {
         log.info( "URI: {}" + uri.toString() ); // TODO Remove
 
         HttpEntity<T> requestEntity = new HttpEntity<>( body, getJsonAuthHeaders() );
-        ResponseEntity<WebMessage> response = restTemplate.exchange(
-            uri, HttpMethod.POST, requestEntity, WebMessage.class );
+        ResponseEntity<U> response = restTemplate.exchange( uri, HttpMethod.POST, requestEntity, type );
         handleErrors( response );
         return response;
     }
@@ -142,7 +144,8 @@ public class Dhis2Client
     public ImportSummary saveDataValueSet( DataValueSet dataValueSet )
     {
         URI uri = config.getResolvedUri( "/dataValueSets" );
-        WebMessage response = executeJsonPostRequest( uri, dataValueSet ).getBody();
-        return response != null ? (ImportSummary) response.getResponse() : null;
+        ResponseEntity<ImportSummaryResponse> response = executeJsonPostRequest( uri, dataValueSet,
+            ImportSummaryResponse.class );
+        return response != null && response.getBody() != null ? response.getBody().getResponse() : null;
     }
 }
