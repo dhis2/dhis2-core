@@ -123,8 +123,6 @@ public class Dhis2Client
      */
     private <T, U extends Dhis2Response> ResponseEntity<U> executeJsonPostRequest( URI uri, T body, Class<U> type )
     {
-        log.info( "URI: {}" + uri.toString() ); // TODO Remove
-
         HttpEntity<T> requestEntity = new HttpEntity<>( body, getJsonAuthHeaders() );
         ResponseEntity<U> response = restTemplate.exchange( uri, HttpMethod.POST, requestEntity, type );
         handleErrors( response );
