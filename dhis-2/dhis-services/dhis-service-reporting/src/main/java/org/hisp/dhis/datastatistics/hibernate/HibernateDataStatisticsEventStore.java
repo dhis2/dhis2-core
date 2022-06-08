@@ -28,6 +28,7 @@
 package org.hisp.dhis.datastatistics.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.hisp.dhis.setting.SettingKey.COUNT_PASSIVE_DASHBOARD_VIEWS_IN_USAGE_ANALYTICS;
 import static org.hisp.dhis.system.util.SqlUtils.escapeSql;
 import static org.hisp.dhis.util.DateUtils.asSqlDate;
@@ -35,6 +36,7 @@ import static org.hisp.dhis.util.DateUtils.asSqlDate;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.hibernate.SessionFactory;
@@ -45,6 +47,8 @@ import org.hisp.dhis.datastatistics.DataStatisticsEventType;
 import org.hisp.dhis.datastatistics.FavoriteStatistics;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.user.UserSettingKey;
+import org.hisp.dhis.user.UserSettingService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementSetter;
@@ -64,14 +68,18 @@ public class HibernateDataStatisticsEventStore
 {
     private final SystemSettingManager systemSettingManager;
 
+    private final UserSettingService userSettingService;
+
     public HibernateDataStatisticsEventStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, SystemSettingManager systemSettingManager )
+        ApplicationEventPublisher publisher, SystemSettingManager systemSettingManager,
+        UserSettingService userSettingService )
     {
         super( sessionFactory, jdbcTemplate, publisher, DataStatisticsEvent.class, false );
 
         checkNotNull( systemSettingManager );
 
         this.systemSettingManager = systemSettingManager;
+        this.userSettingService = userSettingService;
     }
 
     @Override
@@ -114,19 +122,26 @@ public class HibernateDataStatisticsEventStore
         Assert.notNull( eventType, "Data statistics event type cannot be null" );
         Assert.notNull( sortOrder, "Sort order cannot be null" );
 
-        String sql = "select c.uid, views, c.name, c.created from ( " +
-            "select favoriteuid as uid, count(favoriteuid) as views " +
-            "from datastatisticsevent where eventtype = '" + eventType.name() + "' ";
+        final Locale currentLocale = (Locale) defaultIfNull(
+            userSettingService.getUserSetting( UserSettingKey.DB_LOCALE ),
+            userSettingService.getUserSetting( UserSettingKey.UI_LOCALE ) );
+
+        String sql = "select c.uid, views, (case when value is not null then value else c.name end) as name, c.created"
+            + " from (select favoriteuid as uid, count(favoriteuid) as views "
+            + " from datastatisticsevent where eventtype = '" + eventType.name() + "' ";
 
         if ( username != null )
         {
-            sql += "and username = ? ";
+            sql += " and username = ? ";
         }
 
-        sql += "group by uid) as events " +
-            "inner join " + escapeSql( eventType.getTable() ) + " c on c.uid = events.uid " +
-            "order by events.views " + escapeSql( sortOrder.getValue() ) + " " +
-            "limit ?;";
+        sql += " group by uid) as events"
+            + " inner join " + escapeSql( eventType.getTable() ) + " c on c.uid = events.uid"
+            + " left join jsonb_to_recordset(c.translations) as i18name(value TEXT, locale TEXT, property TEXT)"
+            + " on i18name.locale = ?"
+            + " and i18name.property = 'NAME'"
+            + " order by events.views " + escapeSql( sortOrder.getValue() )
+            + " limit ?;";
 
         PreparedStatementSetter pss = ( ps ) -> {
             int i = 1;
@@ -136,6 +151,7 @@ public class HibernateDataStatisticsEventStore
                 ps.setString( i++, username );
             }
 
+            ps.setString( i++, currentLocale.getLanguage() );
             ps.setInt( i++, pageSize );
         };
 
