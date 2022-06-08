@@ -30,26 +30,25 @@ package org.hisp.dhis.predictor;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.MapMap;
 
 /**
  * Generator of a map that, for each category combo (CC) found in an input data
- * element, returns a map from the category option combinations of that CC to
- * the category option combinations of the output category combo.
+ * element, returns a map from the category option combination disaggregations
+ * of that CC to the disaggregations of the output category combo.
  *
  * @author Jim Grace
  */
-public class CategoryOptionComboMapGenerator
+public class CategoryComboDisaggregationMapGenerator
 {
-    private CategoryOptionComboMapGenerator()
+    private CategoryComboDisaggregationMapGenerator()
     {
+        throw new UnsupportedOperationException( "util" );
     }
 
     /**
@@ -64,27 +63,27 @@ public class CategoryOptionComboMapGenerator
      * @param inputCategoryCombos data element cat combos found in the input.
      * @return the map.
      */
-    public static MapMap<String, String, String> getCcMap( CategoryCombo outputCombo,
+    public static CategoryComboDisaggregationMap getCcDisagMap( CategoryCombo outputCombo,
         Set<CategoryCombo> inputCategoryCombos )
     {
         Map<String, String> optionMap = getOptionMap( outputCombo );
 
-        MapMap<String, String, String> ccMap = new MapMap<>();
+        CategoryComboDisaggregationMap ccDisagMap = new CategoryComboDisaggregationMap();
 
         for ( CategoryCombo categoryCombo : inputCategoryCombos )
         {
             if ( categoryCombo.getCategories().size() == outputCombo.getCategories().size() )
             {
-                Map<String, String> cocMap = getCocMap( optionMap, categoryCombo );
+                DisaggregationMap disagMap = getDisagMap( optionMap, categoryCombo );
 
-                if ( cocMap != null )
+                if ( disagMap != null )
                 {
-                    ccMap.put( categoryCombo.getUid(), cocMap );
+                    ccDisagMap.put( categoryCombo.getUid(), disagMap );
                 }
             }
         }
 
-        return ccMap;
+        return ccDisagMap;
     }
 
     // -------------------------------------------------------------------------
@@ -96,10 +95,10 @@ public class CategoryOptionComboMapGenerator
      * combos to the output category option combos. If there is not a match for
      * every input category option combo, returns null.
      */
-    private static Map<String, String> getCocMap( Map<String, String> optionMap,
+    private static DisaggregationMap getDisagMap( Map<String, String> optionMap,
         CategoryCombo inputCc )
     {
-        Map<String, String> cocMap = new HashMap<>();
+        DisaggregationMap disagMap = new DisaggregationMap();
 
         for ( CategoryOptionCombo inputCoc : inputCc.getOptionCombos() )
         {
@@ -110,10 +109,10 @@ public class CategoryOptionComboMapGenerator
                 return null;
             }
 
-            cocMap.put( inputCoc.getUid(), outputCocUid );
+            disagMap.put( inputCoc.getUid(), outputCocUid );
         }
 
-        return cocMap;
+        return disagMap;
     }
 
     /**
@@ -123,7 +122,7 @@ public class CategoryOptionComboMapGenerator
     private static Map<String, String> getOptionMap( CategoryCombo outputCombo )
     {
         return outputCombo.getOptionCombos().stream()
-            .collect( toMap( CategoryOptionComboMapGenerator::getOptionString, CategoryOptionCombo::getUid ) );
+            .collect( toMap( CategoryComboDisaggregationMapGenerator::getOptionString, CategoryOptionCombo::getUid ) );
     }
 
     /**

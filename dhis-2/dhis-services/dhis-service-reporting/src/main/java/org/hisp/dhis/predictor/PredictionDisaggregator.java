@@ -29,7 +29,7 @@ package org.hisp.dhis.predictor;
 
 import static java.util.stream.Collectors.toUnmodifiableList;
 import static java.util.stream.Collectors.toUnmodifiableSet;
-import static org.hisp.dhis.predictor.CategoryOptionComboMapGenerator.getCcMap;
+import static org.hisp.dhis.predictor.CategoryComboDisaggregationMapGenerator.getCcDisagMap;
 import static org.hisp.dhis.util.ObjectUtils.firstNonNull;
 
 import java.util.Collection;
@@ -103,7 +103,7 @@ public class PredictionDisaggregator
      * for only those category combos where every COC maps to a COC of the
      * output data element's category combo.
      */
-    private final MapMap<String, String, String> ccMap;
+    private final CategoryComboDisaggregationMap ccDisagMap;
 
     // -------------------------------------------------------------------------
     // Constructor
@@ -126,11 +126,11 @@ public class PredictionDisaggregator
                 .map( DataElement::getCategoryCombo )
                 .collect( toUnmodifiableSet() );
 
-            this.ccMap = getCcMap( outputCatCombo, inputDataElementCategoryCombos );
+            this.ccDisagMap = getCcDisagMap( outputCatCombo, inputDataElementCategoryCombos );
         }
         else
         {
-            this.ccMap = null;
+            this.ccDisagMap = null;
         }
     }
 
@@ -165,7 +165,8 @@ public class PredictionDisaggregator
 
         for ( DimensionalItemObject item : inputItems )
         {
-            if ( item instanceof DataElement && ccMap.containsKey( ((DataElement) item).getCategoryCombo().getUid() ) )
+            if ( item instanceof DataElement &&
+                ccDisagMap.containsKey( ((DataElement) item).getCategoryCombo().getUid() ) )
             {
                 itemSet.addAll( disaggregateDataElement( (DataElement) item ) );
             }
@@ -293,7 +294,8 @@ public class PredictionDisaggregator
                 {
                     DataElementOperand deo = (DataElementOperand) item;
 
-                    if ( coc.getUid().equals( ccMap.getValue( deo.getDataElement().getCategoryCombo().getUid(),
+                    if ( coc.getUid().equals( ccDisagMap.getOutputDisag(
+                        deo.getDataElement().getCategoryCombo().getUid(),
                         deo.getCategoryOptionCombo().getUid() ) ) )
                     {
                         disMap.putEntry( period, deo.getDataElement(), value );

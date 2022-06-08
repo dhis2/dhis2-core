@@ -28,7 +28,7 @@
 package org.hisp.dhis.predictor;
 
 import static java.util.Collections.emptySet;
-import static org.hisp.dhis.predictor.CategoryOptionComboMapGenerator.getCcMap;
+import static org.hisp.dhis.predictor.CategoryComboDisaggregationMapGenerator.getCcDisagMap;
 import static org.hisp.dhis.utils.Assertions.assertMapEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -42,17 +42,16 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.MapMap;
 import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.ImmutableSet;
 
 /**
- * Tests {@see CategoryOptionComboMapGenerator}.
+ * Tests {@see CategoryComboDisaggregationMapGenerator}.
  *
  * @author Jim Grace
  */
-class CategoryOptionComboMapGeneratorTest
+class CategoryComboDisaggregationMapGeneratorTest
     extends DhisConvenienceTest
 {
     @Test
@@ -86,7 +85,7 @@ class CategoryOptionComboMapGeneratorTest
         generateOptionCombos( subsetCombo );
         generateOptionCombos( tooBigCombo );
 
-        Map<String, String> expectedOutputMap = Map.of(
+        DisaggregationMap expectedOutputMap = new DisaggregationMap( Map.of(
             "AZeroTFemal", "AZeroTFemal",
             "AZeroTIsMal", "AZeroTIsMal",
             "AZeroTUnkno", "AZeroTUnkno",
@@ -95,9 +94,9 @@ class CategoryOptionComboMapGeneratorTest
             "ASevenUnkno", "ASevenUnkno",
             "ATwelvFemal", "ATwelvFemal",
             "ATwelvIsMal", "ATwelvIsMal",
-            "ATwelvUnkno", "ATwelvUnkno" );
+            "ATwelvUnkno", "ATwelvUnkno" ) );
 
-        Map<String, String> expectedSameAsMap = Map.of(
+        DisaggregationMap expectedSameAsMap = new DisaggregationMap( Map.of(
             "BZeroTFemal", "AZeroTFemal",
             "BZeroTIsMal", "AZeroTIsMal",
             "BZeroTUnkno", "AZeroTUnkno",
@@ -106,29 +105,29 @@ class CategoryOptionComboMapGeneratorTest
             "BSevenUnkno", "ASevenUnkno",
             "BTwelvFemal", "ATwelvFemal",
             "BTwelvIsMal", "ATwelvIsMal",
-            "BTwelvUnkno", "ATwelvUnkno" );
+            "BTwelvUnkno", "ATwelvUnkno" ) );
 
-        Map<String, String> expectedSubsetMap = Map.of(
+        DisaggregationMap expectedSubsetMap = new DisaggregationMap( Map.of(
             "DFemalZeroT", "AZeroTFemal",
             "DIsMalZeroT", "AZeroTIsMal",
             "DUnknoZeroT", "AZeroTUnkno",
             "DFemalSeven", "ASevenFemal",
             "DIsMalSeven", "ASevenIsMal",
-            "DUnknoSeven", "ASevenUnkno" );
+            "DUnknoSeven", "ASevenUnkno" ) );
 
         Set<CategoryCombo> inputCombos = Set.of( outputCombo, sameAsCombo, singleCombo, subsetCombo, tooBigCombo );
 
-        MapMap<String, String, String> ccMap = getCcMap( outputCombo, inputCombos );
+        CategoryComboDisaggregationMap ccDisagMap = getCcDisagMap( outputCombo, inputCombos );
 
-        assertNotNull( ccMap.get( "OutputCombo" ) );
-        assertNotNull( ccMap.get( "SameAsCombo" ) );
-        assertNotNull( ccMap.get( "SubsetCombo" ) );
+        assertNotNull( ccDisagMap.get( "OutputCombo" ) );
+        assertNotNull( ccDisagMap.get( "SameAsCombo" ) );
+        assertNotNull( ccDisagMap.get( "SubsetCombo" ) );
 
-        assertMapEquals( expectedOutputMap, ccMap.get( "OutputCombo" ) );
-        assertMapEquals( expectedSameAsMap, ccMap.get( "SameAsCombo" ) );
-        assertMapEquals( expectedSubsetMap, ccMap.get( "SubsetCombo" ) );
+        assertMapEquals( expectedOutputMap, ccDisagMap.get( "OutputCombo" ) );
+        assertMapEquals( expectedSameAsMap, ccDisagMap.get( "SameAsCombo" ) );
+        assertMapEquals( expectedSubsetMap, ccDisagMap.get( "SubsetCombo" ) );
 
-        assertEquals( 3, ccMap.size() );
+        assertEquals( 3, ccDisagMap.size() );
     }
 
     // -------------------------------------------------------------------------
