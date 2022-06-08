@@ -31,7 +31,7 @@ import java.util.List;
 
 import org.hisp.dhis.analytics.shared.Column;
 import org.hisp.dhis.analytics.shared.component.element.select.EnrollmentDateValueSelectElement;
-import org.hisp.dhis.analytics.shared.component.element.select.EventDateValueElement;
+import org.hisp.dhis.analytics.shared.component.element.select.EventDataValueElement;
 import org.hisp.dhis.analytics.shared.component.element.select.ExecutionDateValueElement;
 import org.hisp.dhis.analytics.shared.component.element.select.ProgramEnrollmentFlagElement;
 import org.hisp.dhis.analytics.shared.component.element.select.SimpleSelectElement;
@@ -77,7 +77,7 @@ public interface SelectVisitor
      *
      * @param element
      */
-    void visit( EventDateValueElement element );
+    void visit( EventDataValueElement element );
 
     /**
      * see Visitor design pattern

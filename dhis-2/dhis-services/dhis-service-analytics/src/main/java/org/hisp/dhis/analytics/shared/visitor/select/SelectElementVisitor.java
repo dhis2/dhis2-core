@@ -37,7 +37,7 @@ import lombok.Getter;
 import org.hisp.dhis.analytics.ColumnDataType;
 import org.hisp.dhis.analytics.shared.Column;
 import org.hisp.dhis.analytics.shared.component.element.select.EnrollmentDateValueSelectElement;
-import org.hisp.dhis.analytics.shared.component.element.select.EventDateValueElement;
+import org.hisp.dhis.analytics.shared.component.element.select.EventDataValueElement;
 import org.hisp.dhis.analytics.shared.component.element.select.ExecutionDateValueElement;
 import org.hisp.dhis.analytics.shared.component.element.select.ProgramEnrollmentFlagElement;
 import org.hisp.dhis.analytics.shared.component.element.select.SimpleSelectElement;
@@ -131,7 +131,7 @@ public class SelectElementVisitor implements SelectVisitor
      * @param element
      */
     @Override
-    public void visit( EventDateValueElement element )
+    public void visit( EventDataValueElement element )
     {
         columns.add( new Column( isBlank( element.getProgramUid() )
             ? " (SELECT ateiin.eventdatavalues -> '" + element.getEventDataValue() + "' -> 'value' " +

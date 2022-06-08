@@ -40,7 +40,7 @@ import org.hisp.dhis.analytics.shared.visitor.select.SelectVisitor;
  */
 @AllArgsConstructor
 @Getter
-public class EventDateValueElement implements Element<SelectVisitor>
+public class EventDataValueElement implements Element<SelectVisitor>
 {
     private final String eventDataValue;
 

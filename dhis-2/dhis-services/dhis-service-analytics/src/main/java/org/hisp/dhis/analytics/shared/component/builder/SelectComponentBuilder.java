@@ -38,7 +38,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.analytics.shared.component.SelectComponent;
 import org.hisp.dhis.analytics.shared.component.element.Element;
 import org.hisp.dhis.analytics.shared.component.element.select.EnrollmentDateValueSelectElement;
-import org.hisp.dhis.analytics.shared.component.element.select.EventDateValueElement;
+import org.hisp.dhis.analytics.shared.component.element.select.EventDataValueElement;
 import org.hisp.dhis.analytics.shared.component.element.select.ExecutionDateValueElement;
 import org.hisp.dhis.analytics.shared.component.element.select.ProgramEnrollmentFlagElement;
 import org.hisp.dhis.analytics.shared.component.element.select.SimpleSelectElement;
@@ -128,7 +128,7 @@ public class SelectComponentBuilder
         elements.addAll( pJsonNodeWithPUidMap
             .keySet()
             .stream()
-            .map( k -> new EventDateValueElement( getProgramStageUid( k ), getProgramUid( k ),
+            .map( k -> new EventDataValueElement( getProgramStageUid( k ), getProgramUid( k ),
                 pJsonNodeWithPUidMap.get( k ) ) )
             .collect( Collectors.toList() ) );
 

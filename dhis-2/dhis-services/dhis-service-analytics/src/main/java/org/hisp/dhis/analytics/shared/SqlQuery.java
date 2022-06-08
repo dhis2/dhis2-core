@@ -88,6 +88,11 @@ public class SqlQuery implements Query
     private final String closingClauses;
 
     /**
+     * flag for adding the distinct into the query
+     */
+    private final boolean withDistinct;
+
+    /**
      * @see Query#fullStatement()
      *
      * @throws IllegalArgumentException if columns is null/empty or contain at
@@ -99,7 +104,8 @@ public class SqlQuery implements Query
     {
         validate();
 
-        return "select distinct " + join( columns, "," ) + spaced( fromClause ) + spaced( joinClause )
+        return "select " + (withDistinct ? "distinct " : "") + join( columns, "," ) + spaced( fromClause )
+            + spaced( joinClause )
             + spaced( whereClause )
             + spaced( closingClauses );
     }
