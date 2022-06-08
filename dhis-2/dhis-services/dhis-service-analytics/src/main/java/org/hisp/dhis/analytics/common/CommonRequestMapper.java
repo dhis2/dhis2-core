@@ -34,28 +34,30 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.DataQueryService;
+import org.hisp.dhis.analytics.EventOutputType;
+import org.hisp.dhis.analytics.common.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.dimension.DimensionParamType;
+import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.common.AnalyticsPagingCriteria;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramService;
 import org.springframework.stereotype.Component;
 
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableList;
 
 @Component
+@RequiredArgsConstructor
 public class CommonRequestMapper
 {
 
@@ -63,11 +65,9 @@ public class CommonRequestMapper
 
     private final DataQueryService dataQueryService;
 
-    public CommonRequestMapper( I18nManager i18nManager, DataQueryService dataQueryService )
-    {
-        this.i18nManager = i18nManager;
-        this.dataQueryService = dataQueryService;
-    }
+    private final EventDataQueryService eventDataQueryService;
+
+    private final ProgramService programService;
 
     public CommonParams map( CommonQueryRequest request, AnalyticsPagingCriteria pagingCriteria,
         DhisApiVersion apiVersion )
@@ -75,9 +75,10 @@ public class CommonRequestMapper
 
         List<OrganisationUnit> userOrgUnits = dataQueryService.getUserOrgUnits( null, request.getUserOrgUnit() );
 
-        Map<Type, List<Object>> queryElementsByType = preprocessQueryElements( request, userOrgUnits );
+        Collection<Program> programs = getPrograms( request );
 
         return CommonParams.builder()
+            .programs( programs )
             .pagingAndSortingParams( AnalyticsPagingAndSortingParams.builder()
                 .countRequested( pagingCriteria.isTotalPages() )
                 .requestPaged( pagingCriteria.isPaging() )
@@ -86,79 +87,77 @@ public class CommonRequestMapper
                 // not mapping EndpointItem and RequestType -- not needed at the
                 // moment
                 .build() )
-            .dimensions( castTo( queryElementsByType.get( Type.DIMENSIONS ), DimensionalObject.class ) )
-            .filters( castTo( queryElementsByType.get( Type.FILTERS ), DimensionalObject.class ) )
-            .items( castTo( queryElementsByType.get( Type.ITEMS ), QueryItem.class ) )
-            .itemFilters( castTo( queryElementsByType.get( Type.ITEM_FILTERS ), QueryItem.class ) )
+            .dimensionParams( retrieveDimensionParams( request, programs, userOrgUnits ) )
             .build();
     }
 
-    private Map<Type, List<Object>> preprocessQueryElements( CommonQueryRequest request,
-        List<OrganisationUnit> userOrgUnits )
+    private Collection<Program> getPrograms( CommonQueryRequest queryRequest )
     {
-        Map<Type, List<Object>> elementsByType = ImmutableMap.<Type, List<Object>> builder()
-            .put( Type.DIMENSIONS, new ArrayList<>() )
-            .put( Type.FILTERS, new ArrayList<>() )
-            .put( Type.ITEMS, new ArrayList<>() )
-            .put( Type.ITEM_FILTERS, new ArrayList<>() )
-            .build();
+        Collection<Program> programs = programService.getPrograms( queryRequest.getProgram() );
 
-        Stream.of( QueryElementPreProcessorDefinition.values() )
-            .forEach( definition -> Optional.of( request )
-                .map( definition.getUidsGetter() )
-                .orElse( Collections.emptySet() )
-                .forEach( uid -> {
-                    String dimensionId = getDimensionFromParam( uid );
-                    List<String> items = getDimensionItemsFromParam( uid );
+        if ( programs.size() != queryRequest.getProgram().size() )
+        {
+            Collection<String> foundProgramUids = programs.stream()
+                .map( Program::getUid )
+                .collect( Collectors.toList() );
 
-                    // TODO: DHIS2-13357 understand if we want to still use
-                    // DimensionalObject or define new ones.
-                    DimensionalObject dimensionalObject = dataQueryService.getDimension( dimensionId,
-                        items,
-                        request.getRelativePeriodDate(),
-                        userOrgUnits,
-                        i18nManager.getI18nFormat(), true,
-                        IdScheme.UID );
+            Collection<String> missingProgramUids = Optional.of( queryRequest )
+                .map( CommonQueryRequest::getProgram )
+                .orElse( Collections.emptyList() ).stream()
+                .filter( uidFromRequest -> !foundProgramUids.contains( uidFromRequest ) )
+                .collect( Collectors.toList() );
 
-                    if ( dimensionalObject != null )
-                    {
-                        elementsByType.get( definition.getBaseType() ).add( dimensionalObject );
-                    }
-                    else
-                    {
-                        // TODO: DHIS2-13357 retrieve query items
-                        elementsByType.get( definition.getQueryItemType() ).add( null );
-                    }
-                } ) );
-        return elementsByType;
+            throw new IllegalArgumentException( "The following programs couldn't be found: " + missingProgramUids );
+        }
+        return programs;
     }
 
-    private static <T> List<T> castTo( List<?> elements, Class<T> clazz )
+    private List<DimensionParam> retrieveDimensionParams( CommonQueryRequest request,
+        Collection<Program> programs, List<OrganisationUnit> userOrgUnits )
     {
-        return elements.stream()
-            .map( clazz::cast )
-            .collect( Collectors.toList() );
+        List<DimensionParam> dimensionParams = new ArrayList<>();
+        for ( DimensionParamType dimensionParamType : DimensionParamType.values() )
+        {
+            Collection<String> dimensionsOrFilter = dimensionParamType.getUidsGetter().apply( request );
+            dimensionParams.addAll(
+                dimensionsOrFilter.stream()
+                    .map( dof -> toDimensionParams( dof, dimensionParamType, request, programs, userOrgUnits ) )
+                    .flatMap( Collection::stream )
+                    .collect( Collectors.toList() ) );
+        }
+        return ImmutableList.copyOf( dimensionParams );
     }
 
-    @Getter
-    @RequiredArgsConstructor
-    private enum QueryElementPreProcessorDefinition
+    private Collection<DimensionParam> toDimensionParams( String uid, DimensionParamType dimensionParamType,
+        CommonQueryRequest request,
+        Collection<Program> programs, List<OrganisationUnit> userOrgUnits )
     {
-        DIMENSIONS( Type.DIMENSIONS, Type.ITEMS, CommonQueryRequest::getDimension ),
-        FILTERS( Type.FILTERS, Type.ITEM_FILTERS, CommonQueryRequest::getFilter );
+        String dimensionId = getDimensionFromParam( uid );
+        List<String> items = getDimensionItemsFromParam( uid );
 
-        private final Type baseType;
+        DimensionalObject dimensionalObject = dataQueryService.getDimension( dimensionId,
+            items,
+            request.getRelativePeriodDate(),
+            userOrgUnits,
+            i18nManager.getI18nFormat(), true,
+            IdScheme.UID );
 
-        private final Type queryItemType;
-
-        private final Function<CommonQueryRequest, Collection<String>> uidsGetter;
-    }
-
-    private enum Type
-    {
-        DIMENSIONS,
-        FILTERS,
-        ITEMS,
-        ITEM_FILTERS
+        if ( dimensionalObject != null )
+        {
+            return Collections.singleton( DimensionParam.ofObject( dimensionalObject, dimensionParamType, items ) );
+        }
+        else
+        {
+            // We're currently searching the queryItem inside all passed
+            // programs, but we will NEED to
+            // change this when we can properly parse inputs (dimension/filter)
+            // as
+            // {programId}.{stageId}.{DE|PI|PA uid}
+            return programs.stream()
+                .map( program -> eventDataQueryService.getQueryItem( dimensionId, program,
+                    EventOutputType.TRACKED_ENTITY_INSTANCE ) )
+                .map( queryItem -> DimensionParam.ofObject( queryItem, dimensionParamType, items ) )
+                .collect( Collectors.toList() );
+        }
     }
 }

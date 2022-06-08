@@ -483,7 +483,8 @@ public class DefaultEventDataQueryService
         return getQueryItem( dimension, program, type );
     }
 
-    private QueryItem getQueryItem( String dimensionString, Program program, EventOutputType type )
+    @Override
+    public QueryItem getQueryItem( String dimensionString, Program program, EventOutputType type )
     {
         String[] split = dimensionString.split( DIMENSION_NAME_SEP );
 

@@ -27,17 +27,13 @@
  */
 package org.hisp.dhis.analytics.tei;
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.common.CommonRequestMapper;
 import org.hisp.dhis.analytics.common.QueryRequest;
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
@@ -57,7 +53,6 @@ public class TeiRequestMapper
     public TeiQueryParams map( QueryRequest<TeiQueryRequest> queryRequest, DhisApiVersion apiVersion )
     {
         return TeiQueryParams.builder()
-            .programs( getPrograms( queryRequest ) )
             .trackedEntityType( getTrackedEntityType( queryRequest ) )
             .commonParams( commonRequestMapper.map(
                 queryRequest.getCommonQueryRequest(),
@@ -74,25 +69,4 @@ public class TeiRequestMapper
                 + queryRequest.getRequest().getTrackedEntityType() ) );
     }
 
-    private Collection<Program> getPrograms( QueryRequest<TeiQueryRequest> queryRequest )
-    {
-        Collection<Program> programs = programService.getPrograms( queryRequest.getRequest().getPrograms() );
-
-        if ( programs.size() != queryRequest.getRequest().getPrograms().size() )
-        {
-            Collection<String> foundProgramUids = programs.stream()
-                .map( Program::getUid )
-                .collect( Collectors.toList() );
-
-            Collection<String> missingProgramUids = Optional.of( queryRequest )
-                .map( QueryRequest::getRequest )
-                .map( TeiQueryRequest::getPrograms )
-                .orElse( Collections.emptyList() ).stream()
-                .filter( uidFromRequest -> !foundProgramUids.contains( uidFromRequest ) )
-                .collect( Collectors.toList() );
-
-            throw new IllegalArgumentException( "The following programs couldn't be found: " + missingProgramUids );
-        }
-        return programs;
-    }
 }

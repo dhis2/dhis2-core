@@ -25,38 +25,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.common;
+package org.hisp.dhis.analytics.common.dimension;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
+import java.util.function.Function;
 
-import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
+import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.analytics.common.dimension.DimensionParam;
-import org.hisp.dhis.program.Program;
+import org.hisp.dhis.analytics.common.CommonQueryRequest;
 
 @Getter
-@Setter
-@Builder( toBuilder = true )
-public class CommonParams
+@RequiredArgsConstructor
+public enum DimensionParamType
 {
+    DIMENSIONS( CommonQueryRequest::getDimension ),
+    FILTERS( CommonQueryRequest::getFilter );
 
-    /**
-     * Programs this params refers to
-     */
-    private final Collection<Program> programs;
-
-    /**
-     * Data structure containing dimensionParams, which represents dimensions,
-     * filters, queryItems, queryItemFilters
-     */
-    @Builder.Default
-    private final List<DimensionParam> dimensionParams = new ArrayList<>();
-
-    @Builder.Default
-    private final AnalyticsPagingAndSortingParams pagingAndSortingParams = AnalyticsPagingAndSortingParams.builder()
-        .build();
+    private final Function<CommonQueryRequest, Collection<String>> uidsGetter;
 }
