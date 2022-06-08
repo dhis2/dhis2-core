@@ -37,29 +37,22 @@ class Dhis2ConfigTest
     @Test
     void testNullConstructorArgument()
     {
-        assertThrows( NullPointerException.class, () -> new Dhis2Config( "https://play.dhis2.org/2.38.0", null ) );
+        assertThrows( NullPointerException.class, () -> new Dhis2Config(
+            null, "admin", "district" ) );
+
+        assertThrows( NullPointerException.class, () -> new Dhis2Config(
+            "https://play.dhis2.org/2.38.0", null, "district" ) );
     }
 
     @Test
     void testGetResolvedUri()
     {
         Dhis2Config config = new Dhis2Config(
-            "https://play.dhis2.org/2.38.0",
-            "d2pat_5xVA12xyUbWNedQxy4ohH77WlxRGVvZZ1151814092" );
+            "https://play.dhis2.org/2.38.0", "admin", "district" );
 
         assertEquals( "https://play.dhis2.org/2.38.0/api/dataValueSets",
             config.getResolvedUri( "/dataValueSets" ).toString() );
         assertEquals( "https://play.dhis2.org/2.38.0/api/system/info",
             config.getResolvedUri( "/system/info" ).toString() );
-    }
-
-    @Test
-    void testGetAccessTokenHeaderValue()
-    {
-        Dhis2Config config = new Dhis2Config(
-            "https://play.dhis2.org/2.38.0",
-            "d2pat_5xVA12xyUbWNedQxy4ohH77WlxRGVvZZ1151814092" );
-
-        assertEquals( "ApiToken d2pat_5xVA12xyUbWNedQxy4ohH77WlxRGVvZZ1151814092", config.getAccessTokenHeaderValue() );
     }
 }
