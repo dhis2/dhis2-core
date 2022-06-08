@@ -119,7 +119,7 @@ class DataStatisticsEventStoreTest extends IntegrationTestBase
 
         // Then
         // Test for 5 objects because TOTAL_VIEWS is always present.
-        assertTrue( eventsMap.size() == 5 );
+        assertEquals( 5, eventsMap.size() );
     }
 
     @Test
@@ -148,7 +148,7 @@ class DataStatisticsEventStoreTest extends IntegrationTestBase
 
         // Then
         // Test for 1 object because TOTAL_VIEW is always present.
-        assertTrue( eventsMap.size() == 1 );
+        assertEquals( 1, eventsMap.size() );
     }
 
     @Test
@@ -162,8 +162,8 @@ class DataStatisticsEventStoreTest extends IntegrationTestBase
             .getTopFavorites( PASSIVE_DASHBOARD_VIEW, 100, SortOrder.ASC, null );
 
         // Then
-        assertTrue( activeDashboardStats.size() == 1 );
-        assertTrue( passiveDashboardStats.size() == 1 );
+        assertEquals( 1, activeDashboardStats.size() );
+        assertEquals( 1, passiveDashboardStats.size() );
     }
 
     @Test
@@ -173,10 +173,11 @@ class DataStatisticsEventStoreTest extends IntegrationTestBase
         final FavoriteStatistics activeDashboardStats = dataStatisticsService.getFavoriteStatistics( DASHBOARD_UID );
 
         systemSettingManager.saveSystemSetting( COUNT_PASSIVE_DASHBOARD_VIEWS_IN_USAGE_ANALYTICS, true );
-        final FavoriteStatistics passiveDashboardStats = dataStatisticsService.getFavoriteStatistics( DASHBOARD_UID );
+        final FavoriteStatistics activePlusPassiveDashboardStats = dataStatisticsService
+            .getFavoriteStatistics( DASHBOARD_UID );
 
         // Then
-        assertTrue( activeDashboardStats.getViews() == 1 );
-        assertTrue( passiveDashboardStats.getViews() == 2 );
+        assertEquals( 1, activeDashboardStats.getViews() );
+        assertEquals( 2, activePlusPassiveDashboardStats.getViews() );
     }
 }
