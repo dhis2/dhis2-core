@@ -54,7 +54,6 @@ import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.external.location.LocationManagerException;
 import org.hisp.dhis.external.util.LogOnceLogger;
 import org.slf4j.event.Level;
-import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
 import org.springframework.stereotype.Component;
@@ -66,10 +65,6 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 /**
  * @author Lars Helge Overland
  */
-@Profile( {
-    "!test-h2",
-    "!test-postgres",
-} )
 @Component( "dhisConfigurationProvider" )
 @Slf4j
 public class DefaultDhisConfigurationProvider extends LogOnceLogger
