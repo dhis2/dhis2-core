@@ -39,7 +39,6 @@ class Dhis2ConfigTest
     {
         assertThrows( NullPointerException.class, () -> new Dhis2Config(
             null, "admin", "district" ) );
-
         assertThrows( NullPointerException.class, () -> new Dhis2Config(
             "https://play.dhis2.org/2.38.0", null, "district" ) );
     }

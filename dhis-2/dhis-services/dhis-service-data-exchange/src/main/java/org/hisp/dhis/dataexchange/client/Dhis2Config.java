@@ -36,7 +36,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.util.UriComponentsBuilder;
 
 /**
- * Configuration of a DHIS 2 instance.
+ * DHIS 2 instance configuration.
  *
  * @author Lars Helge Overland
  */
@@ -45,20 +45,19 @@ import org.springframework.web.util.UriComponentsBuilder;
 public class Dhis2Config
 {
     /**
-     * Base URL to the target DHIS 2 instance, excluding the <code>/api</code>
-     * path.
+     * Base URL for the DHIS 2 instance, excluding the <code>/api</code> path.
      */
     @NonNull
     private final String url;
 
     /**
-     * Username for the target DHIS 2 instance.
+     * Username for the DHIS 2 instance.
      */
     @NonNull
     private final String username;
 
     /**
-     * Password for the target DHIS 2 instance.
+     * Password for the DHIS 2 instance.
      */
     @NonNull
     private final String password;
