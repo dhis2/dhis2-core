@@ -716,8 +716,8 @@
               <ignoredUnusedDeclaredDependency>org.springframework:spring-context-support</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>javax.servlet:javax.servlet-api</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.apache.xmlgraphics:batik-codec</ignoredUnusedDeclaredDependency>
-              <!-- Removing makes some tests fail -->
               <ignoredUnusedDeclaredDependency>org.apache.jclouds.provider:aws-s3</ignoredUnusedDeclaredDependency>
+              <!-- Removing makes some tests fail -->
               <ignoredUnusedDeclaredDependency>io.netty:netty-all</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.hibernate.validator:hibernate-validator</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>com.cronutils:cron-utils</ignoredUnusedDeclaredDependency>
