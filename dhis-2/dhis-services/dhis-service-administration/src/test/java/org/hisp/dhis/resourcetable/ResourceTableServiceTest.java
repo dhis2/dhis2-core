@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.resourcetable;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+
+import java.util.List;
+
 import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
@@ -105,16 +109,18 @@ class ResourceTableServiceTest extends DhisTest
     @Test
     void testGenerateAllResourceTables()
     {
-        resourceTableService.generateOrganisationUnitStructures();
-        resourceTableService.generateDataSetOrganisationUnitCategoryTable();
-        resourceTableService.generateCategoryOptionComboNames();
-        resourceTableService.generateDataElementGroupSetTable();
-        resourceTableService.generateIndicatorGroupSetTable();
-        resourceTableService.generateOrganisationUnitGroupSetTable();
-        resourceTableService.generateCategoryTable();
-        resourceTableService.generateDataElementTable();
-        resourceTableService.generatePeriodTable();
-        resourceTableService.generateDatePeriodTable();
-        resourceTableService.generateCategoryOptionComboTable();
+        List<Runnable> generators = List.of(
+            resourceTableService::generateOrganisationUnitStructures,
+            resourceTableService::generateDataSetOrganisationUnitCategoryTable,
+            resourceTableService::generateCategoryOptionComboNames,
+            resourceTableService::generateDataElementGroupSetTable,
+            resourceTableService::generateIndicatorGroupSetTable,
+            resourceTableService::generateOrganisationUnitGroupSetTable,
+            resourceTableService::generateCategoryTable,
+            resourceTableService::generateDataElementTable,
+            resourceTableService::generatePeriodTable,
+            resourceTableService::generateDatePeriodTable,
+            resourceTableService::generateCategoryOptionComboTable );
+        generators.forEach( gen -> assertDoesNotThrow( gen::run ) );
     }
 }

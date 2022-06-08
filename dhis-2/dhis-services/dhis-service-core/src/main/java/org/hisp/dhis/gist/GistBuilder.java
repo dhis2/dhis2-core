@@ -450,7 +450,8 @@ final class GistBuilder
         }
         if ( field.getTransformation() == Transform.FROM )
         {
-            return createFromTransformedFieldHQL( index, field, path, property );
+            createFromTransformedFieldHQL( index, field, path, property );
+            return HQL_NULL;
         }
         if ( isPersistentReferenceField( property ) )
         {
@@ -468,12 +469,12 @@ final class GistBuilder
         return "e." + memberPath;
     }
 
-    private String createFromTransformedFieldHQL( int index, Field field, String path, Property property )
+    private void createFromTransformedFieldHQL( int index, Field field, String path, Property property )
     {
         Object bean = newQueryElementInstance();
         if ( bean == null )
         {
-            return HQL_NULL;
+            return;
         }
         String[] sources = field.getTransformationArgument().split( "," );
         List<Method> setters = stream( sources ).map( context::resolveMandatory ).map( Property::getSetterMethod )
@@ -495,7 +496,6 @@ final class GistBuilder
                 log.debug( "Failed to perform from transformation", ex );
             }
         } );
-        return HQL_NULL;
     }
 
     private String createReferenceFieldHQL( int index, Field field )
@@ -841,7 +841,7 @@ final class GistBuilder
         str.append( " " ).append( createOperatorLeftSideHQL( operator ) );
         if ( !operator.isUnary() )
         {
-            str.append( " :f_" + index ).append( createOperatorRightSideHQL( operator ) );
+            str.append( " :f_" ).append( index ).append( createOperatorRightSideHQL( operator ) );
         }
         return str.toString();
     }
