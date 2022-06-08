@@ -38,6 +38,7 @@ import java.util.Set;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.dataexchange.client.response.Dhis2Response;
 import org.hisp.dhis.dataexchange.client.response.ImportSummaryResponse;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
@@ -75,6 +76,7 @@ public class Dhis2Client
     {
         this.config = config;
         this.restTemplate = new RestTemplate();
+        Validate.notNull( config );
     }
 
     /**
