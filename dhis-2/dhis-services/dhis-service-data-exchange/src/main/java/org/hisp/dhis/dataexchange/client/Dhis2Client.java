@@ -150,8 +150,8 @@ public class Dhis2Client
     public ImportSummary saveDataValueSet( DataValueSet dataValueSet )
     {
         URI uri = config.getResolvedUri( "/dataValueSets" );
-        ResponseEntity<ImportSummaryResponse> response = executeJsonPostRequest(
-            uri, dataValueSet, ImportSummaryResponse.class );
-        return response != null && response.getBody() != null ? response.getBody().getResponse() : null;
+        ImportSummaryResponse response = executeJsonPostRequest(
+            uri, dataValueSet, ImportSummaryResponse.class ).getBody();
+        return response != null ? response.getResponse() : null;
     }
 }
