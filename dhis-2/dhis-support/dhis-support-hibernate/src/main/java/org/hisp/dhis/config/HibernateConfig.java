@@ -58,16 +58,6 @@ import org.springframework.transaction.support.TransactionTemplate;
 @EnableTransactionManagement
 public class HibernateConfig
 {
-    // @Bean( "hibernateConfigurationProvider" )
-    // public HibernateConfigurationProvider hibernateConfigurationProvider(
-    // @Lazy DhisConfigurationProvider dhisConfig )
-    // {
-    // DefaultHibernateConfigurationProvider hibernateConfigurationProvider =
-    // new DefaultHibernateConfigurationProvider();
-    // hibernateConfigurationProvider.setConfigProvider( dhisConfig );
-    // return hibernateConfigurationProvider;
-    // }
-
     @Bean
     @DependsOn( "flyway" )
     public LocalSessionFactoryBean sessionFactory( DataSource dataSource,

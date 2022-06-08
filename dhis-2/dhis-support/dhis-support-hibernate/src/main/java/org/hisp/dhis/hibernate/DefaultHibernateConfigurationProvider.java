@@ -113,11 +113,6 @@ public class DefaultHibernateConfigurationProvider
     @Lazy
     private DhisConfigurationProvider configProvider;
 
-    // public void setConfigProvider( DhisConfigurationProvider configProvider )
-    // {
-    // this.configProvider = configProvider;
-    // }
-
     // -------------------------------------------------------------------------
     // Initialize
     // -------------------------------------------------------------------------
