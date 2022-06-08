@@ -96,10 +96,10 @@ public class Dhis2Client
         MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
         headers.add( HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE );
         headers.add( HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE );
-        headers.add( HttpHeaders.AUTHORIZATION, config.getAccessTokenHeader() );
+        headers.add( HttpHeaders.AUTHORIZATION, config.getAuthHeaderValue() );
 
-        // TODO remove
-        log.info( "{}: {}", HttpHeaders.AUTHORIZATION, config.getAccessTokenHeader() );
+        log.info( "{}: {}", HttpHeaders.AUTHORIZATION,
+            config.getAuthHeaderValue() ); // TODO remove
 
         return headers;
     }
@@ -114,8 +114,8 @@ public class Dhis2Client
      */
     private <T> ResponseEntity<WebMessage> executeJsonPostRequest( URI uri, T body )
     {
-        // TODO Remove
-        log.info( "URI: {}" + uri.toString() );
+        log.info( "URI: {}" + uri.toString() ); // TODO Remove
+
         HttpEntity<T> requestEntity = new HttpEntity<>( body, getJsonAuthHeaders() );
         ResponseEntity<WebMessage> response = restTemplate.exchange(
             uri, HttpMethod.POST, requestEntity, WebMessage.class );

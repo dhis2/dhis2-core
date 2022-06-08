@@ -47,5 +47,8 @@ public class Api
     private String url;
 
     @JsonProperty
-    private String accessToken; // TODO Custom encryption
+    private String username;
+
+    @JsonProperty
+    private String password; // TODO Custom encryption
 }

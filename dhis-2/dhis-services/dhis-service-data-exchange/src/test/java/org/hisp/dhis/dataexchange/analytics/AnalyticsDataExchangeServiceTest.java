@@ -82,7 +82,7 @@ class AnalyticsDataExchangeServiceTest
     @Test
     void testGetDhis2Client()
     {
-        Api api = new Api( "https://play.dhis2.org/demo", "d2pat_5xVA12xyUbWNedQxy4ohH77WlxRGVvZZ1151814092" );
+        Api api = new Api( "https://play.dhis2.org/demo", "admin", "district" );
 
         Target target = new Target();
         target.setType( TargetType.EXTERNAL );

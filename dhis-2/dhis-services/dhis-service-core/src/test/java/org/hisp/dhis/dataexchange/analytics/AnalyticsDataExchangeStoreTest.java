@@ -97,7 +97,7 @@ class AnalyticsDataExchangeStoreTest
         source.setRequests( List.of( sourceRequest ) );
 
         Target target = new Target();
-        target.setApi( new Api( "https://play.dhis2.org/demo", "jk6NhU4GF8I" ) );
+        target.setApi( new Api( "https://play.dhis2.org/demo", "admin", "district" ) );
         target.setType( TargetType.EXTERNAL );
         target.setRequest( new TargetRequest( UID_SCHEME, UID_SCHEME, UID_SCHEME, UID_SCHEME ) );
 

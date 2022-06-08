@@ -87,7 +87,8 @@
         "type": "EXTERNAL",
         "api": {
           "url": "https://play.dhis2.org/2.38.0",
-          "accessToken": "d2pat_92GyjFFutm8Ul9y3TjJ5xVMcSV4xQkMY0920394251"
+          "username": "admin",
+          "password": "district"
         },
         "request": {
           "dataElementIdScheme": "UID",

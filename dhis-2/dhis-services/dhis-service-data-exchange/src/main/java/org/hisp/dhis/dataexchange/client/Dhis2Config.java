@@ -28,15 +28,15 @@
 package org.hisp.dhis.dataexchange.client;
 
 import java.net.URI;
+import java.util.Base64;
 
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 
+import org.apache.commons.lang3.Validate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @Getter
-@RequiredArgsConstructor
 public class Dhis2Config
 {
     /**
@@ -49,8 +49,57 @@ public class Dhis2Config
     /**
      * Valid access token for the target DHIS 2 instance.
      */
-    @NonNull
     private final String accessToken;
+
+    /**
+     * Username for the target DHIS 2 instance.
+     */
+    private final String username;
+
+    /**
+     * Password for the target DHIS 2 instance.
+     */
+    private final String password;
+
+    /**
+     * Value to use for authentication for the Authorization HTTP header.
+     */
+    @NonNull
+    private final String authHeaderValue;
+
+    /**
+     * Constructor for access token.
+     *
+     * @param url the base URL of the DHIS 2 instance.
+     * @param accessToken the access token.
+     */
+    public Dhis2Config( String url, String accessToken )
+    {
+        this.url = url;
+        this.accessToken = accessToken;
+        this.username = null;
+        this.password = null;
+        this.authHeaderValue = getAccessTokenHeaderValue();
+        Validate.notBlank( accessToken );
+    }
+
+    /**
+     * Constructor for username and password.
+     *
+     * @param url the base URL of the DHIS 2 instance.
+     * @param username the username of the DHIS 2 account.
+     * @param password the password of the DHIS 2 account.
+     */
+    public Dhis2Config( String url, String username, String password )
+    {
+        this.url = url;
+        this.accessToken = null;
+        this.username = username;
+        this.password = password;
+        this.authHeaderValue = getBasicAuthHeaderValue();
+        Validate.notBlank( username );
+        Validate.notBlank( password );
+    }
 
     public URI getResolvedUri( String path )
     {
@@ -61,8 +110,13 @@ public class Dhis2Config
             .toUri();
     }
 
-    public String getAccessTokenHeader()
+    private String getAccessTokenHeaderValue()
     {
         return String.format( "ApiToken %s", accessToken );
+    }
+
+    private String getBasicAuthHeaderValue()
+    {
+        return "Basic " + Base64.getEncoder().encodeToString( (username + ":" + password).getBytes() );
     }
 }

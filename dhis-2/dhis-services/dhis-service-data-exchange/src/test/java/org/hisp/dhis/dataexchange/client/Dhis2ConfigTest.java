@@ -54,12 +54,23 @@ class Dhis2ConfigTest
     }
 
     @Test
-    void testGetAccessTokenHeader()
+    void testGetAccessTokenHeaderValue()
     {
         Dhis2Config config = new Dhis2Config(
             "https://play.dhis2.org/2.38.0",
             "d2pat_5xVA12xyUbWNedQxy4ohH77WlxRGVvZZ1151814092" );
 
-        assertEquals( "ApiToken d2pat_5xVA12xyUbWNedQxy4ohH77WlxRGVvZZ1151814092", config.getAccessTokenHeader() );
+        assertEquals( "ApiToken d2pat_5xVA12xyUbWNedQxy4ohH77WlxRGVvZZ1151814092", config.getAuthHeaderValue() );
+    }
+
+    @Test
+    void testGetBasicAuthHeaderValue()
+    {
+        Dhis2Config config = new Dhis2Config(
+            "https://play.dhis2.org/2.38.0",
+            "admin",
+            "district" );
+
+        assertEquals( "Basic YWRtaW46ZGlzdHJpY3Q=", config.getAuthHeaderValue() );
     }
 }

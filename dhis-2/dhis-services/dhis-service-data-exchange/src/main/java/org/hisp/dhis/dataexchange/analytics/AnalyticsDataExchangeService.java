@@ -193,6 +193,6 @@ public class AnalyticsDataExchangeService
     {
         Api api = exchange.getTarget().getApi();
 
-        return new Dhis2Client( new Dhis2Config( api.getUrl(), api.getAccessToken() ) );
+        return new Dhis2Client( new Dhis2Config( api.getUrl(), api.getUsername(), api.getPassword() ) );
     }
 }
