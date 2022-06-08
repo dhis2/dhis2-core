@@ -28,11 +28,11 @@
 package org.hisp.dhis.dataexchange.analytics;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dataexchange.client.Dhis2Client;
+import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -62,6 +62,21 @@ class AnalyticsDataExchangeServiceTest
     {
         service = new AnalyticsDataExchangeService(
             analyticsService, analyticsDataExchangeStore, dataQueryService, dataValueSetService );
+    }
+
+    @Test
+    void testToImportOptions()
+    {
+        TargetRequest request = new TargetRequest( "code", "code", null, "uid" );
+        Target target = new Target( TargetType.EXTERNAL, new Api(), request );
+        AnalyticsDataExchange exchange = new AnalyticsDataExchange();
+        exchange.setTarget( target );
+
+        ImportOptions options = service.toImportOptions( exchange );
+        assertEquals( IdScheme.CODE, options.getIdSchemes().getDataElementIdScheme() );
+        assertEquals( IdScheme.CODE, options.getIdSchemes().getOrgUnitIdScheme() );
+        assertEquals( IdScheme.UID, options.getIdSchemes().getCategoryOptionComboIdScheme() );
+        assertEquals( IdScheme.UID, options.getIdSchemes().getIdScheme() );
     }
 
     @Test
