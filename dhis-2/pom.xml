@@ -134,7 +134,7 @@
     <!-- GIS -->
     <batik-transcoder.version>1.14</batik-transcoder.version>
     <fop.version>2.7</fop.version>
-    <mapstruct.version>1.5.1.Final</mapstruct.version>
+    <mapstruct.version>1.5.0.Final</mapstruct.version>
     <geotools.version>27.0</geotools.version>
     <jts.version>1.18.2</jts.version>
 
