@@ -31,9 +31,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.hisp.dhis.setting.SettingKey.COUNT_PASSIVE_DASHBOARD_VIEWS_IN_USAGE_ANALYTICS;
 import static org.hisp.dhis.system.util.SqlUtils.escapeSql;
-import static org.hisp.dhis.user.CurrentUserUtil.getUserSetting;
-import static org.hisp.dhis.user.UserSettingKey.DB_LOCALE;
-import static org.hisp.dhis.user.UserSettingKey.UI_LOCALE;
 import static org.hisp.dhis.util.DateUtils.asSqlDate;
 
 import java.util.Date;
@@ -50,6 +47,8 @@ import org.hisp.dhis.datastatistics.DataStatisticsEventType;
 import org.hisp.dhis.datastatistics.FavoriteStatistics;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.user.UserSettingKey;
+import org.hisp.dhis.user.UserSettingService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementSetter;
@@ -69,14 +68,19 @@ public class HibernateDataStatisticsEventStore
 {
     private final SystemSettingManager systemSettingManager;
 
+    private final UserSettingService userSettingService;
+
     public HibernateDataStatisticsEventStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, SystemSettingManager systemSettingManager )
+        ApplicationEventPublisher publisher, SystemSettingManager systemSettingManager,
+        UserSettingService userSettingService )
     {
         super( sessionFactory, jdbcTemplate, publisher, DataStatisticsEvent.class, false );
 
         checkNotNull( systemSettingManager );
+        checkNotNull( userSettingService );
 
         this.systemSettingManager = systemSettingManager;
+        this.userSettingService = userSettingService;
     }
 
     @Override
@@ -119,7 +123,9 @@ public class HibernateDataStatisticsEventStore
         Assert.notNull( eventType, "Data statistics event type cannot be null" );
         Assert.notNull( sortOrder, "Sort order cannot be null" );
 
-        final Locale currentLocale = defaultIfNull( getUserSetting( DB_LOCALE ), getUserSetting( UI_LOCALE ) );
+        final Locale currentLocale = (Locale) defaultIfNull(
+            userSettingService.getUserSetting( UserSettingKey.DB_LOCALE ),
+            userSettingService.getUserSetting( UserSettingKey.UI_LOCALE ) );
 
         String sql = "select c.uid, views, (case when value is not null then value else c.name end) as name, c.created"
             + " from (select favoriteuid as uid, count(favoriteuid) as views "
