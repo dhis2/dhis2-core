@@ -37,6 +37,11 @@ import org.springframework.http.HttpStatus;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+/**
+ * DHIS 2 API response.
+ *
+ * @author Lars Helge Overland
+ */
 @Getter
 @Setter
 @NoArgsConstructor

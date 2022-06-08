@@ -35,6 +35,11 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.web.util.UriComponentsBuilder;
 
+/**
+ * Configuration of a DHIS 2 instance.
+ *
+ * @author Lars Helge Overland
+ */
 @Getter
 @RequiredArgsConstructor
 public class Dhis2Config

@@ -51,6 +51,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+/**
+ * Client for DHIS 2.
+ *
+ * @author Lars Helge Overland
+ */
 @Slf4j
 @Getter
 public class Dhis2Client
@@ -61,6 +66,11 @@ public class Dhis2Client
 
     private final RestTemplate restTemplate;
 
+    /**
+     * Main constructor.
+     *
+     * @param config the {@link Dhis2Config}.
+     */
     public Dhis2Client( Dhis2Config config )
     {
         this.config = config;
