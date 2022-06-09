@@ -84,6 +84,15 @@ public class AnalyticsDataExchangeService
         return summaries;
     }
 
+    /**
+     * Exchanges data from the source as defined by the given
+     * {@link SourceRequest} to the target as defined by the given
+     * {@link AnalyticsDataExchange}.
+     *
+     * @param exchange the {@link AnalyticsDataExchange}.
+     * @param request the {@link SourceRequest}.
+     * @return an {@link ImportSummary} describing the outcome of the exchange.
+     */
     ImportSummary exchangeData( AnalyticsDataExchange exchange, SourceRequest request )
     {
         DataValueSet dataValueSet = analyticsService.getAggregatedDataValueSet( toDataQueryParams( request ) );

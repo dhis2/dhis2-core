@@ -153,7 +153,7 @@ public class Dhis2Client
      */
     public ImportSummary saveDataValueSet( DataValueSet dataValueSet, ImportOptions options )
     {
-        URI uri = getDataValueSetUri( options );
+        URI uri = toDataValueSetUri( options );
         ImportSummaryResponse response = executeJsonPostRequest(
             uri, dataValueSet, ImportSummaryResponse.class ).getBody();
         return response != null ? response.getResponse() : null;
@@ -167,7 +167,7 @@ public class Dhis2Client
      * @param options the {@link ImportOptions}.
      * @return a {@link URI}.
      */
-    URI getDataValueSetUri( ImportOptions options )
+    URI toDataValueSetUri( ImportOptions options )
     {
         UriComponentsBuilder builder = config.getResolvedUriBUilder( "dataValueSets" );
 
@@ -189,7 +189,7 @@ public class Dhis2Client
      * @param queryParam the query parameter name.
      * @param idScheme the {@link IdScheme}.
      */
-    void addIfNotDefault( UriComponentsBuilder builder, String queryParam, IdScheme idScheme )
+    private void addIfNotDefault( UriComponentsBuilder builder, String queryParam, IdScheme idScheme )
     {
         if ( idScheme != IdSchemes.DEFAULT_ID_SCHEME && idScheme != null )
         {
