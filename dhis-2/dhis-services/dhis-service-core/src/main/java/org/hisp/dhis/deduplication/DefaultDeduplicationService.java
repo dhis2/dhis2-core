@@ -261,7 +261,16 @@ public class DefaultDeduplicationService
     @Override
     @Transactional
     public void addPotentialDuplicate( PotentialDuplicate potentialDuplicate )
+        throws PotentialDuplicateConflictException
     {
+        if ( potentialDuplicate.getStatus() != DeduplicationStatus.OPEN )
+        {
+            throw new PotentialDuplicateConflictException(
+                String.format(
+                    "Invalid status %s, creating potential duplicate is allowed using: %s",
+                    potentialDuplicate.getStatus(), DeduplicationStatus.OPEN ) );
+        }
+
         setPotentialDuplicateUserNameInfo( potentialDuplicate );
         potentialDuplicateStore.save( potentialDuplicate );
     }

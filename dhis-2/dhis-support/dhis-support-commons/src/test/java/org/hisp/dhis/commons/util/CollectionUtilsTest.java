@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,26 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.parser.expression.operator;
+package org.hisp.dhis.commons.util;
 
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.hisp.dhis.antlr.operator.AntlrOperatorCompareEqual;
-import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.ExpressionItem;
+import java.util.List;
 
-/**
- * Compare operator: equal
- *
- * @author Jim Grace
- */
-public class OperatorCompareEqual
-    extends AntlrOperatorCompareEqual
-    implements ExpressionItem
+import org.hisp.dhis.commons.collection.CollectionUtils;
+import org.junit.jupiter.api.Test;
+
+import com.google.common.collect.Lists;
+
+class CollectionUtilsTest
 {
-    @Override
-    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
+
+    @Test
+    public void testDifference()
     {
-        return visitor.sqlNumericVisit( ctx.expr( 0 ) ) + " = " + visitor.sqlNumericVisit( ctx.expr( 1 ) );
+        List<String> collection1 = Lists.newArrayList( "One", "Two", "Three" );
+        List<String> collection2 = Lists.newArrayList( "One", "Two", "Four" );
+        List<String> difference = CollectionUtils.difference( collection1, collection2 );
+
+        assertEquals( 1, difference.size() );
+        assertEquals( "Three", difference.get( 0 ) );
     }
 }

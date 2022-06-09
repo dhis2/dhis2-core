@@ -29,6 +29,7 @@ package org.hisp.dhis.program;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.antlr.AntlrParserUtils.castString;
 import static org.hisp.dhis.parser.expression.ParserUtils.DEFAULT_SAMPLE_PERIODS;
 import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_DESCRIPTIONS;
@@ -246,6 +247,7 @@ public class ProgramSqlGeneratorItemsTest
         CommonExpressionVisitor visitor = CommonExpressionVisitor.newBuilder()
             .withItemMap( PROGRAM_INDICATOR_ITEMS )
             .withItemMethod( itemMethod )
+            .withDataType( NUMERIC )
             .withConstantMap( constantMap )
             .withProgramIndicatorService( programIndicatorService )
             .withProgramStageService( programStageService )

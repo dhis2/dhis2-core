@@ -38,6 +38,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -83,11 +84,11 @@ public class DeduplicationServiceTest
 
     private DeduplicationMergeParams deduplicationMergeParams;
 
-    private static final String sexUid = "sexAttributUid";
+    private static final String sexUid = CodeGenerator.generateUid();
 
     private static final String sexName = "sex";
 
-    private static final String firstNameUid = "nameAttributUid";
+    private static final String firstNameUid = CodeGenerator.generateUid();
 
     private static final String firstName = "firstName";
 
@@ -104,11 +105,9 @@ public class DeduplicationServiceTest
             .original( trackedEntityInstanceA ).duplicate( trackedEntityInstanceB )
             .mergeObject( MergeObject.builder().build() ).build();
 
-        String uidPerson = "uidPerson";
-
         TrackedEntityType trackedEntityPerson = new TrackedEntityType();
         trackedEntityPerson.setName( "Person" );
-        trackedEntityPerson.setUid( uidPerson );
+        trackedEntityPerson.setUid( CodeGenerator.generateUid() );
 
         when( trackedEntityInstanceA.getTrackedEntityType() ).thenReturn( trackedEntityPerson );
         when( trackedEntityInstanceB.getTrackedEntityType() ).thenReturn( trackedEntityPerson );
@@ -128,12 +127,12 @@ public class DeduplicationServiceTest
             .thenReturn( new HashSet<>( Collections.singletonList( programInstanceB ) ) );
 
         Program programA = new Program();
-        programA.setUid( "progrAUid" );
+        programA.setUid( CodeGenerator.generateUid() );
         programA.setDescription( "programADescr" );
         programA.setName( "programAName" );
 
         Program programB = new Program();
-        programB.setUid( "progrBrUid" );
+        programB.setUid( CodeGenerator.generateUid() );
         programB.setDescription( "programBDescr" );
         programB.setName( "programBName" );
 
