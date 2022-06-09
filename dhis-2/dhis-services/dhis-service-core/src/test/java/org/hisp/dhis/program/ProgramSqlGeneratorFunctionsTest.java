@@ -200,7 +200,7 @@ public class ProgramSqlGeneratorFunctionsTest
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
         when( programIndicatorService.getAnalyticsSql( anyString(), any( DataType.class ), eq( programIndicator ),
             eq( startDate ), eq( endDate ) ) )
-            .thenAnswer( i -> test( (String) i.getArguments()[0], (DataType) i.getArguments()[1] ) );
+                .thenAnswer( i -> test( (String) i.getArguments()[0], (DataType) i.getArguments()[1] ) );
 
         String sql = test( "d2:condition('#{ProgrmStagA.DataElmentA} > 3',10 + 5,3 * 2)" );
         assertThat( sql, is( "case when (coalesce(\"DataElmentA\"::numeric,0) > 3) then 10 + 5 else 3 * 2 end" ) );
@@ -214,7 +214,7 @@ public class ProgramSqlGeneratorFunctionsTest
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
         when( programIndicatorService.getAnalyticsSql( anyString(), any( DataType.class ), eq( programIndicator ),
             eq( startDate ), eq( endDate ) ) )
-            .thenAnswer( i -> test( (String) i.getArguments()[0], (DataType) i.getArguments()[1] ) );
+                .thenAnswer( i -> test( (String) i.getArguments()[0], (DataType) i.getArguments()[1] ) );
 
         String sql = test( "d2:condition('#{ProgrmStagA.DataElmentE}',10 + 5,3 * 2)" );
         assertThat( sql, is( "case when (coalesce(\"DataElmentE\"::numeric!=0,false)) then 10 + 5 else 3 * 2 end" ) );
@@ -228,7 +228,7 @@ public class ProgramSqlGeneratorFunctionsTest
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
         when( programIndicatorService.getAnalyticsSql( anyString(), any( DataType.class ), eq( programIndicator ),
             eq( startDate ), eq( endDate ) ) )
-            .thenAnswer( i -> test( (String) i.getArguments()[0], (DataType) i.getArguments()[1] ) );
+                .thenAnswer( i -> test( (String) i.getArguments()[0], (DataType) i.getArguments()[1] ) );
 
         String sql = test( "d2:condition('#{ProgrmStagA.DataElmentE} > 0',10 + 5,3 * 2)" );
         assertThat( sql, is( "case when (coalesce(\"DataElmentE\"::numeric,0) > 0) then 10 + 5 else 3 * 2 end" ) );
@@ -306,7 +306,7 @@ public class ProgramSqlGeneratorFunctionsTest
         when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
         when( programIndicatorService.getAnalyticsSql( anyString(), any( DataType.class ), eq( programIndicator ),
             eq( startDate ), eq( endDate ) ) )
-            .thenAnswer( i -> test( (String) i.getArguments()[0], (DataType) i.getArguments()[1] ) );
+                .thenAnswer( i -> test( (String) i.getArguments()[0], (DataType) i.getArguments()[1] ) );
 
         String sql = test( "d2:countIfCondition(#{ProgrmStagA.DataElmentA},'>5')" );
         assertThat( sql, is( "(select count(\"DataElmentA\") " +
@@ -328,7 +328,7 @@ public class ProgramSqlGeneratorFunctionsTest
         when( dataElementService.getDataElement( dataElementE.getUid() ) ).thenReturn( dataElementE );
         when( programIndicatorService.getAnalyticsSql( anyString(), any( DataType.class ), eq( programIndicator ),
             eq( startDate ), eq( endDate ) ) )
-            .thenAnswer( i -> test( (String) i.getArguments()[0], (DataType) i.getArguments()[1] ) );
+                .thenAnswer( i -> test( (String) i.getArguments()[0], (DataType) i.getArguments()[1] ) );
 
         String sql = test( "d2:countIfCondition(#{ProgrmStagA.DataElmentA},'>#{ProgrmStagA.DataElmentE}')" );
         assertThat( sql, is( "(select count(\"DataElmentA\") " +

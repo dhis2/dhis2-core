@@ -122,7 +122,8 @@ public class DefaultProgramIndicatorSubqueryBuilder
         if ( !Strings.isNullOrEmpty( programIndicator.getFilter() ) )
         {
             aggregateSql += " AND "
-                + getPrgIndSql( programIndicator.getFilter(), BOOLEAN, programIndicator, earliestStartDate, latestDate );
+                + getPrgIndSql( programIndicator.getFilter(), BOOLEAN, programIndicator, earliestStartDate,
+                    latestDate );
         }
 
         return "(SELECT " + function + " (" + aggregateSql + ")";
