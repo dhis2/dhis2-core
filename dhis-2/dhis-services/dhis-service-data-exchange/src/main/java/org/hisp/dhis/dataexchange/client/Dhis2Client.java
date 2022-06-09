@@ -102,8 +102,8 @@ public class Dhis2Client
     }
 
     /**
-     * Returns a map of HTTP headers indicating JSON format and DHIS 2 access
-     * token-based authorization.
+     * Returns a {@link HttpHeaders} for basic authentication indicating JSON
+     * accept and content-type format.
      *
      * @return a {@link HttpHeaders}.
      */
