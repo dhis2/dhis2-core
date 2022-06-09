@@ -71,6 +71,16 @@ class CollectionUtilsTest
     }
 
     @Test
+    void testFirstMatch()
+    {
+        List<String> collection = List.of( "a", "b", "c" );
+
+        assertEquals( "a", firstMatch( collection, ( v ) -> "a".equals( v ) ) );
+        assertEquals( "b", firstMatch( collection, ( v ) -> "b".equals( v ) ) );
+        assertNull( firstMatch( collection, ( v ) -> "x".equals( v ) ) );
+    }
+
+    @Test
     void testDifference()
     {
         List<String> collection1 = Lists.newArrayList( "One", "Two", "Three" );
