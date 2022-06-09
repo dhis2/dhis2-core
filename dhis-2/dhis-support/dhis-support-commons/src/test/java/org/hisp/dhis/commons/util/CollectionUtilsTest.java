@@ -27,9 +27,11 @@
  */
 package org.hisp.dhis.commons.util;
 
+import static org.hisp.dhis.commons.collection.CollectionUtils.firstMatch;
 import static org.hisp.dhis.commons.collection.CollectionUtils.flatMapToSet;
 import static org.hisp.dhis.commons.collection.CollectionUtils.mapToList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.List;
 import java.util.Set;
@@ -68,6 +70,16 @@ class CollectionUtilsTest
         Set<DataElement> dataElements = flatMapToSet( dataSets, DataSet::getDataElements );
 
         assertEquals( 3, dataElements.size() );
+    }
+
+    @Test
+    void testFirstMatch()
+    {
+        List<String> collection = List.of( "a", "b", "c" );
+
+        assertEquals( "a", firstMatch( collection, ( v ) -> "a".equals( v ) ) );
+        assertEquals( "b", firstMatch( collection, ( v ) -> "b".equals( v ) ) );
+        assertNull( firstMatch( collection, ( v ) -> "x".equals( v ) ) );
     }
 
     @Test
