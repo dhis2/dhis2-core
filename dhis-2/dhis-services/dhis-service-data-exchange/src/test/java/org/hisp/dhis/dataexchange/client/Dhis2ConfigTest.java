@@ -44,18 +44,6 @@ class Dhis2ConfigTest
     }
 
     @Test
-    void testGetResolvedUri()
-    {
-        Dhis2Config config = new Dhis2Config(
-            "https://play.dhis2.org/2.38.0", "admin", "district" );
-
-        assertEquals( "https://play.dhis2.org/2.38.0/api/dataValueSets",
-            config.getResolvedUri( "dataValueSets" ).toString() );
-        assertEquals( "https://play.dhis2.org/2.38.0/api/system/info",
-            config.getResolvedUri( "system/info" ).toString() );
-    }
-
-    @Test
     void testGetResolvedUriBuilder()
     {
         Dhis2Config config = new Dhis2Config(
