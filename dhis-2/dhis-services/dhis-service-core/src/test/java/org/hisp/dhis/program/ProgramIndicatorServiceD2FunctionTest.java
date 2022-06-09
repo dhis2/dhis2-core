@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.program;
 
+import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.junit.Assert.*;
 
 import java.util.*;
@@ -176,12 +177,12 @@ public class ProgramIndicatorServiceD2FunctionTest
 
     private String getSql( String expression )
     {
-        return programIndicatorService.getAnalyticsSql( expression, piA, newDate, newDate );
+        return programIndicatorService.getAnalyticsSql( expression, NUMERIC, piA, newDate, newDate );
     }
 
     private String getSqlEnrollment( String expression )
     {
-        return programIndicatorService.getAnalyticsSql( expression, piB, newDate, newDate );
+        return programIndicatorService.getAnalyticsSql( expression, NUMERIC, piB, newDate, newDate );
     }
 
     // -------------------------------------------------------------------------
