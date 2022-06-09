@@ -201,7 +201,6 @@ public class DefaultSchemaService
         .add( new ApiTokenSchemaDescriptor() )
         .add( new SharingSchemaDescriptor() )
         .add( new AxisSchemaDescriptor() )
-        .add( new EventRepetitionSchemaDescriptor() )
         .add( new LegendDefinitionsSchemaDescriptor() )
         .add( new SeriesKeySchemaDescriptor() )
         .add( new OutlierAnalysisSchemaDescriptor() )
