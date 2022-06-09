@@ -66,7 +66,7 @@ public class Dhis2Config
      *
      * @return a resolved {@link UriComponentsBuilder}.
      */
-    public UriComponentsBuilder getResolvedUriBUilder( String path )
+    public UriComponentsBuilder getResolvedUriBuilder( String path )
     {
         return UriComponentsBuilder.fromHttpUrl( url )
             .pathSegment( "api" )

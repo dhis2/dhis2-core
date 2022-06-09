@@ -50,8 +50,8 @@ class Dhis2ConfigTest
             "https://play.dhis2.org/2.38.0", "admin", "district" );
 
         assertEquals( "https://play.dhis2.org/2.38.0/api/dataValueSets",
-            config.getResolvedUriBUilder( "dataValueSets" ).build().toUriString() );
+            config.getResolvedUriBuilder( "dataValueSets" ).build().toUriString() );
         assertEquals( "https://play.dhis2.org/2.38.0/api/system/info",
-            config.getResolvedUriBUilder( "system/info" ).build().toUriString() );
+            config.getResolvedUriBuilder( "system/info" ).build().toUriString() );
     }
 }

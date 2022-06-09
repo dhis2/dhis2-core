@@ -169,7 +169,7 @@ public class Dhis2Client
      */
     URI getDataValueSetUri( ImportOptions options )
     {
-        UriComponentsBuilder builder = config.getResolvedUriBUilder( "dataValueSets" );
+        UriComponentsBuilder builder = config.getResolvedUriBuilder( "dataValueSets" );
 
         IdSchemes idSchemes = options.getIdSchemes();
 
