@@ -42,5 +42,7 @@ public enum DimensionParamType
     DIMENSIONS( CommonQueryRequest::getDimension ),
     FILTERS( CommonQueryRequest::getFilter );
 
+    // the getter method to invoke to retrieve the dimensions or filters from
+    // the CommonQueryRequest
     private final Function<CommonQueryRequest, Collection<String>> uidsGetter;
 }

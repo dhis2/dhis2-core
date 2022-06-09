@@ -27,15 +27,18 @@
  */
 package org.hisp.dhis.analytics.common.dimension;
 
+import static lombok.AccessLevel.PRIVATE;
+import static org.hisp.dhis.analytics.common.dimension.DimensionParamType.FILTERS;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.QueryItem;
 
@@ -45,46 +48,61 @@ import com.google.common.collect.ImmutableList;
  * A wrapper for DimensionObject|QueryItem to abstract them
  */
 @Data
-@Builder
-@AllArgsConstructor( access = AccessLevel.PRIVATE )
+@Builder( access = PRIVATE )
+@AllArgsConstructor( access = PRIVATE )
 public class DimensionParam
 {
     private final DimensionalObject dimensionalObject;
 
     private final QueryItem queryItem;
 
-    private final DimensionParamType dimensionParamType;
+    private final DimensionParamType type;
 
     @Builder.Default
     private final List<String> items = new ArrayList<>();
 
+    /**
+     * allows to create an instance of DimensionPAram passing the object to wrap
+     * (a DimensionalObject or a QueryItem), the type and a list of filters (can
+     * be empty)
+     *
+     * @param dimensionalObjectOrQueryItem
+     * @param dimensionParamType
+     * @param items
+     * @return
+     */
     public static DimensionParam ofObject( Object dimensionalObjectOrQueryItem, DimensionParamType dimensionParamType,
         List<String> items )
     {
         Objects.requireNonNull( dimensionalObjectOrQueryItem );
+        Objects.requireNonNull( dimensionParamType );
+
         if ( dimensionalObjectOrQueryItem instanceof DimensionalObject )
         {
             return DimensionParam.builder()
                 .dimensionalObject( (DimensionalObject) dimensionalObjectOrQueryItem )
-                .dimensionParamType( dimensionParamType )
-                .items( ImmutableList.copyOf( items ) )
+                .type( dimensionParamType )
+                .items( ImmutableList.copyOf( CollectionUtils.emptyIfNull( items ) ) )
                 .build();
         }
         if ( dimensionalObjectOrQueryItem instanceof QueryItem )
         {
             return DimensionParam.builder()
                 .queryItem( (QueryItem) dimensionalObjectOrQueryItem )
-                .dimensionParamType( dimensionParamType )
-                .items( ImmutableList.copyOf( items ) )
+                .type( dimensionParamType )
+                .items( ImmutableList.copyOf( CollectionUtils.emptyIfNull( items ) ) )
                 .build();
         }
         throw new IllegalArgumentException( "Only DimensionalObject or QueryItem are allowed, received "
             + dimensionalObjectOrQueryItem.getClass().getName() + " instead" );
     }
 
+    /**
+     * @return true if this DimensionParam is a filter
+     */
     public boolean isFilter()
     {
-        return !items.isEmpty();
+        return type == FILTERS;
     }
 
     private boolean isDimensionalObject()
@@ -97,7 +115,10 @@ public class DimensionParam
         return !isDimensionalObject();
     }
 
-    public DimensionParamObjectType getDimensionParamType()
+    /**
+     * @return the DimensionParamObjectType of this DimensionParam
+     */
+    public DimensionParamObjectType getDimensionParamObjectType()
     {
         if ( isDimensionalObject() )
         {

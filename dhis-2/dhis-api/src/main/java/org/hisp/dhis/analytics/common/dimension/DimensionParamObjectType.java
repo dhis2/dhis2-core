@@ -32,6 +32,9 @@ import java.util.Arrays;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionType;
 
+/**
+ * map DimensionType and DimensionItemType into a single enum
+ */
 public enum DimensionParamObjectType
 {
 

@@ -118,6 +118,7 @@ public class CommonRequestMapper
         List<DimensionParam> dimensionParams = new ArrayList<>();
         for ( DimensionParamType dimensionParamType : DimensionParamType.values() )
         {
+            // A Collection of dimensions or filters coming from the request
             Collection<String> dimensionsOrFilter = dimensionParamType.getUidsGetter().apply( request );
             dimensionParams.addAll(
                 dimensionsOrFilter.stream()
@@ -128,12 +129,17 @@ public class CommonRequestMapper
         return ImmutableList.copyOf( dimensionParams );
     }
 
-    private Collection<DimensionParam> toDimensionParams( String uid, DimensionParamType dimensionParamType,
+    /**
+     * Return a collection of DimensionParams built from request
+     * dimension/filter parameter
+     */
+    private Collection<DimensionParam> toDimensionParams( String dimensionOrFilter,
+        DimensionParamType dimensionParamType,
         CommonQueryRequest request,
         Collection<Program> programs, List<OrganisationUnit> userOrgUnits )
     {
-        String dimensionId = getDimensionFromParam( uid );
-        List<String> items = getDimensionItemsFromParam( uid );
+        String dimensionId = getDimensionFromParam( dimensionOrFilter );
+        List<String> items = getDimensionItemsFromParam( dimensionOrFilter );
 
         DimensionalObject dimensionalObject = dataQueryService.getDimension( dimensionId,
             items,
@@ -142,7 +148,7 @@ public class CommonRequestMapper
             i18nManager.getI18nFormat(), true,
             IdScheme.UID );
 
-        if ( dimensionalObject != null )
+        if ( dimensionalObject != null ) // it's a dimensionalObject
         {
             return Collections.singleton( DimensionParam.ofObject( dimensionalObject, dimensionParamType, items ) );
         }
