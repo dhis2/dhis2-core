@@ -65,11 +65,14 @@ public class FunctionIf
     {
         Boolean arg0 = visitor.castBooleanVisit( ctx.expr( 0 ) );
 
-        return arg0 == null
-            ? null
-            : arg0
-                ? visitor.visit( ctx.expr( 1 ) )
-                : visitor.visit( ctx.expr( 2 ) );
+        if ( arg0 == null )
+        {
+            return null;
+        }
+
+        return (arg0)
+            ? visitor.visit( ctx.expr( 1 ) )
+            : visitor.visit( ctx.expr( 2 ) );
     }
 
     @Override
@@ -90,7 +93,7 @@ public class FunctionIf
     @Override
     public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        return " case when " + visitor.castStringVisit( ctx.expr( 0 ) ) +
+        return " case when " + visitor.sqlBooleanVisit( ctx.expr( 0 ) ) +
             " then " + visitor.castStringVisit( ctx.expr( 1 ) ) +
             " else " + visitor.castStringVisit( ctx.expr( 2 ) ) + " end";
     }

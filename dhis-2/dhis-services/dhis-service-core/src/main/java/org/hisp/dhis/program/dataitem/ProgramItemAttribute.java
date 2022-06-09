@@ -32,7 +32,6 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext
 import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.program.ProgramExpressionItem;
-import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 /**
@@ -57,7 +56,7 @@ public class ProgramItemAttribute
 
         visitor.getItemDescriptions().put( ctx.getText(), attribute.getDisplayName() );
 
-        return ValidationUtils.getNullReplacementValue( attribute.getValueType() );
+        return getNullReplacementValue( attribute.getValueType() );
     }
 
     @Override
@@ -77,7 +76,7 @@ public class ProgramItemAttribute
                     "Tracked entity attribute " + attributeId + " not found during SQL generation." );
             }
 
-            column = replaceNullSqlValues( column, attribute.getValueType() );
+            column = replaceNullSqlValues( column, visitor, attribute.getValueType() );
         }
 
         return column;

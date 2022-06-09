@@ -30,6 +30,7 @@ package org.hisp.dhis.program;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.startsWith;
+import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.antlr.AntlrParserUtils.castString;
 import static org.hisp.dhis.parser.expression.ParserUtils.DEFAULT_SAMPLE_PERIODS;
 import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_SQL;
@@ -314,6 +315,7 @@ public class ProgramSqlGeneratorVariablesTest
         subject = CommonExpressionVisitor.newBuilder()
             .withItemMap( PROGRAM_INDICATOR_ITEMS )
             .withItemMethod( ITEM_GET_SQL )
+            .withDataType( NUMERIC )
             .withConstantMap( new HashMap<>() )
             .withProgramIndicatorService( programIndicatorService )
             .withProgramStageService( programStageService )
