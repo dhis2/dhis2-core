@@ -106,6 +106,7 @@ public class HibernateDbmsManager
         emptyTable( "interpretation" );
 
         emptyTable( "report" );
+        emptyTable( "datastatisticsevent" );
 
         emptyTable( "visualization_yearlyseries" );
         emptyTable( "visualization_rows" );

@@ -38,9 +38,6 @@
         <td>
             <input type="hidden" id="inviteUsername" name="inviteUsername" value="$username">
             <input type="hidden" id="inviteToken" name="inviteToken" value="$token">
-            #if( $accountAction == "invited" )
-            <input type="hidden" id="username" name="username" value="$username">
-            #end
         </td>
     </tr>
 	#end
@@ -52,24 +49,15 @@
             <input type="text" id="surname" name="surname" autocomplete="off" style="width:11.7em" placeholder="Last">
         </td>
     </tr>
-
     <tr>
-      <td>
-        <label id="label_username" for="username">$i18n.getString( "user_name" )</label>
-      </td>
-      <td>
-        <input
-            type="text"
-            id="username"
-            name="username"
-            autocomplete="off"
-
-            #if( $accountAction == "invited" )
-            disabled="disabled"
-            value="$username"
-            #end
-            />
-      </td>
+        <td><label id="label_username" for="username">$i18n.getString( "user_name" )</label></td>
+        #if( $usernameChoice == "false" )
+        <td><input type="hidden" id="username" name="username" value="RpuECtIlVoRKTpYmEkYrAHmPtX4m1U">
+        	<input type="text" id="assignedUsername" name="assignedUsername" disabled="disabled" value="${username}"></td>
+        #else
+        <td><input type="text" id="username" name="username" autocomplete="off"></td>
+        #end
+        <td>
     </tr>
     <tr>
         <td><label id="label_password" for="password">$i18n.getString( "password" )</label></td>
@@ -85,7 +73,7 @@
         <td><input type="hidden" id="email" name="email" value="$email">
             <input type="text" id="email" name="email" value="$email" disabled="disabled"></td>
         #else
-        <td><input type="text" id="email" name="email" onfocusout="checkPasswordForEmail()"></td>
+        <td><input type="text" id="email" name="email" value="$email" onfocusout="checkPasswordForEmail()"></td>
         #end
     </tr>
     <tr>

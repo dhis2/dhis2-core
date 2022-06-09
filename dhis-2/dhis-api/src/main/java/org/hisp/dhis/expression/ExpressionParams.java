@@ -28,7 +28,6 @@
 package org.hisp.dhis.expression;
 
 import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
-import static org.hisp.dhis.util.ObjectUtils.firstNonNull;
 
 import java.time.LocalDate;
 import java.time.Month;
@@ -204,6 +203,8 @@ public class ExpressionParams
 
     public DataType getDataType()
     {
-        return firstNonNull( dataType, parseType.getDataType() );
+        return (dataType != null)
+            ? dataType
+            : parseType.getDataType();
     }
 }
