@@ -37,6 +37,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -99,6 +100,23 @@ public class CollectionUtils
         return collection.stream()
             .map( mapper )
             .collect( Collectors.toList() );
+    }
+
+    /**
+     * Returns the first matching item in the given collection based on the
+     * given predicate. Returns null if no match is found.
+     *
+     * @param <A>
+     * @param collection the collection.
+     * @param predicate the predicate.
+     * @return the first matching item, or null if no match is found.
+     */
+    public static <A> A firstMatch( Collection<A> collection, Predicate<A> predicate )
+    {
+        return collection.stream()
+            .filter( predicate )
+            .findFirst()
+            .orElse( null );
     }
 
     /**
