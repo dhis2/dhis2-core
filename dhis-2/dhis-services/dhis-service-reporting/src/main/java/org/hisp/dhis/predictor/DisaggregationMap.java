@@ -27,28 +27,34 @@
  */
 package org.hisp.dhis.predictor;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.MapMap;
-import org.hisp.dhis.period.Period;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * Context (including data) for computing a single prediction.
+ * A map that, for each input data element disaggregation (category option
+ * combo) UID, returns the UID of the corresponding predictor output data
+ * element disaggregation (category option combo).
  *
  * @author Jim Grace
  */
-@Data
-@AllArgsConstructor
-public class PredictionContext
+public class DisaggregationMap
+    extends HashMap<String, String>
 {
-    private final CategoryOptionCombo categoryOptionCombo;
+    /**
+     * Constructs an empty DisaggregationMap.
+     */
+    public DisaggregationMap()
+    {
+    }
 
-    private final CategoryOptionCombo attributeOptionCombo;
-
-    private final Period outputPeriod;
-
-    private final MapMap<Period, DimensionalItemObject, Object> periodValueMap;
+    /**
+     * Constructs a new DisaggregationMap with the same mappings as the
+     * specified Map.
+     *
+     * @param m the map whose mappings are to be placed in this map
+     */
+    public DisaggregationMap( Map<String, String> m )
+    {
+        super( m );
+    }
 }

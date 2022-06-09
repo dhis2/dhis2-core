@@ -498,6 +498,20 @@ class PredictionServiceTest extends IntegrationTestBase
         dataValueBatchHandler.flush();
     }
 
+    private void testPredictMissingValuesFunction( String function )
+    {
+        useDataValue( dataElementA, makeMonth( 2010, 8 ), sourceA, 33 );
+        dataValueBatchHandler.flush();
+        Expression expression = new Expression(
+            function + "(#{" + dataElementA.getUid() + "}) + #{" + dataElementA.getUid() + "}", "description",
+            MissingValueStrategy.NEVER_SKIP );
+        Predictor predictor = createPredictor( dataElementX, defaultCombo, "A", expression, null, periodTypeMonthly,
+            orgUnitLevel1, 1, 0, 0 );
+        predictionService.predict( predictor, monthStart( 2010, 8 ), monthStart( 2010, 9 ), summary );
+        assertEquals( "Pred 1 Ins 1 Upd 0 Del 0 Unch 0", shortSummary( summary ) );
+        assertEquals( "33.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2010, 8 ) ) );
+    }
+
     // -------------------------------------------------------------------------
     // Prediction tests
     // -------------------------------------------------------------------------
@@ -874,6 +888,7 @@ class PredictionServiceTest extends IntegrationTestBase
         useDataValue( dataElementB, makeMonth( 2001, 6 ), sourceA, 2 );
         useDataValue( dataElementA, makeMonth( 2001, 7 ), sourceA, 4 );
         dataValueBatchHandler.flush();
+
         Expression expressionX = new Expression(
             "10 + #{" + dataElementA.getUid() + "} + #{" + dataElementB.getUid() + "}", "descriptionX",
             MissingValueStrategy.NEVER_SKIP );
@@ -883,23 +898,30 @@ class PredictionServiceTest extends IntegrationTestBase
         Expression expressionZ = new Expression(
             "10 + sum( #{" + dataElementA.getUid() + "} + firstNonNull(#{" + dataElementB.getUid() + "},0) )",
             "descriptionZ", MissingValueStrategy.NEVER_SKIP );
+
         Predictor predictorX = createPredictor( dataElementX, defaultCombo, "PredictNeverSkipX", expressionX, null,
             periodTypeMonthly, orgUnitLevel1, 0, 0, 0 );
         Predictor predictorY = createPredictor( dataElementY, defaultCombo, "PredictNeverSkipY", expressionY, null,
             periodTypeMonthly, orgUnitLevel1, 1, 0, 0 );
         Predictor predictorZ = createPredictor( dataElementZ, defaultCombo, "PredictNeverSkipZ", expressionZ, null,
             periodTypeMonthly, orgUnitLevel1, 1, 0, 0 );
+
         predictionService.predict( predictorX, monthStart( 2001, 6 ), monthStart( 2001, 9 ), summary );
         assertEquals( "Pred 1 Ins 9 Upd 0 Del 0 Unch 0", shortSummary( summary ) );
-        assertEquals( "13.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 6 ) ) );
-        assertEquals( "14.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 7 ) ) );
-        assertEquals( "10.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 8 ) ) );
-        assertEquals( "10.0", getDataValue( dataElementX, defaultCombo, sourceB, makeMonth( 2001, 6 ) ) );
-        assertEquals( "10.0", getDataValue( dataElementX, defaultCombo, sourceB, makeMonth( 2001, 7 ) ) );
-        assertEquals( "10.0", getDataValue( dataElementX, defaultCombo, sourceB, makeMonth( 2001, 8 ) ) );
-        assertEquals( "10.0", getDataValue( dataElementX, defaultCombo, sourceG, makeMonth( 2001, 6 ) ) );
-        assertEquals( "10.0", getDataValue( dataElementX, defaultCombo, sourceG, makeMonth( 2001, 7 ) ) );
-        assertEquals( "10.0", getDataValue( dataElementX, defaultCombo, sourceG, makeMonth( 2001, 8 ) ) );
+        // (Combining these values into a single assert keeps SonarLint happy.)
+        assertEquals(
+            List.of( "13.0", "14.0", "10.0", "10.0", "10.0", "10.0", "10.0", "10.0", "10.0" ),
+            List.of(
+                getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 6 ) ),
+                getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 7 ) ),
+                getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 8 ) ),
+                getDataValue( dataElementX, defaultCombo, sourceB, makeMonth( 2001, 6 ) ),
+                getDataValue( dataElementX, defaultCombo, sourceB, makeMonth( 2001, 7 ) ),
+                getDataValue( dataElementX, defaultCombo, sourceB, makeMonth( 2001, 8 ) ),
+                getDataValue( dataElementX, defaultCombo, sourceG, makeMonth( 2001, 6 ) ),
+                getDataValue( dataElementX, defaultCombo, sourceG, makeMonth( 2001, 7 ) ),
+                getDataValue( dataElementX, defaultCombo, sourceG, makeMonth( 2001, 8 ) ) ) );
+
         summary = new PredictionSummary();
         predictionService.predict( predictorY, monthStart( 2001, 6 ), monthStart( 2001, 9 ), summary );
         assertEquals( "Pred 1 Ins 9 Upd 0 Del 0 Unch 0", shortSummary( summary ) );
@@ -912,6 +934,7 @@ class PredictionServiceTest extends IntegrationTestBase
         assertEquals( "10", getDataValue( dataElementY, defaultCombo, sourceG, makeMonth( 2001, 6 ) ) );
         assertEquals( "10", getDataValue( dataElementY, defaultCombo, sourceG, makeMonth( 2001, 7 ) ) );
         assertEquals( "10", getDataValue( dataElementY, defaultCombo, sourceG, makeMonth( 2001, 8 ) ) );
+
         summary = new PredictionSummary();
         predictionService.predict( predictorZ, monthStart( 2001, 6 ), monthStart( 2001, 9 ), summary );
         assertEquals( "Pred 1 Ins 9 Upd 0 Del 0 Unch 0", shortSummary( summary ) );
@@ -1131,61 +1154,25 @@ class PredictionServiceTest extends IntegrationTestBase
     @Test
     void testMissingValuesMin()
     {
-        useDataValue( dataElementA, makeMonth( 2010, 8 ), sourceA, 33 );
-        dataValueBatchHandler.flush();
-        Expression expression = new Expression(
-            "min(#{" + dataElementA.getUid() + "}) + #{" + dataElementA.getUid() + "}", "description",
-            MissingValueStrategy.NEVER_SKIP );
-        Predictor predictor = createPredictor( dataElementX, defaultCombo, "A", expression, null, periodTypeMonthly,
-            orgUnitLevel1, 1, 0, 0 );
-        predictionService.predict( predictor, monthStart( 2010, 8 ), monthStart( 2010, 9 ), summary );
-        assertEquals( "Pred 1 Ins 1 Upd 0 Del 0 Unch 0", shortSummary( summary ) );
-        assertEquals( "33.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2010, 8 ) ) );
+        testPredictMissingValuesFunction( "min" );
     }
 
     @Test
     void testMissingValuesMax()
     {
-        useDataValue( dataElementA, makeMonth( 2010, 8 ), sourceA, 33 );
-        dataValueBatchHandler.flush();
-        Expression expression = new Expression(
-            "max(#{" + dataElementA.getUid() + "}) + #{" + dataElementA.getUid() + "}", "description",
-            MissingValueStrategy.NEVER_SKIP );
-        Predictor predictor = createPredictor( dataElementX, defaultCombo, "A", expression, null, periodTypeMonthly,
-            orgUnitLevel1, 1, 0, 0 );
-        predictionService.predict( predictor, monthStart( 2010, 8 ), monthStart( 2010, 9 ), summary );
-        assertEquals( "Pred 1 Ins 1 Upd 0 Del 0 Unch 0", shortSummary( summary ) );
-        assertEquals( "33.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2010, 8 ) ) );
+        testPredictMissingValuesFunction( "max" );
     }
 
     @Test
     void testMissingValuesMedian()
     {
-        useDataValue( dataElementA, makeMonth( 2010, 8 ), sourceA, 33 );
-        dataValueBatchHandler.flush();
-        Expression expression = new Expression(
-            "median(#{" + dataElementA.getUid() + "}) + #{" + dataElementA.getUid() + "}", "description",
-            MissingValueStrategy.NEVER_SKIP );
-        Predictor predictor = createPredictor( dataElementX, defaultCombo, "A", expression, null, periodTypeMonthly,
-            orgUnitLevel1, 1, 0, 0 );
-        predictionService.predict( predictor, monthStart( 2010, 8 ), monthStart( 2010, 9 ), summary );
-        assertEquals( "Pred 1 Ins 1 Upd 0 Del 0 Unch 0", shortSummary( summary ) );
-        assertEquals( "33.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2010, 8 ) ) );
+        testPredictMissingValuesFunction( "median" );
     }
 
     @Test
     void testMissingValuesSum()
     {
-        useDataValue( dataElementA, makeMonth( 2010, 8 ), sourceA, 33 );
-        dataValueBatchHandler.flush();
-        Expression expression = new Expression(
-            "sum(#{" + dataElementA.getUid() + "}) + #{" + dataElementA.getUid() + "}", "description",
-            MissingValueStrategy.NEVER_SKIP );
-        Predictor predictor = createPredictor( dataElementX, defaultCombo, "A", expression, null, periodTypeMonthly,
-            orgUnitLevel1, 1, 0, 0 );
-        predictionService.predict( predictor, monthStart( 2010, 8 ), monthStart( 2010, 9 ), summary );
-        assertEquals( "Pred 1 Ins 1 Upd 0 Del 0 Unch 0", shortSummary( summary ) );
-        assertEquals( "33.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2010, 8 ) ) );
+        testPredictMissingValuesFunction( "sum" );
     }
 
     @Test
@@ -1205,29 +1192,13 @@ class PredictionServiceTest extends IntegrationTestBase
     @Test
     void testMissingValuesStddevSamp()
     {
-        useDataValue( dataElementA, makeMonth( 2010, 8 ), sourceA, 33 );
-        dataValueBatchHandler.flush();
-        Expression expression = new Expression(
-            "stddevSamp(#{" + dataElementA.getUid() + "}) + #{" + dataElementA.getUid() + "}", "description" );
-        Predictor predictor = createPredictor( dataElementX, defaultCombo, "A", expression, null, periodTypeMonthly,
-            orgUnitLevel1, 1, 0, 0 );
-        predictionService.predict( predictor, monthStart( 2010, 8 ), monthStart( 2010, 9 ), summary );
-        assertEquals( "Pred 1 Ins 1 Upd 0 Del 0 Unch 0", shortSummary( summary ) );
-        assertEquals( "33.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2010, 8 ) ) );
+        testPredictMissingValuesFunction( "stddevSamp" );
     }
 
     @Test
     void testMissingValuesStddevPop()
     {
-        useDataValue( dataElementA, makeMonth( 2010, 8 ), sourceA, 33 );
-        dataValueBatchHandler.flush();
-        Expression expression = new Expression(
-            "stddevPop(#{" + dataElementA.getUid() + "}) + #{" + dataElementA.getUid() + "}", "description" );
-        Predictor predictor = createPredictor( dataElementX, defaultCombo, "A", expression, null, periodTypeMonthly,
-            orgUnitLevel1, 1, 0, 0 );
-        predictionService.predict( predictor, monthStart( 2010, 8 ), monthStart( 2010, 9 ), summary );
-        assertEquals( "Pred 1 Ins 1 Upd 0 Del 0 Unch 0", shortSummary( summary ) );
-        assertEquals( "33.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2010, 8 ) ) );
+        testPredictMissingValuesFunction( "stddevPop" );
     }
 
     @Test
@@ -1246,16 +1217,7 @@ class PredictionServiceTest extends IntegrationTestBase
     @Test
     void testMissingValuesAvg()
     {
-        useDataValue( dataElementA, makeMonth( 2010, 8 ), sourceA, 33 );
-        dataValueBatchHandler.flush();
-        Expression expression = new Expression(
-            "avg(#{" + dataElementA.getUid() + "}) + #{" + dataElementA.getUid() + "}", "description",
-            MissingValueStrategy.NEVER_SKIP );
-        Predictor predictor = createPredictor( dataElementX, defaultCombo, "A", expression, null, periodTypeMonthly,
-            orgUnitLevel1, 1, 0, 0 );
-        predictionService.predict( predictor, monthStart( 2010, 8 ), monthStart( 2010, 9 ), summary );
-        assertEquals( "Pred 1 Ins 1 Upd 0 Del 0 Unch 0", shortSummary( summary ) );
-        assertEquals( "33.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2010, 8 ) ) );
+        testPredictMissingValuesFunction( "avg" );
     }
 
     @Test
@@ -1479,6 +1441,51 @@ class PredictionServiceTest extends IntegrationTestBase
         predictionService.predict( p, monthStart( 2021, 8 ), monthStart( 2021, 9 ), summary );
         assertEquals( "Pred 1 Ins 1 Upd 0 Del 0 Unch 0", shortSummary( summary ) );
         assertEquals( "true", getDataValue( dataElementJ, defaultCombo, sourceA, makeMonth( 2021, 8 ) ) );
+    }
+
+    @Test
+    void testPredictDisaggregations()
+    {
+        CategoryOption opA = createCategoryOption( "opA", "CategoryOpA" );
+        CategoryOption opB = createCategoryOption( "opB", "CategoryOpB" );
+        categoryService.addCategoryOption( opA );
+        categoryService.addCategoryOption( opB );
+
+        Category catA = createCategory( "catA", "CategoryIsA", opA, opB );
+        categoryService.addCategory( catA );
+
+        CategoryCombo ccA = createCategoryCombo( "ccA", "CatComboIsA", catA );
+        categoryService.addCategoryCombo( ccA );
+
+        CategoryOptionCombo cocA = createCategoryOptionCombo( "cocA", "CatOptCombA", ccA, opA );
+        CategoryOptionCombo cocB = createCategoryOptionCombo( "cocB", "CatOptCombB", ccA, opB );
+        categoryService.addCategoryOptionCombo( cocA );
+        categoryService.addCategoryOptionCombo( cocB );
+
+        ccA.getOptionCombos().add( cocA );
+        ccA.getOptionCombos().add( cocB );
+        categoryService.updateCategoryCombo( ccA );
+
+        DataElement deP = createDataElement( 'P', ccA );
+        DataElement deQ = createDataElement( 'Q', ccA );
+        dataElementService.addDataElement( deP );
+        dataElementService.addDataElement( deQ );
+
+        Period per = periodService.reloadPeriod( makeMonth( 2022, 1 ) );
+        dataValueBatchHandler.addObject( createDataValue( deP, per, sourceA, cocA, defaultCombo, "1" ) );
+        dataValueBatchHandler.addObject( createDataValue( deP, per, sourceA, cocB, defaultCombo, "2" ) );
+        dataValueBatchHandler.flush();
+
+        String expr = "#{" + deP.getUid() + "}";
+        Expression expression = new Expression( expr, "description", MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING );
+        // Output catOptionCombo == null means predict for all disaggregations
+        Predictor p = createPredictor( deQ, null, "P & Q", expression, null, periodTypeMonthly,
+            orgUnitLevel1, 0, 0, 0 );
+
+        predictionService.predict( p, monthStart( 2022, 1 ), monthStart( 2022, 2 ), summary );
+        assertEquals( "Pred 1 Ins 2 Upd 0 Del 0 Unch 0", shortSummary( summary ) );
+        assertEquals( "1", getDataValue( deQ, cocA, sourceA, makeMonth( 2022, 1 ) ) );
+        assertEquals( "2", getDataValue( deQ, cocB, sourceA, makeMonth( 2022, 1 ) ) );
     }
 
     @Test
