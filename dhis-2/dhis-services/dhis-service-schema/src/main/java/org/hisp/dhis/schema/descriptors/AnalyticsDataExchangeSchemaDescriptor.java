@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.schema.descriptors;
 
+import java.util.List;
+
 import org.hisp.dhis.dataexchange.analytics.AnalyticsDataExchange;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
@@ -55,7 +57,7 @@ public class AnalyticsDataExchangeSchemaDescriptor
             Lists.newArrayList( "F_ANALYTICS_DATA_EXCHANGE_PUBLIC_ADD" ) ) );
         schema.add( new Authority( AuthorityType.CREATE_PRIVATE,
             Lists.newArrayList( "F_ANALYTICS_DATA_EXCHANGE_PRIVATE_ADD" ) ) );
-        schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_ANALYTICS_DATA_EXCHANGE_DELETE" ) ) );
+        schema.add( new Authority( AuthorityType.DELETE, List.of( "F_ANALYTICS_DATA_EXCHANGE_DELETE" ) ) );
 
         return schema;
     }
