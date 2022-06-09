@@ -42,6 +42,7 @@ import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dataexchange.client.Dhis2Client;
 import org.hisp.dhis.dataexchange.client.Dhis2Config;
@@ -71,7 +72,9 @@ public class AnalyticsDataExchangeService
 
     public ImportSummaries exchangeData( String uid )
     {
-        return exchangeData( analyticsDataExchangeStore.loadByUid( uid ) );
+        AnalyticsDataExchange exchange = analyticsDataExchangeStore.loadByUid( uid );
+
+        return exchangeData( exchange );
     }
 
     public ImportSummaries exchangeData( AnalyticsDataExchange exchange )
@@ -82,6 +85,14 @@ public class AnalyticsDataExchangeService
             .forEach( request -> summaries.addImportSummary( exchangeData( exchange, request ) ) );
 
         return summaries;
+    }
+
+    public List<Grid> getSourceData( String uid )
+    {
+        AnalyticsDataExchange exchange = analyticsDataExchangeStore.loadByUid( uid );
+
+        return mapToList( exchange.getSource().getRequests(),
+            request -> analyticsService.getAggregatedDataValues( toDataQueryParams( request ) ) );
     }
 
     /**

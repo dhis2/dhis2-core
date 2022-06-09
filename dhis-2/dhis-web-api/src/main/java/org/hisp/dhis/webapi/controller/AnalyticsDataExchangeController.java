@@ -27,15 +27,19 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import java.util.List;
+
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.dataexchange.analytics.AnalyticsDataExchange;
 import org.hisp.dhis.dataexchange.analytics.AnalyticsDataExchangeService;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.schema.descriptors.AnalyticsDataExchangeSchemaDescriptor;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -67,5 +71,12 @@ public class AnalyticsDataExchangeController
     public ImportSummaries runDataExchangeByUid( @PathVariable String uid )
     {
         return service.exchangeData( uid );
+    }
+
+    @GetMapping( "/{uid}/sourceData" )
+    @ResponseStatus( value = HttpStatus.OK )
+    public List<Grid> getSourceData( @PathVariable String uid )
+    {
+        return service.getSourceData( uid );
     }
 }
