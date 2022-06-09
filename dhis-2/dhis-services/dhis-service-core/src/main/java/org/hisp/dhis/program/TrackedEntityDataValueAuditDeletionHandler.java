@@ -31,6 +31,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
 import org.springframework.stereotype.Component;
 
@@ -51,18 +52,19 @@ public class TrackedEntityDataValueAuditDeletionHandler
     }
 
     @Override
-    protected void register()
+    public String getClassName()
     {
-        whenDeleting( DataElement.class, this::deleteDataElement );
-        whenDeleting( ProgramStageInstance.class, this::deleteProgramStageInstance );
+        return TrackedEntityDataValueAudit.class.getSimpleName();
     }
 
-    private void deleteDataElement( DataElement dataElement )
+    @Override
+    public void deleteDataElement( DataElement dataElement )
     {
         trackedEntityDataValueAuditService.deleteTrackedEntityDataValueAudit( dataElement );
     }
 
-    private void deleteProgramStageInstance( ProgramStageInstance psi )
+    @Override
+    public void deleteProgramStageInstance( ProgramStageInstance psi )
     {
         trackedEntityDataValueAuditService.deleteTrackedEntityDataValueAudit( psi );
     }
