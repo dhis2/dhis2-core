@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.dataexchange.analytics;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
@@ -35,36 +38,18 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
+@Getter
+@Setter
 @JacksonXmlRootElement( localName = "analyticsDataExchange", namespace = DxfNamespaces.DXF_2_0 )
 public class AnalyticsDataExchange
     extends BaseIdentifiableObject
     implements MetadataObject
 {
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     private Source source;
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     private Target target;
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Source getSource()
-    {
-        return source;
-    }
-
-    public void setSource( Source source )
-    {
-        this.source = source;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Target getTarget()
-    {
-        return target;
-    }
-
-    public void setTarget( Target target )
-    {
-        this.target = target;
-    }
 }
