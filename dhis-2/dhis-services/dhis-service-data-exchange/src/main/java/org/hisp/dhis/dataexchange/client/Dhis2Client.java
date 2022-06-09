@@ -49,7 +49,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 /**
@@ -102,9 +101,9 @@ public class Dhis2Client
      * Returns a map of HTTP headers indicating JSON format and DHIS 2 access
      * token-based authorization.
      *
-     * @return a {@link MultiValueMap}.
+     * @return a {@link HttpHeaders}.
      */
-    private MultiValueMap<String, String> getJsonAuthHeaders()
+    private HttpHeaders getJsonAuthHeaders()
     {
         HttpHeaders headers = new HttpHeaders();
         headers.setAccept( List.of( MediaType.APPLICATION_JSON ) );
