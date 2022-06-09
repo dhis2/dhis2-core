@@ -52,6 +52,11 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.springframework.stereotype.Service;
 
+/**
+ * Main service class for analytics data exchange.
+ *
+ * @author Lars Helge Overland
+ */
 @Service
 @RequiredArgsConstructor
 public class AnalyticsDataExchangeService
@@ -87,16 +92,41 @@ public class AnalyticsDataExchangeService
             : pushToExternal( exchange, dataValueSet );
     }
 
+    /**
+     * Imports the given {@link DataValueSet} to this instance of DHIS 2.
+     *
+     * @param exchange the {@link AnalyticsDataExchange}.
+     * @param dataValueSet the {@link DataValueSet}.
+     * @return an {@link ImportSummary} describing the outcome of the data
+     *         exchange.
+     */
     ImportSummary pushToInternal( AnalyticsDataExchange exchange, DataValueSet dataValueSet )
     {
         return dataValueSetService.importDataValueSet( dataValueSet, toImportOptions( exchange ) );
     }
 
+    /**
+     * Exchanges the given {@link DataValueSet} to an external instance of DHIS
+     * 2 as specified in the target API of the given
+     * {@link AnalyticsDataExchange}.
+     *
+     * @param exchange the {@link AnalyticsDataExchange}.
+     * @param dataValueSet the {@link DataValueSet}.
+     * @return an {@link ImportSummary} describing the outcome of the data
+     *         exchange.
+     */
     ImportSummary pushToExternal( AnalyticsDataExchange exchange, DataValueSet dataValueSet )
     {
         return getDhis2Client( exchange ).saveDataValueSet( dataValueSet );
     }
 
+    /**
+     * Converts the given {@link AnalyticsDataExchange} to an
+     * {@link ImportOptions}.
+     *
+     * @param exchange the {@link AnalyticsDataExchange}.
+     * @return an {@link ImportOptions}.
+     */
     ImportOptions toImportOptions( AnalyticsDataExchange exchange )
     {
         TargetRequest request = exchange.getTarget().getRequest();
