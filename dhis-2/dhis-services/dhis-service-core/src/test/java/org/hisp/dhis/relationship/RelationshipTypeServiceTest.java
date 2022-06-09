@@ -25,82 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.render;
+package org.hisp.dhis.relationship;
 
-import java.util.Date;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import org.hisp.dhis.DhisSpringTest;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-class DeserializeTest
+class RelationshipTypeServiceTest extends DhisSpringTest
 {
-    private String a;
+    @Autowired
+    private RelationshipTypeService relationshipTypeService;
 
-    private String b;
-
-    private String c;
-
-    private Date d;
-
-    public DeserializeTest()
+    @Test
+    void testAllRelationshipTypeFieldsAreSavedAndRetrieved()
     {
-    }
+        RelationshipType relationshipType = createRelationshipType( 'A' );
+        relationshipType.setReferral( true );
+        relationshipType.setBidirectional( true );
+        relationshipTypeService.addRelationshipType( relationshipType );
 
-    @JsonProperty
-    public String getA()
-    {
-        return a;
-    }
+        RelationshipType retrievedRelationshipType = relationshipTypeService
+            .getRelationshipType( relationshipType.getUid() );
 
-    public void setA( String a )
-    {
-        this.a = a;
-    }
-
-    @JsonProperty
-    public String getB()
-    {
-        return b;
-    }
-
-    public void setB( String b )
-    {
-        this.b = b;
-    }
-
-    @JsonProperty
-    public String getC()
-    {
-        return c;
-    }
-
-    public void setC( String c )
-    {
-        this.c = c;
-    }
-
-    @JsonProperty
-    public Date getD()
-    {
-        return d;
-    }
-
-    public void setD( Date d )
-    {
-        this.d = d;
-    }
-
-    @Override
-    public String toString()
-    {
-        return MoreObjects.toStringHelper( this )
-            .add( "a", a )
-            .add( "b", b )
-            .add( "c", c )
-            .add( "d", d )
-            .toString();
+        assertEquals( relationshipType, retrievedRelationshipType );
     }
 }

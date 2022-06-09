@@ -49,7 +49,6 @@ import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -73,7 +72,6 @@ import org.hisp.dhis.user.User;
  *
  * @author Jan Bernitt
  */
-@Slf4j
 @AllArgsConstructor
 class GistPlanner
 {

@@ -25,30 +25,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sms.command.code;
+package org.hisp.dhis.analytics.common;
 
-import java.util.Map;
+import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
+import org.hisp.dhis.common.AnalyticsPagingCriteria;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
+import org.springframework.stereotype.Component;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public class SMSCodesDeletionHandler extends JdbcDeletionHandler
+@Component
+@RequiredArgsConstructor
+public class CommonQueryRequestProcessor
 {
-    private static final DeletionVeto VETO = new DeletionVeto( SMSCode.class );
+    private final SystemSettingManager systemSettingManager;
 
-    @Override
-    protected void register()
+    public CommonQueryRequest processCommonRequest( CommonQueryRequest commonQueryRequest )
     {
-        whenVetoing( DataElement.class, this::allowDeleteDataElement );
+        // here we should refactor/preprocess dimensions and filters for 2
+        // specific purposes:
+        // 1 - support custom date filters, like enrollmentDate=TODAY, but this
+        // is pending discussions on whether the time
+        // fields should be applied to all programs, or it is possible to
+        // specify date filters for each programs
+        //
+        // 2 - in event/enrollments we supported _OR_ separator to handle
+        // enhanced conditions
+        // TODO: DHIS2-13383
+        return commonQueryRequest;
     }
 
-    private DeletionVeto allowDeleteDataElement( DataElement dataElement )
+    // TODO: DHIS2-13384 we would really like to have all
+    // criteria/request/params to be
+    // immutable, but PagingCriteria is not
+    // returning it for now, should be converted to use builders
+    public AnalyticsPagingCriteria processPagingCriteria( AnalyticsPagingCriteria pagingCriteria )
     {
-        String sql = "select count(*) from smscodes where dataelementid=:id";
-        return vetoIfExists( VETO, sql, Map.of( "id", dataElement.getId() ) );
+        int analyticsMaxPageSize = systemSettingManager.getIntSetting( SettingKey.ANALYTICS_MAX_LIMIT );
+        pagingCriteria.definePageSize( analyticsMaxPageSize );
+        return pagingCriteria;
     }
+
 }

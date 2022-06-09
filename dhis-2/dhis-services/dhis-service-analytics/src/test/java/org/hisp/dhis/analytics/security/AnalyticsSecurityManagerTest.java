@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.security;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsIterableContaining.hasItem;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -182,7 +183,8 @@ class AnalyticsSecurityManagerTest extends TransactionalIntegrationTest
         DataQueryParams params = DataQueryParams.newBuilder()
             .withPeriods( Lists.newArrayList( createPeriod( "201801" ), createPeriod( "201802" ) ) )
             .withOrganisationUnits( Lists.newArrayList( ouB, ouC ) ).build();
-        securityManager.decideAccess( params );
+
+        assertDoesNotThrow( () -> securityManager.decideAccess( params ) );
     }
 
     @Test

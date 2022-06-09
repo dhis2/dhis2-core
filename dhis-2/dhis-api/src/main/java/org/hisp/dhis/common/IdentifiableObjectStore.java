@@ -82,12 +82,22 @@ public interface IdentifiableObjectStore<T>
     void delete( T object, User user );
 
     /**
-     * Retrieves the object with the given uid.
+     * Retrieves the object with the given UID, or null if no object exists.
      *
-     * @param uid the uid.
-     * @return the object with the given uid.
+     * @param uid the UID.
+     * @return the object with the given UID.
      */
     T getByUid( String uid );
+
+    /**
+     * Retrieves the object with the given UID, throws exception if no object
+     * exists.
+     *
+     * @param uid the UID.
+     * @return the object with the given UID.
+     * @throws IllegalQueryException if no object exists.
+     */
+    T loadByUid( String uid );
 
     /**
      * Retrieves the object with the given uid. Bypasses the ACL system.
@@ -106,12 +116,22 @@ public interface IdentifiableObjectStore<T>
     T getByName( String name );
 
     /**
-     * Retrieves the object with the given code.
+     * Retrieves the object with the given code, or null if no object exists.
      *
      * @param code the code.
      * @return the object with the given code.
      */
     T getByCode( String code );
+
+    /**
+     * Retrieves the object with the given code, throws exception if no object
+     * exists.
+     *
+     * @param code the code.
+     * @return the object with the given code.
+     * @throws IllegalQueryException if no object exists.
+     */
+    T loadByCode( String code );
 
     /**
      * Retrieves the attribute value associated with the unique attribute and
@@ -123,6 +143,15 @@ public interface IdentifiableObjectStore<T>
      */
     T getByUniqueAttributeValue( Attribute attribute, String value );
 
+    /**
+     * Retrieves the attribute value associated with the unique attribute, the
+     * given value and given user.
+     *
+     * @param attribute the attribute.
+     * @param value the value.
+     * @param user the user.
+     * @return the attribute value.
+     */
     T getByUniqueAttributeValue( Attribute attribute, String value, User user );
 
     /**

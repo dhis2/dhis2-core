@@ -34,12 +34,11 @@ import static org.hamcrest.Matchers.is;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-
-import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.hisp.dhis.common.AccessLevel;
@@ -69,31 +68,22 @@ import org.hisp.dhis.user.UserAccess;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testcontainers.shaded.com.google.common.collect.ImmutableMap;
 
 import com.google.common.collect.Sets;
 
 /**
  * @author Luciano Fiandesio
  */
-@Slf4j
 class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
 {
-
     @Autowired
     private TrackedEntityInstanceService trackedEntityInstanceService;
-
-    @Autowired
-    private org.hisp.dhis.trackedentity.TrackedEntityInstanceService teiService;
 
     @Autowired
     private TrackedEntityAttributeService attributeService;
 
     @Autowired
     private TrackedEntityAttributeValueService attributeValueService;
-
-    @Autowired
-    private TrackedEntityInstanceAggregate trackedEntityInstanceAggregate;
 
     @Autowired
     private ProgramService programService;
@@ -302,7 +292,7 @@ class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
             manager.update( programB );
             // Create a TEI associated to program B
             final org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance = persistTrackedEntityInstance(
-                ImmutableMap.of( "program", programB ) );
+                Map.of( "program", programB ) );
             ProgramInstance piB = new ProgramInstance( programB, trackedEntityInstance, organisationUnitA );
             piB.setEnrollmentDate( new Date() );
             manager.save( piB );

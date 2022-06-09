@@ -56,25 +56,25 @@ public class DataValueDeletionHandler extends JdbcDeletionHandler
 
     private DeletionVeto allowDeleteDataElement( DataElement dataElement )
     {
-        return vetoIfExists( VETO, "SELECT COUNT(*) FROM datavalue where dataelementid=:id",
+        return vetoIfExists( VETO, "select count(*) from datavalue where dataelementid=:id",
             Map.of( "id", dataElement.getId() ) );
     }
 
     private DeletionVeto allowDeletePeriod( Period period )
     {
-        return vetoIfExists( VETO, "SELECT COUNT(*) FROM datavalue where periodid=:id",
+        return vetoIfExists( VETO, "select count(*) from datavalue where periodid=:id",
             Map.of( "id", period.getId() ) );
     }
 
     private DeletionVeto allowDeleteOrganisationUnit( OrganisationUnit unit )
     {
-        return vetoIfExists( VETO, "SELECT COUNT(*) FROM datavalue where sourceid=:id", Map.of( "id", unit.getId() ) );
+        return vetoIfExists( VETO, "select count(*) from datavalue where sourceid=:id", Map.of( "id", unit.getId() ) );
     }
 
     private DeletionVeto allowDeleteCategoryOptionCombo( CategoryOptionCombo optionCombo )
     {
         return vetoIfExists( VETO,
-            "SELECT COUNT(*) FROM datavalue where categoryoptioncomboid=:id or attributeoptioncomboid=:id",
+            "select count(*) from datavalue where categoryoptioncomboid=:id or attributeoptioncomboid=:id",
             Map.of( "id", optionCombo.getId() ) );
     }
 }

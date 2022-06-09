@@ -25,30 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sms.command.code;
+package org.hisp.dhis.analytics.tei;
 
-import java.util.Map;
+import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
+import org.springframework.stereotype.Component;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public class SMSCodesDeletionHandler extends JdbcDeletionHandler
+@Component
+@RequiredArgsConstructor
+public class TeiQueryRequestProcessor
 {
-    private static final DeletionVeto VETO = new DeletionVeto( SMSCode.class );
-
-    @Override
-    protected void register()
+    /**
+     * A hook to transform a QueryRequest before mapping it into Params
+     *
+     * @param queryRequest
+     * @return a queryRequestHolder where inner components might have changed
+     */
+    public TeiQueryRequest processRequest(
+        TeiQueryRequest queryRequest )
     {
-        whenVetoing( DataElement.class, this::allowDeleteDataElement );
-    }
-
-    private DeletionVeto allowDeleteDataElement( DataElement dataElement )
-    {
-        String sql = "select count(*) from smscodes where dataelementid=:id";
-        return vetoIfExists( VETO, sql, Map.of( "id", dataElement.getId() ) );
+        return queryRequest;
     }
 }

@@ -12,7 +12,7 @@ pipeline {
 
     options {
         buildDiscarder(logRotator(numToKeepStr: '5'))
-        timeout(time: 20, activity: true)
+        timeout(time: 30)
     }
 
     environment {
@@ -25,6 +25,7 @@ pipeline {
     stages {
         stage ('Build') {
             steps {
+                implementIoBuildStarted(buildJob: true, buildName: "${STAGE_NAME}")
                 echo 'Building DHIS2 ...'
                 script {
                     withMaven(options: [artifactsPublisher(disabled: true)]) {
@@ -32,24 +33,44 @@ pipeline {
                     }
                 }
             }
+
+            post {
+                always {
+                    implementIoBuildEnded(buildName: "${STAGE_NAME}")
+                }
+            }
         }
 
         stage ('Sync WAR') {
             steps {
+                implementIoBuildStarted(buildName: "${STAGE_NAME}")
                 echo 'Syncing WAR ...'
                 sh 'curl "https://raw.githubusercontent.com/dhis2/dhis2-server-setup/master/ci/scripts/copy-war-s3.sh" -O'
                 sh 'chmod +x copy-war-s3.sh'
                 sh './copy-war-s3.sh dev ${GIT_BRANCH}'
             }
+
+            post {
+                always {
+                    implementIoBuildEnded(buildName: "${STAGE_NAME}")
+                }
+            }
         }
 
         stage ('Update Play Instance') {
             steps {
+                implementIoBuildStarted(buildEnvironment: "TEST", buildName: "${STAGE_NAME}")
                 echo 'Updating Play Instance ...'
                 script {
                     withCredentials([usernameColonPassword(credentialsId: 'awx-bot-user-credentials', variable: 'AWX_CREDENTIALS')]) {
                         awx.resetWarIfInstanceExists("$AWX_CREDENTIALS", "$HOST", "$INSTANCE_NAME", "$AWX_TEMPLATE")
                     }
+                }
+            }
+
+            post {
+                always {
+                    implementIoBuildEnded(buildName: "${STAGE_NAME}")
                 }
             }
         }
@@ -68,7 +89,7 @@ pipeline {
 
         aborted {
             script {
-                slack.sendInactivityMessage(20)
+                slack.sendTimedoutMessage(30)
             }
         }
     }

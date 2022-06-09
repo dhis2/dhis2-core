@@ -207,6 +207,7 @@ public class JdbcEnrollmentAnalyticsTableManager
         if ( program.isRegistration() )
         {
             columns.add( new AnalyticsTableColumn( quote( "tei" ), CHARACTER_11, "tei.uid" ) );
+            columns.add( new AnalyticsTableColumn( quote( "teigeometry" ), GEOMETRY, "tei.geometry" ) );
         }
 
         return filterDimensionColumns( columns );

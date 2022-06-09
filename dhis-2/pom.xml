@@ -97,7 +97,7 @@
     <HikariCP.version>5.0.1</HikariCP.version>
     <postgresql-driver.version>42.3.6</postgresql-driver.version>
     <postgis-jdbc.version>2.5.1</postgis-jdbc.version>
-    <datasource-proxy.version>1.7</datasource-proxy.version>
+    <datasource-proxy.version>1.8</datasource-proxy.version>
 
     <!-- Servlet -->
     <javax.servlet-api.version>4.0.1</javax.servlet-api.version>
@@ -134,7 +134,7 @@
     <!-- GIS -->
     <batik-transcoder.version>1.14</batik-transcoder.version>
     <fop.version>2.7</fop.version>
-    <mapstruct.version>1.5.0.Final</mapstruct.version>
+    <mapstruct.version>1.5.1.Final</mapstruct.version>
     <geotools.version>27.0</geotools.version>
     <jts.version>1.18.2</jts.version>
 
@@ -201,10 +201,10 @@
     <javax.persistence-api.version>2.2</javax.persistence-api.version>
 
     <!-- Maven plugin versions -->
-    <maven-surefire-plugin.version>3.0.0-M6</maven-surefire-plugin.version>
+    <maven-surefire-plugin.version>3.0.0-M7</maven-surefire-plugin.version>
     <maven-compiler-plugin.version>3.10.1</maven-compiler-plugin.version>
     <maven-resources-plugin.version>3.2.0</maven-resources-plugin.version>
-    <maven-failsafe-plugin.version>3.0.0-M6</maven-failsafe-plugin.version>
+    <maven-failsafe-plugin.version>3.0.0-M7</maven-failsafe-plugin.version>
     <maven-javadoc-plugin.version>3.4.0</maven-javadoc-plugin.version>
     <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
     <maven-enforcer-plugin.version>3.0.0</maven-enforcer-plugin.version>
@@ -352,6 +352,12 @@
               <trimStackTrace>false</trimStackTrace>
               <argLine>@{argLine} ${surefireArgLine}</argLine>
               <excludedGroups>integration,integrationH2</excludedGroups>
+              <systemPropertyVariables>
+                <!-- Uncomment if you need to debug the log4j2 config itself -->
+                <!-- <log4j2.debug>true</log4j2.debug> -->
+                <!-- Specifying it to be in full control and turn off Log4JLogConfigInitializer -->
+                <log4j2.configurationFile>log4j2-test.xml</log4j2.configurationFile>
+              </systemPropertyVariables>
             </configuration>
             <dependencies>
               <dependency>
@@ -379,6 +385,12 @@
               <trimStackTrace>false</trimStackTrace>
               <argLine>@{argLine} ${surefireArgLine}</argLine>
               <groups>integration</groups>
+              <systemPropertyVariables>
+                <!-- Uncomment if you need to debug the log4j2 config itself -->
+                <!-- <log4j2.debug>true</log4j2.debug> -->
+                <!-- Specifying it to be in full control and turn off Log4JLogConfigInitializer -->
+                <log4j2.configurationFile>log4j2-test.xml</log4j2.configurationFile>
+              </systemPropertyVariables>
             </configuration>
             <dependencies>
               <dependency>
@@ -406,34 +418,12 @@
               <trimStackTrace>false</trimStackTrace>
               <argLine>@{argLine} ${surefireArgLine}</argLine>
               <groups>integrationH2</groups>
-            </configuration>
-            <dependencies>
-              <dependency>
-                <groupId>org.ow2.asm</groupId>
-                <artifactId>asm</artifactId>
-                <version>${ow2.asm.version}</version>
-              </dependency>
-            </dependencies>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <profile>
-      <id>sonarqube</id>
-      <properties>
-        <skipTests>true</skipTests>
-      </properties>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <configuration>
-              <skipTests>true</skipTests>
-              <trimStackTrace>false</trimStackTrace>
-              <argLine>@{argLine} ${surefireArgLine}</argLine>
-              <excludedGroups>org.hisp.dhis.IntegrationTest</excludedGroups>
+              <systemPropertyVariables>
+                <!-- Uncomment if you need to debug the log4j2 config itself -->
+                <!-- <log4j2.debug>true</log4j2.debug> -->
+                <!-- Specifying it to be in full control and turn off Log4JLogConfigInitializer -->
+                <log4j2.configurationFile>log4j2-test.xml</log4j2.configurationFile>
+              </systemPropertyVariables>
             </configuration>
             <dependencies>
               <dependency>
@@ -794,7 +784,7 @@
               <id>report</id>
               <phase>verify</phase>
               <goals>
-                <goal>report</goal>
+                <goal>report-aggregate</goal>
               </goals>
             </execution>
           </executions>

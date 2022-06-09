@@ -49,7 +49,7 @@ import static org.hisp.dhis.analytics.ColumnDataType.GEOMETRY_POINT;
 import static org.hisp.dhis.analytics.ColumnDataType.INTEGER;
 import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
 import static org.hisp.dhis.analytics.ColumnDataType.TIMESTAMP;
-import static org.hisp.dhis.resourcetable.ResourceTable.NEWEST_YEAR_PERIOD_SUPPORTED;
+import static org.hisp.dhis.resourcetable.ResourceTable.LATEST_YEAR_SUPPORTED;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -258,7 +258,7 @@ class JdbcEventAnalyticsTableManagerTest
         new AnalyticsTableAsserter.Builder( tables.get( 0 ) )
             .withTableType( AnalyticsTableType.EVENT )
             .withTableName( TABLE_PREFIX + program.getUid().toLowerCase() )
-            .withColumnSize( 52 )
+            .withColumnSize( 53 )
             .withDefaultColumns( subject.getFixedColumns() )
             .addColumns( periodColumns )
             .addColumn( categoryA.getUid(), CHARACTER_11, "acs.", categoryA.getCreated() )
@@ -319,7 +319,7 @@ class JdbcEventAnalyticsTableManagerTest
         new AnalyticsTableAsserter.Builder( tables.get( 0 ) )
             .withTableName( TABLE_PREFIX + program.getUid().toLowerCase() )
             .withTableType( AnalyticsTableType.EVENT )
-            .withColumnSize( 59 )
+            .withColumnSize( 60 )
             .addColumns( periodColumns )
             .addColumn( d1.getUid(), TEXT, toAlias( aliasD1, d1.getUid() ) ) // ValueType.TEXT
             .addColumn( d2.getUid(), DOUBLE, toAlias( aliasD2, d2.getUid() ) ) // ValueType.PERCENTAGE
@@ -375,7 +375,7 @@ class JdbcEventAnalyticsTableManagerTest
         new AnalyticsTableAsserter.Builder( tables.get( 0 ) )
             .withTableName( TABLE_PREFIX + program.getUid().toLowerCase() )
             .withTableType( AnalyticsTableType.EVENT )
-            .withColumnSize( 54 ).addColumns( periodColumns )
+            .withColumnSize( 55 ).addColumns( periodColumns )
             .addColumn( d1.getUid(), TEXT, toAlias( aliasD1, d1.getUid() ) ) // ValueType.TEXT
             .addColumn( tea1.getUid(), TEXT, String.format( aliasTea1, "ou.uid", tea1.getId(), tea1.getUid() ) )
             // Second Geometry column created from the OU column above
@@ -474,7 +474,7 @@ class JdbcEventAnalyticsTableManagerTest
                 + "from programstageinstance psi inner join programinstance pi on psi.programinstanceid = pi.programinstanceid "
                 + "where psi.lastupdated <= '2019-08-01T00:00:00' and pi.programid = 0 and (" + getDateLinkedToStatus()
                 + ") is not null " + "and (" + getDateLinkedToStatus() + ") > '1000-01-01' and psi.deleted is false ) "
-                + "as temp where temp.supportedyear >= 1975 and temp.supportedyear <= " + NEWEST_YEAR_PERIOD_SUPPORTED,
+                + "as temp where temp.supportedyear >= 1975 and temp.supportedyear <= " + LATEST_YEAR_SUPPORTED,
             Integer.class ) ).thenReturn( Lists.newArrayList( 2018, 2019 ) );
 
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withStartTime( START_TIME ).build();
@@ -612,7 +612,7 @@ class JdbcEventAnalyticsTableManagerTest
                 + "where psi.lastupdated <= '2019-08-01T00:00:00' and pi.programid = 0 and (" + getDateLinkedToStatus()
                 + ") is not null " + "and (" + getDateLinkedToStatus()
                 + ") > '1000-01-01' and psi.deleted is false and (" + getDateLinkedToStatus() + ") >= '2018-01-01') "
-                + "as temp where temp.supportedyear >= 1975 and temp.supportedyear <= " + NEWEST_YEAR_PERIOD_SUPPORTED,
+                + "as temp where temp.supportedyear >= 1975 and temp.supportedyear <= " + LATEST_YEAR_SUPPORTED,
             Integer.class ) ).thenReturn( Lists.newArrayList( 2018, 2019 ) );
 
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 )
@@ -656,7 +656,7 @@ class JdbcEventAnalyticsTableManagerTest
             sql += "and (" + getDateLinkedToStatus() + ") >= '2018-01-01'";
         }
 
-        sql += ") as temp where temp.supportedyear >= 1975 and temp.supportedyear <= " + NEWEST_YEAR_PERIOD_SUPPORTED;
+        sql += ") as temp where temp.supportedyear >= 1975 and temp.supportedyear <= " + LATEST_YEAR_SUPPORTED;
 
         return sql;
     }

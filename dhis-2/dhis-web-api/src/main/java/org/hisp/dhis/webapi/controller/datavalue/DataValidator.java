@@ -112,7 +112,7 @@ public class DataValidator
      */
     public DataSet getAndValidateDataSet( String uid )
     {
-        return idObjectManager.getAndValidate( DataSet.class, ErrorCode.E1105, uid );
+        return idObjectManager.load( DataSet.class, ErrorCode.E1105, uid );
     }
 
     /**
@@ -124,7 +124,7 @@ public class DataValidator
      */
     public DataElement getAndValidateDataElement( String uid )
     {
-        return idObjectManager.getAndValidate( DataElement.class, ErrorCode.E1100, uid );
+        return idObjectManager.load( DataElement.class, ErrorCode.E1100, uid );
     }
 
     /**
@@ -136,7 +136,7 @@ public class DataValidator
      */
     public CategoryOptionCombo getAndValidateCategoryOptionCombo( String uid )
     {
-        return idObjectManager.getAndValidate( CategoryOptionCombo.class, ErrorCode.E1103, uid );
+        return idObjectManager.load( CategoryOptionCombo.class, ErrorCode.E1103, uid );
     }
 
     /**
@@ -255,7 +255,7 @@ public class DataValidator
      */
     public OrganisationUnit getAndValidateOrganisationUnit( String uid )
     {
-        OrganisationUnit organisationUnit = idObjectManager.getAndValidate(
+        OrganisationUnit organisationUnit = idObjectManager.load(
             OrganisationUnit.class, ErrorCode.E1102, uid );
 
         boolean isInHierarchy = organisationUnitService.isInUserHierarchyCached( organisationUnit );
@@ -283,7 +283,7 @@ public class DataValidator
             return null;
         }
 
-        DataSet dataSet = idObjectManager.getAndValidate( DataSet.class, ErrorCode.E1105, uid );
+        DataSet dataSet = idObjectManager.load( DataSet.class, ErrorCode.E1105, uid );
 
         if ( !dataSet.getDataElements().contains( dataElement ) )
         {

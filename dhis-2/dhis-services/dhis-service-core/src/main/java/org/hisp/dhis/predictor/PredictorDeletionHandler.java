@@ -110,13 +110,13 @@ public class PredictorDeletionHandler extends JdbcDeletionHandler
 
     private DeletionVeto allowDeleteCategoryOptionCombo( CategoryOptionCombo optionCombo )
     {
-        return vetoIfExists( VETO, "SELECT COUNT(*) FROM predictor where generatoroutputcombo=:id",
+        return vetoIfExists( VETO, "select count(*) from predictor where generatoroutputcombo=:id",
             Map.of( "id", optionCombo.getId() ) );
     }
 
     private DeletionVeto allowDeleteCategoryCombo( CategoryCombo categoryCombo )
     {
-        return vetoIfExists( VETO, "SELECT COUNT(*) FROM predictor p where exists ("
+        return vetoIfExists( VETO, "select count(*) from predictor p where exists ("
             + "select 1 from categorycombos_optioncombos co"
             + " where co.categorycomboid=:id and co.categoryoptioncomboid=p.generatoroutputcombo"
             + ")", Map.of( "id", categoryCombo.getId() ) );

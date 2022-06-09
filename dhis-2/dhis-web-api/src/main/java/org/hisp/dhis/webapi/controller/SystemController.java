@@ -148,17 +148,19 @@ public class SystemController
             .setUseHeader( true )
             .build();
 
-        CsvGenerator csvGenerator = CSV_FACTORY.createGenerator( response.getOutputStream() );
-        csvGenerator.setSchema( schema );
-
-        for ( String code : codeList.getCodes() )
+        try ( CsvGenerator csvGenerator = CSV_FACTORY.createGenerator( response.getOutputStream() ) )
         {
-            csvGenerator.writeStartObject();
-            csvGenerator.writeStringField( "uid", code );
-            csvGenerator.writeEndObject();
-        }
+            csvGenerator.setSchema( schema );
 
-        csvGenerator.flush();
+            for ( String code : codeList.getCodes() )
+            {
+                csvGenerator.writeStartObject();
+                csvGenerator.writeStringField( "uid", code );
+                csvGenerator.writeEndObject();
+            }
+
+            csvGenerator.flush();
+        }
     }
 
     @GetMapping( value = "/uuid", produces = { APPLICATION_JSON_VALUE,
