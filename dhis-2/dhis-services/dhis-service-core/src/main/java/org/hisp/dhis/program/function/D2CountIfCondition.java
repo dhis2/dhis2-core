@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.program.function;
 
+import static org.hisp.dhis.analytics.DataType.BOOLEAN;
 import static org.hisp.dhis.antlr.AntlrParserUtils.castDouble;
 import static org.hisp.dhis.antlr.AntlrParserUtils.trimQuotes;
 import static org.hisp.dhis.parser.expression.CommonExpressionVisitor.DEFAULT_DOUBLE_VALUE;
@@ -61,7 +62,7 @@ public class D2CountIfCondition
         String conditionExpression = getConditionalExpression( ctx );
 
         String conditionSql = visitor.getProgramIndicatorService().getAnalyticsSql(
-            conditionExpression, visitor.getProgramIndicator(),
+            conditionExpression, BOOLEAN, visitor.getProgramIndicator(),
             visitor.getReportingStartDate(), visitor.getReportingEndDate() );
 
         return conditionSql.substring( 1 );
