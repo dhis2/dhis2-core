@@ -39,8 +39,11 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.Validate;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.dataexchange.client.response.Dhis2Response;
 import org.hisp.dhis.dataexchange.client.response.ImportSummaryResponse;
+import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.springframework.http.HttpEntity;
@@ -50,6 +53,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  * Client for DHIS 2.
@@ -141,16 +145,55 @@ public class Dhis2Client
     }
 
     /**
-     * Saves the given data value set.
+     * Saves the given data value set using the given import options.
      *
      * @param dataValueSet the {@link DataValueSet}.
+     * @param options the {@link ImportOptions}.
      * @return an {@link ImportSummary}.
      */
-    public ImportSummary saveDataValueSet( DataValueSet dataValueSet )
+    public ImportSummary saveDataValueSet( DataValueSet dataValueSet, ImportOptions options )
     {
-        URI uri = config.getResolvedUri( "/dataValueSets" );
+        URI uri = getDataValueSetUri( options );
         ImportSummaryResponse response = executeJsonPostRequest(
             uri, dataValueSet, ImportSummaryResponse.class ).getBody();
         return response != null ? response.getResponse() : null;
+    }
+
+    /**
+     * Returns a {@link URI} for the <code>dataValueSets</code> API based on the
+     * given {@link ImportOptions}. Specified identifier schemes which equals
+     * the default identifier scheme are omitted.
+     *
+     * @param options the {@link ImportOptions}.
+     * @return a {@link URI}.
+     */
+    URI getDataValueSetUri( ImportOptions options )
+    {
+        UriComponentsBuilder builder = config.getResolvedUriBUilder( "dataValueSets" );
+
+        IdSchemes idSchemes = options.getIdSchemes();
+
+        addIfNotDefault( builder, "dataElementIdScheme", idSchemes.getDataElementIdScheme() );
+        addIfNotDefault( builder, "orgUnitIdScheme", idSchemes.getOrgUnitIdScheme() );
+        addIfNotDefault( builder, "categoryOptionComboIdScheme", idSchemes.getCategoryOptionComboIdScheme() );
+        addIfNotDefault( builder, "idScheme", idSchemes.getIdScheme() );
+
+        return builder.build().toUri();
+    }
+
+    /**
+     * Adds the given identifier scheme to the URI builder unless it equal the
+     * default identifier scheme.
+     *
+     * @param builder the {@link UriComponentsBuilder}.
+     * @param queryParam the query parameter name.
+     * @param idScheme the {@link IdScheme}.
+     */
+    void addIfNotDefault( UriComponentsBuilder builder, String queryParam, IdScheme idScheme )
+    {
+        if ( idScheme != IdSchemes.DEFAULT_ID_SCHEME && idScheme != null )
+        {
+            builder.queryParam( queryParam, idScheme.name().toLowerCase() );
+        }
     }
 }

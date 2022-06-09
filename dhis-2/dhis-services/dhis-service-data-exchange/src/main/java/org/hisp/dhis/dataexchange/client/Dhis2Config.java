@@ -62,12 +62,30 @@ public class Dhis2Config
     @NonNull
     private final String password;
 
+    /**
+     * Returns a {@link URI} which is resolved to the base API URL of the DHIS 2
+     * instance and the given path.
+     *
+     * @param path the path to apply to the resolved base API URL.
+     * @return a resolved {@link URI}.
+     */
     public URI getResolvedUri( String path )
+    {
+        return getResolvedUriBUilder( path )
+            .build()
+            .toUri();
+    }
+
+    /**
+     * Returns a {@link UriComponentsBuilder} which is resolved to the base API
+     * URL of the DHIS 2 instance.
+     *
+     * @return a resolved {@link UriComponentsBuilder}.
+     */
+    public UriComponentsBuilder getResolvedUriBUilder( String path )
     {
         return UriComponentsBuilder.fromHttpUrl( url )
             .pathSegment( "api" )
-            .path( path )
-            .build()
-            .toUri();
+            .path( path );
     }
 }

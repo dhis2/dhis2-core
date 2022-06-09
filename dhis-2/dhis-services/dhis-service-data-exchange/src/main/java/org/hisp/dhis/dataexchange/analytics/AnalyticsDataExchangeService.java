@@ -97,8 +97,7 @@ public class AnalyticsDataExchangeService
      *
      * @param exchange the {@link AnalyticsDataExchange}.
      * @param dataValueSet the {@link DataValueSet}.
-     * @return an {@link ImportSummary} describing the outcome of the data
-     *         exchange.
+     * @return an {@link ImportSummary} describing the outcome of the exchange.
      */
     ImportSummary pushToInternal( AnalyticsDataExchange exchange, DataValueSet dataValueSet )
     {
@@ -107,22 +106,22 @@ public class AnalyticsDataExchangeService
 
     /**
      * Exchanges the given {@link DataValueSet} to an external instance of DHIS
-     * 2 as specified in the target API of the given
-     * {@link AnalyticsDataExchange}.
+     * 2. The location and credentials of the target DHIS 2 instance and the
+     * import options to use for the data exchange are specified by the target
+     * API of the given {@link AnalyticsDataExchange}.
      *
      * @param exchange the {@link AnalyticsDataExchange}.
      * @param dataValueSet the {@link DataValueSet}.
-     * @return an {@link ImportSummary} describing the outcome of the data
-     *         exchange.
+     * @return an {@link ImportSummary} describing the outcome of the exchange.
      */
     ImportSummary pushToExternal( AnalyticsDataExchange exchange, DataValueSet dataValueSet )
     {
-        return getDhis2Client( exchange ).saveDataValueSet( dataValueSet );
+        return getDhis2Client( exchange ).saveDataValueSet( dataValueSet, toImportOptions( exchange ) );
     }
 
     /**
-     * Converts the given {@link AnalyticsDataExchange} to an
-     * {@link ImportOptions}.
+     * Converts the {@link TargetRequest} of the given
+     * {@link AnalyticsDataExchange} to an {@link ImportOptions}.
      *
      * @param exchange the {@link AnalyticsDataExchange}.
      * @return an {@link ImportOptions}.

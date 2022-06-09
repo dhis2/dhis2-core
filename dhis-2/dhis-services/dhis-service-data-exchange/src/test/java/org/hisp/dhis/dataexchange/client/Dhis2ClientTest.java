@@ -28,42 +28,36 @@
 package org.hisp.dhis.dataexchange.client;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.junit.jupiter.api.Test;
 
-class Dhis2ConfigTest
+public class Dhis2ClientTest
 {
     @Test
-    void testNullConstructorArgument()
+    void testGetDataValueSetUri()
     {
-        assertThrows( NullPointerException.class, () -> new Dhis2Config(
-            null, "admin", "district" ) );
-        assertThrows( NullPointerException.class, () -> new Dhis2Config(
-            "https://play.dhis2.org/2.38.0", null, "district" ) );
-    }
+        String baseUrl = "https://play.dhis2.org/2.38.0";
 
-    @Test
-    void testGetResolvedUri()
-    {
         Dhis2Config config = new Dhis2Config(
-            "https://play.dhis2.org/2.38.0", "admin", "district" );
+            baseUrl, "admin", "district" );
 
-        assertEquals( "https://play.dhis2.org/2.38.0/api/dataValueSets",
-            config.getResolvedUri( "dataValueSets" ).toString() );
-        assertEquals( "https://play.dhis2.org/2.38.0/api/system/info",
-            config.getResolvedUri( "system/info" ).toString() );
-    }
+        Dhis2Client client = new Dhis2Client( config );
 
-    @Test
-    void testGetResolvedUriBuilder()
-    {
-        Dhis2Config config = new Dhis2Config(
-            "https://play.dhis2.org/2.38.0", "admin", "district" );
+        ImportOptions optionsA = new ImportOptions()
+            .setDataElementIdScheme( "code" )
+            .setOrgUnitIdScheme( "code" )
+            .setCategoryOptionComboIdScheme( "uid" );
+        ImportOptions optionsB = new ImportOptions()
+            .setDataElementIdScheme( "uid" )
+            .setOrgUnitIdScheme( "code" )
+            .setCategoryOptionComboIdScheme( "uid" )
+            .setIdScheme( "code" );
 
-        assertEquals( "https://play.dhis2.org/2.38.0/api/dataValueSets",
-            config.getResolvedUriBUilder( "dataValueSets" ).build().toUriString() );
-        assertEquals( "https://play.dhis2.org/2.38.0/api/system/info",
-            config.getResolvedUriBUilder( "system/info" ).build().toUriString() );
+        String uriA = client.getDataValueSetUri( optionsA ).toString();
+        String uriB = client.getDataValueSetUri( optionsB ).toString();
+
+        assertEquals( baseUrl + "/api/dataValueSets?dataElementIdScheme=code&orgUnitIdScheme=code", uriA );
+        assertEquals( baseUrl + "/api/dataValueSets?orgUnitIdScheme=code&idScheme=code", uriB );
     }
 }
