@@ -35,7 +35,7 @@ import org.junit.jupiter.api.Test;
 public class Dhis2ClientTest
 {
     @Test
-    void testToDataValueSetUri()
+    void testGetDataValueSetUri()
     {
         String baseUrl = "https://play.dhis2.org/2.38.0";
 
@@ -54,8 +54,8 @@ public class Dhis2ClientTest
             .setCategoryOptionComboIdScheme( "uid" )
             .setIdScheme( "code" );
 
-        String uriA = client.toDataValueSetUri( optionsA ).toString();
-        String uriB = client.toDataValueSetUri( optionsB ).toString();
+        String uriA = client.getDataValueSetUri( optionsA ).toString();
+        String uriB = client.getDataValueSetUri( optionsB ).toString();
 
         assertEquals( baseUrl + "/api/dataValueSets?dataElementIdScheme=code&orgUnitIdScheme=code", uriA );
         assertEquals( baseUrl + "/api/dataValueSets?orgUnitIdScheme=code&idScheme=code", uriB );
