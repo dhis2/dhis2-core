@@ -51,11 +51,11 @@ import org.hisp.dhis.datasource.DefaultReadOnlyDataSourceManager;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.hibernate.HibernateConfigurationProvider;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -69,9 +69,6 @@ import com.google.common.base.MoreObjects;
 @Configuration
 public class DataSourceConfig
 {
-    @Autowired
-    private DhisConfigurationProvider dhisConfig;
-
     @Bean
     @DependsOn( "dataSource" )
     public NamedParameterJdbcTemplate namedParameterJdbcTemplate( @Qualifier( "dataSource" ) DataSource dataSource )
@@ -91,7 +88,8 @@ public class DataSourceConfig
 
     @Bean( "readOnlyJdbcTemplate" )
     @DependsOn( "dataSource" )
-    public JdbcTemplate readOnlyJdbcTemplate( @Qualifier( "dataSource" ) DataSource dataSource )
+    public JdbcTemplate readOnlyJdbcTemplate( @Lazy DhisConfigurationProvider dhisConfig,
+        @Qualifier( "dataSource" ) DataSource dataSource )
     {
         DefaultReadOnlyDataSourceManager manager = new DefaultReadOnlyDataSourceManager( dhisConfig );
 
@@ -103,7 +101,8 @@ public class DataSourceConfig
     }
 
     @Bean( "actualDataSource" )
-    public DataSource actualDataSource( HibernateConfigurationProvider hibernateConfigurationProvider )
+    public DataSource actualDataSource( @Lazy DhisConfigurationProvider dhisConfig,
+        HibernateConfigurationProvider hibernateConfigurationProvider )
     {
         String jdbcUrl = dhisConfig.getProperty( ConfigurationKey.CONNECTION_URL );
         String username = dhisConfig.getProperty( ConfigurationKey.CONNECTION_USERNAME );
@@ -132,8 +131,13 @@ public class DataSourceConfig
 
     @Bean( "dataSource" )
     @DependsOn( "actualDataSource" )
-    @Primary
-    public DataSource dataSource( @Qualifier( "actualDataSource" ) DataSource actualDataSource )
+    public DataSource dataSource( @Lazy DhisConfigurationProvider dhisConfig,
+        @Qualifier( "actualDataSource" ) DataSource actualDataSource )
+    {
+        return createDataSource( dhisConfig, actualDataSource );
+    }
+
+    public static DataSource createDataSource( DhisConfigurationProvider dhisConfig, DataSource actualDataSource )
     {
         boolean enableQueryLogging = dhisConfig.getBoolean( ConfigurationKey.ENABLE_QUERY_LOGGING );
 
