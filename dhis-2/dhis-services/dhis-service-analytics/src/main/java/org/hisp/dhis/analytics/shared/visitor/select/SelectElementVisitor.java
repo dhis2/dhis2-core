@@ -78,7 +78,8 @@ public class SelectElementVisitor implements SelectVisitor
     {
         columns.add( new Column( " COALESCE( " +
             "                           (SELECT TRUE " +
-            "                            FROM analytics_tracked_entity_instance ateiin " +
+            "                            FROM analytics_tracked_entity_instance_" + element.getTrackedEntityTypeUid()
+            + " ateiin " +
             "                            WHERE ateiin.trackedentityinstanceid = atei.trackedentityinstanceid " +
             "                              AND ateiin.programuid = '" + element.getUid() + "' " +
             "                            LIMIT 1), FALSE)", ColumnDataType.BOOLEAN, element.getAlias(), false,
@@ -93,7 +94,7 @@ public class SelectElementVisitor implements SelectVisitor
     public void visit( EnrollmentDateValueSelectElement element )
     {
         columns.add( new Column( " (SELECT ateiin.enrollmentdate " +
-            "   FROM analytics_tracked_entity_instance ateiin " +
+            "   FROM analytics_tracked_entity_instance_" + element.getTrackedEntityTypeUid() + " ateiin " +
             "   WHERE ateiin.trackedentityinstanceid = atei.trackedentityinstanceid " +
             "     AND ateiin.programuid = '" + element.getUid() + "' " +
             "   ORDER BY ateiin.enrollmentdate DESC " +
@@ -108,13 +109,13 @@ public class SelectElementVisitor implements SelectVisitor
     public void visit( ExecutionDateValueElement element )
     {
         columns.add( new Column( isBlank( element.getProgramUid() ) ? " (SELECT ateiin.executiondate " +
-            "   FROM analytics_tracked_entity_instance ateiin " +
+            "   FROM analytics_tracked_entity_instance_" + element.getTrackedEntityTypeUid() + " ateiin " +
             "   WHERE ateiin.trackedentityinstanceid = atei.trackedentityinstanceid " +
             "     AND ateiin.programstageuid = '" + element.getProgramStageUid() + "' " +
             "   ORDER BY ateiin.enrollmentdate DESC, ateiin.executiondate DESC " +
             "   LIMIT 1) "
             : " (SELECT ateiin.executiondate " +
-                "   FROM analytics_tracked_entity_instance ateiin " +
+                "   FROM analytics_tracked_entity_instance_" + element.getTrackedEntityTypeUid() + " ateiin " +
                 "   WHERE ateiin.programinstanceid = atei.programinstanceid " +
                 "     AND ateiin.trackedentityinstanceid = atei.trackedentityinstanceid " +
                 "     AND ateiin.programuid = atei.programuid " +
@@ -135,12 +136,12 @@ public class SelectElementVisitor implements SelectVisitor
     {
         columns.add( new Column( isBlank( element.getProgramUid() )
             ? " (SELECT ateiin.eventdatavalues -> '" + element.getEventDataValue() + "' -> 'value' " +
-                "   FROM analytics_tracked_entity_instance ateiin " +
+                "   FROM analytics_tracked_entity_instance_" + element.getTrackedEntityTypeUid() + " ateiin " +
                 "   WHERE ateiin.trackedentityinstanceid = atei.trackedentityinstanceid " +
                 "   ORDER BY ateiin.enrollmentdate DESC, ateiin.executiondate DESC " +
                 "   LIMIT 1) "
             : " (SELECT ateiin.eventdatavalues -> '" + element.getEventDataValue() + "' -> 'value' " +
-                "   FROM analytics_tracked_entity_instance ateiin " +
+                "   FROM analytics_tracked_entity_instance_" + element.getTrackedEntityTypeUid() + " ateiin " +
                 "   WHERE ateiin.programinstanceid = atei.programinstanceid " +
                 "     AND ateiin.trackedentityinstanceid = atei.trackedentityinstanceid " +
                 "     AND ateiin.programuid = '" + element.getProgramUid() + "' " +

@@ -44,6 +44,16 @@ import org.springframework.context.annotation.Configuration;
 @Configuration( "analyticsServiceConfig" )
 public class ServiceConfig
 {
+    @Bean( "org.hisp.dhis.analytics.TrackedEntityInstanceAnalyticsTableService" )
+    public DefaultAnalyticsTableService trackedEntityInstanceAnalyticsTableManager(
+        @Qualifier( "org.hisp.dhis.analytics.TrackedEntityInstanceAnalyticsTableManager" ) AnalyticsTableManager tableManager,
+        OrganisationUnitService organisationUnitService, DataElementService dataElementService,
+        ResourceTableService resourceTableService, Notifier notifier, SystemSettingManager systemSettingManager )
+    {
+        return new DefaultAnalyticsTableService( tableManager, organisationUnitService, dataElementService,
+            resourceTableService, systemSettingManager );
+    }
+
     @Bean( "org.hisp.dhis.analytics.AnalyticsTableService" )
     public DefaultAnalyticsTableService analyticsTableService(
         @Qualifier( "org.hisp.dhis.analytics.AnalyticsTableManager" ) AnalyticsTableManager tableManager,
@@ -107,16 +117,6 @@ public class ServiceConfig
     @Bean( "org.hisp.dhis.analytics.EnrollmentAnalyticsTableService" )
     public DefaultAnalyticsTableService enrollmentAnalyticsTableManager(
         @Qualifier( "org.hisp.dhis.analytics.EnrollmentAnalyticsTableManager" ) AnalyticsTableManager tableManager,
-        OrganisationUnitService organisationUnitService, DataElementService dataElementService,
-        ResourceTableService resourceTableService, Notifier notifier, SystemSettingManager systemSettingManager )
-    {
-        return new DefaultAnalyticsTableService( tableManager, organisationUnitService, dataElementService,
-            resourceTableService, systemSettingManager );
-    }
-
-    @Bean( "org.hisp.dhis.analytics.TrackedEntityInstanceAnalyticsTableService" )
-    public DefaultAnalyticsTableService trackedEntityInstanceAnalyticsTableManager(
-        @Qualifier( "org.hisp.dhis.analytics.TrackedEntityInstanceAnalyticsTableManager" ) AnalyticsTableManager tableManager,
         OrganisationUnitService organisationUnitService, DataElementService dataElementService,
         ResourceTableService resourceTableService, Notifier notifier, SystemSettingManager systemSettingManager )
     {

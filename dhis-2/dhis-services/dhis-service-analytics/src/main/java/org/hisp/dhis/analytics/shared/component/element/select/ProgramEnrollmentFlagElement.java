@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.shared.component.element.select;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import org.hisp.dhis.analytics.shared.component.element.Element;
@@ -38,13 +37,19 @@ import org.hisp.dhis.analytics.shared.visitor.select.SelectVisitor;
  *
  * @author dusan bernat
  */
-@AllArgsConstructor
 @Getter
-public class ProgramEnrollmentFlagElement implements Element<SelectVisitor>
+public class ProgramEnrollmentFlagElement extends SelectElement implements Element<SelectVisitor>
 {
     private final String uid;
 
     private final String alias;
+
+    public ProgramEnrollmentFlagElement( String trackedEntityTypeUid, String uid, String alias )
+    {
+        super( trackedEntityTypeUid );
+        this.uid = uid;
+        this.alias = alias;
+    }
 
     /**
      * see Visitor design pattern

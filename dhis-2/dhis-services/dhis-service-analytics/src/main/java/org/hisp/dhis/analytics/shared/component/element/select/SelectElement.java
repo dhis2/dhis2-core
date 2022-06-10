@@ -29,40 +29,13 @@ package org.hisp.dhis.analytics.shared.component.element.select;
 
 import lombok.Getter;
 
-import org.hisp.dhis.analytics.shared.component.element.Element;
-import org.hisp.dhis.analytics.shared.visitor.select.SelectVisitor;
-
-/**
- * EventDateValueElement is Select part of sql statement representation
- *
- * @author dusan bernat
- */
-
 @Getter
-public class EventDataValueElement extends SelectElement implements Element<SelectVisitor>
+public abstract class SelectElement
 {
-    private final String eventDataValue;
+    protected final String trackedEntityTypeUid;
 
-    private final String programUid;
-
-    private final String alias;
-
-    public EventDataValueElement( String trackedEntityTypeUid, String eventDataValue, String programUid, String alias )
+    protected SelectElement( String trackedEntityTypeUid )
     {
-        super( trackedEntityTypeUid );
-        this.eventDataValue = eventDataValue;
-        this.programUid = programUid;
-        this.alias = alias;
-    }
-
-    /**
-     * see Visitor design pattern
-     *
-     * @param v
-     */
-    @Override
-    public void accept( SelectVisitor v )
-    {
-        v.visit( this );
+        this.trackedEntityTypeUid = trackedEntityTypeUid.toLowerCase();
     }
 }

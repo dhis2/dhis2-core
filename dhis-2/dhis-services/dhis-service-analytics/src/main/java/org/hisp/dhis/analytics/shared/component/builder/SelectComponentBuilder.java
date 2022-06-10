@@ -85,12 +85,17 @@ public class SelectComponentBuilder
      */
     public SelectComponent build()
     {
+        String trackedEntityUid = teiQueryParams.getTrackedEntityType().getUid();
+
         List<Element<SelectVisitor>> elements = new ArrayList<>(
-            List.of( new SimpleSelectElement( "atei.trackedentityinstanceid", "tracked entity instance id" ),
-                new SimpleSelectElement( "atei.trackedentityinstanceuid", "tracked entity instance uid" ),
-                new SimpleSelectElement( "atei.\"zDhUuAYrxNC\"", "last name" ),
-                new SimpleSelectElement( "atei.\"w75KJ2mc4zz\"", "first name" ),
-                new SimpleSelectElement( "atei.\"iESIqZ0R0R0\"", "date of birth" ) ) );
+            List.of(
+                new SimpleSelectElement( trackedEntityUid, "atei.trackedentityinstanceid",
+                    "tracked entity instance id" ),
+                new SimpleSelectElement( trackedEntityUid, "atei.trackedentityinstanceuid",
+                    "tracked entity instance uid" ),
+                new SimpleSelectElement( trackedEntityUid, "atei.\"zDhUuAYrxNC\"", "last name" ),
+                new SimpleSelectElement( trackedEntityUid, "atei.\"w75KJ2mc4zz\"", "first name" ),
+                new SimpleSelectElement( trackedEntityUid, "atei.\"lZGmxYbs97q\"", "unique id" ) ) );
 
         Map<String, String> inputUidMap = new HashMap<>();
 
@@ -99,7 +104,8 @@ public class SelectComponentBuilder
         elements.addAll( inputUidMap
             .keySet()
             .stream()
-            .map( k -> new ProgramEnrollmentFlagElement( k, inputUidMap.get( k ) ) ).collect( Collectors.toList() ) );
+            .map( k -> new ProgramEnrollmentFlagElement( trackedEntityUid, k, inputUidMap.get( k ) ) )
+            .collect( Collectors.toList() ) );
 
         inputUidMap.clear();
         inputUidMap.put( "IpHINAT79UW", "is enrolled in Child Program" );
@@ -107,7 +113,7 @@ public class SelectComponentBuilder
         elements.addAll( inputUidMap
             .keySet()
             .stream()
-            .map( k -> new EnrollmentDateValueSelectElement( k, inputUidMap.get( k ) ) )
+            .map( k -> new EnrollmentDateValueSelectElement( trackedEntityUid, k, inputUidMap.get( k ) ) )
             .collect( Collectors.toList() ) );
 
         Map<Pair<String, String>, String> pJsonNodeWithPUidMap = new HashMap<>();
@@ -116,7 +122,7 @@ public class SelectComponentBuilder
         elements.addAll( pJsonNodeWithPUidMap
             .keySet()
             .stream()
-            .map( k -> new ExecutionDateValueElement( getJsonNodeUid( k ), getProgramUid( k ),
+            .map( k -> new ExecutionDateValueElement( trackedEntityUid, getJsonNodeUid( k ), getProgramUid( k ),
                 pJsonNodeWithPUidMap.get( k ) ) )
             .collect( Collectors.toList() ) );
 
@@ -128,7 +134,7 @@ public class SelectComponentBuilder
         elements.addAll( pJsonNodeWithPUidMap
             .keySet()
             .stream()
-            .map( k -> new EventDataValueElement( getProgramStageUid( k ), getProgramUid( k ),
+            .map( k -> new EventDataValueElement( trackedEntityUid, getProgramStageUid( k ), getProgramUid( k ),
                 pJsonNodeWithPUidMap.get( k ) ) )
             .collect( Collectors.toList() ) );
 

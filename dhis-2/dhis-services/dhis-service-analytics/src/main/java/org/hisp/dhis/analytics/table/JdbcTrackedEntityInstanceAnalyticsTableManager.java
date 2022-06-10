@@ -58,9 +58,12 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -68,8 +71,7 @@ import com.google.common.collect.Lists;
 @Service( "org.hisp.dhis.analytics.TrackedEntityInstanceAnalyticsTableManager" )
 public class JdbcTrackedEntityInstanceAnalyticsTableManager extends AbstractJdbcTableManager
 {
-
-    private final TrackedEntityAttributeService trackedEntityAttributeService;
+    private final TrackedEntityTypeService trackedEntityTypeService;
 
     public JdbcTrackedEntityInstanceAnalyticsTableManager( IdentifiableObjectManager idObjectManager,
         OrganisationUnitService organisationUnitService,
@@ -77,13 +79,14 @@ public class JdbcTrackedEntityInstanceAnalyticsTableManager extends AbstractJdbc
         DataApprovalLevelService dataApprovalLevelService, ResourceTableService resourceTableService,
         AnalyticsTableHookService tableHookService, StatementBuilder statementBuilder,
         PartitionManager partitionManager, DatabaseInfo databaseInfo, JdbcTemplate jdbcTemplate,
-        TrackedEntityAttributeService trackedEntityAttributeService )
+        TrackedEntityTypeService trackedEntityTypeService )
     {
         super( idObjectManager, organisationUnitService, categoryService, systemSettingManager,
             dataApprovalLevelService, resourceTableService,
             tableHookService, statementBuilder, partitionManager, databaseInfo, jdbcTemplate );
-        checkNotNull( trackedEntityAttributeService );
-        this.trackedEntityAttributeService = trackedEntityAttributeService;
+
+        checkNotNull( trackedEntityTypeService );
+        this.trackedEntityTypeService = trackedEntityTypeService;
     }
 
     private static final List<AnalyticsTableColumn> FIXED_COLS = ImmutableList.of(
@@ -117,15 +120,31 @@ public class JdbcTrackedEntityInstanceAnalyticsTableManager extends AbstractJdbc
      * @return the analytics table with partitions.
      */
     @Override
+    @Transactional
     public List<AnalyticsTable> getAnalyticsTables( AnalyticsTableUpdateParams params )
     {
-        List<AnalyticsTableColumn> columns = getDynamicColumns();
+        List<TrackedEntityType> trackedEntityTypes = trackedEntityTypeService.getAllTrackedEntityType();
 
-        columns.addAll( getFixedColumns() );
+        return trackedEntityTypes
+            .stream()
+            .filter( tet -> !tet.getTrackedEntityAttributes().isEmpty() )
+            .map( tet -> {
+                List<AnalyticsTableColumn> columns = new ArrayList<>( getFixedColumns() );
 
-        return params.isLatestUpdate() ? new ArrayList<>()
-            : List.of( new AnalyticsTable( getAnalyticsTableType(), columns,
-                Lists.newArrayList() ) );
+                List<TrackedEntityAttribute> trackedEntityAttributes = tet.getTrackedEntityAttributes();
+
+                columns.addAll( trackedEntityAttributes.stream().map( tea -> new AnalyticsTableColumn(
+                    quote( tea.getUid() ), VARCHAR_1200,
+                    " (SELECT teavin.value from trackedentityattribute teain " +
+                        " INNER JOIN trackedentityattributevalue teavin ON teain.trackedentityattributeid = teavin.trackedentityattributeid "
+                        +
+                        " WHERE tei.trackedentityinstanceid = teavin.trackedentityinstanceid AND teain.uid = '" +
+                        tea.getUid() + "')" ) )
+                    .collect( Collectors.toList() ) );
+
+                return new AnalyticsTable( getAnalyticsTableType(), columns,
+                    Lists.newArrayList(), tet );
+            } ).collect( Collectors.toList() );
     }
 
     /**
@@ -149,19 +168,6 @@ public class JdbcTrackedEntityInstanceAnalyticsTableManager extends AbstractJdbc
     public List<AnalyticsTableColumn> getFixedColumns()
     {
         return FIXED_COLS;
-    }
-
-    private List<AnalyticsTableColumn> getDynamicColumns()
-    {
-        return trackedEntityAttributeService.getAllTrackedEntityAttributes()
-            .stream()
-            .map( att -> new AnalyticsTableColumn( quote( att.getUid() ), VARCHAR_1200,
-                " (SELECT teavin.value from trackedentityattribute teain " +
-                    " INNER JOIN trackedentityattributevalue teavin ON teain.trackedentityattributeid = teavin.trackedentityattributeid "
-                    +
-                    " WHERE tei.trackedentityinstanceid = teavin.trackedentityinstanceid AND teain.uid = '" +
-                    att.getUid() + "')" ) )
-            .collect( Collectors.toList() );
     }
 
     /**

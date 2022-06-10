@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.shared.component.element.select;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import org.hisp.dhis.analytics.shared.component.element.Element;
@@ -38,13 +37,20 @@ import org.hisp.dhis.analytics.shared.visitor.select.SelectVisitor;
  *
  * @author dusan bernat
  */
-@AllArgsConstructor
-@Getter
-public class SimpleSelectElement implements Element<SelectVisitor>
-{
-    private String value;
 
-    private String alias;
+@Getter
+public class SimpleSelectElement extends SelectElement implements Element<SelectVisitor>
+{
+    private final String value;
+
+    private final String alias;
+
+    public SimpleSelectElement( String trackedEntityTypeUid, String value, String alias )
+    {
+        super( trackedEntityTypeUid );
+        this.value = value;
+        this.alias = alias;
+    }
 
     /**
      * see Visitor design pattern
