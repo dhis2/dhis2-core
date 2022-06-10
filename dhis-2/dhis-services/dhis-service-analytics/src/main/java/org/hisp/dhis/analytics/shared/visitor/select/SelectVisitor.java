@@ -35,7 +35,6 @@ import org.hisp.dhis.analytics.shared.component.element.select.EventDataValueEle
 import org.hisp.dhis.analytics.shared.component.element.select.ExecutionDateValueElement;
 import org.hisp.dhis.analytics.shared.component.element.select.ProgramEnrollmentFlagElement;
 import org.hisp.dhis.analytics.shared.component.element.select.SimpleSelectElement;
-import org.hisp.dhis.analytics.shared.component.element.select.TeaValueSelectElement;
 
 /**
  * Visitor for 'select' section element of sql statement
@@ -44,13 +43,6 @@ import org.hisp.dhis.analytics.shared.component.element.select.TeaValueSelectEle
  */
 public interface SelectVisitor
 {
-    /**
-     * see Visitor design pattern
-     *
-     * @param element
-     */
-    void visit( TeaValueSelectElement element );
-
     /**
      * see Visitor design pattern
      *

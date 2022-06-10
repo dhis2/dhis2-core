@@ -41,7 +41,6 @@ import org.hisp.dhis.analytics.shared.component.element.select.EventDataValueEle
 import org.hisp.dhis.analytics.shared.component.element.select.ExecutionDateValueElement;
 import org.hisp.dhis.analytics.shared.component.element.select.ProgramEnrollmentFlagElement;
 import org.hisp.dhis.analytics.shared.component.element.select.SimpleSelectElement;
-import org.hisp.dhis.analytics.shared.component.element.select.TeaValueSelectElement;
 
 /**
  * @see SelectVisitor
@@ -52,22 +51,6 @@ import org.hisp.dhis.analytics.shared.component.element.select.TeaValueSelectEle
 public class SelectElementVisitor implements SelectVisitor
 {
     private final List<Column> columns = new ArrayList<>();
-
-    /**
-     * @see SelectVisitor
-     * @param element
-     */
-    @Override
-    public void visit( TeaValueSelectElement element )
-    {
-        columns.add( new Column( " ( SELECT teav.VALUE " +
-            " FROM trackedentityattributevalue teav, " +
-            "  trackedentityattribute tea" +
-            " WHERE teav.trackedentityinstanceid = t.trackedentityinstanceid " +
-            "  AND teav.trackedentityattributeid = tea.trackedentityattributeid " +
-            "  AND tea.uid = '" + element.getUid() + "' " +
-            " LIMIT 1 ) ", ColumnDataType.TEXT, element.getAlias(), false, false ) );
-    }
 
     /**
      * @see SelectVisitor
