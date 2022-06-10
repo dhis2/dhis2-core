@@ -39,6 +39,8 @@ import java.util.HashSet;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.encryption.EncryptionStatus;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -80,6 +82,9 @@ class EnrollmentAttributeValidationHookTest
     @Mock
     private TrackerPreheat preheat;
 
+    @Mock
+    private DhisConfigurationProvider dhisConfigurationProvider;
+
     private TrackerBundle bundle;
 
     @Mock
@@ -91,9 +96,15 @@ class EnrollmentAttributeValidationHookTest
 
     private final static String trackedAttribute1 = "attribute1";
 
+    private final static String trackedAttributeP = "attributeP";
+
     private TrackedEntityAttribute trackedEntityAttribute;
 
     private TrackedEntityAttribute trackedEntityAttribute1;
+
+    private TrackedEntityAttribute trackedEntityAttributeP;
+
+    private ValidationErrorReporter reporter;
 
     @BeforeEach
     public void setUp()
@@ -107,10 +118,18 @@ class EnrollmentAttributeValidationHookTest
             false );
         trackedEntityAttribute1.setUid( trackedAttribute1 );
 
+        trackedEntityAttributeP = new TrackedEntityAttribute( "percentage", "percent", ValueType.PERCENTAGE, false,
+            false );
+        trackedEntityAttributeP.setUid( trackedAttributeP );
+
         when( preheat.getProgram( anyString() ) ).thenReturn( program );
         when( enrollment.getProgram() ).thenReturn( "program" );
         when( preheat.getTrackedEntityAttribute( trackedAttribute ) ).thenReturn( trackedEntityAttribute );
         when( preheat.getTrackedEntityAttribute( trackedAttribute1 ) ).thenReturn( trackedEntityAttribute1 );
+        when( preheat.getTrackedEntityAttribute( trackedAttributeP ) ).thenReturn( trackedEntityAttributeP );
+
+        when( dhisConfigurationProvider.getEncryptionStatus() )
+            .thenReturn( EncryptionStatus.MISSING_ENCRYPTION_PASSWORD );
 
         String uid = CodeGenerator.generateUid();
         when( enrollment.getUid() ).thenReturn( uid );
@@ -176,6 +195,35 @@ class EnrollmentAttributeValidationHookTest
         hookToTest.validateEnrollment( reporter, enrollment );
 
         assertThat( reporter.getReportList(), hasSize( 0 ) );
+    }
+
+    @Test
+    void shouldFailValidationWhenValueIsInvalidPercentage()
+    {
+        // given 1 percentage attribute has invalid value
+        Attribute attribute = Attribute.builder().attribute( trackedAttribute )
+            .valueType( ValueType.TEXT )
+            .value( "value" ).build();
+        Attribute attribute1 = Attribute.builder().attribute( trackedAttributeP )
+            .valueType( ValueType.PERCENTAGE )
+            .value( "1000" ).build();
+
+        when( program.getProgramAttributes() ).thenReturn( Arrays.asList(
+            new ProgramTrackedEntityAttribute( program, trackedEntityAttribute, false, true ),
+            new ProgramTrackedEntityAttribute( program, trackedEntityAttributeP, false, false ) ) );
+
+        when( enrollment.getAttributes() ).thenReturn( Arrays.asList( attribute, attribute1 ) );
+        when( trackedEntityInstance.getTrackedEntityAttributeValues() )
+            .thenReturn( new HashSet<>(
+                Arrays.asList( new TrackedEntityAttributeValue( trackedEntityAttribute, trackedEntityInstance ),
+                    new TrackedEntityAttributeValue( trackedEntityAttributeP, trackedEntityInstance ) ) ) );
+        when( preheat.getTrackedEntity( enrollment.getTrackedEntity() ) )
+            .thenReturn( trackedEntityInstance );
+
+        hookToTest.validateEnrollment( reporter, enrollment );
+
+        assertThat( reporter.getReportList(), hasSize( 1 ) );
+        hasTrackerError( reporter, TrackerErrorCode.E1085, TrackerType.ENROLLMENT, enrollment.getUid() );
     }
 
     @Test
