@@ -310,7 +310,7 @@ public class DefaultAclService implements AclService
             return writeCommonCheck( schema, user, object, objType );
         }
         else if ( schema.isImplicitPrivateAuthority() && checkSharingAccess( user, object, objType )
-            && (checkUser( user, object ) || checkSharingPermission( user, object, Permission.WRITE )) )
+            || (checkUser( user, object ) || checkSharingPermission( user, object, Permission.WRITE )) )
         {
             return true;
         }

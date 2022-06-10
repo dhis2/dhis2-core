@@ -102,6 +102,46 @@ class AclServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
+    void testCanWritePrivate()
+    {
+        User user = createAndAddUser( "A", null, "F_DATAELEMENT_PRIVATE_ADD" );
+        DataElement dataElement = createDataElement( 'A' );
+        dataElement.setPublicAccess( AccessStringHelper.DEFAULT );
+        dataElement.getSharing().addUserAccess( new UserAccess( user, AccessStringHelper.READ_WRITE ) );
+        assertTrue( aclService.canWrite( user, dataElement ) );
+    }
+
+    @Test
+    void testCanWritePublic()
+    {
+        User user = createAndAddUser( "A", null, "F_DATAELEMENT_PUBLIC_ADD" );
+        DataElement dataElement = createDataElement( 'A' );
+        dataElement.setPublicAccess( AccessStringHelper.READ_WRITE );
+        dataElement.getSharing().addUserAccess( new UserAccess( user, AccessStringHelper.READ_WRITE ) );
+        assertTrue( aclService.canWrite( user, dataElement ) );
+    }
+
+    @Test
+    void testCanManage()
+    {
+        User user = createAndAddUser( "A" );
+        DataElement dataElement = createDataElement( 'A' );
+        dataElement.setPublicAccess( AccessStringHelper.DEFAULT );
+        dataElement.getSharing().addUserAccess( new UserAccess( user, AccessStringHelper.READ_WRITE ) );
+        assertTrue( aclService.canManage( user, dataElement ) );
+    }
+
+    @Test
+    void testCanUpdate()
+    {
+        User user = createAndAddUser( "A" );
+        DataElement dataElement = createDataElement( 'A' );
+        dataElement.setPublicAccess( AccessStringHelper.DEFAULT );
+        dataElement.getSharing().addUserAccess( new UserAccess( user, AccessStringHelper.READ_WRITE ) );
+        assertTrue( aclService.canUpdate( user, dataElement ) );
+    }
+
+    @Test
     void testUpdateObjectWithPublicRWFail()
     {
         User user = createAndAddAdminUser( "F_OPTIONSET_PUBLIC_ADD" );

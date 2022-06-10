@@ -41,10 +41,16 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 public class Access
     implements EmbeddedObject
 {
+    /**
+     * Can user update sharing settings of current object
+     */
     private boolean manage;
 
     private boolean externalize;
 
+    /**
+     * Can user create a new instance of current object
+     */
     private boolean write;
 
     private boolean read;
