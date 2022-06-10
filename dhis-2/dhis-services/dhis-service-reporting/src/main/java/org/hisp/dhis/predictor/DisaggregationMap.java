@@ -25,82 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.render;
+package org.hisp.dhis.predictor;
 
-import java.util.Date;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * A map that, for each input data element disaggregation (category option
+ * combo) UID, returns the UID of the corresponding predictor output data
+ * element disaggregation (category option combo).
+ *
+ * @author Jim Grace
  */
-class DeserializeTest
+public class DisaggregationMap
+    extends HashMap<String, String>
 {
-    private String a;
-
-    private String b;
-
-    private String c;
-
-    private Date d;
-
-    public DeserializeTest()
+    /**
+     * Constructs an empty DisaggregationMap.
+     */
+    public DisaggregationMap()
     {
     }
 
-    @JsonProperty
-    public String getA()
+    /**
+     * Constructs a new DisaggregationMap with the same mappings as the
+     * specified Map.
+     *
+     * @param m the map whose mappings are to be placed in this map
+     */
+    public DisaggregationMap( Map<String, String> m )
     {
-        return a;
-    }
-
-    public void setA( String a )
-    {
-        this.a = a;
-    }
-
-    @JsonProperty
-    public String getB()
-    {
-        return b;
-    }
-
-    public void setB( String b )
-    {
-        this.b = b;
-    }
-
-    @JsonProperty
-    public String getC()
-    {
-        return c;
-    }
-
-    public void setC( String c )
-    {
-        this.c = c;
-    }
-
-    @JsonProperty
-    public Date getD()
-    {
-        return d;
-    }
-
-    public void setD( Date d )
-    {
-        this.d = d;
-    }
-
-    @Override
-    public String toString()
-    {
-        return MoreObjects.toStringHelper( this )
-            .add( "a", a )
-            .add( "b", b )
-            .add( "c", c )
-            .add( "d", d )
-            .toString();
+        super( m );
     }
 }

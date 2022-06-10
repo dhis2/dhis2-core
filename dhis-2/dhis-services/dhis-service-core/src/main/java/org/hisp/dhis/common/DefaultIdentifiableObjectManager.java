@@ -91,7 +91,7 @@ public class DefaultIdentifiableObjectManager
     /**
      * Cache for default category objects. Disabled during test phase.
      */
-    private final Cache<IdentifiableObject> defaultObjectCache;
+    private final Cache<Long> defaultObjectCache;
 
     private final Set<IdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStores;
 
@@ -292,21 +292,21 @@ public class DefaultIdentifiableObjectManager
     }
 
     @Override
-    public <T extends IdentifiableObject> T getAndValidate( Class<T> type, String uid )
+    public <T extends IdentifiableObject> T load( Class<T> type, String uid )
         throws IllegalQueryException
     {
-        T object = get( type, uid );
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( type );
 
-        if ( object == null )
+        if ( store == null )
         {
-            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E1113, type.getSimpleName(), uid ) );
+            return null;
         }
 
-        return object;
+        return (T) store.loadByUid( uid );
     }
 
     @Override
-    public <T extends IdentifiableObject> T getAndValidate( Class<T> type, ErrorCode errorCode, String uid )
+    public <T extends IdentifiableObject> T load( Class<T> type, ErrorCode errorCode, String uid )
         throws IllegalQueryException
     {
         T object = get( type, uid );
@@ -391,6 +391,22 @@ public class DefaultIdentifiableObjectManager
         }
 
         return (T) store.getByCode( code );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    @SuppressWarnings( "unchecked" )
+    public <T extends IdentifiableObject> T loadByCode( Class<T> type, String code )
+        throws IllegalQueryException
+    {
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( type );
+
+        if ( store == null )
+        {
+            return null;
+        }
+
+        return (T) store.loadByCode( code );
     }
 
     @Override
@@ -1229,21 +1245,22 @@ public class DefaultIdentifiableObjectManager
     @Transactional( readOnly = true )
     public Map<Class<? extends IdentifiableObject>, IdentifiableObject> getDefaults()
     {
-        IdentifiableObject categoryObjects = defaultObjectCache.get( Category.class.getName(),
-            key -> HibernateProxyUtils.unproxy( getByName( Category.class, DEFAULT ) ) );
-        IdentifiableObject categoryComboObjects = defaultObjectCache.get( CategoryCombo.class.getName(),
-            key -> HibernateProxyUtils.unproxy( getByName( CategoryCombo.class, DEFAULT ) ) );
-        IdentifiableObject categoryOptionObjects = defaultObjectCache.get( CategoryOption.class.getName(),
-            key -> HibernateProxyUtils.unproxy( getByName( CategoryOption.class, DEFAULT ) ) );
-        IdentifiableObject categoryOptionCombo = defaultObjectCache.get(
+        Long catId = defaultObjectCache.get( Category.class.getName(),
+            key -> getByName( Category.class, DEFAULT ).getId() );
+        Long cateComboId = defaultObjectCache.get( CategoryCombo.class.getName(),
+            key -> getByName( CategoryCombo.class, DEFAULT ).getId() );
+        Long catOptionId = defaultObjectCache.get( CategoryOption.class.getName(),
+            key -> getByName( CategoryOption.class, DEFAULT ).getId() );
+        Long catOptionComboId = defaultObjectCache.get(
             CategoryOptionCombo.class.getName(),
-            key -> HibernateProxyUtils.unproxy( getByName( CategoryOptionCombo.class, DEFAULT ) ) );
+            key -> getByName( CategoryOptionCombo.class, DEFAULT ).getId() );
 
         return new ImmutableMap.Builder<Class<? extends IdentifiableObject>, IdentifiableObject>()
-            .put( Category.class, Objects.requireNonNull( categoryObjects ) )
-            .put( CategoryCombo.class, Objects.requireNonNull( categoryComboObjects ) )
-            .put( CategoryOption.class, Objects.requireNonNull( categoryOptionObjects ) )
-            .put( CategoryOptionCombo.class, Objects.requireNonNull( categoryOptionCombo ) )
+            .put( Category.class, Objects.requireNonNull( get( Category.class, catId ) ) )
+            .put( CategoryCombo.class, Objects.requireNonNull( get( CategoryCombo.class, cateComboId ) ) )
+            .put( CategoryOption.class, Objects.requireNonNull( get( CategoryOption.class, catOptionId ) ) )
+            .put( CategoryOptionCombo.class,
+                Objects.requireNonNull( get( CategoryOptionCombo.class, catOptionComboId ) ) )
             .build();
     }
 

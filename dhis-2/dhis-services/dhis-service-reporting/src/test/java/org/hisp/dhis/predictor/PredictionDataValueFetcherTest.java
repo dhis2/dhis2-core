@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -101,6 +102,8 @@ class PredictionDataValueFetcherTest
 
     private DataElementOperand dataElementOperandX;
 
+    private DataElementOperand dataElementOperandZ;
+
     private Set<DataElementOperand> dataElementOperands;
 
     private Period periodA;
@@ -141,6 +144,8 @@ class PredictionDataValueFetcherTest
 
     private DataValue dataValueD;
 
+    private DataValue dataValueW;
+
     private DataValue dataValueX;
 
     private DataValue dataValueY;
@@ -156,6 +161,8 @@ class PredictionDataValueFetcherTest
     private DeflatedDataValue deflatedDataValueC;
 
     private DeflatedDataValue deflatedDataValueD;
+
+    private DeflatedDataValue deflatedDataValueW;
 
     private DeflatedDataValue deflatedDataValueX;
 
@@ -218,6 +225,7 @@ class PredictionDataValueFetcherTest
         dataElementOperandB = new DataElementOperand( dataElementB, cocB );
         dataElementOperandAB = new DataElementOperand( dataElementA, cocB );
         dataElementOperandX = new DataElementOperand( dataElementX, cocA );
+        dataElementOperandZ = new DataElementOperand( dataElementX, null );
 
         dataElementOperands = Sets.newHashSet( dataElementOperandA, dataElementOperandB, dataElementOperandAB,
             dataElementOperandX );
@@ -284,6 +292,7 @@ class PredictionDataValueFetcherTest
 
         dataValueA = new DataValue( dataElementA, periodA, orgUnitB, cocA, aocC, "10.0", "Y", null, null, null, false );
         dataValueB = new DataValue( dataElementA, periodA, orgUnitB, cocB, aocC, "15.0", "Y", null, null, null, false );
+        dataValueW = new DataValue( dataElementX, periodC, orgUnitB, cocB, aocD, "17.0", "Z", null, null, null, false );
         dataValueX = new DataValue( dataElementX, periodA, orgUnitB, cocA, aocD, "30.0", "Z", null, null, null, false );
         dataValueY = new DataValue( dataElementX, periodC, orgUnitB, cocA, aocC, "40.0", "Z", null, null, null, true );
         dataValueZ = new DataValue( dataElementX, periodC, orgUnitE, cocA, aocC, "50.0", "Z", null, null, null, false );
@@ -294,6 +303,7 @@ class PredictionDataValueFetcherTest
 
         deflatedDataValueA = new DeflatedDataValue( dataValueA );
         deflatedDataValueB = new DeflatedDataValue( dataValueB );
+        deflatedDataValueW = new DeflatedDataValue( dataValueW );
         deflatedDataValueX = new DeflatedDataValue( dataValueX );
         deflatedDataValueY = new DeflatedDataValue( dataValueY );
         deflatedDataValueZ = new DeflatedDataValue( dataValueZ );
@@ -350,13 +360,55 @@ class PredictionDataValueFetcherTest
         assertNotNull( data2 );
         assertEquals( orgUnitC, data2.getOrgUnit() );
         assertContainsOnly( data2.getValues(), foundValueB );
-        assertContainsOnly( data2.getOldPredictions() );
+        assertTrue( data2.getOldPredictions().isEmpty() );
 
         PredictionData data3 = fetcher.getData();
         assertNull( data3 );
 
         PredictionData data4 = fetcher.getData();
         assertNull( data4 );
+    }
+
+    @Test
+    void testGetDataValuesWithAllDisaggregations()
+    {
+        when( categoryService.getCategoryOptionCombo( cocA.getId() ) ).thenReturn( cocA );
+        when( categoryService.getCategoryOptionCombo( cocB.getId() ) ).thenReturn( cocB );
+        when( categoryService.getCategoryOptionCombo( aocC.getId() ) ).thenReturn( aocC );
+        when( categoryService.getCategoryOptionCombo( aocD.getId() ) ).thenReturn( aocD );
+
+        when( dataValueService.getDeflatedDataValues( any( DataExportParams.class ) ) ).thenAnswer( p -> {
+            BlockingQueue<DeflatedDataValue> blockingQueue = ((DataExportParams) p.getArgument( 0 )).getBlockingQueue();
+            blockingQueue.put( deflatedDataValueA );
+            blockingQueue.put( deflatedDataValueAB );
+            blockingQueue.put( deflatedDataValueB );
+            blockingQueue.put( deflatedDataValueW );
+            blockingQueue.put( deflatedDataValueX );
+            blockingQueue.put( deflatedDataValueY );
+            blockingQueue.put( deflatedDataValueZ );
+            blockingQueue.put( deflatedDataValueC );
+            blockingQueue.put( deflatedDataValueD );
+            blockingQueue.put( END_OF_DDV_DATA );
+            return new ArrayList<>();
+        } );
+
+        fetcher.init( currentUserOrgUnits, ORG_UNIT_LEVEl, levelOneOrgUnits, queryPeriods, outputPeriods,
+            dataElements, dataElementOperands, dataElementOperandZ );
+
+        PredictionData data1 = fetcher.getData();
+        assertNotNull( data1 );
+        assertEquals( orgUnitB, data1.getOrgUnit() );
+        assertContainsOnly( data1.getValues(), foundValueA, foundValueAB, foundValueC, foundValueD, foundValueE );
+        assertContainsOnly( data1.getOldPredictions(), dataValueW, dataValueY );
+
+        PredictionData data2 = fetcher.getData();
+        assertNotNull( data2 );
+        assertEquals( orgUnitC, data2.getOrgUnit() );
+        assertContainsOnly( data2.getValues(), foundValueB );
+        assertTrue( data2.getOldPredictions().isEmpty() );
+
+        PredictionData data3 = fetcher.getData();
+        assertNull( data3 );
     }
 
     @Test

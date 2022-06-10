@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.datastatistics;
 
+import static org.hisp.dhis.datastatistics.DataStatisticsEventType.DASHBOARD_VIEW;
+import static org.hisp.dhis.datastatistics.DataStatisticsEventType.EVENT_CHART_VIEW;
+import static org.hisp.dhis.datastatistics.DataStatisticsEventType.PASSIVE_DASHBOARD_VIEW;
+import static org.hisp.dhis.datastatistics.DataStatisticsEventType.VISUALIZATION_VIEW;
 import static org.hisp.dhis.setting.SettingKey.COUNT_PASSIVE_DASHBOARD_VIEWS_IN_USAGE_ANALYTICS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -35,11 +39,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardService;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.user.UserSettingService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -47,7 +52,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Yrjan A. F. Fraschetti
  * @author Julie Hill Roa
  */
-class DataStatisticsEventStoreTest extends DhisSpringTest
+class DataStatisticsEventStoreTest extends IntegrationTestBase
 {
 
     @Autowired
@@ -59,124 +64,120 @@ class DataStatisticsEventStoreTest extends DhisSpringTest
     @Autowired
     private SystemSettingManager systemSettingManager;
 
-    private DataStatisticsEvent dse1;
+    @Autowired
+    private UserSettingService userSettingService;
 
-    private DataStatisticsEvent dse2;
+    @Autowired
+    private DataStatisticsService dataStatisticsService;
 
-    private DataStatisticsEvent dse4;
+    private static final Date start = getDate( 2016, 3, 19 );
 
-    private DataStatisticsEvent dse5;
+    private static final Date end = getDate( 2016, 3, 21 );
 
-    private Dashboard dashboard1;
+    private static final Date eventDate = getDate( 2016, 3, 20 );
 
-    private int dse1Id;
+    private static final String DASHBOARD_UID = "anyUid12345";
 
-    private int dse2Id;
-
-    private Date start;
-
-    private Date end;
-
-    private static final String DASHBOARD_UID = "dashboardid";
-
+    /**
+     * Defining a set of events/statistics, so they can be asserted on each
+     * individual test/scenario.
+     */
     @Override
     public void setUpTest()
     {
-        end = getDate( 2016, 3, 21 );
-        start = getDate( 2016, 3, 19 );
-        Date endDate = getDate( 2016, 3, 20 );
-        Date testDate = getDate( 2016, 3, 16 );
-        dse1 = new DataStatisticsEvent( DataStatisticsEventType.VISUALIZATION_VIEW, endDate, "Testuser" );
-        dse2 = new DataStatisticsEvent( DataStatisticsEventType.EVENT_CHART_VIEW, endDate, "TestUser" );
-        dse4 = new DataStatisticsEvent( DataStatisticsEventType.DASHBOARD_VIEW, endDate, "TestUser", DASHBOARD_UID );
-        dse5 = new DataStatisticsEvent( DataStatisticsEventType.PASSIVE_DASHBOARD_VIEW, endDate, "TestUser",
-            DASHBOARD_UID );
-        dashboard1 = new Dashboard( "Dashboard1" );
-        dashboard1.setUid( DASHBOARD_UID );
-    }
+        // Stub objects.
+        final Dashboard dashboard = new Dashboard( "anyName" );
+        dashboard.setUid( DASHBOARD_UID );
 
-    @Test
-    void addDataStatisticsEventTest()
-    {
-        dataStatisticsEventStore.save( dse1 );
-        dse1Id = dse1.getId();
-        dataStatisticsEventStore.save( dse2 );
-        dse2Id = dse2.getId();
-        assertTrue( dse1Id != 0 );
-        assertTrue( dse2Id != 0 );
+        final DataStatisticsEvent visualizationEvent = new DataStatisticsEvent( VISUALIZATION_VIEW, eventDate,
+            "anyUser" );
+
+        final DataStatisticsEvent chartEvent = new DataStatisticsEvent( EVENT_CHART_VIEW, eventDate, "anyUser" );
+
+        final DataStatisticsEvent dashboardEvent = new DataStatisticsEvent( DASHBOARD_VIEW, eventDate, "anyUser",
+            DASHBOARD_UID );
+
+        final DataStatisticsEvent passiveDashEvent = new DataStatisticsEvent( PASSIVE_DASHBOARD_VIEW, eventDate,
+            "anyUser", DASHBOARD_UID );
+
+        // Add four events.
+        assertTrue( dataStatisticsService.addEvent( visualizationEvent ) != 0 );
+        assertTrue( dataStatisticsService.addEvent( dashboardEvent ) != 0 );
+        assertTrue( dataStatisticsService.addEvent( chartEvent ) != 0 );
+        assertTrue( dataStatisticsService.addEvent( passiveDashEvent ) != 0 );
+
+        // Add one dashboard.
+        assertTrue( dashboardService.saveDashboard( dashboard ) != 0 );
     }
 
     @Test
     void getDataStatisticsEventCountTest()
     {
-        dataStatisticsEventStore.save( dse1 );
-        dataStatisticsEventStore.save( dse4 );
-        Map<DataStatisticsEventType, Double> dsList = dataStatisticsEventStore.getDataStatisticsEventCount( start,
-            end );
-        // Test for 3 objects because TOTAL_VIEWS is always present
-        assertTrue( dsList.size() == 3 );
+        // When
+        final Map<DataStatisticsEventType, Double> eventsMap = dataStatisticsEventStore.getDataStatisticsEventCount(
+            start, end );
+
+        // Then
+        // Test for 5 objects because TOTAL_VIEWS is always present.
+        assertEquals( 5, eventsMap.size() );
     }
 
     @Test
     void getDataStatisticsEventCountCorrectContentTest()
     {
-        dataStatisticsEventStore.save( dse1 );
-        dataStatisticsEventStore.save( dse4 );
-        Map<DataStatisticsEventType, Double> dsList = dataStatisticsEventStore.getDataStatisticsEventCount( start,
-            end );
-        double expected = 1.0;
-        double firstActual = dsList.get( DataStatisticsEventType.VISUALIZATION_VIEW );
-        double secondActual = dsList.get( DataStatisticsEventType.DASHBOARD_VIEW );
-        assertEquals( expected, firstActual );
-        assertEquals( expected, secondActual );
+        // Given
+        final double expectedSize = 1.0;
+
+        // When
+        final Map<DataStatisticsEventType, Double> eventsMap = dataStatisticsEventStore.getDataStatisticsEventCount(
+            start, end );
+
+        // Then
+        assertEquals( expectedSize, eventsMap.get( VISUALIZATION_VIEW ) );
+        assertEquals( expectedSize, eventsMap.get( EVENT_CHART_VIEW ) );
+        assertEquals( expectedSize, eventsMap.get( DASHBOARD_VIEW ) );
+        assertEquals( expectedSize, eventsMap.get( PASSIVE_DASHBOARD_VIEW ) );
     }
 
     @Test
-    void getDataStatisticsEventCountCorrectDatesTest()
+    void getDataStatisticsEventCountNonExistingDatesTest()
     {
-        dataStatisticsEventStore.save( dse1 );
-        dataStatisticsEventStore.save( dse4 );
-        dataStatisticsEventStore.save( dse2 );
-        Map<DataStatisticsEventType, Double> dsList = dataStatisticsEventStore.getDataStatisticsEventCount( start,
-            end );
-        // Test for 4 objects, because TOTAL_VIEW is always present
-        assertTrue( dsList.size() == 4 );
+        // When
+        final Map<DataStatisticsEventType, Double> eventsMap = dataStatisticsEventStore.getDataStatisticsEventCount(
+            new Date(), new Date() );
+
+        // Then
+        // Test for 1 object because TOTAL_VIEW is always present.
+        assertEquals( 1, eventsMap.size() );
     }
 
     @Test
-    void getDataStatisticsEventCountWrongDatesTest()
+    void getTopFavoritesDataTest()
     {
-        dataStatisticsEventStore.save( dse1 );
-        dataStatisticsEventStore.save( dse4 );
-        Map<DataStatisticsEventType, Double> dsList = dataStatisticsEventStore.getDataStatisticsEventCount( start,
-            end );
-        // Test for 3 objects because TOTAL_VIEW is always present
-        assertTrue( dsList.size() == 3 );
-    }
+        // When
+        final List<FavoriteStatistics> activeDashboardStats = dataStatisticsService
+            .getTopFavorites( DASHBOARD_VIEW, 100, SortOrder.ASC, null );
 
-    @Test
-    void getFavoritesDataTest()
-    {
-        dataStatisticsEventStore.save( dse4 );
-        dataStatisticsEventStore.save( dse5 );
-        dashboardService.saveDashboard( dashboard1 );
-        List<FavoriteStatistics> stats1 = dataStatisticsEventStore
-            .getFavoritesData( DataStatisticsEventType.DASHBOARD_VIEW, 100, SortOrder.ASC, null );
-        assertTrue( stats1.size() == 1 );
-        List<FavoriteStatistics> stats2 = dataStatisticsEventStore
-            .getFavoritesData( DataStatisticsEventType.PASSIVE_DASHBOARD_VIEW, 100, SortOrder.ASC, null );
-        assertTrue( stats2.size() == 1 );
+        final List<FavoriteStatistics> passiveDashboardStats = dataStatisticsService
+            .getTopFavorites( PASSIVE_DASHBOARD_VIEW, 100, SortOrder.ASC, null );
+
+        // Then
+        assertEquals( 1, activeDashboardStats.size() );
+        assertEquals( 1, passiveDashboardStats.size() );
     }
 
     @Test
     void getFavoriteStatisticsTest()
     {
-        dataStatisticsEventStore.save( dse4 );
-        dataStatisticsEventStore.save( dse5 );
-        FavoriteStatistics fs1 = dataStatisticsEventStore.getFavoriteStatistics( DASHBOARD_UID );
-        assertTrue( fs1.getViews() == 1 );
+        // When
+        final FavoriteStatistics activeDashboardStats = dataStatisticsService.getFavoriteStatistics( DASHBOARD_UID );
+
         systemSettingManager.saveSystemSetting( COUNT_PASSIVE_DASHBOARD_VIEWS_IN_USAGE_ANALYTICS, true );
-        FavoriteStatistics fs2 = dataStatisticsEventStore.getFavoriteStatistics( DASHBOARD_UID );
-        assertTrue( fs2.getViews() == 2 );
+        final FavoriteStatistics activePlusPassiveDashboardStats = dataStatisticsService
+            .getFavoriteStatistics( DASHBOARD_UID );
+
+        // Then
+        assertEquals( 1, activeDashboardStats.getViews() );
+        assertEquals( 2, activePlusPassiveDashboardStats.getViews() );
     }
 }
