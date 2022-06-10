@@ -34,6 +34,7 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.DhisConvenienceTest.*;
 import static org.hisp.dhis.analytics.AnalyticsAggregationType.fromAggregationType;
+import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -121,8 +122,8 @@ public class AbstractJdbcEventAnalyticsManagerTest
 
         subject.getSelectSql( item, from, to );
 
-        verify( programIndicatorService ).getAnalyticsSql( programIndicator.getExpression(), programIndicator, from,
-            to );
+        verify( programIndicatorService ).getAnalyticsSql( programIndicator.getExpression(), NUMERIC, programIndicator,
+            from, to );
     }
 
     @Test
@@ -225,7 +226,7 @@ public class AbstractJdbcEventAnalyticsManagerTest
             .withProgramIndicator( programIndicator )
             .build();
 
-        when( programIndicatorService.getAnalyticsSql( programIndicator.getExpression(), programIndicator,
+        when( programIndicatorService.getAnalyticsSql( programIndicator.getExpression(), NUMERIC, programIndicator,
             params.getEarliestStartDate(), params.getLatestEndDate() ) )
                 .thenReturn( "select * from table" );
 
@@ -243,7 +244,7 @@ public class AbstractJdbcEventAnalyticsManagerTest
         EventQueryParams params = new EventQueryParams.Builder( createRequestParams() )
             .withProgramIndicator( programIndicator ).build();
 
-        when( programIndicatorService.getAnalyticsSql( programIndicator.getExpression(), programIndicator,
+        when( programIndicatorService.getAnalyticsSql( programIndicator.getExpression(), NUMERIC, programIndicator,
             params.getEarliestStartDate(), params.getLatestEndDate() ) )
                 .thenReturn( "select * from table" );
 
@@ -261,7 +262,7 @@ public class AbstractJdbcEventAnalyticsManagerTest
             .withProgramIndicator( programIndicator )
             .build();
 
-        when( programIndicatorService.getAnalyticsSql( programIndicator.getExpression(), programIndicator,
+        when( programIndicatorService.getAnalyticsSql( programIndicator.getExpression(), NUMERIC, programIndicator,
             params.getEarliestStartDate(), params.getLatestEndDate() ) )
                 .thenReturn( "select * from table" );
 
