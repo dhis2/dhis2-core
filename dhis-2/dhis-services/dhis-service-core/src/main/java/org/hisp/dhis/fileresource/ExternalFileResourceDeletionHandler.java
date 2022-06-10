@@ -56,12 +56,12 @@ public class ExternalFileResourceDeletionHandler extends JdbcDeletionHandler
         {
             return ACCEPT;
         }
-        String sql = "SELECT COUNT(*) FROM externalfileresource WHERE fileresourceid=:id";
+        String sql = "select count(*) from externalfileresource where fileresourceid=:id";
         return vetoIfExists( VETO, sql, Map.of( "id", fileResource.getId() ) );
     }
 
     private void deleteFileResource( FileResource fileResource )
     {
-        delete( "DELETE FROM externalfileresource WHERE fileresourceid=:id", Map.of( "id", fileResource.getId() ) );
+        delete( "delete from externalfileresource where fileresourceid=:id", Map.of( "id", fileResource.getId() ) );
     }
 }

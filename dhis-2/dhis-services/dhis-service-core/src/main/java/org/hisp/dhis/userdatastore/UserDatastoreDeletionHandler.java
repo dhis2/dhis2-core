@@ -44,6 +44,6 @@ public class UserDatastoreDeletionHandler extends JdbcDeletionHandler
 
     private void deleteUser( User user )
     {
-        delete( "DELETE FROM userkeyjsonvalue WHERE userid = :id", Map.of( "id", user.getId() ) );
+        delete( "delete from userkeyjsonvalue where userid = :id", Map.of( "id", user.getId() ) );
     }
 }

@@ -50,16 +50,37 @@ public class ErrorCodeException
         this.errorCode = null;
     }
 
+    /**
+     * Constructor.
+     *
+     * @param errorCode the {@link ErrorCode}.
+     */
     public ErrorCodeException( ErrorCode errorCode )
     {
         super( errorCode.getMessage() );
         this.errorCode = errorCode;
     }
 
+    /**
+     * Constructor.
+     *
+     * @param errorMessage the {@link ErroreMessage}.
+     */
     public ErrorCodeException( ErrorMessage errorMessage )
     {
         super( errorMessage.getMessage() );
         this.errorCode = errorMessage.getErrorCode();
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param errorCode the {@link ErrorCode}.
+     * @param args the message format arguments.
+     */
+    public ErrorCodeException( ErrorCode errorCode, Object... args )
+    {
+        this( new ErrorMessage( errorCode, args ) );
     }
 
     /**
