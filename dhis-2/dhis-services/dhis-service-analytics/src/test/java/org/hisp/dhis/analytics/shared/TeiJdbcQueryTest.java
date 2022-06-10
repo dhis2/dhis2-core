@@ -28,10 +28,14 @@
 package org.hisp.dhis.analytics.shared;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.analytics.tei.TeiJdbcQuery;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 /**
  * // TODO: Improve unit tests and coverage
@@ -46,37 +50,40 @@ class TeiJdbcQueryTest
     void testFullStatementSuccessfully()
     {
         // Given
+        String trackedEntityTypeUid = CodeGenerator.generateUid();
         TeiJdbcQuery teiJdbcQuery = new TeiJdbcQuery();
+        String analyticsTableName = "analytics_tracked_entity_instance_" + trackedEntityTypeUid;
+
         String sql = "select distinct atei.trackedentityinstanceid as \"tracked entity instance id\" , \n" +
             "atei.trackedentityinstanceuid as \"tracked entity instance uid\",\n" +
             "atei.\"zDhUuAYrxNC\" as \"last name\", atei.\"w75KJ2mc4zz\" as \"first name\",\n" +
-            "atei.\"iESIqZ0R0R0\" as \"date of birth\", \n" +
+            "atei.\"lzgmxybs97q\" as \"unique id\", \n" +
             "COALESCE(\n" +
             "                  (SELECT TRUE\n" +
-            "                   FROM analytics_tracked_entity_instance ateiin\n" +
+            "                   FROM " + analyticsTableName + " ateiin\n" +
             "                   WHERE ateiin.trackedentityinstanceid = atei.trackedentityinstanceid\n" +
             "                     AND ateiin.programuid = 'IpHINAT79UW'\n" +
             "                   LIMIT 1), FALSE) AS \"Child Program Enrollment Date\",\n" +
             "COALESCE(\n" +
             "                  (SELECT TRUE\n" +
-            "                   FROM analytics_tracked_entity_instance ateiin\n" +
+            "                   FROM " + analyticsTableName + " ateiin\n" +
             "                   WHERE ateiin.trackedentityinstanceid = atei.trackedentityinstanceid\n" +
             "                     AND ateiin.programuid = 'ur1Edk5Oe2n'\n" +
             "                   LIMIT 1), FALSE) AS \"TB Program Enrollment Date\",\n" +
             "(SELECT ateiin.enrollmentdate\n" +
-            "   FROM analytics_tracked_entity_instance ateiin\n" +
+            "   FROM " + analyticsTableName + " ateiin\n" +
             "   WHERE ateiin.trackedentityinstanceid = atei.trackedentityinstanceid\n" +
             "     AND ateiin.programuid = 'IpHINAT79UW'\n" +
             "   ORDER BY ateiin.enrollmentdate DESC\n" +
             "   LIMIT 1) AS \"is enrolled in Child Program\",\t\t\t\t   \n" +
             "(SELECT ateiin.enrollmentdate\n" +
-            "   FROM analytics_tracked_entity_instance ateiin\n" +
+            "   FROM " + analyticsTableName + " ateiin\n" +
             "   WHERE ateiin.trackedentityinstanceid = atei.trackedentityinstanceid\n" +
             "     AND ateiin.programuid = 'ur1Edk5Oe2n'\n" +
             "   ORDER BY ateiin.enrollmentdate DESC\n" +
             "   LIMIT 1) AS \"is enrolled in TB Program\",\n" +
             "(SELECT ateiin.executiondate\n" +
-            "   FROM analytics_tracked_entity_instance ateiin\n" +
+            "   FROM " + analyticsTableName + " ateiin\n" +
             "   WHERE ateiin.programinstanceid = atei.programinstanceid\n" +
             "     AND ateiin.trackedentityinstanceid = atei.trackedentityinstanceid\n" +
             "     AND ateiin.programuid = atei.programuid\n" +
@@ -85,42 +92,54 @@ class TeiJdbcQueryTest
             "   ORDER BY ateiin.enrollmentdate DESC, ateiin.executiondate DESC\n" +
             "   LIMIT 1) AS \"Report Date\",   \n" +
             "(SELECT ateiin.executiondate\n" +
-            "   FROM analytics_tracked_entity_instance ateiin\n" +
+            "   FROM " + analyticsTableName + " ateiin\n" +
             "   WHERE ateiin.trackedentityinstanceid = atei.trackedentityinstanceid\n" +
             "     AND ateiin.programstageuid = 'jdRD35YwbRH'\n" +
             "   ORDER BY ateiin.enrollmentdate DESC, ateiin.executiondate DESC\n" +
             "   LIMIT 1) AS \"Stage Sputum Test Report Date\",\n" +
             "(SELECT ateiin.eventdatavalues -> 'cYGaxwK615G' -> 'value'\n" +
-            "   FROM analytics_tracked_entity_instance ateiin\n" +
+            "   FROM " + analyticsTableName + " ateiin\n" +
             "   WHERE ateiin.programinstanceid = atei.programinstanceid\n" +
             "     AND ateiin.trackedentityinstanceid = atei.trackedentityinstanceid\n" +
             "     AND ateiin.programuid = 'IpHINAT79UW'\n" +
             "   ORDER BY ateiin.enrollmentdate DESC, ateiin.executiondate DESC\n" +
             "   LIMIT 1) AS \"Infant HIV test Result\",\n" +
             "(SELECT ateiin.eventdatavalues -> 'sj3j9Hwc7so' -> 'value'\n" +
-            "   FROM analytics_tracked_entity_instance ateiin\n" +
+            "   FROM " + analyticsTableName + " ateiin\n" +
             "   WHERE ateiin.programinstanceid = atei.programinstanceid\n" +
             "     AND ateiin.trackedentityinstanceid = atei.trackedentityinstanceid\n" +
             "     AND ateiin.programuid = 'IpHINAT79UW'\n" +
             "   ORDER BY ateiin.enrollmentdate DESC, ateiin.executiondate DESC\n" +
             "   LIMIT 1) AS \"Child ARVs\",\n" +
             "(SELECT ateiin.eventdatavalues -> 'zocHNQIQBIN' -> 'value'\n" +
-            "   FROM analytics_tracked_entity_instance ateiin\n" +
+            "   FROM " + analyticsTableName + " ateiin\n" +
             "   WHERE ateiin.trackedentityinstanceid = atei.trackedentityinstanceid\n" +
             "   ORDER BY ateiin.enrollmentdate DESC, ateiin.executiondate DESC\n" +
             "   LIMIT 1) AS \"TB  smear microscopy test outcome\"\n" +
-            "from analytics_tracked_entity_instance atei\n" +
+            "from " + analyticsTableName + " atei\n" +
             "where atei.\"zDhUuAYrxNC\" = 'Kelly'\n" +
             "and atei.\"w75KJ2mc4zz\" = 'John'\n" +
             "and atei.enrollmentdate  > '2022-01-01'\n" +
             "and atei.programuid in ('ur1Edk5Oe2n', 'IpHINAT79UW')";
         // When
-        final Query query = teiJdbcQuery.from( TeiQueryParams.builder().build() );
+        final Query query = teiJdbcQuery.from( mockTeiParams( trackedEntityTypeUid ) );
         final String fullStatement = query.fullStatement();
 
         // Then
         assertEquals( sql.replaceAll( "[\\n\\t ]", "" ).toLowerCase(),
             fullStatement.replaceAll( "[\\n\\t ]", "" ).toLowerCase(),
             fullStatement );
+    }
+
+    private TeiQueryParams mockTeiParams( String trackedEntityTypeUid )
+    {
+        TrackedEntityType trackedEntityType = Mockito.mock( TrackedEntityType.class );
+
+        when( trackedEntityType.getUid() ).thenReturn( trackedEntityTypeUid );
+
+        return TeiQueryParams
+            .builder()
+            .trackedEntityType( trackedEntityType )
+            .build();
     }
 }

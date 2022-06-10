@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.analytics.shared.component.builder;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -85,6 +87,12 @@ public class SelectComponentBuilder
      */
     public SelectComponent build()
     {
+        checkNotNull( teiQueryParams );
+
+        checkNotNull( teiQueryParams.getTrackedEntityType() );
+
+        checkNotNull( teiQueryParams.getTrackedEntityType().getUid() );
+
         String trackedEntityUid = teiQueryParams.getTrackedEntityType().getUid();
 
         List<Element<SelectVisitor>> elements = new ArrayList<>(

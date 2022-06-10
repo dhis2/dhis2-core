@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.analytics.shared.component.element.select;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import lombok.Getter;
 
 @Getter
@@ -36,6 +38,7 @@ public abstract class SelectElement
 
     protected SelectElement( String trackedEntityTypeUid )
     {
+        checkNotNull( trackedEntityTypeUid );
         this.trackedEntityTypeUid = trackedEntityTypeUid.toLowerCase();
     }
 }
