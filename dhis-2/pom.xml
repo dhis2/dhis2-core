@@ -71,7 +71,7 @@
     <cglib.version>3.2.4</cglib.version>
 
     <!-- Spring-->
-    <spring.version>5.3.6</spring.version>
+    <spring.version>5.3.18</spring.version>
     <spring-data-redis.version>2.3.2.RELEASE</spring-data-redis.version>
     <spring-session-data-redis.version>2.3.0.RELEASE</spring-session-data-redis.version>
     <spring-mobile-device.version>1.1.5.RELEASE</spring-mobile-device.version>
