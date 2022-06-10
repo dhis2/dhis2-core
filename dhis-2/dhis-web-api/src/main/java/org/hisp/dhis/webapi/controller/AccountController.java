@@ -256,6 +256,22 @@ public class AccountController
             return badRequestMessage;
         }
 
+        if ( !systemSettingManager.selfRegistrationNoRecaptcha() )
+        {
+            if ( recapResponse == null )
+            {
+                return badRequest( "Please verify that you are not a robot" );
+            }
+
+            RecaptchaResponse recaptchaResponse = securityService
+                .verifyRecaptcha( recapResponse, request.getRemoteAddr() );
+            if ( !recaptchaResponse.success() )
+            {
+                log.warn( "Recaptcha validation failed: " + recaptchaResponse.getErrorCodes() );
+                return badRequest( "Recaptcha validation failed: " + recaptchaResponse.getErrorCodes() );
+            }
+        }
+
         boolean invitedByEmail = (inviteUsername != null && !inviteUsername.isEmpty());
         if ( invitedByEmail )
         {
@@ -293,22 +309,6 @@ public class AccountController
             if ( !configurationService.getConfiguration().selfRegistrationAllowed() )
             {
                 return badRequest( "User self registration is not allowed" );
-            }
-
-            if ( !systemSettingManager.selfRegistrationNoRecaptcha() )
-            {
-                if ( recapResponse == null )
-                {
-                    return badRequest( "Please verify that you are not a robot" );
-                }
-
-                RecaptchaResponse recaptchaResponse = securityService
-                    .verifyRecaptcha( recapResponse, request.getRemoteAddr() );
-                if ( !recaptchaResponse.success() )
-                {
-                    log.warn( "Recaptcha validation failed: " + recaptchaResponse.getErrorCodes() );
-                    return badRequest( "Recaptcha validation failed: " + recaptchaResponse.getErrorCodes() );
-                }
             }
 
             if ( userService.getUserByUsername( username ) != null )
@@ -425,7 +425,6 @@ public class AccountController
         HttpServletRequest request,
         boolean canChooseUsername )
     {
-        user.setPassword( userRegistration.getPassword() );
         user.setFirstName( userRegistration.getFirstName() );
         user.setSurname( userRegistration.getSurname() );
         user.setPhoneNumber( userRegistration.getPhoneNumber() );
