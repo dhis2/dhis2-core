@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,26 +25,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.parser.expression.operator;
+package org.hisp.dhis.webapi;
 
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
+import lombok.extern.slf4j.Slf4j;
 
-import org.hisp.dhis.antlr.operator.AntlrOperatorCompareEqual;
-import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.ExpressionItem;
+import org.hisp.dhis.config.H2DhisConfigurationProvider;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-/**
- * Compare operator: equal
- *
- * @author Jim Grace
- */
-public class OperatorCompareEqual
-    extends AntlrOperatorCompareEqual
-    implements ExpressionItem
+@Slf4j
+@Configuration
+public class ApiTokenWebTestConfigProviderConfiguration
 {
-    @Override
-    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
+    @Bean( name = "dhisConfigurationProvider" )
+    public DhisConfigurationProvider dhisConfigurationProvider()
     {
-        return visitor.sqlNumericVisit( ctx.expr( 0 ) ) + " = " + visitor.sqlNumericVisit( ctx.expr( 1 ) );
+        return new H2DhisConfigurationProvider();
     }
+
 }
