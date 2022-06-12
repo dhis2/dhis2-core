@@ -220,6 +220,7 @@ class EnrollmentAttributeValidationHookTest
         when( preheat.getTrackedEntity( enrollment.getTrackedEntity() ) )
             .thenReturn( trackedEntityInstance );
 
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
         hookToTest.validateEnrollment( reporter, enrollment );
 
         assertThat( reporter.getReportList(), hasSize( 1 ) );

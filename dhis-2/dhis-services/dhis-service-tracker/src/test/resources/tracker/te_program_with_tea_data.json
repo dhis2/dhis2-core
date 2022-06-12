@@ -80,11 +80,11 @@
           "value": "321"
         },
         {
-          "attribute": {
-            "idScheme": "UID",
-            "identifier": "TsfP85GKsUZ"
-          },
+          "lastUpdated": "2020-02-20T12:09:21.848",
+          "storedBy": "admin",
+          "attribute": "TsfP85GKsUZ",
           "displayName": "Attribute_Percentage",
+          "created": "2020-02-20T12:09:21.848",
           "storedBy": "admin",
           "valueType": "PERCENTAGE",
           "value": "80"
