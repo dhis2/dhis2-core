@@ -78,6 +78,16 @@
           "valueType": "INTEGER_POSITIVE",
           "attribute": "p5TPww5Uhrd",
           "value": "321"
+        },
+        {
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "TsfP85GKsUZ"
+          },
+          "displayName": "Attribute_Percentage",
+          "storedBy": "admin",
+          "valueType": "PERCENTAGE",
+          "value": "80"
         }
       ],
       "events": []
