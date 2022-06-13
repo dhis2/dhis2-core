@@ -428,6 +428,42 @@
           "userAccesses": []
         },
         {
+          "lastUpdated": "2020-02-20T12:08:40.006",
+          "id": "OQeqChgVcM0",
+          "created": "2020-02-12T15:07:06.260",
+          "name": "Program Attribute_Percentage",
+          "displayName": "Program Attribute_Percentage",
+          "mandatory": false,
+          "displayShortName": "Program Attribute_Percentage",
+          "externalAccess": false,
+          "renderOptionsAsRadio": false,
+          "valueType": "PERCENTAGE",
+          "searchable": false,
+          "displayInList": true,
+          "sortOrder": 4,
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "program": {
+            "id": "hJUBNVQWl4e"
+          },
+          "trackedEntityAttribute": {
+            "id": "TsfP85GKsUZ"
+          },
+          "favorites": [],
+          "programTrackedEntityAttributeGroups": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
+        },
+        {
           "lastUpdated": "2020-02-20T12:08:40.008",
           "id": "UOCaOMetAO5",
           "created": "2020-02-20T12:08:39.841",
@@ -440,7 +476,7 @@
           "valueType": "TEXT",
           "searchable": false,
           "displayInList": false,
-          "sortOrder": 4,
+          "sortOrder": 5,
           "favorite": false,
           "access": {
             "read": true,
@@ -655,6 +691,36 @@
       "generated": false,
       "displayOnVisitSchedule": false,
       "valueType": "TEXT",
+      "orgunitScope": false,
+      "confidential": false,
+      "unique": false,
+      "inherit": false,
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": []
+    },
+    {
+      "lastUpdated": "2020-02-10T10:55:46.706",
+      "id": "TsfP85GKsUZ",
+      "created": "2020-02-10T09:10:00.847",
+      "name": "Attribute_Percentage",
+      "shortName": "Attribute_Percentage",
+      "aggregationType": "NONE",
+      "displayInListNoProgram": true,
+      "publicAccess": "rw------",
+      "pattern": "",
+      "skipSynchronization": false,
+      "generated": false,
+      "displayOnVisitSchedule": false,
+      "valueType": "PERCENTAGE",
       "orgunitScope": false,
       "confidential": false,
       "unique": false,

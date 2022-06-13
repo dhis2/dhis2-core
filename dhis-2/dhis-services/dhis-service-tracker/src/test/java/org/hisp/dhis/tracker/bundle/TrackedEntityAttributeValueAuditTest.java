@@ -98,7 +98,7 @@ public class TrackedEntityAttributeValueAuditTest extends TrackerTest
             .getTrackedEntityAttributeValues(
                 trackedEntityInstance );
 
-        assertEquals( 4, attributeValues.size() );
+        assertEquals( 5, attributeValues.size() );
 
         List<TrackedEntityAttribute> attributes = attributeValues.stream()
             .map( TrackedEntityAttributeValue::getAttribute ).collect( Collectors.toList() );
@@ -107,7 +107,7 @@ public class TrackedEntityAttributeValueAuditTest extends TrackerTest
             .getTrackedEntityAttributeValueAudits(
                 attributes, trackedEntityInstances, AuditType.CREATE );
 
-        assertEquals( 4, attributeValueAudits.size() );
+        assertEquals( 5, attributeValueAudits.size() );
     }
 
     @Test
