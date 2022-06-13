@@ -81,7 +81,7 @@ class TrackedEntityProgramAttributeTest extends TrackerTest
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstances.get( 0 );
         List<TrackedEntityAttributeValue> attributeValues = trackedEntityAttributeValueService
             .getTrackedEntityAttributeValues( trackedEntityInstance );
-        assertEquals( 4, attributeValues.size() );
+        assertEquals( 5, attributeValues.size() );
     }
 
     @Test
@@ -97,7 +97,7 @@ class TrackedEntityProgramAttributeTest extends TrackerTest
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstances.get( 0 );
         List<TrackedEntityAttributeValue> attributeValues = trackedEntityAttributeValueService
             .getTrackedEntityAttributeValues( trackedEntityInstance );
-        assertEquals( 4, attributeValues.size() );
+        assertEquals( 5, attributeValues.size() );
         manager.clear();
         // update
         trackerImportParams = fromJson( "tracker/te_program_with_tea_update_data.json" );
@@ -109,7 +109,7 @@ class TrackedEntityProgramAttributeTest extends TrackerTest
         assertEquals( 1, trackedEntityInstances.size() );
         trackedEntityInstance = trackedEntityInstances.get( 0 );
         attributeValues = trackedEntityAttributeValueService.getTrackedEntityAttributeValues( trackedEntityInstance );
-        assertEquals( 4, attributeValues.size() );
+        assertEquals( 5, attributeValues.size() );
     }
 
     @Test
@@ -125,7 +125,7 @@ class TrackedEntityProgramAttributeTest extends TrackerTest
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstances.get( 0 );
         List<TrackedEntityAttributeValue> attributeValues = trackedEntityAttributeValueService
             .getTrackedEntityAttributeValues( trackedEntityInstance );
-        assertEquals( 4, attributeValues.size() );
+        assertEquals( 5, attributeValues.size() );
         manager.clear();
         // update
         trackerImportParams = fromJson( "tracker/te_program_with_tea_update_data.json" );
@@ -137,7 +137,7 @@ class TrackedEntityProgramAttributeTest extends TrackerTest
         assertEquals( 1, trackedEntityInstances.size() );
         trackedEntityInstance = trackedEntityInstances.get( 0 );
         attributeValues = trackedEntityAttributeValueService.getTrackedEntityAttributeValues( trackedEntityInstance );
-        assertEquals( 4, attributeValues.size() );
+        assertEquals( 5, attributeValues.size() );
         manager.clear();
         // delete
         trackerImportParams = fromJson( "tracker/te_program_with_tea_delete_data.json" );

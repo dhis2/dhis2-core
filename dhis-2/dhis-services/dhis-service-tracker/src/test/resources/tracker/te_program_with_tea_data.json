@@ -113,6 +113,16 @@
           "storedBy": "admin",
           "valueType": "INTEGER_POSITIVE",
           "value": "321"
+        },
+        {
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "TsfP85GKsUZ"
+          },
+          "displayName": "Attribute_Percentage",
+          "storedBy": "admin",
+          "valueType": "PERCENTAGE",
+          "value": "80"
         }
       ],
       "notes": []
