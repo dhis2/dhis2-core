@@ -53,7 +53,7 @@ public class ApiTokenAuthenticationToken extends AbstractAuthenticationToken
 
     public ApiTokenAuthenticationToken( ApiToken token, User user )
     {
-        super( Collections.emptyList() );
+        super( user.getAuthorities() );
         this.tokenRef = token;
         this.user = user;
     }
