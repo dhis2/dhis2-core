@@ -30,6 +30,7 @@ package org.hisp.dhis.program;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashSet;
 
@@ -69,6 +70,7 @@ class ProgramStageServiceTest extends DhisSpringTest
         programService.addProgram( program );
         stageA = new ProgramStage( "A", program );
         stageA.setUid( "UID-A" );
+        stageA.setReferral( true );
         stageB = new ProgramStage( "B", program );
         stageB.setUid( "UID-B" );
     }
@@ -78,8 +80,13 @@ class ProgramStageServiceTest extends DhisSpringTest
     {
         long idA = programStageService.saveProgramStage( stageA );
         long idB = programStageService.saveProgramStage( stageB );
+
         assertNotNull( programStageService.getProgramStage( idA ) );
         assertNotNull( programStageService.getProgramStage( idB ) );
+
+        ProgramStage persistedProgramStage = programStageService.getProgramStage( idA );
+        assertEquals( persistedProgramStage, stageA );
+        assertTrue( persistedProgramStage.isReferral() );
     }
 
     @Test
