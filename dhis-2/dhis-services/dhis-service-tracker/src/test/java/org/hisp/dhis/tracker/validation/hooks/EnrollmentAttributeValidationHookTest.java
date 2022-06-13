@@ -39,6 +39,8 @@ import java.util.Collections;
 import java.util.HashSet;
 
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.encryption.EncryptionStatus;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -87,6 +89,9 @@ public class EnrollmentAttributeValidationHookTest
     @Mock
     private TrackedEntityInstance trackedEntityInstance;
 
+    @Mock
+    private DhisConfigurationProvider dhisConfigurationProvider;
+
     private final static String trackedEntity = "trackedEntity";
 
     private final static String trackedAttribute = "attribute";
@@ -95,9 +100,15 @@ public class EnrollmentAttributeValidationHookTest
 
     private final static String invalidTrackedAttribute = "invalidAttribute";
 
+    private final static String trackedAttributeP = "attributeP";
+
     private TrackedEntityAttribute trackedEntityAttribute;
 
     private TrackedEntityAttribute trackedEntityAttribute1;
+
+    private TrackedEntityAttribute trackedEntityAttributeP;
+
+    private ValidationErrorReporter reporter;
 
     @Before
     public void setUp()
@@ -111,10 +122,18 @@ public class EnrollmentAttributeValidationHookTest
             false );
         trackedEntityAttribute1.setUid( trackedAttribute1 );
 
+        trackedEntityAttributeP = new TrackedEntityAttribute( "percentage", "percent", ValueType.PERCENTAGE, false,
+            false );
+        trackedEntityAttributeP.setUid( trackedAttributeP );
+
         when( validationContext.getProgram( anyString() ) ).thenReturn( program );
         when( enrollment.getProgram() ).thenReturn( "program" );
         when( validationContext.getTrackedEntityAttribute( trackedAttribute ) ).thenReturn( trackedEntityAttribute );
         when( validationContext.getTrackedEntityAttribute( trackedAttribute1 ) ).thenReturn( trackedEntityAttribute1 );
+        when( validationContext.getTrackedEntityAttribute( trackedAttributeP ) ).thenReturn( trackedEntityAttributeP );
+
+        when( dhisConfigurationProvider.getEncryptionStatus() )
+            .thenReturn( EncryptionStatus.MISSING_ENCRYPTION_PASSWORD );
 
         enrollment.setTrackedEntity( trackedEntity );
 
@@ -150,6 +169,35 @@ public class EnrollmentAttributeValidationHookTest
 
         assertThat( validationErrorReporter.getReportList(), hasSize( 1 ) );
         assertEquals( TrackerErrorCode.E1076, validationErrorReporter.getReportList().get( 0 ).getErrorCode() );
+    }
+
+    @Test
+    public void shouldFailValidationWhenValueIsInvalidPercentage()
+    {
+        // given 1 percentage attribute has invalid value
+        Attribute attribute = Attribute.builder().attribute( trackedAttribute ).valueType( ValueType.TEXT )
+            .value( "value" ).build();
+        Attribute attribute1 = Attribute.builder().attribute( trackedAttributeP ).valueType( ValueType.PERCENTAGE )
+            .value( "1000" ).build();
+
+        // when both tracked attributes are mandatory
+        when( program.getProgramAttributes() ).thenReturn( Arrays.asList(
+            new ProgramTrackedEntityAttribute( program, trackedEntityAttribute, false, true ),
+            new ProgramTrackedEntityAttribute( program, trackedEntityAttributeP, false, false ) ) );
+
+        when( enrollment.getAttributes() ).thenReturn( Arrays.asList( attribute, attribute1 ) );
+        when( trackedEntityInstance.getTrackedEntityAttributeValues() )
+            .thenReturn( new HashSet<>(
+                Arrays.asList( new TrackedEntityAttributeValue( trackedEntityAttribute, trackedEntityInstance ),
+                    new TrackedEntityAttributeValue( trackedEntityAttributeP, trackedEntityInstance ) ) ) );
+        when( preheat.getTrackedEntity( TrackerIdScheme.UID, enrollment.getTrackedEntity() ) )
+            .thenReturn( trackedEntityInstance );
+
+        ValidationErrorReporter validationErrorReporter = new ValidationErrorReporter( validationContext );
+        hookToTest.validateEnrollment( validationErrorReporter, enrollment );
+
+        assertThat( validationErrorReporter.getReportList(), hasSize( 1 ) );
+        assertEquals( TrackerErrorCode.E1085, validationErrorReporter.getReportList().get( 0 ).getErrorCode() );
     }
 
     @Test
