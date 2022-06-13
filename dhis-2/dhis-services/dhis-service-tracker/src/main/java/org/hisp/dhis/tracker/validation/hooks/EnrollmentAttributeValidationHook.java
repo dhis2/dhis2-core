@@ -41,6 +41,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
@@ -67,9 +68,10 @@ import com.google.common.collect.Streams;
 public class EnrollmentAttributeValidationHook extends AttributeValidationHook
 {
 
-    public EnrollmentAttributeValidationHook( TrackedAttributeValidationService teAttrService )
+    public EnrollmentAttributeValidationHook( TrackedAttributeValidationService teAttrService,
+        DhisConfigurationProvider dhisConfigurationProvider )
     {
-        super( teAttrService );
+        super( teAttrService, dhisConfigurationProvider );
     }
 
     @Override
@@ -99,6 +101,7 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
 
                 attributeValueMap.put( attribute.getAttribute(), attribute.getValue() );
 
+                validateAttributeValue( reporter, enrollment, teAttribute, attribute.getValue() );
                 validateAttrValueType( reporter, enrollment, attribute, teAttribute );
                 validateOptionSet( reporter, enrollment, teAttribute,
                     attribute.getValue() );
