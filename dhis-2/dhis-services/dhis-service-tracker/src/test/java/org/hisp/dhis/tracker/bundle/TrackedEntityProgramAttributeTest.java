@@ -87,7 +87,7 @@ public class TrackedEntityProgramAttributeTest
             .getTrackedEntityAttributeValues(
                 trackedEntityInstance );
 
-        assertEquals( 4, attributeValues.size() );
+        assertEquals( 5, attributeValues.size() );
     }
 
     @Test
@@ -109,7 +109,7 @@ public class TrackedEntityProgramAttributeTest
             .getTrackedEntityAttributeValues(
                 trackedEntityInstance );
 
-        assertEquals( 4, attributeValues.size() );
+        assertEquals( 5, attributeValues.size() );
 
         manager.clear();
 
@@ -127,7 +127,7 @@ public class TrackedEntityProgramAttributeTest
 
         attributeValues = trackedEntityAttributeValueService.getTrackedEntityAttributeValues( trackedEntityInstance );
 
-        assertEquals( 4, attributeValues.size() );
+        assertEquals( 5, attributeValues.size() );
     }
 
     @Test
@@ -148,7 +148,7 @@ public class TrackedEntityProgramAttributeTest
             .getTrackedEntityAttributeValues(
                 trackedEntityInstance );
 
-        assertEquals( 4, attributeValues.size() );
+        assertEquals( 5, attributeValues.size() );
 
         manager.clear();
 
@@ -166,7 +166,7 @@ public class TrackedEntityProgramAttributeTest
 
         attributeValues = trackedEntityAttributeValueService.getTrackedEntityAttributeValues( trackedEntityInstance );
 
-        assertEquals( 4, attributeValues.size() );
+        assertEquals( 5, attributeValues.size() );
 
         manager.clear();
 

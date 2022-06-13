@@ -28,17 +28,12 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
 import static com.google.api.client.util.Preconditions.checkNotNull;
-import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1006;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1009;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1076;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1077;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1084;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1085;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1090;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1112;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ATTRIBUTE_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -55,7 +50,6 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.tracker.util.Constant;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.tracker.validation.service.attribute.TrackedAttributeValidationService;
 import org.springframework.stereotype.Component;
@@ -66,14 +60,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class TrackedEntityAttributeValidationHook extends AttributeValidationHook
 {
-    private final DhisConfigurationProvider dhisConfigurationProvider;
-
     public TrackedEntityAttributeValidationHook( TrackedAttributeValidationService teAttrService,
         DhisConfigurationProvider dhisConfigurationProvider )
     {
-        super( teAttrService );
-        checkNotNull( dhisConfigurationProvider );
-        this.dhisConfigurationProvider = dhisConfigurationProvider;
+        super( teAttrService, dhisConfigurationProvider );
     }
 
     @Override
@@ -162,27 +152,6 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
 
             validateFileNotAlreadyAssigned( reporter, trackedEntity, attribute, valueMap );
         }
-    }
-
-    public void validateAttributeValue( ValidationErrorReporter reporter, TrackedEntityAttribute tea, String value )
-    {
-        checkNotNull( tea, TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL );
-        checkNotNull( value, TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL );
-
-        // Validate value (string) don't exceed the max length
-        addErrorIf( () -> value.length() > Constant.MAX_ATTR_VALUE_LENGTH, reporter, E1077, value,
-            Constant.MAX_ATTR_VALUE_LENGTH );
-
-        // Validate if that encryption is configured properly if someone sets
-        // value to (confidential)
-        boolean isConfidential = tea.isConfidentialBool();
-        boolean encryptionStatusOk = dhisConfigurationProvider.getEncryptionStatus().isOk();
-        addErrorIf( () -> isConfidential && !encryptionStatusOk, reporter, E1112, value );
-
-        // Uses ValidationUtils to check that the data value corresponds to the
-        // data value type set on the attribute
-        final String result = dataValueIsValid( value, tea.getValueType() );
-        addErrorIf( () -> result != null, reporter, E1085, tea, result );
     }
 
     protected void validateFileNotAlreadyAssigned( ValidationErrorReporter reporter, TrackedEntity te,
