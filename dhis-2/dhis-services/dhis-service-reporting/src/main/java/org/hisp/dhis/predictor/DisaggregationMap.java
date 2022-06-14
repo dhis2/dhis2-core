@@ -25,38 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.common;
+package org.hisp.dhis.predictor;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
-
-import org.hisp.dhis.analytics.common.dimension.DimensionParam;
-import org.hisp.dhis.program.Program;
-
-@Getter
-@Setter
-@Builder( toBuilder = true )
-public class CommonParams
+/**
+ * A map that, for each input data element disaggregation (category option
+ * combo) UID, returns the UID of the corresponding predictor output data
+ * element disaggregation (category option combo).
+ *
+ * @author Jim Grace
+ */
+public class DisaggregationMap
+    extends HashMap<String, String>
 {
+    /**
+     * Constructs an empty DisaggregationMap.
+     */
+    public DisaggregationMap()
+    {
+    }
 
     /**
-     * Programs this params refers to
+     * Constructs a new DisaggregationMap with the same mappings as the
+     * specified Map.
+     *
+     * @param m the map whose mappings are to be placed in this map
      */
-    private final Collection<Program> programs;
-
-    /**
-     * Data structure containing dimensionParams, which represents dimensions,
-     * filters, queryItems, queryItemFilters
-     */
-    @Builder.Default
-    private final List<DimensionParam> dimensionParams = new ArrayList<>();
-
-    @Builder.Default
-    private final AnalyticsPagingAndSortingParams pagingAndSortingParams = AnalyticsPagingAndSortingParams.builder()
-        .build();
+    public DisaggregationMap( Map<String, String> m )
+    {
+        super( m );
+    }
 }

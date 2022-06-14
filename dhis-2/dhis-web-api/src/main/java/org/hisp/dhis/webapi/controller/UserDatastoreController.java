@@ -267,7 +267,7 @@ public class UserDatastoreController
         User user = userService.getUserByUsername( username );
         if ( user == null )
         {
-            throw new IllegalQueryException( "No user with username " + username + " does exist." );
+            throw new IllegalQueryException( "No user with username " + username + " exists." );
         }
         return user;
     }
