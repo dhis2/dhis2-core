@@ -709,7 +709,7 @@ public class IdentifiableObjectManagerTest
     }
 
     @Test
-    void testGetDefaults()
+    public void testGetDefaults()
     {
         Map<Class<? extends IdentifiableObject>, IdentifiableObject> objects = identifiableObjectManager.getDefaults();
         assertEquals( 4, objects.size() );
