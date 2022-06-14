@@ -203,6 +203,15 @@ public class DefaultAclService implements AclService
         return schema.isDataShareable() ? canDataRead( user, object ) : canRead( user, object );
     }
 
+    /**
+     * Check if given user has the permission to create given object. The checks
+     * will be executed in below order: 1) Authorities defined in object schema
+     * descriptor. 2) PublicAccess of given object.
+     *
+     * @param user User to check against
+     * @param object Object to check
+     * @return
+     */
     @Override
     @SuppressWarnings( "unchecked" )
     public boolean canWrite( User user, IdentifiableObject object )
@@ -280,6 +289,16 @@ public class DefaultAclService implements AclService
         return false;
     }
 
+    /**
+     * Check if given user has permission to update given object. The checks
+     * will be executed in below order: 1) Authorities defined in object schema
+     * descriptor. 2) PublicAccess of given object. 3) UserAccesses or
+     * UserGroupAccesses of given object.
+     *
+     * @param user User to check against
+     * @param object Object to check
+     * @return
+     */
     @Override
     @SuppressWarnings( "unchecked" )
     public boolean canUpdate( User user, IdentifiableObject object )
@@ -309,8 +328,9 @@ public class DefaultAclService implements AclService
         {
             return writeCommonCheck( schema, user, object, objType );
         }
-        else if ( schema.isImplicitPrivateAuthority() && checkSharingAccess( user, object, objType )
-            || (checkUser( user, object ) || checkSharingPermission( user, object, Permission.WRITE )) )
+        else if ( schema.isShareable()
+            && (schema.isImplicitPrivateAuthority() && checkSharingAccess( user, object, objType )
+                || (checkUser( user, object ) || checkSharingPermission( user, object, Permission.WRITE ))) )
         {
             return true;
         }

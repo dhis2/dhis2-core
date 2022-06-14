@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.HashSet;
 import java.util.List;
 
+import org.hisp.dhis.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
@@ -72,7 +73,6 @@ import com.google.common.collect.Sets;
  */
 class AclServiceTest extends TransactionalIntegrationTest
 {
-
     @Autowired
     private AclService aclService;
 
@@ -89,12 +89,6 @@ class AclServiceTest extends TransactionalIntegrationTest
     private JdbcTemplate jdbcTemplate;
 
     @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
-    @Override
     protected void setUpTest()
         throws Exception
     {
@@ -105,6 +99,16 @@ class AclServiceTest extends TransactionalIntegrationTest
     void testCanWritePrivate()
     {
         User user = createAndAddUser( "A", null, "F_DATAELEMENT_PRIVATE_ADD" );
+        DataElement dataElement = createDataElement( 'A' );
+        dataElement.setPublicAccess( AccessStringHelper.DEFAULT );
+        dataElement.getSharing().addUserAccess( new UserAccess( user, AccessStringHelper.READ_WRITE ) );
+        assertTrue( aclService.canWrite( user, dataElement ) );
+    }
+
+    @Test
+    void testCanWritePrivateWithPublicAuth()
+    {
+        User user = createAndAddUser( "A", null, "F_DATAELEMENT_PUBLIC_ADD" );
         DataElement dataElement = createDataElement( 'A' );
         dataElement.setPublicAccess( AccessStringHelper.DEFAULT );
         dataElement.getSharing().addUserAccess( new UserAccess( user, AccessStringHelper.READ_WRITE ) );
@@ -129,6 +133,15 @@ class AclServiceTest extends TransactionalIntegrationTest
         dataElement.setPublicAccess( AccessStringHelper.DEFAULT );
         dataElement.getSharing().addUserAccess( new UserAccess( user, AccessStringHelper.READ_WRITE ) );
         assertTrue( aclService.canManage( user, dataElement ) );
+    }
+
+    @Test
+    void testCanUpdateWithNoSharing()
+    {
+        User user = createAndAddUser( "A" );
+        DataElement dataElement = createDataElement( 'A' );
+        dataElement.setPublicAccess( AccessStringHelper.DEFAULT );
+        assertFalse( aclService.canUpdate( user, dataElement ) );
     }
 
     @Test
@@ -498,11 +511,19 @@ class AclServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testUpdateNoSharingObject()
+    void testUpdateNoSharingObjectWithoutAuthority()
     {
-        User user = createAndAddAdminUser();
+        User user = createAndAddUser( "A", null, "" );
         OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
         assertFalse( aclService.canUpdate( user, organisationUnit ) );
+    }
+
+    @Test
+    void testUpdateNoSharingObjectWithAuthority()
+    {
+        User user = createAndAddUser( "A", null, "F_ORGANISATIONUNIT_ADD" );
+        OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
+        assertTrue( aclService.canUpdate( user, organisationUnit ) );
     }
 
     @Test
@@ -608,7 +629,7 @@ class AclServiceTest extends TransactionalIntegrationTest
         dashboard.setCreatedBy( user1 );
         dashboard.getSharing().setOwner( user1 );
         dashboard.setAutoFields();
-        manager.save( dashboard );
+        manager.save( dashboard, false );
         assertTrue( aclService.canRead( user1, dashboard ) );
         assertTrue( aclService.canUpdate( user1, dashboard ) );
         assertTrue( aclService.canDelete( user1, dashboard ) );

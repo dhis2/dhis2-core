@@ -49,7 +49,7 @@ public class Access
     private boolean externalize;
 
     /**
-     * Can user create a new instance of current object
+     * Can user create a new instance of current object.
      */
     private boolean write;
 
