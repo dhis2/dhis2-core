@@ -20,5 +20,7 @@ jobs:
     steps:
       - uses: rtCamp/action-slack-notify@v2
         env:
+          SLACK_USERNAME: 'GitHub'
           SLACK_WEBHOOK: ${{ secrets.SLACK_BACKEND_WEBHOOK }}
           SLACK_CHANNEL: 'gintare'
+          SLACK_MESSAGE: 'Latest test run on master failed and needs investigation :detective-duck:'
