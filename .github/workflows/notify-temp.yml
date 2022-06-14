@@ -23,5 +23,5 @@ jobs:
           SLACK_USERNAME: 'GitHub'
           SLACK_WEBHOOK: ${{ secrets.SLACK_BACKEND_WEBHOOK }}
           SLACK_CHANNEL: 'gintare'
-          SLACK_MESSAGE: 'Latest test run on master failed and needs investigation :detective-duck:'
-          SLACK_COLOR: 'bad'
+          SLACK_TITLE: 'Latest test run on master failed and needs investigation :detective-duck:'
+          SLACK_COLOR: '#ff0000'
