@@ -1,6 +1,11 @@
 on: [push]
 name: notify
 jobs:
+  dont-fail:
+    runs-on: ubuntu-latest
+    steps:
+      - name: pass
+        run: exit 0
   always-fail:
     runs-on: ubuntu-latest
     steps:
@@ -8,7 +13,10 @@ jobs:
       run: exit 1
   post-slack:
     runs-on: ubuntu-latest
-    if: ${{ failure() }}
+    if: |
+      always() &&
+      contains(needs.*.result, 'failure')
+    needs: [dont-fail,always-fail]
     steps:
       - uses: rtCamp/action-slack-notify@v2
         env:
