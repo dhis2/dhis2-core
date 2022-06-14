@@ -1205,14 +1205,18 @@ public class DefaultIdentifiableObjectManager
     public Map<Class<? extends IdentifiableObject>, IdentifiableObject> getDefaults()
     {
         Long catId = defaultObjectCache.get( Category.class.getName(),
-            key -> Objects.requireNonNull( getByName( Category.class, DEFAULT ) ).getId() ).get();
+            key -> getByName( Category.class, DEFAULT ).getId() )
+            .orElseThrow( () -> new NullPointerException( "Couldn't find default Category" ) );
         Long cateComboId = defaultObjectCache.get( CategoryCombo.class.getName(),
-            key -> Objects.requireNonNull( getByName( CategoryCombo.class, DEFAULT ) ).getId() ).get();
+            key -> getByName( CategoryCombo.class, DEFAULT ).getId() )
+            .orElseThrow( () -> new NullPointerException( "Couldn't find default CategoryCombo" ) );
         Long catOptionId = defaultObjectCache.get( CategoryOption.class.getName(),
-            key -> Objects.requireNonNull( getByName( CategoryOption.class, DEFAULT ) ).getId() ).get();
+            key -> getByName( CategoryOption.class, DEFAULT ).getId() )
+            .orElseThrow( () -> new NullPointerException( "Couldn't find default CategoryOption" ) );
         Long catOptionComboId = defaultObjectCache.get(
             CategoryOptionCombo.class.getName(),
-            key -> Objects.requireNonNull( getByName( CategoryOptionCombo.class, DEFAULT ) ).getId() ).get();
+            key -> getByName( CategoryOptionCombo.class, DEFAULT ).getId() )
+            .orElseThrow( () -> new NullPointerException( "Couldn't find default CategoryOptionCombo" ) );
 
         return new ImmutableMap.Builder<Class<? extends IdentifiableObject>, IdentifiableObject>()
             .put( Category.class, Objects.requireNonNull( get( Category.class, catId ) ) )
