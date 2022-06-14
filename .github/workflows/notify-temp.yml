@@ -1,5 +1,5 @@
 on: [push]
-
+name: notify
 jobs:
   always-fail:
     runs-on: ubuntu-latest
