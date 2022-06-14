@@ -27,10 +27,7 @@
  */
 package org.hisp.dhis.predictor;
 
-import static com.google.common.base.MoreObjects.firstNonNull;
-
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -62,10 +59,12 @@ public class PredictionContextGenerator
      * @param outputPeriods output periods (predict within each period)
      * @param values input prediction values (all with the same orgUnit)
      * @param defaultCategoryOptionCombo system default cat option combo
+     * @param preDis prediction disaggregator
      * @return contexts for prediction evaluation
      */
     public static List<PredictionContext> getContexts( List<Period> outputPeriods,
-        List<FoundDimensionItemValue> values, CategoryOptionCombo defaultCategoryOptionCombo )
+        List<FoundDimensionItemValue> values, CategoryOptionCombo defaultCategoryOptionCombo,
+        PredictionDisaggregator preDis )
     {
         List<PredictionContext> contexts = new ArrayList<>();
 
@@ -79,12 +78,11 @@ public class PredictionContextGenerator
 
             for ( Period outputPeriod : outputPeriods )
             {
-                contexts.add( new PredictionContext( aoc, outputPeriod, periodValueMap,
-                    firstNonNull( periodValueMap.get( outputPeriod ), new HashMap<>() ) ) );
+                contexts.add( new PredictionContext( preDis.getOutputCoc(), aoc, outputPeriod, periodValueMap ) );
             }
         }
 
-        return contexts;
+        return preDis.getDisaggregateContexts( contexts );
     }
 
     // -------------------------------------------------------------------------

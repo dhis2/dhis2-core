@@ -25,38 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.common;
+package org.hisp.dhis.predictor;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.HashMap;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
-
-import org.hisp.dhis.analytics.common.dimension.DimensionParam;
-import org.hisp.dhis.program.Program;
-
-@Getter
-@Setter
-@Builder( toBuilder = true )
-public class CommonParams
+/**
+ * A map that, for each compatible input data element category combo (CC) UID,
+ * returns the disaggregation map for that category combo.
+ *
+ * @author Jim Grace
+ */
+public class CategoryComboDisaggregationMap
+    extends HashMap<String, DisaggregationMap>
 {
-
     /**
-     * Programs this params refers to
+     * For a given input category combination UID and input disaggregation
+     * (category option combo) UID, returns the output disaggregation UID.
+     *
+     * @param catCombo input category combination
+     * @param inputDisag input disaggregation (category option combo)
+     * @return output disaggregation (category option combo), or null if none
      */
-    private final Collection<Program> programs;
+    public String getOutputDisag( String catCombo, String inputDisag )
+    {
+        DisaggregationMap disagMap = get( catCombo );
 
-    /**
-     * Data structure containing dimensionParams, which represents dimensions,
-     * filters, queryItems, queryItemFilters
-     */
-    @Builder.Default
-    private final List<DimensionParam> dimensionParams = new ArrayList<>();
+        if ( disagMap == null )
+        {
+            return null;
+        }
 
-    @Builder.Default
-    private final AnalyticsPagingAndSortingParams pagingAndSortingParams = AnalyticsPagingAndSortingParams.builder()
-        .build();
+        return disagMap.get( inputDisag );
+    }
 }
