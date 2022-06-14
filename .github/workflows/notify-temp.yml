@@ -23,5 +23,5 @@ jobs:
           SLACK_USERNAME: 'GitHub'
           SLACK_WEBHOOK: ${{ secrets.SLACK_BACKEND_WEBHOOK }}
           SLACK_CHANNEL: 'gintare'
-          SLACK_MESSAGE: 'Latest test run on master failed after commit ${{ github.event.head_commit.message }}. Please investigate :detective-duck:'
+          SLACK_MESSAGE: 'Latest test run on master failed and needs investigation :detective-duck:. \n Commit message: commit ${{ github.event.head_commit.message }}'
           SLACK_COLOR: '#ff0000'
