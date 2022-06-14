@@ -15,7 +15,8 @@ jobs:
     runs-on: ubuntu-latest
     if: |
       always() &&
-      contains(needs.*.result, 'failure')
+      contains(needs.*.result, 'failure') &&
+      github.ref == 'refs/heads/master'
     needs: [dont-fail,always-fail]
     steps:
       - uses: rtCamp/action-slack-notify@v2
