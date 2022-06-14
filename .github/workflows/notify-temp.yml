@@ -6,7 +6,6 @@ jobs:
     steps:
     - name: fail
      run: exit 1
--
   post-slack:
     runs-on: ubuntu-latest
     if: ${{ failure() }}
