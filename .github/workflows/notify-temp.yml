@@ -1,0 +1,18 @@
+on: [push]
+
+jobs:
+  always-fail:
+    runs-on: ubuntu-latest
+    steps:
+    - name: fail
+     run: exit 1
+-
+  post-slack:
+    runs-on: ubuntu-latest
+    if: ${{ failure() }}
+    steps:
+      - name
+      uses: rtCamp/action-slack-notify@v2
+      env:
+        SLACK_WEBHOOK: ${{ secrets.SLACK_BACKEND_WEBHOOK }}
+        SLACK_CHANNEL: 'gintare'
