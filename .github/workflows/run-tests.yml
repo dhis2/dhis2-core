@@ -149,7 +149,7 @@ jobs:
       contains(needs.*.result, 'failure') &&
       github.ref == 'refs/heads/master'
 
-    needs: [ unit-test,integration-test, integration-h2-test, integration-test-analytics ]
+    needs: [ unit-test, integration-test, integration-h2-test, integration-test-analytics ]
     steps:
       - uses: rtCamp/action-slack-notify@v2
         env:
