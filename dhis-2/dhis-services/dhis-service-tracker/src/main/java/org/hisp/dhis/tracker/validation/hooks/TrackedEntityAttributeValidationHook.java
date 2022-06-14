@@ -192,5 +192,13 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
         {
             reporter.addErrorIf( () -> fileResource != null && fileResource.isAssigned(), te, E1009, attr.getValue() );
         }
+
+        if ( bundle.getStrategy( te ).isUpdate() )
+        {
+            reporter.addErrorIf(
+                () -> fileResource != null && fileResource.getFileResourceOwner() != null
+                    && !fileResource.getFileResourceOwner().equals( te.getUid() ),
+                te, E1009, attr.getValue() );
+        }
     }
 }

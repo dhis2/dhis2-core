@@ -212,6 +212,15 @@ public class EventDataValuesValidationHook
             reporter.addErrorIf( () -> fileResource != null && fileResource.isAssigned(), event,
                 E1009, dataValue.getValue() );
         }
+
+        if ( bundle.getStrategy( event ).isUpdate() )
+        {
+            reporter.addErrorIf(
+                () -> fileResource != null && fileResource.getFileResourceOwner() != null
+                    && !fileResource.getFileResourceOwner().equals( event.getEvent() ),
+                event,
+                E1009, dataValue.getValue() );
+        }
     }
 
     private void validateOrgUnitValueType( ValidationErrorReporter reporter, TrackerBundle bundle, Event event,
