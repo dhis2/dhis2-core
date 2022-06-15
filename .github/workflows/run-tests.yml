@@ -141,3 +141,20 @@ jobs:
           name: surefire-reports-analytics
           path: "**/target/surefire-reports/TEST-*.xml"
           retention-days: 10
+
+  send-slack-message:
+    runs-on: ubuntu-latest
+    if: |
+      always() &&
+      contains(needs.*.result, 'failure') &&
+      github.ref == 'refs/heads/master'
+
+    needs: [ unit-test, integration-test, integration-h2-test, integration-test-analytics ]
+    steps:
+      - uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_BACKEND_WEBHOOK }}
+          SLACK_CHANNEL: 'team-backend'
+          SLACK_MESSAGE: "Latest test run on master failed and needs investigation :detective-duck:. \n Commit message: ${{ github.event.head_commit.message }}"
+          SLACK_COLOR: '#ff0000'
+
