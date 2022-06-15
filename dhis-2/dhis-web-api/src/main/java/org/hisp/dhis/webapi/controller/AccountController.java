@@ -259,6 +259,12 @@ public class AccountController
         boolean invitedByEmail = (inviteUsername != null && !inviteUsername.isEmpty());
         if ( invitedByEmail )
         {
+            WebMessage message = validateCaptcha( recapResponse, request );
+            if ( message != null )
+            {
+                return message;
+            }
+
             String[] idAndRestoreToken = securityService.decodeEncodedTokens( inviteToken );
             String idToken = idAndRestoreToken[0];
             String restoreToken = idAndRestoreToken[1];
@@ -295,20 +301,10 @@ public class AccountController
                 return badRequest( "User self registration is not allowed" );
             }
 
-            if ( !systemSettingManager.selfRegistrationNoRecaptcha() )
+            WebMessage message = validateCaptcha( recapResponse, request );
+            if ( message != null )
             {
-                if ( recapResponse == null )
-                {
-                    return badRequest( "Please verify that you are not a robot" );
-                }
-
-                RecaptchaResponse recaptchaResponse = securityService
-                    .verifyRecaptcha( recapResponse, request.getRemoteAddr() );
-                if ( !recaptchaResponse.success() )
-                {
-                    log.warn( "Recaptcha validation failed: " + recaptchaResponse.getErrorCodes() );
-                    return badRequest( "Recaptcha validation failed: " + recaptchaResponse.getErrorCodes() );
-                }
+                return message;
             }
 
             if ( userService.getUserByUsername( username ) != null )
@@ -320,6 +316,28 @@ public class AccountController
         }
 
         return ok( "Account created" );
+    }
+
+    WebMessage validateCaptcha( String recapResponse, HttpServletRequest request )
+        throws IOException
+    {
+        if ( !systemSettingManager.selfRegistrationNoRecaptcha() )
+        {
+            if ( recapResponse == null )
+            {
+                return badRequest( "Recaptcha validation failed." );
+            }
+
+            RecaptchaResponse recaptchaResponse = securityService
+                .verifyRecaptcha( recapResponse, request.getRemoteAddr() );
+            if ( !recaptchaResponse.success() )
+            {
+                log.warn( "Recaptcha validation failed: " + recaptchaResponse.getErrorCodes() );
+                return badRequest( "Recaptcha validation failed: " + recaptchaResponse.getErrorCodes() );
+            }
+        }
+
+        return null;
     }
 
     private WebMessage validateInput( UserRegistration userRegistration )
