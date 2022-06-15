@@ -119,8 +119,11 @@ jobs:
       - name: Build analytics with dependencies
         run: mvn clean install --threads 2C -DskipTests -Dmaven.test.skip=true --batch-mode --no-transfer-progress -f dhis-2/pom.xml -pl=dhis-services/dhis-service-analytics/pom.xml --also-make
       - name: Run analytics integration tests
-        run: mvn verify -Pintegration --batch-mode --no-transfer-progress -f ./dhis-2/dhis-services/dhis-service-analytics/pom.xml
+        run: mvn test -Pintegration --batch-mode --no-transfer-progress -f ./dhis-2/dhis-services/dhis-service-analytics/pom.xml
         timeout-minutes: 30
+      # Since we run the analytics integration tests individually, we cannot use the dhis-test-coverage module
+      - name: Gather analytics integration coverage
+        run: mvn jacoco:report -f ./dhis-2/dhis-services/dhis-service-analytics/pom.xml
       - uses: actions/upload-artifact@v3
         name: Upload test logs on failure
         if: failure()
