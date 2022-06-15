@@ -54,6 +54,16 @@ public class ServiceConfig
             resourceTableService, systemSettingManager );
     }
 
+    @Bean( "org.hisp.dhis.analytics.TrackedEntityInstanceOnlyAnalyticsTableService" )
+    public DefaultAnalyticsTableService trackedEntityInstanceOnlyAnalyticsTableManager(
+        @Qualifier( "org.hisp.dhis.analytics.TrackedEntityInstanceOnlyAnalyticsTableManager" ) AnalyticsTableManager tableManager,
+        OrganisationUnitService organisationUnitService, DataElementService dataElementService,
+        ResourceTableService resourceTableService, Notifier notifier, SystemSettingManager systemSettingManager )
+    {
+        return new DefaultAnalyticsTableService( tableManager, organisationUnitService, dataElementService,
+            resourceTableService, systemSettingManager );
+    }
+
     @Bean( "org.hisp.dhis.analytics.AnalyticsTableService" )
     public DefaultAnalyticsTableService analyticsTableService(
         @Qualifier( "org.hisp.dhis.analytics.AnalyticsTableManager" ) AnalyticsTableManager tableManager,
