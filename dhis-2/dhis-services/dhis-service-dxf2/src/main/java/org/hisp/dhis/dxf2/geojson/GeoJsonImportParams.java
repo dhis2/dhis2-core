@@ -35,7 +35,7 @@ import lombok.Getter;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.user.User;
 
-@Builder
+@Builder( toBuilder = true )
 @Getter
 @AllArgsConstructor( access = AccessLevel.PRIVATE )
 public class GeoJsonImportParams
