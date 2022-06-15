@@ -31,12 +31,14 @@ jobs:
           flags: unit
           fail_ci_if_error: true
           verbose: true
-      # delete this step once we are confident in the coverage setup
+      # delete the next 2 steps once we are confident in the coverage setup
+      - name: Tar jacoco coverage report to debug
+        run: tar -cvf coverage.tar dhis-2/dhis-test-coverage/target/site/jacoco-aggregate
       - uses: actions/upload-artifact@v3
         name: Upload jacoco coverage report to debug
         with:
           name: unit-test-coverage
-          path: "dhis-2/dhis-test-coverage/target/site/jacoco-aggregate"
+          path: coverage.tar
           retention-days: 5
       # no coverage is gathered for dhis-web as it will be removed
       - name: Test dhis-web
@@ -71,12 +73,14 @@ jobs:
           flags: integration
           fail_ci_if_error: true
           verbose: true
-      # delete this step once we are confident in the coverage setup
+      # delete the next 2 steps once we are confident in the coverage setup
+      - name: Tar jacoco coverage report to debug
+        run: tar -cvf coverage.tar dhis-2/dhis-test-coverage/target/site/jacoco-aggregate
       - uses: actions/upload-artifact@v3
         name: Upload jacoco coverage report to debug
         with:
           name: integration-test-coverage
-          path: "dhis-2/dhis-test-coverage/target/site/jacoco-aggregate"
+          path: coverage.tar
           retention-days: 5
       - name: Archive surefire reports
         uses: actions/upload-artifact@v3
@@ -113,12 +117,14 @@ jobs:
           flags: integration-h2
           fail_ci_if_error: true
           verbose: true
-      # delete this step once we are confident in the coverage setup
+      # delete the next 2 steps once we are confident in the coverage setup
+      - name: Tar jacoco coverage report to debug
+        run: tar -cvf coverage.tar dhis-2/dhis-test-coverage/target/site/jacoco-aggregate
       - uses: actions/upload-artifact@v3
         name: Upload jacoco coverage report to debug
         with:
           name: integration-h2-test-coverage
-          path: "dhis-2/dhis-test-coverage/target/site/jacoco-aggregate"
+          path: coverage.tar
           retention-days: 5
       - name: Archive surefire reports
         uses: actions/upload-artifact@v3
@@ -160,12 +166,14 @@ jobs:
           flags: integration
           fail_ci_if_error: true
           verbose: true
-      # delete this step once we are confident in the coverage setup
+      # delete the next 2 steps once we are confident in the coverage setup
+      - name: Tar jacoco coverage report to debug
+        run: tar -cvf coverage.tar dhis-2/dhis-services/dhis-service-analytics/target/site/jacoco
       - uses: actions/upload-artifact@v3
         name: Upload jacoco coverage report to debug
         with:
           name: integration-test-analytics-coverage
-          path: "dhis-2/dhis-services/dhis-service-analytics/target/site/jacoco"
+          path: coverage.tar
           retention-days: 5
       - name: Archive surefire reports
         uses: actions/upload-artifact@v3
