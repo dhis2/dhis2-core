@@ -31,6 +31,13 @@ jobs:
           flags: unit
           fail_ci_if_error: true
           verbose: true
+      # delete this step once we are confident in the coverage setup
+      - uses: actions/upload-artifact@v3
+        name: Upload jacoco coverage report to debug
+        with:
+          name: unit-test-coverage
+          path: "dhis-2/dhis-test-coverage/target/site/jacoco-aggregate"
+          retention-days: 5
       # no coverage is gathered for dhis-web as it will be removed
       - name: Test dhis-web
         run: mvn test --threads 2C --batch-mode --no-transfer-progress --update-snapshots -f ./dhis-2/dhis-web/pom.xml
@@ -64,6 +71,13 @@ jobs:
           flags: integration
           fail_ci_if_error: true
           verbose: true
+      # delete this step once we are confident in the coverage setup
+      - uses: actions/upload-artifact@v3
+        name: Upload jacoco coverage report to debug
+        with:
+          name: integration-test-coverage
+          path: "dhis-2/dhis-test-coverage/target/site/jacoco-aggregate"
+          retention-days: 5
       - name: Archive surefire reports
         uses: actions/upload-artifact@v3
         with:
@@ -99,6 +113,13 @@ jobs:
           flags: integration-h2
           fail_ci_if_error: true
           verbose: true
+      # delete this step once we are confident in the coverage setup
+      - uses: actions/upload-artifact@v3
+        name: Upload jacoco coverage report to debug
+        with:
+          name: integration-h2-test-coverage
+          path: "dhis-2/dhis-test-coverage/target/site/jacoco-aggregate"
+          retention-days: 5
       - name: Archive surefire reports
         uses: actions/upload-artifact@v3
         with:
@@ -139,6 +160,13 @@ jobs:
           flags: integration
           fail_ci_if_error: true
           verbose: true
+      # delete this step once we are confident in the coverage setup
+      - uses: actions/upload-artifact@v3
+        name: Upload jacoco coverage report to debug
+        with:
+          name: integration-test-analytics-coverage
+          path: "dhis-2/dhis-services/dhis-service-analytics/target/site/jacoco"
+          retention-days: 5
       - name: Archive surefire reports
         uses: actions/upload-artifact@v3
         with:
