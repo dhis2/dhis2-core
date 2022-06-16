@@ -101,6 +101,7 @@ public class DefaultSecurityService
     private final Cache<Integer> userFailedLoginAttemptCache;
 
     private final Cache<Integer> userAccountRecoverAttemptCache;
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -261,6 +262,7 @@ public class DefaultSecurityService
     {
         if ( user == null )
         {
+            log.warn( "Could not send restore/invite message as user is null" );
             return ErrorCode.E6201;
         }
 
