@@ -379,7 +379,7 @@ public class EventSecurityTest
      * program = DATA WRITE programStage = DATA WRITE orgUnit = Not Accessible
      * status = ERROR
      */
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void testAddEventSimpleUserFullAccess7()
     {
         programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
@@ -417,7 +417,7 @@ public class EventSecurityTest
      * program = DATA READ programStage = DATA READ orgUnit = Not Accessible
      * status = ERROR
      */
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void testAddEventSimpleUserFullAccess8()
     {
         programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
@@ -454,7 +454,7 @@ public class EventSecurityTest
     /**
      * program = programStage = DATA READ orgUnit = Accessible status = ERROR
      */
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void testAddEventSimpleUserFullAccess9()
     {
         programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
