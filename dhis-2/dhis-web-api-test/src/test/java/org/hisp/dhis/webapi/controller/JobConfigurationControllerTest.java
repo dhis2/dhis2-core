@@ -176,7 +176,9 @@ class JobConfigurationControllerTest extends DhisControllerConvenienceTest
             "ORG_UNIT_TARGET",
             "EVENT",
             "ENROLLMENT",
-            "VALIDATION_RESULT" ), param.getArray( "constants" ).stringValues() );
+            "VALIDATION_RESULT",
+            "TRACKED_ENTITY_INSTANCE",
+            "TRACKED_ENTITY_INSTANCE_ONLY" ), param.getArray( "constants" ).stringValues() );
     }
 
     private JsonObject assertJobConfigurationExists( String jobId, String expectedJobType )
