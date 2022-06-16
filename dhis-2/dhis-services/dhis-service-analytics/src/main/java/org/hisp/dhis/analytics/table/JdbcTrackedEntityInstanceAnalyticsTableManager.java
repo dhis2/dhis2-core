@@ -33,12 +33,17 @@ import static org.hisp.dhis.analytics.ColumnDataType.INTEGER;
 import static org.hisp.dhis.analytics.ColumnDataType.JSONB;
 import static org.hisp.dhis.analytics.ColumnDataType.TIMESTAMP;
 import static org.hisp.dhis.analytics.ColumnDataType.VARCHAR_1200;
+import static org.hisp.dhis.analytics.ColumnDataType.VARCHAR_255;
 import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NOT_NULL;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.analytics.AnalyticsTable;
@@ -49,16 +54,20 @@ import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -73,17 +82,28 @@ public class JdbcTrackedEntityInstanceAnalyticsTableManager extends AbstractJdbc
 {
     private final TrackedEntityTypeService trackedEntityTypeService;
 
+    private final ProgramService programService;
+
+    private final TrackedEntityAttributeService trackedEntityAttributeService;
+
     public JdbcTrackedEntityInstanceAnalyticsTableManager( IdentifiableObjectManager idObjectManager,
         OrganisationUnitService organisationUnitService,
         CategoryService categoryService, SystemSettingManager systemSettingManager,
         DataApprovalLevelService dataApprovalLevelService, ResourceTableService resourceTableService,
         AnalyticsTableHookService tableHookService, StatementBuilder statementBuilder,
         PartitionManager partitionManager, DatabaseInfo databaseInfo, JdbcTemplate jdbcTemplate,
-        TrackedEntityTypeService trackedEntityTypeService )
+        TrackedEntityTypeService trackedEntityTypeService, ProgramService programService,
+        TrackedEntityAttributeService trackedEntityAttributeService )
     {
         super( idObjectManager, organisationUnitService, categoryService, systemSettingManager,
             dataApprovalLevelService, resourceTableService,
             tableHookService, statementBuilder, partitionManager, databaseInfo, jdbcTemplate );
+
+        checkNotNull( trackedEntityAttributeService );
+        this.trackedEntityAttributeService = trackedEntityAttributeService;
+
+        checkNotNull( programService );
+        this.programService = programService;
 
         checkNotNull( trackedEntityTypeService );
         this.trackedEntityTypeService = trackedEntityTypeService;
@@ -93,11 +113,16 @@ public class JdbcTrackedEntityInstanceAnalyticsTableManager extends AbstractJdbc
         new AnalyticsTableColumn( quote( "trackedentityinstanceid" ), INTEGER, NOT_NULL,
             "tei.trackedentityinstanceid" ),
         new AnalyticsTableColumn( quote( "programuid" ), CHARACTER_11, NOT_NULL, "p.uid" ),
+        new AnalyticsTableColumn( quote( "programname" ), VARCHAR_255, NOT_NULL, "p.name" ),
         new AnalyticsTableColumn( quote( "trackedentityinstanceuid" ), CHARACTER_11, NOT_NULL, "tei.uid" ),
         new AnalyticsTableColumn( quote( "programstageuid" ), CHARACTER_11, NOT_NULL, "ps.uid" ),
-        new AnalyticsTableColumn( quote( "programinstanceid" ), INTEGER, "pi.programinstanceid" ),
+        new AnalyticsTableColumn( quote( "programinstanceuid" ), CHARACTER_11, NOT_NULL, "pi.uid" ),
+        new AnalyticsTableColumn( quote( "programstageinstanceuid" ), CHARACTER_11, NOT_NULL, "psi.uid" ),
         new AnalyticsTableColumn( quote( "enrollmentdate" ), TIMESTAMP, "pi.enrollmentdate" ),
+        new AnalyticsTableColumn( quote( "enddate" ), TIMESTAMP, "pi.enddate" ),
+        new AnalyticsTableColumn( quote( "incidentdate" ), TIMESTAMP, "pi.incidentdate" ),
         new AnalyticsTableColumn( quote( "executiondate" ), TIMESTAMP, "psi.executiondate" ),
+        new AnalyticsTableColumn( quote( "duedate" ), TIMESTAMP, "psi.duedate" ),
         new AnalyticsTableColumn( quote( "eventdatavalues" ), JSONB, "psi.eventdatavalues" ) );
 
     /**
@@ -124,27 +149,54 @@ public class JdbcTrackedEntityInstanceAnalyticsTableManager extends AbstractJdbc
     public List<AnalyticsTable> getAnalyticsTables( AnalyticsTableUpdateParams params )
     {
         List<TrackedEntityType> trackedEntityTypes = trackedEntityTypeService.getAllTrackedEntityType();
+        Map<String, List<Program>> programsByTetUid = programService.getAllPrograms().stream()
+            .filter( program -> Objects.nonNull( program.getTrackedEntityType() ) )
+            .collect( Collectors.groupingBy(
+                o -> o.getTrackedEntityType().getUid() ) );
 
         return trackedEntityTypes
             .stream()
-            .filter( tet -> !tet.getTrackedEntityAttributes().isEmpty() )
             .map( tet -> {
                 List<AnalyticsTableColumn> columns = new ArrayList<>( getFixedColumns() );
 
-                List<TrackedEntityAttribute> trackedEntityAttributes = tet.getTrackedEntityAttributes();
+                List<TrackedEntityAttribute> trackedEntityAttributes = new ArrayList<>();
 
-                columns.addAll( trackedEntityAttributes.stream().map( tea -> new AnalyticsTableColumn(
-                    quote( tea.getUid() ), VARCHAR_1200,
-                    " (SELECT teavin.value from trackedentityattribute teain " +
-                        " INNER JOIN trackedentityattributevalue teavin ON teain.trackedentityattributeid = teavin.trackedentityattributeid "
-                        +
-                        " WHERE tei.trackedentityinstanceid = teavin.trackedentityinstanceid AND teain.uid = '" +
-                        tea.getUid() + "')" ) )
+                if ( programsByTetUid.containsKey( tet.getUid() ) )
+                {
+                    trackedEntityAttributes = getAllTrackedEntityAttributes( tet,
+                        programsByTetUid.get( tet.getUid() ) );
+                }
+
+                columns.addAll( trackedEntityAttributes.stream()
+                    .map( BaseIdentifiableObject::getUid )
+                    .distinct()
+                    .map( teaUid -> new AnalyticsTableColumn(
+                        quote( teaUid ), VARCHAR_1200,
+                        " (SELECT teavin.value from trackedentityattribute teain " +
+                            " INNER JOIN trackedentityattributevalue teavin ON teain.trackedentityattributeid = teavin.trackedentityattributeid "
+                            +
+                            " WHERE tei.trackedentityinstanceid = teavin.trackedentityinstanceid AND teain.uid = '" +
+                            teaUid + "')" ) )
                     .collect( Collectors.toList() ) );
 
                 return new AnalyticsTable( getAnalyticsTableType(), columns,
                     Lists.newArrayList(), tet );
             } ).collect( Collectors.toList() );
+    }
+
+    private List<TrackedEntityAttribute> getAllTrackedEntityAttributes( TrackedEntityType trackedEntityType,
+        List<Program> programs )
+    {
+        List<TrackedEntityAttribute> trackedEntityAttributes = new ArrayList<>();
+
+        trackedEntityAttributes.addAll( trackedEntityAttributeService.getProgramTrackedEntityAttributes( programs ) );
+
+        trackedEntityAttributes.addAll(
+            Optional.of( trackedEntityType )
+                .map( TrackedEntityType::getTrackedEntityAttributes )
+                .orElse( Collections.emptyList() ) );
+
+        return trackedEntityAttributes;
     }
 
     /**
