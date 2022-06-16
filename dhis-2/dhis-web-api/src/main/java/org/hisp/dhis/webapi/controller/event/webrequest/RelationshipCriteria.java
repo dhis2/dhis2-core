@@ -31,7 +31,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * @author Luciano Fiandesio
+ * @author Luca Cambi
  */
 @Data
 @NoArgsConstructor
