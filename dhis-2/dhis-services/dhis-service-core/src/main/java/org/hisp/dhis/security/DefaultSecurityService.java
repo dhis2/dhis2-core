@@ -391,7 +391,8 @@ public class DefaultSecurityService
     @Override
     public String[] decodeEncodedTokens( String encodedTokens )
     {
-        String decodedEmailToken = new String( Base64.getUrlDecoder().decode( encodedTokens ), StandardCharsets.UTF_8 );
+        String decodedEmailToken = new String( Base64.getUrlDecoder()
+            .decode( encodedTokens ), StandardCharsets.UTF_8 );
 
         return decodedEmailToken.split( ":" );
     }

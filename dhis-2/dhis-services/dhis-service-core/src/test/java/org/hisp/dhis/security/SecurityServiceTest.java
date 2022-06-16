@@ -128,7 +128,7 @@ class SecurityServiceTest extends DhisSpringTest
         String restoreToken = idAndHashedToken[1];
         User credentials = userService.getUserByIdToken( idToken );
         assertNotNull( credentials );
-        assertEquals( credentials, this.userA );
+        assertEquals( credentials, userA );
         RestoreOptions restoreOptions = service.getRestoreOptions( restoreToken );
         assertEquals( RestoreOptions.RECOVER_PASSWORD_OPTION, restoreOptions );
         assertEquals( RestoreType.RECOVER_PASSWORD, restoreOptions.getRestoreType() );
@@ -179,34 +179,34 @@ class SecurityServiceTest extends DhisSpringTest
         assertFalse( restoreOptions.isUsernameChoice() );
         User credentials = userService.getUserByIdToken( idToken );
         assertNotNull( credentials );
-        assertEquals( credentials, this.userA );
+        assertEquals( credentials, userA );
 
         // verifyToken()
 
         assertNotNull( service.validateRestoreToken( userB, restoreToken, RestoreType.INVITE ) );
-        assertNotNull( service.validateRestoreToken( this.userA, "badToken", RestoreType.INVITE ) );
+        assertNotNull( service.validateRestoreToken( userA, "badToken", RestoreType.INVITE ) );
         assertNotNull(
-            service.validateRestoreToken( this.userA, restoreToken, RestoreType.RECOVER_PASSWORD ) );
-        assertNull( service.validateRestoreToken( this.userA, restoreToken, RestoreType.INVITE ) );
+            service.validateRestoreToken( userA, restoreToken, RestoreType.RECOVER_PASSWORD ) );
+        assertNull( service.validateRestoreToken( userA, restoreToken, RestoreType.INVITE ) );
 
         // canRestoreNow()
 
         assertFalse( service.canRestore( userB, restoreToken, RestoreType.INVITE ) );
-        assertFalse( service.canRestore( this.userA, "badToken", RestoreType.INVITE ) );
-        assertFalse( service.canRestore( this.userA, restoreToken, RestoreType.RECOVER_PASSWORD ) );
-        assertTrue( service.canRestore( this.userA, restoreToken, RestoreType.INVITE ) );
+        assertFalse( service.canRestore( userA, "badToken", RestoreType.INVITE ) );
+        assertFalse( service.canRestore( userA, restoreToken, RestoreType.RECOVER_PASSWORD ) );
+        assertTrue( service.canRestore( userA, restoreToken, RestoreType.INVITE ) );
 
         // restore()
 
         String password = "NewPassword1";
         assertFalse( service.restore( userB, restoreToken, password, RestoreType.INVITE ) );
-        assertFalse( service.restore( this.userA, "badToken", password, RestoreType.INVITE ) );
+        assertFalse( service.restore( userA, "badToken", password, RestoreType.INVITE ) );
         assertFalse(
-            service.restore( this.userA, restoreToken, password, RestoreType.RECOVER_PASSWORD ) );
-        assertTrue( service.restore( this.userA, restoreToken, password, RestoreType.INVITE ) );
+            service.restore( userA, restoreToken, password, RestoreType.RECOVER_PASSWORD ) );
+        assertTrue( service.restore( userA, restoreToken, password, RestoreType.INVITE ) );
 
         // check password
 
-        assertTrue( passwordManager.matches( password, this.userA.getPassword() ) );
+        assertTrue( passwordManager.matches( password, userA.getPassword() ) );
     }
 }
