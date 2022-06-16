@@ -35,6 +35,7 @@
     <module>dhis-web-api</module>
     <module>dhis-web-api-test</module>
     <module>dhis-web-embedded-jetty</module>
+    <module>dhis-test-coverage</module>
   </modules>
 
   <properties>
@@ -78,7 +79,7 @@
     <nimbus.jose.jwt.version>9.23</nimbus.jose.jwt.version>
 
     <!-- Spring -->
-    <spring.version>5.3.20</spring.version>
+    <spring.version>5.3.21</spring.version>
     <spring-data-redis.version>2.7.0</spring-data-redis.version>
     <spring-session-data-redis.version>2.7.0</spring-session-data-redis.version>
     <spring-mobile-device.version>1.1.5.RELEASE</spring-mobile-device.version>
@@ -773,21 +774,6 @@
           <groupId>org.jacoco</groupId>
           <artifactId>jacoco-maven-plugin</artifactId>
           <version>${jacoco-maven-plugin.version}</version>
-          <executions>
-            <execution>
-              <id>prepare-agent</id>
-              <goals>
-                <goal>prepare-agent</goal>
-              </goals>
-            </execution>
-            <execution>
-              <id>report</id>
-              <phase>verify</phase>
-              <goals>
-                <goal>report-aggregate</goal>
-              </goals>
-            </execution>
-          </executions>
         </plugin>
       </plugins>
     </pluginManagement>
@@ -906,9 +892,16 @@
       <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>prepare-agent</id>
+            <goals>
+              <goal>prepare-agent</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
-
   </build>
 
   <dependencyManagement>
