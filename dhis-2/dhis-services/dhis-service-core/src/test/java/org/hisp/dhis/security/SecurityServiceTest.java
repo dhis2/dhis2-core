@@ -185,8 +185,7 @@ class SecurityServiceTest extends DhisSpringTest
 
         assertNotNull( service.validateRestoreToken( userB, restoreToken, RestoreType.INVITE ) );
         assertNotNull( service.validateRestoreToken( userA, "badToken", RestoreType.INVITE ) );
-        assertNotNull(
-            service.validateRestoreToken( userA, restoreToken, RestoreType.RECOVER_PASSWORD ) );
+        assertNotNull( service.validateRestoreToken( userA, restoreToken, RestoreType.RECOVER_PASSWORD ) );
         assertNull( service.validateRestoreToken( userA, restoreToken, RestoreType.INVITE ) );
 
         // canRestoreNow()
@@ -201,8 +200,7 @@ class SecurityServiceTest extends DhisSpringTest
         String password = "NewPassword1";
         assertFalse( service.restore( userB, restoreToken, password, RestoreType.INVITE ) );
         assertFalse( service.restore( userA, "badToken", password, RestoreType.INVITE ) );
-        assertFalse(
-            service.restore( userA, restoreToken, password, RestoreType.RECOVER_PASSWORD ) );
+        assertFalse( service.restore( userA, restoreToken, password, RestoreType.RECOVER_PASSWORD ) );
         assertTrue( service.restore( userA, restoreToken, password, RestoreType.INVITE ) );
 
         // check password
