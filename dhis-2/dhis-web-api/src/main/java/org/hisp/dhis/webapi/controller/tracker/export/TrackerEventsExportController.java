@@ -223,7 +223,8 @@ public class TrackerEventsExportController
         throws NotFoundException
     {
 
-        Event event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( uid ) );
+        Event event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( uid ),
+            teiParams.isIncludeRelationships() );
         if ( event == null )
         {
             throw new NotFoundException( "Event", uid );
