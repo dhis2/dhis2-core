@@ -545,13 +545,13 @@ public class AccountController
     @GetMapping( "/username" )
     public ResponseEntity<Map<String, String>> validateUserNameGet( @RequestParam String username )
     {
-        return ResponseEntity.ok().cacheControl( noStore() ).body( validateUserName( username, false ) );
+        return ResponseEntity.ok().cacheControl( noStore() ).body( validateUserName( username, true ) );
     }
 
     @PostMapping( "/validateUsername" )
     public ResponseEntity<Map<String, String>> validateUserNameGetPost( @RequestParam String username )
     {
-        return ResponseEntity.ok().cacheControl( noStore() ).body( validateUserName( username, false ) );
+        return ResponseEntity.ok().cacheControl( noStore() ).body( validateUserName( username, true ) );
     }
 
     @GetMapping( "/password" )
