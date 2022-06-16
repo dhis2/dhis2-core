@@ -145,10 +145,11 @@ class SecurityServiceTest extends DhisSpringTest
         // verifyToken()
         //
         assertNotNull(
-            securityService.verifyRestoreToken( otherUser, restoreToken, RestoreType.RECOVER_PASSWORD ) );
-        assertNotNull( securityService.verifyRestoreToken( credentials, "wrongToken", RestoreType.RECOVER_PASSWORD ) );
-        assertNotNull( securityService.verifyRestoreToken( credentials, restoreToken, RestoreType.INVITE ) );
-        assertNull( securityService.verifyRestoreToken( credentials, restoreToken, RestoreType.RECOVER_PASSWORD ) );
+            securityService.validateRestoreToken( otherUser, restoreToken, RestoreType.RECOVER_PASSWORD ) );
+        assertNotNull(
+            securityService.validateRestoreToken( credentials, "wrongToken", RestoreType.RECOVER_PASSWORD ) );
+        assertNotNull( securityService.validateRestoreToken( credentials, restoreToken, RestoreType.INVITE ) );
+        assertNull( securityService.validateRestoreToken( credentials, restoreToken, RestoreType.RECOVER_PASSWORD ) );
         //
         // canRestoreNow()
         //
@@ -192,11 +193,11 @@ class SecurityServiceTest extends DhisSpringTest
         //
         // verifyToken()
         //
-        assertNotNull( securityService.verifyRestoreToken( otherUser, restoreToken, RestoreType.INVITE ) );
-        assertNotNull( securityService.verifyRestoreToken( this.user, "wrongToken", RestoreType.INVITE ) );
+        assertNotNull( securityService.validateRestoreToken( otherUser, restoreToken, RestoreType.INVITE ) );
+        assertNotNull( securityService.validateRestoreToken( this.user, "wrongToken", RestoreType.INVITE ) );
         assertNotNull(
-            securityService.verifyRestoreToken( this.user, restoreToken, RestoreType.RECOVER_PASSWORD ) );
-        assertNull( securityService.verifyRestoreToken( this.user, restoreToken, RestoreType.INVITE ) );
+            securityService.validateRestoreToken( this.user, restoreToken, RestoreType.RECOVER_PASSWORD ) );
+        assertNull( securityService.validateRestoreToken( this.user, restoreToken, RestoreType.INVITE ) );
         //
         // canRestoreNow()
         //

@@ -245,9 +245,9 @@ class UserControllerTest extends DhisControllerConvenienceTest
         String restoreToken = idAndRestoreToken[1];
         User user = userService.getUserByIdToken( idToken );
         assertNotNull( user );
-        String errorMessage = securityService.verifyRestoreToken( user, restoreToken,
+        ErrorCode errorCode = securityService.validateRestoreToken( user, restoreToken,
             RestoreType.RECOVER_PASSWORD );
-        assertNull( errorMessage );
+        assertNull( errorCode );
     }
 
     private OutboundMessage assertMessageSendTo( String email )

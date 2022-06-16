@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.forbidden;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.security.DefaultSecurityService.RECOVERY_LOCKOUT_MINS;
@@ -53,9 +52,11 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.PasswordManager;
 import org.hisp.dhis.security.RecaptchaResponse;
@@ -136,11 +137,11 @@ public class AccountController
             return conflict( "User does not exist: " + username );
         }
 
-        String validRestore = securityService.validateRestore( user );
+        ErrorCode errorCode = securityService.validateRestore( user );
 
-        if ( validRestore != null )
+        if ( errorCode != null )
         {
-            return error( "Failed to validate recovery attempt" );
+            throw new IllegalQueryException( errorCode );
         }
 
         if ( !securityService
