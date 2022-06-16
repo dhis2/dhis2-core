@@ -54,30 +54,13 @@ public interface RelationshipService
     // READ
     // -------------------------------------------------------------------------
 
-    default List<Relationship> getRelationshipsByTrackedEntityInstance( TrackedEntityInstance tei,
-        boolean skipAccessValidation )
-    {
-        return getRelationshipsByTrackedEntityInstance( tei, null, skipAccessValidation );
-    }
-
     List<Relationship> getRelationshipsByTrackedEntityInstance( TrackedEntityInstance tei,
         PagingAndSortingCriteriaAdapter criteria,
         boolean skipAccessValidation );
 
-    default List<Relationship> getRelationshipsByProgramInstance( ProgramInstance pi, boolean skipAccessValidation )
-    {
-        return getRelationshipsByProgramInstance( pi, null, skipAccessValidation );
-    }
-
     List<Relationship> getRelationshipsByProgramInstance( ProgramInstance pi,
         PagingAndSortingCriteriaAdapter criteria,
         boolean skipAccessValidation );
-
-    default List<Relationship> getRelationshipsByProgramStageInstance( ProgramStageInstance psi,
-        boolean skipAccessValidation )
-    {
-        return getRelationshipsByProgramStageInstance( psi, null, skipAccessValidation );
-    }
 
     List<Relationship> getRelationshipsByProgramStageInstance( ProgramStageInstance psi,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
