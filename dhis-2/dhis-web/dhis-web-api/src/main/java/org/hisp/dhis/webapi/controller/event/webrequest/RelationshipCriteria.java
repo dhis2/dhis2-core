@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,28 +27,19 @@
  */
 package org.hisp.dhis.webapi.controller.event.webrequest;
 
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 /**
- * Paging parameters
- *
- * @author Giuseppe Nespolino <g.nespolino@gmail.com>
+ * @author Luciano Fiandesio
  */
-public interface PagingCriteria
+@Data
+@NoArgsConstructor
+public class RelationshipCriteria extends PagingAndSortingCriteriaAdapter
 {
+    private String tei;
 
-    /**
-     * Page number to return.
-     */
-    Integer getPage();
+    private String enrollment;
 
-    /**
-     * Page size.
-     */
-    Integer getPageSize();
-
-    /**
-     * Indicates whether to include the total number of pages in the paging
-     * response.
-     */
-    boolean isTotalPages();
-
+    private String event;
 }

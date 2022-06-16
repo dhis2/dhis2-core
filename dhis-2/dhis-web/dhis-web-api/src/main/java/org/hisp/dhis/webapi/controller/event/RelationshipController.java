@@ -35,6 +35,7 @@ import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -52,13 +53,11 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.importexport.ImportStrategy;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.schema.descriptors.RelationshipSchemaDescriptor;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.webapi.controller.event.webrequest.RelationshipCriteria;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -111,50 +110,36 @@ public class RelationshipController
     // -------------------------------------------------------------------------
 
     @GetMapping
-    public List<Relationship> getRelationships(
-        @RequestParam( required = false ) String tei,
-        @RequestParam( required = false ) String enrollment,
-        @RequestParam( required = false ) String event )
+    public List<Relationship> getRelationships( RelationshipCriteria relationshipCriteria )
         throws WebMessageException
     {
-        if ( tei != null )
+        if ( relationshipCriteria.getTei() != null )
         {
-            TrackedEntityInstance trackedEntityInstance = trackedEntityInstanceService.getTrackedEntityInstance( tei );
-
-            if ( trackedEntityInstance != null )
-            {
-                return relationshipService.getRelationshipsByTrackedEntityInstance( trackedEntityInstance, false );
-            }
-            else
-            {
-                throw new WebMessageException( notFound( "No trackedEntityInstance '" + tei + "' found." ) );
-            }
+            return Optional.ofNullable( trackedEntityInstanceService
+                .getTrackedEntityInstance( relationshipCriteria.getTei() ) )
+                .map( tei -> relationshipService.getRelationshipsByTrackedEntityInstance( tei,
+                    relationshipCriteria, false ) )
+                .orElseThrow( () -> new WebMessageException(
+                    notFound( "No trackedEntityInstance '" + relationshipCriteria.getTei() + "' found." ) ) );
         }
-        else if ( enrollment != null )
+        else if ( relationshipCriteria.getEnrollment() != null )
         {
-            ProgramInstance programInstance = programInstanceService.getProgramInstance( enrollment );
-
-            if ( programInstance != null )
-            {
-                return relationshipService.getRelationshipsByProgramInstance( programInstance, false );
-            }
-            else
-            {
-                throw new WebMessageException( notFound( "No enrollment '" + enrollment + "' found." ) );
-            }
+            return Optional.ofNullable( programInstanceService
+                .getProgramInstance( relationshipCriteria.getEnrollment() ) )
+                .map(
+                    pi -> relationshipService.getRelationshipsByProgramInstance( pi, relationshipCriteria,
+                        false ) )
+                .orElseThrow( () -> new WebMessageException(
+                    notFound( "No enrollment '" + relationshipCriteria.getEnrollment() + "' found." ) ) );
         }
-        else if ( event != null )
+        else if ( relationshipCriteria.getEvent() != null )
         {
-            ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( event );
-
-            if ( programStageInstance != null )
-            {
-                return relationshipService.getRelationshipsByProgramStageInstance( programStageInstance, false );
-            }
-            else
-            {
-                throw new WebMessageException( notFound( "No event '" + event + "' found." ) );
-            }
+            return Optional.ofNullable( programStageInstanceService
+                .getProgramStageInstance( relationshipCriteria.getEvent() ) )
+                .map( psi -> relationshipService.getRelationshipsByProgramStageInstance( psi,
+                    relationshipCriteria, false ) )
+                .orElseThrow( () -> new WebMessageException(
+                    notFound( "No event '" + relationshipCriteria.getEvent() + "' found." ) ) );
         }
         else
         {

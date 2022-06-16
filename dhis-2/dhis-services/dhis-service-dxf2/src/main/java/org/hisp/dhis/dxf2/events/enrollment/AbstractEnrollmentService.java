@@ -307,7 +307,8 @@ public abstract class AbstractEnrollmentService
                     && trackerAccessManager.canRead( user, programStageInstance, true ).isEmpty() )
                 {
                     enrollment.getEvents().add(
-                        eventService.getEvent( programStageInstance, params.isDataSynchronizationQuery(), true ) );
+                        eventService.getEvent( programStageInstance, params.isDataSynchronizationQuery(), true,
+                            true ) );
                 }
             }
         }

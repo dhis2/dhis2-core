@@ -34,6 +34,8 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import org.apache.commons.collections4.CollectionUtils;
+
 /**
  * simplest implementation of PagingCriteria and SortingCriteria
  *
@@ -79,6 +81,11 @@ public abstract class PagingAndSortingCriteriaAdapter implements PagingCriteria,
     {
         return Optional.ofNullable( skipPaging )
             .orElse( false );
+    }
+
+    public boolean isSortingRequest()
+    {
+        return !CollectionUtils.emptyIfNull( getOrder() ).isEmpty();
     }
 
 }
