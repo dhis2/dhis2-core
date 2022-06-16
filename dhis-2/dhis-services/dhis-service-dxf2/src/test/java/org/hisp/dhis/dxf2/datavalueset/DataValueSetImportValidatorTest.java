@@ -545,7 +545,7 @@ class DataValueSetImportValidatorTest
         context.getApprovalMap().put( key, true );
         assertTrue( validator.skipDataValue( dataValue, context, dataSetContext, valueContext ) );
         assertConflict( ErrorCode.E7642,
-            "Data is already approved for data set: `<object4>` period: `<object2>` organisation unit: `<object1>` attribute option combo: `<object3>`",
+            "Data already approved for data set: `<object4>` period: `<object2>` organisation unit: `<object1>` attribute option combo: `<object3>`",
             context, dataValue.getOrgUnit(), dataValue.getPeriod(), dataValue.getAttributeOptionCombo(),
             dataSetContext.getDataSet().getUid() );
     }
