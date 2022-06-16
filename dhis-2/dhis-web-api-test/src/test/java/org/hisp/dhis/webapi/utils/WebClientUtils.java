@@ -189,7 +189,10 @@ public class WebClientUtils
         {
             return url;
         }
-        Object[] urlArgs = Arrays.stream( args ).filter( arg -> !(arg instanceof RequestComponent) ).toArray();
+        Object[] urlArgs = Arrays.stream( args )
+            .filter( arg -> !(arg instanceof RequestComponent) )
+            .map( arg -> arg == null ? "" : arg )
+            .toArray();
         return String.format( url.replaceAll( "\\{[a-zA-Z]+}", "%s" ), (Object[]) urlArgs );
     }
 

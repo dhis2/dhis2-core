@@ -56,6 +56,8 @@ public class DefaultDataElementService
 {
     private final DataElementStore dataElementStore;
 
+    private final IdentifiableObjectStore<OptionSet> optionSetStore;
+
     private final IdentifiableObjectStore<DataElementGroup> dataElementGroupStore;
 
     private final GenericDimensionalObjectStore<DataElementGroupSet> dataElementGroupSetStore;
@@ -68,8 +70,8 @@ public class DefaultDataElementService
     @Transactional
     public long addDataElement( DataElement dataElement )
     {
+        validateDateElement( dataElement );
         dataElementStore.save( dataElement );
-
         return dataElement.getId();
     }
 
@@ -82,20 +84,30 @@ public class DefaultDataElementService
     }
 
     @Override
-    @Transactional
-    public void deleteDataElement( DataElement dataElement )
+    public void validateDateElement( DataElement dataElement )
     {
-        validateDateElement( dataElement );
-        dataElementStore.delete( dataElement );
-    }
-
-    private void validateDateElement( DataElement dataElement )
-    {
-        OptionSet options = dataElement.getOptionSet();
-        if ( options != null && options.getValueType() != dataElement.getValueType() )
+        if ( dataElement.getOptionSet() == null )
+        {
+            if ( dataElement.getValueType() == ValueType.MULTI_TEXT )
+            {
+                throw new IllegalQueryException( new ErrorMessage( ErrorCode.E1116, dataElement.getUid() ) );
+            }
+            return;
+        }
+        // need to reload the options in case this is a create and the options
+        // is a shallow reference object
+        OptionSet options = optionSetStore.getByUid( dataElement.getOptionSet().getUid() );
+        if ( options.getValueType() != dataElement.getValueType() )
         {
             throw new IllegalQueryException( new ErrorMessage( ErrorCode.E1115, options.getValueType() ) );
         }
+    }
+
+    @Override
+    @Transactional
+    public void deleteDataElement( DataElement dataElement )
+    {
+        dataElementStore.delete( dataElement );
     }
 
     @Override

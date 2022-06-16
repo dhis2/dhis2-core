@@ -30,8 +30,10 @@ package org.hisp.dhis.webapi.controller;
 import static java.lang.String.format;
 import static org.hisp.dhis.webapi.WebClient.Body;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
+import static org.hisp.dhis.webapi.utils.WebClientUtils.substitutePlaceholders;
 
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.CurrentUserService;
@@ -94,19 +96,41 @@ abstract class AbstractDataValueControllerTest
         String dataElementId, String orgUnitId )
     {
         assertStatus( HttpStatus.CREATED,
-            POST( "/dataValues?de={de}&pe={pe}&ou={ou}&co={coc}&value={val}&comment={comment}&followUp={followup}",
-                dataElementId, period, orgUnitId, categoryOptionComboId, value, comment, followup ) );
+            postNewDataValue( period, value, comment, followup, dataElementId, orgUnitId ) );
     }
 
     protected final String addDataElement( String name, String code, ValueType valueType, String optionSet )
     {
-        return assertStatus( HttpStatus.CREATED,
-            POST( "/dataElements/",
-                format( "{'name':'%s', 'shortName':'%s', 'code':'%s', 'valueType':'%s', "
-                    + "'aggregationType':'SUM', 'zeroIsSignificant':false, 'domainType':'AGGREGATE', "
-                    + "'categoryCombo': {'id': '%s'},"
-                    + "'optionSet': %s"
-                    + "}", name, code, code, valueType, categoryComboId,
-                    optionSet == null ? "null" : "{'id':'" + optionSet + "'}" ) ) );
+        return assertStatus( HttpStatus.CREATED, postNewDataElement( name, code, valueType, optionSet ) );
+    }
+
+    protected final HttpResponse postNewDataElement( String name, String code, ValueType valueType, String optionSet )
+    {
+        return POST( "/dataElements/",
+            format( "{'name':'%s', 'shortName':'%s', 'code':'%s', 'valueType':'%s', "
+                + "'aggregationType':'SUM', 'zeroIsSignificant':false, 'domainType':'AGGREGATE', "
+                + "'categoryCombo': {'id': '%s'},"
+                + "'optionSet': %s"
+                + "}", name, code, code, valueType, categoryComboId,
+                optionSet == null ? "null" : "{'id':'" + optionSet + "'}" ) );
+    }
+
+    protected final HttpResponse postNewDataValue( String period, String value, String comment, boolean followup,
+        String dataElementId, String orgUnitId )
+    {
+        return POST( "/dataValues?de={de}&pe={pe}&ou={ou}&co={coc}&value={val}&comment={comment}&followUp={followup}",
+            dataElementId, period, orgUnitId, categoryOptionComboId, value, comment, followup );
+    }
+
+    protected final JsonArray getDataValues( String de, String pe, String ou )
+    {
+        return getDataValues( de, categoryOptionComboId, null, null, pe, ou );
+    }
+
+    protected final JsonArray getDataValues( String de, String co, String cc, String cp, String pe, String ou )
+    {
+        String url = substitutePlaceholders( "/dataValues?de={de}&co={co}&cc={cc}&cp={cp}&pe={pe}&ou={ou}",
+            new Object[] { de, co, cc, cp, pe, ou } );
+        return GET( url.replaceAll( "&[a-z]{2}=&", "&" ).replace( "&&", "&" ) ).content();
     }
 }

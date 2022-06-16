@@ -54,6 +54,7 @@ public enum ErrorCode
     E1113( "Object of type `{0}` not found or not accessible: `{1}`" ),
     E1114( "Data set form type must be custom: `{0}`" ),
     E1115( "Data element value type must match option set value type: `{0}`" ),
+    E1116( "Data element of value type multi text must have an option set: `{0}`" ),
 
     /* Org unit merge */
     E1500( "At least two source orgs unit must be specified" ),

@@ -29,10 +29,13 @@ package org.hisp.dhis.webapi.controller;
 
 import static java.lang.String.format;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.stream.Stream;
 
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.jsontree.JsonArray;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -58,15 +61,40 @@ class DataValueMultiTextControllerTest extends AbstractDataValueControllerTest
     }
 
     @Test
-    void test()
+    void addDataValue_MultiText()
     {
-        addDataValue( "2021-01", "A,B", "", false, multiTextDataElementId, orgUnitId );
+        assertDoesNotThrow( () -> addDataValue( "2021-01", "A,B", "", false, multiTextDataElementId, orgUnitId ) );
+        JsonArray values = getDataValues( multiTextDataElementId, "2021-01", orgUnitId );
+        assertEquals( 1, values.size() );
+        assertEquals( "A,B", values.getString( 0 ).string() );
     }
 
     @Test
-    void test2()
+    void addDataValue_MultiText_NoSuchOption()
     {
-        addDataValue( "2021-01", "A,D", "", false, multiTextDataElementId, orgUnitId );
+        assertWebMessage( "Conflict", 409, "ERROR",
+            format( "Data value is not a valid option of the data element option set: `%s`", multiTextDataElementId ),
+            postNewDataValue( "2021-01", "A,D", "", false, multiTextDataElementId, orgUnitId )
+                .content( HttpStatus.CONFLICT ) );
+    }
+
+    @Test
+    void addDataElement_MultiText_RequiresOptionSet()
+    {
+        String optionSetId = addOptionSet( "MultiSelectSet2", ValueType.TEXT );
+        assertWebMessage( "Conflict", 409, "ERROR",
+            "Data element value type must match option set value type: `TEXT`",
+            postNewDataElement( "MultiSelectDE2", "MSDE2", ValueType.MULTI_TEXT, optionSetId )
+                .content( HttpStatus.CONFLICT ) );
+    }
+
+    @Test
+    void addDataElement_MultiText_OptionSetValueTypeMismatch()
+    {
+        assertWebMessage( "Conflict", 409, "ERROR",
+            "Data element of value type multi text must have an option set: `null`",
+            postNewDataElement( "MultiSelectDE2", "MSDE2", ValueType.MULTI_TEXT, null )
+                .content( HttpStatus.CONFLICT ) );
     }
 
     private String addOptionSet( String name, ValueType valueType )

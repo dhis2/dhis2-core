@@ -27,9 +27,11 @@
  */
 package org.hisp.dhis.dataelement;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
@@ -37,7 +39,12 @@ import java.util.List;
 
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionService;
+import org.hisp.dhis.option.OptionSet;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -49,6 +56,9 @@ class DataElementServiceTest extends TransactionalIntegrationTest
 
     @Autowired
     private DataElementService dataElementService;
+
+    @Autowired
+    private OptionService optionService;
 
     // -------------------------------------------------------------------------
     // Tests
@@ -83,6 +93,23 @@ class DataElementServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
+    void testAddDataElement_WithOptionSet()
+    {
+        DataElement de = createDataElementWithOptionSet( ValueType.MULTI_TEXT, ValueType.MULTI_TEXT );
+        assertDoesNotThrow( () -> dataElementService.addDataElement( de ) );
+    }
+
+    @Test
+    void testAddDataElement_WithOptionSetValueTypeMismatch()
+    {
+        DataElement de = createDataElementWithOptionSet( ValueType.TEXT, ValueType.MULTI_TEXT );
+        IllegalQueryException ex = assertThrows( IllegalQueryException.class,
+            () -> dataElementService.addDataElement( de ) );
+        assertEquals( ErrorCode.E1115, ex.getErrorCode() );
+        assertEquals( "Data element value type must match option set value type: `MULTI_TEXT`", ex.getMessage() );
+    }
+
+    @Test
     void testUpdateDataElement()
     {
         DataElement dataElementA = createDataElement( 'A' );
@@ -96,6 +123,27 @@ class DataElementServiceTest extends TransactionalIntegrationTest
         dataElementA = dataElementService.getDataElement( idA );
         assertNotNull( dataElementA.getValueType() );
         assertEquals( ValueType.BOOLEAN, dataElementA.getValueType() );
+    }
+
+    @Test
+    void testUpdateDataElement_WithOptionSet()
+    {
+        DataElement de = createDataElementWithOptionSet( ValueType.MULTI_TEXT, ValueType.MULTI_TEXT );
+        dataElementService.addDataElement( de );
+        de.setName( "new-name" );
+        assertDoesNotThrow( () -> dataElementService.updateDataElement( de ) );
+    }
+
+    @Test
+    void testUpdateDataElement_WithOptionSetValueTypeMismatch()
+    {
+        DataElement de = createDataElementWithOptionSet( ValueType.MULTI_TEXT, ValueType.MULTI_TEXT );
+        dataElementService.addDataElement( de );
+        de.setValueType( ValueType.TEXT );
+        IllegalQueryException ex = assertThrows( IllegalQueryException.class,
+            () -> dataElementService.updateDataElement( de ) );
+        assertEquals( ErrorCode.E1115, ex.getErrorCode() );
+        assertEquals( "Data element value type must match option set value type: `MULTI_TEXT`", ex.getMessage() );
     }
 
     @Test
@@ -348,5 +396,16 @@ class DataElementServiceTest extends TransactionalIntegrationTest
         DataElement de = createDataElement( 'A', ValueType.URL, AggregationType.SUM );
         long id = dataElementService.addDataElement( de );
         assertNotNull( dataElementService.getDataElement( id ) );
+    }
+
+    private DataElement createDataElementWithOptionSet( ValueType deValueType, ValueType osValueType )
+    {
+        OptionSet options = createOptionSet( 'A', new Option( "A", "A" ) );
+        options.setValueType( osValueType );
+        optionService.saveOptionSet( options );
+        DataElement de = createDataElement( 'A' );
+        de.setOptionSet( options );
+        de.setValueType( deValueType );
+        return de;
     }
 }
