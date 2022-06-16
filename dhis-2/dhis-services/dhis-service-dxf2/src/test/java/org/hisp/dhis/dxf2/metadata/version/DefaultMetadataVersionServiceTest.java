@@ -74,6 +74,10 @@ class DefaultMetadataVersionServiceTest extends TransactionalIntegrationTest
 
     private MetadataVersion versionB;
 
+    private Date startDate;
+
+    private Date endDate;
+
     // -------------------------------------------------------------------------
     // Tests
     // -------------------------------------------------------------------------
@@ -87,10 +91,14 @@ class DefaultMetadataVersionServiceTest extends TransactionalIntegrationTest
     @Override
     protected void setUpTest()
     {
+        startDate = new Date();
         versionA = new MetadataVersion( "Version_1", VersionType.ATOMIC );
         versionA.setHashCode( "12345" );
+        versionA.setCreated( startDate );
         versionB = new MetadataVersion( "Version_2", VersionType.BEST_EFFORT );
+        versionB.setCreated( DateUtils.addHours( startDate, 1 ) );
         versionB.setHashCode( "abcdef" );
+        endDate = DateUtils.addDays( startDate, 1 );
     }
 
     @Test
@@ -153,21 +161,20 @@ class DefaultMetadataVersionServiceTest extends TransactionalIntegrationTest
     void testShouldReturnVersionsBetweenGivenTimeStamps()
     {
         List<MetadataVersion> versions;
-        Date startDate = new Date();
         versionService.addVersion( versionA );
-        versions = versionService.getAllVersionsInBetween( startDate, new Date() );
+        versions = versionService.getAllVersionsInBetween( startDate, endDate );
 
         assertEquals( 1, versions.size() );
         assertEqualMetadataVersions( versionA, versions.get( 0 ) );
 
         versionService.addVersion( versionB );
-        versions = versionService.getAllVersionsInBetween( startDate, new Date() );
+        versions = versionService.getAllVersionsInBetween( startDate, endDate );
 
         assertEquals( 2, versions.size() );
         assertEqualMetadataVersions( versionB, versions.get( 1 ) );
 
-        Date dateBetweenAandB = DateUtils.addMilliseconds( versions.get( 0 ).getCreated(), 1 );
-        versions = versionService.getAllVersionsInBetween( dateBetweenAandB, new Date() );
+        Date dateBetweenAandB = DateUtils.addMinutes( versionA.getCreated(), 1 );
+        versions = versionService.getAllVersionsInBetween( dateBetweenAandB, endDate );
 
         assertEquals( 1, versions.size() );
         assertEqualMetadataVersions( versionB, versions.get( 0 ) );
