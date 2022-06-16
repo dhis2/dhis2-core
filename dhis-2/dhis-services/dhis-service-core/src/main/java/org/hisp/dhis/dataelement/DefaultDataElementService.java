@@ -27,17 +27,21 @@
  */
 package org.hisp.dhis.dataelement;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.GenericDimensionalObjectStore;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.period.PeriodType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,32 +49,16 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Kristian Nordal
  */
-@Service( "org.hisp.dhis.dataelement.DataElementService" )
+@Service
+@AllArgsConstructor
 public class DefaultDataElementService
     implements DataElementService
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+    private final DataElementStore dataElementStore;
 
-    private DataElementStore dataElementStore;
+    private final IdentifiableObjectStore<DataElementGroup> dataElementGroupStore;
 
-    private IdentifiableObjectStore<DataElementGroup> dataElementGroupStore;
-
-    private GenericDimensionalObjectStore<DataElementGroupSet> dataElementGroupSetStore;
-
-    public DefaultDataElementService( DataElementStore dataElementStore,
-        IdentifiableObjectStore<DataElementGroup> dataElementGroupStore,
-        GenericDimensionalObjectStore<DataElementGroupSet> dataElementGroupSetStore )
-    {
-        checkNotNull( dataElementStore );
-        checkNotNull( dataElementGroupStore );
-        checkNotNull( dataElementGroupSetStore );
-
-        this.dataElementStore = dataElementStore;
-        this.dataElementGroupStore = dataElementGroupStore;
-        this.dataElementGroupSetStore = dataElementGroupSetStore;
-    }
+    private final GenericDimensionalObjectStore<DataElementGroupSet> dataElementGroupSetStore;
 
     // -------------------------------------------------------------------------
     // DataElement
@@ -89,6 +77,7 @@ public class DefaultDataElementService
     @Transactional
     public void updateDataElement( DataElement dataElement )
     {
+        validateDateElement( dataElement );
         dataElementStore.update( dataElement );
     }
 
@@ -96,7 +85,17 @@ public class DefaultDataElementService
     @Transactional
     public void deleteDataElement( DataElement dataElement )
     {
+        validateDateElement( dataElement );
         dataElementStore.delete( dataElement );
+    }
+
+    private void validateDateElement( DataElement dataElement )
+    {
+        OptionSet options = dataElement.getOptionSet();
+        if ( options != null && options.getValueType() != dataElement.getValueType() )
+        {
+            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E1115, options.getValueType() ) );
+        }
     }
 
     @Override
