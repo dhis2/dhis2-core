@@ -21,8 +21,6 @@
         <artifactId>maven-dependency-plugin</artifactId>
         <configuration>
           <failOnWarning>true</failOnWarning>
-          <ignoredUnusedDeclaredDependencies>
-          </ignoredUnusedDeclaredDependencies>
           <ignoredNonTestScopedDependencies>
             <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-support-hibernate</ignoredNonTestScopedDependency>
             <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-setting</ignoredNonTestScopedDependency>
