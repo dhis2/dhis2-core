@@ -696,7 +696,7 @@ public abstract class AbstractEventService implements EventService
             event.setRelationships( programStageInstance.getRelationshipItems()
                 .stream()
                 .filter( Objects::nonNull )
-                .map( ( r ) -> relationshipService.getRelationship( r.getRelationship(), RelationshipParams.FALSE,
+                .map( r -> relationshipService.getRelationship( r.getRelationship(), RelationshipParams.FALSE,
                     user ) )
                 .collect( Collectors.toSet() ) );
         }
