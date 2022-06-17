@@ -154,7 +154,7 @@ public class HibernateTrackedEntityDataValueAuditStore
 
         if ( !params.getProgramStageInstances().isEmpty() )
         {
-            predicates.add( tedva.get( "programStageInstance" ).in( params.getProgramStageInstances() ) );
+            predicates.add( tedva.get( PROP_PSI ).in( params.getProgramStageInstances() ) );
         }
 
         if ( !params.getProgramStages().isEmpty() )
