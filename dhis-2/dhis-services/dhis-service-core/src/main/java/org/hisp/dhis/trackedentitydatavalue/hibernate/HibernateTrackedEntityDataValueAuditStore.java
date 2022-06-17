@@ -33,6 +33,7 @@ import java.util.List;
 import javax.persistence.Query;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
@@ -81,12 +82,13 @@ public class HibernateTrackedEntityDataValueAuditStore
     {
         CriteriaBuilder builder = sessionFactory.getCurrentSession().getCriteriaBuilder();
         CriteriaQuery<TrackedEntityDataValueAudit> criteria = builder.createQuery( TrackedEntityDataValueAudit.class );
-        Root<TrackedEntityDataValueAudit> root = criteria.from( TrackedEntityDataValueAudit.class );
-        criteria.select( root );
+        Root<TrackedEntityDataValueAudit> tedva = criteria.from( TrackedEntityDataValueAudit.class );
+        Join<TrackedEntityDataValueAudit, ProgramStageInstance> psi = tedva.join( "programStageInstance" );
+        criteria.select( tedva );
 
-        List<Predicate> predicates = getTrackedEntityDataValueAuditCriteria( params, builder, root );
-        criteria.where( predicates.toArray( new Predicate[predicates.size()] ) );
-        criteria.orderBy( builder.desc( root.get( "created" ) ) );
+        List<Predicate> predicates = getTrackedEntityDataValueAuditCriteria( params, builder, tedva, psi );
+        criteria.where( predicates.toArray( new Predicate[0] ) );
+        criteria.orderBy( builder.desc( tedva.get( "created" ) ) );
 
         Query query = sessionFactory.getCurrentSession().createQuery( criteria );
 
@@ -104,14 +106,15 @@ public class HibernateTrackedEntityDataValueAuditStore
     public int countTrackedEntityDataValueAudits( TrackedEntityDataValueAuditQueryParams params )
     {
         CriteriaBuilder builder = sessionFactory.getCurrentSession().getCriteriaBuilder();
-        CriteriaQuery<Long> query = builder.createQuery( Long.class );
-        Root<TrackedEntityDataValueAudit> root = query.from( TrackedEntityDataValueAudit.class );
-        query.select( builder.countDistinct( root.get( "id" ) ) );
+        CriteriaQuery<Long> criteria = builder.createQuery( Long.class );
+        Root<TrackedEntityDataValueAudit> tedva = criteria.from( TrackedEntityDataValueAudit.class );
+        Join<TrackedEntityDataValueAudit, ProgramStageInstance> psi = tedva.join( "programStageInstance" );
+        criteria.select( builder.countDistinct( tedva.get( "id" ) ) );
 
-        List<Predicate> predicates = getTrackedEntityDataValueAuditCriteria( params, builder, root );
-        query.where( predicates.toArray( new Predicate[predicates.size()] ) );
+        List<Predicate> predicates = getTrackedEntityDataValueAuditCriteria( params, builder, tedva, psi );
+        criteria.where( predicates.toArray( new Predicate[predicates.size()] ) );
 
-        return sessionFactory.getCurrentSession().createQuery( query ).getSingleResult().intValue();
+        return sessionFactory.getCurrentSession().createQuery( criteria ).getSingleResult().intValue();
     }
 
     @Override
@@ -131,23 +134,35 @@ public class HibernateTrackedEntityDataValueAuditStore
     }
 
     private List<Predicate> getTrackedEntityDataValueAuditCriteria( TrackedEntityDataValueAuditQueryParams params,
-        CriteriaBuilder builder, Root<TrackedEntityDataValueAudit> root )
+        CriteriaBuilder builder,
+        Root<TrackedEntityDataValueAudit> tedva,
+        Join<TrackedEntityDataValueAudit, ProgramStageInstance> psi )
     {
         List<Predicate> predicates = new ArrayList<>();
 
         if ( !params.getDataElements().isEmpty() )
         {
-            predicates.add( root.get( "dataElement" ).in( params.getDataElements() ) );
+            predicates.add( tedva.get( "dataElement" ).in( params.getDataElements() ) );
+        }
+
+        if ( !params.getOrgUnits().isEmpty() )
+        {
+            predicates.add( psi.get( "organisationUnit" ).in( params.getOrgUnits() ) );
         }
 
         if ( !params.getProgramStageInstances().isEmpty() )
         {
-            predicates.add( root.get( "programStageInstance" ).in( params.getProgramStageInstances() ) );
+            predicates.add( tedva.get( "programStageInstance" ).in( params.getProgramStageInstances() ) );
+        }
+
+        if ( !params.getProgramStages().isEmpty() )
+        {
+            predicates.add( psi.get( "programStage" ).in( params.getProgramStages() ) );
         }
 
         if ( params.getAuditType() != null )
         {
-            predicates.add( builder.equal( root.get( "auditType" ), params.getAuditType() ) );
+            predicates.add( builder.equal( tedva.get( "auditType" ), params.getAuditType() ) );
         }
 
         return predicates;
