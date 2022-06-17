@@ -99,7 +99,7 @@ public class SelectElementVisitor implements SelectVisitor
             "   LIMIT 1) "
             : " (SELECT ateiin.executiondate " +
                 "   FROM analytics_tracked_entity_instance_" + element.getTrackedEntityTypeUid() + " ateiin " +
-                "   WHERE ateiin.programinstanceid = atei.programinstanceid " +
+                "   WHERE ateiin.programinstanceuid = atei.programinstanceuid " +
                 "     AND ateiin.trackedentityinstanceid = atei.trackedentityinstanceid " +
                 "     AND ateiin.programuid = atei.programuid " +
                 "     AND ateiin.programuid = '" + element.getProgramUid() + "' " +
@@ -125,7 +125,7 @@ public class SelectElementVisitor implements SelectVisitor
                 "   LIMIT 1) "
             : " (SELECT ateiin.eventdatavalues -> '" + element.getEventDataValue() + "' -> 'value' " +
                 "   FROM analytics_tracked_entity_instance_" + element.getTrackedEntityTypeUid() + " ateiin " +
-                "   WHERE ateiin.programinstanceid = atei.programinstanceid " +
+                "   WHERE ateiin.programinstanceuid = atei.programinstanceuid " +
                 "     AND ateiin.trackedentityinstanceid = atei.trackedentityinstanceid " +
                 "     AND ateiin.programuid = '" + element.getProgramUid() + "' " +
                 "   ORDER BY ateiin.enrollmentdate DESC, ateiin.executiondate DESC " +
