@@ -210,7 +210,7 @@ class SecurityServiceTest extends DhisSpringTest
     }
 
     @Test
-    public void testValidateRestore()
+    public void testValidateRestoreError()
     {
         User user = new User();
         user.setUsername( "username" );
@@ -220,12 +220,23 @@ class SecurityServiceTest extends DhisSpringTest
     }
 
     @Test
-    public void testValidateInvite()
+    public void testValidateInviteError()
     {
         User user = new User();
         user.setUsername( "username" );
 
         assertEquals( ErrorCode.E6201, service.validateInvite( null ) );
         assertEquals( ErrorCode.E6202, service.validateInvite( user ) );
+    }
+
+    @Test
+    public void testValidateRestoreTokenError()
+    {
+        User user = new User();
+        user.setUsername( "username" );
+
+        assertEquals( ErrorCode.E6205, service.validateRestoreToken( user, null, RestoreType.INVITE ) );
+        assertEquals( ErrorCode.E6206, service.validateRestoreToken( user, "XTOKEN", null ) );
+        assertEquals( ErrorCode.E6207, service.validateRestoreToken( user, "XTOKEN", RestoreType.INVITE ) );
     }
 }
