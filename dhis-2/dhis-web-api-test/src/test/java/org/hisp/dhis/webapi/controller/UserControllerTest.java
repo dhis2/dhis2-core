@@ -94,7 +94,7 @@ class UserControllerTest extends DhisControllerConvenienceTest
     {
         assertStatus( HttpStatus.OK, PATCH( "/users/{id}", peter.getUid() + "?importReportMode=ERRORS",
             Body( "[{'op': 'replace', 'path': '/email', 'value': null}]" ) ) );
-        assertEquals( "user_does_not_have_valid_email",
+        assertEquals( "User account does not have a valid email address",
             POST( "/users/" + peter.getUid() + "/reset" ).error( HttpStatus.CONFLICT ).getMessage() );
     }
 
@@ -245,9 +245,9 @@ class UserControllerTest extends DhisControllerConvenienceTest
         String restoreToken = idAndRestoreToken[1];
         User user = userService.getUserByIdToken( idToken );
         assertNotNull( user );
-        String errorMessage = securityService.verifyRestoreToken( user, restoreToken,
+        ErrorCode errorCode = securityService.validateRestoreToken( user, restoreToken,
             RestoreType.RECOVER_PASSWORD );
-        assertNull( errorMessage );
+        assertNull( errorCode );
     }
 
     private OutboundMessage assertMessageSendTo( String email )
