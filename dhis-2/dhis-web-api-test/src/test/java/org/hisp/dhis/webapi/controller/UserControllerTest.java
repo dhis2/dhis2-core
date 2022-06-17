@@ -94,7 +94,7 @@ class UserControllerTest extends DhisControllerConvenienceTest
     {
         assertStatus( HttpStatus.OK, PATCH( "/users/{id}", peter.getUid() + "?importReportMode=ERRORS",
             Body( "[{'op': 'replace', 'path': '/email', 'value': null}]" ) ) );
-        assertEquals( "user_does_not_have_valid_email",
+        assertEquals( "User account does not have a valid email address",
             POST( "/users/" + peter.getUid() + "/reset" ).error( HttpStatus.CONFLICT ).getMessage() );
     }
 
