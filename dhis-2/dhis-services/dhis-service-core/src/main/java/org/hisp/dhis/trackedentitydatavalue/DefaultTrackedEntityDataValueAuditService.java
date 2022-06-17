@@ -33,9 +33,9 @@ import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityDataValueAuditQueryParams;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.stereotype.Service;
@@ -82,31 +82,19 @@ public class DefaultTrackedEntityDataValueAuditService
 
     @Override
     @Transactional( readOnly = true )
-    public List<TrackedEntityDataValueAudit> getTrackedEntityDataValueAudits( List<DataElement> dataElements,
-        List<ProgramStageInstance> programStageInstances, AuditType auditType )
+    public List<TrackedEntityDataValueAudit> getTrackedEntityDataValueAudits(
+        TrackedEntityDataValueAuditQueryParams params )
     {
         return trackedEntityDataValueAuditStore
-            .getTrackedEntityDataValueAudits( dataElements, programStageInstances, auditType ).stream()
+            .getTrackedEntityDataValueAudits( params ).stream()
             .filter( aclFilter ).collect( Collectors.toList() );
     }
 
     @Override
     @Transactional( readOnly = true )
-    public List<TrackedEntityDataValueAudit> getTrackedEntityDataValueAudits( List<DataElement> dataElements,
-        List<ProgramStageInstance> programStageInstances, AuditType auditType, int first, int max )
+    public int countTrackedEntityDataValueAudits( TrackedEntityDataValueAuditQueryParams params )
     {
-        return trackedEntityDataValueAuditStore
-            .getTrackedEntityDataValueAudits( dataElements, programStageInstances, auditType, first, max ).stream()
-            .filter( aclFilter ).collect( Collectors.toList() );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public int countTrackedEntityDataValueAudits( List<DataElement> dataElements,
-        List<ProgramStageInstance> programStageInstances, AuditType auditType )
-    {
-        return trackedEntityDataValueAuditStore.countTrackedEntityDataValueAudits( dataElements, programStageInstances,
-            auditType );
+        return trackedEntityDataValueAuditStore.countTrackedEntityDataValueAudits( params );
     }
 
     @Override

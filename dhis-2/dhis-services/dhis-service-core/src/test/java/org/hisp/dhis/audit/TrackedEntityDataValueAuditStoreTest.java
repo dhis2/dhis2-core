@@ -27,8 +27,11 @@
  */
 package org.hisp.dhis.audit;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.hisp.dhis.DhisSpringTest;
@@ -46,22 +49,19 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.trackedentity.TrackedEntityDataValueAuditQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditStore;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import com.google.common.collect.Lists;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
 class TrackedEntityDataValueAuditStoreTest extends DhisSpringTest
 {
-
     @Autowired
     private TrackedEntityDataValueAuditStore auditStore;
 
@@ -131,9 +131,12 @@ class TrackedEntityDataValueAuditStoreTest extends DhisSpringTest
         TrackedEntityDataValueAudit dataValueAudit = new TrackedEntityDataValueAudit( dataElementA, stageInstance,
             dataValueA.getAuditValue(), "userA", dataValueA.getProvidedElsewhere(), AuditType.UPDATE );
         auditStore.addTrackedEntityDataValueAudit( dataValueAudit );
-        Assertions.assertEquals( 1, auditStore.getTrackedEntityDataValueAudits( Lists.newArrayList( dataElementA ),
-            Lists.newArrayList( stageInstance ), AuditType.UPDATE ).size() );
-        Assertions.assertEquals( 1, auditStore.countTrackedEntityDataValueAudits(
-            Lists.newArrayList( dataElementA, dataElementB ), Lists.newArrayList( stageInstance ), AuditType.UPDATE ) );
+
+        TrackedEntityDataValueAuditQueryParams params = new TrackedEntityDataValueAuditQueryParams()
+            .setDataElements( List.of( dataElementA ) )
+            .setProgramStageInstances( List.of( stageInstance ) )
+            .setAuditType( AuditType.UPDATE );
+        assertEquals( 1, auditStore.getTrackedEntityDataValueAudits( params ).size() );
+        assertEquals( 1, auditStore.countTrackedEntityDataValueAudits( params ) );
     }
 }

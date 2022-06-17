@@ -25,26 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentitydatavalue;
+package org.hisp.dhis.trackedentity;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import lombok.Data;
+import lombok.experimental.Accessors;
+
+import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityDataValueAuditQueryParams;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Encapsulation of a web API request for tracked entity data value audit
+ * records.
+ *
+ * @author Lars Helge Overland
  */
-public interface TrackedEntityDataValueAuditService
+@Data
+@Accessors( chain = true )
+public class TrackedEntityDataValueAuditQueryParams
 {
-    void addTrackedEntityDataValueAudit( TrackedEntityDataValueAudit trackedEntityDataValueAudit );
+    private List<DataElement> dataElements = new ArrayList<>();
 
-    List<TrackedEntityDataValueAudit> getTrackedEntityDataValueAudits( TrackedEntityDataValueAuditQueryParams params );
+    private List<ProgramStageInstance> programStageInstances = new ArrayList<>();
 
-    int countTrackedEntityDataValueAudits( TrackedEntityDataValueAuditQueryParams params );
+    private AuditType auditType;
 
-    void deleteTrackedEntityDataValueAudit( DataElement dataElement );
+    private Pager pager;
 
-    void deleteTrackedEntityDataValueAudit( ProgramStageInstance programStageInstance );
+    public boolean hasPaging()
+    {
+        return pager != null;
+    }
 }

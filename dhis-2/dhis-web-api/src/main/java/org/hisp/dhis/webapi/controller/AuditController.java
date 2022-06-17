@@ -75,6 +75,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityDataValueAuditQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditService;
@@ -258,17 +259,27 @@ public class AuditController
         if ( PagerUtils.isSkipPaging( skipPaging, paging ) )
         {
             dataValueAudits = trackedEntityDataValueAuditService.getTrackedEntityDataValueAudits(
-                dataElements, programStageInstances, auditType );
+                new TrackedEntityDataValueAuditQueryParams()
+                    .setDataElements( dataElements )
+                    .setProgramStageInstances( programStageInstances )
+                    .setAuditType( auditType ) );
         }
         else
         {
-            int total = trackedEntityDataValueAuditService.countTrackedEntityDataValueAudits( dataElements,
-                programStageInstances, auditType );
+            int total = trackedEntityDataValueAuditService.countTrackedEntityDataValueAudits(
+                new TrackedEntityDataValueAuditQueryParams()
+                    .setDataElements( dataElements )
+                    .setProgramStageInstances( programStageInstances )
+                    .setAuditType( auditType ) );
 
             pager = new Pager( page, total, pageSize );
 
             dataValueAudits = trackedEntityDataValueAuditService.getTrackedEntityDataValueAudits(
-                dataElements, programStageInstances, auditType, pager.getOffset(), pager.getPageSize() );
+                new TrackedEntityDataValueAuditQueryParams()
+                    .setDataElements( dataElements )
+                    .setProgramStageInstances( programStageInstances )
+                    .setAuditType( auditType )
+                    .setPager( pager ) );
         }
 
         RootNode rootNode = NodeUtils.createMetadata();

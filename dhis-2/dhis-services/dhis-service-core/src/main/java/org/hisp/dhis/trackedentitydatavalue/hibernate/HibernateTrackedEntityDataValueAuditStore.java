@@ -30,6 +30,7 @@ package org.hisp.dhis.trackedentitydatavalue.hibernate;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.persistence.Query;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Expression;
@@ -38,9 +39,9 @@ import javax.persistence.criteria.Root;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityDataValueAuditQueryParams;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditStore;
 import org.springframework.stereotype.Repository;
@@ -75,53 +76,40 @@ public class HibernateTrackedEntityDataValueAuditStore
     }
 
     @Override
-    public List<TrackedEntityDataValueAudit> getTrackedEntityDataValueAudits( List<DataElement> dataElements,
-        List<ProgramStageInstance> programStageInstances, AuditType auditType )
+    @SuppressWarnings( "unchecked" )
+    public List<TrackedEntityDataValueAudit> getTrackedEntityDataValueAudits(
+        TrackedEntityDataValueAuditQueryParams params )
     {
         CriteriaBuilder builder = sessionFactory.getCurrentSession().getCriteriaBuilder();
-        CriteriaQuery<TrackedEntityDataValueAudit> query = builder.createQuery( TrackedEntityDataValueAudit.class );
-        Root<TrackedEntityDataValueAudit> root = query.from( TrackedEntityDataValueAudit.class );
-        query.select( root );
+        CriteriaQuery<TrackedEntityDataValueAudit> criteria = builder.createQuery( TrackedEntityDataValueAudit.class );
+        Root<TrackedEntityDataValueAudit> root = criteria.from( TrackedEntityDataValueAudit.class );
+        criteria.select( root );
 
-        List<Predicate> predicates = getTrackedEntityDataValueAuditCriteria( dataElements, programStageInstances,
-            auditType, builder, root );
-        query.where( predicates.toArray( new Predicate[predicates.size()] ) );
-        query.orderBy( builder.desc( root.get( "created" ) ) );
+        List<Predicate> predicates = getTrackedEntityDataValueAuditCriteria( params, builder, root );
+        criteria.where( predicates.toArray( new Predicate[predicates.size()] ) );
+        criteria.orderBy( builder.desc( root.get( "created" ) ) );
 
-        return sessionFactory.getCurrentSession().createQuery( query ).getResultList();
+        Query query = sessionFactory.getCurrentSession().createQuery( criteria );
+
+        if ( params.hasPaging() )
+        {
+            query
+                .setFirstResult( params.getPager().getOffset() )
+                .setMaxResults( params.getPager().getPageSize() );
+        }
+
+        return query.getResultList();
     }
 
     @Override
-    public List<TrackedEntityDataValueAudit> getTrackedEntityDataValueAudits( List<DataElement> dataElements,
-        List<ProgramStageInstance> programStageInstances, AuditType auditType, int first, int max )
-    {
-        CriteriaBuilder builder = sessionFactory.getCurrentSession().getCriteriaBuilder();
-        CriteriaQuery<TrackedEntityDataValueAudit> query = builder.createQuery( TrackedEntityDataValueAudit.class );
-        Root<TrackedEntityDataValueAudit> root = query.from( TrackedEntityDataValueAudit.class );
-        query.select( root );
-
-        List<Predicate> predicates = getTrackedEntityDataValueAuditCriteria( dataElements, programStageInstances,
-            auditType, builder, root );
-        query.where( predicates.toArray( new Predicate[predicates.size()] ) );
-        query.orderBy( builder.desc( root.get( "created" ) ) );
-
-        return sessionFactory.getCurrentSession().createQuery( query )
-            .setFirstResult( first )
-            .setMaxResults( max )
-            .getResultList();
-    }
-
-    @Override
-    public int countTrackedEntityDataValueAudits( List<DataElement> dataElements,
-        List<ProgramStageInstance> programStageInstances, AuditType auditType )
+    public int countTrackedEntityDataValueAudits( TrackedEntityDataValueAuditQueryParams params )
     {
         CriteriaBuilder builder = sessionFactory.getCurrentSession().getCriteriaBuilder();
         CriteriaQuery<Long> query = builder.createQuery( Long.class );
         Root<TrackedEntityDataValueAudit> root = query.from( TrackedEntityDataValueAudit.class );
         query.select( builder.countDistinct( root.get( "id" ) ) );
 
-        List<Predicate> predicates = getTrackedEntityDataValueAuditCriteria( dataElements, programStageInstances,
-            auditType, builder, root );
+        List<Predicate> predicates = getTrackedEntityDataValueAuditCriteria( params, builder, root );
         query.where( predicates.toArray( new Predicate[predicates.size()] ) );
 
         return sessionFactory.getCurrentSession().createQuery( query ).getSingleResult().intValue();
@@ -143,29 +131,28 @@ public class HibernateTrackedEntityDataValueAuditStore
         sessionFactory.getCurrentSession().createQuery( hql ).setParameter( "psi", psi ).executeUpdate();
     }
 
-    private List<Predicate> getTrackedEntityDataValueAuditCriteria( List<DataElement> dataElements,
-        List<ProgramStageInstance> programStageInstances,
-        AuditType auditType, CriteriaBuilder builder, Root<TrackedEntityDataValueAudit> root )
+    private List<Predicate> getTrackedEntityDataValueAuditCriteria( TrackedEntityDataValueAuditQueryParams params,
+        CriteriaBuilder builder, Root<TrackedEntityDataValueAudit> root )
     {
         List<Predicate> predicates = new ArrayList<>();
 
-        if ( dataElements != null && !dataElements.isEmpty() )
+        if ( !params.getDataElements().isEmpty() )
         {
             Expression<DataElement> dataElementExpression = root.get( "dataElement" );
-            Predicate dataElementPredicate = dataElementExpression.in( dataElements );
+            Predicate dataElementPredicate = dataElementExpression.in( params.getDataElements() );
             predicates.add( dataElementPredicate );
         }
 
-        if ( programStageInstances != null && !programStageInstances.isEmpty() )
+        if ( !params.getProgramStageInstances().isEmpty() )
         {
             Expression<DataElement> psiExpression = root.get( "programStageInstance" );
-            Predicate psiPredicate = psiExpression.in( programStageInstances );
+            Predicate psiPredicate = psiExpression.in( params.getProgramStageInstances() );
             predicates.add( psiPredicate );
         }
 
-        if ( auditType != null )
+        if ( params.getAuditType() != null )
         {
-            predicates.add( builder.equal( root.get( "auditType" ), auditType ) );
+            predicates.add( builder.equal( root.get( "auditType" ), params.getAuditType() ) );
         }
 
         return predicates;
