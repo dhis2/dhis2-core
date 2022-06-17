@@ -50,7 +50,7 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.i18n.locale.LocaleManager;
-import org.hisp.dhis.message.MessageSender;
+import org.hisp.dhis.message.EmailMessageSender;
 import org.hisp.dhis.period.Cal;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SettingKey;
@@ -116,7 +116,7 @@ public class DefaultSecurityService
 
     private final PasswordManager passwordManager;
 
-    private final MessageSender emailMessageSender;
+    private final EmailMessageSender emailMessageSender;
 
     private final UserService userService;
 
@@ -134,7 +134,7 @@ public class DefaultSecurityService
         CacheProvider cacheProvider,
         @Lazy // Fix circular dependency
         PasswordManager passwordManager,
-        MessageSender emailMessageSender,
+        EmailMessageSender emailMessageSender,
         UserService userService,
         SystemSettingManager systemSettingManager,
         I18nManager i18nManager,

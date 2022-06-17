@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.User;
@@ -43,10 +44,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 class SecurityServiceTest extends DhisSpringTest
 {
-    private User userA;
-
-    private User userB;
-
     @Autowired
     private UserService userService;
 
@@ -58,6 +55,10 @@ class SecurityServiceTest extends DhisSpringTest
 
     @Autowired
     private SystemSettingManager systemSettingManager;
+
+    private User userA;
+
+    private User userB;
 
     @Override
     public void setUpTest()
@@ -206,5 +207,25 @@ class SecurityServiceTest extends DhisSpringTest
         // check password
 
         assertTrue( passwordManager.matches( password, userA.getPassword() ) );
+    }
+
+    @Test
+    public void testValidateRestore()
+    {
+        User user = new User();
+        user.setUsername( "username" );
+
+        assertEquals( ErrorCode.E6201, service.validateRestore( null ) );
+        assertEquals( ErrorCode.E6202, service.validateRestore( user ) );
+    }
+
+    @Test
+    public void testValidateInvite()
+    {
+        User user = new User();
+        user.setUsername( "username" );
+
+        assertEquals( ErrorCode.E6201, service.validateInvite( null ) );
+        assertEquals( ErrorCode.E6202, service.validateInvite( user ) );
     }
 }
