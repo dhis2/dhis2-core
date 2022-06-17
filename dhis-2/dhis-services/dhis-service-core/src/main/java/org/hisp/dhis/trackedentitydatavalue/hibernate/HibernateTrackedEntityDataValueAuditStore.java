@@ -53,6 +53,8 @@ import org.springframework.stereotype.Repository;
 public class HibernateTrackedEntityDataValueAuditStore
     implements TrackedEntityDataValueAuditStore
 {
+    private static final String PROP_PSI = "programStageInstance";
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -83,7 +85,7 @@ public class HibernateTrackedEntityDataValueAuditStore
         CriteriaBuilder builder = sessionFactory.getCurrentSession().getCriteriaBuilder();
         CriteriaQuery<TrackedEntityDataValueAudit> criteria = builder.createQuery( TrackedEntityDataValueAudit.class );
         Root<TrackedEntityDataValueAudit> tedva = criteria.from( TrackedEntityDataValueAudit.class );
-        Join<TrackedEntityDataValueAudit, ProgramStageInstance> psi = tedva.join( "programStageInstance" );
+        Join<TrackedEntityDataValueAudit, ProgramStageInstance> psi = tedva.join( PROP_PSI );
         criteria.select( tedva );
 
         List<Predicate> predicates = getTrackedEntityDataValueAuditCriteria( params, builder, tedva, psi );
@@ -108,7 +110,7 @@ public class HibernateTrackedEntityDataValueAuditStore
         CriteriaBuilder builder = sessionFactory.getCurrentSession().getCriteriaBuilder();
         CriteriaQuery<Long> criteria = builder.createQuery( Long.class );
         Root<TrackedEntityDataValueAudit> tedva = criteria.from( TrackedEntityDataValueAudit.class );
-        Join<TrackedEntityDataValueAudit, ProgramStageInstance> psi = tedva.join( "programStageInstance" );
+        Join<TrackedEntityDataValueAudit, ProgramStageInstance> psi = tedva.join( PROP_PSI );
         criteria.select( builder.countDistinct( tedva.get( "id" ) ) );
 
         List<Predicate> predicates = getTrackedEntityDataValueAuditCriteria( params, builder, tedva, psi );
@@ -152,7 +154,7 @@ public class HibernateTrackedEntityDataValueAuditStore
 
         if ( !params.getProgramStageInstances().isEmpty() )
         {
-            predicates.add( tedva.get( "programStageInstance" ).in( params.getProgramStageInstances() ) );
+            predicates.add( tedva.get( PROP_PSI ).in( params.getProgramStageInstances() ) );
         }
 
         if ( !params.getProgramStages().isEmpty() )
