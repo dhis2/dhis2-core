@@ -85,8 +85,7 @@ public class DefaultTrackedEntityDataValueAuditService
     public List<TrackedEntityDataValueAudit> getTrackedEntityDataValueAudits(
         TrackedEntityDataValueAuditQueryParams params )
     {
-        return trackedEntityDataValueAuditStore
-            .getTrackedEntityDataValueAudits( params ).stream()
+        return trackedEntityDataValueAuditStore.getTrackedEntityDataValueAudits( params ).stream()
             .filter( aclFilter ).collect( Collectors.toList() );
     }
 

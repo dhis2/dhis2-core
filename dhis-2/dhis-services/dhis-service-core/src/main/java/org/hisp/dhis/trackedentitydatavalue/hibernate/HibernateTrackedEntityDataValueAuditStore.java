@@ -33,7 +33,6 @@ import java.util.List;
 import javax.persistence.Query;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
@@ -138,16 +137,12 @@ public class HibernateTrackedEntityDataValueAuditStore
 
         if ( !params.getDataElements().isEmpty() )
         {
-            Expression<DataElement> dataElementExpression = root.get( "dataElement" );
-            Predicate dataElementPredicate = dataElementExpression.in( params.getDataElements() );
-            predicates.add( dataElementPredicate );
+            predicates.add( root.get( "dataElement" ).in( params.getDataElements() ) );
         }
 
         if ( !params.getProgramStageInstances().isEmpty() )
         {
-            Expression<DataElement> psiExpression = root.get( "programStageInstance" );
-            Predicate psiPredicate = psiExpression.in( params.getProgramStageInstances() );
-            predicates.add( psiPredicate );
+            predicates.add( root.get( "programStageInstance" ).in( params.getProgramStageInstances() ) );
         }
 
         if ( params.getAuditType() != null )
