@@ -72,6 +72,7 @@ import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -188,11 +189,12 @@ public class AuditController
         }
 
         List<DataElement> dataElements = new ArrayList<>();
-        dataElements.addAll( getDataElements( de ) );
+        dataElements.addAll( manager.getByUid( DataElement.class, de ) );
         dataElements.addAll( getDataElementsByDataSet( ds ) );
 
         List<Period> periods = getPeriods( pe );
-        List<OrganisationUnit> organisationUnits = getOrganisationUnit( ou );
+        List<OrganisationUnit> organisationUnits = manager.getByUid( OrganisationUnit.class, ou ); // TODO
+                                                                                                   // loadByUid
         CategoryOptionCombo categoryOptionCombo = getCategoryOptionCombo( co );
         CategoryOptionCombo attributeOptionCombo = getAttributeOptionCombo( cc );
 
@@ -235,7 +237,10 @@ public class AuditController
     @GetMapping( "trackedEntityDataValue" )
     public RootNode getTrackedEntityDataValueAudit(
         @RequestParam( required = false, defaultValue = "" ) List<String> de,
+        @RequestParam( required = false, defaultValue = "" ) List<String> pe,
+        @RequestParam( required = false, defaultValue = "" ) List<String> ou,
         @RequestParam( required = false, defaultValue = "" ) List<String> psi,
+        @RequestParam( required = false, defaultValue = "" ) List<String> ps,
         @RequestParam( required = false ) AuditType auditType,
         @RequestParam( required = false ) Boolean skipPaging,
         @RequestParam( required = false ) Boolean paging,
@@ -250,34 +255,40 @@ public class AuditController
             fields.addAll( Preset.ALL.getFields() );
         }
 
-        List<DataElement> dataElements = getDataElements( de );
+        List<DataElement> dataElements = manager.getByUid( DataElement.class, de );
+        List<Period> periods = getPeriods( pe );
+        List<OrganisationUnit> orgUnits = manager.getByUid( OrganisationUnit.class, ou );
+        List<ProgramStage> programStages = manager.getByUid( ProgramStage.class, ps );
         List<ProgramStageInstance> programStageInstances = getProgramStageInstances( psi );
 
         List<TrackedEntityDataValueAudit> dataValueAudits;
         Pager pager = null;
 
+        TrackedEntityDataValueAuditQueryParams params = new TrackedEntityDataValueAuditQueryParams()
+            .setDataElements( dataElements )
+            .setPeriods( periods )
+            .setOrgUnits( orgUnits )
+            .setProgramStageInstances( programStageInstances )
+            .setProgramStages( programStages )
+            .setAuditType( auditType );
+
         if ( PagerUtils.isSkipPaging( skipPaging, paging ) )
         {
-            dataValueAudits = trackedEntityDataValueAuditService.getTrackedEntityDataValueAudits(
-                new TrackedEntityDataValueAuditQueryParams()
-                    .setDataElements( dataElements )
-                    .setProgramStageInstances( programStageInstances )
-                    .setAuditType( auditType ) );
+            dataValueAudits = trackedEntityDataValueAuditService.getTrackedEntityDataValueAudits( params );
         }
         else
         {
-            int total = trackedEntityDataValueAuditService.countTrackedEntityDataValueAudits(
-                new TrackedEntityDataValueAuditQueryParams()
-                    .setDataElements( dataElements )
-                    .setProgramStageInstances( programStageInstances )
-                    .setAuditType( auditType ) );
+            int total = trackedEntityDataValueAuditService.countTrackedEntityDataValueAudits( params );
 
             pager = new Pager( page, total, pageSize );
 
             dataValueAudits = trackedEntityDataValueAuditService.getTrackedEntityDataValueAudits(
                 new TrackedEntityDataValueAuditQueryParams()
                     .setDataElements( dataElements )
+                    .setPeriods( periods )
+                    .setOrgUnits( orgUnits )
                     .setProgramStageInstances( programStageInstances )
+                    .setProgramStages( programStages )
                     .setAuditType( auditType )
                     .setPager( pager ) );
         }
@@ -370,14 +381,13 @@ public class AuditController
             fields.addAll( Preset.ALL.getFields() );
         }
 
-        DataApprovalAuditQueryParams params = new DataApprovalAuditQueryParams();
-
-        params.setLevels( new HashSet<>( getDataApprovalLevel( dal ) ) );
-        params.setWorkflows( new HashSet<>( getDataApprovalWorkflow( wf ) ) );
-        params.setOrganisationUnits( new HashSet<>( getOrganisationUnit( ou ) ) );
-        params.setAttributeOptionCombos( new HashSet<>( getCategoryOptionCombo( aoc ) ) );
-        params.setStartDate( startDate );
-        params.setEndDate( endDate );
+        DataApprovalAuditQueryParams params = new DataApprovalAuditQueryParams()
+            .setLevels( new HashSet<>( manager.getByUid( DataApprovalLevel.class, dal ) ) )
+            .setWorkflows( new HashSet<>( manager.getByUid( DataApprovalWorkflow.class, wf ) ) )
+            .setOrganisationUnits( new HashSet<>( manager.getByUid( OrganisationUnit.class, ou ) ) )
+            .setAttributeOptionCombos( new HashSet<>( manager.getByUid( CategoryOptionCombo.class, aoc ) ) )
+            .setStartDate( startDate )
+            .setEndDate( endDate );
 
         List<DataApprovalAudit> audits = dataApprovalAuditService.getDataApprovalAudits( params );
 
@@ -420,14 +430,13 @@ public class AuditController
             fields.addAll( Preset.ALL.getFields() );
         }
 
-        TrackedEntityInstanceAuditQueryParams params = new TrackedEntityInstanceAuditQueryParams();
-
-        params.setTrackedEntityInstances( new HashSet<>( tei ) );
-        params.setUsers( new HashSet<>( user ) );
-        params.setAuditType( auditType );
-        params.setStartDate( startDate );
-        params.setEndDate( endDate );
-        params.setSkipPaging( PagerUtils.isSkipPaging( skipPaging, paging ) );
+        TrackedEntityInstanceAuditQueryParams params = new TrackedEntityInstanceAuditQueryParams()
+            .setTrackedEntityInstances( new HashSet<>( tei ) )
+            .setUsers( new HashSet<>( user ) )
+            .setAuditType( auditType )
+            .setStartDate( startDate )
+            .setEndDate( endDate )
+            .setSkipPaging( PagerUtils.isSkipPaging( skipPaging, paging ) );
 
         List<TrackedEntityInstanceAudit> teiAudits;
         Pager pager = null;
@@ -595,42 +604,6 @@ public class AuditController
         return dataElements;
     }
 
-    private List<DataElement> getDataElements( List<String> deIdentifier )
-        throws WebMessageException
-    {
-        List<DataElement> dataElements = new ArrayList<>();
-
-        for ( String de : deIdentifier )
-        {
-            DataElement dataElement = getDataElement( de );
-
-            if ( dataElement != null )
-            {
-                dataElements.add( dataElement );
-            }
-        }
-
-        return dataElements;
-    }
-
-    private DataElement getDataElement( String de )
-        throws WebMessageException
-    {
-        if ( de == null )
-        {
-            return null;
-        }
-
-        DataElement dataElement = manager.search( DataElement.class, de );
-
-        if ( dataElement == null )
-        {
-            throw new WebMessageException( conflict( "Illegal dataElement identifier: " + de ) );
-        }
-
-        return dataElement;
-    }
-
     private List<Period> getPeriods( List<String> peIdentifiers )
         throws WebMessageException
     {
@@ -653,27 +626,7 @@ public class AuditController
         return periods;
     }
 
-    private List<OrganisationUnit> getOrganisationUnit( List<String> ou )
-    {
-        if ( ou == null )
-        {
-            return new ArrayList<>();
-        }
-
-        return manager.getByUid( OrganisationUnit.class, ou );
-    }
-
-    private List<CategoryOptionCombo> getCategoryOptionCombo( List<String> coc )
-    {
-        if ( coc == null )
-        {
-            return new ArrayList<>();
-        }
-
-        return manager.getByUid( CategoryOptionCombo.class, coc );
-    }
-
-    private CategoryOptionCombo getCategoryOptionCombo( @RequestParam String co )
+    private CategoryOptionCombo getCategoryOptionCombo( String co )
         throws WebMessageException
     {
         if ( co == null )
@@ -692,7 +645,7 @@ public class AuditController
         return categoryOptionCombo;
     }
 
-    private CategoryOptionCombo getAttributeOptionCombo( @RequestParam String cc )
+    private CategoryOptionCombo getAttributeOptionCombo( String cc )
         throws WebMessageException
     {
         if ( cc == null )
@@ -709,25 +662,5 @@ public class AuditController
         }
 
         return attributeOptionCombo;
-    }
-
-    private List<DataApprovalLevel> getDataApprovalLevel( @RequestParam List<String> dal )
-    {
-        if ( dal == null )
-        {
-            return new ArrayList<>();
-        }
-
-        return manager.getByUid( DataApprovalLevel.class, dal );
-    }
-
-    private List<DataApprovalWorkflow> getDataApprovalWorkflow( @RequestParam List<String> wf )
-    {
-        if ( wf == null )
-        {
-            return new ArrayList<>();
-        }
-
-        return manager.getByUid( DataApprovalWorkflow.class, wf );
     }
 }
