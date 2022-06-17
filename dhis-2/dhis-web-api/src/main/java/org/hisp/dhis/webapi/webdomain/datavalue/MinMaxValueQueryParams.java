@@ -37,7 +37,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Object which encapsulates parameters for a data value query.
+ * Object which encapsulates parameters for a min-max value query.
  *
  * @author Lars Helge Overland
  */
@@ -46,20 +46,14 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor( access = AccessLevel.PRIVATE )
-public class DataValueQueryParams
+public class MinMaxValueQueryParams
 {
     @NotBlank
     private String de;
 
     @NotBlank
-    private String pe;
-
-    @NotBlank
     private String ou;
 
+    @NotBlank
     private String co;
-
-    private String cc;
-
-    private String cp;
 }

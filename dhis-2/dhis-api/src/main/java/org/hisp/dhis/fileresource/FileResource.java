@@ -94,6 +94,8 @@ public class FileResource
      */
     private transient FileResourceStorageStatus storageStatus = FileResourceStorageStatus.NONE;
 
+    private String fileResourceOwner;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -235,5 +237,15 @@ public class FileResource
     public void setHasMultipleStorageFiles( boolean hasMultipleStorageFiles )
     {
         this.hasMultipleStorageFiles = hasMultipleStorageFiles;
+    }
+
+    public String getFileResourceOwner()
+    {
+        return fileResourceOwner;
+    }
+
+    public void setFileResourceOwner( String fileResourceOwner )
+    {
+        this.fileResourceOwner = fileResourceOwner;
     }
 }
