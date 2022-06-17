@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
@@ -39,6 +38,8 @@ import java.util.HashSet;
 import java.util.List;
 
 import javax.servlet.http.HttpServletResponse;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.audit.payloads.TrackedEntityInstanceAudit;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -96,6 +97,7 @@ import com.google.common.collect.Lists;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @RestController
+@RequiredArgsConstructor
 @RequestMapping( "/audits" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class AuditController
@@ -119,37 +121,6 @@ public class AuditController
     private final ContextService contextService;
 
     private final FileResourceService fileResourceService;
-
-    public AuditController( IdentifiableObjectManager manager, ProgramStageInstanceService programStageInstanceService,
-        DataValueAuditService dataValueAuditService,
-        TrackedEntityDataValueAuditService trackedEntityDataValueAuditService,
-        TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService,
-        DataApprovalAuditService dataApprovalAuditService,
-        TrackedEntityInstanceAuditService trackedEntityInstanceAuditService,
-        FieldFilterService fieldFilterService,
-        ContextService contextService, FileResourceService fileResourceService )
-    {
-        checkNotNull( manager );
-        checkNotNull( programStageInstanceService );
-        checkNotNull( dataValueAuditService );
-        checkNotNull( trackedEntityDataValueAuditService );
-        checkNotNull( trackedEntityAttributeValueAuditService );
-        checkNotNull( dataApprovalAuditService );
-        checkNotNull( fieldFilterService );
-        checkNotNull( contextService );
-        checkNotNull( fileResourceService );
-
-        this.manager = manager;
-        this.programStageInstanceService = programStageInstanceService;
-        this.dataValueAuditService = dataValueAuditService;
-        this.trackedEntityDataValueAuditService = trackedEntityDataValueAuditService;
-        this.trackedEntityAttributeValueAuditService = trackedEntityAttributeValueAuditService;
-        this.dataApprovalAuditService = dataApprovalAuditService;
-        this.trackedEntityInstanceAuditService = trackedEntityInstanceAuditService;
-        this.fieldFilterService = fieldFilterService;
-        this.contextService = contextService;
-        this.fileResourceService = fileResourceService;
-    }
 
     /**
      * Returns the file with the given uid
