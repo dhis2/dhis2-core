@@ -33,8 +33,8 @@ import static org.hisp.dhis.analytics.ColumnDataType.INTEGER;
 import static org.hisp.dhis.analytics.ColumnDataType.JSONB;
 import static org.hisp.dhis.analytics.ColumnDataType.TIMESTAMP;
 import static org.hisp.dhis.analytics.ColumnDataType.VARCHAR_1200;
-import static org.hisp.dhis.analytics.ColumnDataType.VARCHAR_255;
 import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NOT_NULL;
+import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NULL;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 
 import java.util.ArrayList;
@@ -112,15 +112,12 @@ public class JdbcTrackedEntityInstanceAnalyticsTableManager extends AbstractJdbc
     private static final List<AnalyticsTableColumn> FIXED_COLS = ImmutableList.of(
         new AnalyticsTableColumn( quote( "trackedentityinstanceid" ), INTEGER, NOT_NULL,
             "tei.trackedentityinstanceid" ),
-        new AnalyticsTableColumn( quote( "programuid" ), CHARACTER_11, NOT_NULL, "p.uid" ),
-        new AnalyticsTableColumn( quote( "programname" ), VARCHAR_255, NOT_NULL, "p.name" ),
         new AnalyticsTableColumn( quote( "trackedentityinstanceuid" ), CHARACTER_11, NOT_NULL, "tei.uid" ),
-        new AnalyticsTableColumn( quote( "programstageuid" ), CHARACTER_11, NOT_NULL, "ps.uid" ),
-        new AnalyticsTableColumn( quote( "programinstanceuid" ), CHARACTER_11, NOT_NULL, "pi.uid" ),
-        new AnalyticsTableColumn( quote( "programstageinstanceuid" ), CHARACTER_11, NOT_NULL, "psi.uid" ),
+        new AnalyticsTableColumn( quote( "programinstanceuid" ), CHARACTER_11, NULL, "pi.uid" ),
         new AnalyticsTableColumn( quote( "enrollmentdate" ), TIMESTAMP, "pi.enrollmentdate" ),
         new AnalyticsTableColumn( quote( "enddate" ), TIMESTAMP, "pi.enddate" ),
         new AnalyticsTableColumn( quote( "incidentdate" ), TIMESTAMP, "pi.incidentdate" ),
+        new AnalyticsTableColumn( quote( "programstageinstanceuid" ), CHARACTER_11, NULL, "psi.uid" ),
         new AnalyticsTableColumn( quote( "executiondate" ), TIMESTAMP, "psi.executiondate" ),
         new AnalyticsTableColumn( quote( "duedate" ), TIMESTAMP, "psi.duedate" ),
         new AnalyticsTableColumn( quote( "eventdatavalues" ), JSONB, "psi.eventdatavalues" ) );
@@ -274,11 +271,10 @@ public class JdbcTrackedEntityInstanceAnalyticsTableManager extends AbstractJdbc
         }
 
         sql = TextUtils.removeLastComma( sql ) +
-            " FROM programinstance pi " +
-            " INNER JOIN program p ON pi.programid = p.programid " +
-            " INNER JOIN programstageinstance psi ON psi.programinstanceid = pi.programinstanceid " +
-            " INNER JOIN programstage ps ON ps.programid = p.programid AND psi.programstageid = ps.programstageid " +
-            " INNER JOIN trackedentityinstance tei ON pi.trackedentityinstanceid = tei.trackedentityinstanceid ";
+            " FROM trackedentityinstance tei " +
+            " LEFT JOIN programinstance pi on pi.trackedentityinstanceid = tei.trackedentityinstanceid" +
+            " LEFT JOIN programstageinstance psi on psi.programinstanceid = pi.programinstanceid" +
+            " WHERE tei.trackedentitytypeid = " + partition.getMasterTable().getTrackedEntityType().getId();
 
         invokeTimeAndLog( sql, partition.getTempTableName() );
     }

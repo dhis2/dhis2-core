@@ -104,11 +104,6 @@ public interface TrackedEntityAttributeService
     List<TrackedEntityAttribute> getTrackedEntityAttributes( List<String> uids );
 
     /**
-     * returns all programAttributes
-     */
-    List<TrackedEntityAttribute> getProgramTrackedEntityAttributes( List<Program> programs );
-
-    /**
      * Returns the {@link TrackedEntityAttribute}s with the given UIDs.
      *
      * @param ids list of primary key ids.
