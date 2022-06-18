@@ -130,9 +130,9 @@ class TrackedEntityDataValueAuditStoreTest extends DhisSpringTest
     @Test
     void testGetTrackedEntityDataValueAudits()
     {
-        TrackedEntityDataValueAudit dataValueAudit = new TrackedEntityDataValueAudit( deA, psiA,
+        TrackedEntityDataValueAudit dvaA = new TrackedEntityDataValueAudit( deA, psiA,
             dvA.getAuditValue(), "userA", dvA.getProvidedElsewhere(), AuditType.UPDATE );
-        auditStore.addTrackedEntityDataValueAudit( dataValueAudit );
+        auditStore.addTrackedEntityDataValueAudit( dvaA );
 
         TrackedEntityDataValueAuditQueryParams params = new TrackedEntityDataValueAuditQueryParams()
             .setDataElements( List.of( deA ) )
