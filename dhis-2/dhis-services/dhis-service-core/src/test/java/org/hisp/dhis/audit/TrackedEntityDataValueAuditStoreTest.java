@@ -97,31 +97,33 @@ class TrackedEntityDataValueAuditStoreTest extends DhisSpringTest
     @Override
     public void setUpTest()
     {
-        OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
-        organisationUnitService.addOrganisationUnit( organisationUnit );
-        Program program = createProgram( 'A', new HashSet<>(), organisationUnit );
-        programService.addProgram( program );
-        ProgramStage stageA = new ProgramStage( "StageA", program );
-        stageA.setSortOrder( 1 );
-        programStageService.saveProgramStage( stageA );
-        ProgramStage stageB = new ProgramStage( "StageB", program );
-        stageB.setSortOrder( 2 );
-        programStageService.saveProgramStage( stageB );
-        Set<ProgramStage> programStages = new HashSet<>();
-        programStages.add( stageA );
-        programStages.add( stageB );
-        program.setProgramStages( programStages );
-        programService.updateProgram( program );
+        OrganisationUnit ouA = createOrganisationUnit( 'A' );
+        organisationUnitService.addOrganisationUnit( ouA );
+
+        Program pA = createProgram( 'A', new HashSet<>(), ouA );
+        programService.addProgram( pA );
+
+        ProgramStage psA = new ProgramStage( "StageA", pA );
+        psA.setSortOrder( 1 );
+        programStageService.saveProgramStage( psA );
+        ProgramStage psB = new ProgramStage( "StageB", pA );
+        psB.setSortOrder( 2 );
+        programStageService.saveProgramStage( psB );
+        pA.setProgramStages( Set.of( psA, psB ) );
+        programService.updateProgram( pA );
+
         deA = createDataElement( 'A' );
         deB = createDataElement( 'B' );
         dataElementService.addDataElement( deA );
         dataElementService.addDataElement( deB );
-        TrackedEntityInstance entityInstance = createTrackedEntityInstance( organisationUnit );
-        entityInstanceService.addTrackedEntityInstance( entityInstance );
-        ProgramInstance programInstance = programInstanceService.enrollTrackedEntityInstance( entityInstance, program,
-            new Date(), new Date(), organisationUnit );
-        psiA = programStageInstanceService.createProgramStageInstance( programInstance, stageA, new Date(),
-            new Date(), organisationUnit );
+
+        TrackedEntityInstance teiA = createTrackedEntityInstance( ouA );
+        entityInstanceService.addTrackedEntityInstance( teiA );
+
+        ProgramInstance piA = programInstanceService.enrollTrackedEntityInstance(
+            teiA, pA, new Date(), new Date(), ouA );
+        psiA = programStageInstanceService.createProgramStageInstance(
+            piA, psA, new Date(), new Date(), ouA );
         dvA = new EventDataValue( deA.getUid(), "1", UserInfoTestHelper.testUserInfo( "test-user" ) );
     }
 
