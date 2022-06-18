@@ -73,7 +73,7 @@
         <td><input type="hidden" id="email" name="email" value="$email">
             <input type="text" id="email" name="email" value="$email" disabled="disabled"></td>
         #else
-        <td><input type="text" id="email" name="email" value="$email" onfocusout="checkPasswordForEmail()"></td>
+        <td><input type="text" id="email" name="email" onfocusout="checkPasswordForEmail()"></td>
         #end
     </tr>
     <tr>
