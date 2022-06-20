@@ -31,11 +31,15 @@ import static java.lang.String.format;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.stream.Stream;
 
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.webapi.json.domain.JsonImportConflict;
+import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -61,7 +65,7 @@ class DataValueMultiTextControllerTest extends AbstractDataValueControllerTest
     }
 
     @Test
-    void addDataValue_MultiText()
+    void testAddDataValue_MultiText()
     {
         assertDoesNotThrow( () -> addDataValue( "2021-01", "A,B", "", false, multiTextDataElementId, orgUnitId ) );
         JsonArray values = getDataValues( multiTextDataElementId, "2021-01", orgUnitId );
@@ -70,7 +74,7 @@ class DataValueMultiTextControllerTest extends AbstractDataValueControllerTest
     }
 
     @Test
-    void addDataValue_MultiText_NoSuchOption()
+    void testAddDataValue_MultiText_NoSuchOption()
     {
         assertWebMessage( "Conflict", 409, "ERROR",
             format( "Data value is not a valid option of the data element option set: `%s`", multiTextDataElementId ),
@@ -79,7 +83,7 @@ class DataValueMultiTextControllerTest extends AbstractDataValueControllerTest
     }
 
     @Test
-    void addDataElement_MultiText_RequiresOptionSet()
+    void testAddDataElement_MultiText_RequiresOptionSet()
     {
         String optionSetId = addOptionSet( "MultiSelectSet2", ValueType.TEXT );
         assertWebMessage( "Conflict", 409, "ERROR",
@@ -89,12 +93,33 @@ class DataValueMultiTextControllerTest extends AbstractDataValueControllerTest
     }
 
     @Test
-    void addDataElement_MultiText_OptionSetValueTypeMismatch()
+    void testAddDataElement_MultiText_OptionSetValueTypeMismatch()
     {
         assertWebMessage( "Conflict", 409, "ERROR",
             "Data element of value type multi text must have an option set: `null`",
             postNewDataElement( "MultiSelectDE2", "MSDE2", ValueType.MULTI_TEXT, null )
                 .content( HttpStatus.CONFLICT ) );
+    }
+
+    @Test
+    void testPostJsonDataValueSet_MultiText_NoSuchOption()
+    {
+        String body = format( "{'dataValues':[{"
+            + "'period':'201201',"
+            + "'orgUnit':'%s',"
+            + "'dataElement':'%s',"
+            + "'categoryOptionCombo':'%s',"
+            + "'value':'A,D'"
+            + "}]}", orgUnitId, multiTextDataElementId, categoryOptionComboId );
+        JsonWebMessage message = assertWebMessage( "Conflict", 409, "WARNING",
+            "One more conflicts encountered, please check import summary.",
+            POST( "/38/dataValueSets/", body ).content( HttpStatus.CONFLICT ) );
+        JsonImportConflict conflict = message.find( JsonImportConflict.class,
+            c -> c.getErrorCode() == ErrorCode.E7621 );
+        assertTrue( conflict.isObject() );
+        assertEquals(
+            format( "Data value is not a valid option of the data element option set: `%s`", multiTextDataElementId ),
+            conflict.getValue() );
     }
 
     private String addOptionSet( String name, ValueType valueType )
