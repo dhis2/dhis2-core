@@ -32,11 +32,11 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-
 import lombok.Getter;
 import lombok.Setter;
+
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 
 @Getter
 @Setter

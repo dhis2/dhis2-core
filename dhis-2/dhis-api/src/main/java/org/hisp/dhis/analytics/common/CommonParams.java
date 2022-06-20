@@ -31,17 +31,17 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.hisp.dhis.analytics.common.dimension.DimensionParam;
-import org.hisp.dhis.program.Program;
-
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import org.hisp.dhis.analytics.common.dimension.DimensionParam;
+import org.hisp.dhis.program.Program;
+
 /**
  * This is a reusable and shared representation of queryable items to be used by
  * the service/dao layers.
- * 
+ *
  * It encapsulates the most common objects that are very likely to be used by
  * the majority of analytics queries.
  */
