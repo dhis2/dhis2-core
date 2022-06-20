@@ -33,16 +33,13 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
 
 import javax.servlet.http.HttpServletResponse;
 
-import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
-import org.hisp.dhis.analytics.common.CommonQueryRequestProcessor;
+import org.hisp.dhis.analytics.common.Processor;
 import org.hisp.dhis.analytics.common.QueryRequest;
+import org.hisp.dhis.analytics.common.Validator;
 import org.hisp.dhis.analytics.tei.TeiAnalyticsQueryService;
-import org.hisp.dhis.analytics.tei.TeiAnalyticsValidator;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.analytics.tei.TeiQueryRequest;
-import org.hisp.dhis.analytics.tei.TeiQueryRequestProcessor;
 import org.hisp.dhis.analytics.tei.TeiRequestMapper;
 import org.hisp.dhis.common.AnalyticsPagingCriteria;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -52,6 +49,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import lombok.RequiredArgsConstructor;
 
 /**
  * Controller class responsible exclusively for querying operations on top of
@@ -69,11 +68,15 @@ class TeiQueryController
 
     private final TeiAnalyticsQueryService teiAnalyticsQueryService;
 
-    private final TeiQueryRequestProcessor teiQueryRequestProcessor;
+    private final Processor<TeiQueryRequest> teiQueryRequestProcessor;
 
-    private final CommonQueryRequestProcessor commonQueryRequestProcessor;
+    private final Processor<CommonQueryRequest> commonQueryRequestProcessor;
 
-    private final TeiAnalyticsValidator teiAnalyticsValidationService;
+    private final Processor<AnalyticsPagingCriteria> pagingCriteriaProcessor;
+
+    private final Validator<QueryRequest<TeiQueryRequest>> teiQueryRequestValidator;
+
+    private final Validator<CommonQueryRequest> commonQueryRequestValidator;
 
     private final TeiRequestMapper mapper;
 
@@ -90,17 +93,15 @@ class TeiQueryController
         final HttpServletResponse response )
     {
         QueryRequest<TeiQueryRequest> queryRequest = QueryRequest.<TeiQueryRequest> builder()
-            .request(
-                teiQueryRequestProcessor.processRequest(
-                    teiQueryRequest.withTrackedEntityType( trackedEntityType ) ) )
-            .commonQueryRequest( commonQueryRequestProcessor.processCommonRequest( commonQueryRequest ) )
-            .pagingCriteria( commonQueryRequestProcessor.processPagingCriteria(
-                (AnalyticsPagingCriteria) pagingRequest
-                    .withEndpointItem( TRACKED_ENTITY_INSTANCE )
-                    .withQueryEndpointAction() ) )
+            .request( teiQueryRequestProcessor.process(
+                teiQueryRequest.withTrackedEntityType( trackedEntityType ) ) )
+            .commonQueryRequest( commonQueryRequestProcessor.process( commonQueryRequest ) )
+            .pagingCriteria( pagingCriteriaProcessor.process( (AnalyticsPagingCriteria) pagingRequest
+                .withEndpointItem( TRACKED_ENTITY_INSTANCE ).withQueryEndpointAction() ) )
             .build();
 
-        teiAnalyticsValidationService.validateRequest( queryRequest );
+        commonQueryRequestValidator.validate( queryRequest.getCommonQueryRequest() );
+        teiQueryRequestValidator.validate( queryRequest );
 
         contextUtils.configureResponse( response, CONTENT_TYPE_JSON, RESPECT_SYSTEM_SETTING );
 

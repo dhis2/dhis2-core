@@ -31,13 +31,20 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.hisp.dhis.analytics.common.dimension.DimensionParam;
+import org.hisp.dhis.program.Program;
+
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
-import org.hisp.dhis.analytics.common.dimension.DimensionParam;
-import org.hisp.dhis.program.Program;
-
+/**
+ * This is a reusable and shared representation of queryable items to be used by
+ * the service/dao layers.
+ * 
+ * It encapsulates the most common objects that are very likely to be used by
+ * the majority of analytics queries.
+ */
 @Getter
 @Setter
 @Builder( toBuilder = true )
@@ -45,17 +52,20 @@ public class CommonParams
 {
 
     /**
-     * Programs this params refers to
+     * The list of Program objects carried on by this object.
      */
     private final Collection<Program> programs;
 
     /**
-     * Data structure containing dimensionParams, which represents dimensions,
-     * filters, queryItems, queryItemFilters
+     * Data structure containing dimensionParams, which can represent
+     * dimensions, filters, queryItems or queryItemFilters.
      */
     @Builder.Default
     private final List<DimensionParam> dimensionParams = new ArrayList<>();
 
+    /**
+     * The object that groups the paging and sorting parameters.
+     */
     @Builder.Default
     private final AnalyticsPagingAndSortingParams pagingAndSortingParams = AnalyticsPagingAndSortingParams.builder()
         .build();

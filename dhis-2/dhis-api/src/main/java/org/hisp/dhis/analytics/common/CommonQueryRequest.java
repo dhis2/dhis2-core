@@ -32,17 +32,17 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
-import lombok.Getter;
-import lombok.Setter;
-
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+
+import lombok.Getter;
+import lombok.Setter;
 
 @Getter
 @Setter
 public class CommonQueryRequest
 {
-    private Collection<String> program;
+    private Collection<String> program = new HashSet<>();
 
     private String userOrgUnit;
 

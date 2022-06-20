@@ -27,20 +27,21 @@
  */
 package org.hisp.dhis.analytics.common;
 
-import lombok.RequiredArgsConstructor;
-
-import org.hisp.dhis.common.AnalyticsPagingCriteria;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.stereotype.Component;
 
+import lombok.RequiredArgsConstructor;
+
+/**
+ * Processor class for CommonQueryRequest objects.
+ *
+ * @see Processor
+ */
 @Component
 @RequiredArgsConstructor
-public class CommonQueryRequestProcessor
+public class CommonQueryRequestProcessor implements Processor<CommonQueryRequest>
 {
-    private final SystemSettingManager systemSettingManager;
 
-    public CommonQueryRequest processCommonRequest( CommonQueryRequest commonQueryRequest )
+    public CommonQueryRequest process( final CommonQueryRequest commonQueryRequest )
     {
         // here we should refactor/preprocess dimensions and filters for 2
         // specific purposes:
@@ -54,16 +55,4 @@ public class CommonQueryRequestProcessor
         // TODO: DHIS2-13383
         return commonQueryRequest;
     }
-
-    // TODO: DHIS2-13384 we would really like to have all
-    // criteria/request/params to be
-    // immutable, but PagingCriteria is not
-    // returning it for now, should be converted to use builders
-    public AnalyticsPagingCriteria processPagingCriteria( AnalyticsPagingCriteria pagingCriteria )
-    {
-        int analyticsMaxPageSize = systemSettingManager.getIntSetting( SettingKey.ANALYTICS_MAX_LIMIT );
-        pagingCriteria.definePageSize( analyticsMaxPageSize );
-        return pagingCriteria;
-    }
-
 }

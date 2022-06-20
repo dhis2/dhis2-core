@@ -27,12 +27,18 @@
  */
 package org.hisp.dhis.analytics.common;
 
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
-@Service
-public class CommonValidationService
+/**
+ * Component responsible for generic validations on top of a CommonQueryRequest
+ * object.
+ *
+ * @see Validator
+ */
+@Component
+public class CommonQueryRequestValidator implements Validator<CommonQueryRequest>
 {
-    public void validate( CommonQueryRequest commonQueryRequest )
+    public void validate( final CommonQueryRequest commonQueryRequest )
     {
         // TODO: validate common request params
     }

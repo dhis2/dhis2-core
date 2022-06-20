@@ -29,24 +29,27 @@ package org.hisp.dhis.analytics.tei;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.analytics.common.CommonValidationService;
+import org.hisp.dhis.analytics.common.CommonQueryRequestValidator;
 import org.hisp.dhis.analytics.common.QueryRequest;
+import org.hisp.dhis.analytics.common.Validator;
 import org.springframework.stereotype.Component;
 
 /**
  * Component responsible for validation rules on top of analytics tracker entity
- * queries.
+ * request queries.
+ * 
+ * @see Validator
  */
 @Component
 @RequiredArgsConstructor
-public class TeiAnalyticsValidator
+public class TeiQueryRequestValidator implements Validator<QueryRequest<TeiQueryRequest>>
 {
 
-    private final CommonValidationService commonValidationService;
+    private final CommonQueryRequestValidator commonQueryRequestValidator;
 
-    public void validateRequest( final QueryRequest<TeiQueryRequest> queryRequest )
+    public void validate( final QueryRequest<TeiQueryRequest> queryRequest )
     {
-        commonValidationService.validate( queryRequest.getCommonQueryRequest() );
+        commonQueryRequestValidator.validate( queryRequest.getCommonQueryRequest() );
         // TODO: DHIS2-13382 validate the TEI part of the request
     }
 }
