@@ -46,16 +46,15 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import org.hisp.dhis.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.AnalyticsTableService;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
+import org.hisp.dhis.analytics.AnalyticsTestUtils;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.OutputFormat;
-import org.hisp.dhis.analytics.util.AnalyticsTestUtils;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -90,6 +89,7 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.system.util.CsvUtils;
+import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.validation.ValidationResult;
 import org.hisp.dhis.validation.ValidationResultService;
 import org.hisp.dhis.validation.ValidationRule;
@@ -402,9 +402,10 @@ class AnalyticsServiceTest
         throws IOException
     {
         // Read data values from CSV files
-        List<String[]> dataValueLines = CsvUtils.readCsvAsListFromClasspath( "csv/dataValues.csv", true );
+        List<String[]> dataValueLines = CsvUtils.readCsvAsListFromClasspath( "analytics/csv/dataValues.csv", true );
         parseDataValues( dataValueLines );
-        List<String[]> dataSetRegistrationLines = CsvUtils.readCsvAsListFromClasspath( "csv/dataSetRegistrations.csv",
+        List<String[]> dataSetRegistrationLines = CsvUtils.readCsvAsListFromClasspath(
+            "analytics/csv/dataSetRegistrations.csv",
             true );
         parseDataSetRegistrations( dataSetRegistrationLines );
     }

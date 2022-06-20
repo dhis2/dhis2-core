@@ -9,6 +9,41 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <configuration>
+                    <failOnWarning>true</failOnWarning>
+                    <ignoredNonTestScopedDependencies>
+<!--                        <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-support-hibernate</ignoredNonTestScopedDependency>-->
+<!--                        <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-setting</ignoredNonTestScopedDependency>-->
+                        <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-dxf2</ignoredNonTestScopedDependency>
+<!--                        <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-support-commons</ignoredNonTestScopedDependency>-->
+<!--                        <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-field-filtering</ignoredNonTestScopedDependency>-->
+<!--                        <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-program-rule</ignoredNonTestScopedDependency>-->
+                        <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-core</ignoredNonTestScopedDependency>
+<!--                        <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-web-api</ignoredNonTestScopedDependency>-->
+                        <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-acl</ignoredNonTestScopedDependency>
+<!--                        <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-reporting</ignoredNonTestScopedDependency>-->
+                        <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-support-external</ignoredNonTestScopedDependency>
+<!--                        <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-support-db-migration</ignoredNonTestScopedDependency>-->
+<!--                        <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-node</ignoredNonTestScopedDependency>-->
+<!--                        <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-schema</ignoredNonTestScopedDependency>-->
+<!--                        <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-metadata-workflow</ignoredNonTestScopedDependency>-->
+                        <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-api</ignoredNonTestScopedDependency>
+                        <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-analytics</ignoredNonTestScopedDependency>
+                        <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-tracker</ignoredNonTestScopedDependency>
+<!--                        <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-support-jdbc</ignoredNonTestScopedDependency>-->
+                        <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-validation</ignoredNonTestScopedDependency>
+                        <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-support-system</ignoredNonTestScopedDependency>
+                    </ignoredNonTestScopedDependencies>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
     <artifactId>dhis-test-integration</artifactId>
     <name>DHIS Test Integration</name>
     <dependencies>
@@ -78,30 +113,57 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- dhis-test-integration only contains tests so test scope on modules it tests is intuitively correct, but to have its
+             coverage included in the report we need to use scope compile (or runtime, provided) see https://www.eclemma.org/jacoco/trunk/doc/report-aggregate-mojo.html -->
         <dependency>
             <groupId>org.hisp.dhis</groupId>
             <artifactId>dhis-api</artifactId>
-            <scope>test</scope>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.hisp.dhis</groupId>
             <artifactId>dhis-service-acl</artifactId>
-            <scope>test</scope>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hisp.dhis</groupId>
+            <artifactId>dhis-service-administration</artifactId>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hisp.dhis</groupId>
+            <artifactId>dhis-service-core</artifactId>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hisp.dhis</groupId>
+            <artifactId>dhis-service-analytics</artifactId>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.hisp.dhis</groupId>
             <artifactId>dhis-service-dxf2</artifactId>
-            <scope>test</scope>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.hisp.dhis</groupId>
             <artifactId>dhis-service-tracker</artifactId>
-            <scope>test</scope>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hisp.dhis</groupId>
+            <artifactId>dhis-service-validation</artifactId>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.hisp.dhis</groupId>
             <artifactId>dhis-support-external</artifactId>
-            <scope>test</scope>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hisp.dhis</groupId>
+            <artifactId>dhis-support-system</artifactId>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 

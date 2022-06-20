@@ -39,13 +39,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.AnalyticsTableService;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
+import org.hisp.dhis.analytics.AnalyticsTestUtils;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
-import org.hisp.dhis.analytics.util.AnalyticsTestUtils;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.Grid;
@@ -65,6 +64,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.system.util.CsvUtils;
+import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -163,7 +163,7 @@ class EventAnalyticsServiceTest extends IntegrationTestBase
         // Stubbed events data
         stubAnalyticsEventsData();
         // Events data from CSV file
-        List<String[]> eventDataLines = CsvUtils.readCsvAsListFromClasspath( "csv/eventData.csv", true );
+        List<String[]> eventDataLines = CsvUtils.readCsvAsListFromClasspath( "analytics/csv/eventData.csv", true );
         parseEventData( eventDataLines );
         // The generated analytics tables
         analyticsTableGenerator.generateTables( AnalyticsTableUpdateParams.newBuilder().build(),
