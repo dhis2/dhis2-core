@@ -33,8 +33,6 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.core.Every.everyItem;
 import static org.hisp.dhis.tracker.Assertions.assertNoImportErrors;
-import static org.hisp.dhis.tracker.validation.Users.USER_2;
-import static org.hisp.dhis.tracker.validation.Users.USER_4;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -121,7 +119,7 @@ class EnrollmentImportValidationTest extends TrackerTest
         throws IOException
     {
         TrackerImportParams params = fromJson( "tracker/validations/enrollments_te_enrollments-data.json" );
-        User user = userService.getUser( USER_2 );
+        User user = userService.getUser( Users.USER_2 );
         params.setUser( user );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
         assertEquals( 4, trackerImportReport.getValidationReport().getErrors().size() );
@@ -166,7 +164,7 @@ class EnrollmentImportValidationTest extends TrackerTest
         importProgramStageInstances();
         manager.flush();
         params = fromJson( "tracker/validations/enrollments_te_attr-data.json" );
-        User user2 = userService.getUser( USER_4 );
+        User user2 = userService.getUser( Users.USER_4 );
         params.setUser( user2 );
         params.setImportStrategy( TrackerImportStrategy.DELETE );
         TrackerImportReport trackerImportDeleteReport = trackerImportService.importTracker( params );

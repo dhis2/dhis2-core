@@ -124,10 +124,18 @@
             <groupId>org.hisp.dhis</groupId>
             <artifactId>dhis-web-api</artifactId>
         </dependency>
-        <!-- dhis-web-api-test only contains tests, since it should contribute execution data but not itself be part of the report it has scope test https://www.eclemma.org/jacoco/trunk/doc/report-aggregate-mojo.html -->
+        <!-- dhis-web-api-test and dhis-test-integration only contains tests, since it should contribute execution data
+             but not itself be part of the report it has scope test
+             https://www.eclemma.org/jacoco/trunk/doc/report-aggregate-mojo.html -->
         <dependency>
             <groupId>org.hisp.dhis</groupId>
             <artifactId>dhis-web-api-test</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hisp.dhis</groupId>
+            <artifactId>dhis-test-integration</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
@@ -175,6 +183,7 @@
                 <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-cache-invalidation</ignoredUnusedDeclaredDependency>
                 <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-web-api</ignoredUnusedDeclaredDependency>
                 <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-web-api-test</ignoredUnusedDeclaredDependency>
+                <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-test-integration</ignoredUnusedDeclaredDependency>
                 <!-- surefire complains about it being missing, so I added it as a dependency even though dhis-test-coverage has no tests
                      better alternative would be a way to exclude the module from surefire itself -->
                 <ignoredUnusedDeclaredDependency>org.junit.jupiter:junit-jupiter-api</ignoredUnusedDeclaredDependency>

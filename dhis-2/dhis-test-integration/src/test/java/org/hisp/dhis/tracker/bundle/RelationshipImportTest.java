@@ -27,70 +27,73 @@
  */
 package org.hisp.dhis.tracker.bundle;
 
-import static org.hisp.dhis.tracker.Assertions.assertNoImportErrors;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 
 import java.io.IOException;
-import java.util.List;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.tracker.Assertions;
+import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
+import org.hisp.dhis.tracker.report.TrackerStatus;
+import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowCallbackHandler;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-class TrackedEntityProgramAttributeEncryptionTest extends TrackerTest
+class RelationshipImportTest extends TrackerTest
 {
 
     @Autowired
     private TrackerImportService trackerImportService;
 
     @Autowired
-    private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
-
-    @Autowired
     private IdentifiableObjectManager manager;
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+    private User userA;
 
     @Override
     protected void initTest()
         throws IOException
     {
-        setUpMetadata( "tracker/te_program_with_tea_encryption_metadata.json" );
-        injectAdminUser();
+        setUpMetadata( "tracker/simple_metadata.json" );
+        userA = userService.getUser( "M5zQapPyTZI" );
+        Assertions.assertNoImportErrors(
+            trackerImportService.importTracker( fromJson( "tracker/single_tei.json", userA.getUid() ) ) );
+        Assertions.assertNoImportErrors(
+            trackerImportService.importTracker( fromJson( "tracker/single_enrollment.json", userA.getUid() ) ) );
+        Assertions.assertNoImportErrors(
+            trackerImportService.importTracker( fromJson( "tracker/single_event.json", userA.getUid() ) ) );
+        manager.flush();
     }
 
     @Test
-    void testTrackedEntityProgramAttributeEncryptedValue()
+    void successImportingRelationships()
         throws IOException
     {
-        TrackerImportReport trackerImportReport = trackerImportService
-            .importTracker( fromJson( "tracker/te_program_with_tea_encryption_data.json" ) );
-        assertNoImportErrors( trackerImportReport );
+        TrackerImportParams trackerImportParams = fromJson( "tracker/relationships.json" );
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
+        assertThat( trackerImportReport.getStatus(), is( TrackerStatus.OK ) );
+        assertThat( trackerImportReport.getStats().getCreated(), is( 2 ) );
+    }
 
-        List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
-        assertEquals( 1, trackedEntityInstances.size() );
-
-        TrackedEntityInstance trackedEntityInstance = trackedEntityInstances.get( 0 );
-        List<TrackedEntityAttributeValue> attributeValues = trackedEntityAttributeValueService
-            .getTrackedEntityAttributeValues( trackedEntityInstance );
-        assertEquals( 5, attributeValues.size() );
-        // not really a great test, but we are using a random seed for salt, so
-        // it changes on every run... we might want to
-        // add another EncryptionConfig test profile
-        RowCallbackHandler handler = resultSet -> assertNotNull( resultSet.getString( "encryptedvalue" ) );
-        jdbcTemplate.query( "select * from trackedentityattributevalue where encryptedvalue is not null ", handler );
+    @Test
+    void successUpdateRelationships()
+        throws IOException
+    {
+        TrackerImportParams trackerImportParams = fromJson( "tracker/relationships.json" );
+        trackerImportService.importTracker( trackerImportParams );
+        trackerImportParams = fromJson( "tracker/relationshipToUpdate.json" );
+        trackerImportParams.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
+        assertThat( trackerImportReport.getStatus(), is( TrackerStatus.OK ) );
+        assertThat( trackerImportReport.getStats().getCreated(), is( 0 ) );
+        assertThat( trackerImportReport.getStats().getIgnored(), is( 1 ) );
     }
 }

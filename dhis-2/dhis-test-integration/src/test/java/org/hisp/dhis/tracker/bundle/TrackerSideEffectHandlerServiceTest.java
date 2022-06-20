@@ -27,67 +27,57 @@
  */
 package org.hisp.dhis.tracker.bundle;
 
-import static org.hisp.dhis.tracker.Assertions.assertNoImportErrors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.io.IOException;
 import java.util.List;
 
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceStore;
-import org.hisp.dhis.tracker.TrackerImportParams;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.program.notification.ProgramNotificationInstance;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplateStore;
+import org.hisp.dhis.tracker.Assertions;
 import org.hisp.dhis.tracker.TrackerImportService;
-import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Zubair Asghar
  */
-class TrackerEventBundleServiceTest extends TrackerTest
+class TrackerSideEffectHandlerServiceTest extends TrackerTest
 {
     @Autowired
     private TrackerImportService trackerImportService;
 
     @Autowired
-    private ProgramStageInstanceStore programStageInstanceStore;
+    private ProgramNotificationTemplateStore store;
+
+    @Autowired
+    private IdentifiableObjectManager manager;
 
     @Override
     protected void initTest()
         throws IOException
     {
-        setUpMetadata( "tracker/event_metadata.json" );
+        setUpMetadata( "tracker/tracker_metadata_with_program_rules.json" );
         injectAdminUser();
     }
 
     @Test
-    void testCreateSingleEventData()
+    @Disabled( "Needs to be added once rule engine PR is merged" )
+    void testRuleEngineSideEffectHandlerService()
         throws IOException
     {
-        TrackerImportParams trackerImportParams = fromJson( "tracker/event_events_and_enrollment.json" );
-        assertEquals( 8, trackerImportParams.getEvents().size() );
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertNoImportErrors( trackerImportReport );
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( fromJson(
+            "tracker/enrollment_data_with_program_rule_side_effects.json" ) );
+        Assertions.assertNoImportErrors( trackerImportReport );
 
-        List<ProgramStageInstance> programStageInstances = programStageInstanceStore.getAll();
-        assertEquals( 8, programStageInstances.size() );
-    }
-
-    @Test
-    void testUpdateSingleEventData()
-        throws IOException
-    {
-        TrackerImportParams trackerImportParams = fromJson( "tracker/event_events_and_enrollment.json" );
-        trackerImportParams.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertNoImportErrors( trackerImportReport );
-        assertEquals( 8, programStageInstanceStore.getAll().size() );
-
-        trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertNoImportErrors( trackerImportReport );
-
-        assertEquals( 8, programStageInstanceStore.getAll().size() );
+        List<ProgramNotificationInstance> instances = manager.getAll( ProgramNotificationInstance.class );
+        assertFalse( instances.isEmpty() );
+        ProgramNotificationInstance instance = instances.get( 0 );
+        assertEquals( "FdIeUL4gyoB", instance.getProgramNotificationTemplateSnapshot().getUid() );
     }
 }

@@ -27,73 +27,67 @@
  */
 package org.hisp.dhis.tracker.bundle;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hisp.dhis.tracker.Assertions.assertNoImportErrors;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
+import java.util.List;
 
-import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStageInstanceStore;
+import org.hisp.dhis.tracker.Assertions;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
-import org.hisp.dhis.tracker.report.TrackerStatus;
-import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class RelationshipImportTest extends TrackerTest
+class TrackerEventBundleServiceTest extends TrackerTest
 {
-
     @Autowired
     private TrackerImportService trackerImportService;
 
     @Autowired
-    private IdentifiableObjectManager manager;
-
-    private User userA;
+    private ProgramStageInstanceStore programStageInstanceStore;
 
     @Override
     protected void initTest()
         throws IOException
     {
-        setUpMetadata( "tracker/simple_metadata.json" );
-        userA = userService.getUser( "M5zQapPyTZI" );
-        assertNoImportErrors(
-            trackerImportService.importTracker( fromJson( "tracker/single_tei.json", userA.getUid() ) ) );
-        assertNoImportErrors(
-            trackerImportService.importTracker( fromJson( "tracker/single_enrollment.json", userA.getUid() ) ) );
-        assertNoImportErrors(
-            trackerImportService.importTracker( fromJson( "tracker/single_event.json", userA.getUid() ) ) );
-        manager.flush();
+        setUpMetadata( "tracker/event_metadata.json" );
+        injectAdminUser();
     }
 
     @Test
-    void successImportingRelationships()
+    void testCreateSingleEventData()
         throws IOException
     {
-        TrackerImportParams trackerImportParams = fromJson( "tracker/relationships.json" );
+        TrackerImportParams trackerImportParams = fromJson( "tracker/event_events_and_enrollment.json" );
+        assertEquals( 8, trackerImportParams.getEvents().size() );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertThat( trackerImportReport.getStatus(), is( TrackerStatus.OK ) );
-        assertThat( trackerImportReport.getStats().getCreated(), is( 2 ) );
+        Assertions.assertNoImportErrors( trackerImportReport );
+
+        List<ProgramStageInstance> programStageInstances = programStageInstanceStore.getAll();
+        assertEquals( 8, programStageInstances.size() );
     }
 
     @Test
-    void successUpdateRelationships()
+    void testUpdateSingleEventData()
         throws IOException
     {
-        TrackerImportParams trackerImportParams = fromJson( "tracker/relationships.json" );
-        trackerImportService.importTracker( trackerImportParams );
-        trackerImportParams = fromJson( "tracker/relationshipToUpdate.json" );
+        TrackerImportParams trackerImportParams = fromJson( "tracker/event_events_and_enrollment.json" );
         trackerImportParams.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertThat( trackerImportReport.getStatus(), is( TrackerStatus.OK ) );
-        assertThat( trackerImportReport.getStats().getCreated(), is( 0 ) );
-        assertThat( trackerImportReport.getStats().getIgnored(), is( 1 ) );
+        Assertions.assertNoImportErrors( trackerImportReport );
+        assertEquals( 8, programStageInstanceStore.getAll().size() );
+
+        trackerImportReport = trackerImportService.importTracker( trackerImportParams );
+        Assertions.assertNoImportErrors( trackerImportReport );
+
+        assertEquals( 8, programStageInstanceStore.getAll().size() );
     }
 }
