@@ -37,6 +37,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
@@ -53,8 +55,6 @@ import org.hisp.dhis.program.ProgramService;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.ImmutableList;
-
-import lombok.RequiredArgsConstructor;
 
 /**
  * Component responsible for mapping the input request parameters into the

@@ -37,7 +37,7 @@ import org.springframework.stereotype.Component;
 /**
  * Component responsible for validation rules on top of analytics tracker entity
  * request queries.
- * 
+ *
  * @see Validator
  */
 @Component

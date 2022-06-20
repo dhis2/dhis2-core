@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.analytics.common;
 
-import org.springframework.stereotype.Component;
-
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.stereotype.Component;
 
 /**
  * Processor class for CommonQueryRequest objects.
