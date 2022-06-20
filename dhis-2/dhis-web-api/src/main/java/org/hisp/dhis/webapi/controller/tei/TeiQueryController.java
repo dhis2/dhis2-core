@@ -33,6 +33,8 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
 
 import javax.servlet.http.HttpServletResponse;
 
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
 import org.hisp.dhis.analytics.common.Processor;
 import org.hisp.dhis.analytics.common.QueryRequest;
@@ -49,8 +51,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import lombok.RequiredArgsConstructor;
 
 /**
  * Controller class responsible exclusively for querying operations on top of
