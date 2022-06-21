@@ -45,7 +45,7 @@ public abstract class WebSnippet<T> implements WebClient
 {
     private final WebClient client;
 
-    public WebSnippet( WebClient client )
+    protected WebSnippet( WebClient client )
     {
         this.client = client;
     }

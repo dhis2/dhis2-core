@@ -34,7 +34,7 @@ import static org.hisp.dhis.web.WebClientUtils.fileContent;
 import static org.hisp.dhis.web.WebClientUtils.getComponent;
 import static org.hisp.dhis.web.WebClientUtils.plainTextOrJson;
 import static org.hisp.dhis.web.WebClientUtils.requestComponentsIn;
-import static org.hisp.dhis.web.WebClientUtils.startWithMediaType;
+import static org.hisp.dhis.web.WebClientUtils.startsWithMediaType;
 import static org.hisp.dhis.web.WebClientUtils.substitutePlaceholders;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -57,6 +57,7 @@ import org.hisp.dhis.webapi.json.domain.JsonError;
  * @author Jan Bernitt
  */
 @FunctionalInterface
+@SuppressWarnings( "java:S100" )
 public interface WebClient
 {
     HttpResponse webRequest( HttpMethod method, String url, List<Header> headers, String contentType,
@@ -132,11 +133,11 @@ public interface WebClient
 
     final class Body implements RequestComponent
     {
-        final String body;
+        final String content;
 
-        Body( String body )
+        Body( String content )
         {
-            this.body = body;
+            this.content = content;
         }
     }
 
@@ -210,7 +211,7 @@ public interface WebClient
         }
         // configure body
         Body bodyComponent = getComponent( Body.class, components );
-        String body = bodyComponent == null ? "" : bodyComponent.body;
+        String body = bodyComponent == null ? "" : bodyComponent.content;
         if ( body != null && body.endsWith( ".json" ) )
         {
             String fileContentType = contentMediaType != null ? contentMediaType : "application/json; charset=utf8";
@@ -221,7 +222,7 @@ public interface WebClient
             String fileContentType = contentMediaType != null ? contentMediaType : "application/geo+json; charset=utf8";
             return failOnException( () -> webRequest( method, url, headers, fileContentType, fileContent( body ) ) );
         }
-        if ( startWithMediaType( body ) )
+        if ( startsWithMediaType( body ) )
         {
             return webRequest( method, url, headers,
                 body.substring( 0, body.indexOf( ':' ) ),

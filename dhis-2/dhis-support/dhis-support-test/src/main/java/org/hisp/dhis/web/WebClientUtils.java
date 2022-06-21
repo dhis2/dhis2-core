@@ -66,14 +66,14 @@ public class WebClientUtils
 
     public static String plainTextOrJson( String body )
     {
-        if ( startWithMediaType( body ) )
+        if ( startsWithMediaType( body ) )
         {
             return body.substring( body.indexOf( ':' ) + 1 );
         }
-        return body.replace( '\'', '"' );
+        return body == null ? null : body.replace( '\'', '"' );
     }
 
-    public static boolean startWithMediaType( String body )
+    public static boolean startsWithMediaType( String body )
     {
         return body != null && IS_MEDIA_TYPE.matcher( body ).find();
     }
@@ -194,7 +194,7 @@ public class WebClientUtils
             return url;
         }
         Object[] urlArgs = Arrays.stream( args ).filter( arg -> !(arg instanceof RequestComponent) ).toArray();
-        return String.format( url.replaceAll( "\\{[a-zA-Z]+}", "%s" ), (Object[]) urlArgs );
+        return String.format( url.replaceAll( "\\{[a-zA-Z]+}", "%s" ), urlArgs );
     }
 
     public static String objectReferences( String... uids )
