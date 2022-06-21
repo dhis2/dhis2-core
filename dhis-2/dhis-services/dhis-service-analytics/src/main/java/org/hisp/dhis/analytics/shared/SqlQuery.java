@@ -52,6 +52,7 @@ import lombok.Getter;
 @Builder
 public class SqlQuery implements Query
 {
+
     /**
      * The list of columns to be queried.
      */
