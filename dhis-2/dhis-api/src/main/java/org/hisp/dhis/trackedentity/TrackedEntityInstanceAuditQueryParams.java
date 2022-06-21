@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.trackedentity;
 
+import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -44,14 +44,14 @@ import org.hisp.dhis.common.AuditType;
 public class TrackedEntityInstanceAuditQueryParams
 {
     /**
-     * Tracked entity instances to fetch audits for
+     * Tracked entity instances.
      */
-    private Set<String> trackedEntityInstances = new HashSet<>();
+    private List<String> trackedEntityInstances = new ArrayList<>();
 
     /**
-     * Users to fetch audits for
+     * Users.
      */
-    private Set<String> users = new HashSet<>();
+    private List<String> users = new ArrayList<>();
 
     /**
      * AuditType to fetch for

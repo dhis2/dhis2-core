@@ -162,10 +162,10 @@ public class AuditController
 
     @GetMapping( "dataValue" )
     public RootNode getAggregateDataValueAudit(
-        @RequestParam( required = false, defaultValue = "" ) List<String> ds,
-        @RequestParam( required = false, defaultValue = "" ) List<String> de,
-        @RequestParam( required = false, defaultValue = "" ) List<String> pe,
-        @RequestParam( required = false, defaultValue = "" ) List<String> ou,
+        @RequestParam( required = false ) List<String> ds,
+        @RequestParam( required = false ) List<String> de,
+        @RequestParam( required = false ) List<String> pe,
+        @RequestParam( required = false ) List<String> ou,
         @RequestParam( required = false ) String co,
         @RequestParam( required = false ) String cc,
         @RequestParam( required = false ) AuditType auditType,
@@ -229,11 +229,11 @@ public class AuditController
 
     @GetMapping( "trackedEntityDataValue" )
     public RootNode getTrackedEntityDataValueAudit(
-        @RequestParam( required = false, defaultValue = "" ) List<String> de,
-        @RequestParam( required = false, defaultValue = "" ) List<String> pe,
-        @RequestParam( required = false, defaultValue = "" ) List<String> ou,
-        @RequestParam( required = false, defaultValue = "" ) List<String> psi,
-        @RequestParam( required = false, defaultValue = "" ) List<String> ps,
+        @RequestParam( required = false ) List<String> de,
+        @RequestParam( required = false ) List<String> pe,
+        @RequestParam( required = false ) List<String> ou,
+        @RequestParam( required = false ) List<String> psi,
+        @RequestParam( required = false ) List<String> ps,
         @RequestParam( required = false ) AuditType auditType,
         @RequestParam( required = false ) Boolean skipPaging,
         @RequestParam( required = false ) Boolean paging,
@@ -304,8 +304,8 @@ public class AuditController
 
     @GetMapping( "trackedEntityAttributeValue" )
     public RootNode getTrackedEntityAttributeValueAudit(
-        @RequestParam( required = false, defaultValue = "" ) List<String> tea,
-        @RequestParam( required = false, defaultValue = "" ) List<String> tei,
+        @RequestParam( required = false ) List<String> tea,
+        @RequestParam( required = false ) List<String> tei,
         @RequestParam( required = false ) AuditType auditType,
         @RequestParam( required = false ) Boolean skipPaging,
         @RequestParam( required = false ) Boolean paging,
@@ -355,10 +355,10 @@ public class AuditController
 
     @GetMapping( "dataApproval" )
     public RootNode getDataApprovalAudit(
-        @RequestParam( required = false, defaultValue = "" ) List<String> dal,
-        @RequestParam( required = false, defaultValue = "" ) List<String> wf,
-        @RequestParam( required = false, defaultValue = "" ) List<String> ou,
-        @RequestParam( required = false, defaultValue = "" ) List<String> aoc,
+        @RequestParam( required = false ) List<String> dal,
+        @RequestParam( required = false ) List<String> wf,
+        @RequestParam( required = false ) List<String> ou,
+        @RequestParam( required = false ) List<String> aoc,
         @RequestParam( required = false ) Date startDate,
         @RequestParam( required = false ) Date endDate,
         @RequestParam( required = false ) Boolean skipPaging,
@@ -405,8 +405,8 @@ public class AuditController
 
     @GetMapping( "trackedEntityInstance" )
     public RootNode getTrackedEnityInstanceAudit(
-        @RequestParam( required = false, defaultValue = "" ) List<String> tei,
-        @RequestParam( required = false, defaultValue = "" ) List<String> user,
+        @RequestParam( required = false ) List<String> tei,
+        @RequestParam( required = false ) List<String> user,
         @RequestParam( required = false ) AuditType auditType,
         @RequestParam( required = false ) Date startDate,
         @RequestParam( required = false ) Date endDate,
@@ -423,8 +423,8 @@ public class AuditController
         }
 
         TrackedEntityInstanceAuditQueryParams params = new TrackedEntityInstanceAuditQueryParams()
-            .setTrackedEntityInstances( new HashSet<>( tei ) )
-            .setUsers( new HashSet<>( user ) )
+            .setTrackedEntityInstances( tei )
+            .setUsers( user )
             .setAuditType( auditType )
             .setStartDate( startDate )
             .setEndDate( endDate )
@@ -465,10 +465,10 @@ public class AuditController
     // Helpers
     // -----------------------------------------------------------------------------------------------------------------
 
-    private List<DataElement> getDataElementsByDataSet( List<String> dsIdentifiers )
+    private List<DataElement> getDataElementsByDataSet( List<String> uids )
         throws WebMessageException
     {
-        List<DataSet> dataSets = manager.loadByUid( DataSet.class, dsIdentifiers );
+        List<DataSet> dataSets = manager.loadByUid( DataSet.class, uids );
 
         return dataSets.stream()
             .map( ds -> ds.getDataElements() )
@@ -476,12 +476,17 @@ public class AuditController
             .collect( Collectors.toList() );
     }
 
-    private List<Period> getPeriods( List<String> peIdentifiers )
+    private List<Period> getPeriods( List<String> isoPeriods )
         throws WebMessageException
     {
+        if ( isoPeriods == null )
+        {
+            return new ArrayList<>();
+        }
+
         List<Period> periods = new ArrayList<>();
 
-        for ( String pe : peIdentifiers )
+        for ( String pe : isoPeriods )
         {
             Period period = PeriodType.getPeriodFromIsoString( pe );
 
