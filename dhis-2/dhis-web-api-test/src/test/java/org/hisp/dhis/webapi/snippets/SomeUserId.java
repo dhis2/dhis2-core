@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.webapi.snippets;
 
-import org.hisp.dhis.webapi.WebClient;
-import org.hisp.dhis.webapi.WebSnippet;
+import org.hisp.dhis.web.WebClient;
+import org.hisp.dhis.web.WebSnippet;
 import org.hisp.dhis.webapi.json.domain.JsonUser;
 
 /**
@@ -46,7 +46,7 @@ public class SomeUserId extends WebSnippet<String>
     }
 
     @Override
-    protected String run()
+    public String run()
     {
         return GET( "/users/" ).content().getList( "users", JsonUser.class ).get( 0 ).getId();
     }

@@ -25,47 +25,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.web;
 
-import static org.hisp.dhis.web.WebClient.Body;
-import static org.hisp.dhis.web.WebClient.ContentType;
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
-import static org.springframework.http.MediaType.APPLICATION_XML;
-
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.junit.jupiter.api.Test;
+import java.util.List;
 
 /**
- * Tests the {@link IdentifiableObjectController} using (mocked) REST requests.
+ * Base class to create context free reusable snippets.
+ *
+ * The purpose of {@link WebSnippet}s is to allow definition of sequences of
+ * {@link WebClient} usage that become reusable building blocks to create more
+ * complex scenarios.
  *
  * @author Jan Bernitt
+ *
+ * @param <T> optional return type of the snippet to send information back to
+ *        the caller, like IDs, or {@link org.hisp.dhis.jsontree.JsonValue}s
  */
-class IdentifiableObjectControllerTest extends DhisControllerConvenienceTest
+public abstract class WebSnippet<T> implements WebClient
 {
+    private final WebClient client;
 
-    @Test
-    void testPostJsonObject()
+    public WebSnippet( WebClient client )
     {
-        assertStatus( HttpStatus.METHOD_NOT_ALLOWED, POST( "/identifiableObjects/", "{}" ) );
+        this.client = client;
     }
 
-    @Test
-    void testPostJsonObject_Xml()
+    @Override
+    public final HttpResponse webRequest( HttpMethod method, String url, List<Header> headers, String contentType,
+        String content )
     {
-        assertStatus( HttpStatus.METHOD_NOT_ALLOWED,
-            POST( "/identifiableObjects/", Body( "{}" ), ContentType( APPLICATION_XML ) ) );
+        return client.webRequest( method, url, headers, contentType, content );
     }
 
-    @Test
-    void testPutJsonObject()
-    {
-        assertStatus( HttpStatus.METHOD_NOT_ALLOWED, PUT( "/identifiableObjects/someId", "{}" ) );
-    }
-
-    @Test
-    void testDeleteObject()
-    {
-        assertStatus( HttpStatus.METHOD_NOT_ALLOWED, DELETE( "/identifiableObjects/someId" ) );
-    }
+    /**
+     * Runs the snippet.
+     *
+     * @return a optional result value, like an ID or a
+     *         {@link org.hisp.dhis.jsontree.JsonValue} that can be used by the
+     *         caller to continue working with data created or used in this
+     *         snippet.
+     */
+    public abstract T run();
 }

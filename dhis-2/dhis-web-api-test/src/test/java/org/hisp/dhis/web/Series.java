@@ -25,49 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi;
+package org.hisp.dhis.web;
 
-import java.util.List;
-
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-
-/**
- * Base class to create context free reusable snippets.
- *
- * The purpose of {@link WebSnippet}s is to allow definition of sequences of
- * {@link WebClient} usage that become reusable building blocks to create more
- * complex scenarios.
- *
- * @author Jan Bernitt
- *
- * @param <T> optional return type of the snippet to send information back to
- *        the caller, like IDs, or {@link org.hisp.dhis.webapi.json.JsonValue}s
- */
-public abstract class WebSnippet<T> implements WebClient
+public enum Series
 {
+    INFORMATIONAL( 1 ),
+    SUCCESSFUL( 2 ),
+    REDIRECTION( 3 ),
+    CLIENT_ERROR( 4 ),
+    SERVER_ERROR( 5 );
 
-    private final WebClient client;
+    private int nxx;
 
-    public WebSnippet( WebClient client )
+    Series( int nxx )
     {
-        this.client = client;
+
+        this.nxx = nxx;
     }
 
-    @Override
-    public final HttpResponse webRequest( HttpMethod method, String url, List<Header> headers, MediaType contentType,
-        String content )
+    public int value()
     {
-        return client.webRequest( method, url, headers, contentType, content );
+        return nxx;
     }
-
-    /**
-     * Runs the snippet.
-     *
-     * @return a optional result value, like an ID or a
-     *         {@link org.hisp.dhis.webapi.json.JsonValue} that can be used by
-     *         the caller to continue working with data created or used in this
-     *         snippet.
-     */
-    protected abstract T run();
 }

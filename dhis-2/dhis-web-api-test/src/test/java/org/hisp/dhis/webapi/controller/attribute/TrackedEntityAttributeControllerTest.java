@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.attribute;
 
-import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
+import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 
 import org.hisp.dhis.common.Objects;
 import org.hisp.dhis.schema.descriptors.TrackedEntityAttributeSchemaDescriptor;

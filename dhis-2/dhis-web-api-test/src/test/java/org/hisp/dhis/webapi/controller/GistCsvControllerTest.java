@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.webapi.WebClient.Accept;
+import static org.hisp.dhis.web.WebClient.Accept;
 import static org.junit.jupiter.api.Assertions.assertLinesMatch;
 
 import java.util.List;

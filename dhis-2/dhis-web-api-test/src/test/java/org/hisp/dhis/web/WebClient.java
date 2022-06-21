@@ -25,25 +25,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi;
+package org.hisp.dhis.web;
 
-import static org.hisp.dhis.webapi.utils.TestUtils.APPLICATION_GEO_JSON_UTF8;
-import static org.hisp.dhis.webapi.utils.TestUtils.APPLICATION_JSON_PATCH_UTF8;
-import static org.hisp.dhis.webapi.utils.TestUtils.APPLICATION_JSON_UTF8;
-import static org.hisp.dhis.webapi.utils.WebClientUtils.assertSeries;
-import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
-import static org.hisp.dhis.webapi.utils.WebClientUtils.failOnException;
-import static org.hisp.dhis.webapi.utils.WebClientUtils.getComponent;
-import static org.hisp.dhis.webapi.utils.WebClientUtils.plainTextOrJson;
-import static org.hisp.dhis.webapi.utils.WebClientUtils.requestComponentsIn;
-import static org.hisp.dhis.webapi.utils.WebClientUtils.startWithMediaType;
-import static org.hisp.dhis.webapi.utils.WebClientUtils.substitutePlaceholders;
+import static org.hisp.dhis.web.WebClientUtils.assertSeries;
+import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.web.WebClientUtils.failOnException;
+import static org.hisp.dhis.web.WebClientUtils.fileContent;
+import static org.hisp.dhis.web.WebClientUtils.getComponent;
+import static org.hisp.dhis.web.WebClientUtils.plainTextOrJson;
+import static org.hisp.dhis.web.WebClientUtils.requestComponentsIn;
+import static org.hisp.dhis.web.WebClientUtils.startWithMediaType;
+import static org.hisp.dhis.web.WebClientUtils.substitutePlaceholders;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
@@ -53,25 +49,18 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.webapi.json.domain.JsonError;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.hisp.dhis.webapi.utils.WebClientUtils;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatus.Series;
-import org.springframework.http.MediaType;
 
 /**
  * The purpose of this interface is to allow mixin style addition of the
  * convenience web API by implementing this interface's essential method
- * {@link #webRequest(HttpMethod, String, List, MediaType, String)}.
+ * {@link #webRequest(HttpMethod, String, List, String, String)}.
  *
  * @author Jan Bernitt
  */
 @FunctionalInterface
 public interface WebClient
 {
-
-    HttpResponse webRequest( HttpMethod method, String url, List<Header> headers, MediaType contentType,
+    HttpResponse webRequest( HttpMethod method, String url, List<Header> headers, String contentType,
         String content );
 
     interface RequestComponent
@@ -93,9 +82,9 @@ public interface WebClient
         return Header( "Authorization", "Bearer " + token );
     }
 
-    static Header ContentType( MediaType mimeType )
+    static Header ContentType( Object mimeType )
     {
-        return Header( "ContentType", mimeType );
+        return ContentType( mimeType.toString() );
     }
 
     static Header ContentType( String mimeType )
@@ -103,9 +92,9 @@ public interface WebClient
         return Header( "ContentType", mimeType );
     }
 
-    static Header Accept( MediaType mimeType )
+    static Header Accept( Object mimeType )
     {
-        return Header( "Accept", mimeType );
+        return Accept( mimeType.toString() );
     }
 
     static Header Accept( String mimeType )
@@ -144,7 +133,6 @@ public interface WebClient
 
     final class Body implements RequestComponent
     {
-
         final String body;
 
         Body( String body )
@@ -172,14 +160,13 @@ public interface WebClient
     {
         // Default mime-type is added as first element so that content type in
         // arguments does not override it
-
         return webRequest( HttpMethod.PATCH, substitutePlaceholders( url, args ),
-            ArrayUtils.insert( 0, requestComponentsIn( args ), ContentType( APPLICATION_JSON_PATCH_UTF8 ) ) );
+            ArrayUtils.insert( 0, requestComponentsIn( args ), ContentType( "application/json-patch+json" ) ) );
     }
 
     default HttpResponse PATCH( String url, String body )
     {
-        return webRequest( HttpMethod.PATCH, url, ContentType( APPLICATION_JSON_PATCH_UTF8 ), Body( body ) );
+        return webRequest( HttpMethod.PATCH, url, ContentType( "application/json-patch+json" ), Body( body ) );
     }
 
     default HttpResponse PUT( String url, Object... args )
@@ -205,7 +192,7 @@ public interface WebClient
     default HttpResponse webRequest( HttpMethod method, String url, RequestComponent... components )
     {
         // configure headers
-        MediaType contentMediaType = null;
+        String contentMediaType = null;
         List<Header> headers = new ArrayList<>();
         for ( RequestComponent c : components )
         {
@@ -214,7 +201,7 @@ public interface WebClient
                 Header header = (Header) c;
                 if ( header.name.equalsIgnoreCase( "ContentType" ) )
                 {
-                    contentMediaType = WebClientUtils.asMediaType( header.value );
+                    contentMediaType = header.value.toString();
                 }
                 else
                 {
@@ -227,25 +214,24 @@ public interface WebClient
         String body = bodyComponent == null ? "" : bodyComponent.body;
         if ( body != null && body.endsWith( ".json" ) )
         {
-            MediaType fileContentType = contentMediaType != null ? contentMediaType : APPLICATION_JSON_UTF8;
-            return failOnException( () -> webRequest( method, url, headers, fileContentType,
-                Files.readString( new ClassPathResource( body ).getFile().toPath(), StandardCharsets.UTF_8 ) ) );
+            String fileContentType = contentMediaType != null ? contentMediaType : "application/json; charset=utf8";
+            return failOnException( () -> webRequest( method, url, headers, fileContentType, fileContent( body ) ) );
         }
         if ( body != null && body.endsWith( ".geojson" ) )
         {
-            MediaType fileContentType = contentMediaType != null ? contentMediaType : APPLICATION_GEO_JSON_UTF8;
-            return failOnException( () -> webRequest( method, url, headers, fileContentType,
-                Files.readString( new ClassPathResource( body ).getFile().toPath(), StandardCharsets.UTF_8 ) ) );
+            String fileContentType = contentMediaType != null ? contentMediaType : "application/geo+json; charset=utf8";
+            return failOnException( () -> webRequest( method, url, headers, fileContentType, fileContent( body ) ) );
         }
         if ( startWithMediaType( body ) )
         {
             return webRequest( method, url, headers,
-                MediaType.parseMediaType( body.substring( 0, body.indexOf( ':' ) ) ),
+                body.substring( 0, body.indexOf( ':' ) ),
                 body.substring( body.indexOf( ':' ) + 1 ) );
         }
-        return body == null || body.isEmpty() ? webRequest( method, url, headers, contentMediaType, null )
-            : webRequest( method, url, headers,
-                contentMediaType != null ? contentMediaType : MediaType.APPLICATION_JSON, plainTextOrJson( body ) );
+        String mediaType = contentMediaType != null ? contentMediaType : "application/json";
+        return body == null || body.isEmpty()
+            ? webRequest( method, url, headers, null, null )
+            : webRequest( method, url, headers, mediaType, plainTextOrJson( body ) );
     }
 
     default <T> T run( Function<WebClient, ? extends WebSnippet<T>> snippet )
@@ -282,7 +268,7 @@ public interface WebClient
 
         public HttpStatus status()
         {
-            return HttpStatus.resolve( response.getStatus() );
+            return HttpStatus.of( response.getStatus() );
         }
 
         public HttpStatus.Series series()
@@ -292,7 +278,7 @@ public interface WebClient
 
         public boolean success()
         {
-            return series() == Series.SUCCESSFUL;
+            return series() == HttpStatus.Series.SUCCESSFUL;
         }
 
         /**
@@ -301,25 +287,24 @@ public interface WebClient
          * @param contentType the expected content type
          * @return raw content body in UTF-8 encoding
          */
-        public String content( MediaType contentType )
+        public String content( String contentType )
         {
-            if ( contentType.isCompatibleWith( MediaType.APPLICATION_JSON ) )
+            if ( contentType.equals( "application/json" ) )
             {
                 fail( "Use one of the other content() methods for JSON" );
             }
             String actualContentType = header( "Content-Type" );
-            String expected = contentType.toString();
-            assertTrue( actualContentType.startsWith( expected ),
-                String.format( "Expected %s but was: %s", expected, actualContentType ) );
+            assertTrue( actualContentType.startsWith( contentType ),
+                String.format( "Expected %s but was: %s", contentType, actualContentType ) );
             return failOnException( response::getContent );
         }
 
         public JsonResponse content()
         {
-            return content( Series.SUCCESSFUL );
+            return content( HttpStatus.Series.SUCCESSFUL );
         }
 
-        public JsonResponse content( Series expected )
+        public JsonResponse content( HttpStatus.Series expected )
         {
             assertSeries( expected, this );
             return contentUnchecked();
@@ -343,7 +328,7 @@ public interface WebClient
             return errorInternal();
         }
 
-        public JsonError error( Series expected )
+        public JsonError error( HttpStatus.Series expected )
         {
             // OBS! cannot use assertSeries as it uses this method
             assertEquals( expected, series() );
