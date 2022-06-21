@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.common;
 
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -461,10 +462,7 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest
     @Test
     void getByUidWithNull()
     {
-        List<DataElement> objects = idObjectManager.getByUid( DataElement.class, null );
-
-        assertNotNull( objects );
-        assertTrue( objects.isEmpty() );
+        assertIsEmpty( idObjectManager.getByUid( DataElement.class, null ) );
     }
 
     @Test
@@ -481,6 +479,12 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest
         assertTrue( ab.contains( dataElementA ) );
         assertTrue( ab.contains( dataElementB ) );
         assertFalse( ab.contains( dataElementC ) );
+    }
+
+    @Test
+    void loadByUidNullTest()
+    {
+        assertIsEmpty( idObjectManager.loadByUid( DataElement.class, null ) );
     }
 
     @Test
