@@ -35,80 +35,40 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 
 import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageInstance;
 
 /**
- * @author Abyot Asalefew Gizaw abyota@gmail.com
+ * Encapsulation of a web API request for tracked entity data value audit
+ * records.
+ *
+ * @author Lars Helge Overland
  */
 @Data
 @Accessors( chain = true )
-public class TrackedEntityInstanceAuditQueryParams
+public class TrackedEntityDataValueAuditQueryParams
 {
-    /**
-     * Tracked entity instances.
-     */
-    private List<String> trackedEntityInstances = new ArrayList<>();
+    private List<DataElement> dataElements = new ArrayList<>();
 
-    /**
-     * Users.
-     */
-    private List<String> users = new ArrayList<>();
+    private List<OrganisationUnit> orgUnits = new ArrayList<>();
 
-    /**
-     * AuditType to fetch for
-     */
+    private List<ProgramStageInstance> programStageInstances = new ArrayList<>();
+
+    private List<ProgramStage> programStages = new ArrayList<>();
+
+    private Date startDate;
+
+    private Date endDate;
+
     private AuditType auditType;
 
-    /**
-     * Starting date.
-     */
-    private Date startDate = null;
+    private Pager pager;
 
-    /**
-     * Ending date.
-     */
-    private Date endDate = null;
-
-    /**
-     * Tracked entity instance audit count start
-     */
-    private int first;
-
-    /**
-     * Tracked entity instance audit count end
-     */
-    private int max;
-
-    /**
-     * Traked entity instance audit skip paging or not
-     */
-    private boolean skipPaging;
-
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
-
-    public boolean hasTrackedEntityInstances()
+    public boolean hasPaging()
     {
-        return trackedEntityInstances != null && !trackedEntityInstances.isEmpty();
-    }
-
-    public boolean hasUsers()
-    {
-        return users != null && !users.isEmpty();
-    }
-
-    public boolean hasAuditType()
-    {
-        return auditType != null;
-    }
-
-    public boolean hasStartDate()
-    {
-        return startDate != null;
-    }
-
-    public boolean hasEndDate()
-    {
-        return endDate != null;
+        return pager != null;
     }
 }

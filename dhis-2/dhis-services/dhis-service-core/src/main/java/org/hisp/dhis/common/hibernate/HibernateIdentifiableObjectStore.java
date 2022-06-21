@@ -776,7 +776,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     {
         if ( uids == null || uids.isEmpty() )
         {
-            return new ArrayList<>( 0 );
+            return new ArrayList<>();
         }
 
         // TODO Include paging to avoid exceeding max query length
