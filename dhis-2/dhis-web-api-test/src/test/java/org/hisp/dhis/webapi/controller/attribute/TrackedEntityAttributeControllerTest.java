@@ -34,6 +34,7 @@ import org.hisp.dhis.schema.descriptors.TrackedEntityAttributeSchemaDescriptor;
 import org.hisp.dhis.textpattern.TextPattern;
 import org.hisp.dhis.textpattern.TextPatternParser;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.utils.TestUtils;
 import org.junit.jupiter.api.Test;
@@ -61,11 +62,11 @@ class TrackedEntityAttributeControllerTest extends DhisControllerConvenienceTest
         trackedEntityAttribute.setTextPattern( textPattern );
         trackedEntityAttribute.setPattern( pattern );
 
-        String uid = assertStatus( org.springframework.http.HttpStatus.CREATED,
+        String uid = assertStatus( HttpStatus.CREATED,
             POST( TrackedEntityAttributeSchemaDescriptor.API_ENDPOINT,
                 new String( TestUtils.convertObjectToJsonBytes( trackedEntityAttribute ) ) ) );
 
-        assertStatus( org.springframework.http.HttpStatus.OK, GET(
+        assertStatus( HttpStatus.OK, GET(
             TrackedEntityAttributeSchemaDescriptor.API_ENDPOINT + "/" + uid + "/generateAndReserve"
                 + "?ORG_UNIT_CODE=A030101" ) );
     }

@@ -61,7 +61,7 @@ class RelationshipControllerTest extends DhisControllerConvenienceTest
         HttpResponse response = POST( "/relationships/", Body( "<relationships></relationships>" ),
             ContentType( MediaType.APPLICATION_XML ), Accept( MediaType.APPLICATION_XML ) );
         assertEquals( HttpStatus.OK, response.status() );
-        assertTrue( response.content( MediaType.APPLICATION_XML ).startsWith( "<webMessage" ) );
+        assertTrue( response.content( MediaType.APPLICATION_XML.toString() ).startsWith( "<webMessage" ) );
     }
 
     @Test

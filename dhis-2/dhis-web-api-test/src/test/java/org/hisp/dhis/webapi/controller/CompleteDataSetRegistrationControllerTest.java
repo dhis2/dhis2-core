@@ -72,7 +72,7 @@ class CompleteDataSetRegistrationControllerTest extends DhisControllerConvenienc
             Body( "<completeDataSetRegistrations></completeDataSetRegistrations>" ), ContentType( CONTENT_TYPE_XML ),
             Accept( CONTENT_TYPE_XML ) );
         assertEquals( HttpStatus.CONFLICT, response.status() );
-        String content = response.content( MediaType.APPLICATION_XML );
+        String content = response.content( MediaType.APPLICATION_XML.toString() );
         assertTrue( content.startsWith( "<webMessage " ) );
     }
 
@@ -83,7 +83,7 @@ class CompleteDataSetRegistrationControllerTest extends DhisControllerConvenienc
             Body( "<completeDataSetRegistrations></completeDataSetRegistrations>" ), ContentType( CONTENT_TYPE_XML ),
             Accept( CONTENT_TYPE_XML ) );
         assertEquals( HttpStatus.OK, response.status() );
-        String content = response.content( MediaType.APPLICATION_XML );
+        String content = response.content( MediaType.APPLICATION_XML.toString() );
         assertTrue( content.startsWith( "<importSummary " ) );
     }
 }
