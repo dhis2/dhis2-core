@@ -292,6 +292,7 @@ public class DefaultIdentifiableObjectManager
     }
 
     @Override
+    @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> T load( Class<T> type, String uid )
         throws IllegalQueryException
     {
@@ -655,6 +656,11 @@ public class DefaultIdentifiableObjectManager
     public <T extends IdentifiableObject> List<T> loadByUid( Class<T> type, Collection<String> uids )
         throws IllegalQueryException
     {
+        if ( uids == null )
+        {
+            return new ArrayList<>();
+        }
+
         List<T> objects = getByUid( type, uids );
 
         List<String> identifiers = IdentifiableObjectUtils.getUids( objects );

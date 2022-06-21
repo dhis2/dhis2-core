@@ -468,7 +468,7 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void getAndValidateByUidTest()
+    void loadByUidTest()
     {
         DataElement dataElementA = createDataElement( 'A' );
         DataElement dataElementB = createDataElement( 'B' );
@@ -484,11 +484,24 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void getAndValidateByUidExceptionTest()
+    void loadByUidExceptionTestA()
     {
         DataElement dataElementA = createDataElement( 'A' );
         idObjectManager.save( dataElementA );
         List<String> ids = List.of( dataElementA.getUid(), "xhjG82jHaky" );
+        IllegalQueryException ex = assertThrows( IllegalQueryException.class, () -> idObjectManager
+            .loadByUid( DataElement.class, ids ) );
+        assertEquals( ErrorCode.E1112, ex.getErrorCode() );
+    }
+
+    @Test
+    void loadByUidExceptionTestB()
+    {
+        OrganisationUnit ouA = createOrganisationUnit( 'A' );
+        OrganisationUnit ouB = createOrganisationUnit( 'B' );
+        idObjectManager.save( ouA );
+        idObjectManager.save( ouB );
+        List<String> ids = List.of( ouA.getUid(), "hy67TrE2nhK", ouB.getUid() );
         IllegalQueryException ex = assertThrows( IllegalQueryException.class, () -> idObjectManager
             .loadByUid( DataElement.class, ids ) );
         assertEquals( ErrorCode.E1112, ex.getErrorCode() );
