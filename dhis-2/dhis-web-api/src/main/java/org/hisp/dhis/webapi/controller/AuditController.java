@@ -230,10 +230,11 @@ public class AuditController
     @GetMapping( "trackedEntityDataValue" )
     public RootNode getTrackedEntityDataValueAudit(
         @RequestParam( required = false ) List<String> de,
-        @RequestParam( required = false ) List<String> pe,
         @RequestParam( required = false ) List<String> ou,
         @RequestParam( required = false ) List<String> psi,
         @RequestParam( required = false ) List<String> ps,
+        @RequestParam( required = false ) Date startDate,
+        @RequestParam( required = false ) Date endDate,
         @RequestParam( required = false ) AuditType auditType,
         @RequestParam( required = false ) Boolean skipPaging,
         @RequestParam( required = false ) Boolean paging,
@@ -249,7 +250,6 @@ public class AuditController
         }
 
         List<DataElement> dataElements = manager.loadByUid( DataElement.class, de );
-        List<Period> periods = getPeriods( pe );
         List<OrganisationUnit> orgUnits = manager.loadByUid( OrganisationUnit.class, ou );
         List<ProgramStage> programStages = manager.loadByUid( ProgramStage.class, ps );
         List<ProgramStageInstance> programStageInstances = manager.loadByUid( ProgramStageInstance.class, psi );
@@ -259,10 +259,11 @@ public class AuditController
 
         TrackedEntityDataValueAuditQueryParams params = new TrackedEntityDataValueAuditQueryParams()
             .setDataElements( dataElements )
-            .setPeriods( periods )
             .setOrgUnits( orgUnits )
             .setProgramStageInstances( programStageInstances )
             .setProgramStages( programStages )
+            .setStartDate( startDate )
+            .setEndDate( endDate )
             .setAuditType( auditType );
 
         if ( PagerUtils.isSkipPaging( skipPaging, paging ) )
@@ -278,10 +279,11 @@ public class AuditController
             dataValueAudits = trackedEntityDataValueAuditService.getTrackedEntityDataValueAudits(
                 new TrackedEntityDataValueAuditQueryParams()
                     .setDataElements( dataElements )
-                    .setPeriods( periods )
                     .setOrgUnits( orgUnits )
                     .setProgramStageInstances( programStageInstances )
                     .setProgramStages( programStages )
+                    .setStartDate( startDate )
+                    .setEndDate( endDate )
                     .setAuditType( auditType )
                     .setPager( pager ) );
         }

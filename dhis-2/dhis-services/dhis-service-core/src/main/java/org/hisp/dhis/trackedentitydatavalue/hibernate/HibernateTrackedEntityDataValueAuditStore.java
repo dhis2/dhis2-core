@@ -162,6 +162,16 @@ public class HibernateTrackedEntityDataValueAuditStore
             predicates.add( psi.get( "programStage" ).in( params.getProgramStages() ) );
         }
 
+        if ( params.getStartDate() != null )
+        {
+            predicates.add( builder.greaterThanOrEqualTo( tedva.get( "created" ), params.getStartDate() ) );
+        }
+
+        if ( params.getEndDate() != null )
+        {
+            predicates.add( builder.lessThanOrEqualTo( tedva.get( "created" ), params.getEndDate() ) );
+        }
+
         if ( params.getAuditType() != null )
         {
             predicates.add( builder.equal( tedva.get( "auditType" ), params.getAuditType() ) );

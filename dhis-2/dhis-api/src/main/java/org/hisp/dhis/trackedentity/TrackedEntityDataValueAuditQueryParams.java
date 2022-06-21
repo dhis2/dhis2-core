@@ -28,6 +28,7 @@
 package org.hisp.dhis.trackedentity;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import lombok.Data;
@@ -37,7 +38,6 @@ import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 
@@ -53,13 +53,15 @@ public class TrackedEntityDataValueAuditQueryParams
 {
     private List<DataElement> dataElements = new ArrayList<>();
 
-    private List<Period> periods = new ArrayList<>();
-
     private List<OrganisationUnit> orgUnits = new ArrayList<>();
 
     private List<ProgramStageInstance> programStageInstances = new ArrayList<>();
 
     private List<ProgramStage> programStages = new ArrayList<>();
+
+    private Date startDate;
+
+    private Date endDate;
 
     private AuditType auditType;
 

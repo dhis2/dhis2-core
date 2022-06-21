@@ -173,18 +173,19 @@ class TrackedEntityDataValueAuditStoreTest extends DhisSpringTest
         auditStore.addTrackedEntityDataValueAudit( dvaC );
 
         TrackedEntityDataValueAuditQueryParams params = new TrackedEntityDataValueAuditQueryParams()
-            .setDataElements( List.of( deA ) )
-            .setProgramStageInstances( List.of( psiA ) )
-            .setAuditType( AuditType.UPDATE );
-        assertEquals( 1, auditStore.getTrackedEntityDataValueAudits( params ).size() );
-        assertEquals( 1, auditStore.countTrackedEntityDataValueAudits( params ) );
-
-        params = new TrackedEntityDataValueAuditQueryParams()
             .setDataElements( List.of( deA, deB ) )
             .setProgramStageInstances( List.of( psiA ) )
             .setAuditType( AuditType.UPDATE );
         assertEquals( 2, auditStore.getTrackedEntityDataValueAudits( params ).size() );
         assertEquals( 2, auditStore.countTrackedEntityDataValueAudits( params ) );
+
+        params = new TrackedEntityDataValueAuditQueryParams()
+            .setDataElements( List.of( deA ) )
+            .setProgramStageInstances( List.of( psiA ) )
+            .setAuditType( AuditType.UPDATE );
+        assertEquals( 1, auditStore.getTrackedEntityDataValueAudits( params ).size() );
+        assertEquals( 1, auditStore.countTrackedEntityDataValueAudits( params ) );
+        assertEquals( dvaA, auditStore.getTrackedEntityDataValueAudits( params ).get( 0 ) );
     }
 
     @Test
@@ -211,6 +212,7 @@ class TrackedEntityDataValueAuditStoreTest extends DhisSpringTest
             .setAuditType( AuditType.UPDATE );
         assertEquals( 1, auditStore.getTrackedEntityDataValueAudits( params ).size() );
         assertEquals( 1, auditStore.countTrackedEntityDataValueAudits( params ) );
+        assertEquals( dvaC, auditStore.getTrackedEntityDataValueAudits( params ).get( 0 ) );
     }
 
     @Test
@@ -237,5 +239,38 @@ class TrackedEntityDataValueAuditStoreTest extends DhisSpringTest
             .setAuditType( AuditType.UPDATE );
         assertEquals( 1, auditStore.getTrackedEntityDataValueAudits( params ).size() );
         assertEquals( 1, auditStore.countTrackedEntityDataValueAudits( params ) );
+        assertEquals( dvaC, auditStore.getTrackedEntityDataValueAudits( params ).get( 0 ) );
+    }
+
+    @Test
+    void testGetTrackedEntityDataValueAuditsByStartEndDate()
+    {
+        TrackedEntityDataValueAudit dvaA = new TrackedEntityDataValueAudit( deA, psiA,
+            dvA.getAuditValue(), USER_A, dvA.getProvidedElsewhere(), AuditType.UPDATE );
+        dvaA.setCreated( getDate( 2021, 6, 1 ) );
+        TrackedEntityDataValueAudit dvaB = new TrackedEntityDataValueAudit( deB, psiA,
+            dvA.getAuditValue(), USER_A, dvA.getProvidedElsewhere(), AuditType.UPDATE );
+        dvaB.setCreated( getDate( 2021, 7, 1 ) );
+        TrackedEntityDataValueAudit dvaC = new TrackedEntityDataValueAudit( deA, psiB,
+            dvA.getAuditValue(), USER_A, dvA.getProvidedElsewhere(), AuditType.UPDATE );
+        dvaC.setCreated( getDate( 2021, 8, 1 ) );
+        auditStore.addTrackedEntityDataValueAudit( dvaA );
+        auditStore.addTrackedEntityDataValueAudit( dvaB );
+        auditStore.addTrackedEntityDataValueAudit( dvaC );
+
+        TrackedEntityDataValueAuditQueryParams params = new TrackedEntityDataValueAuditQueryParams()
+            .setDataElements( List.of( deA, deB ) )
+            .setStartDate( getDate( 2021, 6, 15 ) )
+            .setEndDate( getDate( 2021, 8, 15 ) );
+        assertEquals( 2, auditStore.getTrackedEntityDataValueAudits( params ).size() );
+        assertEquals( 2, auditStore.countTrackedEntityDataValueAudits( params ) );
+
+        params = new TrackedEntityDataValueAuditQueryParams()
+            .setDataElements( List.of( deA, deB ) )
+            .setStartDate( getDate( 2021, 6, 15 ) )
+            .setEndDate( getDate( 2021, 7, 15 ) );
+        assertEquals( 1, auditStore.getTrackedEntityDataValueAudits( params ).size() );
+        assertEquals( 1, auditStore.countTrackedEntityDataValueAudits( params ) );
+        assertEquals( dvaB, auditStore.getTrackedEntityDataValueAudits( params ).get( 0 ) );
     }
 }
