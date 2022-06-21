@@ -55,6 +55,8 @@ public class HibernateTrackedEntityDataValueAuditStore
 {
     private static final String PROP_PSI = "programStageInstance";
 
+    private static final String PROP_CREATED = "created";
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -90,7 +92,7 @@ public class HibernateTrackedEntityDataValueAuditStore
 
         List<Predicate> predicates = getTrackedEntityDataValueAuditCriteria( params, builder, tedva, psi );
         criteria.where( predicates.toArray( new Predicate[0] ) );
-        criteria.orderBy( builder.desc( tedva.get( "created" ) ) );
+        criteria.orderBy( builder.desc( tedva.get( PROP_CREATED ) ) );
 
         Query query = sessionFactory.getCurrentSession().createQuery( criteria );
 
@@ -164,12 +166,12 @@ public class HibernateTrackedEntityDataValueAuditStore
 
         if ( params.getStartDate() != null )
         {
-            predicates.add( builder.greaterThanOrEqualTo( tedva.get( "created" ), params.getStartDate() ) );
+            predicates.add( builder.greaterThanOrEqualTo( tedva.get( PROP_CREATED ), params.getStartDate() ) );
         }
 
         if ( params.getEndDate() != null )
         {
-            predicates.add( builder.lessThanOrEqualTo( tedva.get( "created" ), params.getEndDate() ) );
+            predicates.add( builder.lessThanOrEqualTo( tedva.get( PROP_CREATED ), params.getEndDate() ) );
         }
 
         if ( params.getAuditType() != null )
