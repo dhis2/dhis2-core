@@ -194,7 +194,7 @@ public class DefaultProgramService
     @Override
     public SetValuedMap<String, String> getProgramOrganisationUnitsAssociationsForCurrentUser( Set<String> programUids )
     {
-        idObjectManager.getAndValidateByUid( Program.class, programUids );
+        idObjectManager.loadByUid( Program.class, programUids );
 
         return jdbcOrgUnitAssociationsStore.getOrganisationUnitsAssociationsForCurrentUser( programUids );
     }

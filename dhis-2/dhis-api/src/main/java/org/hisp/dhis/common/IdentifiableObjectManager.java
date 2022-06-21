@@ -167,7 +167,17 @@ public interface IdentifiableObjectManager
 
     <T extends IdentifiableObject> List<T> getByUid( Class<T> type, Collection<String> uids );
 
-    <T extends IdentifiableObject> List<T> getAndValidateByUid( Class<T> type, Collection<String> uids )
+    /**
+     * Retrieves the objects of the given type and collection of UIDs, throws
+     * exception is any object does not exist.
+     *
+     * @param <T>
+     * @param type the object class type.
+     * @param uids the collection of UIDs.
+     * @return a list of objects.
+     * @throws IllegalQueryException if any object does not exist.
+     */
+    <T extends IdentifiableObject> List<T> loadByUid( Class<T> type, Collection<String> uids )
         throws IllegalQueryException;
 
     <T extends IdentifiableObject> List<T> getByUid( Collection<Class<? extends IdentifiableObject>> types,

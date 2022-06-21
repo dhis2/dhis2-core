@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.common;
 
-import static java.util.Collections.singleton;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -37,7 +37,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -447,9 +446,9 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest
         idObjectManager.save( dataElementC );
         idObjectManager.save( dataElementD );
         List<DataElement> ab = idObjectManager.getByUid( DataElement.class,
-            Arrays.asList( dataElementA.getUid(), dataElementB.getUid() ) );
+            List.of( dataElementA.getUid(), dataElementB.getUid() ) );
         List<DataElement> cd = idObjectManager.getByUid( DataElement.class,
-            Arrays.asList( dataElementC.getUid(), dataElementD.getUid() ) );
+            List.of( dataElementC.getUid(), dataElementD.getUid() ) );
         assertTrue( ab.contains( dataElementA ) );
         assertTrue( ab.contains( dataElementB ) );
         assertFalse( ab.contains( dataElementC ) );
@@ -461,7 +460,13 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void getAndValidateByUidTest()
+    void getByUidWithNull()
+    {
+        assertIsEmpty( idObjectManager.getByUid( DataElement.class, null ) );
+    }
+
+    @Test
+    void loadByUidTest()
     {
         DataElement dataElementA = createDataElement( 'A' );
         DataElement dataElementB = createDataElement( 'B' );
@@ -469,21 +474,40 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest
         idObjectManager.save( dataElementA );
         idObjectManager.save( dataElementB );
         idObjectManager.save( dataElementC );
-        List<DataElement> ab = idObjectManager.getAndValidateByUid( DataElement.class,
-            Arrays.asList( dataElementA.getUid(), dataElementB.getUid() ) );
+        List<DataElement> ab = idObjectManager.loadByUid( DataElement.class,
+            List.of( dataElementA.getUid(), dataElementB.getUid() ) );
         assertTrue( ab.contains( dataElementA ) );
         assertTrue( ab.contains( dataElementB ) );
         assertFalse( ab.contains( dataElementC ) );
     }
 
     @Test
-    void getAndValidateByUidExceptionTest()
+    void loadByUidNullTest()
+    {
+        assertIsEmpty( idObjectManager.loadByUid( DataElement.class, null ) );
+    }
+
+    @Test
+    void loadByUidExceptionTestA()
     {
         DataElement dataElementA = createDataElement( 'A' );
         idObjectManager.save( dataElementA );
         List<String> ids = List.of( dataElementA.getUid(), "xhjG82jHaky" );
         IllegalQueryException ex = assertThrows( IllegalQueryException.class, () -> idObjectManager
-            .getAndValidateByUid( DataElement.class, ids ) );
+            .loadByUid( DataElement.class, ids ) );
+        assertEquals( ErrorCode.E1112, ex.getErrorCode() );
+    }
+
+    @Test
+    void loadByUidExceptionTestB()
+    {
+        OrganisationUnit ouA = createOrganisationUnit( 'A' );
+        OrganisationUnit ouB = createOrganisationUnit( 'B' );
+        idObjectManager.save( ouA );
+        idObjectManager.save( ouB );
+        List<String> ids = List.of( ouA.getUid(), "hy67TrE2nhK", ouB.getUid() );
+        IllegalQueryException ex = assertThrows( IllegalQueryException.class, () -> idObjectManager
+            .loadByUid( DataElement.class, ids ) );
         assertEquals( ErrorCode.E1112, ex.getErrorCode() );
     }
 
@@ -498,10 +522,10 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest
         idObjectManager.save( dataElementB );
         idObjectManager.save( dataElementC );
         idObjectManager.save( dataElementD );
-        List<String> uids = Arrays.asList( dataElementA.getUid(), dataElementC.getUid(), dataElementB.getUid(),
+        List<String> uids = List.of( dataElementA.getUid(), dataElementC.getUid(), dataElementB.getUid(),
             dataElementD.getUid() );
         List<DataElement> expected = new ArrayList<>(
-            Arrays.asList( dataElementA, dataElementC, dataElementB, dataElementD ) );
+            List.of( dataElementA, dataElementC, dataElementB, dataElementD ) );
         List<DataElement> actual = new ArrayList<>(
             idObjectManager.getOrdered( DataElement.class, IdScheme.UID, uids ) );
         assertEquals( expected, actual );
@@ -518,10 +542,10 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest
         idObjectManager.save( dataElementB );
         idObjectManager.save( dataElementC );
         idObjectManager.save( dataElementD );
-        List<String> codes = Arrays.asList( dataElementA.getCode(), dataElementC.getCode(), dataElementB.getCode(),
+        List<String> codes = List.of( dataElementA.getCode(), dataElementC.getCode(), dataElementB.getCode(),
             dataElementD.getCode() );
         List<DataElement> expected = new ArrayList<>(
-            Arrays.asList( dataElementA, dataElementC, dataElementB, dataElementD ) );
+            List.of( dataElementA, dataElementC, dataElementB, dataElementD ) );
         List<DataElement> actual = new ArrayList<>(
             idObjectManager.getOrdered( DataElement.class, IdScheme.CODE, codes ) );
         assertEquals( expected, actual );
@@ -538,10 +562,10 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest
         idObjectManager.save( dataElementB );
         idObjectManager.save( dataElementC );
         idObjectManager.save( dataElementD );
-        List<String> uids = Arrays.asList( dataElementA.getUid(), dataElementC.getUid(), dataElementB.getUid(),
+        List<String> uids = List.of( dataElementA.getUid(), dataElementC.getUid(), dataElementB.getUid(),
             dataElementD.getUid() );
         List<DataElement> expected = new ArrayList<>(
-            Arrays.asList( dataElementA, dataElementC, dataElementB, dataElementD ) );
+            List.of( dataElementA, dataElementC, dataElementB, dataElementD ) );
         List<DataElement> actual = new ArrayList<>(
             idObjectManager.getByUidOrdered( DataElement.class, uids ) );
         assertEquals( expected, actual );
@@ -563,9 +587,9 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest
         idObjectManager.save( dataElementC );
         idObjectManager.save( dataElementD );
         List<DataElement> ab = idObjectManager.getByCode( DataElement.class,
-            Arrays.asList( dataElementA.getCode(), dataElementB.getCode() ) );
+            List.of( dataElementA.getCode(), dataElementB.getCode() ) );
         List<DataElement> cd = idObjectManager.getByCode( DataElement.class,
-            Arrays.asList( dataElementC.getCode(), dataElementD.getCode() ) );
+            List.of( dataElementC.getCode(), dataElementD.getCode() ) );
         assertTrue( ab.contains( dataElementA ) );
         assertTrue( ab.contains( dataElementB ) );
         assertFalse( ab.contains( dataElementC ) );
@@ -638,7 +662,7 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest
         String userGroupUid = userGroupA.getUid();
         DataElement de = createDataElement( 'A' );
         Sharing sharing = new Sharing();
-        sharing.setUserGroupAccess( singleton( new UserGroupAccess( "rw------", userGroupA.getUid() ) ) );
+        sharing.setUserGroupAccess( Set.of( new UserGroupAccess( "rw------", userGroupA.getUid() ) ) );
         de.setSharing( sharing );
         idObjectManager.save( de, false );
         de = idObjectManager.get( de.getUid() );
