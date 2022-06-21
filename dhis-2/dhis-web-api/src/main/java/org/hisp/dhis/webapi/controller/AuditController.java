@@ -36,6 +36,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -121,11 +123,6 @@ public class AuditController
 
     private final FileResourceService fileResourceService;
 
-    /**
-     * Returns the file with the given uid
-     *
-     * @param uid the unique id of the file resource
-     */
     @GetMapping( "/files/{uid}" )
     public void getFileAudit( @PathVariable String uid, HttpServletResponse response )
         throws WebMessageException
@@ -471,16 +468,12 @@ public class AuditController
     private List<DataElement> getDataElementsByDataSet( List<String> dsIdentifiers )
         throws WebMessageException
     {
-        List<DataElement> dataElements = new ArrayList<>();
+        List<DataSet> dataSets = manager.loadByUid( DataSet.class, dsIdentifiers );
 
-        for ( String ds : dsIdentifiers )
-        {
-            DataSet dataSet = manager.load( DataSet.class, ds );
-
-            dataElements.addAll( dataSet.getDataElements() );
-        }
-
-        return dataElements;
+        return dataSets.stream()
+            .map( ds -> ds.getDataElements() )
+            .flatMap( Set::stream )
+            .collect( Collectors.toList() );
     }
 
     private List<Period> getPeriods( List<String> peIdentifiers )
