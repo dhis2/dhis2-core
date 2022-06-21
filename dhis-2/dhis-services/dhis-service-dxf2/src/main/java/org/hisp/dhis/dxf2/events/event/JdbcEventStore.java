@@ -72,7 +72,7 @@ import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EventQuery.COL
 import static org.hisp.dhis.system.util.SqlUtils.castToNumber;
 import static org.hisp.dhis.system.util.SqlUtils.escapeSql;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
-import static org.hisp.dhis.util.DateUtils.getDateAfterAddition;
+import static org.hisp.dhis.util.DateUtils.addDays;
 import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
@@ -1180,7 +1180,7 @@ public class JdbcEventStore implements EventStore
 
         if ( params.getEndDate() != null )
         {
-            Date dateAfterEndDate = getDateAfterAddition( params.getEndDate(), 1 );
+            Date dateAfterEndDate = addDays( params.getEndDate(), 1 );
             sqlBuilder.append( hlp.whereAnd() ).append( " (psi.executiondate < '" )
                 .append( getMediumDateString( dateAfterEndDate ) ).append( "' " )
                 .append( "or (psi.executiondate is null and psi.duedate < '" )
@@ -1470,7 +1470,7 @@ public class JdbcEventStore implements EventStore
             {
                 if ( useDateAfterEndDate )
                 {
-                    Date dateAfterEndDate = getDateAfterAddition( params.getLastUpdatedEndDate(), 1 );
+                    Date dateAfterEndDate = addDays( params.getLastUpdatedEndDate(), 1 );
                     sqlBuilder.append( hlp.whereAnd() ).append( " psi.lastupdated < '" )
                         .append( DateUtils.getLongDateString( dateAfterEndDate ) ).append( "' " );
                 }

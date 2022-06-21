@@ -28,6 +28,7 @@
 package org.hisp.dhis.utils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collection;
@@ -38,7 +39,6 @@ import java.util.Map;
  */
 public final class Assertions
 {
-
     private Assertions()
     {
         throw new UnsupportedOperationException( "util" );
@@ -64,5 +64,17 @@ public final class Assertions
         {
             assertEquals( e.getValue(), expected.get( e.getKey() ), "Did not expect value in " + actual.toString() );
         }
+    }
+
+    /**
+     * Asserts that the given collection is not null and empty.
+     *
+     * @param <E>
+     * @param actual the collection.
+     */
+    public static <E> void assertIsEmpty( Collection<E> actual )
+    {
+        assertNotNull( actual );
+        assertTrue( actual.isEmpty() );
     }
 }

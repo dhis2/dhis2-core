@@ -90,6 +90,16 @@ public interface IdentifiableObjectStore<T>
     T getByUid( String uid );
 
     /**
+     * Retrieves the object with the given UID, throws exception if no object
+     * exists.
+     *
+     * @param uid the UID.
+     * @return the object with the given UID.
+     * @throws IllegalQueryException if no object exists.
+     */
+    T loadByUid( String uid );
+
+    /**
      * Retrieves the object with the given uid. Bypasses the ACL system.
      *
      * @param uid the uid.
