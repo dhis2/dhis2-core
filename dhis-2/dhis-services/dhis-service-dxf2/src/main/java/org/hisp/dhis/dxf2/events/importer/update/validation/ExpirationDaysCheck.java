@@ -110,7 +110,7 @@ public class ExpirationDaysCheck implements Checker
                 }
 
                 if ( (new Date()).after(
-                    DateUtils.getDateAfterAddition( referenceDate, program.getCompleteEventsExpiryDays() ) ) )
+                    DateUtils.addDays( referenceDate, program.getCompleteEventsExpiryDays() ) ) )
                 {
                     return error(
                         "The event's completeness date has expired. Not possible to make changes to this event",
@@ -139,7 +139,7 @@ public class ExpirationDaysCheck implements Checker
                 }
 
                 Period period = periodType.createPeriod( programStageInstance.getExecutionDate() );
-                if ( today.after( DateUtils.getDateAfterAddition( period.getEndDate(), program.getExpiryDays() ) ) )
+                if ( today.after( DateUtils.addDays( period.getEndDate(), program.getExpiryDays() ) ) )
                 {
                     return error(
                         "The program's expiry date has passed. It is not possible to make changes to this event",

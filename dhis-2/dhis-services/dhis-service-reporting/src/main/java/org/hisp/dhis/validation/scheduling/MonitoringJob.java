@@ -136,9 +136,9 @@ public class MonitoringJob implements Job
 
             if ( monitoringJobParameters.getRelativeStart() != 0 && monitoringJobParameters.getRelativeEnd() != 0 )
             {
-                Date startDate = DateUtils.getDateAfterAddition( new Date(),
+                Date startDate = DateUtils.addDays( new Date(),
                     monitoringJobParameters.getRelativeStart() );
-                Date endDate = DateUtils.getDateAfterAddition( new Date(), monitoringJobParameters.getRelativeEnd() );
+                Date endDate = DateUtils.addDays( new Date(), monitoringJobParameters.getRelativeEnd() );
 
                 periods = periodService.getPeriodsBetweenDates( startDate, endDate );
 

@@ -292,6 +292,20 @@ public class DefaultIdentifiableObjectManager
     }
 
     @Override
+    public <T extends IdentifiableObject> T load( Class<T> type, String uid )
+        throws IllegalQueryException
+    {
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( type );
+
+        if ( store == null )
+        {
+            return null;
+        }
+
+        return (T) store.loadByUid( uid );
+    }
+
+    @Override
     @Transactional( readOnly = true )
     public <T extends IdentifiableObject> boolean exists( Class<T> type, String uid )
     {
@@ -608,9 +622,14 @@ public class DefaultIdentifiableObjectManager
 
     @Override
     @Transactional( readOnly = true )
-    public <T extends IdentifiableObject> List<T> getAndValidateByUid( Class<T> type, Collection<String> uids )
+    public <T extends IdentifiableObject> List<T> loadByUid( Class<T> type, Collection<String> uids )
         throws IllegalQueryException
     {
+        if ( uids == null )
+        {
+            return new ArrayList<>();
+        }
+
         List<T> objects = getByUid( type, uids );
 
         List<String> identifiers = IdentifiableObjectUtils.getUids( objects );

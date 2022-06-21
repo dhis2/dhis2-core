@@ -625,18 +625,16 @@ public class DateUtils
     }
 
     /**
-     * This method adds days to a date
+     * Adds days to the given date.
      *
      * @param date the date.
      * @param days the number of days to add.
      */
-    public static Date getDateAfterAddition( Date date, int days )
+    public static Date addDays( Date date, int days )
     {
         Calendar cal = Calendar.getInstance();
-
         cal.setTime( date );
         cal.add( Calendar.DATE, days );
-
         return cal.getTime();
     }
 
