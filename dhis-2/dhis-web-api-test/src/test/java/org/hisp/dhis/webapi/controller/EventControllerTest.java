@@ -53,7 +53,7 @@ class EventControllerTest extends DhisControllerConvenienceTest
         HttpResponse response = POST( "/events/", Body( "<events></events>" ), ContentType( APPLICATION_XML ),
             Accept( APPLICATION_XML ) );
         assertEquals( HttpStatus.OK, response.status() );
-        assertTrue( response.content( APPLICATION_XML ).startsWith( "<webMessage " ) );
+        assertTrue( response.content( APPLICATION_XML.toString() ).startsWith( "<webMessage " ) );
     }
 
     @Test
@@ -62,7 +62,7 @@ class EventControllerTest extends DhisControllerConvenienceTest
         HttpResponse response = POST( "/events?async=true", Body( "<events></events>" ), ContentType( APPLICATION_XML ),
             Accept( APPLICATION_XML ) );
         assertEquals( HttpStatus.OK, response.status() );
-        assertTrue( response.content( APPLICATION_XML ).startsWith( "<webMessage " ) );
+        assertTrue( response.content( APPLICATION_XML.toString() ).startsWith( "<webMessage " ) );
     }
 
     @Test

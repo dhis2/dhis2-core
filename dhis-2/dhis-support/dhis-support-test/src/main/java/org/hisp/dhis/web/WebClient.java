@@ -48,7 +48,6 @@ import java.util.function.Function;
 import org.apache.commons.lang3.ArrayUtils;
 import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.webapi.json.domain.JsonError;
-import org.hisp.dhis.webapi.utils.ContextUtils;
 
 /**
  * The purpose of this interface is to allow mixin style addition of the
@@ -364,7 +363,7 @@ public interface WebClient
 
         public String location()
         {
-            return header( ContextUtils.HEADER_LOCATION );
+            return header( "Location" );
         }
 
         public String header( String name )
