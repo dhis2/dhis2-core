@@ -652,7 +652,7 @@ public class DefaultIdentifiableObjectManager
 
     @Override
     @Transactional( readOnly = true )
-    public <T extends IdentifiableObject> List<T> getAndValidateByUid( Class<T> type, Collection<String> uids )
+    public <T extends IdentifiableObject> List<T> loadByUid( Class<T> type, Collection<String> uids )
         throws IllegalQueryException
     {
         List<T> objects = getByUid( type, uids );

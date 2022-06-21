@@ -74,7 +74,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityDataValueAuditQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -105,8 +104,6 @@ import com.google.common.collect.Lists;
 public class AuditController
 {
     private final IdentifiableObjectManager manager;
-
-    private final ProgramStageInstanceService programStageInstanceService;
 
     private final DataValueAuditService dataValueAuditService;
 
@@ -189,14 +186,13 @@ public class AuditController
         }
 
         List<DataElement> dataElements = new ArrayList<>();
-        dataElements.addAll( manager.getByUid( DataElement.class, de ) );
+        dataElements.addAll( manager.loadByUid( DataElement.class, de ) );
         dataElements.addAll( getDataElementsByDataSet( ds ) );
 
         List<Period> periods = getPeriods( pe );
-        List<OrganisationUnit> organisationUnits = manager.getByUid( OrganisationUnit.class, ou ); // TODO
-                                                                                                   // loadByUid
-        CategoryOptionCombo categoryOptionCombo = getCategoryOptionCombo( co );
-        CategoryOptionCombo attributeOptionCombo = getAttributeOptionCombo( cc );
+        List<OrganisationUnit> organisationUnits = manager.loadByUid( OrganisationUnit.class, ou );
+        CategoryOptionCombo categoryOptionCombo = manager.load( CategoryOptionCombo.class, co );
+        CategoryOptionCombo attributeOptionCombo = manager.load( CategoryOptionCombo.class, cc );
 
         List<DataValueAudit> dataValueAudits;
         Pager pager = null;
@@ -255,11 +251,11 @@ public class AuditController
             fields.addAll( Preset.ALL.getFields() );
         }
 
-        List<DataElement> dataElements = manager.getByUid( DataElement.class, de );
+        List<DataElement> dataElements = manager.loadByUid( DataElement.class, de );
         List<Period> periods = getPeriods( pe );
-        List<OrganisationUnit> orgUnits = manager.getByUid( OrganisationUnit.class, ou );
-        List<ProgramStage> programStages = manager.getByUid( ProgramStage.class, ps );
-        List<ProgramStageInstance> programStageInstances = getProgramStageInstances( psi );
+        List<OrganisationUnit> orgUnits = manager.loadByUid( OrganisationUnit.class, ou );
+        List<ProgramStage> programStages = manager.loadByUid( ProgramStage.class, ps );
+        List<ProgramStageInstance> programStageInstances = manager.loadByUid( ProgramStageInstance.class, psi );
 
         List<TrackedEntityDataValueAudit> dataValueAudits;
         Pager pager = null;
@@ -322,8 +318,8 @@ public class AuditController
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
-        List<TrackedEntityAttribute> trackedEntityAttributes = getTrackedEntityAttributes( tea );
-        List<TrackedEntityInstance> trackedEntityInstances = getTrackedEntityInstances( tei );
+        List<TrackedEntityAttribute> trackedEntityAttributes = manager.loadByUid( TrackedEntityAttribute.class, tea );
+        List<TrackedEntityInstance> trackedEntityInstances = manager.loadByUid( TrackedEntityInstance.class, tei );
 
         List<TrackedEntityAttributeValueAudit> attributeValueAudits;
         Pager pager = null;
@@ -336,8 +332,7 @@ public class AuditController
         else
         {
             int total = trackedEntityAttributeValueAuditService.countTrackedEntityAttributeValueAudits(
-                trackedEntityAttributes,
-                trackedEntityInstances, auditType );
+                trackedEntityAttributes, trackedEntityInstances, auditType );
 
             pager = new Pager( page, total, pageSize );
 
@@ -382,10 +377,10 @@ public class AuditController
         }
 
         DataApprovalAuditQueryParams params = new DataApprovalAuditQueryParams()
-            .setLevels( new HashSet<>( manager.getByUid( DataApprovalLevel.class, dal ) ) )
-            .setWorkflows( new HashSet<>( manager.getByUid( DataApprovalWorkflow.class, wf ) ) )
-            .setOrganisationUnits( new HashSet<>( manager.getByUid( OrganisationUnit.class, ou ) ) )
-            .setAttributeOptionCombos( new HashSet<>( manager.getByUid( CategoryOptionCombo.class, aoc ) ) )
+            .setLevels( new HashSet<>( manager.loadByUid( DataApprovalLevel.class, dal ) ) )
+            .setWorkflows( new HashSet<>( manager.loadByUid( DataApprovalWorkflow.class, wf ) ) )
+            .setOrganisationUnits( new HashSet<>( manager.loadByUid( OrganisationUnit.class, ou ) ) )
+            .setAttributeOptionCombos( new HashSet<>( manager.loadByUid( CategoryOptionCombo.class, aoc ) ) )
             .setStartDate( startDate )
             .setEndDate( endDate );
 
@@ -473,117 +468,6 @@ public class AuditController
     // Helpers
     // -----------------------------------------------------------------------------------------------------------------
 
-    private List<TrackedEntityInstance> getTrackedEntityInstances( List<String> teiIdentifiers )
-        throws WebMessageException
-    {
-        List<TrackedEntityInstance> trackedEntityInstances = new ArrayList<>();
-
-        for ( String tei : teiIdentifiers )
-        {
-            TrackedEntityInstance trackedEntityInstance = getTrackedEntityInstance( tei );
-
-            if ( trackedEntityInstance != null )
-            {
-                trackedEntityInstances.add( trackedEntityInstance );
-            }
-        }
-
-        return trackedEntityInstances;
-    }
-
-    private TrackedEntityInstance getTrackedEntityInstance( String tei )
-        throws WebMessageException
-    {
-        if ( tei == null )
-        {
-            return null;
-        }
-
-        TrackedEntityInstance trackedEntityInstance = manager.get( TrackedEntityInstance.class, tei );
-
-        if ( trackedEntityInstance == null )
-        {
-            throw new WebMessageException(
-                conflict( "Illegal trackedEntityInstance identifier: " + tei ) );
-        }
-
-        return trackedEntityInstance;
-    }
-
-    private List<TrackedEntityAttribute> getTrackedEntityAttributes( List<String> teaIdentifiers )
-        throws WebMessageException
-    {
-        List<TrackedEntityAttribute> trackedEntityAttributes = new ArrayList<>();
-
-        for ( String tea : teaIdentifiers )
-        {
-            TrackedEntityAttribute trackedEntityAttribute = getTrackedEntityAttribute( tea );
-
-            if ( trackedEntityAttribute != null )
-            {
-                trackedEntityAttributes.add( trackedEntityAttribute );
-            }
-        }
-
-        return trackedEntityAttributes;
-    }
-
-    private TrackedEntityAttribute getTrackedEntityAttribute( String tea )
-        throws WebMessageException
-    {
-        if ( tea == null )
-        {
-            return null;
-        }
-
-        TrackedEntityAttribute trackedEntityAttribute = manager.get( TrackedEntityAttribute.class, tea );
-
-        if ( trackedEntityAttribute == null )
-        {
-            throw new WebMessageException(
-                conflict( "Illegal trackedEntityAttribute identifier: " + tea ) );
-        }
-
-        return trackedEntityAttribute;
-    }
-
-    private List<ProgramStageInstance> getProgramStageInstances( List<String> psIdentifiers )
-        throws WebMessageException
-    {
-        List<ProgramStageInstance> programStageInstances = new ArrayList<>();
-
-        for ( String ps : psIdentifiers )
-        {
-            ProgramStageInstance programStageInstance = getProgramStageInstance( ps );
-
-            if ( programStageInstance != null )
-            {
-                programStageInstances.add( programStageInstance );
-            }
-        }
-
-        return programStageInstances;
-    }
-
-    private ProgramStageInstance getProgramStageInstance( String ps )
-        throws WebMessageException
-    {
-        if ( ps == null )
-        {
-            return null;
-        }
-
-        ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( ps );
-
-        if ( programStageInstance == null )
-        {
-            throw new WebMessageException(
-                conflict( "Illegal programStageInstance identifier: " + ps ) );
-        }
-
-        return programStageInstance;
-    }
-
     private List<DataElement> getDataElementsByDataSet( List<String> dsIdentifiers )
         throws WebMessageException
     {
@@ -591,12 +475,7 @@ public class AuditController
 
         for ( String ds : dsIdentifiers )
         {
-            DataSet dataSet = manager.get( DataSet.class, ds );
-
-            if ( dataSet == null )
-            {
-                throw new WebMessageException( conflict( "Illegal dataSet identifier: " + ds ) );
-            }
+            DataSet dataSet = manager.load( DataSet.class, ds );
 
             dataElements.addAll( dataSet.getDataElements() );
         }
@@ -624,43 +503,5 @@ public class AuditController
         }
 
         return periods;
-    }
-
-    private CategoryOptionCombo getCategoryOptionCombo( String co )
-        throws WebMessageException
-    {
-        if ( co == null )
-        {
-            return null;
-        }
-
-        CategoryOptionCombo categoryOptionCombo = manager.search( CategoryOptionCombo.class, co );
-
-        if ( categoryOptionCombo == null )
-        {
-            throw new WebMessageException(
-                conflict( "Illegal categoryOptionCombo identifier: " + co ) );
-        }
-
-        return categoryOptionCombo;
-    }
-
-    private CategoryOptionCombo getAttributeOptionCombo( String cc )
-        throws WebMessageException
-    {
-        if ( cc == null )
-        {
-            return null;
-        }
-
-        CategoryOptionCombo attributeOptionCombo = manager.search( CategoryOptionCombo.class, cc );
-
-        if ( attributeOptionCombo == null )
-        {
-            throw new WebMessageException(
-                conflict( "Illegal attributeOptionCombo identifier: " + cc ) );
-        }
-
-        return attributeOptionCombo;
     }
 }
