@@ -77,7 +77,6 @@ public class TrackedEntityDataValueAudit
         this.dataElement = dataElement;
         this.programStageInstance = programStageInstance;
         this.providedElsewhere = providedElsewhere;
-
         this.created = new Date();
         this.value = value;
         this.modifiedBy = modifiedBy;
