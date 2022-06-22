@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.bundle;
 
+import static org.hisp.dhis.tracker.Assertions.assertNoImportErrors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -41,7 +42,6 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityDataValueAuditQueryParams;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
-import org.hisp.dhis.tracker.Assertions;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.junit.jupiter.api.Test;
@@ -77,11 +77,11 @@ public class TrackedEntityDataValueAuditTest extends TrackerTest
     void testTrackedEntityDataValueAuditCreate()
         throws IOException
     {
-        Assertions.assertNoImportErrors(
+        assertNoImportErrors(
             trackerImportService.importTracker( fromJson( "tracker/event_and_enrollment_with_data_values.json" ) ) );
-        Assertions.assertNoImportErrors(
+        assertNoImportErrors(
             trackerImportService.importTracker( fromJson( "tracker/event_with_data_values_for_update_audit.json" ) ) );
-        Assertions.assertNoImportErrors(
+        assertNoImportErrors(
             trackerImportService.importTracker( fromJson( "tracker/event_with_data_values_for_delete_audit.json" ) ) );
 
         DataElement dataElement = manager.search( DataElement.class, DE );

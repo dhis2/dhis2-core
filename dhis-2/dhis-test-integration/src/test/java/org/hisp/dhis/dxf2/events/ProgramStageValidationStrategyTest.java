@@ -584,10 +584,9 @@ class ProgramStageValidationStrategyTest extends TransactionalIntegrationTest
         for ( DataValueAsserter dataValue : dataValues )
         {
             assertThat( psi.getEventDataValues(),
-                hasItem(
-                    allOf( Matchers.<EventDataValue> hasProperty( "value", is( dataValue.getValue() ) ),
-                        Matchers.<EventDataValue> hasProperty( "dataElement",
-                            is( dataValue.getDataElement() ) ) ) ) );
+                hasItem( allOf( Matchers.<EventDataValue> hasProperty( "value", is( dataValue.getValue() ) ),
+                    Matchers.<EventDataValue> hasProperty( "dataElement",
+                        is( dataValue.getDataElement() ) ) ) ) );
         }
     }
 
