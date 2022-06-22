@@ -715,11 +715,11 @@ public class DefaultEventAnalyticsService
             grid
                 .addHeader( new GridHeader(
                     ITEM_ENROLLMENT_DATE,
-                    LabelMapper.getEnrollmentDateLabel( params.getProgramStage(), NAME_ENROLLMENT_DATE ), DATE, false,
+                    LabelMapper.getEnrollmentDateLabel( params.getProgram(), NAME_ENROLLMENT_DATE ), DATE, false,
                     true ) )
                 .addHeader( new GridHeader(
                     ITEM_INCIDENT_DATE,
-                    LabelMapper.getIncidentDateLabel( params.getProgramStage(), NAME_INCIDENT_DATE ), DATE, false,
+                    LabelMapper.getIncidentDateLabel( params.getProgram(), NAME_INCIDENT_DATE ), DATE, false,
                     true ) )
                 .addHeader( new GridHeader(
                     ITEM_TRACKED_ENTITY_INSTANCE, NAME_TRACKED_ENTITY_INSTANCE, TEXT, false, true ) )
