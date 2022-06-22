@@ -9,6 +9,9 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
+    <artifactId>dhis-test-integration</artifactId>
+    <name>DHIS Test Integration</name>
+
     <build>
         <plugins>
             <plugin>
@@ -21,17 +24,11 @@
                         <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-dxf2</ignoredNonTestScopedDependency>
                         <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-support-audit</ignoredNonTestScopedDependency>
                         <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-support-commons</ignoredNonTestScopedDependency>
-<!--                        <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-field-filtering</ignoredNonTestScopedDependency>-->
                         <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-program-rule</ignoredNonTestScopedDependency>
                         <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-core</ignoredNonTestScopedDependency>
-<!--                        <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-web-api</ignoredNonTestScopedDependency>-->
                         <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-acl</ignoredNonTestScopedDependency>
-<!--                        <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-reporting</ignoredNonTestScopedDependency>-->
                         <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-support-external</ignoredNonTestScopedDependency>
-<!--                        <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-support-db-migration</ignoredNonTestScopedDependency>-->
-<!--                        <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-node</ignoredNonTestScopedDependency>-->
                         <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-schema</ignoredNonTestScopedDependency>
-<!--                        <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-metadata-workflow</ignoredNonTestScopedDependency>-->
                         <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-api</ignoredNonTestScopedDependency>
                         <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-analytics</ignoredNonTestScopedDependency>
                         <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-administration</ignoredNonTestScopedDependency>
@@ -47,8 +44,6 @@
         </plugins>
     </build>
 
-    <artifactId>dhis-test-integration</artifactId>
-    <name>DHIS Test Integration</name>
     <dependencies>
         <dependency>
             <groupId>org.mockito</groupId>

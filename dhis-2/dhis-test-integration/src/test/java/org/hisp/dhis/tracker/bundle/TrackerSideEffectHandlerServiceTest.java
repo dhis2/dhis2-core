@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.bundle;
 
+import static org.hisp.dhis.tracker.Assertions.assertNoImportErrors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
@@ -36,7 +37,6 @@ import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateStore;
-import org.hisp.dhis.tracker.Assertions;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
@@ -73,7 +73,7 @@ class TrackerSideEffectHandlerServiceTest extends TrackerTest
     {
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( fromJson(
             "tracker/enrollment_data_with_program_rule_side_effects.json" ) );
-        Assertions.assertNoImportErrors( trackerImportReport );
+        assertNoImportErrors( trackerImportReport );
 
         List<ProgramNotificationInstance> instances = manager.getAll( ProgramNotificationInstance.class );
         assertFalse( instances.isEmpty() );

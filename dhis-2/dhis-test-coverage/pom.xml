@@ -124,8 +124,8 @@
             <groupId>org.hisp.dhis</groupId>
             <artifactId>dhis-web-api</artifactId>
         </dependency>
-        <!-- dhis-web-api-test and dhis-test-integration only contains tests, since it should contribute execution data
-             but not itself be part of the report it has scope test
+        <!-- dhis-web-api-test and dhis-test-integration only contains tests, since they should contribute execution data
+             but not itself be part of the report they have scope test
              https://www.eclemma.org/jacoco/trunk/doc/report-aggregate-mojo.html -->
         <dependency>
             <groupId>org.hisp.dhis</groupId>

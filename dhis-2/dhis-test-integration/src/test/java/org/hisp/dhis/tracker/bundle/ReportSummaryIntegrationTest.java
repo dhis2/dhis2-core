@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.tracker.bundle;
 
+import static org.hisp.dhis.tracker.Assertions.assertNoImportErrors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
 
-import org.hisp.dhis.tracker.Assertions;
 import org.hisp.dhis.tracker.AtomicMode;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
@@ -72,7 +72,7 @@ class ReportSummaryIntegrationTest extends TrackerTest
 
         TrackerImportReport trackerImportTeiReport = trackerImportService.importTracker( params );
 
-        Assertions.assertNoImportErrors( trackerImportTeiReport );
+        assertNoImportErrors( trackerImportTeiReport );
         assertEquals( 1, trackerImportTeiReport.getStats().getCreated() );
         assertEquals( 0, trackerImportTeiReport.getStats().getUpdated() );
         assertEquals( 0, trackerImportTeiReport.getStats().getIgnored() );
@@ -94,7 +94,7 @@ class ReportSummaryIntegrationTest extends TrackerTest
 
         TrackerImportReport trackerImportTeiReport = trackerImportService.importTracker( params );
 
-        Assertions.assertNoImportErrors( trackerImportTeiReport );
+        assertNoImportErrors( trackerImportTeiReport );
         assertEquals( 1, trackerImportTeiReport.getStats().getCreated() );
         assertEquals( 1, trackerImportTeiReport.getStats().getUpdated() );
         assertEquals( 0, trackerImportTeiReport.getStats().getIgnored() );
@@ -141,7 +141,7 @@ class ReportSummaryIntegrationTest extends TrackerTest
 
         TrackerImportReport trackerImportEnrollmentReport = trackerImportService.importTracker( params );
 
-        Assertions.assertNoImportErrors( trackerImportEnrollmentReport );
+        assertNoImportErrors( trackerImportEnrollmentReport );
         assertEquals( 1, trackerImportEnrollmentReport.getStats().getCreated() );
         assertEquals( 0, trackerImportEnrollmentReport.getStats().getUpdated() );
         assertEquals( 0, trackerImportEnrollmentReport.getStats().getIgnored() );
@@ -163,7 +163,7 @@ class ReportSummaryIntegrationTest extends TrackerTest
 
         TrackerImportReport trackerImportEnrollmentReport = trackerImportService.importTracker( params );
 
-        Assertions.assertNoImportErrors( trackerImportEnrollmentReport );
+        assertNoImportErrors( trackerImportEnrollmentReport );
         assertEquals( 1, trackerImportEnrollmentReport.getStats().getCreated() );
         assertEquals( 0, trackerImportEnrollmentReport.getStats().getUpdated() );
         assertEquals( 0, trackerImportEnrollmentReport.getStats().getIgnored() );
@@ -175,7 +175,7 @@ class ReportSummaryIntegrationTest extends TrackerTest
 
         trackerImportEnrollmentReport = trackerImportService.importTracker( params );
 
-        Assertions.assertNoImportErrors( trackerImportEnrollmentReport );
+        assertNoImportErrors( trackerImportEnrollmentReport );
         assertEquals( 0, trackerImportEnrollmentReport.getStats().getCreated() );
         assertEquals( 1, trackerImportEnrollmentReport.getStats().getUpdated() );
         assertEquals( 0, trackerImportEnrollmentReport.getStats().getIgnored() );
@@ -202,7 +202,7 @@ class ReportSummaryIntegrationTest extends TrackerTest
 
         TrackerImportReport trackerImportEnrollmentReport = trackerImportService.importTracker( params );
 
-        Assertions.assertNoImportErrors( trackerImportEnrollmentReport );
+        assertNoImportErrors( trackerImportEnrollmentReport );
         assertEquals( 1, trackerImportEnrollmentReport.getStats().getCreated() );
         assertEquals( 1, trackerImportEnrollmentReport.getStats().getUpdated() );
         assertEquals( 0, trackerImportEnrollmentReport.getStats().getIgnored() );
@@ -259,7 +259,7 @@ class ReportSummaryIntegrationTest extends TrackerTest
 
         TrackerImportReport trackerImportEventReport = trackerImportService.importTracker( params );
 
-        Assertions.assertNoImportErrors( trackerImportEventReport );
+        assertNoImportErrors( trackerImportEventReport );
         assertEquals( 1, trackerImportEventReport.getStats().getCreated() );
         assertEquals( 0, trackerImportEventReport.getStats().getUpdated() );
         assertEquals( 0, trackerImportEventReport.getStats().getIgnored() );
@@ -292,7 +292,7 @@ class ReportSummaryIntegrationTest extends TrackerTest
 
         TrackerImportReport trackerImportEventReport = trackerImportService.importTracker( params );
 
-        Assertions.assertNoImportErrors( trackerImportEventReport );
+        assertNoImportErrors( trackerImportEventReport );
         assertEquals( 1, trackerImportEventReport.getStats().getCreated() );
         assertEquals( 1, trackerImportEventReport.getStats().getUpdated() );
         assertEquals( 0, trackerImportEventReport.getStats().getIgnored() );

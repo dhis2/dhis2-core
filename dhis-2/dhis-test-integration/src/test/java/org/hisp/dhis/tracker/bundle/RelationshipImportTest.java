@@ -29,11 +29,11 @@ package org.hisp.dhis.tracker.bundle;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.hisp.dhis.tracker.Assertions.assertNoImportErrors;
 
 import java.io.IOException;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.tracker.Assertions;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
@@ -64,11 +64,11 @@ class RelationshipImportTest extends TrackerTest
     {
         setUpMetadata( "tracker/simple_metadata.json" );
         userA = userService.getUser( "M5zQapPyTZI" );
-        Assertions.assertNoImportErrors(
+        assertNoImportErrors(
             trackerImportService.importTracker( fromJson( "tracker/single_tei.json", userA.getUid() ) ) );
-        Assertions.assertNoImportErrors(
+        assertNoImportErrors(
             trackerImportService.importTracker( fromJson( "tracker/single_enrollment.json", userA.getUid() ) ) );
-        Assertions.assertNoImportErrors(
+        assertNoImportErrors(
             trackerImportService.importTracker( fromJson( "tracker/single_event.json", userA.getUid() ) ) );
         manager.flush();
     }

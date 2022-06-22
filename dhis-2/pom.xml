@@ -389,7 +389,7 @@
               <groups>integration</groups>
               <systemPropertyVariables>
                 <!-- Uncomment if you need to debug the log4j2 config itself -->
-                <!-- <log4j2.debug>true</log4j2.debug>-->
+                <!-- <log4j2.debug>true</log4j2.debug> -->
                 <!-- Specifying it to be in full control and turn off Log4JLogConfigInitializer -->
                 <log4j2.configurationFile>log4j2-test.xml</log4j2.configurationFile>
               </systemPropertyVariables>

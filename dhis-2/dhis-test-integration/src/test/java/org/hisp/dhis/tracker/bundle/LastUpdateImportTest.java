@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.bundle;
 
+import static org.hisp.dhis.tracker.Assertions.assertNoImportErrors;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
@@ -36,7 +37,6 @@ import java.util.Date;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
-import org.hisp.dhis.tracker.Assertions;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
@@ -70,10 +70,9 @@ class LastUpdateImportTest extends TrackerTest
         setUpMetadata( "tracker/simple_metadata.json" );
         injectAdminUser();
         TrackerImportParams trackerImportParams = fromJson( "tracker/single_tei.json" );
-        Assertions.assertNoImportErrors( trackerImportService.importTracker( trackerImportParams ) );
+        assertNoImportErrors( trackerImportService.importTracker( trackerImportParams ) );
         trackedEntity = trackerImportParams.getTrackedEntities().get( 0 );
-        Assertions
-            .assertNoImportErrors( trackerImportService.importTracker( fromJson( "tracker/single_enrollment.json" ) ) );
+        assertNoImportErrors( trackerImportService.importTracker( fromJson( "tracker/single_enrollment.json" ) ) );
         manager.flush();
     }
 
@@ -90,7 +89,7 @@ class LastUpdateImportTest extends TrackerTest
         trackedEntity.setAttributes( Collections.singletonList( attribute ) );
         Date lastUpdateBefore = trackedEntityInstanceService
             .getTrackedEntityInstance( trackedEntity.getTrackedEntity() ).getLastUpdated();
-        Assertions.assertNoImportErrors( trackerImportService.importTracker( trackerImportParams ) );
+        assertNoImportErrors( trackerImportService.importTracker( trackerImportParams ) );
         assertTrue( manager.get( TrackedEntityInstance.class, trackedEntity.getTrackedEntity() ).getLastUpdated()
             .getTime() > lastUpdateBefore.getTime() );
     }
@@ -102,11 +101,11 @@ class LastUpdateImportTest extends TrackerTest
         TrackerImportParams trackerImportParams = fromJson( "tracker/event_with_data_values.json" );
         Date lastUpdateBefore = trackedEntityInstanceService
             .getTrackedEntityInstance( trackedEntity.getTrackedEntity() ).getLastUpdated();
-        Assertions.assertNoImportErrors( trackerImportService.importTracker( trackerImportParams ) );
+        assertNoImportErrors( trackerImportService.importTracker( trackerImportParams ) );
 
         trackerImportParams = fromJson( "tracker/event_with_updated_data_values.json" );
         trackerImportParams.setImportStrategy( TrackerImportStrategy.UPDATE );
-        Assertions.assertNoImportErrors( trackerImportService.importTracker( trackerImportParams ) );
+        assertNoImportErrors( trackerImportService.importTracker( trackerImportParams ) );
         manager.clear();
         assertTrue( manager.get( TrackedEntityInstance.class, trackedEntity.getTrackedEntity() ).getLastUpdated()
             .getTime() > lastUpdateBefore.getTime() );
@@ -123,7 +122,7 @@ class LastUpdateImportTest extends TrackerTest
         enrollment.setStatus( EnrollmentStatus.COMPLETED );
         trackerImportParams.setImportStrategy( TrackerImportStrategy.UPDATE );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        Assertions.assertNoImportErrors( trackerImportReport );
+        assertNoImportErrors( trackerImportReport );
         manager.clear();
         assertTrue( manager.get( TrackedEntityInstance.class, trackedEntity.getTrackedEntity() ).getLastUpdated()
             .getTime() > lastUpdateBefore.getTime() );

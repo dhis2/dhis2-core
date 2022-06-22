@@ -47,7 +47,6 @@ import java.util.concurrent.Future;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.hisp.dhis.reservedvalue.SequentialNumberCounterStore;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -148,15 +147,15 @@ class HibernateSequentialNumberCounterStoreTest extends TransactionalIntegration
     @Test
     void deleteCounter()
     {
-        Assertions.assertTrue( dummyService.getNextValues( "ABC", "ABC-#", 3 ).contains( 1 ) );
+        assertTrue( dummyService.getNextValues( "ABC", "ABC-#", 3 ).contains( 1 ) );
         dummyService.deleteCounter( "ABC" );
-        Assertions.assertTrue( dummyService.getNextValues( "ABC", "ABC-#", 3 ).contains( 1 ) );
-        Assertions.assertTrue( dummyService.getNextValues( "ABC", "ABC-##", 3 ).contains( 1 ) );
-        Assertions.assertTrue( dummyService.getNextValues( "ABC", "ABC-###", 3 ).contains( 1 ) );
+        assertTrue( dummyService.getNextValues( "ABC", "ABC-#", 3 ).contains( 1 ) );
+        assertTrue( dummyService.getNextValues( "ABC", "ABC-##", 3 ).contains( 1 ) );
+        assertTrue( dummyService.getNextValues( "ABC", "ABC-###", 3 ).contains( 1 ) );
         dummyService.deleteCounter( "ABC" );
-        Assertions.assertTrue( dummyService.getNextValues( "ABC", "ABC-#", 3 ).contains( 1 ) );
-        Assertions.assertTrue( dummyService.getNextValues( "ABC", "ABC-##", 3 ).contains( 1 ) );
-        Assertions.assertTrue( dummyService.getNextValues( "ABC", "ABC-###", 3 ).contains( 1 ) );
+        assertTrue( dummyService.getNextValues( "ABC", "ABC-#", 3 ).contains( 1 ) );
+        assertTrue( dummyService.getNextValues( "ABC", "ABC-##", 3 ).contains( 1 ) );
+        assertTrue( dummyService.getNextValues( "ABC", "ABC-###", 3 ).contains( 1 ) );
     }
 
     @Configuration

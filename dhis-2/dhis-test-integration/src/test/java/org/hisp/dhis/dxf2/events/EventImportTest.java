@@ -48,7 +48,6 @@ import java.util.List;
 
 import org.exparity.hamcrest.date.DateMatchers;
 import org.hamcrest.CoreMatchers;
-import org.hamcrest.MatcherAssert;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -577,7 +576,7 @@ class EventImportTest extends TransactionalIntegrationTest
         dbmsManager.clearSession();
         ProgramStageInstance psi2 = programStageInstanceService.getProgramStageInstance( uid );
 
-        MatcherAssert.assertThat( psi.getLastUpdated(), DateMatchers.before( psi2.getLastUpdated() ) );
+        assertThat( psi.getLastUpdated(), DateMatchers.before( psi2.getLastUpdated() ) );
         assertThat( psi.getCreated(), is( psi2.getCreated() ) );
         assertThat( psi.getProgramInstance().getUid(), is( psi2.getProgramInstance().getUid() ) );
         assertThat( psi.getProgramStage().getUid(), is( psi2.getProgramStage().getUid() ) );
@@ -616,7 +615,7 @@ class EventImportTest extends TransactionalIntegrationTest
         dbmsManager.clearSession();
 
         ProgramStageInstance psi2 = programStageInstanceService.getProgramStageInstance( uid );
-        MatcherAssert.assertThat( psi.getLastUpdated(), DateMatchers.before( psi2.getLastUpdated() ) );
+        assertThat( psi.getLastUpdated(), DateMatchers.before( psi2.getLastUpdated() ) );
         assertThat( psi.getCreated(), is( psi2.getCreated() ) );
         assertThat( psi.getProgramInstance().getUid(), is( psi2.getProgramInstance().getUid() ) );
         assertThat( psi.getProgramStage().getUid(), is( psi2.getProgramStage().getUid() ) );

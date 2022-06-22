@@ -49,7 +49,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.hamcrest.Matchers;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.CodeGenerator;
@@ -485,7 +484,7 @@ class TrackedEntityInstanceAggregateTest extends TrackerTest
         assertThat( event.getOrgUnit(), is( organisationUnitA.getUid() ) );
         assertThat( event.getOrgUnitName(), is( organisationUnitA.getName() ) );
         assertThat( event.getTrackedEntityInstance(), is( tei.getTrackedEntityInstance() ) );
-        assertThat( event.getAttributeOptionCombo(), Matchers.is( DEF_COC_UID ) );
+        assertThat( event.getAttributeOptionCombo(), is( DEF_COC_UID ) );
         assertThat( event.isDeleted(), is( false ) );
         assertThat( event.getStoredBy(), is( "admin_test" ) );
         assertThat( event.getFollowup(), is( nullValue() ) );

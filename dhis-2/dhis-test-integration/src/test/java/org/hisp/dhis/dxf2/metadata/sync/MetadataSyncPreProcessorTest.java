@@ -29,6 +29,12 @@ package org.hisp.dhis.dxf2.metadata.sync;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -53,7 +59,6 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -86,23 +91,23 @@ class MetadataSyncPreProcessorTest extends IntegrationTestBase
     void testHandleDataPushShouldCallDataPush()
         throws Exception
     {
-        MetadataRetryContext mockRetryContext = Mockito.mock( MetadataRetryContext.class );
+        MetadataRetryContext mockRetryContext = mock( MetadataRetryContext.class );
         AvailabilityStatus availabilityStatus = new AvailabilityStatus( true, "test_message", null );
-        Mockito.when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
+        when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
         metadataSyncPreProcessor.handleDataValuePush( mockRetryContext, metadataSyncJobParameters,
             NoopJobProgress.INSTANCE );
-        Mockito.verify( synchronizationManager, Mockito.times( 1 ) ).executeDataValuePush();
+        verify( synchronizationManager, times( 1 ) ).executeDataValuePush();
     }
 
     @Test
     void testhandleAggregateDataPushShouldThrowExceptionWhenDataPushIsUnsuccessful()
     {
-        MetadataRetryContext mockRetryContext = Mockito.mock( MetadataRetryContext.class );
+        MetadataRetryContext mockRetryContext = mock( MetadataRetryContext.class );
         ImportSummary expectedSummary = new ImportSummary();
         expectedSummary.setStatus( ImportStatus.ERROR );
         AvailabilityStatus availabilityStatus = new AvailabilityStatus( true, "test_message", null );
-        Mockito.when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
-        Mockito.doThrow( MetadataSyncServiceException.class ).when( metadataSyncPreProcessor )
+        when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
+        doThrow( MetadataSyncServiceException.class ).when( metadataSyncPreProcessor )
             .handleDataValuePush( mockRetryContext, metadataSyncJobParameters, NoopJobProgress.INSTANCE );
         assertThrows( MetadataSyncServiceException.class,
             () -> metadataSyncPreProcessor.handleDataValuePush( mockRetryContext, metadataSyncJobParameters,
@@ -112,24 +117,24 @@ class MetadataSyncPreProcessorTest extends IntegrationTestBase
     @Test
     void testhandleAggregateDataPushShouldNotThrowExceptionWhenDataPushIsSuccessful()
     {
-        MetadataRetryContext mockRetryContext = Mockito.mock( MetadataRetryContext.class );
+        MetadataRetryContext mockRetryContext = mock( MetadataRetryContext.class );
         ImportSummary expectedSummary = new ImportSummary();
         expectedSummary.setStatus( ImportStatus.SUCCESS );
         AvailabilityStatus availabilityStatus = new AvailabilityStatus( true, "test_message", null );
-        Mockito.when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
-        Mockito.doNothing().when( metadataSyncPreProcessor ).handleDataValuePush( mockRetryContext,
+        when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
+        doNothing().when( metadataSyncPreProcessor ).handleDataValuePush( mockRetryContext,
             metadataSyncJobParameters,
             NoopJobProgress.INSTANCE );
         metadataSyncPreProcessor.handleDataValuePush( mockRetryContext, metadataSyncJobParameters,
             NoopJobProgress.INSTANCE );
-        Mockito.verify( metadataSyncPreProcessor, Mockito.times( 1 ) ).handleDataValuePush( mockRetryContext,
+        verify( metadataSyncPreProcessor, times( 1 ) ).handleDataValuePush( mockRetryContext,
             metadataSyncJobParameters, NoopJobProgress.INSTANCE );
     }
 
     @Test
     void testHandleMetadataVersionsListShouldReturnDifferenceOfVersionsFromBaselineVersion()
     {
-        MetadataRetryContext mockRetryContext = Mockito.mock( MetadataRetryContext.class );
+        MetadataRetryContext mockRetryContext = mock( MetadataRetryContext.class );
         MetadataVersion currentVersion = new MetadataVersion();
         currentVersion.setType( VersionType.BEST_EFFORT );
         currentVersion.setName( "test_version1" );
@@ -142,7 +147,7 @@ class MetadataSyncPreProcessorTest extends IntegrationTestBase
         newVersion.setHashCode( "samplehashcode2" );
         List<MetadataVersion> listOfVersions = new ArrayList<>();
         listOfVersions.add( newVersion );
-        Mockito.when( metadataVersionDelegate.getMetaDataDifference( currentVersion ) ).thenReturn( listOfVersions );
+        when( metadataVersionDelegate.getMetaDataDifference( currentVersion ) ).thenReturn( listOfVersions );
         List<MetadataVersion> expectedListOfVersions = metadataSyncPreProcessor
             .handleMetadataVersionsList( mockRetryContext, currentVersion, NoopJobProgress.INSTANCE );
         assertEquals( listOfVersions.size(), expectedListOfVersions.size() );
@@ -153,14 +158,14 @@ class MetadataSyncPreProcessorTest extends IntegrationTestBase
     void testHandleMetadataVersionsListShouldReturnNullIfInstanceDoesNotHaveAnyVersions()
     {
         AvailabilityStatus availabilityStatus = new AvailabilityStatus( true, "test_message", null );
-        Mockito.when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
-        MetadataRetryContext mockRetryContext = Mockito.mock( MetadataRetryContext.class );
+        when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
+        MetadataRetryContext mockRetryContext = mock( MetadataRetryContext.class );
         MetadataVersion currentVersion = new MetadataVersion();
         currentVersion.setType( VersionType.BEST_EFFORT );
         currentVersion.setName( "test_version" );
         currentVersion.setCreated( new Date() );
         currentVersion.setHashCode( "samplehashcode" );
-        Mockito.when( metadataVersionDelegate.getMetaDataDifference( currentVersion ) ).thenReturn( new ArrayList<>() );
+        when( metadataVersionDelegate.getMetaDataDifference( currentVersion ) ).thenReturn( new ArrayList<>() );
         List<MetadataVersion> expectedListOfVersions = metadataSyncPreProcessor
             .handleMetadataVersionsList( mockRetryContext, currentVersion, NoopJobProgress.INSTANCE );
         assertEquals( 0, expectedListOfVersions.size() );
@@ -170,15 +175,15 @@ class MetadataSyncPreProcessorTest extends IntegrationTestBase
     void testHandleMetadataVersionsListShouldReturnEmptyListIfInstanceIsAlreadyOnLatestVersion()
     {
         AvailabilityStatus availabilityStatus = new AvailabilityStatus( true, "test_message", null );
-        Mockito.when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
-        MetadataRetryContext mockRetryContext = Mockito.mock( MetadataRetryContext.class );
+        when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
+        MetadataRetryContext mockRetryContext = mock( MetadataRetryContext.class );
         MetadataVersion currentVersion = new MetadataVersion();
         currentVersion.setType( VersionType.BEST_EFFORT );
         currentVersion.setName( "test_version" );
         currentVersion.setCreated( new Date() );
         currentVersion.setHashCode( "samplehashcode" );
         List<MetadataVersion> listOfVersions = new ArrayList<>();
-        Mockito.when( metadataVersionDelegate.getMetaDataDifference( currentVersion ) ).thenReturn( listOfVersions );
+        when( metadataVersionDelegate.getMetaDataDifference( currentVersion ) ).thenReturn( listOfVersions );
         List<MetadataVersion> expectedListOfVersions = metadataSyncPreProcessor
             .handleMetadataVersionsList( mockRetryContext, currentVersion, NoopJobProgress.INSTANCE );
         assertEquals( 0, expectedListOfVersions.size() );
@@ -188,8 +193,8 @@ class MetadataSyncPreProcessorTest extends IntegrationTestBase
     void testHandleMetadataVersionsListShouldThrowExceptionIfAnyIssueWithMetadataDifference()
     {
         AvailabilityStatus availabilityStatus = new AvailabilityStatus( true, "test_message", null );
-        Mockito.when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
-        MetadataRetryContext mockRetryContext = Mockito.mock( MetadataRetryContext.class );
+        when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
+        MetadataRetryContext mockRetryContext = mock( MetadataRetryContext.class );
         MetadataVersion currentVersion = new MetadataVersion();
         currentVersion.setType( VersionType.BEST_EFFORT );
         currentVersion.setName( "test_version" );
@@ -197,7 +202,7 @@ class MetadataSyncPreProcessorTest extends IntegrationTestBase
         currentVersion.setHashCode( "samplehashcode" );
         List<MetadataVersion> listOfVersions = new ArrayList<>();
         listOfVersions.add( currentVersion );
-        Mockito.when( metadataVersionDelegate.getMetaDataDifference( currentVersion ) )
+        when( metadataVersionDelegate.getMetaDataDifference( currentVersion ) )
             .thenThrow( new MetadataSyncServiceException( "test_message" ) );
         assertThrows( MetadataSyncServiceException.class,
             () -> metadataSyncPreProcessor.handleMetadataVersionsList( mockRetryContext, currentVersion,
@@ -207,13 +212,13 @@ class MetadataSyncPreProcessorTest extends IntegrationTestBase
     @Test
     void testHandleCurrentMetadataVersionShouldReturnCurrentVersionOfSystem()
     {
-        MetadataRetryContext mockRetryContext = Mockito.mock( MetadataRetryContext.class );
+        MetadataRetryContext mockRetryContext = mock( MetadataRetryContext.class );
         MetadataVersion currentVersion = new MetadataVersion();
         currentVersion.setType( VersionType.BEST_EFFORT );
         currentVersion.setName( "test_version" );
         currentVersion.setCreated( new Date() );
         currentVersion.setHashCode( "samplehashcode" );
-        Mockito.when( metadataVersionService.getCurrentVersion() ).thenReturn( currentVersion );
+        when( metadataVersionService.getCurrentVersion() ).thenReturn( currentVersion );
         MetadataVersion actualVersion = metadataSyncPreProcessor.handleCurrentMetadataVersion( mockRetryContext,
             NoopJobProgress.INSTANCE );
         assertEquals( currentVersion, actualVersion );
@@ -222,7 +227,7 @@ class MetadataSyncPreProcessorTest extends IntegrationTestBase
     @Test
     void testShouldGetLatestMetadataVersionForTheGivenVersionList()
     {
-        MetadataRetryContext mockRetryContext = Mockito.mock( MetadataRetryContext.class );
+        MetadataRetryContext mockRetryContext = mock( MetadataRetryContext.class );
         DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern( "yyyy-MM-dd HH:mm:ssZ" );
         MetadataVersion currentVersion = new MetadataVersion();
         currentVersion.setType( VersionType.BEST_EFFORT );
@@ -242,11 +247,11 @@ class MetadataSyncPreProcessorTest extends IntegrationTestBase
         metadataVersionList.add( version2 );
         metadataVersionList.add( version3 );
         metadataVersionList.add( version4 );
-        Mockito.when( metadataVersionDelegate.getMetaDataDifference( currentVersion ) )
+        when( metadataVersionDelegate.getMetaDataDifference( currentVersion ) )
             .thenReturn( metadataVersionList );
         List<MetadataVersion> expectedListOfVersions = metadataSyncPreProcessor
             .handleMetadataVersionsList( mockRetryContext, currentVersion, NoopJobProgress.INSTANCE );
-        Mockito.verify( systemSettingManager ).saveSystemSetting( SettingKey.REMOTE_METADATA_VERSION,
+        verify( systemSettingManager ).saveSystemSetting( SettingKey.REMOTE_METADATA_VERSION,
             version4.getName() );
         assertEquals( 3, expectedListOfVersions.size() );
     }

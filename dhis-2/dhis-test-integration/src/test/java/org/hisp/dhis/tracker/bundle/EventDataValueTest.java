@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.bundle;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
+import static org.hisp.dhis.tracker.Assertions.assertNoImportErrors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
@@ -40,7 +41,6 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
-import org.hisp.dhis.tracker.Assertions;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
@@ -74,9 +74,9 @@ class EventDataValueTest extends TrackerTest
         injectSecurityContext( userA );
 
         TrackerImportParams teiParams = fromJson( "tracker/single_tei.json", userA.getUid() );
-        Assertions.assertNoImportErrors( trackerImportService.importTracker( teiParams ) );
+        assertNoImportErrors( trackerImportService.importTracker( teiParams ) );
         TrackerImportParams enrollmentParams = fromJson( "tracker/single_enrollment.json", userA.getUid() );
-        Assertions.assertNoImportErrors( trackerImportService.importTracker( enrollmentParams ) );
+        assertNoImportErrors( trackerImportService.importTracker( enrollmentParams ) );
         manager.flush();
     }
 
@@ -87,7 +87,7 @@ class EventDataValueTest extends TrackerTest
         TrackerImportReport trackerImportReport = trackerImportService
             .importTracker( fromJson( "tracker/validations/events-with_no_program.json" ) );
 
-        Assertions.assertNoImportErrors( trackerImportReport );
+        assertNoImportErrors( trackerImportReport );
     }
 
     @Test
@@ -97,7 +97,7 @@ class EventDataValueTest extends TrackerTest
         TrackerImportReport trackerImportReport = trackerImportService
             .importTracker( fromJson( "tracker/event_with_data_values.json" ) );
 
-        Assertions.assertNoImportErrors( trackerImportReport );
+        assertNoImportErrors( trackerImportReport );
         List<ProgramStageInstance> events = manager.getAll( ProgramStageInstance.class );
         assertEquals( 1, events.size() );
         ProgramStageInstance psi = events.get( 0 );
@@ -112,7 +112,7 @@ class EventDataValueTest extends TrackerTest
         TrackerImportReport trackerImportReport = trackerImportService
             .importTracker( fromJson( "tracker/event_with_data_values.json" ) );
 
-        Assertions.assertNoImportErrors( trackerImportReport );
+        assertNoImportErrors( trackerImportReport );
         List<ProgramStageInstance> events = manager.getAll( ProgramStageInstance.class );
         assertEquals( 1, events.size() );
         ProgramStageInstance psi = events.get( 0 );
@@ -126,7 +126,7 @@ class EventDataValueTest extends TrackerTest
         trackerImportParams.getEvents().get( 0 ).setEvent( trackerImportParams.getEvents().get( 0 ).getEvent() );
         trackerImportParams.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
         trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        Assertions.assertNoImportErrors( trackerImportReport );
+        assertNoImportErrors( trackerImportReport );
         List<ProgramStageInstance> updatedEvents = manager.getAll( ProgramStageInstance.class );
         assertEquals( 1, updatedEvents.size() );
         ProgramStageInstance updatedPsi = programStageInstanceService

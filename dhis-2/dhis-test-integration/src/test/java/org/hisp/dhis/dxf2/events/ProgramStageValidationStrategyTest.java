@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dxf2.events;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.hasItem;
@@ -38,7 +39,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.stream.Stream;
 
-import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matchers;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.category.CategoryCombo;
@@ -585,9 +585,9 @@ class ProgramStageValidationStrategyTest extends TransactionalIntegrationTest
         {
             assertThat( psi.getEventDataValues(),
                 hasItem(
-                    allOf( Matchers.<EventDataValue> hasProperty( "value", CoreMatchers.is( dataValue.getValue() ) ),
+                    allOf( Matchers.<EventDataValue> hasProperty( "value", is( dataValue.getValue() ) ),
                         Matchers.<EventDataValue> hasProperty( "dataElement",
-                            CoreMatchers.is( dataValue.getDataElement() ) ) ) ) );
+                            is( dataValue.getDataElement() ) ) ) ) );
         }
     }
 
