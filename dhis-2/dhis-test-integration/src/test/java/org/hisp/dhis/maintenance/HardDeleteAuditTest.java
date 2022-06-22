@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.audit.Audit;
 import org.hisp.dhis.audit.AuditQuery;
 import org.hisp.dhis.audit.AuditService;
@@ -41,6 +40,7 @@ import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.maintenance.jdbc.JdbcMaintenanceStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
