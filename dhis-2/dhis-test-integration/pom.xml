@@ -33,6 +33,7 @@
 <!--                        <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-metadata-workflow</ignoredNonTestScopedDependency>-->
                         <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-api</ignoredNonTestScopedDependency>
                         <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-analytics</ignoredNonTestScopedDependency>
+                        <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-reporting</ignoredNonTestScopedDependency>
                         <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-tracker</ignoredNonTestScopedDependency>
                         <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-support-hibernate</ignoredNonTestScopedDependency>
                         <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-support-jdbc</ignoredNonTestScopedDependency>
@@ -196,6 +197,11 @@
             <artifactId>jfreechart</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.hisp</groupId>
+            <artifactId>quick</artifactId>
+            <scope>test</scope>
+        </dependency>
 
         <!-- dhis-test-integration only contains tests so test scope on modules it tests is intuitively correct, but to have its
              coverage included in the report we need to use scope compile (or runtime, provided) see https://www.eclemma.org/jacoco/trunk/doc/report-aggregate-mojo.html -->
@@ -217,6 +223,11 @@
         <dependency>
             <groupId>org.hisp.dhis</groupId>
             <artifactId>dhis-service-core</artifactId>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hisp.dhis</groupId>
+            <artifactId>dhis-service-reporting</artifactId>
             <scope>compile</scope>
         </dependency>
         <dependency>
