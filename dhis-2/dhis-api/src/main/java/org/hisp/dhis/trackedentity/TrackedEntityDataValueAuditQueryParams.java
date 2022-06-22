@@ -25,47 +25,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.trackedentity;
 
-import static org.hisp.dhis.web.WebClient.Body;
-import static org.hisp.dhis.web.WebClient.ContentType;
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
-import static org.springframework.http.MediaType.APPLICATION_XML;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.junit.jupiter.api.Test;
+import lombok.Data;
+import lombok.experimental.Accessors;
+
+import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageInstance;
 
 /**
- * Tests the {@link IdentifiableObjectController} using (mocked) REST requests.
+ * Encapsulation of a web API request for tracked entity data value audit
+ * records.
  *
- * @author Jan Bernitt
+ * @author Lars Helge Overland
  */
-class IdentifiableObjectControllerTest extends DhisControllerConvenienceTest
+@Data
+@Accessors( chain = true )
+public class TrackedEntityDataValueAuditQueryParams
 {
+    private List<DataElement> dataElements = new ArrayList<>();
 
-    @Test
-    void testPostJsonObject()
-    {
-        assertStatus( HttpStatus.METHOD_NOT_ALLOWED, POST( "/identifiableObjects/", "{}" ) );
-    }
+    private List<OrganisationUnit> orgUnits = new ArrayList<>();
 
-    @Test
-    void testPostJsonObject_Xml()
-    {
-        assertStatus( HttpStatus.METHOD_NOT_ALLOWED,
-            POST( "/identifiableObjects/", Body( "{}" ), ContentType( APPLICATION_XML ) ) );
-    }
+    private List<ProgramStageInstance> programStageInstances = new ArrayList<>();
 
-    @Test
-    void testPutJsonObject()
-    {
-        assertStatus( HttpStatus.METHOD_NOT_ALLOWED, PUT( "/identifiableObjects/someId", "{}" ) );
-    }
+    private List<ProgramStage> programStages = new ArrayList<>();
 
-    @Test
-    void testDeleteObject()
+    private Date startDate;
+
+    private Date endDate;
+
+    private AuditType auditType;
+
+    private Pager pager;
+
+    public boolean hasPaging()
     {
-        assertStatus( HttpStatus.METHOD_NOT_ALLOWED, DELETE( "/identifiableObjects/someId" ) );
+        return pager != null;
     }
 }

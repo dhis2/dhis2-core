@@ -25,47 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
-
-import static org.hisp.dhis.web.WebClient.Body;
-import static org.hisp.dhis.web.WebClient.ContentType;
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
-import static org.springframework.http.MediaType.APPLICATION_XML;
-
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.junit.jupiter.api.Test;
+package org.hisp.dhis.web;
 
 /**
- * Tests the {@link IdentifiableObjectController} using (mocked) REST requests.
+ * Valid HTTP methods.
+ *
+ * Basically a copy of springs enum to not being dependent on spring web where
+ * this is used.
  *
  * @author Jan Bernitt
  */
-class IdentifiableObjectControllerTest extends DhisControllerConvenienceTest
+public enum HttpMethod
 {
-
-    @Test
-    void testPostJsonObject()
-    {
-        assertStatus( HttpStatus.METHOD_NOT_ALLOWED, POST( "/identifiableObjects/", "{}" ) );
-    }
-
-    @Test
-    void testPostJsonObject_Xml()
-    {
-        assertStatus( HttpStatus.METHOD_NOT_ALLOWED,
-            POST( "/identifiableObjects/", Body( "{}" ), ContentType( APPLICATION_XML ) ) );
-    }
-
-    @Test
-    void testPutJsonObject()
-    {
-        assertStatus( HttpStatus.METHOD_NOT_ALLOWED, PUT( "/identifiableObjects/someId", "{}" ) );
-    }
-
-    @Test
-    void testDeleteObject()
-    {
-        assertStatus( HttpStatus.METHOD_NOT_ALLOWED, DELETE( "/identifiableObjects/someId" ) );
-    }
+    GET,
+    HEAD,
+    POST,
+    PUT,
+    PATCH,
+    DELETE,
+    OPTIONS,
+    TRACE
 }

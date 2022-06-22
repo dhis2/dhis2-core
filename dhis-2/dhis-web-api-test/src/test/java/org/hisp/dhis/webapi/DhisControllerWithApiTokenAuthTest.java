@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi;
 
-import static org.hisp.dhis.webapi.utils.WebClientUtils.failOnException;
+import static org.hisp.dhis.web.WebClientUtils.failOnException;
 
 import org.hisp.dhis.IntegrationH2Test;
 import org.hisp.dhis.jsontree.JsonResponse;
