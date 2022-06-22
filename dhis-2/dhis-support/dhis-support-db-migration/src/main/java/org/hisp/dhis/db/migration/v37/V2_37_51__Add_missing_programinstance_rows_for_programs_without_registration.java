@@ -50,20 +50,20 @@ import org.hisp.dhis.common.CodeGenerator;
 @Slf4j
 public class V2_37_51__Add_missing_programinstance_rows_for_programs_without_registration extends BaseJavaMigration
 {
-    private static final String FETCH_PROGRAMS_MISSING_PI_SQL = " select pi.programinstanceid,p.programid from program p left join programinstance pi on p.programid=pi.programid where p.type='WITHOUT_REGISTRATION' and pi.programinstanceid is null";
+    private static final String FETCH_PROGRAMS_MISSING_DEFAULT_PROGRAMINSTANCE = "select p.programid from program p where p.type='WITHOUT_REGISTRATION' and not exists (select pi.programinstanceid from programinstance pi where pi.programid = p.programid)";
 
     @Override
     public void migrate( Context context )
         throws Exception
     {
-        List<Long> programIdsWithMissingPI = new ArrayList<>();
+        List<Long> programsWithMissingDefaultProgramInstance = new ArrayList<>();
         try ( Statement stmt = context.getConnection().createStatement();
-            ResultSet rs = stmt.executeQuery( FETCH_PROGRAMS_MISSING_PI_SQL ); )
+            ResultSet rs = stmt.executeQuery( FETCH_PROGRAMS_MISSING_DEFAULT_PROGRAMINSTANCE ); )
         {
 
             while ( rs.next() )
             {
-                programIdsWithMissingPI.add( rs.getLong( "programid" ) );
+                programsWithMissingDefaultProgramInstance.add( rs.getLong( "programid" ) );
             }
         }
         catch ( SQLException e )
@@ -77,7 +77,7 @@ public class V2_37_51__Add_missing_programinstance_rows_for_programs_without_reg
                 "insert into programinstance(programinstanceid,enrollmentdate,programid,status,followup,uid,created,lastupdated,incidentdate,createdatclient,lastupdatedatclient,deleted,storedby)\n"
                     + "values (nextval('programinstance_sequence'),now(),?,'ACTIVE','false',?,now(),now(),now(),now(),now(),'false','flyway');" ) )
         {
-            for ( Long programId : programIdsWithMissingPI )
+            for ( Long programId : programsWithMissingDefaultProgramInstance )
             {
                 ps.setLong( 1, programId );
                 ps.setString( 2, CodeGenerator.generateUid() );
