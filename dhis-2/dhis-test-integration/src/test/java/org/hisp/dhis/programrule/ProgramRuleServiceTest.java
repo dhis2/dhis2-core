@@ -39,7 +39,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.deletedobject.DeletedObjectQuery;
 import org.hisp.dhis.deletedobject.DeletedObjectStore;
@@ -49,6 +48,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramStageSectionService;
 import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 

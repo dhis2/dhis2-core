@@ -22,7 +22,7 @@
                         <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-support-audit</ignoredNonTestScopedDependency>
                         <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-support-commons</ignoredNonTestScopedDependency>
 <!--                        <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-field-filtering</ignoredNonTestScopedDependency>-->
-<!--                        <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-program-rule</ignoredNonTestScopedDependency>-->
+                        <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-program-rule</ignoredNonTestScopedDependency>
                         <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-core</ignoredNonTestScopedDependency>
 <!--                        <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-web-api</ignoredNonTestScopedDependency>-->
                         <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-acl</ignoredNonTestScopedDependency>
@@ -239,6 +239,11 @@
         <dependency>
             <groupId>org.hisp.dhis</groupId>
             <artifactId>dhis-service-dxf2</artifactId>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hisp.dhis</groupId>
+            <artifactId>dhis-service-program-rule</artifactId>
             <scope>compile</scope>
         </dependency>
         <dependency>

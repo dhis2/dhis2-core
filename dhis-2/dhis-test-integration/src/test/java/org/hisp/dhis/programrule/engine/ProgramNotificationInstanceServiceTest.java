@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 
-import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -51,6 +50,7 @@ import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
+import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.junit.jupiter.api.Test;
