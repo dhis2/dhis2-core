@@ -76,20 +76,13 @@ public abstract class TransactionalIntegrationTest extends BaseSpringTest
 
         if ( emptyDatabaseAfterTest() )
         {
-            // TODO(TECH-1209) use slf4j to log
-            // // We normally don't want all the delete/empty db statements in
-            // the
-            // // query logger
-            // Configurator.setLevel( "org.hisp.dhis.datasource.query",
-            // Level.WARN );
-
             try
             {
                 dbmsManager.emptyDatabase();
             }
             catch ( Exception e )
             {
-                // log.info( "Failed to empty db, reason:" + e.getMessage() );
+                log.info( "Failed to empty db, reason:" + e.getMessage() );
             }
         }
     }
