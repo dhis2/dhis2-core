@@ -28,9 +28,9 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.lang.String.format;
-import static org.hisp.dhis.webapi.WebClient.Body;
-import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
-import static org.hisp.dhis.webapi.utils.WebClientUtils.substitutePlaceholders;
+import static org.hisp.dhis.web.WebClient.Body;
+import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.web.WebClientUtils.substitutePlaceholders;
 
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.jsontree.JsonArray;
@@ -38,10 +38,10 @@ import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 
 abstract class AbstractDataValueControllerTest
     extends DhisControllerConvenienceTest

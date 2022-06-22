@@ -217,8 +217,7 @@ public enum ErrorCode
     E4054( "Property `{0}` already exists, was given `{1}`." ),
     E4056( "Property `{0}` can not be changed, was given `{1}`." ),
     E4055( "An user needs to have at least one user role associated with it." ),
-    E4050(
-        "One of the parameters DataElement, TrackedEntityAttribute or ProgramRuleVariable is required for program rule `{0}`" ),
+    E4050( "One of DataElement, TrackedEntityAttribute or ProgramRuleVariable is required for program rule `{0}`" ),
 
     /* ProgramRuleVariable validation */
     E4051( "A program rule variable with name `{0}` and program uid `{1}` already exists" ),
@@ -250,8 +249,7 @@ public enum ErrorCode
     E5003( "Property `{0}` with value `{1}` on object {2} already exists on object {3}." ),
     E5004( "Id `{0}` for type `{1}` exists on more than 1 object in the payload, removing all but the first found." ),
     E5005( "Properties `{0}` in objects `{1}` must be unique within the payload" ),
-    E5006(
-        "Non owner reference {0} on object {1} for association `{2}` is not allowed within payload for ERRORS_NOT_OWNER" ),
+    E5006( "Non-owner reference {0} on object {1} for association `{2}` disallowed for payload for ERRORS_NOT_OWNER" ),
 
     /* Metadata import */
     E6000( "Program `{0}` has more than one Program Instances" ),
@@ -268,6 +266,17 @@ public enum ErrorCode
 
     /* Users */
     E6200( "Feedback message recipients user group not defined" ),
+    E6201( "User account not found" ),
+    E6202( "User account does not have a valid email address" ),
+    E6203( "SMTP server/email sending is not available" ),
+    E6204( "Username is already taken" ),
+    E6205( "Restore token does not exist" ),
+    E6206( "Restore type does not exist" ),
+    E6207( "Restore token is not in valid format" ),
+    E6208( "Restore token is incorrect" ),
+    E6209( "Restore token is not set for user account" ),
+    E6210( "Restore expiration date is not set for user account" ),
+    E6211( "User account restore invitation has expired" ),
 
     /* Scheduling */
     E7000( "Job of same type already scheduled with cron expression: `{0}`" ),
@@ -396,8 +405,7 @@ public enum ErrorCode
     E7639( "Organisation unit: `{0}` is not valid for attribute option combo: `{1}`" ),
     E7640( "Current date is past expiry days for period: `{0}`  and data set: `{1}`" ),
     E7641( "Period: `{0}` is after latest open future period: `{2}` for data element: `{1}`" ),
-    E7642(
-        "Data is already approved for data set: `{3}` period: `{1}` organisation unit: `{0}` attribute option combo: `{2}`" ),
+    E7642( "Data already approved for data set: `{3}` period: `{1}` org unit: `{0}` attribute option combo: `{2}`" ),
     E7643( "Period: `{0}` is not open for this data set at this time: `{1}`" ),
     E7644( "Period: `{0}` does not conform to the open periods of associated data sets" ),
     E7645( "No data value for file resource exist for the given combination for data element: `{0}`" ),

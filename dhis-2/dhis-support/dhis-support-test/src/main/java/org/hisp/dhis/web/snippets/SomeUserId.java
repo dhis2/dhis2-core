@@ -25,49 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi;
+package org.hisp.dhis.web.snippets;
 
-import java.util.List;
-
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
+import org.hisp.dhis.web.WebClient;
+import org.hisp.dhis.web.WebSnippet;
+import org.hisp.dhis.webapi.json.domain.JsonUser;
 
 /**
- * Base class to create context free reusable snippets.
- *
- * The purpose of {@link WebSnippet}s is to allow definition of sequences of
- * {@link WebClient} usage that become reusable building blocks to create more
- * complex scenarios.
+ * A simple {@link WebSnippet} that returns a "random" users ID. This is most
+ * likely the admin user, as this is the only existing users in many test
+ * scenarios.
  *
  * @author Jan Bernitt
- *
- * @param <T> optional return type of the snippet to send information back to
- *        the caller, like IDs, or {@link org.hisp.dhis.webapi.json.JsonValue}s
  */
-public abstract class WebSnippet<T> implements WebClient
+public class SomeUserId extends WebSnippet<String>
 {
-
-    private final WebClient client;
-
-    public WebSnippet( WebClient client )
+    public SomeUserId( WebClient client )
     {
-        this.client = client;
+        super( client );
     }
 
     @Override
-    public final HttpResponse webRequest( HttpMethod method, String url, List<Header> headers, MediaType contentType,
-        String content )
+    public String run()
     {
-        return client.webRequest( method, url, headers, contentType, content );
+        return GET( "/users/" ).content().getList( "users", JsonUser.class ).get( 0 ).getId();
     }
-
-    /**
-     * Runs the snippet.
-     *
-     * @return a optional result value, like an ID or a
-     *         {@link org.hisp.dhis.webapi.json.JsonValue} that can be used by
-     *         the caller to continue working with data created or used in this
-     *         snippet.
-     */
-    protected abstract T run();
 }

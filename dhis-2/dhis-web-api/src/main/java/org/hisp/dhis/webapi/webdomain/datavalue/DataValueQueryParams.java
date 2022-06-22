@@ -51,15 +51,15 @@ public class DataValueQueryParams
     @NotBlank
     private String de;
 
-    private String co;
-
-    private String cc;
-
-    private String cp;
-
     @NotBlank
     private String pe;
 
     @NotBlank
     private String ou;
+
+    private String co;
+
+    private String cc;
+
+    private String cp;
 }

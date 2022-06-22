@@ -34,9 +34,9 @@ import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
 import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.util.DateUtils.getMediumDate;
+import static org.hisp.dhis.utils.Assertions.assertThrowsErrorCode;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Arrays;
 import java.util.Date;
@@ -711,7 +711,8 @@ class DataQueryServiceTest extends DhisSpringTest
         dimensionParams.add( "dx" );
         dimensionParams.add( "pe:2012,2012S1,2012S2" );
         DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder().dimension( dimensionParams ).build();
-        assertThrows( IllegalQueryException.class, () -> dataQueryService.getFromRequest( dataQueryRequest ) );
+        assertThrowsErrorCode( IllegalQueryException.class, ErrorCode.E7124,
+            () -> dataQueryService.getFromRequest( dataQueryRequest ) );
     }
 
     @Test
@@ -721,7 +722,8 @@ class DataQueryServiceTest extends DhisSpringTest
         dimensionParams.add( "dx:" + BASE_UID + "A;" + BASE_UID + "B;" + BASE_UID + "C;" + BASE_UID + "D" );
         dimensionParams.add( "pe" );
         DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder().dimension( dimensionParams ).build();
-        assertThrows( IllegalQueryException.class, () -> dataQueryService.getFromRequest( dataQueryRequest ) );
+        assertThrowsErrorCode( IllegalQueryException.class, ErrorCode.E7124,
+            () -> dataQueryService.getFromRequest( dataQueryRequest ) );
     }
 
     @Test
@@ -731,7 +733,8 @@ class DataQueryServiceTest extends DhisSpringTest
         dimensionParams.add( "dx:" + BASE_UID + "A;" + BASE_UID + "B;" + BASE_UID + "C;" + BASE_UID + "D" );
         dimensionParams.add( "ou" );
         DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder().dimension( dimensionParams ).build();
-        assertThrows( IllegalQueryException.class, () -> dataQueryService.getFromRequest( dataQueryRequest ) );
+        assertThrowsErrorCode( IllegalQueryException.class, ErrorCode.E7124,
+            () -> dataQueryService.getFromRequest( dataQueryRequest ) );
     }
 
     @Test
@@ -741,7 +744,8 @@ class DataQueryServiceTest extends DhisSpringTest
         dimensionParams.add( "dx:" + BASE_UID + "A;" + BASE_UID + "B;" + BASE_UID + "C;" + BASE_UID + "D" );
         dimensionParams.add( "yebo:2012,2012S1,2012S2" );
         DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder().dimension( dimensionParams ).build();
-        assertThrows( IllegalQueryException.class, () -> dataQueryService.getFromRequest( dataQueryRequest ) );
+        assertThrowsErrorCode( IllegalQueryException.class, ErrorCode.E7125,
+            () -> dataQueryService.getFromRequest( dataQueryRequest ) );
     }
 
     @Test
@@ -751,9 +755,8 @@ class DataQueryServiceTest extends DhisSpringTest
         dimensionParams.add( "dx:" + BASE_UID + "A;" + BASE_UID + "B;" + BASE_UID + "C;" + BASE_UID + "D" );
         dimensionParams.add( "ou:aTr6yTgX7t5;gBgf2G2j4GR" );
         DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder().dimension( dimensionParams ).build();
-        assertIllegalQueryEx(
-            assertThrows( IllegalQueryException.class, () -> dataQueryService.getFromRequest( dataQueryRequest ) ),
-            ErrorCode.E7124 );
+        assertThrowsErrorCode( IllegalQueryException.class, ErrorCode.E7124,
+            () -> dataQueryService.getFromRequest( dataQueryRequest ) );
     }
 
     @Test

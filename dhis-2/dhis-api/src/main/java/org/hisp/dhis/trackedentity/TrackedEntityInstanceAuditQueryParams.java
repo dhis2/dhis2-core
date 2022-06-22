@@ -27,27 +27,31 @@
  */
 package org.hisp.dhis.trackedentity;
 
+import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
+
+import lombok.Data;
+import lombok.experimental.Accessors;
 
 import org.hisp.dhis.common.AuditType;
 
 /**
  * @author Abyot Asalefew Gizaw abyota@gmail.com
- *
  */
+@Data
+@Accessors( chain = true )
 public class TrackedEntityInstanceAuditQueryParams
 {
     /**
-     * Tracked entity instances to fetch audits for
+     * Tracked entity instances.
      */
-    private Set<String> trackedEntityInstances = new HashSet<>();
+    private List<String> trackedEntityInstances = new ArrayList<>();
 
     /**
-     * Users to fetch audits for
+     * Users.
      */
-    private Set<String> users = new HashSet<>();
+    private List<String> users = new ArrayList<>();
 
     /**
      * AuditType to fetch for
@@ -80,14 +84,6 @@ public class TrackedEntityInstanceAuditQueryParams
     private boolean skipPaging;
 
     // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
-
-    public TrackedEntityInstanceAuditQueryParams()
-    {
-    }
-
-    // -------------------------------------------------------------------------
     // Logic
     // -------------------------------------------------------------------------
 
@@ -114,89 +110,5 @@ public class TrackedEntityInstanceAuditQueryParams
     public boolean hasEndDate()
     {
         return endDate != null;
-    }
-
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
-
-    public Set<String> getTrackedEntityInstances()
-    {
-        return trackedEntityInstances;
-    }
-
-    public void setTrackedEntityInstances( Set<String> trackedEntityInstances )
-    {
-        this.trackedEntityInstances = trackedEntityInstances;
-    }
-
-    public Set<String> getUsers()
-    {
-        return users;
-    }
-
-    public void setUsers( Set<String> users )
-    {
-        this.users = users;
-    }
-
-    public AuditType getAuditType()
-    {
-        return auditType;
-    }
-
-    public void setAuditType( AuditType auditType )
-    {
-        this.auditType = auditType;
-    }
-
-    public Date getStartDate()
-    {
-        return startDate;
-    }
-
-    public void setStartDate( Date startDate )
-    {
-        this.startDate = startDate;
-    }
-
-    public Date getEndDate()
-    {
-        return endDate;
-    }
-
-    public void setEndDate( Date endDate )
-    {
-        this.endDate = endDate;
-    }
-
-    public int getFirst()
-    {
-        return first;
-    }
-
-    public void setFirst( int first )
-    {
-        this.first = first;
-    }
-
-    public int getMax()
-    {
-        return max;
-    }
-
-    public void setMax( int max )
-    {
-        this.max = max;
-    }
-
-    public boolean isSkipPaging()
-    {
-        return skipPaging;
-    }
-
-    public void setSkipPaging( boolean skipPaging )
-    {
-        this.skipPaging = skipPaging;
     }
 }

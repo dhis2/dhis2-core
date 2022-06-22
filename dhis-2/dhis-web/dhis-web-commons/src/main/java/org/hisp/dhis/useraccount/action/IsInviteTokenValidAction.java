@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.useraccount.action;
 
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.security.RestoreOptions;
 import org.hisp.dhis.security.RestoreType;
 import org.hisp.dhis.security.SecurityService;
@@ -112,9 +113,9 @@ public class IsInviteTokenValidAction
             return ERROR;
         }
 
-        String errorMessage = securityService.verifyRestoreToken( user, restoreToken, RestoreType.INVITE );
+        ErrorCode errorCode = securityService.validateRestoreToken( user, restoreToken, RestoreType.INVITE );
 
-        if ( errorMessage != null )
+        if ( errorCode != null )
         {
             return ERROR;
         }
