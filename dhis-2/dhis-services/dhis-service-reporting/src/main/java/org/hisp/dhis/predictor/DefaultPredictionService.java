@@ -137,8 +137,8 @@ public class DefaultPredictionService
     @Override
     public PredictionSummary predictJob( PredictorJobParameters params, JobProgress progress )
     {
-        Date startDate = DateUtils.getDateAfterAddition( new Date(), params.getRelativeStart() );
-        Date endDate = DateUtils.getDateAfterAddition( new Date(), params.getRelativeEnd() );
+        Date startDate = DateUtils.addDays( new Date(), params.getRelativeStart() );
+        Date endDate = DateUtils.addDays( new Date(), params.getRelativeEnd() );
 
         return predictTask( startDate, endDate, params.getPredictors(), params.getPredictorGroups(), progress );
     }
