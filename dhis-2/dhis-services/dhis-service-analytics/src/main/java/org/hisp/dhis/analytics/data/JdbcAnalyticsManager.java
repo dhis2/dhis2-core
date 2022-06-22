@@ -589,7 +589,7 @@ public class JdbcAnalyticsManager
     {
         Period period = params.getLatestPeriod();
 
-        List<String> cols = Lists.newArrayList( "year", "pestartdate", "peenddate", "level", "daysxvalue", "daysno",
+        List<String> cols = Lists.newArrayList( "year", "pestartdate", "peenddate", "oulevel", "daysxvalue", "daysno",
             "value", "textvalue" );
 
         cols = cols.stream().map( AnalyticsSqlUtils::quote ).collect( Collectors.toList() );
