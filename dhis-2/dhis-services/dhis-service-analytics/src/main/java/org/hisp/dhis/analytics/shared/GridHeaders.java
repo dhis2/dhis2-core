@@ -44,6 +44,7 @@ import org.hisp.dhis.common.GridHeader;
  */
 public class GridHeaders
 {
+
     private GridHeaders()
     {
     }
