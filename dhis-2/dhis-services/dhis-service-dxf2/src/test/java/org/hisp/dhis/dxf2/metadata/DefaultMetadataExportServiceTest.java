@@ -197,7 +197,7 @@ public class DefaultMetadataExportServiceTest
     }
 
     @Test
-    void testGetMetadataWithDependenciesForDashboardWithMapView()
+    public void testGetMetadataWithDependenciesForDashboardWithMapView()
     {
         MapView mapView = new MapView();
         mapView.setName( "mapViewA" );
