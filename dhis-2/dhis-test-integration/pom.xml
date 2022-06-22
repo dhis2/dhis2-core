@@ -19,6 +19,7 @@
                     <ignoredNonTestScopedDependencies>
                         <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-setting</ignoredNonTestScopedDependency>
                         <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-dxf2</ignoredNonTestScopedDependency>
+                        <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-support-audit</ignoredNonTestScopedDependency>
                         <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-support-commons</ignoredNonTestScopedDependency>
 <!--                        <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-field-filtering</ignoredNonTestScopedDependency>-->
 <!--                        <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-program-rule</ignoredNonTestScopedDependency>-->
@@ -258,6 +259,11 @@
         <dependency>
             <groupId>org.hisp.dhis</groupId>
             <artifactId>dhis-service-validation</artifactId>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hisp.dhis</groupId>
+            <artifactId>dhis-support-audit</artifactId>
             <scope>compile</scope>
         </dependency>
         <dependency>

@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.audit;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -35,10 +37,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.stream.IntStream;
 
-import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.util.Timer;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
