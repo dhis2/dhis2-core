@@ -78,9 +78,14 @@ public enum ValueType
     GEOJSON( GeoJSON.class, false ),
     MULTI_TEXT( String.class, true );
 
+    /**
+     * The character used to separate values in a multi-text value.
+     */
+    public static final String MULTI_TEXT_SEPARATOR = ",";
+
     public static List<String> splitMultiText( String value )
     {
-        return value == null ? List.of() : List.of( value.split( "," ) );
+        return value == null ? List.of() : List.of( value.split( MULTI_TEXT_SEPARATOR ) );
     }
 
     private static final Set<ValueType> INTEGER_TYPES = Set.of(
