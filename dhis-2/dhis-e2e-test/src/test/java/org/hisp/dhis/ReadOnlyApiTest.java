@@ -32,6 +32,8 @@ import org.hisp.dhis.helpers.extensions.ConfigurationExtension;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import io.restassured.http.ContentType;
+
 /**
  * This read-only class should be only used for querying tests. It will not
  * bootstrap any data. It should point to a DHIS2 server that is already ip and
@@ -44,6 +46,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 public abstract class ReadOnlyApiTest
 {
 
+    protected final String JSON = ContentType.JSON.toString();
+    
     protected void login()
     {
         new LoginActions().loginAsAdmin();
