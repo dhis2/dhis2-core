@@ -41,6 +41,7 @@ import org.springframework.stereotype.Component;
 public class CommonQueryRequestProcessor implements Processor<CommonQueryRequest>
 {
 
+    @Override
     public CommonQueryRequest process( final CommonQueryRequest commonQueryRequest )
     {
         // here we should refactor/preprocess dimensions and filters for 2

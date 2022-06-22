@@ -47,6 +47,7 @@ public class TeiQueryRequestValidator implements Validator<QueryRequest<TeiQuery
 
     private final CommonQueryRequestValidator commonQueryRequestValidator;
 
+    @Override
     public void validate( final QueryRequest<TeiQueryRequest> queryRequest )
     {
         commonQueryRequestValidator.validate( queryRequest.getCommonQueryRequest() );

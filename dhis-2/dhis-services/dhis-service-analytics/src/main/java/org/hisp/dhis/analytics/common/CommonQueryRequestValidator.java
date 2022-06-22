@@ -38,6 +38,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class CommonQueryRequestValidator implements Validator<CommonQueryRequest>
 {
+
+    @Override
     public void validate( final CommonQueryRequest commonQueryRequest )
     {
         // TODO: validate common request params

@@ -41,12 +41,14 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class TeiQueryRequestProcessor implements Processor<TeiQueryRequest>
 {
+
     /**
      * A hook to transform a QueryRequest before mapping it into Params
      *
      * @param queryRequest
      * @return a queryRequestHolder where inner components might have changed
      */
+    @Override
     public TeiQueryRequest process( final TeiQueryRequest queryRequest )
     {
         return queryRequest;

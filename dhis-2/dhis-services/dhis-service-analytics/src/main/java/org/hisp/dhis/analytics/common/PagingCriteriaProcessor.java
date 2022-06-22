@@ -50,6 +50,7 @@ public class PagingCriteriaProcessor implements Processor<AnalyticsPagingCriteri
     // criteria/request/params to be
     // immutable, but PagingCriteria is not
     // returning it for now, should be converted to use builders
+    @Override
     public AnalyticsPagingCriteria process( final AnalyticsPagingCriteria pagingCriteria )
     {
         int analyticsMaxPageSize = systemSettingManager.getIntSetting( SettingKey.ANALYTICS_MAX_LIMIT );
