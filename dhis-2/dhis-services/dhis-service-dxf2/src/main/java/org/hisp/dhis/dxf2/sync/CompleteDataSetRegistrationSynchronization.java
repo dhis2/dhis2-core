@@ -129,7 +129,7 @@ public class CompleteDataSetRegistrationSynchronization extends DataSynchronizat
 
         if ( objectsToSynchronize != 0 )
         {
-            instance = SyncUtils.getRemoteInstanceWithSyncImportStrategy( systemSettingManager,
+            instance = SyncUtils.getRemoteInstance( systemSettingManager,
                 SyncEndpoint.COMPLETE_DATA_SET_REGISTRATIONS );
 
             log.info( objectsToSynchronize + " completed data set registrations to synchronize were found." );

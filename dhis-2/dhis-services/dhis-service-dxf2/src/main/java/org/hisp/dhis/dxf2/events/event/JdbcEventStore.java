@@ -660,7 +660,7 @@ public class JdbcEventStore implements EventStore
 
                 ProgramType programType = ProgramType.fromValue( rowSet.getString( "p_type" ) );
 
-                if ( programType == ProgramType.WITHOUT_REGISTRATION )
+                if ( programType == ProgramType.WITH_REGISTRATION )
                 {
                     eventRow.setEnrollment( rowSet.getString( "pi_uid" ) );
                     eventRow.setFollowup( rowSet.getBoolean( "pi_followup" ) );

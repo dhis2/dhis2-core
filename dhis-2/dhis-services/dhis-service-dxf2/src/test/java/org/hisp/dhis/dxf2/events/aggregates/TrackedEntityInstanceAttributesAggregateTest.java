@@ -62,9 +62,9 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccess;
-import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -98,7 +98,12 @@ public class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
     @Autowired
     private TrackerOwnershipManager trackerOwnershipManager;
 
+    @Autowired
+    private CurrentUserService currentUserService;
+
     private Program programB;
+
+    private User user;
 
     private final static int A = 65;
 
@@ -111,25 +116,25 @@ public class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
     @Override
     protected void mockCurrentUserService()
     {
-        User user = createUser( "testUser" );
+        user = createUser( "testUser" );
 
         user.addOrganisationUnit( organisationUnitA );
         user.getTeiSearchOrganisationUnits().add( organisationUnitA );
         user.getTeiSearchOrganisationUnits().add( organisationUnitB );
-        // makeUserSuper( user );
-        manager.update( user );
-        currentUserService = new MockCurrentUserService( user );
+
+        CurrentUserService currentUserService = new MockCurrentUserService( user );
 
         ReflectionTestUtils.setField( trackedEntityInstanceAggregate, "currentUserService", currentUserService );
         ReflectionTestUtils.setField( trackedEntityInstanceService, "currentUserService", currentUserService );
         ReflectionTestUtils.setField( teiService, "currentUserService", currentUserService );
-
     }
 
-    @Before
-    public void setUp()
+    @Override
+    protected void tearDownTest()
     {
         ReflectionTestUtils.setField( trackedEntityInstanceAggregate, "currentUserService", currentUserService );
+        ReflectionTestUtils.setField( trackedEntityInstanceService, "currentUserService", currentUserService );
+        ReflectionTestUtils.setField( teiService, "currentUserService", currentUserService );
     }
 
     @Test
@@ -279,7 +284,8 @@ public class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
             programB.setCode( RandomStringUtils.randomAlphanumeric( 10 ) );
 
             Set<UserAccess> programBUserAccess = new HashSet<>();
-            programBUserAccess.add( new UserAccess( currentUserService.getCurrentUser(), AccessStringHelper.FULL ) );
+            programBUserAccess
+                .add( new UserAccess( user, AccessStringHelper.FULL ) );
             programB.setUserAccesses( programBUserAccess );
             programB.setProgramStages(
                 Stream.of( programStageA, programStageB ).collect( Collectors.toCollection( HashSet::new ) ) );

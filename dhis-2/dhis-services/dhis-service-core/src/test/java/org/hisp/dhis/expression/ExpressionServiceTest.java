@@ -1314,9 +1314,6 @@ public class ExpressionServiceTest
         assertNull( error( "true && 2" ) );
         assertNull( error( "!5" ) );
         assertNull( error( "true / ( #{dataElemenA} - #{dataElemenB} )" ) );
-        assertNull( error( "#{dataElemenF}" ) );
-        assertNull( error( "#{dataElemenG}" ) );
-        assertNull( error( "#{dataElemenH}" ) );
         assertNull( error( "if(A, 1, 0)" ) );
     }
 
