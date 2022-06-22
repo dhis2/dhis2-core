@@ -43,6 +43,7 @@ import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserCredentials;
@@ -67,6 +68,9 @@ public class TrackedEntityInstanceAttributesAggregateAclTest extends TrackerTest
     @Autowired
     private TrackedEntityInstanceAggregate trackedEntityInstanceAggregate;
 
+    @Autowired
+    private CurrentUserService currentUserService;
+
     @Override
     protected void mockCurrentUserService()
     {
@@ -74,8 +78,16 @@ public class TrackedEntityInstanceAttributesAggregateAclTest extends TrackerTest
 
         setUserAuthorityToNonSuper( user );
 
-        currentUserService = new MockCurrentUserService( user );
+        CurrentUserService currentUserService = new MockCurrentUserService( user );
 
+        ReflectionTestUtils.setField( trackedEntityInstanceAggregate, "currentUserService", currentUserService );
+        ReflectionTestUtils.setField( trackedEntityInstanceService, "currentUserService", currentUserService );
+        ReflectionTestUtils.setField( teiService, "currentUserService", currentUserService );
+    }
+
+    @Override
+    protected void tearDownTest()
+    {
         ReflectionTestUtils.setField( trackedEntityInstanceAggregate, "currentUserService", currentUserService );
         ReflectionTestUtils.setField( trackedEntityInstanceService, "currentUserService", currentUserService );
         ReflectionTestUtils.setField( teiService, "currentUserService", currentUserService );

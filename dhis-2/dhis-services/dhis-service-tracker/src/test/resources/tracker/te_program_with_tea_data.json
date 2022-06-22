@@ -78,6 +78,15 @@
           "valueType": "INTEGER_POSITIVE",
           "attribute": "p5TPww5Uhrd",
           "value": "321"
+        },
+        {
+          "lastUpdated": "2020-02-20T12:09:21.848",
+          "attribute": "TsfP85GKsUZ",
+          "created": "2020-02-20T12:09:21.848",
+          "displayName": "Attribute_Percentage",
+          "storedBy": "admin",
+          "valueType": "PERCENTAGE",
+          "value": "80"
         }
       ],
       "events": []

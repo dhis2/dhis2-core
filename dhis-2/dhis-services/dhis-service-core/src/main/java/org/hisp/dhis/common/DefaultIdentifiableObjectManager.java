@@ -38,7 +38,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -56,6 +55,9 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
+import org.hisp.dhis.commons.collection.CollectionUtils;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
@@ -92,7 +94,7 @@ public class DefaultIdentifiableObjectManager
     /**
      * Cache for default category objects. Disabled during test phase.
      */
-    private final Cache<IdentifiableObject> defaultObjectCache;
+    private final Cache<Long> defaultObjectCache;
 
     private final Set<IdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStores;
 
@@ -605,6 +607,25 @@ public class DefaultIdentifiableObjectManager
         }
 
         return list;
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public <T extends IdentifiableObject> List<T> getAndValidateByUid( Class<T> type, Collection<String> uids )
+        throws IllegalQueryException
+    {
+        List<T> objects = getByUid( type, uids );
+
+        List<String> identifiers = IdentifiableObjectUtils.getUids( objects );
+        List<String> difference = CollectionUtils.difference( uids, identifiers );
+
+        if ( !difference.isEmpty() )
+        {
+            throw new IllegalQueryException( new ErrorMessage(
+                ErrorCode.E1112, type.getSimpleName(), difference ) );
+        }
+
+        return objects;
     }
 
     @Override
@@ -1183,21 +1204,26 @@ public class DefaultIdentifiableObjectManager
     @Transactional( readOnly = true )
     public Map<Class<? extends IdentifiableObject>, IdentifiableObject> getDefaults()
     {
-        Optional<IdentifiableObject> categoryObjects = defaultObjectCache.get( Category.class.getName(),
-            key -> HibernateProxyUtils.unproxy( getByName( Category.class, DEFAULT ) ) );
-        Optional<IdentifiableObject> categoryComboObjects = defaultObjectCache.get( CategoryCombo.class.getName(),
-            key -> HibernateProxyUtils.unproxy( getByName( CategoryCombo.class, DEFAULT ) ) );
-        Optional<IdentifiableObject> categoryOptionObjects = defaultObjectCache.get( CategoryOption.class.getName(),
-            key -> HibernateProxyUtils.unproxy( getByName( CategoryOption.class, DEFAULT ) ) );
-        Optional<IdentifiableObject> categoryOptionCombo = defaultObjectCache.get(
+        Long catId = defaultObjectCache.get( Category.class.getName(),
+            key -> getByName( Category.class, DEFAULT ).getId() )
+            .orElseThrow( () -> new NullPointerException( "Couldn't find default Category" ) );
+        Long cateComboId = defaultObjectCache.get( CategoryCombo.class.getName(),
+            key -> getByName( CategoryCombo.class, DEFAULT ).getId() )
+            .orElseThrow( () -> new NullPointerException( "Couldn't find default CategoryCombo" ) );
+        Long catOptionId = defaultObjectCache.get( CategoryOption.class.getName(),
+            key -> getByName( CategoryOption.class, DEFAULT ).getId() )
+            .orElseThrow( () -> new NullPointerException( "Couldn't find default CategoryOption" ) );
+        Long catOptionComboId = defaultObjectCache.get(
             CategoryOptionCombo.class.getName(),
-            key -> HibernateProxyUtils.unproxy( getByName( CategoryOptionCombo.class, DEFAULT ) ) );
+            key -> getByName( CategoryOptionCombo.class, DEFAULT ).getId() )
+            .orElseThrow( () -> new NullPointerException( "Couldn't find default CategoryOptionCombo" ) );
 
         return new ImmutableMap.Builder<Class<? extends IdentifiableObject>, IdentifiableObject>()
-            .put( Category.class, Objects.requireNonNull( categoryObjects.orElse( null ) ) )
-            .put( CategoryCombo.class, Objects.requireNonNull( categoryComboObjects.orElse( null ) ) )
-            .put( CategoryOption.class, Objects.requireNonNull( categoryOptionObjects.orElse( null ) ) )
-            .put( CategoryOptionCombo.class, Objects.requireNonNull( categoryOptionCombo.orElse( null ) ) )
+            .put( Category.class, Objects.requireNonNull( get( Category.class, catId ) ) )
+            .put( CategoryCombo.class, Objects.requireNonNull( get( CategoryCombo.class, cateComboId ) ) )
+            .put( CategoryOption.class, Objects.requireNonNull( get( CategoryOption.class, catOptionId ) ) )
+            .put( CategoryOptionCombo.class,
+                Objects.requireNonNull( get( CategoryOptionCombo.class, catOptionComboId ) ) )
             .build();
     }
 

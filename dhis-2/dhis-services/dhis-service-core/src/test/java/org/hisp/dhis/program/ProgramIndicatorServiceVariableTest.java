@@ -29,6 +29,7 @@ package org.hisp.dhis.program;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.startsWith;
+import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.junit.Assert.*;
 
 import java.util.Calendar;
@@ -99,14 +100,14 @@ public class ProgramIndicatorServiceVariableTest
     {
         piA.setExpression( expression );
 
-        return programIndicatorService.getAnalyticsSql( expression, piA, startDate, endDate );
+        return programIndicatorService.getAnalyticsSql( expression, NUMERIC, piA, startDate, endDate );
     }
 
     private String getSqlEnrollment( String expression )
     {
         piB.setExpression( expression );
 
-        return programIndicatorService.getAnalyticsSql( expression, piB, startDate, endDate );
+        return programIndicatorService.getAnalyticsSql( expression, NUMERIC, piB, startDate, endDate );
     }
 
     // -------------------------------------------------------------------------
