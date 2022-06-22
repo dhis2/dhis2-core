@@ -37,6 +37,8 @@ import static org.hisp.dhis.tracker.Assertions.assertNoImportErrors;
 import static org.hisp.dhis.tracker.TrackerImportStrategy.CREATE_AND_UPDATE;
 import static org.hisp.dhis.tracker.TrackerImportStrategy.DELETE;
 import static org.hisp.dhis.tracker.TrackerImportStrategy.UPDATE;
+import static org.hisp.dhis.tracker.validation.Users.USER_2;
+import static org.hisp.dhis.tracker.validation.Users.USER_6;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -161,7 +163,7 @@ class EventImportValidationTest extends TrackerTest
     {
         TrackerImportParams trackerImportParams = fromJson(
             "tracker/validations/events-cat-write-access.json" );
-        User user = userService.getUser( Users.USER_6 );
+        User user = userService.getUser( USER_6 );
         trackerImportParams.setUser( user );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
         assertEquals( 4, trackerImportReport.getValidationReport().getErrors().size() );
@@ -181,7 +183,7 @@ class EventImportValidationTest extends TrackerTest
     {
         TrackerImportParams trackerBundleParams = fromJson(
             "tracker/validations/events-with-registration.json" );
-        User user = userService.getUser( Users.USER_2 );
+        User user = userService.getUser( USER_2 );
         trackerBundleParams.setUser( user );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
         assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );

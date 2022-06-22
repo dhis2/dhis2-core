@@ -34,6 +34,11 @@ import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.core.Every.everyItem;
 import static org.hamcrest.core.IsCollectionContaining.hasItem;
 import static org.hisp.dhis.tracker.Assertions.assertNoImportErrors;
+import static org.hisp.dhis.tracker.validation.Users.USER_1;
+import static org.hisp.dhis.tracker.validation.Users.USER_3;
+import static org.hisp.dhis.tracker.validation.Users.USER_4;
+import static org.hisp.dhis.tracker.validation.Users.USER_7;
+import static org.hisp.dhis.tracker.validation.Users.USER_8;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
@@ -115,7 +120,7 @@ class TrackedEntityImportValidationTest extends TrackerTest
         throws IOException
     {
         TrackerImportParams params = fromJson( "tracker/validations/te-data_with_different_ou.json" );
-        User user = userService.getUser( Users.USER_7 );
+        User user = userService.getUser( USER_7 );
         params.setUser( user );
         params.setAtomicMode( AtomicMode.OBJECT );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
@@ -137,12 +142,12 @@ class TrackedEntityImportValidationTest extends TrackerTest
         // For some reason teiSearchOrgunits is not created properly from
         // metadata
         // Redoing the update here for the time being.
-        User user = userService.getUser( Users.USER_8 );
+        User user = userService.getUser( USER_8 );
         user.setTeiSearchOrganisationUnits( new HashSet<>( user.getDataViewOrganisationUnits() ) );
         userService.updateUser( user );
         dbmsManager.clearSession();
         params = fromJson( "tracker/validations/te-data_with_different_ou.json" );
-        user = userService.getUser( Users.USER_8 );
+        user = userService.getUser( USER_8 );
         params.setUser( user );
         params.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
         params.setAtomicMode( AtomicMode.OBJECT );
@@ -161,7 +166,7 @@ class TrackedEntityImportValidationTest extends TrackerTest
         assertEquals( 3, trackerImportReport.getStats().getCreated() );
         dbmsManager.clearSession();
         params = fromJson( "tracker/validations/te-data_with_different_ou.json" );
-        User user = userService.getUser( Users.USER_7 );
+        User user = userService.getUser( USER_7 );
         params.setUser( user );
         params.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
         params.setAtomicMode( AtomicMode.OBJECT );
@@ -178,7 +183,7 @@ class TrackedEntityImportValidationTest extends TrackerTest
         throws IOException
     {
         TrackerImportParams params = fromJson( "tracker/validations/te-data_ok.json" );
-        User user = userService.getUser( Users.USER_1 );
+        User user = userService.getUser( USER_1 );
         params.setUser( user );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
         assertEquals( 13, trackerImportReport.getValidationReport().getErrors().size() );
@@ -191,7 +196,7 @@ class TrackedEntityImportValidationTest extends TrackerTest
         throws IOException
     {
         TrackerImportParams params = fromJson( "tracker/validations/te-data_ok.json" );
-        User user = userService.getUser( Users.USER_3 );
+        User user = userService.getUser( USER_3 );
         params.setUserId( user.getUid() );
         params.setUser( user );
         user.setPassword( "user4password" );
@@ -231,7 +236,7 @@ class TrackedEntityImportValidationTest extends TrackerTest
         manager.flush();
         manager.clear();
         params = fromJson( "tracker/validations/enrollments_te_te-data.json" );
-        User user2 = userService.getUser( Users.USER_4 );
+        User user2 = userService.getUser( USER_4 );
         params.setUser( user2 );
         params.setImportStrategy( TrackerImportStrategy.DELETE );
         trackerImportReport = trackerImportService.importTracker( params );

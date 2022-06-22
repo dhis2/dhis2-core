@@ -32,6 +32,9 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hisp.dhis.tracker.Assertions.assertNoImportErrors;
+import static org.hisp.dhis.tracker.validation.Users.USER_3;
+import static org.hisp.dhis.tracker.validation.Users.USER_4;
+import static org.hisp.dhis.tracker.validation.Users.USER_5;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
@@ -210,7 +213,7 @@ class EventSecurityImportValidationTest extends TrackerTest
         trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner( maleA.getUid(), programA.getUid(),
             organisationUnitA.getUid() );
         manager.update( programA );
-        User user = userService.getUser( Users.USER_5 );
+        User user = userService.getUser( USER_5 );
         OrganisationUnit qfUVllTs6cS = organisationUnitService.getOrganisationUnit( "QfUVllTs6cS" );
         user.addOrganisationUnit( qfUVllTs6cS );
         user.addOrganisationUnit( organisationUnitA );
@@ -230,7 +233,7 @@ class EventSecurityImportValidationTest extends TrackerTest
         setupMetadata();
         TrackerImportParams trackerBundleParams = fromJson(
             "tracker/validations/events_error-no-programStage-access.json" );
-        User user = userService.getUser( Users.USER_3 );
+        User user = userService.getUser( USER_3 );
         trackerBundleParams.setUser( user );
         user.addOrganisationUnit( organisationUnitA );
         manager.update( user );
@@ -263,7 +266,7 @@ class EventSecurityImportValidationTest extends TrackerTest
         manager.update( programStageA );
         maleA.setPublicAccess( AccessStringHelper.FULL );
         manager.update( maleA );
-        User user = userService.getUser( Users.USER_4 );
+        User user = userService.getUser( USER_4 );
         user.addOrganisationUnit( organisationUnitA );
         manager.update( user );
         manager.flush();

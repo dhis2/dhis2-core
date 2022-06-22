@@ -32,6 +32,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hisp.dhis.tracker.Assertions.assertNoImportErrors;
+import static org.hisp.dhis.tracker.validation.Users.USER_2;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
@@ -178,7 +179,7 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest
         throws IOException
     {
         TrackerImportParams params = fromJson( "tracker/validations/enrollments_te_enrollments-data.json" );
-        User user = userService.getUser( Users.USER_2 );
+        User user = userService.getUser( USER_2 );
         injectSecurityContext( user );
         params.setUser( user );
         params.setImportStrategy( TrackerImportStrategy.CREATE );
