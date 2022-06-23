@@ -31,6 +31,7 @@ import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.helpers.extensions.AnalyticsSetupExtension;
 import org.hisp.dhis.helpers.extensions.ConfigurationExtension;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -41,11 +42,15 @@ import io.restassured.http.ContentType;
  * assumes that there is a DHIS2 instance up and running, so the analytics table
  * generation can take place on the respective instance.
  * 
+ * Note that this class is @tagged as "analytics-api". Any test that extends
+ * this class will automatically execute as part of this group.
+ * 
  * @author maikel arabori
  */
 @TestInstance( TestInstance.Lifecycle.PER_CLASS )
 @ExtendWith( ConfigurationExtension.class )
 @ExtendWith( AnalyticsSetupExtension.class )
+@Tag( "analytics-api" )
 public abstract class AnalyticsApiTest
 {
 

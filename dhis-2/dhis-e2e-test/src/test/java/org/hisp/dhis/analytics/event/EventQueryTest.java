@@ -20,7 +20,6 @@ import org.junit.jupiter.api.Test;
  * 
  * @author maikel arabori
  */
-@Tag( "analytics-api" )
 public class EventQueryTest extends AnalyticsApiTest
 {
 
