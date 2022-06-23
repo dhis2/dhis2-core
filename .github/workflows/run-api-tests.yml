@@ -59,6 +59,7 @@ jobs:
       - name: Run tests
         run: |
           cd dhis-2/dhis-e2e-test
+          IMAGE_NAME=$CORE_IMAGE_NAME docker-compose rm --force -v
           IMAGE_NAME=$CORE_IMAGE_NAME docker-compose up --remove-orphans -d
           IMAGE_NAME=$TEST_IMAGE_NAME docker-compose -f docker-compose.e2e.yml up --exit-code-from e2e-test
 
