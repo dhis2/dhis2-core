@@ -50,7 +50,7 @@ import org.springframework.stereotype.Component;
  */
 
 @Component
-public class EventReferralCheckValidationHook extends AbstractTrackerDtoValidationHook
+public class EventReferralValidationHook extends AbstractTrackerDtoValidationHook
 {
     @Override
     public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )

@@ -82,6 +82,7 @@ class ProgramStageServiceTest extends DhisSpringTest
         long idB = programStageService.saveProgramStage( stageB );
 
         assertNotNull( programStageService.getProgramStage( idA ) );
+
         assertNotNull( programStageService.getProgramStage( idB ) );
 
         ProgramStage persistedProgramStage = programStageService.getProgramStage( idA );
