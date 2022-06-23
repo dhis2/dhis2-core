@@ -51,7 +51,6 @@
                         <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-cache-invalidation</ignoredUnusedDeclaredDependency>
                         <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-db-migration</ignoredUnusedDeclaredDependency>
                         <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-expression-parser</ignoredUnusedDeclaredDependency>
-                        <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-web-api</ignoredUnusedDeclaredDependency>
                     </ignoredUnusedDeclaredDependencies>
                 </configuration>
             </plugin>
@@ -189,11 +188,6 @@
         <dependency>
             <groupId>org.hisp.dhis</groupId>
             <artifactId>dhis-support-system</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.hisp.dhis</groupId>
-            <artifactId>dhis-web-api</artifactId>
             <scope>compile</scope>
         </dependency>
 
