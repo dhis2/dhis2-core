@@ -41,10 +41,10 @@ import io.restassured.http.ContentType;
  * This is the base class responsible for enabling analytics e2e tests. It
  * assumes that there is a DHIS2 instance up and running, so the analytics table
  * generation can take place on the respective instance.
- * 
+ *
  * Note that this class is @tagged as "analytics-api". Any test that extends
  * this class will automatically execute as part of this group.
- * 
+ *
  * @author maikel arabori
  */
 @TestInstance( TestInstance.Lifecycle.PER_CLASS )

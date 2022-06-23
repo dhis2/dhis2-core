@@ -38,8 +38,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.logging.log4j.Logger;
 import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.SystemActions;
 import org.hisp.dhis.actions.ResourceTableActions;
+import org.hisp.dhis.actions.SystemActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -47,7 +47,7 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 /**
  * This extension is used to prepare/populate the analytics tables, so they can
  * be further used by the analytics e2e tests.
- * 
+ *
  * @author maikel arabori
  */
 public class AnalyticsSetupExtension implements BeforeAllCallback
@@ -56,7 +56,7 @@ public class AnalyticsSetupExtension implements BeforeAllCallback
     private static final Logger logger = getLogger( AnalyticsSetupExtension.class.getName() );
 
     /**
-     * 
+     *
      */
     private static final long TIMEOUT = MINUTES.toSeconds( 15 );
 

@@ -34,7 +34,7 @@ import org.hisp.dhis.helpers.QueryParamsBuilder;
 /**
  * Provides events endpoints/operations associated to the parent
  * "analytics/events".
- * 
+ *
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class AnalyticsEventActions
