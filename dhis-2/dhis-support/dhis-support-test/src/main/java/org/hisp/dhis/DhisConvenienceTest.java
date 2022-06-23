@@ -91,6 +91,8 @@ import org.hisp.dhis.dataset.notifications.DataSetNotificationRecipient;
 import org.hisp.dhis.dataset.notifications.DataSetNotificationTemplate;
 import org.hisp.dhis.dataset.notifications.DataSetNotificationTrigger;
 import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.eventvisualization.EventVisualizationType;
 import org.hisp.dhis.expression.Expression;
@@ -180,8 +182,6 @@ import org.hisp.dhis.visualization.Visualization;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDateTime;
 import org.locationtech.jts.geom.Geometry;
-import org.springframework.aop.framework.Advised;
-import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -438,25 +438,6 @@ public abstract class DhisConvenienceTest
             throw new IllegalArgumentException( "Failed to set dependency " + role + " on service "
                 + targetService.getClass().getSimpleName() );
         }
-    }
-
-    /**
-     * If the given class is advised by Spring AOP it will return the target
-     * class, i.e. the advised class. If not the given class is returned
-     * unchanged.
-     *
-     * @param object the object.
-     */
-    @SuppressWarnings( "unchecked" )
-    private <T> T getRealObject( T object )
-        throws Exception
-    {
-        if ( AopUtils.isAopProxy( object ) )
-        {
-            return (T) ((Advised) object).getTargetSource().getTarget();
-        }
-
-        return object;
     }
 
     // -------------------------------------------------------------------------
@@ -1653,6 +1634,16 @@ public abstract class DhisConvenienceTest
         psi.setProgramInstance( pi );
         psi.setOrganisationUnit( organisationUnit );
 
+        return psi;
+    }
+
+    public static ProgramStageInstance createProgramStageInstance( ProgramInstance programInstance,
+        ProgramStage programStage, OrganisationUnit organisationUnit, Set<EventDataValue> dataValues )
+    {
+        ProgramStageInstance psi = createProgramStageInstance( programStage, programInstance, organisationUnit );
+        psi.setExecutionDate( new Date() );
+        psi.setStatus( EventStatus.ACTIVE );
+        psi.setEventDataValues( dataValues );
         return psi;
     }
 

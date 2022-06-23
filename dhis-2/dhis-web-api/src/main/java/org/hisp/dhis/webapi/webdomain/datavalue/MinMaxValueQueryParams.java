@@ -25,29 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.snippets;
+package org.hisp.dhis.webapi.webdomain.datavalue;
 
-import org.hisp.dhis.webapi.WebClient;
-import org.hisp.dhis.webapi.WebSnippet;
-import org.hisp.dhis.webapi.json.domain.JsonUser;
+import javax.validation.constraints.NotBlank;
+
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
- * A simple {@link WebSnippet} that returns a "random" users ID. This is most
- * likely the admin user, as this is the only existing users in many test
- * scenarios.
+ * Object which encapsulates parameters for a min-max value query.
  *
- * @author Jan Bernitt
+ * @author Lars Helge Overland
  */
-public class SomeUserId extends WebSnippet<String>
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor( access = AccessLevel.PRIVATE )
+public class MinMaxValueQueryParams
 {
-    public SomeUserId( WebClient client )
-    {
-        super( client );
-    }
+    @NotBlank
+    private String de;
 
-    @Override
-    protected String run()
-    {
-        return GET( "/users/" ).content().getList( "users", JsonUser.class ).get( 0 ).getId();
-    }
+    @NotBlank
+    private String ou;
+
+    @NotBlank
+    private String co;
 }

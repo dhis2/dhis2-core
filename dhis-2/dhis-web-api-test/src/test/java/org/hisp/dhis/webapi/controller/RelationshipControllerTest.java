@@ -27,15 +27,15 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.webapi.WebClient.Accept;
-import static org.hisp.dhis.webapi.WebClient.Body;
-import static org.hisp.dhis.webapi.WebClient.ContentType;
+import static org.hisp.dhis.web.WebClient.Accept;
+import static org.hisp.dhis.web.WebClient.Body;
+import static org.hisp.dhis.web.WebClient.ContentType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 
 /**
@@ -61,7 +61,7 @@ class RelationshipControllerTest extends DhisControllerConvenienceTest
         HttpResponse response = POST( "/relationships/", Body( "<relationships></relationships>" ),
             ContentType( MediaType.APPLICATION_XML ), Accept( MediaType.APPLICATION_XML ) );
         assertEquals( HttpStatus.OK, response.status() );
-        assertTrue( response.content( MediaType.APPLICATION_XML ).startsWith( "<webMessage" ) );
+        assertTrue( response.content( MediaType.APPLICATION_XML.toString() ).startsWith( "<webMessage" ) );
     }
 
     @Test
