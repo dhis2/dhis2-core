@@ -25,33 +25,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.shared.component.element.from;
-
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
-import org.hisp.dhis.analytics.shared.component.element.Element;
-import org.hisp.dhis.analytics.shared.visitor.from.FromVisitor;
+package org.hisp.dhis.analytics.common;
 
 /**
- * SimpleFromElement represents the "from" clause of a SQL statement.
+ * Simple interface that enables validation capabilities to the implementer.
  *
- * @author dusan bernat
+ * @param <T>
  */
-@AllArgsConstructor
-@Getter
-public class SimpleFromElement implements Element<FromVisitor>
+public interface Validator<T>
 {
-    private String value;
-
-    /**
-     * see Visitor design pattern
-     *
-     * @param v
-     */
-    @Override
-    public void accept( FromVisitor v )
-    {
-        v.visit( this );
-    }
+    void validate( T object );
 }

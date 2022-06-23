@@ -25,33 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.shared.component.element.from;
+package org.hisp.dhis.analytics.tei;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.analytics.shared.component.element.Element;
-import org.hisp.dhis.analytics.shared.visitor.from.FromVisitor;
+import org.hisp.dhis.analytics.common.CommonQueryRequestValidator;
+import org.hisp.dhis.analytics.common.QueryRequest;
+import org.hisp.dhis.analytics.common.Validator;
+import org.springframework.stereotype.Component;
 
 /**
- * SimpleFromElement represents the "from" clause of a SQL statement.
+ * Component responsible for validation rules on top of analytics tracker entity
+ * request queries.
  *
- * @author dusan bernat
+ * @see Validator
  */
-@AllArgsConstructor
-@Getter
-public class SimpleFromElement implements Element<FromVisitor>
+@Component
+@RequiredArgsConstructor
+public class TeiQueryRequestValidator implements Validator<QueryRequest<TeiQueryRequest>>
 {
-    private String value;
 
-    /**
-     * see Visitor design pattern
-     *
-     * @param v
-     */
+    private final CommonQueryRequestValidator commonQueryRequestValidator;
+
     @Override
-    public void accept( FromVisitor v )
+    public void validate( final QueryRequest<TeiQueryRequest> queryRequest )
     {
-        v.visit( this );
+        commonQueryRequestValidator.validate( queryRequest.getCommonQueryRequest() );
+        // TODO: DHIS2-13382 validate the TEI part of the request
     }
 }

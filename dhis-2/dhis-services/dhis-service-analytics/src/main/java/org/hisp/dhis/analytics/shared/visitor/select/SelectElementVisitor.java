@@ -51,6 +51,7 @@ import org.hisp.dhis.analytics.shared.component.element.select.TeaValueSelectEle
 @Getter
 public class SelectElementVisitor implements SelectVisitor
 {
+
     private final List<Column> columns = new ArrayList<>();
 
     /**
@@ -62,10 +63,10 @@ public class SelectElementVisitor implements SelectVisitor
     {
         columns.add( new Column( " ( SELECT teav.VALUE " +
             " FROM trackedentityattributevalue teav, " +
-            "  trackedentityattribute tea" +
+            " trackedentityattribute tea" +
             " WHERE teav.trackedentityinstanceid = t.trackedentityinstanceid " +
-            "  AND teav.trackedentityattributeid = tea.trackedentityattributeid " +
-            "  AND tea.uid = '" + element.getUid() + "' " +
+            " AND teav.trackedentityattributeid = tea.trackedentityattributeid " +
+            " AND tea.uid = '" + element.getUid() + "' " +
             " LIMIT 1 ) ", ColumnDataType.TEXT, element.getAlias(), false, false ) );
     }
 
@@ -131,7 +132,7 @@ public class SelectElementVisitor implements SelectVisitor
                 " AND ps.uid = '" + element.getProgramStageUid() + "'" +
                 " AND ps.programid = p.programid" +
                 " ORDER BY pi.enrollmentdate DESC, psi.executiondate DESC" +
-                "  LIMIT 1 ) ",
+                " LIMIT 1 ) ",
             ColumnDataType.DATE,
             element.getAlias(), false, false ) );
     }
@@ -145,22 +146,22 @@ public class SelectElementVisitor implements SelectVisitor
     {
         columns.add( new Column( !isBlank( element.getProgramUid() )
             ? " ( SELECT psi.eventdatavalues -> '" + element.getEventDataValue() + "' -> 'value'" +
-                "  FROM programstageinstance psi," +
-                "  programinstance pi," +
-                "  program p" +
-                "  WHERE psi.programinstanceid = pi.programinstanceid" +
-                "  AND pi.trackedentityinstanceid = t.trackedentityinstanceid" +
-                "  AND pi.programid = p.programid" +
-                "  AND p.uid = '" + element.getProgramUid() + "'" +
-                "  ORDER BY pi.enrollmentdate DESC, psi.executiondate DESC" +
-                "  LIMIT 1 ) "
+                " FROM programstageinstance psi," +
+                " programinstance pi," +
+                " program p" +
+                " WHERE psi.programinstanceid = pi.programinstanceid" +
+                " AND pi.trackedentityinstanceid = t.trackedentityinstanceid" +
+                " AND pi.programid = p.programid" +
+                " AND p.uid = '" + element.getProgramUid() + "'" +
+                " ORDER BY pi.enrollmentdate DESC, psi.executiondate DESC" +
+                " LIMIT 1 ) "
             : " ( SELECT psi.eventdatavalues -> '" + element.getEventDataValue() + "' -> 'value'" +
-                "  FROM programstageinstance psi," +
-                "  programinstance pi" +
-                "  WHERE psi.programinstanceid = pi.programinstanceid" +
-                "  AND pi.trackedentityinstanceid = t.trackedentityinstanceid" +
-                "  ORDER BY pi.enrollmentdate DESC, psi.executiondate DESC" +
-                "  LIMIT 1 )",
+                " FROM programstageinstance psi," +
+                " programinstance pi" +
+                " WHERE psi.programinstanceid = pi.programinstanceid" +
+                " AND pi.trackedentityinstanceid = t.trackedentityinstanceid" +
+                " ORDER BY pi.enrollmentdate DESC, psi.executiondate DESC" +
+                " LIMIT 1 )",
             ColumnDataType.DATE, element.getAlias(), false, false ) );
     }
 
