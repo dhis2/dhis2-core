@@ -113,10 +113,12 @@ public class JdbcTrackedEntityInstanceAnalyticsTableManager extends AbstractJdbc
         new AnalyticsTableColumn( quote( "trackedentityinstanceid" ), INTEGER, NOT_NULL,
             "tei.trackedentityinstanceid" ),
         new AnalyticsTableColumn( quote( "trackedentityinstanceuid" ), CHARACTER_11, NOT_NULL, "tei.uid" ),
+        new AnalyticsTableColumn( quote( "programuid" ), CHARACTER_11, NULL, "p.uid" ),
         new AnalyticsTableColumn( quote( "programinstanceuid" ), CHARACTER_11, NULL, "pi.uid" ),
         new AnalyticsTableColumn( quote( "enrollmentdate" ), TIMESTAMP, "pi.enrollmentdate" ),
         new AnalyticsTableColumn( quote( "enddate" ), TIMESTAMP, "pi.enddate" ),
         new AnalyticsTableColumn( quote( "incidentdate" ), TIMESTAMP, "pi.incidentdate" ),
+        new AnalyticsTableColumn( quote( "programstageuid" ), CHARACTER_11, NULL, "ps.uid" ),
         new AnalyticsTableColumn( quote( "programstageinstanceuid" ), CHARACTER_11, NULL, "psi.uid" ),
         new AnalyticsTableColumn( quote( "executiondate" ), TIMESTAMP, "psi.executiondate" ),
         new AnalyticsTableColumn( quote( "duedate" ), TIMESTAMP, "psi.duedate" ),
@@ -273,7 +275,9 @@ public class JdbcTrackedEntityInstanceAnalyticsTableManager extends AbstractJdbc
         sql = TextUtils.removeLastComma( sql ) +
             " FROM trackedentityinstance tei " +
             " LEFT JOIN programinstance pi on pi.trackedentityinstanceid = tei.trackedentityinstanceid" +
+            " LEFT JOIN program p on p.programid = pi.programid" +
             " LEFT JOIN programstageinstance psi on psi.programinstanceid = pi.programinstanceid" +
+            " LEFT JOIN programstage ps on ps.programstageid = psi.programstageid" +
             " WHERE tei.trackedentitytypeid = " + partition.getMasterTable().getTrackedEntityType().getId();
 
         invokeTimeAndLog( sql, partition.getTempTableName() );
