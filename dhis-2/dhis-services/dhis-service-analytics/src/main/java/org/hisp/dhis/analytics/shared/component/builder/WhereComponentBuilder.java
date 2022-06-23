@@ -40,8 +40,8 @@ import org.hisp.dhis.analytics.shared.visitor.where.WhereVisitor;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 
 /**
- * WhereComponentBuilder is responsible for building the select section of sql
- * query
+ * WhereComponentBuilder is responsible for building the "where" clause of the
+ * SQL query.
  *
  * @author dusan bernat
  */

@@ -25,49 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi;
+package org.hisp.dhis.webapi.webdomain.datavalue;
 
-import java.util.List;
+import javax.validation.constraints.NotBlank;
 
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
- * Base class to create context free reusable snippets.
+ * Object which encapsulates parameters for a min-max value query.
  *
- * The purpose of {@link WebSnippet}s is to allow definition of sequences of
- * {@link WebClient} usage that become reusable building blocks to create more
- * complex scenarios.
- *
- * @author Jan Bernitt
- *
- * @param <T> optional return type of the snippet to send information back to
- *        the caller, like IDs, or {@link org.hisp.dhis.webapi.json.JsonValue}s
+ * @author Lars Helge Overland
  */
-public abstract class WebSnippet<T> implements WebClient
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor( access = AccessLevel.PRIVATE )
+public class MinMaxValueQueryParams
 {
+    @NotBlank
+    private String de;
 
-    private final WebClient client;
+    @NotBlank
+    private String ou;
 
-    public WebSnippet( WebClient client )
-    {
-        this.client = client;
-    }
-
-    @Override
-    public final HttpResponse webRequest( HttpMethod method, String url, List<Header> headers, MediaType contentType,
-        String content )
-    {
-        return client.webRequest( method, url, headers, contentType, content );
-    }
-
-    /**
-     * Runs the snippet.
-     *
-     * @return a optional result value, like an ID or a
-     *         {@link org.hisp.dhis.webapi.json.JsonValue} that can be used by
-     *         the caller to continue working with data created or used in this
-     *         snippet.
-     */
-    protected abstract T run();
+    @NotBlank
+    private String co;
 }

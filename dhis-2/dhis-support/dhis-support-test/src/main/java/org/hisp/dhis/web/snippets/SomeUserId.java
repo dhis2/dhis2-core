@@ -25,15 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.common;
+package org.hisp.dhis.web.snippets;
 
-import org.springframework.stereotype.Service;
+import org.hisp.dhis.web.WebClient;
+import org.hisp.dhis.web.WebSnippet;
+import org.hisp.dhis.webapi.json.domain.JsonUser;
 
-@Service
-public class CommonValidationService
+/**
+ * A simple {@link WebSnippet} that returns a "random" users ID. This is most
+ * likely the admin user, as this is the only existing users in many test
+ * scenarios.
+ *
+ * @author Jan Bernitt
+ */
+public class SomeUserId extends WebSnippet<String>
 {
-    public void validate( CommonQueryRequest commonQueryRequest )
+    public SomeUserId( WebClient client )
     {
-        // TODO: validate common request params
+        super( client );
+    }
+
+    @Override
+    public String run()
+    {
+        return GET( "/users/" ).content().getList( "users", JsonUser.class ).get( 0 ).getId();
     }
 }

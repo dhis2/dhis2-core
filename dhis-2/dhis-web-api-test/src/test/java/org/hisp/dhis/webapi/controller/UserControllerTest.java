@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.webapi.WebClient.Body;
-import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
+import static org.hisp.dhis.web.WebClient.Body;
+import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -45,6 +45,7 @@ import org.hisp.dhis.security.RestoreType;
 import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
+import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
@@ -52,7 +53,6 @@ import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.controller.user.UserController}.
@@ -94,7 +94,7 @@ class UserControllerTest extends DhisControllerConvenienceTest
     {
         assertStatus( HttpStatus.OK, PATCH( "/users/{id}", peter.getUid() + "?importReportMode=ERRORS",
             Body( "[{'op': 'replace', 'path': '/email', 'value': null}]" ) ) );
-        assertEquals( "user_does_not_have_valid_email",
+        assertEquals( "User account does not have a valid email address",
             POST( "/users/" + peter.getUid() + "/reset" ).error( HttpStatus.CONFLICT ).getMessage() );
     }
 
@@ -245,9 +245,9 @@ class UserControllerTest extends DhisControllerConvenienceTest
         String restoreToken = idAndRestoreToken[1];
         User user = userService.getUserByIdToken( idToken );
         assertNotNull( user );
-        String errorMessage = securityService.verifyRestoreToken( user, restoreToken,
+        ErrorCode errorCode = securityService.validateRestoreToken( user, restoreToken,
             RestoreType.RECOVER_PASSWORD );
-        assertNull( errorMessage );
+        assertNull( errorCode );
     }
 
     private OutboundMessage assertMessageSendTo( String email )

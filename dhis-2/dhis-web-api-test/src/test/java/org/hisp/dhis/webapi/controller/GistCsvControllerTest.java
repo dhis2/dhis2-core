@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.webapi.WebClient.Accept;
+import static org.hisp.dhis.web.WebClient.Accept;
 import static org.junit.jupiter.api.Assertions.assertLinesMatch;
 
 import java.util.List;
@@ -69,7 +69,7 @@ class GistCsvControllerTest extends AbstractGistControllerTest
 
     private void assertAllUserCsv( HttpResponse response )
     {
-        List<String> split = List.of( response.content( TEXT_CSV ).split( "\n" ) );
+        List<String> split = List.of( response.content( TEXT_CSV.toString() ).split( "\n" ) );
         List<User> allUsers = userService.getAllUsers();
 
         assertLinesMatch( List.of( "id,code,education,twitter,employer",
@@ -80,7 +80,7 @@ class GistCsvControllerTest extends AbstractGistControllerTest
 
     private void assertUserCsv( HttpResponse response )
     {
-        List<String> split = List.of( response.content( TEXT_CSV ).split( "\n" ) );
+        List<String> split = List.of( response.content( TEXT_CSV.toString() ).split( "\n" ) );
         List<User> allUsers = userService.getAllUsers();
 
         assertLinesMatch( List.of( "id,code,education,twitter,employer",

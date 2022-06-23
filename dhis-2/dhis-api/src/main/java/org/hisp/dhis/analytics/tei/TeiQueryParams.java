@@ -27,15 +27,11 @@
  */
 package org.hisp.dhis.analytics.tei;
 
-import java.util.ArrayList;
-import java.util.Collection;
-
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
 import org.hisp.dhis.analytics.common.CommonParams;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 
 /**
@@ -50,10 +46,9 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 @Builder( toBuilder = true )
 public class TeiQueryParams
 {
+
     private final TrackedEntityType trackedEntityType;
 
     private final CommonParams commonParams;
 
-    @Builder.Default
-    private final Collection<Program> programs = new ArrayList<>();
 }

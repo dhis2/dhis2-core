@@ -25,28 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei;
+package org.hisp.dhis.predictor;
 
-import lombok.RequiredArgsConstructor;
-
-import org.hisp.dhis.analytics.common.CommonValidationService;
-import org.hisp.dhis.analytics.common.QueryRequest;
-import org.springframework.stereotype.Component;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * Component responsible for validation rules on top of analytics tracker entity
- * queries.
+ * A map that, for each input data element disaggregation (category option
+ * combo) UID, returns the UID of the corresponding predictor output data
+ * element disaggregation (category option combo).
+ *
+ * @author Jim Grace
  */
-@Component
-@RequiredArgsConstructor
-public class TeiAnalyticsValidator
+public class DisaggregationMap
+    extends HashMap<String, String>
 {
-
-    private final CommonValidationService commonValidationService;
-
-    public void validateRequest( final QueryRequest<TeiQueryRequest> queryRequest )
+    /**
+     * Constructs an empty DisaggregationMap.
+     */
+    public DisaggregationMap()
     {
-        commonValidationService.validate( queryRequest.getCommonQueryRequest() );
-        // TODO: DHIS2-13382 validate the TEI part of the request
+    }
+
+    /**
+     * Constructs a new DisaggregationMap with the same mappings as the
+     * specified Map.
+     *
+     * @param m the map whose mappings are to be placed in this map
+     */
+    public DisaggregationMap( Map<String, String> m )
+    {
+        super( m );
     }
 }

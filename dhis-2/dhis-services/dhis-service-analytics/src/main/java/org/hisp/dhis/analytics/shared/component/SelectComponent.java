@@ -39,6 +39,7 @@ import org.hisp.dhis.analytics.shared.visitor.select.SelectVisitor;
  */
 public class SelectComponent extends Component<SelectVisitor>
 {
+
     public SelectComponent( final List<Element<SelectVisitor>> elements )
     {
         super( elements );

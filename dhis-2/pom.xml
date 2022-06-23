@@ -35,6 +35,7 @@
     <module>dhis-web-api</module>
     <module>dhis-web-api-test</module>
     <module>dhis-web-embedded-jetty</module>
+    <module>dhis-test-coverage</module>
   </modules>
 
   <properties>
@@ -70,7 +71,7 @@
     <dhis-json-tree.version>0.3.0</dhis-json-tree.version>
 
     <!-- Security -->
-    <spring-security.version>5.7.1</spring-security.version>
+    <spring-security.version>5.7.2</spring-security.version>
     <spring-security-oauth2.version>2.5.2.RELEASE</spring-security-oauth2.version>
     <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
@@ -78,24 +79,24 @@
     <nimbus.jose.jwt.version>9.23</nimbus.jose.jwt.version>
 
     <!-- Spring -->
-    <spring.version>5.3.20</spring.version>
-    <spring-data-redis.version>2.7.0</spring-data-redis.version>
+    <spring.version>5.3.21</spring.version>
+    <spring-data-redis.version>2.7.1</spring-data-redis.version>
     <spring-session-data-redis.version>2.7.0</spring-session-data-redis.version>
     <spring-mobile-device.version>1.1.5.RELEASE</spring-mobile-device.version>
     <spring-retry.version>1.3.3</spring-retry.version>
     <spring-restdocs.version>2.0.6.RELEASE</spring-restdocs.version>
-    <spring-ldap.version>2.4.0</spring-ldap.version>
+    <spring-ldap.version>2.4.1</spring-ldap.version>
     <cache2k-api.version>1.6.0.Final</cache2k-api.version>
     <lettuce.version>6.1.8.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-core.version>8.5.12</flyway-core.version>
+    <flyway-core.version>8.5.13</flyway-core.version>
     <hibernate.version>5.6.9.Final</hibernate.version>
     <hibernate-types.version>2.16.2</hibernate-types.version>
     <!-- Data sources,db pools and db drivers -->
     <c3p0.version>0.9.5.5</c3p0.version>
     <HikariCP.version>5.0.1</HikariCP.version>
-    <postgresql-driver.version>42.3.6</postgresql-driver.version>
+    <postgresql-driver.version>42.4.0</postgresql-driver.version>
     <postgis-jdbc.version>2.5.1</postgis-jdbc.version>
     <datasource-proxy.version>1.8</datasource-proxy.version>
 
@@ -134,13 +135,13 @@
     <!-- GIS -->
     <batik-transcoder.version>1.14</batik-transcoder.version>
     <fop.version>2.7</fop.version>
-    <mapstruct.version>1.5.1.Final</mapstruct.version>
+    <mapstruct.version>1.5.2.Final</mapstruct.version>
     <geotools.version>27.0</geotools.version>
     <jts.version>1.18.2</jts.version>
 
     <!-- Apache Artemis -->
-    <artemis.version>2.22.0</artemis.version>
-    <netty-all.version>4.1.77.Final</netty-all.version>
+    <artemis.version>2.23.1</artemis.version>
+    <netty-all.version>4.1.78.Final</netty-all.version>
     <classgraph.version>4.8.147</classgraph.version>
 
     <!-- SMS/SMPP -->
@@ -150,14 +151,14 @@
     <jsmpp.version>2.3.11</jsmpp.version>
     <json-path.version>2.7.0</json-path.version>
     <jsoup.version>1.15.1</jsoup.version>
-    <jetty.version>10.0.9</jetty.version>
+    <jetty.version>10.0.10</jetty.version>
 
     <!-- Div. utils -->
-    <version.debezium>1.9.3.Final</version.debezium>
+    <version.debezium>1.9.4.Final</version.debezium>
     <guava.version>31.1-jre</guava.version>
     <jsr305.version>3.0.2</jsr305.version>
     <imgscalr-lib.version>4.2</imgscalr-lib.version>
-    <google-api-client.version>1.35.0</google-api-client.version>
+    <google-api-client.version>1.35.1</google-api-client.version>
     <lombok.version>1.18.24</lombok.version>
     <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
     <joda-time.version>2.10.14</joda-time.version>
@@ -197,7 +198,7 @@
     <awaitility.version>4.2.0</awaitility.version>
     <easy-random.version>5.0.0</easy-random.version>
     <tree.version>0.2.5</tree.version>
-    <h2.version>2.1.212</h2.version>
+    <h2.version>2.1.214</h2.version>
     <javax.persistence-api.version>2.2</javax.persistence-api.version>
 
     <!-- Maven plugin versions -->
@@ -207,11 +208,11 @@
     <maven-failsafe-plugin.version>3.0.0-M7</maven-failsafe-plugin.version>
     <maven-javadoc-plugin.version>3.4.0</maven-javadoc-plugin.version>
     <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
-    <maven-enforcer-plugin.version>3.0.0</maven-enforcer-plugin.version>
+    <maven-enforcer-plugin.version>3.1.0</maven-enforcer-plugin.version>
     <maven-dependency-plugin.version>3.3.0</maven-dependency-plugin.version>
     <restrict-imports-enforcer.version>2.0.0</restrict-imports-enforcer.version>
     <versions-maven-plugin.version>2.11.0</versions-maven-plugin.version>
-    <dependency-check-maven.version>7.1.0</dependency-check-maven.version>
+    <dependency-check-maven.version>7.1.1</dependency-check-maven.version>
     <spotbugs-maven-plugin.version>4.7.0.0</spotbugs-maven-plugin.version>
     <speedy-spotless-maven-plugin.version>0.1.3</speedy-spotless-maven-plugin.version>
     <jacoco-maven-plugin.version>0.8.8</jacoco-maven-plugin.version>
@@ -773,21 +774,6 @@
           <groupId>org.jacoco</groupId>
           <artifactId>jacoco-maven-plugin</artifactId>
           <version>${jacoco-maven-plugin.version}</version>
-          <executions>
-            <execution>
-              <id>prepare-agent</id>
-              <goals>
-                <goal>prepare-agent</goal>
-              </goals>
-            </execution>
-            <execution>
-              <id>report</id>
-              <phase>verify</phase>
-              <goals>
-                <goal>report-aggregate</goal>
-              </goals>
-            </execution>
-          </executions>
         </plugin>
       </plugins>
     </pluginManagement>
@@ -906,9 +892,16 @@
       <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>prepare-agent</id>
+            <goals>
+              <goal>prepare-agent</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
-
   </build>
 
   <dependencyManagement>
