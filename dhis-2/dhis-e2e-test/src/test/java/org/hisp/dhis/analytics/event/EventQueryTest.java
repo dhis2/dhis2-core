@@ -8,31 +8,23 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hisp.dhis.analytics.event.EventValidationHelper.validateHeader;
 
-import org.hisp.dhis.ReadOnlyApiTest;
+import org.hisp.dhis.AnalyticsApiTest;
 import org.hisp.dhis.actions.analytics.AnalyticsEventActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 /**
- * Groups e2e tests for Events /query.
+ * Groups e2e tests for Events "/query" endpoint.
  * 
  * @author maikel arabori
  */
-@Tag( "category:analytics-api" )
-public class EventQueryTest extends ReadOnlyApiTest
+@Tag( "analytics-api" )
+public class EventQueryTest extends AnalyticsApiTest
 {
 
-    private AnalyticsEventActions analyticsEventActions;
-
-    @BeforeAll
-    public void beforeAll()
-    {
-        super.login();
-        analyticsEventActions = new AnalyticsEventActions();
-    }
+    private AnalyticsEventActions analyticsEventActions = new AnalyticsEventActions();
 
     @Test
     public void queryWithProgramAndProgramStageWhenTotalPagesIsFalse()

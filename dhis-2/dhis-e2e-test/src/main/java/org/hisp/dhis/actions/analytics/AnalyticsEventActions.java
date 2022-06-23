@@ -32,11 +32,15 @@ import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 
 /**
+ * Provides events endpoints/operations associated to the parent
+ * "analytics/events".
+ * 
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class AnalyticsEventActions
     extends RestApiActions
 {
+
     public AnalyticsEventActions()
     {
         super( "/analytics/events" );
@@ -76,5 +80,4 @@ public class AnalyticsEventActions
             .add( "programStageId", programStage )
             .add( "filter", "dimensionType:eq:" + dimensionType ) ).validateStatus( 200 );
     }
-
 }

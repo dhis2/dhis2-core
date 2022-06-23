@@ -32,11 +32,15 @@ import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 
 /**
+ * Provides enrollment endpoints/operations associated to the parent
+ * "analytics/enrollments".
+ *
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class AnalyticsEnrollmentsActions
     extends RestApiActions
 {
+
     public AnalyticsEnrollmentsActions()
     {
         super( "/analytics/enrollments" );

@@ -28,26 +28,35 @@
 package org.hisp.dhis;
 
 import org.hisp.dhis.actions.LoginActions;
+import org.hisp.dhis.helpers.extensions.AnalyticsSetupExtension;
 import org.hisp.dhis.helpers.extensions.ConfigurationExtension;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import io.restassured.http.ContentType;
 
 /**
- * This read-only class should be only used for querying tests. It will not
- * bootstrap any data. It should point to a DHIS2 server that is already ip and
- * running.
+ * This is the base class responsible for enabling analytics e2e tests. It
+ * assumes that there is a DHIS2 instance up and running, so the analytics table
+ * generation can take place on the respective instance.
  * 
  * @author maikel arabori
  */
 @TestInstance( TestInstance.Lifecycle.PER_CLASS )
 @ExtendWith( ConfigurationExtension.class )
-public abstract class ReadOnlyApiTest
+@ExtendWith( AnalyticsSetupExtension.class )
+public abstract class AnalyticsApiTest
 {
 
     protected final String JSON = ContentType.JSON.toString();
-    
+
+    @BeforeAll
+    public void beforeAll()
+    {
+        login();
+    }
+
     protected void login()
     {
         new LoginActions().loginAsAdmin();
