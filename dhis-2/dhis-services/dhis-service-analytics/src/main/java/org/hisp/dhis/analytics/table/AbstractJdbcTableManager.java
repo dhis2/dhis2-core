@@ -375,6 +375,7 @@ public abstract class AbstractJdbcTableManager
 
         String columns = ListUtils.union( table.getDimensionColumns(), table.getValueColumns() )
             .stream()
+            .filter( col -> !col.isVirtual() )
             .map( col -> {
                 String notNull = col.getNotNull().isNotNull() ? " not null" : "";
                 return col.getName() + " " + col.getDataType().getValue() + notNull;
@@ -654,9 +655,12 @@ public abstract class AbstractJdbcTableManager
         String sqlCreate = "create table if not exists " + tableName + " (";
         for ( AnalyticsTableColumn col : ListUtils.union( table.getDimensionColumns(), table.getValueColumns() ) )
         {
-            String notNull = col.getNotNull().isNotNull() ? " not null" : "";
+            if ( !col.isVirtual() )
+            {
+                String notNull = col.getNotNull().isNotNull() ? " not null" : "";
 
-            sqlCreate = sqlCreate + (col.getName() + " " + col.getDataType().getValue() + notNull + ",");
+                sqlCreate = sqlCreate + (col.getName() + " " + col.getDataType().getValue() + notNull + ",");
+            }
         }
 
         sqlCreate = TextUtils.removeLastComma( sqlCreate ) + ")";

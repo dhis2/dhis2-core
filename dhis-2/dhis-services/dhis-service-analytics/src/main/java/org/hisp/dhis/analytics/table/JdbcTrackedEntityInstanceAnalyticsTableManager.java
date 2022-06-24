@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics.table;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.collect.Lists.newArrayList;
 import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
 import static org.hisp.dhis.analytics.ColumnDataType.INTEGER;
 import static org.hisp.dhis.analytics.ColumnDataType.JSONB;
@@ -56,6 +57,7 @@ import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
@@ -75,7 +77,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 
 @Service( "org.hisp.dhis.analytics.TrackedEntityInstanceAnalyticsTableManager" )
 public class JdbcTrackedEntityInstanceAnalyticsTableManager extends AbstractJdbcTableManager
@@ -178,9 +179,46 @@ public class JdbcTrackedEntityInstanceAnalyticsTableManager extends AbstractJdbc
                             teaUid + "')" ) )
                     .collect( Collectors.toList() ) );
 
+                programService.getAllPrograms().stream()
+                    .filter( p -> Objects.nonNull( p.getTrackedEntityType() ) )
+                    .filter( p -> p.getTrackedEntityType().getUid().equals( tet.getUid() ) )
+                    .flatMap( p -> p.getProgramStages().stream() )
+                    .flatMap( ps -> ps.getDataElements().stream() )
+                    .distinct()
+                    .forEach( de -> columns.add( new AnalyticsTableColumn( "cast(eventdatavalues -> '" +
+                        de.getUid() +
+                        "' ->> 'value' as " +
+                        getDatabaseValueType( de.getValueType() ) +
+                        ")", JSONB, true ) ) );
+
                 return new AnalyticsTable( getAnalyticsTableType(), columns,
-                    Lists.newArrayList(), tet );
+                    newArrayList(), tet );
             } ).collect( Collectors.toList() );
+    }
+
+    /**
+     * Returns the postgres value type of analytics table column which this
+     * manager handles.
+     *
+     * @return type of column value.
+     */
+    private static String getDatabaseValueType( ValueType valueType )
+    {
+        switch ( valueType )
+        {
+        case PERCENTAGE:
+            return "numeric(4,2)";
+        case DATETIME:
+            return "time";
+        case INTEGER:
+        case INTEGER_NEGATIVE:
+        case INTEGER_POSITIVE:
+        case INTEGER_ZERO_OR_POSITIVE:
+        case NUMBER:
+            return "numeric";
+        default:
+            return "varchar";
+        }
     }
 
     private List<TrackedEntityAttribute> getAllTrackedEntityAttributes( TrackedEntityType trackedEntityType,
@@ -230,7 +268,7 @@ public class JdbcTrackedEntityInstanceAnalyticsTableManager extends AbstractJdbc
     @Override
     protected List<String> getPartitionChecks( AnalyticsTablePartition partition )
     {
-        return Lists.newArrayList();
+        return newArrayList();
     }
 
     /**
@@ -262,6 +300,11 @@ public class JdbcTrackedEntityInstanceAnalyticsTableManager extends AbstractJdbc
 
         for ( AnalyticsTableColumn col : ListUtils.union( columns, values ) )
         {
+            if ( col.isVirtual() )
+            {
+                continue;
+            }
+
             sql += col.getName() + ",";
         }
 
@@ -269,6 +312,11 @@ public class JdbcTrackedEntityInstanceAnalyticsTableManager extends AbstractJdbc
 
         for ( AnalyticsTableColumn col : columns )
         {
+            if ( col.isVirtual() )
+            {
+                continue;
+            }
+
             sql += col.getAlias() + ",";
         }
 
