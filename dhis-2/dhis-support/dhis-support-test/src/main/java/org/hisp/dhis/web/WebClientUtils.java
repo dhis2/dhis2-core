@@ -25,33 +25,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.utils;
+package org.hisp.dhis.web;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
-import java.nio.charset.Charset;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.regex.Pattern;
 
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.webapi.WebClient.HttpResponse;
-import org.hisp.dhis.webapi.WebClient.RequestComponent;
+import org.hisp.dhis.web.HttpStatus.Series;
+import org.hisp.dhis.web.WebClient.HttpResponse;
+import org.hisp.dhis.web.WebClient.RequestComponent;
 import org.hisp.dhis.webapi.json.domain.JsonError;
 import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.webapi.json.domain.JsonObjectReport;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatus.Series;
-import org.springframework.http.MediaType;
 
 /**
- * Helpers needed when testing with {@link org.hisp.dhis.webapi.WebClient} and
- * {@link org.springframework.test.web.servlet.MockMvc}.
+ * Helpers needed when testing with {@link WebClient} and
+ * {@code org.springframework.test.web.servlet.MockMvc}.
  *
  * @author Jan Bernitt
  */
@@ -62,14 +66,14 @@ public class WebClientUtils
 
     public static String plainTextOrJson( String body )
     {
-        if ( startWithMediaType( body ) )
+        if ( startsWithMediaType( body ) )
         {
             return body.substring( body.indexOf( ':' ) + 1 );
         }
-        return body.replace( '\'', '"' );
+        return body == null ? null : body.replace( '\'', '"' );
     }
 
-    public static boolean startWithMediaType( String body )
+    public static boolean startsWithMediaType( String body )
     {
         return body != null && IS_MEDIA_TYPE.matcher( body ).find();
     }
@@ -108,10 +112,10 @@ public class WebClientUtils
     }
 
     /**
-     * Asserts that the {@link HttpResponse} has the expected
-     * {@link HttpStatus.Series}. This is useful on cases where it only matters
-     * that operation was {@link Series#SUCCESSFUL} or say
-     * {@link Series#CLIENT_ERROR} but not which exact code of the series.
+     * Asserts that the {@link HttpResponse} has the expected {@link Series}.
+     * This is useful on cases where it only matters that operation was
+     * {@link Series#SUCCESSFUL} or say {@link Series#CLIENT_ERROR} but not
+     * which exact code of the series.
      *
      * If status is {@link HttpStatus#CREATED} the method returns the UID of the
      * created object in case it is provided by the response. This is based on a
@@ -121,7 +125,7 @@ public class WebClientUtils
      * @param actual the response we actually got
      * @return UID of the created object (if available) or {@code null}
      */
-    public static String assertSeries( HttpStatus.Series expected, HttpResponse actual )
+    public static String assertSeries( Series expected, HttpResponse actual )
     {
         Series actualSeries = actual.series();
         if ( expected != actualSeries )
@@ -190,7 +194,7 @@ public class WebClientUtils
             return url;
         }
         Object[] urlArgs = Arrays.stream( args ).filter( arg -> !(arg instanceof RequestComponent) ).toArray();
-        return String.format( url.replaceAll( "\\{[a-zA-Z]+}", "%s" ), (Object[]) urlArgs );
+        return String.format( url.replaceAll( "\\{[a-zA-Z]+}", "%s" ), urlArgs );
     }
 
     public static String objectReferences( String... uids )
@@ -252,23 +256,19 @@ public class WebClientUtils
         return null;
     }
 
-    public static MediaType asMediaType( Object value )
+    public static String fileContent( String filename )
     {
-        if ( value == null || value instanceof MediaType )
+        try
         {
-            return (MediaType) value;
+            return Files.readString( Path.of(
+                Objects.requireNonNull( WebClientUtils.class.getClassLoader().getResource( filename ) ).toURI() ),
+                StandardCharsets.UTF_8 );
         }
-        String mediaType = value.toString();
-        int typeSubtypeDivider = mediaType.indexOf( '/' );
-        int charsetIndex = mediaType.indexOf( "; charset=" );
-        if ( charsetIndex > 0 )
+        catch ( IOException | URISyntaxException e )
         {
-            return new MediaType( mediaType.substring( 0, typeSubtypeDivider ),
-                mediaType.substring( typeSubtypeDivider + 1, charsetIndex ),
-                Charset.forName( mediaType.substring( charsetIndex + 10 ) ) );
+            fail( e );
+            return null;
         }
-        return new MediaType( mediaType.substring( 0, typeSubtypeDivider ),
-            mediaType.substring( typeSubtypeDivider + 1 ) );
     }
 
     private WebClientUtils()

@@ -53,6 +53,7 @@ import org.hisp.dhis.common.ValueType;
 @EqualsAndHashCode
 public class Column implements Comparable<Column>
 {
+
     /**
      * The column value.
      */

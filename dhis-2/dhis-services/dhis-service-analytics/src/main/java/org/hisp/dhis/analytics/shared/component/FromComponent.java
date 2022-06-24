@@ -39,6 +39,7 @@ import org.hisp.dhis.analytics.shared.visitor.from.FromVisitor;
  */
 public class FromComponent extends Component<FromVisitor>
 {
+
     public FromComponent( final List<Element<FromVisitor>> elements )
     {
         super( elements );

@@ -101,7 +101,7 @@ public class MinMaxValueGenerationController
         }
 
         OrganisationUnit organisationUnit = this.organisationUnitService.getOrganisationUnit( organisationUnitId );
-        if ( organisationUnitId == null )
+        if ( organisationUnit == null )
         {
             throw new WebMessageException( conflict( " No valid organisation unit" ) );
         }
@@ -117,7 +117,6 @@ public class MinMaxValueGenerationController
         Double factor = this.systemSettingManager.getSystemSetting( SettingKey.FACTOR_OF_DEVIATION, Double.class );
 
         this.minMaxDataAnalysisService.generateMinMaxValues( organisationUnit, dataElements, factor );
-
     }
 
     @DeleteMapping( "/{ou}" )
@@ -127,14 +126,13 @@ public class MinMaxValueGenerationController
         @RequestParam( "ds" ) List<String> dataSetIds )
         throws WebMessageException
     {
-
         if ( dataSetIds == null || dataSetIds.isEmpty() )
         {
             throw new WebMessageException( conflict( " No datasets defined" ) );
         }
 
         OrganisationUnit organisationUnit = this.organisationUnitService.getOrganisationUnit( organisationUnitId );
-        if ( organisationUnitId == null )
+        if ( organisationUnit == null )
         {
             throw new WebMessageException( conflict( " No valid organisation unit" ) );
         }
@@ -148,6 +146,5 @@ public class MinMaxValueGenerationController
         }
 
         minMaxDataElementService.removeMinMaxDataElements( dataElements, organisationUnit );
-
     }
 }

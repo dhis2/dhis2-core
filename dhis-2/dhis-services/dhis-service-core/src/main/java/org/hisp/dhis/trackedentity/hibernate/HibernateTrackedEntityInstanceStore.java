@@ -43,7 +43,7 @@ import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.Order
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.POTENTIAL_DUPLICATE;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACKED_ENTITY_ID;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACKED_ENTITY_INSTANCE_ID;
-import static org.hisp.dhis.util.DateUtils.getDateAfterAddition;
+import static org.hisp.dhis.util.DateUtils.addDays;
 import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
@@ -610,7 +610,7 @@ public class HibernateTrackedEntityInstanceStore
             if ( params.hasLastUpdatedEndDate() )
             {
                 trackedEntity.append( whereAnd.whereAnd() ).append( " TEI.lastupdated < '" )
-                    .append( getMediumDateString( getDateAfterAddition( params.getLastUpdatedEndDate(), 1 ) ) )
+                    .append( getMediumDateString( addDays( params.getLastUpdatedEndDate(), 1 ) ) )
                     .append( SINGLE_QUOTE );
             }
         }

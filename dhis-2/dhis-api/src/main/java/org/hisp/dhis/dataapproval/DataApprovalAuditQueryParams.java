@@ -31,6 +31,9 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
+import lombok.Data;
+import lombok.experimental.Accessors;
+
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
@@ -39,6 +42,8 @@ import com.google.common.base.MoreObjects;
 /**
  * @author Jim Grace
  */
+@Data
+@Accessors( chain = true )
 public class DataApprovalAuditQueryParams
 {
     /**
@@ -70,14 +75,6 @@ public class DataApprovalAuditQueryParams
      * Ending date.
      */
     private Date endDate = null;
-
-    // -------------------------------------------------------------------------
-    // Constructor
-    // -------------------------------------------------------------------------
-
-    public DataApprovalAuditQueryParams()
-    {
-    }
 
     // -------------------------------------------------------------------------
     // Logic
@@ -119,69 +116,5 @@ public class DataApprovalAuditQueryParams
         return MoreObjects.toStringHelper( this ).add( "levels", levels ).add( "workflows", workflows )
             .add( "organisationUnits", organisationUnits ).add( "attributeOptionCombos", attributeOptionCombos )
             .add( "startDate", startDate ).add( "endDate", endDate ).toString();
-    }
-
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
-
-    public Set<DataApprovalLevel> getLevels()
-    {
-        return levels;
-    }
-
-    public void setLevels( Set<DataApprovalLevel> levels )
-    {
-        this.levels = levels;
-    }
-
-    public Set<DataApprovalWorkflow> getWorkflows()
-    {
-        return workflows;
-    }
-
-    public void setWorkflows( Set<DataApprovalWorkflow> workflows )
-    {
-        this.workflows = workflows;
-    }
-
-    public Set<OrganisationUnit> getOrganisationUnits()
-    {
-        return organisationUnits;
-    }
-
-    public void setOrganisationUnits( Set<OrganisationUnit> organisationUnits )
-    {
-        this.organisationUnits = organisationUnits;
-    }
-
-    public Set<CategoryOptionCombo> getAttributeOptionCombos()
-    {
-        return attributeOptionCombos;
-    }
-
-    public void setAttributeOptionCombos( Set<CategoryOptionCombo> attributeOptionCombos )
-    {
-        this.attributeOptionCombos = attributeOptionCombos;
-    }
-
-    public Date getStartDate()
-    {
-        return startDate;
-    }
-
-    public void setStartDate( Date startDate )
-    {
-        this.startDate = startDate;
-    }
-
-    public Date getEndDate()
-    {
-        return endDate;
-    }
-
-    public void setEndDate( Date endDate )
-    {
-        this.endDate = endDate;
     }
 }

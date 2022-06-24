@@ -25,28 +25,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei;
+package org.hisp.dhis.analytics.common;
 
-import lombok.RequiredArgsConstructor;
-
-import org.hisp.dhis.analytics.common.CommonValidationService;
-import org.hisp.dhis.analytics.common.QueryRequest;
 import org.springframework.stereotype.Component;
 
 /**
- * Component responsible for validation rules on top of analytics tracker entity
- * queries.
+ * Component responsible for generic validations on top of a CommonQueryRequest
+ * object.
+ *
+ * @see Validator
  */
 @Component
-@RequiredArgsConstructor
-public class TeiAnalyticsValidator
+public class CommonQueryRequestValidator implements Validator<CommonQueryRequest>
 {
 
-    private final CommonValidationService commonValidationService;
-
-    public void validateRequest( final QueryRequest<TeiQueryRequest> queryRequest )
+    @Override
+    public void validate( final CommonQueryRequest commonQueryRequest )
     {
-        commonValidationService.validate( queryRequest.getCommonQueryRequest() );
-        // TODO: DHIS2-13382 validate the TEI part of the request
+        // TODO: validate common request params
     }
 }

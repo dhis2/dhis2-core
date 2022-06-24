@@ -56,9 +56,15 @@ import org.springframework.stereotype.Component;
 
 import com.google.common.collect.ImmutableList;
 
+/**
+ * Component responsible for mapping the input request parameters into the
+ * actual queryable objects. This component requires a few different services so
+ * the queryable objects can be built as needed for further usage at DB query
+ * time.
+ */
 @Component
 @RequiredArgsConstructor
-public class CommonRequestMapper
+public class CommonQueryRequestMapper
 {
 
     private final I18nManager i18nManager;
@@ -166,4 +172,5 @@ public class CommonRequestMapper
                 .collect( Collectors.toList() );
         }
     }
+
 }

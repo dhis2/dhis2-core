@@ -25,10 +25,10 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.snippets;
+package org.hisp.dhis.web.snippets;
 
-import org.hisp.dhis.webapi.WebClient;
-import org.hisp.dhis.webapi.WebSnippet;
+import org.hisp.dhis.web.WebClient;
+import org.hisp.dhis.web.WebSnippet;
 import org.hisp.dhis.webapi.json.domain.JsonUser;
 
 /**
@@ -46,7 +46,7 @@ public class SomeUserId extends WebSnippet<String>
     }
 
     @Override
-    protected String run()
+    public String run()
     {
         return GET( "/users/" ).content().getList( "users", JsonUser.class ).get( 0 ).getId();
     }

@@ -25,15 +25,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.common;
+package org.hisp.dhis.trackedentity;
 
-import org.springframework.stereotype.Service;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
-@Service
-public class CommonValidationService
+import lombok.Data;
+import lombok.experimental.Accessors;
+
+import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageInstance;
+
+/**
+ * Encapsulation of a web API request for tracked entity data value audit
+ * records.
+ *
+ * @author Lars Helge Overland
+ */
+@Data
+@Accessors( chain = true )
+public class TrackedEntityDataValueAuditQueryParams
 {
-    public void validate( CommonQueryRequest commonQueryRequest )
+    private List<DataElement> dataElements = new ArrayList<>();
+
+    private List<OrganisationUnit> orgUnits = new ArrayList<>();
+
+    private List<ProgramStageInstance> programStageInstances = new ArrayList<>();
+
+    private List<ProgramStage> programStages = new ArrayList<>();
+
+    private Date startDate;
+
+    private Date endDate;
+
+    private AuditType auditType;
+
+    private Pager pager;
+
+    public boolean hasPaging()
     {
-        // TODO: validate common request params
+        return pager != null;
     }
 }
