@@ -33,6 +33,7 @@ import org.hisp.dhis.helpers.extensions.ConfigurationExtension;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import io.restassured.http.ContentType;
@@ -51,8 +52,11 @@ import io.restassured.http.ContentType;
 @ExtendWith( ConfigurationExtension.class )
 @ExtendWith( AnalyticsSetupExtension.class )
 @Tag( "analytics-api" )
+@Timeout( AnalyticsApiTest.DEFAULT_LIMIT_EXECUTION_TIME_IN_SECONDS )
 public abstract class AnalyticsApiTest
 {
+
+    protected static final int DEFAULT_LIMIT_EXECUTION_TIME_IN_SECONDS = 2;
 
     protected final String JSON = ContentType.JSON.toString();
 

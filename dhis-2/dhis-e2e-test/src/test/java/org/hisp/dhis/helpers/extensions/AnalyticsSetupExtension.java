@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.helpers.extensions;
 
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.logging.log4j.LogManager.getLogger;
@@ -56,16 +55,16 @@ public class AnalyticsSetupExtension implements BeforeAllCallback
     private static final Logger logger = getLogger( AnalyticsSetupExtension.class.getName() );
 
     /**
-     *
+     * Max limit, in minutes, until the process is timed-out.
      */
-    private static final long TIMEOUT = MINUTES.toSeconds( 15 );
+    private static final long TIMEOUT = minutes( 15 );
 
     private static AtomicBoolean run = new AtomicBoolean( false );
 
     @Override
     public void beforeAll( final ExtensionContext context )
     {
-        if ( !run.get() )
+        if ( run.compareAndSet( false, true ) )
         {
             logger.info( "Starting analytics table export." );
 
@@ -92,10 +91,12 @@ public class AnalyticsSetupExtension implements BeforeAllCallback
 
             watcher.stop();
 
-            run.set( true );
-
-            logger.info( "Concluding analytics table export in {} minutes",
-                MILLISECONDS.toMinutes( watcher.getTime() ) );
+            logger.info( "Concluding analytics table export in {} minutes", watcher.getTime( MINUTES ) );
         }
+    }
+
+    private static long minutes( final int minutes )
+    {
+        return MINUTES.toSeconds( minutes );
     }
 }
