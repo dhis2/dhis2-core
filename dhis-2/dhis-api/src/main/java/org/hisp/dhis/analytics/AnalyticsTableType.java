@@ -39,8 +39,7 @@ public enum AnalyticsTableType
     EVENT( "analytics_event", false, true ),
     ENROLLMENT( "analytics_enrollment", false, false ),
     VALIDATION_RESULT( "analytics_validationresult", true, false ),
-    TRACKED_ENTITY_INSTANCE( "analytics_tracked_entity_instance", false, false ),
-    TRACKED_ENTITY_INSTANCE_ONLY( "analytics_tracked_entity_instance_only", false, false );
+    TRACKED_ENTITY_INSTANCE( "analytics_tracked_entity_instance", false, false );
     private String tableName;
 
     private boolean periodDimension;
