@@ -44,6 +44,12 @@ jobs:
       - name: Test dhis-web
         run: mvn test --threads 2C --batch-mode --no-transfer-progress --update-snapshots -f ./dhis-2/dhis-web/pom.xml
         timeout-minutes: 30
+      - name: Archive surefire reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: unit-test-surefire-reports
+          path: "**/target/surefire-reports/TEST-*.xml"
+          retention-days: 5
 
   integration-test:
     runs-on: ubuntu-latest
@@ -85,7 +91,7 @@ jobs:
       - name: Archive surefire reports
         uses: actions/upload-artifact@v3
         with:
-          name: surefire-reports
+          name: integration-test-surefire-reports
           path: "**/target/surefire-reports/TEST-*.xml"
           retention-days: 5
 
@@ -129,7 +135,7 @@ jobs:
       - name: Archive surefire reports
         uses: actions/upload-artifact@v3
         with:
-          name: surefire-reports
+          name: integration-h2-test-surefire-reports
           path: "**/target/surefire-reports/TEST-*.xml"
           retention-days: 5
 
