@@ -37,8 +37,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.junit.jupiter.api.Test;
@@ -50,7 +50,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author Jan Bernitt
  */
-class RelativePropertyContextTest extends DhisSpringTest
+class RelativePropertyContextTest extends SingleSetupIntegrationTestBase
 {
 
     @Autowired

@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import lombok.Data;
 
-import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -42,7 +42,7 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 /**
  * @author Morten Olav Hansen
  */
-class SchemaFieldIntrospectorTest extends DhisSpringTest
+class SchemaFieldIntrospectorTest extends SingleSetupIntegrationTestBase
 {
 
     @Autowired

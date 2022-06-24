@@ -31,14 +31,14 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
 
-import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Stian Strandli
  */
-class SystemSettingStoreTest extends DhisSpringTest
+class SystemSettingStoreTest extends TransactionalIntegrationTest
 {
 
     @Autowired
