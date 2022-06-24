@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis;
 
+import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
+
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.helpers.extensions.AnalyticsSetupExtension;
 import org.hisp.dhis.helpers.extensions.ConfigurationExtension;
@@ -45,14 +47,21 @@ import io.restassured.http.ContentType;
  *
  * Note that this class is @tagged as "analytics-api". Any test that extends
  * this class will automatically execute as part of this group.
+ * 
+ * Also, all tests are expected to execute under the default timeout, which is
+ * defined in this class. This value can be overridden at test level when
+ * required. The timeout check can be enabled/disabled depending on the
+ * situation.
+ * 
+ * ie.: mvn -Djunit.jupiter.execution.timeout.mode=disabled test
  *
  * @author maikel arabori
  */
-@TestInstance( TestInstance.Lifecycle.PER_CLASS )
+@TestInstance( PER_CLASS )
 @ExtendWith( ConfigurationExtension.class )
 @ExtendWith( AnalyticsSetupExtension.class )
-@Tag( "analytics-api" )
 @Timeout( AnalyticsApiTest.DEFAULT_LIMIT_EXECUTION_TIME_IN_SECONDS )
+@Tag( "analytics-api" )
 public abstract class AnalyticsApiTest
 {
 
