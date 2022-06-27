@@ -69,7 +69,7 @@ public class AnalyticsSetupExtension implements BeforeAllCallback
             logger.info( "Starting analytics table export." );
 
             // Login into the current DHIS2 instance.
-            new LoginActions().loginAsSuperUser();
+            new LoginActions().loginAsAdmin();
 
             final StopWatch watcher = new StopWatch();
             watcher.start();
