@@ -114,16 +114,6 @@ public class EnrollmentQueryTest extends AnalyticsApiTest
         validateHeader( response, 13, "programstatus", "Program status", "TEXT", "java.lang.String", false, true );
         validateHeader( response, 14, "ou", "Organisation unit", "TEXT", "java.lang.String", false, true );
 
-        // Validate the first three rows, as sample size.
-        validateRow( response, 0,
-            List.of( "zxBwOY6AJ9W", "p9Ivo6FsNSM", "2022-05-31 12:05:00.0", "2022-05-31 12:05:00.0", "", "", "",
-                "2018-08-06 21:20:51.645", "", "0.0", "0.0", "Firawa CHC", "OU_226273", "ACTIVE", "NMcx2jmra3c" ) );
-        validateRow( response, 1,
-            List.of( "O0KHGiqNgC2", "aIzvohni7g7", "2022-05-31 12:05:00.0", "2022-05-31 12:05:00.0", "", "", "",
-                "2018-08-06 21:20:49.373", "", "0.0", "0.0", "Banana Island MCHP", "OU_278384", "ACTIVE",
-                "jjtzkzrmG7s" ) );
-        validateRow( response, 2,
-            List.of( "p43cOkSdtZM", "BDHmCFRRU6H", "2022-05-31 12:05:00.0", "2022-05-31 12:05:00.0", "", "", "",
-                "2018-08-06 21:20:48.184", "", "0.0", "0.0", "Roktolon MCHP", "OU_803066", "ACTIVE", "VTtyiYcc6TE" ) );
+        // Cannot validate results for relative period.
     }
 }
