@@ -81,8 +81,9 @@ public class V2_39_17__Add_missing_programinstance_rows_for_programs_without_reg
             {
                 ps.setLong( 1, programId );
                 ps.setString( 2, CodeGenerator.generateUid() );
-                ps.execute();
+                ps.addBatch();
             }
+            ps.executeBatch();
         }
         catch ( SQLException e )
         {
