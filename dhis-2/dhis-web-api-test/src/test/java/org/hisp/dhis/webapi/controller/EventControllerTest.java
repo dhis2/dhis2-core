@@ -27,16 +27,16 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.webapi.WebClient.Accept;
-import static org.hisp.dhis.webapi.WebClient.Body;
-import static org.hisp.dhis.webapi.WebClient.ContentType;
+import static org.hisp.dhis.web.WebClient.Accept;
+import static org.hisp.dhis.web.WebClient.Body;
+import static org.hisp.dhis.web.WebClient.ContentType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_XML;
 
+import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpStatus;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.controller.event.EventController} using
@@ -53,7 +53,7 @@ class EventControllerTest extends DhisControllerConvenienceTest
         HttpResponse response = POST( "/events/", Body( "<events></events>" ), ContentType( APPLICATION_XML ),
             Accept( APPLICATION_XML ) );
         assertEquals( HttpStatus.OK, response.status() );
-        assertTrue( response.content( APPLICATION_XML ).startsWith( "<webMessage " ) );
+        assertTrue( response.content( APPLICATION_XML.toString() ).startsWith( "<webMessage " ) );
     }
 
     @Test
@@ -62,7 +62,7 @@ class EventControllerTest extends DhisControllerConvenienceTest
         HttpResponse response = POST( "/events?async=true", Body( "<events></events>" ), ContentType( APPLICATION_XML ),
             Accept( APPLICATION_XML ) );
         assertEquals( HttpStatus.OK, response.status() );
-        assertTrue( response.content( APPLICATION_XML ).startsWith( "<webMessage " ) );
+        assertTrue( response.content( APPLICATION_XML.toString() ).startsWith( "<webMessage " ) );
     }
 
     @Test

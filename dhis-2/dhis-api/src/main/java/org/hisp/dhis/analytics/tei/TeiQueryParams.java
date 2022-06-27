@@ -46,6 +46,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 @Builder( toBuilder = true )
 public class TeiQueryParams
 {
+
     private final TrackedEntityType trackedEntityType;
 
     private final CommonParams commonParams;

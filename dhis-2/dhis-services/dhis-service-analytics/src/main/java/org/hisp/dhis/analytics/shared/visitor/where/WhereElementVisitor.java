@@ -43,6 +43,7 @@ import org.hisp.dhis.analytics.shared.component.element.where.TeaValueWhereEleme
 @Getter
 public class WhereElementVisitor implements WhereVisitor
 {
+
     private final List<String> predicates = new ArrayList<>();
 
     /**
@@ -54,12 +55,12 @@ public class WhereElementVisitor implements WhereVisitor
     public void visit( TeaValueWhereElement element )
     {
         predicates.add( "(SELECT teav.VALUE" +
-            "       FROM trackedentityattributevalue teav," +
-            "            trackedentityattribute tea" +
-            "       WHERE teav.trackedentityinstanceid = t.trackedentityinstanceid" +
-            "         AND teav.trackedentityattributeid = tea.trackedentityattributeid" +
-            "         AND tea.uid = '" + element.getUid() + "'" +
-            "       LIMIT 1) = " + "'" + element.getFilterValue() + "'" );
+            " FROM trackedentityattributevalue teav," +
+            " trackedentityattribute tea" +
+            " WHERE teav.trackedentityinstanceid = t.trackedentityinstanceid" +
+            " AND teav.trackedentityattributeid = tea.trackedentityattributeid" +
+            " AND tea.uid = '" + element.getUid() + "'" +
+            " LIMIT 1) = " + "'" + element.getFilterValue() + "'" );
     }
 
     /**
@@ -71,13 +72,13 @@ public class WhereElementVisitor implements WhereVisitor
     public void visit( EnrollmentDateValueWhereElement element )
     {
         predicates.add( "exists(" +
-            "        SELECT 1" +
-            "        FROM programinstance pi," +
-            "             program p" +
-            "        WHERE pi.programid = p.programid" +
-            "          AND pi.trackedentityinstanceid = t.trackedentityinstanceid" +
-            "          AND p.uid IN ('" + String.join( "','", element.getProgramUidList() ) + "')" +
-            "          AND pi.enrollmentdate > '" + element.getDate() + "'" +
-            "    )" );
+            " SELECT 1" +
+            " FROM programinstance pi," +
+            " program p" +
+            " WHERE pi.programid = p.programid" +
+            " AND pi.trackedentityinstanceid = t.trackedentityinstanceid" +
+            " AND p.uid IN ('" + String.join( "','", element.getProgramUidList() ) + "')" +
+            " AND pi.enrollmentdate > '" + element.getDate() + "'" +
+            " )" );
     }
 }

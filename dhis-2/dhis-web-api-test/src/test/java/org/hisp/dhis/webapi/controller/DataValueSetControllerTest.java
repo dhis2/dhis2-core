@@ -27,21 +27,21 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.webapi.WebClient.Accept;
-import static org.hisp.dhis.webapi.WebClient.Body;
-import static org.hisp.dhis.webapi.WebClient.ContentType;
+import static org.hisp.dhis.web.WebClient.Accept;
+import static org.hisp.dhis.web.WebClient.Body;
+import static org.hisp.dhis.web.WebClient.ContentType;
+import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML_ADX;
-import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_XML;
 
+import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpStatus;
 
 /**
  * Tests the {@link DataValueSetController} using (mocked) REST requests.
@@ -78,7 +78,7 @@ class DataValueSetControllerTest extends DhisControllerConvenienceTest
     void testPostAdxDataValueSet()
     {
         String content = POST( "/38/dataValueSets/", Body( "<adx xmlns=\"urn:ihe:qrph:adx:2015\"></adx>" ),
-            ContentType( CONTENT_TYPE_XML_ADX ), Accept( CONTENT_TYPE_XML ) ).content( APPLICATION_XML );
+            ContentType( CONTENT_TYPE_XML_ADX ), Accept( CONTENT_TYPE_XML ) ).content( APPLICATION_XML.toString() );
         assertTrue( content.contains( "httpStatusCode=\"200\"" ) );
     }
 
@@ -86,7 +86,7 @@ class DataValueSetControllerTest extends DhisControllerConvenienceTest
     void testPostAdxDataValueSet_Async()
     {
         String content = POST( "/dataValueSets?async=true", Body( "<adx xmlns=\"urn:ihe:qrph:adx:2015\"></adx>" ),
-            ContentType( CONTENT_TYPE_XML_ADX ), Accept( CONTENT_TYPE_XML ) ).content( APPLICATION_XML );
+            ContentType( CONTENT_TYPE_XML_ADX ), Accept( CONTENT_TYPE_XML ) ).content( APPLICATION_XML.toString() );
         assertTrue( content.contains( "httpStatusCode=\"200\"" ) );
         assertTrue( content.contains( "Initiated dataValueImport" ) );
     }
@@ -97,7 +97,7 @@ class DataValueSetControllerTest extends DhisControllerConvenienceTest
         HttpResponse response = POST( "/37/dataValueSets/", Body( "<adx xmlns=\"urn:ihe:qrph:adx:2015\"></adx>" ),
             ContentType( CONTENT_TYPE_XML_ADX ), Accept( CONTENT_TYPE_XML ) );
         assertEquals( HttpStatus.OK, response.status() );
-        assertTrue( response.content( APPLICATION_XML ).startsWith( "<importSummary " ) );
+        assertTrue( response.content( APPLICATION_XML.toString() ).startsWith( "<importSummary " ) );
     }
 
     @Test
@@ -105,7 +105,7 @@ class DataValueSetControllerTest extends DhisControllerConvenienceTest
     {
         String content = POST( "/38/dataValueSets/",
             Body( "<dataValueSet xmlns=\"http://dhis2.org/schema/dxf/2.0\"></dataValueSet>" ),
-            ContentType( APPLICATION_XML ), Accept( CONTENT_TYPE_XML ) ).content( APPLICATION_XML );
+            ContentType( APPLICATION_XML ), Accept( CONTENT_TYPE_XML ) ).content( APPLICATION_XML.toString() );
         assertTrue( content.contains( "httpStatusCode=\"200\"" ) );
     }
 
@@ -114,7 +114,7 @@ class DataValueSetControllerTest extends DhisControllerConvenienceTest
     {
         String content = POST( "/dataValueSets?async=true",
             Body( "<dataValueSet xmlns=\"http://dhis2.org/schema/dxf/2.0\"></dataValueSet>" ),
-            ContentType( APPLICATION_XML ), Accept( CONTENT_TYPE_XML ) ).content( APPLICATION_XML );
+            ContentType( APPLICATION_XML ), Accept( CONTENT_TYPE_XML ) ).content( APPLICATION_XML.toString() );
         assertTrue( content.contains( "httpStatusCode=\"200\"" ) );
         assertTrue( content.contains( "Initiated dataValueImport" ) );
     }
@@ -126,7 +126,7 @@ class DataValueSetControllerTest extends DhisControllerConvenienceTest
             Body( "<dataValueSet xmlns=\"http://dhis2.org/schema/dxf/2.0\"></dataValueSet>" ),
             ContentType( APPLICATION_XML ), Accept( CONTENT_TYPE_XML ) );
         assertEquals( HttpStatus.OK, response.status() );
-        assertTrue( response.content( APPLICATION_XML ).startsWith( "<importSummary " ) );
+        assertTrue( response.content( APPLICATION_XML.toString() ).startsWith( "<importSummary " ) );
     }
 
     @Test
