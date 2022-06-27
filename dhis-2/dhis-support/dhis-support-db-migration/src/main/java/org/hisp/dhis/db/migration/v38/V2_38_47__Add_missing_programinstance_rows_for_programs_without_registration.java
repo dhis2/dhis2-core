@@ -52,6 +52,8 @@ public class V2_38_47__Add_missing_programinstance_rows_for_programs_without_reg
 {
     private static final String FETCH_PROGRAMS_MISSING_DEFAULT_PROGRAMINSTANCE = "select p.programid from program p where p.type='WITHOUT_REGISTRATION' and not exists (select pi.programinstanceid from programinstance pi where pi.programid = p.programid)";
 
+    public static final String INSERT_DEFAULT_PI_SQL = "insert into programinstance(programinstanceid,enrollmentdate,programid,status,followup,uid,created,lastupdated,incidentdate,createdatclient,lastupdatedatclient,deleted,storedby) values (nextval('programinstance_sequence'),now(),?,'ACTIVE','false',?,now(),now(),now(),now(),now(),'false','flyway');";
+
     @Override
     public void migrate( Context context )
         throws Exception
@@ -68,25 +70,23 @@ public class V2_38_47__Add_missing_programinstance_rows_for_programs_without_reg
         }
         catch ( SQLException e )
         {
-            log.error( "Flyway java migration error:", e );
             throw new FlywayException( e );
         }
 
         try ( PreparedStatement ps = context.getConnection()
             .prepareStatement(
-                "insert into programinstance(programinstanceid,enrollmentdate,programid,status,followup,uid,created,lastupdated,incidentdate,createdatclient,lastupdatedatclient,deleted,storedby)\n"
-                    + "values (nextval('programinstance_sequence'),now(),?,'ACTIVE','false',?,now(),now(),now(),now(),now(),'false','flyway');" ) )
+                INSERT_DEFAULT_PI_SQL ) )
         {
             for ( Long programId : programsWithMissingDefaultProgramInstance )
             {
                 ps.setLong( 1, programId );
                 ps.setString( 2, CodeGenerator.generateUid() );
-                ps.execute();
+                ps.addBatch();
             }
+            ps.executeBatch();
         }
         catch ( SQLException e )
         {
-            log.error( "Flyway java migration error:", e );
             throw new FlywayException( e );
         }
 
