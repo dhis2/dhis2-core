@@ -59,6 +59,7 @@ import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -84,6 +85,8 @@ public class GeoJsonImportController
     private final TaskExecutor taskExecutor;
 
     private final SessionFactory sessionFactory;
+
+    private final UserService userService;
 
     @PostMapping( value = "/geometry", consumes = { "application/geo+json", "application/json" } )
     public WebMessage postImport(
@@ -205,7 +208,7 @@ public class GeoJsonImportController
         {
             notifier.clear( config );
             notifier.notify( config, NotificationLevel.INFO, "GeoJSON import stared", false );
-            GeoJsonImportReport report = geoJsonService.importGeoData( params, data );
+            GeoJsonImportReport report = geoJsonService.importGeoData( reattachedParams(), data );
             notifier.notify( config, NotificationLevel.INFO, "GeoJSON import complete. " + report.getImportCount(),
                 true );
             notifier.addJobSummary( config, report, GeoJsonImportReport.class );
@@ -215,6 +218,16 @@ public class GeoJsonImportController
         public void handleError( Throwable ex )
         {
             notifier.notify( config, NotificationLevel.ERROR, "GeoJSON import failed: " + ex.getMessage(), true );
+        }
+
+        /**
+         * This is a work-around for the time being because the user otherwise
+         * is not attached to the session. What we should be using here instead
+         * is the CurrentUserDetails
+         */
+        private GeoJsonImportParams reattachedParams()
+        {
+            return params.toBuilder().user( userService.getUser( params.getUser().getUid() ) ).build();
         }
     }
 }

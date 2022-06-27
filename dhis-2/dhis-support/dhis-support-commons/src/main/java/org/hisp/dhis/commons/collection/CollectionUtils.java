@@ -37,6 +37,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -73,7 +74,7 @@ public class CollectionUtils
      *
      * @param <A>
      * @param <B>
-     * @param collection collection the collection of objects to map.
+     * @param collection the collection of objects to map.
      * @param mapper the mapping function.
      * @return a set of mapped objects.
      */
@@ -90,7 +91,7 @@ public class CollectionUtils
      *
      * @param <A>
      * @param <B>
-     * @param collection collection the collection of objects to map.
+     * @param collection the collection of objects to map.
      * @param mapper the mapping function.
      * @return a list of mapped objects.
      */
@@ -102,12 +103,29 @@ public class CollectionUtils
     }
 
     /**
-     * Returns the intersection of the given Collections.
+     * Returns the first matching item in the given collection based on the
+     * given predicate. Returns null if no match is found.
      *
      * @param <A>
-     * @param c1 the first Collection.
-     * @param c2 the second Collection.
-     * @return the intersection of the Collections.
+     * @param collection the collection.
+     * @param predicate the predicate.
+     * @return the first matching item, or null if no match is found.
+     */
+    public static <A> A firstMatch( Collection<A> collection, Predicate<A> predicate )
+    {
+        return collection.stream()
+            .filter( predicate )
+            .findFirst()
+            .orElse( null );
+    }
+
+    /**
+     * Returns the intersection of the given collections.
+     *
+     * @param <A>
+     * @param c1 the first collection.
+     * @param c2 the second collection.
+     * @return the intersection of the collections.
      */
     public static <A> Collection<A> intersection( Collection<A> c1, Collection<A> c2 )
     {

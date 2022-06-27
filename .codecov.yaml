@@ -1,3 +1,10 @@
+github_checks:
+    annotations: false
+
+codecov:
+  notify:
+      after_n_builds: 3 # 3 since we upload in 3 separate test jobs (unit, integration, integrationH2)
+
 coverage:
   status:
     project:

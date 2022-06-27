@@ -28,27 +28,29 @@
 package org.hisp.dhis.predictor;
 
 import static com.google.common.collect.Maps.immutableEntry;
+import static java.util.Collections.emptyList;
 import static org.hisp.dhis.predictor.PredictionContextGenerator.getContexts;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.FoundDimensionItemValue;
 import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
@@ -75,7 +77,11 @@ class PredictionContextGeneratorTest
 
     private final Period periodC = createPeriod( "202203" );
 
-    private final DataElement deA = createDataElement( 'A' );
+    private final CategoryCombo ccA = createCategoryCombo( 'D' );
+
+    private final CategoryOptionCombo cocD = createCategoryOptionCombo( ccA );
+
+    private final DataElement deA = createDataElement( 'A', ccA );
 
     private final DataElementOperand deaA = new DataElementOperand( deA, createCategoryOptionCombo( 'C' ) );
 
@@ -119,11 +125,18 @@ class PredictionContextGeneratorTest
     private final List<FoundDimensionItemValue> allValues = Lists.newArrayList( aocVal1, aocVal2, aocVal3, aocVal4,
         nonAocVal5, nonAocVal6 );
 
-    private final List<FoundDimensionItemValue> noValues = Collections.emptyList();
-
-    private final Map<DimensionalItemObject, Object> emptyValueMap = new HashMap<>();
+    private final List<FoundDimensionItemValue> noValues = emptyList();
 
     private final MapMap<Period, DimensionalItemObject, Object> emptyPeriodValueMap = new MapMap<>();
+
+    private final OrganisationUnitLevel ouLevel1 = new OrganisationUnitLevel( 1, "1" );
+
+    private final Expression expressionA = createExpression2( 'A', "1" );
+
+    private final Predictor predictorA = createPredictor( deA, cocD, "A", expressionA, null, periodA.getPeriodType(),
+        Set.of( ouLevel1 ), 0, 0, 0 );
+
+    private final PredictionDisaggregator preDisA = new PredictionDisaggregator( predictorA, cocD, emptyList() );
 
     // -------------------------------------------------------------------------
     // Format prediction contexts for ease of reading.
@@ -169,8 +182,7 @@ class PredictionContextGeneratorTest
     {
         return "( aoc:" + aocName.get( ctx.getAttributeOptionCombo() )
             + ", period:" + periodName.get( ctx.getOutputPeriod() )
-            + ", periodValueMap:" + formatPeriodValueMap( ctx.getPeriodValueMap() )
-            + ", valueMap:" + formatValueMap( ctx.getValueMap() ) + ")";
+            + ", periodValueMap:" + formatPeriodValueMap( ctx.getPeriodValueMap() ) + ")";
     }
 
     private String formatPeriodValueMap( MapMap<Period, DimensionalItemObject, Object> periodValueMap )
@@ -285,17 +297,17 @@ class PredictionContextGeneratorTest
         MapMap<Period, DimensionalItemObject, Object> aocBPeriodValueMap = MapMap.ofEntries(
             immutableEntry( periodC, aocBPerCValueMap ) );
 
-        PredictionContext expected1 = new PredictionContext( aocA, periodB, aocAPeriodValueMap, aocAPerBValueMap );
-        PredictionContext expected2 = new PredictionContext( aocA, periodC, aocAPeriodValueMap, emptyValueMap );
-        PredictionContext expected3 = new PredictionContext( aocB, periodB, aocBPeriodValueMap, emptyValueMap );
-        PredictionContext expected4 = new PredictionContext( aocB, periodC, aocBPeriodValueMap, aocBPerCValueMap );
+        PredictionContext expected1 = new PredictionContext( cocD, aocA, periodB, aocAPeriodValueMap );
+        PredictionContext expected2 = new PredictionContext( cocD, aocA, periodC, aocAPeriodValueMap );
+        PredictionContext expected3 = new PredictionContext( cocD, aocB, periodB, aocBPeriodValueMap );
+        PredictionContext expected4 = new PredictionContext( cocD, aocB, periodC, aocBPeriodValueMap );
 
         String formatted1 = formatPredictionContext( expected1 );
         String formatted2 = formatPredictionContext( expected2 );
         String formatted3 = formatPredictionContext( expected3 );
         String formatted4 = formatPredictionContext( expected4 );
 
-        List<PredictionContext> actual = getContexts( outputPeriods, aocValues, aocX );
+        List<PredictionContext> actual = getContexts( outputPeriods, aocValues, aocX, preDisA );
 
         List<String> actualFormatted = formatPredictionContextList( actual );
 
@@ -316,13 +328,13 @@ class PredictionContextGeneratorTest
         MapMap<Period, DimensionalItemObject, Object> aocXPeriodValueMap = MapMap.ofEntries(
             immutableEntry( periodB, aocXPerBValueMap ) );
 
-        PredictionContext expected1 = new PredictionContext( aocX, periodB, aocXPeriodValueMap, aocXPerBValueMap );
-        PredictionContext expected2 = new PredictionContext( aocX, periodC, aocXPeriodValueMap, emptyValueMap );
+        PredictionContext expected1 = new PredictionContext( cocD, aocX, periodB, aocXPeriodValueMap );
+        PredictionContext expected2 = new PredictionContext( cocD, aocX, periodC, aocXPeriodValueMap );
 
         String formatted1 = formatPredictionContext( expected1 );
         String formatted2 = formatPredictionContext( expected2 );
 
-        List<PredictionContext> actual = getContexts( outputPeriods, nonAocValues, aocX );
+        List<PredictionContext> actual = getContexts( outputPeriods, nonAocValues, aocX, preDisA );
 
         List<String> actualFormatted = formatPredictionContextList( actual );
 
@@ -361,17 +373,17 @@ class PredictionContextGeneratorTest
             immutableEntry( periodB, aocBPerBValueMap ),
             immutableEntry( periodC, aocBPerCValueMap ) );
 
-        PredictionContext expected1 = new PredictionContext( aocA, periodB, aocAPeriodValueMap, aocAPerBValueMap );
-        PredictionContext expected2 = new PredictionContext( aocA, periodC, aocAPeriodValueMap, emptyValueMap );
-        PredictionContext expected3 = new PredictionContext( aocB, periodB, aocBPeriodValueMap, aocBPerBValueMap );
-        PredictionContext expected4 = new PredictionContext( aocB, periodC, aocBPeriodValueMap, aocBPerCValueMap );
+        PredictionContext expected1 = new PredictionContext( cocD, aocA, periodB, aocAPeriodValueMap );
+        PredictionContext expected2 = new PredictionContext( cocD, aocA, periodC, aocAPeriodValueMap );
+        PredictionContext expected3 = new PredictionContext( cocD, aocB, periodB, aocBPeriodValueMap );
+        PredictionContext expected4 = new PredictionContext( cocD, aocB, periodC, aocBPeriodValueMap );
 
         String formatted1 = formatPredictionContext( expected1 );
         String formatted2 = formatPredictionContext( expected2 );
         String formatted3 = formatPredictionContext( expected3 );
         String formatted4 = formatPredictionContext( expected4 );
 
-        List<PredictionContext> actual = getContexts( outputPeriods, allValues, aocX );
+        List<PredictionContext> actual = getContexts( outputPeriods, allValues, aocX, preDisA );
 
         List<String> actualFormatted = formatPredictionContextList( actual );
 
@@ -383,13 +395,13 @@ class PredictionContextGeneratorTest
     @Test
     void testGetContextsWithNoData()
     {
-        PredictionContext expected1 = new PredictionContext( aocX, periodB, emptyPeriodValueMap, emptyValueMap );
-        PredictionContext expected2 = new PredictionContext( aocX, periodC, emptyPeriodValueMap, emptyValueMap );
+        PredictionContext expected1 = new PredictionContext( cocD, aocX, periodB, emptyPeriodValueMap );
+        PredictionContext expected2 = new PredictionContext( cocD, aocX, periodC, emptyPeriodValueMap );
 
         String formatted1 = formatPredictionContext( expected1 );
         String formatted2 = formatPredictionContext( expected2 );
 
-        List<PredictionContext> actual = getContexts( outputPeriods, noValues, aocX );
+        List<PredictionContext> actual = getContexts( outputPeriods, noValues, aocX, preDisA );
 
         List<String> actualFormatted = formatPredictionContextList( actual );
 
