@@ -27,11 +27,14 @@
  */
 package org.hisp.dhis.dxf2.metadata.version;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Date;
 import java.util.List;
@@ -48,14 +51,11 @@ import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.MetadataVersionService;
 import org.hisp.dhis.metadata.version.VersionType;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author sultanm
  */
-@ExtendWith( MockitoExtension.class )
 class DefaultMetadataVersionServiceTest extends TransactionalIntegrationTest
 {
     @Autowired
@@ -74,20 +74,9 @@ class DefaultMetadataVersionServiceTest extends TransactionalIntegrationTest
 
     private MetadataVersion versionB;
 
-    public static boolean compareVersionsUtil( MetadataVersion v1, MetadataVersion v2 )
-    {
-        if ( v1 == null && v2 == null )
-        {
-            return true;
-        }
-        else if ( v1 == null || v2 == null )
-        {
-            return false;
-        }
+    private Date startDate;
 
-        return (v1.getCreated() == v2.getCreated()) && (v1.getName().equals( v2.getName() ))
-            && (v1.getType() == v2.getType());
-    }
+    private Date endDate;
 
     // -------------------------------------------------------------------------
     // Tests
@@ -102,23 +91,28 @@ class DefaultMetadataVersionServiceTest extends TransactionalIntegrationTest
     @Override
     protected void setUpTest()
     {
+        startDate = new Date();
         versionA = new MetadataVersion( "Version_1", VersionType.ATOMIC );
         versionA.setHashCode( "12345" );
+        versionA.setCreated( startDate );
         versionB = new MetadataVersion( "Version_2", VersionType.BEST_EFFORT );
+        versionB.setCreated( DateUtils.addHours( startDate, 1 ) );
         versionB.setHashCode( "abcdef" );
+        endDate = DateUtils.addDays( startDate, 1 );
     }
 
     @Test
     void testShouldAddVersions()
     {
         long idA = versionService.addVersion( versionA );
-        long idB = versionService.addVersion( versionB );
 
         assertTrue( idA >= 0 );
-        assertTrue( idB >= 0 );
+        assertEqualMetadataVersions( versionA, versionService.getVersionById( idA ) );
 
-        assertTrue( compareVersionsUtil( versionA, versionService.getVersionById( idA ) ) );
-        assertTrue( compareVersionsUtil( versionB, versionService.getVersionById( idB ) ) );
+        long idB = versionService.addVersion( versionB );
+
+        assertTrue( idB >= 0 );
+        assertEqualMetadataVersions( versionB, versionService.getVersionById( idB ) );
     }
 
     @Test
@@ -136,28 +130,28 @@ class DefaultMetadataVersionServiceTest extends TransactionalIntegrationTest
     {
         long idA = versionService.addVersion( versionA );
 
-        assertTrue( compareVersionsUtil( versionA, versionService.getVersionById( idA ) ) );
+        assertEqualMetadataVersions( versionA, versionService.getVersionById( idA ) );
 
         versionService.addVersion( versionB );
 
-        assertTrue( compareVersionsUtil( versionB, versionService.getVersionByName( "Version_2" ) ) );
+        assertEqualMetadataVersions( versionB, versionService.getVersionByName( "Version_2" ) );
     }
 
     @Test
     void testShouldReturnTheLatestVersion()
     {
         versionService.addVersion( versionA );
-        sleepFor( 100 );
+        dbmsManager.clearSession();
         versionService.addVersion( versionB );
 
-        assertTrue( compareVersionsUtil( versionB, versionService.getCurrentVersion() ) );
+        assertEqualMetadataVersions( versionB, versionService.getCurrentVersion() );
     }
 
     @Test
     void testGetInitialVersion()
     {
         versionService.addVersion( versionA );
-        sleepFor( 100 );
+        dbmsManager.clearSession();
         versionService.addVersion( versionB );
 
         assertEquals( versionA, versionService.getInitialVersion() );
@@ -166,25 +160,24 @@ class DefaultMetadataVersionServiceTest extends TransactionalIntegrationTest
     @Test
     void testShouldReturnVersionsBetweenGivenTimeStamps()
     {
-        List<MetadataVersion> versions = null;
-        Date startDate = new Date();
+        List<MetadataVersion> versions;
         versionService.addVersion( versionA );
-        versions = versionService.getAllVersionsInBetween( startDate, new Date() );
+        versions = versionService.getAllVersionsInBetween( startDate, endDate );
 
         assertEquals( 1, versions.size() );
-        assertTrue( compareVersionsUtil( versionA, versions.get( 0 ) ) );
+        assertEqualMetadataVersions( versionA, versions.get( 0 ) );
 
         versionService.addVersion( versionB );
-        versions = versionService.getAllVersionsInBetween( startDate, new Date() );
+        versions = versionService.getAllVersionsInBetween( startDate, endDate );
 
         assertEquals( 2, versions.size() );
-        assertTrue( compareVersionsUtil( versionB, versions.get( 1 ) ) );
+        assertEqualMetadataVersions( versionB, versions.get( 1 ) );
 
-        Date dateBetweenAandB = DateUtils.addMilliseconds( versions.get( 0 ).getCreated(), 1 );
-        versions = versionService.getAllVersionsInBetween( dateBetweenAandB, new Date() );
+        Date dateBetweenAandB = DateUtils.addMinutes( versionA.getCreated(), 1 );
+        versions = versionService.getAllVersionsInBetween( dateBetweenAandB, endDate );
 
         assertEquals( 1, versions.size() );
-        assertTrue( compareVersionsUtil( versionB, versions.get( 0 ) ) );
+        assertEqualMetadataVersions( versionB, versions.get( 0 ) );
     }
 
     @Test
@@ -218,7 +211,7 @@ class DefaultMetadataVersionServiceTest extends TransactionalIntegrationTest
         assertEquals( metadataVersionSnap.getHashCode(), versionService.getCurrentVersion().getHashCode() );
 
         // testing if correct version is saved in keyjsonvalue table
-        List<String> versions = null;
+        List<String> versions;
         versions = metaDataDatastoreService.getAllVersions();
 
         assertEquals( 1, versions.size() );
@@ -226,7 +219,7 @@ class DefaultMetadataVersionServiceTest extends TransactionalIntegrationTest
 
         DataElement de1 = createDataElement( 'A' );
         manager.save( de1 );
-        sleepFor( 100 );
+        dbmsManager.clearSession();
 
         versionService.saveVersion( VersionType.BEST_EFFORT );
         DatastoreEntry expectedJson = metaDataDatastoreService.getMetaDataVersion( "Version_3" );
@@ -234,7 +227,7 @@ class DefaultMetadataVersionServiceTest extends TransactionalIntegrationTest
 
         assertEquals( 2, allVersions.size() );
         assertEquals( "Version_3", allVersions.get( 1 ) );
-        assertEquals( true, expectedJson.getJbPlainValue().contains( "DataElementA" ) );
+        assertTrue( expectedJson.getJbPlainValue().contains( "DataElementA" ) );
     }
 
     @Test
@@ -243,17 +236,17 @@ class DefaultMetadataVersionServiceTest extends TransactionalIntegrationTest
         versionService.addVersion( versionA );
         DataElement de1 = createDataElement( 'A' );
         manager.save( de1 );
-        sleepFor( 100 );
+        dbmsManager.clearSession();
         versionService.saveVersion( VersionType.BEST_EFFORT );
         de1 = createDataElement( 'B' );
         manager.save( de1 );
-        sleepFor( 100 );
+        dbmsManager.clearSession();
         versionService.saveVersion( VersionType.BEST_EFFORT );
 
         DatastoreEntry expectedJson = metaDataDatastoreService.getMetaDataVersion( "Version_3" );
 
-        assertEquals( false, expectedJson.getJbPlainValue().contains( "DataElementA" ) );
-        assertEquals( true, expectedJson.getJbPlainValue().contains( "DataElementB" ) );
+        assertFalse( expectedJson.getJbPlainValue().contains( "DataElementA" ) );
+        assertTrue( expectedJson.getJbPlainValue().contains( "DataElementB" ) );
     }
 
     @Test
@@ -267,7 +260,7 @@ class DefaultMetadataVersionServiceTest extends TransactionalIntegrationTest
     @Test
     void testShouldReturnNullWhenAVersionDoesNotExist()
     {
-        assertEquals( null, versionService.getVersionData( "myNonExistingVersion" ) );
+        assertNull( versionService.getVersionData( "myNonExistingVersion" ) );
     }
 
     @Test
@@ -301,19 +294,20 @@ class DefaultMetadataVersionServiceTest extends TransactionalIntegrationTest
             () -> versionService.isMetadataPassingIntegrity( null, null ) );
     }
 
-    // --------------------------------------------------------------------------
-    // Supportive methods
-    // --------------------------------------------------------------------------
-
-    private void sleepFor( int time )
+    public static void assertEqualMetadataVersions( MetadataVersion v1, MetadataVersion v2 )
     {
-        try
+        if ( v1 == null && v2 == null )
         {
-            Thread.sleep( time );
+            return;
         }
-        catch ( InterruptedException e )
+        else if ( v1 == null || v2 == null )
         {
-            e.printStackTrace();
+            fail( String.format( "Either both versions or none must be null. v1: %s, v2: %s", v1, v2 ) );
         }
+
+        assertAll(
+            () -> assertEquals( v1.getCreated(), v2.getCreated(), "date must match" ),
+            () -> assertEquals( v1.getName(), v2.getName(), "name must match" ),
+            () -> assertEquals( v1.getType(), v2.getType(), "type must match" ) );
     }
 }

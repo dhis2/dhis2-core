@@ -53,7 +53,10 @@ import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.GenericDimensionalObjectStore;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dashboard.Dashboard;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
@@ -334,6 +337,19 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             .addPredicate( root -> builder.equal( root.get( "uid" ), uid ) );
 
         return getSingleResult( builder, param );
+    }
+
+    @Override
+    public final T loadByUid( String uid )
+    {
+        T object = getByUid( uid );
+
+        if ( object == null )
+        {
+            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E1113, getClazz().getSimpleName(), uid ) );
+        }
+
+        return object;
     }
 
     @Override

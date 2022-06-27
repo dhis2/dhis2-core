@@ -49,6 +49,7 @@ public enum ErrorCode
     E1108( "Could not add item to collection: {0}" ),
     E1109( "Could not remove item from collection: {0}" ),
     E1112( "Object(s) of type `{0}` not found or not accessible: `{1}`" ),
+    E1113( "Object of type `{0}` not found or not accessible: `{1}`" ),
 
     /* Org unit merge */
     E1500( "At least two source orgs unit must be specified" ),

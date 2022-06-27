@@ -25,63 +25,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.security.apikey;
+package org.hisp.dhis.trackedentity;
 
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
-import org.hisp.dhis.security.apikey.ApiToken;
-import org.hisp.dhis.user.User;
-import org.springframework.security.authentication.AbstractAuthenticationToken;
-import org.springframework.security.core.userdetails.UserDetails;
+import lombok.Data;
+import lombok.experimental.Accessors;
+
+import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageInstance;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * Encapsulation of a web API request for tracked entity data value audit
+ * records.
+ *
+ * @author Lars Helge Overland
  */
-public class ApiTokenAuthenticationToken extends AbstractAuthenticationToken
+@Data
+@Accessors( chain = true )
+public class TrackedEntityDataValueAuditQueryParams
 {
-    private String tokenKey;
+    private List<DataElement> dataElements = new ArrayList<>();
 
-    private ApiToken tokenRef;
+    private List<OrganisationUnit> orgUnits = new ArrayList<>();
 
-    private User user;
+    private List<ProgramStageInstance> programStageInstances = new ArrayList<>();
 
-    public ApiTokenAuthenticationToken( String tokenKey )
+    private List<ProgramStage> programStages = new ArrayList<>();
+
+    private Date startDate;
+
+    private Date endDate;
+
+    private AuditType auditType;
+
+    private Pager pager;
+
+    public boolean hasPaging()
     {
-        super( Collections.emptyList() );
-        this.tokenKey = tokenKey;
-    }
-
-    public ApiTokenAuthenticationToken( ApiToken token, User user )
-    {
-        super( user.getAuthorities() );
-        this.tokenRef = token;
-        this.user = user;
-    }
-
-    @Override
-    public User getCredentials()
-    {
-        return this.user;
-    }
-
-    @Override
-    public UserDetails getPrincipal()
-    {
-        return this.user;
-    }
-
-    public String getTokenKey()
-    {
-        return tokenKey;
-    }
-
-    public void setTokenKey( String tokenKey )
-    {
-        this.tokenKey = tokenKey;
-    }
-
-    public ApiToken getToken()
-    {
-        return this.tokenRef;
+        return pager != null;
     }
 }

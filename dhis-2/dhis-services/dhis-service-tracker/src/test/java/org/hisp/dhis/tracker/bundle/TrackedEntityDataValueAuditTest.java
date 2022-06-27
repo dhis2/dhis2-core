@@ -39,6 +39,7 @@ import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityDataValueAuditQueryParams;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
 import org.hisp.dhis.tracker.TrackerImportParams;
@@ -48,8 +49,6 @@ import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import com.google.common.collect.Lists;
 
 /**
  * @author Zubair Asghar
@@ -106,11 +105,20 @@ public class TrackedEntityDataValueAuditTest extends TrackerTest
         assertEquals( psi.getUid(), PSI );
 
         List<TrackedEntityDataValueAudit> createdAudit = dataValueAuditService.getTrackedEntityDataValueAudits(
-            Lists.newArrayList( dataElement ), Lists.newArrayList( psi ), AuditType.CREATE );
+            new TrackedEntityDataValueAuditQueryParams()
+                .setDataElements( List.of( dataElement ) )
+                .setProgramStageInstances( List.of( psi ) )
+                .setAuditType( AuditType.CREATE ) );
         List<TrackedEntityDataValueAudit> updatedAudit = dataValueAuditService.getTrackedEntityDataValueAudits(
-            Lists.newArrayList( dataElement ), Lists.newArrayList( psi ), AuditType.UPDATE );
+            new TrackedEntityDataValueAuditQueryParams()
+                .setDataElements( List.of( dataElement ) )
+                .setProgramStageInstances( List.of( psi ) )
+                .setAuditType( AuditType.UPDATE ) );
         List<TrackedEntityDataValueAudit> deletedAudit = dataValueAuditService.getTrackedEntityDataValueAudits(
-            Lists.newArrayList( dataElement ), Lists.newArrayList( psi ), AuditType.DELETE );
+            new TrackedEntityDataValueAuditQueryParams()
+                .setDataElements( List.of( dataElement ) )
+                .setProgramStageInstances( List.of( psi ) )
+                .setAuditType( AuditType.DELETE ) );
 
         assertNotNull( createdAudit );
         assertNotNull( updatedAudit );

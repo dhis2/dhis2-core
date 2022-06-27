@@ -207,7 +207,7 @@ class UserControllerTest extends DhisControllerConvenienceTest
     {
         JsonWebMessage msg = assertWebMessage( "Conflict", 409, "ERROR",
             "One or more errors occurred, please see full details in import report.",
-            POST( "/users/", "{'surname':'S.','firstName':'Harry','userCredentials':{'username':'Harrys'}}" )
+            POST( "/users/", "{'surname':'S.','firstName':'Harry','userCredentials':{'username':'_Harrys'}}" )
                 .content( HttpStatus.CONFLICT ) );
         JsonErrorReport report = msg.getResponse()
             .find( JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E4049 );
