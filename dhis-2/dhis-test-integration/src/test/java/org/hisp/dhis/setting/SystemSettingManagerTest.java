@@ -45,7 +45,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -55,7 +55,7 @@ import com.google.common.collect.ImmutableSet;
  * @author Stian Strandli
  * @author Lars Helge Overland
  */
-class SystemSettingManagerTest extends DhisSpringTest
+class SystemSettingManagerTest extends SingleSetupIntegrationTestBase
 {
 
     @Autowired
