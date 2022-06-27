@@ -84,8 +84,6 @@ public class AnalyticsSetupExtension implements BeforeAllCallback
             new SystemActions().waitUntilTaskCompleted( "ANALYTICS_TABLE", analyticsTaskId, TIMEOUT )
                 .validate()
                 .statusCode( 200 )
-                .body( "[0].uid", equalTo( analyticsTaskId ) )
-                .body( "[0].id", equalTo( analyticsTaskId ) )
                 .body( "[0].category", equalTo( "ANALYTICS_TABLE" ) )
                 .body( "[0].message", equalTo( "Analytics tables updated" ) );
 
