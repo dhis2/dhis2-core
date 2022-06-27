@@ -25,23 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.event;
+package org.hisp.dhis.analytics;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 
+import java.util.List;
+
 import org.hisp.dhis.dto.ApiResponse;
 
 /**
- * Helper class to assist during the validation/assertion in e2e tests for
- * Events.
+ * Helper class to assist during the validation/assertion in e2e analytics
+ * tests.
  *
  * @author maikel arabori
  */
-public class EventValidationHelper
+public class ValidationHelper
 {
 
-    private EventValidationHelper()
+    private ValidationHelper()
     {
     }
 
@@ -51,7 +53,7 @@ public class EventValidationHelper
      * value.
      *
      * @param response
-     * @param index of the header
+     * @param headerIndex of the header
      * @param name
      * @param column
      * @param valueType
@@ -59,15 +61,28 @@ public class EventValidationHelper
      * @param hidden
      * @param meta
      */
-    public static void validateHeader( final ApiResponse response, final int index, final String name,
+    public static void validateHeader( final ApiResponse response, final int headerIndex, final String name,
         final String column, final String valueType, final String type, final boolean hidden, final boolean meta )
     {
         response.validate()
-            .body( "headers[" + index + "].name", equalTo( name ) )
-            .body( "headers[" + index + "].column", equalTo( column ) )
-            .body( "headers[" + index + "].valueType", equalTo( valueType ) )
-            .body( "headers[" + index + "].type", equalTo( type ) )
-            .body( "headers[" + index + "].hidden", is( hidden ) )
-            .body( "headers[" + index + "].meta", is( meta ) );
+            .body( "headers[" + headerIndex + "].name", equalTo( name ) )
+            .body( "headers[" + headerIndex + "].column", equalTo( column ) )
+            .body( "headers[" + headerIndex + "].valueType", equalTo( valueType ) )
+            .body( "headers[" + headerIndex + "].type", equalTo( type ) )
+            .body( "headers[" + headerIndex + "].hidden", is( hidden ) )
+            .body( "headers[" + headerIndex + "].meta", is( meta ) );
+    }
+
+    /**
+     * Validate/assert that all values of the given row are present in the given
+     * response.
+     *
+     * @param response
+     * @param expectedValues
+     */
+    public static void validateRow( final ApiResponse response, final int rowIndex, final List<String> expectedValues )
+    {
+        response.validate()
+            .body( "rows[" + rowIndex + "]", equalTo( expectedValues ) );
     }
 }
