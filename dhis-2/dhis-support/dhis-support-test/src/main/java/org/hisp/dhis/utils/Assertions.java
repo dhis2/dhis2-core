@@ -28,6 +28,7 @@
 package org.hisp.dhis.utils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -86,5 +87,17 @@ public final class Assertions
         K ex = assertThrows( expectedType, executable );
 
         assertEquals( errorCode, ex.getErrorCode() );
+    }
+
+    /**
+     * Asserts that the given collection is not null and empty.
+     *
+     * @param <E>
+     * @param actual the collection.
+     */
+    public static <E> void assertIsEmpty( Collection<E> actual )
+    {
+        assertNotNull( actual );
+        assertTrue( actual.isEmpty() );
     }
 }

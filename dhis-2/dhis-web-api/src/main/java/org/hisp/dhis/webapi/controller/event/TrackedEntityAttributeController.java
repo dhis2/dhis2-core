@@ -146,7 +146,7 @@ public class TrackedEntityAttributeController
 
         Map<String, String> values = getRequiredValues( attribute, params );
 
-        Date expiration = DateUtils.getDateAfterAddition( new Date(), daysToLive );
+        Date expiration = DateUtils.addDays( new Date(), daysToLive );
 
         try
         {

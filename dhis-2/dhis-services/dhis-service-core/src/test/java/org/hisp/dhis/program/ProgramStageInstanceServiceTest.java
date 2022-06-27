@@ -55,6 +55,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.trackedentity.TrackedEntityDataValueAuditQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -374,8 +375,11 @@ class ProgramStageInstanceServiceTest extends DhisSpringTest
             .getProgramStageInstance( programStageInstanceA.getUid() );
         assertEquals( 4, tempPsiA.getEventDataValues().size() );
         // Check that there are 4 audits of CREATE type
-        long auditCreateCount = dataValueAuditService.countTrackedEntityDataValueAudits( dataElements,
-            Collections.singletonList( programStageInstanceA ), AuditType.CREATE );
+        long auditCreateCount = dataValueAuditService.countTrackedEntityDataValueAudits(
+            new TrackedEntityDataValueAuditQueryParams()
+                .setDataElements( dataElements )
+                .setProgramStageInstances( List.of( programStageInstanceA ) )
+                .setAuditType( AuditType.CREATE ) );
         assertEquals( 4, auditCreateCount );
         // Fetch value of the EventDataValueB and compare that it is correct
         String eventDataValueBValue = tempPsiA.getEventDataValues().stream()
@@ -400,7 +404,7 @@ class ProgramStageInstanceServiceTest extends DhisSpringTest
         Set<EventDataValue> updatedEventDataValues = new HashSet<>(
             Arrays.asList( eventDataValueA, eventDataValueB, eventDataValueC ) );
         // Update PSI: create 0, update 3, delete 1
-        programStageInstanceService.auditDataValuesChangesAndHandleFileDataValues( Collections.emptySet(),
+        programStageInstanceService.auditDataValuesChangesAndHandleFileDataValues( Set.of(),
             updatedEventDataValues, Collections.singleton( eventDataValueD ), convertToMap( dataElementMap ),
             programStageInstanceA, false );
         programStageInstanceService.updateProgramStageInstance( programStageInstanceA );
@@ -410,14 +414,23 @@ class ProgramStageInstanceServiceTest extends DhisSpringTest
         assertEquals( 3, tempPsiA.getEventDataValues().size() );
         // Check that there are 4 audits of CREATE type, 3 of UPDATE type and 1
         // of DELETE type
-        long auditCreateCount = dataValueAuditService.countTrackedEntityDataValueAudits( dataElements,
-            Collections.singletonList( programStageInstanceA ), AuditType.CREATE );
+        long auditCreateCount = dataValueAuditService.countTrackedEntityDataValueAudits(
+            new TrackedEntityDataValueAuditQueryParams()
+                .setDataElements( dataElements )
+                .setProgramStageInstances( List.of( programStageInstanceA ) )
+                .setAuditType( AuditType.CREATE ) );
         assertEquals( 4, auditCreateCount );
-        long auditUpdateCount = dataValueAuditService.countTrackedEntityDataValueAudits( dataElements,
-            Collections.singletonList( programStageInstanceA ), AuditType.UPDATE );
+        long auditUpdateCount = dataValueAuditService.countTrackedEntityDataValueAudits(
+            new TrackedEntityDataValueAuditQueryParams()
+                .setDataElements( dataElements )
+                .setProgramStageInstances( List.of( programStageInstanceA ) )
+                .setAuditType( AuditType.UPDATE ) );
         assertEquals( 3, auditUpdateCount );
-        long auditDeleteCount = dataValueAuditService.countTrackedEntityDataValueAudits( dataElements,
-            Collections.singletonList( programStageInstanceA ), AuditType.DELETE );
+        long auditDeleteCount = dataValueAuditService.countTrackedEntityDataValueAudits(
+            new TrackedEntityDataValueAuditQueryParams()
+                .setDataElements( dataElements )
+                .setProgramStageInstances( List.of( programStageInstanceA ) )
+                .setAuditType( AuditType.DELETE ) );
         assertEquals( 1, auditDeleteCount );
         // Fetch value of the EventDataValueB and compare that it is correct
         String eventDataValueBValue = tempPsiA.getEventDataValues().stream()
@@ -436,8 +449,8 @@ class ProgramStageInstanceServiceTest extends DhisSpringTest
         // Update 1 EventDataVaue and run a "SingleValue" update and check that
         // others, not mentioned, EventDataValues are not touched
         eventDataValueB.setValue( "22" );
-        programStageInstanceService.auditDataValuesChangesAndHandleFileDataValues( Collections.emptySet(),
-            Collections.singleton( eventDataValueB ), Collections.emptySet(), convertToMap( dataElementMap ),
+        programStageInstanceService.auditDataValuesChangesAndHandleFileDataValues( Set.of(),
+            Collections.singleton( eventDataValueB ), Set.of(), convertToMap( dataElementMap ),
             programStageInstanceA, true );
         programStageInstanceService.updateProgramStageInstance( programStageInstanceA );
         // Check that there are 4 EventDataValues
@@ -446,14 +459,23 @@ class ProgramStageInstanceServiceTest extends DhisSpringTest
         assertEquals( 4, tempPsiA.getEventDataValues().size() );
         // Check that there are 4 audits of CREATE type, 3 of UPDATE type and 1
         // of DELETE type
-        long auditCreateCount = dataValueAuditService.countTrackedEntityDataValueAudits( dataElements,
-            Collections.singletonList( programStageInstanceA ), AuditType.CREATE );
+        long auditCreateCount = dataValueAuditService.countTrackedEntityDataValueAudits(
+            new TrackedEntityDataValueAuditQueryParams()
+                .setDataElements( dataElements )
+                .setProgramStageInstances( List.of( programStageInstanceA ) )
+                .setAuditType( AuditType.CREATE ) );
         assertEquals( 4, auditCreateCount );
-        long auditUpdateCount = dataValueAuditService.countTrackedEntityDataValueAudits( dataElements,
-            Collections.singletonList( programStageInstanceA ), AuditType.UPDATE );
+        long auditUpdateCount = dataValueAuditService.countTrackedEntityDataValueAudits(
+            new TrackedEntityDataValueAuditQueryParams()
+                .setDataElements( dataElements )
+                .setProgramStageInstances( List.of( programStageInstanceA ) )
+                .setAuditType( AuditType.UPDATE ) );
         assertEquals( 1, auditUpdateCount );
-        long auditDeleteCount = dataValueAuditService.countTrackedEntityDataValueAudits( dataElements,
-            Collections.singletonList( programStageInstanceA ), AuditType.DELETE );
+        long auditDeleteCount = dataValueAuditService.countTrackedEntityDataValueAudits(
+            new TrackedEntityDataValueAuditQueryParams()
+                .setDataElements( dataElements )
+                .setProgramStageInstances( List.of( programStageInstanceA ) )
+                .setAuditType( AuditType.DELETE ) );
         assertEquals( 0, auditDeleteCount );
         // Fetch value of the EventDataValueB and compare that it is correct
         String eventDataValueBValue = tempPsiA.getEventDataValues().stream()
@@ -480,7 +502,7 @@ class ProgramStageInstanceServiceTest extends DhisSpringTest
         Set<EventDataValue> newEventDataValues = new HashSet<>(
             Arrays.asList( eventDataValueA, eventDataValueB, eventDataValueC, eventDataValueD ) );
         programStageInstanceService.auditDataValuesChangesAndHandleFileDataValues( newEventDataValues,
-            Collections.emptySet(), Collections.emptySet(), convertToMap( dataElementMap ), programStageInstanceA,
+            Set.of(), Set.of(), convertToMap( dataElementMap ), programStageInstanceA,
             false );
         programStageInstanceService.updateProgramStageInstance( programStageInstanceA );
     }
