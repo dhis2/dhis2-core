@@ -52,7 +52,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUser;
@@ -88,8 +87,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 public class SystemSettingController
 {
     private final SystemSettingManager systemSettingManager;
-
-    private final RenderService renderService;
 
     private final UserSettingService userSettingService;
 

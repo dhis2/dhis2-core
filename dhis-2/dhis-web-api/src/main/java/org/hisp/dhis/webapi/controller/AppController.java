@@ -250,7 +250,7 @@ public class AppController
                 response.setContentType( mimeType );
             }
 
-            response.setContentLength( (int) resource.contentLength() );
+            response.setContentLengthLong( resource.contentLength() );
             response.setHeader( "Last-Modified", DateUtils.getHttpDateString( new Date( resource.lastModified() ) ) );
 
             StreamUtils.copyThenCloseInputStream( resource.getInputStream(), response.getOutputStream() );

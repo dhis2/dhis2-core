@@ -31,7 +31,6 @@ import java.util.Date;
 import java.util.List;
 
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
@@ -40,7 +39,6 @@ import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
 import org.hisp.dhis.schema.descriptors.ProgramNotificationInstanceSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -55,33 +53,22 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 @RequestMapping( value = ProgramNotificationInstanceSchemaDescriptor.API_ENDPOINT )
 @ApiVersion( include = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class ProgarmNotificationInstanceController
+public class ProgramNotificationInstanceController
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final ProgramNotificationInstanceService programNotificationInstanceService;
 
     private final ProgramInstanceService programInstanceService;
 
     private final ProgramStageInstanceService programStageInstanceService;
 
-    private final ContextService contextService;
-
-    private final FieldFilterService fieldFilterService;
-
-    public ProgarmNotificationInstanceController(
+    public ProgramNotificationInstanceController(
         ProgramNotificationInstanceService programNotificationInstanceService,
         ProgramInstanceService programInstanceService,
-        ProgramStageInstanceService programStageInstanceService, ContextService contextService,
-        FieldFilterService fieldFilterService )
+        ProgramStageInstanceService programStageInstanceService )
     {
         this.programNotificationInstanceService = programNotificationInstanceService;
         this.programInstanceService = programInstanceService;
         this.programStageInstanceService = programStageInstanceService;
-        this.contextService = contextService;
-        this.fieldFilterService = fieldFilterService;
     }
 
     // -------------------------------------------------------------------------
