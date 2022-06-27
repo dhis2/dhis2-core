@@ -159,7 +159,8 @@ class ValidationUtilsTest
         assertTrue( usernameIsValid( "ted@johnson.com", false ) );
         assertTrue( usernameIsValid( "harry@gmail.com", false ) );
         assertTrue( usernameIsValid( "har_ry@gmail.com", false ) );
-        assertFalse( usernameIsValid( "Harry@gmail.com", false ) );
+        assertTrue( usernameIsValid( "Harry@gmail.com", false ) );
+        assertTrue( usernameIsValid( "TeD@johnSon.com", false ) );
         assertFalse( usernameIsValid( "_harry@gmail.com", false ) );
         assertFalse( usernameIsValid( "harry@gmail.com_", false ) );
         assertFalse( usernameIsValid( ".harry@gmail.com", false ) );
