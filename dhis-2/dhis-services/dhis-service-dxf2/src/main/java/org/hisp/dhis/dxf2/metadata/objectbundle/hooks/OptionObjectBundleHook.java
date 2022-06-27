@@ -76,6 +76,45 @@ public class OptionObjectBundleHook extends AbstractObjectBundleHook<Option>
         }
     }
 
+    @Override
+    public void preUpdate( Option option, Option persistedObject, ObjectBundle bundle )
+    {
+        if ( option.getOptionSet() == null )
+        {
+            return;
+        }
+
+        OptionSet optionSet = bundle.getPreheat().get( bundle.getPreheatIdentifier(), OptionSet.class,
+            option.getOptionSet().getUid() );
+
+        if ( optionSet != null )
+        {
+            // Remove the existed option from OptionSet, will add the updating
+            // one
+            // in postUpdate()
+            optionSet.getOptions().remove( persistedObject );
+        }
+    }
+
+    @Override
+    public void postUpdate( Option option, ObjectBundle bundle )
+    {
+        if ( option.getOptionSet() == null )
+        {
+            return;
+        }
+
+        OptionSet optionSet = bundle.getPreheat().get( bundle.getPreheatIdentifier(), OptionSet.class,
+            option.getOptionSet().getUid() );
+
+        if ( optionSet != null )
+        {
+            // Add the updated Option to OptionSet, this will allow Hibernate to
+            // re-organize sortOrder gaps if any.
+            optionSet.addOption( option );
+        }
+    }
+
     /**
      * Check for duplication of Option's name OR code within given OptionSet
      */
