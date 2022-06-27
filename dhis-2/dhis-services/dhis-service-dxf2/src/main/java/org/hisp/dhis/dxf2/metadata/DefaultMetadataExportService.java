@@ -70,7 +70,6 @@ import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.legend.LegendSet;
-import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.config.InclusionStrategy;
 import org.hisp.dhis.node.types.CollectionNode;
@@ -885,17 +884,6 @@ public class DefaultMetadataExportService implements MetadataExportService
         return metadata;
     }
 
-    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleMapView(
-        SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, MapView mapView )
-    {
-        if ( mapView == null )
-            return metadata;
-        metadata.putValue( MapView.class, mapView );
-        handleAttributes( metadata, mapView );
-
-        return metadata;
-    }
-
     private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleMap(
         SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, org.hisp.dhis.mapping.Map map )
     {
@@ -903,8 +891,6 @@ public class DefaultMetadataExportService implements MetadataExportService
             return metadata;
         metadata.putValue( org.hisp.dhis.mapping.Map.class, map );
         handleAttributes( metadata, map );
-
-        map.getMapViews().forEach( mapView -> handleMapView( metadata, mapView ) );
 
         return metadata;
     }
@@ -953,15 +939,15 @@ public class DefaultMetadataExportService implements MetadataExportService
         return metadata;
     }
 
-    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleEmbbedItem(
-        SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, InterpretableObject embbededItem )
+    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleEmbeddedItem(
+        SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, InterpretableObject embeddedItem )
     {
-        if ( embbededItem == null )
+        if ( embeddedItem == null )
             return metadata;
 
-        if ( embbededItem.getInterpretations() != null )
+        if ( embeddedItem.getInterpretations() != null )
         {
-            embbededItem.getInterpretations()
+            embeddedItem.getInterpretations()
                 .forEach( interpretation -> handleInterpretation( metadata, interpretation ) );
         }
 
@@ -992,7 +978,7 @@ public class DefaultMetadataExportService implements MetadataExportService
         handleEventReport( metadata, dashboardItem.getEventReport() );
         handleMap( metadata, dashboardItem.getMap() );
         handleReportTable( metadata, dashboardItem.getReportTable() );
-        handleEmbbedItem( metadata, dashboardItem.getEmbeddedItem() );
+        handleEmbeddedItem( metadata, dashboardItem.getEmbeddedItem() );
 
         dashboardItem.getReports().forEach( report -> handleReport( metadata, report ) );
         dashboardItem.getResources().forEach( document -> handleDocument( metadata, document ) );
