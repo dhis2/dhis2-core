@@ -129,7 +129,7 @@
 
     <property name="passwordLastUpdated" />
 
-    <set name="userRoles" table="userrolemembers" cascade="all">
+    <set name="userRoles" table="userrolemembers">
       <cache usage="read-write"/>
       <key column="userid" foreign-key="fk_userrolemembers_userid"/>
       <many-to-many column="userroleid" class="org.hisp.dhis.user.UserRole"/>
