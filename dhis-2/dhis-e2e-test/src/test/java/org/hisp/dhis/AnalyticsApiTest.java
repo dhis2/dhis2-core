@@ -47,12 +47,12 @@ import io.restassured.http.ContentType;
  *
  * Note that this class is @tagged as "analytics-api". Any test that extends
  * this class will automatically execute as part of this group.
- * 
+ *
  * Also, all tests are expected to execute under the default timeout, which is
  * defined in this class. This value can be overridden at test level when
  * required. The timeout check can be enabled/disabled depending on the
  * situation.
- * 
+ *
  * ie.: mvn -Djunit.jupiter.execution.timeout.mode=disabled test
  *
  * @author maikel arabori
