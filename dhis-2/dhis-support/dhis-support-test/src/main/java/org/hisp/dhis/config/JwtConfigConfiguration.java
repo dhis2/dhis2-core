@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,63 +25,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.security.apikey;
+package org.hisp.dhis.config;
 
-import java.util.Collections;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-import org.hisp.dhis.security.apikey.ApiToken;
-import org.hisp.dhis.user.UserCredentials;
-import org.springframework.security.authentication.AbstractAuthenticationToken;
-import org.springframework.security.core.userdetails.UserDetails;
-
-/**
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-public class ApiTokenAuthenticationToken extends AbstractAuthenticationToken
+@Configuration
+public class JwtConfigConfiguration
 {
-    private String tokenKey;
-
-    private ApiToken tokenRef;
-
-    private UserCredentials userCredentials;
-
-    public ApiTokenAuthenticationToken( String tokenKey )
+    @Bean( name = "dhisConfigurationProvider" )
+    public DhisConfigurationProvider dhisConfigurationProvider()
     {
-        super( Collections.emptyList() );
-        this.tokenKey = tokenKey;
-    }
-
-    public ApiTokenAuthenticationToken( ApiToken token, UserCredentials userCredentials )
-    {
-        super( userCredentials.getAuthorities() );
-        this.tokenRef = token;
-        this.userCredentials = userCredentials;
-    }
-
-    @Override
-    public UserCredentials getCredentials()
-    {
-        return this.userCredentials;
-    }
-
-    @Override
-    public UserDetails getPrincipal()
-    {
-        return this.userCredentials;
-    }
-
-    public String getTokenKey()
-    {
-        return tokenKey;
-    }
-
-    public void setTokenKey( String tokenKey )
-    {
-        this.tokenKey = tokenKey;
-    }
-
-    public ApiToken getToken()
-    {
-        return this.tokenRef;
+        return new H2DhisConfigurationProvider( "h2TestConfigWithJWTAuth.conf" );
     }
 }
