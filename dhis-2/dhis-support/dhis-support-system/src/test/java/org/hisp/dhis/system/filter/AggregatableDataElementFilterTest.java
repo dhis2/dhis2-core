@@ -31,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Set;
 
-import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.dataelement.DataElement;
@@ -42,7 +42,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Lars Helge Overland
  */
-class AggregatableDataElementFilterTest extends DhisSpringTest
+class AggregatableDataElementFilterTest extends DhisConvenienceTest
 {
 
     @Test

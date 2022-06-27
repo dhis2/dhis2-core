@@ -25,32 +25,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system.leader;
+package org.hisp.dhis.system;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
+import org.hisp.dhis.config.ConfigProviderConfiguration;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.leader.election.LeaderManager;
-import org.hisp.dhis.system.SystemTest;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.hisp.dhis.leader.election.NoOpLeaderManager;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 
-/**
- * @author Ameen Mohamed
- */
-class LeaderManagerTest extends SystemTest
+@Configuration
+@Import( ConfigProviderConfiguration.class )
+public class SystemTestConfig
 {
-
-    @Autowired
-    private LeaderManager leaderManager;
-
-    @Test
-    void testNodeInfo()
+    @Bean
+    public LeaderManager leaderManager( DhisConfigurationProvider dhisConfigurationProvider )
     {
-        assertNotNull( leaderManager.getCurrentNodeUuid() );
-        assertNotNull( leaderManager.getLeaderNodeUuid() );
-        assertEquals( leaderManager.getCurrentNodeUuid(), leaderManager.getLeaderNodeUuid() );
-        assertTrue( leaderManager.isLeader() );
+        return new NoOpLeaderManager( dhisConfigurationProvider );
     }
 }
