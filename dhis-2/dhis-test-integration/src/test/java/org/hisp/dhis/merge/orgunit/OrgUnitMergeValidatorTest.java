@@ -25,49 +25,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.split.orgunit;
+package org.hisp.dhis.merge.orgunit;
 
-import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Lars Helge Overland
  */
-class OrgUnitSplitValidatorTest extends DhisSpringTest
+class OrgUnitMergeValidatorTest extends SingleSetupIntegrationTestBase
 {
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
 
     @Autowired
-    private OrgUnitSplitValidator validator;
+    private OrgUnitMergeValidator validator;
 
     @Test
-    void testValidateMissingSource()
+    void testValidateMissingSources()
     {
         OrganisationUnit ouA = createOrganisationUnit( 'A' );
         OrganisationUnit ouB = createOrganisationUnit( 'B' );
-        OrgUnitSplitRequest request = new OrgUnitSplitRequest.Builder().addTarget( ouA ).addTarget( ouB )
-            .withPrimaryTarget( ouA ).build();
-        assertEquals( ErrorCode.E1510, validator.validateForErrorMessage( request ).getErrorCode() );
+        OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder().addSource( ouA ).withTarget( ouB ).build();
+        assertEquals( ErrorCode.E1500, validator.validateForErrorMessage( request ).getErrorCode() );
     }
 
     @Test
-    void testValidateMissingTargets()
+    void testValidateMissingTarget()
     {
         OrganisationUnit ouA = createOrganisationUnit( 'A' );
         OrganisationUnit ouB = createOrganisationUnit( 'B' );
-        OrgUnitSplitRequest request = new OrgUnitSplitRequest.Builder().withSource( ouB ).addTarget( ouA )
-            .withPrimaryTarget( ouA ).build();
-        assertEquals( ErrorCode.E1511, validator.validateForErrorMessage( request ).getErrorCode() );
+        OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder().addSource( ouA ).addSource( ouB ).build();
+        assertEquals( ErrorCode.E1501, validator.validateForErrorMessage( request ).getErrorCode() );
     }
 
     @Test
@@ -75,36 +73,13 @@ class OrgUnitSplitValidatorTest extends DhisSpringTest
     {
         OrganisationUnit ouA = createOrganisationUnit( 'A' );
         OrganisationUnit ouB = createOrganisationUnit( 'B' );
-        OrgUnitSplitRequest request = new OrgUnitSplitRequest.Builder().withSource( ouA ).addTarget( ouA )
-            .addTarget( ouB ).withPrimaryTarget( ouA ).build();
-        assertEquals( ErrorCode.E1512, validator.validateForErrorMessage( request ).getErrorCode() );
+        OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder().addSource( ouA ).addSource( ouB )
+            .withTarget( ouA ).build();
+        assertEquals( ErrorCode.E1502, validator.validateForErrorMessage( request ).getErrorCode() );
     }
 
     @Test
-    void validateUndefinedPrimaryTarget()
-    {
-        OrganisationUnit ouA = createOrganisationUnit( 'A' );
-        OrganisationUnit ouB = createOrganisationUnit( 'B' );
-        OrganisationUnit ouC = createOrganisationUnit( 'C' );
-        OrgUnitSplitRequest request = new OrgUnitSplitRequest.Builder().withSource( ouA ).addTarget( ouB )
-            .addTarget( ouC ).build();
-        assertEquals( ErrorCode.E1513, validator.validateForErrorMessage( request ).getErrorCode() );
-    }
-
-    @Test
-    void validatePrimaryTargetNotTarget()
-    {
-        OrganisationUnit ouA = createOrganisationUnit( 'A' );
-        OrganisationUnit ouB = createOrganisationUnit( 'B' );
-        OrganisationUnit ouC = createOrganisationUnit( 'C' );
-        OrganisationUnit ouD = createOrganisationUnit( 'D' );
-        OrgUnitSplitRequest request = new OrgUnitSplitRequest.Builder().withSource( ouA ).addTarget( ouB )
-            .addTarget( ouC ).withPrimaryTarget( ouD ).build();
-        assertEquals( ErrorCode.E1514, validator.validateForErrorMessage( request ).getErrorCode() );
-    }
-
-    @Test
-    void validateTargetIsDescendantOfSource()
+    void testValidateTargetIsDescendantOfSource()
     {
         OrganisationUnit ouA = createOrganisationUnit( 'A' );
         OrganisationUnit ouB = createOrganisationUnit( 'B' );
@@ -112,19 +87,23 @@ class OrgUnitSplitValidatorTest extends DhisSpringTest
         organisationUnitService.addOrganisationUnit( ouA );
         organisationUnitService.addOrganisationUnit( ouB );
         organisationUnitService.addOrganisationUnit( ouC );
-        OrgUnitSplitRequest request = new OrgUnitSplitRequest.Builder().withSource( ouA ).addTarget( ouB )
-            .addTarget( ouC ).withPrimaryTarget( ouB ).build();
-        assertEquals( ErrorCode.E1516, validator.validateForErrorMessage( request ).getErrorCode() );
+        OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder().addSource( ouA ).addSource( ouB )
+            .withTarget( ouC ).build();
+        ErrorMessage errorMessage = validator.validateForErrorMessage( request );
+        assertEquals( ErrorCode.E1504, errorMessage.getErrorCode() );
     }
 
     @Test
-    void validateSuccess()
+    void testValidateSuccess()
     {
         OrganisationUnit ouA = createOrganisationUnit( 'A' );
         OrganisationUnit ouB = createOrganisationUnit( 'B' );
         OrganisationUnit ouC = createOrganisationUnit( 'C' );
-        OrgUnitSplitRequest request = new OrgUnitSplitRequest.Builder().withSource( ouA ).addTarget( ouB )
-            .addTarget( ouC ).withPrimaryTarget( ouB ).build();
+        organisationUnitService.addOrganisationUnit( ouA );
+        organisationUnitService.addOrganisationUnit( ouB );
+        organisationUnitService.addOrganisationUnit( ouC );
+        OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder().addSource( ouA ).addSource( ouB )
+            .withTarget( ouC ).build();
         assertNull( validator.validateForErrorMessage( request ) );
     }
 }

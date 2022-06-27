@@ -37,29 +37,17 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 
-/**
- * @author Dang Duy Hieu
- */
-@ExtendWith( MockitoExtension.class )
-class SqlViewServiceTest extends DhisSpringTest
+class SqlViewServiceTest extends TransactionalIntegrationTest
 {
-
-    @Mock
-    private CurrentUserService currentUserService;
-
     @Autowired
     private SqlViewService sqlViewService;
 

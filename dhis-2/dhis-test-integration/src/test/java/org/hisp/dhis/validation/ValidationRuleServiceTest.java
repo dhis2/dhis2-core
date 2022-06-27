@@ -39,7 +39,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElement;
@@ -53,6 +52,7 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.WeeklyPeriodType;
 import org.hisp.dhis.period.YearlyPeriodType;
+import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -60,7 +60,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Lars Helge Overland
  * @author Jim Grace
  */
-class ValidationRuleServiceTest extends DhisSpringTest
+class ValidationRuleServiceTest extends TransactionalIntegrationTest
 {
 
     @Autowired
