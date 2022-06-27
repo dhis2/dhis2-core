@@ -44,7 +44,6 @@ import lombok.Setter;
 
 import org.apache.commons.collections4.MapUtils;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.user.User;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -58,7 +57,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 @NoArgsConstructor
 @JacksonXmlRootElement( localName = "sharing", namespace = DxfNamespaces.DXF_2_0 )
 public class Sharing
-    implements Serializable, EmbeddedObject
+    implements Serializable
 {
     private static final long serialVersionUID = 6977793211734844477L;
 
