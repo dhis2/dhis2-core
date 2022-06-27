@@ -42,7 +42,7 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 @Setter
 public class CommonQueryRequest
 {
-    private Collection<String> program;
+    private Collection<String> program = new HashSet<>();
 
     private String userOrgUnit;
 

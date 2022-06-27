@@ -248,11 +248,6 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.exparity</groupId>
-      <artifactId>hamcrest-date</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter</artifactId>
       <scope>test</scope>

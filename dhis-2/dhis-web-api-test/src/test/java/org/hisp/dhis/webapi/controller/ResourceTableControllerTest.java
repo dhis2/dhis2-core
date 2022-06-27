@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.scheduling.SchedulingManager;
+import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.WebTestConfiguration.TestSchedulingManager;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
@@ -37,7 +38,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 
 /**
  * Tests the {@link ResourceTableController} using (mocked) REST requests.

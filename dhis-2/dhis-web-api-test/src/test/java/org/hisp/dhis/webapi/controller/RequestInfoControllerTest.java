@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.webapi.WebClient.Header;
+import static org.hisp.dhis.web.WebClient.Header;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 

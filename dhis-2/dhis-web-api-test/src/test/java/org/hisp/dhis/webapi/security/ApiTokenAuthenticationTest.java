@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.webapi.security;
 
-import static org.hisp.dhis.webapi.WebClient.ApiTokenHeader;
-import static org.hisp.dhis.webapi.WebClient.Header;
+import static org.hisp.dhis.web.WebClient.ApiTokenHeader;
+import static org.hisp.dhis.web.WebClient.Header;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +38,7 @@ import org.hisp.dhis.security.apikey.ApiTokenService;
 import org.hisp.dhis.security.apikey.ApiTokenStore;
 import org.hisp.dhis.security.apikey.ApiTokenType;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerWithApiTokenAuthTest;
 import org.hisp.dhis.webapi.json.domain.JsonUser;
 import org.hisp.dhis.webapi.security.config.DhisWebApiWebSecurityConfig;
@@ -45,7 +46,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>

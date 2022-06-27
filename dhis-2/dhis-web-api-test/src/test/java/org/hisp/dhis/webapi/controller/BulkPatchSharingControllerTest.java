@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
+import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -37,11 +37,11 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.user.sharing.Sharing;
+import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

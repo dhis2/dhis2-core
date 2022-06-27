@@ -36,8 +36,8 @@ import org.hisp.dhis.analytics.shared.component.element.Element;
 import org.hisp.dhis.analytics.shared.visitor.where.WhereVisitor;
 
 /**
- * EnrollmentDateValueSelectElement is Select part of sql statement
- * representation
+ * EnrollmentDateValueWhereElement represents the "where" clause of a SQL
+ * statement.
  *
  * @author dusan bernat
  */
