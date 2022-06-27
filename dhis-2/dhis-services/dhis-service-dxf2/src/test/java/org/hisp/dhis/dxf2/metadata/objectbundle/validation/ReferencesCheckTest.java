@@ -29,14 +29,12 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleHooks;
@@ -117,7 +115,6 @@ public class ReferencesCheckTest extends DhisSpringTest
         ObjectBundleParams objectBundleParams = new ObjectBundleParams();
         Preheat preheat = new Preheat();
         final Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objectMap = new HashMap<>();
-        objectMap.put( Attribute.class, new ArrayList<>() );
         return new ObjectBundle( objectBundleParams, preheat, objectMap );
     }
 }
