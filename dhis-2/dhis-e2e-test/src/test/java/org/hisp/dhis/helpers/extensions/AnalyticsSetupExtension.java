@@ -30,7 +30,6 @@ package org.hisp.dhis.helpers.extensions;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.logging.log4j.LogManager.getLogger;
-import static org.hamcrest.Matchers.equalTo;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -81,11 +80,7 @@ public class AnalyticsSetupExtension implements BeforeAllCallback
             final String analyticsTaskId = response.extractString( "response.id" );
 
             // Wait until the process is completed.
-            new SystemActions().waitUntilTaskCompleted( "ANALYTICS_TABLE", analyticsTaskId, TIMEOUT )
-                .validate()
-                .statusCode( 200 )
-                .body( "[0].category", equalTo( "ANALYTICS_TABLE" ) )
-                .body( "[0].message", equalTo( "Analytics tables updated" ) );
+            new SystemActions().waitUntilTaskCompleted( "ANALYTICS_TABLE", analyticsTaskId, TIMEOUT );
 
             watcher.stop();
 
