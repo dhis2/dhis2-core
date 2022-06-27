@@ -146,7 +146,7 @@ public class AuditController
         }
 
         response.setContentType( fileResource.getContentType() );
-        response.setContentLength( Long.valueOf( fileResource.getContentLength() ).intValue() );
+        response.setContentLengthLong( fileResource.getContentLength() );
         response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName() );
 
         try

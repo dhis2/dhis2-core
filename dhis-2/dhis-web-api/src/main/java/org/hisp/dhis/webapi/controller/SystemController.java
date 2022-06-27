@@ -51,7 +51,6 @@ import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.setting.StyleManager;
 import org.hisp.dhis.setting.StyleObject;
@@ -108,9 +107,6 @@ public class SystemController
 
     @Autowired
     private Notifier notifier;
-
-    @Autowired
-    private RenderService renderService;
 
     @Autowired
     private I18nManager i18nManager;

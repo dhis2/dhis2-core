@@ -48,7 +48,6 @@ import org.hisp.dhis.i18n.locale.I18nLocale;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.system.util.LocaleUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.WebLocale;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,9 +72,6 @@ public class LocaleController
 {
     @Autowired
     private LocaleManager localeManager;
-
-    @Autowired
-    private ContextService contextService;
 
     @Autowired
     private I18nLocaleService localeService;
