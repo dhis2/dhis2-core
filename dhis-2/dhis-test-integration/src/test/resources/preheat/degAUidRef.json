@@ -1,0 +1,17 @@
+{
+  "name": "DataElementGroupA",
+  "user": {
+    "id": "userabcdefA"
+  },
+  "dataElements": [
+    {
+      "id": "deabcdefghA"
+    },
+    {
+      "id": "deabcdefghB"
+    },
+    {
+      "id": "deabcdefghC"
+    }
+  ]
+}
