@@ -993,17 +993,22 @@ public class JdbcEventStore implements EventStore
     {
         SqlHelper hlp = new SqlHelper();
 
-        StringBuilder sqlBuilder = new StringBuilder().append( "select "
-            + getEventSelectIdentifiersByIdScheme( params.getIdSchemes() )
-            + " psi.uid as psi_uid, "
-            + "ou.uid as ou_uid, p.uid as p_uid, ps.uid as ps_uid, coc.uid as coc_uid, "
-            + "psi.programstageinstanceid as psi_id, psi.status as psi_status, psi.executiondate as psi_executiondate, "
-            + "psi.eventdatavalues as psi_eventdatavalues, psi.duedate as psi_duedate, psi.completedby as psi_completedby, psi.storedby as psi_storedby, "
-            + "psi.created as psi_created, psi.createdbyuserinfo as psi_createdbyuserinfo, psi.lastupdated as psi_lastupdated, psi.lastupdatedbyuserinfo as psi_lastupdatedbyuserinfo, "
-            + "psi.completeddate as psi_completeddate, psi.deleted as psi_deleted, "
-            + "ST_AsText( psi.geometry ) as psi_geometry, au.uid as user_assigned, (au.firstName || ' ' || au.surName) as user_assigned_name,"
-            + "au.firstName as user_assigned_first_name, au.surName as user_assigned_surname, "
-            + "au.username as user_assigned_username, cocco.categoryoptionid AS cocco_categoryoptionid, deco.uid AS deco_uid, " );
+        StringBuilder sqlBuilder = new StringBuilder().append( "select " )
+            .append( getEventSelectIdentifiersByIdScheme( params.getIdSchemes() ) )
+            .append( " psi.uid as psi_uid, " )
+            .append( "ou.uid as ou_uid, p.uid as p_uid, ps.uid as ps_uid, coc.uid as coc_uid, " )
+            .append(
+                "psi.programstageinstanceid as psi_id, psi.status as psi_status, psi.executiondate as psi_executiondate, " )
+            .append(
+                "psi.eventdatavalues as psi_eventdatavalues, psi.duedate as psi_duedate, psi.completedby as psi_completedby, psi.storedby as psi_storedby, " )
+            .append(
+                "psi.created as psi_created, psi.createdbyuserinfo as psi_createdbyuserinfo, psi.lastupdated as psi_lastupdated, psi.lastupdatedbyuserinfo as psi_lastupdatedbyuserinfo, " )
+            .append( "psi.completeddate as psi_completeddate, psi.deleted as psi_deleted, " )
+            .append(
+                "ST_AsText( psi.geometry ) as psi_geometry, au.uid as user_assigned, (au.firstName || ' ' || au.surName) as user_assigned_name," )
+            .append( "au.firstName as user_assigned_first_name, au.surName as user_assigned_surname, " )
+            .append(
+                "au.username as user_assigned_username, cocco.categoryoptionid AS cocco_categoryoptionid, deco.uid AS deco_uid, " );
 
         if ( (params.getCategoryOptionCombo() == null || params.getCategoryOptionCombo().isDefault())
             && !isSuper( user ) )
@@ -1023,25 +1028,29 @@ public class JdbcEventStore implements EventStore
             sqlBuilder.append( queryCol );
         }
 
-        sqlBuilder.append( "pi.uid as pi_uid, pi.status as pi_status, pi.followup as pi_followup, "
-            + "p.type as p_type, ps.uid as ps_uid, ou.name as ou_name, "
-            + "tei.trackedentityinstanceid as tei_id, tei.uid as tei_uid, teiou.uid as tei_ou, teiou.name as tei_ou_name, tei.created as tei_created, tei.inactive as tei_inactive "
-            + "from programstageinstance psi "
-            + "inner join programinstance pi on pi.programinstanceid=psi.programinstanceid "
-            + "inner join program p on p.programid=pi.programid "
-            + "inner join programstage ps on ps.programstageid=psi.programstageid "
-            + "inner join categoryoptioncombo coc on coc.categoryoptioncomboid=psi.attributeoptioncomboid "
-            + "inner join categoryoptioncombos_categoryoptions cocco on psi.attributeoptioncomboid=cocco.categoryoptioncomboid "
-            + "inner join dataelementcategoryoption deco on cocco.categoryoptionid=deco.categoryoptionid "
-            + "left join trackedentityprogramowner po on (pi.trackedentityinstanceid=po.trackedentityinstanceid) "
-            + "inner join organisationunit ou on (coalesce(po.organisationunitid, psi.organisationunitid)=ou.organisationunitid) "
-            + "left join trackedentityinstance tei on tei.trackedentityinstanceid=pi.trackedentityinstanceid "
-            + "left join organisationunit teiou on (tei.organisationunitid=teiou.organisationunitid) "
-            + "left join userinfo au on (psi.assigneduserid=au.userinfoid) " );
+        sqlBuilder.append( "pi.uid as pi_uid, pi.status as pi_status, pi.followup as pi_followup, " )
+            .append( "p.type as p_type, ps.uid as ps_uid, ou.name as ou_name, " )
+            .append(
+                "tei.trackedentityinstanceid as tei_id, tei.uid as tei_uid, teiou.uid as tei_ou, teiou.name as tei_ou_name, tei.created as tei_created, tei.inactive as tei_inactive " )
+            .append( "from programstageinstance psi " )
+            .append( "inner join programinstance pi on pi.programinstanceid=psi.programinstanceid " )
+            .append( "inner join program p on p.programid=pi.programid " )
+            .append( "inner join programstage ps on ps.programstageid=psi.programstageid " )
+            .append( "inner join categoryoptioncombo coc on coc.categoryoptioncomboid=psi.attributeoptioncomboid " )
+            .append(
+                "inner join categoryoptioncombos_categoryoptions cocco on psi.attributeoptioncomboid=cocco.categoryoptioncomboid " )
+            .append( "inner join dataelementcategoryoption deco on cocco.categoryoptionid=deco.categoryoptionid " )
+            .append(
+                "left join trackedentityprogramowner po on (pi.trackedentityinstanceid=po.trackedentityinstanceid) " )
+            .append(
+                "inner join organisationunit ou on (coalesce(po.organisationunitid, psi.organisationunitid)=ou.organisationunitid) " )
+            .append( "left join trackedentityinstance tei on tei.trackedentityinstanceid=pi.trackedentityinstanceid " )
+            .append( "left join organisationunit teiou on (tei.organisationunitid=teiou.organisationunitid) " )
+            .append( "left join userinfo au on (psi.assigneduserid=au.userinfoid) " );
 
         Set<String> joinedColumns = new HashSet<>();
 
-        String eventDataValuesWhereSql = "";
+        StringBuilder eventDataValuesWhereSql = new StringBuilder();
 
         for ( QueryItem item : params.getDataElementsAndFilters() )
         {
@@ -1053,9 +1062,19 @@ public class JdbcEventStore implements EventStore
             {
                 if ( item.hasOptionSet() && item.hasFilter() )
                 {
-                    sqlBuilder.append( "inner join optionvalue as " + optCol + " on lower(" + optCol + ".code) = " +
-                        "lower(" + dataValueValueSql + ") and " + optCol + ".optionsetid = "
-                        + item.getOptionSet().getId() + " " );
+                    sqlBuilder.append( "inner join optionvalue as " )
+                        .append( optCol )
+                        .append( " on lower(" )
+                        .append( optCol )
+                        .append( ".code) = " )
+                        .append( "lower(" )
+                        .append( dataValueValueSql )
+                        .append( ") and " )
+                        .append( optCol )
+                        .append( ".optionsetid = " )
+                        .append( item.getOptionSet()
+                            .getId() )
+                        .append( " " );
                 }
 
                 joinedColumns.add( col );
@@ -1072,42 +1091,66 @@ public class JdbcEventStore implements EventStore
 
                     if ( !item.hasOptionSet() )
                     {
-                        if ( !eventDataValuesWhereSql.isEmpty() )
+                        if ( eventDataValuesWhereSql.length() > 0 )
                         {
-                            eventDataValuesWhereSql += " and ";
+                            eventDataValuesWhereSql.append( " and " );
                         }
 
                         if ( QueryOperator.LIKE.getValue().equalsIgnoreCase( filter.getSqlOperator() ) )
                         {
-                            eventDataValuesWhereSql += " " + queryCol + " " + filter.getSqlOperator() + " "
-                                + StringUtils.lowerCase( filter.getSqlFilter( encodedFilter ) ) + " ";
+                            eventDataValuesWhereSql.append( " " )
+                                .append( queryCol )
+                                .append( " " )
+                                .append( filter.getSqlOperator() )
+                                .append( " " )
+                                .append( StringUtils.lowerCase( filter.getSqlFilter( encodedFilter ) ) )
+                                .append( " " );
                         }
                         else
                         {
-                            eventDataValuesWhereSql += " " + queryCol + " " + filter.getSqlOperator() + " "
-                                + StringUtils.lowerCase(
-                                    item.isNumeric() ? encodedFilter : filter.getSqlFilter( encodedFilter ) )
-                                + " ";
+                            eventDataValuesWhereSql.append( " " )
+                                .append( queryCol )
+                                .append( " " )
+                                .append( filter.getSqlOperator() )
+                                .append( " " )
+                                .append( StringUtils.lowerCase(
+                                    item.isNumeric() ? encodedFilter : filter.getSqlFilter( encodedFilter ) ) )
+                                .append( " " );
                         }
                     }
                     else if ( QueryOperator.IN.getValue().equalsIgnoreCase( filter.getSqlOperator() ) )
                     {
-                        sqlBuilder.append( "and " + queryCol + " " + filter.getSqlOperator() + " "
-                            + StringUtils.lowerCase(
-                                item.isNumeric() ? encodedFilter : filter.getSqlFilter( encodedFilter ) )
-                            + " " );
+                        sqlBuilder.append( "and " )
+                            .append( queryCol )
+                            .append( " " )
+                            .append( filter.getSqlOperator() )
+                            .append( " " )
+                            .append( StringUtils
+                                .lowerCase( item.isNumeric() ? encodedFilter : filter.getSqlFilter( encodedFilter ) ) )
+                            .append( " " );
                     }
                     else if ( QueryOperator.LIKE.getValue().equalsIgnoreCase( filter.getSqlOperator() ) )
                     {
-                        sqlBuilder.append( "and lower(" + optCol + DOT_NAME + " " + filter.getSqlOperator() + " "
-                            + StringUtils.lowerCase( filter.getSqlFilter( encodedFilter ) ) + " " );
+                        sqlBuilder.append( "and lower(" )
+                            .append( optCol )
+                            .append( DOT_NAME )
+                            .append( " " )
+                            .append( filter.getSqlOperator() )
+                            .append( " " )
+                            .append( StringUtils.lowerCase( filter.getSqlFilter( encodedFilter ) ) )
+                            .append( " " );
                     }
                     else
                     {
-                        sqlBuilder.append( "and lower(" + optCol + DOT_NAME + " " + filter.getSqlOperator() + " "
-                            + StringUtils.lowerCase(
-                                item.isNumeric() ? encodedFilter : filter.getSqlFilter( encodedFilter ) )
-                            + " " );
+                        sqlBuilder.append( "and lower(" )
+                            .append( optCol )
+                            .append( DOT_NAME )
+                            .append( " " )
+                            .append( filter.getSqlOperator() )
+                            .append( " " )
+                            .append( StringUtils
+                                .lowerCase( item.isNumeric() ? encodedFilter : filter.getSqlFilter( encodedFilter ) ) )
+                            .append( " " );
                     }
                 }
             }
@@ -1119,15 +1162,20 @@ public class JdbcEventStore implements EventStore
             sqlBuilder.append( getCategoryOptionSharingForUser( user ) );
         }
 
-        if ( !eventDataValuesWhereSql.isEmpty() )
+        if ( eventDataValuesWhereSql.length() > 0 )
         {
-            sqlBuilder.append( hlp.whereAnd() + eventDataValuesWhereSql + " " );
+            sqlBuilder.append( hlp.whereAnd() )
+                .append( eventDataValuesWhereSql )
+                .append( " " );
         }
 
         if ( params.getTrackedEntityInstance() != null )
         {
-            sqlBuilder.append(
-                hlp.whereAnd() + " tei.trackedentityinstanceid=" + params.getTrackedEntityInstance().getId() + " " );
+            sqlBuilder.append( hlp.whereAnd() )
+                .append( " tei.trackedentityinstanceid=" )
+                .append( params.getTrackedEntityInstance()
+                    .getId() )
+                .append( " " );
         }
 
         if ( params.getProgram() != null )
@@ -1245,10 +1293,14 @@ public class JdbcEventStore implements EventStore
 
         if ( params.hasSecurityFilter() )
         {
-            sqlBuilder.append( hlp.whereAnd() + " (p.uid in ("
-                + getQuotedCommaDelimitedString( params.getAccessiblePrograms() ) + ")) " );
-            sqlBuilder.append( hlp.whereAnd() + " (ps.uid in ("
-                + getQuotedCommaDelimitedString( params.getAccessibleProgramStages() ) + ")) " );
+            sqlBuilder.append( hlp.whereAnd() )
+                .append( " (p.uid in (" )
+                .append( getQuotedCommaDelimitedString( params.getAccessiblePrograms() ) )
+                .append( ")) " );
+            sqlBuilder.append( hlp.whereAnd() )
+                .append( " (ps.uid in (" )
+                .append( getQuotedCommaDelimitedString( params.getAccessibleProgramStages() ) )
+                .append( ")) " );
         }
 
         if ( params.isSynchronizationQuery() )
@@ -1259,7 +1311,9 @@ public class JdbcEventStore implements EventStore
         if ( !CollectionUtils.isEmpty( params.getProgramInstances() ) )
         {
             sqlBuilder.append( hlp.whereAnd() )
-                .append( " (pi.uid in (" + getQuotedCommaDelimitedString( params.getProgramInstances() ) + "))" );
+                .append( " (pi.uid in (" )
+                .append( getQuotedCommaDelimitedString( params.getProgramInstances() ) )
+                .append( "))" );
         }
 
         return sqlBuilder.toString();
