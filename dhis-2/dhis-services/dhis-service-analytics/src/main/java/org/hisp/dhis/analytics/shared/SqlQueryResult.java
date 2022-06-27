@@ -42,6 +42,7 @@ import org.apache.commons.collections4.MapUtils;
 @AllArgsConstructor
 public class SqlQueryResult implements QueryResult<Map<Column, List<Object>>>
 {
+
     /**
      * Represents the query result. It maps each column to the respective list
      * of rows.

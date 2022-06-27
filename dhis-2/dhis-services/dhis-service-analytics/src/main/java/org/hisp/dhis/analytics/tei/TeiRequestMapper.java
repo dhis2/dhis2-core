@@ -31,7 +31,7 @@ import java.util.Optional;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.analytics.common.CommonRequestMapper;
+import org.hisp.dhis.analytics.common.CommonQueryRequestMapper;
 import org.hisp.dhis.analytics.common.QueryRequest;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.program.ProgramService;
@@ -44,7 +44,7 @@ import org.springframework.stereotype.Service;
 public class TeiRequestMapper
 {
 
-    private final CommonRequestMapper commonRequestMapper;
+    private final CommonQueryRequestMapper commonQueryRequestMapper;
 
     private final ProgramService programService;
 
@@ -54,7 +54,7 @@ public class TeiRequestMapper
     {
         return TeiQueryParams.builder()
             .trackedEntityType( getTrackedEntityType( queryRequest ) )
-            .commonParams( commonRequestMapper.map(
+            .commonParams( commonQueryRequestMapper.map(
                 queryRequest.getCommonQueryRequest(),
                 queryRequest.getPagingCriteria(),
                 apiVersion ) )

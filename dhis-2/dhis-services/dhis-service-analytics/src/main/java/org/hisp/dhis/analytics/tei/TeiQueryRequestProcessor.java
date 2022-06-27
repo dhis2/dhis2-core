@@ -29,20 +29,27 @@ package org.hisp.dhis.analytics.tei;
 
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.analytics.common.Processor;
 import org.springframework.stereotype.Component;
 
+/**
+ * Processor class for TeiQueryRequest objects.
+ *
+ * @see Processor
+ */
 @Component
 @RequiredArgsConstructor
-public class TeiQueryRequestProcessor
+public class TeiQueryRequestProcessor implements Processor<TeiQueryRequest>
 {
+
     /**
      * A hook to transform a QueryRequest before mapping it into Params
      *
      * @param queryRequest
      * @return a queryRequestHolder where inner components might have changed
      */
-    public TeiQueryRequest processRequest(
-        TeiQueryRequest queryRequest )
+    @Override
+    public TeiQueryRequest process( final TeiQueryRequest queryRequest )
     {
         return queryRequest;
     }

@@ -27,17 +27,17 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.webapi.WebClient.Accept;
-import static org.hisp.dhis.webapi.WebClient.Body;
-import static org.hisp.dhis.webapi.WebClient.ContentType;
+import static org.hisp.dhis.web.WebClient.Accept;
+import static org.hisp.dhis.web.WebClient.Body;
+import static org.hisp.dhis.web.WebClient.ContentType;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 
 /**
@@ -72,7 +72,7 @@ class CompleteDataSetRegistrationControllerTest extends DhisControllerConvenienc
             Body( "<completeDataSetRegistrations></completeDataSetRegistrations>" ), ContentType( CONTENT_TYPE_XML ),
             Accept( CONTENT_TYPE_XML ) );
         assertEquals( HttpStatus.CONFLICT, response.status() );
-        String content = response.content( MediaType.APPLICATION_XML );
+        String content = response.content( MediaType.APPLICATION_XML.toString() );
         assertTrue( content.startsWith( "<webMessage " ) );
     }
 
@@ -83,7 +83,7 @@ class CompleteDataSetRegistrationControllerTest extends DhisControllerConvenienc
             Body( "<completeDataSetRegistrations></completeDataSetRegistrations>" ), ContentType( CONTENT_TYPE_XML ),
             Accept( CONTENT_TYPE_XML ) );
         assertEquals( HttpStatus.OK, response.status() );
-        String content = response.content( MediaType.APPLICATION_XML );
+        String content = response.content( MediaType.APPLICATION_XML.toString() );
         assertTrue( content.startsWith( "<importSummary " ) );
     }
 }
