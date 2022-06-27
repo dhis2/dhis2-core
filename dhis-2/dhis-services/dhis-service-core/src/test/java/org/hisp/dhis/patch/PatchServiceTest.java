@@ -254,25 +254,6 @@ class PatchServiceTest extends DhisSpringTest
     }
 
     @Test
-    void testEmbeddedObjectEquality()
-    {
-        User adminUser = createAndInjectAdminUser();
-        UserGroup userGroup = createUserGroup( 'A', Sets.newHashSet( adminUser ) );
-        manager.save( userGroup );
-        DataElement deA = createDataElement( 'A' );
-        DataElement deB = createDataElement( 'B' );
-        deA.getSharing().addUserGroupAccess( new UserGroupAccess( userGroup, "rw------" ) );
-        deA.getSharing().addUserAccess( new UserAccess( adminUser, "rw------" ) );
-        deB.getSharing().addUserGroupAccess( new UserGroupAccess( userGroup, "rw------" ) );
-        deB.getSharing().addUserAccess( new UserAccess( adminUser, "rw------" ) );
-        Patch diff = patchService.diff( new PatchParams( deA, deB ) );
-
-        System.err.println( diff.getMutations().size() );
-        System.err.println( diff.getMutations() );
-        assertEquals( 10, diff.getMutations().size() );
-    }
-
-    @Test
     void testEmbeddedObjectCollectionDiff()
     {
         User adminUser = createAndInjectAdminUser();
