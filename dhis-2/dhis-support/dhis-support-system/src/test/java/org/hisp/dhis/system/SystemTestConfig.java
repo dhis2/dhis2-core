@@ -27,16 +27,21 @@
  */
 package org.hisp.dhis.system;
 
-import org.hisp.dhis.IntegrationH2Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.hisp.dhis.config.ConfigProviderConfiguration;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.leader.election.LeaderManager;
+import org.hisp.dhis.leader.election.NoOpLeaderManager;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 
-@ExtendWith( SpringExtension.class )
-@ContextConfiguration( classes = SystemTestConfig.class )
-@ActiveProfiles( profiles = { "test-h2" } )
-@IntegrationH2Test
-public abstract class SystemTest
+@Configuration
+@Import( ConfigProviderConfiguration.class )
+public class SystemTestConfig
 {
+    @Bean
+    public LeaderManager leaderManager( DhisConfigurationProvider dhisConfigurationProvider )
+    {
+        return new NoOpLeaderManager( dhisConfigurationProvider );
+    }
 }
