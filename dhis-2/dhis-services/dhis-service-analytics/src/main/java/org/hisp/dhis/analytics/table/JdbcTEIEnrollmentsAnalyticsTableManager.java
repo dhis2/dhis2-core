@@ -147,7 +147,8 @@ public class JdbcTEIEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
                             "       'executionDate', psi.executiondate," +
                             "       'dueDate', psi.duedate," +
                             "       'eventDataValues', eventdatavalues)" +
-                            "  )" ) );
+                            "  )" )
+                                .withSkipIndex( true ) );
 
                 return new AnalyticsTable( getAnalyticsTableType(), columns, newArrayList(), tet );
             } ).collect( Collectors.toList() );

@@ -211,7 +211,8 @@ public class JdbcTEITrackedEntityInstancesAnalyticsTableManager extends Abstract
                             "     FROM programinstance pi_0,\n" +
                             "          program p_0\n" +
                             "     WHERE pi_0.trackedentityinstanceid = tei.trackedentityinstanceid\n" +
-                            "       AND p_0.programid = pi_0.programid)" ) );
+                            "       AND p_0.programid = pi_0.programid)" )
+                                .withSkipIndex( true ) );
 
                 return new AnalyticsTable( getAnalyticsTableType(), columns,
                     newArrayList(), tet );
