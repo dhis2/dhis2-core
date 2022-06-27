@@ -31,13 +31,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.JsonResponse;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import org.springframework.http.HttpStatus;
 
 public class OptionControllerTest extends DhisControllerConvenienceTest
 {
     @Test
-    void testUpdateOptionWithSortOrderGap()
+    public void testUpdateOptionWithSortOrderGap()
     {
         // Create OptionSet with two Options
         POST( "/metadata", "{\"optionSets\":\n" +
