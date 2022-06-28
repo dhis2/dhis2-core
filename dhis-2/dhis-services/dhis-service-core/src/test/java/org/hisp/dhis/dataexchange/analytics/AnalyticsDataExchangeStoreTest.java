@@ -88,8 +88,8 @@ class AnalyticsDataExchangeStoreTest
         sourceRequest.getPe().addAll( List.of( "202201", "202202" ) );
         sourceRequest.getOu().addAll( List.of( "G9BuXqtNeeb", "jDgiLmYwPDm" ) );
         sourceRequest.getFilters().addAll( List.of(
-            new Filter( "MuTwGW0BI4o", List.of( "v9oULMMdmzE", "eJHJ0bfDCEO" ) ),
-            new Filter( "dAOgE7mgysJ", List.of( "rbE2mZX86AA", "XjOFfrPwake" ) ) ) );
+            new Filter().setDimension( "MuTwGW0BI4o" ).setItems( List.of( "v9oULMMdmzE", "eJHJ0bfDCEO" ) ),
+            new Filter().setDimension( "dAOgE7mgysJ" ).setItems( List.of( "rbE2mZX86AA", "XjOFfrPwake" ) ) ) );
         sourceRequest.setInputIdScheme( UID_SCHEME );
         sourceRequest.setOutputIdScheme( UID_SCHEME );
 
