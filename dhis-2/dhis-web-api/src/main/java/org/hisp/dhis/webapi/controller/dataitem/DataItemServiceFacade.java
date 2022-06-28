@@ -46,7 +46,6 @@ import java.util.List;
 import java.util.Set;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.dataitem.DataItem;
@@ -67,7 +66,6 @@ import org.springframework.stereotype.Component;
  *
  * @author maikel arabori
  */
-@Slf4j
 @RequiredArgsConstructor
 @Component
 public class DataItemServiceFacade
