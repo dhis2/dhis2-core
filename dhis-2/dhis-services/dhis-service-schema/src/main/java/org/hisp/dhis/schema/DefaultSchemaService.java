@@ -205,6 +205,14 @@ public class DefaultSchemaService
         register( new ObjectStyleSchemaDescriptor() );
         register( new RelationshipConstraintSchemaDescriptor() );
         register( new RelationshipItemSchemaDescriptor() );
+        register( new SharingSchemaDescriptor() );
+        register( new AxisSchemaDescriptor() );
+        register( new EventRepetitionSchemaDescriptor() );
+        register( new LegendDefinitionsSchemaDescriptor() );
+        register( new SeriesKeySchemaDescriptor() );
+        register( new OutlierAnalysisSchemaDescriptor() );
+        register( new ItemConfigSchemaDescriptor() );
+        register( new LayoutSchemaDescriptor() );
     }
 
     private final Map<Class<?>, Schema> classSchemaMap = new HashMap<>();
