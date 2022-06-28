@@ -25,32 +25,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system.leader;
+package org.hisp.dhis.config;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-import org.hisp.dhis.leader.election.LeaderManager;
-import org.hisp.dhis.system.SystemTest;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-
-/**
- * @author Ameen Mohamed
- */
-class LeaderManagerTest extends SystemTest
+@Configuration
+public class ConfigProviderConfiguration
 {
-
-    @Autowired
-    private LeaderManager leaderManager;
-
-    @Test
-    void testNodeInfo()
+    @Bean( name = "dhisConfigurationProvider" )
+    public DhisConfigurationProvider dhisConfigurationProvider()
     {
-        assertNotNull( leaderManager.getCurrentNodeUuid() );
-        assertNotNull( leaderManager.getLeaderNodeUuid() );
-        assertEquals( leaderManager.getCurrentNodeUuid(), leaderManager.getLeaderNodeUuid() );
-        assertTrue( leaderManager.isLeader() );
+        return new H2DhisConfigurationProvider();
     }
 }

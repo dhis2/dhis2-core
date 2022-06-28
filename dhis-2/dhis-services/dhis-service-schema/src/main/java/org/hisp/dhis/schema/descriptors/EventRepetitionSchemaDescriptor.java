@@ -25,32 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system.leader;
+package org.hisp.dhis.schema.descriptors;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import org.hisp.dhis.leader.election.LeaderManager;
-import org.hisp.dhis.system.SystemTest;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.hisp.dhis.eventvisualization.EventRepetition;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
 
 /**
- * @author Ameen Mohamed
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class LeaderManagerTest extends SystemTest
+public class EventRepetitionSchemaDescriptor implements SchemaDescriptor
 {
+    public static final String SINGULAR = "eventRepetition";
 
-    @Autowired
-    private LeaderManager leaderManager;
+    public static final String PLURAL = "eventRepetitions";
 
-    @Test
-    void testNodeInfo()
+    @Override
+    public Schema getSchema()
     {
-        assertNotNull( leaderManager.getCurrentNodeUuid() );
-        assertNotNull( leaderManager.getLeaderNodeUuid() );
-        assertEquals( leaderManager.getCurrentNodeUuid(), leaderManager.getLeaderNodeUuid() );
-        assertTrue( leaderManager.isLeader() );
+        return new Schema( EventRepetition.class, SINGULAR, PLURAL );
     }
 }

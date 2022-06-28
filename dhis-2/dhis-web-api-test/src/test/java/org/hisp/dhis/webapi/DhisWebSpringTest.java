@@ -36,6 +36,7 @@ import static org.springframework.restdocs.operation.preprocess.Preprocessors.pr
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.IntegrationH2Test;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.config.ConfigProviderConfiguration;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.user.User;
