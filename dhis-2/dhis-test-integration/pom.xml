@@ -28,6 +28,7 @@
                         <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-analytics</ignoredNonTestScopedDependency>
                         <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-core</ignoredNonTestScopedDependency>
                         <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-dxf2</ignoredNonTestScopedDependency>
+                        <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-node</ignoredNonTestScopedDependency>
                         <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-reporting</ignoredNonTestScopedDependency>
                         <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-program-rule</ignoredNonTestScopedDependency>
                         <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-schema</ignoredNonTestScopedDependency>
@@ -45,7 +46,6 @@
                         <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-audit-consumer</ignoredUnusedDeclaredDependency>
                         <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-field-filtering</ignoredUnusedDeclaredDependency>
                         <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-metadata-workflow</ignoredUnusedDeclaredDependency>
-                        <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-node</ignoredUnusedDeclaredDependency>
                         <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-artemis</ignoredUnusedDeclaredDependency>
                         <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-audit</ignoredUnusedDeclaredDependency>
                         <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-cache-invalidation</ignoredUnusedDeclaredDependency>
@@ -227,6 +227,11 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>org.hisp.dhis.parser</groupId>
+            <artifactId>dhis-antlr-expression-parser</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
             <scope>test</scope>
@@ -329,6 +334,11 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-xml</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
