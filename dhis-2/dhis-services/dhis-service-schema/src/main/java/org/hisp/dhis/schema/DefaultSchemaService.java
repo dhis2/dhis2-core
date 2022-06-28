@@ -199,6 +199,13 @@ public class DefaultSchemaService
         .add( new ProgramStageInstanceFilterSchemaDescriptor() )
         .add( new VisualizationSchemaDescriptor() )
         .add( new ApiTokenSchemaDescriptor() )
+        .add( new SharingSchemaDescriptor() )
+        .add( new AxisSchemaDescriptor() )
+        .add( new LegendDefinitionsSchemaDescriptor() )
+        .add( new SeriesKeySchemaDescriptor() )
+        .add( new OutlierAnalysisSchemaDescriptor() )
+        .add( new ItemConfigSchemaDescriptor() )
+        .add( new LayoutSchemaDescriptor() )
         .build();
 
     private final Map<Class<?>, Schema> classSchemaMap = new HashMap<>();
