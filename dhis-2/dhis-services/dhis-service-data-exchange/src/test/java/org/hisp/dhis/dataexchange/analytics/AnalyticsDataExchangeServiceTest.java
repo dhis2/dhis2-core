@@ -144,8 +144,8 @@ class AnalyticsDataExchangeServiceTest
             .setType( TargetType.EXTERNAL )
             .setApi( new Api() )
             .setRequest( request );
-        AnalyticsDataExchange exchange = new AnalyticsDataExchange();
-        exchange.setTarget( target );
+        AnalyticsDataExchange exchange = new AnalyticsDataExchange()
+            .setTarget( target );
 
         ImportOptions options = service.toImportOptions( exchange );
 
@@ -175,12 +175,12 @@ class AnalyticsDataExchangeServiceTest
     {
         Api api = new Api( "https://play.dhis2.org/demo", "admin", "district" );
 
-        Target target = new Target();
-        target.setType( TargetType.EXTERNAL );
-        target.setApi( api );
+        Target target = new Target()
+            .setType( TargetType.EXTERNAL )
+            .setApi( api );
 
-        AnalyticsDataExchange exchange = new AnalyticsDataExchange();
-        exchange.setTarget( target );
+        AnalyticsDataExchange exchange = new AnalyticsDataExchange()
+            .setTarget( target );
 
         Dhis2Client client = service.getDhis2Client( exchange );
 
