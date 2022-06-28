@@ -99,7 +99,7 @@ class AnalyticsDataExchangeStoreTest
         Target target = new Target();
         target.setApi( new Api( "https://play.dhis2.org/demo", "admin", "district" ) );
         target.setType( TargetType.EXTERNAL );
-        target.setRequest( new TargetRequest( UID_SCHEME, UID_SCHEME, UID_SCHEME, UID_SCHEME ) );
+        target.setRequest( new TargetRequest() );
 
         AnalyticsDataExchange exchange = new AnalyticsDataExchange();
         exchange.setAutoFields();

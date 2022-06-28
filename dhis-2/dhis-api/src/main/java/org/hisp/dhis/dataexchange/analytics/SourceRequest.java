@@ -34,12 +34,14 @@ import java.util.List;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Getter
 @Setter
 @NoArgsConstructor
+@Accessors( chain = true )
 public class SourceRequest
     implements Serializable
 {

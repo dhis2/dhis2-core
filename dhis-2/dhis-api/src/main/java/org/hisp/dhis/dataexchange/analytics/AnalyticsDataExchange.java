@@ -29,6 +29,7 @@ package org.hisp.dhis.dataexchange.analytics;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -40,6 +41,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 @Getter
 @Setter
+@Accessors( chain = true )
 @JacksonXmlRootElement( localName = "analyticsDataExchange", namespace = DxfNamespaces.DXF_2_0 )
 public class AnalyticsDataExchange
     extends BaseIdentifiableObject

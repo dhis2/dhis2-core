@@ -28,13 +28,31 @@
 package org.hisp.dhis.dataexchange.analytics;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.nullable;
+import static org.mockito.Mockito.when;
+
+import java.util.Date;
+import java.util.List;
 
 import org.hisp.dhis.analytics.AnalyticsService;
+import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
+import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dataexchange.client.Dhis2Client;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
+import org.hisp.dhis.dxf2.importsummary.ImportStatus;
+import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
+import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.i18n.I18nFormat;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -66,10 +84,66 @@ class AnalyticsDataExchangeServiceTest
     }
 
     @Test
+    @SuppressWarnings( "unchecked" )
+    void testExchangeData()
+    {
+        when( analyticsService.getAggregatedDataValueSet( any( DataQueryParams.class ) ) )
+            .thenReturn( new DataValueSet() );
+        when( dataQueryService.getDimension( eq( DimensionalObject.DATA_X_DIM_ID ), any(), any( Date.class ),
+            nullable( List.class ), nullable( I18nFormat.class ), anyBoolean(), any( IdScheme.class ) ) )
+                .thenReturn( new BaseDimensionalObject(
+                    DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, List.of() ) );
+        when( dataQueryService.getDimension( eq( DimensionalObject.PERIOD_DIM_ID ), any(), any( Date.class ),
+            nullable( List.class ), nullable( I18nFormat.class ), anyBoolean(), any( IdScheme.class ) ) )
+                .thenReturn( new BaseDimensionalObject(
+                    DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, List.of() ) );
+        when( dataQueryService.getDimension( eq( DimensionalObject.ORGUNIT_DIM_ID ), any(), any( Date.class ),
+            nullable( List.class ), nullable( I18nFormat.class ), anyBoolean(), any( IdScheme.class ) ) )
+                .thenReturn( new BaseDimensionalObject(
+                    DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, List.of() ) );
+        when( dataValueSetService.importDataValueSet( any( DataValueSet.class ), any( ImportOptions.class ) ) )
+            .thenReturn( new ImportSummary( ImportStatus.SUCCESS ) );
+
+        SourceRequest sourceRequest = new SourceRequest()
+            .setDx( List.of( "Vz0C3i4Wy3M", "ToaOToReol6" ) )
+            .setPe( List.of( "202101", "202102" ) )
+            .setOu( List.of( "lGgJFgRkZui", "pvINfKxtqyN" ) );
+        Source source = new Source()
+            .setRequests( List.of( sourceRequest ) );
+        TargetRequest request = new TargetRequest()
+            .setDataElementIdScheme( "code" )
+            .setOrgUnitIdScheme( "code" )
+            .setIdScheme( "uid" );
+        Target target = new Target()
+            .setType( TargetType.INTERNAL )
+            .setApi( new Api() )
+            .setRequest( request );
+        AnalyticsDataExchange exchange = new AnalyticsDataExchange()
+            .setSource( source )
+            .setTarget( target );
+
+        ImportSummaries summaries = service.exchangeData( exchange );
+
+        assertNotNull( summaries );
+        assertEquals( 1, summaries.getImportSummaries().size() );
+
+        ImportSummary summary = summaries.getImportSummaries().get( 0 );
+
+        assertNotNull( summary );
+        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+    }
+
+    @Test
     void testToImportOptions()
     {
-        TargetRequest request = new TargetRequest( "code", "code", null, "uid" );
-        Target target = new Target( TargetType.EXTERNAL, new Api(), request );
+        TargetRequest request = new TargetRequest()
+            .setDataElementIdScheme( "code" )
+            .setOrgUnitIdScheme( "code" )
+            .setIdScheme( "uid" );
+        Target target = new Target()
+            .setType( TargetType.EXTERNAL )
+            .setApi( new Api() )
+            .setRequest( request );
         AnalyticsDataExchange exchange = new AnalyticsDataExchange();
         exchange.setTarget( target );
 
