@@ -90,16 +90,21 @@ class AnalyticsDataExchangeStoreTest
         sourceRequest.getFilters().addAll( List.of(
             new Filter().setDimension( "MuTwGW0BI4o" ).setItems( List.of( "v9oULMMdmzE", "eJHJ0bfDCEO" ) ),
             new Filter().setDimension( "dAOgE7mgysJ" ).setItems( List.of( "rbE2mZX86AA", "XjOFfrPwake" ) ) ) );
-        sourceRequest.setInputIdScheme( UID_SCHEME );
-        sourceRequest.setOutputIdScheme( UID_SCHEME );
+        sourceRequest.setInputIdScheme( UID_SCHEME )
+            .setOutputIdScheme( UID_SCHEME );
 
-        Source source = new Source();
-        source.setRequests( List.of( sourceRequest ) );
+        Source source = new Source()
+            .setRequests( List.of( sourceRequest ) );
 
-        Target target = new Target();
-        target.setApi( new Api( "https://play.dhis2.org/demo", "admin", "district" ) );
-        target.setType( TargetType.EXTERNAL );
-        target.setRequest( new TargetRequest() );
+        Api api = new Api()
+            .setUrl( "https://play.dhis2.org/demo" )
+            .setUsername( "admin" )
+            .setPassword( "district" );
+
+        Target target = new Target()
+            .setApi( api )
+            .setType( TargetType.EXTERNAL )
+            .setRequest( new TargetRequest() );
 
         AnalyticsDataExchange exchange = new AnalyticsDataExchange();
         exchange.setAutoFields();
