@@ -25,32 +25,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system.leader;
+package org.hisp.dhis.system;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.hisp.dhis.IntegrationH2Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import org.hisp.dhis.leader.election.LeaderManager;
-import org.hisp.dhis.system.SystemTest;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-
-/**
- * @author Ameen Mohamed
- */
-class LeaderManagerTest extends SystemTest
+@ExtendWith( SpringExtension.class )
+@ContextConfiguration( classes = SystemTestConfig.class )
+@ActiveProfiles( profiles = { "test-h2" } )
+@IntegrationH2Test
+public abstract class SystemTest
 {
-
-    @Autowired
-    private LeaderManager leaderManager;
-
-    @Test
-    void testNodeInfo()
-    {
-        assertNotNull( leaderManager.getCurrentNodeUuid() );
-        assertNotNull( leaderManager.getLeaderNodeUuid() );
-        assertEquals( leaderManager.getCurrentNodeUuid(), leaderManager.getLeaderNodeUuid() );
-        assertTrue( leaderManager.isLeader() );
-    }
 }

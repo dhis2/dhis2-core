@@ -25,22 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi;
+package org.hisp.dhis.schema.descriptors;
 
-import org.hisp.dhis.config.H2DhisConfigurationProvider;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
+import org.hisp.dhis.visualization.OutlierAnalysis;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Configuration
-public class ConfigProviderConfiguration
+public class OutlierAnalysisSchemaDescriptor implements SchemaDescriptor
 {
-    @Bean( name = "dhisConfigurationProvider" )
-    public DhisConfigurationProvider dhisConfigurationProvider()
+    public static final String SINGULAR = "outlierAnalysis";
+
+    public static final String PLURAL = "outlierAnalysis";
+
+    @Override
+    public Schema getSchema()
     {
-        return new H2DhisConfigurationProvider();
+        return new Schema( OutlierAnalysis.class, SINGULAR, PLURAL );
     }
 }
