@@ -278,7 +278,7 @@ public enum ErrorCode
 
     /* Data exchange */
     E6300( "DHIS 2 client request failed: {0} {1}" ),
-    E6301( "Analytics data change not found or not accessible: `{0}`" ),
+    E6301( "Analytics data exchange not found or not accessible: `{0}`" ),
 
     /* Scheduling */
     E7000( "Job of same type already scheduled with cron expression: `{0}`" ),
