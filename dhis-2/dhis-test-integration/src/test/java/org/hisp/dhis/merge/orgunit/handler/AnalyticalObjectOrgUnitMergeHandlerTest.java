@@ -25,24 +25,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.split.orgunit.handler;
+package org.hisp.dhis.merge.orgunit.handler;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hibernate.SessionFactory;
-import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.split.orgunit.OrgUnitSplitRequest;
+import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.visualization.Visualization;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-/**
- * @author Lars Helge Overland
- */
-class AnalyticalObjectOrgUnitSplitHandlerTest extends DhisSpringTest
+class AnalyticalObjectOrgUnitMergeHandlerTest extends SingleSetupIntegrationTestBase
 {
 
     @Autowired
@@ -52,7 +49,7 @@ class AnalyticalObjectOrgUnitSplitHandlerTest extends DhisSpringTest
     private SessionFactory sessionFactory;
 
     @Autowired
-    private AnalyticalObjectOrgUnitSplitHandler handler;
+    private AnalyticalObjectOrgUnitMergeHandler handler;
 
     private DataElement deA;
 
@@ -76,25 +73,27 @@ class AnalyticalObjectOrgUnitSplitHandlerTest extends DhisSpringTest
     }
 
     @Test
-    void testSplitVisualizations()
+    void testMergeVisualizations()
     {
         Visualization vA = createVisualization( 'A' );
         vA.addDataDimensionItem( deA );
         vA.getOrganisationUnits().add( ouA );
+        vA.getOrganisationUnits().add( ouB );
         Visualization vB = createVisualization( 'B' );
         vB.addDataDimensionItem( deA );
         vB.getOrganisationUnits().add( ouA );
+        vB.getOrganisationUnits().add( ouB );
         idObjectManager.save( vA );
         idObjectManager.save( vB );
         assertEquals( 2, getVisualizationCount( ouA ) );
-        assertEquals( 0, getVisualizationCount( ouB ) );
+        assertEquals( 2, getVisualizationCount( ouB ) );
         assertEquals( 0, getVisualizationCount( ouC ) );
-        OrgUnitSplitRequest request = new OrgUnitSplitRequest.Builder().withSource( ouA ).addTarget( ouB )
-            .addTarget( ouC ).withPrimaryTarget( ouB ).build();
-        handler.splitAnalyticalObjects( request );
+        OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder().addSource( ouA ).addSource( ouB )
+            .withTarget( ouC ).build();
+        handler.mergeAnalyticalObjects( request );
         idObjectManager.update( ouC );
         assertEquals( 0, getVisualizationCount( ouA ) );
-        assertEquals( 2, getVisualizationCount( ouB ) );
+        assertEquals( 0, getVisualizationCount( ouB ) );
         assertEquals( 2, getVisualizationCount( ouC ) );
     }
 

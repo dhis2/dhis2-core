@@ -25,43 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.merge.orgunit.handler;
+package org.hisp.dhis.split.orgunit.handler;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hibernate.SessionFactory;
-import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.interpretation.Interpretation;
-import org.hisp.dhis.interpretation.InterpretationService;
-import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.split.orgunit.OrgUnitSplitRequest;
+import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.visualization.Visualization;
-import org.hisp.dhis.visualization.VisualizationService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Lars Helge Overland
  */
-class InterpretationDataOrgUnitMergeHandlerTest extends DhisSpringTest
+class AnalyticalObjectOrgUnitSplitHandlerTest extends SingleSetupIntegrationTestBase
 {
 
     @Autowired
-    private VisualizationService visualizationService;
-
-    @Autowired
-    private InterpretationService interpretationService;
-
-    @Autowired
-    private IdentifiableObjectManager manager;
-
-    @Autowired
-    private DataOrgUnitMergeHandler mergeHandler;
+    private IdentifiableObjectManager idObjectManager;
 
     @Autowired
     private SessionFactory sessionFactory;
+
+    @Autowired
+    private AnalyticalObjectOrgUnitSplitHandler handler;
+
+    private DataElement deA;
 
     private OrganisationUnit ouA;
 
@@ -69,45 +62,40 @@ class InterpretationDataOrgUnitMergeHandlerTest extends DhisSpringTest
 
     private OrganisationUnit ouC;
 
-    private Visualization vzA;
-
-    private Interpretation ipA;
-
-    private Interpretation ipB;
-
-    private Interpretation ipC;
-
-    @BeforeEach
-    void beforeTest()
+    @Override
+    public void setUpTest()
     {
+        deA = createDataElement( 'A' );
+        idObjectManager.save( deA );
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B' );
         ouC = createOrganisationUnit( 'C' );
-        manager.save( ouA );
-        manager.save( ouB );
-        manager.save( ouC );
-        vzA = createVisualization( 'A' );
-        visualizationService.save( vzA );
-        ipA = new Interpretation( vzA, ouA, "Interpration of visualization A" );
-        ipB = new Interpretation( vzA, ouB, "Interpration of visualization B" );
-        ipC = new Interpretation( vzA, ouC, "Interpration of visualization C" );
+        idObjectManager.save( ouA );
+        idObjectManager.save( ouB );
+        idObjectManager.save( ouC );
     }
 
     @Test
-    void testMigrate()
+    void testSplitVisualizations()
     {
-        interpretationService.saveInterpretation( ipA );
-        interpretationService.saveInterpretation( ipB );
-        interpretationService.saveInterpretation( ipC );
-        assertEquals( 1, getInterpretationCount( ouA ) );
-        assertEquals( 1, getInterpretationCount( ouB ) );
-        assertEquals( 1, getInterpretationCount( ouC ) );
-        OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder().addSource( ouA ).addSource( ouB )
-            .withTarget( ouC ).build();
-        mergeHandler.mergeInterpretations( request );
-        assertEquals( 0, getInterpretationCount( ouA ) );
-        assertEquals( 0, getInterpretationCount( ouB ) );
-        assertEquals( 3, getInterpretationCount( ouC ) );
+        Visualization vA = createVisualization( 'A' );
+        vA.addDataDimensionItem( deA );
+        vA.getOrganisationUnits().add( ouA );
+        Visualization vB = createVisualization( 'B' );
+        vB.addDataDimensionItem( deA );
+        vB.getOrganisationUnits().add( ouA );
+        idObjectManager.save( vA );
+        idObjectManager.save( vB );
+        assertEquals( 2, getVisualizationCount( ouA ) );
+        assertEquals( 0, getVisualizationCount( ouB ) );
+        assertEquals( 0, getVisualizationCount( ouC ) );
+        OrgUnitSplitRequest request = new OrgUnitSplitRequest.Builder().withSource( ouA ).addTarget( ouB )
+            .addTarget( ouC ).withPrimaryTarget( ouB ).build();
+        handler.splitAnalyticalObjects( request );
+        idObjectManager.update( ouC );
+        assertEquals( 0, getVisualizationCount( ouA ) );
+        assertEquals( 2, getVisualizationCount( ouB ) );
+        assertEquals( 2, getVisualizationCount( ouC ) );
     }
 
     /**
@@ -117,10 +105,11 @@ class InterpretationDataOrgUnitMergeHandlerTest extends DhisSpringTest
      * @param target the {@link OrganisationUnit}
      * @return the count of interpretations.
      */
-    private long getInterpretationCount( OrganisationUnit target )
+    private long getVisualizationCount( OrganisationUnit target )
     {
         return (Long) sessionFactory.getCurrentSession()
-            .createQuery( "select count(*) from Interpretation i where i.organisationUnit = :target" )
+            .createQuery(
+                "select count(distinct v) from Visualization v where :target in elements(v.organisationUnits)" )
             .setParameter( "target", target ).uniqueResult();
     }
 }
