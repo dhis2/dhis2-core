@@ -42,4 +42,13 @@ public class RelationshipCriteria extends PagingAndSortingCriteriaAdapter
     private String enrollment;
 
     private String event;
+
+    /**
+     * TODO Add Pager
+     */
+    @Override
+    public boolean isSkipPaging()
+    {
+        return true;
+    }
 }
