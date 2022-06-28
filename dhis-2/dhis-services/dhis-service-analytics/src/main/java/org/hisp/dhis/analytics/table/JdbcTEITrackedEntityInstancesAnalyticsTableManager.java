@@ -53,6 +53,7 @@ import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
+import org.hisp.dhis.analytics.IndexType;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -212,7 +213,7 @@ public class JdbcTEITrackedEntityInstancesAnalyticsTableManager extends Abstract
                             "          program p_0\n" +
                             "     WHERE pi_0.trackedentityinstanceid = tei.trackedentityinstanceid\n" +
                             "       AND p_0.programid = pi_0.programid)" )
-                                .withSkipIndex( true ) );
+                                .withIndexType( IndexType.GIN ) );
 
                 return new AnalyticsTable( getAnalyticsTableType(), columns,
                     newArrayList(), tet );

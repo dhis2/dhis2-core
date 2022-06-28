@@ -47,6 +47,7 @@ import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
+import org.hisp.dhis.analytics.IndexType;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -148,7 +149,7 @@ public class JdbcTEIEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
                             "       'dueDate', psi.duedate," +
                             "       'eventDataValues', eventdatavalues)" +
                             "  )" )
-                                .withSkipIndex( true ) );
+                                .withIndexType( IndexType.GIN ) );
 
                 return new AnalyticsTable( getAnalyticsTableType(), columns, newArrayList(), tet );
             } ).collect( Collectors.toList() );
