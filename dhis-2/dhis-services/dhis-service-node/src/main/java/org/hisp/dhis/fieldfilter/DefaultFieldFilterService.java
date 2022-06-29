@@ -36,6 +36,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -529,7 +531,11 @@ public class DefaultFieldFilterService implements FieldFilterService
                 }
                 else
                 {
-                    if ( propertySchema.getProperties().isEmpty() )
+                    if ( property.getKlass().isAssignableFrom( Map.class ) )
+                    {
+                        child = handleMapProperty( returnValue, property );
+                    }
+                    else if ( propertySchema.getProperties().isEmpty() )
                     {
                         SimpleNode simpleNode = new SimpleNode( fieldKey, returnValue );
                         simpleNode.setAttribute( property.isAttribute() );
@@ -600,6 +606,44 @@ public class DefaultFieldFilterService implements FieldFilterService
         }
 
         return complexNode;
+    }
+
+    private ComplexNode handleMapProperty( Object object, Property property )
+    {
+        Map<String, Object> mapObject = (Map<String, Object>) object;
+
+        ComplexNode child = new ComplexNode( property.getName() );
+
+        if ( !mapObject.entrySet().isEmpty() )
+        {
+            FieldMap map = getFullFieldMap(
+                schemaService.getDynamicSchema( mapObject.entrySet().iterator().next().getValue().getClass() ) );
+            for ( Entry<String, Object> item : mapObject.entrySet() )
+            {
+                ComplexNode node = new ComplexNode( item.getKey() );
+
+                for ( final String itemKey : map.keySet() )
+                {
+                    final String originalName = org.apache.commons.lang3.StringUtils.substringBefore( itemKey, "~" );
+                    final String rename = org.apache.commons.lang3.StringUtils.substringBetween( itemKey, "(", ")" );
+                    final Object value = ReflectionUtils.invokeGetterMethod( originalName, item.getValue() );
+
+                    if ( org.apache.commons.lang3.StringUtils.isNotBlank( rename ) )
+                    {
+                        node.addChild( new SimpleNode( rename, value ) );
+                    }
+                    else
+                    {
+                        node.addChild( new SimpleNode( originalName, value ) );
+                    }
+                }
+
+                child.addChild( node );
+            }
+            return child;
+        }
+
+        return null;
     }
 
     private void updateFields( FieldMap fieldMap, Class<?> klass )
