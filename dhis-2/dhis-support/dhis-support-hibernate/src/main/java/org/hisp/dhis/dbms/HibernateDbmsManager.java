@@ -78,6 +78,9 @@ public class HibernateDbmsManager
     @Override
     public void emptyDatabase()
     {
+        emptyTable( "maplegend" );
+        emptyTable( "maplegendset" );
+
         emptyTable( "constant" );
         emptyTable( "sqlview" );
 
