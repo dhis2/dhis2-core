@@ -41,6 +41,7 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
+import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.period.PeriodType;
 import org.springframework.stereotype.Service;
@@ -100,6 +101,13 @@ public class DefaultDataElementService
         if ( options.getValueType() != dataElement.getValueType() )
         {
             throw new IllegalQueryException( new ErrorMessage( ErrorCode.E1115, options.getValueType() ) );
+        }
+        if ( dataElement.getValueType() == ValueType.MULTI_TEXT
+            && options.getOptions().stream().anyMatch( option -> option.getCode().contains( "," ) ) )
+        {
+            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E1117, dataElement.getUid(), options.getUid(),
+                options.getOptions().stream().map( Option::getCode )
+                    .filter( code -> code.contains( "," ) ).findFirst().orElse( "" ) ) );
         }
     }
 

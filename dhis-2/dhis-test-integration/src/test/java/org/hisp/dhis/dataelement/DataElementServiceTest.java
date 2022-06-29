@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.dataelement;
 
+import static java.lang.String.format;
+import static java.util.Arrays.stream;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -110,6 +112,19 @@ class DataElementServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
+    void testAddDataElement_WithOptionSetHavingCodeWithSeparator()
+    {
+        DataElement de = createDataElementWithOptionSet( ValueType.MULTI_TEXT,
+            ValueType.MULTI_TEXT, "A", "B", "C,D" );
+        IllegalQueryException ex = assertThrows( IllegalQueryException.class,
+            () -> dataElementService.addDataElement( de ) );
+        assertEquals( ErrorCode.E1117, ex.getErrorCode() );
+        assertEquals( format(
+            "Data element `%s` of value type multi text cannot use an option set `%s` that uses the separator character in one of its codes: `C,D`",
+            de.getUid(), de.getOptionSet().getUid() ), ex.getMessage() );
+    }
+
+    @Test
     void testUpdateDataElement()
     {
         DataElement dataElementA = createDataElement( 'A' );
@@ -144,6 +159,21 @@ class DataElementServiceTest extends TransactionalIntegrationTest
             () -> dataElementService.updateDataElement( de ) );
         assertEquals( ErrorCode.E1115, ex.getErrorCode() );
         assertEquals( "Data element value type must match option set value type: `MULTI_TEXT`", ex.getMessage() );
+    }
+
+    @Test
+    void testUpdateDataElement_WithOptionSetHavingCodeWithSeparator()
+    {
+        DataElement de = createDataElement( 'A' );
+        dataElementService.addDataElement( de );
+        de.setValueType( ValueType.MULTI_TEXT );
+        de.setOptionSet( addOptionSet( ValueType.MULTI_TEXT, "A", "B", "C,D" ) );
+        IllegalQueryException ex = assertThrows( IllegalQueryException.class,
+            () -> dataElementService.updateDataElement( de ) );
+        assertEquals( ErrorCode.E1117, ex.getErrorCode() );
+        assertEquals( format(
+            "Data element `%s` of value type multi text cannot use an option set `%s` that uses the separator character in one of its codes: `C,D`",
+            de.getUid(), de.getOptionSet().getUid() ), ex.getMessage() );
     }
 
     @Test
@@ -400,12 +430,23 @@ class DataElementServiceTest extends TransactionalIntegrationTest
 
     private DataElement createDataElementWithOptionSet( ValueType deValueType, ValueType osValueType )
     {
-        OptionSet options = createOptionSet( 'A', new Option( "A", "A" ) );
-        options.setValueType( osValueType );
-        optionService.saveOptionSet( options );
+        return createDataElementWithOptionSet( deValueType, osValueType, "A" );
+    }
+
+    private DataElement createDataElementWithOptionSet( ValueType deValueType, ValueType osValueType, String... codes )
+    {
         DataElement de = createDataElement( 'A' );
-        de.setOptionSet( options );
+        de.setOptionSet( addOptionSet( osValueType, codes ) );
         de.setValueType( deValueType );
         return de;
+    }
+
+    private OptionSet addOptionSet( ValueType osValueType, String... codes )
+    {
+        OptionSet options = createOptionSet( 'A',
+            stream( codes ).map( code -> new Option( code, code ) ).toArray( Option[]::new ) );
+        options.setValueType( osValueType );
+        optionService.saveOptionSet( options );
+        return options;
     }
 }
