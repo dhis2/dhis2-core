@@ -32,14 +32,14 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.Collection;
 
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class OAuth2ClientStoreTest extends SingleSetupIntegrationTestBase
+class OAuth2ClientStoreTest extends TransactionalIntegrationTest
 {
 
     @Autowired
@@ -63,14 +63,14 @@ class OAuth2ClientStoreTest extends SingleSetupIntegrationTestBase
         clientC = new OAuth2Client();
         clientC.setName( "clientC" );
         clientC.setCid( "clientC" );
-        oAuth2ClientStore.save( clientA );
-        oAuth2ClientStore.save( clientB );
-        oAuth2ClientStore.save( clientC );
     }
 
     @Test
     void testGetAll()
     {
+        oAuth2ClientStore.save( clientA );
+        oAuth2ClientStore.save( clientB );
+        oAuth2ClientStore.save( clientC );
         Collection<OAuth2Client> all = oAuth2ClientStore.getAll();
         assertEquals( 3, all.size() );
     }
@@ -78,6 +78,9 @@ class OAuth2ClientStoreTest extends SingleSetupIntegrationTestBase
     @Test
     void testGetByClientID()
     {
+        oAuth2ClientStore.save( clientA );
+        oAuth2ClientStore.save( clientB );
+        oAuth2ClientStore.save( clientC );
         assertNotNull( oAuth2ClientStore.getByClientId( "clientA" ) );
         assertNotNull( oAuth2ClientStore.getByClientId( "clientB" ) );
         assertNotNull( oAuth2ClientStore.getByClientId( "clientC" ) );

@@ -40,7 +40,7 @@ import java.util.UUID;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -49,7 +49,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Nguyen Hong Duc
  */
-class UserStoreTest extends IntegrationTestBase
+class UserStoreTest extends SingleSetupIntegrationTestBase
 {
     public static final String AUTH_A = "AuthA";
 
@@ -69,7 +69,7 @@ class UserStoreTest extends IntegrationTestBase
     private UserGroupService userGroupService;
 
     @Autowired
-    private UserService userService;
+    private UserService _userService;
 
     private OrganisationUnit unit1;
 
@@ -90,7 +90,7 @@ class UserStoreTest extends IntegrationTestBase
         organisationUnitService.addOrganisationUnit( unit1 );
         organisationUnitService.addOrganisationUnit( unit2 );
 
-        super.userService = userService;
+        this.userService = _userService;
         roleA = createUserRole( 'A' );
         roleB = createUserRole( 'B' );
         roleC = createUserRole( 'C' );
@@ -191,6 +191,7 @@ class UserStoreTest extends IntegrationTestBase
     {
         User userA = makeUser( "A" );
         userStore.save( userA );
+        dbmsManager.flushSession();
         assertEquals( "FirstNameA SurnameA", userStore.getDisplayName( userA.getUid() ) );
     }
 
