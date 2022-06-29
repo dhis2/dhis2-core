@@ -32,7 +32,6 @@ import static org.apache.commons.lang3.StringUtils.trimToNull;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 import javax.annotation.PostConstruct;
@@ -43,9 +42,11 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DateRange;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataapproval.DataApproval;
 import org.hisp.dhis.dataapproval.DataApprovalService;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.LockExceptionStore;
 import org.hisp.dhis.datavalue.AggregateAccessManager;
@@ -375,7 +376,7 @@ public class DataValueSetImportValidator
         String value = ValidationUtils.normalizeBoolean( dataValue.getValue(),
             valueContext.getDataElement().getValueType() );
 
-        String errorKey = ValidationUtils.dataValueIsValid( value, valueContext.getDataElement() );
+        String errorKey = ValidationUtils.dataValueIsValid( value, valueContext.getDataElement(), false );
 
         if ( errorKey != null )
         {
@@ -399,13 +400,19 @@ public class DataValueSetImportValidator
     private static void validateDataValueOptionsExist( DataValueEntry dataValue, ImportContext context,
         DataSetContext dataSetContext, DataValueContext valueContext )
     {
-        Optional<Set<String>> optionCodes = context.getDataElementOptionsMap().get(
-            valueContext.getDataElement().getUid(),
-            () -> valueContext.getDataElement().hasOptionSet()
-                ? Optional.of( valueContext.getDataElement().getOptionSet().getOptionCodesAsSet() )
-                : Optional.empty() );
-
-        if ( optionCodes.isPresent() && !optionCodes.get().contains( dataValue.getValue() ) )
+        DataElement de = valueContext.getDataElement();
+        if ( !de.hasOptionSet() )
+        {
+            return;
+        }
+        Set<String> optionCodes = context.getDataElementOptionsMap().get( de.getUid(),
+            () -> de.getOptionSet().getOptionCodesAsSet() );
+        ValueType valueType = de.getValueType();
+        String value = dataValue.getValue();
+        boolean invalid = valueType != ValueType.MULTI_TEXT
+            ? !optionCodes.contains( value )
+            : !optionCodes.containsAll( ValueType.splitMultiText( value ) );
+        if ( invalid )
         {
             context.addConflict( valueContext.getIndex(),
                 DataValueImportConflict.DATA_ELEMENT_INVALID_OPTION, dataValue.getDataElement() );

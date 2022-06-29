@@ -32,6 +32,7 @@ import java.util.List;
 
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.hierarchy.HierarchyViolationException;
 import org.hisp.dhis.period.PeriodType;
@@ -64,6 +65,15 @@ public interface DataElementService
      * @param dataElement the DataElement to update.
      */
     void updateDataElement( DataElement dataElement );
+
+    /**
+     * Validate the data consistency of the provided data element.
+     *
+     * @param dataElement the element to check for validity
+     * @throws IllegalQueryException when the provided data element is not valid
+     */
+    void validateDateElement( DataElement dataElement )
+        throws IllegalQueryException;
 
     /**
      * Deletes a DataElement. The DataElement is also removed from any
