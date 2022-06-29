@@ -223,6 +223,10 @@ public class HibernatePropertyIntrospector implements PropertyIntrospector
                 property.setMax( Double.MAX_VALUE );
                 property.setLength( Integer.MAX_VALUE );
             }
+            else if ( type instanceof CustomType )
+            {
+                property.setSimple( false );
+            }
         }
 
         if ( type instanceof ManyToOneType )
