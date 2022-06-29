@@ -49,7 +49,6 @@ import java.util.function.Function;
 
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
-import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -87,6 +86,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.QuarterlyPeriodType;
 import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -96,7 +96,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Lars Helge Overland
  */
-class QueryPlannerTest extends DhisSpringTest
+class QueryPlannerTest extends SingleSetupIntegrationTestBase
 {
     private static final AnalyticsTableType ANALYTICS_TABLE_TYPE = AnalyticsTableType.DATA_VALUE;
 
@@ -258,6 +258,7 @@ class QueryPlannerTest extends DhisSpringTest
         degC.addDataElement( deK );
         dataElementService.addDataElementGroup( degA );
         dataElementService.addDataElementGroup( degB );
+        dataElementService.addDataElementGroup( degC );
         dgsA = createDataElementGroupSet( 'A' );
         dgsA.getMembers().add( degA );
         dgsB = createDataElementGroupSet( 'B' );

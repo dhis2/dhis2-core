@@ -30,7 +30,6 @@ package org.hisp.dhis.dashboard;
 import static org.hisp.dhis.eventvisualization.EventVisualizationType.LINE_LIST;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.document.DocumentService;
 import org.hisp.dhis.eventchart.EventChart;
@@ -46,6 +45,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.report.ReportService;
+import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.visualization.Visualization;
@@ -56,7 +56,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Jim Grace
  */
-class DashboardItemDeletionHandlerTest extends DhisSpringTest
+class DashboardItemDeletionHandlerTest extends TransactionalIntegrationTest
 {
 
     @Autowired

@@ -46,7 +46,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -88,6 +87,7 @@ import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
@@ -103,7 +103,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Lars Helge Overland
  */
-class DataQueryServiceTest extends DhisSpringTest
+class DataQueryServiceTest extends SingleSetupIntegrationTestBase
 {
 
     private Program prA;
