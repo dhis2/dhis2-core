@@ -590,6 +590,13 @@ public class DefaultDataValueSetService
 
     @Override
     @Transactional
+    public ImportSummary importDataValueSet( DataValueSet dataValueSet, ImportOptions options )
+    {
+        return importDataValueSet( options, null, () -> new SimpleDataValueSetReader( dataValueSet ) );
+    }
+
+    @Override
+    @Transactional
     public ImportSummary importDataValueSetXml( InputStream in, ImportOptions options, JobConfiguration id )
     {
         return importDataValueSet( options, id, () -> new XmlDataValueSetReader(
