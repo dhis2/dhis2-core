@@ -55,8 +55,10 @@ public enum ErrorCode
     E1114( "Data set form type must be custom: `{0}`" ),
     E1115( "Data element value type must match option set value type: `{0}`" ),
     E1116( "Data element of value type multi text must have an option set: `{0}`" ),
-    E1117(
-        "Data element `{0}` of value type multi text cannot use an option set `{1}` that uses the separator character in one of its codes: `{2}`" ),
+    E1117( "Data element `{0}` of value type multi text cannot use an option set `{1}` "
+        + "that uses the separator character in one of its codes: `{2}`" ),
+    E1118(
+        "Option set `{0}` of value type multi text cannot have options using the separator character in their code: `{1}`" ),
 
     /* Org unit merge */
     E1500( "At least two source orgs unit must be specified" ),

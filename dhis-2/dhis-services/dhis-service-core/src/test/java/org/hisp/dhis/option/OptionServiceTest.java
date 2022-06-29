@@ -27,14 +27,18 @@
  */
 package org.hisp.dhis.option;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -118,6 +122,33 @@ class OptionServiceTest extends DhisSpringTest
         assertTrue( optionSetA.getOptions().contains( option2 ) );
         assertTrue( optionSetA.getOptions().contains( option3 ) );
         assertTrue( optionSetA.getOptions().contains( option4 ) );
+    }
+
+    @Test
+    void testSaveOptionSet_MultiTextWithSeparatorInCode()
+    {
+        OptionSet optionSet = createOptionSet( 'A',
+            createOption( 'B' ), createOption( ',' ) );
+        optionSet.setValueType( ValueType.MULTI_TEXT );
+
+        IllegalQueryException ex = assertThrows( IllegalQueryException.class,
+            () -> optionService.saveOptionSet( optionSet ) );
+        assertEquals( ErrorCode.E1118, ex.getErrorCode() );
+    }
+
+    @Test
+    void testUpdateOptionSet_MultiTextWithSeparatorInCode()
+    {
+        OptionSet optionSet = createOptionSet( 'A',
+            createOption( 'B' ), createOption( 'C' ) );
+        optionSet.setValueType( ValueType.MULTI_TEXT );
+
+        assertDoesNotThrow( () -> optionService.saveOptionSet( optionSet ) );
+        optionSet.addOption( createOption( ',' ) );
+
+        IllegalQueryException ex = assertThrows( IllegalQueryException.class,
+            () -> optionService.updateOptionSet( optionSet ) );
+        assertEquals( ErrorCode.E1118, ex.getErrorCode() );
     }
 
     @Test

@@ -105,6 +105,7 @@ class DataElementServiceTest extends TransactionalIntegrationTest
     void testAddDataElement_WithOptionSetValueTypeMismatch()
     {
         DataElement de = createDataElementWithOptionSet( ValueType.TEXT, ValueType.MULTI_TEXT );
+
         IllegalQueryException ex = assertThrows( IllegalQueryException.class,
             () -> dataElementService.addDataElement( de ) );
         assertEquals( ErrorCode.E1115, ex.getErrorCode() );
@@ -116,6 +117,7 @@ class DataElementServiceTest extends TransactionalIntegrationTest
     {
         DataElement de = createDataElementWithOptionSet( ValueType.MULTI_TEXT,
             ValueType.MULTI_TEXT, "A", "B", "C,D" );
+
         IllegalQueryException ex = assertThrows( IllegalQueryException.class,
             () -> dataElementService.addDataElement( de ) );
         assertEquals( ErrorCode.E1117, ex.getErrorCode() );
@@ -155,6 +157,7 @@ class DataElementServiceTest extends TransactionalIntegrationTest
         DataElement de = createDataElementWithOptionSet( ValueType.MULTI_TEXT, ValueType.MULTI_TEXT );
         dataElementService.addDataElement( de );
         de.setValueType( ValueType.TEXT );
+
         IllegalQueryException ex = assertThrows( IllegalQueryException.class,
             () -> dataElementService.updateDataElement( de ) );
         assertEquals( ErrorCode.E1115, ex.getErrorCode() );
@@ -168,6 +171,7 @@ class DataElementServiceTest extends TransactionalIntegrationTest
         dataElementService.addDataElement( de );
         de.setValueType( ValueType.MULTI_TEXT );
         de.setOptionSet( addOptionSet( ValueType.MULTI_TEXT, "A", "B", "C,D" ) );
+
         IllegalQueryException ex = assertThrows( IllegalQueryException.class,
             () -> dataElementService.updateDataElement( de ) );
         assertEquals( ErrorCode.E1117, ex.getErrorCode() );

@@ -102,12 +102,13 @@ public class DefaultDataElementService
         {
             throw new IllegalQueryException( new ErrorMessage( ErrorCode.E1115, options.getValueType() ) );
         }
-        if ( dataElement.getValueType() == ValueType.MULTI_TEXT
-            && options.getOptions().stream().anyMatch( option -> option.getCode().contains( "," ) ) )
+        if ( dataElement.getValueType() == ValueType.MULTI_TEXT && options.getOptions().stream().anyMatch(
+            option -> option.getCode().contains( ValueType.MULTI_TEXT_SEPARATOR ) ) )
         {
             throw new IllegalQueryException( new ErrorMessage( ErrorCode.E1117, dataElement.getUid(), options.getUid(),
                 options.getOptions().stream().map( Option::getCode )
-                    .filter( code -> code.contains( "," ) ).findFirst().orElse( "" ) ) );
+                    .filter( code -> code.contains( ValueType.MULTI_TEXT_SEPARATOR ) )
+                    .findFirst().orElse( "" ) ) );
         }
     }
 
