@@ -45,7 +45,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 class SecurityServiceTest extends TransactionalIntegrationTest
 {
     @Autowired
-    private UserService userService;
+    private UserService _userService;
 
     @Autowired
     private PasswordManager passwordManager;
@@ -63,16 +63,9 @@ class SecurityServiceTest extends TransactionalIntegrationTest
     @Override
     public void setUpTest()
     {
-        userA = new User();
-        userA.setUsername( "johndoe" );
-        userA.setPassword( "" );
-        userA.setAutoFields();
-        userService.addUser( userA );
-
-        userB = new User();
-        userB.setUsername( "janesmith" );
-        userB.setPassword( "" );
-        userService.addUser( userB );
+        this.userService = _userService;
+        userA = createAndAddUser( "johndoe" );
+        userB = createAndAddUser( "janesmith" );
     }
 
     @Test

@@ -169,7 +169,7 @@ class ProgramStageDataElementServiceTest extends IntegrationTestBase
     void testRemoveReferencedDataElement()
     {
         programStageDataElementService.addProgramStageDataElement( stageDataElementA );
-        stageA.setProgramStageDataElements( ImmutableSet.of( stageDataElementA ) );
+        stageA.getProgramStageDataElements().addAll( ImmutableSet.of( stageDataElementA ) );
         programStageService.updateProgramStage( stageA );
         assertThrows( DeleteNotAllowedException.class, () -> dataElementService.deleteDataElement( dataElementA ) );
     }
