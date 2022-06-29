@@ -49,7 +49,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.joda.time.DateTime;
@@ -62,7 +62,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Chau Thu Tran
  */
-class ProgramStageInstanceStoreTest extends IntegrationTestBase
+class ProgramStageInstanceStoreTest extends TransactionalIntegrationTest
 {
 
     @Autowired
@@ -164,7 +164,7 @@ class ProgramStageInstanceStoreTest extends IntegrationTestBase
         Set<ProgramStage> programStages = new HashSet<>();
         programStages.add( stageA );
         programStages.add( stageB );
-        programA.setProgramStages( programStages );
+        programA.getProgramStages().addAll( programStages );
         programService.updateProgram( programA );
         dataElementA = createDataElement( 'A' );
         dataElementB = createDataElement( 'B' );
@@ -193,7 +193,7 @@ class ProgramStageInstanceStoreTest extends IntegrationTestBase
         programStages = new HashSet<>();
         programStages.add( stageC );
         programStages.add( stageD );
-        programB.setProgramStages( programStages );
+        programB.getProgramStages().addAll( programStages );
         programService.updateProgram( programB );
         /**
          * Program Instance and Program Stage Instance

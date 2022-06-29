@@ -336,11 +336,13 @@ class PredictorServiceTest extends IntegrationTestBase
         assertEquals( 2, predictors.size() );
         assertTrue( predictors.contains( predictorA ) );
         assertTrue( predictors.contains( predictorB ) );
-        predictorService.deletePredictor( predictorA );
+        predictorGroupA.getMembers().remove( predictorA );
+        predictorService.updatePredictorGroup( predictorGroupA );
         predictors = predictorGroupA.getMembers();
         assertEquals( 1, predictors.size() );
         assertTrue( predictors.contains( predictorB ) );
-        predictorService.deletePredictor( predictorB );
+        predictorGroupA.getMembers().remove( predictorB );
+        predictorService.updatePredictorGroup( predictorGroupA );
         predictors = predictorGroupA.getMembers();
         assertEquals( 0, predictors.size() );
     }
