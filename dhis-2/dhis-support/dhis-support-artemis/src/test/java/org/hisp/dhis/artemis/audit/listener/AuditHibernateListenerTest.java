@@ -44,13 +44,14 @@ import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.user.User;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.hisp.dhis.user.UserCredentials;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.MockitoJUnitRunner;
 
-@ExtendWith( MockitoExtension.class )
+@RunWith( MockitoJUnitRunner.class )
 public class AuditHibernateListenerTest
 {
     @InjectMocks
@@ -69,7 +70,7 @@ public class AuditHibernateListenerTest
     private SchemaService schemaService;
 
     @Test
-    void testSavePassword()
+    public void testSavePassword()
     {
         User user = createUser( 1, "userA", "passwordA" );
 
@@ -100,8 +101,11 @@ public class AuditHibernateListenerTest
     {
         User user = new User();
         user.setId( id );
-        user.setUsername( userName );
-        user.setPassword( password );
+
+        UserCredentials userCredentials = new UserCredentials();
+        userCredentials.setUsername( userName );
+        userCredentials.setPassword( password );
+        user.setUserCredentials( userCredentials );
         return user;
     }
 
