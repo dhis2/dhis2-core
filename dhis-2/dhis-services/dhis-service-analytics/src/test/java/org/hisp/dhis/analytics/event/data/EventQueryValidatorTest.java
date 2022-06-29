@@ -34,6 +34,7 @@ import static org.mockito.Mockito.when;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.OrgUnitField;
 import org.hisp.dhis.analytics.QueryValidator;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -273,7 +274,7 @@ class EventQueryValidatorTest extends DhisSpringTest
             .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
             .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
             .withOrganisationUnits( Lists.newArrayList( ouA ) )
-            .withOrgUnitField( "notAUid" ).build();
+            .withOrgUnitField( new OrgUnitField( "notAUid" ) ).build();
 
         assertValidatonError( ErrorCode.E7211, params );
     }

@@ -213,16 +213,25 @@ public class DateUtils
     }
 
     /**
-     * adds 1 day to provided Date and returns it
+     * Adds 1 day to provided Date and returns it.
      *
      * @param date
      * @return day after provided date
      */
     public static Date plusOneDay( Date date )
     {
-        return Date.from( date
-            .toInstant()
-            .plus( 1, ChronoUnit.DAYS ) );
+        return new Date( date.getTime() + MS_PER_DAY );
+    }
+
+    /**
+     * Subtracts 1 day from provided Date and returns it.
+     *
+     * @param date
+     * @return day before provided date
+     */
+    public static Date minusOneDay( Date date )
+    {
+        return new Date( date.getTime() - MS_PER_DAY );
     }
 
     /**

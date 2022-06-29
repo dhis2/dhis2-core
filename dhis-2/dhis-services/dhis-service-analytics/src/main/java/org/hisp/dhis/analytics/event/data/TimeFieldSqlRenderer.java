@@ -57,7 +57,7 @@ public abstract class TimeFieldSqlRenderer
             sql.append( getSqlConditionForNonDefaultBoundaries( params ) );
         }
         // when multiple periods are set
-        else if ( params.hasStartEndDate() || !params.getDateRangeByDateFilter().isEmpty() )
+        else if ( params.useStartEndDates() )
         {
             sql.append( getSqlConditionHasStartEndDate( params ) );
         }

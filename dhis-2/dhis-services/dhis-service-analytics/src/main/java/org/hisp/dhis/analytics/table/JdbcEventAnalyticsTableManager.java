@@ -160,7 +160,11 @@ public class JdbcEventAnalyticsTableManager
         new AnalyticsTableColumn( quote( "ougeometry" ), GEOMETRY, "ou.geometry" )
             .withIndexType( IndexType.GIST ),
         new AnalyticsTableColumn( quote( "pigeometry" ), GEOMETRY, "pi.geometry" )
-            .withIndexType( IndexType.GIST ) );
+            .withIndexType( IndexType.GIST ),
+        new AnalyticsTableColumn( quote( "registrationou" ), CHARACTER_11, NOT_NULL,
+            "coalesce(registrationou.uid,ou.uid)" ),
+        new AnalyticsTableColumn( quote( "enrollmentou" ), CHARACTER_11, NOT_NULL,
+            "coalesce(enrollmentou.uid,ou.uid)" ) );
 
     @Override
     public AnalyticsTableType getAnalyticsTableType()
@@ -372,11 +376,13 @@ public class JdbcEventAnalyticsTableManager
             "inner join categoryoptioncombo ao on psi.attributeoptioncomboid=ao.categoryoptioncomboid " +
             "left join trackedentityinstance tei on pi.trackedentityinstanceid=tei.trackedentityinstanceid " +
             "and tei.deleted is false " +
+            "left join organisationunit registrationou on tei.organisationunitid=registrationou.organisationunitid " +
             "inner join organisationunit ou on psi.organisationunitid=ou.organisationunitid " +
             "left join _orgunitstructure ous on psi.organisationunitid=ous.organisationunitid " +
             "left join _organisationunitgroupsetstructure ougs on psi.organisationunitid=ougs.organisationunitid " +
             "and (cast(date_trunc('month', " + getDateLinkedToStatus() + ") as date)" +
             "=ougs.startdate or ougs.startdate is null) " +
+            "inner join organisationunit enrollmentou on pi.organisationunitid=enrollmentou.organisationunitid " +
             "inner join _categorystructure acs on psi.attributeoptioncomboid=acs.categoryoptioncomboid " +
             "left join _dateperiodstructure dps on cast(" + getDateLinkedToStatus() + " as date)=dps.dateperiod " +
             "where psi.lastupdated < '" + getLongDateString( params.getStartTime() ) + "' " + partitionClause +

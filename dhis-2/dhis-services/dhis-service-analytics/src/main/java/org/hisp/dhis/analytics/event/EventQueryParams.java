@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.event;
 
 import static java.util.Arrays.asList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.hisp.dhis.analytics.OrgUnitFieldType.ATTRIBUTE;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
@@ -59,6 +60,7 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.EventOutputType;
+import org.hisp.dhis.analytics.OrgUnitField;
 import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.analytics.QueryKey;
 import org.hisp.dhis.analytics.QueryParamsBuilder;
@@ -562,6 +564,15 @@ public class EventQueryParams
     }
 
     /**
+     * Indicates whether we should use start/end dates in SQL query instead of
+     * periods.
+     */
+    public boolean useStartEndDates()
+    {
+        return hasStartEndDate() || !getDateRangeByDateFilter().isEmpty();
+    }
+
+    /**
      * Returns a list of query items which occur more than once, not including
      * the first duplicate.
      */
@@ -667,7 +678,7 @@ public class EventQueryParams
      */
     public boolean orgUnitFieldIsValid()
     {
-        if ( orgUnitField == null )
+        if ( !(orgUnitField.getType() == ATTRIBUTE) )
         {
             return true;
         }
@@ -699,15 +710,16 @@ public class EventQueryParams
 
     private boolean validateProgramHasOrgUnitField( Program program )
     {
+        String orgUnitColumn = orgUnitField.getField();
 
         if ( program.getTrackedEntityAttributes().stream()
-            .anyMatch( at -> at.getValueType().isOrganisationUnit() && orgUnitField.equals( at.getUid() ) ) )
+            .anyMatch( at -> at.getValueType().isOrganisationUnit() && orgUnitColumn.equals( at.getUid() ) ) )
         {
             return true;
         }
 
         if ( program.getDataElements().stream()
-            .anyMatch( at -> at.getValueType().isOrganisationUnit() && orgUnitField.equals( at.getUid() ) ) )
+            .anyMatch( at -> at.getValueType().isOrganisationUnit() && orgUnitColumn.equals( at.getUid() ) ) )
         {
             return true;
         }
@@ -1488,7 +1500,7 @@ public class EventQueryParams
             return this;
         }
 
-        public Builder withOrgUnitField( String orgUnitField )
+        public Builder withOrgUnitField( OrgUnitField orgUnitField )
         {
             this.params.orgUnitField = orgUnitField;
             return this;

@@ -37,6 +37,7 @@ import java.util.Date;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.analytics.event.ProgramIndicatorSubqueryBuilder;
+import org.hisp.dhis.analytics.table.PartitionUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -133,8 +134,9 @@ public class DefaultProgramIndicatorSubqueryBuilder
 
     private String getFrom( ProgramIndicator pi )
     {
-        return " FROM " + ANALYTICS_TABLE_NAME + "_" + pi.getAnalyticsType().getValue() + "_"
-            + pi.getProgram().getUid().toLowerCase() + " as " + SUBQUERY_TABLE_ALIAS;
+        String baseTableName = ANALYTICS_TABLE_NAME + "_" + pi.getAnalyticsType().getValue();
+
+        return " FROM " + PartitionUtils.getTableName( baseTableName, pi.getProgram() ) + " as " + SUBQUERY_TABLE_ALIAS;
     }
 
     /**
