@@ -33,6 +33,7 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.springframework.stereotype.Service;
 
+// TODO: Review if this is really needed. Delete otherwise.
 @Service
 @RequiredArgsConstructor
 public class CommonQueryService

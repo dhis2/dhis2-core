@@ -34,7 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.predictor.Predictor;
@@ -42,7 +41,7 @@ import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.schema.introspection.TranslatablePropertyIntrospector;
 import org.junit.jupiter.api.Test;
 
-class TranslatablePropertyIntrospectorTest extends DhisSpringTest
+class TranslatablePropertyIntrospectorTest
 {
 
     private final TranslatablePropertyIntrospector introspector = new TranslatablePropertyIntrospector();

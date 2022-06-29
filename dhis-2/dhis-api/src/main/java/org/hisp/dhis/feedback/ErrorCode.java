@@ -278,6 +278,10 @@ public enum ErrorCode
     E6210( "Restore expiration date is not set for user account" ),
     E6211( "User account restore invitation has expired" ),
 
+    /* Data exchange */
+    E6300( "DHIS 2 client request failed: {0} {1}" ),
+    E6301( "Analytics data exchange not found or not accessible: `{0}`" ),
+
     /* Scheduling */
     E7000( "Job of same type already scheduled with cron expression: `{0}`" ),
     E7003( "Only interval property can be configured for non configurable job type: `{0}`" ),

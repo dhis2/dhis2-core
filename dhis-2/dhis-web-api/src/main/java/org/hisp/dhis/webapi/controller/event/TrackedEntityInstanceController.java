@@ -266,7 +266,7 @@ public class TrackedEntityInstanceController
             MoreObjects.firstNonNull( dimension, ImageFileDimension.ORIGINAL ) );
 
         response.setContentType( fileResource.getContentType() );
-        response.setContentLength( (int) fileResource.getContentLength() );
+        response.setContentLengthLong( fileResource.getContentLength() );
         response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName() );
 
         try ( InputStream inputStream = fileResourceService.getFileResourceContent( fileResource ) )
@@ -494,19 +494,6 @@ public class TrackedEntityInstanceController
     {
         ImportSummary importSummary = trackedEntityInstanceService.deleteTrackedEntityInstance( id );
         return importSummary( importSummary );
-    }
-
-    private boolean parseInputFlag( String flag )
-        throws BadRequestException
-    {
-        if ( "true".equals( flag ) || "false".equals( flag ) )
-        {
-            return Boolean.parseBoolean( flag );
-        }
-        else
-        {
-            throw new BadRequestException( "Flag must be true or false" );
-        }
     }
 
     // -------------------------------------------------------------------------

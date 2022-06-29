@@ -36,6 +36,7 @@
     <module>dhis-web-api-test</module>
     <module>dhis-web-embedded-jetty</module>
     <module>dhis-test-coverage</module>
+    <module>dhis-test-integration</module>
   </modules>
 
   <properties>
@@ -985,6 +986,11 @@
       <dependency>
         <groupId>org.hisp.dhis</groupId>
         <artifactId>dhis-service-analytics</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.hisp.dhis</groupId>
+        <artifactId>dhis-service-data-exchange</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
