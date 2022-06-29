@@ -183,9 +183,23 @@ class AnalyticsUtilsTest extends DhisConvenienceTest
         DataQueryParams paramsB = DataQueryParams.newBuilder().withSkipRounding( true ).build();
         assertEquals( null, AnalyticsUtils.getRoundedValueObject( paramsA, null ) );
         assertEquals( "Car", AnalyticsUtils.getRoundedValueObject( paramsA, "Car" ) );
-        assertEquals( 3d, AnalyticsUtils.getRoundedValueObject( paramsA, 3d ) );
+        assertEquals( 3L, AnalyticsUtils.getRoundedValueObject( paramsA, 3d ) );
+        assertEquals( 1000L, AnalyticsUtils.getRoundedValueObject( paramsA, 1000.00000000 ) );
+        assertEquals( 67L, AnalyticsUtils.getRoundedValueObject( paramsA, 67.0 ) );
         assertEquals( (Double) AnalyticsUtils.getRoundedValueObject( paramsA, 3.123 ), 0.01, 3.1 );
         assertEquals( (Double) AnalyticsUtils.getRoundedValueObject( paramsB, 3.123 ), 0.01, 3.123 );
+    }
+
+    @Test
+    void testEndsWithZeroDecimal()
+    {
+        assertFalse( AnalyticsUtils.endsWithZeroAsDecimalDigit( -20.4 ) );
+        assertFalse( AnalyticsUtils.endsWithZeroAsDecimalDigit( 20.000000001 ) );
+        assertFalse( AnalyticsUtils.endsWithZeroAsDecimalDigit( 1000000.000000001 ) );
+
+        assertTrue( AnalyticsUtils.endsWithZeroAsDecimalDigit( -20.0 ) );
+        assertTrue( AnalyticsUtils.endsWithZeroAsDecimalDigit( 20.000000000 ) );
+        assertTrue( AnalyticsUtils.endsWithZeroAsDecimalDigit( 1000000.0000 ) );
     }
 
     @Test
