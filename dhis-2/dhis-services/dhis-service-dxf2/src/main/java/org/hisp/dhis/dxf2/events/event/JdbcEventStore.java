@@ -188,6 +188,8 @@ public class JdbcEventStore implements EventStore
         " on psic.trackedentitycommentid = psinote.trackedentitycommentid" +
         " left join userinfo on psinote.lastupdatedby = userinfo.userinfoid ";
 
+    private static final String PSI_STATUS = "psi_status";
+
     private static final String PSI_STATUS_EQ = " psi.status = '";
 
     private static final String PSI_LASTUPDATED_GT = " psi.lastupdated >= ";
@@ -205,7 +207,7 @@ public class JdbcEventStore implements EventStore
         .put( "trackedEntityInstance", "tei_uid" )
         .put( EVENT_EXECUTION_DATE_ID, "psi_executiondate" )
         .put( "followup", "pi_followup" )
-        .put( EVENT_STATUS_ID, "psi_status" )
+        .put( EVENT_STATUS_ID, PSI_STATUS )
         .put( EVENT_DUE_DATE_ID, "psi_duedate" )
         .put( EVENT_STORED_BY_ID, "psi_storedby" )
         .put( EVENT_LAST_UPDATED_BY_USER_INFO_ID, "psi_lastupdatedbyuserinfo" )
@@ -406,7 +408,7 @@ public class JdbcEventStore implements EventStore
                 }
 
                 event.setTrackedEntityInstance( rowSet.getString( "tei_uid" ) );
-                event.setStatus( EventStatus.valueOf( rowSet.getString( "psi_status" ) ) );
+                event.setStatus( EventStatus.valueOf( rowSet.getString( PSI_STATUS ) ) );
 
                 ProgramType programType = ProgramType.fromValue( rowSet.getString( "p_type" ) );
 
@@ -1273,23 +1275,23 @@ public class JdbcEventStore implements EventStore
         {
             if ( params.getEventStatus() == EventStatus.VISITED )
             {
-                mapSqlParameterSource.addValue( "psi_status", "'" + EventStatus.ACTIVE.name() + "'" );
+                mapSqlParameterSource.addValue( PSI_STATUS, "'" + EventStatus.ACTIVE.name() + "'" );
 
-                sqlBuilder.append( hlp.whereAnd() ).append( PSI_STATUS_EQ ).append( ":psi_status" )
+                sqlBuilder.append( hlp.whereAnd() ).append( PSI_STATUS_EQ ).append( ":" + PSI_STATUS )
                     .append( " and psi.executiondate is not null " );
             }
             else if ( params.getEventStatus() == EventStatus.OVERDUE )
             {
-                mapSqlParameterSource.addValue( "psi_status", "'" + EventStatus.SCHEDULE.name() + "'" );
+                mapSqlParameterSource.addValue( PSI_STATUS, "'" + EventStatus.SCHEDULE.name() + "'" );
 
                 sqlBuilder.append( hlp.whereAnd() ).append( " date(now()) > date(psi.duedate) and psi.status = " )
-                    .append( ":psi_status" ).append( " " );
+                    .append( ":" + PSI_STATUS ).append( " " );
             }
             else
             {
-                mapSqlParameterSource.addValue( "psi_status", "'" + params.getEventStatus().name() + "'" );
+                mapSqlParameterSource.addValue( PSI_STATUS, "'" + params.getEventStatus().name() + "'" );
 
-                sqlBuilder.append( hlp.whereAnd() ).append( PSI_STATUS_EQ ).append( ":psi_status" )
+                sqlBuilder.append( hlp.whereAnd() ).append( PSI_STATUS_EQ ).append( ":" + PSI_STATUS )
                     .append( " " );
             }
         }
