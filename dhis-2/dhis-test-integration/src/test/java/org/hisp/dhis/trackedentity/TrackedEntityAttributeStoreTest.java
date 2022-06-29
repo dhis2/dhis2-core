@@ -48,14 +48,14 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Chau Thu Tran
  */
-class TrackedEntityAttributeStoreTest extends TransactionalIntegrationTest
+class TrackedEntityAttributeStoreTest extends IntegrationTestBase
 {
 
     @Autowired
@@ -92,10 +92,10 @@ class TrackedEntityAttributeStoreTest extends TransactionalIntegrationTest
         programService.addProgram( program );
         TrackedEntityType trackedEntityTypeA = createTrackedEntityType( 'A' );
         trackedEntityTypeA.setPublicAccess( AccessStringHelper.FULL );
-        trackedEntityTypeService.addTrackedEntityType( trackedEntityTypeA );
+
         TrackedEntityType trackedEntityTypeB = createTrackedEntityType( 'B' );
         trackedEntityTypeB.setPublicAccess( AccessStringHelper.FULL );
-        trackedEntityTypeService.addTrackedEntityType( trackedEntityTypeB );
+
         // Create 20 Tracked Entity Attributes (named A .. O)
         IntStream.range( A, T ).mapToObj( i -> Character.toString( (char) i ) ).forEach( c -> attributeService
             .addTrackedEntityAttribute( createTrackedEntityAttribute( c.charAt( 0 ), ValueType.TEXT ) ) );
@@ -108,17 +108,17 @@ class TrackedEntityAttributeStoreTest extends TransactionalIntegrationTest
             .collect( Collectors.toList() );
         // Assign 10 TrackedEntityTypeAttribute to Tracked Entity Type A
         trackedEntityTypeA.setTrackedEntityTypeAttributes( teatList.subList( 0, 10 ) );
-        trackedEntityTypeService.updateTrackedEntityType( trackedEntityTypeA );
+        trackedEntityTypeService.addTrackedEntityType( trackedEntityTypeA );
         // Assign 10 TrackedEntityTypeAttribute to Tracked Entity Type B
         trackedEntityTypeB.setTrackedEntityTypeAttributes( teatList.subList( 10, 20 ) );
-        trackedEntityTypeService.updateTrackedEntityType( trackedEntityTypeB );
+        trackedEntityTypeService.addTrackedEntityType( trackedEntityTypeB );
         programB = createProgram( 'B' );
         programService.addProgram( programB );
         List<ProgramTrackedEntityAttribute> pteaList = IntStream.range( A, T )
             .mapToObj( i -> Character.toString( (char) i ) ).map( s -> new ProgramTrackedEntityAttribute( programB,
                 attributeService.getTrackedEntityAttributeByName( "Attribute" + s ) ) )
             .collect( Collectors.toList() );
-        programB.setProgramAttributes( pteaList );
+        programB.getProgramAttributes().addAll( pteaList );
         programService.updateProgram( programB );
     }
 

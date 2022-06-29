@@ -33,14 +33,14 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Chau Thu Tran
  */
-class TrackedEntityCommentServiceTest extends TransactionalIntegrationTest
+class TrackedEntityCommentServiceTest extends IntegrationTestBase
 {
 
     @Autowired
@@ -105,7 +105,8 @@ class TrackedEntityCommentServiceTest extends TransactionalIntegrationTest
     @Test
     void testCommentExists()
     {
-        commentService.addTrackedEntityComment( commentA );
+
+        long l = commentService.addTrackedEntityComment( commentA );
         assertTrue( commentService.trackedEntityCommentExists( commentA.getUid() ) );
     }
 }
