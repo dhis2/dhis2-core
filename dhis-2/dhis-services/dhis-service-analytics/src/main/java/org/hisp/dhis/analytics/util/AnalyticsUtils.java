@@ -234,7 +234,7 @@ public class AnalyticsUtils
         {
             return Precision.round( value, decimals );
         }
-        else if ( decimals == null || decimals == 0 )
+        else if ( decimals != null && decimals == 0 )
         {
             return Math.round( value );
         }
