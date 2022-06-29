@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.orgunit;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.analytics.orgunit.data.DefaultOrgUnitAnalyticsService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -57,7 +58,7 @@ class OrgUnitAnalyticsServiceTest extends DhisConvenienceTest
     private OrgUnitQueryPlanner queryPlanner;
 
     @InjectMocks
-    private OrgUnitAnalyticsService subject;
+    private DefaultOrgUnitAnalyticsService subject;
 
     @Test
     void testValidateNoOrgUnits()

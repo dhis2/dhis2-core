@@ -86,7 +86,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.QuarterlyPeriodType;
 import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -96,7 +96,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Lars Helge Overland
  */
-class QueryPlannerTest extends SingleSetupIntegrationTestBase
+class QueryPlannerTest extends TransactionalIntegrationTest
 {
     private static final AnalyticsTableType ANALYTICS_TABLE_TYPE = AnalyticsTableType.DATA_VALUE;
 
