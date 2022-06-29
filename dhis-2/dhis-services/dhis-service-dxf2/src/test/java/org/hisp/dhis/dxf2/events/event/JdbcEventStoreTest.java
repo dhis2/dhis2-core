@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.events.event;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -95,7 +96,7 @@ class JdbcEventStoreTest
     @BeforeEach
     public void setUp()
     {
-        when( jdbcTemplate.queryForRowSet( anyString() ) ).thenReturn( this.rowSet );
+        when( jdbcTemplate.queryForRowSet( anyString(), any() ) ).thenReturn( this.rowSet );
 
         when( namedParameterJdbcTemplate.getJdbcTemplate() ).thenReturn( jdbcTemplate );
         when( jdbcTemplate.getDataSource() ).thenReturn( mock( DataSource.class ) );

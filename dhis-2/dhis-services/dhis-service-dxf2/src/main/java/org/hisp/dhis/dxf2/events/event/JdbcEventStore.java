@@ -190,7 +190,7 @@ public class JdbcEventStore implements EventStore
 
     private static final String PSI_STATUS_EQ = " psi.status = '";
 
-    private static final String PSI_LASTUPDATED_GT = " psi.lastupdated >= '";
+    private static final String PSI_LASTUPDATED_GT = " psi.lastupdated >= ";
 
     private static final String DOT_NAME = ".name)";
 
@@ -371,8 +371,10 @@ public class JdbcEventStore implements EventStore
 
         final Gson gson = new Gson();
 
-        String sql = buildSql( params, organisationUnits, user );
-        SqlRowSet rowSet = jdbcTemplate.getJdbcTemplate().queryForRowSet( sql );
+        MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource();
+
+        String sql = buildSql( params, mapSqlParameterSource, organisationUnits, user );
+        SqlRowSet rowSet = jdbcTemplate.getJdbcTemplate().queryForRowSet( sql, mapSqlParameterSource );
 
         log.debug( "Event query SQL: " + sql );
 
@@ -669,9 +671,11 @@ public class JdbcEventStore implements EventStore
 
         List<EventRow> eventRows = new ArrayList<>();
 
-        String sql = buildSql( params, organisationUnits, user );
+        MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource();
 
-        SqlRowSet rowSet = jdbcTemplate.getJdbcTemplate().queryForRowSet( sql );
+        String sql = buildSql( params, mapSqlParameterSource, organisationUnits, user );
+
+        SqlRowSet rowSet = jdbcTemplate.getJdbcTemplate().queryForRowSet( sql, mapSqlParameterSource );
 
         log.debug( "Event query SQL: " + sql );
 
@@ -867,13 +871,15 @@ public class JdbcEventStore implements EventStore
 
         String sql;
 
+        MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource();
+
         if ( params.hasFilters() )
         {
             sql = buildGridSql( params, organisationUnits );
         }
         else
         {
-            sql = getEventSelectQuery( params, organisationUnits, user );
+            sql = getEventSelectQuery( params, mapSqlParameterSource, organisationUnits, user );
         }
 
         sql = sql.replaceFirst( "select .*? from", "select count(*) from" );
@@ -884,7 +890,7 @@ public class JdbcEventStore implements EventStore
 
         log.debug( "Event query count SQL: " + sql );
 
-        return jdbcTemplate.getJdbcTemplate().queryForObject( sql, Integer.class );
+        return jdbcTemplate.getJdbcTemplate().queryForObject( sql, Integer.class, mapSqlParameterSource );
     }
 
     private DataValue convertEventDataValueIntoDtoDataValue( EventDataValue eventDataValue )
@@ -956,11 +962,12 @@ public class JdbcEventStore implements EventStore
      * which are joined using program stage instance id. The purpose of the
      * separate queries is to be able to page properly on events.
      */
-    private String buildSql( EventSearchParams params, List<OrganisationUnit> organisationUnits, User user )
+    private String buildSql( EventSearchParams params, MapSqlParameterSource mapSqlParameterSource,
+        List<OrganisationUnit> organisationUnits, User user )
     {
         StringBuilder sqlBuilder = new StringBuilder().append( "select * from (" );
 
-        sqlBuilder.append( getEventSelectQuery( params, organisationUnits, user ) );
+        sqlBuilder.append( getEventSelectQuery( params, mapSqlParameterSource, organisationUnits, user ) );
 
         sqlBuilder.append( getOrderQuery( params ) );
 
@@ -989,7 +996,8 @@ public class JdbcEventStore implements EventStore
         return sqlBuilder.toString();
     }
 
-    private String getEventSelectQuery( EventSearchParams params, List<OrganisationUnit> organisationUnits, User user )
+    private String getEventSelectQuery( EventSearchParams params, MapSqlParameterSource mapSqlParameterSource,
+        List<OrganisationUnit> organisationUnits, User user )
     {
         SqlHelper hlp = new SqlHelper();
 
@@ -1171,29 +1179,35 @@ public class JdbcEventStore implements EventStore
 
         if ( params.getTrackedEntityInstance() != null )
         {
+            mapSqlParameterSource.addValue( "trackedentityinstanceid", params.getTrackedEntityInstance() );
+
             sqlBuilder.append( hlp.whereAnd() )
-                .append( " tei.trackedentityinstanceid=" )
-                .append( params.getTrackedEntityInstance()
-                    .getId() )
+                .append( " tei.trackedentityinstanceid= " )
+                .append( ":trackedentityinstanceid" )
                 .append( " " );
         }
 
         if ( params.getProgram() != null )
         {
-            sqlBuilder.append( hlp.whereAnd() ).append( " p.programid = " ).append( params.getProgram().getId() )
+            mapSqlParameterSource.addValue( "programid", params.getProgram().getId() );
+
+            sqlBuilder.append( hlp.whereAnd() ).append( " p.programid = " ).append( ":programid" )
                 .append( " " );
         }
 
         if ( params.getProgramStage() != null )
         {
+            mapSqlParameterSource.addValue( "programstageid", params.getProgramStage().getId() );
+
             sqlBuilder.append( hlp.whereAnd() ).append( " ps.programstageid = " )
-                .append( params.getProgramStage().getId() ).append( " " );
+                .append( ":programstageid" ).append( " " );
         }
 
         if ( params.getProgramStatus() != null )
         {
-            sqlBuilder.append( hlp.whereAnd() ).append( " pi.status = '" ).append( params.getProgramStatus() )
-                .append( "' " );
+            mapSqlParameterSource.addValue( "program_status", "'" + params.getProgramStatus() + "'" );
+
+            sqlBuilder.append( hlp.whereAnd() ).append( " pi.status = " ).append( ":program_status" );
         }
 
         if ( params.getFollowUp() != null )
@@ -1207,14 +1221,18 @@ public class JdbcEventStore implements EventStore
         // Comparing milliseconds instead of always creating new Date( 0 );
         if ( params.getSkipChangedBefore() != null && params.getSkipChangedBefore().getTime() > 0 )
         {
-            String skipChangedBefore = DateUtils.getLongDateString( params.getSkipChangedBefore() );
-            sqlBuilder.append( hlp.whereAnd() ).append( PSI_LASTUPDATED_GT ).append( skipChangedBefore ).append( "' " );
+            mapSqlParameterSource.addValue( "skipChangedBefore", "'" +
+                DateUtils.getLongDateString( params.getSkipChangedBefore() ) + "'" );
+
+            sqlBuilder.append( hlp.whereAnd() ).append( PSI_LASTUPDATED_GT ).append( ":skipChangedBefore" );
         }
 
         if ( params.getCategoryOptionCombo() != null )
         {
+            mapSqlParameterSource.addValue( "attributeoptioncomboid", params.getCategoryOptionCombo().getId() );
+
             sqlBuilder.append( hlp.whereAnd() ).append( " psi.attributeoptioncomboid = " )
-                .append( params.getCategoryOptionCombo().getId() ).append( " " );
+                .append( ":attributeoptioncomboid" ).append( " " );
         }
 
         if ( !CollectionUtils.isEmpty( organisationUnits ) || params.getOrgUnit() != null )
@@ -1224,56 +1242,73 @@ public class JdbcEventStore implements EventStore
 
         if ( params.getStartDate() != null )
         {
-            sqlBuilder.append( hlp.whereAnd() ).append( " (psi.executiondate >= '" )
-                .append( getMediumDateString( params.getStartDate() ) ).append( "' " )
-                .append( "or (psi.executiondate is null and psi.duedate >= '" )
-                .append( getMediumDateString( params.getStartDate() ) ).append( "')) " );
+            mapSqlParameterSource.addValue( "startDate", "'" + getMediumDateString( params.getStartDate() ) + "'" );
+
+            sqlBuilder.append( hlp.whereAnd() ).append( " (psi.executiondate >= " )
+                .append( ":startDate" )
+                .append( "or (psi.executiondate is null and psi.duedate >= " )
+                .append( ":startDate" ).append( " )) " );
         }
 
         if ( params.getEndDate() != null )
         {
-            Date dateAfterEndDate = addDays( params.getEndDate(), 1 );
-            sqlBuilder.append( hlp.whereAnd() ).append( " (psi.executiondate < '" )
-                .append( getMediumDateString( dateAfterEndDate ) ).append( "' " )
-                .append( "or (psi.executiondate is null and psi.duedate < '" )
-                .append( getMediumDateString( dateAfterEndDate ) ).append( "')) " );
+            mapSqlParameterSource.addValue( "endDate",
+                "'" + getMediumDateString( addDays( params.getEndDate(), 1 ) ) + "'" );
+
+            sqlBuilder.append( hlp.whereAnd() ).append( " (psi.executiondate < " )
+                .append( ":endDate" )
+                .append( "or (psi.executiondate is null and psi.duedate < " )
+                .append( ":endDate" ).append( " )) " );
         }
 
         if ( params.getProgramType() != null )
         {
-            sqlBuilder.append( hlp.whereAnd() ).append( " p.type = '" ).append( params.getProgramType() )
-                .append( "' " );
+            mapSqlParameterSource.addValue( "programType", "'" + params.getProgramType() + "'" );
+
+            sqlBuilder.append( hlp.whereAnd() ).append( " p.type = " ).append( ":programType" )
+                .append( " " );
         }
 
         if ( params.getEventStatus() != null )
         {
             if ( params.getEventStatus() == EventStatus.VISITED )
             {
-                sqlBuilder.append( hlp.whereAnd() ).append( PSI_STATUS_EQ ).append( EventStatus.ACTIVE.name() )
-                    .append( "' and psi.executiondate is not null " );
+                mapSqlParameterSource.addValue( "psi_status", "'" + EventStatus.ACTIVE.name() + "'" );
+
+                sqlBuilder.append( hlp.whereAnd() ).append( PSI_STATUS_EQ ).append( ":psi_status" )
+                    .append( " and psi.executiondate is not null " );
             }
             else if ( params.getEventStatus() == EventStatus.OVERDUE )
             {
-                sqlBuilder.append( hlp.whereAnd() ).append( " date(now()) > date(psi.duedate) and psi.status = '" )
-                    .append( EventStatus.SCHEDULE.name() ).append( "' " );
+                mapSqlParameterSource.addValue( "psi_status", "'" + EventStatus.SCHEDULE.name() + "'" );
+
+                sqlBuilder.append( hlp.whereAnd() ).append( " date(now()) > date(psi.duedate) and psi.status = " )
+                    .append( ":psi_status" ).append( " " );
             }
             else
             {
-                sqlBuilder.append( hlp.whereAnd() ).append( PSI_STATUS_EQ ).append( params.getEventStatus().name() )
-                    .append( "' " );
+                mapSqlParameterSource.addValue( "psi_status", "'" + params.getEventStatus().name() + "'" );
+
+                sqlBuilder.append( hlp.whereAnd() ).append( PSI_STATUS_EQ ).append( ":psi_status" )
+                    .append( " " );
             }
         }
 
         if ( params.getEvents() != null && !params.getEvents().isEmpty() && !params.hasFilters() )
         {
+
+            mapSqlParameterSource.addValue( "psi_uid", getQuotedCommaDelimitedString( params.getEvents() ) );
+
             sqlBuilder.append( hlp.whereAnd() ).append( " (psi.uid in (" )
-                .append( getQuotedCommaDelimitedString( params.getEvents() ) ).append( ")) " );
+                .append( ":psi_uid" ).append( ")) " );
         }
 
         if ( params.hasAssignedUsers() )
         {
+            mapSqlParameterSource.addValue( "au_uid", getQuotedCommaDelimitedString( params.getAssignedUsers() ) );
+
             sqlBuilder.append( hlp.whereAnd() ).append( " (au.uid in (" )
-                .append( getQuotedCommaDelimitedString( params.getAssignedUsers() ) ).append( ")) " );
+                .append( ":au_uid" ).append( ")) " );
         }
 
         if ( params.isIncludeOnlyUnassignedEvents() )
@@ -1293,13 +1328,20 @@ public class JdbcEventStore implements EventStore
 
         if ( params.hasSecurityFilter() )
         {
+            mapSqlParameterSource.addValue( "programs_uid",
+                getQuotedCommaDelimitedString( params.getAccessiblePrograms() ) );
+
             sqlBuilder.append( hlp.whereAnd() )
                 .append( " (p.uid in (" )
-                .append( getQuotedCommaDelimitedString( params.getAccessiblePrograms() ) )
+                .append( ":programs_uid" )
                 .append( ")) " );
+
+            mapSqlParameterSource.addValue( "programstages_uid",
+                getQuotedCommaDelimitedString( params.getAccessibleProgramStages() ) );
+
             sqlBuilder.append( hlp.whereAnd() )
                 .append( " (ps.uid in (" )
-                .append( getQuotedCommaDelimitedString( params.getAccessibleProgramStages() ) )
+                .append( ":programstages_uid" )
                 .append( ")) " );
         }
 
@@ -1310,9 +1352,12 @@ public class JdbcEventStore implements EventStore
 
         if ( !CollectionUtils.isEmpty( params.getProgramInstances() ) )
         {
+            mapSqlParameterSource.addValue( "programinstances_uid",
+                getQuotedCommaDelimitedString( params.getProgramInstances() ) );
+
             sqlBuilder.append( hlp.whereAnd() )
                 .append( " (pi.uid in (" )
-                .append( getQuotedCommaDelimitedString( params.getProgramInstances() ) )
+                .append( ":programinstances_uid" )
                 .append( "))" );
         }
 
@@ -1442,7 +1487,8 @@ public class JdbcEventStore implements EventStore
         if ( params.getSkipChangedBefore() != null && params.getSkipChangedBefore().getTime() > 0 )
         {
             String skipChangedBefore = DateUtils.getLongDateString( params.getSkipChangedBefore() );
-            sqlBuilder.append( hlp.whereAnd() ).append( PSI_LASTUPDATED_GT ).append( skipChangedBefore ).append( "' " );
+            sqlBuilder.append( hlp.whereAnd() ).append( "'" ).append( PSI_LASTUPDATED_GT ).append( skipChangedBefore )
+                .append( "' " );
         }
 
         if ( params.getDueDateStart() != null )
@@ -1512,7 +1558,7 @@ public class JdbcEventStore implements EventStore
 
         if ( params.hasLastUpdatedDuration() )
         {
-            sqlBuilder.append( hlp.whereAnd() ).append( PSI_LASTUPDATED_GT )
+            sqlBuilder.append( hlp.whereAnd() ).append( "'" ).append( PSI_LASTUPDATED_GT )
                 .append( getLongGmtDateString( DateUtils.nowMinusDuration( params.getLastUpdatedDuration() ) ) )
                 .append( "' " );
         }
@@ -1520,7 +1566,7 @@ public class JdbcEventStore implements EventStore
         {
             if ( params.hasLastUpdatedStartDate() )
             {
-                sqlBuilder.append( hlp.whereAnd() ).append( PSI_LASTUPDATED_GT )
+                sqlBuilder.append( hlp.whereAnd() ).append( "'" ).append( PSI_LASTUPDATED_GT )
                     .append( DateUtils.getLongDateString( params.getLastUpdatedStartDate() ) ).append( "' " );
             }
 
@@ -1981,7 +2027,10 @@ public class JdbcEventStore implements EventStore
 
         if ( params.getOrgUnit() != null && !params.isPathOrganisationUnitMode() )
         {
-            orgUnitSql.append( " ou.organisationunitid = " + params.getOrgUnit().getId() + " " );
+            orgUnitSql.append( " ou.organisationunitid = " )
+                .append( params.getOrgUnit()
+                    .getId() )
+                .append( " " );
         }
         else
         {
@@ -1993,15 +2042,23 @@ public class JdbcEventStore implements EventStore
 
                 if ( params.isOrganisationUnitMode( OrganisationUnitSelectionMode.DESCENDANTS ) )
                 {
-                    orgUnitSql.append( orHlp.or() ).append( path )
-                        .append( unit.getPath() ).append( "%' " )
-                        .append( hlp.whereAnd() ).append( " ou.hierarchylevel > " + unit.getLevel() );
+                    orgUnitSql.append( orHlp.or() )
+                        .append( path )
+                        .append( unit.getPath() )
+                        .append( "%' " )
+                        .append( hlp.whereAnd() )
+                        .append( " ou.hierarchylevel > " )
+                        .append( unit.getLevel() );
                 }
                 else if ( params.isOrganisationUnitMode( OrganisationUnitSelectionMode.CHILDREN ) )
                 {
-                    orgUnitSql.append( orHlp.or() ).append( path )
-                        .append( unit.getPath() ).append( "%' " )
-                        .append( hlp.whereAnd() ).append( " ou.hierarchylevel = " + (unit.getLevel() + 1) );
+                    orgUnitSql.append( orHlp.or() )
+                        .append( path )
+                        .append( unit.getPath() )
+                        .append( "%' " )
+                        .append( hlp.whereAnd() )
+                        .append( " ou.hierarchylevel = " )
+                        .append( unit.getLevel() + 1 );
                 }
                 else
                 {
@@ -2019,7 +2076,10 @@ public class JdbcEventStore implements EventStore
                 {
                     orgUnitSql.insert( 0, " (" );
                     orgUnitSql.append( orHlp.or() )
-                        .append( " (ou.organisationunitid = " + params.getOrgUnit().getId() + ")) " );
+                        .append( " (ou.organisationunitid = " )
+                        .append( params.getOrgUnit()
+                            .getId() )
+                        .append( ")) " );
                 }
             }
         }
