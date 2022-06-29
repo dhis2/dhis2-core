@@ -44,16 +44,15 @@ import java.util.List;
 import java.util.Map;
 
 import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
@@ -76,12 +75,6 @@ class TrackedEntityInstanceStoreTest extends TransactionalIntegrationTest
     private OrganisationUnitService organisationUnitService;
 
     @Autowired
-    private IdentifiableObjectManager idObjectManager;
-
-    @Autowired
-    private DbmsManager dbmsManager;
-
-    @Autowired
     private TrackedEntityAttributeValueService attributeValueService;
 
     @Autowired
@@ -89,6 +82,12 @@ class TrackedEntityInstanceStoreTest extends TransactionalIntegrationTest
 
     @Autowired
     private ProgramInstanceService programInstanceService;
+
+    @Autowired
+    private TrackedEntityAttributeService trackedEntityAttributeService;
+
+    @Autowired
+    private ProgramService programService;
 
     private TrackedEntityInstance teiA;
 
@@ -125,9 +124,9 @@ class TrackedEntityInstanceStoreTest extends TransactionalIntegrationTest
         atB = createTrackedEntityAttribute( 'B' );
         atC = createTrackedEntityAttribute( 'C', ValueType.ORGANISATION_UNIT );
         atB.setUnique( true );
-        idObjectManager.save( atA );
-        idObjectManager.save( atB );
-        idObjectManager.save( atC );
+        trackedEntityAttributeService.addTrackedEntityAttribute( atA );
+        trackedEntityAttributeService.addTrackedEntityAttribute( atB );
+        trackedEntityAttributeService.addTrackedEntityAttribute( atC );
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B', ouA );
         ouC = createOrganisationUnit( 'C', ouB );
@@ -136,8 +135,8 @@ class TrackedEntityInstanceStoreTest extends TransactionalIntegrationTest
         organisationUnitService.addOrganisationUnit( ouC );
         prA = createProgram( 'A', null, null );
         prB = createProgram( 'B', null, null );
-        idObjectManager.save( prA );
-        idObjectManager.save( prB );
+        programService.addProgram( prA );
+        programService.addProgram( prB );
         teiA = createTrackedEntityInstance( ouA );
         teiB = createTrackedEntityInstance( ouB );
         teiC = createTrackedEntityInstance( ouB );
@@ -155,7 +154,6 @@ class TrackedEntityInstanceStoreTest extends TransactionalIntegrationTest
         assertTrue( teiStore.exists( teiA.getUid() ) );
         assertTrue( teiStore.exists( teiB.getUid() ) );
         assertFalse( teiStore.exists( "aaaabbbbccc" ) );
-        assertFalse( teiStore.exists( null ) );
     }
 
     @Test
@@ -454,7 +452,6 @@ class TrackedEntityInstanceStoreTest extends TransactionalIntegrationTest
         attributeValueService
             .addTrackedEntityAttributeValue( new TrackedEntityAttributeValue( atC, teiA, ouC.getUid() ) );
         programInstanceService.enrollTrackedEntityInstance( teiA, prA, new Date(), new Date(), ouA );
-        dbmsManager.flushSession();
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
         params.setTrackedEntityType( trackedEntityTypeA );
         params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
