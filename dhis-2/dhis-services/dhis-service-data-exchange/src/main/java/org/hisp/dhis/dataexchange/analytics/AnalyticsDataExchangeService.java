@@ -70,6 +70,12 @@ public class AnalyticsDataExchangeService
 
     private final DataValueSetService dataValueSetService;
 
+    /**
+     * Runs the analytics data exchange with the given identifier.
+     *
+     * @param uid the {@link AnalyticsDataExchange} identifier.
+     * @return an {@link ImportSummaries}.
+     */
     public ImportSummaries exchangeData( String uid )
     {
         AnalyticsDataExchange exchange = analyticsDataExchangeStore.loadByUid( uid );
@@ -77,6 +83,12 @@ public class AnalyticsDataExchangeService
         return exchangeData( exchange );
     }
 
+    /**
+     * Runs the given analytics data exchange.
+     *
+     * @param uid the {@link AnalyticsDataExchange}.
+     * @return an {@link ImportSummaries}.
+     */
     public ImportSummaries exchangeData( AnalyticsDataExchange exchange )
     {
         ImportSummaries summaries = new ImportSummaries();
@@ -87,6 +99,13 @@ public class AnalyticsDataExchangeService
         return summaries;
     }
 
+    /**
+     * Returns the source data for the analytics data exchange with the given
+     * identifier.
+     *
+     * @param uid the {@link AnalyticsDataExchange} identifier.
+     * @return the source data for the analytics data exchange.
+     */
     public List<Grid> getSourceData( String uid )
     {
         AnalyticsDataExchange exchange = analyticsDataExchangeStore.loadByUid( uid );
