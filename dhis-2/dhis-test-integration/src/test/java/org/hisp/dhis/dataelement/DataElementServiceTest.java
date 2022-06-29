@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -61,6 +62,9 @@ class DataElementServiceTest extends TransactionalIntegrationTest
 
     @Autowired
     private OptionService optionService;
+
+    @Autowired
+    private IdentifiableObjectStore<OptionSet> optionStore;
 
     // -------------------------------------------------------------------------
     // Tests
@@ -450,7 +454,9 @@ class DataElementServiceTest extends TransactionalIntegrationTest
         OptionSet options = createOptionSet( 'A',
             stream( codes ).map( code -> new Option( code, code ) ).toArray( Option[]::new ) );
         options.setValueType( osValueType );
-        optionService.saveOptionSet( options );
+        // we use the store to even be able to save a set with separator
+        // character in codes
+        optionStore.save( options );
         return options;
     }
 }

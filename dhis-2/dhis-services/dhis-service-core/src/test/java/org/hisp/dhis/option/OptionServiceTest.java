@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.option;
 
+import static org.hisp.dhis.utils.Assertions.assertThrowsErrorCode;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
@@ -131,9 +131,8 @@ class OptionServiceTest extends DhisSpringTest
             createOption( 'B' ), createOption( ',' ) );
         optionSet.setValueType( ValueType.MULTI_TEXT );
 
-        IllegalQueryException ex = assertThrows( IllegalQueryException.class,
+        assertThrowsErrorCode( IllegalQueryException.class, ErrorCode.E1118,
             () -> optionService.saveOptionSet( optionSet ) );
-        assertEquals( ErrorCode.E1118, ex.getErrorCode() );
     }
 
     @Test
@@ -146,9 +145,8 @@ class OptionServiceTest extends DhisSpringTest
         assertDoesNotThrow( () -> optionService.saveOptionSet( optionSet ) );
         optionSet.addOption( createOption( ',' ) );
 
-        IllegalQueryException ex = assertThrows( IllegalQueryException.class,
+        assertThrowsErrorCode( IllegalQueryException.class, ErrorCode.E1118,
             () -> optionService.updateOptionSet( optionSet ) );
-        assertEquals( ErrorCode.E1118, ex.getErrorCode() );
     }
 
     @Test
