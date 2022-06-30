@@ -30,8 +30,10 @@ package org.hisp.dhis.analytics.table;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
+import static org.hisp.dhis.analytics.ColumnDataType.INTEGER;
 import static org.hisp.dhis.analytics.ColumnDataType.JSONB;
 import static org.hisp.dhis.analytics.ColumnDataType.TIMESTAMP;
+import static org.hisp.dhis.analytics.ColumnDataType.VARCHAR_255;
 import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NOT_NULL;
 import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NULL;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
@@ -110,7 +112,15 @@ public class JdbcTEIEventsAnalyticsTableManager extends AbstractJdbcTableManager
         new AnalyticsTableColumn( quote( "programstageinstanceuid" ), CHARACTER_11, NULL, "psi.uid" ),
         new AnalyticsTableColumn( quote( "executiondate" ), TIMESTAMP, "psi.executiondate" ),
         new AnalyticsTableColumn( quote( "duedate" ), TIMESTAMP, "psi.duedate" ),
-        new AnalyticsTableColumn( quote( "eventdatavalues" ), JSONB, "psi.eventdatavalues" ) );
+        new AnalyticsTableColumn( quote( "eventdatavalues" ), JSONB, "psi.eventdatavalues" ),
+        new AnalyticsTableColumn( quote( "uidlevel1" ), CHARACTER_11, NULL, "ous.uidlevel1" ),
+        new AnalyticsTableColumn( quote( "uidlevel2" ), CHARACTER_11, NULL, "ous.uidlevel2" ),
+        new AnalyticsTableColumn( quote( "uidlevel3" ), CHARACTER_11, NULL, "ous.uidlevel3" ),
+        new AnalyticsTableColumn( quote( "uidlevel4" ), CHARACTER_11, NULL, "ous.uidlevel4" ),
+        new AnalyticsTableColumn( quote( "ou" ), CHARACTER_11, NULL, "ou.uid" ),
+        new AnalyticsTableColumn( quote( "ouname" ), VARCHAR_255, NULL, "ou.name" ),
+        new AnalyticsTableColumn( quote( "oucode" ), CHARACTER_11, NULL, "ou.code" ),
+        new AnalyticsTableColumn( quote( "oulevel" ), INTEGER, NULL, "ous.level" ) );
 
     /**
      * Returns the {@link AnalyticsTableType} of analytics table which this
@@ -274,6 +284,8 @@ public class JdbcTEIEventsAnalyticsTableManager extends AbstractJdbcTableManager
             " LEFT JOIN program p on p.programid = pi.programid" +
             " LEFT JOIN programstageinstance psi on psi.programinstanceid = pi.programinstanceid" +
             " LEFT JOIN programstage ps on ps.programstageid = psi.programstageid" +
+            " LEFT JOIN organisationunit ou ON psi.organisationunitid = ou.organisationunitid" +
+            " LEFT JOIN _orgunitstructure ous ON ous.organisationunitid = ou.organisationunitid" +
             " WHERE tei.trackedentitytypeid = " + partition.getMasterTable().getTrackedEntityType().getId();
 
         invokeTimeAndLog( sql, partition.getTempTableName() );
