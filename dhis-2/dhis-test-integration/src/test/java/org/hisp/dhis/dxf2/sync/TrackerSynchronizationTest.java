@@ -33,7 +33,6 @@ import java.util.List;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
@@ -50,6 +49,7 @@ import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeStore;
@@ -76,7 +76,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * @author David Katuscak (katuscak.d@gmail.com)
  */
-class TrackerSynchronizationTest extends DhisSpringTest
+class TrackerSynchronizationTest extends SingleSetupIntegrationTestBase
 {
 
     @Autowired

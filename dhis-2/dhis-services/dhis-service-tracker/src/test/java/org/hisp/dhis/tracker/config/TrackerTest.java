@@ -25,40 +25,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.geojson;
+package org.hisp.dhis.tracker.config;
 
-import static org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig.jsonMapper;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertIterableEquals;
+import org.hisp.dhis.IntegrationH2Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import org.hisp.dhis.dxf2.importsummary.ImportConflict;
-import org.junit.jupiter.api.Test;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-
-/**
- * For now just make sure that a {@link GeoJsonImportReport} can be stored in
- * redis.
- *
- * @author Jan Bernitt
- */
-class GeoJsonServiceTest
+@ExtendWith( SpringExtension.class )
+@ContextConfiguration( classes = TrackerTestConfig.class )
+@ActiveProfiles( profiles = { "test-h2" } )
+@IntegrationH2Test
+public abstract class TrackerTest
 {
-
-    @Test
-    void testReportSerialisation()
-        throws JsonProcessingException
-    {
-        GeoJsonImportReport report = new GeoJsonImportReport();
-        report.getImportCount().incrementIgnored();
-        report.addConflict( new ImportConflict( "a", "b" ) );
-
-        String json = jsonMapper.writeValueAsString( report );
-        GeoJsonImportReport reportFromJson = jsonMapper.readValue( json, GeoJsonImportReport.class );
-
-        assertEquals( report.getConflictCount(), reportFromJson.getConflictCount() );
-        assertEquals( report.getImportCount().getIgnored(), reportFromJson.getImportCount().getIgnored() );
-        assertEquals( report.getTotalConflictOccurrenceCount(), reportFromJson.getTotalConflictOccurrenceCount() );
-        assertIterableEquals( report.getConflicts(), reportFromJson.getConflicts() );
-    }
 }

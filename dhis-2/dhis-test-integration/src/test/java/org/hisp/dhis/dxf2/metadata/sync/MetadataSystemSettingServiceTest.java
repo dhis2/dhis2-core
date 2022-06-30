@@ -29,21 +29,18 @@ package org.hisp.dhis.dxf2.metadata.sync;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.dxf2.metadata.systemsettings.DefaultMetadataSystemSettingService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author anilkumk
  */
-@ExtendWith( MockitoExtension.class )
-class MetadataSystemSettingServiceTest extends DhisSpringTest
+class MetadataSystemSettingServiceTest extends SingleSetupIntegrationTestBase
 {
     @Autowired
     SystemSettingManager systemSettingManager;

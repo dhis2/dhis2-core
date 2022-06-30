@@ -33,7 +33,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -48,6 +47,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.*;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
+import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.junit.jupiter.api.Test;
@@ -58,7 +58,7 @@ import com.google.common.collect.Lists;
 /**
  * @author Enrico Colasante
  */
-class HandleRelationshipsTrackedEntityInstanceServiceTest extends DhisSpringTest
+class HandleRelationshipsTrackedEntityInstanceServiceTest extends SingleSetupIntegrationTestBase
 {
 
     @Autowired

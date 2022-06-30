@@ -30,17 +30,17 @@ package org.hisp.dhis.dxf2.sync;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.dxf2.synch.SystemInstance;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David Katuscak <katuscak.d@gmail.com>
  */
-class SyncUtilsTest extends DhisSpringTest
+class SyncUtilsTest extends SingleSetupIntegrationTestBase
 {
 
     private static final String USERNAME = "user";

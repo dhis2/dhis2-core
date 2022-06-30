@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
+package org.hisp.dhis.dxf2.metadata.validation;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -34,11 +34,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleHooks;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
+import org.hisp.dhis.dxf2.metadata.objectbundle.validation.ReferencesCheck;
+import org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationContext;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ObjectReport;
@@ -50,15 +51,15 @@ import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.schema.validation.SchemaValidator;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
 
-public class ReferencesCheckTest extends DhisSpringTest
+public class ReferencesCheckTest extends SingleSetupIntegrationTestBase
 {
     @Autowired
     private SchemaValidator schemaValidator;
@@ -77,12 +78,11 @@ public class ReferencesCheckTest extends DhisSpringTest
 
     private ValidationContext validationContext;
 
-    @BeforeEach
-    public void beforeEach()
+    @Override
+    public void setUpTest()
     {
         validationContext = new ValidationContext( this.objectBundleHooks, this.schemaValidator, this.aclService,
-            this.userService,
-            this.schemaService );
+            this.userService, this.schemaService );
     }
 
     @Test

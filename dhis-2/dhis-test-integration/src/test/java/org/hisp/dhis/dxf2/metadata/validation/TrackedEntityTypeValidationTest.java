@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
+package org.hisp.dhis.dxf2.metadata.validation;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -33,7 +33,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
@@ -43,12 +42,13 @@ import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
-class TrackedEntityTypeValidationTest extends DhisSpringTest
+class TrackedEntityTypeValidationTest extends SingleSetupIntegrationTestBase
 {
     @Autowired
     private RenderService _renderService;

@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -43,11 +42,12 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
-class CsvImportServiceTest extends DhisSpringTest
+class CsvImportServiceTest extends SingleSetupIntegrationTestBase
 {
 
     @Autowired
@@ -111,8 +111,8 @@ class CsvImportServiceTest extends DhisSpringTest
     void testCategoryOptionImportNoHeader()
         throws IOException
     {
-        inputBasicObjects = new ClassPathResource( "csv/basic_objects_no_header.csv" ).getInputStream();
-        Metadata metadata = csvImportService.fromCsv( inputBasicObjects,
+        Metadata metadata = csvImportService.fromCsv(
+            new ClassPathResource( "csv/basic_objects_no_header.csv" ).getInputStream(),
             new CsvImportOptions().setImportClass( CsvImportClass.CATEGORY_OPTION ).setFirstRowIsHeader( false ) );
         assertEquals( 3, metadata.getCategoryOptions().size() );
         for ( CategoryOption categoryOption : metadata.getCategoryOptions() )

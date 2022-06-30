@@ -36,7 +36,6 @@ import java.util.Map;
 import javax.xml.xpath.XPathExpressionException;
 
 import org.hisp.dhis.DhisConvenienceTest;
-import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -49,6 +48,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -58,7 +58,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * @author bobj
  */
-class DefaultExportServiceTest extends DhisSpringTest
+class DefaultExportServiceTest extends SingleSetupIntegrationTestBase
 {
 
     @Autowired

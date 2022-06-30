@@ -31,7 +31,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Date;
 
-import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dxf2.metadata.merge.Simple;
 import org.hisp.dhis.dxf2.metadata.merge.SimpleCollection;
@@ -42,13 +41,15 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.schema.MergeParams;
 import org.hisp.dhis.schema.MergeService;
+import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class MergeServiceTest extends DhisSpringTest
+class MergeServiceTest extends SingleSetupIntegrationTestBase
 {
 
     @Autowired
@@ -66,11 +67,11 @@ class MergeServiceTest extends DhisSpringTest
         Simple source = new Simple( "string", 10, date, false, 123, 2.5f );
         Simple target = new Simple();
         mergeService.merge( new MergeParams<>( source, target ).setMergeMode( MergeMode.REPLACE ) );
-        assertEquals( "string", target.getString() );
+        Assertions.assertEquals( "string", target.getString() );
         assertEquals( 10, (int) target.getInteger() );
-        assertEquals( date, target.getDate() );
-        assertEquals( false, target.getBool() );
-        assertEquals( 123, target.getAnInt() );
+        Assertions.assertEquals( date, target.getDate() );
+        Assertions.assertEquals( false, target.getBool() );
+        Assertions.assertEquals( 123, target.getAnInt() );
     }
 
     @Test
@@ -80,10 +81,10 @@ class MergeServiceTest extends DhisSpringTest
         Simple source = new Simple( null, 10, date, null, 123, 2.5f );
         Simple target = new Simple( "hello", 20, date, true, 123, 2.5f );
         mergeService.merge( new MergeParams<>( source, target ).setMergeMode( MergeMode.MERGE ) );
-        assertEquals( "hello", target.getString() );
+        Assertions.assertEquals( "hello", target.getString() );
         assertEquals( 10, (int) target.getInteger() );
-        assertEquals( date, target.getDate() );
-        assertEquals( true, target.getBool() );
+        Assertions.assertEquals( date, target.getDate() );
+        Assertions.assertEquals( true, target.getBool() );
     }
 
     @Test
@@ -96,11 +97,11 @@ class MergeServiceTest extends DhisSpringTest
         source.getSimples().add( new Simple( "simple", 30, date, false, 123, 2.5f ) );
         SimpleCollection target = new SimpleCollection( "target" );
         mergeService.merge( new MergeParams<>( source, target ).setMergeMode( MergeMode.MERGE ) );
-        assertEquals( "name", target.getName() );
-        assertEquals( 3, target.getSimples().size() );
-        assertTrue( target.getSimples().contains( source.getSimples().get( 0 ) ) );
-        assertTrue( target.getSimples().contains( source.getSimples().get( 1 ) ) );
-        assertTrue( target.getSimples().contains( source.getSimples().get( 2 ) ) );
+        Assertions.assertEquals( "name", target.getName() );
+        Assertions.assertEquals( 3, target.getSimples().size() );
+        Assertions.assertTrue( target.getSimples().contains( source.getSimples().get( 0 ) ) );
+        Assertions.assertTrue( target.getSimples().contains( source.getSimples().get( 1 ) ) );
+        Assertions.assertTrue( target.getSimples().contains( source.getSimples().get( 2 ) ) );
     }
 
     @Test

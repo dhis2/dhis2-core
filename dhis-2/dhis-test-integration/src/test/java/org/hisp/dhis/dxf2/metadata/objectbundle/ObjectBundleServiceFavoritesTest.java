@@ -36,7 +36,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
@@ -47,6 +46,7 @@ import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.visualization.Visualization;
 import org.junit.jupiter.api.Test;
@@ -56,7 +56,7 @@ import org.springframework.core.io.ClassPathResource;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class ObjectBundleServiceFavoritesTest extends DhisSpringTest
+class ObjectBundleServiceFavoritesTest extends SingleSetupIntegrationTestBase
 {
 
     @Autowired

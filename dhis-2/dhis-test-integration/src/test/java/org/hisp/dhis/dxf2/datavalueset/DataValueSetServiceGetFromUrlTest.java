@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Set;
 
-import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -40,14 +39,14 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.datavalue.DataExportParams;
+import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Lars Helge Overland
  */
-class DataValueSetServiceGetFromUrlTest
-    extends DhisSpringTest
+class DataValueSetServiceGetFromUrlTest extends SingleSetupIntegrationTestBase
 {
     @Autowired
     private CategoryService categoryService;

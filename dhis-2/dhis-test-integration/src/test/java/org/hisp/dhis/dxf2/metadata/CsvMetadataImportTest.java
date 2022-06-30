@@ -36,7 +36,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -52,6 +51,7 @@ import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -62,7 +62,7 @@ import org.springframework.core.io.ClassPathResource;
 /**
  * @author Lars Helge Overland
  */
-class CsvMetadataImportTest extends DhisSpringTest
+class CsvMetadataImportTest extends SingleSetupIntegrationTestBase
 {
 
     @Autowired
