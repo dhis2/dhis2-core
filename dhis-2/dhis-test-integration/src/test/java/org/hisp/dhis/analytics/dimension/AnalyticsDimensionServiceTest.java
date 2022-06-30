@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 
-import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -40,6 +39,7 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -48,7 +48,7 @@ import com.google.common.collect.Lists;
 /**
  * @author Lars Helge Overland
  */
-class AnalyticsDimensionServiceTest extends DhisSpringTest
+class AnalyticsDimensionServiceTest extends SingleSetupIntegrationTestBase
 {
 
     @Autowired
