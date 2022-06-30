@@ -610,6 +610,11 @@ public class DefaultFieldFilterService implements FieldFilterService
 
     private ComplexNode handleMapProperty( Object object, Property property )
     {
+        if ( object == null )
+        {
+            return null;
+        }
+
         Map<String, Object> mapObject = (Map<String, Object>) object;
 
         ComplexNode child = new ComplexNode( property.getName() );
