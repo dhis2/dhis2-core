@@ -30,8 +30,6 @@ package org.hisp.dhis.dxf2.events;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -108,16 +106,16 @@ class HandleRelationshipsTrackedEntityInstanceServiceTest extends SingleSetupInt
         trackedEntityInstanceB.setTrackedEntityType( trackedEntityType );
         programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
         programA.setProgramType( ProgramType.WITH_REGISTRATION );
-        programStageA1 = createProgramStage( '1', programA );
-        programStageA2 = createProgramStage( '2', programA );
-        programA.setProgramStages(
-            Stream.of( programStageA1, programStageA2 ).collect( Collectors.toCollection( HashSet::new ) ) );
         manager.save( organisationUnitA );
         manager.save( trackedEntityInstanceA );
         manager.save( trackedEntityInstanceB );
         manager.save( programA );
+        programStageA1 = createProgramStage( '1', programA );
+        programStageA2 = createProgramStage( '2', programA );
         manager.save( programStageA1 );
         manager.save( programStageA2 );
+        programA.getProgramStages().addAll( Set.of( programStageA1, programStageA2 ) );
+        manager.update( programA );
         ProgramInstance programInstanceA = programInstanceService.enrollTrackedEntityInstance( trackedEntityInstanceA,
             programA, null, null, organisationUnitA );
         programStageInstanceA = new ProgramStageInstance( programInstanceA, programStageA1 );
