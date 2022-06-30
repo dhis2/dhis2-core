@@ -104,6 +104,8 @@ public interface DataValueSetService
 
     ImportSummary importDataValueSetPdf( InputStream in, ImportOptions importOptions );
 
+    ImportSummary importDataValueSet( DataValueSet dataValueSet, ImportOptions importOptions );
+
     ImportSummary importDataValueSetXml( InputStream in, ImportOptions importOptions, JobConfiguration jobId );
 
     ImportSummary importDataValueSetJson( InputStream in, ImportOptions importOptions, JobConfiguration jobId );
