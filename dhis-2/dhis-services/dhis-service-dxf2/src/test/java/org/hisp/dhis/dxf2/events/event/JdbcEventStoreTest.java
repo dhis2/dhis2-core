@@ -31,15 +31,14 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.sql.DataSource;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.events.report.EventRow;
@@ -50,13 +49,14 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.ResultSetExtractor;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -73,16 +73,13 @@ class JdbcEventStoreTest
     private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     @Mock
-    private JdbcTemplate jdbcTemplate;
-
-    @Mock
     private CurrentUserService currentUserService;
 
     @Mock
     private IdentifiableObjectManager manager;
 
     @Mock
-    protected SqlRowSet rowSet;
+    protected ResultSet rowSet;
 
     @Mock
     private EventStore eventStore;
@@ -96,10 +93,12 @@ class JdbcEventStoreTest
     @BeforeEach
     public void setUp()
     {
-        when( jdbcTemplate.queryForRowSet( anyString(), any() ) ).thenReturn( this.rowSet );
-
-        when( namedParameterJdbcTemplate.getJdbcTemplate() ).thenReturn( jdbcTemplate );
-        when( jdbcTemplate.getDataSource() ).thenReturn( mock( DataSource.class ) );
+        when( namedParameterJdbcTemplate.query( anyString(), any( MapSqlParameterSource.class ),
+            ArgumentMatchers.<ResultSetExtractor<?>> any() ) ).thenAnswer( invocationOnMock -> {
+                ResultSetExtractor<?> resultSetExtractor = invocationOnMock.getArgument( 2 );
+                mockRowSet();
+                return resultSetExtractor.extractData( rowSet );
+            } );
 
         ObjectMapper objectMapper = new ObjectMapper();
         subject = new JdbcEventStore( organisationUnitStore, new PostgreSQLStatementBuilder(),
@@ -108,8 +107,8 @@ class JdbcEventStoreTest
 
     @Test
     void verifyEventDataValuesAreProcessedOnceForEachPSI()
+        throws SQLException
     {
-        mockRowSet();
         EventSearchParams eventSearchParams = new EventSearchParams();
 
         List<EventRow> rows = subject.getEventRows( eventSearchParams, new ArrayList<>() );
@@ -119,8 +118,8 @@ class JdbcEventStoreTest
 
     @Test
     void verifyNullOrganisationUnitsIsHandled()
+        throws SQLException
     {
-        mockRowSet();
         EventSearchParams eventSearchParams = new EventSearchParams();
 
         List<EventRow> rows = subject.getEventRows( eventSearchParams, null );
@@ -129,6 +128,7 @@ class JdbcEventStoreTest
     }
 
     private void mockRowSet()
+        throws SQLException
     {
         // Simulate 3 rows
         when( rowSet.next() ).thenReturn( true ).thenReturn( true ).thenReturn( true ).thenReturn( false );

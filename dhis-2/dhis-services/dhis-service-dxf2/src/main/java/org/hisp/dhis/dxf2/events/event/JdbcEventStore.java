@@ -191,7 +191,7 @@ public class JdbcEventStore implements EventStore
 
     private static final String PSI_STATUS = "psi_status";
 
-    private static final String PSI_STATUS_EQ = " psi.status = '";
+    private static final String PSI_STATUS_EQ = " psi.status = ";
 
     private static final String PSI_LASTUPDATED_GT = " psi.lastupdated >= ";
 
@@ -1346,7 +1346,7 @@ public class JdbcEventStore implements EventStore
         if ( params.hasSecurityFilter() )
         {
             mapSqlParameterSource.addValue( "program_uid",
-                params.getAccessiblePrograms().size() == 0 ? null : params.getAccessiblePrograms() );
+                params.getAccessiblePrograms().isEmpty() ? null : params.getAccessiblePrograms() );
 
             sqlBuilder.append( hlp.whereAnd() )
                 .append( " (p.uid in (" )
@@ -1354,7 +1354,7 @@ public class JdbcEventStore implements EventStore
                 .append( ")) " );
 
             mapSqlParameterSource.addValue( "programstage_uid",
-                params.getAccessibleProgramStages().size() == 0 ? null : params.getAccessibleProgramStages() );
+                params.getAccessibleProgramStages().isEmpty() ? null : params.getAccessibleProgramStages() );
 
             sqlBuilder.append( hlp.whereAnd() )
                 .append( " (ps.uid in (" )
@@ -1526,7 +1526,8 @@ public class JdbcEventStore implements EventStore
         {
             if ( params.getEventStatus() == EventStatus.VISITED )
             {
-                sqlBuilder.append( hlp.whereAnd() ).append( PSI_STATUS_EQ ).append( EventStatus.ACTIVE.name() )
+                sqlBuilder.append( hlp.whereAnd() ).append(
+                    PSI_STATUS_EQ ).append( "'" ).append( EventStatus.ACTIVE.name() )
                     .append( "' and psi.executiondate is not null " );
             }
             else if ( params.getEventStatus() == EventStatus.OVERDUE )
@@ -1536,7 +1537,8 @@ public class JdbcEventStore implements EventStore
             }
             else
             {
-                sqlBuilder.append( hlp.whereAnd() ).append( PSI_STATUS_EQ ).append( params.getEventStatus().name() )
+                sqlBuilder.append( hlp.whereAnd() ).append( PSI_STATUS_EQ ).append( "'" )
+                    .append( params.getEventStatus().name() )
                     .append( "' " );
             }
         }
