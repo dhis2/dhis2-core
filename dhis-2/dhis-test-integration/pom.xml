@@ -28,6 +28,7 @@
                         <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-analytics</ignoredNonTestScopedDependency>
                         <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-core</ignoredNonTestScopedDependency>
                         <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-dxf2</ignoredNonTestScopedDependency>
+                        <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-field-filtering</ignoredNonTestScopedDependency>
                         <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-reporting</ignoredNonTestScopedDependency>
                         <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-program-rule</ignoredNonTestScopedDependency>
                         <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-schema</ignoredNonTestScopedDependency>
@@ -43,7 +44,6 @@
                     <!-- If code from the following modules is accessed in tests they'll have to move up to ignoredNonTestScopedDependency -->
                     <ignoredUnusedDeclaredDependencies>
                         <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-audit-consumer</ignoredUnusedDeclaredDependency>
-                        <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-field-filtering</ignoredUnusedDeclaredDependency>
                         <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-metadata-workflow</ignoredUnusedDeclaredDependency>
                         <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-node</ignoredUnusedDeclaredDependency>
                         <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-artemis</ignoredUnusedDeclaredDependency>

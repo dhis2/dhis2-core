@@ -33,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.Date;
 import java.util.List;
 
-import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -41,7 +41,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Yrjan A. F. Fraschetti
  * @author Julie Hill Roa
  */
-class DataStatisticsStoreTest extends DhisSpringTest
+class DataStatisticsStoreTest extends TransactionalIntegrationTest
 {
     @Autowired
     private DataStatisticsStore dataStatisticsStore;
@@ -102,6 +102,7 @@ class DataStatisticsStoreTest extends DhisSpringTest
         dataStatisticsStore.save( ds3 );
         dataStatisticsStore.save( ds4 );
         dataStatisticsStore.save( ds5 );
+        dbmsManager.flushSession();
         List<AggregatedStatistics> asList = dataStatisticsStore.getSnapshotsInInterval( EventInterval.DAY,
             getDate( 2015, 3, 21 ), getDate( 2016, 3, 21 ) );
         assertEquals( 1, asList.size() );
@@ -116,6 +117,7 @@ class DataStatisticsStoreTest extends DhisSpringTest
         dataStatisticsStore.save( ds3 );
         dataStatisticsStore.save( ds4 );
         dataStatisticsStore.save( ds5 );
+        dbmsManager.flushSession();
         List<AggregatedStatistics> asList = dataStatisticsStore.getSnapshotsInInterval( EventInterval.DAY,
             getDate( 2015, 3, 19 ), getDate( 2016, 3, 21 ) );
         assertEquals( 2, asList.size() );
@@ -128,6 +130,7 @@ class DataStatisticsStoreTest extends DhisSpringTest
         dataStatisticsStore.save( ds3 );
         dataStatisticsStore.save( ds4 );
         dataStatisticsStore.save( ds5 );
+        dbmsManager.flushSession();
         List<AggregatedStatistics> asList = dataStatisticsStore.getSnapshotsInInterval( EventInterval.DAY,
             getDate( 2017, 3, 21 ), getDate( 2017, 3, 22 ) );
         assertEquals( 0, asList.size() );
@@ -140,6 +143,7 @@ class DataStatisticsStoreTest extends DhisSpringTest
         dataStatisticsStore.save( ds3 );
         dataStatisticsStore.save( ds4 );
         dataStatisticsStore.save( ds5 );
+        dbmsManager.flushSession();
         List<AggregatedStatistics> asList = dataStatisticsStore.getSnapshotsInInterval( EventInterval.WEEK,
             getDate( 2015, 3, 21 ), getDate( 2016, 3, 21 ) );
         assertEquals( 1, asList.size() );
@@ -152,6 +156,7 @@ class DataStatisticsStoreTest extends DhisSpringTest
         dataStatisticsStore.save( ds3 );
         dataStatisticsStore.save( ds4 );
         dataStatisticsStore.save( ds5 );
+        dbmsManager.flushSession();
         List<AggregatedStatistics> asList = dataStatisticsStore.getSnapshotsInInterval( EventInterval.MONTH,
             getDate( 2015, 3, 21 ), getDate( 2016, 3, 21 ) );
         assertEquals( 1, asList.size() );
@@ -164,6 +169,7 @@ class DataStatisticsStoreTest extends DhisSpringTest
         dataStatisticsStore.save( ds3 );
         dataStatisticsStore.save( ds4 );
         dataStatisticsStore.save( ds5 );
+        dbmsManager.flushSession();
         List<AggregatedStatistics> asList = dataStatisticsStore.getSnapshotsInInterval( EventInterval.YEAR,
             getDate( 2015, 3, 21 ), getDate( 2016, 3, 21 ) );
         assertEquals( 1, asList.size() );

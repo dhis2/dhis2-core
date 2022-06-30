@@ -37,7 +37,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.attribute.Attribute;
@@ -55,10 +54,10 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.orgunitprofile.impl.DefaultOrgUnitProfileService;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -70,7 +69,7 @@ import com.google.common.collect.Lists;
 
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-class OrgUnitProfileServiceTest extends DhisSpringTest
+class OrgUnitProfileServiceTest extends SingleSetupIntegrationTestBase
 {
 
     @Autowired
@@ -91,7 +90,6 @@ class OrgUnitProfileServiceTest extends DhisSpringTest
     @Autowired
     private DatastoreService dataStore;
 
-    @Mock
     private AnalyticsService mockAnalyticsService;
 
     @Autowired
@@ -104,6 +102,7 @@ class OrgUnitProfileServiceTest extends DhisSpringTest
     {
         userService = _userService;
         createAndInjectAdminUser();
+        mockAnalyticsService = Mockito.mock( AnalyticsService.class );
         mockService = new DefaultOrgUnitProfileService( dataStore, manager,
             mockAnalyticsService, organisationUnitGroupService,
             organisationUnitService, jsonMapper );

@@ -33,8 +33,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.Calendar;
 import java.util.Date;
 
-import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.scheduling.NoopJobProgress;
+import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -45,7 +45,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Yrjan A. F. Fraschetti
  * @author Julie Hill Roa
  */
-class DataStatisticsServiceTest extends DhisSpringTest
+class DataStatisticsServiceTest extends SingleSetupIntegrationTestBase
 {
 
     @Autowired

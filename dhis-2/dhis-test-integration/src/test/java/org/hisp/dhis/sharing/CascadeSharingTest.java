@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.sharing;
 
-import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -41,11 +40,12 @@ import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.user.sharing.Sharing;
 
 import com.google.common.collect.Lists;
 
-abstract class CascadeSharingTest extends DhisSpringTest
+abstract class CascadeSharingTest extends TransactionalIntegrationTest
 {
     protected DimensionalItemObject baseDimensionalItemObject( final String dimensionItem, DimensionItemType type )
     {

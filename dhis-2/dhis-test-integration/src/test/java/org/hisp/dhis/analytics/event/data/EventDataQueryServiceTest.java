@@ -41,7 +41,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
@@ -71,6 +70,7 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.system.grid.ListGrid;
+import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -83,7 +83,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Lars Helge Overland
  */
-class EventDataQueryServiceTest extends DhisSpringTest
+class EventDataQueryServiceTest extends SingleSetupIntegrationTestBase
 {
 
     private Program prA;
