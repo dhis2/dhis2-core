@@ -104,7 +104,7 @@
         <javax.servlet-api.version>4.0.1</javax.servlet-api.version>
 
         <!-- Struts -->
-        <struts.version>2.5.29</struts.version>
+        <struts.version>2.5.30</struts.version>
         <velocity.version>1.7</velocity.version>
         <velocity-tools.version>2.0</velocity-tools.version>
 
