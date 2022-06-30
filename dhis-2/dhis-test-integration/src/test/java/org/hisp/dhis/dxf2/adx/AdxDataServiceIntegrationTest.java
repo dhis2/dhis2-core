@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -64,7 +65,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
@@ -77,7 +77,7 @@ import com.google.common.collect.Sets;
 /*
  * @author Jim Grace
  */
-class AdxDataServiceIntegrationTest extends IntegrationTestBase
+class AdxDataServiceIntegrationTest extends DhisTest
 {
 
     @Autowired
