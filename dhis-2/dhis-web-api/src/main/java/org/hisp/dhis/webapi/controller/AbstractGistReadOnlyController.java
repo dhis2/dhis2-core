@@ -53,7 +53,6 @@ import org.hisp.dhis.gist.GistService;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.webapi.CsvBuilder;
@@ -90,9 +89,6 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
 
     @Autowired
     private GistService gistService;
-
-    @Autowired
-    private CurrentUserService currentUserService;
 
     // --------------------------------------------------------------------------
     // GET Gist

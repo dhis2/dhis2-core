@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.useraccount.action;
 
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.security.RestoreType;
 import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.user.User;
@@ -93,10 +94,10 @@ public class IsRestoreTokenValidAction
             return ERROR;
         }
 
-        String errorMessage = securityService
-            .verifyRestoreToken( user, restoreToken, RestoreType.RECOVER_PASSWORD );
+        ErrorCode errorCode = securityService
+            .validateRestoreToken( user, restoreToken, RestoreType.RECOVER_PASSWORD );
 
-        if ( errorMessage != null )
+        if ( errorCode != null )
         {
             return ERROR;
         }

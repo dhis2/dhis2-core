@@ -42,6 +42,7 @@ import org.hisp.dhis.analytics.shared.component.element.from.SimpleFromElement;
 @Getter
 public class FromElementVisitor implements FromVisitor
 {
+
     private final List<String> tables = new ArrayList<>();
 
     /**

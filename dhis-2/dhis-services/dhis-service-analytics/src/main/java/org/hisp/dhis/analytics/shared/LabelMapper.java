@@ -40,6 +40,7 @@ import org.hisp.dhis.program.ProgramStage;
  */
 public class LabelMapper
 {
+
     private LabelMapper()
     {
     }

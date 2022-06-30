@@ -72,7 +72,7 @@ public class DefaultPreheatCacheService implements PreheatCacheService
      * objects, if different {@link TrackerIdScheme} are used during different
      * imports.
      */
-    private static Map<String, Cache<String, IdentifiableObject>> cache = new HashMap<>();
+    private static final Map<String, Cache<String, IdentifiableObject>> cache = new HashMap<>();
 
     @Override
     public Optional<IdentifiableObject> get( final String cacheKey, final String id )

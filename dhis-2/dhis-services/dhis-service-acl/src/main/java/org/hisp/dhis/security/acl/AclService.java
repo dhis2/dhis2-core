@@ -55,23 +55,37 @@ public interface AclService
     boolean isSupported( String type );
 
     /**
-     * Is class supported for acl?
+     * Is object supported for acl?
      *
      * @param object Object to check
      * @return true if type is supported
      */
     boolean isSupported( IdentifiableObject object );
 
+    /**
+     * Is class supported for acl?
+     *
+     * @param <T>
+     * @param klass the class
+     * @return true if class is supported
+     */
     <T extends IdentifiableObject> boolean isClassShareable( Class<T> klass );
 
     /**
-     * Is class supported for data acl?
+     * Is object supported for data acl?
      *
      * @param object Object to check
      * @return true if type is supported
      */
     boolean isDataShareable( IdentifiableObject object );
 
+    /**
+     * Is class supported for data acl?
+     *
+     * @param <T>
+     * @param klass the class
+     * @return true if class is supported
+     */
     <T extends IdentifiableObject> boolean isDataClassShareable( Class<T> klass );
 
     /**
@@ -83,7 +97,7 @@ public interface AclService
     boolean isShareable( String type );
 
     /**
-     * Is class supported for sharing?
+     * Is object supported for sharing?
      *
      * @param o Object to check
      * @return true if type is supported
@@ -230,6 +244,14 @@ public interface AclService
      */
     <T extends IdentifiableObject> boolean canMakePublic( User user, T object );
 
+    /**
+     * Checks if a user can create a public instance of a certain class.
+     *
+     * @param <T>
+     * @param user User to check against
+     * @param klass the class
+     * @return Result of test
+     */
     <T extends IdentifiableObject> boolean canMakeClassPublic( User user, Class<T> klass );
 
     /**
@@ -244,6 +266,14 @@ public interface AclService
      */
     <T extends IdentifiableObject> boolean canMakePrivate( User user, T object );
 
+    /**
+     * Checks if a user can create a private instance of a certain class.
+     *
+     * @param <T>
+     * @param user User to check against
+     * @param klass the class
+     * @return Result of test
+     */
     <T extends IdentifiableObject> boolean canMakeClassPrivate( User user, Class<T> klass );
 
     /**
@@ -255,6 +285,14 @@ public interface AclService
      */
     <T extends IdentifiableObject> boolean canMakeExternal( User user, T object );
 
+    /**
+     * Checks if a user can create an external instance of a certain class.
+     *
+     * @param <T>
+     * @param user User to check against
+     * @param klass the class
+     * @return Result of test
+     */
     <T extends IdentifiableObject> boolean canMakeClassExternal( User user, Class<T> klass );
 
     /**

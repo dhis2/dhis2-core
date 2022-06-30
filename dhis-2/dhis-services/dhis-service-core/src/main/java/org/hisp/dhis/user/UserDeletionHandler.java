@@ -105,7 +105,7 @@ public class UserDeletionHandler extends JdbcDeletionHandler
 
     private DeletionVeto allowDeleteFileResource( FileResource fileResource )
     {
-        String sql = "SELECT COUNT(*) FROM userinfo where avatar=:id";
+        String sql = "select count(*) from userinfo where avatar=:id";
         return vetoIfExists( VETO, sql, Map.of( "id", fileResource.getId() ) );
     }
 }

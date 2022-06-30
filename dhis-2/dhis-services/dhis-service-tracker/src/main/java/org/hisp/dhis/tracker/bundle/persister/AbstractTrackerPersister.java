@@ -312,17 +312,20 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
     // // // // // // // //
     // // // // // // // //
 
-    protected void assignFileResource( Session session, TrackerPreheat preheat, String fr )
+    protected void assignFileResource( Session session, TrackerPreheat preheat,
+        String fileResourceOwner, String fr )
     {
-        assignFileResource( session, preheat, fr, true );
+        assignFileResource( session, preheat, fileResourceOwner, fr, true );
     }
 
-    protected void unassignFileResource( Session session, TrackerPreheat preheat, String fr )
+    protected void unassignFileResource( Session session, TrackerPreheat preheat,
+        String fileResourceOwner, String fr )
     {
-        assignFileResource( session, preheat, fr, false );
+        assignFileResource( session, preheat, fileResourceOwner, fr, false );
     }
 
-    private void assignFileResource( Session session, TrackerPreheat preheat, String fr, boolean isAssign )
+    private void assignFileResource( Session session, TrackerPreheat preheat,
+        String fileResourceOwner, String fr, boolean isAssign )
     {
         FileResource fileResource = preheat.get( FileResource.class, fr );
 
@@ -332,6 +335,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
         }
 
         fileResource.setAssigned( isAssign );
+        fileResource.setFileResourceOwner( fileResourceOwner );
         session.merge( fileResource );
     }
 
@@ -400,7 +404,8 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
     {
         if ( isFileResource( trackedEntityAttributeValue ) )
         {
-            unassignFileResource( session, preheat, trackedEntityAttributeValue.getValue() );
+            unassignFileResource( session, preheat, trackedEntityInstance.getUid(),
+                trackedEntityAttributeValue.getValue() );
         }
 
         session.remove( trackedEntityAttributeValue );
@@ -418,7 +423,8 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
     {
         if ( isFileResource( trackedEntityAttributeValue ) )
         {
-            assignFileResource( session, preheat, trackedEntityAttributeValue.getValue() );
+            assignFileResource( session, preheat, trackedEntityInstance.getUid(),
+                trackedEntityAttributeValue.getValue() );
         }
 
         AuditType auditType = null;

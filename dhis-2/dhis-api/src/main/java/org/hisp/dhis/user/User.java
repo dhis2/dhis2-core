@@ -443,28 +443,6 @@ public class User
     }
 
     /**
-     * Tests whether the user contain all needed parameters to perform an
-     * account restore. If a parameter is missing a descriptive error string is
-     * returned.
-     *
-     * @return null on success, a descriptive error string on failure.
-     */
-    public String isRestorable()
-    {
-        if ( restoreToken == null )
-        {
-            return "account_restoreToken_is_null";
-        }
-
-        if ( restoreExpiry == null )
-        {
-            return "account_restoreExpiry_is_null";
-        }
-
-        return null; // Success.
-    }
-
-    /**
      * Returns the dimensions to use as constrains (filters) in data analytics
      * aggregation.
      */

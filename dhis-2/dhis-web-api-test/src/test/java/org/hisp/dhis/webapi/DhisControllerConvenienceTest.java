@@ -28,7 +28,7 @@
 package org.hisp.dhis.webapi;
 
 import static org.hisp.dhis.utils.JavaToJson.singleToDoubleQuotes;
-import static org.hisp.dhis.webapi.utils.WebClientUtils.failOnException;
+import static org.hisp.dhis.web.WebClientUtils.failOnException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 
@@ -36,6 +36,7 @@ import java.util.Collections;
 
 import org.hisp.dhis.IntegrationH2Test;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.config.ConfigProviderConfiguration;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.user.CurrentUserService;

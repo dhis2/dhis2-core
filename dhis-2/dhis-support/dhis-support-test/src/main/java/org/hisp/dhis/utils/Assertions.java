@@ -28,17 +28,22 @@
 package org.hisp.dhis.utils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collection;
 import java.util.Map;
+
+import org.hisp.dhis.common.ErrorCodeException;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.junit.jupiter.api.function.Executable;
 
 /**
  * @author Jan Bernitt
  */
 public final class Assertions
 {
-
     private Assertions()
     {
         throw new UnsupportedOperationException( "util" );
@@ -64,5 +69,35 @@ public final class Assertions
         {
             assertEquals( e.getValue(), expected.get( e.getKey() ), "Did not expect value in " + actual.toString() );
         }
+    }
+
+    /**
+     * Asserts that execution of the given executable throws an exception of the
+     * expected type, returns the exception and that the error code of the
+     * exception equals the given error code.
+     *
+     * @param <K>
+     * @param expectedType the expected type.
+     * @param errorCode the {@link ErrorCode}.
+     * @param executable the {@link Executable}.
+     */
+    public static <K extends ErrorCodeException> void assertThrowsErrorCode(
+        Class<K> expectedType, ErrorCode errorCode, Executable executable )
+    {
+        K ex = assertThrows( expectedType, executable );
+
+        assertEquals( errorCode, ex.getErrorCode() );
+    }
+
+    /**
+     * Asserts that the given collection is not null and empty.
+     *
+     * @param <E>
+     * @param actual the collection.
+     */
+    public static <E> void assertIsEmpty( Collection<E> actual )
+    {
+        assertNotNull( actual );
+        assertTrue( actual.isEmpty() );
     }
 }

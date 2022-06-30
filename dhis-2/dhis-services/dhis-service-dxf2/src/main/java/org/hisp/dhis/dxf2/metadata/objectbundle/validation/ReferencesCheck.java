@@ -82,6 +82,7 @@ public class ReferencesCheck implements ValidationCheck
             if ( !errorReports.isEmpty() && object != null )
             {
                 ObjectReport objectReport = new ObjectReport( object, bundle );
+                objectReport.setDisplayName( object.getDisplayName() );
                 objectReport.addErrorReports( errorReports );
                 typeReport.addObjectReport( objectReport );
             }
@@ -153,9 +154,11 @@ public class ReferencesCheck implements ValidationCheck
 
             if ( !(isUserReference && skipSharing) )
             {
-                preheatErrorReports.add( new PreheatErrorReport( identifier, object.getClass(),
-                    ErrorCode.E5002, identifier.getIdentifiersWithName( refObject ),
-                    identifier.getIdentifiersWithName( object ), property.getName() ) );
+                PreheatErrorReport error = new PreheatErrorReport( identifier,
+                    ErrorCode.E5002, object, property, identifier.getIdentifiersWithName( refObject ),
+                    identifier.getIdentifiersWithName( object ), property.getName() );
+
+                preheatErrorReports.add( error );
             }
         }
     }
@@ -178,9 +181,9 @@ public class ReferencesCheck implements ValidationCheck
 
                 if ( ref == null && refObject != null )
                 {
-                    preheatErrorReports.add( new PreheatErrorReport( identifier, object.getClass(),
-                        ErrorCode.E5002, identifier.getIdentifiersWithName( refObject ),
-                        identifier.getIdentifiersWithName( object ), property.getCollectionName() ) );
+                    preheatErrorReports.add( new PreheatErrorReport( identifier,
+                        ErrorCode.E5002, object, property, identifier.getIdentifiersWithName( refObject ),
+                        identifier.getIdentifiersWithName( object ), property.getName() ) );
                 }
                 else
                 {

@@ -38,6 +38,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.webapi.controller.datavalue.DataValidator;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.webdomain.datavalue.MinMaxValueDto;
+import org.hisp.dhis.webapi.webdomain.datavalue.MinMaxValueQueryParams;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -68,9 +69,9 @@ public class MinMaxValueController
 
     @DeleteMapping( "/minMaxValues" )
     @ResponseStatus( value = HttpStatus.NO_CONTENT )
-    public void removeMinMaxValue( @RequestBody MinMaxValueDto valueDto )
+    public void removeMinMaxValue( MinMaxValueQueryParams params )
     {
-        removeMinMaxDataElement( valueDto );
+        removeMinMaxDataElement( params );
     }
 
     /**
@@ -103,13 +104,13 @@ public class MinMaxValueController
     /**
      * Removes a {@link MinMaxDataElement}.
      *
-     * @param dto the {@link MinMaxValueDto}.
+     * @param params the {@link MinMaxValueQueryParams}.
      */
-    private void removeMinMaxDataElement( MinMaxValueDto dto )
+    private void removeMinMaxDataElement( MinMaxValueQueryParams params )
     {
-        DataElement dataElement = dataValidator.getAndValidateDataElement( dto.getDataElement() );
-        OrganisationUnit orgUnit = dataValidator.getAndValidateOrganisationUnit( dto.getOrgUnit() );
-        CategoryOptionCombo optCombo = dataValidator.getAndValidateCategoryOptionCombo( dto.getCategoryOptionCombo() );
+        DataElement dataElement = dataValidator.getAndValidateDataElement( params.getDe() );
+        OrganisationUnit orgUnit = dataValidator.getAndValidateOrganisationUnit( params.getOu() );
+        CategoryOptionCombo optCombo = dataValidator.getAndValidateCategoryOptionCombo( params.getCo() );
         MinMaxDataElement value = minMaxValueService.getMinMaxDataElement( orgUnit, dataElement, optCombo );
 
         if ( value != null )

@@ -37,7 +37,6 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.validator.routines.InetAddressValidator;
 import org.apache.commons.validator.routines.UrlValidator;
@@ -72,7 +71,6 @@ import com.google.common.collect.ImmutableList;
 @Controller
 @RequestMapping( value = ApiTokenSchemaDescriptor.API_ENDPOINT )
 @RequiredArgsConstructor
-@Slf4j
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class ApiTokenController extends AbstractCrudController<ApiToken>
 {
@@ -117,6 +115,7 @@ public class ApiTokenController extends AbstractCrudController<ApiToken>
         throw new IllegalStateException( OPERATION_NOT_SUPPORTED_ON_API_TOKEN );
     }
 
+    @Override
     @PostMapping( consumes = { "application/xml", "text/xml" } )
     @ResponseBody
     public WebMessage postXmlObject( HttpServletRequest request )
@@ -124,6 +123,7 @@ public class ApiTokenController extends AbstractCrudController<ApiToken>
         throw new IllegalStateException( OPERATION_NOT_SUPPORTED_ON_API_TOKEN );
     }
 
+    @Override
     @PostMapping( consumes = "application/json" )
     @ResponseBody
     public WebMessage postJsonObject( HttpServletRequest request )

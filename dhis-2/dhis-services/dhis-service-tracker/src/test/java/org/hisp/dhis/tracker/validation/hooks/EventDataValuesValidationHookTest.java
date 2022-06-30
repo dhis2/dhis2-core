@@ -650,6 +650,57 @@ class EventDataValuesValidationHookTest
     }
 
     @Test
+    void validateFileResourceOwner()
+    {
+        DataElement validDataElement = dataElement( ValueType.FILE_RESOURCE );
+        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementUid ) ) ).thenReturn( validDataElement );
+
+        ProgramStage programStage = programStage( validDataElement );
+        when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStageUid ) ) )
+            .thenReturn( programStage );
+
+        FileResource fileResource = new FileResource();
+        fileResource.setAssigned( true );
+        DataValue validDataValue = dataValue( "QX4LpiTZmUH" );
+        when( preheat.get( FileResource.class, validDataValue.getValue() ) ).thenReturn( fileResource );
+        Event event = Event.builder()
+            .programStage( idSchemes.toMetadataIdentifier( programStage ) )
+            .status( EventStatus.SKIPPED )
+            .dataValues( Set.of( validDataValue ) )
+            .build();
+
+        when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.CREATE );
+
+        hook.validateEvent( reporter, bundle, event );
+
+        assertThat( reporter.getReportList(), hasSize( 1 ) );
+        assertEquals( TrackerErrorCode.E1009, reporter.getReportList().get( 0 ).getErrorCode() );
+
+        event.setEvent( "XYZ" );
+        fileResource.setFileResourceOwner( "ABC" );
+
+        when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.UPDATE );
+
+        reporter = new ValidationErrorReporter( idSchemes );
+
+        hook.validateEvent( reporter, bundle, event );
+
+        assertThat( reporter.getReportList(), hasSize( 1 ) );
+        assertEquals( TrackerErrorCode.E1009, reporter.getReportList().get( 0 ).getErrorCode() );
+
+        event.setEvent( "ABC" );
+        fileResource.setFileResourceOwner( "ABC" );
+
+        when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.UPDATE );
+
+        reporter = new ValidationErrorReporter( idSchemes );
+
+        hook.validateEvent( reporter, bundle, event );
+
+        assertThat( reporter.getReportList(), hasSize( 0 ) );
+    }
+
+    @Test
     void failValidationWhenDataElementValueTypeIsInvalid()
     {
         runAndAssertValidationForDataValue( ValueType.NUMBER, "not_a_number" );

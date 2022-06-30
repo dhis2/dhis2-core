@@ -51,7 +51,6 @@ import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.setting.StyleManager;
 import org.hisp.dhis.setting.StyleObject;
@@ -110,9 +109,6 @@ public class SystemController
     private Notifier notifier;
 
     @Autowired
-    private RenderService renderService;
-
-    @Autowired
     private I18nManager i18nManager;
 
     @Autowired
@@ -148,17 +144,19 @@ public class SystemController
             .setUseHeader( true )
             .build();
 
-        CsvGenerator csvGenerator = CSV_FACTORY.createGenerator( response.getOutputStream() );
-        csvGenerator.setSchema( schema );
-
-        for ( String code : codeList.getCodes() )
+        try ( CsvGenerator csvGenerator = CSV_FACTORY.createGenerator( response.getOutputStream() ) )
         {
-            csvGenerator.writeStartObject();
-            csvGenerator.writeStringField( "uid", code );
-            csvGenerator.writeEndObject();
-        }
+            csvGenerator.setSchema( schema );
 
-        csvGenerator.flush();
+            for ( String code : codeList.getCodes() )
+            {
+                csvGenerator.writeStartObject();
+                csvGenerator.writeStringField( "uid", code );
+                csvGenerator.writeEndObject();
+            }
+
+            csvGenerator.flush();
+        }
     }
 
     @GetMapping( value = "/uuid", produces = { APPLICATION_JSON_VALUE,

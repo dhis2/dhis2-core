@@ -36,10 +36,9 @@ import java.util.List;
 
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.jsontree.JsonResponse;
-import org.hisp.dhis.webapi.WebClient;
+import org.hisp.dhis.web.HttpMethod;
+import org.hisp.dhis.web.WebClient;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -76,17 +75,18 @@ public abstract class DhisMockMvcControllerTest extends DhisConvenienceTest impl
     }
 
     @Override
-    public HttpResponse webRequest( HttpMethod method, String url, List<Header> headers, MediaType contentType,
+    public HttpResponse webRequest( HttpMethod method, String url, List<Header> headers, String contentType,
         String content )
     {
         return webRequest( buildMockRequest( method, url, headers, contentType, content ) );
     }
 
     protected MockHttpServletRequestBuilder buildMockRequest( HttpMethod method, String url, List<Header> headers,
-        MediaType contentType,
+        String contentType,
         String content )
     {
-        MockHttpServletRequestBuilder request = MockMvcRequestBuilders.request( method, url );
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders.request(
+            org.springframework.http.HttpMethod.resolve( method.name() ), url );
         for ( Header header : headers )
         {
             request.header( header.getName(), header.getValue() );

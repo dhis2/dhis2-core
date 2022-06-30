@@ -59,7 +59,7 @@ public class ProgramStageInstanceDeletionHandler extends JdbcDeletionHandler
     private DeletionVeto allowDeleteProgramStage( ProgramStage programStage )
     {
         return vetoIfExists( VETO,
-            "SELECT COUNT(*) FROM programstageinstance WHERE programstageid = :id",
+            "select count(*) from programstageinstance where programstageid = :id",
             Map.of( "id", programStage.getId() ) );
     }
 
@@ -74,13 +74,13 @@ public class ProgramStageInstanceDeletionHandler extends JdbcDeletionHandler
     private DeletionVeto allowDeleteProgram( Program program )
     {
         return vetoIfExists( VETO,
-            "SELECT COUNT(*) FROM programstageinstance psi join programinstance pi on pi.programinstanceid=psi.programinstanceid where pi.programid = :id",
+            "select count(*) from programstageinstance psi join programinstance pi on pi.programinstanceid=psi.programinstanceid where pi.programid = :id",
             Map.of( "id", program.getId() ) );
     }
 
     private DeletionVeto allowDeleteDataElement( DataElement dataElement )
     {
-        return vetoIfExists( VETO, "select count(*) from programstageinstance where eventdatavalues ? :uid",
+        return vetoIfExists( VETO, "select count(*) from programstageinstance where eventdatavalues ?? :uid",
             Map.of( "uid", dataElement.getUid() ) );
     }
 }

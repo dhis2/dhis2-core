@@ -29,7 +29,7 @@ package org.hisp.dhis.validation.scheduling;
 
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.joining;
-import static org.hisp.dhis.util.DateUtils.getDateAfterAddition;
+import static org.hisp.dhis.util.DateUtils.addDays;
 
 import java.util.Collection;
 import java.util.Date;
@@ -135,8 +135,8 @@ public class MonitoringJob implements Job
     {
         if ( params.getRelativeStart() != 0 && params.getRelativeEnd() != 0 )
         {
-            Date startDate = getDateAfterAddition( new Date(), params.getRelativeStart() );
-            Date endDate = getDateAfterAddition( new Date(), params.getRelativeEnd() );
+            Date startDate = addDays( new Date(), params.getRelativeStart() );
+            Date endDate = addDays( new Date(), params.getRelativeEnd() );
 
             List<Period> periods = periodService.getPeriodsBetweenDates( startDate, endDate );
             return ListUtils.union( periods, periodService.getIntersectionPeriods( periods ) );

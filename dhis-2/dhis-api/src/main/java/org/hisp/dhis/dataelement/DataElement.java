@@ -118,7 +118,7 @@ public class DataElement extends BaseDimensionalItemObject
     private String url;
 
     /**
-     * The data element groups which this
+     * The data element groups which this data element is a member of.
      */
     private Set<DataElementGroup> groups = new HashSet<>();
 
