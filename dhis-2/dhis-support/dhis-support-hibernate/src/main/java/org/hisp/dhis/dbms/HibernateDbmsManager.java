@@ -248,6 +248,8 @@ public class HibernateDbmsManager
         emptyTable( "periodboundary" );
         emptyTable( "programindicator" );
         emptyTable( "programownershiphistory" );
+        emptyTable( "programtempownershipaudit" );
+        emptyTable( "programtempowner" );
         emptyTable( "program" );
 
         emptyTable( "programstageinstancefilter" );
