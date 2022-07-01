@@ -36,6 +36,14 @@
 
     <!-- Other -->
     <dependency>
+      <groupId>org.springframework.ldap</groupId>
+      <artifactId>spring-ldap-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.security</groupId>
+      <artifactId>spring-security-ldap</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-core</artifactId>
     </dependency>
@@ -62,6 +70,10 @@
     <dependency>
       <groupId>org.springframework.security</groupId>
       <artifactId>spring-security-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.security</groupId>
+      <artifactId>spring-security-crypto</artifactId>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
