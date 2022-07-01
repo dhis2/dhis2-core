@@ -34,11 +34,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import java.util.List;
 
 import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class AnalyticsDataExchangeStoreTest extends SingleSetupIntegrationTestBase
+class AnalyticsDataExchangeStoreTest extends IntegrationTestBase
 {
     private static final String UID_SCHEME = IdScheme.UID.name();
 
