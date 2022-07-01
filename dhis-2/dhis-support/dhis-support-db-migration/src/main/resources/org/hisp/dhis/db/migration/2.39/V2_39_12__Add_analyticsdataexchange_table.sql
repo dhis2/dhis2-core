@@ -1,9 +1,6 @@
+drop table if exists analyticsdataexchange;
 
--- public.analyticsdataexchange table
-
-drop table if exists public.analyticsdataexchange;
-
-create table public.analyticsdataexchange (
+create table analyticsdataexchange (
     analyticsdataexchangeid int8 not null,
     uid varchar(11) null,
     code varchar(100) null,
@@ -23,9 +20,9 @@ create table public.analyticsdataexchange (
     constraint analyticsdataexchange_pkey primary key (analyticsdataexchangeid)
 );
 
--- public.analyticsdataexchange foreign keys
+-- analyticsdataexchange foreign keys
 
-alter table public.analyticsdataexchange add constraint fk_analyticsdataexchange_userid_userinfoid 
+alter table analyticsdataexchange add constraint fk_analyticsdataexchange_userid_userinfoid
     foreign key (userid) references public.userinfo(userinfoid);
-alter table public.analyticsdataexchange add constraint fk_analyticsdataexchange_lastupdateby_userinfoid 
+alter table analyticsdataexchange add constraint fk_analyticsdataexchange_lastupdateby_userinfoid
     foreign key (lastupdatedby) references public.userinfo(userinfoid);
