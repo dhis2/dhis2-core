@@ -1291,21 +1291,21 @@ public class JdbcEventStore implements EventStore
         {
             if ( params.getEventStatus() == EventStatus.VISITED )
             {
-                mapSqlParameterSource.addValue( PSI_STATUS, "'" + EventStatus.ACTIVE.name() + "'" );
+                mapSqlParameterSource.addValue( PSI_STATUS, EventStatus.ACTIVE.name() );
 
                 sqlBuilder.append( hlp.whereAnd() ).append( PSI_STATUS_EQ ).append( ":" + PSI_STATUS )
                     .append( " and psi.executiondate is not null " );
             }
             else if ( params.getEventStatus() == EventStatus.OVERDUE )
             {
-                mapSqlParameterSource.addValue( PSI_STATUS, "'" + EventStatus.SCHEDULE.name() + "'" );
+                mapSqlParameterSource.addValue( PSI_STATUS, EventStatus.SCHEDULE.name() );
 
                 sqlBuilder.append( hlp.whereAnd() ).append( " date(now()) > date(psi.duedate) and psi.status = " )
                     .append( ":" + PSI_STATUS ).append( " " );
             }
             else
             {
-                mapSqlParameterSource.addValue( PSI_STATUS, "'" + params.getEventStatus().name() + "'" );
+                mapSqlParameterSource.addValue( PSI_STATUS, params.getEventStatus().name() );
 
                 sqlBuilder.append( hlp.whereAnd() ).append( PSI_STATUS_EQ ).append( ":" + PSI_STATUS )
                     .append( " " );
