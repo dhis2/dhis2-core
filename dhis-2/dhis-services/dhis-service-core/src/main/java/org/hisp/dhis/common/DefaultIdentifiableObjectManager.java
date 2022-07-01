@@ -56,6 +56,9 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
+import org.hisp.dhis.commons.collection.CollectionUtils;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
@@ -605,6 +608,25 @@ public class DefaultIdentifiableObjectManager
         }
 
         return list;
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public <T extends IdentifiableObject> List<T> getAndValidateByUid( Class<T> type, Collection<String> uids )
+        throws IllegalQueryException
+    {
+        List<T> objects = getByUid( type, uids );
+
+        List<String> identifiers = IdentifiableObjectUtils.getUids( objects );
+        List<String> difference = CollectionUtils.difference( uids, identifiers );
+
+        if ( !difference.isEmpty() )
+        {
+            throw new IllegalQueryException( new ErrorMessage(
+                ErrorCode.E1112, type.getSimpleName(), difference ) );
+        }
+
+        return objects;
     }
 
     @Override
