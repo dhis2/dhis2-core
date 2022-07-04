@@ -53,6 +53,7 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 public class TeiAnalyticsQueryService
 {
+
     private final QueryGenerator<TeiQueryParams> teiJdbcQuery;
 
     private final QueryExecutor<SqlQuery, SqlQueryResult> queryExecutor;

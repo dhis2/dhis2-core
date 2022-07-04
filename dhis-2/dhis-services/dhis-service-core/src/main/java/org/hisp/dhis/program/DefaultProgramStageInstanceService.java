@@ -286,7 +286,7 @@ public class DefaultProgramStageInstanceService
             dateCreatedEvent = incidentDate;
         }
 
-        Date dueDate = DateUtils.getDateAfterAddition( dateCreatedEvent, programStage.getMinDaysFromStart() );
+        Date dueDate = DateUtils.addDays( dateCreatedEvent, programStage.getMinDaysFromStart() );
 
         if ( !programInstance.getProgram().getIgnoreOverdueEvents() || dueDate.before( currentDate ) )
         {
@@ -320,9 +320,7 @@ public class DefaultProgramStageInstanceService
 
         if ( singleValue )
         {
-            // If it is only a single value update, I don't won't to miss the
-            // values that
-            // are missing in the payload but already present in the DB
+            // If only a single value update, merge with existing data
             Set<EventDataValue> changedDataValues = Sets.union( updatedOrNewDataValues, removedDataValues );
             Set<EventDataValue> unchangedDataValues = Sets.difference( programStageInstance.getEventDataValues(),
                 changedDataValues );

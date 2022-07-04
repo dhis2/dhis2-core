@@ -53,8 +53,10 @@ import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.GenericDimensionalObjectStore;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dbms.DbmsManager;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
@@ -340,6 +342,19 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     @Override
+    public final T loadByUid( String uid )
+    {
+        T object = getByUid( uid );
+
+        if ( object == null )
+        {
+            throw new IllegalQueryException( ErrorCode.E1113, getClazz().getSimpleName(), uid );
+        }
+
+        return object;
+    }
+
+    @Override
     public final void updateNoAcl( T object )
     {
         object.setAutoFields();
@@ -387,6 +402,19 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             .addPredicate( root -> builder.equal( root.get( "code" ), code ) );
 
         return getSingleResult( builder, param );
+    }
+
+    @Override
+    public final T loadByCode( String code )
+    {
+        T object = getByCode( code );
+
+        if ( object == null )
+        {
+            throw new IllegalQueryException( ErrorCode.E1113, getClazz().getSimpleName(), code );
+        }
+
+        return object;
     }
 
     @Override
@@ -748,7 +776,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     {
         if ( uids == null || uids.isEmpty() )
         {
-            return new ArrayList<>( 0 );
+            return new ArrayList<>();
         }
 
         // TODO Include paging to avoid exceeding max query length

@@ -31,15 +31,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.leader.election.LeaderManager;
+import org.hisp.dhis.system.SystemTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Ameen Mohamed
  */
-class LeaderManagerTest extends DhisSpringTest
+class LeaderManagerTest extends SystemTest
 {
 
     @Autowired

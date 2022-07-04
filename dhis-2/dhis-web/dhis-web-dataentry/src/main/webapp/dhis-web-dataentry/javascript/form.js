@@ -2348,6 +2348,8 @@ function displayUserDetails()
 		{
 			$( '#userFullName' ).html( json.users[0].displayName );
 			$( '#userUsername' ).html( dhis2.de.currentCompletedByUser );
+			$( '#firstName' ).html( json.users[0].firstName );
+			$( '#surname' ).html( json.users[0].surname );
 
 			$( '#completedByDiv' ).dialog( {
 	        	modal : true,

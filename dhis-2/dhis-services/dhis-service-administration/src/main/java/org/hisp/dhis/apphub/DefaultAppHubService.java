@@ -168,10 +168,10 @@ public class DefaultAppHubService implements AppHubService
 
         tempFile.deleteOnExit();
 
-        FileOutputStream out = new FileOutputStream( tempFile );
-
-        IOUtils.copy( in, out );
-
+        try ( FileOutputStream out = new FileOutputStream( tempFile ) )
+        {
+            IOUtils.copy( in, out );
+        }
         return tempFile;
     }
 }

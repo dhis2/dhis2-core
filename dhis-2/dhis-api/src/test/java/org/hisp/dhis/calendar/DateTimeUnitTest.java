@@ -28,6 +28,7 @@
 package org.hisp.dhis.calendar;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -134,6 +135,6 @@ class DateTimeUnitTest
         dateTimeUnit.setDate( 1986, 1, 1 );
         dateTimeUnit.setTime( 0, 0, 0, 0 );
         dateTimeUnit.setTimeZone( timeZone );
-        dateTimeUnit.toJodaDateTime();
+        assertNotNull( dateTimeUnit.toJodaDateTime() );
     }
 }

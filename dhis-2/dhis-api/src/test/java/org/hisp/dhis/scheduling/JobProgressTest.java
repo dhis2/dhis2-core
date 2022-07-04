@@ -171,6 +171,7 @@ class JobProgressTest
         verify( progress, never() ).startingWorkItem( anyString() );
         verify( progress ).failedStage( any( IllegalStateException.class ) );
         verify( progress ).failedStage( "java.lang.IllegalStateException" );
+        assertFalse( progress.isSkipCurrentStage() );
     }
 
     @Test
@@ -195,6 +196,7 @@ class JobProgressTest
         verify( progress, never() ).startingWorkItem( anyString() );
         verify( progress ).failedStage( any( IllegalStateException.class ) );
         verify( progress ).failedStage( "java.lang.IllegalStateException" );
+        assertFalse( progress.isSkipCurrentStage() );
     }
 
     @Test

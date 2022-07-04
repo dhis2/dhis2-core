@@ -40,6 +40,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * @author Lars Helge Overland
+ */
 @RestController
 @RequiredArgsConstructor
 @RequestMapping( "/dataEntry" )
@@ -53,7 +56,7 @@ public class CustomDataEntryFormController
     @GetMapping( "/customForms/{uid}" )
     public CustomDataEntryFormDto getForm( @PathVariable String uid )
     {
-        DataSet dataSet = idObjectManager.getAndValidate( DataSet.class, uid );
+        DataSet dataSet = idObjectManager.load( DataSet.class, uid );
 
         String form = dataEntryFormService.prepareDataEntryFormForEntry( dataSet );
 

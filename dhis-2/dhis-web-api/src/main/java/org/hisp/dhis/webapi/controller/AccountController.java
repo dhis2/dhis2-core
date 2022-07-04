@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.forbidden;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.security.DefaultSecurityService.RECOVERY_LOCKOUT_MINS;
@@ -53,9 +52,11 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.PasswordManager;
 import org.hisp.dhis.security.RecaptchaResponse;
@@ -87,6 +88,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.google.common.base.Strings;
 
 /**
  * @author Lars Helge Overland
@@ -136,11 +139,11 @@ public class AccountController
             return conflict( "User does not exist: " + username );
         }
 
-        String validRestore = securityService.validateRestore( user );
+        ErrorCode errorCode = securityService.validateRestore( user );
 
-        if ( validRestore != null )
+        if ( errorCode != null )
         {
-            return error( "Failed to validate recovery attempt" );
+            throw new IllegalQueryException( errorCode );
         }
 
         if ( !securityService
@@ -240,28 +243,35 @@ public class AccountController
         HttpServletRequest request )
         throws IOException
     {
-        UserRegistration userRegistration = UserRegistration.builder()
-            .username( StringUtils.trimToNull( username ) )
-            .firstName( StringUtils.trimToNull( firstName ) )
-            .surname( StringUtils.trimToNull( surname ) )
-            .password( StringUtils.trimToNull( password ) )
-            .email( StringUtils.trimToNull( email ) )
-            .phoneNumber( StringUtils.trimToNull( phoneNumber ) )
-            .employer( StringUtils.trimToNull( employer ) )
-            .build();
-
-        WebMessage badRequestMessage = validateInput( userRegistration );
-        if ( badRequestMessage != null )
+        WebMessage validateCaptcha = validateCaptcha( recapResponse, request );
+        if ( validateCaptcha != null )
         {
-            return badRequestMessage;
+            return validateCaptcha;
         }
 
-        boolean invitedByEmail = (inviteUsername != null && !inviteUsername.isEmpty());
+        boolean invitedByEmail = !Strings.isNullOrEmpty( inviteUsername );
         if ( invitedByEmail )
         {
             String[] idAndRestoreToken = securityService.decodeEncodedTokens( inviteToken );
             String idToken = idAndRestoreToken[0];
             String restoreToken = idAndRestoreToken[1];
+            boolean usernameChoice = securityService.getRestoreOptions( restoreToken ).isUsernameChoice();
+
+            UserRegistration userRegistration = UserRegistration.builder()
+                .username( StringUtils.trimToNull( usernameChoice ? username : inviteUsername ) )
+                .firstName( StringUtils.trimToNull( firstName ) )
+                .surname( StringUtils.trimToNull( surname ) )
+                .password( StringUtils.trimToNull( password ) )
+                .email( StringUtils.trimToNull( email ) )
+                .phoneNumber( StringUtils.trimToNull( phoneNumber ) )
+                .employer( StringUtils.trimToNull( employer ) )
+                .build();
+
+            WebMessage validateInput = validateInput( userRegistration, usernameChoice );
+            if ( validateInput != null )
+            {
+                return validateInput;
+            }
 
             User user = userService.getUserByIdToken( idToken );
             if ( user == null )
@@ -281,34 +291,33 @@ public class AccountController
 
             if ( !securityService.restore( user, restoreToken, password, RestoreType.INVITE ) )
             {
-                log.warn( "Invite restore failed for: " + inviteUsername );
+                log.warn( "Invite restore failed for: " + userRegistration.getUsername() );
                 return badRequest( "Unable to create invited user account" );
             }
 
-            updateInvitedByEmailUser( user, userRegistration, inviteUsername, request,
-                securityService.getRestoreOptions( restoreToken ).isUsernameChoice() );
+            updateInvitedByEmailUser( user, userRegistration, request );
         }
         else // Self registration
         {
+            UserRegistration userRegistration = UserRegistration.builder()
+                .username( StringUtils.trimToNull( username ) )
+                .firstName( StringUtils.trimToNull( firstName ) )
+                .surname( StringUtils.trimToNull( surname ) )
+                .password( StringUtils.trimToNull( password ) )
+                .email( StringUtils.trimToNull( email ) )
+                .phoneNumber( StringUtils.trimToNull( phoneNumber ) )
+                .employer( StringUtils.trimToNull( employer ) )
+                .build();
+
+            WebMessage validateInput = validateInput( userRegistration, true );
+            if ( validateInput != null )
+            {
+                return validateInput;
+            }
+
             if ( !configurationService.getConfiguration().selfRegistrationAllowed() )
             {
                 return badRequest( "User self registration is not allowed" );
-            }
-
-            if ( !systemSettingManager.selfRegistrationNoRecaptcha() )
-            {
-                if ( recapResponse == null )
-                {
-                    return badRequest( "Please verify that you are not a robot" );
-                }
-
-                RecaptchaResponse recaptchaResponse = securityService
-                    .verifyRecaptcha( recapResponse, request.getRemoteAddr() );
-                if ( !recaptchaResponse.success() )
-                {
-                    log.warn( "Recaptcha validation failed: " + recaptchaResponse.getErrorCodes() );
-                    return badRequest( "Recaptcha validation failed: " + recaptchaResponse.getErrorCodes() );
-                }
             }
 
             if ( userService.getUserByUsername( username ) != null )
@@ -322,11 +331,34 @@ public class AccountController
         return ok( "Account created" );
     }
 
-    private WebMessage validateInput( UserRegistration userRegistration )
+    WebMessage validateCaptcha( String recapResponse, HttpServletRequest request )
+        throws IOException
     {
-        if ( userRegistration.getUsername() == null || userRegistration.getUsername().trim().length() > MAX_LENGTH )
+        if ( !systemSettingManager.selfRegistrationNoRecaptcha() )
         {
-            return badRequest( "User name is not specified or invalid" );
+            if ( recapResponse == null )
+            {
+                return badRequest( "Recaptcha validation failed." );
+            }
+
+            RecaptchaResponse recaptchaResponse = securityService
+                .verifyRecaptcha( recapResponse, request.getRemoteAddr() );
+            if ( !recaptchaResponse.success() )
+            {
+                log.warn( "Recaptcha validation failed: " + recaptchaResponse.getErrorCodes() );
+                return badRequest( "Recaptcha validation failed: " + recaptchaResponse.getErrorCodes() );
+            }
+        }
+
+        return null;
+    }
+
+    private WebMessage validateInput( UserRegistration userRegistration, boolean validateUsernameExists )
+    {
+        if ( validateUserName( userRegistration.getUsername(), validateUsernameExists ).get( "response" )
+            .equals( "error" ) )
+        {
+            return badRequest( "Username is not specified or invalid" );
         }
 
         if ( userRegistration.getFirstName() == null || userRegistration.getFirstName().trim().length() > MAX_LENGTH )
@@ -421,11 +453,9 @@ public class AccountController
 
     private void updateInvitedByEmailUser( User user,
         UserRegistration userRegistration,
-        String inviteUsername,
-        HttpServletRequest request,
-        boolean canChooseUsername )
+        HttpServletRequest request )
     {
-        user.setPassword( userRegistration.getPassword() );
+        user.setUsername( userRegistration.getUsername() );
         user.setFirstName( userRegistration.getFirstName() );
         user.setSurname( userRegistration.getSurname() );
         user.setPhoneNumber( userRegistration.getPhoneNumber() );
@@ -434,14 +464,9 @@ public class AccountController
         user.setPhoneNumber( userRegistration.getPhoneNumber() );
         user.setEmployer( userRegistration.getEmployer() );
 
-        if ( canChooseUsername )
-        {
-            user.setUsername( userRegistration.getUsername() );
-        }
-
         userService.updateUser( user );
 
-        log.info( "User " + user.getUsername() + " accepted invitation for " + inviteUsername );
+        log.info( "User " + user.getUsername() + " accepted invitation." );
 
         authenticateUser( user, user.getUsername(), userRegistration.getPassword(), request );
     }
@@ -521,13 +546,13 @@ public class AccountController
     @GetMapping( "/username" )
     public ResponseEntity<Map<String, String>> validateUserNameGet( @RequestParam String username )
     {
-        return ResponseEntity.ok().cacheControl( noStore() ).body( validateUserName( username ) );
+        return ResponseEntity.ok().cacheControl( noStore() ).body( validateUserName( username, true ) );
     }
 
     @PostMapping( "/validateUsername" )
     public ResponseEntity<Map<String, String>> validateUserNameGetPost( @RequestParam String username )
     {
-        return ResponseEntity.ok().cacheControl( noStore() ).body( validateUserName( username ) );
+        return ResponseEntity.ok().cacheControl( noStore() ).body( validateUserName( username, true ) );
     }
 
     @GetMapping( "/password" )
@@ -547,18 +572,14 @@ public class AccountController
     // Supportive methods
     // ---------------------------------------------------------------------
 
-    private Map<String, String> validateUserName( String username )
+    private Map<String, String> validateUserName( String username, boolean validateIfExists )
     {
         boolean isNull = username == null;
-        boolean usernameNotTaken = userService.getUserByUsername( username ) == null;
+        boolean usernameExists = userService.getUserByUsername( username ) != null;
         boolean isValidSyntax = ValidationUtils.usernameIsValid( username, false );
-        boolean isValid = !isNull && usernameNotTaken && isValidSyntax;
 
         // Custom code required because of our hacked jQuery validation
         Map<String, String> result = new HashMap<>();
-
-        result.put( "response", isValid ? "success" : "error" );
-
         if ( isNull )
         {
             result.put( "message", "Username is null" );
@@ -567,11 +588,14 @@ public class AccountController
         {
             result.put( "message", "Username is not valid" );
         }
-        else if ( !usernameNotTaken )
+        else if ( validateIfExists && usernameExists )
         {
             result.put( "message", "Username is already taken" );
         }
-        else
+
+        result.put( "response", result.isEmpty() ? "success" : "error" );
+
+        if ( result.get( "response" ).equals( "success" ) )
         {
             result.put( "message", "" );
         }

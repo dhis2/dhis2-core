@@ -24,9 +24,6 @@ jobs:
       - name: Test core # NOTE: dhis-2/pom.xml needs to be installed as built artifacts are needed by dhis-web
         run: mvn clean install --threads 2C --batch-mode --no-transfer-progress --update-snapshots -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty
         timeout-minutes: 30
-      - name: Test dhis-web
-        run: mvn verify --threads 2C --batch-mode --no-transfer-progress --update-snapshots -f ./dhis-2/dhis-web/pom.xml
-        timeout-minutes: 30
       - name: Report coverage to codecov
         uses: codecov/codecov-action@v3
         with:
@@ -34,6 +31,25 @@ jobs:
           flags: unit
           fail_ci_if_error: true
           verbose: true
+      # delete the next 2 steps once we are confident in the coverage setup
+      - name: Tar jacoco coverage report to debug
+        run: tar -cvf coverage.tar dhis-2/dhis-test-coverage/target/site/jacoco-aggregate
+      - uses: actions/upload-artifact@v3
+        name: Upload jacoco coverage report to debug
+        with:
+          name: unit-test-coverage
+          path: coverage.tar
+          retention-days: 5
+      # no coverage is gathered for dhis-web as it will be removed
+      - name: Test dhis-web
+        run: mvn test --threads 2C --batch-mode --no-transfer-progress --update-snapshots -f ./dhis-2/dhis-web/pom.xml
+        timeout-minutes: 30
+      - name: Archive surefire reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: unit-test-surefire-reports
+          path: "**/target/surefire-reports/TEST-*.xml"
+          retention-days: 5
 
   integration-test:
     runs-on: ubuntu-latest
@@ -46,8 +62,16 @@ jobs:
           distribution: temurin
           cache: maven
       - name: Run integration tests
-        run: mvn clean verify --threads 2C --batch-mode --no-transfer-progress -Pintegration -DexcludeAnalyticsTests=true -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty
+        run: mvn clean verify --threads 2C --batch-mode --no-transfer-progress -Pintegration -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty
         timeout-minutes: 30
+      - uses: actions/upload-artifact@v3
+        name: Upload test logs on failure
+        if: failure()
+        with:
+          name: integration-test-logs
+          path: "**/target/test.log"
+          if-no-files-found: error # check our logging configuration if that happens
+          retention-days: 3
       - name: Report coverage to codecov
         uses: codecov/codecov-action@v3
         with:
@@ -55,12 +79,21 @@ jobs:
           flags: integration
           fail_ci_if_error: true
           verbose: true
+      # delete the next 2 steps once we are confident in the coverage setup
+      - name: Tar jacoco coverage report to debug
+        run: tar -cvf coverage.tar dhis-2/dhis-test-coverage/target/site/jacoco-aggregate
+      - uses: actions/upload-artifact@v3
+        name: Upload jacoco coverage report to debug
+        with:
+          name: integration-test-coverage
+          path: coverage.tar
+          retention-days: 5
       - name: Archive surefire reports
         uses: actions/upload-artifact@v3
         with:
-          name: surefire-reports
+          name: integration-test-surefire-reports
           path: "**/target/surefire-reports/TEST-*.xml"
-          retention-days: 10
+          retention-days: 5
 
   integration-h2-test:
     runs-on: ubuntu-latest
@@ -75,6 +108,14 @@ jobs:
       - name: Run integration h2 tests
         run: mvn clean verify --threads 2C --batch-mode --no-transfer-progress -PintegrationH2 -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty
         timeout-minutes: 30
+      - uses: actions/upload-artifact@v3
+        name: Upload test logs on failure
+        if: failure()
+        with:
+          name: integration-h2-test-logs
+          path: "**/target/test.log"
+          if-no-files-found: error # check our logging configuration if that happens
+          retention-days: 3
       - name: Report coverage to codecov
         uses: codecov/codecov-action@v3
         with:
@@ -82,38 +123,35 @@ jobs:
           flags: integration-h2
           fail_ci_if_error: true
           verbose: true
+      # delete the next 2 steps once we are confident in the coverage setup
+      - name: Tar jacoco coverage report to debug
+        run: tar -cvf coverage.tar dhis-2/dhis-test-coverage/target/site/jacoco-aggregate
+      - uses: actions/upload-artifact@v3
+        name: Upload jacoco coverage report to debug
+        with:
+          name: integration-h2-test-coverage
+          path: coverage.tar
+          retention-days: 5
       - name: Archive surefire reports
         uses: actions/upload-artifact@v3
         with:
-          name: surefire-reports
+          name: integration-h2-test-surefire-reports
           path: "**/target/surefire-reports/TEST-*.xml"
-          retention-days: 10
+          retention-days: 5
 
-  integration-test-analytics:
+  send-slack-message:
     runs-on: ubuntu-latest
+    if: |
+      always() &&
+      contains(needs.*.result, 'failure') &&
+      github.ref == 'refs/heads/master'
+
+    needs: [ unit-test, integration-test, integration-h2-test ]
     steps:
-      - uses: actions/checkout@v3
-      - name: Set up JDK 11
-        uses: actions/setup-java@v3
-        with:
-          java-version: 11
-          distribution: temurin
-          cache: maven
-      - name: Build analytics with dependencies
-        run: mvn clean install --threads 2C -DskipTests -Dmaven.test.skip=true --batch-mode --no-transfer-progress -f dhis-2/pom.xml -pl=dhis-services/dhis-service-analytics/pom.xml --also-make
-      - name: Run analytics integration tests
-        run: mvn verify -Pintegration --batch-mode --no-transfer-progress -f ./dhis-2/dhis-services/dhis-service-analytics/pom.xml
-        timeout-minutes: 30
-      - name: Report coverage to codecov
-        uses: codecov/codecov-action@v3
-        with:
-          directory: ./dhis-2
-          flags: integration
-          fail_ci_if_error: true
-          verbose: true
-      - name: Archive surefire reports
-        uses: actions/upload-artifact@v3
-        with:
-          name: surefire-reports-analytics
-          path: "**/target/surefire-reports/TEST-*.xml"
-          retention-days: 10
+      - uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_BACKEND_WEBHOOK }}
+          SLACK_CHANNEL: 'team-backend'
+          SLACK_MESSAGE: "Latest test run on master failed and needs investigation :detective-duck:. \n Commit message: ${{ github.event.head_commit.message }}"
+          SLACK_COLOR: '#ff0000'
+

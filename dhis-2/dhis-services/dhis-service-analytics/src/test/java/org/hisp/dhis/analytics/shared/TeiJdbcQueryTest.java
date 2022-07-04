@@ -84,7 +84,7 @@ class TeiJdbcQueryTest
             "   LIMIT 1) AS \"is enrolled in TB Program\",\n" +
             "(SELECT ateiin.executiondate\n" +
             "   FROM " + analyticsTableName + " ateiin\n" +
-            "   WHERE ateiin.programinstanceid = atei.programinstanceid\n" +
+            "   WHERE ateiin.programinstanceuid = atei.programinstanceuid\n" +
             "     AND ateiin.trackedentityinstanceid = atei.trackedentityinstanceid\n" +
             "     AND ateiin.programuid = atei.programuid\n" +
             "     AND ateiin.programuid = 'IpHINAT79UW'\n" +
@@ -99,14 +99,14 @@ class TeiJdbcQueryTest
             "   LIMIT 1) AS \"Stage Sputum Test Report Date\",\n" +
             "(SELECT ateiin.eventdatavalues -> 'cYGaxwK615G' -> 'value'\n" +
             "   FROM " + analyticsTableName + " ateiin\n" +
-            "   WHERE ateiin.programinstanceid = atei.programinstanceid\n" +
+            "   WHERE ateiin.programinstanceuid = atei.programinstanceuid\n" +
             "     AND ateiin.trackedentityinstanceid = atei.trackedentityinstanceid\n" +
             "     AND ateiin.programuid = 'IpHINAT79UW'\n" +
             "   ORDER BY ateiin.enrollmentdate DESC, ateiin.executiondate DESC\n" +
             "   LIMIT 1) AS \"Infant HIV test Result\",\n" +
             "(SELECT ateiin.eventdatavalues -> 'sj3j9Hwc7so' -> 'value'\n" +
             "   FROM " + analyticsTableName + " ateiin\n" +
-            "   WHERE ateiin.programinstanceid = atei.programinstanceid\n" +
+            "   WHERE ateiin.programinstanceuid = atei.programinstanceuid\n" +
             "     AND ateiin.trackedentityinstanceid = atei.trackedentityinstanceid\n" +
             "     AND ateiin.programuid = 'IpHINAT79UW'\n" +
             "   ORDER BY ateiin.enrollmentdate DESC, ateiin.executiondate DESC\n" +

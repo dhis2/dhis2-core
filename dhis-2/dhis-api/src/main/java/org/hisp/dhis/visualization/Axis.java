@@ -41,8 +41,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 @JacksonXmlRootElement( localName = "axis", namespace = DXF_2_0 )
 public class Axis
-    implements
-    EmbeddedObject
+    implements EmbeddedObject
 {
     /**
      * The primary key.

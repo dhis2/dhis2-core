@@ -28,7 +28,7 @@
 package org.hisp.dhis.analytics.shared;
 
 /**
- * Encapsulates the internals of a query, exposing methods that provides
+ * Encapsulates the internals of a query, exposing methods that provide
  * executable statements.
  *
  * @author maikel arabori

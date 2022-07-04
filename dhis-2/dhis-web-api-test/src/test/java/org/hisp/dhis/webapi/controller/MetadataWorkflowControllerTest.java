@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.webapi.WebClient.Body;
-import static org.hisp.dhis.webapi.WebClient.ContentType;
-import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
+import static org.hisp.dhis.web.WebClient.Body;
+import static org.hisp.dhis.web.WebClient.ContentType;
+import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -41,6 +41,7 @@ import org.hisp.dhis.metadata.MetadataProposalStatus;
 import org.hisp.dhis.metadata.MetadataProposalTarget;
 import org.hisp.dhis.metadata.MetadataProposalType;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.controller.json.JsonMetadataProposal;
 import org.hisp.dhis.webapi.controller.metadata.MetadataWorkflowController;
@@ -49,7 +50,6 @@ import org.hisp.dhis.webapi.json.domain.JsonOrganisationUnit;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 
 /**

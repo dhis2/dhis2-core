@@ -206,7 +206,7 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
             {
                 if ( dataElement.isFileType() )
                 {
-                    unassignFileResource( session, preheat, eventDataValue.getValue() );
+                    unassignFileResource( session, preheat, psi.getUid(), eventDataValue.getValue() );
                 }
 
                 psi.getEventDataValues().remove( eventDataValue );
@@ -217,7 +217,7 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
 
                 if ( dataElement.isFileType() )
                 {
-                    assignFileResource( session, preheat, eventDataValue.getValue() );
+                    assignFileResource( session, preheat, psi.getUid(), eventDataValue.getValue() );
                 }
 
                 psi.getEventDataValues().remove( eventDataValue );

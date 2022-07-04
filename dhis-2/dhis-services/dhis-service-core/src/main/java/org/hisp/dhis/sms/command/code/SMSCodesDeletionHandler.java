@@ -48,7 +48,7 @@ public class SMSCodesDeletionHandler extends JdbcDeletionHandler
 
     private DeletionVeto allowDeleteDataElement( DataElement dataElement )
     {
-        String sql = "SELECT COUNT(*) FROM smscodes where dataelementid=:id";
+        String sql = "select count(*) from smscodes where dataelementid=:id";
         return vetoIfExists( VETO, sql, Map.of( "id", dataElement.getId() ) );
     }
 }

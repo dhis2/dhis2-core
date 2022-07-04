@@ -149,6 +149,13 @@ public class DefaultTrackedEntityAttributeService
 
     @Override
     @Transactional( readOnly = true )
+    public List<TrackedEntityAttribute> getProgramTrackedEntityAttributes( List<Program> programs )
+    {
+        return programAttributeStore.getAttributes( programs );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
     public TrackedEntityAttribute getTrackedEntityAttribute( long id )
     {
         return attributeStore.get( id );
@@ -210,13 +217,6 @@ public class DefaultTrackedEntityAttributeService
     public List<TrackedEntityAttribute> getTrackedEntityAttributesDisplayInListNoProgram()
     {
         return attributeStore.getDisplayInListNoProgram();
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<TrackedEntityAttribute> getProgramTrackedEntityAttributes( List<Program> programs )
-    {
-        return programAttributeStore.getAttributes( programs );
     }
 
     @Override

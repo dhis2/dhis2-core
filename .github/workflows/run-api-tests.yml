@@ -4,7 +4,10 @@ env:
   MAVEN_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=125
 
 on:
-  pull_request: 
+  push:
+    branches:
+      - master
+  pull_request:
     types: [ opened, labeled, synchronize ]
 concurrency:
     group: ${{ github.workflow}}-${{ github.ref }}

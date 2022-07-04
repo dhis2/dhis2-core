@@ -28,7 +28,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
+import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -36,9 +36,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpStatus;
 
 /**
  * Tests the
@@ -156,7 +156,9 @@ class JobConfigurationControllerTest extends DhisControllerConvenienceTest
                             "ORG_UNIT_TARGET",
                             "EVENT",
                             "ENROLLMENT",
-                            "VALIDATION_RESULT" ), param.getArray( "constants" ).stringValues() );
+                            "VALIDATION_RESULT",
+                            "TRACKED_ENTITY_INSTANCE",
+                            "TRACKED_ENTITY_INSTANCE_ONLY" ), param.getArray( "constants" ).stringValues() );
                     }
                 }
             }
@@ -174,7 +176,9 @@ class JobConfigurationControllerTest extends DhisControllerConvenienceTest
             "ORG_UNIT_TARGET",
             "EVENT",
             "ENROLLMENT",
-            "VALIDATION_RESULT" ), param.getArray( "constants" ).stringValues() );
+            "VALIDATION_RESULT",
+            "TRACKED_ENTITY_INSTANCE",
+            "TRACKED_ENTITY_INSTANCE_ONLY" ), param.getArray( "constants" ).stringValues() );
     }
 
     private JsonObject assertJobConfigurationExists( String jobId, String expectedJobType )

@@ -56,6 +56,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class TeiJdbcQuery implements QueryGenerator<TeiQueryParams>
 {
+
     /**
      * @see QueryGenerator#from(Object)
      *

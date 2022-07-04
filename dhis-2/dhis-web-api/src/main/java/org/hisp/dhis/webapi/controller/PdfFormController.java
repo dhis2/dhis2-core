@@ -127,8 +127,8 @@ public class PdfFormController
         String fileName = dataSetService.getDataSet( dataSetUid ).getName() + " " +
             DateUtils.getMediumDateString() + ".pdf";
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PDF, CacheStrategy.NO_CACHE, fileName,
-            true );
+        contextUtils.configureResponse( response,
+            ContextUtils.CONTENT_TYPE_PDF, CacheStrategy.NO_CACHE, fileName, true );
         response.setContentLength( baos.size() );
 
         baos.writeTo( out );
