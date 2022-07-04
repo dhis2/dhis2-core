@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.program;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 
 import java.util.Calendar;
@@ -36,6 +35,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import lombok.AllArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AuditType;
@@ -59,6 +60,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Abyot Asalefew
  */
+@AllArgsConstructor
 @Service( "org.hisp.dhis.program.ProgramStageInstanceService" )
 public class DefaultProgramStageInstanceService
     implements ProgramStageInstanceService
@@ -70,21 +72,6 @@ public class DefaultProgramStageInstanceService
     private final FileResourceService fileResourceService;
 
     private final DhisConfigurationProvider config;
-
-    public DefaultProgramStageInstanceService( ProgramStageInstanceStore programStageInstanceStore,
-        TrackedEntityDataValueAuditService dataValueAuditService, FileResourceService fileResourceService,
-        DhisConfigurationProvider config )
-    {
-        checkNotNull( programStageInstanceStore );
-        checkNotNull( dataValueAuditService );
-        checkNotNull( fileResourceService );
-        checkNotNull( config );
-
-        this.programStageInstanceStore = programStageInstanceStore;
-        this.dataValueAuditService = dataValueAuditService;
-        this.fileResourceService = fileResourceService;
-        this.config = config;
-    }
 
     // -------------------------------------------------------------------------
     // Implementation methods
