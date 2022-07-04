@@ -43,6 +43,7 @@ import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.dimension.DimensionParamType;
+import org.hisp.dhis.analytics.common.dimension.DimensionSpecification;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.common.AnalyticsPagingCriteria;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -74,6 +75,8 @@ public class CommonQueryRequestMapper
     private final EventDataQueryService eventDataQueryService;
 
     private final ProgramService programService;
+
+    private final DimensionSpecificationService dimensionSpecificationService;
 
     public CommonParams map( CommonQueryRequest request, AnalyticsPagingCriteria pagingCriteria,
         DhisApiVersion apiVersion )
@@ -129,7 +132,6 @@ public class CommonQueryRequestMapper
             dimensionParams.addAll(
                 dimensionsOrFilter.stream()
                     .map( dof -> toDimensionParams( dof, dimensionParamType, request, programs, userOrgUnits ) )
-                    .flatMap( Collection::stream )
                     .collect( Collectors.toList() ) );
         }
         return ImmutableList.copyOf( dimensionParams );
@@ -139,15 +141,17 @@ public class CommonQueryRequestMapper
      * Return a collection of DimensionParams built from request
      * dimension/filter parameter
      */
-    private Collection<DimensionParam> toDimensionParams( String dimensionOrFilter,
+    private DimensionParam toDimensionParams( String dimensionOrFilter,
         DimensionParamType dimensionParamType,
         CommonQueryRequest request,
         Collection<Program> programs, List<OrganisationUnit> userOrgUnits )
     {
         String dimensionId = getDimensionFromParam( dimensionOrFilter );
+        DimensionSpecification dimensionSpecification = dimensionSpecificationService.fromDimensionId( programs,
+            dimensionId );
         List<String> items = getDimensionItemsFromParam( dimensionOrFilter );
 
-        DimensionalObject dimensionalObject = dataQueryService.getDimension( dimensionId,
+        DimensionalObject dimensionalObject = dataQueryService.getDimension( dimensionSpecification.getDimensionId(),
             items,
             request.getRelativePeriodDate(),
             userOrgUnits,
@@ -156,20 +160,26 @@ public class CommonQueryRequestMapper
 
         if ( dimensionalObject != null ) // it's a dimensionalObject
         {
-            return Collections.singleton( DimensionParam.ofObject( dimensionalObject, dimensionParamType, items ) );
+            return DimensionParam.ofObject( dimensionSpecification, dimensionalObject, dimensionParamType, items );
         }
         else
         {
-            // We're currently searching the queryItem inside all passed
-            // programs, but we will NEED to
-            // change this when we can properly parse inputs (dimension/filter)
-            // as
-            // {programId}.{stageId}.{DE|PI|PA uid}
-            return programs.stream()
-                .map( program -> eventDataQueryService.getQueryItem( dimensionId, program,
-                    EventOutputType.TRACKED_ENTITY_INSTANCE ) )
-                .map( queryItem -> DimensionParam.ofObject( queryItem, dimensionParamType, items ) )
-                .collect( Collectors.toList() );
+            // fully qualified dimension identification is required here
+            if ( dimensionSpecification.hasProgram() && dimensionSpecification.hasProgramStage() )
+            {
+                return DimensionParam.ofObject(
+                    dimensionSpecification,
+                    eventDataQueryService.getQueryItem(
+                        dimensionSpecification.getDimensionId(),
+                        dimensionSpecification.getProgram().getElement(),
+                        EventOutputType.TRACKED_ENTITY_INSTANCE ),
+                    dimensionParamType,
+                    items );
+            }
+            else
+            {
+                throw new IllegalArgumentException( dimensionId + " is not a fully qualified dimension" );
+            }
         }
     }
 
