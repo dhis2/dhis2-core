@@ -36,6 +36,7 @@ import java.util.Collections;
 
 import org.hisp.dhis.IntegrationH2Test;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.config.ConfigProviderConfiguration;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.user.CurrentUserService;

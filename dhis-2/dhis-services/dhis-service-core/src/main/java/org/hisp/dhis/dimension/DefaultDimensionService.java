@@ -59,7 +59,6 @@ import java.util.Map;
 import java.util.Set;
 
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryDimension;
@@ -127,7 +126,6 @@ import com.google.common.collect.Sets;
 /**
  * @author Lars Helge Overland
  */
-@Slf4j
 @AllArgsConstructor
 @Service( "org.hisp.dhis.dimension.DimensionService" )
 public class DefaultDimensionService

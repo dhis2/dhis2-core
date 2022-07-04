@@ -52,22 +52,26 @@ public final class Assertions
     @SafeVarargs
     public static <E> void assertContainsOnly( Collection<E> actual, E... expected )
     {
-        assertEquals( expected.length, actual.size() );
         for ( E e : expected )
         {
-            assertTrue( actual.contains( e ), "Expected " + e.toString() + " in " + actual.toString() );
+            assertTrue( actual.contains( e ),
+                String.format( "Expected value %s not found in %s", e.toString(), actual.toString() ) );
         }
+
+        assertEquals( expected.length, actual.size() );
     }
 
     public static <K, V> void assertMapEquals( Map<K, V> expected, Map<K, V> actual )
     {
         for ( Map.Entry<K, V> e : expected.entrySet() )
         {
-            assertEquals( e.getValue(), actual.get( e.getKey() ), "Expected value not in " + actual.toString() );
+            assertEquals( e.getValue(), actual.get( e.getKey() ),
+                String.format( "Expected value not found in %s", actual.toString() ) );
         }
         for ( Map.Entry<K, V> e : actual.entrySet() )
         {
-            assertEquals( e.getValue(), expected.get( e.getKey() ), "Did not expect value in " + actual.toString() );
+            assertEquals( e.getValue(), expected.get( e.getKey() ),
+                String.format( "Did not expect value in %s", actual.toString() ) );
         }
     }
 

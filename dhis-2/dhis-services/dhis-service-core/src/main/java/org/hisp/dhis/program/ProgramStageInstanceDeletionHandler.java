@@ -80,7 +80,7 @@ public class ProgramStageInstanceDeletionHandler extends JdbcDeletionHandler
 
     private DeletionVeto allowDeleteDataElement( DataElement dataElement )
     {
-        return vetoIfExists( VETO, "select count(*) from programstageinstance where eventdatavalues ? :uid",
+        return vetoIfExists( VETO, "select count(*) from programstageinstance where eventdatavalues ?? :uid",
             Map.of( "uid", dataElement.getUid() ) );
     }
 }

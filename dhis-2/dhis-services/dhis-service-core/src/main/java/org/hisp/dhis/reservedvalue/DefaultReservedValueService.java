@@ -65,7 +65,6 @@ import com.google.common.collect.ImmutableMap;
 public class DefaultReservedValueService
     implements ReservedValueService
 {
-
     private final TextPatternService textPatternService;
 
     private final ReservedValueStore reservedValueStore;

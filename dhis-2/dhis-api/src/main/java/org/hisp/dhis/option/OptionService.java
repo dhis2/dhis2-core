@@ -29,6 +29,8 @@ package org.hisp.dhis.option;
 
 import java.util.List;
 
+import org.hisp.dhis.common.IllegalQueryException;
+
 /**
  * @author Lars Helge Overland
  */
@@ -43,6 +45,16 @@ public interface OptionService
     long saveOptionSet( OptionSet optionSet );
 
     void updateOptionSet( OptionSet optionSet );
+
+    /**
+     * Validate an {@link OptionSet}.
+     *
+     * @param optionSet the set to validate
+     * @throws IllegalQueryException when the provided {@link OptionSet} has
+     *         validation errors
+     */
+    void validateOptionSet( OptionSet optionSet )
+        throws IllegalQueryException;
 
     OptionSet getOptionSet( long id );
 
