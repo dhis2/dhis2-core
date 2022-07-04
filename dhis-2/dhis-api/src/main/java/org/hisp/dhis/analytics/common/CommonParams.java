@@ -35,8 +35,10 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 
 /**
  * This is a reusable and shared representation of queryable items to be used by
@@ -61,7 +63,7 @@ public class CommonParams
      * dimensions, filters, queryItems or queryItemFilters.
      */
     @Builder.Default
-    private final List<DimensionParam> dimensionParams = new ArrayList<>();
+    private final List<DimensionIdentifier<Program, ProgramStage, DimensionParam>> dimensionIdentifiers = new ArrayList<>();
 
     /**
      * The object that groups the paging and sorting parameters.

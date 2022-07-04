@@ -25,45 +25,68 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei;
+package org.hisp.dhis.analytics.common.dimension;
 
-import java.util.Optional;
+import java.util.Objects;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.analytics.common.CommonQueryRequestMapper;
-import org.hisp.dhis.analytics.common.QueryRequest;
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.springframework.stereotype.Service;
-
-@Service
-@RequiredArgsConstructor
-public class TeiRequestMapper
+/**
+ * Class to identify a Dimension in analytics In TEI CPL, a dimension can be
+ * composed by up to 3 coordinates: Program, Stage and dimensionId
+ */
+@Data
+@AllArgsConstructor( staticName = "of" )
+public class DimensionIdentifier<P, PS, D>
 {
+    private final ElementWithOffset<P> program;
 
-    private final CommonQueryRequestMapper commonQueryRequestMapper;
+    private final ElementWithOffset<PS> programStage;
 
-    private final TrackedEntityTypeService trackedEntityTypeService;
+    private final D dimension;
 
-    public TeiQueryParams map( QueryRequest<TeiQueryRequest> queryRequest, DhisApiVersion apiVersion )
+    public boolean hasProgram()
     {
-        return TeiQueryParams.builder()
-            .trackedEntityType( getTrackedEntityType( queryRequest ) )
-            .commonParams( commonQueryRequestMapper.map(
-                queryRequest.getCommonQueryRequest(),
-                queryRequest.getPagingCriteria(),
-                apiVersion ) )
-            .build();
+        return program.isPresent();
     }
 
-    private TrackedEntityType getTrackedEntityType( QueryRequest<TeiQueryRequest> queryRequest )
+    public boolean hasProgramStage()
     {
-        return Optional.of( queryRequest.getRequest().getTrackedEntityType() )
-            .map( trackedEntityTypeService::getTrackedEntityType )
-            .orElseThrow( () -> new IllegalArgumentException( "Unable to find TrackedEntityType with UID: "
-                + queryRequest.getRequest().getTrackedEntityType() ) );
+        return programStage.isPresent();
     }
 
+    @Data
+    @RequiredArgsConstructor( staticName = "of" )
+    public static class ElementWithOffset<T>
+    {
+        private final T element;
+
+        private final String offset;
+
+        public boolean hasOffset()
+        {
+            return Objects.nonNull( offset );
+        }
+
+        public boolean isPresent()
+        {
+            return Objects.nonNull( element );
+        }
+
+        @Override
+        public String toString()
+        {
+            if ( isPresent() )
+            {
+                if ( hasOffset() )
+                {
+                    return element + "[" + offset + "]";
+                }
+                return element.toString();
+            }
+            return super.toString();
+        }
+    }
 }
