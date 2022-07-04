@@ -49,15 +49,11 @@ import com.google.common.collect.Sets;
  */
 class CategoryOptionComboStoreTest extends SingleSetupIntegrationTestBase
 {
-
     @Autowired
     private CategoryOptionComboStore categoryOptionComboStore;
 
     @Autowired
     private CategoryService categoryService;
-
-    @Autowired
-    private CategoryOptionGroupStore categoryOptionGroupStore;
 
     @Autowired
     private DataElementService dataElementService;

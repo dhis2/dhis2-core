@@ -33,12 +33,8 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.eventchart.EventChart;
-import org.hisp.dhis.eventreport.EventReport;
-import org.hisp.dhis.eventvisualization.EventVisualizationType;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.mapping.MapView;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.user.sharing.Sharing;
@@ -90,25 +86,6 @@ abstract class CascadeSharingTest extends TransactionalIntegrationTest
         dashboard.setName( "dashboard" + name );
         dashboard.setSharing( sharing );
         return dashboard;
-    }
-
-    protected EventChart createEventChart( String name, Program program )
-    {
-        EventChart eventChart = new EventChart();
-        eventChart.setAutoFields();
-        eventChart.setName( "eventChart" + name );
-        eventChart.setProgram( program );
-        eventChart.setType( EventVisualizationType.COLUMN );
-        return eventChart;
-    }
-
-    protected EventReport createEventReport( String name, Program program )
-    {
-        EventReport eventReport = new EventReport();
-        eventReport.setName( "eventReport" + name );
-        eventReport.setAutoFields();
-        eventReport.setProgram( program );
-        return eventReport;
     }
 
     protected Map createMap( String name )

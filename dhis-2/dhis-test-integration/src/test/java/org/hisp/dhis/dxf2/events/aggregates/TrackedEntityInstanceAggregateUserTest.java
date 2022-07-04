@@ -50,12 +50,6 @@ class TrackedEntityInstanceAggregateUserTest extends TrackerTest
     @Autowired
     private TrackedEntityInstanceService trackedEntityInstanceService;
 
-    @Autowired
-    private org.hisp.dhis.trackedentity.TrackedEntityInstanceService teiService;
-
-    @Autowired
-    private TrackedEntityInstanceAggregate trackedEntityInstanceAggregate;
-
     private User superUser;
 
     private User nonSuperUser;

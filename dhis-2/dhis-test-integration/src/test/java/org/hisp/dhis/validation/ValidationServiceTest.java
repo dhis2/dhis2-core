@@ -87,7 +87,6 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.dhis.translation.Translation;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -146,9 +145,6 @@ class ValidationServiceTest extends IntegrationTestBase
 
     @Autowired
     private UserService injectUserService;
-
-    @Autowired
-    private CurrentUserService currentUserService;
 
     private DataElement dataElementA;
 

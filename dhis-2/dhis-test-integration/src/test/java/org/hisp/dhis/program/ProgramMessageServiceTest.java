@@ -46,7 +46,6 @@ import org.hisp.dhis.program.message.ProgramMessageRecipients;
 import org.hisp.dhis.program.message.ProgramMessageService;
 import org.hisp.dhis.program.message.ProgramMessageStatus;
 import org.hisp.dhis.sms.config.BulkSmsGatewayConfig;
-import org.hisp.dhis.sms.config.GatewayAdministrationService;
 import org.hisp.dhis.sms.config.SmsConfiguration;
 import org.hisp.dhis.sms.config.SmsConfigurationManager;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
@@ -62,7 +61,6 @@ import com.google.common.collect.Sets;
  */
 class ProgramMessageServiceTest extends TransactionalIntegrationTest
 {
-
     private OrganisationUnit ouA;
 
     private OrganisationUnit ouB;
@@ -124,9 +122,6 @@ class ProgramMessageServiceTest extends TransactionalIntegrationTest
 
     @Autowired
     private ProgramService programService;
-
-    @Autowired
-    private GatewayAdministrationService gatewayAdminService;
 
     @Autowired
     private SmsConfigurationManager smsConfigurationManager;

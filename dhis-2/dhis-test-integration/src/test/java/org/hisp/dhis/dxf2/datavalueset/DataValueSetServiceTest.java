@@ -43,8 +43,6 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.time.DateUtils;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
@@ -101,11 +99,8 @@ import com.google.common.collect.Sets;
 /**
  * @author Lars Helge Overland
  */
-
-@Slf4j
 class DataValueSetServiceTest extends TransactionalIntegrationTest
 {
-
     private String ATTRIBUTE_UID = "uh6H2ff562G";
 
     @Autowired
