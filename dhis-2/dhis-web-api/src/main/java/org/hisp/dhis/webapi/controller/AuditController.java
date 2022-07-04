@@ -48,6 +48,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.dataapproval.DataApprovalAudit;
@@ -235,6 +236,7 @@ public class AuditController
         @RequestParam( required = false ) List<String> ps,
         @RequestParam( required = false ) Date startDate,
         @RequestParam( required = false ) Date endDate,
+        @RequestParam( required = false ) OrganisationUnitSelectionMode ouMode,
         @RequestParam( required = false ) AuditType auditType,
         @RequestParam( required = false ) Boolean skipPaging,
         @RequestParam( required = false ) Boolean paging,
@@ -264,6 +266,7 @@ public class AuditController
             .setProgramStages( programStages )
             .setStartDate( startDate )
             .setEndDate( endDate )
+            .setOuMode( ouMode )
             .setAuditType( auditType );
 
         if ( PagerUtils.isSkipPaging( skipPaging, paging ) )

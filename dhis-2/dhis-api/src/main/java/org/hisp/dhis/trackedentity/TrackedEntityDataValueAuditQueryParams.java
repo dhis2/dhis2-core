@@ -35,6 +35,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 
 import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -62,6 +63,8 @@ public class TrackedEntityDataValueAuditQueryParams
     private Date startDate;
 
     private Date endDate;
+
+    private OrganisationUnitSelectionMode ouMode;
 
     private AuditType auditType;
 

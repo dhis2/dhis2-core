@@ -95,6 +95,10 @@ class TrackedEntityDataValueAuditStoreTest extends SingleSetupIntegrationTestBas
 
     private OrganisationUnit ouB;
 
+    private OrganisationUnit ouC;
+
+    private OrganisationUnit ouD;
+
     private Program pA;
 
     private ProgramStage psA;
@@ -121,9 +125,13 @@ class TrackedEntityDataValueAuditStoreTest extends SingleSetupIntegrationTestBas
     public void setUpTest()
     {
         ouA = createOrganisationUnit( 'A' );
-        ouB = createOrganisationUnit( 'B' );
+        ouB = createOrganisationUnit( 'B', ouA );
+        ouC = createOrganisationUnit( 'C', ouB );
+        ouD = createOrganisationUnit( 'D', ouA );
         organisationUnitService.addOrganisationUnit( ouA );
         organisationUnitService.addOrganisationUnit( ouB );
+        organisationUnitService.addOrganisationUnit( ouC );
+        organisationUnitService.addOrganisationUnit( ouD );
 
         pA = createProgram( 'A', new HashSet<>(), ouA );
         programService.addProgram( pA );
@@ -189,7 +197,7 @@ class TrackedEntityDataValueAuditStoreTest extends SingleSetupIntegrationTestBas
     }
 
     @Test
-    void testGetTrackedEntityDataValueAuditsByOrgUnit()
+    void testGetTrackedEntityDataValueAuditsByOrgUnitSelected()
     {
         TrackedEntityDataValueAudit dvaA = new TrackedEntityDataValueAudit( deA, psiA,
             dvA.getAuditValue(), USER_A, dvA.getProvidedElsewhere(), AuditType.UPDATE );
