@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,72 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.visualization;
+package org.hisp.dhis.schema.descriptors;
 
-import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
-
-import org.hisp.dhis.common.EmbeddedObject;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
+import org.hisp.dhis.security.acl.Access;
 
 /**
- * This class represents the axis number associated with any given element.
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JacksonXmlRootElement( localName = "axis", namespace = DXF_2_0 )
-public class Axis
-    implements EmbeddedObject
+public class LayoutSchemaDescriptor implements SchemaDescriptor
 {
-    /**
-     * The primary key.
-     */
-    private long id;
+    public static final String SINGULAR = "layout";
 
-    /**
-     * The uid of the dimensional item.
-     */
-    private String dimensionalItem;
+    public static final String PLURAL = "layouts";
 
-    private Integer axis;
-
-    public Axis()
+    @Override
+    public Schema getSchema()
     {
-    }
-
-    @JsonIgnore
-    public long getId()
-    {
-        return id;
-    }
-
-    public void setId( long id )
-    {
-        this.id = id;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public String getDimensionalItem()
-    {
-        return dimensionalItem;
-    }
-
-    public void setDimensionalItem( String dimensionalItem )
-    {
-        this.dimensionalItem = dimensionalItem;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public Integer getAxis()
-    {
-        return axis;
-    }
-
-    public void setAxis( Integer axis )
-    {
-        this.axis = axis;
+        return new Schema( Access.class, SINGULAR, PLURAL );
     }
 }
