@@ -84,7 +84,6 @@ import com.google.common.collect.Sets;
  */
 class DataApprovalServiceCategoryOptionGroupTest extends IntegrationTestBase
 {
-
     private static final String ACCESS_NONE = "--------";
 
     private static final String ACCESS_READ = "r-------";
@@ -195,8 +194,6 @@ class DataApprovalServiceCategoryOptionGroupTest extends IntegrationTestBase
     private User chinaPartner2User;
 
     private User indiaPartner1User;
-
-    private User currentMockUserService;
 
     private CategoryOption brazilA1;
 
@@ -358,7 +355,6 @@ class DataApprovalServiceCategoryOptionGroupTest extends IntegrationTestBase
         chinaPartner1User = createAndAddUser( "ChinaPartner1User", china, AUTH_APPROVE );
         chinaPartner2User = createAndAddUser( "ChinaPartner2User", china, AUTH_APPROVE );
         indiaPartner1User = createAndAddUser( "IndiaPartner1User", india, AUTH_APPROVE );
-        currentMockUserService = null;
         UserGroup globalUsers = getUserGroup( "GlobalUsers",
             userSet( globalUser, globalApproveOnly, globalAcceptOnly, globalConsultant, globalReadAll ) );
         UserGroup globalAgencyAUsers = getUserGroup( "GlobalAgencyAUsers", userSet( globalAgencyAUser ) );
