@@ -1,0 +1,14 @@
+<dataValueSet xmlns="http://dhis2.org/schema/dxf/2.0">
+    <dataValue dataElement="f7n9E0hX8qk" period="201201" orgUnit="DiszpKrYNg8" value="10001" storedBy="john" timestamp="2012-01-01" comment="comment" followup="false"/>
+    <dataValue dataElement="f7n9E0hX8qk" period="201201" orgUnit="BdfsJfj87js" value="10002" storedBy="john" timestamp="2012-01-01" comment="comment" followup="false"/>
+    <dataValue dataElement="f7n9E0hX8qk" period="201202" orgUnit="DiszpKrYNg8" value="10003" storedBy="john" timestamp="2012-01-01" comment="comment" followup="false"/>
+    <dataValue dataElement="f7n9E0hX8qk" period="201202" orgUnit="BdfsJfj87js" value="10004" storedBy="john" timestamp="2012-01-01" comment="comment" followup="false"/>
+    <dataValue dataElement="Ix2HsbDMLea" period="201201" orgUnit="DiszpKrYNg8" value="10005" storedBy="john" timestamp="2012-01-01" comment="comment" followup="false"/>
+    <dataValue dataElement="Ix2HsbDMLea" period="201201" orgUnit="BdfsJfj87js" value="10006" storedBy="john" timestamp="2012-01-01" comment="comment" followup="false"/>
+    <dataValue dataElement="Ix2HsbDMLea" period="201202" orgUnit="DiszpKrYNg8" value="10007" storedBy="john" timestamp="2012-01-01" comment="comment" followup="false"/>
+    <dataValue dataElement="Ix2HsbDMLea" period="201202" orgUnit="BdfsJfj87js" value="10008" storedBy="john" timestamp="2012-01-01" comment="comment" followup="false"/>
+    <dataValue dataElement="eY5ehpbEsB7" period="201203" orgUnit="DiszpKrYNg8" value="10009" storedBy="john" timestamp="2012-01-01" comment="comment" followup="false"/>
+    <dataValue dataElement="eY5ehpbEsB7" period="201203" orgUnit="BdfsJfj87js" value="10010" storedBy="john" timestamp="2012-01-01" comment="comment" followup="false"/>
+    <dataValue dataElement="eY5ehpbEsB7" period="201204" orgUnit="DiszpKrYNg8" value="10011" storedBy="john" timestamp="2012-01-01" comment="comment" followup="false"/>
+    <dataValue dataElement="eY5ehpbEsB7" period="201204" orgUnit="BdfsJfj87js" value="10012" storedBy="john" timestamp="2012-01-01" comment="comment" followup="false"/>
+</dataValueSet>

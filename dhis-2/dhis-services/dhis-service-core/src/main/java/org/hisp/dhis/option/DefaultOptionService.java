@@ -33,6 +33,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -84,8 +88,8 @@ public class DefaultOptionService
     @Transactional
     public long saveOptionSet( OptionSet optionSet )
     {
+        validateOptionSet( optionSet );
         optionSetStore.save( optionSet );
-
         return optionSet.getId();
     }
 
@@ -93,7 +97,22 @@ public class DefaultOptionService
     @Transactional
     public void updateOptionSet( OptionSet optionSet )
     {
+        validateOptionSet( optionSet );
         optionSetStore.update( optionSet );
+    }
+
+    @Override
+    public void validateOptionSet( OptionSet optionSet )
+        throws IllegalQueryException
+    {
+        if ( optionSet.getValueType() == ValueType.MULTI_TEXT && optionSet.getOptions().stream().anyMatch(
+            option -> option.getCode().contains( ValueType.MULTI_TEXT_SEPARATOR ) ) )
+        {
+            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E1118, optionSet.getUid(),
+                optionSet.getOptions().stream().map( Option::getCode )
+                    .filter( code -> code.contains( ValueType.MULTI_TEXT_SEPARATOR ) )
+                    .findFirst().orElse( "" ) ) );
+        }
     }
 
     @Override

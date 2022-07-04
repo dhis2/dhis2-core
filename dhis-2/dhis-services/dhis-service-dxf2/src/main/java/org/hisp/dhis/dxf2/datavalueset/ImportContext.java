@@ -30,7 +30,6 @@ package org.hisp.dhis.dxf2.datavalueset;
 import static java.util.Collections.emptySet;
 
 import java.util.Date;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -162,7 +161,7 @@ public final class ImportContext
 
     private final CachingMap<String, Boolean> attrOptionComboOrgUnitMap = new CachingMap<>();
 
-    private final CachingMap<String, Optional<Set<String>>> dataElementOptionsMap = new CachingMap<>();
+    private final CachingMap<String, Set<String>> dataElementOptionsMap = new CachingMap<>();
 
     private final CachingMap<String, Boolean> approvalMap = new CachingMap<>();
 
