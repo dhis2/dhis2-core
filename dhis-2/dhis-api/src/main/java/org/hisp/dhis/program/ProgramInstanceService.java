@@ -37,7 +37,6 @@ import org.hisp.dhis.user.User;
 
 /**
  * @author Abyot Asalefew
- * @version $Id$
  */
 public interface ProgramInstanceService
 {
