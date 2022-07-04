@@ -153,7 +153,7 @@ public class ProgramMessageController
     // POST
     // -------------------------------------------------------------------------
 
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS') or hasRole('F_SEND_EMAIL')" )
     @RequestMapping( method = RequestMethod.POST, consumes = { "application/json" }, produces = { "application/json" } )
     public void saveMessages( HttpServletRequest request, HttpServletResponse response )
         throws IOException,
