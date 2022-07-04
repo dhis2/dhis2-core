@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.audit;
 
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Date;
@@ -36,6 +37,7 @@ import java.util.Set;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
@@ -95,6 +97,12 @@ class TrackedEntityDataValueAuditStoreTest extends DhisSpringTest
 
     private OrganisationUnit ouB;
 
+    private OrganisationUnit ouC;
+
+    private OrganisationUnit ouD;
+
+    private OrganisationUnit ouE;
+
     private Program pA;
 
     private ProgramStage psA;
@@ -109,6 +117,12 @@ class TrackedEntityDataValueAuditStoreTest extends DhisSpringTest
 
     private ProgramStageInstance psiB;
 
+    private ProgramStageInstance psiC;
+
+    private ProgramStageInstance psiD;
+
+    private ProgramStageInstance psiE;
+
     private EventDataValue dvA;
 
     private EventDataValue dvB;
@@ -117,13 +131,21 @@ class TrackedEntityDataValueAuditStoreTest extends DhisSpringTest
 
     private EventDataValue dvD;
 
+    private EventDataValue dvE;
+
     @Override
     public void setUpTest()
     {
         ouA = createOrganisationUnit( 'A' );
-        ouB = createOrganisationUnit( 'B' );
+        ouB = createOrganisationUnit( 'B', ouA );
+        ouC = createOrganisationUnit( 'C', ouA );
+        ouD = createOrganisationUnit( 'D', ouB );
+        ouE = createOrganisationUnit( 'E', ouD );
         organisationUnitService.addOrganisationUnit( ouA );
         organisationUnitService.addOrganisationUnit( ouB );
+        organisationUnitService.addOrganisationUnit( ouC );
+        organisationUnitService.addOrganisationUnit( ouD );
+        organisationUnitService.addOrganisationUnit( ouE );
 
         pA = createProgram( 'A', new HashSet<>(), ouA );
         programService.addProgram( pA );
@@ -148,15 +170,22 @@ class TrackedEntityDataValueAuditStoreTest extends DhisSpringTest
         ProgramInstance piA = programInstanceService.enrollTrackedEntityInstance(
             teiA, pA, new Date(), new Date(), ouA );
 
-        dvA = new EventDataValue( deA.getUid(), "1", USER_SNAP_A );
-        dvB = new EventDataValue( deB.getUid(), "2", USER_SNAP_A );
-        dvC = new EventDataValue( deA.getUid(), "3", USER_SNAP_A );
-        dvD = new EventDataValue( deB.getUid(), "4", USER_SNAP_A );
+        dvA = new EventDataValue( deA.getUid(), "A", USER_SNAP_A );
+        dvB = new EventDataValue( deB.getUid(), "B", USER_SNAP_A );
+        dvC = new EventDataValue( deA.getUid(), "C", USER_SNAP_A );
+        dvD = new EventDataValue( deB.getUid(), "D", USER_SNAP_A );
+        dvE = new EventDataValue( deB.getUid(), "E", USER_SNAP_A );
 
         psiA = createProgramStageInstance( piA, psA, ouA, Set.of( dvA, dvB ) );
         psiB = createProgramStageInstance( piA, psB, ouB, Set.of( dvC, dvD ) );
+        psiC = createProgramStageInstance( piA, psA, ouC, Set.of( dvA, dvB ) );
+        psiD = createProgramStageInstance( piA, psB, ouD, Set.of( dvC, dvD ) );
+        psiE = createProgramStageInstance( piA, psA, ouE, Set.of( dvA, dvE ) );
         programStageInstanceService.addProgramStageInstance( psiA );
         programStageInstanceService.addProgramStageInstance( psiB );
+        programStageInstanceService.addProgramStageInstance( psiC );
+        programStageInstanceService.addProgramStageInstance( psiD );
+        programStageInstanceService.addProgramStageInstance( psiE );
     }
 
     @Test
@@ -165,9 +194,9 @@ class TrackedEntityDataValueAuditStoreTest extends DhisSpringTest
         TrackedEntityDataValueAudit dvaA = new TrackedEntityDataValueAudit( deA, psiA,
             dvA.getAuditValue(), USER_A, dvA.getProvidedElsewhere(), AuditType.UPDATE );
         TrackedEntityDataValueAudit dvaB = new TrackedEntityDataValueAudit( deB, psiA,
-            dvA.getAuditValue(), USER_A, dvA.getProvidedElsewhere(), AuditType.UPDATE );
+            dvB.getAuditValue(), USER_A, dvB.getProvidedElsewhere(), AuditType.UPDATE );
         TrackedEntityDataValueAudit dvaC = new TrackedEntityDataValueAudit( deA, psiB,
-            dvA.getAuditValue(), USER_A, dvA.getProvidedElsewhere(), AuditType.UPDATE );
+            dvC.getAuditValue(), USER_A, dvC.getProvidedElsewhere(), AuditType.UPDATE );
         auditStore.addTrackedEntityDataValueAudit( dvaA );
         auditStore.addTrackedEntityDataValueAudit( dvaB );
         auditStore.addTrackedEntityDataValueAudit( dvaC );
@@ -176,27 +205,26 @@ class TrackedEntityDataValueAuditStoreTest extends DhisSpringTest
             .setDataElements( List.of( deA, deB ) )
             .setProgramStageInstances( List.of( psiA ) )
             .setAuditType( AuditType.UPDATE );
-        assertEquals( 2, auditStore.getTrackedEntityDataValueAudits( params ).size() );
+        assertContainsOnly( auditStore.getTrackedEntityDataValueAudits( params ), dvaA, dvaB );
         assertEquals( 2, auditStore.countTrackedEntityDataValueAudits( params ) );
 
         params = new TrackedEntityDataValueAuditQueryParams()
             .setDataElements( List.of( deA ) )
             .setProgramStageInstances( List.of( psiA ) )
             .setAuditType( AuditType.UPDATE );
-        assertEquals( 1, auditStore.getTrackedEntityDataValueAudits( params ).size() );
+        assertContainsOnly( auditStore.getTrackedEntityDataValueAudits( params ), dvaA );
         assertEquals( 1, auditStore.countTrackedEntityDataValueAudits( params ) );
-        assertEquals( dvaA, auditStore.getTrackedEntityDataValueAudits( params ).get( 0 ) );
     }
 
     @Test
-    void testGetTrackedEntityDataValueAuditsByOrgUnit()
+    void testGetTrackedEntityDataValueAuditsByOrgUnitSelected()
     {
         TrackedEntityDataValueAudit dvaA = new TrackedEntityDataValueAudit( deA, psiA,
             dvA.getAuditValue(), USER_A, dvA.getProvidedElsewhere(), AuditType.UPDATE );
         TrackedEntityDataValueAudit dvaB = new TrackedEntityDataValueAudit( deB, psiA,
-            dvA.getAuditValue(), USER_A, dvA.getProvidedElsewhere(), AuditType.UPDATE );
+            dvB.getAuditValue(), USER_A, dvB.getProvidedElsewhere(), AuditType.UPDATE );
         TrackedEntityDataValueAudit dvaC = new TrackedEntityDataValueAudit( deA, psiB,
-            dvA.getAuditValue(), USER_A, dvA.getProvidedElsewhere(), AuditType.UPDATE );
+            dvC.getAuditValue(), USER_A, dvC.getProvidedElsewhere(), AuditType.UPDATE );
         auditStore.addTrackedEntityDataValueAudit( dvaA );
         auditStore.addTrackedEntityDataValueAudit( dvaB );
         auditStore.addTrackedEntityDataValueAudit( dvaC );
@@ -204,15 +232,48 @@ class TrackedEntityDataValueAuditStoreTest extends DhisSpringTest
         TrackedEntityDataValueAuditQueryParams params = new TrackedEntityDataValueAuditQueryParams()
             .setOrgUnits( List.of( ouA ) )
             .setAuditType( AuditType.UPDATE );
-        assertEquals( 2, auditStore.getTrackedEntityDataValueAudits( params ).size() );
+        assertContainsOnly( auditStore.getTrackedEntityDataValueAudits( params ), dvaA, dvaB );
         assertEquals( 2, auditStore.countTrackedEntityDataValueAudits( params ) );
 
         params = new TrackedEntityDataValueAuditQueryParams()
             .setOrgUnits( List.of( ouB ) )
             .setAuditType( AuditType.UPDATE );
-        assertEquals( 1, auditStore.getTrackedEntityDataValueAudits( params ).size() );
+        assertContainsOnly( auditStore.getTrackedEntityDataValueAudits( params ), dvaC );
         assertEquals( 1, auditStore.countTrackedEntityDataValueAudits( params ) );
-        assertEquals( dvaC, auditStore.getTrackedEntityDataValueAudits( params ).get( 0 ) );
+    }
+
+    @Test
+    void testGetTrackedEntityDataValueAuditsByOrgUnitDescendants()
+    {
+        TrackedEntityDataValueAudit dvaA = new TrackedEntityDataValueAudit( deA, psiA,
+            dvA.getAuditValue(), USER_A, dvA.getProvidedElsewhere(), AuditType.UPDATE );
+        TrackedEntityDataValueAudit dvaB = new TrackedEntityDataValueAudit( deB, psiB,
+            dvB.getAuditValue(), USER_A, dvB.getProvidedElsewhere(), AuditType.UPDATE );
+        TrackedEntityDataValueAudit dvaC = new TrackedEntityDataValueAudit( deA, psiC,
+            dvC.getAuditValue(), USER_A, dvC.getProvidedElsewhere(), AuditType.UPDATE );
+        TrackedEntityDataValueAudit dvaD = new TrackedEntityDataValueAudit( deB, psiD,
+            dvD.getAuditValue(), USER_A, dvD.getProvidedElsewhere(), AuditType.UPDATE );
+        TrackedEntityDataValueAudit dvaE = new TrackedEntityDataValueAudit( deA, psiE,
+            dvE.getAuditValue(), USER_A, dvE.getProvidedElsewhere(), AuditType.UPDATE );
+        auditStore.addTrackedEntityDataValueAudit( dvaA );
+        auditStore.addTrackedEntityDataValueAudit( dvaB );
+        auditStore.addTrackedEntityDataValueAudit( dvaC );
+        auditStore.addTrackedEntityDataValueAudit( dvaD );
+        auditStore.addTrackedEntityDataValueAudit( dvaE );
+
+        TrackedEntityDataValueAuditQueryParams params = new TrackedEntityDataValueAuditQueryParams()
+            .setOrgUnits( List.of( ouB ) )
+            .setOuMode( OrganisationUnitSelectionMode.DESCENDANTS )
+            .setAuditType( AuditType.UPDATE );
+        assertContainsOnly( auditStore.getTrackedEntityDataValueAudits( params ), dvaB, dvaD, dvaE );
+        assertEquals( 3, auditStore.countTrackedEntityDataValueAudits( params ) );
+
+        params = new TrackedEntityDataValueAuditQueryParams()
+            .setOrgUnits( List.of( ouA ) )
+            .setOuMode( OrganisationUnitSelectionMode.DESCENDANTS )
+            .setAuditType( AuditType.UPDATE );
+        assertContainsOnly( auditStore.getTrackedEntityDataValueAudits( params ), dvaA, dvaB, dvaC, dvaD, dvaE );
+        assertEquals( 5, auditStore.countTrackedEntityDataValueAudits( params ) );
     }
 
     @Test
@@ -221,9 +282,9 @@ class TrackedEntityDataValueAuditStoreTest extends DhisSpringTest
         TrackedEntityDataValueAudit dvaA = new TrackedEntityDataValueAudit( deA, psiA,
             dvA.getAuditValue(), USER_A, dvA.getProvidedElsewhere(), AuditType.UPDATE );
         TrackedEntityDataValueAudit dvaB = new TrackedEntityDataValueAudit( deB, psiA,
-            dvA.getAuditValue(), USER_A, dvA.getProvidedElsewhere(), AuditType.UPDATE );
+            dvB.getAuditValue(), USER_A, dvB.getProvidedElsewhere(), AuditType.UPDATE );
         TrackedEntityDataValueAudit dvaC = new TrackedEntityDataValueAudit( deA, psiB,
-            dvA.getAuditValue(), USER_A, dvA.getProvidedElsewhere(), AuditType.UPDATE );
+            dvC.getAuditValue(), USER_A, dvC.getProvidedElsewhere(), AuditType.UPDATE );
         auditStore.addTrackedEntityDataValueAudit( dvaA );
         auditStore.addTrackedEntityDataValueAudit( dvaB );
         auditStore.addTrackedEntityDataValueAudit( dvaC );
@@ -231,15 +292,14 @@ class TrackedEntityDataValueAuditStoreTest extends DhisSpringTest
         TrackedEntityDataValueAuditQueryParams params = new TrackedEntityDataValueAuditQueryParams()
             .setProgramStages( List.of( psA ) )
             .setAuditType( AuditType.UPDATE );
-        assertEquals( 2, auditStore.getTrackedEntityDataValueAudits( params ).size() );
+        assertContainsOnly( auditStore.getTrackedEntityDataValueAudits( params ), dvaA, dvaB );
         assertEquals( 2, auditStore.countTrackedEntityDataValueAudits( params ) );
 
         params = new TrackedEntityDataValueAuditQueryParams()
             .setProgramStages( List.of( psB ) )
             .setAuditType( AuditType.UPDATE );
-        assertEquals( 1, auditStore.getTrackedEntityDataValueAudits( params ).size() );
+        assertContainsOnly( auditStore.getTrackedEntityDataValueAudits( params ), dvaC );
         assertEquals( 1, auditStore.countTrackedEntityDataValueAudits( params ) );
-        assertEquals( dvaC, auditStore.getTrackedEntityDataValueAudits( params ).get( 0 ) );
     }
 
     @Test
@@ -249,10 +309,10 @@ class TrackedEntityDataValueAuditStoreTest extends DhisSpringTest
             dvA.getAuditValue(), USER_A, dvA.getProvidedElsewhere(), AuditType.UPDATE );
         dvaA.setCreated( getDate( 2021, 6, 1 ) );
         TrackedEntityDataValueAudit dvaB = new TrackedEntityDataValueAudit( deB, psiA,
-            dvA.getAuditValue(), USER_A, dvA.getProvidedElsewhere(), AuditType.UPDATE );
+            dvB.getAuditValue(), USER_A, dvB.getProvidedElsewhere(), AuditType.UPDATE );
         dvaB.setCreated( getDate( 2021, 7, 1 ) );
         TrackedEntityDataValueAudit dvaC = new TrackedEntityDataValueAudit( deA, psiB,
-            dvA.getAuditValue(), USER_A, dvA.getProvidedElsewhere(), AuditType.UPDATE );
+            dvC.getAuditValue(), USER_A, dvC.getProvidedElsewhere(), AuditType.UPDATE );
         dvaC.setCreated( getDate( 2021, 8, 1 ) );
         auditStore.addTrackedEntityDataValueAudit( dvaA );
         auditStore.addTrackedEntityDataValueAudit( dvaB );
@@ -262,15 +322,14 @@ class TrackedEntityDataValueAuditStoreTest extends DhisSpringTest
             .setDataElements( List.of( deA, deB ) )
             .setStartDate( getDate( 2021, 6, 15 ) )
             .setEndDate( getDate( 2021, 8, 15 ) );
-        assertEquals( 2, auditStore.getTrackedEntityDataValueAudits( params ).size() );
+        assertContainsOnly( auditStore.getTrackedEntityDataValueAudits( params ), dvaB, dvaC );
         assertEquals( 2, auditStore.countTrackedEntityDataValueAudits( params ) );
 
         params = new TrackedEntityDataValueAuditQueryParams()
             .setDataElements( List.of( deA, deB ) )
             .setStartDate( getDate( 2021, 6, 15 ) )
             .setEndDate( getDate( 2021, 7, 15 ) );
-        assertEquals( 1, auditStore.getTrackedEntityDataValueAudits( params ).size() );
+        assertContainsOnly( auditStore.getTrackedEntityDataValueAudits( params ), dvaB );
         assertEquals( 1, auditStore.countTrackedEntityDataValueAudits( params ) );
-        assertEquals( dvaB, auditStore.getTrackedEntityDataValueAudits( params ).get( 0 ) );
     }
 }

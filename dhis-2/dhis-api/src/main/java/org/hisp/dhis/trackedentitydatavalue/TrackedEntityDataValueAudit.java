@@ -114,6 +114,14 @@ public class TrackedEntityDataValueAudit
             && Objects.equals( this.auditType, other.auditType );
     }
 
+    @Override
+    public String toString()
+    {
+        return "[dataElement: '" + dataElement.getUid() + "', " +
+            "programStageInstance: '" + programStageInstance.getUid() + "', " +
+            "value: '" + value + "']";
+    }
+
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
