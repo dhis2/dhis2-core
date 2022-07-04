@@ -75,7 +75,18 @@ public enum ValueType
     URL( String.class, false ),
     FILE_RESOURCE( String.class, true, FileTypeValueOptions.class ),
     IMAGE( String.class, false, FileTypeValueOptions.class ),
-    GEOJSON( GeoJSON.class, false );
+    GEOJSON( GeoJSON.class, false ),
+    MULTI_TEXT( String.class, true );
+
+    /**
+     * The character used to separate values in a multi-text value.
+     */
+    public static final String MULTI_TEXT_SEPARATOR = ",";
+
+    public static List<String> splitMultiText( String value )
+    {
+        return value == null ? List.of() : List.of( value.split( MULTI_TEXT_SEPARATOR ) );
+    }
 
     private static final Set<ValueType> INTEGER_TYPES = Set.of(
         INTEGER, INTEGER_POSITIVE, INTEGER_NEGATIVE, INTEGER_ZERO_OR_POSITIVE );
@@ -213,10 +224,7 @@ public enum ValueType
         {
             return aggregationType == AggregationType.NONE;
         }
-        else
-        {
-            return aggregationType != AggregationType.NONE;
-        }
+        return aggregationType != AggregationType.NONE;
     }
 
     public Class<? extends ValueTypeOptions> getValueTypeOptionsClass()
@@ -236,6 +244,7 @@ public enum ValueType
      * <li>{@link ValueType#FILE_RESOURCE} for any file types.</li>
      * <li>{@link ValueType#COORDINATE} for any geometry types.</li>
      * <li>{@link ValueType#TEXT} for any textual types.</li>
+     * <li>{@link ValueType#MULTI_TEXT} if it is that type.</li>
      * </ul>
      *
      * @return a simplified value type.
@@ -246,26 +255,27 @@ public enum ValueType
         {
             return ValueType.NUMBER;
         }
-        else if ( isBoolean() )
+        if ( isBoolean() )
         {
             return ValueType.BOOLEAN;
         }
-        else if ( isDate() )
+        if ( isDate() )
         {
             return ValueType.DATE;
         }
-        else if ( isFile() )
+        if ( isFile() )
         {
             return ValueType.FILE_RESOURCE;
         }
-        else if ( isGeo() )
+        if ( isGeo() )
         {
             return ValueType.COORDINATE;
         }
-        else
+        if ( this == MULTI_TEXT )
         {
-            return ValueType.TEXT;
+            return this;
         }
+        return ValueType.TEXT;
     }
 
     public static ValueType fromString( String valueType )

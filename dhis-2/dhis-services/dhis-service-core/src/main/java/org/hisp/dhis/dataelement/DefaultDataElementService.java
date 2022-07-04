@@ -27,17 +27,22 @@
  */
 package org.hisp.dhis.dataelement;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.GenericDimensionalObjectStore;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
+import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.period.PeriodType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,32 +50,18 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Kristian Nordal
  */
-@Service( "org.hisp.dhis.dataelement.DataElementService" )
+@Service
+@AllArgsConstructor
 public class DefaultDataElementService
     implements DataElementService
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+    private final DataElementStore dataElementStore;
 
-    private DataElementStore dataElementStore;
+    private final IdentifiableObjectStore<OptionSet> optionSetStore;
 
-    private IdentifiableObjectStore<DataElementGroup> dataElementGroupStore;
+    private final IdentifiableObjectStore<DataElementGroup> dataElementGroupStore;
 
-    private GenericDimensionalObjectStore<DataElementGroupSet> dataElementGroupSetStore;
-
-    public DefaultDataElementService( DataElementStore dataElementStore,
-        IdentifiableObjectStore<DataElementGroup> dataElementGroupStore,
-        GenericDimensionalObjectStore<DataElementGroupSet> dataElementGroupSetStore )
-    {
-        checkNotNull( dataElementStore );
-        checkNotNull( dataElementGroupStore );
-        checkNotNull( dataElementGroupSetStore );
-
-        this.dataElementStore = dataElementStore;
-        this.dataElementGroupStore = dataElementGroupStore;
-        this.dataElementGroupSetStore = dataElementGroupSetStore;
-    }
+    private final GenericDimensionalObjectStore<DataElementGroupSet> dataElementGroupSetStore;
 
     // -------------------------------------------------------------------------
     // DataElement
@@ -80,8 +71,8 @@ public class DefaultDataElementService
     @Transactional
     public long addDataElement( DataElement dataElement )
     {
+        validateDateElement( dataElement );
         dataElementStore.save( dataElement );
-
         return dataElement.getId();
     }
 
@@ -89,7 +80,36 @@ public class DefaultDataElementService
     @Transactional
     public void updateDataElement( DataElement dataElement )
     {
+        validateDateElement( dataElement );
         dataElementStore.update( dataElement );
+    }
+
+    @Override
+    public void validateDateElement( DataElement dataElement )
+    {
+        if ( dataElement.getOptionSet() == null )
+        {
+            if ( dataElement.getValueType() == ValueType.MULTI_TEXT )
+            {
+                throw new IllegalQueryException( new ErrorMessage( ErrorCode.E1116, dataElement.getUid() ) );
+            }
+            return;
+        }
+        // need to reload the options in case this is a create and the options
+        // is a shallow reference object
+        OptionSet options = optionSetStore.getByUid( dataElement.getOptionSet().getUid() );
+        if ( options.getValueType() != dataElement.getValueType() )
+        {
+            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E1115, options.getValueType() ) );
+        }
+        if ( dataElement.getValueType() == ValueType.MULTI_TEXT && options.getOptions().stream().anyMatch(
+            option -> option.getCode().contains( ValueType.MULTI_TEXT_SEPARATOR ) ) )
+        {
+            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E1117, dataElement.getUid(), options.getUid(),
+                options.getOptions().stream().map( Option::getCode )
+                    .filter( code -> code.contains( ValueType.MULTI_TEXT_SEPARATOR ) )
+                    .findFirst().orElse( "" ) ) );
+        }
     }
 
     @Override
