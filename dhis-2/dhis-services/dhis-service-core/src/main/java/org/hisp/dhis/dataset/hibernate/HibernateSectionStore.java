@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.dataset.hibernate;
 
+import java.util.List;
+
 import javax.persistence.criteria.CriteriaBuilder;
 
 import org.hibernate.SessionFactory;
@@ -42,9 +44,8 @@ import org.springframework.stereotype.Repository;
 
 /**
  * @author Tri
- * @version $Id$
  */
-@Repository( "org.hisp.dhis.dataset.hibernate.HibernateSectionStore" )
+@Repository
 public class HibernateSectionStore
     extends HibernateIdentifiableObjectStore<Section> implements SectionStore
 {
@@ -62,5 +63,17 @@ public class HibernateSectionStore
         return getSingleResult( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "name" ), name ) )
             .addPredicate( root -> builder.equal( root.get( "dataSet" ), dataSet ) ) );
+    }
+
+    @Override
+    public List<Section> getSectionsByDataElement( String dataElementUid )
+    {
+        String hql = "select * from section s"
+            + " left join sectiondataelements sde on s.sectionid = sde.sectionid"
+            + " left join sectiongreyedfields sgf on s.sectionid = sgf.sectionid"
+            + " left join dataelementoperand deo on sgf.dataelementoperandid = deo.dataelementoperandid"
+            + ", dataelement de"
+            + " where de.uid = :Id and (sde.dataelementid = de.dataelementid or deo.dataelementid = de.dataelementid);";
+        return getSession().createNativeQuery( hql, Section.class ).setParameter( "Id", dataElementUid ).list();
     }
 }
