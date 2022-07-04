@@ -70,6 +70,11 @@ public class TrackedEntityDataValueAuditQueryParams
 
     private Pager pager;
 
+    public boolean hasOuMode()
+    {
+        return ouMode != null;
+    }
+
     public boolean hasPaging()
     {
         return pager != null;

@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.trackedentitydatavalue.hibernate;
 
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.*;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,7 +41,6 @@ import javax.persistence.criteria.Root;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -158,7 +159,7 @@ public class HibernateTrackedEntityDataValueAuditStore
 
         if ( !params.getOrgUnits().isEmpty() )
         {
-            if ( OrganisationUnitSelectionMode.DESCENDANTS == params.getOuMode() )
+            if ( DESCENDANTS == params.getOuMode() )
             {
                 List<Predicate> orgUnitPredicates = new ArrayList<>();
 
@@ -169,7 +170,7 @@ public class HibernateTrackedEntityDataValueAuditStore
 
                 predicates.add( builder.or( orgUnitPredicates.toArray( new Predicate[0] ) ) );
             }
-            else // OrganisationUnitSelectionMode.SELECTED
+            else if ( SELECTED == params.getOuMode() || !params.hasOuMode() )
             {
                 predicates.add( psi.get( "organisationUnit" ).in( params.getOrgUnits() ) );
             }
