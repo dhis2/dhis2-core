@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.trackedentitydatavalue.hibernate;
 
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,6 +43,7 @@ import javax.persistence.criteria.Root;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityDataValueAuditQueryParams;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
@@ -54,6 +58,8 @@ public class HibernateTrackedEntityDataValueAuditStore
     implements TrackedEntityDataValueAuditStore
 {
     private static final String PROP_PSI = "programStageInstance";
+
+    private static final String PROP_ORGANISATION_UNIT = "organisationUnit";
 
     private static final String PROP_CREATED = "created";
 
@@ -88,10 +94,11 @@ public class HibernateTrackedEntityDataValueAuditStore
         CriteriaQuery<TrackedEntityDataValueAudit> criteria = builder.createQuery( TrackedEntityDataValueAudit.class );
         Root<TrackedEntityDataValueAudit> tedva = criteria.from( TrackedEntityDataValueAudit.class );
         Join<TrackedEntityDataValueAudit, ProgramStageInstance> psi = tedva.join( PROP_PSI );
+        Join<ProgramStageInstance, OrganisationUnit> ou = psi.join( PROP_ORGANISATION_UNIT );
         criteria.select( tedva );
 
-        List<Predicate> predicates = getTrackedEntityDataValueAuditCriteria( params, builder, tedva, psi );
-        criteria.where( predicates.toArray( new Predicate[0] ) );
+        List<Predicate> predicates = getTrackedEntityDataValueAuditCriteria( params, builder, tedva, psi, ou );
+        criteria.where( predicates.toArray( Predicate[]::new ) );
         criteria.orderBy( builder.desc( tedva.get( PROP_CREATED ) ) );
 
         Query query = sessionFactory.getCurrentSession().createQuery( criteria );
@@ -113,10 +120,11 @@ public class HibernateTrackedEntityDataValueAuditStore
         CriteriaQuery<Long> criteria = builder.createQuery( Long.class );
         Root<TrackedEntityDataValueAudit> tedva = criteria.from( TrackedEntityDataValueAudit.class );
         Join<TrackedEntityDataValueAudit, ProgramStageInstance> psi = tedva.join( PROP_PSI );
+        Join<ProgramStageInstance, OrganisationUnit> ou = psi.join( PROP_ORGANISATION_UNIT );
         criteria.select( builder.countDistinct( tedva.get( "id" ) ) );
 
-        List<Predicate> predicates = getTrackedEntityDataValueAuditCriteria( params, builder, tedva, psi );
-        criteria.where( predicates.toArray( new Predicate[predicates.size()] ) );
+        List<Predicate> predicates = getTrackedEntityDataValueAuditCriteria( params, builder, tedva, psi, ou );
+        criteria.where( predicates.toArray( Predicate[]::new ) );
 
         return sessionFactory.getCurrentSession().createQuery( criteria ).getSingleResult().intValue();
     }
@@ -140,7 +148,8 @@ public class HibernateTrackedEntityDataValueAuditStore
     private List<Predicate> getTrackedEntityDataValueAuditCriteria( TrackedEntityDataValueAuditQueryParams params,
         CriteriaBuilder builder,
         Root<TrackedEntityDataValueAudit> tedva,
-        Join<TrackedEntityDataValueAudit, ProgramStageInstance> psi )
+        Join<TrackedEntityDataValueAudit, ProgramStageInstance> psi,
+        Join<ProgramStageInstance, OrganisationUnit> ou )
     {
         List<Predicate> predicates = new ArrayList<>();
 
@@ -151,7 +160,21 @@ public class HibernateTrackedEntityDataValueAuditStore
 
         if ( !params.getOrgUnits().isEmpty() )
         {
-            predicates.add( psi.get( "organisationUnit" ).in( params.getOrgUnits() ) );
+            if ( DESCENDANTS == params.getOuMode() )
+            {
+                List<Predicate> orgUnitPredicates = new ArrayList<>();
+
+                for ( OrganisationUnit orgUnit : params.getOrgUnits() )
+                {
+                    orgUnitPredicates.add( builder.like( ou.get( "path" ), (orgUnit.getPath() + "%") ) );
+                }
+
+                predicates.add( builder.or( orgUnitPredicates.toArray( Predicate[]::new ) ) );
+            }
+            else if ( SELECTED == params.getOuMode() || !params.hasOuMode() )
+            {
+                predicates.add( psi.get( "organisationUnit" ).in( params.getOrgUnits() ) );
+            }
         }
 
         if ( !params.getProgramStageInstances().isEmpty() )
