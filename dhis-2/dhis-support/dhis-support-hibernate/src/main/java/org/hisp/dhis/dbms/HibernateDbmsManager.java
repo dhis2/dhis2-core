@@ -78,8 +78,6 @@ public class HibernateDbmsManager
     @Override
     public void emptyDatabase()
     {
-        emptyTable( "analyticsdataexchange" );
-
         emptyTable( "maplegend" );
         emptyTable( "maplegendset" );
 
