@@ -41,8 +41,6 @@ import org.hisp.dhis.user.User;
  */
 public interface ProgramInstanceService
 {
-    String ID = ProgramInstanceService.class.getName();
-
     /**
      * Adds an {@link ProgramInstance}
      *
@@ -81,6 +79,12 @@ public interface ProgramInstanceService
      */
     void updateProgramInstance( ProgramInstance programInstance );
 
+    /**
+     * Updates an {@link ProgramInstance}.
+     *
+     * @param programInstance the ProgramInstance to update.
+     * @param user the current user.
+     */
     void updateProgramInstance( ProgramInstance programInstance, User user );
 
     /**
