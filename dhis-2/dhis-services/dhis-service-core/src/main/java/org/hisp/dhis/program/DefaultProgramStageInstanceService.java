@@ -46,7 +46,6 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.util.ValidationUtils;
@@ -58,15 +57,12 @@ import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.Sets;
-
 /**
  * @author Abyot Asalefew
  */
 @Service( "org.hisp.dhis.program.ProgramStageInstanceService" )
 public class DefaultProgramStageInstanceService
-    implements
-    ProgramStageInstanceService
+    implements ProgramStageInstanceService
 {
     // -------------------------------------------------------------------------
     // Dependencies
@@ -141,29 +137,10 @@ public class DefaultProgramStageInstanceService
     }
 
     @Override
-    public List<ProgramStageInstance> getProgramStageInstances( List<Long> id )
-    {
-        return programStageInstanceStore.getById( id );
-    }
-
-    @Override
-    public List<ProgramStageInstance> getProgramStageInstancesByUids( List<String> uids )
-    {
-        return programStageInstanceStore.getByUid( uids );
-    }
-
-    @Override
     @Transactional( readOnly = true )
     public ProgramStageInstance getProgramStageInstance( String uid )
     {
         return programStageInstanceStore.getByUid( uid );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public ProgramStageInstance getProgramStageInstance( ProgramInstance programInstance, ProgramStage programStage )
-    {
-        return programStageInstanceStore.get( programInstance, programStage );
     }
 
     @Override
@@ -223,53 +200,6 @@ public class DefaultProgramStageInstanceService
 
     @Override
     @Transactional
-    public void completeProgramStageInstance( ProgramStageInstance programStageInstance, boolean skipNotifications,
-        I18nFormat format, Date completedDate )
-    {
-        Calendar today = Calendar.getInstance();
-        PeriodType.clearTimeOfDay( today );
-        Date todayDate = today.getTime();
-
-        programStageInstance.setStatus( EventStatus.COMPLETED );
-
-        if ( completedDate == null )
-        {
-            programStageInstance.setCompletedDate( todayDate );
-        }
-        else
-        {
-            programStageInstance.setCompletedDate( completedDate );
-        }
-        if ( StringUtils.isEmpty( programStageInstance.getCompletedBy() ) )
-        {
-            programStageInstance.setCompletedBy( currentUserService.getCurrentUsername() );
-        }
-
-        // ---------------------------------------------------------------------
-        // Update the event
-        // ---------------------------------------------------------------------
-
-        updateProgramStageInstance( programStageInstance );
-
-        // ---------------------------------------------------------------------
-        // Check Completed status for all of ProgramStageInstance of
-        // ProgramInstance
-        // ---------------------------------------------------------------------
-
-        if ( programStageInstance.getProgramInstance().getProgram().isRegistration() )
-        {
-            boolean canComplete = programInstanceService
-                .canAutoCompleteProgramInstanceStatus( programStageInstance.getProgramInstance() );
-
-            if ( canComplete )
-            {
-                programInstanceService.completeProgramInstanceStatus( programStageInstance.getProgramInstance() );
-            }
-        }
-    }
-
-    @Override
-    @Transactional
     public ProgramStageInstance createProgramStageInstance( ProgramInstance programInstance, ProgramStage programStage,
         Date enrollmentDate, Date incidentDate, OrganisationUnit organisationUnit )
     {
@@ -308,33 +238,6 @@ public class DefaultProgramStageInstanceService
         }
 
         return programStageInstance;
-    }
-
-    @Override
-    @Transactional
-    public void auditDataValuesChangesAndHandleFileDataValues( Set<EventDataValue> newDataValues,
-        Set<EventDataValue> updatedDataValues, Set<EventDataValue> removedDataValues,
-        Map<String, DataElement> dataElementsCache, ProgramStageInstance programStageInstance, boolean singleValue )
-    {
-        Set<EventDataValue> updatedOrNewDataValues = Sets.union( newDataValues, updatedDataValues );
-
-        if ( singleValue )
-        {
-            // If only a single value update, merge with existing data
-            Set<EventDataValue> changedDataValues = Sets.union( updatedOrNewDataValues, removedDataValues );
-            Set<EventDataValue> unchangedDataValues = Sets.difference( programStageInstance.getEventDataValues(),
-                changedDataValues );
-
-            programStageInstance.setEventDataValues( Sets.union( unchangedDataValues, updatedOrNewDataValues ) );
-        }
-        else
-        {
-            programStageInstance.setEventDataValues( updatedOrNewDataValues );
-        }
-
-        auditDataValuesChanges( newDataValues, updatedDataValues, removedDataValues, dataElementsCache,
-            programStageInstance );
-        handleFileDataValueChanges( newDataValues, updatedDataValues, removedDataValues, dataElementsCache );
     }
 
     @Override
@@ -405,21 +308,6 @@ public class DefaultProgramStageInstanceService
     // Audit
     // -------------------------------------------------------------------------
 
-    private void auditDataValuesChanges( Set<EventDataValue> newDataValues, Set<EventDataValue> updatedDataValues,
-        Set<EventDataValue> removedDataValues, Map<String, DataElement> dataElementsCache,
-        ProgramStageInstance programStageInstance )
-    {
-
-        newDataValues.forEach( dv -> createAndAddAudit( dv, dataElementsCache.getOrDefault( dv.getDataElement(), null ),
-            programStageInstance, AuditType.CREATE ) );
-        updatedDataValues
-            .forEach( dv -> createAndAddAudit( dv, dataElementsCache.getOrDefault( dv.getDataElement(), null ),
-                programStageInstance, AuditType.UPDATE ) );
-        removedDataValues
-            .forEach( dv -> createAndAddAudit( dv, dataElementsCache.getOrDefault( dv.getDataElement(), null ),
-                programStageInstance, AuditType.DELETE ) );
-    }
-
     private void createAndAddAudit( EventDataValue dataValue, DataElement dataElement,
         ProgramStageInstance programStageInstance, AuditType auditType )
     {
@@ -437,44 +325,6 @@ public class DefaultProgramStageInstanceService
     // -------------------------------------------------------------------------
     // File data values
     // -------------------------------------------------------------------------
-
-    private void handleFileDataValueChanges( Set<EventDataValue> newDataValues, Set<EventDataValue> updatedDataValues,
-        Set<EventDataValue> removedDataValues, Map<String, DataElement> dataElementsCache )
-    {
-        removedDataValues
-            .forEach(
-                dv -> handleFileDataValueDelete( dv, dataElementsCache.getOrDefault( dv.getDataElement(), null ) ) );
-        updatedDataValues
-            .forEach(
-                dv -> handleFileDataValueUpdate( dv, dataElementsCache.getOrDefault( dv.getDataElement(), null ) ) );
-        newDataValues.forEach(
-            dv -> handleFileDataValueSave( dv, dataElementsCache.getOrDefault( dv.getDataElement(), null ) ) );
-    }
-
-    private void handleFileDataValueUpdate( EventDataValue dataValue, DataElement dataElement )
-    {
-        if ( dataElement == null )
-        {
-            return;
-        }
-        String previousFileResourceUid = dataValue.getAuditValue();
-
-        if ( previousFileResourceUid == null || previousFileResourceUid.equals( dataValue.getValue() ) )
-        {
-            return;
-        }
-
-        FileResource fileResource = fetchFileResource( dataValue, dataElement );
-
-        if ( fileResource == null )
-        {
-            return;
-        }
-
-        fileResourceService.deleteFileResource( previousFileResourceUid );
-
-        setAssigned( fileResource );
-    }
 
     /**
      * Update FileResource with 'assigned' status.
@@ -494,25 +344,6 @@ public class DefaultProgramStageInstanceService
         }
 
         setAssigned( fileResource );
-    }
-
-    /**
-     * Delete associated FileResource if it exists.
-     */
-    private void handleFileDataValueDelete( EventDataValue dataValue, DataElement dataElement )
-    {
-        if ( dataElement == null )
-        {
-            return;
-        }
-        FileResource fileResource = fetchFileResource( dataValue, dataElement );
-
-        if ( fileResource == null )
-        {
-            return;
-        }
-
-        fileResourceService.deleteFileResource( fileResource.getUid() );
     }
 
     private FileResource fetchFileResource( EventDataValue dataValue, DataElement dataElement )

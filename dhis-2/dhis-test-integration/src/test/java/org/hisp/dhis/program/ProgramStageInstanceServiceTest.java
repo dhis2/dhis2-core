@@ -32,24 +32,17 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
-import org.hisp.dhis.audit.UserInfoTestHelper;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.TestCache;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.mock.MockI18nFormat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
@@ -156,16 +149,6 @@ class ProgramStageInstanceServiceTest extends TransactionalIntegrationTest
 
     private Program programA;
 
-    private MockI18nFormat mockFormat;
-
-    private EventDataValue eventDataValueA;
-
-    private EventDataValue eventDataValueB;
-
-    private EventDataValue eventDataValueC;
-
-    private EventDataValue eventDataValueD;
-
     private Cache<DataElement> dataElementMap = new TestCache<>();
 
     private List<DataElement> dataElements;
@@ -173,7 +156,6 @@ class ProgramStageInstanceServiceTest extends TransactionalIntegrationTest
     @Override
     public void setUpTest()
     {
-        mockFormat = new MockI18nFormat();
         organisationUnitA = createOrganisationUnit( 'A' );
         organisationUnitService.addOrganisationUnit( organisationUnitA );
         organisationUnitB = createOrganisationUnit( 'B' );
@@ -280,11 +262,6 @@ class ProgramStageInstanceServiceTest extends TransactionalIntegrationTest
             .getProgramStageInstance( programStageInstanceA.getUid() );
         assertEquals( 0, tempPsiA.getEventDataValues().size() );
         // Prepare EventDataValues to manipulate with
-        String storedBy = "test-user";
-        eventDataValueA = new EventDataValue( dataElementA.getUid(), "1", UserInfoTestHelper.testUserInfo( storedBy ) );
-        eventDataValueB = new EventDataValue( dataElementB.getUid(), "2", UserInfoTestHelper.testUserInfo( storedBy ) );
-        eventDataValueC = new EventDataValue( dataElementC.getUid(), "3", UserInfoTestHelper.testUserInfo( storedBy ) );
-        eventDataValueD = new EventDataValue( dataElementD.getUid(), "4", UserInfoTestHelper.testUserInfo( storedBy ) );
         dataElementMap.put( dataElementA.getUid(), dataElementA );
         dataElementMap.put( dataElementB.getUid(), dataElementB );
         dataElementMap.put( dataElementC.getUid(), dataElementC );
@@ -347,26 +324,6 @@ class ProgramStageInstanceServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testGetProgramStageInstanceByProgramInstanceStage()
-    {
-        programStageInstanceService.addProgramStageInstance( programStageInstanceA );
-        programStageInstanceService.addProgramStageInstance( programStageInstanceB );
-        ProgramStageInstance programStageInstance = programStageInstanceService
-            .getProgramStageInstance( programInstanceA, stageA );
-        assertEquals( programStageInstanceA, programStageInstance );
-        programStageInstance = programStageInstanceService.getProgramStageInstance( programInstanceA, stageB );
-        assertEquals( programStageInstanceB, programStageInstance );
-    }
-
-    @Test
-    void testCompleteProgramStageInstance()
-    {
-        long idA = programStageInstanceService.addProgramStageInstance( programStageInstanceA );
-        programStageInstanceService.completeProgramStageInstance( programStageInstanceA, true, mockFormat, null );
-        assertEquals( true, programStageInstanceService.getProgramStageInstance( idA ).isCompleted() );
-    }
-
-    @Test
     void testEventDataValuesSave()
     {
         addInitialEventDataValues();
@@ -391,107 +348,6 @@ class ProgramStageInstanceServiceTest extends TransactionalIntegrationTest
         assertEquals( "3", eventDataValueCValue );
     }
 
-    @Test
-    void testEventDataValuesUpdateAndDeletion()
-    {
-        addInitialEventDataValues();
-        // Prepare data for update and delete. eventDataValueA has to be put
-        // into updated because I am accessing DAO layer directly, so I am
-        // skipping check from DTO layer
-        eventDataValueB.setValue( "12" );
-        eventDataValueC.setValue( "13" );
-        eventDataValueD.setValue( "14" );
-        Set<EventDataValue> updatedEventDataValues = new HashSet<>(
-            Arrays.asList( eventDataValueA, eventDataValueB, eventDataValueC ) );
-        // Update PSI: create 0, update 3, delete 1
-        programStageInstanceService.auditDataValuesChangesAndHandleFileDataValues( Set.of(),
-            updatedEventDataValues, Collections.singleton( eventDataValueD ), convertToMap( dataElementMap ),
-            programStageInstanceA, false );
-        programStageInstanceService.updateProgramStageInstance( programStageInstanceA );
-        // Check that there are 3 EventDataValues
-        ProgramStageInstance tempPsiA = programStageInstanceService
-            .getProgramStageInstance( programStageInstanceA.getUid() );
-        assertEquals( 3, tempPsiA.getEventDataValues().size() );
-        // Check that there are 4 audits of CREATE type, 3 of UPDATE type and 1
-        // of DELETE type
-        long auditCreateCount = dataValueAuditService.countTrackedEntityDataValueAudits(
-            new TrackedEntityDataValueAuditQueryParams()
-                .setDataElements( dataElements )
-                .setProgramStageInstances( List.of( programStageInstanceA ) )
-                .setAuditType( AuditType.CREATE ) );
-        assertEquals( 4, auditCreateCount );
-        long auditUpdateCount = dataValueAuditService.countTrackedEntityDataValueAudits(
-            new TrackedEntityDataValueAuditQueryParams()
-                .setDataElements( dataElements )
-                .setProgramStageInstances( List.of( programStageInstanceA ) )
-                .setAuditType( AuditType.UPDATE ) );
-        assertEquals( 3, auditUpdateCount );
-        long auditDeleteCount = dataValueAuditService.countTrackedEntityDataValueAudits(
-            new TrackedEntityDataValueAuditQueryParams()
-                .setDataElements( dataElements )
-                .setProgramStageInstances( List.of( programStageInstanceA ) )
-                .setAuditType( AuditType.DELETE ) );
-        assertEquals( 1, auditDeleteCount );
-        // Fetch value of the EventDataValueB and compare that it is correct
-        String eventDataValueBValue = tempPsiA.getEventDataValues().stream()
-            .filter( dv -> dv.getDataElement().equals( dataElementB.getUid() ) ).findFirst().get().getValue();
-        assertEquals( "12", eventDataValueBValue );
-        // Fetch value of the EventDataValueC and compare that it is correct
-        String eventDataValueCValue = tempPsiA.getEventDataValues().stream()
-            .filter( dv -> dv.getDataElement().equals( dataElementC.getUid() ) ).findFirst().get().getValue();
-        assertEquals( "13", eventDataValueCValue );
-    }
-
-    @Test
-    void testEventDataValuesSingleValueUpdate()
-    {
-        addInitialEventDataValues();
-        // Update 1 EventDataVaue and run a "SingleValue" update and check that
-        // others, not mentioned, EventDataValues are not touched
-        eventDataValueB.setValue( "22" );
-        programStageInstanceService.auditDataValuesChangesAndHandleFileDataValues( Set.of(),
-            Collections.singleton( eventDataValueB ), Set.of(), convertToMap( dataElementMap ),
-            programStageInstanceA, true );
-        programStageInstanceService.updateProgramStageInstance( programStageInstanceA );
-        // Check that there are 4 EventDataValues
-        ProgramStageInstance tempPsiA = programStageInstanceService
-            .getProgramStageInstance( programStageInstanceA.getUid() );
-        assertEquals( 4, tempPsiA.getEventDataValues().size() );
-        // Check that there are 4 audits of CREATE type, 3 of UPDATE type and 1
-        // of DELETE type
-        long auditCreateCount = dataValueAuditService.countTrackedEntityDataValueAudits(
-            new TrackedEntityDataValueAuditQueryParams()
-                .setDataElements( dataElements )
-                .setProgramStageInstances( List.of( programStageInstanceA ) )
-                .setAuditType( AuditType.CREATE ) );
-        assertEquals( 4, auditCreateCount );
-        long auditUpdateCount = dataValueAuditService.countTrackedEntityDataValueAudits(
-            new TrackedEntityDataValueAuditQueryParams()
-                .setDataElements( dataElements )
-                .setProgramStageInstances( List.of( programStageInstanceA ) )
-                .setAuditType( AuditType.UPDATE ) );
-        assertEquals( 1, auditUpdateCount );
-        long auditDeleteCount = dataValueAuditService.countTrackedEntityDataValueAudits(
-            new TrackedEntityDataValueAuditQueryParams()
-                .setDataElements( dataElements )
-                .setProgramStageInstances( List.of( programStageInstanceA ) )
-                .setAuditType( AuditType.DELETE ) );
-        assertEquals( 0, auditDeleteCount );
-        // Fetch value of the EventDataValueB and compare that it is correct
-        String eventDataValueBValue = tempPsiA.getEventDataValues().stream()
-            .filter( dv -> dv.getDataElement().equals( dataElementB.getUid() ) ).findFirst().get().getValue();
-        assertEquals( "22", eventDataValueBValue );
-        // Fetch value of the EventDataValueC and compare that it is correct
-        String eventDataValueCValue = tempPsiA.getEventDataValues().stream()
-            .filter( dv -> dv.getDataElement().equals( dataElementC.getUid() ) ).findFirst().get().getValue();
-        assertEquals( "3", eventDataValueCValue );
-    }
-
-    private Map<String, DataElement> convertToMap( Cache<DataElement> dataElementMap )
-    {
-        return dataElementMap.getAll().collect( Collectors.toMap( DataElement::getUid, d -> d ) );
-    }
-
     private void addInitialEventDataValues()
     {
         // Check that there are no EventDataValues assigned to PSI
@@ -499,11 +355,6 @@ class ProgramStageInstanceServiceTest extends TransactionalIntegrationTest
             .getProgramStageInstance( programStageInstanceA.getUid() );
         assertEquals( 0, tempPsiA.getEventDataValues().size() );
         // Prepare EventDataValues -> save 4 of them to PSI
-        Set<EventDataValue> newEventDataValues = new HashSet<>(
-            Arrays.asList( eventDataValueA, eventDataValueB, eventDataValueC, eventDataValueD ) );
-        programStageInstanceService.auditDataValuesChangesAndHandleFileDataValues( newEventDataValues,
-            Set.of(), Set.of(), convertToMap( dataElementMap ), programStageInstanceA,
-            false );
         programStageInstanceService.updateProgramStageInstance( programStageInstanceA );
     }
 }
