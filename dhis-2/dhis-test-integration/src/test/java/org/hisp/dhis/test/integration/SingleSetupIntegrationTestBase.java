@@ -40,7 +40,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Base for integration tests that use a single setup for the class instead of a
- * setup for each individual test.
+ * setup for each individual test. Run with profile <code>integration</code>.
  *
  * @author Jim Grace
  */
