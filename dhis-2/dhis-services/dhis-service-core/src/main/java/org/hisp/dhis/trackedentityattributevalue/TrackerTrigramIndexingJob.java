@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.trackedentityattributevalue;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
 
@@ -36,6 +35,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -53,21 +53,13 @@ import org.springframework.stereotype.Component;
  * @author Ameen
  */
 @Slf4j
+@AllArgsConstructor
 @Component( "trackerTrigramIndexingJob" )
 public class TrackerTrigramIndexingJob implements Job
 {
     private final TrackedEntityAttributeService trackedEntityAttributeService;
 
     private final TrackedEntityAttributeTableManager trackedEntityAttributeTableManager;
-
-    public TrackerTrigramIndexingJob( TrackedEntityAttributeService trackedEntityAttributeService,
-        TrackedEntityAttributeTableManager trackedEntityAttributeTableManager )
-    {
-        checkNotNull( trackedEntityAttributeService );
-        checkNotNull( trackedEntityAttributeTableManager );
-        this.trackedEntityAttributeService = trackedEntityAttributeService;
-        this.trackedEntityAttributeTableManager = trackedEntityAttributeTableManager;
-    }
 
     // -------------------------------------------------------------------------
     // Implementation
