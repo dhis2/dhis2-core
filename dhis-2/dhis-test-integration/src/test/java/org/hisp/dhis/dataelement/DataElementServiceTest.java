@@ -45,7 +45,6 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.option.Option;
-import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
@@ -56,12 +55,8 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 class DataElementServiceTest extends TransactionalIntegrationTest
 {
-
     @Autowired
     private DataElementService dataElementService;
-
-    @Autowired
-    private OptionService optionService;
 
     @Autowired
     private IdentifiableObjectStore<OptionSet> optionStore;
