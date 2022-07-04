@@ -380,7 +380,7 @@ public class HibernateDbmsManager
         {
             jdbcTemplate.update( "delete from " + table );
         }
-        catch ( BadSqlGrammarException ex )
+        catch ( Exception ex )
         {
             log.debug( "Error when trying deleting table " + table, ex );
         }
