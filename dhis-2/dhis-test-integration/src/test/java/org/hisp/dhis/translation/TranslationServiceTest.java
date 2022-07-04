@@ -40,7 +40,6 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.eventvisualization.EventVisualizationType;
 import org.hisp.dhis.expression.Expression;
@@ -62,7 +61,6 @@ import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -78,12 +76,8 @@ import com.google.common.collect.Sets;
  */
 class TranslationServiceTest extends SingleSetupIntegrationTestBase
 {
-
     @Autowired
     private UserService injectUserService;
-
-    @Autowired
-    private CurrentUserService currentUserService;
 
     @Autowired
     private IdentifiableObjectManager manager;
@@ -189,38 +183,6 @@ class TranslationServiceTest extends SingleSetupIntegrationTestBase
         manager.updateTranslations( relationshipType, translations );
         assertEquals( fromToNameTranslated, relationshipType.getDisplayFromToName() );
         assertEquals( toFromNameTranslated, relationshipType.getDisplayToFromName() );
-    }
-
-    @Test
-    void testChartTranslations()
-    {
-        Program prA = createProgram( 'A', null, null );
-        manager.save( prA );
-        EventChart ecA = new EventChart( "ecA" );
-        ecA.setProgram( prA );
-        ecA.setType( EventVisualizationType.COLUMN );
-        ecA.setBaseLineLabel( "BaseLineLabel" );
-        ecA.setDomainAxisLabel( "DomainAxisLabel" );
-        ecA.setRangeAxisLabel( "RangeAxisLabel" );
-        ecA.setTargetLineLabel( "TargetLineLabel" );
-        ecA.setTitle( "Title" );
-        ecA.setSubtitle( "SubTitle" );
-        manager.save( ecA );
-        Set<Translation> translations = new HashSet<>();
-        translations.add( new Translation( locale.getLanguage(), "baseLineLabel", "translated BaseLineLabel" ) );
-        translations.add( new Translation( locale.getLanguage(), "domainAxisLabel", "translated DomainAxisLabel" ) );
-        translations.add( new Translation( locale.getLanguage(), "rangeAxisLabel", "translated RangeAxisLabel" ) );
-        translations.add( new Translation( locale.getLanguage(), "targetLineLabel", "translated TargetLineLabel" ) );
-        translations.add( new Translation( locale.getLanguage(), "title", "translated Title" ) );
-        translations.add( new Translation( locale.getLanguage(), "subtitle", "translated SubTitle" ) );
-        manager.updateTranslations( ecA, translations );
-        EventChart updated = manager.get( EventChart.class, ecA.getUid() );
-        assertEquals( "translated BaseLineLabel", updated.getDisplayBaseLineLabel() );
-        assertEquals( "translated DomainAxisLabel", updated.getDisplayDomainAxisLabel() );
-        assertEquals( "translated RangeAxisLabel", updated.getDisplayRangeAxisLabel() );
-        assertEquals( "translated TargetLineLabel", updated.getDisplayTargetLineLabel() );
-        assertEquals( "translated Title", updated.getDisplayTitle() );
-        assertEquals( "translated SubTitle", updated.getDisplaySubtitle() );
     }
 
     @Test

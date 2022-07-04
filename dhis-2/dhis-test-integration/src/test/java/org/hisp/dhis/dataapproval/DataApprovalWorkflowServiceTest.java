@@ -49,7 +49,6 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 class DataApprovalWorkflowServiceTest extends TransactionalIntegrationTest
 {
-
     @Autowired
     private DataApprovalService dataApprovalService;
 
@@ -59,9 +58,6 @@ class DataApprovalWorkflowServiceTest extends TransactionalIntegrationTest
     @Autowired
     private UserService _userService;
 
-    // -------------------------------------------------------------------------
-    // Supporting data
-    // -------------------------------------------------------------------------
     private DataApprovalWorkflow workflowA;
 
     private DataApprovalWorkflow workflowB;

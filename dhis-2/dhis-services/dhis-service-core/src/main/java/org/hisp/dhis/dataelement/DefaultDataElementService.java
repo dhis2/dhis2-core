@@ -51,7 +51,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Kristian Nordal
  */
 @AllArgsConstructor
-@Service( "org.hisp.dhis.dataelement.DefaultDataElementService" )
+@Service( "org.hisp.dhis.dataelement.DataElementService" )
 public class DefaultDataElementService
     implements DataElementService
 {

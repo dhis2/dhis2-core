@@ -80,7 +80,6 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 class ProgramStageValidationStrategyTest extends TransactionalIntegrationTest
 {
-
     @Autowired
     private EventService eventService;
 
@@ -118,8 +117,6 @@ class ProgramStageValidationStrategyTest extends TransactionalIntegrationTest
     private Program programA;
 
     private ProgramStage programStageA;
-
-    private int testYear;
 
     @Override
     public boolean emptyDatabaseAfterTest()

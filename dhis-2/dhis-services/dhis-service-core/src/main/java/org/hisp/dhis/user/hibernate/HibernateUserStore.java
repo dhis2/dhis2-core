@@ -600,6 +600,7 @@ public class HibernateUserStore
     }
 
     @Override
+    @SuppressWarnings( "unchecked" )
     public String getDisplayName( String userUid )
     {
         String sql = "select concat(firstname, ' ', surname) from userinfo where uid =:uid";

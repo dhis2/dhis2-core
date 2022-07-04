@@ -55,7 +55,6 @@ import com.google.common.collect.Sets;
  */
 class MetadataExportServiceTest extends TransactionalIntegrationTest
 {
-
     @Autowired
     private MetadataExportService metadataExportService;
 

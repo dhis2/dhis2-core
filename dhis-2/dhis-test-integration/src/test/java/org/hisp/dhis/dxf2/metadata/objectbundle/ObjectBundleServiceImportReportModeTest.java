@@ -36,7 +36,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -54,15 +53,11 @@ import org.springframework.core.io.ClassPathResource;
  */
 class ObjectBundleServiceImportReportModeTest extends TransactionalIntegrationTest
 {
-
     @Autowired
     private ObjectBundleService objectBundleService;
 
     @Autowired
     private ObjectBundleValidationService objectBundleValidationService;
-
-    @Autowired
-    private IdentifiableObjectManager manager;
 
     @Autowired
     private RenderService _renderService;
