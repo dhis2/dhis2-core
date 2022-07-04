@@ -64,7 +64,6 @@ import org.springframework.core.io.ClassPathResource;
  */
 class CsvMetadataImportTest extends SingleSetupIntegrationTestBase
 {
-
     @Autowired
     private DataElementService dataElementService;
 

@@ -36,7 +36,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
@@ -48,10 +47,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 class TeTaEncryptionValidationTest extends TrackerTest
 {
-
-    @Autowired
-    private DhisConfigurationProvider dhisConfigurationProvider;
-
     @Autowired
     private TrackerImportService trackerImportService;
 

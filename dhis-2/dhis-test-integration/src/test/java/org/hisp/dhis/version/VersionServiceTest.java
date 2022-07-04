@@ -40,7 +40,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 class VersionServiceTest extends TransactionalIntegrationTest
 {
-
     @Autowired
     private VersionService versionService;
 
@@ -59,9 +58,6 @@ class VersionServiceTest extends TransactionalIntegrationTest
         versionB.setValue( "valueB" );
     }
 
-    // -------------------------------------------------------------------------
-    // Tests
-    // -------------------------------------------------------------------------
     @Test
     void testAddVersion()
     {

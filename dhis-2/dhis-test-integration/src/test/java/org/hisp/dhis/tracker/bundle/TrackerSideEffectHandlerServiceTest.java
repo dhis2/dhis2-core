@@ -36,7 +36,6 @@ import java.util.List;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
-import org.hisp.dhis.program.notification.ProgramNotificationTemplateStore;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
@@ -51,9 +50,6 @@ class TrackerSideEffectHandlerServiceTest extends TrackerTest
 {
     @Autowired
     private TrackerImportService trackerImportService;
-
-    @Autowired
-    private ProgramNotificationTemplateStore store;
 
     @Autowired
     private IdentifiableObjectManager manager;

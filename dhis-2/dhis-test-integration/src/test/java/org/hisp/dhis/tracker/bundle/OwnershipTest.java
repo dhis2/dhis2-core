@@ -65,7 +65,6 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 class OwnershipTest extends TrackerTest
 {
-
     @Autowired
     private TrackerImportService trackerImportService;
 
@@ -199,7 +198,7 @@ class OwnershipTest extends TrackerTest
         TrackerImportParams enrollmentParams = fromJson( "tracker/ownership_enrollment.json", nonSuperUser.getUid() );
         List<ProgramInstance> pis = manager.getAll( ProgramInstance.class );
         assertEquals( 2, pis.size() );
-        ProgramInstance pi = pis.stream().filter( e -> e.getUid().equals( "TvctPPhpD8u" ) ).findAny().get();
+        pis.stream().filter( e -> e.getUid().equals( "TvctPPhpD8u" ) ).findAny().get();
         enrollmentParams.setImportStrategy( TrackerImportStrategy.DELETE );
         TrackerImportReport updatedReport = trackerImportService.importTracker( enrollmentParams );
         assertNoImportErrors( updatedReport );

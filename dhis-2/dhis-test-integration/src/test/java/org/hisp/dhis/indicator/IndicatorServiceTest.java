@@ -40,7 +40,6 @@ import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.translation.Translation;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -54,12 +53,8 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 class IndicatorServiceTest extends SingleSetupIntegrationTestBase
 {
-
     @Autowired
     private IndicatorService indicatorService;
-
-    @Autowired
-    private CurrentUserService currentUserService;
 
     @Autowired
     private UserService injectUserService;

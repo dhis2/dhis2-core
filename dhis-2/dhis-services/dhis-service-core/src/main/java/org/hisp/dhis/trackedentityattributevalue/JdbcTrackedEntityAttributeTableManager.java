@@ -29,8 +29,6 @@ package org.hisp.dhis.trackedentityattributevalue;
 
 import java.util.List;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -41,7 +39,6 @@ import org.springframework.stereotype.Component;
  *
  * @author Ameen Mohamed
  */
-@Slf4j
 @Component( "org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeTableManager" )
 public class JdbcTrackedEntityAttributeTableManager implements TrackedEntityAttributeTableManager
 {

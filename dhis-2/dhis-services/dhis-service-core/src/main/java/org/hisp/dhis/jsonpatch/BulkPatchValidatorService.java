@@ -152,6 +152,7 @@ public class BulkPatchValidatorService
      *
      * @return {@link ObjectReport} contains {@link ErrorReport} if any.
      */
+    @SuppressWarnings( "unchecked" )
     private ObjectReport checkPatchObject( Schema schema, String id, JsonPatch jsonPatch,
         BulkPatchParameters patchParams, PatchBundle bundle )
     {

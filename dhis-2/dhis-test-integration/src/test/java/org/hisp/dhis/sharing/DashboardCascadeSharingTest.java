@@ -34,34 +34,21 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Collections;
+import java.util.HashSet;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.eventchart.EventChart;
-import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.eventvisualization.EventVisualization;
-import org.hisp.dhis.eventvisualization.EventVisualizationType;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
-import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.schema.descriptors.DataElementSchemaDescriptor;
-import org.hisp.dhis.schema.descriptors.EventChartSchemaDescriptor;
-import org.hisp.dhis.schema.descriptors.EventReportSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.IndicatorSchemaDescriptor;
-import org.hisp.dhis.schema.descriptors.LegendSetSchemaDescriptor;
-import org.hisp.dhis.schema.descriptors.ProgramStageSchemaDescriptor;
-import org.hisp.dhis.schema.descriptors.TrackedEntityAttributeSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.VisualizationSchemaDescriptor;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeDimension;
-import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserService;
@@ -74,7 +61,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 class DashboardCascadeSharingTest extends CascadeSharingTest
 {
-
     @Autowired
     private UserService _userService;
 
@@ -107,7 +93,7 @@ class DashboardCascadeSharingTest extends CascadeSharingTest
     public void setUpTest()
     {
         userService = _userService;
-        userGroupA = createUserGroup( 'A', Collections.EMPTY_SET );
+        userGroupA = createUserGroup( 'A', new HashSet<>() );
         objectManager.save( userGroupA );
         userA = makeUser( "A" );
         userA.getGroups().add( userGroupA );
@@ -307,83 +293,6 @@ class DashboardCascadeSharingTest extends CascadeSharingTest
         CascadeSharingReport report = cascadeSharingService.cascadeSharing( dashboard, new CascadeSharingParameters() );
         assertEquals( 0, report.getUpdateObjects().size() );
         assertFalse( aclService.canRead( userB, dashboard.getItems().get( 0 ).getMap() ) );
-    }
-
-    @Test
-    void testCascadeShareEventReport()
-    {
-        DataElement deA = createDataElement( 'A' );
-        deA.setSharing( defaultSharing() );
-        objectManager.save( deA, false );
-        LegendSet lsA = createLegendSet( 'A' );
-        lsA.setSharing( defaultSharing() );
-        objectManager.save( lsA, false );
-        ProgramStage psA = createProgramStage( 'A', 1 );
-        psA.setSharing( defaultSharing() );
-        objectManager.save( psA, false );
-        TrackedEntityDataElementDimension teDeDim = new TrackedEntityDataElementDimension( deA, lsA, psA, "EQ:1" );
-        EventReport eventReport = createEventReport( "A", programA );
-        eventReport.addTrackedEntityDataElementDimension( teDeDim );
-        eventReport.setSharing( defaultSharing() );
-        eventReport.setType( EventVisualizationType.LINE_LIST );
-        objectManager.save( eventReport, false );
-        // Add eventReport to dashboard
-        Dashboard dashboard = createDashboardWithItem( "dashboardA", sharingReadForUserA );
-        dashboard.getItems().get( 0 ).setEventReport( eventReport );
-        objectManager.save( dashboard, false );
-        CascadeSharingReport report = cascadeSharingService.cascadeSharing( dashboard,
-            CascadeSharingParameters.builder().build() );
-        assertEquals( 0, report.getErrorReports().size() );
-        assertEquals( 4, report.getUpdateObjects().size() );
-        assertEquals( 1, report.getUpdateObjects().get( DataElementSchemaDescriptor.PLURAL ).size() );
-        assertEquals( 1, report.getUpdateObjects().get( LegendSetSchemaDescriptor.PLURAL ).size() );
-        assertEquals( 1, report.getUpdateObjects().get( ProgramStageSchemaDescriptor.PLURAL ).size() );
-        assertEquals( 1, report.getUpdateObjects().get( EventReportSchemaDescriptor.PLURAL ).size() );
-        assertTrue( aclService.canRead( userA, eventReport ) );
-        assertTrue( aclService.canRead( userA, deA ) );
-        assertTrue( aclService.canRead( userA, lsA ) );
-        assertTrue( aclService.canRead( userA, psA ) );
-        assertFalse( aclService.canRead( userB, eventReport ) );
-        assertFalse( aclService.canRead( userB, deA ) );
-        assertFalse( aclService.canRead( userB, lsA ) );
-        assertFalse( aclService.canRead( userB, psA ) );
-    }
-
-    @Test
-    void cascadeShareEventChart()
-    {
-        LegendSet legendSet = createLegendSet( 'A' );
-        legendSet.setSharing( defaultSharing() );
-        objectManager.save( legendSet, false );
-        TrackedEntityAttribute trackedEntityAttribute = createTrackedEntityAttribute( 'A' );
-        trackedEntityAttribute.setSharing( defaultSharing() );
-        objectManager.save( trackedEntityAttribute, false );
-        assertFalse( aclService.canRead( userA, legendSet ) );
-        assertFalse( aclService.canRead( userA, trackedEntityAttribute ) );
-        TrackedEntityAttributeDimension attributeDimension = new TrackedEntityAttributeDimension();
-        attributeDimension.setLegendSet( legendSet );
-        attributeDimension.setAttribute( trackedEntityAttribute );
-        EventChart eventChart = createEventChart( "A", programA );
-        eventChart.setAttributeValueDimension( trackedEntityAttribute );
-        eventChart.getAttributeDimensions().add( attributeDimension );
-        eventChart.setSharing( defaultSharing() );
-        objectManager.save( eventChart, false );
-        Dashboard dashboard = createDashboardWithItem( "dashboardA", sharingReadForUserA );
-        dashboard.getItems().get( 0 ).setEventChart( eventChart );
-        objectManager.save( dashboard, false );
-        CascadeSharingReport report = cascadeSharingService.cascadeSharing( dashboard,
-            CascadeSharingParameters.builder().build() );
-        assertEquals( 0, report.getErrorReports().size() );
-        assertEquals( 3, report.getUpdateObjects().size() );
-        assertEquals( 1, report.getUpdateObjects().get( LegendSetSchemaDescriptor.PLURAL ).size() );
-        assertEquals( 1, report.getUpdateObjects().get( TrackedEntityAttributeSchemaDescriptor.PLURAL ).size() );
-        assertEquals( 1, report.getUpdateObjects().get( EventChartSchemaDescriptor.PLURAL ).size() );
-        assertTrue( aclService.canRead( userA, eventChart ) );
-        assertTrue( aclService.canRead( userA, legendSet ) );
-        assertTrue( aclService.canRead( userA, trackedEntityAttribute ) );
-        assertFalse( aclService.canRead( userB, eventChart ) );
-        assertFalse( aclService.canRead( userB, legendSet ) );
-        assertFalse( aclService.canRead( userB, trackedEntityAttribute ) );
     }
 
     @Test
