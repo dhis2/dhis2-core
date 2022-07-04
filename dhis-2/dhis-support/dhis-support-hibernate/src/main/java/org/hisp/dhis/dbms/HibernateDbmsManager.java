@@ -382,7 +382,7 @@ public class HibernateDbmsManager
         }
         catch ( BadSqlGrammarException ex )
         {
-            log.debug( "Table " + table + " does not exist" );
+            log.debug( "Error when trying deleting table " + table, ex );
         }
     }
 
