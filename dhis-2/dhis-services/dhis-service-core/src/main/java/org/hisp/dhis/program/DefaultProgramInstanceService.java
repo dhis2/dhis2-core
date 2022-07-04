@@ -479,27 +479,6 @@ public class DefaultProgramInstanceService
     }
 
     @Override
-    @Transactional( readOnly = true )
-    public boolean canAutoCompleteProgramInstanceStatus( ProgramInstance programInstance )
-    {
-        Set<ProgramStageInstance> programStageInstances = new HashSet<>( programInstance.getProgramStageInstances() );
-        Set<ProgramStage> programStages = new HashSet<>();
-
-        for ( ProgramStageInstance programStageInstance : programStageInstances )
-        {
-            if ( (!programStageInstance.isCompleted() && programStageInstance.getStatus() != EventStatus.SKIPPED)
-                || programStageInstance.getProgramStage().getRepeatable() )
-            {
-                return false;
-            }
-
-            programStages.add( programStageInstance.getProgramStage() );
-        }
-
-        return programStages.size() == programInstance.getProgram().getProgramStages().size();
-    }
-
-    @Override
     @Transactional
     public void completeProgramInstanceStatus( ProgramInstance programInstance )
     {

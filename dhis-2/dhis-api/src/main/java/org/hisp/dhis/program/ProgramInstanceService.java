@@ -232,16 +232,6 @@ public interface ProgramInstanceService
         OrganisationUnit orgunit );
 
     /**
-     * Check a program instance if it can be completed automatically. If there
-     * is some event of this program-isntance uncompleted or this program has
-     * any repeatable stage, then this program cannot be completed automatically
-     *
-     * @param programInstance ProgramInstance
-     * @return True/False value
-     */
-    boolean canAutoCompleteProgramInstanceStatus( ProgramInstance programInstance );
-
-    /**
      * Complete a program instance. Besides, program template messages will be
      * send if it was defined to send when to complete this program
      *

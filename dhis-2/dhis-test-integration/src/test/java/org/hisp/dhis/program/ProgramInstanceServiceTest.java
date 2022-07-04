@@ -44,7 +44,6 @@ import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.joda.time.DateTime;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -278,16 +277,6 @@ class ProgramInstanceServiceTest extends TransactionalIntegrationTest
         ProgramInstance programInstance = programInstanceService.enrollTrackedEntityInstance( entityInstanceA, programB,
             enrollmentDate, incidentDate, organisationUnitA );
         assertNotNull( programInstanceService.getProgramInstance( programInstance.getId() ) );
-    }
-
-    @Test
-    @Disabled
-    void testCanAutoCompleteProgramInstanceStatus()
-    {
-        programInstanceService.addProgramInstance( programInstanceA );
-        programInstanceService.addProgramInstance( programInstanceD );
-        assertTrue( programInstanceService.canAutoCompleteProgramInstanceStatus( programInstanceA ) );
-        assertTrue( programInstanceService.canAutoCompleteProgramInstanceStatus( programInstanceD ) );
     }
 
     @Test
