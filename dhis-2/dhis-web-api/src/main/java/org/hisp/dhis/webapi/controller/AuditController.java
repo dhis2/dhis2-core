@@ -287,6 +287,7 @@ public class AuditController
                     .setProgramStages( programStages )
                     .setStartDate( startDate )
                     .setEndDate( endDate )
+                    .setOuMode( ouMode )
                     .setAuditType( auditType )
                     .setPager( pager ) );
         }
