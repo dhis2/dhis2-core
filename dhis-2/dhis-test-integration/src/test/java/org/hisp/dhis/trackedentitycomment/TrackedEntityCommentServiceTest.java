@@ -42,7 +42,6 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 class TrackedEntityCommentServiceTest extends IntegrationTestBase
 {
-
     @Autowired
     private TrackedEntityCommentService commentService;
 
@@ -105,8 +104,7 @@ class TrackedEntityCommentServiceTest extends IntegrationTestBase
     @Test
     void testCommentExists()
     {
-
-        long l = commentService.addTrackedEntityComment( commentA );
+        commentService.addTrackedEntityComment( commentA );
         assertTrue( commentService.trackedEntityCommentExists( commentA.getUid() ) );
     }
 }

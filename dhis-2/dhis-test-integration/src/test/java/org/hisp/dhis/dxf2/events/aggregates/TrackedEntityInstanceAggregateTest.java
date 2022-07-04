@@ -85,18 +85,11 @@ import com.google.common.collect.Sets;
  */
 class TrackedEntityInstanceAggregateTest extends TrackerTest
 {
-
     @Autowired
     private TrackedEntityInstanceService trackedEntityInstanceService;
 
     @Autowired
     private SessionFactory sessionFactory;
-
-    @Autowired
-    private org.hisp.dhis.trackedentity.TrackedEntityInstanceService teiService;
-
-    @Autowired
-    private TrackedEntityInstanceAggregate trackedEntityInstanceAggregate;
 
     @Autowired
     private TrackedEntityProgramOwnerService programOwnerService;

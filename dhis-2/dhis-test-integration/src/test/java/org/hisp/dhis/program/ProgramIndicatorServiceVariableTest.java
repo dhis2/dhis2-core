@@ -111,11 +111,6 @@ class ProgramIndicatorServiceVariableTest extends IntegrationTestBase
         return programIndicatorService.getAnalyticsSql( expression, NUMERIC, piB, startDate, endDate );
     }
 
-    private String getSqlEnrollment( final String expression, final ProgramIndicator programIndicator )
-    {
-        return programIndicatorService.getAnalyticsSql( expression, NUMERIC, programIndicator, startDate, endDate );
-    }
-
     // -------------------------------------------------------------------------
     // Program variables tests (in alphabetical order)
     // -------------------------------------------------------------------------
