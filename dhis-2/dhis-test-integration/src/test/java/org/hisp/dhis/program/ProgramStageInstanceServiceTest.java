@@ -27,19 +27,16 @@
  */
 package org.hisp.dhis.program;
 
-import static java.util.stream.Collectors.toList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.Date;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.TestCache;
-import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -48,12 +45,10 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityDataValueAuditQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -93,9 +88,6 @@ class ProgramStageInstanceServiceTest extends TransactionalIntegrationTest
 
     @Autowired
     private TrackedEntityAttributeValueService attributeValueService;
-
-    @Autowired
-    private TrackedEntityDataValueAuditService dataValueAuditService;
 
     private OrganisationUnit organisationUnitA;
 
@@ -150,8 +142,6 @@ class ProgramStageInstanceServiceTest extends TransactionalIntegrationTest
     private Program programA;
 
     private Cache<DataElement> dataElementMap = new TestCache<>();
-
-    private List<DataElement> dataElements;
 
     @Override
     public void setUpTest()
@@ -266,7 +256,6 @@ class ProgramStageInstanceServiceTest extends TransactionalIntegrationTest
         dataElementMap.put( dataElementB.getUid(), dataElementB );
         dataElementMap.put( dataElementC.getUid(), dataElementC );
         dataElementMap.put( dataElementD.getUid(), dataElementD );
-        dataElements = dataElementMap.getAll().collect( toList() );
     }
 
     @Test
@@ -321,40 +310,5 @@ class ProgramStageInstanceServiceTest extends TransactionalIntegrationTest
         assertEquals( programStageInstanceB, programStageInstanceService.getProgramStageInstance( idB ) );
         assertEquals( programStageInstanceA, programStageInstanceService.getProgramStageInstance( "UID-A" ) );
         assertEquals( programStageInstanceB, programStageInstanceService.getProgramStageInstance( "UID-B" ) );
-    }
-
-    @Test
-    void testEventDataValuesSave()
-    {
-        addInitialEventDataValues();
-        // Check that there are 4 EventDataValues
-        ProgramStageInstance tempPsiA = programStageInstanceService
-            .getProgramStageInstance( programStageInstanceA.getUid() );
-        assertEquals( 4, tempPsiA.getEventDataValues().size() );
-        // Check that there are 4 audits of CREATE type
-        long auditCreateCount = dataValueAuditService.countTrackedEntityDataValueAudits(
-            new TrackedEntityDataValueAuditQueryParams()
-                .setDataElements( dataElements )
-                .setProgramStageInstances( List.of( programStageInstanceA ) )
-                .setAuditType( AuditType.CREATE ) );
-        assertEquals( 4, auditCreateCount );
-        // Fetch value of the EventDataValueB and compare that it is correct
-        String eventDataValueBValue = tempPsiA.getEventDataValues().stream()
-            .filter( dv -> dv.getDataElement().equals( dataElementB.getUid() ) ).findFirst().get().getValue();
-        assertEquals( "2", eventDataValueBValue );
-        // Fetch value of the EventDataValueC and compare that it is correct
-        String eventDataValueCValue = tempPsiA.getEventDataValues().stream()
-            .filter( dv -> dv.getDataElement().equals( dataElementC.getUid() ) ).findFirst().get().getValue();
-        assertEquals( "3", eventDataValueCValue );
-    }
-
-    private void addInitialEventDataValues()
-    {
-        // Check that there are no EventDataValues assigned to PSI
-        ProgramStageInstance tempPsiA = programStageInstanceService
-            .getProgramStageInstance( programStageInstanceA.getUid() );
-        assertEquals( 0, tempPsiA.getEventDataValues().size() );
-        // Prepare EventDataValues -> save 4 of them to PSI
-        programStageInstanceService.updateProgramStageInstance( programStageInstanceA );
     }
 }
