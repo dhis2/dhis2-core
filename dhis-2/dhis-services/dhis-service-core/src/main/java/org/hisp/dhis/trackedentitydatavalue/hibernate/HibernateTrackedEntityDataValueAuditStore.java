@@ -27,7 +27,8 @@
  */
 package org.hisp.dhis.trackedentitydatavalue.hibernate;
 
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.*;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -97,7 +98,7 @@ public class HibernateTrackedEntityDataValueAuditStore
         criteria.select( tedva );
 
         List<Predicate> predicates = getTrackedEntityDataValueAuditCriteria( params, builder, tedva, psi, ou );
-        criteria.where( predicates.toArray( new Predicate[0] ) );
+        criteria.where( predicates.toArray( Predicate[]::new ) );
         criteria.orderBy( builder.desc( tedva.get( PROP_CREATED ) ) );
 
         Query query = sessionFactory.getCurrentSession().createQuery( criteria );
@@ -123,7 +124,7 @@ public class HibernateTrackedEntityDataValueAuditStore
         criteria.select( builder.countDistinct( tedva.get( "id" ) ) );
 
         List<Predicate> predicates = getTrackedEntityDataValueAuditCriteria( params, builder, tedva, psi, ou );
-        criteria.where( predicates.toArray( new Predicate[predicates.size()] ) );
+        criteria.where( predicates.toArray( Predicate[]::new ) );
 
         return sessionFactory.getCurrentSession().createQuery( criteria ).getSingleResult().intValue();
     }
@@ -168,7 +169,7 @@ public class HibernateTrackedEntityDataValueAuditStore
                     orgUnitPredicates.add( builder.like( ou.get( "path" ), (orgUnit.getPath() + "%") ) );
                 }
 
-                predicates.add( builder.or( orgUnitPredicates.toArray( new Predicate[0] ) ) );
+                predicates.add( builder.or( orgUnitPredicates.toArray( Predicate[]::new ) ) );
             }
             else if ( SELECTED == params.getOuMode() || !params.hasOuMode() )
             {
