@@ -30,7 +30,6 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 import java.util.List;
 
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -46,7 +45,6 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
-@Slf4j
 @AllArgsConstructor
 public class ValidationFactory
 {

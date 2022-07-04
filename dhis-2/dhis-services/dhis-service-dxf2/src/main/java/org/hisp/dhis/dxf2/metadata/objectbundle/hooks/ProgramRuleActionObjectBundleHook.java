@@ -33,7 +33,6 @@ import java.util.function.Consumer;
 import javax.annotation.Nonnull;
 
 import lombok.NonNull;
-import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -48,8 +47,6 @@ import org.springframework.stereotype.Component;
 /**
  * @author Zubair Asghar
  */
-
-@Slf4j
 @Component( "programRuleActionObjectBundle" )
 public class ProgramRuleActionObjectBundleHook extends AbstractObjectBundleHook<ProgramRuleAction>
 {
