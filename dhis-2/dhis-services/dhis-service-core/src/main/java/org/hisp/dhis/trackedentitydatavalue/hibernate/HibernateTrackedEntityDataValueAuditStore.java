@@ -57,6 +57,8 @@ public class HibernateTrackedEntityDataValueAuditStore
 {
     private static final String PROP_PSI = "programStageInstance";
 
+    private static final String PROP_ORGANISATION_UNIT = "organisationUnit";
+
     private static final String PROP_CREATED = "created";
 
     // -------------------------------------------------------------------------
@@ -90,9 +92,10 @@ public class HibernateTrackedEntityDataValueAuditStore
         CriteriaQuery<TrackedEntityDataValueAudit> criteria = builder.createQuery( TrackedEntityDataValueAudit.class );
         Root<TrackedEntityDataValueAudit> tedva = criteria.from( TrackedEntityDataValueAudit.class );
         Join<TrackedEntityDataValueAudit, ProgramStageInstance> psi = tedva.join( PROP_PSI );
+        Join<ProgramStageInstance, OrganisationUnit> ou = psi.join( PROP_ORGANISATION_UNIT );
         criteria.select( tedva );
 
-        List<Predicate> predicates = getTrackedEntityDataValueAuditCriteria( params, builder, tedva, psi );
+        List<Predicate> predicates = getTrackedEntityDataValueAuditCriteria( params, builder, tedva, psi, ou );
         criteria.where( predicates.toArray( new Predicate[0] ) );
         criteria.orderBy( builder.desc( tedva.get( PROP_CREATED ) ) );
 
@@ -115,9 +118,10 @@ public class HibernateTrackedEntityDataValueAuditStore
         CriteriaQuery<Long> criteria = builder.createQuery( Long.class );
         Root<TrackedEntityDataValueAudit> tedva = criteria.from( TrackedEntityDataValueAudit.class );
         Join<TrackedEntityDataValueAudit, ProgramStageInstance> psi = tedva.join( PROP_PSI );
+        Join<ProgramStageInstance, OrganisationUnit> ou = psi.join( PROP_ORGANISATION_UNIT );
         criteria.select( builder.countDistinct( tedva.get( "id" ) ) );
 
-        List<Predicate> predicates = getTrackedEntityDataValueAuditCriteria( params, builder, tedva, psi );
+        List<Predicate> predicates = getTrackedEntityDataValueAuditCriteria( params, builder, tedva, psi, ou );
         criteria.where( predicates.toArray( new Predicate[predicates.size()] ) );
 
         return sessionFactory.getCurrentSession().createQuery( criteria ).getSingleResult().intValue();
@@ -142,7 +146,8 @@ public class HibernateTrackedEntityDataValueAuditStore
     private List<Predicate> getTrackedEntityDataValueAuditCriteria( TrackedEntityDataValueAuditQueryParams params,
         CriteriaBuilder builder,
         Root<TrackedEntityDataValueAudit> tedva,
-        Join<TrackedEntityDataValueAudit, ProgramStageInstance> psi )
+        Join<TrackedEntityDataValueAudit, ProgramStageInstance> psi,
+        Join<ProgramStageInstance, OrganisationUnit> ou )
     {
         List<Predicate> predicates = new ArrayList<>();
 
@@ -159,7 +164,7 @@ public class HibernateTrackedEntityDataValueAuditStore
 
                 for ( OrganisationUnit orgUnit : params.getOrgUnits() )
                 {
-                    orgUnitPredicates.add( builder.like( psi.get( "organisationUnit" ), (orgUnit.getPath() + "%") ) );
+                    orgUnitPredicates.add( builder.like( ou.get( "path" ), (orgUnit.getPath() + "%") ) );
                 }
 
                 predicates.add( builder.or( orgUnitPredicates.toArray( new Predicate[0] ) ) );
