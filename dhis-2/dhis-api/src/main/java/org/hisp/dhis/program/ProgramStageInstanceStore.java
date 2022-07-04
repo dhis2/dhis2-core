@@ -46,16 +46,6 @@ public interface ProgramStageInstanceStore
     String ID = ProgramStageInstanceStore.class.getName();
 
     /**
-     * Retrieve an event on a program instance and a program stage. For
-     * repeatable stage, the system returns the last event
-     *
-     * @param programInstance ProgramInstance
-     * @param programStage ProgramStage
-     * @return ProgramStageInstance
-     */
-    ProgramStageInstance get( ProgramInstance programInstance, ProgramStage programStage );
-
-    /**
      * Retrieve an event list on program instance list with a certain status
      *
      * @param programInstances ProgramInstance list
