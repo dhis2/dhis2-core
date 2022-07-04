@@ -51,7 +51,6 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
@@ -64,15 +63,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultProgramStageInstanceService
     implements ProgramStageInstanceService
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final ProgramStageInstanceStore programStageInstanceStore;
-
-    private final ProgramInstanceService programInstanceService;
-
-    private final CurrentUserService currentUserService;
 
     private final TrackedEntityDataValueAuditService dataValueAuditService;
 
@@ -80,20 +71,15 @@ public class DefaultProgramStageInstanceService
 
     private final DhisConfigurationProvider config;
 
-    public DefaultProgramStageInstanceService( CurrentUserService currentUserService,
-        ProgramInstanceService programInstanceService, ProgramStageInstanceStore programStageInstanceStore,
+    public DefaultProgramStageInstanceService( ProgramStageInstanceStore programStageInstanceStore,
         TrackedEntityDataValueAuditService dataValueAuditService, FileResourceService fileResourceService,
         DhisConfigurationProvider config )
     {
-        checkNotNull( currentUserService );
-        checkNotNull( programInstanceService );
         checkNotNull( programStageInstanceStore );
         checkNotNull( dataValueAuditService );
         checkNotNull( fileResourceService );
         checkNotNull( config );
 
-        this.currentUserService = currentUserService;
-        this.programInstanceService = programInstanceService;
         this.programStageInstanceStore = programStageInstanceStore;
         this.dataValueAuditService = dataValueAuditService;
         this.fileResourceService = fileResourceService;
