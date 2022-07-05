@@ -236,14 +236,12 @@ public abstract class AbstractJdbcTableManager
     public void dropTable( String tableName )
     {
         executeSilently( "drop table if exists " + tableName );
-        log.error( "Table " + tableName + " deleted" );
     }
 
     @Override
     public void dropTableCascade( String tableName )
     {
         executeSilently( "drop table if exists " + tableName + " cascade" );
-        log.error( "Table " + tableName + " deleted" );
     }
 
     @Override

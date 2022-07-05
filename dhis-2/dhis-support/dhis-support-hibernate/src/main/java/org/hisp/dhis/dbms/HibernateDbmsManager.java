@@ -378,9 +378,9 @@ public class HibernateDbmsManager
         {
             jdbcTemplate.update( "delete from " + table );
         }
-        catch ( Exception ex )
+        catch ( BadSqlGrammarException ex )
         {
-            log.debug( "Error when trying deleting table " + table, ex );
+            log.debug( "Table " + table + " does not exist" );
         }
     }
 
@@ -438,7 +438,6 @@ public class HibernateDbmsManager
         try
         {
             jdbcTemplate.execute( "drop table  if exists " + table );
-            log.error( "Table " + table + " deleted" );
         }
         catch ( BadSqlGrammarException ex )
         {

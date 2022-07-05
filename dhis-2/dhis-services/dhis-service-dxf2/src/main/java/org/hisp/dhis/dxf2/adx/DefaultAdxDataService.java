@@ -45,8 +45,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 import javax.xml.stream.XMLOutputFactory;
@@ -397,8 +401,8 @@ public class DefaultAdxDataService
 
         try ( PipedOutputStream pipeOut = new PipedOutputStream() )
         {
-            AdxPipedImporter adxPipedImporter = new AdxPipedImporter( dataValueSetService, adxImportOptions, dxfJobId,
-                pipeOut, sessionFactory );
+            Future<ImportSummary> futureImportSummary = executor.submit( new AdxPipedImporter(
+                dataValueSetService, adxImportOptions, dxfJobId, pipeOut, sessionFactory ) );
             XMLOutputFactory factory = XMLOutputFactory.newInstance();
             XMLStreamWriter dxfWriter = factory.createXMLStreamWriter( pipeOut );
 
@@ -425,7 +429,7 @@ public class DefaultAdxDataService
 
             pipeOut.flush();
 
-            importSummary = adxPipedImporter.call();
+            importSummary = futureImportSummary.get( TOTAL_MINUTES_TO_WAIT, TimeUnit.MINUTES );
             ImportSummary summary = importSummary;
             adxConflicts.forEach( conflict -> summary.addConflict( conflict.getObject(), conflict.getValue() ) );
             importSummary.getImportCount().incrementIgnored( adxConflicts.size() );
@@ -439,7 +443,7 @@ public class DefaultAdxDataService
             notifier.update( id, NotificationLevel.ERROR, "ADX data import done", true );
             log.warn( "Import failed: " + DebugUtils.getStackTrace( ex ) );
         }
-        catch ( IOException | XMLStreamException ex )
+        catch ( IOException | XMLStreamException | InterruptedException | ExecutionException | TimeoutException ex )
         {
             importSummary = new ImportSummary();
             importSummary.setStatus( ImportStatus.ERROR );

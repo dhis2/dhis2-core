@@ -62,7 +62,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
@@ -75,7 +75,7 @@ import com.google.common.collect.Sets;
 /*
  * @author Jim Grace
  */
-class AdxDataServiceIntegrationTest extends TransactionalIntegrationTest
+class AdxDataServiceIntegrationTest extends IntegrationTestBase
 {
     @Autowired
     private AdxDataService adxDataService;
