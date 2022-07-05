@@ -39,6 +39,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.testcontainers.containers.JdbcDatabaseContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -46,6 +48,7 @@ import org.testcontainers.containers.JdbcDatabaseContainer;
 @Slf4j
 @Configuration
 @ComponentScan( "org.hisp.dhis" )
+@Testcontainers
 public class IntegrationTestConfig
 {
     private static final String POSTGRES_DATABASE_NAME = "dhis";
@@ -54,11 +57,13 @@ public class IntegrationTestConfig
 
     public static final String CREATE_UPDATE_DELETE = "CREATE;UPDATE;DELETE";
 
+    @Container
+    private static final JdbcDatabaseContainer<?> postgreSQLContainer = initContainer();
+
     @Bean( name = "dhisConfigurationProvider" )
     public DhisConfigurationProvider dhisConfigurationProvider()
     {
         PostgresDhisConfigurationProvider dhisConfigurationProvider = new PostgresDhisConfigurationProvider();
-        JdbcDatabaseContainer<?> postgreSQLContainer = initContainer();
 
         final String username = postgreSQLContainer.getUsername();
         final String password = postgreSQLContainer.getPassword();
@@ -84,7 +89,7 @@ public class IntegrationTestConfig
         return dhisConfigurationProvider;
     }
 
-    private JdbcDatabaseContainer<?> initContainer()
+    private static JdbcDatabaseContainer<?> initContainer()
     {
         // NOSONAR
         DhisPostgreSQLContainer<?> postgisContainer = ((DhisPostgreSQLContainer<?>) new DhisPostgisContainerProvider()
