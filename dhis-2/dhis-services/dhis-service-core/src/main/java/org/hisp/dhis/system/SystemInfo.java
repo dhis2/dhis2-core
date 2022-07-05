@@ -29,123 +29,172 @@ package org.hisp.dhis.system;
 
 import java.util.Date;
 
-import org.hisp.dhis.common.DxfNamespaces;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.springframework.beans.BeanUtils;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Lars Helge Overland
  */
-@JacksonXmlRootElement( localName = "systemInfo", namespace = DxfNamespaces.DXF_2_0 )
+@Getter
+@Setter
+@NoArgsConstructor
 public class SystemInfo
 {
     // -------------------------------------------------------------------------
     // Transient properties
     // -------------------------------------------------------------------------
 
+    @JsonProperty
     private String contextPath;
 
+    @JsonProperty
     private String userAgent;
 
     // -------------------------------------------------------------------------
     // Volatile properties
     // -------------------------------------------------------------------------
 
+    @JsonProperty
     private String calendar;
 
+    @JsonProperty
     private String dateFormat;
 
+    @JsonProperty
     private Date serverDate;
 
+    @JsonProperty
     private String serverTimeZoneId;
 
+    @JsonProperty
     private String serverTimeZoneDisplayName;
 
+    @JsonProperty
     private Date lastAnalyticsTableSuccess;
 
+    @JsonProperty
     private String intervalSinceLastAnalyticsTableSuccess;
 
+    @JsonProperty
     private String lastAnalyticsTableRuntime;
 
+    @JsonProperty
     private Date lastSystemMonitoringSuccess;
 
+    @JsonProperty
     private Date lastAnalyticsTablePartitionSuccess;
 
+    @JsonProperty
     private String intervalSinceLastAnalyticsTablePartitionSuccess;
 
+    @JsonProperty
     private String lastAnalyticsTablePartitionRuntime;
 
     // -------------------------------------------------------------------------
     // Stable properties
     // -------------------------------------------------------------------------
 
+    @JsonProperty
     private String version;
 
+    @JsonProperty
     private String revision;
 
+    @JsonProperty
     private Date buildTime;
 
+    @JsonProperty
     private String jasperReportsVersion;
 
+    @JsonProperty
     private String environmentVariable;
 
+    @JsonProperty
     private String fileStoreProvider;
 
+    @JsonProperty
     private String readOnlyMode;
 
+    @JsonProperty
     private String nodeId;
 
+    @JsonProperty
     private String javaVersion;
 
+    @JsonProperty
     private String javaVendor;
 
+    @JsonProperty
     private String javaOpts;
 
+    @JsonProperty
     private String osName;
 
+    @JsonProperty
     private String osArchitecture;
 
+    @JsonProperty
     private String osVersion;
 
+    @JsonProperty
     private String externalDirectory;
 
+    @JsonProperty
     private DatabaseInfo databaseInfo;
 
+    @JsonProperty
     private Integer readReplicaCount;
 
+    @JsonProperty
     private String memoryInfo;
 
+    @JsonProperty
     private Integer cpuCores;
 
+    @JsonProperty
     private boolean encryption;
 
+    @JsonProperty
     private boolean emailConfigured;
 
+    @JsonProperty
     private boolean redisEnabled;
 
+    @JsonProperty
     private String redisHostname;
 
+    @JsonProperty
     private String systemId;
 
+    @JsonProperty
     private String systemName;
 
+    @JsonProperty
     private String systemMetadataVersion;
 
+    @JsonProperty
     private String instanceBaseUrl;
 
+    @JsonProperty
     private String systemMonitoringUrl;
 
+    @JsonProperty
     private String clusterHostname;
 
+    @JsonProperty
     private Boolean isMetadataVersionEnabled;
 
+    @JsonProperty
     private Date lastMetadataVersionSyncAttempt;
 
-    private boolean isMetadataSyncEnabled;
+    @JsonProperty
+    private Boolean isMetadataSyncEnabled;
 
     public SystemInfo instance()
     {
@@ -162,6 +211,8 @@ public class SystemInfo
 
     public void clearSensitiveInfo()
     {
+        this.jasperReportsVersion = null;
+        this.environmentVariable = null;
         this.fileStoreProvider = null;
         this.readOnlyMode = null;
         this.nodeId = null;
@@ -176,567 +227,15 @@ public class SystemInfo
         this.memoryInfo = null;
         this.cpuCores = null;
         this.systemMonitoringUrl = null;
+        this.encryption = false;
+        this.redisEnabled = false;
+        this.redisHostname = null;
+        this.systemId = null;
+        this.clusterHostname = null;
 
         if ( this.databaseInfo != null )
         {
             this.databaseInfo.clearSensitiveInfo();
         }
-    }
-
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getContextPath()
-    {
-        return contextPath;
-    }
-
-    public void setContextPath( String contextPath )
-    {
-        this.contextPath = contextPath;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getUserAgent()
-    {
-        return userAgent;
-    }
-
-    public void setUserAgent( String userAgent )
-    {
-        this.userAgent = userAgent;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getCalendar()
-    {
-        return calendar;
-    }
-
-    public void setCalendar( String calendar )
-    {
-        this.calendar = calendar;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getDateFormat()
-    {
-        return dateFormat;
-    }
-
-    public void setDateFormat( String dateFormat )
-    {
-        this.dateFormat = dateFormat;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Date getServerDate()
-    {
-        return serverDate;
-    }
-
-    public void setServerDate( Date serverDate )
-    {
-        this.serverDate = serverDate;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getServerTimeZoneId()
-    {
-        return serverTimeZoneId;
-    }
-
-    public void setServerTimeZoneId( String serverTimeZoneId )
-    {
-        this.serverTimeZoneId = serverTimeZoneId;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getServerTimeZoneDisplayName()
-    {
-        return serverTimeZoneDisplayName;
-    }
-
-    public void setServerTimeZoneDisplayName( String serverTimeZoneDisplayName )
-    {
-        this.serverTimeZoneDisplayName = serverTimeZoneDisplayName;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Date getLastAnalyticsTableSuccess()
-    {
-        return lastAnalyticsTableSuccess;
-    }
-
-    public void setLastAnalyticsTableSuccess( Date lastAnalyticsTableSuccess )
-    {
-        this.lastAnalyticsTableSuccess = lastAnalyticsTableSuccess;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getIntervalSinceLastAnalyticsTableSuccess()
-    {
-        return intervalSinceLastAnalyticsTableSuccess;
-    }
-
-    public void setIntervalSinceLastAnalyticsTableSuccess( String intervalSinceLastAnalyticsTableSuccess )
-    {
-        this.intervalSinceLastAnalyticsTableSuccess = intervalSinceLastAnalyticsTableSuccess;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getLastAnalyticsTableRuntime()
-    {
-        return lastAnalyticsTableRuntime;
-    }
-
-    public void setLastAnalyticsTableRuntime( String lastAnalyticsTableRuntime )
-    {
-        this.lastAnalyticsTableRuntime = lastAnalyticsTableRuntime;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Date getLastAnalyticsTablePartitionSuccess()
-    {
-        return lastAnalyticsTablePartitionSuccess;
-    }
-
-    public void setLastAnalyticsTablePartitionSuccess( Date lastAnalyticsTablePartitionSuccess )
-    {
-        this.lastAnalyticsTablePartitionSuccess = lastAnalyticsTablePartitionSuccess;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getIntervalSinceLastAnalyticsTablePartitionSuccess()
-    {
-        return intervalSinceLastAnalyticsTablePartitionSuccess;
-    }
-
-    public void setIntervalSinceLastAnalyticsTablePartitionSuccess(
-        String intervalSinceLastAnalyticsTablePartitionSuccess )
-    {
-        this.intervalSinceLastAnalyticsTablePartitionSuccess = intervalSinceLastAnalyticsTablePartitionSuccess;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getLastAnalyticsTablePartitionRuntime()
-    {
-        return lastAnalyticsTablePartitionRuntime;
-    }
-
-    public void setLastAnalyticsTablePartitionRuntime( String lastAnalyticsTablePartitionRuntime )
-    {
-        this.lastAnalyticsTablePartitionRuntime = lastAnalyticsTablePartitionRuntime;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Date getLastSystemMonitoringSuccess()
-    {
-        return lastSystemMonitoringSuccess;
-    }
-
-    public void setLastSystemMonitoringSuccess( Date lastSystemMonitoringSuccess )
-    {
-        this.lastSystemMonitoringSuccess = lastSystemMonitoringSuccess;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getVersion()
-    {
-        return version;
-    }
-
-    public void setVersion( String version )
-    {
-        this.version = version;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getRevision()
-    {
-        return revision;
-    }
-
-    public void setRevision( String revision )
-    {
-        this.revision = revision;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Date getBuildTime()
-    {
-        return buildTime;
-    }
-
-    public void setBuildTime( Date buildTime )
-    {
-        this.buildTime = buildTime;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getJasperReportsVersion()
-    {
-        return jasperReportsVersion;
-    }
-
-    public void setJasperReportsVersion( String jasperReportsVersion )
-    {
-        this.jasperReportsVersion = jasperReportsVersion;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getEnvironmentVariable()
-    {
-        return environmentVariable;
-    }
-
-    public void setEnvironmentVariable( String environmentVariable )
-    {
-        this.environmentVariable = environmentVariable;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getFileStoreProvider()
-    {
-        return fileStoreProvider;
-    }
-
-    public void setFileStoreProvider( String fileStoreProvider )
-    {
-        this.fileStoreProvider = fileStoreProvider;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getReadOnlyMode()
-    {
-        return readOnlyMode;
-    }
-
-    public void setReadOnlyMode( String readOnlyMode )
-    {
-        this.readOnlyMode = readOnlyMode;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getNodeId()
-    {
-        return nodeId;
-    }
-
-    public void setNodeId( String nodeId )
-    {
-        this.nodeId = nodeId;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getJavaVersion()
-    {
-        return javaVersion;
-    }
-
-    public void setJavaVersion( String javaVersion )
-    {
-        this.javaVersion = javaVersion;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getJavaVendor()
-    {
-        return javaVendor;
-    }
-
-    public void setJavaVendor( String javaVendor )
-    {
-        this.javaVendor = javaVendor;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getJavaOpts()
-    {
-        return javaOpts;
-    }
-
-    public void setJavaOpts( String javaOpts )
-    {
-        this.javaOpts = javaOpts;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getOsName()
-    {
-        return osName;
-    }
-
-    public void setOsName( String osName )
-    {
-        this.osName = osName;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getOsArchitecture()
-    {
-        return osArchitecture;
-    }
-
-    public void setOsArchitecture( String osArchitecture )
-    {
-        this.osArchitecture = osArchitecture;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getOsVersion()
-    {
-        return osVersion;
-    }
-
-    public void setOsVersion( String osVersion )
-    {
-        this.osVersion = osVersion;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getExternalDirectory()
-    {
-        return externalDirectory;
-    }
-
-    public void setExternalDirectory( String externalDirectory )
-    {
-        this.externalDirectory = externalDirectory;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public DatabaseInfo getDatabaseInfo()
-    {
-        return databaseInfo;
-    }
-
-    public void setDatabaseInfo( DatabaseInfo databaseInfo )
-    {
-        this.databaseInfo = databaseInfo;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Integer getReadReplicaCount()
-    {
-        return readReplicaCount;
-    }
-
-    public void setReadReplicaCount( Integer readReplicaCount )
-    {
-        this.readReplicaCount = readReplicaCount;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getMemoryInfo()
-    {
-        return memoryInfo;
-    }
-
-    public void setMemoryInfo( String memoryInfo )
-    {
-        this.memoryInfo = memoryInfo;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Integer getCpuCores()
-    {
-        return cpuCores;
-    }
-
-    public void setCpuCores( Integer cpuCores )
-    {
-        this.cpuCores = cpuCores;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isEncryption()
-    {
-        return encryption;
-    }
-
-    public void setEncryption( boolean encryption )
-    {
-        this.encryption = encryption;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isEmailConfigured()
-    {
-        return emailConfigured;
-    }
-
-    public void setEmailConfigured( boolean emailConfigured )
-    {
-        this.emailConfigured = emailConfigured;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isRedisEnabled()
-    {
-        return redisEnabled;
-    }
-
-    public void setRedisEnabled( boolean redisEnabled )
-    {
-        this.redisEnabled = redisEnabled;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getRedisHostname()
-    {
-        return redisHostname;
-    }
-
-    public void setRedisHostname( String redisHostname )
-    {
-        this.redisHostname = redisHostname;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getSystemId()
-    {
-        return systemId;
-    }
-
-    public void setSystemId( String systemId )
-    {
-        this.systemId = systemId;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getSystemName()
-    {
-        return systemName;
-    }
-
-    public void setSystemName( String systemName )
-    {
-        this.systemName = systemName;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getSystemMetadataVersion()
-    {
-        return systemMetadataVersion;
-    }
-
-    public void setSystemMetadataVersion( String systemMetadataVersion )
-    {
-        this.systemMetadataVersion = systemMetadataVersion;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getInstanceBaseUrl()
-    {
-        return instanceBaseUrl;
-    }
-
-    public void setInstanceBaseUrl( String instanceBaseUrl )
-    {
-        this.instanceBaseUrl = instanceBaseUrl;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getSystemMonitoringUrl()
-    {
-        return systemMonitoringUrl;
-    }
-
-    public void setSystemMonitoringUrl( String systemMonitoringUrl )
-    {
-        this.systemMonitoringUrl = systemMonitoringUrl;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getClusterHostname()
-    {
-        return clusterHostname;
-    }
-
-    public void setClusterHostname( String clusterHostname )
-    {
-        this.clusterHostname = clusterHostname;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Boolean getIsMetadataVersionEnabled()
-    {
-        return isMetadataVersionEnabled;
-    }
-
-    public void setIsMetadataVersionEnabled( Boolean isMetadataVersionEnabled )
-    {
-        this.isMetadataVersionEnabled = isMetadataVersionEnabled;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Date getLastMetadataVersionSyncAttempt()
-    {
-        return lastMetadataVersionSyncAttempt;
-    }
-
-    public void setLastMetadataVersionSyncAttempt( Date lastMetadataVersionSyncAttempt )
-    {
-        this.lastMetadataVersionSyncAttempt = lastMetadataVersionSyncAttempt;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isMetadataSyncEnabled()
-    {
-        return isMetadataSyncEnabled;
-    }
-
-    public void setMetadataSyncEnabled( boolean isMetadataSyncEnabled )
-    {
-        this.isMetadataSyncEnabled = isMetadataSyncEnabled;
     }
 }
