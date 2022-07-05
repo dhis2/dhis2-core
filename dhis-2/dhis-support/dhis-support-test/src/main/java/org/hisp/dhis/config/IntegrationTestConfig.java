@@ -43,6 +43,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.ldap.authentication.LdapAuthenticator;
 import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
 import org.testcontainers.containers.JdbcDatabaseContainer;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -50,6 +51,7 @@ import org.testcontainers.containers.JdbcDatabaseContainer;
 @Slf4j
 @Configuration
 @ComponentScan( "org.hisp.dhis" )
+@Testcontainers
 public class IntegrationTestConfig
 {
     private static final String POSTGRES_DATABASE_NAME = "dhis";
@@ -57,6 +59,8 @@ public class IntegrationTestConfig
     private static final String POSTGRES_CREDENTIALS = "dhis";
 
     public static final String CREATE_UPDATE_DELETE = "CREATE;UPDATE;DELETE";
+
+    private static final JdbcDatabaseContainer<?> postgreSQLContainer = initContainer();
 
     @Bean
     public LdapAuthenticator ldapAuthenticator()
@@ -80,7 +84,6 @@ public class IntegrationTestConfig
     public DhisConfigurationProvider dhisConfigurationProvider()
     {
         PostgresDhisConfigurationProvider dhisConfigurationProvider = new PostgresDhisConfigurationProvider();
-        JdbcDatabaseContainer<?> postgreSQLContainer = initContainer();
 
         final String username = postgreSQLContainer.getUsername();
         final String password = postgreSQLContainer.getPassword();
@@ -106,7 +109,7 @@ public class IntegrationTestConfig
         return dhisConfigurationProvider;
     }
 
-    private JdbcDatabaseContainer<?> initContainer()
+    private static JdbcDatabaseContainer<?> initContainer()
     {
         // NOSONAR
         DhisPostgreSQLContainer<?> postgisContainer = ((DhisPostgreSQLContainer<?>) new DhisPostgisContainerProvider()
