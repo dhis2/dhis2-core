@@ -438,6 +438,7 @@ public class HibernateDbmsManager
         try
         {
             jdbcTemplate.execute( "drop table  if exists " + table );
+            log.error( "Table " + table + " deleted" );
         }
         catch ( BadSqlGrammarException ex )
         {
