@@ -37,7 +37,6 @@ import lombok.Setter;
 
 import org.apache.commons.beanutils.BeanUtils;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -64,7 +63,7 @@ public class DatabaseInfo
     private String databaseVersion;
 
     @JsonProperty
-    private Boolean spatialSupport;
+    private boolean spatialSupport;
 
     // -------------------------------------------------------------------------
     // Logic
@@ -77,7 +76,7 @@ public class DatabaseInfo
         this.password = null;
         this.url = null;
         this.databaseVersion = null;
-        this.spatialSupport = null;
+        this.spatialSupport = false;
     }
 
     /**
@@ -97,12 +96,6 @@ public class DatabaseInfo
         }
 
         return cloned;
-    }
-
-    @JsonIgnore
-    public boolean isSpatialSupport()
-    {
-        return spatialSupport != null && spatialSupport;
     }
 
     // -------------------------------------------------------------------------

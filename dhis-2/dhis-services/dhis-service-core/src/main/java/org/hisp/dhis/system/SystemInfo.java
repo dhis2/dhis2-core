@@ -36,7 +36,6 @@ import lombok.Setter;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.springframework.beans.BeanUtils;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -159,13 +158,13 @@ public class SystemInfo
     private Integer cpuCores;
 
     @JsonProperty
-    private Boolean encryption;
+    private boolean encryption;
 
     @JsonProperty
-    private Boolean emailConfigured;
+    private boolean emailConfigured;
 
     @JsonProperty
-    private Boolean redisEnabled;
+    private boolean redisEnabled;
 
     @JsonProperty
     private String redisHostname;
@@ -238,17 +237,5 @@ public class SystemInfo
         {
             this.databaseInfo.clearSensitiveInfo();
         }
-    }
-
-    @JsonIgnore
-    public boolean isEmailConfigured()
-    {
-        return emailConfigured != null && emailConfigured;
-    }
-
-    @JsonIgnore
-    public boolean isRedisEnabled()
-    {
-        return redisEnabled != null && redisEnabled;
     }
 }
