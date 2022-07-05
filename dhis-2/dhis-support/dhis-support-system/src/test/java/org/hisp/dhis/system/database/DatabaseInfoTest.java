@@ -36,8 +36,6 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.junit.jupiter.api.Test;
 
 /**
- * Unit tests for {@link DatabaseInfo}.
- *
  * @author Volker Schmidt
  */
 class DatabaseInfoTest
