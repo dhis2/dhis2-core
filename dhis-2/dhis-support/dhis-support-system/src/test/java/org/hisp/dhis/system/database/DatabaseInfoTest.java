@@ -50,7 +50,7 @@ class DatabaseInfoTest
         databaseInfo.setUrl( "theUrl" );
         databaseInfo.setPassword( "myPassword" );
         databaseInfo.setDatabaseVersion( "xzy 10.7" );
-        databaseInfo.setSpatialSupport( true );
+        databaseInfo.setSpatialSupport( Boolean.TRUE );
     }
 
     @Test
@@ -63,7 +63,7 @@ class DatabaseInfoTest
         Assertions.assertEquals( databaseInfo.getUrl(), cloned.getUrl() );
         Assertions.assertEquals( databaseInfo.getPassword(), cloned.getPassword() );
         Assertions.assertEquals( databaseInfo.getDatabaseVersion(), cloned.getDatabaseVersion() );
-        Assertions.assertEquals( databaseInfo.isSpatialSupport(), cloned.isSpatialSupport() );
+        Assertions.assertEquals( databaseInfo.getSpatialSupport(), cloned.getSpatialSupport() );
     }
 
     @Test
@@ -75,6 +75,6 @@ class DatabaseInfoTest
         Assertions.assertNull( databaseInfo.getUrl() );
         Assertions.assertNull( databaseInfo.getPassword() );
         Assertions.assertNull( databaseInfo.getDatabaseVersion() );
-        Assertions.assertTrue( databaseInfo.isSpatialSupport() );
+        Assertions.assertNull( databaseInfo.getSpatialSupport() );
     }
 }

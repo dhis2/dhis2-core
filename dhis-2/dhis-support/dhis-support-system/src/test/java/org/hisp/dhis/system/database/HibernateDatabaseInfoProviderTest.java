@@ -119,6 +119,6 @@ class HibernateDatabaseInfoProviderTest
         assertEquals( "dhis", databaseInfo.getUser() );
         assertEquals( "dhisz", databaseInfo.getPassword() );
         assertEquals( "PostgreSQL 10.5", databaseInfo.getDatabaseVersion() );
-        assertTrue( databaseInfo.isSpatialSupport() );
+        assertTrue( databaseInfo.getSpatialSupport() );
     }
 }

@@ -31,36 +31,40 @@ import java.lang.reflect.InvocationTargetException;
 
 import javax.annotation.Nonnull;
 
-import org.apache.commons.beanutils.BeanUtils;
-import org.hisp.dhis.common.DxfNamespaces;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+import org.apache.commons.beanutils.BeanUtils;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 /**
  * @author Lars Helge Overland
  */
+@Getter
+@Setter
+@NoArgsConstructor
 public class DatabaseInfo
 {
+    @JsonProperty
     private String name;
 
+    @JsonProperty
     private String user;
 
+    @JsonProperty
     private String password;
 
+    @JsonProperty
     private String url;
 
+    @JsonProperty
     private String databaseVersion;
 
+    @JsonProperty
     private Boolean spatialSupport;
-
-    // -------------------------------------------------------------------------
-    // Constructor
-    // -------------------------------------------------------------------------
-
-    public DatabaseInfo()
-    {
-    }
 
     // -------------------------------------------------------------------------
     // Logic
@@ -76,80 +80,6 @@ public class DatabaseInfo
         this.spatialSupport = null;
     }
 
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getName()
-    {
-        return name;
-    }
-
-    public void setName( String name )
-    {
-        this.name = name;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getUser()
-    {
-        return user;
-    }
-
-    public void setUser( String user )
-    {
-        this.user = user;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getDatabaseVersion()
-    {
-        return databaseVersion;
-    }
-
-    public void setDatabaseVersion( String databaseVersion )
-    {
-        this.databaseVersion = databaseVersion;
-    }
-
-    public String getPassword()
-    {
-        return password;
-    }
-
-    public void setPassword( String password )
-    {
-        this.password = password;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getUrl()
-    {
-        return url;
-    }
-
-    public void setUrl( String url )
-    {
-        this.url = url;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isSpatialSupport()
-    {
-        return spatialSupport;
-    }
-
-    public void setSpatialSupport( boolean spatialSupport )
-    {
-        this.spatialSupport = spatialSupport;
-    }
-
     /**
      * @return a cloned instance of this object.
      */
@@ -161,12 +91,18 @@ public class DatabaseInfo
         {
             BeanUtils.copyProperties( cloned, this );
         }
-        catch ( IllegalAccessException | InvocationTargetException e )
+        catch ( IllegalAccessException | InvocationTargetException ex )
         {
-            throw new IllegalStateException( e );
+            throw new IllegalStateException( ex );
         }
 
         return cloned;
+    }
+
+    @JsonIgnore
+    public boolean isSpatialSupport()
+    {
+        return spatialSupport != null && spatialSupport;
     }
 
     // -------------------------------------------------------------------------
@@ -178,7 +114,6 @@ public class DatabaseInfo
     {
         return "[Name: " + name +
             ", User: " + user +
-            ", Password: " + password +
             ", URL: " + url + "]";
     }
 }
