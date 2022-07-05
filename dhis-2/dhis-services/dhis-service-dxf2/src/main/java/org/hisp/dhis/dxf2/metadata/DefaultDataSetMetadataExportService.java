@@ -34,7 +34,9 @@ import static org.hisp.dhis.commons.collection.CollectionUtils.mapToSet;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import lombok.AllArgsConstructor;
 
@@ -129,7 +131,7 @@ public class DefaultDataSetMetadataExportService
         Set<Category> dataSetCategories = flatMapToSet( dataSetCategoryCombos, CategoryCombo::getCategories );
         Set<Category> categories = union( dataElementCategories, dataSetCategories );
         Set<CategoryOption> categoryOptions = getCategoryOptions( dataElementCategories, dataSetCategories, user );
-        Set<OptionSet> optionSets = mapToSet( dataElements, DataElement::getOptionSet );
+        Set<OptionSet> optionSets = getOptionSets( dataElements );
 
         dataSetCategoryCombos.remove( defaultCategoryCombo );
         expressionService.substituteIndicatorExpressions( indicators );
@@ -171,6 +173,20 @@ public class DefaultDataSetMetadataExportService
         Set<CategoryOption> options = flatMapToSet( dataElementCategories, Category::getCategoryOptions );
         dataSetCategories.forEach( c -> options.addAll( categoryService.getDataWriteCategoryOptions( c, user ) ) );
         return options;
+    }
+
+    /**
+     * Returns option sets for the given data elements.
+     *
+     * @param dataElements the set of data elements.
+     * @return a set of option sets.
+     */
+    private Set<OptionSet> getOptionSets( Set<DataElement> dataElements )
+    {
+        return dataElements.stream()
+            .map( DataElement::getOptionSet )
+            .filter( Objects::nonNull )
+            .collect( Collectors.toSet() );
     }
 
     /**
