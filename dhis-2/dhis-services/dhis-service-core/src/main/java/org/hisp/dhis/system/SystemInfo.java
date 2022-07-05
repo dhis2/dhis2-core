@@ -121,11 +121,11 @@ public class SystemInfo
 
     private Integer cpuCores;
 
-    private boolean encryption;
+    private Boolean encryption;
 
-    private boolean emailConfigured;
+    private Boolean emailConfigured;
 
-    private boolean redisEnabled;
+    private Boolean redisEnabled;
 
     private String redisHostname;
 
@@ -145,7 +145,7 @@ public class SystemInfo
 
     private Date lastMetadataVersionSyncAttempt;
 
-    private boolean isMetadataSyncEnabled;
+    private Boolean isMetadataSyncEnabled;
 
     public SystemInfo instance()
     {
@@ -162,6 +162,8 @@ public class SystemInfo
 
     public void clearSensitiveInfo()
     {
+        this.jasperReportsVersion = null;
+        this.environmentVariable = null;
         this.fileStoreProvider = null;
         this.readOnlyMode = null;
         this.nodeId = null;
@@ -176,6 +178,11 @@ public class SystemInfo
         this.memoryInfo = null;
         this.cpuCores = null;
         this.systemMonitoringUrl = null;
+        this.encryption = false;
+        this.redisEnabled = false;
+        this.redisHostname = null;
+        this.systemId = null;
+        this.clusterHostname = null;
 
         if ( this.databaseInfo != null )
         {

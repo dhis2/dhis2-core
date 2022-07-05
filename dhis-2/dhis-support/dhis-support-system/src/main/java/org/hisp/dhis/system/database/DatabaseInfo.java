@@ -52,7 +52,7 @@ public class DatabaseInfo
 
     private String databaseVersion;
 
-    private boolean spatialSupport;
+    private Boolean spatialSupport;
 
     // -------------------------------------------------------------------------
     // Constructor
@@ -73,6 +73,7 @@ public class DatabaseInfo
         this.password = null;
         this.url = null;
         this.databaseVersion = null;
+        this.spatialSupport = null;
     }
 
     // -------------------------------------------------------------------------
@@ -175,7 +176,9 @@ public class DatabaseInfo
     @Override
     public String toString()
     {
-        return "[Name: " + name + ", User: " + user + ", Password: " + password +
+        return "[Name: " + name +
+            ", User: " + user +
+            ", Password: " + password +
             ", URL: " + url + "]";
     }
 }
