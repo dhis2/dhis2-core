@@ -54,8 +54,8 @@ class AnalyticsDataExchangeStoreTest extends TransactionalIntegrationTest
         store.save( deA );
         store.save( deB );
 
-        assertNotNull( store.getByUid( deA.getUid() ) );
-        assertNotNull( store.getByUid( deB.getUid() ) );
+        assertNotNull( store.getByUidNoAcl( deA.getUid() ) );
+        assertNotNull( store.getByUidNoAcl( deB.getUid() ) );
     }
 
     @Test
