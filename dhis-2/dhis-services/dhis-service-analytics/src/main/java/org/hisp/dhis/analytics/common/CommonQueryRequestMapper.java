@@ -132,7 +132,7 @@ public class CommonQueryRequestMapper
             Collection<String> dimensionsOrFilter = dimensionParamType.getUidsGetter().apply( request );
             dimensionParams.addAll(
                 dimensionsOrFilter.stream()
-                    .map( dof -> toDimensionParams( dof, dimensionParamType, request, programs, userOrgUnits ) )
+                    .map( dof -> toDimensionIdentifier( dof, dimensionParamType, request, programs, userOrgUnits ) )
                     .collect( Collectors.toList() ) );
         }
         return ImmutableList.copyOf( dimensionParams );
@@ -142,7 +142,7 @@ public class CommonQueryRequestMapper
      * Return a collection of DimensionParams built from request
      * dimension/filter parameter
      */
-    private DimensionIdentifier<Program, ProgramStage, DimensionParam> toDimensionParams( String dimensionOrFilter,
+    private DimensionIdentifier<Program, ProgramStage, DimensionParam> toDimensionIdentifier( String dimensionOrFilter,
         DimensionParamType dimensionParamType,
         CommonQueryRequest request,
         Collection<Program> programs, List<OrganisationUnit> userOrgUnits )
