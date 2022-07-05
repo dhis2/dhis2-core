@@ -27,54 +27,57 @@
  */
 package org.hisp.dhis.system.database;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertNull;
+
+import org.apache.commons.beanutils.BeanUtils;
 import org.junit.jupiter.api.Test;
 
 /**
- * Unit tests for {@link DatabaseInfo}.
- *
  * @author Volker Schmidt
  */
 class DatabaseInfoTest
 {
-
-    private DatabaseInfo databaseInfo;
-
-    @BeforeEach
-    void setUp()
+    @Test
+    void cloneDatabaseInfo()
+        throws Exception
     {
-        databaseInfo = new DatabaseInfo();
+        DatabaseInfo databaseInfo = getDataBaseInfo();
+        DatabaseInfo cloned = databaseInfo.instance();
+        BeanUtils.copyProperties( cloned, databaseInfo );
+        assertNotSame( databaseInfo, cloned );
+        assertEquals( databaseInfo.getName(), cloned.getName() );
+        assertEquals( databaseInfo.getUser(), cloned.getUser() );
+        assertEquals( databaseInfo.getUrl(), cloned.getUrl() );
+        assertEquals( databaseInfo.getPassword(), cloned.getPassword() );
+        assertEquals( databaseInfo.getDatabaseVersion(), cloned.getDatabaseVersion() );
+        assertEquals( databaseInfo.isSpatialSupport(), cloned.isSpatialSupport() );
+    }
+
+    @Test
+    void clearSensitiveInfo()
+    {
+        DatabaseInfo databaseInfo = getDataBaseInfo();
+        databaseInfo.clearSensitiveInfo();
+        assertNull( databaseInfo.getName() );
+        assertNull( databaseInfo.getUser() );
+        assertNull( databaseInfo.getUrl() );
+        assertNull( databaseInfo.getPassword() );
+        assertNull( databaseInfo.getDatabaseVersion() );
+        assertFalse( databaseInfo.isSpatialSupport() );
+    }
+
+    private DatabaseInfo getDataBaseInfo()
+    {
+        DatabaseInfo databaseInfo = new DatabaseInfo();
         databaseInfo.setName( "testDatabase" );
         databaseInfo.setUser( "testUser" );
         databaseInfo.setUrl( "theUrl" );
         databaseInfo.setPassword( "myPassword" );
         databaseInfo.setDatabaseVersion( "xzy 10.7" );
         databaseInfo.setSpatialSupport( true );
-    }
-
-    @Test
-    void cloneDatabaseInfo()
-    {
-        final DatabaseInfo cloned = databaseInfo.instance();
-        Assertions.assertNotSame( databaseInfo, cloned );
-        Assertions.assertEquals( databaseInfo.getName(), cloned.getName() );
-        Assertions.assertEquals( databaseInfo.getUser(), cloned.getUser() );
-        Assertions.assertEquals( databaseInfo.getUrl(), cloned.getUrl() );
-        Assertions.assertEquals( databaseInfo.getPassword(), cloned.getPassword() );
-        Assertions.assertEquals( databaseInfo.getDatabaseVersion(), cloned.getDatabaseVersion() );
-        Assertions.assertEquals( databaseInfo.isSpatialSupport(), cloned.isSpatialSupport() );
-    }
-
-    @Test
-    void clearSensitiveInfo()
-    {
-        databaseInfo.clearSensitiveInfo();
-        Assertions.assertNull( databaseInfo.getName() );
-        Assertions.assertNull( databaseInfo.getUser() );
-        Assertions.assertNull( databaseInfo.getUrl() );
-        Assertions.assertNull( databaseInfo.getPassword() );
-        Assertions.assertNull( databaseInfo.getDatabaseVersion() );
-        Assertions.assertTrue( databaseInfo.isSpatialSupport() );
+        return databaseInfo;
     }
 }
