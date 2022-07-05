@@ -52,12 +52,14 @@ import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.schema.descriptors.CategoryComboSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.CategoryOptionSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.CategorySchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.DataElementSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.DataSetSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.IndicatorSchemaDescriptor;
+import org.hisp.dhis.schema.descriptors.OptionSetSchemaDescriptor;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
@@ -94,6 +96,8 @@ public class DefaultDataSetMetadataExportService
 
     private static final String FIELDS_CATEGORIES = ":simple,categoryOptions~pluck[id]";
 
+    private static final String FIELDS_OPTION_SETS = ":simple,options[id,code,displayName]";
+
     private final FieldFilterService fieldFilterService;
 
     private final IdentifiableObjectManager idObjectManager;
@@ -125,6 +129,7 @@ public class DefaultDataSetMetadataExportService
         Set<Category> dataSetCategories = flatMapToSet( dataSetCategoryCombos, CategoryCombo::getCategories );
         Set<Category> categories = union( dataElementCategories, dataSetCategories );
         Set<CategoryOption> categoryOptions = getCategoryOptions( dataElementCategories, dataSetCategories, user );
+        Set<OptionSet> optionSets = mapToSet( dataElements, DataElement::getOptionSet );
 
         dataSetCategoryCombos.remove( defaultCategoryCombo );
         expressionService.substituteIndicatorExpressions( indicators );
@@ -144,6 +149,8 @@ public class DefaultDataSetMetadataExportService
             .addAll( toObjectNodes( categories, FIELDS_CATEGORIES, Category.class ) );
         rootNode.putArray( CategoryOptionSchemaDescriptor.PLURAL )
             .addAll( toObjectNodes( categoryOptions, FIELDS_CATEGORIES, CategoryOption.class ) );
+        rootNode.putArray( OptionSetSchemaDescriptor.PLURAL )
+            .addAll( toObjectNodes( optionSets, FIELDS_OPTION_SETS, OptionSet.class ) );
 
         return rootNode;
     }
