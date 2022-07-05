@@ -43,6 +43,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.ldap.authentication.LdapAuthenticator;
 import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
 import org.testcontainers.containers.JdbcDatabaseContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -50,6 +52,7 @@ import org.testcontainers.containers.JdbcDatabaseContainer;
 @Slf4j
 @Configuration
 @ComponentScan( "org.hisp.dhis" )
+@Testcontainers
 public class IntegrationTestConfig
 {
     private static final String POSTGRES_DATABASE_NAME = "dhis";
@@ -76,19 +79,21 @@ public class IntegrationTestConfig
         return new BCryptPasswordEncoder();
     }
 
+    @Container
+    private static final JdbcDatabaseContainer<?> postgreSQLContainer = initContainer();
+
     @Bean( name = "dhisConfigurationProvider" )
     public DhisConfigurationProvider dhisConfigurationProvider()
     {
         PostgresDhisConfigurationProvider dhisConfigurationProvider = new PostgresDhisConfigurationProvider();
-        JdbcDatabaseContainer<?> postgreSQLContainer = initContainer();
 
         final String username = postgreSQLContainer.getUsername();
         final String password = postgreSQLContainer.getPassword();
 
         Properties properties = new Properties();
 
-        String jdbcUrl = postgreSQLContainer.getJdbcUrl();
-        properties.setProperty( "connection.url", jdbcUrl );
+        properties.setProperty( "connection.url",
+            "jdbc:tc:postgis:" + DhisPostgisContainerProvider.DEFAULT_TAG + ":///" + POSTGRES_DATABASE_NAME );
         properties.setProperty( "connection.dialect", "org.hisp.dhis.hibernate.dialect.DhisPostgresDialect" );
         properties.setProperty( "connection.driver_class", "org.postgresql.Driver" );
         properties.setProperty( "connection.username", username );
@@ -106,7 +111,7 @@ public class IntegrationTestConfig
         return dhisConfigurationProvider;
     }
 
-    private JdbcDatabaseContainer<?> initContainer()
+    private static JdbcDatabaseContainer<?> initContainer()
     {
         // NOSONAR
         DhisPostgreSQLContainer<?> postgisContainer = ((DhisPostgreSQLContainer<?>) new DhisPostgisContainerProvider()
