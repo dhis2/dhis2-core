@@ -33,31 +33,26 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.common.CommonQueryRequestMapper;
 import org.hisp.dhis.analytics.common.QueryRequest;
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
-@Service
+@Component
 @RequiredArgsConstructor
 public class TeiRequestMapper
 {
 
     private final CommonQueryRequestMapper commonQueryRequestMapper;
 
-    private final ProgramService programService;
-
     private final TrackedEntityTypeService trackedEntityTypeService;
 
-    public TeiQueryParams map( QueryRequest<TeiQueryRequest> queryRequest, DhisApiVersion apiVersion )
+    public TeiQueryParams map( QueryRequest<TeiQueryRequest> queryRequest )
     {
         return TeiQueryParams.builder()
             .trackedEntityType( getTrackedEntityType( queryRequest ) )
             .commonParams( commonQueryRequestMapper.map(
                 queryRequest.getCommonQueryRequest(),
-                queryRequest.getPagingCriteria(),
-                apiVersion ) )
+                queryRequest.getPagingCriteria() ) )
             .build();
     }
 
@@ -68,5 +63,4 @@ public class TeiRequestMapper
             .orElseThrow( () -> new IllegalArgumentException( "Unable to find TrackedEntityType with UID: "
                 + queryRequest.getRequest().getTrackedEntityType() ) );
     }
-
 }

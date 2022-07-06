@@ -25,36 +25,68 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.common;
+package org.hisp.dhis.analytics.common.dimension;
 
+import java.util.Objects;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.common.AnalyticsPagingCriteria;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
-import org.springframework.stereotype.Component;
-
 /**
- * Processor class for AnalyticsPagingCriteria objects.
- *
- * @see Processor
+ * Class to identify a Dimension in analytics In TEI CPL, a dimension can be
+ * composed by up to 3 coordinates: Program, Stage and dimensionId
  */
-@Component
-@RequiredArgsConstructor
-public class PagingCriteriaProcessor implements Processor<AnalyticsPagingCriteria>
+@Data
+@AllArgsConstructor( staticName = "of" )
+public class DimensionIdentifier<P, PS, D>
 {
+    private final ElementWithOffset<P> program;
 
-    private final SystemSettingManager systemSettingManager;
+    private final ElementWithOffset<PS> programStage;
 
-    // TODO: DHIS2-13384 we would really like to have all
-    // criteria/request/params to be
-    // immutable, but PagingCriteria is not
-    // returning it for now, should be converted to use builders
-    @Override
-    public AnalyticsPagingCriteria process( final AnalyticsPagingCriteria pagingCriteria )
+    private final D dimension;
+
+    public boolean hasProgram()
     {
-        int analyticsMaxPageSize = systemSettingManager.getIntSetting( SettingKey.ANALYTICS_MAX_LIMIT );
-        pagingCriteria.definePageSize( analyticsMaxPageSize );
-        return pagingCriteria;
+        return program != null && program.isPresent();
+    }
+
+    public boolean hasProgramStage()
+    {
+        return programStage != null && programStage.isPresent();
+    }
+
+    @Data
+    @RequiredArgsConstructor( staticName = "of" )
+    public static class ElementWithOffset<T>
+    {
+        private final T element;
+
+        private final String offset;
+
+        public boolean hasOffset()
+        {
+            return Objects.nonNull( offset );
+        }
+
+        public boolean isPresent()
+        {
+            return Objects.nonNull( element );
+        }
+
+        @Override
+        public String toString()
+        {
+            if ( isPresent() )
+            {
+                if ( hasOffset() )
+                {
+                    return element + "[" + offset + "]";
+                }
+                return element.toString();
+            }
+            return super.toString();
+        }
     }
 }

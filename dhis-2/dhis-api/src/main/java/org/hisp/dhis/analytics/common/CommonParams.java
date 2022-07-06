@@ -28,15 +28,16 @@
 package org.hisp.dhis.analytics.common;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 
 /**
  * This is a reusable and shared representation of queryable items to be used by
@@ -54,14 +55,15 @@ public class CommonParams
     /**
      * The list of Program objects carried on by this object.
      */
-    private final Collection<Program> programs;
+    @Builder.Default
+    private final List<Program> programs = new ArrayList<>();
 
     /**
      * Data structure containing dimensionParams, which can represent
      * dimensions, filters, queryItems or queryItemFilters.
      */
     @Builder.Default
-    private final List<DimensionParam> dimensionParams = new ArrayList<>();
+    private final List<DimensionIdentifier<Program, ProgramStage, DimensionParam>> dimensionIdentifiers = new ArrayList<>();
 
     /**
      * The object that groups the paging and sorting parameters.
