@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.h2;
 
+import static org.hisp.dhis.jsontree.JsonTypedAccess.GLOBAL;
+
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -92,7 +94,7 @@ public class H2SqlFunction
         {
             return "null";
         }
-        return new JsonResponse( content ).get( "$" ).node().getType().name().toLowerCase();
+        return JsonValue.of( content ).node().getType().name().toLowerCase();
     }
 
     // Postgres inbuilt function
@@ -105,7 +107,7 @@ public class H2SqlFunction
             {
                 return null;
             }
-            JsonValue value = new JsonResponse( content ).get( toJsonPath( paths ) );
+            JsonValue value = new JsonResponse( content, GLOBAL ).get( toJsonPath( paths ) );
             if ( !value.exists() )
             {
                 return null;
@@ -134,7 +136,7 @@ public class H2SqlFunction
             {
                 return null;
             }
-            JsonValue value = new JsonResponse( content ).get( toJsonPath( paths ) );
+            JsonValue value = new JsonResponse( content, GLOBAL ).get( toJsonPath( paths ) );
             if ( !value.exists() )
             {
                 return null;
