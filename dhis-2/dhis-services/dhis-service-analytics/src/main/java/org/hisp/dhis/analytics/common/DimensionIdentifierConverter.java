@@ -32,24 +32,21 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 /**
- * Service to convert string representation of a dimension into a
- * DimensionIdentifier
+ * Component responsible for converting string representations of dimensions
+ * into DimensionIdentifier objects.
  */
-@Service
-@RequiredArgsConstructor
-public class DimensionIdentifierService
+@Component
+public class DimensionIdentifierConverter
 {
 
-    public static final Character DIMENSION_SEPARATOR = '.';
+    private static final Character DIMENSION_SEPARATOR = '.';
 
     /**
      *
@@ -61,7 +58,7 @@ public class DimensionIdentifierService
     public DimensionIdentifier<Program, ProgramStage, String> fromString( List<Program> programs,
         String fullDimensionId )
     {
-        DimensionIdentifier<String, String, String> dimensionIdentifier = byFullDimensionId( fullDimensionId );
+        DimensionIdentifier<String, String, String> dimensionIdentifier = fromFullDimensionId( fullDimensionId );
 
         Optional<Program> programOptional = Optional.of( dimensionIdentifier )
             .map( DimensionIdentifier::getProgram )
@@ -91,14 +88,14 @@ public class DimensionIdentifierService
             }
             else
             {
-                throw new IllegalArgumentException( "Specified program " + programWithOffset + " does not exists" );
+                throw new IllegalArgumentException( "Specified program " + programWithOffset + " does not exist" );
             }
         }
         else if ( dimensionIdentifier.hasProgram() )
         { // example: {programUid}.PE
             Program program = programOptional
                 .orElseThrow( () -> new IllegalArgumentException(
-                    ("Specified program " + programWithOffset + " does not exists") ) );
+                    ("Specified program " + programWithOffset + " does not exist") ) );
 
             return DimensionIdentifier.of(
                 DimensionIdentifier.ElementWithOffset.of( program, programWithOffset.getOffset() ),
@@ -111,7 +108,7 @@ public class DimensionIdentifierService
         }
     }
 
-    private static DimensionIdentifier<String, String, String> byFullDimensionId( String fullDimensionId )
+    private static DimensionIdentifier<String, String, String> fromFullDimensionId( String fullDimensionId )
     {
         List<DimensionIdentifier.ElementWithOffset<String>> uidWithOffsets = parseFullDimensionId( fullDimensionId );
 
@@ -141,7 +138,7 @@ public class DimensionIdentifierService
     private static List<DimensionIdentifier.ElementWithOffset<String>> parseFullDimensionId( String fullDimensionId )
     {
         return Arrays.stream( StringUtils.split( fullDimensionId, DIMENSION_SEPARATOR ) )
-            .map( DimensionIdentifierService::elementWithOffsetBytString )
+            .map( DimensionIdentifierConverter::elementWithOffsetBytString )
             .collect( Collectors.toList() );
     }
 

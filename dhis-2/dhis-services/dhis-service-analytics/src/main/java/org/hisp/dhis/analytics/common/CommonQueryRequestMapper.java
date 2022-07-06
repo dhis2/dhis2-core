@@ -76,7 +76,7 @@ public class CommonQueryRequestMapper
 
     private final ProgramService programService;
 
-    private final DimensionIdentifierService dimensionIdentifierService;
+    private final DimensionIdentifierConverter dimensionIdentifierConverter;
 
     public CommonParams map( CommonQueryRequest request, AnalyticsPagingCriteria pagingCriteria )
     {
@@ -150,7 +150,7 @@ public class CommonQueryRequestMapper
 
         // We first parse the dimensionId into <Program, ProgramStage, String>
         // to be able to operate on the string version (uid) of the dimension.
-        DimensionIdentifier<Program, ProgramStage, String> dimensionIdentifier = dimensionIdentifierService
+        DimensionIdentifier<Program, ProgramStage, String> dimensionIdentifier = dimensionIdentifierConverter
             .fromString( programs, dimensionId );
         List<String> items = getDimensionItemsFromParam( dimensionOrFilter );
 

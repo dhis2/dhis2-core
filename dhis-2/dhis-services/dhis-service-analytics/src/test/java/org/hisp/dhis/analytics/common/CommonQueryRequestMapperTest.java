@@ -31,7 +31,6 @@ import static java.util.Collections.emptyList;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_DATA_X;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_ORGUNIT;
 import static org.hisp.dhis.analytics.EventOutputType.TRACKED_ENTITY_INSTANCE;
-import static org.hisp.dhis.common.DhisApiVersion.V38;
 import static org.hisp.dhis.common.DimensionType.DATA_X;
 import static org.hisp.dhis.common.DimensionType.ORGANISATION_UNIT;
 import static org.hisp.dhis.common.IdScheme.UID;
@@ -50,7 +49,6 @@ import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier.ElementWithO
 import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.common.AnalyticsPagingCriteria;
 import org.hisp.dhis.common.BaseDimensionalObject;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DimensionItemKeywords;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.dataelement.DataElement;
@@ -65,6 +63,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+/**
+ * Unit tests for {@link CommonQueryRequestMapper}
+ */
 @ExtendWith( MockitoExtension.class )
 class CommonQueryRequestMapperTest
 {
@@ -82,7 +83,7 @@ class CommonQueryRequestMapperTest
     private ProgramService programService;
 
     @Mock
-    private DimensionIdentifierService dimensionIdentifierService;
+    private DimensionIdentifierConverter dimensionIdentifierConverter;
 
     @Test
     void mapWithSuccessOnlyDimension()
@@ -99,7 +100,6 @@ class CommonQueryRequestMapperTest
         final String dimension = "ur1Edk5Oe2n[1].jdRD35YwbRH[y].yLIPuJHRgey";
 
         final AnalyticsPagingCriteria theAnalyticsPagingCriteria = new AnalyticsPagingCriteria();
-        final DhisApiVersion theDhisApiVersion = V38;
         final List<OrganisationUnit> organisationUnits = List.of( new OrganisationUnit( "org-1" ),
             new OrganisationUnit( "org-2" ) );
         final List<Program> programs = List.of( program1, program2 );
@@ -122,14 +122,14 @@ class CommonQueryRequestMapperTest
             .thenReturn( organisationUnits );
         when( programService.getPrograms( aCommonQueryRequest.getProgram() ) ).thenReturn( programs );
         when( i18nManager.getI18nFormat() ).thenReturn( anyI18nFormat );
-        when( dimensionIdentifierService.fromString( programs, dimension ) ).thenReturn( deDimensionIdentifier );
+        when( dimensionIdentifierConverter.fromString( programs, dimension ) ).thenReturn( deDimensionIdentifier );
         when( (dataQueryService.getDimension( (String) deDimensionIdentifier.getDimension(),
             List.of( queryItem ), aCommonQueryRequest.getRelativePeriodDate(), organisationUnits,
             i18nManager.getI18nFormat(), true, UID )) ).thenReturn( dimensionalObject );
 
         // When
         final CommonParams params = new CommonQueryRequestMapper( i18nManager, dataQueryService, eventDataQueryService,
-            programService, dimensionIdentifierService ).map( aCommonQueryRequest, theAnalyticsPagingCriteria );
+            programService, dimensionIdentifierConverter ).map( aCommonQueryRequest, theAnalyticsPagingCriteria );
 
         // Then
         assertEquals( 2, params.getPrograms().size(), "Should contain 2 programs." );
@@ -163,7 +163,6 @@ class CommonQueryRequestMapperTest
         final I18nFormat anyI18nFormat = new I18nFormat();
 
         final AnalyticsPagingCriteria theAnalyticsPagingCriteria = new AnalyticsPagingCriteria();
-        final DhisApiVersion theDhisApiVersion = V38;
         final List<OrganisationUnit> organisationUnits = List.of( new OrganisationUnit( "org-1" ),
             new OrganisationUnit( "org-2" ) );
         final List<Program> programs = List.of( program1, program2 );
@@ -188,14 +187,14 @@ class CommonQueryRequestMapperTest
             .thenReturn( organisationUnits );
         when( programService.getPrograms( aCommonQueryRequest.getProgram() ) ).thenReturn( programs );
         when( i18nManager.getI18nFormat() ).thenReturn( anyI18nFormat );
-        when( dimensionIdentifierService.fromString( programs, queryItem ) ).thenReturn( ouDimensionIdentifier );
+        when( dimensionIdentifierConverter.fromString( programs, queryItem ) ).thenReturn( ouDimensionIdentifier );
         when( (dataQueryService.getDimension( (String) ouDimensionIdentifier.getDimension(),
             List.of( orgUnitUid ), aCommonQueryRequest.getRelativePeriodDate(),
             organisationUnits, i18nManager.getI18nFormat(), true, UID )) ).thenReturn( dimensionalObject );
 
         // When
         final CommonParams params = new CommonQueryRequestMapper( i18nManager, dataQueryService, eventDataQueryService,
-            programService, dimensionIdentifierService ).map( aCommonQueryRequest, theAnalyticsPagingCriteria );
+            programService, dimensionIdentifierConverter ).map( aCommonQueryRequest, theAnalyticsPagingCriteria );
 
         // Then
         assertEquals( 2, params.getPrograms().size(), "Should contain 2 programs." );
@@ -230,7 +229,6 @@ class CommonQueryRequestMapperTest
         final String queryItemDimension = "EQ:john";
         final I18nFormat anyI18nFormat = new I18nFormat();
         final AnalyticsPagingCriteria theAnalyticsPagingCriteria = new AnalyticsPagingCriteria();
-        final DhisApiVersion theDhisApiVersion = V38;
         final List<OrganisationUnit> organisationUnits = List.of( new OrganisationUnit( "org-1" ),
             new OrganisationUnit( "org-2" ) );
         final List<Program> programs = List.of( program1, program2 );
@@ -260,19 +258,20 @@ class CommonQueryRequestMapperTest
         when( programService.getPrograms( aCommonQueryRequest.getProgram() ) ).thenReturn( programs );
         when( i18nManager.getI18nFormat() ).thenReturn( anyI18nFormat );
 
-        when( dimensionIdentifierService.fromString( programs, dimension ) ).thenReturn( deDimensionIdentifier );
+        when( dimensionIdentifierConverter.fromString( programs, dimension ) ).thenReturn( deDimensionIdentifier );
         when( (dataQueryService.getDimension( (String) deDimensionIdentifier.getDimension(),
             List.of( queryItemDimension ), aCommonQueryRequest.getRelativePeriodDate(), organisationUnits,
             i18nManager.getI18nFormat(), true, UID )) ).thenReturn( dimensionalObject );
 
-        when( dimensionIdentifierService.fromString( programs, orgUnitDimension ) ).thenReturn( ouDimensionIdentifier );
+        when( dimensionIdentifierConverter.fromString( programs, orgUnitDimension ) )
+            .thenReturn( ouDimensionIdentifier );
         when( (dataQueryService.getDimension( (String) ouDimensionIdentifier.getDimension(),
             List.of( queryItemFilter ), aCommonQueryRequest.getRelativePeriodDate(),
             organisationUnits, i18nManager.getI18nFormat(), true, UID )) ).thenReturn( orgUnitObject );
 
         // When
         final CommonParams params = new CommonQueryRequestMapper( i18nManager, dataQueryService, eventDataQueryService,
-            programService, dimensionIdentifierService ).map( aCommonQueryRequest, theAnalyticsPagingCriteria );
+            programService, dimensionIdentifierConverter ).map( aCommonQueryRequest, theAnalyticsPagingCriteria );
 
         // Then
         assertEquals( 2, params.getPrograms().size(), "Should contain 2 programs." );
@@ -303,7 +302,6 @@ class CommonQueryRequestMapperTest
         final String dimension = "ur1Edk5Oe2n[1].jdRD35YwbRH[y].yLIPuJHRgey";
 
         final AnalyticsPagingCriteria theAnalyticsPagingCriteria = new AnalyticsPagingCriteria();
-        final DhisApiVersion theDhisApiVersion = V38;
         final List<OrganisationUnit> organisationUnits = List.of( new OrganisationUnit( "org-1" ),
             new OrganisationUnit( "org-2" ) );
 
@@ -329,7 +327,7 @@ class CommonQueryRequestMapperTest
         // When
         final IllegalArgumentException thrown = assertThrows( IllegalArgumentException.class,
             () -> new CommonQueryRequestMapper( i18nManager, dataQueryService, eventDataQueryService,
-                programService, dimensionIdentifierService ).map( aCommonQueryRequest, theAnalyticsPagingCriteria ) );
+                programService, dimensionIdentifierConverter ).map( aCommonQueryRequest, theAnalyticsPagingCriteria ) );
 
         // Then
         assertEquals( "The following programs couldn't be found: [ur1Edk5Oe2n]", thrown.getMessage(),
@@ -352,7 +350,6 @@ class CommonQueryRequestMapperTest
         final QueryItem anyQueryItem = new QueryItem( new DataElement() );
 
         final AnalyticsPagingCriteria theAnalyticsPagingCriteria = new AnalyticsPagingCriteria();
-        final DhisApiVersion theDhisApiVersion = V38;
         final List<OrganisationUnit> organisationUnits = List.of( new OrganisationUnit( "org-1" ),
             new OrganisationUnit( "org-2" ) );
         final List<Program> programs = List.of( program1, program2 );
@@ -371,7 +368,7 @@ class CommonQueryRequestMapperTest
             .thenReturn( organisationUnits );
         when( programService.getPrograms( aCommonQueryRequest.getProgram() ) ).thenReturn( programs );
         when( i18nManager.getI18nFormat() ).thenReturn( anyI18nFormat );
-        when( dimensionIdentifierService.fromString( programs, dimension ) ).thenReturn( deDimensionIdentifier );
+        when( dimensionIdentifierConverter.fromString( programs, dimension ) ).thenReturn( deDimensionIdentifier );
         when( (dataQueryService.getDimension( (String) deDimensionIdentifier.getDimension(),
             List.of( queryItem ), aCommonQueryRequest.getRelativePeriodDate(), organisationUnits,
             i18nManager.getI18nFormat(), true, UID )) ).thenReturn( null );
@@ -381,7 +378,7 @@ class CommonQueryRequestMapperTest
 
         // When
         final CommonParams params = new CommonQueryRequestMapper( i18nManager, dataQueryService, eventDataQueryService,
-            programService, dimensionIdentifierService ).map( aCommonQueryRequest, theAnalyticsPagingCriteria );
+            programService, dimensionIdentifierConverter ).map( aCommonQueryRequest, theAnalyticsPagingCriteria );
 
         // Then
         assertEquals( 2, params.getPrograms().size(), "Should contain 2 programs." );
@@ -425,7 +422,7 @@ class CommonQueryRequestMapperTest
             .thenReturn( organisationUnits );
         when( programService.getPrograms( aCommonQueryRequest.getProgram() ) ).thenReturn( noPrograms );
         when( i18nManager.getI18nFormat() ).thenReturn( anyI18nFormat );
-        when( dimensionIdentifierService.fromString( noPrograms, nonFullyQualifiedDimension ) )
+        when( dimensionIdentifierConverter.fromString( noPrograms, nonFullyQualifiedDimension ) )
             .thenReturn( deDimensionIdentifier );
         when( (dataQueryService.getDimension( (String) deDimensionIdentifier.getDimension(),
             List.of( queryItem ), aCommonQueryRequest.getRelativePeriodDate(), organisationUnits,
@@ -434,7 +431,7 @@ class CommonQueryRequestMapperTest
         // When
         final IllegalArgumentException thrown = assertThrows( IllegalArgumentException.class,
             () -> new CommonQueryRequestMapper( i18nManager, dataQueryService, eventDataQueryService,
-                programService, dimensionIdentifierService ).map( aCommonQueryRequest, theAnalyticsPagingCriteria ) );
+                programService, dimensionIdentifierConverter ).map( aCommonQueryRequest, theAnalyticsPagingCriteria ) );
 
         // Then
         assertEquals( "yLIPuJHRgey is not a fully qualified dimension", thrown.getMessage(),
