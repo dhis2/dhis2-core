@@ -512,8 +512,7 @@ public abstract class AbstractRelationshipService
             }
             else
             {
-                event = eventService.getEvent( dao.getProgramStageInstance() );
-                event.setRelationships( null );
+                event = eventService.getEvent( dao.getProgramStageInstance(), teiParams.isIncludeRelationships() );
             }
 
             relationshipItem.setEvent( event );
