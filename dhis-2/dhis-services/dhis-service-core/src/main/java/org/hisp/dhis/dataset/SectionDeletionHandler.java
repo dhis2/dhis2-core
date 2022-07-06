@@ -28,13 +28,10 @@
 package org.hisp.dhis.dataset;
 
 import java.util.Iterator;
-import java.util.List;
-import java.util.stream.Collectors;
 
 import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
 
@@ -48,6 +45,8 @@ public class SectionDeletionHandler extends DeletionHandler
 {
     private final SectionService sectionService;
 
+    private final SectionStore sectionStore;
+
     @Override
     protected void register()
     {
@@ -57,22 +56,11 @@ public class SectionDeletionHandler extends DeletionHandler
 
     private void deleteDataElement( DataElement dataElement )
     {
-        for ( Section section : sectionService.getAllSections() )
+        for ( Section section : sectionStore.getSectionsByDataElement( dataElement.getUid() ) )
         {
-            List<DataElementOperand> operandsToRemove = section
-                .getGreyedFields()
-                .stream()
-                .filter( operand -> operand.getDataElement().equals( dataElement ) )
-                .collect( Collectors.toList() );
-
-            operandsToRemove
-                .forEach( operand -> section.getGreyedFields().remove( operand ) );
-
-            if ( section.getDataElements().remove( dataElement ) || !operandsToRemove.isEmpty() )
-            {
-                sectionService.updateSection( section );
-            }
-
+            section.getGreyedFields().removeIf( operand -> operand.getDataElement().equals( dataElement ) );
+            section.getDataElements().removeIf( de -> de.equals( dataElement ) );
+            sectionService.updateSection( section );
         }
     }
 
