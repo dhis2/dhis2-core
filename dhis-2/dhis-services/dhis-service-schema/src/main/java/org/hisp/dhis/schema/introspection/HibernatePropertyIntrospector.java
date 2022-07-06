@@ -46,7 +46,6 @@ import org.hibernate.metamodel.spi.MetamodelImplementor;
 import org.hibernate.persister.collection.CollectionPersister;
 import org.hibernate.persister.entity.Joinable;
 import org.hibernate.type.CollectionType;
-import org.hibernate.type.CustomType;
 import org.hibernate.type.DoubleType;
 import org.hibernate.type.IntegerType;
 import org.hibernate.type.LongType;
@@ -190,7 +189,7 @@ public class HibernatePropertyIntrospector implements PropertyIntrospector
             initCollectionProperty( metamodelImplementor, property, (CollectionType) type );
         }
 
-        if ( type instanceof SingleColumnType || type instanceof CustomType || type instanceof ManyToOneType )
+        if ( type instanceof SingleColumnType || type instanceof ManyToOneType )
         {
             Column column = (Column) hibernateProperty.getColumnIterator().next();
 
@@ -224,10 +223,6 @@ public class HibernatePropertyIntrospector implements PropertyIntrospector
                 property.setMax( Double.MAX_VALUE );
                 property.setLength( Integer.MAX_VALUE );
             }
-            else if ( type instanceof CustomType )
-            {
-                property.setSimple( false );
-            }
         }
 
         if ( type instanceof ManyToOneType )
@@ -252,6 +247,7 @@ public class HibernatePropertyIntrospector implements PropertyIntrospector
         {
             property.setOneToMany( true );
         }
+
         return property;
     }
 
