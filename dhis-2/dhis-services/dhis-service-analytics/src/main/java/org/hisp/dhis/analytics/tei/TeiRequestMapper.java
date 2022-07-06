@@ -35,9 +35,9 @@ import org.hisp.dhis.analytics.common.CommonQueryRequestMapper;
 import org.hisp.dhis.analytics.common.QueryRequest;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
-@Service
+@Component
 @RequiredArgsConstructor
 public class TeiRequestMapper
 {
@@ -63,5 +63,4 @@ public class TeiRequestMapper
             .orElseThrow( () -> new IllegalArgumentException( "Unable to find TrackedEntityType with UID: "
                 + queryRequest.getRequest().getTrackedEntityType() ) );
     }
-
 }

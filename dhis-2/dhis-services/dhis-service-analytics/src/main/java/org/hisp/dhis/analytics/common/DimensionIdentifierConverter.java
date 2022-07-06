@@ -108,7 +108,7 @@ public class DimensionIdentifierConverter
         }
     }
 
-    private static DimensionIdentifier<String, String, String> fromFullDimensionId( String fullDimensionId )
+    private DimensionIdentifier<String, String, String> fromFullDimensionId( String fullDimensionId )
     {
         List<DimensionIdentifier.ElementWithOffset<String>> uidWithOffsets = parseFullDimensionId( fullDimensionId );
 
@@ -135,14 +135,14 @@ public class DimensionIdentifierConverter
         throw new IllegalArgumentException( "Malformed parameter: " + fullDimensionId );
     }
 
-    private static List<DimensionIdentifier.ElementWithOffset<String>> parseFullDimensionId( String fullDimensionId )
+    private List<DimensionIdentifier.ElementWithOffset<String>> parseFullDimensionId( String fullDimensionId )
     {
         return Arrays.stream( StringUtils.split( fullDimensionId, DIMENSION_SEPARATOR ) )
-            .map( DimensionIdentifierConverter::elementWithOffsetBytString )
+            .map( e -> elementWithOffsetBytString( e ) )
             .collect( Collectors.toList() );
     }
 
-    private static void assertDimensionIdHasNoOffset(
+    private void assertDimensionIdHasNoOffset(
         DimensionIdentifier.ElementWithOffset<String> dimensionIdWithOffset )
     {
         if ( dimensionIdWithOffset.hasOffset() )
@@ -151,7 +151,7 @@ public class DimensionIdentifierConverter
         }
     }
 
-    private static DimensionIdentifier.ElementWithOffset<String> elementWithOffsetBytString( String elementWithOffset )
+    private DimensionIdentifier.ElementWithOffset<String> elementWithOffsetBytString( String elementWithOffset )
     {
         String[] split = StringUtils.split( elementWithOffset, "[]" );
         if ( split.length == 2 )
