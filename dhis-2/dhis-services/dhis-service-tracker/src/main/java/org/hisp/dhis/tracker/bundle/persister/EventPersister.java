@@ -40,6 +40,9 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import lombok.Builder;
+import lombok.Data;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.hisp.dhis.common.AuditType;
@@ -174,6 +177,7 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
 
         for ( DataValue dv : payloadDataValues )
         {
+            final String persistedValue;
             AuditType auditType;
 
             DataElement dateElement = preheat.get( DataElement.class, dv.getDataElement() );
@@ -186,11 +190,12 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
             if ( eventDataValue == null )
             {
                 eventDataValue = new EventDataValue();
+                persistedValue = dv.getValue();
                 auditType = AuditType.CREATE;
             }
             else
             {
-                final String persistedValue = eventDataValue.getValue();
+                persistedValue = eventDataValue.getValue();
 
                 Optional<AuditType> optionalAuditType = Optional.ofNullable( dv.getValue() )
                     .filter( v -> !dv.getValue().equals( persistedValue ) )
@@ -200,6 +205,9 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
 
                 auditType = optionalAuditType.orElse( null );
             }
+
+            ValuesHolder valuesHolder = ValuesHolder.builder().providedElseWhere( dv.isProvidedElsewhere() )
+                .value( persistedValue ).build();
 
             eventDataValue.setDataElement( dateElement.getUid() );
             eventDataValue.setStoredBy( dv.getStoredBy() );
@@ -228,8 +236,8 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
                 psi.getEventDataValues().add( eventDataValue );
             }
 
-            logTrackedEntityDataValueHistory( preheat.getUsername(), eventDataValue, dateElement, psi, auditType,
-                today );
+            logTrackedEntityDataValueHistory( preheat.getUsername(), dateElement, psi, auditType,
+                today, valuesHolder );
         }
     }
 
@@ -261,20 +269,29 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
     }
 
     private void logTrackedEntityDataValueHistory( String userName,
-        EventDataValue eventDataValue, DataElement de, ProgramStageInstance psi, AuditType auditType, Date created )
+        DataElement de, ProgramStageInstance psi, AuditType auditType, Date created, ValuesHolder valuesHolder )
     {
         if ( auditType != null )
         {
             TrackedEntityDataValueAudit valueAudit = new TrackedEntityDataValueAudit();
             valueAudit.setProgramStageInstance( psi );
-            valueAudit.setValue( eventDataValue.getValue() );
+            valueAudit.setValue( valuesHolder.getValue() );
             valueAudit.setAuditType( auditType );
             valueAudit.setDataElement( de );
             valueAudit.setModifiedBy( userName );
-            valueAudit.setProvidedElsewhere( eventDataValue.getProvidedElsewhere() );
+            valueAudit.setProvidedElsewhere( valuesHolder.isProvidedElseWhere() );
             valueAudit.setCreated( created );
 
             trackedEntityDataValueAuditService.addTrackedEntityDataValueAudit( valueAudit );
         }
+    }
+
+    @Data
+    @Builder
+    static class ValuesHolder
+    {
+        private final String value;
+
+        private final boolean providedElseWhere;
     }
 }
