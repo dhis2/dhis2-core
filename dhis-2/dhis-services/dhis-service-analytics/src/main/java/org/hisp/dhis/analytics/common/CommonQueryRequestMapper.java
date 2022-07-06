@@ -47,7 +47,6 @@ import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.dimension.DimensionParamType;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.common.AnalyticsPagingCriteria;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -79,8 +78,7 @@ public class CommonQueryRequestMapper
 
     private final DimensionIdentifierService dimensionIdentifierService;
 
-    public CommonParams map( CommonQueryRequest request, AnalyticsPagingCriteria pagingCriteria,
-        DhisApiVersion apiVersion )
+    public CommonParams map( CommonQueryRequest request, AnalyticsPagingCriteria pagingCriteria )
     {
         List<OrganisationUnit> userOrgUnits = dataQueryService.getUserOrgUnits( null, request.getUserOrgUnit() );
 

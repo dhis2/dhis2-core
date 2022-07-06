@@ -44,7 +44,6 @@ import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.analytics.tei.TeiQueryRequest;
 import org.hisp.dhis.analytics.tei.TeiRequestMapper;
 import org.hisp.dhis.common.AnalyticsPagingCriteria;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -89,10 +88,9 @@ class TeiQueryController
         final TeiQueryRequest teiQueryRequest,
         final CommonQueryRequest commonQueryRequest,
         final AnalyticsPagingCriteria pagingRequest,
-        final DhisApiVersion apiVersion,
         final HttpServletResponse response )
     {
-        QueryRequest<TeiQueryRequest> queryRequest = QueryRequest.<TeiQueryRequest> builder()
+        final QueryRequest<TeiQueryRequest> queryRequest = QueryRequest.<TeiQueryRequest> builder()
             .request( teiQueryRequestProcessor.process(
                 teiQueryRequest.withTrackedEntityType( trackedEntityType ) ) )
             .commonQueryRequest( commonQueryRequestProcessor.process( commonQueryRequest ) )
@@ -105,7 +103,7 @@ class TeiQueryController
 
         contextUtils.configureResponse( response, CONTENT_TYPE_JSON, RESPECT_SYSTEM_SETTING );
 
-        final TeiQueryParams params = mapper.map( queryRequest, apiVersion );
+        final TeiQueryParams params = mapper.map( queryRequest );
 
         return teiAnalyticsQueryService.getTeiGrid( params );
     }

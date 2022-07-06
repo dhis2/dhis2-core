@@ -79,6 +79,7 @@ public class DimensionIdentifierService
             if ( programOptional.isPresent() )
             {
                 Program program = programOptional.get();
+
                 return extractProgramStageIfExists( program, programStageWithOffset.getElement() )
                     .map( programStage -> DimensionIdentifier.of(
                         DimensionIdentifier.ElementWithOffset.of( program, programWithOffset.getOffset() ),
@@ -120,12 +121,14 @@ public class DimensionIdentifierService
             return DimensionIdentifier.of( uidWithOffsets.get( 0 ), uidWithOffsets.get( 1 ),
                 uidWithOffsets.get( 2 ).getElement() );
         }
+
         if ( uidWithOffsets.size() == 2 ) // ie.: abcde[1].hfjg
         {
             assertDimensionIdHasNoOffset( uidWithOffsets.get( 1 ) );
             return DimensionIdentifier.of( uidWithOffsets.get( 0 ), null, uidWithOffsets.get( 1 ).getElement() );
 
         }
+
         if ( uidWithOffsets.size() == 1 ) // ie.: fgrg
         {
             assertDimensionIdHasNoOffset( uidWithOffsets.get( 0 ) );

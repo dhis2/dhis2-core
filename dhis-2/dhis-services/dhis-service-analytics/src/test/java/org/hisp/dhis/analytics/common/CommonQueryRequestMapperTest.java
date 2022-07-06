@@ -129,8 +129,7 @@ class CommonQueryRequestMapperTest
 
         // When
         final CommonParams params = new CommonQueryRequestMapper( i18nManager, dataQueryService, eventDataQueryService,
-            programService, dimensionIdentifierService ).map( aCommonQueryRequest, theAnalyticsPagingCriteria,
-                theDhisApiVersion );
+            programService, dimensionIdentifierService ).map( aCommonQueryRequest, theAnalyticsPagingCriteria );
 
         // Then
         assertEquals( 2, params.getPrograms().size(), "Should contain 2 programs." );
@@ -196,8 +195,7 @@ class CommonQueryRequestMapperTest
 
         // When
         final CommonParams params = new CommonQueryRequestMapper( i18nManager, dataQueryService, eventDataQueryService,
-            programService, dimensionIdentifierService ).map( aCommonQueryRequest, theAnalyticsPagingCriteria,
-                theDhisApiVersion );
+            programService, dimensionIdentifierService ).map( aCommonQueryRequest, theAnalyticsPagingCriteria );
 
         // Then
         assertEquals( 2, params.getPrograms().size(), "Should contain 2 programs." );
@@ -274,8 +272,7 @@ class CommonQueryRequestMapperTest
 
         // When
         final CommonParams params = new CommonQueryRequestMapper( i18nManager, dataQueryService, eventDataQueryService,
-            programService, dimensionIdentifierService ).map( aCommonQueryRequest, theAnalyticsPagingCriteria,
-                theDhisApiVersion );
+            programService, dimensionIdentifierService ).map( aCommonQueryRequest, theAnalyticsPagingCriteria );
 
         // Then
         assertEquals( 2, params.getPrograms().size(), "Should contain 2 programs." );
@@ -332,8 +329,7 @@ class CommonQueryRequestMapperTest
         // When
         final IllegalArgumentException thrown = assertThrows( IllegalArgumentException.class,
             () -> new CommonQueryRequestMapper( i18nManager, dataQueryService, eventDataQueryService,
-                programService, dimensionIdentifierService ).map( aCommonQueryRequest, theAnalyticsPagingCriteria,
-                    theDhisApiVersion ) );
+                programService, dimensionIdentifierService ).map( aCommonQueryRequest, theAnalyticsPagingCriteria ) );
 
         // Then
         assertEquals( "The following programs couldn't be found: [ur1Edk5Oe2n]", thrown.getMessage(),
@@ -385,8 +381,7 @@ class CommonQueryRequestMapperTest
 
         // When
         final CommonParams params = new CommonQueryRequestMapper( i18nManager, dataQueryService, eventDataQueryService,
-            programService, dimensionIdentifierService ).map( aCommonQueryRequest, theAnalyticsPagingCriteria,
-                theDhisApiVersion );
+            programService, dimensionIdentifierService ).map( aCommonQueryRequest, theAnalyticsPagingCriteria );
 
         // Then
         assertEquals( 2, params.getPrograms().size(), "Should contain 2 programs." );
@@ -413,7 +408,6 @@ class CommonQueryRequestMapperTest
         final String nonFullyQualifiedDimension = "yLIPuJHRgey";
 
         final AnalyticsPagingCriteria theAnalyticsPagingCriteria = new AnalyticsPagingCriteria();
-        final DhisApiVersion theDhisApiVersion = V38;
         final List<OrganisationUnit> organisationUnits = List.of( new OrganisationUnit( "org-1" ),
             new OrganisationUnit( "org-2" ) );
         final List<Program> noPrograms = emptyList();
@@ -440,8 +434,7 @@ class CommonQueryRequestMapperTest
         // When
         final IllegalArgumentException thrown = assertThrows( IllegalArgumentException.class,
             () -> new CommonQueryRequestMapper( i18nManager, dataQueryService, eventDataQueryService,
-                programService, dimensionIdentifierService ).map( aCommonQueryRequest, theAnalyticsPagingCriteria,
-                    theDhisApiVersion ) );
+                programService, dimensionIdentifierService ).map( aCommonQueryRequest, theAnalyticsPagingCriteria ) );
 
         // Then
         assertEquals( "yLIPuJHRgey is not a fully qualified dimension", thrown.getMessage(),
