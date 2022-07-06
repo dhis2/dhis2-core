@@ -28,7 +28,6 @@
 package org.hisp.dhis.analytics.common;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -49,6 +48,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class DimensionIdentifierService
 {
+
     public static final Character DIMENSION_SEPARATOR = '.';
 
     /**
@@ -58,7 +58,7 @@ public class DimensionIdentifierService
      *        abcde[1].fghi[4].jklm
      * @return a DimensionIdentifier
      */
-    public DimensionIdentifier<Program, ProgramStage, String> fromString( Collection<Program> programs,
+    public DimensionIdentifier<Program, ProgramStage, String> fromString( List<Program> programs,
         String fullDimensionId )
     {
         DimensionIdentifier<String, String, String> dimensionIdentifier = byFullDimensionId( fullDimensionId );
@@ -75,8 +75,7 @@ public class DimensionIdentifierService
         String dimensionId = dimensionIdentifier.getDimension();
 
         if ( dimensionIdentifier.hasProgramStage() )
-        { // fully qualified DE/PI
-
+        { // fully qualified DE/PI. ie.: {programUid}.{programStageUid}.DE
             if ( programOptional.isPresent() )
             {
                 Program program = programOptional.get();
@@ -96,7 +95,6 @@ public class DimensionIdentifierService
         }
         else if ( dimensionIdentifier.hasProgram() )
         { // example: {programUid}.PE
-
             Program program = programOptional
                 .orElseThrow( () -> new IllegalArgumentException(
                     ("Specified program " + programWithOffset + " does not exists") ) );
@@ -105,7 +103,6 @@ public class DimensionIdentifierService
                 DimensionIdentifier.ElementWithOffset.of( program, programWithOffset.getOffset() ),
                 null,
                 dimensionId );
-
         }
         else
         {
@@ -117,19 +114,19 @@ public class DimensionIdentifierService
     {
         List<DimensionIdentifier.ElementWithOffset<String>> uidWithOffsets = parseFullDimensionId( fullDimensionId );
 
-        if ( uidWithOffsets.size() == 3 )
+        if ( uidWithOffsets.size() == 3 ) // ie.: abcde[1].fghi[4].jklm
         {
             assertDimensionIdHasNoOffset( uidWithOffsets.get( 2 ) );
             return DimensionIdentifier.of( uidWithOffsets.get( 0 ), uidWithOffsets.get( 1 ),
                 uidWithOffsets.get( 2 ).getElement() );
         }
-        if ( uidWithOffsets.size() == 2 )
+        if ( uidWithOffsets.size() == 2 ) // ie.: abcde[1].hfjg
         {
             assertDimensionIdHasNoOffset( uidWithOffsets.get( 1 ) );
             return DimensionIdentifier.of( uidWithOffsets.get( 0 ), null, uidWithOffsets.get( 1 ).getElement() );
 
         }
-        if ( uidWithOffsets.size() == 1 )
+        if ( uidWithOffsets.size() == 1 ) // ie.: fgrg
         {
             assertDimensionIdHasNoOffset( uidWithOffsets.get( 0 ) );
             return DimensionIdentifier.of( null, null, uidWithOffsets.get( 0 ).getElement() );
@@ -162,7 +159,9 @@ public class DimensionIdentifierService
             return DimensionIdentifier.ElementWithOffset.of( split[0], split[1] );
         }
         else
+        {
             return DimensionIdentifier.ElementWithOffset.of( elementWithOffset, null );
+        }
     }
 
     private Optional<ProgramStage> extractProgramStageIfExists( Program program, String programStageUid )
@@ -171,5 +170,4 @@ public class DimensionIdentifierService
             .filter( programStage -> programStage.getUid().equals( programStageUid ) )
             .findFirst();
     }
-
 }

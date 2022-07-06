@@ -28,7 +28,6 @@
 package org.hisp.dhis.analytics.common;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import lombok.Builder;
@@ -56,7 +55,8 @@ public class CommonParams
     /**
      * The list of Program objects carried on by this object.
      */
-    private final Collection<Program> programs;
+    @Builder.Default
+    private final List<Program> programs = new ArrayList<>();
 
     /**
      * Data structure containing dimensionParams, which can represent

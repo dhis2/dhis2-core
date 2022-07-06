@@ -49,12 +49,12 @@ public class DimensionIdentifier<P, PS, D>
 
     public boolean hasProgram()
     {
-        return program.isPresent();
+        return program != null && program.isPresent();
     }
 
     public boolean hasProgramStage()
     {
-        return programStage.isPresent();
+        return programStage != null && programStage.isPresent();
     }
 
     @Data

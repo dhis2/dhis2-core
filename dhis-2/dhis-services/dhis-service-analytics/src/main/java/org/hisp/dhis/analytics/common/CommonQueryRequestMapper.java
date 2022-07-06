@@ -27,20 +27,21 @@
  */
 package org.hisp.dhis.analytics.common;
 
+import static java.util.stream.Collectors.toList;
+import static org.hisp.dhis.analytics.EventOutputType.TRACKED_ENTITY_INSTANCE;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionFromParam;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionItemsFromParam;
+import static org.hisp.dhis.common.IdScheme.UID;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.DataQueryService;
-import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.dimension.DimensionParamType;
@@ -48,7 +49,6 @@ import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.common.AnalyticsPagingCriteria;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -68,6 +68,7 @@ import com.google.common.collect.ImmutableList;
 @RequiredArgsConstructor
 public class CommonQueryRequestMapper
 {
+
     private final I18nManager i18nManager;
 
     private final DataQueryService dataQueryService;
@@ -81,10 +82,9 @@ public class CommonQueryRequestMapper
     public CommonParams map( CommonQueryRequest request, AnalyticsPagingCriteria pagingCriteria,
         DhisApiVersion apiVersion )
     {
-
         List<OrganisationUnit> userOrgUnits = dataQueryService.getUserOrgUnits( null, request.getUserOrgUnit() );
 
-        Collection<Program> programs = getPrograms( request );
+        List<Program> programs = getPrograms( request );
 
         return CommonParams.builder()
             .programs( programs )
@@ -100,41 +100,43 @@ public class CommonQueryRequestMapper
             .build();
     }
 
-    private Collection<Program> getPrograms( CommonQueryRequest queryRequest )
+    private List<Program> getPrograms( CommonQueryRequest queryRequest )
     {
-        Collection<Program> programs = programService.getPrograms( queryRequest.getProgram() );
+        List<Program> programs = programService.getPrograms( queryRequest.getProgram() ).stream().collect( toList() );
+        boolean programsCouldNotBeRetrieved = programs.size() != queryRequest.getProgram().size();
 
-        if ( programs.size() != queryRequest.getProgram().size() )
+        if ( programsCouldNotBeRetrieved )
         {
-            Collection<String> foundProgramUids = programs.stream()
+            List<String> foundProgramUids = programs.stream()
                 .map( Program::getUid )
-                .collect( Collectors.toList() );
+                .collect( toList() );
 
-            Collection<String> missingProgramUids = Optional.of( queryRequest )
+            List<String> missingProgramUids = Optional.of( queryRequest )
                 .map( CommonQueryRequest::getProgram )
                 .orElse( Collections.emptyList() ).stream()
                 .filter( uidFromRequest -> !foundProgramUids.contains( uidFromRequest ) )
-                .collect( Collectors.toList() );
+                .collect( toList() );
 
             throw new IllegalArgumentException( "The following programs couldn't be found: " + missingProgramUids );
         }
+
         return programs;
     }
 
     private List<DimensionIdentifier<Program, ProgramStage, DimensionParam>> retrieveDimensionParams(
-        CommonQueryRequest request,
-        Collection<Program> programs, List<OrganisationUnit> userOrgUnits )
+        CommonQueryRequest request, List<Program> programs, List<OrganisationUnit> userOrgUnits )
     {
         List<DimensionIdentifier<Program, ProgramStage, DimensionParam>> dimensionParams = new ArrayList<>();
+
         for ( DimensionParamType dimensionParamType : DimensionParamType.values() )
         {
             // A Collection of dimensions or filters coming from the request
             Collection<String> dimensionsOrFilter = dimensionParamType.getUidsGetter().apply( request );
-            dimensionParams.addAll(
-                dimensionsOrFilter.stream()
-                    .map( dof -> toDimensionIdentifier( dof, dimensionParamType, request, programs, userOrgUnits ) )
-                    .collect( Collectors.toList() ) );
+            dimensionParams.addAll( dimensionsOrFilter.stream()
+                .map( dof -> toDimensionIdentifier( dof, dimensionParamType, request, programs, userOrgUnits ) )
+                .collect( toList() ) );
         }
+
         return ImmutableList.copyOf( dimensionParams );
     }
 
@@ -143,27 +145,22 @@ public class CommonQueryRequestMapper
      * dimension/filter parameter
      */
     private DimensionIdentifier<Program, ProgramStage, DimensionParam> toDimensionIdentifier( String dimensionOrFilter,
-        DimensionParamType dimensionParamType,
-        CommonQueryRequest request,
-        Collection<Program> programs, List<OrganisationUnit> userOrgUnits )
+        DimensionParamType dimensionParamType, CommonQueryRequest request, List<Program> programs,
+        List<OrganisationUnit> userOrgUnits )
     {
         String dimensionId = getDimensionFromParam( dimensionOrFilter );
+
         // We first parse the dimensionId into <Program, ProgramStage, String>
-        // to be able to operate on the string
-        // version of the dimension
-        DimensionIdentifier<Program, ProgramStage, String> dimensionIdentifier = dimensionIdentifierService.fromString(
-            programs,
-            dimensionId );
+        // to be able to operate on the string version (uid) of the dimension.
+        DimensionIdentifier<Program, ProgramStage, String> dimensionIdentifier = dimensionIdentifierService
+            .fromString( programs, dimensionId );
         List<String> items = getDimensionItemsFromParam( dimensionOrFilter );
 
         DimensionalObject dimensionalObject = dataQueryService.getDimension( dimensionIdentifier.getDimension(),
-            items,
-            request.getRelativePeriodDate(),
-            userOrgUnits,
-            i18nManager.getI18nFormat(), true,
-            IdScheme.UID );
+            items, request.getRelativePeriodDate(), userOrgUnits, i18nManager.getI18nFormat(), true, UID );
+        boolean isDimensionalObject = dimensionalObject != null;
 
-        if ( dimensionalObject != null ) // it's a dimensionalObject
+        if ( isDimensionalObject )
         {
             DimensionParam dimensionParam = DimensionParam.ofObject( dimensionalObject, dimensionParamType, items );
             return DimensionIdentifier.of(
@@ -173,16 +170,14 @@ public class CommonQueryRequestMapper
         }
         else
         {
-            // fully qualified dimension identification is required here
             if ( dimensionIdentifier.hasProgram() && dimensionIdentifier.hasProgramStage() )
             {
+                // The fully qualified dimension identification is required here
                 DimensionParam dimensionParam = DimensionParam.ofObject(
-                    eventDataQueryService.getQueryItem(
-                        dimensionIdentifier.getDimension(),
-                        dimensionIdentifier.getProgram().getElement(),
-                        EventOutputType.TRACKED_ENTITY_INSTANCE ),
-                    dimensionParamType,
-                    items );
+                    eventDataQueryService.getQueryItem( dimensionIdentifier.getDimension(),
+                        dimensionIdentifier.getProgram().getElement(), TRACKED_ENTITY_INSTANCE ),
+                    dimensionParamType, items );
+
                 return DimensionIdentifier.of(
                     dimensionIdentifier.getProgram(),
                     dimensionIdentifier.getProgramStage(),
@@ -194,5 +189,4 @@ public class CommonQueryRequestMapper
             }
         }
     }
-
 }

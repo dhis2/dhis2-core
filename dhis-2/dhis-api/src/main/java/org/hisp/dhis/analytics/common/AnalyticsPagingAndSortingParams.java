@@ -31,9 +31,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import lombok.Builder;
+import lombok.Getter;
 
 import org.hisp.dhis.common.QueryItem;
 
+@Getter
 @Builder( toBuilder = true )
 public class AnalyticsPagingAndSortingParams
 {
@@ -56,4 +58,9 @@ public class AnalyticsPagingAndSortingParams
      */
     @Builder.Default
     private List<QueryItem> desc = new ArrayList<>();
+
+    public boolean isEmpty()
+    {
+        return page == null && pageSize == null && requestPaged == null && countRequested == null;
+    }
 }

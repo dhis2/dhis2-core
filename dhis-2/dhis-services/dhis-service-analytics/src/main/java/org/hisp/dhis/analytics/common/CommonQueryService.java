@@ -38,11 +38,11 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class CommonQueryService
 {
+
     public Grid getGrid( CommonParams queryParams )
     {
         Grid grid = new ListGrid();
         // TODO: prepare the grid based on CommonLineListingParams
         return grid;
     }
-
 }

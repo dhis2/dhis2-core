@@ -57,5 +57,4 @@ public class PagingCriteriaProcessor implements Processor<AnalyticsPagingCriteri
         pagingCriteria.definePageSize( analyticsMaxPageSize );
         return pagingCriteria;
     }
-
 }
