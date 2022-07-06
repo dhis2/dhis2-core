@@ -608,47 +608,83 @@ public class DefaultFieldFilterService implements FieldFilterService
         return complexNode;
     }
 
-    private ComplexNode handleMapProperty( Object object, Property property )
+    /**
+     * Generate ComplexNode with Map structure based given inputMapObject. The
+     * format of {@link org.hisp.dhis.user.sharing.Sharing#userGroups} is:
+     *
+     * <pre>
+     * {@code
+     * <userGroups>
+     *  <B6JNeAQ6akX>
+     *      <access>r-rw----</access>
+     *      <id>B6JNeAQ6akX</id>
+     *  </B6JNeAQ6akX>
+     *  <GogLpGmkL0g>
+     *      <access>r-rw----</access>
+     *      <id>GogLpGmkL0g</id>
+     *  </GogLpGmkL0g>
+     * </userGroups>
+     * }
+     * </pre>
+     *
+     * @param inputMapObject
+     *
+     *        <pre>
+     * {@code  Map<String, Object>}
+     *        </pre>
+     *
+     * @param property {@link Property} of the given map object.
+     * @return {@link ComplexNode}
+     */
+    private ComplexNode handleMapProperty( Object inputMapObject, Property property )
     {
-        if ( object == null )
+        if ( inputMapObject == null
+            || (!property.getKlass().isAssignableFrom( org.hisp.dhis.user.sharing.UserGroupAccess.class )
+                && !property.getKlass().isAssignableFrom( org.hisp.dhis.user.sharing.UserAccess.class )) )
         {
             return null;
         }
 
-        Map<String, Object> mapObject = (Map<String, Object>) object;
+        Map<String, Object> mapObject = (Map<String, Object>) inputMapObject;
 
-        ComplexNode child = new ComplexNode( property.getName() );
+        ComplexNode mapNode = new ComplexNode( property.getName() );
 
-        if ( !mapObject.entrySet().isEmpty() )
+        if ( mapObject.entrySet().isEmpty() )
         {
-            FieldMap map = getFullFieldMap(
-                schemaService.getDynamicSchema( mapObject.entrySet().iterator().next().getValue().getClass() ) );
-            for ( Entry<String, Object> item : mapObject.entrySet() )
-            {
-                ComplexNode node = new ComplexNode( item.getKey() );
-
-                for ( final String itemKey : map.keySet() )
-                {
-                    final String originalName = org.apache.commons.lang3.StringUtils.substringBefore( itemKey, "~" );
-                    final String rename = org.apache.commons.lang3.StringUtils.substringBetween( itemKey, "(", ")" );
-                    final Object value = ReflectionUtils.invokeGetterMethod( originalName, item.getValue() );
-
-                    if ( org.apache.commons.lang3.StringUtils.isNotBlank( rename ) )
-                    {
-                        node.addChild( new SimpleNode( rename, value ) );
-                    }
-                    else
-                    {
-                        node.addChild( new SimpleNode( originalName, value ) );
-                    }
-                }
-
-                child.addChild( node );
-            }
-            return child;
+            return null;
         }
 
-        return null;
+        FieldMap fieldMap = null;
+
+        for ( Entry<String, Object> item : mapObject.entrySet() )
+        {
+            if ( fieldMap == null )
+            {
+                fieldMap = getFullFieldMap(
+                    schemaService.getDynamicSchema( item.getValue().getClass() ) );
+            }
+
+            ComplexNode mapItemNode = new ComplexNode( item.getKey() );
+
+            for ( final String fieldName : fieldMap.keySet() )
+            {
+                final String originalName = org.apache.commons.lang3.StringUtils.substringBefore( fieldName, "~" );
+                final String rename = org.apache.commons.lang3.StringUtils.substringBetween( fieldName, "(", ")" );
+                final Object value = ReflectionUtils.invokeGetterMethod( originalName, item.getValue() );
+
+                if ( org.apache.commons.lang3.StringUtils.isNotBlank( rename ) )
+                {
+                    mapItemNode.addChild( new SimpleNode( rename, value ) );
+                }
+                else
+                {
+                    mapItemNode.addChild( new SimpleNode( originalName, value ) );
+                }
+            }
+
+            mapItemNode.addChild( mapItemNode );
+        }
+        return mapNode;
     }
 
     private void updateFields( FieldMap fieldMap, Class<?> klass )
