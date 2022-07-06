@@ -73,7 +73,8 @@ public class HibernateSectionStore
             + " left join sectiongreyedfields sgf on s.sectionid = sgf.sectionid"
             + " left join dataelementoperand deo on sgf.dataelementoperandid = deo.dataelementoperandid"
             + ", dataelement de"
-            + " where de.uid = :Id and (sde.dataelementid = de.dataelementid or deo.dataelementid = de.dataelementid);";
-        return getSession().createNativeQuery( hql, Section.class ).setParameter( "Id", dataElementUid ).list();
+            + " where de.uid = :dataElementId and (sde.dataelementid = de.dataelementid or deo.dataelementid = de.dataelementid);";
+        return getSession().createNativeQuery( hql, Section.class ).setParameter( "dataElementId", dataElementUid )
+            .list();
     }
 }
