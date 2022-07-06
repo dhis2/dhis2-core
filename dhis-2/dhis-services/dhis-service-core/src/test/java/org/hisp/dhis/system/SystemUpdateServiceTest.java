@@ -35,6 +35,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.junit.jupiter.api.Test;
 
 import com.google.gson.JsonArray;
@@ -43,8 +45,22 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.vdurmont.semver4j.Semver;
 
+@Slf4j
 class SystemUpdateServiceTest
 {
+
+    @Test
+    void testParseHotfixVersion()
+    {
+        String value = "2.37.7";
+        // String value = "2.37.7-1";
+
+        Semver currentVersion = new Semver( value );
+
+        Map<Semver, Map<String, String>> latestNewerThan = SystemUpdateService.getLatestNewerThan( currentVersion );
+
+        log.info( "latest:" + latestNewerThan );
+    }
 
     @Test
     void testGetNewerPatchVersions_Success()
@@ -63,7 +79,7 @@ class SystemUpdateServiceTest
         versionElement.getAsJsonArray( "patchVersions" ).add( patchElement );
         allVersions.getAsJsonArray( "versions" ).add( versionElement );
         // When
-        List<JsonElement> newerPatchVersions = SystemUpdateService.extractNewerPatchVersions( currentVersion,
+        List<JsonElement> newerPatchVersions = SystemUpdateService.extractNewerPatchHotfixVersions( currentVersion,
             allVersions );
         // Then
         assertNotNull( newerPatchVersions );
@@ -76,7 +92,7 @@ class SystemUpdateServiceTest
         Semver currentVersion = new Semver( "1.2.3" );
         JsonObject allVersions = new JsonObject();
         allVersions.add( "versions", new JsonArray() );
-        List<JsonElement> newerPatchVersions = SystemUpdateService.extractNewerPatchVersions( currentVersion,
+        List<JsonElement> newerPatchVersions = SystemUpdateService.extractNewerPatchHotfixVersions( currentVersion,
             allVersions );
         assertTrue( newerPatchVersions.isEmpty() );
     }
