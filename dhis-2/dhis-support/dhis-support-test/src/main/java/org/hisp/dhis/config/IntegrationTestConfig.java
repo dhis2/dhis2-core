@@ -38,6 +38,10 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.ldap.authentication.LdapAuthenticator;
+import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 
 /**
@@ -53,6 +57,24 @@ public class IntegrationTestConfig
     private static final String POSTGRES_CREDENTIALS = "dhis";
 
     public static final String CREATE_UPDATE_DELETE = "CREATE;UPDATE;DELETE";
+
+    @Bean
+    public LdapAuthenticator ldapAuthenticator()
+    {
+        return authentication -> null;
+    }
+
+    @Bean
+    public LdapAuthoritiesPopulator ldapAuthoritiesPopulator()
+    {
+        return ( dirContextOperations, s ) -> null;
+    }
+
+    @Bean
+    public PasswordEncoder encoder()
+    {
+        return new BCryptPasswordEncoder();
+    }
 
     @Bean( name = "dhisConfigurationProvider" )
     public DhisConfigurationProvider dhisConfigurationProvider()
