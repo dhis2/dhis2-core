@@ -27,42 +27,23 @@
  */
 package org.hisp.dhis.dataset;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.List;
+
+import lombok.AllArgsConstructor;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Tri
- * @version $Id$
  */
-@Service( "org.hisp.dhis.dataset.SectionService" )
-public class DefaultSectionService
-    implements SectionService
+@Service
+@AllArgsConstructor
+public class DefaultSectionService implements SectionService
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+    private final SectionStore sectionStore;
 
-    private SectionStore sectionStore;
-
-    private DataSetService dataSetService;
-
-    public DefaultSectionService( SectionStore sectionStore, DataSetService dataSetService )
-    {
-
-        checkNotNull( sectionStore );
-        checkNotNull( dataSetService );
-
-        this.sectionStore = sectionStore;
-        this.dataSetService = dataSetService;
-    }
-
-    // -------------------------------------------------------------------------
-    // SectionService implementation
-    // -------------------------------------------------------------------------
+    private final DataSetService dataSetService;
 
     @Override
     @Transactional

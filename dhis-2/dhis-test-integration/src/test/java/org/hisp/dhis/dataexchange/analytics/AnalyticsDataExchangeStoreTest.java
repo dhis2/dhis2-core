@@ -33,12 +33,12 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.List;
 
-import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class AnalyticsDataExchangeStoreTest extends DhisSpringTest
+class AnalyticsDataExchangeStoreTest extends TransactionalIntegrationTest
 {
     private static final String UID_SCHEME = IdScheme.UID.name();
 
@@ -54,8 +54,8 @@ class AnalyticsDataExchangeStoreTest extends DhisSpringTest
         store.save( deA );
         store.save( deB );
 
-        assertNotNull( store.getByUid( deA.getUid() ) );
-        assertNotNull( store.getByUid( deB.getUid() ) );
+        assertNotNull( store.get( deA.getId() ) );
+        assertNotNull( store.get( deB.getId() ) );
     }
 
     @Test
