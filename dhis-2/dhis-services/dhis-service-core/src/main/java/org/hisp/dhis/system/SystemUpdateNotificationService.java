@@ -67,13 +67,13 @@ import com.vdurmont.semver4j.Semver;
 @Slf4j
 @Service
 @AllArgsConstructor
-public class SystemUpdateService
+public class SystemUpdateNotificationService
 {
     public static final String DHIS_2_ORG_VERSIONS_JSON = "https://releases.dhis2.org/v1/versions/stable.json";
 
     public static final String NEW_VERSION_AVAILABLE_MESSAGE_SUBJECT = "System update available";
 
-    public static final String NEW_VERSION_AVAILABLE_MESSAGE_BODY = "A new patch version %s of DHIS 2 is now available for download from the link below. Patch releases contain bug and security fixes, and upgrading is recommended.";
+    public static final String NEW_VERSION_AVAILABLE_MESSAGE_BODY = "A new version %s of DHIS 2 is now available for download from the link below. New releases contain bug and security fixes, and upgrading is recommended.";
 
     public static final String FIELD_NAME_VERSION = "version";
 
@@ -93,12 +93,17 @@ public class SystemUpdateService
 
     public static Map<Semver, Map<String, String>> getLatestNewerThanCurrent()
     {
-        return getLatestNewerThan( getCurrentVersion() );
+        return getLatestNewerThan( getCurrentVersion(), fetchAllVersions() );
     }
 
-    public static Map<Semver, Map<String, String>> getLatestNewerThan( Semver currentVersion )
+    public static Map<Semver, Map<String, String>> getLatestNewerThanFetchFirst( Semver currentVersion )
     {
-        List<JsonElement> newerVersions = extractNewerPatchHotfixVersions( currentVersion, fetchAllVersions() );
+        return getLatestNewerThan( currentVersion, fetchAllVersions() );
+    }
+
+    public static Map<Semver, Map<String, String>> getLatestNewerThan( Semver currentVersion, JsonObject allVersions )
+    {
+        List<JsonElement> newerVersions = extractNewerPatchHotfixVersions( currentVersion, allVersions );
 
         // Only pick the top version
         if ( !newerVersions.isEmpty() )
@@ -240,6 +245,7 @@ public class SystemUpdateService
         {
             return;
         }
+
         for ( Map.Entry<Semver, Map<String, String>> versionEntry : patchVersions.entrySet() )
         {
             sendMessageForVersion( recipients, versionEntry.getKey(), versionEntry.getValue(), progress );

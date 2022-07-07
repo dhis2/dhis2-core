@@ -31,6 +31,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -38,34 +40,73 @@ import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.core.io.ClassPathResource;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import com.vdurmont.semver4j.Semver;
 
 @Slf4j
-class SystemUpdateServiceTest
+class SystemUpdateNotificationServiceTest
 {
+    @Test
+    void testGettingLatestPatchFor2_38()
+        throws IOException
+    {
+        JsonObject versions = fetchVersions( "json/versions_max_2.38.1.json" );
+
+        Semver currentVersion = new Semver( "2.38.0" );
+
+        Map<Semver, Map<String, String>> latestNewerThan = SystemUpdateNotificationService.getLatestNewerThan(
+            currentVersion, versions );
+
+        assertEquals( 1, latestNewerThan.size() );
+        assertEquals( new Semver( "2.38.1" ).getOriginalValue(),
+            latestNewerThan.keySet().iterator().next().getOriginalValue() );
+    }
+
+    @Test
+    void testGettingLatestHotFixFor2_37_7()
+        throws IOException
+    {
+        JsonObject versions = fetchVersions( "json/versions_max_2.38.1.json" );
+
+        Semver currentVersion = new Semver( "2.37.7" );
+
+        Map<Semver, Map<String, String>> latestNewerThan = SystemUpdateNotificationService.getLatestNewerThan(
+            currentVersion, versions );
+
+        assertEquals( 1, latestNewerThan.size() );
+        assertEquals( new Semver( "2.37.7.1" ).getOriginalValue(),
+            latestNewerThan.keySet().iterator().next().getOriginalValue() );
+    }
+
+    private JsonObject fetchVersions( String path )
+        throws IOException
+    {
+        InputStream inputStream = new ClassPathResource( path ).getInputStream();
+        String jsonString = new String( inputStream.readAllBytes() );
+        return JsonParser.parseString( jsonString ).getAsJsonObject();
+    }
 
     @Test
     void testParseHotfixVersion()
     {
-        String value = "2.37.7";
-        // String value = "2.37.7-1";
+        Semver currentVersion = new Semver( "2.37.7" );
 
-        Semver currentVersion = new Semver( value );
+        Map<Semver, Map<String, String>> latestNewerThan = SystemUpdateNotificationService.getLatestNewerThanFetchFirst(
+            currentVersion );
 
-        Map<Semver, Map<String, String>> latestNewerThan = SystemUpdateService.getLatestNewerThan( currentVersion );
-
+        assertNotNull( latestNewerThan );
         log.info( "latest:" + latestNewerThan );
     }
 
     @Test
     void testGetNewerPatchVersions_Success()
     {
-        // Given
         Semver currentVersion = new Semver( "1.2.2" );
         JsonObject allVersions = new JsonObject();
         allVersions.add( "versions", new JsonArray() );
@@ -78,10 +119,11 @@ class SystemUpdateServiceTest
         patchElement.add( "version", new JsonPrimitive( 3 ) );
         versionElement.getAsJsonArray( "patchVersions" ).add( patchElement );
         allVersions.getAsJsonArray( "versions" ).add( versionElement );
-        // When
-        List<JsonElement> newerPatchVersions = SystemUpdateService.extractNewerPatchHotfixVersions( currentVersion,
+
+        List<JsonElement> newerPatchVersions = SystemUpdateNotificationService.extractNewerPatchHotfixVersions(
+            currentVersion,
             allVersions );
-        // Then
+
         assertNotNull( newerPatchVersions );
         assertEquals( 1, newerPatchVersions.size() );
     }
@@ -92,7 +134,8 @@ class SystemUpdateServiceTest
         Semver currentVersion = new Semver( "1.2.3" );
         JsonObject allVersions = new JsonObject();
         allVersions.add( "versions", new JsonArray() );
-        List<JsonElement> newerPatchVersions = SystemUpdateService.extractNewerPatchHotfixVersions( currentVersion,
+        List<JsonElement> newerPatchVersions = SystemUpdateNotificationService.extractNewerPatchHotfixVersions(
+            currentVersion,
             allVersions );
         assertTrue( newerPatchVersions.isEmpty() );
     }
@@ -106,7 +149,7 @@ class SystemUpdateServiceTest
         patchJsonObject.addProperty( "releaseDate", "2018-01-01" );
         patchJsonObject.addProperty( "url", "https://example.com/download/1.2.3" );
         newerPatchVersions.add( patchJsonObject );
-        Map<Semver, Map<String, String>> versionsAndMetadata = SystemUpdateService
+        Map<Semver, Map<String, String>> versionsAndMetadata = SystemUpdateNotificationService
             .convertJsonToMap( newerPatchVersions );
         assertNotNull( versionsAndMetadata );
         assertEquals( 1, newerPatchVersions.size() );
@@ -120,7 +163,7 @@ class SystemUpdateServiceTest
     void testParseJsonPatchVersions_Failure()
     {
         List<JsonElement> newerPatchVersions = new ArrayList<>();
-        Map<Semver, Map<String, String>> versionsAndMetadata = SystemUpdateService
+        Map<Semver, Map<String, String>> versionsAndMetadata = SystemUpdateNotificationService
             .convertJsonToMap( newerPatchVersions );
         assertNotNull( versionsAndMetadata );
         assertTrue( versionsAndMetadata.isEmpty() );

@@ -46,11 +46,11 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @AllArgsConstructor
-public class SystemUpdateAlertJob implements Job
+public class SystemUpdateNotificationAlertJob implements Job
 {
     private final DhisConfigurationProvider dhisConfig;
 
-    private final SystemUpdateService systemUpdateService;
+    private final SystemUpdateNotificationService systemUpdateService;
 
     @Override
     public JobType getJobType()
@@ -68,7 +68,8 @@ public class SystemUpdateAlertJob implements Job
             return;
         }
         progress.startingProcess( "System update alert" );
-        systemUpdateService.sendMessageForEachVersion( SystemUpdateService.getLatestNewerThanCurrent(), progress );
+        systemUpdateService.sendMessageForEachVersion( SystemUpdateNotificationService.getLatestNewerThanCurrent(),
+            progress );
         progress.completedProcess( null );
     }
 }
