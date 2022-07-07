@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.events.security;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Date;
@@ -324,7 +325,8 @@ public class EventSecurityTest
             .getProgramStageInstance( event.getUid() );
         assertNotNull( programStageInstance );
 
-        Event eventFromPsi = eventService.getEvent( programStageInstance );
+        Event eventFromPsi = eventService.getEvent( programStageInstance, false );
+
         assertNotNull( eventFromPsi );
 
         assertEquals( event.getUid(), eventFromPsi.getEvent() );
@@ -366,7 +368,8 @@ public class EventSecurityTest
             .getProgramStageInstance( event.getUid() );
         assertNotNull( programStageInstance );
 
-        Event eventFromPsi = eventService.getEvent( programStageInstance );
+        Event eventFromPsi = eventService.getEvent( programStageInstance, false );
+
         assertNotNull( eventFromPsi );
 
         assertEquals( event.getUid(), eventFromPsi.getEvent() );
@@ -376,7 +379,7 @@ public class EventSecurityTest
      * program = DATA WRITE programStage = DATA WRITE orgUnit = Not Accessible
      * status = ERROR
      */
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void testAddEventSimpleUserFullAccess7()
     {
         programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
@@ -407,17 +410,14 @@ public class EventSecurityTest
             .getProgramStageInstance( event.getUid() );
         assertNotNull( programStageInstance );
 
-        Event eventFromPsi = eventService.getEvent( programStageInstance );
-        assertNotNull( eventFromPsi );
-
-        assertEquals( event.getUid(), eventFromPsi.getEvent() );
+        assertThrows( IllegalQueryException.class, () -> eventService.getEvent( programStageInstance, false ) );
     }
 
     /**
      * program = DATA READ programStage = DATA READ orgUnit = Not Accessible
      * status = ERROR
      */
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void testAddEventSimpleUserFullAccess8()
     {
         programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
@@ -448,16 +448,13 @@ public class EventSecurityTest
             .getProgramStageInstance( event.getUid() );
         assertNotNull( programStageInstance );
 
-        Event eventFromPsi = eventService.getEvent( programStageInstance );
-        assertNotNull( eventFromPsi );
-
-        assertEquals( event.getUid(), eventFromPsi.getEvent() );
+        assertThrows( IllegalQueryException.class, () -> eventService.getEvent( programStageInstance, false ) );
     }
 
     /**
      * program = programStage = DATA READ orgUnit = Accessible status = ERROR
      */
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void testAddEventSimpleUserFullAccess9()
     {
         programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
@@ -489,10 +486,7 @@ public class EventSecurityTest
             .getProgramStageInstance( event.getUid() );
         assertNotNull( programStageInstance );
 
-        Event eventFromPsi = eventService.getEvent( programStageInstance );
-        assertNotNull( eventFromPsi );
-
-        assertEquals( event.getUid(), eventFromPsi.getEvent() );
+        assertThrows( IllegalQueryException.class, () -> eventService.getEvent( programStageInstance, false ) );
     }
 
     /**
@@ -530,7 +524,8 @@ public class EventSecurityTest
             .getProgramStageInstance( event.getUid() );
         assertNotNull( programStageInstance );
 
-        Event eventFromPsi = eventService.getEvent( programStageInstance );
+        Event eventFromPsi = eventService.getEvent( programStageInstance, false );
+
         assertNotNull( eventFromPsi );
 
         assertEquals( event.getUid(), eventFromPsi.getEvent() );
