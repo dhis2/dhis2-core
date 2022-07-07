@@ -167,8 +167,9 @@ public class TrackerEventsExportController
         HttpServletRequest request )
         throws Exception
     {
-        Event event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( uid ) );
 
+        Event event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( uid ),
+            true );
         if ( event == null )
         {
             throw new WebMessageException( notFound( "Event not found for ID " + uid ) );
