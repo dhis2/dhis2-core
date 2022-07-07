@@ -27,28 +27,65 @@
  */
 package org.hisp.dhis.webapi.controller.event.webrequest;
 
+import java.util.List;
+import java.util.Optional;
+
+import lombok.AccessLevel;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import org.apache.commons.collections4.CollectionUtils;
+
 /**
- * Paging parameters
+ * simplest implementation of PagingCriteria and SortingCriteria
  *
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
-public interface PagingCriteria
+@Data
+@NoArgsConstructor( access = AccessLevel.PROTECTED )
+public abstract class PagingAndSortingCriteriaAdapter implements PagingCriteria, SortingCriteria
 {
 
     /**
      * Page number to return.
      */
-    Integer getPage();
+    private Integer page;
 
     /**
      * Page size.
      */
-    Integer getPageSize();
+    private Integer pageSize;
 
     /**
      * Indicates whether to include the total number of pages in the paging
      * response.
      */
-    boolean isTotalPages();
+    private boolean totalPages;
+
+    /**
+     * Indicates whether paging should be skipped.
+     */
+    private Boolean skipPaging;
+
+    /**
+     * order params
+     */
+    private List<OrderCriteria> order;
+
+    public boolean isPagingRequest()
+    {
+        return !isSkipPaging();
+    }
+
+    public boolean isSkipPaging()
+    {
+        return Optional.ofNullable( skipPaging )
+            .orElse( false );
+    }
+
+    public boolean isSortingRequest()
+    {
+        return !CollectionUtils.emptyIfNull( getOrder() ).isEmpty();
+    }
 
 }

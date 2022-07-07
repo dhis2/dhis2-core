@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,58 +27,28 @@
  */
 package org.hisp.dhis.webapi.controller.event.webrequest;
 
-import java.util.List;
-import java.util.Optional;
-
-import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * simplest implementation of PagingCriteria and SortingCriteria
- *
- * @author Giuseppe Nespolino <g.nespolino@gmail.com>
+ * @author Luca Cambi
  */
 @Data
-@NoArgsConstructor( access = AccessLevel.PROTECTED )
-public abstract class PagingAndSortingCriteriaAdapter implements PagingCriteria, SortingCriteria
+@NoArgsConstructor
+public class RelationshipCriteria extends PagingAndSortingCriteriaAdapter
 {
+    private String tei;
+
+    private String enrollment;
+
+    private String event;
 
     /**
-     * Page number to return.
+     * TODO Add Pager
      */
-    private Integer page;
-
-    /**
-     * Page size.
-     */
-    private Integer pageSize;
-
-    /**
-     * Indicates whether to include the total number of pages in the paging
-     * response.
-     */
-    private boolean totalPages;
-
-    /**
-     * Indicates whether paging should be skipped.
-     */
-    private Boolean skipPaging;
-
-    /**
-     * order params
-     */
-    private List<OrderCriteria> order;
-
-    public boolean isPagingRequest()
-    {
-        return !isSkipPaging();
-    }
-
+    @Override
     public boolean isSkipPaging()
     {
-        return Optional.ofNullable( skipPaging )
-            .orElse( false );
+        return true;
     }
-
 }
