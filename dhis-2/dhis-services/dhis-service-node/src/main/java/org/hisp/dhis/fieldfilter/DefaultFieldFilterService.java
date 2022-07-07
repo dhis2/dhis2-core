@@ -609,10 +609,10 @@ public class DefaultFieldFilterService implements FieldFilterService
     }
 
     /**
-     * Generate ComplexNode with Map structure based given inputMapObject. The
-     * format of {@link org.hisp.dhis.user.sharing.Sharing#userGroups} is:
+     * Generate ComplexNode from Map structure based on given inputMapObject.
      *
      * <pre>
+     * Example in xml:
      * {@code
      * <userGroups>
      *  <B6JNeAQ6akX>
@@ -627,36 +627,29 @@ public class DefaultFieldFilterService implements FieldFilterService
      * }
      * </pre>
      *
-     * @param inputMapObject
-     *
-     *        <pre>
-     * {@code  Map<String, Object>}
-     *        </pre>
-     *
-     * @param property {@link Property} of the given map object.
+     * @param inputMapObject Map to be used for generating ComplexNode
+     * @param property {@link Property} type of the given map object.
      * @return {@link ComplexNode}
      */
     private ComplexNode handleMapProperty( Object inputMapObject, Property property )
     {
-        if ( inputMapObject == null
-            || (!property.getKlass().isAssignableFrom( org.hisp.dhis.user.sharing.UserGroupAccess.class )
-                && !property.getKlass().isAssignableFrom( org.hisp.dhis.user.sharing.UserAccess.class )) )
+        if ( inputMapObject == null )
         {
             return null;
         }
 
-        Map<String, Object> mapObject = (Map<String, Object>) inputMapObject;
+        Map<Object, Object> mapObject = (Map<Object, Object>) inputMapObject;
 
         ComplexNode mapNode = new ComplexNode( property.getName() );
 
-        if ( mapObject.entrySet().isEmpty() )
+        if ( mapObject.isEmpty() )
         {
             return null;
         }
 
         FieldMap fieldMap = null;
 
-        for ( Entry<String, Object> item : mapObject.entrySet() )
+        for ( Entry<Object, Object> item : mapObject.entrySet() )
         {
             if ( fieldMap == null )
             {
@@ -664,7 +657,7 @@ public class DefaultFieldFilterService implements FieldFilterService
                     schemaService.getDynamicSchema( item.getValue().getClass() ) );
             }
 
-            ComplexNode mapItemNode = new ComplexNode( item.getKey() );
+            ComplexNode mapItemNode = new ComplexNode( item.getKey().toString() );
 
             for ( final String fieldName : fieldMap.keySet() )
             {
@@ -682,7 +675,7 @@ public class DefaultFieldFilterService implements FieldFilterService
                 }
             }
 
-            mapItemNode.addChild( mapItemNode );
+            mapNode.addChild( mapItemNode );
         }
         return mapNode;
     }
