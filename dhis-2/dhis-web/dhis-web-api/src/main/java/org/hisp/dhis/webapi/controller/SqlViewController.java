@@ -38,7 +38,6 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.node.NodeUtils;
-import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.schema.descriptors.SqlViewSchemaDescriptor;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewQuery;
@@ -78,7 +77,7 @@ public class SqlViewController
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/{uid}/data", method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_JSON )
-    public @ResponseBody RootNode getViewJson( @PathVariable( "uid" ) String uid,
+    public @ResponseBody Grid getViewJson( @PathVariable( "uid" ) String uid,
         SqlViewQuery query, HttpServletResponse response )
         throws WebMessageException
     {
@@ -86,19 +85,20 @@ public class SqlViewController
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, sqlView.getCacheStrategy() );
 
-        return buildResponse( sqlView, query );
+        return getViewGrid( sqlView, query );
     }
 
     @RequestMapping( value = "/{uid}/data.xml", method = RequestMethod.GET )
-    public @ResponseBody RootNode getViewXml( @PathVariable( "uid" ) String uid,
+    public void getViewXml( @PathVariable( "uid" ) String uid,
         SqlViewQuery query, HttpServletResponse response )
-        throws WebMessageException
+        throws Exception
     {
         SqlView sqlView = validateView( uid );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_XML, sqlView.getCacheStrategy() );
 
-        return buildResponse( sqlView, query );
+        Grid grid = getViewGrid( sqlView, query );
+        GridUtils.toXml( grid, response.getOutputStream() );
     }
 
     @RequestMapping( value = "/{uid}/data.csv", method = RequestMethod.GET )
@@ -273,16 +273,13 @@ public class SqlViewController
         return sqlView;
     }
 
-    private RootNode buildResponse( SqlView sqlView, SqlViewQuery query )
-        throws WebMessageException
+    private Grid getViewGrid( SqlView sqlView, SqlViewQuery query )
     {
         List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
         Grid grid = sqlViewService.getSqlViewGrid( sqlView, SqlView.getCriteria( query.getCriteria() ),
             SqlView.getCriteria( query.getVar() ), filters, fields );
-
-        RootNode rootNode = NodeUtils.createMetadata();
 
         if ( !query.isSkipPaging() )
         {
@@ -292,8 +289,6 @@ public class SqlViewController
             rootNode.addChild( NodeUtils.createPager( query.getPager() ) );
         }
 
-        rootNode.addChild( nodeService.toNode( grid ) );
-
-        return rootNode;
+        return grid;
     }
 }
