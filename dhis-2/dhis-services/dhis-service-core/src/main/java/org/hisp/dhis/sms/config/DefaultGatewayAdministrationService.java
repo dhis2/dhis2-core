@@ -85,7 +85,7 @@ public class DefaultGatewayAdministrationService
         SmsConfiguration configuration = getSmsConfiguration();
 
         configuration.getGateways()
-            .forEach( gateway -> gateway.setDefault( Objects.equals( gateway.getUid(), config.getUid() ) ) );
+            .forEach( gateway -> gateway.setDefaultGateway( Objects.equals( gateway.getUid(), config.getUid() ) ) );
 
         smsConfigurationManager.updateSmsConfiguration( configuration );
         updateHasGatewaysState();
@@ -111,7 +111,7 @@ public class DefaultGatewayAdministrationService
 
         SmsConfiguration smsConfiguration = getSmsConfiguration();
 
-        config.setDefault( smsConfiguration.getGateways().isEmpty() );
+        config.setDefaultGateway( smsConfiguration.getGateways().isEmpty() );
 
         if ( config instanceof GenericHttpGatewayConfig )
         {
@@ -142,7 +142,7 @@ public class DefaultGatewayAdministrationService
         }
 
         updatedConfig.setUid( persistedConfig.getUid() );
-        updatedConfig.setDefault( persistedConfig.isDefault() );
+        updatedConfig.setDefaultGateway( persistedConfig.isDefaultGateway() );
 
         if ( persistedConfig.getPassword() != null
             && !persistedConfig.getPassword().equals( updatedConfig.getPassword() ) )
@@ -205,9 +205,9 @@ public class DefaultGatewayAdministrationService
             return false;
         }
         gateways.remove( removed );
-        if ( removed.isDefault() && !gateways.isEmpty() )
+        if ( removed.isDefaultGateway() && !gateways.isEmpty() )
         {
-            gateways.get( 0 ).setDefault( true );
+            gateways.get( 0 ).setDefaultGateway( true );
         }
         smsConfigurationManager.updateSmsConfiguration( smsConfiguration );
         updateHasGatewaysState();
@@ -226,7 +226,7 @@ public class DefaultGatewayAdministrationService
     public SmsGatewayConfig getDefaultGateway()
     {
         return getSmsConfiguration().getGateways().stream()
-            .filter( SmsGatewayConfig::isDefault )
+            .filter( SmsGatewayConfig::isDefaultGateway )
             .findFirst().orElse( null );
     }
 

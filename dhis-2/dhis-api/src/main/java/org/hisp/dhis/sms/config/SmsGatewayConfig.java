@@ -29,21 +29,16 @@ package org.hisp.dhis.sms.config;
 
 import java.io.Serializable;
 
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.sms.config.views.SmsConfigurationViews;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.annotation.JsonView;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * Super class for gateway configurations
  *
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
-@JacksonXmlRootElement( localName = "smsgatewayconfig", namespace = DxfNamespaces.DXF_2_0 )
 @JsonInclude( JsonInclude.Include.NON_NULL )
 @JsonTypeInfo( use = JsonTypeInfo.Id.NAME, property = "type" )
 @JsonSubTypes( { @JsonSubTypes.Type( value = BulkSmsGatewayConfig.class, name = "bulksms" ),
@@ -55,28 +50,28 @@ public abstract class SmsGatewayConfig
 {
     private static final long serialVersionUID = -4288220735161151632L;
 
-    @JsonView( SmsConfigurationViews.Public.class )
+    @JsonProperty
     private String uid;
 
-    @JsonView( SmsConfigurationViews.Public.class )
+    @JsonProperty
     private String name;
 
-    @JsonView( SmsConfigurationViews.Public.class )
+    @JsonProperty
     private String username;
 
-    @JsonView( SmsConfigurationViews.Public.class )
+    @JsonProperty
     private String password;
 
-    @JsonView( SmsConfigurationViews.Public.class )
-    private boolean isDefault;
+    @JsonProperty( "isDefault" )
+    private boolean defaultGateway;
 
-    @JsonView( SmsConfigurationViews.Public.class )
+    @JsonProperty
     private boolean sendUrlParameters;
 
-    @JsonView( SmsConfigurationViews.Public.class )
+    @JsonProperty
     private String urlTemplate;
 
-    @JsonView( SmsConfigurationViews.Public.class )
+    @JsonProperty
     private String maxSmsLength;
 
     public String getUrlTemplate()
@@ -99,14 +94,14 @@ public abstract class SmsGatewayConfig
         this.name = name;
     }
 
-    public boolean isDefault()
+    public boolean isDefaultGateway()
     {
-        return isDefault;
+        return defaultGateway;
     }
 
-    public void setDefault( boolean isDefault )
+    public void setDefaultGateway( boolean defaultGateway )
     {
-        this.isDefault = isDefault;
+        this.defaultGateway = defaultGateway;
     }
 
     public String getUid()
@@ -190,7 +185,7 @@ public abstract class SmsGatewayConfig
             "uid='" + uid + '\'' +
             ", name='" + name + '\'' +
             ", username='" + username + '\'' +
-            ", isDefault=" + isDefault +
+            ", isDefault=" + defaultGateway +
             ", urlTemplate='" + urlTemplate + '\'' +
             '}';
     }

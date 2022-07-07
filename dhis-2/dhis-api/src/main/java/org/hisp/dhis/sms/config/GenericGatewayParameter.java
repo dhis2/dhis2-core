@@ -31,9 +31,7 @@ import java.io.Serializable;
 
 import lombok.EqualsAndHashCode;
 
-import org.hisp.dhis.sms.config.views.SmsConfigurationViews;
-
-import com.fasterxml.jackson.annotation.JsonView;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
@@ -44,22 +42,21 @@ public class GenericGatewayParameter
 {
     private static final long serialVersionUID = -863990758156009672L;
 
-    @JsonView( SmsConfigurationViews.Public.class )
+    @JsonProperty
     private String key;
 
-    @JsonView( SmsConfigurationViews.Public.class )
+    @JsonProperty
     private String value;
 
-    @JsonView( SmsConfigurationViews.Public.class )
+    @JsonProperty
     private boolean header;
 
-    @JsonView( SmsConfigurationViews.Public.class )
+    @JsonProperty
     private boolean encode;
 
-    @JsonView( SmsConfigurationViews.Public.class )
+    @JsonProperty
     private boolean confidential;
 
-    @JsonView( SmsConfigurationViews.Public.class )
     public String getKey()
     {
         return key;

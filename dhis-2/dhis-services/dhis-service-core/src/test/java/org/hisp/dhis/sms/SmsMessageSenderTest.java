@@ -566,7 +566,7 @@ class SmsMessageSenderTest
         smsGatewayConfig.setUsername( " " );
         smsGatewayConfig.setPassword( "" );
         smsGatewayConfig.setUrlTemplate( "" );
-        smsGatewayConfig.setDefault( true );
+        smsGatewayConfig.setDefaultGateway( true );
 
         OutboundMessage outboundMessageA = new OutboundMessage( subject, text, recipientsNormalized );
         OutboundMessage outboundMessageB = new OutboundMessage( subject, text, recipientsNonNormalized );

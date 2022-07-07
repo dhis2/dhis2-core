@@ -200,7 +200,7 @@ class ProgramMessageServiceTest extends TransactionalIntegrationTest
         params.setProgramInstance( piA );
         params.setMessageStatus( messageStatus );
         bulkSmsConfig = new BulkSmsGatewayConfig();
-        bulkSmsConfig.setDefault( true );
+        bulkSmsConfig.setDefaultGateway( true );
         bulkSmsConfig.setName( "bulk" );
         bulkSmsConfig.setUsername( "user_uio" );
         bulkSmsConfig.setPassword( "5cKMMQTGNMkD" );

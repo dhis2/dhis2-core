@@ -107,7 +107,7 @@ class BulkSmsGatewayTest extends DhisConvenienceTest
     public void initTest()
     {
         smsGatewayConfig = new BulkSmsGatewayConfig();
-        smsGatewayConfig.setDefault( true );
+        smsGatewayConfig.setDefaultGateway( true );
         smsGatewayConfig.setUsername( "username" );
         smsGatewayConfig.setPassword( "password" );
 

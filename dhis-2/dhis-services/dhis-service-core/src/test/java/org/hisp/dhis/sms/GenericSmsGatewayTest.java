@@ -126,7 +126,7 @@ class GenericSmsGatewayTest
         gatewayConfig.setUseGet( false );
         gatewayConfig.setName( "generic" );
         gatewayConfig.setUrlTemplate( GATEWAY_URL );
-        gatewayConfig.setDefault( true );
+        gatewayConfig.setDefaultGateway( true );
         gatewayConfig.setUid( UID );
 
         username = new GenericGatewayParameter();

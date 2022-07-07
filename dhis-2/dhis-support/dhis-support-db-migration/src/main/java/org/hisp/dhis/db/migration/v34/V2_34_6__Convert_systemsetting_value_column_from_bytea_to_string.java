@@ -234,7 +234,7 @@ public class V2_34_6__Convert_systemsetting_value_column_from_bytea_to_string ex
     {
         GenericHttpGatewayConfig newGatewayConfig = new GenericHttpGatewayConfig();
         newGatewayConfig.setContentType( ContentType.FORM_URL_ENCODED );
-        newGatewayConfig.setDefault( gatewayConfig.isDefault() );
+        newGatewayConfig.setDefaultGateway( gatewayConfig.isDefaultGateway() );
         newGatewayConfig.setName( gatewayConfig.getName() );
         newGatewayConfig.setParameters( gatewayConfig.getParameters() );
         newGatewayConfig.setPassword( gatewayConfig.getPassword() );

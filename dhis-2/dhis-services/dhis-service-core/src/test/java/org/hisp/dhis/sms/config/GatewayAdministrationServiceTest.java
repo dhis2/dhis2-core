@@ -142,7 +142,7 @@ class GatewayAdministrationServiceTest
 
         assertTrue( isAdded );
         assertEquals( bulkConfig, spyConfiguration.getGateways().get( 0 ) );
-        assertTrue( spyConfiguration.getGateways().get( 0 ).isDefault() );
+        assertTrue( spyConfiguration.getGateways().get( 0 ).isDefaultGateway() );
 
         assertTrue( subject.addGateway( genericHttpGatewayConfig ) );
 
@@ -191,8 +191,8 @@ class GatewayAdministrationServiceTest
         subject.updateGateway( clickatellConfig, updated );
 
         assertGateways( 2 );
-        assertGateway( BULKSMS, gateway -> assertTrue( gateway.isDefault() ) );
-        assertGateway( CLICKATELL, gateway -> assertFalse( gateway.isDefault() ) );
+        assertGateway( BULKSMS, gateway -> assertTrue( gateway.isDefaultGateway() ) );
+        assertGateway( CLICKATELL, gateway -> assertFalse( gateway.isDefaultGateway() ) );
         assertGateway( CLICKATELL, gateway -> assertNotEquals( "tempUId", gateway.getUid() ) );
     }
 
@@ -219,7 +219,7 @@ class GatewayAdministrationServiceTest
 
         subject.addGateway( bulkConfig );
 
-        clickatellConfig.setDefault( true );
+        clickatellConfig.setDefaultGateway( true );
         boolean isAdded = subject.addGateway( clickatellConfig );
 
         assertTrue( isAdded );
@@ -298,7 +298,7 @@ class GatewayAdministrationServiceTest
         subject.updateGateway( bulkConfig, updated );
 
         assertGateways( 1 );
-        assertGateway( BULKSMS, gateway -> assertTrue( gateway.isDefault() ) );
+        assertGateway( BULKSMS, gateway -> assertTrue( gateway.isDefaultGateway() ) );
         assertGateway( BULKSMS, gateway -> assertEquals( "bulksms2", gateway.getName() ) );
     }
 
