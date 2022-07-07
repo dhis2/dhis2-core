@@ -46,6 +46,7 @@ import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.descriptors.JobConfigurationSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.webdomain.JobTypes;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -91,9 +92,14 @@ public class JobConfigurationController
 
     @PostMapping( value = "{uid}/execute", produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
     public ObjectReport executeJobConfiguration( @PathVariable( "uid" ) String uid )
-        throws WebMessageException
+        throws Exception
     {
         JobConfiguration jobConfiguration = jobConfigurationService.getJobConfigurationByUid( uid );
+
+        if ( jobConfiguration == null )
+        {
+            throw NotFoundException.notFoundUid( uid );
+        }
 
         ObjectReport objectReport = new ObjectReport( JobConfiguration.class, 0 );
 
