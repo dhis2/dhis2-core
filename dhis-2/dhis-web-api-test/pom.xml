@@ -223,11 +223,6 @@
       <artifactId>dhis-support-system</artifactId>
       <scope>compile</scope>
     </dependency>
-    <dependency>
-      <groupId>org.projectlombok</groupId>
-      <artifactId>lombok</artifactId>
-      <scope>compile</scope>
-    </dependency>
 
     <!-- Test -->
     <dependency>
@@ -413,6 +408,11 @@
     <dependency>
       <groupId>org.skyscreamer</groupId>
       <artifactId>jsonassert</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>
