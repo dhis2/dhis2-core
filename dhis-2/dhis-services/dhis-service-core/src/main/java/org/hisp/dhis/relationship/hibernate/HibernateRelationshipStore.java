@@ -28,6 +28,7 @@
 package org.hisp.dhis.relationship.hibernate;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import javax.persistence.NoResultException;
@@ -42,6 +43,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.relationship.Relationship;
@@ -52,6 +54,8 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -76,30 +80,37 @@ public class HibernateRelationshipStore extends HibernateIdentifiableObjectStore
     }
 
     @Override
-    public List<Relationship> getByTrackedEntityInstance( TrackedEntityInstance tei )
+    public List<Relationship> getByTrackedEntityInstance( TrackedEntityInstance tei,
+        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter )
     {
-        TypedQuery<Relationship> relationshipTypedQuery = getRelationshipTypedQuery( tei );
+        TypedQuery<Relationship> relationshipTypedQuery = getRelationshipTypedQuery( tei,
+            pagingAndSortingCriteriaAdapter );
 
         return getList( relationshipTypedQuery );
     }
 
     @Override
-    public List<Relationship> getByProgramInstance( ProgramInstance pi )
+    public List<Relationship> getByProgramInstance( ProgramInstance pi,
+        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter )
     {
-        TypedQuery<Relationship> relationshipTypedQuery = getRelationshipTypedQuery( pi );
+        TypedQuery<Relationship> relationshipTypedQuery = getRelationshipTypedQuery( pi,
+            pagingAndSortingCriteriaAdapter );
 
         return getList( relationshipTypedQuery );
     }
 
     @Override
-    public List<Relationship> getByProgramStageInstance( ProgramStageInstance psi )
+    public List<Relationship> getByProgramStageInstance( ProgramStageInstance psi,
+        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter )
     {
-        TypedQuery<Relationship> relationshipTypedQuery = getRelationshipTypedQuery( psi );
+        TypedQuery<Relationship> relationshipTypedQuery = getRelationshipTypedQuery( psi,
+            pagingAndSortingCriteriaAdapter );
 
         return getList( relationshipTypedQuery );
     }
 
-    private <T extends IdentifiableObject> TypedQuery<Relationship> getRelationshipTypedQuery( T entity )
+    private <T extends IdentifiableObject> TypedQuery<Relationship> getRelationshipTypedQuery( T entity,
+        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
@@ -108,7 +119,8 @@ public class HibernateRelationshipStore extends HibernateIdentifiableObjectStore
 
         setRelationshipItemCriteriaQueryExistsCondition( entity, builder, relationshipItemCriteriaQuery, root );
 
-        return getSession().createQuery( relationshipItemCriteriaQuery );
+        return getRelationshipTypedQuery( pagingAndSortingCriteriaAdapter, builder, relationshipItemCriteriaQuery,
+            root );
     }
 
     private <T extends IdentifiableObject> void setRelationshipItemCriteriaQueryExistsCondition( T entity,
@@ -153,6 +165,33 @@ public class HibernateRelationshipStore extends HibernateIdentifiableObjectStore
                 .getSimpleName() + " not supported in relationship" );
     }
 
+    private TypedQuery<Relationship> getRelationshipTypedQuery(
+        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter, CriteriaBuilder builder,
+        CriteriaQuery<Relationship> relationshipItemCriteriaQuery, Root<Relationship> root )
+    {
+        JpaQueryParameters<Relationship> jpaQueryParameters = newJpaParameters( pagingAndSortingCriteriaAdapter,
+            builder );
+
+        relationshipItemCriteriaQuery.orderBy( jpaQueryParameters.getOrders()
+            .stream()
+            .map( o -> o.apply( root ) )
+            .collect( Collectors.toList() ) );
+
+        TypedQuery<Relationship> relationshipTypedQuery = getSession().createQuery( relationshipItemCriteriaQuery );
+
+        if ( jpaQueryParameters.hasFirstResult() )
+        {
+            relationshipTypedQuery.setFirstResult( jpaQueryParameters.getFirstResult() );
+        }
+
+        if ( jpaQueryParameters.hasMaxResult() )
+        {
+            relationshipTypedQuery.setMaxResults( jpaQueryParameters.getMaxResults() );
+        }
+
+        return relationshipTypedQuery;
+    }
+
     @Override
     public List<Relationship> getByRelationshipType( RelationshipType relationshipType )
     {
@@ -161,6 +200,38 @@ public class HibernateRelationshipStore extends HibernateIdentifiableObjectStore
         return getList( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.join( "relationshipType" ), relationshipType ) ) );
 
+    }
+
+    private JpaQueryParameters<Relationship> newJpaParameters(
+        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter, CriteriaBuilder criteriaBuilder )
+    {
+
+        JpaQueryParameters<Relationship> jpaQueryParameters = newJpaParameters();
+
+        if ( Objects.nonNull( pagingAndSortingCriteriaAdapter ) )
+        {
+            if ( pagingAndSortingCriteriaAdapter.isSortingRequest() )
+            {
+                pagingAndSortingCriteriaAdapter.getOrder()
+                    .forEach( orderCriteria -> addOrder( jpaQueryParameters, orderCriteria, criteriaBuilder ) );
+            }
+
+            if ( pagingAndSortingCriteriaAdapter.isPagingRequest() )
+            {
+                jpaQueryParameters.setFirstResult( pagingAndSortingCriteriaAdapter.getFirstResult() );
+                jpaQueryParameters.setMaxResults( pagingAndSortingCriteriaAdapter.getPageSize() );
+            }
+        }
+
+        return jpaQueryParameters;
+    }
+
+    private void addOrder( JpaQueryParameters<Relationship> jpaQueryParameters, OrderCriteria orderCriteria,
+        CriteriaBuilder builder )
+    {
+        jpaQueryParameters.addOrder( relationshipRoot -> orderCriteria.getDirection()
+            .isAscending() ? builder.asc( relationshipRoot.get( orderCriteria.getField() ) )
+                : builder.desc( relationshipRoot.get( orderCriteria.getField() ) ) );
     }
 
     @Override

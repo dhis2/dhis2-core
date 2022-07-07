@@ -40,6 +40,7 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 
 /**
  * @author Stian Sandvold
@@ -54,11 +55,16 @@ public interface RelationshipService
     // -------------------------------------------------------------------------
 
     List<Relationship> getRelationshipsByTrackedEntityInstance( TrackedEntityInstance tei,
+        PagingAndSortingCriteriaAdapter criteria,
         boolean skipAccessValidation );
 
-    List<Relationship> getRelationshipsByProgramInstance( ProgramInstance pi, boolean skipAccessValidation );
+    List<Relationship> getRelationshipsByProgramInstance( ProgramInstance pi,
+        PagingAndSortingCriteriaAdapter criteria,
+        boolean skipAccessValidation );
 
-    List<Relationship> getRelationshipsByProgramStageInstance( ProgramStageInstance psi, boolean skipAccessValidation );
+    List<Relationship> getRelationshipsByProgramStageInstance( ProgramStageInstance psi,
+        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
+        boolean skipAccessValidation );
 
     // -------------------------------------------------------------------------
     // CREATE
