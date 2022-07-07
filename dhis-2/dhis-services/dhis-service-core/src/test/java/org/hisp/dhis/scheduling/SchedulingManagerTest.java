@@ -83,7 +83,6 @@ import org.springframework.util.concurrent.SuccessCallback;
  */
 public class SchedulingManagerTest
 {
-
     private final TaskScheduler taskScheduler = mock( TaskScheduler.class );
 
     private final JobConfigurationService jobConfigurationService = mock( JobConfigurationService.class );
