@@ -33,8 +33,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.List;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
+import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
@@ -150,15 +152,9 @@ class JobConfigurationControllerTest extends DhisControllerConvenienceTest
                 {
                     if ( param.getString( "name" ).string().equals( "skipTableTypes" ) )
                     {
-                        assertEquals( List.of( "DATA_VALUE",
-                            "COMPLETENESS",
-                            "COMPLETENESS_TARGET",
-                            "ORG_UNIT_TARGET",
-                            "EVENT",
-                            "ENROLLMENT",
-                            "VALIDATION_RESULT",
-                            "TRACKED_ENTITY_INSTANCE",
-                            "TRACKED_ENTITY_INSTANCE_ONLY" ), param.getArray( "constants" ).stringValues() );
+                        assertEquals( Arrays.stream( AnalyticsTableType.values() )
+                            .map( Enum::name )
+                            .collect( Collectors.toList() ), param.getArray( "constants" ).stringValues() );
                     }
                 }
             }
@@ -170,15 +166,9 @@ class JobConfigurationControllerTest extends DhisControllerConvenienceTest
     {
         JsonObject types = GET( "/jobConfigurations/jobTypesExtended" ).content();
         JsonObject param = types.getObject( "ANALYTICS_TABLE" ).getObject( "skipTableTypes" );
-        assertEquals( List.of( "DATA_VALUE",
-            "COMPLETENESS",
-            "COMPLETENESS_TARGET",
-            "ORG_UNIT_TARGET",
-            "EVENT",
-            "ENROLLMENT",
-            "VALIDATION_RESULT",
-            "TRACKED_ENTITY_INSTANCE",
-            "TRACKED_ENTITY_INSTANCE_ONLY" ), param.getArray( "constants" ).stringValues() );
+        assertEquals( Arrays.stream( AnalyticsTableType.values() )
+            .map( Enum::name )
+            .collect( Collectors.toList() ), param.getArray( "constants" ).stringValues() );
     }
 
     private JsonObject assertJobConfigurationExists( String jobId, String expectedJobType )
