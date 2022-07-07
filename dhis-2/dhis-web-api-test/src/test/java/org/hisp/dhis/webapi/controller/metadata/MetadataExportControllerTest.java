@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.metadata;
 
+import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserSettingService;
@@ -39,8 +40,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
-
-import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * Unit tests for {@link MetadataExportControllerTest}.
@@ -68,7 +67,7 @@ class MetadataExportControllerTest
     @Test
     void withDownload()
     {
-        ResponseEntity<JsonNode> responseEntity = controller.getMetadataDownload( false, null, true );
+        ResponseEntity<MetadataExportParams> responseEntity = controller.getMetadata( false, null, true );
         Assertions.assertNotNull( responseEntity.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ) );
         Assertions.assertEquals( "attachment; filename=metadata",
             responseEntity.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ).get( 0 ) );
