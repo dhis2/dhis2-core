@@ -30,6 +30,7 @@ package org.hisp.dhis.cacheinvalidation;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
+
 import io.debezium.connector.postgresql.PostgresConnector;
 
 /**
