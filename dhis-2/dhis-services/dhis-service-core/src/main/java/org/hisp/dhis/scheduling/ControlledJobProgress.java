@@ -149,12 +149,12 @@ public class ControlledJobProgress implements JobProgress
     @Override
     public void failedProcess( String error )
     {
+        tracker.failedProcess( error );
         Process process = processes.peekLast();
         if ( process == null || process.getCompletedTime() != null )
         {
             return;
         }
-        tracker.failedProcess( error );
         if ( process.getStatus() != Status.CANCELLED )
         {
             automaticAbort( false, error, null );
@@ -170,12 +170,12 @@ public class ControlledJobProgress implements JobProgress
     @Override
     public void failedProcess( Exception cause )
     {
+        tracker.failedProcess( cause );
         Process process = processes.peekLast();
         if ( process == null || process.getCompletedTime() != null )
         {
             return;
         }
-        tracker.failedProcess( cause );
         if ( process.getStatus() != Status.CANCELLED )
         {
             cause = cancellationAsAbort( cause );
