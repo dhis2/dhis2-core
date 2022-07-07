@@ -37,7 +37,6 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.node.NodeService;
-import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.schema.descriptors.SqlViewSchemaDescriptor;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewQuery;
@@ -286,7 +285,6 @@ public class SqlViewController
             query.setTotal( grid.getHeight() );
             grid.limitGrid( (query.getPage() - 1) * query.getPageSize(),
                 Integer.min( query.getPage() * query.getPageSize(), grid.getHeight() ) );
-            rootNode.addChild( NodeUtils.createPager( query.getPager() ) );
         }
 
         return grid;
