@@ -248,6 +248,7 @@ public class HibernatePropertyIntrospector implements PropertyIntrospector
         {
             property.setOneToMany( true );
         }
+
         return property;
     }
 
