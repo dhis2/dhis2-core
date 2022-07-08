@@ -69,12 +69,10 @@ public class EventReferralValidationHook extends AbstractTrackerDtoValidationHoo
         {
             List<Relationship> relationships = event.getRelationships();
 
-            reporter.addErrorIf( relationships::isEmpty, event, E1311,
-                event.getEvent() );
+            reporter.addErrorIf( relationships::isEmpty, event, E1311 );
 
             relationships.forEach(
-                r -> reporter.addErrorIf( () -> !ObjectUtils.allNonNull( r.getFrom(), r.getTo() ), event, E1312,
-                    event.getEvent() ) );
+                r -> reporter.addErrorIf( () -> !ObjectUtils.allNonNull( r.getFrom(), r.getTo() ), event, E1312 ) );
         }
     }
 }
