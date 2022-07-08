@@ -59,10 +59,10 @@ public class EventReferralValidationHook extends AbstractTrackerDtoValidationHoo
 
         checkNotNull( programStage, TrackerImporterAssertErrors.PROGRAM_STAGE_CANT_BE_NULL );
 
-        validateReferralRelationshipLinkage( reporter, bundle, event, programStage );
+        validateReferralRelationshipLinkage( reporter, event, programStage );
     }
 
-    public void validateReferralRelationshipLinkage( ValidationErrorReporter reporter, TrackerBundle bundle,
+    public void validateReferralRelationshipLinkage( ValidationErrorReporter reporter,
         Event event, ProgramStage programStage )
     {
         if ( programStage.isReferral() )
@@ -72,10 +72,9 @@ public class EventReferralValidationHook extends AbstractTrackerDtoValidationHoo
             reporter.addErrorIf( relationships::isEmpty, event, E1311,
                 event.getEvent() );
 
-            relationships.forEach( r -> {
-                reporter.addErrorIf( () -> !ObjectUtils.allNonNull( r.getFrom(), r.getTo() ), event, E1312,
-                    event.getEvent() );
-            } );
+            relationships.forEach(
+                r -> reporter.addErrorIf( () -> !ObjectUtils.allNonNull( r.getFrom(), r.getTo() ), event, E1312,
+                    event.getEvent() ) );
         }
     }
 }
