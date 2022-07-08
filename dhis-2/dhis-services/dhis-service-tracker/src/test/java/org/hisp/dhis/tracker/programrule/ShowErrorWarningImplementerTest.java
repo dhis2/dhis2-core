@@ -36,9 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.dataelement.DataElement;
@@ -145,8 +143,11 @@ class ShowErrorWarningImplementerTest extends DhisConvenienceTest
     @Test
     void testValidateShowErrorRuleActionForEvents()
     {
-        Map<String, List<ProgramRuleIssue>> errors = errorImplementer.validateEvents( bundle );
-        assertErrors( errors, 2 );
+        List<ProgramRuleIssue> errors = errorImplementer.validateEvent( bundle, activeEvent() );
+        assertErrors( errors, 1 );
+
+        errorImplementer.validateEvent( bundle, completedEvent() );
+        assertErrors( errors, 1 );
     }
 
     @Test
@@ -154,7 +155,7 @@ class ShowErrorWarningImplementerTest extends DhisConvenienceTest
     {
         programStage.setValidationStrategy( ValidationStrategy.ON_COMPLETE );
         bundle.setRuleEffects( getRuleEventEffectsLinkedToDataElement() );
-        Map<String, List<ProgramRuleIssue>> errors = errorImplementer.validateEvents( bundle );
+        List<ProgramRuleIssue> errors = errorImplementer.validateEvent( bundle, completedEvent() );
         assertErrors( errors, 1 );
         assertErrorsWithDataElement( errors );
     }
@@ -163,7 +164,7 @@ class ShowErrorWarningImplementerTest extends DhisConvenienceTest
     void testValidateShowErrorForEventsInDifferentProgramStages()
     {
         bundle.setRuleEffects( getRuleEventEffectsLinkedTo2DataElementsIn2DifferentProgramStages() );
-        Map<String, List<ProgramRuleIssue>> errors = errorImplementer.validateEvents( bundle );
+        List<ProgramRuleIssue> errors = errorImplementer.validateEvent( bundle, activeEvent() );
         assertErrors( errors, 1 );
         assertErrorsWithDataElement( errors );
     }
@@ -171,68 +172,80 @@ class ShowErrorWarningImplementerTest extends DhisConvenienceTest
     @Test
     void testValidateShowErrorRuleActionForEnrollment()
     {
-        Map<String, List<ProgramRuleIssue>> errors = errorImplementer.validateEnrollments( bundle );
-        assertErrors( errors, 2 );
+        List<ProgramRuleIssue> errors = errorImplementer.validateEnrollment( bundle, activeEnrollment() );
+        assertErrors( errors, 1 );
+
+        errorImplementer.validateEnrollment( bundle, completedEnrollment() );
+        assertErrors( errors, 1 );
     }
 
     @Test
     void testValidateShowWarningRuleActionForEvents()
     {
-        Map<String, List<ProgramRuleIssue>> warnings = warningImplementer.validateEvents( bundle );
-        assertWarnings( warnings, 2 );
+        List<ProgramRuleIssue> warnings = warningImplementer.validateEvent( bundle, activeEvent() );
+        assertWarnings( warnings, 1 );
+
+        warnings = warningImplementer.validateEvent( bundle, completedEvent() );
+        assertWarnings( warnings, 1 );
     }
 
     @Test
     void testValidateShowWarningRuleActionForEnrollment()
     {
-        Map<String, List<ProgramRuleIssue>> warnings = warningImplementer.validateEnrollments( bundle );
-        assertWarnings( warnings, 2 );
+        List<ProgramRuleIssue> warnings = warningImplementer.validateEnrollment( bundle, activeEnrollment() );
+        assertWarnings( warnings, 1 );
+
+        warningImplementer.validateEnrollment( bundle, completedEnrollment() );
+        assertWarnings( warnings, 1 );
     }
 
     @Test
     void testValidateShowErrorOnCompleteRuleActionForEvents()
     {
-        Map<String, List<ProgramRuleIssue>> errors = errorOnCompleteImplementer.validateEvents( bundle );
+        List<ProgramRuleIssue> errors = errorOnCompleteImplementer.validateEvent( bundle, activeEvent() );
+        assertTrue( errors.isEmpty() );
+
+        errors = errorOnCompleteImplementer.validateEvent( bundle, completedEvent() );
         assertErrors( errors, 1 );
     }
 
     @Test
     void testValidateShowErrorOnCompleteRuleActionForEnrollment()
     {
-        Map<String, List<ProgramRuleIssue>> errors = errorOnCompleteImplementer.validateEnrollments( bundle );
+        List<ProgramRuleIssue> errors = errorOnCompleteImplementer.validateEnrollment( bundle, completedEnrollment() );
         assertErrors( errors, 1 );
     }
 
     @Test
     void testValidateShowWarningOnCompleteRuleActionForEvents()
     {
-        Map<String, List<ProgramRuleIssue>> warnings = warningOnCompleteImplementer.validateEvents( bundle );
+        List<ProgramRuleIssue> warnings = warningOnCompleteImplementer.validateEvent( bundle, completedEvent() );
         assertWarnings( warnings, 1 );
     }
 
     @Test
     void testValidateShowWarningOnCompleteRuleActionForEnrollment()
     {
-        Map<String, List<ProgramRuleIssue>> warnings = warningOnCompleteImplementer.validateEnrollments( bundle );
+        List<ProgramRuleIssue> warnings = warningOnCompleteImplementer.validateEnrollment( bundle,
+            completedEnrollment() );
         assertWarnings( warnings, 1 );
     }
 
-    public void assertErrors( Map<String, List<ProgramRuleIssue>> errors, int numberOfErrors )
+    public void assertErrors( List<ProgramRuleIssue> errors, int numberOfErrors )
     {
         assertIssues( errors, numberOfErrors, IssueType.ERROR );
     }
 
-    public void assertWarnings( Map<String, List<ProgramRuleIssue>> warnings, int numberOfWarnings )
+    public void assertWarnings( List<ProgramRuleIssue> warnings, int numberOfWarnings )
     {
         assertIssues( warnings, numberOfWarnings, IssueType.WARNING );
     }
 
-    private void assertIssues( Map<String, List<ProgramRuleIssue>> errors, int numberOfErrors, IssueType issueType )
+    private void assertIssues( List<ProgramRuleIssue> errors, int numberOfErrors, IssueType issueType )
     {
         assertFalse( errors.isEmpty() );
         assertEquals( numberOfErrors, errors.size() );
-        errors.forEach( ( key, value ) -> assertEquals( 1, value.size() ) );
-        errors.values().stream().flatMap( Collection::stream ).forEach( e -> {
+        errors.forEach( e -> {
             assertEquals( "", e.getRuleUid() );
             assertEquals( issueType, e.getIssueType() );
             assertEquals( TrackerErrorCode.E1300, e.getIssueCode() );
@@ -240,9 +253,9 @@ class ShowErrorWarningImplementerTest extends DhisConvenienceTest
         } );
     }
 
-    public void assertErrorsWithDataElement( Map<String, List<ProgramRuleIssue>> errors )
+    public void assertErrorsWithDataElement( List<ProgramRuleIssue> errors )
     {
-        errors.values().stream().flatMap( Collection::stream ).forEach( e -> {
+        errors.forEach( e -> {
             assertEquals( "", e.getRuleUid() );
             assertEquals( IssueType.ERROR, e.getIssueType() );
             assertEquals( TrackerErrorCode.E1300, e.getIssueCode() );
@@ -253,26 +266,46 @@ class ShowErrorWarningImplementerTest extends DhisConvenienceTest
 
     private List<Event> getEvents()
     {
+        return Lists.newArrayList( activeEvent(), completedEvent() );
+    }
+
+    private Event activeEvent()
+    {
         Event activeEvent = new Event();
         activeEvent.setEvent( ACTIVE_EVENT_ID );
         activeEvent.setStatus( EventStatus.ACTIVE );
         activeEvent.setProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_ID ) );
+        return activeEvent;
+    }
+
+    private Event completedEvent()
+    {
         Event completedEvent = new Event();
         completedEvent.setEvent( COMPLETED_EVENT_ID );
         completedEvent.setStatus( EventStatus.COMPLETED );
         completedEvent.setProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_ID ) );
-        return Lists.newArrayList( activeEvent, completedEvent );
+        return completedEvent;
     }
 
     private List<Enrollment> getEnrollments()
     {
+        return Lists.newArrayList( activeEnrollment(), completedEnrollment() );
+    }
+
+    private Enrollment activeEnrollment()
+    {
         Enrollment activeEnrollment = new Enrollment();
         activeEnrollment.setEnrollment( ACTIVE_ENROLLMENT_ID );
         activeEnrollment.setStatus( EnrollmentStatus.ACTIVE );
+        return activeEnrollment;
+    }
+
+    private Enrollment completedEnrollment()
+    {
         Enrollment completedEnrollment = new Enrollment();
         completedEnrollment.setEnrollment( COMPLETED_ENROLLMENT_ID );
         completedEnrollment.setStatus( EnrollmentStatus.COMPLETED );
-        return Lists.newArrayList( activeEnrollment, completedEnrollment );
+        return completedEnrollment;
     }
 
     private List<RuleEffects> getRuleEventEffectsLinkedToDataElement()

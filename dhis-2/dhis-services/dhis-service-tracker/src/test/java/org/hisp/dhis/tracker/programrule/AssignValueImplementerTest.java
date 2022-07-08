@@ -39,7 +39,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -184,7 +183,7 @@ class AssignValueImplementerTest extends DhisConvenienceTest
         bundle.setEvents( events );
         bundle.setRuleEffects( getRuleEventEffects( events ) );
 
-        Map<String, List<ProgramRuleIssue>> eventIssues = implementerToTest.validateEvents( bundle );
+        List<ProgramRuleIssue> eventIssues = implementerToTest.validateEvent( bundle, getEventWithDataValueNOTSet() );
 
         Event event = bundle.getEvents().stream().filter( e -> e.getEvent().equals( SECOND_EVENT_ID ) ).findAny().get();
         Optional<DataValue> newDataValue = event.getDataValues().stream()
@@ -192,8 +191,8 @@ class AssignValueImplementerTest extends DhisConvenienceTest
         assertTrue( newDataValue.isPresent() );
         assertEquals( DATA_ELEMENT_NEW_VALUE, newDataValue.get().getValue() );
         assertEquals( 1, eventIssues.size() );
-        assertEquals( 1, eventIssues.get( SECOND_EVENT_ID ).size() );
-        assertEquals( WARNING, eventIssues.get( SECOND_EVENT_ID ).get( 0 ).getIssueType() );
+        assertEquals( 1, eventIssues.size() );
+        assertEquals( WARNING, eventIssues.get( 0 ).getIssueType() );
     }
 
     @Test
@@ -203,12 +202,13 @@ class AssignValueImplementerTest extends DhisConvenienceTest
         bundle.setEvents( events );
         bundle.setRuleEffects( getRuleEventEffects( events ) );
 
-        Map<String, List<ProgramRuleIssue>> eventIssues = implementerToTest.validateEvents( bundle );
+        List<ProgramRuleIssue> eventIssues = implementerToTest.validateEvent( bundle,
+            getEventWithDataValueNOTSetInDifferentProgramStage() );
 
         Event event = bundle.getEvents().stream().filter( e -> e.getEvent().equals( SECOND_EVENT_ID ) ).findAny().get();
         Optional<DataValue> newDataValue = event.getDataValues().stream()
             .filter( dv -> dv.getDataElement().isEqualTo( dataElementA ) ).findAny();
-        assertTrue( !newDataValue.isPresent() );
+        assertTrue( newDataValue.isEmpty() );
         assertTrue( eventIssues.isEmpty() );
     }
 
@@ -221,7 +221,7 @@ class AssignValueImplementerTest extends DhisConvenienceTest
         bundle.setEvents( events );
         bundle.setRuleEffects( getRuleEventEffects( events ) );
 
-        Map<String, List<ProgramRuleIssue>> eventIssues = implementerToTest.validateEvents( bundle );
+        List<ProgramRuleIssue> eventIssues = implementerToTest.validateEvent( bundle, getEventWithDataValueSet() );
 
         Event event = bundle.getEvents().stream().filter( e -> e.getEvent().equals( FIRST_EVENT_ID ) ).findAny().get();
         Optional<DataValue> newDataValue = event.getDataValues().stream()
@@ -229,9 +229,9 @@ class AssignValueImplementerTest extends DhisConvenienceTest
         assertTrue( newDataValue.isPresent() );
         assertEquals( DATA_ELEMENT_OLD_VALUE, newDataValue.get().getValue() );
         assertEquals( 1, eventIssues.size() );
-        assertEquals( 1, eventIssues.get( FIRST_EVENT_ID ).size() );
-        assertEquals( ERROR, eventIssues.get( FIRST_EVENT_ID ).get( 0 ).getIssueType() );
-        assertEquals( TrackerErrorCode.E1307, eventIssues.get( FIRST_EVENT_ID ).get( 0 ).getIssueCode() );
+        assertEquals( 1, eventIssues.size() );
+        assertEquals( ERROR, eventIssues.get( 0 ).getIssueType() );
+        assertEquals( TrackerErrorCode.E1307, eventIssues.get( 0 ).getIssueCode() );
     }
 
     @Test
@@ -247,7 +247,8 @@ class AssignValueImplementerTest extends DhisConvenienceTest
         bundle.setEvents( events );
         bundle.setRuleEffects( getRuleEventEffects( events ) );
 
-        Map<String, List<ProgramRuleIssue>> eventIssues = implementerToTest.validateEvents( bundle );
+        List<ProgramRuleIssue> eventIssues = implementerToTest.validateEvent( bundle,
+            getEventWithDataValueSet( idSchemes ) );
 
         Event event = bundle.getEvents().stream().filter( e -> e.getEvent().equals( FIRST_EVENT_ID ) ).findAny().get();
         Optional<DataValue> newDataValue = event.getDataValues().stream()
@@ -255,9 +256,9 @@ class AssignValueImplementerTest extends DhisConvenienceTest
         assertTrue( newDataValue.isPresent() );
         assertEquals( DATA_ELEMENT_OLD_VALUE, newDataValue.get().getValue() );
         assertEquals( 1, eventIssues.size() );
-        assertEquals( 1, eventIssues.get( FIRST_EVENT_ID ).size() );
-        assertEquals( TrackerErrorCode.E1307, eventIssues.get( FIRST_EVENT_ID ).get( 0 ).getIssueCode() );
-        assertEquals( ERROR, eventIssues.get( FIRST_EVENT_ID ).get( 0 ).getIssueType() );
+        assertEquals( 1, eventIssues.size() );
+        assertEquals( TrackerErrorCode.E1307, eventIssues.get( 0 ).getIssueCode() );
+        assertEquals( ERROR, eventIssues.get( 0 ).getIssueType() );
     }
 
     @Test
@@ -269,7 +270,8 @@ class AssignValueImplementerTest extends DhisConvenienceTest
         bundle.setEvents( events );
         bundle.setRuleEffects( getRuleEventEffects( events ) );
 
-        Map<String, List<ProgramRuleIssue>> eventIssues = implementerToTest.validateEvents( bundle );
+        List<ProgramRuleIssue> eventIssues = implementerToTest.validateEvent( bundle,
+            getEventWithDataValueSetSameValue() );
 
         Event event = bundle.getEvents().stream().filter( e -> e.getEvent().equals( FIRST_EVENT_ID ) ).findAny().get();
         Optional<DataValue> newDataValue = event.getDataValues().stream()
@@ -277,8 +279,8 @@ class AssignValueImplementerTest extends DhisConvenienceTest
         assertTrue( newDataValue.isPresent() );
         assertEquals( DATA_ELEMENT_NEW_VALUE, newDataValue.get().getValue() );
         assertEquals( 1, eventIssues.size() );
-        assertEquals( 1, eventIssues.get( FIRST_EVENT_ID ).size() );
-        assertEquals( WARNING, eventIssues.get( FIRST_EVENT_ID ).get( 0 ).getIssueType() );
+        assertEquals( 1, eventIssues.size() );
+        assertEquals( WARNING, eventIssues.get( 0 ).getIssueType() );
     }
 
     @Test
@@ -292,7 +294,7 @@ class AssignValueImplementerTest extends DhisConvenienceTest
         when( systemSettingManager.getBooleanSetting( SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE ) )
             .thenReturn( Boolean.TRUE );
 
-        Map<String, List<ProgramRuleIssue>> eventIssues = implementerToTest.validateEvents( bundle );
+        List<ProgramRuleIssue> eventIssues = implementerToTest.validateEvent( bundle, getEventWithDataValueSet() );
 
         Event event = bundle.getEvents().stream().filter( e -> e.getEvent().equals( FIRST_EVENT_ID ) ).findAny().get();
         Optional<DataValue> newDataValue = event.getDataValues().stream()
@@ -300,8 +302,8 @@ class AssignValueImplementerTest extends DhisConvenienceTest
         assertTrue( newDataValue.isPresent() );
         assertEquals( DATA_ELEMENT_NEW_VALUE, newDataValue.get().getValue() );
         assertEquals( 1, eventIssues.size() );
-        assertEquals( 1, eventIssues.get( FIRST_EVENT_ID ).size() );
-        assertEquals( WARNING, eventIssues.get( FIRST_EVENT_ID ).get( 0 ).getIssueType() );
+        assertEquals( 1, eventIssues.size() );
+        assertEquals( WARNING, eventIssues.get( 0 ).getIssueType() );
     }
 
     @Test
@@ -314,7 +316,8 @@ class AssignValueImplementerTest extends DhisConvenienceTest
         bundle.setEnrollments( enrollments );
         bundle.setRuleEffects( getRuleEnrollmentEffects( enrollments ) );
 
-        Map<String, List<ProgramRuleIssue>> enrollmentIssues = implementerToTest.validateEnrollments( bundle );
+        List<ProgramRuleIssue> enrollmentIssues = implementerToTest.validateEnrollment( bundle,
+            getEnrollmentWithAttributeNOTSet() );
 
         Enrollment enrollment = bundle.getEnrollments().stream()
             .filter( e -> e.getEnrollment().equals( SECOND_ENROLLMENT_ID ) ).findAny().get();
@@ -323,8 +326,8 @@ class AssignValueImplementerTest extends DhisConvenienceTest
         assertTrue( attribute.isPresent() );
         assertEquals( TEI_ATTRIBUTE_NEW_VALUE, attribute.get().getValue() );
         assertEquals( 1, enrollmentIssues.size() );
-        assertEquals( 1, enrollmentIssues.get( SECOND_ENROLLMENT_ID ).size() );
-        assertEquals( WARNING, enrollmentIssues.get( SECOND_ENROLLMENT_ID ).get( 0 ).getIssueType() );
+        assertEquals( 1, enrollmentIssues.size() );
+        assertEquals( WARNING, enrollmentIssues.get( 0 ).getIssueType() );
     }
 
     @Test
@@ -334,7 +337,8 @@ class AssignValueImplementerTest extends DhisConvenienceTest
         bundle.setEnrollments( enrollments );
         bundle.setRuleEffects( getRuleEnrollmentEffects( enrollments ) );
 
-        Map<String, List<ProgramRuleIssue>> enrollmentIssues = implementerToTest.validateEnrollments( bundle );
+        List<ProgramRuleIssue> enrollmentIssues = implementerToTest.validateEnrollment( bundle,
+            getEnrollmentWithAttributeSet() );
 
         Enrollment enrollment = bundle.getEnrollments().stream()
             .filter( e -> e.getEnrollment().equals( FIRST_ENROLLMENT_ID ) ).findAny().get();
@@ -343,8 +347,8 @@ class AssignValueImplementerTest extends DhisConvenienceTest
         assertTrue( attribute.isPresent() );
         assertEquals( TEI_ATTRIBUTE_OLD_VALUE, attribute.get().getValue() );
         assertEquals( 1, enrollmentIssues.size() );
-        assertEquals( 1, enrollmentIssues.get( FIRST_ENROLLMENT_ID ).size() );
-        assertEquals( ERROR, enrollmentIssues.get( FIRST_ENROLLMENT_ID ).get( 0 ).getIssueType() );
+        assertEquals( 1, enrollmentIssues.size() );
+        assertEquals( ERROR, enrollmentIssues.get( 0 ).getIssueType() );
     }
 
     @Test
@@ -360,7 +364,8 @@ class AssignValueImplementerTest extends DhisConvenienceTest
         bundle.setEnrollments( enrollments );
         bundle.setRuleEffects( getRuleEnrollmentEffects( enrollments ) );
 
-        Map<String, List<ProgramRuleIssue>> enrollmentIssues = implementerToTest.validateEnrollments( bundle );
+        List<ProgramRuleIssue> enrollmentIssues = implementerToTest.validateEnrollment( bundle,
+            getEnrollmentWithAttributeSet( idSchemes ) );
 
         Enrollment enrollment = bundle.getEnrollments().stream()
             .filter( e -> e.getEnrollment().equals( FIRST_ENROLLMENT_ID ) ).findAny().get();
@@ -369,8 +374,8 @@ class AssignValueImplementerTest extends DhisConvenienceTest
         assertTrue( attribute.isPresent() );
         assertEquals( TEI_ATTRIBUTE_OLD_VALUE, attribute.get().getValue() );
         assertEquals( 1, enrollmentIssues.size() );
-        assertEquals( 1, enrollmentIssues.get( FIRST_ENROLLMENT_ID ).size() );
-        assertEquals( ERROR, enrollmentIssues.get( FIRST_ENROLLMENT_ID ).get( 0 ).getIssueType() );
+        assertEquals( 1, enrollmentIssues.size() );
+        assertEquals( ERROR, enrollmentIssues.get( 0 ).getIssueType() );
     }
 
     @Test
@@ -382,7 +387,8 @@ class AssignValueImplementerTest extends DhisConvenienceTest
         bundle.setTrackedEntities( trackedEntities );
         bundle.setRuleEffects( getRuleEnrollmentEffects( enrollments ) );
 
-        Map<String, List<ProgramRuleIssue>> enrollmentIssues = implementerToTest.validateEnrollments( bundle );
+        List<ProgramRuleIssue> enrollmentIssues = implementerToTest.validateEnrollment( bundle,
+            getEnrollmentWithAttributeNOTSet() );
 
         Enrollment enrollment = bundle.getEnrollments().stream()
             .filter( e -> e.getEnrollment().equals( SECOND_ENROLLMENT_ID ) ).findAny().get();
@@ -396,8 +402,8 @@ class AssignValueImplementerTest extends DhisConvenienceTest
         assertTrue( teiAttribute.isPresent() );
         assertEquals( TEI_ATTRIBUTE_OLD_VALUE, teiAttribute.get().getValue() );
         assertEquals( 1, enrollmentIssues.size() );
-        assertEquals( 1, enrollmentIssues.get( SECOND_ENROLLMENT_ID ).size() );
-        assertEquals( ERROR, enrollmentIssues.get( SECOND_ENROLLMENT_ID ).get( 0 ).getIssueType() );
+        assertEquals( 1, enrollmentIssues.size() );
+        assertEquals( ERROR, enrollmentIssues.get( 0 ).getIssueType() );
     }
 
     @Test
@@ -411,7 +417,8 @@ class AssignValueImplementerTest extends DhisConvenienceTest
         bundle.setTrackedEntities( trackedEntities );
         bundle.setRuleEffects( getRuleEnrollmentEffects( enrollments ) );
 
-        Map<String, List<ProgramRuleIssue>> enrollmentIssues = implementerToTest.validateEnrollments( bundle );
+        List<ProgramRuleIssue> enrollmentIssues = implementerToTest.validateEnrollment( bundle,
+            getEnrollmentWithAttributeNOTSet() );
 
         Enrollment enrollment = bundle.getEnrollments().stream()
             .filter( e -> e.getEnrollment().equals( SECOND_ENROLLMENT_ID ) ).findAny().get();
@@ -425,8 +432,8 @@ class AssignValueImplementerTest extends DhisConvenienceTest
         assertTrue( teiAttribute.isPresent() );
         assertEquals( TEI_ATTRIBUTE_NEW_VALUE, teiAttribute.get().getValue() );
         assertEquals( 1, enrollmentIssues.size() );
-        assertEquals( 1, enrollmentIssues.get( SECOND_ENROLLMENT_ID ).size() );
-        assertEquals( WARNING, enrollmentIssues.get( SECOND_ENROLLMENT_ID ).get( 0 ).getIssueType() );
+        assertEquals( 1, enrollmentIssues.size() );
+        assertEquals( WARNING, enrollmentIssues.get( 0 ).getIssueType() );
     }
 
     @Test
@@ -436,7 +443,8 @@ class AssignValueImplementerTest extends DhisConvenienceTest
         bundle.setEnrollments( enrollments );
         bundle.setRuleEffects( getRuleEnrollmentEffects( enrollments ) );
 
-        Map<String, List<ProgramRuleIssue>> enrollmentIssues = implementerToTest.validateEnrollments( bundle );
+        List<ProgramRuleIssue> enrollmentIssues = implementerToTest.validateEnrollment( bundle,
+            getEnrollmentWithAttributeSetSameValue() );
 
         Enrollment enrollment = bundle.getEnrollments().stream()
             .filter( e -> e.getEnrollment().equals( FIRST_ENROLLMENT_ID ) ).findAny().get();
@@ -445,8 +453,8 @@ class AssignValueImplementerTest extends DhisConvenienceTest
         assertTrue( attribute.isPresent() );
         assertEquals( TEI_ATTRIBUTE_NEW_VALUE, attribute.get().getValue() );
         assertEquals( 1, enrollmentIssues.size() );
-        assertEquals( 1, enrollmentIssues.get( FIRST_ENROLLMENT_ID ).size() );
-        assertEquals( WARNING, enrollmentIssues.get( FIRST_ENROLLMENT_ID ).get( 0 ).getIssueType() );
+        assertEquals( 1, enrollmentIssues.size() );
+        assertEquals( WARNING, enrollmentIssues.get( 0 ).getIssueType() );
     }
 
     @Test
@@ -458,7 +466,8 @@ class AssignValueImplementerTest extends DhisConvenienceTest
         when( systemSettingManager.getBooleanSetting( SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE ) )
             .thenReturn( Boolean.TRUE );
 
-        Map<String, List<ProgramRuleIssue>> enrollmentIssues = implementerToTest.validateEnrollments( bundle );
+        List<ProgramRuleIssue> enrollmentIssues = implementerToTest.validateEnrollment( bundle,
+            getEnrollmentWithAttributeSet() );
 
         Enrollment enrollment = bundle.getEnrollments().stream()
             .filter( e -> e.getEnrollment().equals( FIRST_ENROLLMENT_ID ) ).findAny().get();
@@ -467,8 +476,8 @@ class AssignValueImplementerTest extends DhisConvenienceTest
         assertTrue( attribute.isPresent() );
         assertEquals( TEI_ATTRIBUTE_NEW_VALUE, attribute.get().getValue() );
         assertEquals( 1, enrollmentIssues.size() );
-        assertEquals( 1, enrollmentIssues.get( FIRST_ENROLLMENT_ID ).size() );
-        assertEquals( WARNING, enrollmentIssues.get( FIRST_ENROLLMENT_ID ).get( 0 ).getIssueType() );
+        assertEquals( 1, enrollmentIssues.size() );
+        assertEquals( WARNING, enrollmentIssues.get( 0 ).getIssueType() );
     }
 
     private Event getEventWithDataValueSet()

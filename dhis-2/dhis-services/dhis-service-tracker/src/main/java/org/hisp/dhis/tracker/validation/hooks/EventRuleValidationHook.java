@@ -40,8 +40,6 @@ import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Enrico Colasante
  */
@@ -63,8 +61,7 @@ public class EventRuleValidationHook
         List<ProgramRuleIssue> programRuleIssues = validators
             .stream()
             .flatMap(
-                v -> v.validateEvents( bundle )
-                    .getOrDefault( event.getEvent(), Lists.newArrayList() ).stream() )
+                v -> v.validateEvent( bundle, event ).stream() )
             .collect( Collectors.toList() );
 
         addIssuesToReporter( reporter, event, programRuleIssues );

@@ -36,11 +36,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.dataelement.DataElement;
@@ -150,7 +147,7 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
             .thenReturn( firstProgramStage );
         bundle.setEvents( Lists.newArrayList( getEventWithMandatoryValueSet() ) );
 
-        Map<String, List<ProgramRuleIssue>> errors = implementerToTest.validateEvents( bundle );
+        List<ProgramRuleIssue> errors = implementerToTest.validateEvent( bundle, getEventWithMandatoryValueSet() );
 
         assertTrue( errors.isEmpty() );
     }
@@ -167,7 +164,8 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
             .thenReturn( firstProgramStage );
         bundle.setEvents( Lists.newArrayList( getEventWithMandatoryValueSet( idSchemes ) ) );
 
-        Map<String, List<ProgramRuleIssue>> errors = implementerToTest.validateEvents( bundle );
+        List<ProgramRuleIssue> errors = implementerToTest.validateEvent( bundle,
+            getEventWithMandatoryValueSet( idSchemes ) );
 
         assertTrue( errors.isEmpty() );
     }
@@ -181,13 +179,13 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
             .thenReturn( firstProgramStage );
         bundle.setEvents( Lists.newArrayList( getEventWithMandatoryValueSet(), getEventWithMandatoryValueNOTSet() ) );
 
-        Map<String, List<ProgramRuleIssue>> errors = implementerToTest.validateEvents( bundle );
+        List<ProgramRuleIssue> errors = implementerToTest.validateEvent( bundle, getEventWithMandatoryValueSet() );
+        assertTrue( errors.isEmpty() );
+
+        errors = implementerToTest.validateEvent( bundle, getEventWithMandatoryValueNOTSet() );
 
         assertFalse( errors.isEmpty() );
-        List<ProgramRuleIssue> errorMessages = errors.values().stream().flatMap( Collection::stream )
-            .collect( Collectors.toList() );
-        assertFalse( errorMessages.isEmpty() );
-        errorMessages.forEach( e -> {
+        errors.forEach( e -> {
             assertEquals( "RULE_DATA_VALUE", e.getRuleUid() );
             assertEquals( TrackerErrorCode.E1301, e.getIssueCode() );
             assertEquals( IssueType.ERROR, e.getIssueType() );
@@ -207,7 +205,11 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
         bundle.setEvents( Lists.newArrayList( getEventWithMandatoryValueSet(),
             getEventWithMandatoryValueNOTSetInDifferentProgramStage() ) );
 
-        Map<String, List<ProgramRuleIssue>> errors = implementerToTest.validateEvents( bundle );
+        List<ProgramRuleIssue> errors = implementerToTest.validateEvent( bundle, getEventWithMandatoryValueSet() );
+
+        assertTrue( errors.isEmpty() );
+
+        errors = implementerToTest.validateEvent( bundle, getEventWithMandatoryValueNOTSetInDifferentProgramStage() );
 
         assertTrue( errors.isEmpty() );
     }
@@ -219,7 +221,8 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
         when( preheat.getTrackedEntityAttribute( ATTRIBUTE_ID ) ).thenReturn( attribute );
         bundle.setEnrollments( Lists.newArrayList( getEnrollmentWithMandatoryAttributeSet() ) );
 
-        Map<String, List<ProgramRuleIssue>> errors = implementerToTest.validateEnrollments( bundle );
+        List<ProgramRuleIssue> errors = implementerToTest.validateEnrollment( bundle,
+            getEnrollmentWithMandatoryAttributeSet() );
 
         assertTrue( errors.isEmpty() );
     }
@@ -234,7 +237,8 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
         when( preheat.getTrackedEntityAttribute( ATTRIBUTE_ID ) ).thenReturn( attribute );
         bundle.setEnrollments( Lists.newArrayList( getEnrollmentWithMandatoryAttributeSet( idSchemes ) ) );
 
-        Map<String, List<ProgramRuleIssue>> errors = implementerToTest.validateEnrollments( bundle );
+        List<ProgramRuleIssue> errors = implementerToTest.validateEnrollment( bundle,
+            getEnrollmentWithMandatoryAttributeSet( idSchemes ) );
 
         assertTrue( errors.isEmpty() );
     }
@@ -247,13 +251,14 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
         bundle.setEnrollments( Lists.newArrayList( getEnrollmentWithMandatoryAttributeSet(),
             getEnrollmentWithMandatoryAttributeNOTSet() ) );
 
-        Map<String, List<ProgramRuleIssue>> errors = implementerToTest.validateEnrollments( bundle );
+        List<ProgramRuleIssue> errors = implementerToTest.validateEnrollment( bundle,
+            getEnrollmentWithMandatoryAttributeSet() );
 
-        assertFalse( errors.isEmpty() );
-        List<ProgramRuleIssue> errorMessages = errors.values().stream().flatMap( Collection::stream )
-            .collect( Collectors.toList() );
-        assertFalse( errorMessages.isEmpty() );
-        errorMessages.forEach( e -> {
+        assertTrue( errors.isEmpty() );
+
+        errors = implementerToTest.validateEnrollment( bundle, getEnrollmentWithMandatoryAttributeNOTSet() );
+
+        errors.forEach( e -> {
             assertEquals( "RULE_ATTRIBUTE", e.getRuleUid() );
             assertEquals( TrackerErrorCode.E1306, e.getIssueCode() );
             assertEquals( IssueType.ERROR, e.getIssueType() );

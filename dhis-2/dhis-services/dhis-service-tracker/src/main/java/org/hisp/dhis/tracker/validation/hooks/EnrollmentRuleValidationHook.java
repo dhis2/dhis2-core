@@ -40,8 +40,6 @@ import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Enrico Colasante
  */
@@ -62,8 +60,7 @@ public class EnrollmentRuleValidationHook
     {
         List<ProgramRuleIssue> programRuleIssues = validators
             .stream()
-            .flatMap( v -> v.validateEnrollments( bundle )
-                .getOrDefault( enrollment.getEnrollment(), Lists.newArrayList() ).stream() )
+            .flatMap( v -> v.validateEnrollment( bundle, enrollment ).stream() )
             .collect( Collectors.toList() );
 
         addIssuesToReporter( reporter, enrollment, programRuleIssues );
