@@ -152,7 +152,7 @@
     <jsmpp.version>2.3.11</jsmpp.version>
     <json-path.version>2.7.0</json-path.version>
     <jsoup.version>1.15.1</jsoup.version>
-    <jetty.version>10.0.10</jetty.version>
+    <jetty.version>10.0.11</jetty.version>
 
     <!-- Div. utils -->
     <version.debezium>1.9.4.Final</version.debezium>
@@ -194,7 +194,7 @@
     <powermock.version>2.0.9</powermock.version>
     <hamcrest.version>2.2</hamcrest.version>
     <hamcrest-date.version>2.0.8</hamcrest-date.version>
-    <testcontainers.version>1.17.2</testcontainers.version>
+    <testcontainers.version>1.17.3</testcontainers.version>
     <jsonassert.version>1.5.0</jsonassert.version>
     <awaitility.version>4.2.0</awaitility.version>
     <easy-random.version>5.0.0</easy-random.version>
@@ -611,7 +611,7 @@
             <dependency>
               <groupId>com.github.spotbugs</groupId>
               <artifactId>spotbugs</artifactId>
-              <version>4.7.0</version>
+              <version>4.7.1</version>
             </dependency>
           </dependencies>
           <configuration>
