@@ -25,52 +25,51 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.metadata;
+package org.hisp.dhis.system;
 
-import org.hisp.dhis.dxf2.metadata.MetadataExportService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.UserSettingService;
-import org.hisp.dhis.webapi.service.ContextService;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseEntity;
+import static org.hisp.dhis.external.conf.ConfigurationKey.SYSTEM_UPDATE_NOTIFICATIONS_ENABLED;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.scheduling.JobType;
+import org.springframework.stereotype.Component;
 
 /**
- * Unit tests for {@link MetadataExportControllerTest}.
- *
- * @author Volker Schmidt
+ * @author Morten Svanæs (original)
+ * @author Jan Bernitt (job progress tracking)
  */
-@ExtendWith( MockitoExtension.class )
-class MetadataExportControllerTest
+@Slf4j
+@Component
+@AllArgsConstructor
+public class SystemUpdateNotificationAlertJob implements Job
 {
-    @Mock
-    private MetadataExportService metadataExportService;
+    private final DhisConfigurationProvider dhisConfig;
 
-    @Mock
-    private ContextService contextService;
+    private final SystemUpdateNotificationService systemUpdateService;
 
-    @Mock
-    private CurrentUserService currentUserService;
-
-    @Mock
-    private UserSettingService userSettingService;
-
-    @InjectMocks
-    private MetadataImportExportController controller;
-
-    @Test
-    void withDownload()
+    @Override
+    public JobType getJobType()
     {
-        ResponseEntity<JsonNode> responseEntity = controller.getMetadataDownload( false, null, true );
-        Assertions.assertNotNull( responseEntity.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ) );
-        Assertions.assertEquals( "attachment; filename=metadata",
-            responseEntity.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ).get( 0 ) );
+        return JobType.SYSTEM_VERSION_UPDATE_CHECK;
+    }
+
+    @Override
+    public void execute( JobConfiguration config, JobProgress progress )
+    {
+        if ( !dhisConfig.isEnabled( SYSTEM_UPDATE_NOTIFICATIONS_ENABLED ) )
+        {
+            log.info( String.format( "%s aborted. System update alerts are disabled",
+                JobType.SYSTEM_VERSION_UPDATE_CHECK.name() ) );
+            return;
+        }
+        progress.startingProcess( "System update alert" );
+        systemUpdateService.sendMessageForEachVersion( SystemUpdateNotificationService.getLatestNewerThanCurrent(),
+            progress );
+        progress.completedProcess( null );
     }
 }
