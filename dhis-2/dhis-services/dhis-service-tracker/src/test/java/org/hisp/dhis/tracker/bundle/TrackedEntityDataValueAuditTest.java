@@ -55,6 +55,8 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class TrackedEntityDataValueAuditTest extends TrackerTest
 {
+    private static final String ORIGINAL_VALUE = "first value";
+
     private static final String PSI = "D9PbzJY8bJO";
 
     private static final String DE = "DATAEL00001";
@@ -137,6 +139,7 @@ public class TrackedEntityDataValueAuditTest extends TrackerTest
             assertEquals( a.getAuditType(), AuditType.UPDATE );
             assertEquals( a.getDataElement().getUid(), dataElement.getUid() );
             assertEquals( a.getProgramStageInstance().getUid(), psi.getUid() );
+            assertEquals( ORIGINAL_VALUE, a.getValue() );
         } );
 
         deletedAudit.forEach( a -> {

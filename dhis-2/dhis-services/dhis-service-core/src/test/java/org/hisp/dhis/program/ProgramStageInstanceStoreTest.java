@@ -240,17 +240,6 @@ class ProgramStageInstanceStoreTest extends DhisSpringTest
     }
 
     @Test
-    void testGetProgramStageInstanceByProgramInstanceStage()
-    {
-        programStageInstanceStore.save( programStageInstanceA );
-        programStageInstanceStore.save( programStageInstanceB );
-        ProgramStageInstance programStageInstance = programStageInstanceStore.get( programInstanceA, stageA );
-        assertEquals( programStageInstanceA, programStageInstance );
-        programStageInstance = programStageInstanceStore.get( programInstanceA, stageB );
-        assertEquals( programStageInstanceB, programStageInstance );
-    }
-
-    @Test
     void testGetProgramStageInstancesByInstanceListComplete()
     {
         programStageInstanceA.setStatus( EventStatus.COMPLETED );
