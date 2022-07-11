@@ -117,7 +117,7 @@ public class AnalyticsTable
      * Adds an analytics partition table to this master table.
      *
      * @param year the year.
-     * @param skipPopulation skups or not data population
+     * @param skipPopulation skips or not data population
      * @return this analytics table.
      */
     public AnalyticsTable addPartitionTable( Integer year, boolean skipPopulation )
