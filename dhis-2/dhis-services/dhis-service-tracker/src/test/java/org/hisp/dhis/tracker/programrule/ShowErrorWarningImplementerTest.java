@@ -29,8 +29,6 @@ package org.hisp.dhis.tracker.programrule;
 
 import static org.hisp.dhis.rules.models.AttributeType.DATA_ELEMENT;
 import static org.hisp.dhis.rules.models.AttributeType.UNKNOWN;
-import static org.hisp.dhis.rules.models.TrackerObjectType.ENROLLMENT;
-import static org.hisp.dhis.rules.models.TrackerObjectType.EVENT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -50,7 +48,6 @@ import org.hisp.dhis.rules.models.RuleActionShowError;
 import org.hisp.dhis.rules.models.RuleActionShowWarning;
 import org.hisp.dhis.rules.models.RuleActionWarningOnCompletion;
 import org.hisp.dhis.rules.models.RuleEffect;
-import org.hisp.dhis.rules.models.RuleEffects;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
@@ -121,7 +118,6 @@ class ShowErrorWarningImplementerTest extends DhisConvenienceTest
         bundle = TrackerBundle.builder().build();
         bundle.setEvents( getEvents() );
         bundle.setEnrollments( getEnrollments() );
-        bundle.setRuleEffects( getRuleEventAndEnrollmentEffects() );
         bundle.setPreheat( preheat );
         programStage = createProgramStage( 'A', 0 );
         programStage.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
@@ -143,10 +139,10 @@ class ShowErrorWarningImplementerTest extends DhisConvenienceTest
     @Test
     void testValidateShowErrorRuleActionForEvents()
     {
-        List<ProgramRuleIssue> errors = errorImplementer.validateEvent( bundle, activeEvent() );
+        List<ProgramRuleIssue> errors = errorImplementer.validateEvent( bundle, getRuleEffects(), activeEvent() );
         assertErrors( errors, 1 );
 
-        errorImplementer.validateEvent( bundle, completedEvent() );
+        errorImplementer.validateEvent( bundle, getRuleEffects(), completedEvent() );
         assertErrors( errors, 1 );
     }
 
@@ -154,8 +150,8 @@ class ShowErrorWarningImplementerTest extends DhisConvenienceTest
     void testValidateShowErrorRuleActionForEventsWithValidationStrategyOnComplete()
     {
         programStage.setValidationStrategy( ValidationStrategy.ON_COMPLETE );
-        bundle.setRuleEffects( getRuleEventEffectsLinkedToDataElement() );
-        List<ProgramRuleIssue> errors = errorImplementer.validateEvent( bundle, completedEvent() );
+        List<ProgramRuleIssue> errors = errorImplementer.validateEvent( bundle, getRuleEffectsLinkedToDataElement(),
+            completedEvent() );
         assertErrors( errors, 1 );
         assertErrorsWithDataElement( errors );
     }
@@ -163,8 +159,8 @@ class ShowErrorWarningImplementerTest extends DhisConvenienceTest
     @Test
     void testValidateShowErrorForEventsInDifferentProgramStages()
     {
-        bundle.setRuleEffects( getRuleEventEffectsLinkedTo2DataElementsIn2DifferentProgramStages() );
-        List<ProgramRuleIssue> errors = errorImplementer.validateEvent( bundle, activeEvent() );
+        List<ProgramRuleIssue> errors = errorImplementer.validateEvent( bundle, getRuleEffectsLinkedToDataElement(),
+            activeEvent() );
         assertErrors( errors, 1 );
         assertErrorsWithDataElement( errors );
     }
@@ -172,61 +168,66 @@ class ShowErrorWarningImplementerTest extends DhisConvenienceTest
     @Test
     void testValidateShowErrorRuleActionForEnrollment()
     {
-        List<ProgramRuleIssue> errors = errorImplementer.validateEnrollment( bundle, activeEnrollment() );
+        List<ProgramRuleIssue> errors = errorImplementer.validateEnrollment( bundle, getRuleEffects(),
+            activeEnrollment() );
         assertErrors( errors, 1 );
 
-        errorImplementer.validateEnrollment( bundle, completedEnrollment() );
+        errorImplementer.validateEnrollment( bundle, getRuleEffects(), completedEnrollment() );
         assertErrors( errors, 1 );
     }
 
     @Test
     void testValidateShowWarningRuleActionForEvents()
     {
-        List<ProgramRuleIssue> warnings = warningImplementer.validateEvent( bundle, activeEvent() );
+        List<ProgramRuleIssue> warnings = warningImplementer.validateEvent( bundle, getRuleEffects(), activeEvent() );
         assertWarnings( warnings, 1 );
 
-        warnings = warningImplementer.validateEvent( bundle, completedEvent() );
+        warnings = warningImplementer.validateEvent( bundle, getRuleEffects(), completedEvent() );
         assertWarnings( warnings, 1 );
     }
 
     @Test
     void testValidateShowWarningRuleActionForEnrollment()
     {
-        List<ProgramRuleIssue> warnings = warningImplementer.validateEnrollment( bundle, activeEnrollment() );
+        List<ProgramRuleIssue> warnings = warningImplementer.validateEnrollment( bundle, getRuleEffects(),
+            activeEnrollment() );
         assertWarnings( warnings, 1 );
 
-        warningImplementer.validateEnrollment( bundle, completedEnrollment() );
+        warningImplementer.validateEnrollment( bundle, getRuleEffects(), completedEnrollment() );
         assertWarnings( warnings, 1 );
     }
 
     @Test
     void testValidateShowErrorOnCompleteRuleActionForEvents()
     {
-        List<ProgramRuleIssue> errors = errorOnCompleteImplementer.validateEvent( bundle, activeEvent() );
+        List<ProgramRuleIssue> errors = errorOnCompleteImplementer.validateEvent( bundle, getRuleEffects(),
+            activeEvent() );
         assertTrue( errors.isEmpty() );
 
-        errors = errorOnCompleteImplementer.validateEvent( bundle, completedEvent() );
+        errors = errorOnCompleteImplementer.validateEvent( bundle, getRuleEffects(), completedEvent() );
         assertErrors( errors, 1 );
     }
 
     @Test
     void testValidateShowErrorOnCompleteRuleActionForEnrollment()
     {
-        List<ProgramRuleIssue> errors = errorOnCompleteImplementer.validateEnrollment( bundle, completedEnrollment() );
+        List<ProgramRuleIssue> errors = errorOnCompleteImplementer.validateEnrollment( bundle, getRuleEffects(),
+            completedEnrollment() );
         assertErrors( errors, 1 );
     }
 
     @Test
     void testValidateShowWarningOnCompleteRuleActionForEvents()
     {
-        List<ProgramRuleIssue> warnings = warningOnCompleteImplementer.validateEvent( bundle, completedEvent() );
+        List<ProgramRuleIssue> warnings = warningOnCompleteImplementer.validateEvent( bundle, getRuleEffects(),
+            completedEvent() );
         assertWarnings( warnings, 1 );
     }
 
     @Test
     void testValidateShowWarningOnCompleteRuleActionForEnrollment()
     {
-        List<ProgramRuleIssue> warnings = warningOnCompleteImplementer.validateEnrollment( bundle,
+        List<ProgramRuleIssue> warnings = warningOnCompleteImplementer.validateEnrollment( bundle, getRuleEffects(),
             completedEnrollment() );
         assertWarnings( warnings, 1 );
     }
@@ -306,33 +307,6 @@ class ShowErrorWarningImplementerTest extends DhisConvenienceTest
         completedEnrollment.setEnrollment( COMPLETED_ENROLLMENT_ID );
         completedEnrollment.setStatus( EnrollmentStatus.COMPLETED );
         return completedEnrollment;
-    }
-
-    private List<RuleEffects> getRuleEventEffectsLinkedToDataElement()
-    {
-        List<RuleEffects> ruleEffectsByEvent = Lists.newArrayList();
-        ruleEffectsByEvent.add( new RuleEffects( EVENT, ACTIVE_EVENT_ID, getRuleEffectsLinkedToDataElement() ) );
-        ruleEffectsByEvent.add( new RuleEffects( EVENT, COMPLETED_EVENT_ID, getRuleEffectsLinkedToDataElement() ) );
-        return ruleEffectsByEvent;
-    }
-
-    private List<RuleEffects> getRuleEventEffectsLinkedTo2DataElementsIn2DifferentProgramStages()
-    {
-        List<RuleEffects> ruleEffectsByEvent = Lists.newArrayList();
-        ruleEffectsByEvent.add( new RuleEffects( EVENT, ACTIVE_EVENT_ID, getRuleEffectsLinkedToDataElement() ) );
-        ruleEffectsByEvent
-            .add( new RuleEffects( EVENT, COMPLETED_EVENT_ID, getRuleEffectsLinkedToDataAnotherElement() ) );
-        return ruleEffectsByEvent;
-    }
-
-    private List<RuleEffects> getRuleEventAndEnrollmentEffects()
-    {
-        List<RuleEffects> ruleEffectsByEvent = Lists.newArrayList();
-        ruleEffectsByEvent.add( new RuleEffects( EVENT, ACTIVE_EVENT_ID, getRuleEffects() ) );
-        ruleEffectsByEvent.add( new RuleEffects( EVENT, COMPLETED_EVENT_ID, getRuleEffects() ) );
-        ruleEffectsByEvent.add( new RuleEffects( ENROLLMENT, ACTIVE_ENROLLMENT_ID, getRuleEffects() ) );
-        ruleEffectsByEvent.add( new RuleEffects( ENROLLMENT, COMPLETED_ENROLLMENT_ID, getRuleEffects() ) );
-        return ruleEffectsByEvent;
     }
 
     private List<RuleEffect> getRuleEffects()

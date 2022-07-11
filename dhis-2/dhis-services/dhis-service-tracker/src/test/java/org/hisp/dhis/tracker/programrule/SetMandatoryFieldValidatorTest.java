@@ -29,8 +29,6 @@ package org.hisp.dhis.tracker.programrule;
 
 import static org.hisp.dhis.rules.models.AttributeType.DATA_ELEMENT;
 import static org.hisp.dhis.rules.models.AttributeType.TRACKED_ENTITY_ATTRIBUTE;
-import static org.hisp.dhis.rules.models.TrackerObjectType.ENROLLMENT;
-import static org.hisp.dhis.rules.models.TrackerObjectType.EVENT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -48,7 +46,6 @@ import org.hisp.dhis.program.ValidationStrategy;
 import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionSetMandatoryField;
 import org.hisp.dhis.rules.models.RuleEffect;
-import org.hisp.dhis.rules.models.RuleEffects;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
@@ -134,7 +131,6 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
         attribute.setCode( ATTRIBUTE_CODE );
 
         bundle = TrackerBundle.builder().build();
-        bundle.setRuleEffects( getRuleEventAndEnrollmentEffects() );
         bundle.setPreheat( preheat );
     }
 
@@ -147,7 +143,8 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
             .thenReturn( firstProgramStage );
         bundle.setEvents( Lists.newArrayList( getEventWithMandatoryValueSet() ) );
 
-        List<ProgramRuleIssue> errors = implementerToTest.validateEvent( bundle, getEventWithMandatoryValueSet() );
+        List<ProgramRuleIssue> errors = implementerToTest.validateEvent( bundle, getRuleEffects(),
+            getEventWithMandatoryValueSet() );
 
         assertTrue( errors.isEmpty() );
     }
@@ -164,7 +161,7 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
             .thenReturn( firstProgramStage );
         bundle.setEvents( Lists.newArrayList( getEventWithMandatoryValueSet( idSchemes ) ) );
 
-        List<ProgramRuleIssue> errors = implementerToTest.validateEvent( bundle,
+        List<ProgramRuleIssue> errors = implementerToTest.validateEvent( bundle, getRuleEffects(),
             getEventWithMandatoryValueSet( idSchemes ) );
 
         assertTrue( errors.isEmpty() );
@@ -179,10 +176,11 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
             .thenReturn( firstProgramStage );
         bundle.setEvents( Lists.newArrayList( getEventWithMandatoryValueSet(), getEventWithMandatoryValueNOTSet() ) );
 
-        List<ProgramRuleIssue> errors = implementerToTest.validateEvent( bundle, getEventWithMandatoryValueSet() );
+        List<ProgramRuleIssue> errors = implementerToTest.validateEvent( bundle, getRuleEffects(),
+            getEventWithMandatoryValueSet() );
         assertTrue( errors.isEmpty() );
 
-        errors = implementerToTest.validateEvent( bundle, getEventWithMandatoryValueNOTSet() );
+        errors = implementerToTest.validateEvent( bundle, getRuleEffects(), getEventWithMandatoryValueNOTSet() );
 
         assertFalse( errors.isEmpty() );
         errors.forEach( e -> {
@@ -205,11 +203,13 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
         bundle.setEvents( Lists.newArrayList( getEventWithMandatoryValueSet(),
             getEventWithMandatoryValueNOTSetInDifferentProgramStage() ) );
 
-        List<ProgramRuleIssue> errors = implementerToTest.validateEvent( bundle, getEventWithMandatoryValueSet() );
+        List<ProgramRuleIssue> errors = implementerToTest.validateEvent( bundle, getRuleEffects(),
+            getEventWithMandatoryValueSet() );
 
         assertTrue( errors.isEmpty() );
 
-        errors = implementerToTest.validateEvent( bundle, getEventWithMandatoryValueNOTSetInDifferentProgramStage() );
+        errors = implementerToTest.validateEvent( bundle, getRuleEffects(),
+            getEventWithMandatoryValueNOTSetInDifferentProgramStage() );
 
         assertTrue( errors.isEmpty() );
     }
@@ -221,7 +221,7 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
         when( preheat.getTrackedEntityAttribute( ATTRIBUTE_ID ) ).thenReturn( attribute );
         bundle.setEnrollments( Lists.newArrayList( getEnrollmentWithMandatoryAttributeSet() ) );
 
-        List<ProgramRuleIssue> errors = implementerToTest.validateEnrollment( bundle,
+        List<ProgramRuleIssue> errors = implementerToTest.validateEnrollment( bundle, getRuleEffects(),
             getEnrollmentWithMandatoryAttributeSet() );
 
         assertTrue( errors.isEmpty() );
@@ -237,7 +237,7 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
         when( preheat.getTrackedEntityAttribute( ATTRIBUTE_ID ) ).thenReturn( attribute );
         bundle.setEnrollments( Lists.newArrayList( getEnrollmentWithMandatoryAttributeSet( idSchemes ) ) );
 
-        List<ProgramRuleIssue> errors = implementerToTest.validateEnrollment( bundle,
+        List<ProgramRuleIssue> errors = implementerToTest.validateEnrollment( bundle, getRuleEffects(),
             getEnrollmentWithMandatoryAttributeSet( idSchemes ) );
 
         assertTrue( errors.isEmpty() );
@@ -251,12 +251,13 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
         bundle.setEnrollments( Lists.newArrayList( getEnrollmentWithMandatoryAttributeSet(),
             getEnrollmentWithMandatoryAttributeNOTSet() ) );
 
-        List<ProgramRuleIssue> errors = implementerToTest.validateEnrollment( bundle,
+        List<ProgramRuleIssue> errors = implementerToTest.validateEnrollment( bundle, getRuleEffects(),
             getEnrollmentWithMandatoryAttributeSet() );
 
         assertTrue( errors.isEmpty() );
 
-        errors = implementerToTest.validateEnrollment( bundle, getEnrollmentWithMandatoryAttributeNOTSet() );
+        errors = implementerToTest.validateEnrollment( bundle, getRuleEffects(),
+            getEnrollmentWithMandatoryAttributeNOTSet() );
 
         errors.forEach( e -> {
             assertEquals( "RULE_ATTRIBUTE", e.getRuleUid() );
@@ -375,16 +376,6 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
             .attribute( MetadataIdentifier.ofUid( ATTRIBUTE_ID ) )
             .value( ATTRIBUTE_VALUE )
             .build();
-    }
-
-    private List<RuleEffects> getRuleEventAndEnrollmentEffects()
-    {
-        List<RuleEffects> ruleEffectsByEvent = Lists.newArrayList();
-        ruleEffectsByEvent.add( new RuleEffects( EVENT, FIRST_EVENT_ID, getRuleEffects() ) );
-        ruleEffectsByEvent.add( new RuleEffects( EVENT, SECOND_EVENT_ID, getRuleEffects() ) );
-        ruleEffectsByEvent.add( new RuleEffects( ENROLLMENT, ACTIVE_ENROLLMENT_ID, getRuleEffects() ) );
-        ruleEffectsByEvent.add( new RuleEffects( ENROLLMENT, COMPLETED_ENROLLMENT_ID, getRuleEffects() ) );
-        return ruleEffectsByEvent;
     }
 
     private List<RuleEffect> getRuleEffects()

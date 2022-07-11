@@ -216,8 +216,8 @@ public class AssignValueImplementer
     private void addOrOverwriteDataValue( Event event, EventActionRule actionRule, TrackerBundle bundle )
     {
         DataElement dataElement = bundle.getPreheat().getDataElement( actionRule.getField() );
-        Event eventFromBundle = bundle.getEvent( event.getEvent() ).get();
-        Optional<DataValue> dataValue = eventFromBundle.getDataValues().stream()
+
+        Optional<DataValue> dataValue = event.getDataValues().stream()
             .filter( dv -> dv.getDataElement().isEqualTo( dataElement ) )
             .findAny();
 
@@ -227,7 +227,7 @@ public class AssignValueImplementer
         }
         else
         {
-            eventFromBundle.getDataValues()
+            event.getDataValues()
                 .add( createDataValue( bundle.getPreheat().getIdSchemes().toMetadataIdentifier( dataElement ),
                     actionRule.getValue() ) );
         }
@@ -236,7 +236,6 @@ public class AssignValueImplementer
     private void addOrOverwriteAttribute( Enrollment enrollment, EnrollmentActionRule actionRule, TrackerBundle bundle )
     {
         TrackedEntityAttribute attribute = bundle.getPreheat().getTrackedEntityAttribute( actionRule.getField() );
-        Enrollment enrollmentFromBundle = bundle.getEnrollment( enrollment.getEnrollment() ).get();
         Optional<TrackedEntity> trackedEntity = bundle.getTrackedEntity( enrollment.getTrackedEntity() );
         List<Attribute> attributes;
 
@@ -253,7 +252,7 @@ public class AssignValueImplementer
             }
         }
 
-        attributes = enrollmentFromBundle.getAttributes();
+        attributes = enrollment.getAttributes();
         Optional<Attribute> optionalAttribute = attributes.stream()
             .filter( at -> at.getAttribute().isEqualTo( attribute ) )
             .findAny();
