@@ -109,20 +109,18 @@ public abstract class AbstractRuleActionImplementer<T extends RuleAction>
     }
 
     @Override
-    public List<ProgramRuleIssue> validateEvent( TrackerBundle bundle, Event event )
+    public List<ProgramRuleIssue> validateEvent( TrackerBundle bundle, List<RuleEffect> ruleEffects, Event event )
     {
-        List<EventActionRule> eventEffects = getEventEffects( event,
-            bundle.getEventRuleEffects().getOrDefault( event.getEvent(), Collections.emptyList() ), bundle );
+        List<EventActionRule> eventEffects = getEventEffects( event, ruleEffects, bundle );
 
         return applyToEvents( event, eventEffects, bundle );
     }
 
     @Override
-    public List<ProgramRuleIssue> validateEnrollment( TrackerBundle bundle, Enrollment enrollment )
+    public List<ProgramRuleIssue> validateEnrollment( TrackerBundle bundle, List<RuleEffect> ruleEffects,
+        Enrollment enrollment )
     {
-        List<EnrollmentActionRule> enrollmentEffects = getEnrollmentEffects( enrollment,
-            bundle.getEnrollmentRuleEffects().getOrDefault( enrollment.getEnrollment(), Collections.emptyList() ),
-            bundle );
+        List<EnrollmentActionRule> enrollmentEffects = getEnrollmentEffects( enrollment, ruleEffects, bundle );
 
         return applyToEnrollments( enrollment, enrollmentEffects, bundle );
     }

@@ -32,6 +32,7 @@ import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.addIssuesTo
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
@@ -58,9 +59,16 @@ public class EnrollmentRuleValidationHook
     @Override
     public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
+        List<RuleEffect> ruleEffects = bundle.getEnrollmentRuleEffects().get( enrollment.getEnrollment() );
+
+        if ( ruleEffects == null || ruleEffects.isEmpty() )
+        {
+            return;
+        }
+
         List<ProgramRuleIssue> programRuleIssues = validators
             .stream()
-            .flatMap( v -> v.validateEnrollment( bundle, enrollment ).stream() )
+            .flatMap( v -> v.validateEnrollment( bundle, ruleEffects, enrollment ).stream() )
             .collect( Collectors.toList() );
 
         addIssuesToReporter( reporter, enrollment, programRuleIssues );
