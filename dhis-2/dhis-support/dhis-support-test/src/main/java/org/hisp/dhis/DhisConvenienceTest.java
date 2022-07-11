@@ -2916,4 +2916,21 @@ public abstract class DhisConvenienceTest
 
         return user;
     }
+
+    protected RelationshipType createRelTypeConstraint(
+        @SuppressWarnings( "SameParameterValue" ) RelationshipEntity from,
+        @SuppressWarnings( "SameParameterValue" ) RelationshipEntity to )
+    {
+        RelationshipType relType = new RelationshipType();
+        relType.setUid( CodeGenerator.generateUid() );
+        RelationshipConstraint relationshipConstraintFrom = new RelationshipConstraint();
+        relationshipConstraintFrom.setRelationshipEntity( from );
+        RelationshipConstraint relationshipConstraintTo = new RelationshipConstraint();
+        relationshipConstraintTo.setRelationshipEntity( to );
+
+        relType.setFromConstraint( relationshipConstraintFrom );
+        relType.setToConstraint( relationshipConstraintTo );
+
+        return relType;
+    }
 }
