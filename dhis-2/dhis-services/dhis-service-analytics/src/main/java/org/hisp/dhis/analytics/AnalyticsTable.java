@@ -113,6 +113,22 @@ public class AnalyticsTable
         return this;
     }
 
+    /**
+     * Adds an analytics partition table to this master table.
+     *
+     * @param year the year.
+     * @param skipPopulation skups or not data population
+     * @return this analytics table.
+     */
+    public AnalyticsTable addPartitionTable( Integer year, boolean skipPopulation )
+    {
+        Assert.notNull( year, "Year must be specified" );
+
+        this.tablePartitions.add( new AnalyticsTablePartition( this, year, skipPopulation ) );
+
+        return this;
+    }
+
     public String getBaseName()
     {
         return tableType.getTableName();

@@ -65,8 +65,12 @@ public class JdbcPartitionManager
             return analyticsPartitions.get( tableType );
         }
 
+        // TODO: Temporary fix to no break the application after analytics
+        // tables are cleaned through the "Maintenance App". This should go away
+        // once we have a definitive solution.
         final String sql = "select table_name from information_schema.tables " +
             "where table_name like '" + tableType.getTableName() + "%' " +
+            "and table_name != 'analyticsdataexchange' " +
             "and table_type = 'BASE TABLE'";
 
         log.info( "Information schema analytics table SQL: " + sql );

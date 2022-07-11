@@ -68,6 +68,11 @@ public class AnalyticsTablePartition
      */
     private boolean dataApproval;
 
+    /**
+     * Skips or not data population on this partition.
+     */
+    private boolean skipPopulation;
+
     public AnalyticsTablePartition( AnalyticsTable masterTable, Integer year, Date startDate, Date endDate,
         boolean dataApproval )
     {
@@ -76,6 +81,13 @@ public class AnalyticsTablePartition
         this.startDate = startDate;
         this.endDate = endDate;
         this.dataApproval = dataApproval;
+    }
+
+    public AnalyticsTablePartition( AnalyticsTable masterTable, Integer year, boolean skipPopulation )
+    {
+        this.masterTable = masterTable;
+        this.year = year;
+        this.skipPopulation = skipPopulation;
     }
 
     // -------------------------------------------------------------------------
@@ -144,6 +156,11 @@ public class AnalyticsTablePartition
     public boolean isDataApproval()
     {
         return dataApproval;
+    }
+
+    public boolean skipPopulation()
+    {
+        return skipPopulation;
     }
 
     @Override

@@ -115,7 +115,7 @@ class JdbcAnalyticsTableManagerTest
 
         assertNotNull( table );
         assertNotNull( table.getTablePartitions() );
-        assertEquals( 2, table.getTablePartitions().size() );
+        assertEquals( 3, table.getTablePartitions().size() );
 
         AnalyticsTablePartition partitionA = table.getTablePartitions().get( 0 );
         AnalyticsTablePartition partitionB = table.getTablePartitions().get( 1 );

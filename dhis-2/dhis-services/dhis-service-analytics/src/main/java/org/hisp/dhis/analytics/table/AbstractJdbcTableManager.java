@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics.table;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.analytics.AnalyticsTablePartition.LATEST_PARTITION;
 import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
 import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
 import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.createIndexStatement;
@@ -35,6 +36,7 @@ import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexName;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -194,6 +196,20 @@ public abstract class AbstractJdbcTableManager
         }
     }
 
+    private String getCreateTableStatement( final String tableName, final List<AnalyticsTableColumn> columns )
+    {
+        String sqlCreate = "create table if not exists " + tableName + " (";
+
+        for ( final AnalyticsTableColumn col : columns )
+        {
+            final String notNull = col.getNotNull().isNotNull() ? " not null" : "";
+
+            sqlCreate = sqlCreate + (col.getName() + " " + col.getDataType().getValue() + notNull + ",");
+        }
+
+        return TextUtils.removeLastComma( sqlCreate ) + ")";
+    }
+
     @Override
     public void createIndex( final AnalyticsIndex index )
     {
@@ -212,12 +228,16 @@ public abstract class AbstractJdbcTableManager
     {
         log.info( "Swapping master table including partitions: '{}'", table.getTableName() );
 
-        swapTable( table );
+        swapTable( table, params.getLastYears() );
 
         if ( getPartitionColumn() != null )
         {
             table.getTablePartitions().forEach( p -> swapTable( table, p ) );
         }
+
+        // Drop temp master table (if any), now that all partitions were
+        // attached to the master table.
+        executeSilently( "drop table if exists " + table.getTempTableName() + " cascade" );
     }
 
     @Override
@@ -255,7 +275,10 @@ public abstract class AbstractJdbcTableManager
     @Override
     public void populateTablePartition( AnalyticsTableUpdateParams params, AnalyticsTablePartition partition )
     {
-        populateTable( params, partition );
+        if ( !partition.skipPopulation() )
+        {
+            populateTable( params, partition );
+        }
     }
 
     @Override
@@ -420,6 +443,10 @@ public abstract class AbstractJdbcTableManager
                 PartitionUtils.getEndDate( calendar, year ) );
         }
 
+        // Always add the latest partition as well. It might be required by some
+        // analytics queries.
+        table.addPartitionTable( LATEST_PARTITION, true );
+
         return table;
     }
 
@@ -453,7 +480,7 @@ public abstract class AbstractJdbcTableManager
 
         if ( hasUpdatedData )
         {
-            table.addPartitionTable( AnalyticsTablePartition.LATEST_PARTITION, lastFullTableUpdate, endDate );
+            table.addPartitionTable( LATEST_PARTITION, lastFullTableUpdate, endDate );
             log.info( "Added latest analytics partition with start: '{}' and end: '{}'",
                 getLongDateString( lastFullTableUpdate ), getLongDateString( endDate ) );
         }
@@ -596,30 +623,40 @@ public abstract class AbstractJdbcTableManager
         String realTableName = tablePartition.getTableName();
         String tempTableName = tablePartition.getTempTableName();
 
-        final String[] sqlSteps = {
-            " alter table if exists " + mainTableName + " detach partition " + realTableName,
-            " drop table if exists " + realTableName + " cascade",
-            " alter table if exists " + tempTableName + " rename to " + realTableName,
-            " alter table if exists " + mainTableName + " attach partition " + realTableName
-                + " for values in (" + tablePartition.getYear() + ")"
-        };
+        final List<String> sqlSteps = new ArrayList<>();
 
-        for ( int i = 0; i < sqlSteps.length; i++ )
+        sqlSteps.add( " alter table if exists " + mainTableName + " detach partition " + realTableName );
+        sqlSteps.add( " drop table if exists " + realTableName + " cascade" );
+        sqlSteps.add( " alter table if exists " + tempTableName + " rename to " + realTableName );
+
+        // Do not attach the latest partition ("0"). Otherwise we will face
+        // issues with the "year" column.
+        if ( !tablePartition.isLatestPartition() )
         {
-            log.debug( sqlSteps[i] );
-            executeSilently( sqlSteps[i] );
+            sqlSteps.add( " alter table if exists " + mainTableName + " attach partition " + realTableName
+                + " for values in (" + tablePartition.getYear() + ")" );
+        }
+
+        for ( final String step : sqlSteps )
+        {
+            log.debug( step );
+            executeSilently( step );
         }
     }
 
-    private void swapTable( AnalyticsTable mainTable )
+    private void swapTable( final AnalyticsTable mainTable, final Integer lastYears )
     {
-        String mainTableName = mainTable.getTableName();
-        String tempTableName = mainTable.getTempTableName();
+        final String mainTableName = mainTable.getTableName();
+        final String tempTableName = mainTable.getTempTableName();
+        final boolean isFullExport = lastYears == null;
+        final List<String> sqlSteps = new ArrayList<>();
 
-        final String[] sqlSteps = {
-            " drop table if exists " + mainTableName + " cascade",
-            " alter table if exists " + tempTableName + " rename to " + mainTableName
-        };
+        if ( isFullExport || !mainTable.hasPartitionTables() )
+        {
+            sqlSteps.add( " drop table if exists " + mainTableName + " cascade" );
+        }
+
+        sqlSteps.add( " alter table if exists " + tempTableName + " rename to " + mainTableName );
 
         final String sql = String.join( ";", sqlSteps ) + ";";
 
@@ -648,29 +685,27 @@ public abstract class AbstractJdbcTableManager
      */
     private void createAnalyticsTable( AnalyticsTable table, AnalyticsTablePartition partition )
     {
-        createTableAsPartitionOf( table, partition );
+        final boolean isLatestPartition = partition != null && partition.isLatestPartition();
 
-        String tableName = partition == null ? table.getTempTableName() : partition.getTempTableName();
-        String sqlCreate = "create table if not exists " + tableName + " (";
-        for ( AnalyticsTableColumn col : ListUtils.union( table.getDimensionColumns(), table.getValueColumns() ) )
+        if ( !isLatestPartition )
         {
-            String notNull = col.getNotNull().isNotNull() ? " not null" : "";
-
-            sqlCreate = sqlCreate + (col.getName() + " " + col.getDataType().getValue() + notNull + ",");
+            createTableAsPartitionOf( table, partition );
         }
 
-        sqlCreate = TextUtils.removeLastComma( sqlCreate ) + ")";
+        final String tableName = partition == null ? table.getTempTableName() : partition.getTempTableName();
 
-        if ( partition == null && getPartitionColumn() != null )
+        String createTableStatement = getCreateTableStatement( tableName,
+            ListUtils.union( table.getDimensionColumns(), table.getValueColumns() ) );
+
+        if ( partition == null && getPartitionColumn() != null && !isLatestPartition )
         {
-            String partitionColumn = getPartitionColumn();
-            sqlCreate += " partition by list(\"" + partitionColumn + "\")";
+            createTableStatement += " partition by list(\"" + getPartitionColumn() + "\")";
         }
 
         log.debug( "Creating table: '{}', columns: {}", tableName, table.getDimensionColumns().size() );
-        log.debug( "Created SQL: '{}'", sqlCreate );
+        log.debug( "Created SQL: '{}'", createTableStatement );
 
-        jdbcTemplate.execute( sqlCreate );
+        jdbcTemplate.execute( createTableStatement );
     }
 
     /**
