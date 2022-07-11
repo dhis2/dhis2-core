@@ -45,7 +45,6 @@ import org.springframework.http.HttpStatus;
  */
 class SchemaControllerTest extends DhisControllerConvenienceTest
 {
-
     @Test
     void testValidateSchema()
     {

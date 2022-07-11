@@ -25,29 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.webapi.controller.event.webrequest;
 
-import java.io.Serializable;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-
-@Getter
-@AllArgsConstructor
-public class Reference implements Serializable
+/**
+ * @author Luca Cambi
+ */
+@Data
+@NoArgsConstructor
+public class RelationshipCriteria extends PagingAndSortingCriteriaAdapter
 {
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "uuid", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "uuid", namespace = DxfNamespaces.DXF_2_0 )
-    private String uuid;
+    private String tei;
 
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "node", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "node", namespace = DxfNamespaces.DXF_2_0 )
-    private transient JsonNode node;
+    private String enrollment;
+
+    private String event;
+
+    /**
+     * TODO Add Pager
+     */
+    @Override
+    public boolean isSkipPaging()
+    {
+        return true;
+    }
 }
