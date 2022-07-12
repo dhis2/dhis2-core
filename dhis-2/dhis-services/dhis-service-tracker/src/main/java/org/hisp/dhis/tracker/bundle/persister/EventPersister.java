@@ -174,7 +174,6 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
 
         for ( DataValue dv : payloadDataValues )
         {
-
             final String persistedValue;
             DataElement dataElement = preheat.getDataElement( dv.getDataElement() );
             checkNotNull( dataElement,
@@ -182,8 +181,10 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
 
             // EventDataValue.dataElement contains a UID
             EventDataValue eventDataValue = dataValueDBMap.get( dataElement.getUid() );
-            AuditType auditType;
-            if ( eventDataValue == null )
+            AuditType auditType = null;
+
+            if ( eventDataValue == null
+                || (eventDataValue.getCreated() == null && StringUtils.isNotBlank( dv.getValue() )) )
             {
                 eventDataValue = new EventDataValue();
                 persistedValue = dv.getValue();
@@ -193,13 +194,15 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
             {
                 persistedValue = eventDataValue.getValue();
 
-                Optional<AuditType> optionalAuditType = Optional.ofNullable( dv.getValue() )
-                    .filter( v -> !dv.getValue().equals( persistedValue ) )
-                    .map( v1 -> AuditType.UPDATE )
-                    .or( () -> Optional.ofNullable( dv.getValue() ).map( a -> AuditType.READ )
-                        .or( () -> Optional.of( AuditType.DELETE ) ) );
+                if ( !StringUtils.equals( dv.getValue(), eventDataValue.getValue() ) )
+                {
+                    auditType = AuditType.UPDATE;
+                }
 
-                auditType = optionalAuditType.orElse( null );
+                if ( StringUtils.isNotBlank( eventDataValue.getValue() ) && StringUtils.isBlank( dv.getValue() ) )
+                {
+                    auditType = AuditType.DELETE;
+                }
             }
 
             ValuesHolder valuesHolder = ValuesHolder.builder().providedElseWhere( dv.isProvidedElsewhere() )
