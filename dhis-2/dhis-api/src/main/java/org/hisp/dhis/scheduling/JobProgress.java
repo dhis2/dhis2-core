@@ -28,7 +28,6 @@
 package org.hisp.dhis.scheduling;
 
 import static java.lang.String.format;
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -41,6 +40,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -121,6 +121,17 @@ public interface JobProgress
      */
     boolean isCancellationRequested();
 
+    /**
+     * Note that this indication resets to false once another stage is started.
+     *
+     * @return true, if the currently running stage should be skipped. By
+     *         default, this is only the case if cancellation was requested.
+     */
+    default boolean isSkipCurrentStage()
+    {
+        return isCancellationRequested();
+    }
+
     /*
      * Tracking API:
      */
@@ -138,8 +149,19 @@ public interface JobProgress
 
     default void failedProcess( Exception cause )
     {
-        String message = cause.getMessage();
-        failedProcess( "Process failed: " + (isNotEmpty( message ) ? message : cause.getClass().getSimpleName()) );
+        failedProcess( "Process failed: " + getMessage( cause ) );
+    }
+
+    default void endingProcess( boolean success )
+    {
+        if ( success )
+        {
+            completedProcess( null );
+        }
+        else
+        {
+            failedProcess( (String) null );
+        }
     }
 
     /**
@@ -164,7 +186,7 @@ public interface JobProgress
 
     default void failedStage( Exception cause )
     {
-        failedStage( cause.getMessage() );
+        failedStage( getMessage( cause ) );
     }
 
     void startingWorkItem( String description );
@@ -180,7 +202,7 @@ public interface JobProgress
 
     default void failedWorkItem( Exception cause )
     {
-        failedWorkItem( cause.getMessage() );
+        failedWorkItem( getMessage( cause ) );
     }
 
     /*
@@ -268,10 +290,9 @@ public interface JobProgress
         for ( Iterator<T> it = items.iterator(); it.hasNext(); )
         {
             T item = it.next();
-            if ( isCancellationRequested() )
+            // check for async cancel
+            if ( autoSkipStage( summary, i - failed, failed ) )
             {
-                failedStage( new CancellationException(
-                    format( "cancelled after %d successful and %d failed items", i - failed, failed ) ) );
                 return false; // ends the stage immediately
             }
             String desc = description.apply( item );
@@ -292,18 +313,47 @@ public interface JobProgress
             catch ( RuntimeException ex )
             {
                 failed++;
-                boolean cancellationRequestedBefore = isCancellationRequested();
                 failedWorkItem( ex );
-                if ( !cancellationRequestedBefore && isCancellationRequested() )
+                if ( autoSkipStage( summary, i - failed, failed ) )
                 {
-                    failedStage(
-                        new CancellationException( "cancelled as failing item caused request for cancellation" ) );
-                    return false;
+                    return false; // ends the stage immediately
                 }
             }
         }
-        completedStage( summary.apply( i - failed, failed ) );
-        return true;
+        completedStage( summary == null ? null : summary.apply( i - failed, failed ) );
+        return failed == 0;
+    }
+
+    /**
+     * Automatically complete a stage as failed based on the
+     * {@link #isSkipCurrentStage()} state.
+     *
+     * This completes the stage either with a {@link CancellationException} in
+     * case {@link #isCancellationRequested()} is true, or with just a summary
+     * text if it is false.
+     *
+     * @param summary optional callback to produce a summary
+     * @param success number of successful items
+     * @param failed number of failed items
+     * @return true, if stage is/was skipped (complected as failed), false
+     *         otherwise
+     */
+    default boolean autoSkipStage( BiFunction<Integer, Integer, String> summary, int success, int failed )
+    {
+        if ( isSkipCurrentStage() )
+        {
+            String text = summary == null ? "" : summary.apply( success, failed );
+            if ( isCancellationRequested() )
+            {
+                failedStage( new CancellationException( "skipped stage, failing item caused abort. " + text ) );
+            }
+            else
+            {
+                failedStage( "skipped stage. " + text );
+            }
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -382,9 +432,11 @@ public interface JobProgress
         }
         int cores = Runtime.getRuntime().availableProcessors();
         boolean useCustomPool = parallelism >= cores;
+        AtomicInteger success = new AtomicInteger();
+        AtomicInteger failed = new AtomicInteger();
 
         Callable<Boolean> task = () -> items.parallelStream().map( item -> {
-            if ( isCancellationRequested() )
+            if ( isSkipCurrentStage() )
             {
                 return false;
             }
@@ -393,11 +445,13 @@ public interface JobProgress
             {
                 work.accept( item );
                 completedWorkItem( null );
+                success.incrementAndGet();
                 return true;
             }
             catch ( Exception ex )
             {
                 failedWorkItem( ex );
+                failed.incrementAndGet();
                 return false;
             }
         } ).reduce( Boolean::logicalAnd ).orElse( false );
@@ -414,13 +468,11 @@ public interface JobProgress
             {
                 completedStage( null );
             }
-            else if ( isCancellationRequested() )
-            {
-                failedStage( new CancellationException( "cancelled parallel processing" ) );
-            }
             else
             {
-                failedStage( (String) null );
+                autoSkipStage(
+                    ( s, f ) -> format( "parallel processing aborted after %d successful and %d failed items", s, f ),
+                    success.get(), failed.get() );
             }
             return allSuccessful;
         }
@@ -476,6 +528,9 @@ public interface JobProgress
         public abstract Date getStartedTime();
 
         @JsonProperty
+        public abstract String getDescription();
+
+        @JsonProperty
         public long getDuration()
         {
             return completedTime == null
@@ -492,16 +547,22 @@ public interface JobProgress
         public void complete( String summary )
         {
             this.summary = summary;
-            this.status = Status.SUCCESS;
             this.completedTime = new Date();
+            if ( status == Status.RUNNING )
+            {
+                this.status = Status.SUCCESS;
+            }
         }
 
         public void completeExceptionally( String error, Exception cause )
         {
             this.error = error;
             this.cause = cause;
-            this.status = cause instanceof CancellationException ? Status.CANCELLED : Status.ERROR;
             this.completedTime = new Date();
+            if ( status == Status.RUNNING )
+            {
+                this.status = cause instanceof CancellationException ? Status.CANCELLED : Status.ERROR;
+            }
         }
     }
 
@@ -534,11 +595,6 @@ public interface JobProgress
             this.cancelledTime = new Date();
             this.status = Status.CANCELLED;
         }
-
-        public void abort()
-        {
-            completeExceptionally( "aborted after failed stage or item", null );
-        }
     }
 
     @Getter
@@ -569,5 +625,11 @@ public interface JobProgress
 
         @JsonProperty
         private final String description;
+    }
+
+    static String getMessage( Exception cause )
+    {
+        String msg = cause.getMessage();
+        return msg == null || msg.trim().isEmpty() ? cause.getClass().getName() : msg;
     }
 }

@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.scheduling;
 
+import static java.lang.String.format;
+import static org.hisp.dhis.scheduling.JobProgress.getMessage;
+
+import java.time.Duration;
 import java.util.Deque;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -34,6 +38,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * The {@link ControlledJobProgress} take care of the flow control aspect of
@@ -46,6 +51,7 @@ import lombok.RequiredArgsConstructor;
  *
  * @author Jan Bernitt
  */
+@Slf4j
 @RequiredArgsConstructor
 public class ControlledJobProgress implements JobProgress
 {
@@ -71,7 +77,10 @@ public class ControlledJobProgress implements JobProgress
     {
         if ( cancellationRequested.compareAndSet( false, true ) )
         {
-            processes.forEach( Process::cancel );
+            processes.forEach( p -> {
+                p.cancel();
+                logWarn( p, "cancelled", "cancellation requested by user" );
+            } );
         }
     }
 
@@ -97,36 +106,60 @@ public class ControlledJobProgress implements JobProgress
         incompleteProcess.set( null );
         incompleteStage.set( null );
         incompleteItem.remove();
-        addProcessRecord( description );
+        Process process = addProcessRecord( description );
+        logInfo( process, "started", description );
     }
 
     @Override
     public void completedProcess( String summary )
     {
         tracker.completedProcess( summary );
-        getOrAddLastIncompleteProcess().complete( summary );
+        Process process = getOrAddLastIncompleteProcess();
+        process.complete( summary );
+        logInfo( process, "completed", summary );
     }
 
     @Override
     public void failedProcess( String error )
     {
         tracker.failedProcess( error );
-        if ( processes.getLast().getStatus() != Status.CANCELLED )
+        Process process = processes.peekLast();
+        if ( process == null || process.getCompletedTime() != null )
         {
-            automaticAbort();
-            getOrAddLastIncompleteProcess().completeExceptionally( error, null );
+            return;
+        }
+        if ( process.getStatus() != Status.CANCELLED )
+        {
+            automaticAbort( false, error, null );
+            process.completeExceptionally( error, null );
+            logError( process, null, error );
+        }
+        else
+        {
+            process.completeExceptionally( error, null );
         }
     }
 
     @Override
     public void failedProcess( Exception cause )
     {
-        cause = cancellationAsAbort( cause );
         tracker.failedProcess( cause );
-        if ( processes.getLast().getStatus() != Status.CANCELLED )
+        Process process = processes.peekLast();
+        if ( process == null || process.getCompletedTime() != null )
         {
-            automaticAbort();
-            getOrAddLastIncompleteProcess().completeExceptionally( cause.getMessage(), cause );
+            return;
+        }
+        if ( process.getStatus() != Status.CANCELLED )
+        {
+            cause = cancellationAsAbort( cause );
+            String message = getMessage( cause );
+            automaticAbort( false, message, cause );
+            process.completeExceptionally( message, cause );
+            logError( process, cause, message );
+        }
+        else
+        {
+            process.completeExceptionally( getMessage( cause ), cause );
         }
     }
 
@@ -138,22 +171,27 @@ public class ControlledJobProgress implements JobProgress
             throw new CancellationException();
         }
         tracker.startingStage( description, workItems );
-        addStageRecord( getOrAddLastIncompleteProcess(), description, workItems );
+        Stage stage = addStageRecord( getOrAddLastIncompleteProcess(), description, workItems );
+        logInfo( stage, "started", description );
     }
 
     @Override
     public void completedStage( String summary )
     {
         tracker.completedStage( summary );
-        getOrAddLastIncompleteStage().complete( summary );
+        Stage stage = getOrAddLastIncompleteStage();
+        stage.complete( summary );
+        logInfo( stage, "completed", summary );
     }
 
     @Override
     public void failedStage( String error )
     {
         tracker.failedStage( error );
-        automaticAbort();
-        getOrAddLastIncompleteStage().completeExceptionally( error, null );
+        Stage stage = getOrAddLastIncompleteStage();
+        stage.completeExceptionally( error, null );
+        automaticAbort( error, null );
+        logError( stage, null, error );
     }
 
     @Override
@@ -161,49 +199,71 @@ public class ControlledJobProgress implements JobProgress
     {
         cause = cancellationAsAbort( cause );
         tracker.failedStage( cause );
-        automaticAbort();
-        getOrAddLastIncompleteStage().completeExceptionally( cause.getMessage(), cause );
+        String message = getMessage( cause );
+        Stage stage = getOrAddLastIncompleteStage();
+        stage.completeExceptionally( message, cause );
+        automaticAbort( message, cause );
+        logError( stage, cause, message );
     }
 
     @Override
     public void startingWorkItem( String description )
     {
         tracker.startingWorkItem( description );
-        addItemRecord( getOrAddLastIncompleteStage(), description );
+        Item item = addItemRecord( getOrAddLastIncompleteStage(), description );
+        logDebug( item, "started", description );
     }
 
     @Override
     public void completedWorkItem( String summary )
     {
         tracker.completedWorkItem( summary );
-        getOrAddLastIncompleteItem().complete( summary );
+        Item item = getOrAddLastIncompleteItem();
+        item.complete( summary );
+        logDebug( item, "completed", summary );
     }
 
     @Override
     public void failedWorkItem( String error )
     {
         tracker.failedWorkItem( error );
-        automaticAbort();
-        getOrAddLastIncompleteItem().completeExceptionally( error, null );
+        Item item = getOrAddLastIncompleteItem();
+        item.completeExceptionally( error, null );
+        automaticAbort( error, null );
+        logError( item, null, error );
     }
 
     @Override
     public void failedWorkItem( Exception cause )
     {
-        tracker.failedProcess( cause );
-        automaticAbort();
-        getOrAddLastIncompleteItem().completeExceptionally( cause.getMessage(), cause );
+        tracker.failedWorkItem( cause );
+        String message = getMessage( cause );
+        Item item = getOrAddLastIncompleteItem();
+        item.completeExceptionally( message, cause );
+        automaticAbort( message, cause );
     }
 
-    private void automaticAbort()
+    private void automaticAbort( String error, Exception cause )
+    {
+        automaticAbort( true, error, cause );
+    }
+
+    private void automaticAbort( boolean abortProcess, String error, Exception cause )
     {
         if ( abortOnFailure
             // OBS! we only mark abort if we could mark cancellation
             // if we already cancelled manually we do not abort but cancel
             && cancellationRequested.compareAndSet( false, true )
-            && abortAfterFailure.compareAndSet( false, true ) )
+            && abortAfterFailure.compareAndSet( false, true )
+            && abortProcess )
         {
-            processes.forEach( Process::abort );
+            processes.forEach( process -> {
+                if ( !process.isComplete() )
+                {
+                    process.completeExceptionally( error, cause );
+                    logWarn( process, "aborted", "aborted after error: " + error );
+                }
+            } );
         }
     }
 
@@ -263,8 +323,59 @@ public class ControlledJobProgress implements JobProgress
 
     private Exception cancellationAsAbort( Exception cause )
     {
-        return cause instanceof CancellationException && abortAfterFailure.get()
-            ? new RuntimeException( "processing aborted: " + cause.getMessage() )
-            : cause;
+        return cause instanceof CancellationException
+            && (abortAfterFailure.get())
+                ? new RuntimeException( "processing aborted: " + getMessage( cause ) )
+                : cause;
+    }
+
+    private void logError( Node failed, Exception cause, String message )
+    {
+        if ( log.isErrorEnabled() )
+        {
+            String msg = formatLogMessage( failed, "failed", message );
+            if ( cause != null )
+            {
+                log.error( msg, cause );
+            }
+            else
+            {
+                log.error( msg );
+            }
+        }
+    }
+
+    private void logDebug( Node source, String action, String message )
+    {
+        if ( log.isDebugEnabled() )
+        {
+            log.debug( formatLogMessage( source, action, message ) );
+        }
+    }
+
+    private void logInfo( Node source, String action, String message )
+    {
+        if ( log.isInfoEnabled() )
+        {
+            log.info( formatLogMessage( source, action, message ) );
+        }
+    }
+
+    private void logWarn( Node source, String action, String message )
+    {
+        if ( log.isWarnEnabled() )
+        {
+            log.warn( formatLogMessage( source, action, message ) );
+        }
+    }
+
+    private String formatLogMessage( Node source, String action, String message )
+    {
+        String duration = source.isComplete()
+            ? " after " + Duration.ofMillis( source.getDuration() ).toString().substring( 2 ).toLowerCase()
+            : "";
+        String msg = message == null ? "" : ": " + message;
+        return format( "[%s %s] %s %s%s%s", configuration.getJobType().name(), configuration.getUid(),
+            source.getClass().getSimpleName(), action, duration, msg );
     }
 }
