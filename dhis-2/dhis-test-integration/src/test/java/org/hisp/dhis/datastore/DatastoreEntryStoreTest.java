@@ -41,14 +41,13 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 class DatastoreEntryStoreTest extends SingleSetupIntegrationTestBase
 {
-
     @Autowired
     private DatastoreStore store;
 
     @Test
     void testAddKeyJsonValue()
     {
-        DatastoreEntry entry = addEntry( "A", "1" );
+        DatastoreEntry entry = addEntry( "1A", "1" );
         assertNotNull( entry );
         assertEquals( entry, store.get( entry.getId() ) );
     }
@@ -56,48 +55,48 @@ class DatastoreEntryStoreTest extends SingleSetupIntegrationTestBase
     @Test
     void testAddKeyJsonValuesAndGetNamespaces()
     {
-        addEntry( "A", "1" );
-        addEntry( "B", "1" );
-        assertContainsOnly( store.getNamespaces(), "A", "B" );
+        addEntry( "2A", "1" );
+        addEntry( "2B", "1" );
+        assertContainsOnly( store.getNamespaces(), "2A", "2B" );
     }
 
     @Test
     void testAddKeyJsonValuesAndGetKeysFromNamespace()
     {
-        addEntry( "A", "1" );
-        addEntry( "A", "2" );
-        addEntry( "B", "1" );
-        assertContainsOnly( store.getKeysInNamespace( "A" ), "1", "2" );
+        addEntry( "3A", "1" );
+        addEntry( "3A", "2" );
+        addEntry( "3B", "1" );
+        assertContainsOnly( store.getKeysInNamespace( "3A" ), "1", "2" );
     }
 
     @Test
     void testAddKeyJsonValueAndGetKeyJsonValue()
     {
-        DatastoreEntry entryA = addEntry( "A", "1" );
-        assertEquals( store.getEntry( "A", "1" ), entryA );
+        DatastoreEntry entryA = addEntry( "4A", "1" );
+        assertEquals( store.getEntry( "4A", "1" ), entryA );
     }
 
     @Test
     void testGetKeyJsonValuesByNamespace()
     {
-        DatastoreEntry entryA1 = addEntry( "A", "1" );
-        DatastoreEntry entryA2 = addEntry( "A", "2" );
-        DatastoreEntry entryA3 = addEntry( "A", "3" );
-        DatastoreEntry entryB1 = addEntry( "B", "1" );
-        assertContainsOnly( store.getEntryByNamespace( "A" ), entryA1, entryA2, entryA3 );
-        assertFalse( store.getEntryByNamespace( "A" ).contains( entryB1 ) );
+        DatastoreEntry entryA1 = addEntry( "5A", "1" );
+        DatastoreEntry entryA2 = addEntry( "5A", "2" );
+        DatastoreEntry entryA3 = addEntry( "5A", "3" );
+        DatastoreEntry entryB1 = addEntry( "5B", "1" );
+        assertContainsOnly( store.getEntryByNamespace( "5A" ), entryA1, entryA2, entryA3 );
+        assertFalse( store.getEntryByNamespace( "5A" ).contains( entryB1 ) );
     }
 
     @Test
     void testCountKeysInNamespace()
     {
-        addEntry( "A", "1" );
-        addEntry( "A", "2" );
-        addEntry( "A", "3" );
-        addEntry( "B", "1" );
-        assertEquals( 3, store.countKeysInNamespace( "A" ) );
-        assertEquals( 1, store.countKeysInNamespace( "B" ) );
-        assertEquals( 0, store.countKeysInNamespace( "C" ) );
+        addEntry( "6A", "1" );
+        addEntry( "6A", "2" );
+        addEntry( "6A", "3" );
+        addEntry( "6B", "1" );
+        assertEquals( 3, store.countKeysInNamespace( "6A" ) );
+        assertEquals( 1, store.countKeysInNamespace( "6B" ) );
+        assertEquals( 0, store.countKeysInNamespace( "6C" ) );
     }
 
     @Test
