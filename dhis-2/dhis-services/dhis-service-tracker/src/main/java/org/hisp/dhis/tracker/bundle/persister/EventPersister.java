@@ -172,8 +172,8 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
                 .collect( Collectors.toMap( EventDataValue::getDataElement, Function.identity() ) ) )
             .orElse( new HashMap<>() );
 
-        for ( DataValue dv : payloadDataValues )
-        {
+        payloadDataValues.forEach( dv -> {
+
             final String persistedValue;
             DataElement dataElement = preheat.getDataElement( dv.getDataElement() );
             checkNotNull( dataElement,
@@ -236,7 +236,7 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
 
             logTrackedEntityDataValueHistory( preheat.getUsername(), dataElement, psi, auditType,
                 new Date(), valuesHolder );
-        }
+        } );
     }
 
     private void handleDataValueCreatedUpdatedDates( DataValue dv, EventDataValue eventDataValue )
