@@ -25,52 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.metadata;
+package org.hisp.dhis.cacheinvalidation;
 
-import org.hisp.dhis.dxf2.metadata.MetadataExportService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.UserSettingService;
-import org.hisp.dhis.webapi.service.ContextService;
-import org.junit.jupiter.api.Assertions;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseEntity;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import io.debezium.connector.postgresql.PostgresConnector;
 
 /**
- * Unit tests for {@link MetadataExportControllerTest}.
+ * Test to make sure that the Debezium Postgres connector is available. It is
+ * needed for PostgreSQL cache invalidation in a DHIS2 cluster configuration.
  *
- * @author Volker Schmidt
+ * @author Jim Grace
  */
-@ExtendWith( MockitoExtension.class )
-class MetadataExportControllerTest
+class DebeziumPostgresConnectorTest
 {
-    @Mock
-    private MetadataExportService metadataExportService;
-
-    @Mock
-    private ContextService contextService;
-
-    @Mock
-    private CurrentUserService currentUserService;
-
-    @Mock
-    private UserSettingService userSettingService;
-
-    @InjectMocks
-    private MetadataImportExportController controller;
-
     @Test
-    void withDownload()
+    void testDebeziumPostgresConnectorPresent()
     {
-        ResponseEntity<JsonNode> responseEntity = controller.getMetadataDownload( false, null, true );
-        Assertions.assertNotNull( responseEntity.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ) );
-        Assertions.assertEquals( "attachment; filename=metadata",
-            responseEntity.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ).get( 0 ) );
+        assertEquals( "PostgresConnector", PostgresConnector.class.getSimpleName() );
     }
 }

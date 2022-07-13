@@ -31,15 +31,14 @@ import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLI
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import lombok.AllArgsConstructor;
-import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.message.MessageConversation;
@@ -59,6 +58,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
 import com.vdurmont.semver4j.Semver;
 
 /**
@@ -67,13 +67,13 @@ import com.vdurmont.semver4j.Semver;
 @Slf4j
 @Service
 @AllArgsConstructor
-public class SystemUpdateService
+public class SystemUpdateNotificationService
 {
     public static final String DHIS_2_ORG_VERSIONS_JSON = "https://releases.dhis2.org/v1/versions/stable.json";
 
     public static final String NEW_VERSION_AVAILABLE_MESSAGE_SUBJECT = "System update available";
 
-    public static final String NEW_VERSION_AVAILABLE_MESSAGE_BODY = "A new patch version %s of DHIS 2 is now available for download from the link below. Patch releases contain bug and security fixes, and upgrading is recommended.";
+    public static final String NEW_VERSION_AVAILABLE_MESSAGE_BODY = "A new version %s of DHIS 2 is now available for download from the link below. New releases contain bug and security fixes, and upgrading is recommended.";
 
     public static final String FIELD_NAME_VERSION = "version";
 
@@ -85,33 +85,33 @@ public class SystemUpdateService
 
     public static final String FIELD_NAME_URL = "url";
 
-    @NonNull
     private final UserStore userStore;
 
-    @NonNull
     private final UserService userService;
 
-    @NonNull
     private final MessageService messageService;
 
     public static Map<Semver, Map<String, String>> getLatestNewerThanCurrent()
     {
-        return getLatestNewerThan( getCurrentVersion() );
+        return getLatestNewerThan( getCurrentVersion(), fetchAllVersions() );
     }
 
-    public static Map<Semver, Map<String, String>> getLatestNewerThan( Semver currentVersion )
+    public static Map<Semver, Map<String, String>> getLatestNewerThanFetchFirst( Semver currentVersion )
     {
-        JsonObject allVersions = fetchAllVersions();
+        return getLatestNewerThan( currentVersion, fetchAllVersions() );
+    }
 
-        List<JsonElement> newerPatchVersions = extractNewerPatchVersions( currentVersion, allVersions );
+    public static Map<Semver, Map<String, String>> getLatestNewerThan( Semver currentVersion, JsonObject allVersions )
+    {
+        List<JsonElement> newerVersions = extractNewerPatchHotfixVersions( currentVersion, allVersions );
 
-        // Only pick the top/latest patch version
-        if ( !newerPatchVersions.isEmpty() )
+        // Only pick the top version
+        if ( !newerVersions.isEmpty() )
         {
-            newerPatchVersions = newerPatchVersions.subList( newerPatchVersions.size() - 1, newerPatchVersions.size() );
+            newerVersions = newerVersions.subList( newerVersions.size() - 1, newerVersions.size() );
         }
 
-        return convertJsonToMap( newerPatchVersions );
+        return convertJsonToMap( newerVersions );
     }
 
     private static JsonObject fetchAllVersions()
@@ -129,7 +129,7 @@ public class SystemUpdateService
                         + "non OK(200) response code. Code was: " + statusCode );
             }
 
-            return new JsonParser().parse( httpResponse.getResponse() ).getAsJsonObject();
+            return JsonParser.parseString( httpResponse.getResponse() ).getAsJsonObject();
         }
         catch ( Exception e )
         {
@@ -138,9 +138,11 @@ public class SystemUpdateService
         }
     }
 
-    protected static List<JsonElement> extractNewerPatchVersions( Semver currentVersion, JsonObject allVersions )
+    protected static List<JsonElement> extractNewerPatchHotfixVersions( Semver currentVersion, JsonObject allVersions )
     {
         List<JsonElement> newerPatchVersions = new ArrayList<>();
+
+        int currentHotFixVersion = getCurrentHotFixVersion( currentVersion );
 
         for ( JsonElement versionElement : allVersions.getAsJsonArray( "versions" ) )
         {
@@ -152,30 +154,57 @@ public class SystemUpdateService
             if ( Objects.equals( currentVersion.getMajor(), semver.getMajor() ) && Objects.equals(
                 currentVersion.getMinor(), semver.getMinor() ) )
             {
-                int latestPatchVersion = versionElement.getAsJsonObject().getAsJsonPrimitive( "latestPatchVersion" )
-                    .getAsInt();
+                int latestPatchVersion = extractInt( versionElement, "latestPatchVersion" );
+                int latestHotfixVersion = extractInt( versionElement, "latestHotfixVersion" );
 
-                if ( currentVersion.getPatch() < latestPatchVersion )
+                if ( currentVersion.getPatch() < latestPatchVersion
+                    || (currentVersion.getPatch() == latestPatchVersion && latestHotfixVersion > currentHotFixVersion) )
                 {
-                    for ( JsonElement patchElement : versionElement.getAsJsonObject()
-                        .getAsJsonArray( "patchVersions" ) )
-                    {
-                        int patchVersion = patchElement.getAsJsonObject().getAsJsonPrimitive( FIELD_NAME_VERSION )
-                            .getAsInt();
-
-                        if ( currentVersion.getPatch() < patchVersion )
-                        {
-                            log.debug( "Found a newer patch version, "
-                                + "adding it the result list; version={}", patchVersion );
-
-                            newerPatchVersions.add( patchElement );
-                        }
-                    }
+                    extractVersion( newerPatchVersions, versionElement, latestPatchVersion, latestHotfixVersion );
                 }
             }
         }
 
         return newerPatchVersions;
+    }
+
+    private static void extractVersion( List<JsonElement> newerPatchVersions, JsonElement versionElement,
+        int latestPatchVersion, int latestHotfixVersion )
+    {
+        for ( JsonElement patchElement : versionElement.getAsJsonObject()
+            .getAsJsonArray( "patchVersions" ) )
+        {
+            int patchVersion = extractInt( patchElement, FIELD_NAME_VERSION );
+            int hotfixVersion = extractInt( patchElement, "hotfixVersion" );
+
+            if ( patchVersion == latestPatchVersion && hotfixVersion == latestHotfixVersion )
+            {
+                log.debug( "Found a newer hotfix version, "
+                    + "adding it the result list; version={}", hotfixVersion );
+
+                newerPatchVersions.add( patchElement );
+            }
+        }
+    }
+
+    private static int extractInt( JsonElement patchElement, String elementName )
+    {
+        JsonPrimitive hotfixObject = patchElement.getAsJsonObject()
+            .getAsJsonPrimitive( elementName );
+        return hotfixObject == null ? 0 : hotfixObject.getAsInt();
+    }
+
+    private static int getCurrentHotFixVersion( Semver currentVersion )
+    {
+        String[] parts = currentVersion.getOriginalValue().split( "\\." );
+
+        int hotfix = 0;
+        if ( parts.length > 3 )
+        {
+            hotfix = Integer.parseInt( parts[3] );
+        }
+
+        return hotfix;
     }
 
     /**
@@ -216,6 +245,7 @@ public class SystemUpdateService
         {
             return;
         }
+
         for ( Map.Entry<Semver, Map<String, String>> versionEntry : patchVersions.entrySet() )
         {
             sendMessageForVersion( recipients, versionEntry.getKey(), versionEntry.getValue(), progress );
@@ -225,9 +255,8 @@ public class SystemUpdateService
     private void sendMessageForVersion( Set<User> recipients, Semver version, Map<String, String> message,
         JobProgress progress )
     {
-
-        // Check if message has been sent before using version.getValue() as
-        // extMessageId
+        // Check if message has been sent before, using
+        // version.getValue() as extMessageId
         progress.startingStage( "Finding conversations for version " + version );
         List<MessageConversation> existingMessages = progress.runStage( List.of(),
             conversations -> "found " + conversations.size() + " conversations",
@@ -257,16 +286,9 @@ public class SystemUpdateService
 
     private Set<User> getUsersWithAllAuthority()
     {
-        Set<User> recipients = new HashSet<>();
-
-        List<User> users = userStore.getHasAuthority( "ALL" );
-
-        for ( User user : users )
-        {
-            recipients.add( userService.getUserByUsername( user.getUsername() ) );
-        }
-
-        return recipients;
+        return userStore.getHasAuthority( "ALL" ).stream()
+            .map( user -> userService.getUserByUsername( user.getUsername() ) )
+            .collect( Collectors.toSet() );
     }
 
     private String buildMessageBody( Map<String, String> messageValues )

@@ -44,11 +44,18 @@ jobs:
       - name: Test dhis-web
         run: mvn test --threads 2C --batch-mode --no-transfer-progress --update-snapshots -f ./dhis-2/dhis-web/pom.xml
         timeout-minutes: 30
+      - name: Generate surefire aggregate report
+        run: mvn surefire-report:report-only -Daggregate=true --batch-mode --no-transfer-progress -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty,-dhis-test-coverage
+      # tar due to https://github.com/actions/upload-artifact/blob/3cea5372237819ed00197afe530f5a7ea3e805c8/README.md?plain=1#L254
+      - name: Tar surefire individual reports
+        run: find . -name "surefire-reports" -type d -exec find {} -type f -name "*.xml" -printf '%p\0' \; | tar --null --files-from=- -cvf surefire_reports.tar
       - name: Archive surefire reports
         uses: actions/upload-artifact@v3
         with:
           name: unit-test-surefire-reports
-          path: "**/target/surefire-reports/TEST-*.xml"
+          path: |
+            dhis-2/target/site/surefire-report.html
+            surefire_reports.tar
           retention-days: 5
 
   integration-test:
@@ -88,11 +95,18 @@ jobs:
           name: integration-test-coverage
           path: coverage.tar
           retention-days: 5
+      - name: Generate surefire aggregate report
+        run: mvn surefire-report:report-only -Daggregate=true --batch-mode --no-transfer-progress -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty,-dhis-test-coverage
+      # tar due to https://github.com/actions/upload-artifact/blob/3cea5372237819ed00197afe530f5a7ea3e805c8/README.md?plain=1#L254
+      - name: Tar surefire individual reports
+        run: find . -name "surefire-reports" -type d -exec find {} -type f -name "*.xml" -printf '%p\0' \; | tar --null --files-from=- -cvf surefire_reports.tar
       - name: Archive surefire reports
         uses: actions/upload-artifact@v3
         with:
           name: integration-test-surefire-reports
-          path: "**/target/surefire-reports/TEST-*.xml"
+          path: |
+            dhis-2/target/site/surefire-report.html
+            surefire_reports.tar
           retention-days: 5
 
   integration-h2-test:
@@ -132,11 +146,18 @@ jobs:
           name: integration-h2-test-coverage
           path: coverage.tar
           retention-days: 5
+      - name: Generate surefire aggregate report
+        run: mvn surefire-report:report-only -Daggregate=true --batch-mode --no-transfer-progress -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty,-dhis-test-coverage
+      # tar due to https://github.com/actions/upload-artifact/blob/3cea5372237819ed00197afe530f5a7ea3e805c8/README.md?plain=1#L254
+      - name: Tar surefire individual reports
+        run: find . -name "surefire-reports" -type d -exec find {} -type f -name "*.xml" -printf '%p\0' \; | tar --null --files-from=- -cvf surefire_reports.tar
       - name: Archive surefire reports
         uses: actions/upload-artifact@v3
         with:
           name: integration-h2-test-surefire-reports
-          path: "**/target/surefire-reports/TEST-*.xml"
+          path: |
+            dhis-2/target/site/surefire-report.html
+            surefire_reports.tar
           retention-days: 5
 
   send-slack-message:

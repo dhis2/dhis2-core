@@ -33,7 +33,7 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.scheduling.NoopJobProgress;
-import org.hisp.dhis.system.SystemUpdateService;
+import org.hisp.dhis.system.SystemUpdateNotificationService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -50,27 +50,29 @@ import com.vdurmont.semver4j.Semver;
 @Controller
 @RequestMapping
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class SystemSoftwareUpdateNotifyController
+public class SystemUpdateNotifyController
 {
     public static final String RESOURCE_PATH = "/systemUpdates";
 
     @Autowired
-    private SystemUpdateService systemUpdateService;
+    private SystemUpdateNotificationService service;
 
-    @GetMapping( SystemSoftwareUpdateNotifyController.RESOURCE_PATH )
+    @GetMapping( SystemUpdateNotifyController.RESOURCE_PATH )
     @ResponseBody
-    public WebMessage checkSystemUpdate( @RequestParam( value = "forceVersion", required = false ) String forceVersion )
-        throws Exception
+    public WebMessage checkForSystemUpdates(
+        @RequestParam( value = "forceVersion", required = false ) String forceVersion )
     {
-        Semver currentVersion = SystemUpdateService.getCurrentVersion();
+        Semver currentVersion = SystemUpdateNotificationService.getCurrentVersion();
+
         if ( forceVersion != null )
         {
             currentVersion = new Semver( forceVersion );
         }
 
-        Map<Semver, Map<String, String>> newerVersions = SystemUpdateService.getLatestNewerThan( currentVersion );
+        Map<Semver, Map<String, String>> newerVersions = SystemUpdateNotificationService
+            .getLatestNewerThanFetchFirst( currentVersion );
 
-        systemUpdateService.sendMessageForEachVersion( newerVersions, NoopJobProgress.INSTANCE );
+        service.sendMessageForEachVersion( newerVersions, NoopJobProgress.INSTANCE );
 
         WebMessage ok = WebMessageUtils.ok();
         ok.setResponse( new SoftwareUpdateResponse( newerVersions ) );

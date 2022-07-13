@@ -25,62 +25,68 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis;
+package org.hisp.dhis.dataset;
 
-import javax.sql.DataSource;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.core.config.Configurator;
-import org.hisp.dhis.config.UnitTestConfig;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.h2.H2SqlFunction;
-import org.hisp.dhis.utils.TestUtils;
-import org.junit.jupiter.api.AfterEach;
+import java.util.List;
+import java.util.Set;
+
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /**
- * @author Lars Helge Overland
+ * Tests the {@link SectionStore} additional methods.
+ *
+ * @author Jan Bernitt
  */
-@ExtendWith( SpringExtension.class )
-@ActiveProfiles( "test-h2" )
-@ContextConfiguration( classes = { UnitTestConfig.class } )
-@IntegrationH2Test
-public abstract class DhisTest extends BaseSpringTest
+class SectionStoreTest extends SingleSetupIntegrationTestBase
 {
-
-    protected boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
+    @Autowired
+    private SectionStore sectionStore;
 
     @Autowired
-    private DataSource dataSource;
+    private DataElementService dataElementService;
+
+    @Autowired
+    private DataSetService dataSetService;
+
+    private DataElement de;
+
+    private DataSet ds;
 
     @BeforeEach
-    final void before()
-        throws Exception
+    void setUp()
     {
-        bindSession();
-        TestUtils.executeStartupRoutines( applicationContext );
-        boolean enableQueryLogging = dhisConfigurationProvider.isEnabled( ConfigurationKey.ENABLE_QUERY_LOGGING );
-        if ( enableQueryLogging )
-        {
-            Configurator.setLevel( "org.hisp.dhis.datasource.query", Level.INFO );
-            Configurator.setRootLevel( Level.INFO );
-        }
-        H2SqlFunction.registerH2Functions( dataSource );
-        setUpTest();
+        de = createDataElement( 'A' );
+        dataElementService.addDataElement( de );
+
+        ds = createDataSet( 'A' );
+        dataSetService.addDataSet( ds );
     }
 
-    @AfterEach
-    final void after()
-        throws Exception
+    @Test
+    void testGetSectionsByDataElement_SectionOfDataElement()
     {
-        nonTransactionalAfter();
+        Section s = new Section( "test", ds, List.of( de ), Set.of() );
+        assertDoesNotThrow( () -> sectionStore.save( s ) );
+
+        assertEquals( 1, sectionStore.getSectionsByDataElement( de.getUid() ).size() );
+    }
+
+    @Test
+    void testGetSectionsByDataElement_SectionOfDataElementOperand()
+    {
+        DataElementOperand deo = new DataElementOperand( de );
+        Section s = new Section( "test", ds, List.of(), Set.of( deo ) );
+        assertDoesNotThrow( () -> sectionStore.save( s ) );
+
+        assertEquals( 1, sectionStore.getSectionsByDataElement( de.getUid() ).size() );
     }
 }
