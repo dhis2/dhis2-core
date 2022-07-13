@@ -324,7 +324,6 @@ public class DbChangeEventHandler
             // Make sure queries will re-fetch to capture the new object.
             queryCacheManager.evictQueryCache( sessionFactory.getCache(), firstEntityClass );
             paginationCacheManager.evictCache( firstEntityClass.getName() );
-
             // Try to fetch the new entity, so it might get cached.
             tryFetchNewEntity( entityId, firstEntityClass );
         }
@@ -340,7 +339,10 @@ public class DbChangeEventHandler
             sessionFactory.getCache().evict( firstEntityClass, entityId );
         }
 
-        evictCollections( entityClasses, entityId );
+        if ( operation != Envelope.Operation.MESSAGE )
+        {
+            evictCollections( entityClasses, entityId );
+        }
     }
 
     private void tryFetchNewEntity( Serializable entityId, Class<?> entityClass )
