@@ -27,48 +27,28 @@
  */
 package org.hisp.dhis.analytics.common;
 
-import java.util.ArrayList;
-import java.util.List;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import org.junit.jupiter.api.Test;
 
-import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
-import org.hisp.dhis.analytics.common.dimension.DimensionParam;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
-
-/**
- * This is a reusable and shared representation of queryable items to be used by
- * the service/dao layers.
- *
- * It encapsulates the most common objects that are very likely to be used by
- * the majority of analytics queries.
- */
-@Getter
-@Setter
-@Builder( toBuilder = true )
-public class CommonParams
+class CommonQueryRequestProcessorTest
 {
 
-    /**
-     * The list of Program objects carried on by this object.
-     */
-    @Builder.Default
-    private final List<Program> programs = new ArrayList<>();
+    CommonQueryRequestProcessor commonQueryRequestProcessor = new CommonQueryRequestProcessor();
 
-    /**
-     * Data structure containing dimensionParams, which can represent
-     * dimensions, filters, queryItems or queryItemFilters.
-     */
-    @Builder.Default
-    private final List<List<DimensionIdentifier<Program, ProgramStage, DimensionParam>>> dimensionIdentifiers = new ArrayList<>();
+    @Test
+    void testEventDate()
+    {
+        CommonQueryRequest request = CommonQueryRequest.builder()
+            .eventDate( "IpHINAT79UW.LAST_YEAR" )
+            .incidentDate( "LAST_MONTH" )
+            .enrollmentDate( "2021-06-30" )
+            .lastUpdated( "TODAY" )
+            .scheduledDate( "YESTERDAY" )
+            .build();
 
-    /**
-     * The object that groups the paging and sorting parameters.
-     */
-    @Builder.Default
-    private final AnalyticsPagingAndSortingParams pagingAndSortingParams = AnalyticsPagingAndSortingParams.builder()
-        .build();
+        assertEquals(
+            commonQueryRequestProcessor.process( request ).getDimension().stream().findFirst().orElse( null ),
+            "pe:IpHINAT79UW.LAST_YEAR:EVENT_DATE;2021-06-30:ENROLLMENT_DATE;YESTERDAY:SCHEDULED_DATE;LAST_MONTH:INCIDENT_DATE;TODAY:LAST_UPDATED" );
+    }
 }
