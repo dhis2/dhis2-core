@@ -28,17 +28,22 @@
 package org.hisp.dhis.credentials;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.lang.Math.abs;
 import static java.lang.String.format;
-import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
+import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Date;
 import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.hisp.dhis.email.EmailResponse;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.message.MessageSender;
+import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
@@ -64,7 +69,9 @@ public class CredentialsExpiryAlertJob implements Job
 {
     private static final String SUBJECT = "Password Expiry Alert";
 
-    private static final String TEXT = "Dear %s, Please change your password. It will expire in %d days.";
+    private static final String TEXT_EXPIRES_SOON = "Dear %s, Please change your password. It will expire in %d days.";
+
+    private static final String TEXT_EXPIRED = "Dear %s, Please change your password. It expired %d days ago.";
 
     private static final String KEY_TASK = "credentialsExpiryAlertTask";
 
@@ -122,12 +129,10 @@ public class CredentialsExpiryAlertJob implements Job
 
     private void sendExpiryAlert( List<User> users, JobProgress progress )
     {
-        progress.startingStage( "sending expiry alert emails", users.size(), SKIP_ITEM_OUTLIER );
+        progress.startingStage( "sending expiry alert emails", users.size(), SKIP_ITEM );
         if ( emailMessageSender.isConfigured() )
         {
-            progress.runStage( users,
-                user -> "to: " + user.getUsername(),
-                user -> emailMessageSender.sendMessage( SUBJECT, createText( user ), user.getEmail() ) );
+            progress.runStage( users, this::createItemDescription, this::sendEmail );
         }
         else
         {
@@ -135,17 +140,36 @@ public class CredentialsExpiryAlertJob implements Job
         }
     }
 
-    private String createText( User user )
+    private void sendEmail( User user )
     {
-        return format( TEXT, user.getUsername(), getRemainingDays( user ) );
+        OutboundMessageResponse response = emailMessageSender.sendMessage( SUBJECT,
+            createEmailBodyText( user ), user.getEmail() );
+        if ( response.getResponseObject() != EmailResponse.SENT )
+        {
+            throw new UncheckedIOException( response.getDescription(), new IOException() );
+        }
+    }
+
+    private String createItemDescription( User user )
+    {
+        int remainingDays = getRemainingDays( user );
+        return remainingDays < 0
+            ? format( "to: %s, expired since %d days", user.getUsername(), abs( remainingDays ) )
+            : format( "to: %s, %d days until expiry", user.getUsername(), remainingDays );
+    }
+
+    private String createEmailBodyText( User user )
+    {
+        int remainingDays = getRemainingDays( user );
+        return remainingDays < 0
+            ? format( TEXT_EXPIRED, user.getUsername(), abs( remainingDays ) )
+            : format( TEXT_EXPIRES_SOON, user.getUsername(), remainingDays );
     }
 
     private int getRemainingDays( User user )
     {
         int daysBeforeChangeRequired = systemSettingManager.getIntSetting( SettingKey.CREDENTIALS_EXPIRES ) * 30;
-
         Date passwordLastUpdated = user.getPasswordLastUpdated();
-
         return (daysBeforeChangeRequired - DateUtils.daysBetween( passwordLastUpdated, new Date() ));
     }
 }
