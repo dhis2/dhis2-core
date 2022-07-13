@@ -27,9 +27,6 @@
  */
 package org.hisp.dhis.tracker.programrule.implementers;
 
-import static org.hisp.dhis.rules.models.AttributeType.DATA_ELEMENT;
-import static org.hisp.dhis.rules.models.AttributeType.TRACKED_ENTITY_ATTRIBUTE;
-import static org.hisp.dhis.rules.models.AttributeType.UNKNOWN;
 import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.needsToValidateDataValues;
 
 import java.util.Collections;
@@ -38,11 +35,10 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.rules.models.AttributeType;
 import org.hisp.dhis.rules.models.RuleAction;
-import org.hisp.dhis.rules.models.RuleActionAttribute;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
@@ -141,17 +137,11 @@ public abstract class AbstractRuleActionImplementer<T extends RuleAction>
         return effects
             .stream()
             .filter( effect -> getActionClass().isAssignableFrom( effect.ruleAction().getClass() ) )
-            .filter( effect -> getAttributeType( effect.ruleAction() ) == UNKNOWN ||
-                getAttributeType( effect.ruleAction() ) == DATA_ELEMENT )
             .map( effect -> new EventActionRule( effect.ruleId(), effect.data(),
                 getField( (T) effect.ruleAction() ),
-                getAttributeType( effect.ruleAction() ),
                 getContent( (T) effect.ruleAction() ), dataValues ) )
-            .filter( effect -> effect.getAttributeType() != DATA_ELEMENT ||
-                isDataElementPartOfProgramStage( effect.getField(), programStage ) )
-            .filter(
-                effect -> effect.getAttributeType() != DATA_ELEMENT ||
-                    needsToValidateDataValues( event, programStage ) )
+            .filter( effect -> isDataElementPartOfProgramStage( effect.getField(), programStage ) )
+            .filter( effect -> needsToValidateDataValues( event, programStage ) )
             .collect( Collectors.toList() );
     }
 
@@ -175,11 +165,8 @@ public abstract class AbstractRuleActionImplementer<T extends RuleAction>
         return effects
             .stream()
             .filter( effect -> getActionClass().isAssignableFrom( effect.ruleAction().getClass() ) )
-            .filter( effect -> getAttributeType( effect.ruleAction() ) == UNKNOWN ||
-                getAttributeType( effect.ruleAction() ) == TRACKED_ENTITY_ATTRIBUTE )
             .map( effect -> new EnrollmentActionRule( effect.ruleId(), effect.data(),
                 getField( (T) effect.ruleAction() ),
-                getAttributeType( effect.ruleAction() ),
                 getContent( (T) effect.ruleAction() ), attributes ) )
             .collect( Collectors.toList() );
     }
@@ -195,36 +182,15 @@ public abstract class AbstractRuleActionImplementer<T extends RuleAction>
 
     private boolean isDataElementPartOfProgramStage( String dataElementUid, ProgramStage programStage )
     {
+        if ( StringUtils.isEmpty( dataElementUid ) )
+        {
+            return true;
+        }
+
         return programStage.getDataElements()
             .stream()
             .map( BaseIdentifiableObject::getUid )
             .anyMatch( de -> de.equals( dataElementUid ) );
-    }
-
-    private AttributeType getAttributeType( RuleAction ruleAction )
-    {
-        if ( ruleAction instanceof RuleActionAttribute )
-        {
-            return ((RuleActionAttribute) ruleAction).attributeType();
-        }
-
-        return UNKNOWN;
-    }
-
-    protected Optional<Event> getEvent( TrackerBundle bundle, String eventUid )
-    {
-        return bundle.getEvents()
-            .stream()
-            .filter( e -> e.getEvent().equals( eventUid ) )
-            .findAny();
-    }
-
-    private Optional<Enrollment> getEnrollment( TrackerBundle bundle, String enrollmentUid )
-    {
-        return bundle.getEnrollments()
-            .stream()
-            .filter( e -> e.getEnrollment().equals( enrollmentUid ) )
-            .findAny();
     }
 
     private Optional<TrackedEntity> getTrackedEntity( TrackerBundle bundle, String teiUid )
