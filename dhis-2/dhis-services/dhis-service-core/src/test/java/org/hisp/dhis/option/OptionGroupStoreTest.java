@@ -27,12 +27,18 @@
  */
 package org.hisp.dhis.option;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collection;
 
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.ValueType;
 import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -44,12 +50,19 @@ public class OptionGroupStoreTest
     @Autowired
     private OptionGroupStore store;
 
+    @Autowired
+    private OptionStore optionStore;
+
+    @Autowired
+    private IdentifiableObjectStore<OptionSet> optionSetStore;
+
     private OptionGroup optionGroupA;
 
     private OptionGroup optionGroupB;
 
     private OptionGroup optionGroupC;
 
+    @BeforeEach
     public void setUpTest()
     {
         optionGroupA = new OptionGroup( "OptionGroupA" );
@@ -105,5 +118,42 @@ public class OptionGroupStoreTest
         assertTrue( objects.contains( optionGroupA ) );
         assertTrue( objects.contains( optionGroupB ) );
         assertTrue( objects.contains( optionGroupC ) );
+    }
+
+    @Test
+    public void testGetByOptionId()
+    {
+        OptionSet optionSet = createOptionSet( 'A' );
+        optionSet.setValueType( ValueType.TEXT );
+        optionSetStore.save( optionSet );
+
+        Option option = createOption( 'A' );
+        option.setOptionSet( optionSet );
+        optionStore.save( option );
+
+        optionGroupA.setOptionSet( optionSet );
+        optionGroupA.addOption( option );
+        store.save( optionGroupA );
+
+        assertNotNull( store.getOptionGroupsByOptionId( option.getUid() ) );
+    }
+
+    @Test
+    public void testDeleteOption()
+    {
+        OptionSet optionSet = createOptionSet( 'A' );
+        optionSet.setValueType( ValueType.TEXT );
+        optionSetStore.save( optionSet );
+        Option option = createOption( 'A' );
+        option.setOptionSet( optionSet );
+        optionStore.save( option );
+
+        optionGroupA.setOptionSet( optionSet );
+        optionGroupA.addOption( option );
+        store.save( optionGroupA );
+
+        optionStore.delete( option );
+        optionGroupA = store.get( optionGroupA.getId() );
+        assertTrue( optionGroupA.getMembers().isEmpty() );
     }
 }
