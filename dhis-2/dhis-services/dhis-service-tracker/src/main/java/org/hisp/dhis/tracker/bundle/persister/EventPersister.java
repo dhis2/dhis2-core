@@ -183,8 +183,7 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
             EventDataValue eventDataValue = dataValueDBMap.get( dataElement.getUid() );
             AuditType auditType = null;
 
-            if ( eventDataValue == null
-                || (eventDataValue.getCreated() == null && StringUtils.isNotBlank( dv.getValue() )) )
+            if ( isNewDataValue( eventDataValue, dv ) )
             {
                 eventDataValue = new EventDataValue();
                 persistedValue = dv.getValue();
@@ -194,12 +193,12 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
             {
                 persistedValue = eventDataValue.getValue();
 
-                if ( !StringUtils.equals( dv.getValue(), eventDataValue.getValue() ) )
+                if ( isUpdate( eventDataValue, dv ) )
                 {
                     auditType = AuditType.UPDATE;
                 }
 
-                if ( StringUtils.isNotBlank( eventDataValue.getValue() ) && StringUtils.isBlank( dv.getValue() ) )
+                if ( isDeletion( eventDataValue, dv ) )
                 {
                     auditType = AuditType.DELETE;
                 }
@@ -283,6 +282,22 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
     {
         return Optional.ofNullable( entity.getProgramInstance() ).filter( pi -> pi.getEntityInstance() != null )
             .map( pi -> pi.getEntityInstance().getUid() ).orElse( null );
+    }
+
+    private boolean isNewDataValue( EventDataValue eventDataValue, DataValue dv )
+    {
+        return eventDataValue == null
+            || (eventDataValue.getCreated() == null && StringUtils.isNotBlank( dv.getValue() ));
+    }
+
+    private boolean isDeletion( EventDataValue eventDataValue, DataValue dv )
+    {
+        return StringUtils.isNotBlank( eventDataValue.getValue() ) && StringUtils.isBlank( dv.getValue() );
+    }
+
+    private boolean isUpdate( EventDataValue eventDataValue, DataValue dv )
+    {
+        return !StringUtils.equals( dv.getValue(), eventDataValue.getValue() );
     }
 
     @Data
