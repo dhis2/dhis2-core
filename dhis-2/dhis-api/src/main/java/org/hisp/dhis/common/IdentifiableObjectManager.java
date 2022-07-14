@@ -38,6 +38,7 @@ import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
@@ -64,7 +65,19 @@ public interface IdentifiableObjectManager
 
     void delete( IdentifiableObject object, User user );
 
-    <T extends IdentifiableObject> T get( String uid );
+    /**
+     * Lookup objects of unknown type.
+     *
+     * If the type is known at compile time this method should not be used.
+     * Instead, use
+     * {@link org.hisp.dhis.common.IdentifiableObjectManager#get(Class, String)}.
+     *
+     * @param uid a UID of an object of unknown type
+     * @return The {@link IdentifiableObject} with the given UID or null if no
+     *         such object exists
+     */
+    @Transactional( readOnly = true )
+    IdentifiableObject find( String uid );
 
     <T extends IdentifiableObject> T get( Class<T> type, long id );
 
