@@ -45,8 +45,6 @@ public class EnrollmentActionRule
 {
     private final String ruleUid;
 
-    private final String enrollment;
-
     private final String data;
 
     private final String field;
