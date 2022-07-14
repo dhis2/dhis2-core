@@ -1165,7 +1165,7 @@ class AclServiceTest extends TransactionalIntegrationTest
         User userA = makeUser( "A" );
         manager.save( userA );
         dbmsManager.flushSession();
-        de = manager.get( de.getUid() );
+        de = manager.get( DataElement.class, de.getUid() );
         assertEquals( AccessStringHelper.DEFAULT, de.getPublicAccess() );
         assertEquals( null, de.getSharing().getOwner() );
         assertTrue( de.getSharing().getUsers().isEmpty() );

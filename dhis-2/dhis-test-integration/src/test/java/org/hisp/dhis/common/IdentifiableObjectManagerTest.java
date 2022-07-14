@@ -665,12 +665,12 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest
         sharing.setUserGroupAccess( Set.of( new UserGroupAccess( "rw------", userGroupA.getUid() ) ) );
         de.setSharing( sharing );
         idObjectManager.save( de, false );
-        de = idObjectManager.get( de.getUid() );
+        de = idObjectManager.get( DataElement.class, de.getUid() );
         assertEquals( 1, de.getSharing().getUserGroups().size() );
         idObjectManager.delete( userGroupA );
         idObjectManager.removeUserGroupFromSharing( userGroupUid );
         dbmsManager.clearSession();
-        de = idObjectManager.get( de.getUid() );
+        de = idObjectManager.get( DataElement.class, de.getUid() );
         assertEquals( 0, de.getSharing().getUserGroups().size() );
     }
 
