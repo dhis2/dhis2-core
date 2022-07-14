@@ -839,7 +839,7 @@ public class DefaultUserService
             .credentialsNonExpired( credentialsNonExpired )
             .authorities( user.getAuthorities() )
             .userSettings( new HashMap<>() )
-            .userGroupIds( currentUserService.getCurrentUserGroupsInfo( user ).getUserGroupUIDs() )
+            .userGroupIds( currentUserService.getCurrentUserGroupsInfo( user.getUid() ).getUserGroupUIDs() )
             .isSuper( user.isSuper() )
             .build();
     }

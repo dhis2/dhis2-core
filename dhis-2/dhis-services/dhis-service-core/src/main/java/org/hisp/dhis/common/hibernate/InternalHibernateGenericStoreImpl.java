@@ -181,35 +181,28 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
     @Override
     public List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, User user )
     {
-        return getDataSharingPredicates( builder, user, currentUserService.getCurrentUserGroupsInfo( user ),
-            AclService.LIKE_READ_DATA );
-    }
-
-    @Override
-    public final List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder )
-    {
-        CurrentUserGroupInfo currentUserGroupsInfo = currentUserService.getCurrentUserGroupsInfo();
-        return getSharingPredicates( builder, currentUserService.getCurrentUser(),
-            currentUserGroupsInfo, AclService.LIKE_READ_METADATA );
+        return user == null ? List.of()
+            : getDataSharingPredicates( builder, user, currentUserService.getCurrentUserGroupsInfo( user.getUid() ),
+                AclService.LIKE_READ_DATA );
     }
 
     @Override
     public List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, User user )
     {
-        CurrentUserGroupInfo currentUserGroupsInfo = currentUserService.getCurrentUserGroupsInfo( user );
-        return getSharingPredicates( builder, user, currentUserGroupsInfo,
-            AclService.LIKE_READ_METADATA );
+        return user == null ? List.of()
+            : getSharingPredicates( builder, user, currentUserService.getCurrentUserGroupsInfo( user.getUid() ),
+                AclService.LIKE_READ_METADATA );
     }
 
     @Override
     public List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, User user, String access )
     {
-        if ( !sharingEnabled( user ) || user == null )
+        if ( user == null || !sharingEnabled( user ) )
         {
-            return new ArrayList<>();
+            return List.of();
         }
 
-        Set<String> groupIds = user.getGroups().stream().map( g -> g.getUid() ).collect( Collectors.toSet() );
+        Set<String> groupIds = currentUserService.getCurrentUserGroupsInfo( user.getUid() ).getUserGroupUIDs();
 
         return getSharingPredicates( builder, user.getUid(), groupIds, access );
     }
@@ -301,7 +294,7 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
     {
         if ( user == null || groupInfo == null || !sharingEnabled( user ) )
         {
-            return new ArrayList<>( 0 );
+            return List.of();
         }
 
         return getSharingPredicates( builder, groupInfo.getUserUID(), groupInfo.getUserGroupUIDs(), access );

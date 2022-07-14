@@ -35,7 +35,6 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import org.hisp.dhis.common.GenericStore;
-import org.hisp.dhis.user.CurrentUserDetails;
 import org.hisp.dhis.user.CurrentUserGroupInfo;
 import org.hisp.dhis.user.User;
 
@@ -48,17 +47,6 @@ import org.hisp.dhis.user.User;
 public interface InternalHibernateGenericStore<T>
     extends GenericStore<T>
 {
-    /**
-     * Get List of JPA Query Predicates for checking
-     * AclService.LIKE_READ_METADATA sharing access of current
-     * {@link CurrentUserDetails}.
-     *
-     * @param builder {@link CriteriaBuilder} used for generating
-     *        {@link Predicate}
-     * @return List of {@link Predicate}
-     */
-    List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder );
-
     /**
      * Get List of JPA Query Predicates for checking
      * AclService.LIKE_READ_METADATA sharing access of current {@link User}.

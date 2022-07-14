@@ -47,8 +47,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * This class contains methods for generating predicates which are used for
- * validating sharing access permission. All methods should use
- * {@link CurrentUserDetails} instead of {@link org.hisp.dhis.user.User}
+ * validating sharing access permission.
  */
 public class SharingHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
     extends InternalHibernateGenericStoreImpl<T>
@@ -84,6 +83,12 @@ public class SharingHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
         }
 
         return getSharingPredicates( builder, user.getUid(), user.getUserGroupIds(), access );
+    }
+
+    @Override
+    public List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder )
+    {
+        return getSharingPredicates( builder, CurrentUserUtil.getCurrentUserDetails(), AclService.LIKE_READ_METADATA );
     }
 
     @Override
