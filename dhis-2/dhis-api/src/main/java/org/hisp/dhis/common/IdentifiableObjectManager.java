@@ -38,7 +38,6 @@ import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
@@ -76,7 +75,6 @@ public interface IdentifiableObjectManager
      * @return The {@link IdentifiableObject} with the given UID or null if no
      *         such object exists
      */
-    @Transactional( readOnly = true )
     IdentifiableObject find( String uid );
 
     <T extends IdentifiableObject> T get( Class<T> type, long id );
