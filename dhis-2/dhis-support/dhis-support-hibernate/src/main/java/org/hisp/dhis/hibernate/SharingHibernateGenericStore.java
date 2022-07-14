@@ -34,9 +34,7 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
-import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.user.CurrentUserDetails;
-import org.hisp.dhis.user.CurrentUserGroupInfo;
 import org.hisp.dhis.user.User;
 
 /**
@@ -45,12 +43,12 @@ import org.hisp.dhis.user.User;
  *
  * @author Lars Helge Overland
  */
-public interface InternalHibernateGenericStore<T>
-    extends GenericStore<T>
+public interface SharingHibernateGenericStore<T>
+    extends InternalHibernateGenericStore<T>
 {
     /**
      * Get List of JPA Query Predicates for checking
-     * AclService.LIKE_READ_METADATA sharing access of current
+     * AclService.LIKE_READ_METADATA sharing access of
      * {@link CurrentUserDetails}.
      *
      * @param builder {@link CriteriaBuilder} used for generating
@@ -61,17 +59,18 @@ public interface InternalHibernateGenericStore<T>
 
     /**
      * Get List of JPA Query Predicates for checking
-     * AclService.LIKE_READ_METADATA sharing access of current {@link User}.
+     * AclService.LIKE_READ_METADATA sharing access of current
+     * {@link CurrentUserDetails}.
      *
      * @param builder {@link CriteriaBuilder} used for generating
      *        {@link Predicate}
      * @return List of {@link Predicate}
      */
-    List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, User user );
+    List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, CurrentUserDetails user );
 
     /**
      * Get List of JPA Query Predicates for checking sharing access of current
-     * {@link User} based on given access String.
+     * {@link CurrentUserDetails} based on given access String.
      *
      * @param builder {@link CriteriaBuilder} used for generating
      *        {@link Predicate}.
@@ -79,12 +78,40 @@ public interface InternalHibernateGenericStore<T>
      * @param access access string for checking.
      * @return List of {@link Predicate}
      */
-    List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, User user, String access );
+    List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, CurrentUserDetails user,
+        String access );
 
-    List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, User user );
+    /**
+     * Get List of JPA Query Predicates for checking sharing access of current
+     * {@link CurrentUserDetails} based on given access String.
+     *
+     * @param builder {@link CriteriaBuilder} used for generating
+     *        {@link Predicate}
+     * @param access access string for checking.
+     * @return List of {@link Predicate}
+     */
+    List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, String access );
 
-    List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, User user,
-        CurrentUserGroupInfo groupInfo, String access );
+    /**
+     * Get List of JPA Query Predicates for checking AclService.LIKE_DATA_READ
+     * data sharing access of current {@link CurrentUserDetails}.
+     *
+     * @param builder {@link CriteriaBuilder} used for generating
+     *        {@link Predicate}
+     * @return List of {@link Predicate}
+     */
+    List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, CurrentUserDetails user );
 
-    List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, User user, String access );
+    /**
+     * Get List of JPA Query Predicates for checking data sharing access of
+     * current {@link CurrentUserDetails} based on given access String.
+     *
+     * @param builder {@link CriteriaBuilder} used for generating
+     *        {@link Predicate}.
+     * @param user {@link User} for checking.
+     * @param access access string for checking.
+     * @return List of {@link Predicate}
+     */
+    List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, CurrentUserDetails user,
+        String access );
 }

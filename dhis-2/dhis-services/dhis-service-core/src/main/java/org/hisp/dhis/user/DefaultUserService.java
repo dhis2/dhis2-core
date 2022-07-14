@@ -839,6 +839,8 @@ public class DefaultUserService
             .credentialsNonExpired( credentialsNonExpired )
             .authorities( user.getAuthorities() )
             .userSettings( new HashMap<>() )
+            .userGroupIds( currentUserService.getCurrentUserGroupsInfo( user ).getUserGroupUIDs() )
+            .isSuper( user.isSuper() )
             .build();
     }
 }
