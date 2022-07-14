@@ -245,19 +245,17 @@ public class DefaultIdentifiableObjectManager
 
     @Override
     @Transactional( readOnly = true )
-    @SuppressWarnings( "unchecked" )
-    public <T extends IdentifiableObject> T get( String uid )
+    public IdentifiableObject find( String uid )
     {
         for ( IdentifiableObjectStore<? extends IdentifiableObject> store : identifiableObjectStores )
         {
-            T object = (T) store.getByUid( uid );
+            IdentifiableObject object = store.getByUid( uid );
 
             if ( object != null )
             {
                 return object;
             }
         }
-
         return null;
     }
 
