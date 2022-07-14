@@ -82,7 +82,7 @@ import com.google.gson.internal.Primitives;
  * @author Lars Helge Overland
  */
 @Slf4j
-@Component
+@Component( "org.hisp.dhis.common.IdentifiableObjectManager" )
 public class DefaultIdentifiableObjectManager
     implements IdentifiableObjectManager
 {
