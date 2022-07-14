@@ -73,7 +73,7 @@ abstract class AbstractDataValueControllerTest
         dataElementId = addDataElement( "My data element", "DE1", ValueType.INTEGER, null );
 
         // Add the newly created org unit to the superuser's hierarchy
-        OrganisationUnit unit = manager.get( orgUnitId );
+        OrganisationUnit unit = manager.get( OrganisationUnit.class, orgUnitId );
         User user = userService.getUser( getSuperUser().getUid() );
         user.addOrganisationUnit( unit );
         userService.updateUser( user );
