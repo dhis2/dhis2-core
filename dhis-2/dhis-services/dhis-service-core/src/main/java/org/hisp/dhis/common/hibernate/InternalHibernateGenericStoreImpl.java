@@ -43,6 +43,8 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.adapter.BaseIdentifiableObject_;
+import org.hisp.dhis.common.adapter.Sharing_;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
@@ -105,18 +107,24 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
 
         predicates.add( root -> {
             Predicate disjunction = builder.or(
-                builder.like( builder.function( JsonbFunctions.EXTRACT_PATH_TEXT, String.class, root.get( "sharing" ),
-                    builder.literal( "public" ) ), access ),
-                builder.equal( builder.function( JsonbFunctions.EXTRACT_PATH_TEXT, String.class, root.get( "sharing" ),
-                    builder.literal( "public" ) ), "null" ),
-                builder.isNull( builder.function( JsonbFunctions.EXTRACT_PATH_TEXT, String.class, root.get( "sharing" ),
-                    builder.literal( "public" ) ) ),
-                builder.isNull( builder.function( JsonbFunctions.EXTRACT_PATH_TEXT, String.class, root.get( "sharing" ),
-                    builder.literal( "owner" ) ) ),
-                builder.equal( builder.function( JsonbFunctions.EXTRACT_PATH_TEXT, String.class, root.get( "sharing" ),
-                    builder.literal( "owner" ) ), "null" ),
-                builder.equal( builder.function( JsonbFunctions.EXTRACT_PATH_TEXT, String.class, root.get( "sharing" ),
-                    builder.literal( "owner" ) ), userUid ),
+                builder.like( builder.function( JsonbFunctions.EXTRACT_PATH_TEXT, String.class,
+                    root.get( BaseIdentifiableObject_.SHARING ),
+                    builder.literal( Sharing_.PUBLIC ) ), access ),
+                builder.equal( builder.function( JsonbFunctions.EXTRACT_PATH_TEXT, String.class,
+                    root.get( BaseIdentifiableObject_.SHARING ),
+                    builder.literal( Sharing_.PUBLIC ) ), "null" ),
+                builder.isNull( builder.function( JsonbFunctions.EXTRACT_PATH_TEXT, String.class,
+                    root.get( BaseIdentifiableObject_.SHARING ),
+                    builder.literal( Sharing_.PUBLIC ) ) ),
+                builder.isNull( builder.function( JsonbFunctions.EXTRACT_PATH_TEXT, String.class,
+                    root.get( BaseIdentifiableObject_.SHARING ),
+                    builder.literal( Sharing_.OWNER ) ) ),
+                builder.equal( builder.function( JsonbFunctions.EXTRACT_PATH_TEXT, String.class,
+                    root.get( BaseIdentifiableObject_.SHARING ),
+                    builder.literal( Sharing_.OWNER ) ), "null" ),
+                builder.equal( builder.function( JsonbFunctions.EXTRACT_PATH_TEXT, String.class,
+                    root.get( BaseIdentifiableObject_.SHARING ),
+                    builder.literal( Sharing_.OWNER ) ), userUid ),
                 userPredicate.apply( root ) );
 
             Predicate ugPredicateWithRoot = userGroupPredicate.apply( root );
@@ -157,12 +165,15 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
 
         predicates.add( root -> {
             Predicate disjunction = builder.or(
-                builder.like( builder.function( JsonbFunctions.EXTRACT_PATH_TEXT, String.class, root.get( "sharing" ),
-                    builder.literal( "public" ) ), access ),
-                builder.equal( builder.function( JsonbFunctions.EXTRACT_PATH_TEXT, String.class, root.get( "sharing" ),
-                    builder.literal( "public" ) ), "null" ),
-                builder.isNull( builder.function( JsonbFunctions.EXTRACT_PATH_TEXT, String.class, root.get( "sharing" ),
-                    builder.literal( "public" ) ) ),
+                builder.like( builder.function( JsonbFunctions.EXTRACT_PATH_TEXT, String.class,
+                    root.get( BaseIdentifiableObject_.SHARING ),
+                    builder.literal( Sharing_.PUBLIC ) ), access ),
+                builder.equal( builder.function( JsonbFunctions.EXTRACT_PATH_TEXT, String.class,
+                    root.get( BaseIdentifiableObject_.SHARING ),
+                    builder.literal( Sharing_.PUBLIC ) ), "null" ),
+                builder.isNull( builder.function( JsonbFunctions.EXTRACT_PATH_TEXT, String.class,
+                    root.get( BaseIdentifiableObject_.SHARING ),
+                    builder.literal( Sharing_.PUBLIC ) ) ),
                 userPredicate.apply( root ) );
 
             Predicate ugPredicateWithRoot = userGroupPredicate.apply( root );

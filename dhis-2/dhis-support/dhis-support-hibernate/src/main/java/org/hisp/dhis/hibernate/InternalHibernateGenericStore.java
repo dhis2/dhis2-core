@@ -69,10 +69,38 @@ public interface InternalHibernateGenericStore<T>
      */
     List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, User user, String access );
 
+    /**
+     * Get List of JPA Query Predicates for checking AclService.LIKE_READ_DATA
+     * sharing access of current {@link User}.
+     *
+     * @param builder {@link CriteriaBuilder} used for generating
+     *        {@link Predicate}.
+     * @param user {@link User} for checking.
+     * @return List of {@link Predicate}
+     */
     List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, User user );
 
+    /**
+     * Get List of JPA Query Predicates for checking data sharing access of
+     * current {@link User} based on given access String.
+     *
+     * @param builder {@link CriteriaBuilder} used for generating
+     *        {@link Predicate}.
+     * @param user {@link User} for checking.
+     * @param groupInfo {@link CurrentUserGroupInfo}
+     * @return List of {@link Predicate}
+     */
     List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, User user,
         CurrentUserGroupInfo groupInfo, String access );
 
+    /**
+     * Get List of JPA Query Predicates for checking data sharing access of
+     * current {@link User} based on given access String.
+     *
+     * @param builder {@link CriteriaBuilder} used for generating
+     *        {@link Predicate}.
+     * @param user {@link User} for checking.
+     * @return List of {@link Predicate}
+     */
     List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, User user, String access );
 }
