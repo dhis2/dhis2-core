@@ -31,6 +31,8 @@ import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.TRACKED_ENTITY_
 import static org.hisp.dhis.common.cache.CacheStrategy.RESPECT_SYSTEM_SETTING;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
 
+import java.util.List;
+
 import javax.servlet.http.HttpServletResponse;
 
 import lombok.RequiredArgsConstructor;
@@ -39,17 +41,26 @@ import org.hisp.dhis.analytics.common.CommonQueryRequest;
 import org.hisp.dhis.analytics.common.Processor;
 import org.hisp.dhis.analytics.common.QueryRequest;
 import org.hisp.dhis.analytics.common.Validator;
+import org.hisp.dhis.analytics.dimensions.AnalyticsDimensionsPagingWrapper;
+import org.hisp.dhis.analytics.event.TeiAnalyticsDimensionsService;
 import org.hisp.dhis.analytics.tei.TeiAnalyticsQueryService;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.analytics.tei.TeiQueryRequest;
 import org.hisp.dhis.analytics.tei.TeiRequestMapper;
 import org.hisp.dhis.common.AnalyticsPagingCriteria;
+import org.hisp.dhis.common.DimensionsCriteria;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.cache.CacheStrategy;
+import org.hisp.dhis.webapi.dimension.DimensionFilteringAndPagingService;
+import org.hisp.dhis.webapi.dimension.DimensionMapperService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * Controller class responsible exclusively for querying operations on top of
@@ -76,6 +87,12 @@ class TeiQueryController
     private final Validator<QueryRequest<TeiQueryRequest>> teiQueryRequestValidator;
 
     private final Validator<CommonQueryRequest> commonQueryRequestValidator;
+
+    private final DimensionFilteringAndPagingService dimensionFilteringAndPagingService;
+
+    private final DimensionMapperService dimensionMapperService;
+
+    private final TeiAnalyticsDimensionsService teiAnalyticsDimensionsService;
 
     private final TeiRequestMapper mapper;
 
@@ -106,6 +123,23 @@ class TeiQueryController
         final TeiQueryParams params = mapper.map( queryRequest );
 
         return teiAnalyticsQueryService.getTeiGrid( params );
+    }
+
+    @GetMapping( "/query/dimensions" )
+    public AnalyticsDimensionsPagingWrapper<ObjectNode> getQueryDimensions(
+        @RequestParam String trackedEntityType,
+        @RequestParam( defaultValue = "*" ) List<String> fields,
+        DimensionsCriteria dimensionsCriteria,
+        HttpServletResponse response )
+    {
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON,
+            CacheStrategy.RESPECT_SYSTEM_SETTING );
+        return dimensionFilteringAndPagingService
+            .pageAndFilter(
+                dimensionMapperService.toDimensionResponse(
+                    teiAnalyticsDimensionsService.getQueryDimensionsByTrackedEntityTypeId( trackedEntityType ) ),
+                dimensionsCriteria,
+                fields );
     }
 
 }
