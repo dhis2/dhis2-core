@@ -120,7 +120,6 @@ public class TrackedEntityDataValueAuditTest extends TrackerTest
             assertEquals( a.getProgramStageInstance().getUid(), psi.getUid() );
         } );
 
-
         assertEquals( 1, updatedAudit.size() );
         updatedAudit.forEach( a -> {
             assertEquals( a.getAuditType(), AuditType.UPDATE );
