@@ -888,7 +888,7 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
         assertEquals( Status.OK, report.getStatus() );
         ProgramStage programStage = programStageService.getProgramStage( "oORy3Rg9hLE" );
         assertEquals( 1, programStage.getSharing().getUserGroups().size() );
-        Program program = manager.get( "QIHW6CBdLsP" );
+        Program program = manager.get( Program.class, "QIHW6CBdLsP" );
         assertEquals( 1, program.getSharing().getUserGroups().size() );
     }
 
