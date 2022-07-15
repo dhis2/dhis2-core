@@ -68,7 +68,7 @@ public class HibernateOptionGroupStore
     }
 
     @Override
-    public List<OptionGroup> getOptionGroups( String optionId )
+    public List<OptionGroup> getOptionGroupsByOptionId( String optionId )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 

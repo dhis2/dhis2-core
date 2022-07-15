@@ -37,6 +37,7 @@ import java.util.Collection;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -60,6 +61,7 @@ class OptionGroupStoreTest extends SingleSetupIntegrationTestBase
 
     private OptionGroup optionGroupC;
 
+    @BeforeEach
     public void setUpTest()
     {
         optionGroupA = new OptionGroup( "OptionGroupA" );
@@ -111,7 +113,7 @@ class OptionGroupStoreTest extends SingleSetupIntegrationTestBase
     }
 
     @Test
-    void testGetByOption()
+    void testGetByOptionId()
     {
         OptionSet optionSet = createOptionSet( 'A' );
         optionSet.setValueType( ValueType.TEXT );
@@ -125,7 +127,7 @@ class OptionGroupStoreTest extends SingleSetupIntegrationTestBase
         optionGroupA.addOption( option );
         store.save( optionGroupA );
 
-        assertNotNull( store.getOptionGroups( option.getUid() ) );
+        assertNotNull( store.getOptionGroupsByOptionId( option.getUid() ) );
     }
 
     @Test
@@ -143,7 +145,7 @@ class OptionGroupStoreTest extends SingleSetupIntegrationTestBase
         store.save( optionGroupA );
 
         optionStore.delete( option );
-
+        optionGroupA = store.get( optionGroupA.getId() );
         assertTrue( optionGroupA.getMembers().isEmpty() );
     }
 }
