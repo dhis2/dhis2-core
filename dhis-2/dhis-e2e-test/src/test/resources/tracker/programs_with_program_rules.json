@@ -1055,6 +1055,37 @@
       "userAccesses": []
     },
     {
+      "lastUpdated": "2021-01-18T13:36:20.994",
+      "href": "http://localhost:8080/api/programRules/lqESh9rF4XX",
+      "id": "lqESh9rF4XX",
+      "created": "2021-01-18T13:36:20.994",
+      "name": "TA tracker program rule - show error ",
+      "displayName": "TA tracker program rule - show error",
+      "externalAccess": false,
+      "sharing": {
+        "external": false,
+        "users": {},
+        "userGroups": {}
+      },
+      "condition": "V{event_date} < V{current_date}",
+      "program": {
+        "id": "U5HE4IRrZ7S"
+      },
+      "programStage": {
+        "id": "nH8zfPSUSN1"
+      },
+      "favorites": [],
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "programRuleActions": [
+        {
+          "id": "E4p8zQsczXX"
+        }
+      ],
+      "userAccesses": []
+    },
+    {
       "id": "Xh9idCUkyaE",
       "created": "2020-12-08T09:10:20.341",
       "name": "TA event program rule - showerror",
@@ -1201,6 +1232,25 @@
       "evaluationTime": "ALWAYS",
       "programRule": {
         "id": "lqESh9rF4LC"
+      },
+      "dataElement": {
+        "id": "inc5BJvr4W5"
+      },
+      "favorites": [],
+      "evaluationEnvironments": [
+        "WEB",
+        "ANDROID"
+      ]
+    },
+    {
+      "id": "E4p8zQsczXX",
+      "content": "event date is earlier than today ",
+      "externalAccess": false,
+      "displayContent": "event date is earlier than today",
+      "programRuleActionType": "SHOWERROR",
+      "evaluationTime": "ALWAYS",
+      "programRule": {
+        "id": "lqESh9rF4XX"
       },
       "dataElement": {
         "id": "inc5BJvr4W5"
