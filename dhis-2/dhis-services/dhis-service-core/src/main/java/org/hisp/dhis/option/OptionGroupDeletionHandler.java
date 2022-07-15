@@ -51,7 +51,7 @@ public class OptionGroupDeletionHandler extends DeletionHandler
 
     private void deleteOption( Option option )
     {
-        List<OptionGroup> optionGroup = optionGroupStore.getOptionGroups( option.getUid() );
+        List<OptionGroup> optionGroup = optionGroupStore.getOptionGroupsByOptionId( option.getUid() );
 
         if ( CollectionUtils.isEmpty( optionGroup ) )
         {
