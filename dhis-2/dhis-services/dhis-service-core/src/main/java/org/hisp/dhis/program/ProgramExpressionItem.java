@@ -138,6 +138,6 @@ public abstract class ProgramExpressionItem
             }
         }
 
-        return COALESCE + column + ",'')";
+        return COALESCE + column + "::text,'')";
     }
 }
