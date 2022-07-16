@@ -108,47 +108,28 @@ public class CurrentUserService
     @Transactional( readOnly = true )
     public CurrentUserGroupInfo getCurrentUserGroupsInfo()
     {
-        return getCurrentUserGroupsInfo( getCurrentUser() );
+        CurrentUserDetails user = CurrentUserUtil.getCurrentUserDetails();
+
+        return user == null ? null : getCurrentUserGroupsInfo( user.getUid() );
     }
 
     @Transactional( readOnly = true )
-    public CurrentUserGroupInfo getCurrentUserGroupsInfo( User user )
+    public CurrentUserGroupInfo getCurrentUserGroupsInfo( String userUID )
     {
-        if ( user == null )
-        {
-            return null;
-        }
-
         return currentUserGroupInfoCache
-            .get( user.getUsername(), this::getCurrentUserGroupsInfo );
+            .get( userUID, key -> userStore.getCurrentUserGroupInfo( key ) );
     }
 
     @Transactional( readOnly = true )
-    public void invalidateUserGroupCache( String username )
+    public void invalidateUserGroupCache( String userUID )
     {
         try
         {
-            currentUserGroupInfoCache.invalidate( username );
+            currentUserGroupInfoCache.invalidate( userUID );
         }
         catch ( NullPointerException exception )
         {
             // Ignore if key doesn't exist
         }
-    }
-
-    private CurrentUserGroupInfo getCurrentUserGroupsInfo( String username )
-    {
-        if ( username == null )
-        {
-            return null;
-        }
-
-        User currentUser = getCurrentUser();
-        if ( currentUser == null )
-        {
-            log.warn( "User is null, this should only happen at startup!" );
-            return null;
-        }
-        return userStore.getCurrentUserGroupInfo( currentUser );
     }
 }

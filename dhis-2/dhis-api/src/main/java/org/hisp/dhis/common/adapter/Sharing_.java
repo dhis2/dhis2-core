@@ -25,43 +25,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.user.hibernate;
+package org.hisp.dhis.common.adapter;
 
-import org.hibernate.SessionFactory;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.UserGroupStore;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
-
-@Repository( "org.hisp.dhis.user.UserGroupStore" )
-public class HibernateUserGroupStore extends HibernateIdentifiableObjectStore<UserGroup>
-    implements UserGroupStore
+/**
+ * This class defines metadata model property's names of
+ * {@link org.hisp.dhis.user.sharing.Sharing}
+ */
+public class Sharing_
 {
-    public HibernateUserGroupStore( SessionFactory sessionFactory,
-        JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher,
-        CurrentUserService currentUserService,
-        AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, UserGroup.class, currentUserService, aclService, true );
-    }
+    public static final String PUBLIC = "public";
 
-    @Override
-    public void save( UserGroup object, boolean clearSharing )
-    {
-        super.save( object, clearSharing );
-        object.getMembers().forEach( member -> currentUserService.invalidateUserGroupCache( member.getUid() ) );
-    }
+    public static final String OWNER = "owner";
 
-    @Override
-    public void update( UserGroup object, User user )
-    {
-        super.update( object, user );
-        object.getMembers().forEach( member -> currentUserService.invalidateUserGroupCache( member.getUid() ) );
-    }
+    public static final String EXTERNAL = "external";
+
+    public static final String USERS = "users";
+
+    public static final String USER_GROUPS = "userGroups";
 }
