@@ -51,7 +51,6 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.jfree.data.time.Year;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -632,7 +631,6 @@ class QueryServiceTest extends SingleSetupIntegrationTestBase
     }
 
     @Test
-    @Disabled
     void testDisjunctionWithinQuery()
     {
         Query query = Query.from( schemaService.getDynamicSchema( DataElementGroup.class ), Junction.Type.AND );
