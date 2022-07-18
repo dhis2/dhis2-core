@@ -306,10 +306,10 @@ public class ProgramIndicatorServiceVariableTest
         assertEquals( "0", getSqlEnrollment( "V{value_count}" ) );
 
         assertEquals(
-            "coalesce(\"TEAttribute\",'') + nullif(cast((case when \"TEAttribute\" is not null then 1 else 0 end) as double),0)",
+            "coalesce(\"TEAttribute\"::text,'') + nullif(cast((case when \"TEAttribute\" is not null then 1 else 0 end) as double),0)",
             getSql( "A{TEAttribute} + V{value_count}" ) );
         assertEquals(
-            "coalesce(\"TEAttribute\",'') + nullif(cast((case when \"TEAttribute\" is not null then 1 else 0 end) as double),0)",
+            "coalesce(\"TEAttribute\"::text,'') + nullif(cast((case when \"TEAttribute\" is not null then 1 else 0 end) as double),0)",
             getSqlEnrollment( "A{TEAttribute} + V{value_count}" ) );
     }
 
@@ -320,10 +320,10 @@ public class ProgramIndicatorServiceVariableTest
         assertEquals( "0", getSqlEnrollment( "V{zero_pos_value_count}" ) );
 
         assertEquals(
-            "coalesce(\"TEAttribute\",'') + nullif(cast((case when \"TEAttribute\" >= 0 then 1 else 0 end) as double),0)",
+            "coalesce(\"TEAttribute\"::text,'') + nullif(cast((case when \"TEAttribute\" >= 0 then 1 else 0 end) as double),0)",
             getSql( "A{TEAttribute} + V{zero_pos_value_count}" ) );
         assertEquals(
-            "coalesce(\"TEAttribute\",'') + nullif(cast((case when \"TEAttribute\" >= 0 then 1 else 0 end) as double),0)",
+            "coalesce(\"TEAttribute\"::text,'') + nullif(cast((case when \"TEAttribute\" >= 0 then 1 else 0 end) as double),0)",
             getSqlEnrollment( "A{TEAttribute} + V{zero_pos_value_count}" ) );
     }
 }
