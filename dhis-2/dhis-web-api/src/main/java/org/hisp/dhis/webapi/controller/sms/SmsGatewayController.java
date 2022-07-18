@@ -97,7 +97,6 @@ public class SmsGatewayController
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
     @GetMapping( produces = APPLICATION_JSON_VALUE )
     public ResponseEntity<JsonRoot> getGateways( @RequestParam( defaultValue = "*" ) List<String> fields )
-        throws IOException
     {
         SmsConfiguration smsConfiguration = smsConfigurationManager.getSmsConfiguration();
         FieldFilterParams<?> params = FieldFilterParams.of( smsConfiguration.getGateways(), fields );
