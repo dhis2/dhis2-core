@@ -32,6 +32,7 @@ import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -43,8 +44,8 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.legend.LegendSet;
-import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionVeto;
+import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
 import org.springframework.stereotype.Component;
 
 /**
@@ -52,7 +53,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
-public class IndicatorDeletionHandler extends DeletionHandler
+public class IndicatorDeletionHandler extends JdbcDeletionHandler
 {
     private final IndicatorService indicatorService;
 
@@ -117,21 +118,10 @@ public class IndicatorDeletionHandler extends DeletionHandler
 
     private DeletionVeto allowDeleteDataElement( DataElement dataElement )
     {
-        for ( Indicator indicator : indicatorService.getAllIndicators() )
-        {
-            if ( getElementIds( indicator.getNumerator() ).contains( dataElement.getUid() ) ||
-                getElementIds( indicator.getDenominator() ).contains( dataElement.getUid() ) )
-            {
-                return new DeletionVeto( Indicator.class, indicator.getName() );
-            }
-        }
-
-        return ACCEPT;
-    }
-
-    private Set<String> getElementIds( String expression )
-    {
-        return expressionService.getExpressionDataElementIds( expression, INDICATOR_EXPRESSION );
+        String indicatorName = firstMatch(
+            "select i.name from indicator i where i.numerator LIKE '%:uid%' or i.denominator LIKE '%:uid%'",
+            Map.of( "uid", dataElement.getUid() ) );
+        return indicatorName == null ? ACCEPT : new DeletionVeto( Indicator.class, indicatorName );
     }
 
     private DeletionVeto allowDeleteCategoryCombo( CategoryCombo categoryCombo )
