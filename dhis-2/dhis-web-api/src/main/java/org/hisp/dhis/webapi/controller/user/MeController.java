@@ -301,6 +301,32 @@ public class MeController
         return ResponseEntity.ok().cacheControl( noStore() ).body( value );
     }
 
+    @PutMapping( value = "/enable2FA", consumes = { "text/*", "application/*" } )
+    @ResponseStatus( HttpStatus.ACCEPTED )
+    public void enable2FA( @RequestBody Map<String, String> body,
+        @CurrentUser( required = true ) User currentUser )
+        throws WebMessageException
+    {
+        String code = body.get( "code" );
+        if ( code == null )
+        {
+            throw new WebMessageException( conflict( "Code is required" ) );
+        }
+        if ( !ValidationUtils.validateTwoFactorCode( code ) )
+        {
+            throw new WebMessageException( conflict( "Invalid code format" ) );
+        }
+    }
+
+    @PutMapping( value = "/disable2FA", consumes = { "text/*", "application/*" } )
+    @ResponseStatus( HttpStatus.ACCEPTED )
+    public void disable2FA( @RequestBody Map<String, String> body,
+        @CurrentUser( required = true ) User currentUser )
+    {
+
+    }
+
+
     @PutMapping( value = "/changePassword", consumes = { "text/*", "application/*" } )
     @ResponseStatus( HttpStatus.ACCEPTED )
     public void changePassword( @RequestBody Map<String, String> body,

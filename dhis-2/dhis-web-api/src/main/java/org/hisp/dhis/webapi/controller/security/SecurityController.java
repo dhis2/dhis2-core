@@ -42,7 +42,7 @@ import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.hisp.dhis.security.SecurityUtils;
+import org.hisp.dhis.security.twoFactorAuthenticationUtils;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUser;
@@ -81,7 +81,7 @@ public class SecurityController
 
         String appName = systemSettingManager.getStringSetting( SettingKey.APPLICATION_TITLE );
 
-        String url = SecurityUtils.generateQrUrl( appName, currentUser );
+        String url = twoFactorAuthenticationUtils.generateQrUrl( appName, currentUser );
 
         Map<String, Object> map = new HashMap<>();
         map.put( "url", url );
@@ -100,7 +100,7 @@ public class SecurityController
             throw new BadCredentialsException( "No current user" );
         }
 
-        if ( !SecurityUtils.verify( currentUser, code ) )
+        if ( !twoFactorAuthenticationUtils.verify( currentUser, code ) )
         {
             return unauthorized( "2FA code not authenticated" );
         }
