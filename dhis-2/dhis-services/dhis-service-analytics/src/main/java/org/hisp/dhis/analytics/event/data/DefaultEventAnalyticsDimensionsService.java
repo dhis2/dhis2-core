@@ -29,6 +29,8 @@ package org.hisp.dhis.analytics.event.data;
 
 import static org.hisp.dhis.analytics.event.data.DimensionsServiceCommon.OperationType.AGGREGATE;
 import static org.hisp.dhis.analytics.event.data.DimensionsServiceCommon.OperationType.QUERY;
+import static org.hisp.dhis.analytics.event.data.DimensionsServiceCommon.collectDimensions;
+import static org.hisp.dhis.analytics.event.data.DimensionsServiceCommon.filterByValueType;
 import static org.hisp.dhis.common.DataDimensionType.ATTRIBUTE;
 
 import java.util.Collection;

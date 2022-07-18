@@ -52,15 +52,15 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.ValueType;
 
-public interface DimensionsServiceCommon
+public class DimensionsServiceCommon
 {
 
-    Collection<ValueType> QUERY_DISALLOWED_VALUE_TYPES = Set.of(
+    public static final Collection<ValueType> QUERY_DISALLOWED_VALUE_TYPES = Set.of(
         IMAGE,
         FILE_RESOURCE,
         TRACKER_ASSOCIATE );
 
-    Collection<ValueType> AGGREGATE_ALLOWED_VALUE_TYPES = Set.of(
+    public static final Collection<ValueType> AGGREGATE_ALLOWED_VALUE_TYPES = Set.of(
         NUMBER,
         UNIT_INTERVAL,
         PERCENTAGE,
@@ -71,7 +71,7 @@ public interface DimensionsServiceCommon
         BOOLEAN,
         TRUE_ONLY );
 
-    Map<OperationType, Predicate<ValueType>> OPERATION_FILTER = Map.of(
+    private final static Map<OperationType, Predicate<ValueType>> OPERATION_FILTER = Map.of(
         OperationType.QUERY, not( QUERY_DISALLOWED_VALUE_TYPES::contains ),
         OperationType.AGGREGATE, AGGREGATE_ALLOWED_VALUE_TYPES::contains );
 
@@ -81,7 +81,7 @@ public interface DimensionsServiceCommon
         AGGREGATE
     }
 
-    default List<BaseIdentifiableObject> collectDimensions(
+    public static List<BaseIdentifiableObject> collectDimensions(
         Collection<Collection<? extends BaseIdentifiableObject>> dimensionCollections )
     {
         return dimensionCollections.stream()
@@ -89,7 +89,7 @@ public interface DimensionsServiceCommon
             .collect( Collectors.toList() );
     }
 
-    default <T extends BaseIdentifiableObject> Collection<T> filterByValueType(
+    public static <T extends BaseIdentifiableObject> Collection<T> filterByValueType(
         DimensionsServiceCommon.OperationType operationType,
         Collection<T> elements, Function<T, ValueType> valueTypeProvider )
     {

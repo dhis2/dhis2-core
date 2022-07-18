@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static org.hisp.dhis.analytics.event.data.DimensionsServiceCommon.OperationType.QUERY;
+import static org.hisp.dhis.analytics.event.data.DimensionsServiceCommon.filterByValueType;
 
 import java.util.Collection;
 import java.util.Collections;
