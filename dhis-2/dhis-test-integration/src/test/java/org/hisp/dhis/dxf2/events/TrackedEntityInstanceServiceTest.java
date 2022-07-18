@@ -80,7 +80,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.joda.time.DateTime;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -247,7 +246,6 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    @Disabled
     void testUpdatePerson()
     {
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstanceService
@@ -369,7 +367,6 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest
      * FIXME luciano: this is ignored because there is a bug in tracker, so that
      * new events that fail to validate are reported as success.
      */
-    @Disabled
     @Test
     void testUpdateTeiByCompletingExistingEnrollmentAndUpdateExistingEventsInSameEnrollment()
     {
@@ -487,7 +484,6 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    @Disabled
     void testSavePerson()
     {
         TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
