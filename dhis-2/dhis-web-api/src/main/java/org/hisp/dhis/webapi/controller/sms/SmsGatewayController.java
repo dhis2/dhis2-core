@@ -102,7 +102,7 @@ public class SmsGatewayController
         SmsConfiguration smsConfiguration = smsConfigurationManager.getSmsConfiguration();
         FieldFilterParams<?> params = FieldFilterParams.of( smsConfiguration.getGateways(), fields );
 
-        return ResponseEntity.ok( JsonRoot.of( "periodTypes", fieldFilterService.toObjectNodes( params ) ) );
+        return ResponseEntity.ok( JsonRoot.of( "gateways", fieldFilterService.toObjectNodes( params ) ) );
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
