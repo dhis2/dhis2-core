@@ -31,10 +31,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.sms.config.views.SmsConfigurationViews;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.JsonView;
 import com.google.common.collect.Lists;
 
 @JsonTypeName( "http" )
@@ -43,16 +41,16 @@ public class GenericHttpGatewayConfig
 {
     private static final long serialVersionUID = 6340853488475760213L;
 
-    @JsonView( SmsConfigurationViews.Public.class )
+    @JsonProperty
     private String configurationTemplate;
 
-    @JsonView( SmsConfigurationViews.Public.class )
+    @JsonProperty
     private boolean useGet;
 
-    @JsonView( SmsConfigurationViews.Public.class )
+    @JsonProperty
     private ContentType contentType = ContentType.FORM_URL_ENCODED;
 
-    @JsonView( SmsConfigurationViews.Public.class )
+    @JsonProperty
     private List<GenericGatewayParameter> parameters = Lists.newArrayList();
 
     public List<GenericGatewayParameter> getParameters()

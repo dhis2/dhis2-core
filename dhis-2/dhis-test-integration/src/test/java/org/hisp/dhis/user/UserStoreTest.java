@@ -169,7 +169,7 @@ class UserStoreTest extends SingleSetupIntegrationTestBase
         userGroupService.addUserGroup( userGroupB );
         userA.getGroups().add( userGroupA );
         userA.getGroups().add( userGroupB );
-        CurrentUserGroupInfo currentUserGroupInfo = userStore.getCurrentUserGroupInfo( userA );
+        CurrentUserGroupInfo currentUserGroupInfo = userStore.getCurrentUserGroupInfo( userA.getUid() );
         assertNotNull( currentUserGroupInfo );
         assertEquals( 2, currentUserGroupInfo.getUserGroupUIDs().size() );
         assertEquals( userA.getUid(), currentUserGroupInfo.getUserUID() );
@@ -180,7 +180,7 @@ class UserStoreTest extends SingleSetupIntegrationTestBase
     {
         User userA = makeUser( "A" );
         userStore.save( userA );
-        CurrentUserGroupInfo currentUserGroupInfo = userStore.getCurrentUserGroupInfo( userA );
+        CurrentUserGroupInfo currentUserGroupInfo = userStore.getCurrentUserGroupInfo( userA.getUid() );
         assertNotNull( currentUserGroupInfo );
         assertEquals( 0, currentUserGroupInfo.getUserGroupUIDs().size() );
         assertEquals( userA.getUid(), currentUserGroupInfo.getUserUID() );

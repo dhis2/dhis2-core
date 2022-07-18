@@ -25,43 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.user.hibernate;
+package org.hisp.dhis.cacheinvalidation;
 
-import org.hibernate.SessionFactory;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.UserGroupStore;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@Repository( "org.hisp.dhis.user.UserGroupStore" )
-public class HibernateUserGroupStore extends HibernateIdentifiableObjectStore<UserGroup>
-    implements UserGroupStore
+import org.junit.jupiter.api.Test;
+
+import io.debezium.connector.postgresql.PostgresConnector;
+
+/**
+ * Test to make sure that the Debezium Postgres connector is available. It is
+ * needed for PostgreSQL cache invalidation in a DHIS2 cluster configuration.
+ *
+ * @author Jim Grace
+ */
+class DebeziumPostgresConnectorTest
 {
-    public HibernateUserGroupStore( SessionFactory sessionFactory,
-        JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher,
-        CurrentUserService currentUserService,
-        AclService aclService )
+    @Test
+    void testDebeziumPostgresConnectorPresent()
     {
-        super( sessionFactory, jdbcTemplate, publisher, UserGroup.class, currentUserService, aclService, true );
-    }
-
-    @Override
-    public void save( UserGroup object, boolean clearSharing )
-    {
-        super.save( object, clearSharing );
-        object.getMembers().forEach( member -> currentUserService.invalidateUserGroupCache( member.getUid() ) );
-    }
-
-    @Override
-    public void update( UserGroup object, User user )
-    {
-        super.update( object, user );
-        object.getMembers().forEach( member -> currentUserService.invalidateUserGroupCache( member.getUid() ) );
+        assertEquals( "PostgresConnector", PostgresConnector.class.getSimpleName() );
     }
 }

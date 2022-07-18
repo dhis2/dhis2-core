@@ -45,8 +45,6 @@ public class EventActionRule
 {
     private final String ruleUid;
 
-    private final String event;
-
     private final String data;
 
     private final String field;

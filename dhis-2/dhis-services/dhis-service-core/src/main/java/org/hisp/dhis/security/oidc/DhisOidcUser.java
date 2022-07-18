@@ -29,6 +29,7 @@ package org.hisp.dhis.security.oidc;
 
 import java.io.Serializable;
 import java.util.Map;
+import java.util.Set;
 
 import org.hisp.dhis.user.CurrentUserDetails;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -116,10 +117,21 @@ public class DhisOidcUser
     }
 
     @Override
+    public boolean isSuper()
+    {
+        return user.isSuper();
+    }
+
+    @Override
     public String getUid()
     {
         return user.getUid();
+    }
 
+    @Override
+    public Set<String> getUserGroupIds()
+    {
+        return user.getUserGroupIds();
     }
 
     @Override
