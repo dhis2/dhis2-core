@@ -25,29 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.cacheinvalidation;
 
-import java.io.Serializable;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import io.debezium.connector.postgresql.PostgresConnector;
 
-@Getter
-@AllArgsConstructor
-public class Reference implements Serializable
+/**
+ * Test to make sure that the Debezium Postgres connector is available. It is
+ * needed for PostgreSQL cache invalidation in a DHIS2 cluster configuration.
+ *
+ * @author Jim Grace
+ */
+class DebeziumPostgresConnectorTest
 {
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "uuid", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "uuid", namespace = DxfNamespaces.DXF_2_0 )
-    private String uuid;
-
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "node", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "node", namespace = DxfNamespaces.DXF_2_0 )
-    private transient JsonNode node;
+    @Test
+    void testDebeziumPostgresConnectorPresent()
+    {
+        assertEquals( "PostgresConnector", PostgresConnector.class.getSimpleName() );
+    }
 }

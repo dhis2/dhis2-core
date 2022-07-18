@@ -39,6 +39,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.config.ConfigProviderConfiguration;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.jsontree.JsonResponse;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -188,7 +189,7 @@ public abstract class DhisControllerConvenienceTest extends DhisMockMvcControlle
     protected void switchToUserWithOrgUnitDataView( String userName, String orgUnitId )
     {
         User user = makeUser( userName, Collections.singletonList( "ALL" ) );
-        user.getDataViewOrganisationUnits().add( manager.get( orgUnitId ) );
+        user.getDataViewOrganisationUnits().add( manager.get( OrganisationUnit.class, orgUnitId ) );
         userService.addUser( user );
         switchContextToUser( user );
     }

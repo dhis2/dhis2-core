@@ -25,29 +25,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.common.adapter;
 
-import java.io.Serializable;
-
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-
-@Getter
-@AllArgsConstructor
-public class Reference implements Serializable
+/**
+ * This class defines metadata model property's names of
+ * {@link org.hisp.dhis.user.sharing.Sharing}
+ */
+public class Sharing_
 {
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "uuid", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "uuid", namespace = DxfNamespaces.DXF_2_0 )
-    private String uuid;
+    public static final String PUBLIC = "public";
 
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "node", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "node", namespace = DxfNamespaces.DXF_2_0 )
-    private transient JsonNode node;
+    public static final String OWNER = "owner";
+
+    public static final String EXTERNAL = "external";
+
+    public static final String USERS = "users";
+
+    public static final String USER_GROUPS = "userGroups";
 }
