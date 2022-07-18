@@ -1,0 +1,4 @@
+# Create /usr/local/tomcat/conf/Catalina/localhost in the Jib Docker build
+# to allow us running tomcat as non-root. See
+# https://github.com/docker-library/tomcat/issues/209
+# https://github.com/docker-library/tomcat/issues/128
