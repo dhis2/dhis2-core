@@ -50,7 +50,6 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -185,7 +184,6 @@ class CompleteDataSetRegistrationBatchHandlerTest extends IntegrationTestBase
     }
 
     @Test
-    @Disabled( "ERROR: cannot execute UPDATE in a read-only transaction" )
     void testUpdateObject()
     {
         registrationService.saveCompleteDataSetRegistration( regA );
