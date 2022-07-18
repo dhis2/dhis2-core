@@ -59,7 +59,6 @@ import org.hisp.dhis.user.UserService;
 import org.joda.time.DateTime;
 import org.joda.time.Days;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -226,7 +225,6 @@ class FileResourceCleanUpJobTest extends IntegrationTestBase
         userService.updateUser( userB );
     }
 
-    @Disabled
     @Test
     void testFalsePositive()
     {
@@ -247,7 +245,6 @@ class FileResourceCleanUpJobTest extends IntegrationTestBase
         assertTrue( fileResourceService.getFileResource( uid ).isAssigned() );
     }
 
-    @Disabled
     @Test
     void testFailedUpload()
     {
