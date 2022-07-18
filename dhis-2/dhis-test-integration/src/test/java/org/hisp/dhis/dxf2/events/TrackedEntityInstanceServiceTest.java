@@ -80,6 +80,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.joda.time.DateTime;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -484,6 +485,7 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
+    @Disabled
     void testSavePerson()
     {
         TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
