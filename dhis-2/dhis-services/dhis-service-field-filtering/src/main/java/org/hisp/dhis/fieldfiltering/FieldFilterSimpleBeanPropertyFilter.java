@@ -184,8 +184,7 @@ class PathContext
     private final Object currentValue;
 
     /**
-     * true if special type we do not support field filtering on. If this is
-     * true, always fully expand the property.
+     * true if special type we do not support field filtering on.
      */
     private final boolean alwaysExpand;
 }
