@@ -87,7 +87,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -287,7 +286,6 @@ class EventImportTest extends TransactionalIntegrationTest
      * import an event linked to a Program with 2 or more Program Instances
      */
     @Test
-    @Disabled
     void testAddEventOnProgramWithoutRegistrationAndExistingProgramInstance()
         throws IOException
     {

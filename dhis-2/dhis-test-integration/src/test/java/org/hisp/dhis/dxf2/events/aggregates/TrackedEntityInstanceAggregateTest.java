@@ -74,7 +74,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -222,7 +221,6 @@ class TrackedEntityInstanceAggregateTest extends TrackerTest
     }
 
     @Test
-    @Disabled( "12098 This test is not working" )
     void testFetchTrackedEntityInstancesWithEventFilters()
     {
         injectSecurityContext( superUser );
