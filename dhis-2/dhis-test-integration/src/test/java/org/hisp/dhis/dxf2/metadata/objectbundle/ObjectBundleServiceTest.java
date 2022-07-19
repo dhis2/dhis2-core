@@ -77,6 +77,7 @@ import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.validation.ValidationRule;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -1047,6 +1048,7 @@ class ObjectBundleServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
+    @Disabled
     void testCreateAndUpdateMetadata3()
         throws IOException
     {

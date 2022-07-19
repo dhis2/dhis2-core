@@ -59,6 +59,7 @@ import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -177,6 +178,7 @@ class RegistrationSingleEventServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
+    @Disabled( "luciano -> re-enable after delete has been implemented" )
     void testDeleteEventShouldReturnReference()
     {
         Enrollment enrollment = createEnrollment( programA.getUid(),
@@ -209,6 +211,7 @@ class RegistrationSingleEventServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
+    @Disabled
     void testSavingMultipleEventsShouldOnlyUpdate()
     {
         Enrollment enrollment = createEnrollment( programA.getUid(),
