@@ -30,7 +30,6 @@ package org.hisp.dhis.predictor;
 import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 import lombok.AllArgsConstructor;
@@ -95,17 +94,9 @@ public class PredictorDeletionHandler extends JdbcDeletionHandler
 
     private DeletionVeto allowDeleteDataElement( DataElement dataElement )
     {
-        List<Predictor> predictors = predictorService.getAllPredictors();
-
-        for ( Predictor predictor : predictors )
-        {
-            if ( dataElement.typedEquals( predictor.getOutput() ) )
-            {
-                return new DeletionVeto( Predictor.class, predictor.getName() );
-            }
-        }
-
-        return ACCEPT;
+        String predictorName = firstMatch( "select p.name from predictor p where p.generatoroutput = :dataElementId",
+            Map.of( "dataElementId", dataElement.getId() ) );
+        return predictorName == null ? ACCEPT : new DeletionVeto( Predictor.class, predictorName );
     }
 
     private DeletionVeto allowDeleteCategoryOptionCombo( CategoryOptionCombo optionCombo )
