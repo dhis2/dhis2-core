@@ -29,11 +29,11 @@ package org.hisp.dhis.analytics.event;
 
 import java.util.List;
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.PrefixedDimension;
 
 public interface EventAnalyticsDimensionsService
 {
-    List<BaseIdentifiableObject> getQueryDimensionsByProgramStageId( String programStageId );
+    List<PrefixedDimension> getQueryDimensionsByProgramStageId( String programStageId );
 
-    List<BaseIdentifiableObject> getAggregateDimensionsByProgramStageId( String programStageId );
+    List<PrefixedDimension> getAggregateDimensionsByProgramStageId( String programStageId );
 }

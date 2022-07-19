@@ -57,7 +57,7 @@ class ProgramStageDataElementMapperTest
             ImmutableList.of( this::setDataElement, this::setProgramStage ),
             ImmutableList.of(
                 Pair.of( DimensionResponse::getValueType, VALUE_TYPE ),
-                Pair.of( DimensionResponse::getId, PROGRAM_STAGE_UID + "." + DATA_ELEMENT_UID ) ) );
+                Pair.of( DimensionResponse::getId, DATA_ELEMENT_UID ) ) );
     }
 
     private void setDataElement( ProgramStageDataElement programStageDataElement )

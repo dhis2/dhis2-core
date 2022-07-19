@@ -37,6 +37,7 @@ import javax.validation.constraints.NotNull;
 
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
@@ -50,13 +51,18 @@ import org.hisp.dhis.common.DimensionsCriteria;
 import org.hisp.dhis.common.EventDataQueryRequest;
 import org.hisp.dhis.common.EventsAnalyticsQueryCriteria;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.common.RequestTypeAware;
 import org.hisp.dhis.common.cache.CacheStrategy;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.grid.GridUtils;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.webapi.dimension.DimensionFilteringAndPagingService;
 import org.hisp.dhis.webapi.dimension.DimensionMapperService;
+import org.hisp.dhis.webapi.dimension.PrefixStrategy;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -225,7 +231,7 @@ public class EventAnalyticsController
             .pageAndFilter(
                 dimensionMapperService.toDimensionResponse(
                     eventAnalyticsDimensionsService.getAggregateDimensionsByProgramStageId( programStageId ),
-                    programStageId ),
+                    EventPrefixStrategy.of( programStageId ) ),
                 dimensionsCriteria,
                 fields );
     }
@@ -393,7 +399,7 @@ public class EventAnalyticsController
             .pageAndFilter(
                 dimensionMapperService.toDimensionResponse(
                     eventAnalyticsDimensionsService.getQueryDimensionsByProgramStageId( programStageId ),
-                    programStageId ),
+                    EventPrefixStrategy.of( programStageId ) ),
                 dimensionsCriteria,
                 fields );
     }
@@ -444,4 +450,21 @@ public class EventAnalyticsController
             CacheStrategy.RESPECT_SYSTEM_SETTING );
     }
 
+    @RequiredArgsConstructor( staticName = "of" )
+    private static class EventPrefixStrategy implements PrefixStrategy
+    {
+        private final String programStageUid;
+
+        @Override
+        public String apply( PrefixedDimension pDimension )
+        {
+            if ( pDimension.getItem() instanceof DataElement ||
+                pDimension.getItem() instanceof TrackedEntityAttribute ||
+                pDimension.getItem() instanceof ProgramStageDataElement )
+            {
+                return programStageUid;
+            }
+            return "";
+        }
+    }
 }

@@ -230,7 +230,8 @@ public class EnrollmentAnalyticsController
         return dimensionFilteringAndPagingService
             .pageAndFilter(
                 dimensionMapperService.toDimensionResponse(
-                    enrollmentAnalyticsDimensionsService.getQueryDimensionsByProgramStageId( programId ) ),
+                    enrollmentAnalyticsDimensionsService.getQueryDimensionsByProgramStageId( programId ),
+                    pDimension -> "" ),
                 dimensionsCriteria,
                 fields );
     }
@@ -248,7 +249,8 @@ public class EnrollmentAnalyticsController
         return dimensionFilteringAndPagingService
             .pageAndFilter(
                 dimensionMapperService.toDimensionResponse(
-                    enrollmentAnalyticsDimensionsService.getAggregateDimensionsByProgramStageId( programId ) ),
+                    enrollmentAnalyticsDimensionsService.getAggregateDimensionsByProgramStageId( programId ),
+                    pDimension -> "" ),
                 dimensionsCriteria,
                 fields );
     }

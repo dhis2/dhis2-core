@@ -38,10 +38,12 @@ import static org.mockito.Mockito.when;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.analytics.event.EventAnalyticsDimensionsService;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -77,7 +79,9 @@ class EventAnalyticsDimensionsServiceTest
     void testQueryDoesntContainDisallowedValueTypes()
     {
         Collection<BaseIdentifiableObject> analyticsDimensions = eventAnalyticsDimensionsService
-            .getQueryDimensionsByProgramStageId( "anUid" );
+            .getQueryDimensionsByProgramStageId( "anUid" ).stream()
+            .map( PrefixedDimension::getItem )
+            .collect( Collectors.toList() );
 
         assertTrue(
             analyticsDimensions
@@ -99,7 +103,10 @@ class EventAnalyticsDimensionsServiceTest
     void testAggregateOnlyContainsAllowedValueTypes()
     {
         Collection<BaseIdentifiableObject> analyticsDimensions = eventAnalyticsDimensionsService
-            .getAggregateDimensionsByProgramStageId( "anUid" );
+            .getAggregateDimensionsByProgramStageId( "anUid" ).stream()
+            .map( PrefixedDimension::getItem )
+            .collect( Collectors.toList() );
+        ;
 
         assertTrue(
             analyticsDimensions

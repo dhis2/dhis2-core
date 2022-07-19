@@ -29,9 +29,9 @@ package org.hisp.dhis.analytics.event;
 
 import java.util.List;
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.PrefixedDimension;
 
 public interface TeiAnalyticsDimensionsService
 {
-    List<BaseIdentifiableObject> getQueryDimensionsByTrackedEntityTypeId( String trackedEntityTypeId );
+    List<PrefixedDimension> getQueryDimensionsByTrackedEntityTypeId( String trackedEntityTypeId );
 }

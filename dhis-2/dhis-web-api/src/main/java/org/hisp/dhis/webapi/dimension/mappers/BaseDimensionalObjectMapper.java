@@ -35,6 +35,7 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.webapi.dimension.BaseDimensionMapper;
 import org.hisp.dhis.webapi.dimension.DimensionResponse;
 import org.springframework.stereotype.Service;
@@ -49,9 +50,10 @@ public class BaseDimensionalObjectMapper extends BaseDimensionMapper
         Category.class );
 
     @Override
-    public DimensionResponse map( BaseIdentifiableObject dimension, String prefix )
+    public DimensionResponse map( PrefixedDimension prefixedDimension, String prefix )
     {
-        return super.map( dimension, prefix )
-            .withDimensionType( ((BaseDimensionalObject) dimension).getDimensionType().name() );
+        String dimensionType = ((BaseDimensionalObject) prefixedDimension.getItem()).getDimensionType().name();
+        return super.map( prefixedDimension, prefix )
+            .withDimensionType( dimensionTypeOrElse( prefixedDimension, dimensionType ) );
     }
 }

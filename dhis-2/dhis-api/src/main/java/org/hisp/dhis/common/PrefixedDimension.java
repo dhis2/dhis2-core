@@ -25,39 +25,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.dimension;
+package org.hisp.dhis.common;
 
-import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
-
-import java.util.Collection;
+import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import lombok.RequiredArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.With;
 
-import org.hisp.dhis.common.PrefixedDimension;
-import org.springframework.stereotype.Service;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 
-@Service
-@RequiredArgsConstructor
-public class DimensionMapperService
+@With
+@Builder
+public class PrefixedDimension
 {
-    private final Collection<DimensionMapper> mappers;
+    public static final String PREFIX_DELIMITER = ".";
 
-    public Collection<DimensionResponse> toDimensionResponse( Collection<PrefixedDimension> dimensions,
-        PrefixStrategy prefixStrategy )
-    {
-        return dimensions.stream()
-            .map( pDimension -> toDimensionResponse( pDimension, prefixStrategy.apply( pDimension ) ) )
-            .collect( Collectors.toList() );
-    }
+    private final Program program;
 
-    private DimensionResponse toDimensionResponse( PrefixedDimension dimension, String prefix )
+    private final ProgramStage programStage;
+
+    @Getter
+    private final BaseIdentifiableObject item;
+
+    @Getter
+    private final String dimensionType;
+
+    public String getPrefix()
     {
-        return mappers.stream()
-            .filter( dimensionMapper -> dimensionMapper.supports( dimension.getItem() ) )
-            .findFirst()
-            .map( dimensionMapper -> dimensionMapper.map( dimension, prefix ) )
-            .orElseThrow( () -> new IllegalArgumentException(
-                "Unsupported dimension type: " + getRealClass( dimension ) ) );
+        return Stream.of( program, programStage )
+            .filter( Objects::nonNull )
+            .map( BaseIdentifiableObject::getUid )
+            .collect( Collectors.joining( PREFIX_DELIMITER ) );
     }
 }

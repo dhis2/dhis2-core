@@ -25,61 +25,61 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.event.data;
+package org.hisp.dhis.common;
 
 import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import lombok.Builder;
-import lombok.Data;
-
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
-@Builder
-@Data
-public class PrefixedBaseIdentifiableObject
+public class PrefixedDimensions
 {
-    private final String prefix;
-
-    private final BaseIdentifiableObject baseIdentifiableObject;
-
-    public static PrefixedBaseIdentifiableObject fromProgramIndicator( ProgramIndicator programIndicator )
+    public static Collection<PrefixedDimension> ofProgramIndicators( Set<ProgramIndicator> programIndicators )
     {
-        return builder()
-            .baseIdentifiableObject( programIndicator )
-            .prefix( programIndicator.getProgram().getUid() )
-            .build();
+        return programIndicators.stream()
+            .map( programIndicator -> PrefixedDimension.builder()
+                .item( programIndicator )
+                .program( programIndicator.getProgram() )
+                .build() )
+            .collect( Collectors.toList() );
     }
 
-    public static Set<PrefixedBaseIdentifiableObject> fromProgramStageDataElement(
-        Set<ProgramStageDataElement> programStageDataElements )
+    public static Collection<PrefixedDimension> ofDataElements( ProgramStage programStage )
+    {
+        return programStage.getDataElements().stream()
+            .map( dataElement -> PrefixedDimension.builder()
+                .item( dataElement )
+                .programStage( programStage )
+                .program( programStage.getProgram() )
+                .build() )
+            .collect( Collectors.toList() );
+    }
+
+    public static Collection<PrefixedDimension> ofItemsWithProgram( Program program,
+        Collection<? extends BaseIdentifiableObject> objects )
+    {
+        return objects.stream()
+            .map( item -> PrefixedDimension.builder()
+                .item( item )
+                .program( program )
+                .build() )
+            .collect( Collectors.toList() );
+    }
+
+    public static Collection<PrefixedDimension> ofProgramStageDataElements(
+        Collection<ProgramStageDataElement> programStageDataElements )
     {
         return programStageDataElements.stream()
-            .map( psde -> builder()
-                .baseIdentifiableObject( psde )
-                .prefix( psde.getProgramStage().getProgram().getUid() + "." + psde.getUid() )
+            .map( programStageDataElement -> PrefixedDimension.builder()
+                .programStage( programStageDataElement.getProgramStage() )
+                .program( programStageDataElement.getProgramStage().getProgram() )
+                .item( programStageDataElement )
                 .build() )
-            .collect( Collectors.toSet() );
-    }
-
-    public static PrefixedBaseIdentifiableObject fromTrackedEntityAttribute( Program program,
-        TrackedEntityAttribute trackedEntityAttribute )
-    {
-        return builder()
-            .baseIdentifiableObject( trackedEntityAttribute )
-            .prefix( program.getUid() )
-            .build();
-    }
-
-    public static Collection<PrefixedBaseIdentifiableObject> fromTrackedEntityAttributes( Program program )
-    {
-        return program.getTrackedEntityAttributes().stream()
-            .map( trackedEntityAttribute -> fromTrackedEntityAttribute( program, trackedEntityAttribute ) )
             .collect( Collectors.toList() );
+
     }
 }

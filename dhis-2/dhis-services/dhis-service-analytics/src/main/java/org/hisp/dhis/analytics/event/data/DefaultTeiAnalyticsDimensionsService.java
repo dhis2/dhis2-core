@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.event.data;
 
 import static org.hisp.dhis.analytics.event.data.DimensionsServiceCommon.OperationType.QUERY;
 import static org.hisp.dhis.analytics.event.data.DimensionsServiceCommon.filterByValueType;
+import static org.hisp.dhis.common.PrefixedDimensions.ofItemsWithProgram;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -45,6 +46,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsDimensionsService;
 import org.hisp.dhis.analytics.event.TeiAnalyticsDimensionsService;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -66,7 +68,7 @@ class DefaultTeiAnalyticsDimensionsService implements TeiAnalyticsDimensionsServ
     private final ProgramService programService;
 
     @Override
-    public List<BaseIdentifiableObject> getQueryDimensionsByTrackedEntityTypeId( String trackedEntityTypeId )
+    public List<PrefixedDimension> getQueryDimensionsByTrackedEntityTypeId( String trackedEntityTypeId )
     {
 
         TrackedEntityType trackedEntityType = trackedEntityTypeService.getTrackedEntityType( trackedEntityTypeId );
@@ -75,19 +77,23 @@ class DefaultTeiAnalyticsDimensionsService implements TeiAnalyticsDimensionsServ
         {
 
             // dimensions by programs defined on given TET
-            Stream<BaseIdentifiableObject> dimensions = programService.getAllPrograms().stream()
+            List<PrefixedDimension> dimensions = programService.getAllPrograms().stream()
                 .filter( program -> isDefinedOnTrackedEntityType( program, trackedEntityTypeId ) )
                 .map( program -> enrollmentAnalyticsDimensionsService
                     .getQueryDimensionsByProgramStageId( program.getUid() ) )
-                .flatMap( Collection::stream );
+                .flatMap( Collection::stream ).collect( Collectors.toList() );
 
-            return Stream.concat( dimensions,
-                filterByValueType( QUERY,
-                    trackedEntityType.getTrackedEntityAttributes()
-                        .stream()
-                        .filter( this::isNotConfidential )
-                        .collect( Collectors.toList() ),
-                    TrackedEntityAttribute::getValueType ).stream() )
+            List<PrefixedDimension> trackedEntityAttributes = filterByValueType( QUERY,
+                /* Tracked Entity Attribute by type */
+                ofItemsWithProgram( null, trackedEntityType.getTrackedEntityAttributes() )
+                    .stream()
+                    .filter( this::isNotConfidential )
+                    .collect( Collectors.toList() ) ).stream()
+                        .map( prefixedDimension -> prefixedDimension
+                            .withDimensionType( "TRACKED_ENTITY_ATTRIBUTE" ) )
+                        .collect( Collectors.toList() );
+
+            return Stream.concat( dimensions.stream(), trackedEntityAttributes.stream() )
                 .collect( Collectors.toList() );
         }
         return Collections.emptyList();
@@ -102,9 +108,9 @@ class DefaultTeiAnalyticsDimensionsService implements TeiAnalyticsDimensionsServ
             .isPresent();
     }
 
-    private boolean isNotConfidential( TrackedEntityAttribute trackedEntityAttribute )
+    private boolean isNotConfidential( PrefixedDimension prefixedDimension )
     {
-        return !trackedEntityAttribute.isConfidentialBool();
+        return !((TrackedEntityAttribute) prefixedDimension.getItem()).isConfidentialBool();
     }
 
 }

@@ -50,6 +50,7 @@ import org.hisp.dhis.analytics.tei.TeiRequestMapper;
 import org.hisp.dhis.common.AnalyticsPagingCriteria;
 import org.hisp.dhis.common.DimensionsCriteria;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.webapi.dimension.DimensionFilteringAndPagingService;
 import org.hisp.dhis.webapi.dimension.DimensionMapperService;
@@ -137,7 +138,8 @@ class TeiQueryController
         return dimensionFilteringAndPagingService
             .pageAndFilter(
                 dimensionMapperService.toDimensionResponse(
-                    teiAnalyticsDimensionsService.getQueryDimensionsByTrackedEntityTypeId( trackedEntityType ) ),
+                    teiAnalyticsDimensionsService.getQueryDimensionsByTrackedEntityTypeId( trackedEntityType ),
+                    PrefixedDimension::getPrefix ),
                 dimensionsCriteria,
                 fields );
     }
