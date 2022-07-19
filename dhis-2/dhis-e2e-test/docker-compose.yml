@@ -3,9 +3,9 @@ services:
   redis:
     image: redis:5.0.5-alpine
     volumes:
-    - ./config/redis/redis.conf:/usr/local/etc/redis.conf
+      - ./config/redis/redis.conf:/usr/local/etc/redis.conf
     ports:
-       - "6379"
+      - "6379"
 
   db:
     restart: always
@@ -19,12 +19,11 @@ services:
   web:
     image: "${IMAGE_NAME}"
     volumes:
-    - ./config/dhis2_home/dhis.conf:/DHIS2_home/dhis.conf
+      - ./config/dhis2_home/dhis.conf:/opt/dhis2/dhis.conf:ro
     environment:
       - WAIT_FOR_DB_CONTAINER=db:5432 -t 0
-      - DHIS2_HOME=/DHIS2_home
     depends_on:
-    - db
-    - redis
+      - db
+      - redis
     ports:
-    - "8080"
+      - "8080"

@@ -20,9 +20,16 @@
                 <groupId>com.google.cloud.tools</groupId>
                 <artifactId>jib-maven-plugin</artifactId>
                 <version>${jib.version}</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.google.cloud.tools</groupId>
+                        <artifactId>jib-ownership-extension-maven</artifactId>
+                        <version>0.1.0</version>
+                    </dependency>
+                </dependencies>
                 <configuration>
                     <container>
-                        <!--                        <user>${jib.user}</user>-->
+                        <user>${jib.user}</user>
                         <appRoot>${jib.app-root}</appRoot>
                     </container>
                     <from>
@@ -43,6 +50,25 @@
                     <to>
                         <image>${jib.to-image}:${jib.to-image-tag}</image>
                     </to>
+                    <pluginExtensions>
+                        <pluginExtension>
+                            <implementation>com.google.cloud.tools.jib.maven.extension.ownership.JibOwnershipExtension</implementation>
+                            <configuration implementation="com.google.cloud.tools.jib.maven.extension.ownership.Configuration">
+                                <!-- Jib will create /opt/dhis2 owned by root by default.
+                                DHIS2_HOME needs to be writeable by the process running Tomcat -->
+                                <rules>
+                                    <rule>
+                                        <glob>/opt/dhis2</glob>
+                                        <ownership>${jib.user}</ownership>
+                                    </rule>
+                                    <rule>
+                                        <glob>/opt/dhis2/**</glob>
+                                        <ownership>${jib.user}</ownership>
+                                    </rule>
+                                </rules>
+                            </configuration>
+                        </pluginExtension>
+                    </pluginExtensions>
                 </configuration>
             </plugin>
         </plugins>
@@ -87,7 +113,8 @@
         <jib.from-image>tomcat:9.0-jdk11-openjdk-slim</jib.from-image>
         <jib.to-image>dhis2/core-dev</jib.to-image>
         <jib.to-image-tag>jib-${project.version}</jib.to-image-tag>
-        <jib.user>nobody</jib.user>
+        <!-- uid=65534(nobody) present in tomcat image -->
+        <jib.user>65534</jib.user>
         <jib.app-root>/usr/local/tomcat/webapps/ROOT</jib.app-root>
     </properties>
 </project>

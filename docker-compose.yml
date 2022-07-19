@@ -9,7 +9,7 @@ services:
       JAVA_TOOL_OPTIONS: "-Dcontext.path=''"
     volumes:
       - ./config/server.xml:/usr/local/tomcat/conf/server.xml:ro
-      - ./dhis2_home:/opt/dhis2:rw
+      - ./config/dhis.conf:/opt/dhis2/dhis.conf:ro
 
   db:
     image: postgis/postgis:10-2.5-alpine
