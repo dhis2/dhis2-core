@@ -245,7 +245,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
             "from analytics_event_Program000A " +
             "where analytics_event_Program000A.pi = ax.pi " +
             "and \"DataElmentA\" is not null and \"DataElmentA\" is not null " +
-            "and executiondate < cast( '2021-01-01' as date ) " +
+            "and  psistatus != 'SCHEDULE' and executiondate < cast( '2021-01-01' as date ) " +
             "and ps = 'ProgrmStagA')" ) );
     }
 
@@ -262,7 +262,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
             "from analytics_event_Program000A " +
             "where analytics_event_Program000A.pi = ax.pi " +
             "and \"DataElmentA\" is not null and \"DataElmentA\" is not null " +
-            "and executiondate >= cast( '2020-01-01' as date ) " +
+            "and  psistatus != 'SCHEDULE' and executiondate >= cast( '2020-01-01' as date ) " +
             "and ps = 'ProgrmStagA')" ) );
     }
 
@@ -278,8 +278,9 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
         assertThat( sql, is( "(select count(\"DataElmentA\") " +
             "from analytics_event_Program000A " +
             "where analytics_event_Program000A.pi = ax.pi " +
-            "and \"DataElmentA\" is not null and \"DataElmentA\" is not null " +
-            "and executiondate < cast( '2021-01-01' as date ) and executiondate >= cast( '2020-01-01' as date ) " +
+            "and \"DataElmentA\" is not null and \"DataElmentA\" is not null and  psistatus != 'SCHEDULE' " +
+            "and executiondate < cast( '2021-01-01' as date ) and  psistatus != 'SCHEDULE' and executiondate >= cast( '2020-01-01' as date ) "
+            +
             "and ps = 'ProgrmStagA')" ) );
     }
 
@@ -487,8 +488,9 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
         String sql = test( "d2:yearsBetween(V{enrollment_date}, PS_EVENTDATE:ProgrmStagA) < 1" );
         assertThat( sql, is( "(date_part('year',age(cast((select executiondate from analytics_event_Program000A " +
             "where analytics_event_Program000A.pi = ax.pi and executiondate is not null " +
-            "and executiondate < cast( '2021-01-01' as date ) and executiondate >= cast( '2020-01-01' as date ) " +
-            "and ps = 'ProgrmStagA' " +
+            "and  psistatus != 'SCHEDULE' and executiondate < cast( '2021-01-01' as date ) " +
+            "and  psistatus != 'SCHEDULE' " +
+            "and executiondate >= cast( '2020-01-01' as date ) and ps = 'ProgrmStagA' " +
             "order by executiondate desc limit 1 ) as date), cast(enrollmentdate as date)))) < 1" ) );
     }
 
