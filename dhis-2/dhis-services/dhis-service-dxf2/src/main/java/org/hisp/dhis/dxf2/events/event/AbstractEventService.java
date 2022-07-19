@@ -861,6 +861,7 @@ public abstract class AbstractEventService implements EventService
                 return new ImportSummary( ImportStatus.ERROR, errors.toString() ).incrementIgnored();
             }
 
+            programStageInstance.setAutoFields();
             programStageInstanceService.deleteProgramStageInstance( programStageInstance );
 
             if ( programStageInstance.getProgramStage().getProgram().isRegistration() )
