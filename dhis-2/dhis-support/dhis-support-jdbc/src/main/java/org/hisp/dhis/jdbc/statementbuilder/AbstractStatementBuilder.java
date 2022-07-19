@@ -466,6 +466,11 @@ public abstract class AbstractStatementBuilder
     private String getBoundaryColumn( final AnalyticsPeriodBoundary boundary, final ProgramIndicator programIndicator,
         final String timeField, final Date reportingStartDate, final Date reportingEndDate )
     {
+        if ( boundary == null )
+        {
+            return DB_EVENT_DATE;
+        }
+
         return boundary.isEventDateBoundary()
             ? Optional.ofNullable( timeField ).orElse( DB_EVENT_DATE )
             : boundary.isEnrollmentDateBoundary() ? DB_ENROLLMENT_DATE
