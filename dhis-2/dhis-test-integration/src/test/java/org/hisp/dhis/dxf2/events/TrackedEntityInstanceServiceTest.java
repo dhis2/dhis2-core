@@ -216,7 +216,6 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest
             null, organisationUnitA );
         programInstanceService.enrollTrackedEntityInstance( dateConflictsMaleA, programA,
             DateTime.now().plusMonths( 1 ).toDate(), DateTime.now().plusMonths( 2 ).toDate(), organisationUnitA );
-        manager.flush();
     }
 
     @Test
@@ -487,13 +486,12 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest
     void testSavePerson()
     {
         TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
-        // person.setName( "NAME" );
+        trackedEntityInstance.setTrackedEntityInstance( CodeGenerator.generateUid() );
         trackedEntityInstance.setOrgUnit( organisationUnitA.getUid() );
+        trackedEntityInstance.setTrackedEntityType( trackedEntityType.getUid() );
         ImportSummary importSummary = trackedEntityInstanceService.addTrackedEntityInstance( trackedEntityInstance,
             null );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
-        // assertEquals( "NAME", personService.getTrackedEntityInstance(
-        // importSummary.getReference() ).getName() );
     }
 
     @Test

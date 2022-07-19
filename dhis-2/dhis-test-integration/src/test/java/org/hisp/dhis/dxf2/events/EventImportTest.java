@@ -166,12 +166,6 @@ class EventImportTest extends TransactionalIntegrationTest
     private static final SimpleDateFormat simpleDateFormat = new SimpleDateFormat( DateUtils.ISO8601_NO_TZ_PATTERN );
 
     @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
-    @Override
     protected void setUpTest()
         throws Exception
     {
@@ -267,8 +261,6 @@ class EventImportTest extends TransactionalIntegrationTest
         manager.save( pi );
         event = createEvent( "eventUid001" );
         createUserAndInjectSecurityContext( true );
-        // Flush all data to disk
-        manager.flush();
     }
 
     @Test

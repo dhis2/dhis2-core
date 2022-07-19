@@ -110,12 +110,6 @@ class RegistrationSingleEventServiceTest extends TransactionalIntegrationTest
     private ProgramStage programStageA;
 
     @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
-    @Override
     protected void setUpTest()
         throws Exception
     {
@@ -157,7 +151,6 @@ class RegistrationSingleEventServiceTest extends TransactionalIntegrationTest
         manager.update( programStageA );
         manager.update( programA );
         createUserAndInjectSecurityContext( true );
-        manager.flush();
     }
 
     @Test
