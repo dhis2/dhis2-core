@@ -75,14 +75,6 @@ class DefaultTeiAnalyticsDimensionsService implements TeiAnalyticsDimensionsServ
 
         if ( Objects.nonNull( trackedEntityType ) )
         {
-
-            // dimensions by programs defined on given TET
-            List<PrefixedDimension> dimensions = programService.getAllPrograms().stream()
-                .filter( program -> isDefinedOnTrackedEntityType( program, trackedEntityTypeId ) )
-                .map( program -> enrollmentAnalyticsDimensionsService
-                    .getQueryDimensionsByProgramStageId( program.getUid() ) )
-                .flatMap( Collection::stream ).collect( Collectors.toList() );
-
             List<PrefixedDimension> trackedEntityAttributes = filterByValueType( QUERY,
                 /* Tracked Entity Attribute by type */
                 ofItemsWithProgram( null, trackedEntityType.getTrackedEntityAttributes() )
@@ -92,6 +84,20 @@ class DefaultTeiAnalyticsDimensionsService implements TeiAnalyticsDimensionsServ
                         .map( prefixedDimension -> prefixedDimension
                             .withDimensionType( "TRACKED_ENTITY_ATTRIBUTE" ) )
                         .collect( Collectors.toList() );
+
+            List<String> teaUids = trackedEntityAttributes.stream()
+                .map( PrefixedDimension::getItem )
+                .map( BaseIdentifiableObject::getUid )
+                .collect( Collectors.toList() );
+
+            // dimensions by programs defined on given TET
+            List<PrefixedDimension> dimensions = programService.getAllPrograms().stream()
+                .filter( program -> isDefinedOnTrackedEntityType( program, trackedEntityTypeId ) )
+                .map( program -> enrollmentAnalyticsDimensionsService
+                    .getQueryDimensionsByProgramStageId( program.getUid() ) )
+                .flatMap( Collection::stream )
+                .filter( prefixedDimension -> !teaUids.contains( prefixedDimension.getItem().getUid() ) )
+                .collect( Collectors.toList() );
 
             return Stream.concat( dimensions.stream(), trackedEntityAttributes.stream() )
                 .collect( Collectors.toList() );
