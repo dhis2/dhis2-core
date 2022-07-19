@@ -536,9 +536,11 @@ class ProgramIndicatorServiceTest extends TransactionalIntegrationTest
         Date dateFrom = getDate( 2019, 1, 1 );
         Date dateTo = getDate( 2019, 12, 31 );
         // Generated subquery, since indicatorF is type Enrollment
-        String expected = "coalesce((select \"DataElmentA\" from analytics_event_Program000B where analytics_event_Program000B.pi = axx1.pi and \"DataElmentA\" is not null and executiondate < cast( '"
+        String expected = "coalesce((select \"DataElmentA\" from analytics_event_Program000B where analytics_event_Program000B.pi = axx1.pi "
+            + "and \"DataElmentA\" is not null and  psistatus != 'SCHEDULE' and executiondate < cast( '"
             + "2020-01-11" + "' as date ) and ps = 'ProgrmStagA' order by executiondate desc limit 1 )::numeric,0) - "
-            + "coalesce((select \"DataElmentC\" from analytics_event_Program000B where analytics_event_Program000B.pi = axx1.pi and \"DataElmentC\" is not null and executiondate < cast( '"
+            + "coalesce((select \"DataElmentC\" from analytics_event_Program000B where analytics_event_Program000B.pi = axx1.pi "
+            + "and \"DataElmentC\" is not null and  psistatus != 'SCHEDULE' and executiondate < cast( '"
             + "2020-01-11" + "' as date ) and ps = 'ProgrmStagB' order by executiondate desc limit 1 )::numeric,0)";
         String expression = "#{ProgrmStagA.DataElmentA} - #{ProgrmStagB.DataElmentC}";
         assertEquals( expected,
