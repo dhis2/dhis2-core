@@ -27,6 +27,12 @@
  */
 package org.hisp.dhis.jdbc.statementbuilder;
 
+import static org.apache.commons.lang3.StringUtils.SPACE;
+import static org.hisp.dhis.program.AnalyticsPeriodBoundary.DB_ENROLLMENT_DATE;
+import static org.hisp.dhis.program.AnalyticsPeriodBoundary.DB_EVENT_DATE;
+import static org.hisp.dhis.program.AnalyticsPeriodBoundary.DB_INCIDENT_DATE;
+import static org.hisp.dhis.program.AnalyticsPeriodBoundary.DB_SCHEDULED_DATE;
+
 import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Date;
@@ -369,7 +375,11 @@ public abstract class AbstractStatementBuilder
                 getBoundaryCondition( programIndicator.getStartEventBoundary(), programIndicator, null,
                     reportingStartDate, reportingEndDate )
                 + " ") : "")
-            + programStageCondition + "order by executiondate " + createOrderTypeAndOffset( stageOffset )
+            + programStageCondition + "order by "
+            + keepOrderCompatibilityColumn(
+                getBoundaryColumn( programIndicator.getEndEventBoundary(), programIndicator, null,
+                    reportingStartDate, reportingEndDate ) )
+            + SPACE + createOrderTypeAndOffset( stageOffset )
             + " limit 1 )";
     }
 
@@ -430,18 +440,62 @@ public abstract class AbstractStatementBuilder
     public String getBoundaryCondition( AnalyticsPeriodBoundary boundary, ProgramIndicator programIndicator,
         String timeField, Date reportingStartDate, Date reportingEndDate )
     {
-        String column = boundary.isEventDateBoundary()
-            ? Optional.ofNullable( timeField ).orElse( AnalyticsPeriodBoundary.DB_EVENT_DATE )
-            : boundary.isEnrollmentDateBoundary() ? AnalyticsPeriodBoundary.DB_ENROLLMENT_DATE
-                : boundary.isIncidentDateBoundary() ? AnalyticsPeriodBoundary.DB_INCIDENT_DATE
-                    : boundary.isScheduledDateBoundary() ? AnalyticsPeriodBoundary.DB_SCHEDULED_DATE
-                        : this.getBoundaryElementColumnSql( boundary, reportingStartDate, reportingEndDate,
-                            programIndicator );
+        final String column = getBoundaryColumn( boundary, programIndicator, timeField, reportingStartDate,
+            reportingEndDate );
 
         final SimpleDateFormat format = new SimpleDateFormat();
         format.applyPattern( Period.DEFAULT_DATE_FORMAT );
+
         return column + " " + (boundary.getAnalyticsPeriodBoundaryType().isEndBoundary() ? "<" : ">=") +
             " cast( '" + format.format( boundary.getBoundaryDate( reportingStartDate, reportingEndDate ) )
             + "' as date )";
+    }
+
+    /**
+     * Based on the given arguments, this method returns the column associated
+     * to the boundary object. This column should be used as part of the
+     * boundary SQL statement.
+     *
+     * @param boundary
+     * @param programIndicator
+     * @param timeField
+     * @param reportingStartDate
+     * @param reportingEndDate
+     * @return the respective boundary column
+     */
+    private String getBoundaryColumn( final AnalyticsPeriodBoundary boundary, final ProgramIndicator programIndicator,
+        final String timeField, final Date reportingStartDate, final Date reportingEndDate )
+    {
+        return boundary.isEventDateBoundary()
+            ? Optional.ofNullable( timeField ).orElse( DB_EVENT_DATE )
+            : boundary.isEnrollmentDateBoundary() ? DB_ENROLLMENT_DATE
+                : boundary.isIncidentDateBoundary() ? DB_INCIDENT_DATE
+                    : boundary.isScheduledDateBoundary() ? DB_SCHEDULED_DATE
+                        : this.getBoundaryElementColumnSql( boundary, reportingStartDate, reportingEndDate,
+                            programIndicator );
+    }
+
+    /**
+     * This method is needed to keep the logic/code backward compatible.
+     * Previously, we didn't consider statuses, as we always based on the
+     * "executiondate" only (it means ACTIVE and COMPLETED status).
+     *
+     * Now, we also need to support SCHEDULE status for events. For this reason
+     * this method compares the status. If the column is "duedate", it means we
+     * only want SCHEDULE status, so we return "duedate". In all other cases we
+     * assume any other status different from SCHEDULE (which makes it backward
+     * compatible). In this case the logic will remain based on "executiondate".
+     *
+     * @param column
+     * @return the backwards compatible column
+     */
+    private String keepOrderCompatibilityColumn( final String column )
+    {
+        if ( !DB_SCHEDULED_DATE.equals( column ) )
+        {
+            return DB_EVENT_DATE;
+        }
+
+        return DB_SCHEDULED_DATE;
     }
 }
