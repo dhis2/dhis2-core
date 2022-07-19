@@ -115,8 +115,11 @@ public class FieldPathHelper
 
         Property property = fieldPath.getProperty();
 
+        System.err.println( "1: " + property.getName() );
+
         if ( isComplex( property ) )
         {
+            System.err.println( "1: IS COMPLEX" );
             expandComplex( fieldPathMap, paths, schema );
         }
         else if ( isReference( property ) )
@@ -146,8 +149,11 @@ public class FieldPathHelper
             return;
         }
 
+        System.err.println( "2: " + property.getName() );
+
         if ( isComplex( property ) )
         {
+            System.err.println( "2: IS COMPLEX" );
             expandComplex( fieldPathMap, paths, schema );
         }
         else if ( isReference( property ) )
