@@ -149,12 +149,6 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest
     private TrackedEntityType trackedEntityType;
 
     @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
-    @Override
     protected void setUpTest()
         throws Exception
     {

@@ -76,12 +76,6 @@ class ObjectBundleServiceUserTest extends TransactionalIntegrationTest
     private UserService _userService;
 
     @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
-    @Override
     protected void setUpTest()
         throws Exception
     {

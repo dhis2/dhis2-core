@@ -637,10 +637,4 @@ class CriteriaQueryEngineTest extends TransactionalIntegrationTest
         assertEquals( 0, queryEngine.count( query ) );
         assertEquals( 0, queryEngine.query( query ).size() );
     }
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
 }
