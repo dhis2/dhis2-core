@@ -61,7 +61,8 @@ public class BaseDimensionalItemObjectMapper extends BaseDimensionMapper
             .withDimensionType( dimensionTypeOrElse( prefixedDimension, dimensionItemType.name() ) );
         if ( prefixedDimension.getItem() instanceof ValueTypedDimensionalItemObject )
         {
-            ValueTypedDimensionalItemObject valueTypedDimensionalItemObject = (ValueTypedDimensionalItemObject) prefixedDimension.getItem();
+            ValueTypedDimensionalItemObject valueTypedDimensionalItemObject = (ValueTypedDimensionalItemObject) prefixedDimension
+                .getItem();
             return responseWithDimensionType
                 .withValueType( valueTypedDimensionalItemObject.getValueType().name() )
                 .withOptionSet( valueTypedDimensionalItemObject.getOptionSet() != null
