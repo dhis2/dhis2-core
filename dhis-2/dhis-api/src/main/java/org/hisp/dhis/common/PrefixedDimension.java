@@ -38,7 +38,12 @@ import lombok.With;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 
+/**
+ * Class to store Program and Program Stage to help to generate the prefix
+ * during serialization
+ */
 @With
+@Getter
 @Builder
 public class PrefixedDimension
 {
@@ -48,12 +53,15 @@ public class PrefixedDimension
 
     private final ProgramStage programStage;
 
-    @Getter
     private final BaseIdentifiableObject item;
 
-    @Getter
     private final String dimensionType;
 
+    /**
+     * Get the prefix of this dimension
+     *
+     * @return the prefix of this dimension
+     */
     public String getPrefix()
     {
         return Stream.of( program, programStage )

@@ -35,6 +35,7 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletResponse;
 
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
@@ -50,10 +51,10 @@ import org.hisp.dhis.analytics.tei.TeiRequestMapper;
 import org.hisp.dhis.common.AnalyticsPagingCriteria;
 import org.hisp.dhis.common.DimensionsCriteria;
 import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.webapi.dimension.DimensionFilteringAndPagingService;
 import org.hisp.dhis.webapi.dimension.DimensionMapperService;
+import org.hisp.dhis.webapi.dimension.TeiAnalyticsPrefixStrategy;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -77,26 +78,37 @@ class TeiQueryController
 
     static final String TRACKED_ENTITIES = "analytics/trackedEntities";
 
+    @NonNull
     private final TeiAnalyticsQueryService teiAnalyticsQueryService;
 
+    @NonNull
     private final Processor<TeiQueryRequest> teiQueryRequestProcessor;
 
+    @NonNull
     private final Processor<CommonQueryRequest> commonQueryRequestProcessor;
 
+    @NonNull
     private final Processor<AnalyticsPagingCriteria> pagingCriteriaProcessor;
 
+    @NonNull
     private final Validator<QueryRequest<TeiQueryRequest>> teiQueryRequestValidator;
 
+    @NonNull
     private final Validator<CommonQueryRequest> commonQueryRequestValidator;
 
+    @NonNull
     private final DimensionFilteringAndPagingService dimensionFilteringAndPagingService;
 
+    @NonNull
     private final DimensionMapperService dimensionMapperService;
 
+    @NonNull
     private final TeiAnalyticsDimensionsService teiAnalyticsDimensionsService;
 
+    @NonNull
     private final TeiRequestMapper mapper;
 
+    @NonNull
     private final ContextUtils contextUtils;
 
     @GetMapping( "query/{trackedEntityType}" )
@@ -139,9 +151,8 @@ class TeiQueryController
             .pageAndFilter(
                 dimensionMapperService.toDimensionResponse(
                     teiAnalyticsDimensionsService.getQueryDimensionsByTrackedEntityTypeId( trackedEntityType ),
-                    PrefixedDimension::getPrefix ),
+                    TeiAnalyticsPrefixStrategy.INSTANCE ),
                 dimensionsCriteria,
                 fields );
     }
-
 }

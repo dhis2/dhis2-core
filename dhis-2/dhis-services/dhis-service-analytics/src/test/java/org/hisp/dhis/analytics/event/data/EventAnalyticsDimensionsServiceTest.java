@@ -106,7 +106,6 @@ class EventAnalyticsDimensionsServiceTest
             .getAggregateDimensionsByProgramStageId( "anUid" ).stream()
             .map( PrefixedDimension::getItem )
             .collect( Collectors.toList() );
-        ;
 
         assertTrue(
             analyticsDimensions

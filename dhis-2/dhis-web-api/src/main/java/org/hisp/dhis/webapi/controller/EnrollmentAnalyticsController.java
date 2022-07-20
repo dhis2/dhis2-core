@@ -54,6 +54,7 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.webapi.dimension.DimensionFilteringAndPagingService;
 import org.hisp.dhis.webapi.dimension.DimensionMapperService;
+import org.hisp.dhis.webapi.dimension.EnrollmentAnalyticsPrefixStrategy;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -231,7 +232,7 @@ public class EnrollmentAnalyticsController
             .pageAndFilter(
                 dimensionMapperService.toDimensionResponse(
                     enrollmentAnalyticsDimensionsService.getQueryDimensionsByProgramStageId( programId ),
-                    pDimension -> "" ),
+                    EnrollmentAnalyticsPrefixStrategy.INSTANCE ),
                 dimensionsCriteria,
                 fields );
     }
@@ -250,7 +251,7 @@ public class EnrollmentAnalyticsController
             .pageAndFilter(
                 dimensionMapperService.toDimensionResponse(
                     enrollmentAnalyticsDimensionsService.getAggregateDimensionsByProgramStageId( programId ),
-                    pDimension -> "" ),
+                    EnrollmentAnalyticsPrefixStrategy.INSTANCE ),
                 dimensionsCriteria,
                 fields );
     }

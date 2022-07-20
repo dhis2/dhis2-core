@@ -54,6 +54,10 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.springframework.stereotype.Service;
 
+/**
+ * Service to retrieve all dimensions that can be used in Cross Program Line
+ * Listing given a TrackedEntityType.
+ */
 @Service
 @RequiredArgsConstructor
 class DefaultTeiAnalyticsDimensionsService implements TeiAnalyticsDimensionsService
@@ -67,10 +71,15 @@ class DefaultTeiAnalyticsDimensionsService implements TeiAnalyticsDimensionsServ
     @NonNull
     private final ProgramService programService;
 
+    /**
+     * Retrieve all Dimensions that can be used on a given Tracked Entity Type.
+     *
+     * @param trackedEntityTypeId the uid of a tracked entity type
+     * @return list of dimension
+     */
     @Override
     public List<PrefixedDimension> getQueryDimensionsByTrackedEntityTypeId( String trackedEntityTypeId )
     {
-
         TrackedEntityType trackedEntityType = trackedEntityTypeService.getTrackedEntityType( trackedEntityTypeId );
 
         if ( Objects.nonNull( trackedEntityType ) )
@@ -118,5 +127,4 @@ class DefaultTeiAnalyticsDimensionsService implements TeiAnalyticsDimensionsServ
     {
         return !((TrackedEntityAttribute) prefixedDimension.getItem()).isConfidentialBool();
     }
-
 }

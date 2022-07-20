@@ -27,50 +27,21 @@
  */
 package org.hisp.dhis.webapi.dimension;
 
-import static org.hisp.dhis.common.PrefixedDimension.PREFIX_DELIMITER;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.PrefixedDimension;
 
-/**
- * Base mapper for Dimensions to be returned
- */
-public abstract class BaseDimensionMapper implements DimensionMapper
+@NoArgsConstructor( access = AccessLevel.PRIVATE )
+public class TeiAnalyticsPrefixStrategy implements PrefixStrategy
 {
 
-    /**
-     * Returns a DimensionResponse with common fields mapped
-     */
+    public static final TeiAnalyticsPrefixStrategy INSTANCE = new TeiAnalyticsPrefixStrategy();
+
     @Override
-    public DimensionResponse map( PrefixedDimension prefixedDimension, String prefix )
+    public String apply( PrefixedDimension pDimension )
     {
-        BaseIdentifiableObject dimension = prefixedDimension.getItem();
-        DimensionResponse mapped = DimensionResponse.builder()
-            .id( getPrefixed( prefix, dimension.getUid() ) )
-            .uid( dimension.getUid() )
-            .displayName( dimension.getDisplayName() )
-            .created( dimension.getCreated() )
-            .code( dimension.getCode() )
-            .lastUpdated( dimension.getLastUpdated() )
-            .name( dimension.getName() )
-            .build();
-
-        if ( dimension instanceof BaseNameableObject )
-        {
-            return mapped.withDisplayShortName(
-                ((BaseNameableObject) dimension).getDisplayShortName() );
-        }
-        return mapped;
+        return pDimension.getPrefix();
     }
 
-    private String getPrefixed( String prefix, String uid )
-    {
-        if ( StringUtils.isNotBlank( prefix ) )
-        {
-            return prefix + PREFIX_DELIMITER + uid;
-        }
-        return uid;
-    }
 }

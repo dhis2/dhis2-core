@@ -27,50 +27,26 @@
  */
 package org.hisp.dhis.webapi.dimension;
 
-import static org.hisp.dhis.common.PrefixedDimension.PREFIX_DELIMITER;
+import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.PrefixedDimension;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.program.ProgramStageDataElement;
 
-/**
- * Base mapper for Dimensions to be returned
- */
-public abstract class BaseDimensionMapper implements DimensionMapper
+@RequiredArgsConstructor( staticName = "of" )
+public class EventAnalyticsPrefixStrategy implements PrefixStrategy
 {
+    private final String programStageUid;
 
-    /**
-     * Returns a DimensionResponse with common fields mapped
-     */
     @Override
-    public DimensionResponse map( PrefixedDimension prefixedDimension, String prefix )
+    public String apply( PrefixedDimension pDimension )
     {
-        BaseIdentifiableObject dimension = prefixedDimension.getItem();
-        DimensionResponse mapped = DimensionResponse.builder()
-            .id( getPrefixed( prefix, dimension.getUid() ) )
-            .uid( dimension.getUid() )
-            .displayName( dimension.getDisplayName() )
-            .created( dimension.getCreated() )
-            .code( dimension.getCode() )
-            .lastUpdated( dimension.getLastUpdated() )
-            .name( dimension.getName() )
-            .build();
-
-        if ( dimension instanceof BaseNameableObject )
+        if ( pDimension.getItem() instanceof DataElement ||
+            pDimension.getItem() instanceof ProgramStageDataElement )
         {
-            return mapped.withDisplayShortName(
-                ((BaseNameableObject) dimension).getDisplayShortName() );
+            return programStageUid;
         }
-        return mapped;
-    }
-
-    private String getPrefixed( String prefix, String uid )
-    {
-        if ( StringUtils.isNotBlank( prefix ) )
-        {
-            return prefix + PREFIX_DELIMITER + uid;
-        }
-        return uid;
+        return StringUtils.EMPTY;
     }
 }
