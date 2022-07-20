@@ -27,11 +27,8 @@
  */
 package org.hisp.dhis.sms.config;
 
-import org.hisp.dhis.sms.config.views.SmsConfigurationViews;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.JsonView;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
@@ -47,7 +44,6 @@ public class BulkSmsGatewayConfig
 
     @Override
     @JsonProperty( value = "urlTemplate" )
-    @JsonView( SmsConfigurationViews.Public.class )
     public String getUrlTemplate()
     {
         return this.JSON_API_URL;
