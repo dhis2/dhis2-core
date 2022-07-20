@@ -791,6 +791,13 @@ public class DefaultUserService
     }
 
     @Override
+    @Transactional( readOnly = true )
+    public Map<String, Optional<Locale>> findNotifiableUsersWithPasswordLastUpdatedBetween( Date from, Date to )
+    {
+        return userStore.findNotifiableUsersWithPasswordLastUpdatedBetween( from, to );
+    }
+
+    @Override
     public String getDisplayName( String userUid )
     {
         return userDisplayNameCache.get( userUid, c -> userStore.getDisplayName( userUid ) );
