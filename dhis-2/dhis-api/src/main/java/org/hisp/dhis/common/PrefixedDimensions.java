@@ -36,6 +36,10 @@ import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 
+/**
+ * Helper class to convert from various BaseDimensionalObjects into
+ * PrefixedDimension
+ */
 public class PrefixedDimensions
 {
     public static Collection<PrefixedDimension> ofProgramIndicators( Set<ProgramIndicator> programIndicators )

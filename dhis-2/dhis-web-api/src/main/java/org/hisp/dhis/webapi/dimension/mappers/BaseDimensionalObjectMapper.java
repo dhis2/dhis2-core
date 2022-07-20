@@ -49,6 +49,9 @@ public class BaseDimensionalObjectMapper extends BaseDimensionMapper
         CategoryOptionGroupSet.class,
         Category.class );
 
+    /**
+     * maps base dimensional object to DimensionResponse, adding dimensionType
+     */
     @Override
     public DimensionResponse map( PrefixedDimension prefixedDimension, String prefix )
     {

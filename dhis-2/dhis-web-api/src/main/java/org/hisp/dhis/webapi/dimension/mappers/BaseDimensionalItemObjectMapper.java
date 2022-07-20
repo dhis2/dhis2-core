@@ -51,6 +51,10 @@ public class BaseDimensionalItemObjectMapper extends BaseDimensionMapper
         ProgramIndicator.class,
         TrackedEntityAttribute.class );
 
+    /**
+     * adds dimensionType on top of base mapper and, if the dimension is
+     * ValueTyped it also adds valueType and OptionSet (if present)
+     */
     @Override
     public DimensionResponse map( PrefixedDimension prefixedDimension, String prefix )
     {

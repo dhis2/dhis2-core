@@ -45,6 +45,9 @@ public class DataElementMapper extends BaseDimensionalItemObjectMapper
     private final Set<Class<? extends BaseIdentifiableObject>> supportedClasses = Set.of(
         DataElement.class );
 
+    /**
+     * maps data elements to DimensionResponse
+     */
     @Override
     public DimensionResponse map( PrefixedDimension prefixedDimension, String prefix )
     {

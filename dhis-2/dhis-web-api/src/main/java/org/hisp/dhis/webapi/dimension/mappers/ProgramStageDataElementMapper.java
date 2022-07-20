@@ -46,6 +46,9 @@ public class ProgramStageDataElementMapper extends BaseDimensionalItemObjectMapp
     private final Set<Class<? extends BaseIdentifiableObject>> supportedClasses = Set.of(
         ProgramStageDataElement.class );
 
+    /**
+     * maps program stages to DimensionResponse
+     */
     @Override
     public DimensionResponse map( PrefixedDimension prefixedDimension, String prefix )
     {
