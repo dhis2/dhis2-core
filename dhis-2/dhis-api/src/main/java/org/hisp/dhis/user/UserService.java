@@ -368,13 +368,6 @@ public interface UserService
     List<ErrorReport> validateUser( User user, User currentUser );
 
     /**
-     * Returns list of active users who are expiring with in few days.
-     *
-     * @return list of active users who are expiring with in few days.
-     */
-    List<User> getExpiringUsers();
-
-    /**
      * @param inDays number of days to include
      * @return list of those users that are about to expire in the provided
      *         number of days (or less) and which have an email configured
