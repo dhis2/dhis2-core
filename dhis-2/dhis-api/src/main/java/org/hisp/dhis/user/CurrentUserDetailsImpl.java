@@ -30,6 +30,7 @@ package org.hisp.dhis.user;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -59,4 +60,8 @@ public class CurrentUserDetailsImpl implements CurrentUserDetails
     private final Collection<GrantedAuthority> authorities;
 
     private final Map<String, Serializable> userSettings;
+
+    private final Set<String> userGroupIds;
+
+    private final boolean isSuper;
 }
