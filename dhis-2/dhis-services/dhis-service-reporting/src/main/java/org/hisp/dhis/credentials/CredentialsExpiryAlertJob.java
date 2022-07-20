@@ -114,10 +114,15 @@ public class CredentialsExpiryAlertJob implements Job
         progress.startingProcess( "User password expiry alerts" );
         CredentialsExpiryAlertJobParameters parameters = (CredentialsExpiryAlertJobParameters) jobConfiguration
             .getJobParameters();
-        Integer reminderDaysBefore = parameters.getReminderDaysBefore();
+        Integer reminderDaysBefore = parameters == null ? null : parameters.getReminderDaysBefore();
         int daysUntilDisable = reminderDaysBefore == null ? 28 : reminderDaysBefore;
         int daysBeforePasswordChangeRequired = systemSettingManager
             .getIntSetting( SettingKey.CREDENTIALS_EXPIRES ) * 30;
+        if ( daysBeforePasswordChangeRequired <= 0 )
+        {
+            progress.completedProcess( "Passwords expire after n months is configured to zero (feature disabled)" );
+            return;
+        }
         LocalDate lastUpdatedBefore = LocalDate.now().minusDays( daysBeforePasswordChangeRequired );
         do
         {
