@@ -455,6 +455,10 @@ final class GistBuilder
         }
         if ( isPersistentReferenceField( property ) )
         {
+            if ( PeriodType.class.isAssignableFrom( property.getKlass() ) )
+            {
+                addTransformer( row -> row[index] = ((PeriodType) row[index]).getName() );
+            }
             return createReferenceFieldHQL( index, field );
         }
         if ( isPersistentCollectionField( property ) )
