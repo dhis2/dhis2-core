@@ -42,8 +42,8 @@ import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 
 /**
- * Helper to convert date fields from controller's Criteria into
- * a plain string that can be merged into PE dimension
+ * Helper to convert date fields from controller's Criteria into a plain string
+ * that can be merged into PE dimension
  */
 public class CustomDateHelper
 {
