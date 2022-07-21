@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.event.data;
+package org.hisp.dhis.analytics.tei;
 
 import static org.hisp.dhis.analytics.event.data.DimensionsServiceCommon.OperationType.QUERY;
 import static org.hisp.dhis.analytics.event.data.DimensionsServiceCommon.filterByValueType;
@@ -44,7 +44,6 @@ import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsDimensionsService;
-import org.hisp.dhis.analytics.event.TeiAnalyticsDimensionsService;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.program.Program;
@@ -62,6 +61,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 class DefaultTeiAnalyticsDimensionsService implements TeiAnalyticsDimensionsService
 {
+
     @NonNull
     private final TrackedEntityTypeService trackedEntityTypeService;
 
@@ -71,12 +71,6 @@ class DefaultTeiAnalyticsDimensionsService implements TeiAnalyticsDimensionsServ
     @NonNull
     private final ProgramService programService;
 
-    /**
-     * Retrieve all Dimensions that can be used on a given Tracked Entity Type.
-     *
-     * @param trackedEntityTypeId the uid of a tracked entity type
-     * @return list of dimension
-     */
     @Override
     public List<PrefixedDimension> getQueryDimensionsByTrackedEntityTypeId( String trackedEntityTypeId )
     {

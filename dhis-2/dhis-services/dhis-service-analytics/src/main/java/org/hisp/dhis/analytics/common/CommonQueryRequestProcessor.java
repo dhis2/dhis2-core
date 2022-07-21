@@ -60,5 +60,4 @@ public class CommonQueryRequestProcessor implements Processor<CommonQueryRequest
                         commonQueryRequest ) ) )
             .build();
     }
-
 }

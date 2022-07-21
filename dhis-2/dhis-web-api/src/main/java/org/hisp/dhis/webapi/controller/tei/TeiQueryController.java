@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tei;
 
+import static org.hisp.dhis.analytics.shared.GridHeaders.retainHeadersOnGrid;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.TRACKED_ENTITY_INSTANCE;
 import static org.hisp.dhis.common.cache.CacheStrategy.RESPECT_SYSTEM_SETTING;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
@@ -43,7 +44,7 @@ import org.hisp.dhis.analytics.common.Processor;
 import org.hisp.dhis.analytics.common.QueryRequest;
 import org.hisp.dhis.analytics.common.Validator;
 import org.hisp.dhis.analytics.dimensions.AnalyticsDimensionsPagingWrapper;
-import org.hisp.dhis.analytics.event.TeiAnalyticsDimensionsService;
+import org.hisp.dhis.analytics.tei.TeiAnalyticsDimensionsService;
 import org.hisp.dhis.analytics.tei.TeiAnalyticsQueryService;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.analytics.tei.TeiQueryRequest;
@@ -51,7 +52,6 @@ import org.hisp.dhis.analytics.tei.TeiRequestMapper;
 import org.hisp.dhis.common.AnalyticsPagingCriteria;
 import org.hisp.dhis.common.DimensionsCriteria;
 import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.webapi.dimension.DimensionFilteringAndPagingService;
 import org.hisp.dhis.webapi.dimension.DimensionMapperService;
 import org.hisp.dhis.webapi.dimension.TeiAnalyticsPrefixStrategy;
@@ -134,10 +134,17 @@ class TeiQueryController
         contextUtils.configureResponse( response, CONTENT_TYPE_JSON, RESPECT_SYSTEM_SETTING );
 
         final TeiQueryParams params = mapper.map( queryRequest );
+        final Grid grid = teiAnalyticsQueryService.getGrid( params );
 
-        return teiAnalyticsQueryService.getTeiGrid( params );
+        retainHeadersOnGrid( grid, queryRequest.getCommonQueryRequest().getHeaders() );
+
+        return teiAnalyticsQueryService.getGrid( params );
     }
 
+    /**
+     * This method returns the collection of all possible dimensions that can be
+     * applied for the given "trackedEntityType".
+     */
     @GetMapping( "/query/dimensions" )
     public AnalyticsDimensionsPagingWrapper<ObjectNode> getQueryDimensions(
         @RequestParam String trackedEntityType,
@@ -145,8 +152,7 @@ class TeiQueryController
         DimensionsCriteria dimensionsCriteria,
         HttpServletResponse response )
     {
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON,
-            CacheStrategy.RESPECT_SYSTEM_SETTING );
+        contextUtils.configureResponse( response, CONTENT_TYPE_JSON, RESPECT_SYSTEM_SETTING );
         return dimensionFilteringAndPagingService
             .pageAndFilter(
                 dimensionMapperService.toDimensionResponse(

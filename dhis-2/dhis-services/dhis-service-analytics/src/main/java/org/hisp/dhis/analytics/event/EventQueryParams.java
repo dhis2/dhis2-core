@@ -136,7 +136,9 @@ public class EventQueryParams
     private List<QueryItem> itemFilters = new ArrayList<>();
 
     /**
-     * TODO Change to List? TODO Add Javadoc
+     * When set, the headers in the response object will match the specified
+     * headers in the respective order. As the headers should not be duplicated,
+     * this is represented as Set.
      */
     protected Set<String> headers = new LinkedHashSet<>();
 

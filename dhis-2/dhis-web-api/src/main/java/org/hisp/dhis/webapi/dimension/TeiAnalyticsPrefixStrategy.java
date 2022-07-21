@@ -43,5 +43,4 @@ public class TeiAnalyticsPrefixStrategy implements PrefixStrategy
     {
         return pDimension.getPrefix();
     }
-
 }

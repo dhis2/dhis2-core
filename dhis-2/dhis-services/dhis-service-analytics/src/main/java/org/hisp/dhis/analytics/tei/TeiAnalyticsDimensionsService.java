@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.event;
+package org.hisp.dhis.analytics.tei;
 
 import java.util.List;
 
@@ -33,5 +33,12 @@ import org.hisp.dhis.common.PrefixedDimension;
 
 public interface TeiAnalyticsDimensionsService
 {
+
+    /**
+     * Retrieve all Dimensions that can be used on a given Tracked Entity Type.
+     *
+     * @param trackedEntityTypeId the uid of a tracked entity type
+     * @return list of dimensions
+     */
     List<PrefixedDimension> getQueryDimensionsByTrackedEntityTypeId( String trackedEntityTypeId );
 }

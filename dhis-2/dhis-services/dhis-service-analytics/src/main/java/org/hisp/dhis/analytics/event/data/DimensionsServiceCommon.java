@@ -85,7 +85,7 @@ public class DimensionsServiceCommon
         DataElement.class, pd -> ((DataElement) pd.getItem()).getValueType(),
         ProgramStageDataElement.class, pd -> ((ProgramStageDataElement) pd.getItem()).getDataElement().getValueType() );
 
-    enum OperationType
+    public enum OperationType
     {
         QUERY,
         AGGREGATE

@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.event.data;
+package org.hisp.dhis.analytics.common;
 
 import java.util.Arrays;
 import java.util.List;
@@ -43,7 +43,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 public class AnalyticsDimensionsTestSupport
 {
 
-    static TrackedEntityType trackedEntityType()
+    public static TrackedEntityType trackedEntityType()
     {
         TrackedEntityType trackedEntityType = new TrackedEntityType();
         trackedEntityType.setTrackedEntityTypeAttributes(
@@ -54,7 +54,7 @@ public class AnalyticsDimensionsTestSupport
         return trackedEntityType;
     }
 
-    static List<TrackedEntityAttribute> allValueTypeTEAs()
+    public static List<TrackedEntityAttribute> allValueTypeTEAs()
     {
         return buildWithAllValueTypes( valueType -> {
             TrackedEntityAttribute trackedEntityAttribute = new TrackedEntityAttribute();
@@ -64,7 +64,7 @@ public class AnalyticsDimensionsTestSupport
         } ).collect( Collectors.toList() );
     }
 
-    static Set<DataElement> allValueTypeDataElements()
+    public static Set<DataElement> allValueTypeDataElements()
     {
         return buildWithAllValueTypes( valueType -> {
             DataElement dataElement = new DataElement();
@@ -74,7 +74,7 @@ public class AnalyticsDimensionsTestSupport
         } ).collect( Collectors.toSet() );
     }
 
-    static <T> Stream<T> buildWithAllValueTypes( Function<ValueType, T> mapper )
+    public static <T> Stream<T> buildWithAllValueTypes( Function<ValueType, T> mapper )
     {
         return Arrays.stream( ValueType.values() )
             .map( mapper );
