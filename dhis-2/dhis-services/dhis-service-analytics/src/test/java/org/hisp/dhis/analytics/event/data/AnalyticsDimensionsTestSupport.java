@@ -37,9 +37,23 @@ import java.util.stream.Stream;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 
 public class AnalyticsDimensionsTestSupport
 {
+
+    static TrackedEntityType trackedEntityType()
+    {
+        TrackedEntityType trackedEntityType = new TrackedEntityType();
+        trackedEntityType.setTrackedEntityTypeAttributes(
+            allValueTypeTEAs().stream()
+                .map( trackedEntityAttribute -> new TrackedEntityTypeAttribute( trackedEntityType,
+                    trackedEntityAttribute ) )
+                .collect( Collectors.toList() ) );
+        return trackedEntityType;
+    }
+
     static List<TrackedEntityAttribute> allValueTypeTEAs()
     {
         return buildWithAllValueTypes( valueType -> {

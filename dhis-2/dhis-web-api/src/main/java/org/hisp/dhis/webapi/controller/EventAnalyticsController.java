@@ -57,6 +57,7 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.webapi.dimension.DimensionFilteringAndPagingService;
 import org.hisp.dhis.webapi.dimension.DimensionMapperService;
+import org.hisp.dhis.webapi.dimension.EventAnalyticsPrefixStrategy;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -225,7 +226,7 @@ public class EventAnalyticsController
             .pageAndFilter(
                 dimensionMapperService.toDimensionResponse(
                     eventAnalyticsDimensionsService.getAggregateDimensionsByProgramStageId( programStageId ),
-                    programStageId ),
+                    EventAnalyticsPrefixStrategy.of( programStageId ) ),
                 dimensionsCriteria,
                 fields );
     }
@@ -393,7 +394,7 @@ public class EventAnalyticsController
             .pageAndFilter(
                 dimensionMapperService.toDimensionResponse(
                     eventAnalyticsDimensionsService.getQueryDimensionsByProgramStageId( programStageId ),
-                    programStageId ),
+                    EventAnalyticsPrefixStrategy.of( programStageId ) ),
                 dimensionsCriteria,
                 fields );
     }

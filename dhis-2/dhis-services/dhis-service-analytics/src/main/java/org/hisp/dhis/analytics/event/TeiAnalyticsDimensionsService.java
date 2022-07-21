@@ -25,39 +25,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.dimension;
+package org.hisp.dhis.analytics.event;
 
-import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
-
-import java.util.Collection;
-import java.util.stream.Collectors;
-
-import lombok.RequiredArgsConstructor;
+import java.util.List;
 
 import org.hisp.dhis.common.PrefixedDimension;
-import org.springframework.stereotype.Service;
 
-@Service
-@RequiredArgsConstructor
-public class DimensionMapperService
+public interface TeiAnalyticsDimensionsService
 {
-    private final Collection<DimensionMapper> mappers;
-
-    public Collection<DimensionResponse> toDimensionResponse( Collection<PrefixedDimension> dimensions,
-        PrefixStrategy prefixStrategy )
-    {
-        return dimensions.stream()
-            .map( pDimension -> toDimensionResponse( pDimension, prefixStrategy.apply( pDimension ) ) )
-            .collect( Collectors.toList() );
-    }
-
-    private DimensionResponse toDimensionResponse( PrefixedDimension dimension, String prefix )
-    {
-        return mappers.stream()
-            .filter( dimensionMapper -> dimensionMapper.supports( dimension.getItem() ) )
-            .findFirst()
-            .map( dimensionMapper -> dimensionMapper.map( dimension, prefix ) )
-            .orElseThrow( () -> new IllegalArgumentException(
-                "Unsupported dimension type: " + getRealClass( dimension ) ) );
-    }
+    List<PrefixedDimension> getQueryDimensionsByTrackedEntityTypeId( String trackedEntityTypeId );
 }

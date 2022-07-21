@@ -29,12 +29,11 @@ package org.hisp.dhis.analytics.event;
 
 import java.util.List;
 
-import org.hisp.dhis.analytics.event.data.DimensionsServiceCommon;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.PrefixedDimension;
 
-public interface EnrollmentAnalyticsDimensionsService extends DimensionsServiceCommon
+public interface EnrollmentAnalyticsDimensionsService
 {
-    List<BaseIdentifiableObject> getQueryDimensionsByProgramStageId( String programId );
+    List<PrefixedDimension> getQueryDimensionsByProgramStageId( String programId );
 
-    List<BaseIdentifiableObject> getAggregateDimensionsByProgramStageId( String programId );
+    List<PrefixedDimension> getAggregateDimensionsByProgramStageId( String programId );
 }

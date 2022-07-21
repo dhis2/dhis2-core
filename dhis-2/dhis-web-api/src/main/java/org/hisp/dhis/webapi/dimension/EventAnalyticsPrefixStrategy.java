@@ -27,37 +27,26 @@
  */
 package org.hisp.dhis.webapi.dimension;
 
-import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
-
-import java.util.Collection;
-import java.util.stream.Collectors;
-
 import lombok.RequiredArgsConstructor;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.PrefixedDimension;
-import org.springframework.stereotype.Service;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.program.ProgramStageDataElement;
 
-@Service
-@RequiredArgsConstructor
-public class DimensionMapperService
+@RequiredArgsConstructor( staticName = "of" )
+public class EventAnalyticsPrefixStrategy implements PrefixStrategy
 {
-    private final Collection<DimensionMapper> mappers;
+    private final String programStageUid;
 
-    public Collection<DimensionResponse> toDimensionResponse( Collection<PrefixedDimension> dimensions,
-        PrefixStrategy prefixStrategy )
+    @Override
+    public String apply( PrefixedDimension pDimension )
     {
-        return dimensions.stream()
-            .map( pDimension -> toDimensionResponse( pDimension, prefixStrategy.apply( pDimension ) ) )
-            .collect( Collectors.toList() );
-    }
-
-    private DimensionResponse toDimensionResponse( PrefixedDimension dimension, String prefix )
-    {
-        return mappers.stream()
-            .filter( dimensionMapper -> dimensionMapper.supports( dimension.getItem() ) )
-            .findFirst()
-            .map( dimensionMapper -> dimensionMapper.map( dimension, prefix ) )
-            .orElseThrow( () -> new IllegalArgumentException(
-                "Unsupported dimension type: " + getRealClass( dimension ) ) );
+        if ( pDimension.getItem() instanceof DataElement ||
+            pDimension.getItem() instanceof ProgramStageDataElement )
+        {
+            return programStageUid;
+        }
+        return StringUtils.EMPTY;
     }
 }

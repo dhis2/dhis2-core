@@ -44,23 +44,28 @@ import static org.hisp.dhis.common.ValueType.UNIT_INTERVAL;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
+import org.hisp.dhis.program.ProgramStageDataElement;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
-public interface DimensionsServiceCommon
+public class DimensionsServiceCommon
 {
 
-    Collection<ValueType> QUERY_DISALLOWED_VALUE_TYPES = Set.of(
+    public static final Collection<ValueType> QUERY_DISALLOWED_VALUE_TYPES = Set.of(
         IMAGE,
         FILE_RESOURCE,
         TRACKER_ASSOCIATE );
 
-    Collection<ValueType> AGGREGATE_ALLOWED_VALUE_TYPES = Set.of(
+    public static final Collection<ValueType> AGGREGATE_ALLOWED_VALUE_TYPES = Set.of(
         NUMBER,
         UNIT_INTERVAL,
         PERCENTAGE,
@@ -71,9 +76,14 @@ public interface DimensionsServiceCommon
         BOOLEAN,
         TRUE_ONLY );
 
-    Map<OperationType, Predicate<ValueType>> OPERATION_FILTER = Map.of(
+    private final static Map<OperationType, Predicate<ValueType>> OPERATION_FILTER = Map.of(
         OperationType.QUERY, not( QUERY_DISALLOWED_VALUE_TYPES::contains ),
         OperationType.AGGREGATE, AGGREGATE_ALLOWED_VALUE_TYPES::contains );
+
+    private final static Map<Class<?>, Function<PrefixedDimension, ValueType>> VALUE_TYPE_GETTERS_BY_CLASS = Map.of(
+        TrackedEntityAttribute.class, pd -> ((TrackedEntityAttribute) pd.getItem()).getValueType(),
+        DataElement.class, pd -> ((DataElement) pd.getItem()).getValueType(),
+        ProgramStageDataElement.class, pd -> ((ProgramStageDataElement) pd.getItem()).getDataElement().getValueType() );
 
     enum OperationType
     {
@@ -81,20 +91,27 @@ public interface DimensionsServiceCommon
         AGGREGATE
     }
 
-    default List<BaseIdentifiableObject> collectDimensions(
-        Collection<Collection<? extends BaseIdentifiableObject>> dimensionCollections )
+    public static List<PrefixedDimension> collectDimensions(
+        Collection<Collection<? extends PrefixedDimension>> dimensionCollections )
     {
         return dimensionCollections.stream()
             .flatMap( Collection::stream )
             .collect( Collectors.toList() );
     }
 
-    default <T extends BaseIdentifiableObject> Collection<T> filterByValueType(
+    public static <T extends PrefixedDimension> Collection<T> filterByValueType(
         DimensionsServiceCommon.OperationType operationType,
-        Collection<T> elements, Function<T, ValueType> valueTypeProvider )
+        Collection<T> elements )
     {
         return elements.stream()
-            .filter( t -> OPERATION_FILTER.get( operationType ).test( valueTypeProvider.apply( t ) ) )
+            .filter( t -> OPERATION_FILTER.get( operationType )
+                .test( getValueTypeGetter( HibernateProxyUtils.getRealClass( t.getItem() ) ).apply( t ) ) )
             .collect( Collectors.toList() );
+    }
+
+    private static Function<PrefixedDimension, ValueType> getValueTypeGetter( Class<?> clazz )
+    {
+        return Optional.ofNullable( VALUE_TYPE_GETTERS_BY_CLASS.get( clazz ) )
+            .orElseThrow( IllegalArgumentException::new );
     }
 }

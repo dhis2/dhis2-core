@@ -27,17 +27,28 @@
  */
 package org.hisp.dhis.webapi.dimension;
 
+import static org.hisp.dhis.common.PrefixedDimension.PREFIX_DELIMITER;
+
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseNameableObject;
+import org.hisp.dhis.common.PrefixedDimension;
 
+/**
+ * Base mapper for Dimensions to be returned
+ */
 public abstract class BaseDimensionMapper implements DimensionMapper
 {
 
+    /**
+     * Returns a DimensionResponse with common fields mapped
+     */
     @Override
-    public DimensionResponse map( BaseIdentifiableObject dimension, String prefix )
+    public DimensionResponse map( PrefixedDimension prefixedDimension, String prefix )
     {
+        BaseIdentifiableObject dimension = prefixedDimension.getItem();
         DimensionResponse mapped = DimensionResponse.builder()
-            .id( dimension.getUid() )
+            .id( getPrefixed( prefix, dimension.getUid() ) )
             .uid( dimension.getUid() )
             .displayName( dimension.getDisplayName() )
             .created( dimension.getCreated() )
@@ -52,5 +63,14 @@ public abstract class BaseDimensionMapper implements DimensionMapper
                 ((BaseNameableObject) dimension).getDisplayShortName() );
         }
         return mapped;
+    }
+
+    private String getPrefixed( String prefix, String uid )
+    {
+        if ( StringUtils.isNotBlank( prefix ) )
+        {
+            return prefix + PREFIX_DELIMITER + uid;
+        }
+        return uid;
     }
 }
