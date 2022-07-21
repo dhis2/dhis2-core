@@ -247,7 +247,6 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    @Disabled
     void testUpdatePerson()
     {
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstanceService
@@ -369,7 +368,6 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest
      * FIXME luciano: this is ignored because there is a bug in tracker, so that
      * new events that fail to validate are reported as success.
      */
-    @Disabled
     @Test
     void testUpdateTeiByCompletingExistingEnrollmentAndUpdateExistingEventsInSameEnrollment()
     {

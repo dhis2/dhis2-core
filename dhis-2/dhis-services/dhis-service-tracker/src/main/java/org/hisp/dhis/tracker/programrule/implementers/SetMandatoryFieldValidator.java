@@ -80,10 +80,9 @@ public class SetMandatoryFieldValidator
     }
 
     @Override
-    List<ProgramRuleIssue> applyToEvents( Map.Entry<String, List<EventActionRule>> eventClasses, TrackerBundle bundle )
+    List<ProgramRuleIssue> applyToEvents( Event event, List<EventActionRule> eventActions, TrackerBundle bundle )
     {
-        return checkMandatoryDataElement( getEvent( bundle, eventClasses.getKey() ).get(), eventClasses.getValue(),
-            bundle );
+        return checkMandatoryDataElement( event, eventActions, bundle );
     }
 
     private List<ProgramRuleIssue> checkMandatoryDataElement( Event event, List<EventActionRule> actionRules,
@@ -108,13 +107,12 @@ public class SetMandatoryFieldValidator
     }
 
     @Override
-    List<ProgramRuleIssue> applyToEnrollments( Map.Entry<String, List<EnrollmentActionRule>> enrollmentActionRules,
+    List<ProgramRuleIssue> applyToEnrollments( Enrollment enrollment, List<EnrollmentActionRule> enrollmentActionRules,
         TrackerBundle bundle )
     {
-        return enrollmentActionRules.getValue().stream()
+        return enrollmentActionRules.stream()
             .flatMap( actionRule -> checkMandatoryEnrollmentAttribute(
-                bundle.getEnrollment( actionRule.getEnrollment() ).get(),
-                enrollmentActionRules.getValue(), bundle.getPreheat() ).stream() )
+                enrollment, enrollmentActionRules, bundle.getPreheat() ).stream() )
             .collect( Collectors.toList() );
     }
 
