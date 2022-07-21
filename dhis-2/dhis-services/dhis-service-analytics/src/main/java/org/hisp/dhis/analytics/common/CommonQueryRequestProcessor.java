@@ -27,8 +27,13 @@
  */
 package org.hisp.dhis.analytics.common;
 
+import static org.hisp.dhis.common.CustomDateHelper.getCustomDateFilters;
+import static org.hisp.dhis.common.CustomDateHelper.getDimensionsWithRefactoredPeDimension;
+import static org.hisp.dhis.commons.collection.CollectionUtils.emptyIfNull;
+
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.common.AnalyticsDateFilter;
 import org.springframework.stereotype.Component;
 
 /**
@@ -44,16 +49,16 @@ public class CommonQueryRequestProcessor implements Processor<CommonQueryRequest
     @Override
     public CommonQueryRequest process( final CommonQueryRequest commonQueryRequest )
     {
-        // here we should refactor/preprocess dimensions and filters for 2
-        // specific purposes:
-        // 1 - support custom date filters, like enrollmentDate=TODAY, but this
-        // is pending discussions on whether the time
-        // fields should be applied to all programs, or it is possible to
-        // specify date filters for each programs
-        //
-        // 2 - in event/enrollments we supported _OR_ separator to handle
-        // enhanced conditions
-        // TODO: DHIS2-13383
-        return commonQueryRequest;
+        return commonQueryRequest.toBuilder()
+            .dimension(
+                getDimensionsWithRefactoredPeDimension(
+                    emptyIfNull( commonQueryRequest.getDimension() ),
+                    getCustomDateFilters(
+                        AnalyticsDateFilter::appliesToTei,
+                        analyticsDateFilter -> o -> analyticsDateFilter.getTeiExtractor()
+                            .apply( (CommonQueryRequest) o ),
+                        commonQueryRequest ) ) )
+            .build();
     }
+
 }

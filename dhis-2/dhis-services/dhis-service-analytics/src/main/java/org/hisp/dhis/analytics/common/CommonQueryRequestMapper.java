@@ -31,9 +31,11 @@ import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.analytics.EventOutputType.TRACKED_ENTITY_INSTANCE;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionFromParam;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionItemsFromParam;
+import static org.hisp.dhis.common.EventDataQueryRequest.ExtendedEventDataQueryRequestBuilder.DIMENSION_OR_SEPARATOR;
 import static org.hisp.dhis.common.IdScheme.UID;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -100,7 +102,7 @@ public class CommonQueryRequestMapper
 
     private List<Program> getPrograms( CommonQueryRequest queryRequest )
     {
-        List<Program> programs = programService.getPrograms( queryRequest.getProgram() ).stream().collect( toList() );
+        List<Program> programs = ImmutableList.copyOf( programService.getPrograms( queryRequest.getProgram() ) );
         boolean programsCouldNotBeRetrieved = programs.size() != queryRequest.getProgram().size();
 
         if ( programsCouldNotBeRetrieved )
@@ -121,21 +123,39 @@ public class CommonQueryRequestMapper
         return programs;
     }
 
-    private List<DimensionIdentifier<Program, ProgramStage, DimensionParam>> retrieveDimensionParams(
+    private List<List<DimensionIdentifier<Program, ProgramStage, DimensionParam>>> retrieveDimensionParams(
         CommonQueryRequest request, List<Program> programs, List<OrganisationUnit> userOrgUnits )
     {
-        List<DimensionIdentifier<Program, ProgramStage, DimensionParam>> dimensionParams = new ArrayList<>();
+        List<List<DimensionIdentifier<Program, ProgramStage, DimensionParam>>> dimensionParams = new ArrayList<>();
 
         for ( DimensionParamType dimensionParamType : DimensionParamType.values() )
         {
             // A Collection of dimensions or filters coming from the request
             Collection<String> dimensionsOrFilter = dimensionParamType.getUidsGetter().apply( request );
-            dimensionParams.addAll( dimensionsOrFilter.stream()
-                .map( dof -> toDimensionIdentifier( dof, dimensionParamType, request, programs, userOrgUnits ) )
-                .collect( toList() ) );
+            dimensionParams.addAll(
+                ImmutableList.copyOf( dimensionsOrFilter.stream()
+                    .map( this::splitOnOrIfNecessary )
+                    .map( dof -> toDimensionIdentifier( dof, dimensionParamType, request, programs, userOrgUnits ) )
+                    .collect( toList() ) ) );
         }
 
         return ImmutableList.copyOf( dimensionParams );
+    }
+
+    private List<DimensionIdentifier<Program, ProgramStage, DimensionParam>> toDimensionIdentifier(
+        Collection<String> dimensions, DimensionParamType dimensionParamType, CommonQueryRequest request,
+        List<Program> programs, List<OrganisationUnit> userOrgUnits )
+    {
+        return dimensions.stream()
+            .map( dimensionAsString -> toDimensionIdentifier( dimensionAsString, dimensionParamType, request, programs,
+                userOrgUnits ) )
+            .collect( toList() );
+    }
+
+    private List<String> splitOnOrIfNecessary( String dimensionAsString )
+    {
+        return Arrays.stream( dimensionAsString.split( DIMENSION_OR_SEPARATOR ) )
+            .collect( toList() );
     }
 
     /**
