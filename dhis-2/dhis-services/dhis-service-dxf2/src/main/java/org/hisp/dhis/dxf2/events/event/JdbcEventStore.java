@@ -1138,7 +1138,7 @@ public class JdbcEventStore implements EventStore
                         else
                         {
                             mapSqlParameterSource.addValue( bindParameter,
-                                StringUtils.lowerCase( filter.getSqlFilter() ) );
+                                StringUtils.lowerCase( filter.getSqlBindFilter() ) );
 
                             eventDataValuesWhereSql.append( " " )
                                 .append( queryCol )
@@ -1164,7 +1164,7 @@ public class JdbcEventStore implements EventStore
                         else
                         {
                             mapSqlParameterSource.addValue( bindParameter,
-                                StringUtils.lowerCase( filter.getSqlFilter() ) );
+                                StringUtils.lowerCase( filter.getSqlBindFilter() ) );
 
                             sqlBuilder.append( "and lower(" )
                                 .append( optCol )
@@ -2078,31 +2078,39 @@ public class JdbcEventStore implements EventStore
 
             for ( OrganisationUnit organisationUnit : organisationUnits )
             {
-                String boundOuPath = ":ouPath_" + ++count;
-                String boundOuLevel = ":ouLevel:" + ++count;
-
+                String boundOuPath = "ouPath_" + ++count;
                 OrganisationUnit unit = organisationUnitStore.getByUid( organisationUnit.getUid() );
+                mapSqlParameterSource.addValue( boundOuPath, unit.getPath() + "%" );
 
                 if ( params.isOrganisationUnitMode( OrganisationUnitSelectionMode.DESCENDANTS )
                     || params.isOrganisationUnitMode( OrganisationUnitSelectionMode.CHILDREN ) )
                 {
-                    mapSqlParameterSource.addValue( boundOuPath, "%" + unit.getPath() + "%" );
+                    String boundOuLevel = "ouLevel_" + count;
+
                     mapSqlParameterSource.addValue( boundOuLevel,
                         params.isOrganisationUnitMode( OrganisationUnitSelectionMode.DESCENDANTS ) ? unit.getLevel()
                             : unit.getLevel() + 1 );
 
+                    String hierarchyLevel = params.isOrganisationUnitMode( OrganisationUnitSelectionMode.DESCENDANTS )
+                        ? " ou.hierarchylevel > "
+                        : " ou.hierarchylevel = ";
+
                     orgUnitSql.append( orHlp.or() )
                         .append( path )
+                        .append( ":" )
                         .append( boundOuPath )
                         .append( " " )
                         .append( hlp.whereAnd() )
-                        .append( " ou.hierarchylevel > " )
-                        .append( boundOuLevel );
+                        .append( hierarchyLevel )
+                        .append( ":" )
+                        .append( boundOuLevel )
+                        .append( " " );
                 }
                 else
                 {
                     orgUnitSql.append( orHlp.or() )
                         .append( path )
+                        .append( ":" )
                         .append( boundOuPath )
                         .append( " " );
                 }
