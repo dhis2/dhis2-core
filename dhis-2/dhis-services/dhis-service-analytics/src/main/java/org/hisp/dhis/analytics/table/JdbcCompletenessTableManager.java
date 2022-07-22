@@ -160,7 +160,7 @@ public class JdbcCompletenessTableManager
             "where cdr.lastupdated >= '" + getLongDateString( partition.getStartDate() ) + "' " +
             "and cdr.lastupdated < '" + getLongDateString( partition.getEndDate() ) + "')";
 
-        invokeTimeAndLog( sql, "Remove updated data values" );
+        invokeTimeAndLog( sql, "Remove updated data values", true );
     }
 
     @Override
@@ -227,7 +227,7 @@ public class JdbcCompletenessTableManager
 
         final String sql = insert + select;
 
-        invokeTimeAndLog( sql, String.format( "Populate %s", tableName ) );
+        invokeTimeAndLog( sql, String.format( "Populate %s", tableName ), false );
     }
 
     private List<AnalyticsTableColumn> getDimensionColumns()

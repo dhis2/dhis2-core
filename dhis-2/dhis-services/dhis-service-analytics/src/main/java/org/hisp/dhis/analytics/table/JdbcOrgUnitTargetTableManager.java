@@ -159,7 +159,7 @@ public class JdbcOrgUnitTargetTableManager
             "left join _orgunitstructure ous on ougm.organisationunitid=ous.organisationunitid " +
             "left join _organisationunitgroupsetstructure ougs on ougm.organisationunitid=ougs.organisationunitid";
 
-        invokeTimeAndLog( sql, tableName );
+        invokeTimeAndLog( sql, tableName, false );
     }
 
     private List<AnalyticsTableColumn> getDimensionColumns()

@@ -540,18 +540,28 @@ public abstract class AbstractJdbcTableManager
     }
 
     /**
-     * Executes the given SQL statement. Logs and times the operation.
+     * Executes the given SQL statement. Logs and times the operation. If the
+     * "sql" fails to execute it will be silenced. No exceptions are raised.
      *
      * @param sql the SQL statement.
      * @param logMessage the custom log message to include in the log statement.
+     * @param silently if true, no exception is raised in case of execution
+     *        failure.
      */
-    protected void invokeTimeAndLog( String sql, String logMessage )
+    protected void invokeTimeAndLog( String sql, String logMessage, boolean silently )
     {
         log.debug( "{} with SQL: '{}'", logMessage, sql );
 
         Timer timer = new SystemTimer().start();
 
-        jdbcTemplate.execute( sql );
+        if ( silently )
+        {
+            executeSilently( sql );
+        }
+        else
+        {
+            jdbcTemplate.execute( sql );
+        }
 
         log.info( "{} in: {}", logMessage, timer.stop().toString() );
     }
