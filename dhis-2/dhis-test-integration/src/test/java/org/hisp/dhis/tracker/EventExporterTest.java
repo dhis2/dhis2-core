@@ -44,10 +44,8 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.events.event.EventSearchParams;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.event.Events;
-import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
@@ -154,6 +152,7 @@ class EventExporterTest extends TrackerTest
         assertNotNull( events );
         assertEquals( 1, events.getEvents().size() );
     }
+
     @Test
     void testExportEventsWhenFilteringByDataElementsWithProgramTypeFilter()
     {
