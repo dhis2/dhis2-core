@@ -27,18 +27,23 @@
  */
 package org.hisp.dhis.analytics.shared;
 
+import static java.util.Collections.emptyList;
 import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
+import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.system.grid.ListGrid;
 import org.junit.jupiter.api.Test;
 
 /**
- * // TODO: Improve unit tests and coverage
- *
  * Unit tests for {@link GridHeaders}
  *
  * @author maikel arabori
@@ -57,5 +62,93 @@ class GridHeadersTest
         // Then
         assertNotNull( headers, "Should not be null: headers" );
         assertEquals( 1, headers.size(), "Should have size of 1: headers" );
+    }
+
+    @Test
+    void testFromWhenColumnsIsNull()
+    {
+        // Given
+        final List<Column> columns = null;
+
+        // When
+        final IllegalArgumentException thrown = assertThrows( IllegalArgumentException.class,
+            () -> GridHeaders.from( columns ) );
+
+        // Then
+        assertEquals( "The 'columns' must not be null/empty", thrown.getMessage(),
+            "Exception message does not match." );
+    }
+
+    @Test
+    void testFromWhenColumnsIsEmpty()
+    {
+        // Given
+        final List<Column> columns = emptyList();
+
+        // When
+        final IllegalArgumentException thrown = assertThrows( IllegalArgumentException.class,
+            () -> GridHeaders.from( columns ) );
+
+        // Then
+        assertEquals( "The 'columns' must not be null/empty", thrown.getMessage(),
+            "Exception message does not match." );
+    }
+
+    @Test
+    void testFromWhenColumnsHasNullElement()
+    {
+        // Given
+        final List<Column> columns = new ArrayList<>();
+        columns.add( Column.builder().value( "name" ).type( TEXT ).build() );
+        columns.add( null ); // null element
+
+        // When
+        final IllegalArgumentException thrown = assertThrows( IllegalArgumentException.class,
+            () -> GridHeaders.from( columns ) );
+
+        // Then
+        assertEquals( "The 'columns' must not contain null elements", thrown.getMessage(),
+            "Exception message does not match." );
+    }
+
+    @Test
+    void testRetainHeadersOnGrid()
+    {
+        // Given
+        final GridHeader headerA = new GridHeader( "headerA", "Header A" );
+        final GridHeader headerB = new GridHeader( "headerB", "Header B" );
+        final GridHeader headerC = new GridHeader( "headerC", "Header C" );
+
+        final Grid grid = new ListGrid();
+        grid.addHeader( headerA );
+        grid.addHeader( headerB );
+        grid.addHeader( headerC );
+        grid.addRow().addValue( 1 ).addValue( "a" ).addValue( "a-1" );
+        grid.addRow().addValue( 2 ).addValue( "b" ).addValue( "b-1" );
+        grid.addRow().addValue( 3 ).addValue( "c" ).addValue( "c-1" );
+
+        final Set<String> headers = new LinkedHashSet<>( List.of( "headerA", "headerB" ) );
+
+        // When
+        GridHeaders.retainHeadersOnGrid( grid, headers );
+
+        // Then
+        assertEquals( 2, grid.getHeaderWidth(), "Should have size of 2: getHeaderWidth()" );
+        assertEquals( "headerA", grid.getHeaders().get( 0 ).getName(), "Should be named 'headerA': getName()" );
+        assertEquals( "headerB", grid.getHeaders().get( 1 ).getName(), "Should be named 'headerB': getName()" );
+    }
+
+    @Test
+    void testRetainHeadersOnGridWhenGridIsNull()
+    {
+        // Given
+        final Set<String> headers = new LinkedHashSet<>( List.of( "headerA", "headerB" ) );
+
+        // When
+        final IllegalArgumentException thrown = assertThrows( IllegalArgumentException.class,
+            () -> GridHeaders.retainHeadersOnGrid( null, headers ) );
+
+        // Then
+        assertEquals( "The 'grid' cannot be null", thrown.getMessage(), "Exception message does not match." );
     }
 }

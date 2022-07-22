@@ -31,14 +31,18 @@ import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.analytics.shared.LabelMapper.getLabelOf;
 import static org.springframework.util.Assert.noNullElements;
 import static org.springframework.util.Assert.notEmpty;
+import static org.springframework.util.Assert.notNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
+import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 
 /**
- * This class is responsible for encapsulating the grid header creation.
+ * This class is responsible for encapsulating the grid header creation and
+ * provide supportive methods related to headers.
  *
  * @author maikel arabori
  */
@@ -73,5 +77,26 @@ public class GridHeaders
         }
 
         return headers;
+    }
+
+    /**
+     * This method will retain the given headers in the give Grid. If the set of
+     * headers provided is null or empty, no changes will be made to the Grid.
+     * Its headers will remain as is.
+     *
+     * @param grid
+     * @param headersToRetain
+     */
+    public static void retainHeadersOnGrid( final Grid grid, final Set<String> headersToRetain )
+    {
+        notNull( grid, "The 'grid' cannot be null" );
+
+        final boolean hasHeadersToRetain = isNotEmpty( headersToRetain );
+
+        if ( hasHeadersToRetain )
+        {
+            grid.retainColumns( headersToRetain );
+            grid.repositionColumns( grid.repositionHeaders( new ArrayList<>( headersToRetain ) ) );
+        }
     }
 }

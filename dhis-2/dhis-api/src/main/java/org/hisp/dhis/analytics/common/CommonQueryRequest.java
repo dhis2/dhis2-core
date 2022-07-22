@@ -27,9 +27,11 @@
  */
 package org.hisp.dhis.analytics.common;
 
-import java.util.Collection;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+
 import java.util.Date;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import lombok.Builder;
@@ -39,24 +41,43 @@ import lombok.Setter;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 
+/**
+ * This object wraps the common params/request attributes used across analytics
+ * requests.
+ *
+ * Some objects are specified as Set/LinkedHashSet as they might require
+ * enforcing ordering and avoid duplications.
+ */
 @Getter
 @Setter
 @Builder( toBuilder = true )
 public class CommonQueryRequest
 {
+
     @Builder.Default
-    private Collection<String> program = new HashSet<>();
+    private Set<String> program = new LinkedHashSet<>();
 
     private String userOrgUnit;
 
+    /**
+     * The dimensions to be returned/filtered at.
+     */
     @Builder.Default
-    private Set<String> dimension = new HashSet<>();
+    private Set<String> dimension = new LinkedHashSet<>();
 
+    /**
+     * The filters to be applied at querying time.
+     */
     @Builder.Default
     private Set<String> filter = new HashSet<>();
 
+    /**
+     * When set, the headers in the response object will match the specified
+     * headers in the respective order. As the headers should not be duplicated,
+     * this is represented as Set.
+     */
     @Builder.Default
-    private Set<String> headers = new HashSet<>();
+    private Set<String> headers = new LinkedHashSet<>();
 
     private OrganisationUnitSelectionMode ouMode;
 
@@ -66,16 +87,37 @@ public class CommonQueryRequest
     @Builder.Default
     private Set<String> desc = new HashSet<>();
 
-    private boolean skipMeta;
-
-    private boolean skipData;
-
     @Builder.Default
     private IdScheme dataIdScheme = IdScheme.UID;
 
+    /**
+     * When set to true, this will count the total of pages related to the
+     * current query. If enabled this might cause performance issues depending
+     * on the result size.
+     */
     private boolean totalPages;
 
     private Date relativePeriodDate;
+
+    /**
+     * Indicates if the metadata element should be omitted from the response.
+     */
+    private boolean skipMeta;
+
+    /**
+     * Indicates if the data should be omitted from the response.
+     */
+    private boolean skipData;
+
+    /**
+     * Indicates if the headers should be omitted from the response.
+     */
+    private boolean skipHeaders;
+
+    /**
+     * Indicates if full precision should be provided for numeric values.
+     */
+    private boolean skipRounding;
 
     /**
      * Custom date filters
@@ -90,4 +132,8 @@ public class CommonQueryRequest
 
     private String lastUpdated;
 
+    public boolean hasHeaders()
+    {
+        return isNotEmpty( getHeaders() );
+    }
 }

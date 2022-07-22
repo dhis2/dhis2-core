@@ -35,5 +35,6 @@ package org.hisp.dhis.analytics.common;
  */
 public interface Processor<T>
 {
+
     T process( T object );
 }

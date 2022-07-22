@@ -113,7 +113,7 @@ public class CommonQueryRequestMapper
 
             List<String> missingProgramUids = Optional.of( queryRequest )
                 .map( CommonQueryRequest::getProgram )
-                .orElse( Collections.emptyList() ).stream()
+                .orElse( Collections.emptySet() ).stream()
                 .filter( uidFromRequest -> !foundProgramUids.contains( uidFromRequest ) )
                 .collect( toList() );
 

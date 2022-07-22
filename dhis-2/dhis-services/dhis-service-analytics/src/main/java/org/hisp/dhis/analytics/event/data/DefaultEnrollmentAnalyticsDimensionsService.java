@@ -53,7 +53,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-class DefaultEnrollmentAnalyticsDimensionsService implements EnrollmentAnalyticsDimensionsService
+public class DefaultEnrollmentAnalyticsDimensionsService implements EnrollmentAnalyticsDimensionsService
 {
     @NonNull
     private final ProgramService programService;
@@ -114,5 +114,4 @@ class DefaultEnrollmentAnalyticsDimensionsService implements EnrollmentAnalytics
     {
         return !trackedEntityAttribute.isConfidentialBool();
     }
-
 }

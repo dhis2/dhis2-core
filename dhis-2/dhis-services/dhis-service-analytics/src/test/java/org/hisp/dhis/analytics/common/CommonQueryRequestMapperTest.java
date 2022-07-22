@@ -120,7 +120,7 @@ class CommonQueryRequestMapperTest
 
         final CommonQueryRequest aCommonQueryRequest = CommonQueryRequest.builder()
             .userOrgUnit( "PEZNsGbZaVJ" )
-            .program( List.of( "ur1Edk5Oe2n", "lxAQ7Zs9VYR" ) )
+            .program( Set.of( "ur1Edk5Oe2n", "lxAQ7Zs9VYR" ) )
             .dimension( Set.of( dimension + ":" + queryItem ) )
             .build();
 
@@ -187,7 +187,7 @@ class CommonQueryRequestMapperTest
 
         final CommonQueryRequest aCommonQueryRequest = CommonQueryRequest.builder()
             .userOrgUnit( orgUnitUid )
-            .program( List.of( "lxAQ7Zs9VYR", "ur1Edk5Oe2n" ) )
+            .program( Set.of( "lxAQ7Zs9VYR", "ur1Edk5Oe2n" ) )
             .filter( Set.of( "ur1Edk5Oe2n.OU:PEZNsGbZaVJ" ) )
             .build();
 
@@ -259,7 +259,7 @@ class CommonQueryRequestMapperTest
 
         final CommonQueryRequest aCommonQueryRequest = CommonQueryRequest.builder()
             .userOrgUnit( queryItemFilter )
-            .program( List.of( "lxAQ7Zs9VYR", "ur1Edk5Oe2n" ) )
+            .program( Set.of( "lxAQ7Zs9VYR", "ur1Edk5Oe2n" ) )
             .dimension( Set.of( dimension + ":" + queryItemDimension ) )
             .filter( Set.of( "ur1Edk5Oe2n.OU:PEZNsGbZaVJ" ) )
             .build();
@@ -330,7 +330,7 @@ class CommonQueryRequestMapperTest
             .userOrgUnit( "PEZNsGbZaVJ" )
             .dimension( Set.of( dimension + ":" + queryItem ) )
             // Two programs, where "ur1Edk5Oe2n" does not exist.
-            .program( List.of( "lxAQ7Zs9VYR", "ur1Edk5Oe2n" ) )
+            .program( Set.of( "lxAQ7Zs9VYR", "ur1Edk5Oe2n" ) )
             .build();
 
         when( dataQueryService.getUserOrgUnits( null, aCommonQueryRequest.getUserOrgUnit() ) )
@@ -374,7 +374,7 @@ class CommonQueryRequestMapperTest
 
         final CommonQueryRequest aCommonQueryRequest = CommonQueryRequest.builder()
             .userOrgUnit( "PEZNsGbZaVJ" )
-            .program( List.of( "lxAQ7Zs9VYR", "ur1Edk5Oe2n" ) )
+            .program( Set.of( "lxAQ7Zs9VYR", "ur1Edk5Oe2n" ) )
             .dimension( Set.of( dimension + ":" + queryItem ) )
             .build();
 
@@ -485,7 +485,7 @@ class CommonQueryRequestMapperTest
 
         final CommonQueryRequest aCommonQueryRequest = CommonQueryRequest.builder()
             .userOrgUnit( "PEZNsGbZaVJ" )
-            .program( List.of( "ur1Edk5Oe2n", "lxAQ7Zs9VYR" ) )
+            .program( Set.of( "ur1Edk5Oe2n", "lxAQ7Zs9VYR" ) )
             .dimension(
                 Set.of( dimension + ":" + queryItem_1 + DIMENSION_OR_SEPARATOR + dimension + ":" + queryItem_2 ) )
             .build();

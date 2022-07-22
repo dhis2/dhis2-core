@@ -69,7 +69,7 @@ public class TeiAnalyticsQueryService
      * @return the populated Grid object
      * @throws IllegalArgumentException if the given teiParams is null
      */
-    public Grid getTeiGrid( final TeiQueryParams teiQueryParams )
+    public Grid getGrid( final TeiQueryParams teiQueryParams )
     {
         notNull( teiQueryParams, "The 'teiParams' must not be null" );
 
@@ -79,5 +79,4 @@ public class TeiAnalyticsQueryService
 
         return gridAdaptor.createGrid( headers, result.result() );
     }
-
 }

@@ -28,11 +28,12 @@
 package org.hisp.dhis.analytics.common;
 
 /**
- * Simple interface that enables validation capabilities to the implementer.
+ * Simple interface that enables validation capabilities.
  *
  * @param <T>
  */
 public interface Validator<T>
 {
+
     void validate( T object );
 }
