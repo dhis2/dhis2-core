@@ -697,7 +697,7 @@ public enum ConfigurationKey
      * Limits the number of trackedentityinstance records that should be
      * retrieved from database
      */
-    TRACKER_TEI_HARD_LIMIT( "tracker.trackedentity.hardlimit", "50000", false );
+    TRACKER_TRACKED_ENTITY_HARDLIMIT( "tracker.trackedentity.hardlimit", "50000", false );
 
     private final String key;
 

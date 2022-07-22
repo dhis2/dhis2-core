@@ -1370,7 +1370,7 @@ public class HibernateTrackedEntityInstanceStore
         StringBuilder limitOffset = new StringBuilder();
         int limit = params.getMaxTeiLimit();
         int teiHardLimit = Integer
-            .parseInt( configurationProvider.getProperty( ConfigurationKey.TRACKER_TEI_HARD_LIMIT ) );
+            .parseInt( configurationProvider.getProperty( ConfigurationKey.TRACKER_TRACKED_ENTITY_HARDLIMIT ) );
 
         if ( limit == 0 && !params.isPaging() )
         {
