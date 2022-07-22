@@ -167,7 +167,7 @@ public class QueryFilter
         return "'" + encodedFilter + "'";
     }
 
-    public String getSqlFilter()
+    public String getSqlBindFilter()
     {
         if ( LIKE == operator || NLIKE == operator || ILIKE == operator || NILIKE == operator )
         {
