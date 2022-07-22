@@ -44,9 +44,13 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.events.event.EventSearchParams;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.event.Events;
+import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -120,6 +124,43 @@ class EventExporterTest extends TrackerTest
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
         params.setProgramInstances( Sets.newHashSet( "TvctPPhpD8u" ) );
+
+        DataElement dataElement = dataElement( "DATAEL00001" );
+
+        params.setDataElements( Set.of(
+            new QueryItem( dataElement, QueryOperator.LIKE, "val", dataElement.getValueType(),
+                null, null ) ) );
+
+        Events events = eventService.getEvents( params );
+        assertNotNull( events );
+        assertEquals( 1, events.getEvents().size() );
+    }
+
+    @Test
+    void testExportEventsWhenFilteringByDataElementsWithStatusFilter()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setProgramInstances( Sets.newHashSet( "TvctPPhpD8u" ) );
+        params.setProgramStatus( ProgramStatus.ACTIVE );
+
+        DataElement dataElement = dataElement( "DATAEL00001" );
+
+        params.setDataElements( Set.of(
+            new QueryItem( dataElement, QueryOperator.LIKE, "val", dataElement.getValueType(),
+                null, null ) ) );
+
+        Events events = eventService.getEvents( params );
+        assertNotNull( events );
+        assertEquals( 1, events.getEvents().size() );
+    }
+    @Test
+    void testExportEventsWhenFilteringByDataElementsWithProgramTypeFilter()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setProgramInstances( Sets.newHashSet( "TvctPPhpD8u" ) );
+        params.setProgramType( ProgramType.WITH_REGISTRATION );
 
         DataElement dataElement = dataElement( "DATAEL00001" );
 
@@ -229,8 +270,8 @@ class EventExporterTest extends TrackerTest
         DataElement dataElement = dataElement( "DATAEL00005" );
 
         params.setDataElements(
-          Set.of( new QueryItem( dataElement, QueryOperator.EQ, "option1", dataElement.getValueType(),
-            null, dataElement.getOptionSet() ) ) );
+            Set.of( new QueryItem( dataElement, QueryOperator.EQ, "option1", dataElement.getValueType(),
+                null, dataElement.getOptionSet() ) ) );
 
         Events events = eventService.getEvents( params );
         assertNotNull( events );
@@ -243,13 +284,13 @@ class EventExporterTest extends TrackerTest
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.setProgramInstances( Sets.newHashSet( "TvctPPhpD8u", "TvctPPhpD8z") );
+        params.setProgramInstances( Sets.newHashSet( "TvctPPhpD8u", "TvctPPhpD8z" ) );
 
         DataElement dataElement = dataElement( "DATAEL00005" );
 
         params.setDataElements(
-          Set.of( new QueryItem( dataElement, QueryOperator.IN, "option1;option2", dataElement.getValueType(),
-            null, dataElement.getOptionSet() ) ) );
+            Set.of( new QueryItem( dataElement, QueryOperator.IN, "option1;option2", dataElement.getValueType(),
+                null, dataElement.getOptionSet() ) ) );
 
         Events events = eventService.getEvents( params );
         assertNotNull( events );
@@ -266,8 +307,8 @@ class EventExporterTest extends TrackerTest
         DataElement dataElement = dataElement( "DATAEL00005" );
 
         params
-          .setDataElements( Set.of( new QueryItem( dataElement, QueryOperator.LIKE, "opt", dataElement.getValueType(),
-            null, dataElement.getOptionSet() ) ) );
+            .setDataElements( Set.of( new QueryItem( dataElement, QueryOperator.LIKE, "opt", dataElement.getValueType(),
+                null, dataElement.getOptionSet() ) ) );
 
         Events events = eventService.getEvents( params );
         assertNotNull( events );

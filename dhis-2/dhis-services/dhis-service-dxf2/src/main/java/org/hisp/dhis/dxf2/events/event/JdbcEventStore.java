@@ -1222,9 +1222,9 @@ public class JdbcEventStore implements EventStore
 
         if ( params.getProgramStatus() != null )
         {
-            mapSqlParameterSource.addValue( "program_status", "'" + params.getProgramStatus() + "'" );
+            mapSqlParameterSource.addValue( "program_status", params.getProgramStatus().name() );
 
-            sqlBuilder.append( hlp.whereAnd() ).append( " pi.status = " ).append( ":program_status" );
+            sqlBuilder.append( hlp.whereAnd() ).append( " pi.status = " ).append( ":program_status " );
         }
 
         if ( params.getFollowUp() != null )
@@ -1284,7 +1284,7 @@ public class JdbcEventStore implements EventStore
 
         if ( params.getProgramType() != null )
         {
-            mapSqlParameterSource.addValue( "programType", "'" + params.getProgramType() + "'" );
+            mapSqlParameterSource.addValue( "programType", params.getProgramType().name() );
 
             sqlBuilder.append( hlp.whereAnd() ).append( " p.type = " ).append( ":programType" )
                 .append( " " );
