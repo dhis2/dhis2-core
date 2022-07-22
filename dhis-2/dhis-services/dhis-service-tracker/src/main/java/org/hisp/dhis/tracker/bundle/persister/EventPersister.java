@@ -174,7 +174,6 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
 
         payloadDataValues.forEach( dv -> {
 
-            final String persistedValue;
             DataElement dataElement = preheat.getDataElement( dv.getDataElement() );
             checkNotNull( dataElement,
                 "Data element should never be NULL here if validation is enforced before commit." );
