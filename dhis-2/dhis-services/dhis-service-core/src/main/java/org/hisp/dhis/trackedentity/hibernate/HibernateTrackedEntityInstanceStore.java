@@ -80,6 +80,8 @@ import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.dxf2.events.event.EventContext;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitStore;
@@ -149,18 +151,23 @@ public class HibernateTrackedEntityInstanceStore
 
     private final StatementBuilder statementBuilder;
 
+    private final DhisConfigurationProvider configurationProvider;
+
     public HibernateTrackedEntityInstanceStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService,
-        AclService aclService, OrganisationUnitStore organisationUnitStore, StatementBuilder statementBuilder )
+        AclService aclService, OrganisationUnitStore organisationUnitStore, StatementBuilder statementBuilder,
+        DhisConfigurationProvider configurationProvider )
     {
         super( sessionFactory, jdbcTemplate, publisher, TrackedEntityInstance.class, currentUserService, aclService,
             false );
 
         checkNotNull( statementBuilder );
         checkNotNull( organisationUnitStore );
+        checkNotNull( configurationProvider );
 
         this.statementBuilder = statementBuilder;
         this.organisationUnitStore = organisationUnitStore;
+        this.configurationProvider = configurationProvider;
     }
 
     // -------------------------------------------------------------------------
@@ -1334,7 +1341,7 @@ public class HibernateTrackedEntityInstanceStore
     /**
      * Generates the LIMIT and OFFSET part of the subquery. The limit is decided
      * by several factors: 1. maxteilimit in a TET or Program 2. PageSize and
-     * Offset 3. No paging
+     * Offset 3. No paging (TRACKER_TEI_HARD_LIMIT will apply in this case)
      * <p>
      * If maxteilimit is not 0, it means this is the hard limit of the number of
      * results. In the case where there exists more results than maxteilimit, we
@@ -1347,7 +1354,9 @@ public class HibernateTrackedEntityInstanceStore
      * If we dont have maxteilimit, and paging on, we set normal paging
      * parameters
      * <p>
-     * If neither maxteilimit or paging is set, we have no limit.
+     * If neither maxteilimit or paging is set, we have no limit set by the
+     * user, so we use {@link ConfigurationKey} TRACKER_TEI_HARD_LIMIT. This is
+     * configurable in dhis.conf.
      * <p>
      * The limit is set in the subquery, so the latter joins have fewer rows to
      * consider.
@@ -1360,17 +1369,24 @@ public class HibernateTrackedEntityInstanceStore
     {
         StringBuilder limitOffset = new StringBuilder();
         int limit = params.getMaxTeiLimit();
+        int teiHardLimit = Integer
+            .parseInt( configurationProvider.getProperty( ConfigurationKey.TRACKER_TEI_HARD_LIMIT ) );
 
         if ( limit == 0 && !params.isPaging() )
         {
-            return "";
+            return limitOffset
+                .append( LIMIT )
+                .append( SPACE )
+                .append( teiHardLimit )
+                .append( SPACE )
+                .toString();
         }
         else if ( limit == 0 && params.isPaging() )
         {
             return limitOffset
                 .append( LIMIT )
                 .append( SPACE )
-                .append( params.getPageSizeWithDefault() )
+                .append( Math.min( teiHardLimit, params.getPageSizeWithDefault() ) )
                 .append( SPACE )
                 .append( OFFSET )
                 .append( SPACE )
@@ -1383,7 +1399,7 @@ public class HibernateTrackedEntityInstanceStore
             return limitOffset
                 .append( LIMIT )
                 .append( SPACE )
-                .append( Math.min( limit + 1, params.getPageSizeWithDefault() ) )
+                .append( Math.min( limit + 1, Math.min( teiHardLimit, params.getPageSizeWithDefault() ) ) )
                 .append( SPACE )
                 .append( OFFSET )
                 .append( SPACE )

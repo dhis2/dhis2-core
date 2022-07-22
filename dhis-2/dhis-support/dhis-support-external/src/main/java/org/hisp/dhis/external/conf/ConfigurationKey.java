@@ -691,7 +691,13 @@ public enum ConfigurationKey
      * for each user. If configured to 1, the user will be logged out from any
      * other session when a new session is started.
      */
-    MAX_SESSIONS_PER_USER( "max.sessions.per_user", "10", false );
+    MAX_SESSIONS_PER_USER( "max.sessions.per_user", "10", false ),
+
+    /**
+     * Limits the number of trackedentityinstance records that should be
+     * retrieved from database
+     */
+    TRACKER_TEI_HARD_LIMIT( "tracker.trackedentity.hardlimit", "50000", false );
 
     private final String key;
 
