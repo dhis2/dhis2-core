@@ -50,6 +50,7 @@ import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.user.User;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -375,24 +376,42 @@ public class JpaQueryUtils
     public static String generateSQlQueryForSharingCheck( String sharingColumn, User user, String access )
     {
         return generateSQlQueryForSharingCheck( sharingColumn, access, user.getUid(),
-            user.getGroups().stream().map( BaseIdentifiableObject::getUid ).collect( toList() ) );
+            getGroupsIds( user ) );
     }
 
     private static String generateSQlQueryForSharingCheck( String sharingColumn, String access, String userId,
-        List<String> userGroupIds )
+        String groupsIds )
     {
-        String groupsIds = CollectionUtils.isEmpty( userGroupIds )
-            ? null
-            : "{" + String.join( ",", userGroupIds ) + "}";
+        return String.format( generateSQlQueryForSharingCheck( groupsIds ), sharingColumn, userId, groupsIds, access );
+    }
 
-        String sql = " ( %1$s->>'owner' is null or %1$s->>'owner' = '%2$s') "
+    public static String generateSQlQueryForSharingCheck( String sharingColumn, User user, String access,
+        MapSqlParameterSource mapSqlParameterSource )
+    {
+        String groupsIds = getGroupsIds( user );
+
+        mapSqlParameterSource
+            .addValue( "user_sharing", user.getUid() )
+            .addValue( "user_access", user.getUid() );
+
+        return String
+            .format( generateSQlQueryForSharingCheck( groupsIds )
+                .replace( "'%2$s'", "%2$s" )
+                .replace( "'%4$s'", "%4$s" ),
+                sharingColumn,
+                ":user_sharing", groupsIds,
+                ":user_access" );
+    }
+
+    private static String generateSQlQueryForSharingCheck( String groupsIds )
+    {
+        return " ( %1$s->>'owner' is null or %1$s->>'owner' = '%2$s') "
             + " or %1$s->>'public' like '%4$s' or %1$s->>'public' is null "
             + " or (" + JsonbFunctions.HAS_USER_ID + "( %1$s, '%2$s') = true "
             + " and " + JsonbFunctions.CHECK_USER_ACCESS + "( %1$s, '%2$s', '%4$s' ) = true )  "
             + (StringUtils.isEmpty( groupsIds ) ? ""
                 : " or ( " + JsonbFunctions.HAS_USER_GROUP_IDS + "( %1$s, '%3$s') = true "
                     + " and " + JsonbFunctions.CHECK_USER_GROUPS_ACCESS + "( %1$s, '%4$s', '%3$s') = true )");
-        return String.format( sql, sharingColumn, userId, groupsIds, access );
     }
 
     public static String generateHqlQueryForSharingCheck( String tableName, User user, String access )
@@ -410,7 +429,20 @@ public class JpaQueryUtils
         List<String> userGroupIds )
     {
         return "(" + sqlToHql( tableName,
-            generateSQlQueryForSharingCheck( tableName + ".sharing", access, userId, userGroupIds ) ) + ")";
+            generateSQlQueryForSharingCheck( tableName + ".sharing", access, userId, getGroupsIds( userGroupIds ) ) )
+            + ")";
+    }
+
+    private static String getGroupsIds( User user )
+    {
+        return getGroupsIds( user.getGroups().stream().map( BaseIdentifiableObject::getUid ).collect( toList() ) );
+    }
+
+    private static String getGroupsIds( List<String> userGroupIds )
+    {
+        return CollectionUtils.isEmpty( userGroupIds )
+            ? null
+            : "{" + String.join( ",", userGroupIds ) + "}";
     }
 
     private static String sqlToHql( String tableName, String sql )
