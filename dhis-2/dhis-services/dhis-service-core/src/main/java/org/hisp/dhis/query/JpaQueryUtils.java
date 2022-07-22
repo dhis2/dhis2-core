@@ -392,14 +392,17 @@ public class JpaQueryUtils
 
         mapSqlParameterSource
             .addValue( "user_sharing", user.getUid() )
-            .addValue( "user_access", user.getUid() );
+            .addValue( "user_access", access )
+            .addValue( "user_groups", groupsIds );
 
         return String
             .format( generateSQlQueryForSharingCheck( groupsIds )
                 .replace( "'%2$s'", "%2$s" )
-                .replace( "'%4$s'", "%4$s" ),
+                .replace( "'%4$s'", "%4$s" )
+                .replace( "'%3$s'", "%3$s" ),
                 sharingColumn,
-                ":user_sharing", groupsIds,
+                ":user_sharing",
+                ":user_groups",
                 ":user_access" );
     }
 
