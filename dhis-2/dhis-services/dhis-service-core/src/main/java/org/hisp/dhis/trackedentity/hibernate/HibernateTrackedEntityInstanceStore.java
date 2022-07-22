@@ -1341,7 +1341,8 @@ public class HibernateTrackedEntityInstanceStore
     /**
      * Generates the LIMIT and OFFSET part of the subquery. The limit is decided
      * by several factors: 1. maxteilimit in a TET or Program 2. PageSize and
-     * Offset 3. No paging (TRACKER_TEI_HARD_LIMIT will apply in this case)
+     * Offset 3. No paging (TRACKER_TRACKED_ENTITY_HARDLIMIT will apply in this
+     * case)
      * <p>
      * If maxteilimit is not 0, it means this is the hard limit of the number of
      * results. In the case where there exists more results than maxteilimit, we
@@ -1355,8 +1356,8 @@ public class HibernateTrackedEntityInstanceStore
      * parameters
      * <p>
      * If neither maxteilimit or paging is set, we have no limit set by the
-     * user, so we use {@link ConfigurationKey} TRACKER_TEI_HARD_LIMIT. This is
-     * configurable in dhis.conf.
+     * user, so we use {@link ConfigurationKey}
+     * TRACKER_TRACKED_ENTITY_HARDLIMIT. This is configurable in dhis.conf.
      * <p>
      * The limit is set in the subquery, so the latter joins have fewer rows to
      * consider.
