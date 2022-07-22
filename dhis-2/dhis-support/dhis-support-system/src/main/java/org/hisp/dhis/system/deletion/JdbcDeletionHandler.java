@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.system.deletion;
 
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,5 +63,15 @@ public abstract class JdbcDeletionHandler extends DeletionHandler
     protected final int delete( String sql, Map<String, Object> parameters )
     {
         return npTemplate.update( sql, parameters );
+    }
+
+    protected final String firstMatch( String sql, Map<String, Object> parameters )
+    {
+        if ( !sql.toLowerCase().contains( "limit 1" ) )
+        {
+            sql = sql + " limit 1";
+        }
+        List<String> names = npTemplate.queryForList( sql, new MapSqlParameterSource( parameters ), String.class );
+        return names.isEmpty() ? null : names.get( 0 );
     }
 }

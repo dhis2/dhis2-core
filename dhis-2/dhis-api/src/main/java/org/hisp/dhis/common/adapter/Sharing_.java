@@ -25,37 +25,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.apikey;
-
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.EmbeddedObject;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+package org.hisp.dhis.common.adapter;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * This class defines metadata model property's names of
+ * {@link org.hisp.dhis.user.sharing.Sharing}
  */
-@JsonTypeInfo( use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type" )
-@JsonSubTypes( {
-    @JsonSubTypes.Type( value = IpAllowedList.class, name = "IpAllowedList" ),
-    @JsonSubTypes.Type( value = RefererAllowedList.class, name = "RefererAllowedList" ),
-    @JsonSubTypes.Type( value = MethodAllowedList.class, name = "MethodAllowedList" ) } )
-@JacksonXmlRootElement( localName = "apiTokenAttribute", namespace = DxfNamespaces.DXF_2_0 )
-public abstract class ApiTokenAttribute implements EmbeddedObject
+public class Sharing_
 {
-    protected final String type;
+    public static final String PUBLIC = "public";
 
-    protected ApiTokenAttribute( String type )
-    {
-        this.type = type;
-    }
+    public static final String OWNER = "owner";
 
-    @JsonProperty
-    public String getType()
-    {
-        return type;
-    }
+    public static final String EXTERNAL = "external";
+
+    public static final String USERS = "users";
+
+    public static final String USER_GROUPS = "userGroups";
 }
