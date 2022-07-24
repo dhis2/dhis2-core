@@ -320,9 +320,7 @@ public class HibernateTrackedEntityInstanceStore
 
         log.debug( "Tracked entity instance count SQL: " + sql );
 
-        Integer count = jdbcTemplate.queryForObject( sql, Integer.class );
-
-        return count;
+        return jdbcTemplate.queryForObject( sql, Integer.class );
     }
 
     /**
@@ -1330,7 +1328,7 @@ public class HibernateTrackedEntityInstanceStore
         if ( params.getOrders() != null )
         {
             List<String> ordersIdentifier = params.getOrders().stream()
-                .map( order -> order.getField() )
+                .map( OrderParam::getField )
                 .collect( Collectors.toList() );
 
             return params.getAttributesAndFilters().stream()
