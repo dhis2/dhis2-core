@@ -81,14 +81,12 @@ import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.dxf2.events.event.EventContext;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceStoreServicesSupplier;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
@@ -147,27 +145,18 @@ public class HibernateTrackedEntityInstanceStore
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private final OrganisationUnitStore organisationUnitStore;
-
-    private final StatementBuilder statementBuilder;
-
-    private final DhisConfigurationProvider configurationProvider;
+    private final TrackedEntityInstanceStoreServicesSupplier instanceStoreServicesSupplier;
 
     public HibernateTrackedEntityInstanceStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService,
-        AclService aclService, OrganisationUnitStore organisationUnitStore, StatementBuilder statementBuilder,
-        DhisConfigurationProvider configurationProvider )
+        AclService aclService, TrackedEntityInstanceStoreServicesSupplier instanceStoreServicesSupplier )
     {
         super( sessionFactory, jdbcTemplate, publisher, TrackedEntityInstance.class, currentUserService, aclService,
             false );
 
-        checkNotNull( statementBuilder );
-        checkNotNull( organisationUnitStore );
-        checkNotNull( configurationProvider );
+        checkNotNull( instanceStoreServicesSupplier );
 
-        this.statementBuilder = statementBuilder;
-        this.organisationUnitStore = organisationUnitStore;
-        this.configurationProvider = configurationProvider;
+        this.instanceStoreServicesSupplier = instanceStoreServicesSupplier;
     }
 
     // -------------------------------------------------------------------------
@@ -220,7 +209,7 @@ public class HibernateTrackedEntityInstanceStore
     private String encodeAndQuote( Collection<String> elements )
     {
         return getQuotedCommaDelimitedString( elements.stream()
-            .map( element -> statementBuilder.encode( element, false ) )
+            .map( element -> instanceStoreServicesSupplier.getStatementBuilder().encode( element, false ) )
             .collect( Collectors.toList() ) );
     }
 
@@ -554,9 +543,10 @@ public class HibernateTrackedEntityInstanceStore
         {
             orderAttributes
                 .append( ", " )
-                .append( statementBuilder.columnQuote( orderAttribute.getItemId() ) )
+                .append( instanceStoreServicesSupplier.getStatementBuilder().columnQuote( orderAttribute.getItemId() ) )
                 .append( ".value AS " )
-                .append( statementBuilder.columnQuote( orderAttribute.getItemId() ) );
+                .append(
+                    instanceStoreServicesSupplier.getStatementBuilder().columnQuote( orderAttribute.getItemId() ) );
         }
 
         return orderAttributes.toString();
@@ -677,9 +667,9 @@ public class HibernateTrackedEntityInstanceStore
     private void joinAttributeValueWithQueryParameter( TrackedEntityInstanceQueryParams params,
         StringBuilder attributes )
     {
-        final String regexp = statementBuilder.getRegexpMatch();
-        final String wordStart = statementBuilder.getRegexpWordStart();
-        final String wordEnd = statementBuilder.getRegexpWordEnd();
+        final String regexp = instanceStoreServicesSupplier.getStatementBuilder().getRegexpMatch();
+        final String wordStart = instanceStoreServicesSupplier.getStatementBuilder().getRegexpWordStart();
+        final String wordEnd = instanceStoreServicesSupplier.getStatementBuilder().getRegexpWordEnd();
         final String anyChar = "\\.*?";
         final String start = params.getQuery().isOperator( QueryOperator.LIKE ) ? anyChar : wordStart;
         final String end = params.getQuery().isOperator( QueryOperator.LIKE ) ? anyChar : wordEnd;
@@ -699,7 +689,7 @@ public class HibernateTrackedEntityInstanceStore
 
         for ( String queryToken : getTokens( params.getQuery().getFilter() ) )
         {
-            final String query = statementBuilder.encode( queryToken, false );
+            final String query = instanceStoreServicesSupplier.getStatementBuilder().encode( queryToken, false );
 
             attributes
                 .append( orHlp.or() )
@@ -727,7 +717,7 @@ public class HibernateTrackedEntityInstanceStore
     {
         for ( QueryItem queryItem : filterItems )
         {
-            String col = statementBuilder.columnQuote( queryItem.getItemId() );
+            String col = instanceStoreServicesSupplier.getStatementBuilder().columnQuote( queryItem.getItemId() );
             String teaId = col + ".trackedentityattributeid";
             String teav = "lower(" + col + ".value)";
             String teiid = col + ".trackedentityinstanceid";
@@ -745,7 +735,8 @@ public class HibernateTrackedEntityInstanceStore
 
             for ( QueryFilter filter : queryItem.getFilters() )
             {
-                String encodedFilter = statementBuilder.encode( filter.getFilter(), false );
+                String encodedFilter = instanceStoreServicesSupplier.getStatementBuilder().encode( filter.getFilter(),
+                    false );
                 attributes
                     .append( "AND " )
                     .append( teav )
@@ -781,12 +772,12 @@ public class HibernateTrackedEntityInstanceStore
 
             joinOrderAttributes
                 .append( " LEFT JOIN trackedentityattributevalue AS " )
-                .append( statementBuilder.columnQuote( orderAttribute.getItemId() ) )
+                .append( instanceStoreServicesSupplier.getStatementBuilder().columnQuote( orderAttribute.getItemId() ) )
                 .append( " ON " )
-                .append( statementBuilder.columnQuote( orderAttribute.getItemId() ) )
+                .append( instanceStoreServicesSupplier.getStatementBuilder().columnQuote( orderAttribute.getItemId() ) )
                 .append( ".trackedentityinstanceid = TEI.trackedentityinstanceid " )
                 .append( "AND " )
-                .append( statementBuilder.columnQuote( orderAttribute.getItemId() ) )
+                .append( instanceStoreServicesSupplier.getStatementBuilder().columnQuote( orderAttribute.getItemId() ) )
                 .append( ".trackedentityattributeid = " )
                 .append( orderAttribute.getItem().getId() )
                 .append( SPACE );
@@ -854,7 +845,8 @@ public class HibernateTrackedEntityInstanceStore
             for ( OrganisationUnit organisationUnit : params.getOrganisationUnits() )
             {
 
-                OrganisationUnit byUid = organisationUnitStore.getByUid( organisationUnit.getUid() );
+                OrganisationUnit byUid = instanceStoreServicesSupplier.getOrganisationUnitStore()
+                    .getByUid( organisationUnit.getUid() );
 
                 orgUnits
                     .append( orHlp.or() )
@@ -1206,7 +1198,8 @@ public class HibernateTrackedEntityInstanceStore
             {
                 groupBy
                     .append( ", TEI." )
-                    .append( statementBuilder.columnQuote( orderAttribute.getItemId() ) )
+                    .append(
+                        instanceStoreServicesSupplier.getStatementBuilder().columnQuote( orderAttribute.getItemId() ) )
                     .append( SPACE );
             }
 
@@ -1273,12 +1266,14 @@ public class HibernateTrackedEntityInstanceStore
             if ( innerOrder )
             {
                 orderFields
-                    .add( statementBuilder.columnQuote( order.getField() ) + ".value " + order.getDirection() );
+                    .add( instanceStoreServicesSupplier.getStatementBuilder().columnQuote( order.getField() )
+                        + ".value " + order.getDirection() );
             }
             else
             {
                 orderFields.add(
-                    "TEI." + statementBuilder.columnQuote( order.getField() ) + SPACE + order.getDirection() );
+                    "TEI." + instanceStoreServicesSupplier.getStatementBuilder().columnQuote( order.getField() ) + SPACE
+                        + order.getDirection() );
             }
         }
     }
@@ -1341,8 +1336,8 @@ public class HibernateTrackedEntityInstanceStore
     /**
      * Generates the LIMIT and OFFSET part of the subquery. The limit is decided
      * by several factors: 1. maxteilimit in a TET or Program 2. PageSize and
-     * Offset 3. No paging (TRACKER_TRACKED_ENTITY_HARDLIMIT will apply in this
-     * case)
+     * Offset 3. No paging (TRACKER_TRACKED_ENTITY_QUERY_LIMIT will apply in
+     * this case)
      * <p>
      * If maxteilimit is not 0, it means this is the hard limit of the number of
      * results. In the case where there exists more results than maxteilimit, we
@@ -1357,7 +1352,7 @@ public class HibernateTrackedEntityInstanceStore
      * <p>
      * If neither maxteilimit or paging is set, we have no limit set by the
      * user, so we use {@link ConfigurationKey}
-     * TRACKER_TRACKED_ENTITY_HARDLIMIT. This is configurable in dhis.conf.
+     * TRACKER_TRACKED_ENTITY_QUERY_LIMIT. This is configurable in dhis.conf.
      * <p>
      * The limit is set in the subquery, so the latter joins have fewer rows to
      * consider.
@@ -1370,15 +1365,16 @@ public class HibernateTrackedEntityInstanceStore
     {
         StringBuilder limitOffset = new StringBuilder();
         int limit = params.getMaxTeiLimit();
-        int teiHardLimit = Integer
-            .parseInt( configurationProvider.getProperty( ConfigurationKey.TRACKER_TRACKED_ENTITY_HARDLIMIT ) );
+        int teiQueryLimit = Integer
+            .parseInt( instanceStoreServicesSupplier.getConfigurationProvider()
+                .getProperty( ConfigurationKey.TRACKER_TRACKED_ENTITY_QUERY_LIMIT ) );
 
         if ( limit == 0 && !params.isPaging() )
         {
             return limitOffset
                 .append( LIMIT )
                 .append( SPACE )
-                .append( teiHardLimit )
+                .append( teiQueryLimit )
                 .append( SPACE )
                 .toString();
         }
@@ -1387,7 +1383,7 @@ public class HibernateTrackedEntityInstanceStore
             return limitOffset
                 .append( LIMIT )
                 .append( SPACE )
-                .append( Math.min( teiHardLimit, params.getPageSizeWithDefault() ) )
+                .append( Math.min( teiQueryLimit, params.getPageSizeWithDefault() ) )
                 .append( SPACE )
                 .append( OFFSET )
                 .append( SPACE )
@@ -1400,7 +1396,7 @@ public class HibernateTrackedEntityInstanceStore
             return limitOffset
                 .append( LIMIT )
                 .append( SPACE )
-                .append( Math.min( limit + 1, Math.min( teiHardLimit, params.getPageSizeWithDefault() ) ) )
+                .append( Math.min( limit + 1, Math.min( teiQueryLimit, params.getPageSizeWithDefault() ) ) )
                 .append( SPACE )
                 .append( OFFSET )
                 .append( SPACE )
@@ -1572,7 +1568,7 @@ public class HibernateTrackedEntityInstanceStore
     {
         if ( uid != null )
         {
-            return Optional.ofNullable( organisationUnitStore.getByUid( uid ) )
+            return Optional.ofNullable( instanceStoreServicesSupplier.getOrganisationUnitStore().getByUid( uid ) )
                 .orElseGet( () -> new OrganisationUnit( "" ) ).getName();
         }
 
