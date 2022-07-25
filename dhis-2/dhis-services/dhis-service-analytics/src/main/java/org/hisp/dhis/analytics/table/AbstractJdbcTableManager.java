@@ -677,7 +677,7 @@ public abstract class AbstractJdbcTableManager
 
     /**
      * Create a analytics partition table, when partition is not null and there
-     * is a valid column for partition index otherwise create a analytics table
+     * is a valid column for partition index otherwise create an analytics table
      * (non partition)
      *
      * @param table the partition table.
