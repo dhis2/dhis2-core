@@ -28,8 +28,11 @@
 package org.hisp.dhis.tracker.programrule;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
-import static org.hisp.dhis.tracker.Assertions.assertNoImportErrors;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasProperty;
+import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
@@ -148,7 +151,7 @@ class ProgramRuleIntegrationTest extends TrackerTest
         TrackerImportReport trackerImportReport = trackerImportService
             .importTracker( fromJson( "tracker/program_event.json" ) );
 
-        assertNoImportErrors( trackerImportReport );
+        assertNoErrors( trackerImportReport );
         assertEquals( 1, trackerImportReport.getValidationReport().getWarnings().size() );
     }
 
@@ -160,7 +163,7 @@ class ProgramRuleIntegrationTest extends TrackerTest
         params.getEvents().clear();
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
 
-        assertNoImportErrors( trackerImportReport );
+        assertNoErrors( trackerImportReport );
 
         params = fromJson( "tracker/tei_enrollment_event.json" );
         params.getTrackedEntities().clear();
@@ -170,7 +173,7 @@ class ProgramRuleIntegrationTest extends TrackerTest
         params.getEvents().forEach( e -> e.setOccurredAt( oneWeekFromNow ) );
         trackerImportReport = trackerImportService.importTracker( params );
 
-        assertNoImportErrors( trackerImportReport );
+        assertNoErrors( trackerImportReport );
         assertEquals( 4, trackerImportReport.getValidationReport().getWarnings().size() );
         // TODO: Review this test when DHIS2-13468 is fixed
         assertThat( trackerImportReport.getValidationReport().getWarnings(),
@@ -183,12 +186,12 @@ class ProgramRuleIntegrationTest extends TrackerTest
     {
         TrackerImportReport trackerImportTeiReport = trackerImportService
             .importTracker( fromJson( "tracker/single_tei.json" ) );
-        assertNoImportErrors( trackerImportTeiReport );
+        assertNoErrors( trackerImportTeiReport );
 
         TrackerImportReport trackerImportEnrollmentReport = trackerImportService
             .importTracker( fromJson( "tracker/single_enrollment.json" ) );
 
-        assertNoImportErrors( trackerImportEnrollmentReport );
+        assertNoErrors( trackerImportEnrollmentReport );
         assertEquals( 2, trackerImportEnrollmentReport.getValidationReport().getWarnings().size() );
     }
 
@@ -200,7 +203,7 @@ class ProgramRuleIntegrationTest extends TrackerTest
 
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
 
-        assertNoImportErrors( trackerImportReport );
+        assertNoErrors( trackerImportReport );
         List<TrackerWarningReport> warningReports = trackerImportReport.getValidationReport().getWarnings();
         assertEquals( 6, warningReports.size() );
         assertEquals( 4,
@@ -213,7 +216,7 @@ class ProgramRuleIntegrationTest extends TrackerTest
 
         trackerImportReport = trackerImportService.importTracker( params );
 
-        assertNoImportErrors( trackerImportReport );
+        assertNoErrors( trackerImportReport );
         warningReports = trackerImportReport.getValidationReport().getWarnings();
         assertEquals( 4, warningReports.size() );
         assertThat( trackerImportReport.getValidationReport().getWarnings(),
@@ -226,7 +229,7 @@ class ProgramRuleIntegrationTest extends TrackerTest
 
         trackerImportReport = trackerImportService.importTracker( params );
 
-        assertNoImportErrors( trackerImportReport );
+        assertNoErrors( trackerImportReport );
         warningReports = trackerImportReport.getValidationReport().getWarnings();
         assertEquals( 4, warningReports.size() );
         assertThat( trackerImportReport.getValidationReport().getWarnings(),
