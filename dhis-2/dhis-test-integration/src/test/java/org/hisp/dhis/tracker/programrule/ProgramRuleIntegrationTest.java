@@ -33,9 +33,6 @@ import static org.hisp.dhis.tracker.Assertions.assertNoImportErrors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.List;
 
 import org.hisp.dhis.dataelement.DataElement;
@@ -153,31 +150,6 @@ class ProgramRuleIntegrationTest extends TrackerTest
     }
 
     @Test
-    void testImportProgramEventWithFutureDate()
-        throws IOException
-    {
-        TrackerImportParams params = fromJson( "tracker/tei_enrollment_event.json" );
-        params.getEvents().clear();
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
-
-        assertNoImportErrors( trackerImportReport );
-
-        params = fromJson( "tracker/tei_enrollment_event.json" );
-        params.getTrackedEntities().clear();
-        params.getEnrollments().clear();
-
-        Instant oneWeekFromNow = LocalDateTime.now().plusWeeks( 1 ).toInstant( ZoneOffset.UTC );
-        params.getEvents().forEach( e -> e.setOccurredAt( oneWeekFromNow ) );
-        trackerImportReport = trackerImportService.importTracker( params );
-
-        assertNoImportErrors( trackerImportReport );
-        assertEquals( 4, trackerImportReport.getValidationReport().getWarnings().size() );
-        // TODO: Review this test when DHIS2-13468 is fixed
-        assertThat( trackerImportReport.getValidationReport().getWarnings(),
-            hasItem( hasProperty( "message", containsString( "Only event present is in the future" ) ) ) );
-    }
-
-    @Test
     void testImportEnrollmentSuccessWithWarningRaised()
         throws IOException
     {
@@ -189,7 +161,7 @@ class ProgramRuleIntegrationTest extends TrackerTest
             .importTracker( fromJson( "tracker/single_enrollment.json" ) );
 
         assertNoImportErrors( trackerImportEnrollmentReport );
-        assertEquals( 2, trackerImportEnrollmentReport.getValidationReport().getWarnings().size() );
+        assertEquals( 1, trackerImportEnrollmentReport.getValidationReport().getWarnings().size() );
     }
 
     @Test
