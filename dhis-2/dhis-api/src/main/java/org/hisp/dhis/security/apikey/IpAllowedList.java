@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.security.apikey;
 
-import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -44,7 +43,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class IpAllowedList extends ApiTokenAttribute implements Serializable
+public class IpAllowedList extends ApiTokenAttribute
 {
     private Set<String> allowedIps = new HashSet<>();
 
