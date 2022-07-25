@@ -129,12 +129,6 @@ class TrackedEntityInstanceServiceTest
     private User superUser;
 
     @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
-    @Override
     public void setUpTest()
     {
         super.userService = _userService;

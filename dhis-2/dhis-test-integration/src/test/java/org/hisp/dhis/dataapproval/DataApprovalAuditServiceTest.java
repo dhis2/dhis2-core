@@ -222,12 +222,6 @@ class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
     // Set up/tear down
     // -------------------------------------------------------------------------
     @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
-    @Override
     public void setUpTest()
         throws Exception
     {

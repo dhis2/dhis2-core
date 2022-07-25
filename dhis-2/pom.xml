@@ -64,7 +64,7 @@
     <!-- *Dependencies* -->
 
     <!-- DHIS2 Rule Engine -->
-    <dhis2-rule-engine.version>2.0.39</dhis2-rule-engine.version>
+    <dhis2-rule-engine.version>2.0.40</dhis2-rule-engine.version>
 
     <!-- HISP Quick and Staxwax -->
     <dhis-hisp-quick.version>1.4.0</dhis-hisp-quick.version>
