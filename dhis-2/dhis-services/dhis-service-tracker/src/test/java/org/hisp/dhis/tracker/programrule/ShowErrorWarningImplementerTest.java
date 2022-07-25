@@ -339,20 +339,4 @@ class ShowErrorWarningImplementerTest extends DhisConvenienceTest
             RuleEffect.create( "", actionShowError, EVALUATED_DATA ),
             RuleEffect.create( "", actionShowErrorOnCompletion, EVALUATED_DATA ) );
     }
-
-    private List<RuleEffect> getRuleEffectsLinkedToDataAnotherElement()
-    {
-        RuleAction actionShowWarning = RuleActionShowWarning.create( IssueType.WARNING.name() + CONTENT, DATA,
-            ANOTHER_DATA_ELEMENT_ID, DATA_ELEMENT );
-        RuleAction actionShowWarningOnComplete = RuleActionWarningOnCompletion
-            .create( IssueType.WARNING.name() + CONTENT, DATA, ANOTHER_DATA_ELEMENT_ID, DATA_ELEMENT );
-        RuleAction actionShowError = RuleActionShowError.create( IssueType.ERROR.name() + CONTENT, DATA,
-            ANOTHER_DATA_ELEMENT_ID, DATA_ELEMENT );
-        RuleAction actionShowErrorOnCompletion = RuleActionErrorOnCompletion.create( IssueType.ERROR.name() + CONTENT,
-            DATA, ANOTHER_DATA_ELEMENT_ID, DATA_ELEMENT );
-        return Lists.newArrayList( RuleEffect.create( "", actionShowWarning, EVALUATED_DATA ),
-            RuleEffect.create( "", actionShowWarningOnComplete, EVALUATED_DATA ),
-            RuleEffect.create( "", actionShowError, EVALUATED_DATA ),
-            RuleEffect.create( "", actionShowErrorOnCompletion, EVALUATED_DATA ) );
-    }
 }

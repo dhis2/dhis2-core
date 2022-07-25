@@ -33,6 +33,9 @@ import static org.hisp.dhis.tracker.Assertions.assertNoImportErrors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 
 import org.hisp.dhis.dataelement.DataElement;
@@ -150,6 +153,31 @@ class ProgramRuleIntegrationTest extends TrackerTest
     }
 
     @Test
+    void testImportProgramEventWithFutureDate()
+        throws IOException
+    {
+        TrackerImportParams params = fromJson( "tracker/tei_enrollment_event.json" );
+        params.getEvents().clear();
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
+
+        assertNoImportErrors( trackerImportReport );
+
+        params = fromJson( "tracker/tei_enrollment_event.json" );
+        params.getTrackedEntities().clear();
+        params.getEnrollments().clear();
+
+        Instant oneWeekFromNow = LocalDateTime.now().plusWeeks( 1 ).toInstant( ZoneOffset.UTC );
+        params.getEvents().forEach( e -> e.setOccurredAt( oneWeekFromNow ) );
+        trackerImportReport = trackerImportService.importTracker( params );
+
+        assertNoImportErrors( trackerImportReport );
+        assertEquals( 4, trackerImportReport.getValidationReport().getWarnings().size() );
+        // TODO: Review this test when DHIS2-13468 is fixed
+        assertThat( trackerImportReport.getValidationReport().getWarnings(),
+            hasItem( hasProperty( "message", containsString( "Only event present is in the future" ) ) ) );
+    }
+
+    @Test
     void testImportEnrollmentSuccessWithWarningRaised()
         throws IOException
     {
@@ -161,7 +189,7 @@ class ProgramRuleIntegrationTest extends TrackerTest
             .importTracker( fromJson( "tracker/single_enrollment.json" ) );
 
         assertNoImportErrors( trackerImportEnrollmentReport );
-        assertEquals( 1, trackerImportEnrollmentReport.getValidationReport().getWarnings().size() );
+        assertEquals( 2, trackerImportEnrollmentReport.getValidationReport().getWarnings().size() );
     }
 
     @Test
@@ -174,10 +202,10 @@ class ProgramRuleIntegrationTest extends TrackerTest
 
         assertNoImportErrors( trackerImportReport );
         List<TrackerWarningReport> warningReports = trackerImportReport.getValidationReport().getWarnings();
-        assertEquals( 4, warningReports.size() );
-        assertEquals( 3,
+        assertEquals( 6, warningReports.size() );
+        assertEquals( 4,
             warningReports.stream().filter( w -> w.getTrackerType().equals( TrackerType.EVENT ) ).count() );
-        assertEquals( 1,
+        assertEquals( 2,
             warningReports.stream().filter( w -> w.getTrackerType().equals( TrackerType.ENROLLMENT ) ).count() );
 
         params = fromJson( "tracker/event_update_no_datavalue.json" );
@@ -187,7 +215,7 @@ class ProgramRuleIntegrationTest extends TrackerTest
 
         assertNoImportErrors( trackerImportReport );
         warningReports = trackerImportReport.getValidationReport().getWarnings();
-        assertEquals( 3, warningReports.size() );
+        assertEquals( 4, warningReports.size() );
         assertThat( trackerImportReport.getValidationReport().getWarnings(),
             hasItem( hasProperty( "warningCode", equalTo( TrackerErrorCode.E1308 ) ) ) );
         assertThat( trackerImportReport.getValidationReport().getWarnings(), hasItem( hasProperty( "message", equalTo(
@@ -200,7 +228,7 @@ class ProgramRuleIntegrationTest extends TrackerTest
 
         assertNoImportErrors( trackerImportReport );
         warningReports = trackerImportReport.getValidationReport().getWarnings();
-        assertEquals( 3, warningReports.size() );
+        assertEquals( 4, warningReports.size() );
         assertThat( trackerImportReport.getValidationReport().getWarnings(),
             hasItem( hasProperty( "warningCode", equalTo( TrackerErrorCode.E1308 ) ) ) );
         assertThat( trackerImportReport.getValidationReport().getWarnings(), hasItem( hasProperty( "message", equalTo(
