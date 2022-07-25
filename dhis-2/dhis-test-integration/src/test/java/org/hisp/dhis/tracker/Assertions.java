@@ -29,11 +29,14 @@ package org.hisp.dhis.tracker;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.function.Supplier;
 
+import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
+import org.hisp.dhis.tracker.report.TrackerValidationReport;
 
 public class Assertions
 {
@@ -57,5 +60,13 @@ public class Assertions
                 } );
             return msg.toString();
         };
+    }
+
+    public static void assertHasWarning( TrackerValidationReport report, TrackerErrorCode code )
+    {
+        assertTrue( report.hasWarnings(), "warning not found since report has no warnings" );
+        assertTrue( report.hasWarning( warning -> code == warning.getWarningCode() ),
+            String.format( "warning with code %s not found in report with warning(s) %s", code,
+                report.getWarnings() ) );
     }
 }
