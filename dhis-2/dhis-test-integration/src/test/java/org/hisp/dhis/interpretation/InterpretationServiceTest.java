@@ -55,7 +55,6 @@ import com.google.common.collect.Sets;
 /**
  * @author Lars Helge Overland
  */
-@Disabled
 class InterpretationServiceTest extends TransactionalIntegrationTest
 {
 

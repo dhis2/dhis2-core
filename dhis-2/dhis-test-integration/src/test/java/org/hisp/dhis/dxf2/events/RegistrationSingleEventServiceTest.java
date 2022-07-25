@@ -152,7 +152,6 @@ class RegistrationSingleEventServiceTest extends TransactionalIntegrationTest
         manager.update( programStageA );
         manager.update( programA );
         createUserAndInjectSecurityContext( true );
-        manager.flush();
     }
 
     @Test

@@ -262,8 +262,6 @@ class EventImportTest extends TransactionalIntegrationTest
         manager.save( pi );
         event = createEvent( "eventUid001" );
         createUserAndInjectSecurityContext( true );
-        // Flush all data to disk
-        manager.flush();
     }
 
     @Test
