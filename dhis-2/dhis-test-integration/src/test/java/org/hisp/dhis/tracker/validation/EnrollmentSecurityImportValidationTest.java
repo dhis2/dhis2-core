@@ -31,7 +31,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasProperty;
-import static org.hisp.dhis.tracker.Assertions.assertNoImportErrors;
+import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.hisp.dhis.tracker.validation.Users.USER_2;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -170,7 +170,7 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest
     {
         setUpMetadata( "tracker/tracker_basic_metadata.json" );
         injectAdminUser();
-        assertNoImportErrors(
+        assertNoErrors(
             trackerImportService.importTracker( fromJson( "tracker/validations/enrollments_te_te-data.json" ) ) );
     }
 
@@ -252,8 +252,10 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest
         TrackerImportParams params = fromJson( "tracker/validations/enrollments_no-access-program.json" );
         params.setUser( user );
         params.setImportStrategy( TrackerImportStrategy.CREATE );
+
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
-        assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
+
+        assertNoErrors( trackerImportReport );
     }
 
     @Test
