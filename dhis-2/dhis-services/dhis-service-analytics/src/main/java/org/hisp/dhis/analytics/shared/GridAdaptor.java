@@ -62,7 +62,8 @@ public class GridAdaptor
      * @throws IllegalArgumentException if headers is null/empty or contain at
      *         least one null element, or if the queryResult is null
      */
-    public Grid createGrid( final List<GridHeader> headers, final Map<Column, List<Object>> resultMap )
+    public Grid createGrid( final List<GridHeader> headers, final boolean skipHeaders,
+        final Map<Column, List<Object>> resultMap )
     {
         notEmpty( headers, "The 'headers' must not be null/empty" );
         noNullElements( headers, "The 'headers' must not contain null elements" );
@@ -83,8 +84,13 @@ public class GridAdaptor
                 rowsAdded = true;
             }
 
-            // Note that the header column must match the result map key.
-            grid.addHeader( header ).addColumn( columnRows );
+            if ( !skipHeaders )
+            {
+                // Note that the header column must match the result map key.
+                grid.addHeader( header );
+            }
+
+            grid.addColumn( columnRows );
         }
 
         return grid;

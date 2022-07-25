@@ -40,6 +40,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
+import org.hisp.dhis.analytics.common.CommonQueryRequestDto;
 import org.hisp.dhis.analytics.common.Processor;
 import org.hisp.dhis.analytics.common.QueryRequest;
 import org.hisp.dhis.analytics.common.Validator;
@@ -116,10 +117,32 @@ class TeiQueryController
         @PathVariable
         final String trackedEntityType,
         final TeiQueryRequest teiQueryRequest,
-        final CommonQueryRequest commonQueryRequest,
+        final CommonQueryRequestDto commonQueryRequestDto,
         final AnalyticsPagingCriteria pagingRequest,
         final HttpServletResponse response )
     {
+
+        final CommonQueryRequest commonQueryRequest = CommonQueryRequest.builder().build()
+            .withAsc( commonQueryRequestDto.getAsc() )
+            .withDesc( commonQueryRequestDto.getDesc() )
+            .withDimension( commonQueryRequestDto.getDimension() )
+            .withDataIdScheme( commonQueryRequestDto.getDataIdScheme() )
+            .withEnrollmentDate( commonQueryRequestDto.getEnrollmentDate() )
+            .withEventDate( commonQueryRequestDto.getEventDate() )
+            .withFilter( commonQueryRequestDto.getFilter() )
+            .withHeaders( commonQueryRequestDto.getHeaders() )
+            .withIncidentDate( commonQueryRequestDto.getIncidentDate() )
+            .withLastUpdated( commonQueryRequestDto.getLastUpdated() )
+            .withOuMode( commonQueryRequestDto.getOuMode() )
+            .withProgram( commonQueryRequestDto.getPrograms() )
+            .withRelativePeriodDate( commonQueryRequestDto.getRelativePeriodDate() )
+            .withScheduledDate( commonQueryRequestDto.getScheduledDate() )
+            .withSkipData( commonQueryRequestDto.isSkipData() )
+            .withSkipHeaders( commonQueryRequestDto.isSkipHeaders() )
+            .withSkipMeta( commonQueryRequestDto.isSkipMeta() )
+            .withSkipRounding( commonQueryRequestDto.isSkipRounding() )
+            .withUserOrgUnit( commonQueryRequestDto.getUserOrgUnit() );
+
         final QueryRequest<TeiQueryRequest> queryRequest = QueryRequest.<TeiQueryRequest> builder()
             .request( teiQueryRequestProcessor.process(
                 teiQueryRequest.withTrackedEntityType( trackedEntityType ) ) )
@@ -138,7 +161,7 @@ class TeiQueryController
 
         retainHeadersOnGrid( grid, queryRequest.getCommonQueryRequest().getHeaders() );
 
-        return teiAnalyticsQueryService.getGrid( params );
+        return teiAnalyticsQueryService.getGrid( params, commonQueryRequest.isSkipHeaders() );
     }
 
     /**

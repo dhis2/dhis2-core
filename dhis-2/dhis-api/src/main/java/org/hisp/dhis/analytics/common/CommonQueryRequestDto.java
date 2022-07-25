@@ -34,10 +34,8 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.With;
 
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -51,27 +49,21 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
  */
 @Getter
 @Setter
-@With
-@Builder( toBuilder = true )
-// @Builder
-public class CommonQueryRequest
+public class CommonQueryRequestDto
 {
 
-    @Builder.Default
-    private Set<String> program = new LinkedHashSet<>();
+    private Set<String> programs = new LinkedHashSet<>();
 
     private String userOrgUnit;
 
     /**
      * The dimensions to be returned/filtered at.
      */
-    @Builder.Default
     private Set<String> dimension = new LinkedHashSet<>();
 
     /**
      * The filters to be applied at querying time.
      */
-    @Builder.Default
     private Set<String> filter = new HashSet<>();
 
     /**
@@ -79,18 +71,14 @@ public class CommonQueryRequest
      * headers in the respective order. As the headers should not be duplicated,
      * this is represented as Set.
      */
-    @Builder.Default
     private Set<String> headers = new LinkedHashSet<>();
 
     private OrganisationUnitSelectionMode ouMode;
 
-    @Builder.Default
     private Set<String> asc = new HashSet<>();
 
-    @Builder.Default
     private Set<String> desc = new HashSet<>();
 
-    @Builder.Default
     private IdScheme dataIdScheme = IdScheme.UID;
 
     private Date relativePeriodDate;

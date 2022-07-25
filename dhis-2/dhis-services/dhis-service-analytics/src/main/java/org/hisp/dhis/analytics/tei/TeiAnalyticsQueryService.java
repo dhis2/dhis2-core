@@ -71,12 +71,17 @@ public class TeiAnalyticsQueryService
      */
     public Grid getGrid( final TeiQueryParams teiQueryParams )
     {
+        return getGrid( teiQueryParams, false );
+    }
+
+    public Grid getGrid( final TeiQueryParams teiQueryParams, final boolean skipHeaders )
+    {
         notNull( teiQueryParams, "The 'teiParams' must not be null" );
 
         final SqlQuery query = (SqlQuery) teiJdbcQuery.from( teiQueryParams );
         final SqlQueryResult result = queryExecutor.execute( query );
         final List<GridHeader> headers = from( query.getColumns() );
 
-        return gridAdaptor.createGrid( headers, result.result() );
+        return gridAdaptor.createGrid( headers, skipHeaders, result.result() );
     }
 }

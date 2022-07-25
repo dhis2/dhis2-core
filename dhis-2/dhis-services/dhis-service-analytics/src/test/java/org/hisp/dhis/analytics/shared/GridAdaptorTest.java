@@ -69,7 +69,7 @@ class GridAdaptorTest
         final Map<Column, List<Object>> mockResultMap = mockResultMap();
 
         // When
-        final Grid grid = gridAdaptor.createGrid( mockGridHeaders, mockResultMap );
+        final Grid grid = gridAdaptor.createGrid( mockGridHeaders, false, mockResultMap );
 
         // Then
         assertNotNull( grid, "Should not be null: grid" );
@@ -89,7 +89,7 @@ class GridAdaptorTest
         // When
         final IllegalArgumentException ex = assertThrows(
             IllegalArgumentException.class,
-            () -> gridAdaptor.createGrid( emptyGridHeaders, anyResultMap ),
+            () -> gridAdaptor.createGrid( emptyGridHeaders, false, anyResultMap ),
             "Expected exception not thrown: createGrid()" );
 
         // Then
