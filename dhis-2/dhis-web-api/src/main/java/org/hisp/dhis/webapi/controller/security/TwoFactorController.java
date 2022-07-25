@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.security;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -42,17 +43,26 @@ import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.hisp.dhis.security.twoFactorAuthenticationUtils;
+import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.security.TwoFactorUtils;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUser;
+import org.hisp.dhis.user.DefaultUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+
+import org.apache.commons.validator.routines.LongValidator;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -60,18 +70,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * @author Henning Håkonsen
  */
-@RestController
-@RequestMapping( value = "/2fa" )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-@AllArgsConstructor
-public class SecurityController
+@RestController @RequestMapping( value = "/2fa" ) @ApiVersion( { DhisApiVersion.DEFAULT,
+    DhisApiVersion.ALL } ) @AllArgsConstructor public class TwoFactorController
 {
+    private final DefaultUserService defaultUserService;
+
     private final SystemSettingManager systemSettingManager;
 
     private final ObjectMapper jsonMapper;
 
-    @GetMapping( value = "/qr", produces = APPLICATION_JSON_VALUE )
-    public void getQrCode( HttpServletRequest request, HttpServletResponse response, @CurrentUser User currentUser )
+    @GetMapping( value = "/qr", produces = APPLICATION_JSON_VALUE ) public void getQrCode( HttpServletRequest request,
+        HttpServletResponse response, @CurrentUser User currentUser )
         throws IOException
     {
         if ( currentUser == null )
@@ -81,7 +90,7 @@ public class SecurityController
 
         String appName = systemSettingManager.getStringSetting( SettingKey.APPLICATION_TITLE );
 
-        String url = twoFactorAuthenticationUtils.generateQrUrl( appName, currentUser );
+        String url = TwoFactorUtils.generateQrUrl( appName, currentUser );
 
         Map<String, Object> map = new HashMap<>();
         map.put( "url", url );
@@ -91,16 +100,15 @@ public class SecurityController
         jsonMapper.writeValue( response.getOutputStream(), map );
     }
 
-    @GetMapping( value = "/authenticate", produces = APPLICATION_JSON_VALUE )
-    @ResponseBody
-    public WebMessage authenticate2FA( @RequestParam String code, @CurrentUser User currentUser )
+    @GetMapping( value = "/authenticate", produces = APPLICATION_JSON_VALUE ) @ResponseBody public WebMessage authenticate2FA(
+        @RequestParam String code, @CurrentUser User currentUser )
     {
         if ( currentUser == null )
         {
             throw new BadCredentialsException( "No current user" );
         }
 
-        if ( !twoFactorAuthenticationUtils.verify( currentUser, code ) )
+        if ( !TwoFactorUtils.verify( currentUser, code ) )
         {
             return unauthorized( "2FA code not authenticated" );
         }
@@ -108,5 +116,35 @@ public class SecurityController
         {
             return ok( "2FA code authenticated" );
         }
+    }
+
+    @PutMapping( value = "/enable2FA", consumes = { "text/*",
+        "application/*" } ) @ResponseStatus( HttpStatus.ACCEPTED ) public void enable2FA(
+        @RequestBody Map<String, String> body, @CurrentUser( required = true ) User currentUser )
+        throws WebMessageException
+    {
+        String code = body.get( "code" );
+        if ( code == null || !LongValidator.getInstance().isValid( code )
+            || !TwoFactorUtils.verify( currentUser, code ) )
+        {
+            throw new WebMessageException( conflict( "Invalid code format" ) );
+        }
+
+        defaultUserService.set2FA( currentUser, true );
+    }
+
+    @PutMapping( value = "/disable2FA", consumes = { "text/*",
+        "application/*" } ) @ResponseStatus( HttpStatus.ACCEPTED ) public void disable2FA(
+        @RequestBody Map<String, String> body, @CurrentUser( required = true ) User currentUser )
+        throws WebMessageException
+    {
+        String code = body.get( "code" );
+        if ( code == null || !LongValidator.getInstance().isValid( code )
+            || !TwoFactorUtils.verify( currentUser, code ) )
+        {
+            throw new WebMessageException( conflict( "Invalid code format" ) );
+        }
+
+        defaultUserService.set2FA( currentUser, false );
     }
 }

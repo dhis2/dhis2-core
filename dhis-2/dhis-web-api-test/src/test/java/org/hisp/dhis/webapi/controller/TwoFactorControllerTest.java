@@ -29,15 +29,16 @@ package org.hisp.dhis.webapi.controller;
 
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.controller.security.TwoFactorController;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests the {@link org.hisp.dhis.webapi.controller.security.SecurityController}
+ * Tests the {@link TwoFactorController}
  * sing (mocked) REST requests.
  *
  * @author Jan Bernitt
  */
-class SecurityControllerTest extends DhisControllerConvenienceTest
+class TwoFactorControllerTest extends DhisControllerConvenienceTest
 {
 
     @Test

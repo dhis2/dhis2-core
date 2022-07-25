@@ -271,7 +271,7 @@ public class User
         {
             uuid = UUID.randomUUID();
         }
-        this.setSecret();
+        this.generateNewSecret();
     }
 
     /**
@@ -550,19 +550,19 @@ public class User
         return secret;
     }
 
-    public void setSecret( String secret )
-    {
-        if ( secret == null )
-        {
-            setSecret();
-        }
-        else
-        {
-            this.secret = secret;
-        }
-    }
+//    public void setSecret( String secret )
+//    {
+//        if ( secret == null )
+//        {
+//            generateNewSecret();
+//        }
+//        else
+//        {
+//            this.secret = secret;
+//        }
+//    }
 
-    private void setSecret()
+    public void generateNewSecret()
     {
         if ( this.secret == null )
         {

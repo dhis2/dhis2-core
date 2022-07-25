@@ -39,7 +39,7 @@ import org.springframework.util.Assert;
 /**
  * @author Henning Håkonsen
  */
-public class twoFactorAuthenticationUtils
+public class TwoFactorUtils
 {
     private static final String APP_NAME_PREFIX = "DHIS 2 ";
 

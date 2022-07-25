@@ -758,6 +758,7 @@ public class DefaultUserService
     @Transactional
     public void set2FA( User user, Boolean twoFa )
     {
+        user.generateNewSecret();
         user.setTwoFA( twoFa );
 
         updateUser( user );
