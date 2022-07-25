@@ -46,8 +46,9 @@ public abstract class JdbcDeletionHandler extends DeletionHandler
 
     protected final int count( String sql, Map<String, Object> parameters )
     {
-        Integer count = npTemplate.queryForObject( sql, new MapSqlParameterSource( parameters ), Integer.class );
-        return count == null ? 0 : count;
+        // OBS! Need to use queryForList to allow no result rows
+        List<Integer> count = npTemplate.queryForList( sql, new MapSqlParameterSource( parameters ), Integer.class );
+        return count.isEmpty() ? 0 : count.get( 0 );
     }
 
     protected final boolean exists( String sql, Map<String, Object> parameters )
