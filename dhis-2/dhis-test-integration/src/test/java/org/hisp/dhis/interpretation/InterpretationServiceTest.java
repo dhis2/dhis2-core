@@ -89,12 +89,6 @@ class InterpretationServiceTest extends TransactionalIntegrationTest
     private Interpretation interpretationC;
 
     @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
-    @Override
     protected void setUpTest()
         throws Exception
     {

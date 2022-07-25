@@ -84,12 +84,6 @@ class HibernateIdentifiableObjectStoreTest extends TransactionalIntegrationTest
         userService = _userService;
     }
 
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
     /**
      * Test Metadata Read access User and UserGroups mapping User1 | User2 |
      * User3 | User 4 Group1 x | | | Group2 X | | | X
