@@ -25,29 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.tracker.deduplication;
 
-import com.google.gson.JsonObject;
-import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.TestRunStorage;
-import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.UserActions;
-import org.hisp.dhis.actions.UserRoleActions;
 import org.hisp.dhis.actions.tracker.PotentialDuplicatesActions;
 import org.hisp.dhis.actions.tracker.importer.TrackerActions;
 import org.hisp.dhis.dto.TrackerApiResponse;
+import org.hisp.dhis.tracker.TrackerApiTest;
 import org.hisp.dhis.tracker.importer.databuilder.TeiDataBuilder;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
+import com.google.gson.JsonObject;
+
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class PotentialDuplicatesApiTest
-    extends ApiTest
+    extends TrackerApiTest
 {
     protected static final String TRACKER_PROGRAM_ID = Constants.TRACKER_PROGRAM_ID;
 
@@ -61,8 +59,6 @@ public class PotentialDuplicatesApiTest
 
     protected TrackerActions trackerActions;
 
-    protected LoginActions loginActions;
-
     protected PotentialDuplicatesActions potentialDuplicatesActions;
 
     @BeforeEach
@@ -70,17 +66,15 @@ public class PotentialDuplicatesApiTest
     {
         trackerActions = new TrackerActions();
         userActions = new UserActions();
-        loginActions = new LoginActions();
         potentialDuplicatesActions = new PotentialDuplicatesActions();
     }
 
     protected String createUserWithAccessToMerge()
     {
         String username = (DataGenerator.randomString()).toLowerCase();
-        String auth = new UserRoleActions().createWithAuthorities( MERGE_AUTHORITY );
-        String userid = userActions.addUser( username, USER_PASSWORD );
+        String userid = userActions.addUserFull( "firstNameA", "lastNameB", username, USER_PASSWORD,
+            MERGE_AUTHORITY );
 
-        userActions.addRoleToUser( userid, auth );
         userActions.grantUserAccessToTAOrgUnits( userid );
         userActions.addUserToUserGroup( userid, Constants.USER_GROUP_ID );
 
@@ -109,14 +103,16 @@ public class PotentialDuplicatesApiTest
     protected TrackerApiResponse createTeiWithEnrollmentsAndEvents( String program, String programStage )
     {
         return trackerActions.postAndGetJobReport( new TeiDataBuilder()
-            .buildWithEnrollmentAndEvent( Constants.TRACKED_ENTITY_TYPE, Constants.ORG_UNIT_IDS[0], program, programStage ) )
+            .buildWithEnrollmentAndEvent( Constants.TRACKED_ENTITY_TYPE, Constants.ORG_UNIT_IDS[0], program,
+                programStage ) )
             .validateSuccessfulImport();
     }
 
     @AfterEach
     public void afterEachPotentialDuplicateTest()
     {
-        // DELETE is not implemented on PotentialDuplicatesController, so there's no point to clean up
+        // DELETE is not implemented on PotentialDuplicatesController, so
+        // there's no point to clean up
         TestRunStorage.removeEntities( "/potentialDuplicates" );
     }
 }

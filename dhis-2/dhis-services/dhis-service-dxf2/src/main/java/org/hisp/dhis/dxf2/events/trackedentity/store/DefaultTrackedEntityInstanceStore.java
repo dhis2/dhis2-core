@@ -28,6 +28,7 @@
 package org.hisp.dhis.dxf2.events.trackedentity.store;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -58,18 +59,18 @@ import com.google.common.collect.Multimap;
 @Repository
 public class DefaultTrackedEntityInstanceStore extends AbstractStore implements TrackedEntityInstanceStore
 {
-    private final static String GET_TEIS_SQL = TrackedEntityInstanceQuery.getQuery();
+    private static final String GET_TEIS_SQL = TrackedEntityInstanceQuery.getQuery();
 
-    private final static String GET_TEI_ATTRIBUTES = TeiAttributeQuery.getQuery();
+    private static final String GET_TEI_ATTRIBUTES = TeiAttributeQuery.getQuery();
 
-    private final static String GET_PROGRAM_OWNERS = "select tei.uid as key, p.uid as prguid, o.uid as ouuid " +
+    private static final String GET_PROGRAM_OWNERS = "select tei.uid as key, p.uid as prguid, o.uid as ouuid " +
         "from trackedentityprogramowner teop " +
         "join program p on teop.programid = p.programid " +
         "join organisationunit o on teop.organisationunitid = o.organisationunitid " +
         "join trackedentityinstance tei on teop.trackedentityinstanceid = tei.trackedentityinstanceid " +
         "where teop.trackedentityinstanceid in (:ids)";
 
-    private final static String GET_OWNERSHIP_DATA_FOR_TEIS_FOR_ALL_PROGRAM = "SELECT tei.uid as tei_uid,tpo.trackedentityinstanceid, tpo.programid, tpo.organisationunitid, p.accesslevel,p.uid as pgm_uid "
+    private static final String GET_OWNERSHIP_DATA_FOR_TEIS_FOR_ALL_PROGRAM = "SELECT tei.uid as tei_uid,tpo.trackedentityinstanceid, tpo.programid, tpo.organisationunitid, p.accesslevel,p.uid as pgm_uid "
         +
         "FROM trackedentityprogramowner TPO " +
         "LEFT JOIN program P on P.programid = TPO.programid " +
@@ -83,7 +84,7 @@ public class DefaultTrackedEntityInstanceStore extends AbstractStore implements 
         +
         "OR (P.accesslevel in ('CLOSED', 'PROTECTED') AND EXISTS(SELECT CS.organisationunitid FROM usermembership CS LEFT JOIN organisationunit OU2 ON OU2.organisationunitid = CS.organisationunitid WHERE userinfoid = :userInfoId AND OU.path LIKE CONCAT(OU2.path, '%')));";
 
-    private final static String GET_OWNERSHIP_DATA_FOR_TEIS_FOR_SPECIFIC_PROGRAM = "SELECT tei.uid as tei_uid,tpo.trackedentityinstanceid, tpo.programid, tpo.organisationunitid, p.accesslevel,p.uid as pgm_uid "
+    private static final String GET_OWNERSHIP_DATA_FOR_TEIS_FOR_SPECIFIC_PROGRAM = "SELECT tei.uid as tei_uid,tpo.trackedentityinstanceid, tpo.programid, tpo.organisationunitid, p.accesslevel,p.uid as pgm_uid "
         +
         "FROM trackedentityprogramowner TPO " +
         "LEFT JOIN program P on P.programid = TPO.programid " +
@@ -96,6 +97,8 @@ public class DefaultTrackedEntityInstanceStore extends AbstractStore implements 
         "HAVING (P.accesslevel in ('OPEN', 'AUDITED') AND (EXISTS(SELECT SS.organisationunitid FROM userteisearchorgunits SS LEFT JOIN organisationunit OU2 ON OU2.organisationunitid = SS.organisationunitid WHERE userinfoid = :userInfoId AND OU.path LIKE CONCAT(OU2.path, '%')) OR EXISTS(SELECT CS.organisationunitid FROM usermembership CS LEFT JOIN organisationunit OU2 ON OU2.organisationunitid = CS.organisationunitid WHERE userinfoid = :userInfoId AND OU.path LIKE CONCAT(OU2.path, '%')))) "
         +
         "OR (P.accesslevel in ('CLOSED', 'PROTECTED') AND EXISTS(SELECT CS.organisationunitid FROM usermembership CS LEFT JOIN organisationunit OU2 ON OU2.organisationunitid = CS.organisationunitid WHERE userinfoid = :userInfoId AND OU.path LIKE CONCAT(OU2.path, '%')));";
+
+    private static final String FILTER_OUT_DELETED_TEIS = "tei.deleted=false";
 
     public DefaultTrackedEntityInstanceStore( @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate )
     {
@@ -113,7 +116,7 @@ public class DefaultTrackedEntityInstanceStore extends AbstractStore implements 
     {
         List<List<Long>> idPartitions = Lists.partition( ids, PARITITION_SIZE );
 
-        Map<String, TrackedEntityInstance> trackedEntityMap = new HashMap<>();
+        Map<String, TrackedEntityInstance> trackedEntityMap = new LinkedHashMap<>();
 
         idPartitions
             .forEach( partition -> trackedEntityMap.putAll( getTrackedEntityInstancesPartitioned( partition, ctx ) ) );
@@ -132,7 +135,7 @@ public class DefaultTrackedEntityInstanceStore extends AbstractStore implements 
             return new HashMap<>();
         }
 
-        String sql = withAclCheck( GET_TEIS_SQL, ctx, "tei.trackedentitytypeid in (:teiTypeIds)" );
+        String sql = getQuery( GET_TEIS_SQL, ctx, "tei.trackedentitytypeid in (:teiTypeIds)", FILTER_OUT_DELETED_TEIS );
         jdbcTemplate.query( applySortOrder( sql, StringUtils.join( ids, "," ), "trackedentityinstanceid" ),
             createIdsParam( ids ).addValue( "teiTypeIds", ctx.getTrackedEntityTypes() ), handler );
 

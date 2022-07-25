@@ -28,6 +28,7 @@
 package org.hisp.dhis.preheat;
 
 import static java.util.Collections.emptyList;
+import static java.util.Collections.emptySet;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -36,19 +37,24 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAuthorityGroup;
-import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.UserRole;
+
+import com.google.common.collect.Sets;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -101,6 +107,13 @@ public class Preheat
      * uid => object uid.
      */
     private Map<Class<?>, Map<String, Map<String, String>>> uniqueAttributeValues = new HashMap<>();
+
+    /**
+     * Map of all metadata attributes, mapped by class type.
+     * <p>
+     * Only Class which has attribute will be put into this map.
+     */
+    private Map<Class<? extends IdentifiableObject>, Set<Attribute>> attributesByTargetObjectType = new HashMap<>();
 
     public Preheat()
     {
@@ -256,11 +269,6 @@ public class Preheat
         IdentifiableObject object )
     {
         byKey.putIfAbsent( key, object );
-        if ( object instanceof User )
-        {
-            getOrCreate( identifier, UserCredentials.class ).putIfAbsent( key,
-                ((User) object).getUserCredentials() );
-        }
     }
 
     public <T extends IdentifiableObject> Preheat replace( PreheatIdentifier identifier, T object )
@@ -282,11 +290,6 @@ public class Preheat
             return this;
         }
         getOrCreate( identifier, klass ).put( key, object );
-        if ( object instanceof User )
-        {
-            getOrCreate( identifier, UserCredentials.class ).putIfAbsent( key,
-                ((User) object).getUserCredentials() );
-        }
         return this;
     }
 
@@ -441,6 +444,65 @@ public class Preheat
         return defaultObject != null && defaultObject.getUid().equals( object.getUid() );
     }
 
+    /**
+     * Get list of {@link Attribute} which the given klass has.
+     *
+     * @param klass Class to be used for querying.
+     * @return Set of {@link Attribute} belong to given klass.
+     */
+    public Set<Attribute> getAttributesByClass( Class<? extends IdentifiableObject> klass )
+    {
+        return attributesByTargetObjectType.get( klass );
+    }
+
+    /**
+     * Add given list of {@link Attribute} to map attributesByTargetObjectType.
+     *
+     * @param klass Class which has given list of {@link Attribute}.
+     * @param attributes List of {@link Attribute} to be added.
+     */
+    public void addClassAttributes( Class<? extends IdentifiableObject> klass, Set<Attribute> attributes )
+    {
+        attributesByTargetObjectType.put( klass, attributes );
+    }
+
+    /**
+     * Add given {@link Attribute} to map attributesByTargetObjectType.
+     *
+     * @param klass Class which has given list of {@link Attribute}.
+     * @param attribute {@link Attribute} to be added.
+     */
+    public void addClassAttribute( Class<? extends IdentifiableObject> klass, Attribute attribute )
+    {
+        if ( attributesByTargetObjectType.get( klass ) == null )
+        {
+            attributesByTargetObjectType.put( klass, Sets.newHashSet() );
+        }
+
+        attributesByTargetObjectType.get( klass ).add( attribute );
+    }
+
+    /**
+     * Get Set of all attribute ID of given klass which has given valueType.
+     *
+     * @param klass Class to be used for querying.
+     * @param valueType {@link ValueType} to be used for querying.
+     * @return Set of {@link Attribute} ID.
+     */
+    public Set<String> getAttributeIdsByValueType( Class<? extends IdentifiableObject> klass, ValueType valueType )
+    {
+        Set<Attribute> attributes = attributesByTargetObjectType.get( klass );
+
+        if ( CollectionUtils.isEmpty( attributes ) )
+        {
+            return emptySet();
+        }
+
+        return attributes.stream()
+            .filter( attribute -> attribute.getValueType() == valueType )
+            .map( attribute -> attribute.getUid() ).collect( Collectors.toUnmodifiableSet() );
+    }
+
     /*
      * For use in unit tests only (package private)
      */
@@ -477,8 +539,7 @@ public class Preheat
         Class<? extends IdentifiableObject> klass )
     {
         return (klass == User.class
-            || klass == UserCredentials.class
-            || klass == UserAuthorityGroup.class)
+            || klass == UserRole.class)
                 ? PreheatIdentifier.UID
                 : identifier;
     }

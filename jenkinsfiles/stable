@@ -6,11 +6,12 @@ pipeline {
     }
 
     options {
-        timeout(time: 20, activity: true)
+        timeout(time: 30)
     }
 
     environment {
         MAVEN_OPTS = '-Xms1024m -Xmx4096m'
+        GITHUB_TOKEN = credentials('github-token')
     }
 
     stages {
@@ -51,7 +52,7 @@ pipeline {
 
         aborted {
             script {
-                slack.sendInactivityMessage(20)
+                slack.sendTimedoutMessage(30)
             }
         }
     }

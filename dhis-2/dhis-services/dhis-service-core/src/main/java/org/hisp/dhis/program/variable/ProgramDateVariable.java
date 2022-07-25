@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.program.variable;
 
-import static org.hisp.dhis.parser.expression.CommonExpressionVisitor.DEFAULT_DATE_VALUE;
+import static org.hisp.dhis.parser.expression.ParserUtils.DEFAULT_DATE_VALUE;
 
 /**
  * Program indicator date variable (uses default date for validity checking)

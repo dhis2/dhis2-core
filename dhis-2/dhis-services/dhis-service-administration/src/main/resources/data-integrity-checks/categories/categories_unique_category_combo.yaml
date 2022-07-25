@@ -1,0 +1,67 @@
+# Copyright (c) 2022, University of Oslo
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+# Neither the name of the HISP project nor the names of its contributors may
+# be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+
+# SQL comments:
+#
+#     b.cats @> a.cats and a.cats @> b.cats
+#
+#   checks if a and b are the same set by checking that a is included in b and vice-versa
+---
+name: categories_unique_category_combo
+description: Lists category combos that share a combination of categories with at least one other category combo
+section: Categories
+summary_sql: >-
+  with combo_sets as (
+    select categorycomboid as id, array_agg(categoryid) as cats from categorycombos_categories
+    group by categorycomboid
+    order by cats
+  )
+  select count(*) as value,
+  (100 * COUNT(*) / (SELECT COUNT(*) FROM categorycombo)) as percent
+  from combo_sets a
+  where exists (select 1 from combo_sets c where c.id != a.id and c.cats @> a.cats and a.cats @> c.cats)
+details_sql: >-
+  with combo_sets as (
+    select categorycomboid as id, array_agg(categoryid) as cats from categorycombos_categories
+    group by categorycomboid
+    order by cats
+  )
+  select cca.uid, cca.name, null as comment, (
+    select array_agg(ccb.uid || ':' || ccb.name)
+    from combo_sets b
+    left join categorycombo ccb on b.id = ccb.categorycomboid
+    where b.id != a.id and b.cats @> a.cats and a.cats @> b.cats
+  )
+  from combo_sets a
+  left join categorycombo cca on a.id = cca.categorycomboid
+  where exists (select 1 from combo_sets c where c.id != a.id and c.cats @> a.cats and a.cats @> c.cats)
+details_id_type: categoryCombos
+severity: SEVERE
+introduction: >
+  A category combo should be a unique combination of categories
+recommendation: >
+  One category combo is kept, all references are updated to use this combo and other combos are removed.

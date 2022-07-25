@@ -27,20 +27,26 @@
  */
 package org.hisp.dhis.dataintegrity;
 
+import static java.lang.String.format;
+import static java.lang.System.currentTimeMillis;
 import static java.util.Collections.unmodifiableCollection;
 import static java.util.Collections.unmodifiableSet;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toUnmodifiableList;
+import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.hisp.dhis.commons.collection.ListUtils.getDuplicates;
 import static org.hisp.dhis.dataintegrity.DataIntegrityDetails.DataIntegrityIssue.toIssue;
 import static org.hisp.dhis.dataintegrity.DataIntegrityDetails.DataIntegrityIssue.toRefsList;
 import static org.hisp.dhis.dataintegrity.DataIntegrityYamlReader.readDataIntegrityYaml;
 import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
+import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -51,6 +57,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BiFunction;
+import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -58,11 +66,13 @@ import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.antlr.ParserException;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
@@ -81,6 +91,7 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorGroupSet;
 import org.hisp.dhis.indicator.IndicatorService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
@@ -96,6 +107,8 @@ import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleService;
 import org.springframework.stereotype.Service;
@@ -105,9 +118,9 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Lars Helge Overland
  */
 @Slf4j
-@Service( "org.hisp.dhis.dataintegrity.DataIntegrityService" )
+@Service
 @Transactional
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DefaultDataIntegrityService
     implements DataIntegrityService
 {
@@ -143,7 +156,22 @@ public class DefaultDataIntegrityService
 
     private final ProgramIndicatorService programIndicatorService;
 
-    private final SessionFactory sessionFactory;
+    private final CacheProvider cacheProvider;
+
+    private final DataIntegrityStore dataIntegrityStore;
+
+    private final SchemaService schemaService;
+
+    private Cache<DataIntegritySummary> summaryCache;
+
+    private Cache<DataIntegrityDetails> detailsCache;
+
+    @PostConstruct
+    public void init()
+    {
+        summaryCache = cacheProvider.createDataIntegritySummaryCache();
+        detailsCache = cacheProvider.createDataIntegrityDetailsCache();
+    }
 
     private static int alphabeticalOrder( DataIntegrityIssue a, DataIntegrityIssue b )
     {
@@ -494,17 +522,36 @@ public class DefaultDataIntegrityService
     }
 
     private void registerNonDatabaseIntegrityCheck( DataIntegrityCheckType type,
+        Class<? extends IdentifiableObject> issueIdType,
         Supplier<List<DataIntegrityIssue>> check )
     {
         String name = type.getName();
-        checksByName.put( name, DataIntegrityCheck.builder()
-            .name( name )
-            .severity( DataIntegritySeverity.WARNING )
-            .section( "Legacy" )
-            .description( name.replace( '_', ' ' ) )
-            .runDetailsCheck( c -> new DataIntegrityDetails( c, check.get() ) )
-            .runSummaryCheck( c -> new DataIntegritySummary( c, check.get().size(), null ) )
-            .build() );
+        I18n i18n = i18nManager.getI18n( DataIntegrityService.class );
+        BinaryOperator<String> info = ( property, defaultValue ) -> i18n
+            .getString( format( "data_integrity.%s.%s", name, property ), defaultValue );
+
+        try
+        {
+            Schema issueSchema = issueIdType == null ? null : schemaService.getDynamicSchema( issueIdType );
+            String issueIdTypeName = issueSchema == null ? null : issueSchema.getPlural();
+            checksByName.put( name, DataIntegrityCheck.builder()
+                .name( name )
+                .displayName( info.apply( "name", name.replace( '_', ' ' ) ) )
+                .severity( DataIntegritySeverity.valueOf(
+                    info.apply( "severity", DataIntegritySeverity.WARNING.name() ).toUpperCase() ) )
+                .section( info.apply( "section", "Other" ) )
+                .description( info.apply( "description", null ) )
+                .introduction( info.apply( "introduction", null ) )
+                .recommendation( info.apply( "recommendation", null ) )
+                .issuesIdType( issueIdTypeName )
+                .runDetailsCheck( c -> new DataIntegrityDetails( c, new Date(), null, check.get() ) )
+                .runSummaryCheck( c -> new DataIntegritySummary( c, new Date(), null, check.get().size(), null ) )
+                .build() );
+        }
+        catch ( Exception ex )
+        {
+            log.error( "Failed to register data integrity check " + type, ex );
+        }
     }
 
     /**
@@ -512,94 +559,101 @@ public class DefaultDataIntegrityService
      * a {@link DataIntegrityCheck} to perform the method as
      * {@link DataIntegrityDetails}.
      */
-    @PostConstruct
     public void initIntegrityChecks()
     {
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.DATA_ELEMENTS_WITHOUT_DATA_SETS,
-            this::getDataElementsWithoutDataSet );
+            DataElement.class, this::getDataElementsWithoutDataSet );
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.DATA_ELEMENTS_WITHOUT_GROUPS,
-            this::getDataElementsWithoutGroups );
+            DataElement.class, this::getDataElementsWithoutGroups );
         registerNonDatabaseIntegrityCheck(
             DataIntegrityCheckType.DATA_ELEMENTS_ASSIGNED_TO_DATA_SETS_WITH_DIFFERENT_PERIOD_TYPES,
-            this::getDataElementsAssignedToDataSetsWithDifferentPeriodTypes );
+            DataElement.class, this::getDataElementsAssignedToDataSetsWithDifferentPeriodTypes );
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.DATA_ELEMENTS_VIOLATING_EXCLUSIVE_GROUP_SETS,
-            this::getDataElementsViolatingExclusiveGroupSets );
+            DataElement.class, this::getDataElementsViolatingExclusiveGroupSets );
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.DATA_ELEMENTS_IN_DATA_SET_NOT_IN_FORM,
-            this::getDataElementsInDataSetNotInForm );
+            DataSet.class, this::getDataElementsInDataSetNotInForm );
 
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.CATEGORY_COMBOS_BEING_INVALID,
-            this::getInvalidCategoryCombos );
+            CategoryCombo.class, this::getInvalidCategoryCombos );
 
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.DATA_SETS_NOT_ASSIGNED_TO_ORG_UNITS,
-            this::getDataSetsNotAssignedToOrganisationUnits );
+            DataSet.class, this::getDataSetsNotAssignedToOrganisationUnits );
 
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.INDICATORS_WITH_IDENTICAL_FORMULAS,
-            this::getIndicatorsWithIdenticalFormulas );
+            null, this::getIndicatorsWithIdenticalFormulas );
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.INDICATORS_WITHOUT_GROUPS,
-            this::getIndicatorsWithoutGroups );
+            Indicator.class, this::getIndicatorsWithoutGroups );
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.INDICATORS_WITH_INVALID_NUMERATOR,
-            this::getInvalidIndicatorNumerators );
+            Indicator.class, this::getInvalidIndicatorNumerators );
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.INDICATORS_WITH_INVALID_DENOMINATOR,
-            this::getInvalidIndicatorDenominators );
+            Indicator.class, this::getInvalidIndicatorDenominators );
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.INDICATORS_VIOLATING_EXCLUSIVE_GROUP_SETS,
-            this::getIndicatorsViolatingExclusiveGroupSets );
+            Indicator.class, this::getIndicatorsViolatingExclusiveGroupSets );
 
-        registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.PERIODS_DUPLICATES, this::getDuplicatePeriods );
+        registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.PERIODS_DUPLICATES, null, this::getDuplicatePeriods );
 
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.ORG_UNITS_WITH_CYCLIC_REFERENCES,
-            this::getOrganisationUnitsWithCyclicReferences );
+            OrganisationUnit.class, this::getOrganisationUnitsWithCyclicReferences );
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.ORG_UNITS_BEING_ORPHANED,
-            this::getOrphanedOrganisationUnits );
+            OrganisationUnit.class, this::getOrphanedOrganisationUnits );
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.ORG_UNITS_WITHOUT_GROUPS,
-            this::getOrganisationUnitsWithoutGroups );
+            OrganisationUnit.class, this::getOrganisationUnitsWithoutGroups );
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.ORG_UNITS_VIOLATING_EXCLUSIVE_GROUP_SETS,
-            this::getOrganisationUnitsViolatingExclusiveGroupSets );
+            OrganisationUnit.class, this::getOrganisationUnitsViolatingExclusiveGroupSets );
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.ORG_UNIT_GROUPS_WITHOUT_GROUP_SETS,
-            this::getOrganisationUnitGroupsWithoutGroupSets );
+            OrganisationUnitGroup.class, this::getOrganisationUnitGroupsWithoutGroupSets );
 
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.VALIDATION_RULES_WITHOUT_GROUPS,
-            this::getValidationRulesWithoutGroups );
+            ValidationRule.class, this::getValidationRulesWithoutGroups );
         registerNonDatabaseIntegrityCheck(
             DataIntegrityCheckType.VALIDATION_RULES_WITH_INVALID_LEFT_SIDE_EXPRESSION,
-            this::getInvalidValidationRuleLeftSideExpressions );
+            ValidationRule.class, this::getInvalidValidationRuleLeftSideExpressions );
         registerNonDatabaseIntegrityCheck(
             DataIntegrityCheckType.VALIDATION_RULES_WITH_INVALID_RIGHT_SIDE_EXPRESSION,
-            this::getInvalidValidationRuleRightSideExpressions );
+            ValidationRule.class, this::getInvalidValidationRuleRightSideExpressions );
 
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.PROGRAM_INDICATORS_WITH_INVALID_EXPRESSIONS,
-            this::getInvalidProgramIndicatorExpressions );
+            ProgramIndicator.class, this::getInvalidProgramIndicatorExpressions );
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.PROGRAM_INDICATORS_WITH_INVALID_FILTERS,
-            this::getInvalidProgramIndicatorFilters );
+            ProgramIndicator.class, this::getInvalidProgramIndicatorFilters );
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.PROGRAM_INDICATORS_WITHOUT_EXPRESSION,
-            this::getProgramIndicatorsWithNoExpression );
+            ProgramIndicator.class, this::getProgramIndicatorsWithNoExpression );
 
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.PROGRAM_RULES_WITHOUT_CONDITION,
-            this::getProgramRulesWithNoCondition );
+            Program.class, this::getProgramRulesWithNoCondition );
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.PROGRAM_RULES_WITHOUT_PRIORITY,
-            this::getProgramRulesWithNoPriority );
+            Program.class, this::getProgramRulesWithNoPriority );
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.PROGRAM_RULES_WITHOUT_ACTION,
-            this::getProgramRulesWithNoAction );
+            Program.class, this::getProgramRulesWithNoAction );
 
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.PROGRAM_RULE_VARIABLES_WITHOUT_DATA_ELEMENT,
-            this::getProgramRuleVariablesWithNoDataElement );
+            Program.class, this::getProgramRuleVariablesWithNoDataElement );
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.PROGRAM_RULE_VARIABLES_WITHOUT_ATTRIBUTE,
-            this::getProgramRuleVariablesWithNoAttribute );
+            Program.class, this::getProgramRuleVariablesWithNoAttribute );
 
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.PROGRAM_RULE_ACTIONS_WITHOUT_DATA_OBJECT,
-            this::getProgramRuleActionsWithNoDataObject );
+            ProgramRule.class, this::getProgramRuleActionsWithNoDataObject );
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.PROGRAM_RULE_ACTIONS_WITHOUT_NOTIFICATION,
-            this::getProgramRuleActionsWithNoNotificationTemplate );
+            ProgramRule.class, this::getProgramRuleActionsWithNoNotificationTemplate );
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.PROGRAM_RULE_ACTIONS_WITHOUT_SECTION,
-            this::getProgramRuleActionsWithNoSectionId );
+            ProgramRule.class, this::getProgramRuleActionsWithNoSectionId );
         registerNonDatabaseIntegrityCheck( DataIntegrityCheckType.PROGRAM_RULE_ACTIONS_WITHOUT_STAGE,
-            this::getProgramRuleActionsWithNoProgramStageId );
+            ProgramRule.class, this::getProgramRuleActionsWithNoProgramStageId );
     }
 
     @Override
     @Transactional( readOnly = true )
     public FlattenedDataIntegrityReport getReport( Set<String> checks, JobProgress progress )
     {
-        return new FlattenedDataIntegrityReport( getDetails( checks, progress ) );
+        if ( checks == null || checks.isEmpty() )
+        {
+            // report only needs these
+            checks = Arrays.stream( DataIntegrityCheckType.values() )
+                .map( DataIntegrityCheckType::getName )
+                .collect( toUnmodifiableSet() );
+        }
+        runDetailsChecks( checks, progress );
+        return new FlattenedDataIntegrityReport( getDetails( checks, -1L ) );
     }
 
     /**
@@ -777,45 +831,104 @@ public class DefaultDataIntegrityService
     private final AtomicBoolean configurationsAreLoaded = new AtomicBoolean( false );
 
     @Override
-    public Collection<DataIntegrityCheck> getDataIntegrityChecks()
+    public Collection<DataIntegrityCheck> getDataIntegrityChecks( Set<String> checks )
     {
         ensureConfigurationsAreLoaded();
-        return unmodifiableCollection( checksByName.values() );
+        return checks.isEmpty()
+            ? unmodifiableCollection( checksByName.values() )
+            : expandChecks( checks ).stream().map( checksByName::get ).collect( toList() );
     }
 
     @Override
-    @Transactional( readOnly = true )
-    public Map<String, DataIntegritySummary> getSummaries( Set<String> checks, JobProgress progress )
+    public Map<String, DataIntegritySummary> getSummaries( Set<String> checks, long timeout )
     {
-        return runDataIntegrityChecks( "Data Integrity summary checks", expandChecks( checks ), progress,
-            check -> check.getRunSummaryCheck().apply( check ) );
+        return getCached( checks, timeout, summaryCache );
+    }
+
+    // OBS! We intentionally do not open the transaction here to have each check
+    // be independent
+    @Override
+    public void runSummaryChecks( Set<String> checks, JobProgress progress )
+    {
+        runDataIntegrityChecks( "Data Integrity summary checks", expandChecks( checks ), progress, summaryCache,
+            check -> check.getRunSummaryCheck().apply( check ),
+            ( check, ex ) -> new DataIntegritySummary( check, new Date(), ex.getMessage(), -1, null ) );
     }
 
     @Override
-    @Transactional( readOnly = true )
-    public Map<String, DataIntegrityDetails> getDetails( Set<String> checks, JobProgress progress )
+    public Map<String, DataIntegrityDetails> getDetails( Set<String> checks, long timeout )
     {
-        return runDataIntegrityChecks( "Data Integrity details checks", expandChecks( checks ), progress,
-            check -> check.getRunDetailsCheck().apply( check ) );
+        return getCached( checks, timeout, detailsCache );
     }
 
-    private <T> Map<String, T> runDataIntegrityChecks( String stageDesc, Set<String> checks, JobProgress progress,
-        Function<DataIntegrityCheck, T> runCheck )
+    // OBS! We intentionally do not open the transaction here to have each check
+    // be independent
+    @Override
+    public void runDetailsChecks( Set<String> checks, JobProgress progress )
+    {
+        runDataIntegrityChecks( "Data Integrity details checks", expandChecks( checks ), progress, detailsCache,
+            check -> check.getRunDetailsCheck().apply( check ),
+            ( check, ex ) -> new DataIntegrityDetails( check, new Date(), ex.getMessage(), List.of() ) );
+    }
+
+    private <T> Map<String, T> getCached( Set<String> checks, long timeout, Cache<T> cache )
+    {
+        Set<String> names = expandChecks( checks );
+        long giveUpTime = currentTimeMillis() + timeout;
+        Map<String, T> resByName = new LinkedHashMap<>();
+        boolean retry = false;
+        do
+        {
+            if ( retry )
+            {
+                try
+                {
+                    Thread.sleep( Math.max( 10, Math.min( 50, (giveUpTime - currentTimeMillis()) / 2 ) ) );
+                }
+                catch ( InterruptedException ex )
+                {
+                    Thread.currentThread().interrupt();
+                    return resByName;
+                }
+            }
+            for ( String name : names )
+            {
+                if ( !resByName.containsKey( name ) )
+                {
+                    cache.get( name ).ifPresent( res -> resByName.put( name, res ) );
+                }
+            }
+            retry = resByName.size() < names.size() && (timeout < 0 || currentTimeMillis() < giveUpTime);
+        }
+        while ( retry );
+        return resByName;
+    }
+
+    private <T> void runDataIntegrityChecks( String stageDesc, Set<String> checks, JobProgress progress,
+        Cache<T> cache, Function<DataIntegrityCheck, T> runCheck,
+        BiFunction<DataIntegrityCheck, RuntimeException, T> createErrorReport )
     {
         progress.startingProcess( "Data Integrity check" );
-        progress.startingStage( stageDesc, checks.size() );
-        Map<String, T> checkResults = new LinkedHashMap<>();
+        progress.startingStage( stageDesc, checks.size(), SKIP_ITEM );
         progress.runStage( checks.stream().map( checksByName::get ).filter( Objects::nonNull ),
             DataIntegrityCheck::getDescription,
             check -> {
-                T res = runCheck.apply( check );
+                T res = null;
+                try
+                {
+                    res = runCheck.apply( check );
+                }
+                catch ( RuntimeException ex )
+                {
+                    cache.put( check.getName(), createErrorReport.apply( check, ex ) );
+                    throw ex;
+                }
                 if ( res != null )
                 {
-                    checkResults.put( check.getName(), res );
+                    cache.put( check.getName(), res );
                 }
             } );
         progress.completedProcess( null );
-        return checkResults;
     }
 
     private Set<String> expandChecks( Set<String> names )
@@ -852,47 +965,17 @@ public class DefaultDataIntegrityService
     {
         if ( configurationsAreLoaded.compareAndSet( false, true ) )
         {
+            // programmatic checks
+            initIntegrityChecks();
+
+            // YAML based checks
+            I18n i18n = i18nManager.getI18n( DataIntegrityService.class );
             readDataIntegrityYaml( "data-integrity-checks.yaml",
-                check -> checksByName.put( check.getName(), check ), this::querySummary, this::queryDetails );
+                check -> checksByName.put( check.getName(), check ),
+                ( property, defaultValue ) -> i18n.getString( format( "data_integrity.%s", property ), defaultValue ),
+                sql -> check -> dataIntegrityStore.querySummary( check, sql ),
+                sql -> check -> dataIntegrityStore.queryDetails( check, sql ) );
         }
     }
 
-    private Function<DataIntegrityCheck, DataIntegritySummary> querySummary( String sql )
-    {
-        return check -> {
-            Object[] summary = (Object[]) sessionFactory.getCurrentSession()
-                .createNativeQuery( sql ).getSingleResult();
-            return new DataIntegritySummary( check, parseCount( summary[0] ), parsePercentage( summary[1] ) );
-        };
-    }
-
-    private Function<DataIntegrityCheck, DataIntegrityDetails> queryDetails( String sql )
-    {
-        return check -> {
-            @SuppressWarnings( "unchecked" )
-            List<Object[]> rows = sessionFactory.getCurrentSession().createNativeQuery( sql ).list();
-            return new DataIntegrityDetails( check, rows.stream()
-                .map( row -> new DataIntegrityIssue( (String) row[0],
-                    (String) row[1], row.length == 2 ? null : (String) row[2], null ) )
-                .collect( toUnmodifiableList() ) );
-        };
-    }
-
-    private static Double parsePercentage( Object value )
-    {
-        if ( value == null )
-        {
-            return null;
-        }
-        if ( value instanceof String )
-        {
-            return Double.parseDouble( value.toString().replace( "%", "" ) );
-        }
-        return ((Number) value).doubleValue();
-    }
-
-    private static int parseCount( Object value )
-    {
-        return value == null ? 0 : ((Number) value).intValue();
-    }
 }

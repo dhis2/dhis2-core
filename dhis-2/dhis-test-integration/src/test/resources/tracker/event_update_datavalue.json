@@ -1,0 +1,95 @@
+{
+  "importMode": "COMMIT",
+  "idSchemes": {
+    "dataElementIdScheme": {
+      "idScheme": "UID"
+    },
+    "orgUnitIdScheme": {
+      "idScheme": "UID"
+    },
+    "programIdScheme": {
+      "idScheme": "UID"
+    },
+    "programStageIdScheme": {
+      "idScheme": "UID"
+    },
+    "idScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionComboIdScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionIdScheme": {
+      "idScheme": "UID"
+    }
+  },
+  "importStrategy": "CREATE",
+  "atomicMode": "ALL",
+  "flushMode": "AUTO",
+  "validationMode": "FULL",
+  "skipPatternValidation": false,
+  "skipSideEffects": false,
+  "skipRuleEngine": false,
+  "trackedEntities": [],
+  "enrollments": [],
+  "events": [
+    {
+      "event": "EVENT123456",
+      "status": "COMPLETED",
+      "program": {
+        "idScheme": "UID",
+        "identifier": "BFcipDERJnf"
+      },
+      "programStage": {
+        "idScheme": "UID",
+        "identifier": "NpsdDv6kKSO"
+      },
+      "enrollment": "TvctPPhpD8u",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "h4w96yEMlzO"
+      },
+      "relationships": [],
+      "occurredAt": "2019-01-28T00:00:00.000",
+      "scheduledAt": "2019-01-28T12:10:38.100",
+      "storedBy": "admin",
+      "followup": false,
+      "deleted": false,
+      "createdAt": "2019-01-28T12:10:38.108",
+      "updatedAt": "2019-01-28T12:10:38.109",
+      "attributeOptionCombo": {
+        "idScheme": "UID"
+      },
+      "attributeCategoryOptions": [],
+      "completedBy": "admin",
+      "completedAt": "2019-01-28T00:00:00.000",
+      "dataValues": [
+        {
+          "createdAt": "2019-01-28T12:10:38.113",
+          "updatedAt": "2019-01-28T12:10:38.113",
+          "storedBy": "admin",
+          "providedElsewhere": false,
+          "dataElement": {
+            "idScheme": "UID",
+            "identifier": "DATAEL00002"
+          },
+          "value": "NEWTEXT"
+        },
+        {
+          "createdAt": "2019-01-28T12:10:38.113",
+          "updatedAt": "2019-01-28T12:10:38.113",
+          "storedBy": "admin",
+          "providedElsewhere": false,
+          "dataElement": {
+            "idScheme": "UID",
+            "identifier": "DATAEL00001"
+          },
+          "value": "NEWTEXT"
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "relationships": [],
+  "username": "system-process"
+}

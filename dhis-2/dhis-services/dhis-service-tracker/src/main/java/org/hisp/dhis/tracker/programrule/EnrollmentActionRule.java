@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker.programrule;
 
 import java.util.List;
-import java.util.Optional;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -45,8 +44,6 @@ public class EnrollmentActionRule
     implements ActionRule
 {
     private final String ruleUid;
-
-    private final String enrollment;
 
     private final String data;
 
@@ -74,19 +71,5 @@ public class EnrollmentActionRule
             stringBuilder.append( data );
         }
         return stringBuilder.toString();
-    }
-
-    public Optional<Attribute> getAttribute()
-    {
-        if ( attributeType.equals( AttributeType.TRACKED_ENTITY_ATTRIBUTE ) )
-        {
-            return getAttributes()
-                .stream()
-                .filter( at -> at.getAttribute().equals( field ) )
-                .findAny();
-        }
-
-        return Optional.empty();
-
     }
 }

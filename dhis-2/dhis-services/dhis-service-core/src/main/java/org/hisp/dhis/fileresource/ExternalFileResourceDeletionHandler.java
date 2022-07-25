@@ -27,52 +27,41 @@
  */
 package org.hisp.dhis.fileresource;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
-import org.hisp.dhis.system.deletion.DeletionHandler;
+import java.util.Map;
+
 import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Kristian Wærstad <kristian@dhis2.org>
  */
-@Component( "org.hisp.dhis.fileresource.ExternalFileResourceDeletionHandler" )
-public class ExternalFileResourceDeletionHandler
-    extends DeletionHandler
+@Component
+public class ExternalFileResourceDeletionHandler extends JdbcDeletionHandler
 {
     private static final DeletionVeto VETO = new DeletionVeto( ExternalFileResource.class );
-
-    private final JdbcTemplate jdbcTemplate;
-
-    public ExternalFileResourceDeletionHandler( JdbcTemplate jdbcTemplate )
-    {
-        checkNotNull( jdbcTemplate );
-        this.jdbcTemplate = jdbcTemplate;
-    }
 
     @Override
     protected void register()
     {
-
         whenVetoing( FileResource.class, this::allowDeleteFileResource );
         whenDeleting( FileResource.class, this::deleteFileResource );
     }
 
     private DeletionVeto allowDeleteFileResource( FileResource fileResource )
     {
-        String sql = "SELECT COUNT(*) FROM externalfileresource WHERE fileresourceid=" + fileResource.getId();
-
-        int result = jdbcTemplate.queryForObject( sql, Integer.class );
-
-        return result == 0 || fileResource.getStorageStatus() != FileResourceStorageStatus.STORED ? ACCEPT : VETO;
+        if ( fileResource.getStorageStatus() != FileResourceStorageStatus.STORED )
+        {
+            return ACCEPT;
+        }
+        String sql = "select count(*) from externalfileresource where fileresourceid=:id";
+        return vetoIfExists( VETO, sql, Map.of( "id", fileResource.getId() ) );
     }
 
     private void deleteFileResource( FileResource fileResource )
     {
-        String sql = "DELETE FROM externalfileresource WHERE fileresourceid=" + fileResource.getId();
-
-        jdbcTemplate.execute( sql );
+        delete( "delete from externalfileresource where fileresourceid=:id", Map.of( "id", fileResource.getId() ) );
     }
 }

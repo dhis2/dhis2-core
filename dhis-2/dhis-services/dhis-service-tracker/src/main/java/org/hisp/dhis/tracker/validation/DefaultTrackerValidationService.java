@@ -86,8 +86,8 @@ public class DefaultTrackerValidationService
 
         // Note that the bundle gets cloned internally, so the original bundle
         // is always available
-        TrackerImportValidationContext context = new TrackerImportValidationContext( bundle );
-        ValidationErrorReporter reporter = new ValidationErrorReporter( context );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle.getPreheat().getIdSchemes(),
+            bundle.getValidationMode() == ValidationMode.FAIL_FAST );
 
         try
         {
@@ -95,7 +95,7 @@ public class DefaultTrackerValidationService
             {
                 Timer hookTimer = Timer.startTimer();
 
-                hook.validate( reporter, context );
+                hook.validate( reporter, bundle );
 
                 validationReport.addTiming( new Timing(
                     hook.getClass().getName(),

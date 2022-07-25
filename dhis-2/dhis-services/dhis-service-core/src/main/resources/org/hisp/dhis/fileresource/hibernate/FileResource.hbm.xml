@@ -30,6 +30,8 @@
 
     <property name="hasMultipleStorageFiles" column="hasmultiplestoragefiles" />
 
+    <property name="fileResourceOwner" column="fileresourceowner" />
+
     <property name="domain" length="40" column="domain">
       <type name="org.hibernate.type.EnumType">
         <param name="enumClass">org.hisp.dhis.fileresource.FileResourceDomain</param>

@@ -27,6 +27,11 @@
  */
 package org.hisp.dhis.dxf2.events.enrollment;
 
+import static java.util.stream.Collectors.toList;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+import static org.hisp.dhis.common.Pager.DEFAULT_PAGE_SIZE;
+import static org.hisp.dhis.common.SlimPager.FIRST_PAGE;
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 import static org.hisp.dhis.trackedentity.TrackedEntityAttributeService.TEA_VALUE_MAX_LENGTH;
 
@@ -41,8 +46,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.transaction.Transactional;
-
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.collections4.SetValuedMap;
@@ -53,6 +56,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.collection.CollectionUtils;
@@ -68,6 +72,7 @@ import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.event.Note;
 import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
+import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.importsummary.ImportConflicts;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
@@ -112,6 +117,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
@@ -193,7 +199,8 @@ public abstract class AbstractEnrollmentService
     @Override
     public Enrollments getEnrollments( ProgramInstanceQueryParams params )
     {
-        Enrollments enrollments = new Enrollments();
+        final Enrollments enrollments = new Enrollments();
+        final List<ProgramInstance> programInstances = new ArrayList<>();
 
         if ( !params.isPaging() && !params.isSkipPaging() )
         {
@@ -202,22 +209,64 @@ public abstract class AbstractEnrollmentService
 
         if ( params.isPaging() )
         {
-            int count = 0;
+            final Pager pager;
 
             if ( params.isTotalPages() )
             {
-                count = programInstanceService.countProgramInstances( params );
-            }
+                programInstances.addAll( programInstanceService.getProgramInstances( params ) );
 
-            Pager pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
+                final int count = programInstanceService.countProgramInstances( params );
+                pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
+            }
+            else
+            {
+                pager = handleLastPageFlag( params, programInstances );
+            }
 
             enrollments.setPager( pager );
         }
 
-        List<ProgramInstance> programInstances = programInstanceService.getProgramInstances( params );
         enrollments.setEnrollments( getEnrollments( programInstances ) );
 
         return enrollments;
+    }
+
+    /**
+     * This method will apply the logic related to the parameter
+     * 'totalPages=false'. This works in conjunction with the method:
+     * {@link org.hisp.dhis.program.hibernate.HibernateProgramInstanceStore#getProgramInstances(ProgramInstanceQueryParams)}
+     *
+     * This is needed because we need to query (pageSize + 1) at DB level. The
+     * resulting query will allow us to evaluate if we are in the last page or
+     * not. And this is what his method does, returning the respective Pager
+     * object.
+     *
+     * @param params the request params
+     * @param programInstances the reference to the list of ProgramInstance
+     * @return the populated SlimPager instance
+     */
+    private Pager handleLastPageFlag( final ProgramInstanceQueryParams params,
+        final List<ProgramInstance> programInstances )
+    {
+        final Integer originalPage = defaultIfNull( params.getPage(), FIRST_PAGE );
+        final Integer originalPageSize = defaultIfNull( params.getPageSize(), DEFAULT_PAGE_SIZE );
+        boolean isLastPage = false;
+
+        programInstances.addAll( programInstanceService.getProgramInstances( params ) );
+
+        if ( isNotEmpty( programInstances ) )
+        {
+            isLastPage = programInstances.size() <= originalPageSize;
+            if ( !isLastPage )
+            {
+                // Get the same number of elements of the pageSize, forcing
+                // the removal of the last additional element added at querying
+                // time.
+                programInstances.retainAll( programInstances.subList( 0, originalPageSize ) );
+            }
+        }
+
+        return new SlimPager( originalPage, originalPageSize, isLastPage );
     }
 
     @Override
@@ -314,7 +363,8 @@ public abstract class AbstractEnrollmentService
                     && trackerAccessManager.canRead( user, programStageInstance, true ).isEmpty() )
                 {
                     enrollment.getEvents().add(
-                        eventService.getEvent( programStageInstance, params.isDataSynchronizationQuery(), true ) );
+                        eventService.getEvent( programStageInstance, params.isDataSynchronizationQuery(), true,
+                            true ) );
                 }
             }
         }
@@ -323,9 +373,14 @@ public abstract class AbstractEnrollmentService
         {
             for ( RelationshipItem relationshipItem : programInstance.getRelationshipItems() )
             {
-                enrollment.getRelationships()
-                    .add( relationshipService.getRelationship( relationshipItem.getRelationship(),
-                        RelationshipParams.FALSE, user ) );
+                org.hisp.dhis.relationship.Relationship daoRelationship = relationshipItem.getRelationship();
+                if ( trackerAccessManager.canRead( user, daoRelationship ).isEmpty()
+                    && (params.isIncludeDeleted() || !daoRelationship.isDeleted()) )
+                {
+                    Relationship relationship = relationshipService.getRelationship( relationshipItem.getRelationship(),
+                        RelationshipParams.FALSE, user );
+                    enrollment.getRelationships().add( relationship );
+                }
             }
         }
 
@@ -383,7 +438,7 @@ public abstract class AbstractEnrollmentService
 
         List<Enrollment> validEnrollments = enrollments.stream()
             .filter( e -> !conflictingEnrollmentUids.contains( e.getEnrollment() ) )
-            .collect( Collectors.toList() );
+            .collect( toList() );
 
         List<List<Enrollment>> partitions = Lists.partition( validEnrollments, FLUSH_FREQUENCY );
         List<Event> events = new ArrayList<>();
@@ -423,7 +478,7 @@ public abstract class AbstractEnrollmentService
         ImportSummaries importSummaries )
     {
         List<String> foundEnrollments = programInstanceService.getProgramInstancesUidsIncludingDeleted(
-            enrollments.stream().map( Enrollment::getEnrollment ).collect( Collectors.toList() ) );
+            enrollments.stream().map( Enrollment::getEnrollment ).collect( toList() ) );
 
         for ( String foundEnrollmentUid : foundEnrollments )
         {
@@ -1208,7 +1263,7 @@ public abstract class AbstractEnrollmentService
         }
 
         Collection<String> trackedEntityInstances = enrollments.stream().map( Enrollment::getTrackedEntityInstance )
-            .collect( Collectors.toList() );
+            .collect( toList() );
 
         if ( !trackedEntityInstances.isEmpty() )
         {

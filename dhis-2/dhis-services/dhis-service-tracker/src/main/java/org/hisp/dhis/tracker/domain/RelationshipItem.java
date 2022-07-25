@@ -43,6 +43,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @AllArgsConstructor
 public class RelationshipItem
 {
+
     @JsonProperty
     private String trackedEntity;
 

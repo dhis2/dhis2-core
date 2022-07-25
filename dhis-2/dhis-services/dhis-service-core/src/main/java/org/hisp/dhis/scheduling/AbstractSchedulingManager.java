@@ -57,6 +57,7 @@ import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.JobProgress.Process;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
+import org.slf4j.MDC;
 
 /**
  * Base for synchronous or asynchronous {@link SchedulingManager} implementation
@@ -144,13 +145,8 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
         }
     }
 
-    /**
-     * Check if this job configuration is currently running
-     *
-     * @param type type of job to check
-     * @return true/false
-     */
-    final boolean isRunning( JobType type )
+    @Override
+    public boolean isRunning( JobType type )
     {
         return isRunningLocally( type ) || isRunningRemotely( type );
     }
@@ -223,22 +219,22 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
         }
     }
 
-    protected final void execute( String jobId )
+    protected final boolean execute( String jobId )
     {
-        execute( jobConfigurationService.getJobConfigurationByUid( jobId ) );
+        return execute( jobConfigurationService.getJobConfigurationByUid( jobId ) );
     }
 
-    protected final void execute( JobConfiguration configuration )
+    protected final boolean execute( JobConfiguration configuration )
     {
         if ( !configuration.isEnabled() )
         {
-            return;
+            return false;
         }
         JobType type = configuration.getJobType();
         if ( configuration.isLeaderOnlyJob() && !leaderManager.isLeader() )
         {
             whenLeaderOnlyOnNonLeader( configuration );
-            return;
+            return false;
         }
         ControlledJobProgress progress = createJobProgress( configuration );
         // OBS: we cannot use computeIfAbsent since we have no way of
@@ -247,13 +243,13 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
         if ( runningLocally.putIfAbsent( type, progress ) != null )
         {
             whenAlreadyRunning( configuration );
-            return;
+            return false;
         }
         if ( !runningRemotely.putIfAbsent( type.name(), progress.getProcesses() ) )
         {
             runningLocally.remove( type );
             whenAlreadyRunning( configuration );
-            return;
+            return false;
         }
 
         Clock clock = new Clock().startClock();
@@ -268,16 +264,30 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
             // in memory effect only: mark running (dirty)
             configuration.setLastExecutedStatus( JobStatus.RUNNING );
 
+            String identifier = configuration.getUid() != null
+                ? "UID:" + configuration.getUid()
+                : "TYPE:" + configuration.getJobType().name();
+            MDC.put( "sessionId", identifier );
             // run the actual job
             jobService.getJob( type ).execute( configuration, progress );
 
+            Process process = progress.getProcesses().peekLast();
+            if ( process != null && process.getStatus() == JobProgress.Status.RUNNING )
+            {
+                // automatically complete processes that were not cleanly
+                // complected by calling completedProcess at the end of the job
+                progress.completedProcess( "(process completed implicitly)" );
+            }
             if ( configuration.getLastExecutedStatus() == RUNNING )
             {
-                configuration.setLastExecutedStatus( JobStatus.COMPLETED );
+                boolean wasSuccessfulRun = progress.getProcesses().stream()
+                    .allMatch( p -> p.getStatus() == JobProgress.Status.SUCCESS );
+                configuration.setLastExecutedStatus( wasSuccessfulRun ? JobStatus.COMPLETED : JobStatus.FAILED );
             }
         }
         catch ( Exception ex )
         {
+            progress.failedProcess( ex );
             whenRunThrewException( configuration, ex );
         }
         finally
@@ -285,7 +295,9 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
             completedLocally.put( type, runningLocally.remove( type ) );
             runningRemotely.invalidate( type.name() );
             whenRunIsDone( configuration, clock );
+            MDC.remove( "sessionId" );
         }
+        return true;
     }
 
     private ControlledJobProgress createJobProgress( JobConfiguration configuration )
@@ -293,7 +305,7 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
         JobProgress tracker = configuration.getJobType().isUsingNotifications()
             ? new NotifierJobProgress( notifier, configuration )
             : NoopJobProgress.INSTANCE;
-        return new ControlledJobProgress( configuration, tracker, true );
+        return new ControlledJobProgress( messageService, configuration, tracker, true );
     }
 
     private void whenRunIsDone( JobConfiguration configuration, Clock clock )

@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.validation.hooks;
 
 import java.util.Optional;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
@@ -57,18 +58,7 @@ public class RelationshipValidationUtils
 
     public static Optional<String> getUidFromRelationshipItem( RelationshipItem item )
     {
-        if ( item.getTrackedEntity() != null )
-        {
-            return Optional.of( item.getTrackedEntity() );
-        }
-        else if ( item.getEnrollment() != null )
-        {
-            return Optional.of( item.getEnrollment() );
-        }
-        else if ( item.getEvent() != null )
-        {
-            return Optional.of( item.getEvent() );
-        }
-        return Optional.empty();
+        return Optional
+            .ofNullable( ObjectUtils.firstNonNull( item.getTrackedEntity(), item.getEnrollment(), item.getEvent() ) );
     }
 }

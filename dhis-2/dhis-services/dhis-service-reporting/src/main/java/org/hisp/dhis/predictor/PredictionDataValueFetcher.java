@@ -43,6 +43,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
@@ -169,11 +170,12 @@ public class PredictionDataValueFetcher
         this.dataElementOperands = dataElementOperands;
         this.outputDataElementOperand = outputDataElementOperand;
 
-        orgUnitLookup = orgUnits.stream().collect( Collectors.toMap( OrganisationUnit::getPath, ou -> ou ) );
-        dataElementLookup = dataElements.stream().collect( Collectors.toMap( DataElement::getId, de -> de ) );
-        dataElementLookup.putAll( dataElementOperands.stream().collect(
-            Collectors.toMap( d -> d.getDataElement().getId(), DataElementOperand::getDataElement ) ) );
-        periodLookup = queryPeriods.stream().collect( Collectors.toMap( Period::getId, p -> p ) );
+        orgUnitLookup = orgUnits.stream().collect( Collectors.toMap( OrganisationUnit::getPath, Function.identity() ) );
+        dataElementLookup = dataElements.stream()
+            .collect( Collectors.toMap( DataElement::getId, Function.identity() ) );
+        dataElementLookup.putAll( dataElementOperands.stream().map( DataElementOperand::getDataElement )
+            .distinct().collect( Collectors.toMap( DataElement::getId, Function.identity() ) ) );
+        periodLookup = queryPeriods.stream().collect( Collectors.toMap( Period::getId, Function.identity() ) );
         cocLookup = new CachingMap<>();
 
         producerException = null;
@@ -354,7 +356,8 @@ public class PredictionDataValueFetcher
 
             if ( ddv.getSourcePath().equals( dv.getSource().getPath() )
                 && ddv.getDataElementId() == outputDataElementOperand.getDataElement().getId()
-                && ddv.getCategoryOptionComboId() == (outputDataElementOperand.getCategoryOptionCombo().getId())
+                && (outputDataElementOperand.getCategoryOptionCombo() == null ||
+                    ddv.getCategoryOptionComboId() == outputDataElementOperand.getCategoryOptionCombo().getId())
                 && outputPeriods.contains( dv.getPeriod() ) )
             {
                 oldPredictions.add( dv );

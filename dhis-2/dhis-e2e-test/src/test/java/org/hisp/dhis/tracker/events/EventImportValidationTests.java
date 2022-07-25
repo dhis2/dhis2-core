@@ -32,13 +32,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.stream.Stream;
 
-import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
-import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.metadata.OrgUnitActions;
-import org.hisp.dhis.actions.metadata.ProgramActions;
-import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
+import org.hisp.dhis.tracker.TrackerApiTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -51,7 +48,7 @@ import com.google.gson.JsonObject;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class EventImportValidationTests
-    extends ApiTest
+    extends TrackerApiTest
 {
     private static String ouId = Constants.ORG_UNIT_IDS[0];
 
@@ -62,10 +59,6 @@ public class EventImportValidationTests
     private static String trackerProgramId = Constants.TRACKER_PROGRAM_ID;
 
     private static String ouIdWithoutAccess;
-
-    private EventActions eventActions;
-
-    private ProgramActions programActions;
 
     private static Stream<Arguments> provideValidationArguments()
     {
@@ -82,10 +75,7 @@ public class EventImportValidationTests
     @BeforeAll
     public void beforeAll()
     {
-        eventActions = new EventActions();
-        programActions = new ProgramActions();
-
-        new LoginActions().loginAsAdmin();
+        loginActions.loginAsAdmin();
 
         setupData();
     }

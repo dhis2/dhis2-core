@@ -32,14 +32,16 @@ import static java.util.stream.Collectors.toSet;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import org.geotools.geojson.GeoJSON;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.opengis.geometry.primitive.Point;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Lars Helge Overland
@@ -68,34 +70,51 @@ public enum ValueType
     USERNAME( String.class, false ),
     COORDINATE( Point.class, true ),
     ORGANISATION_UNIT( OrganisationUnit.class, false ),
+    REFERENCE( Reference.class, false ),
     AGE( Date.class, false ),
     URL( String.class, false ),
     FILE_RESOURCE( String.class, true, FileTypeValueOptions.class ),
-    IMAGE( String.class, false, FileTypeValueOptions.class );
+    IMAGE( String.class, false, FileTypeValueOptions.class ),
+    GEOJSON( GeoJSON.class, false ),
+    MULTI_TEXT( String.class, true );
 
-    public static final Set<ValueType> INTEGER_TYPES = ImmutableSet.of(
+    /**
+     * The character used to separate values in a multi-text value.
+     */
+    public static final String MULTI_TEXT_SEPARATOR = ",";
+
+    public static List<String> splitMultiText( String value )
+    {
+        return value == null ? List.of() : List.of( value.split( MULTI_TEXT_SEPARATOR ) );
+    }
+
+    private static final Set<ValueType> INTEGER_TYPES = Set.of(
         INTEGER, INTEGER_POSITIVE, INTEGER_NEGATIVE, INTEGER_ZERO_OR_POSITIVE );
 
-    public static final Set<ValueType> DECIMAL_TYPES = ImmutableSet.of(
+    private static final Set<ValueType> DECIMAL_TYPES = Set.of(
         NUMBER, UNIT_INTERVAL, PERCENTAGE );
 
-    public static final Set<ValueType> BOOLEAN_TYPES = ImmutableSet.of(
+    private static final Set<ValueType> BOOLEAN_TYPES = Set.of(
         BOOLEAN, TRUE_ONLY );
 
-    public static final Set<ValueType> TEXT_TYPES = ImmutableSet.of(
+    public static final Set<ValueType> TEXT_TYPES = Set.of(
         TEXT, LONG_TEXT, LETTER, TIME, USERNAME, EMAIL, PHONE_NUMBER, URL );
 
-    public static final Set<ValueType> DATE_TYPES = ImmutableSet.of(
+    public static final Set<ValueType> DATE_TYPES = Set.of(
         DATE, DATETIME, AGE );
 
-    public static final Set<ValueType> FILE_TYPES = ImmutableSet.of(
+    private static final Set<ValueType> FILE_TYPES = Set.of(
         FILE_RESOURCE, IMAGE );
 
-    public static final Set<ValueType> GEO_TYPES = ImmutableSet.of(
-        COORDINATE );
+    private static final Set<ValueType> GEO_TYPES = Set.of(
+        COORDINATE, GEOJSON );
 
-    public static final Set<ValueType> NUMERIC_TYPES = ImmutableSet.<ValueType> builder().addAll(
-        INTEGER_TYPES ).addAll( DECIMAL_TYPES ).build();
+    private static final Set<ValueType> JSON_TYPES = Set.of(
+        GEOJSON );
+
+    public static final Set<ValueType> NUMERIC_TYPES = Stream.concat( INTEGER_TYPES.stream(), DECIMAL_TYPES.stream() )
+        .collect(
+            Collectors.toUnmodifiableSet() );
 
     @Deprecated
     private final Class<?> javaClass;
@@ -167,12 +186,22 @@ public enum ValueType
         return ORGANISATION_UNIT == this;
     }
 
+    public boolean isReference()
+    {
+        return REFERENCE == this;
+    }
+
     /**
      * Includes integer and decimal types.
      */
     public boolean isNumeric()
     {
         return NUMERIC_TYPES.contains( this );
+    }
+
+    public boolean isJson()
+    {
+        return JSON_TYPES.contains( this );
     }
 
     public boolean isAggregatable()
@@ -195,10 +224,7 @@ public enum ValueType
         {
             return aggregationType == AggregationType.NONE;
         }
-        else
-        {
-            return aggregationType != AggregationType.NONE;
-        }
+        return aggregationType != AggregationType.NONE;
     }
 
     public Class<? extends ValueTypeOptions> getValueTypeOptionsClass()
@@ -218,6 +244,7 @@ public enum ValueType
      * <li>{@link ValueType#FILE_RESOURCE} for any file types.</li>
      * <li>{@link ValueType#COORDINATE} for any geometry types.</li>
      * <li>{@link ValueType#TEXT} for any textual types.</li>
+     * <li>{@link ValueType#MULTI_TEXT} if it is that type.</li>
      * </ul>
      *
      * @return a simplified value type.
@@ -228,26 +255,27 @@ public enum ValueType
         {
             return ValueType.NUMBER;
         }
-        else if ( isBoolean() )
+        if ( isBoolean() )
         {
             return ValueType.BOOLEAN;
         }
-        else if ( isDate() )
+        if ( isDate() )
         {
             return ValueType.DATE;
         }
-        else if ( isFile() )
+        if ( isFile() )
         {
             return ValueType.FILE_RESOURCE;
         }
-        else if ( isGeo() )
+        if ( isGeo() )
         {
             return ValueType.COORDINATE;
         }
-        else
+        if ( this == MULTI_TEXT )
         {
-            return ValueType.TEXT;
+            return this;
         }
+        return ValueType.TEXT;
     }
 
     public static ValueType fromString( String valueType )

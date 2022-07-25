@@ -28,6 +28,7 @@
 package org.hisp.dhis.dataintegrity;
 
 import java.io.Serializable;
+import java.util.Date;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -48,9 +49,15 @@ public class DataIntegritySummary implements Serializable
     private final DataIntegrityCheck check;
 
     @JsonProperty
-    private int count;
+    private final Date finishedTime;
 
     @JsonProperty
-    private Double percentage;
+    private final String error;
+
+    @JsonProperty
+    private final int count;
+
+    @JsonProperty
+    private final Double percentage;
 
 }

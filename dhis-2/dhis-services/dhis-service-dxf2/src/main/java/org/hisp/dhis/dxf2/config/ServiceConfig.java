@@ -96,6 +96,7 @@ import org.hisp.dhis.dxf2.events.importer.update.validation.UpdateProgramStageIn
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.CreationCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.DeletionCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.DuplicateIdsCheck;
+import org.hisp.dhis.dxf2.metadata.objectbundle.validation.GeoJsonAttributesCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.MandatoryAttributesCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.NotOwnerReferencesCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.ReferencesCheck;
@@ -218,7 +219,8 @@ public class ServiceConfig
                 getValidationCheckByClass( UniqueAttributesCheck.class ),
                 getValidationCheckByClass( ReferencesCheck.class ),
                 getValidationCheckByClass( NotOwnerReferencesCheck.class ),
-                getValidationCheckByClass( TranslationsCheck.class ) ),
+                getValidationCheckByClass( TranslationsCheck.class ),
+                getValidationCheckByClass( GeoJsonAttributesCheck.class ) ),
             CREATE, newArrayList(
                 getValidationCheckByClass( DuplicateIdsCheck.class ),
                 getValidationCheckByClass( ValidationHooksCheck.class ),
@@ -231,7 +233,8 @@ public class ServiceConfig
                 getValidationCheckByClass( UniqueAttributesCheck.class ),
                 getValidationCheckByClass( ReferencesCheck.class ),
                 getValidationCheckByClass( NotOwnerReferencesCheck.class ),
-                getValidationCheckByClass( TranslationsCheck.class ) ),
+                getValidationCheckByClass( TranslationsCheck.class ),
+                getValidationCheckByClass( GeoJsonAttributesCheck.class ) ),
             UPDATE, newArrayList(
                 getValidationCheckByClass( DuplicateIdsCheck.class ),
                 getValidationCheckByClass( ValidationHooksCheck.class ),
@@ -244,7 +247,8 @@ public class ServiceConfig
                 getValidationCheckByClass( UniqueAttributesCheck.class ),
                 getValidationCheckByClass( ReferencesCheck.class ),
                 getValidationCheckByClass( NotOwnerReferencesCheck.class ),
-                getValidationCheckByClass( TranslationsCheck.class ) ),
+                getValidationCheckByClass( TranslationsCheck.class ),
+                getValidationCheckByClass( GeoJsonAttributesCheck.class ) ),
             DELETE, newArrayList(
                 getValidationCheckByClass( SecurityCheck.class ),
                 getValidationCheckByClass( DeletionCheck.class ) ) );
@@ -412,9 +416,9 @@ public class ServiceConfig
             .put( ProgramRuleActionType.CREATEEVENT,
                 getProgramRuleActionValidatorByClass( BaseProgramRuleActionValidator.class ) )
             .put( ProgramRuleActionType.WARNINGONCOMPLETE,
-                getProgramRuleActionValidatorByClass( BaseProgramRuleActionValidator.class ) )
+                getProgramRuleActionValidatorByClass( AlwaysValidProgramRuleActionValidator.class ) )
             .put( ProgramRuleActionType.ERRORONCOMPLETE,
-                getProgramRuleActionValidatorByClass( BaseProgramRuleActionValidator.class ) )
+                getProgramRuleActionValidatorByClass( AlwaysValidProgramRuleActionValidator.class ) )
             .put( ProgramRuleActionType.SHOWWARNING,
                 getProgramRuleActionValidatorByClass( AlwaysValidProgramRuleActionValidator.class ) )
             .put( ProgramRuleActionType.SHOWERROR,

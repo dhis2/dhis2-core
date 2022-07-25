@@ -27,23 +27,25 @@
  */
 package org.hisp.dhis.webapi.security.apikey;
 
+import java.io.Serializable;
 import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
 
 import org.hisp.dhis.security.apikey.ApiToken;
-import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.CurrentUserDetails;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
-import org.springframework.security.core.userdetails.UserDetails;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class ApiTokenAuthenticationToken extends AbstractAuthenticationToken
+public class ApiTokenAuthenticationToken extends AbstractAuthenticationToken implements CurrentUserDetails
 {
     private String tokenKey;
 
     private ApiToken tokenRef;
 
-    private UserCredentials userCredentials;
+    private CurrentUserDetails user;
 
     public ApiTokenAuthenticationToken( String tokenKey )
     {
@@ -51,23 +53,23 @@ public class ApiTokenAuthenticationToken extends AbstractAuthenticationToken
         this.tokenKey = tokenKey;
     }
 
-    public ApiTokenAuthenticationToken( ApiToken token, UserCredentials userCredentials )
+    public ApiTokenAuthenticationToken( ApiToken token, CurrentUserDetails user )
     {
-        super( Collections.emptyList() );
+        super( user.getAuthorities() );
         this.tokenRef = token;
-        this.userCredentials = userCredentials;
+        this.user = user;
     }
 
     @Override
-    public UserCredentials getCredentials()
+    public CurrentUserDetails getCredentials()
     {
-        return this.userCredentials;
+        return this.user;
     }
 
     @Override
-    public UserDetails getPrincipal()
+    public CurrentUserDetails getPrincipal()
     {
-        return this.userCredentials;
+        return this.user;
     }
 
     public String getTokenKey()
@@ -83,5 +85,65 @@ public class ApiTokenAuthenticationToken extends AbstractAuthenticationToken
     public ApiToken getToken()
     {
         return this.tokenRef;
+    }
+
+    @Override
+    public String getPassword()
+    {
+        return user.getPassword();
+    }
+
+    @Override
+    public String getUsername()
+    {
+        return user.getUsername();
+    }
+
+    @Override
+    public boolean isAccountNonExpired()
+    {
+        return user.isAccountNonExpired();
+    }
+
+    @Override
+    public boolean isAccountNonLocked()
+    {
+        return user.isAccountNonLocked();
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired()
+    {
+        return user.isCredentialsNonExpired();
+    }
+
+    @Override
+    public boolean isEnabled()
+    {
+        return user.isEnabled();
+    }
+
+    @Override
+    public boolean isSuper()
+    {
+        return user.isSuper();
+    }
+
+    @Override
+    public String getUid()
+    {
+        return user.getUid();
+    }
+
+    @Override
+    public Set<String> getUserGroupIds()
+    {
+        return user.getUserGroupIds();
+    }
+
+    @Override
+    public Map<String, Serializable> getUserSettings()
+    {
+        return user.getUserSettings();
     }
 }

@@ -27,9 +27,12 @@
  */
 package org.hisp.dhis.security.oidc;
 
+import java.io.Serializable;
 import java.util.Map;
+import java.util.Set;
 
-import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.CurrentUserDetails;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
@@ -40,18 +43,18 @@ import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
  */
 public class DhisOidcUser
     extends DefaultOAuth2User
-    implements OidcUser
+    implements OidcUser, CurrentUserDetails
 {
     private final OidcIdToken oidcIdToken;
 
-    private final UserCredentials userCredentials;
+    private final CurrentUserDetails user;
 
-    public DhisOidcUser( UserCredentials userCredentials, Map<String, Object> attributes, String nameAttributeKey,
+    public DhisOidcUser( CurrentUserDetails user, Map<String, Object> attributes, String nameAttributeKey,
         OidcIdToken idToken )
     {
-        super( userCredentials.getAuthorities(), attributes, nameAttributeKey );
+        super( user.getAuthorities(), attributes, nameAttributeKey );
         this.oidcIdToken = idToken;
-        this.userCredentials = userCredentials;
+        this.user = user;
     }
 
     @Override
@@ -72,8 +75,68 @@ public class DhisOidcUser
         return oidcIdToken;
     }
 
-    public UserCredentials getUserCredentials()
+    public UserDetails getUser()
     {
-        return userCredentials;
+        return user;
+    }
+
+    @Override
+    public String getUsername()
+    {
+        return user.getUsername();
+    }
+
+    @Override
+    public String getPassword()
+    {
+        return user.getPassword();
+    }
+
+    @Override
+    public boolean isAccountNonExpired()
+    {
+        return user.isAccountNonExpired();
+    }
+
+    @Override
+    public boolean isAccountNonLocked()
+    {
+        return user.isAccountNonLocked();
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired()
+    {
+        return user.isCredentialsNonExpired();
+    }
+
+    @Override
+    public boolean isEnabled()
+    {
+        return user.isEnabled();
+    }
+
+    @Override
+    public boolean isSuper()
+    {
+        return user.isSuper();
+    }
+
+    @Override
+    public String getUid()
+    {
+        return user.getUid();
+    }
+
+    @Override
+    public Set<String> getUserGroupIds()
+    {
+        return user.getUserGroupIds();
+    }
+
+    @Override
+    public Map<String, Serializable> getUserSettings()
+    {
+        return user.getUserSettings();
     }
 }

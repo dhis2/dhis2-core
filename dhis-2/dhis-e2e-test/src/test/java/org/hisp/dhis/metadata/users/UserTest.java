@@ -124,7 +124,7 @@ public class UserTest extends ApiTest
         loginActions.addAuthenticationHeader( username, newPassword );
         loginActions.getLoggedInUserInfo().validate()
             .statusCode( 200 )
-            .body( "userCredentials.username", equalTo( username ) );
+            .body( "username", equalTo( username ) );
 
         // should not login in with old credentials
         loginActions.addAuthenticationHeader( username, password );

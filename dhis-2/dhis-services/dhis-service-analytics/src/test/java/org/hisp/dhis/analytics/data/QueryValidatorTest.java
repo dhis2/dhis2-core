@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.analytics.data;
 
+import static org.hisp.dhis.DhisConvenienceTest.createCategory;
+import static org.hisp.dhis.DhisConvenienceTest.createCategoryCombo;
+import static org.hisp.dhis.DhisConvenienceTest.createCategoryOption;
+import static org.hisp.dhis.DhisConvenienceTest.createCategoryOptionCombo;
 import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
 import static org.hisp.dhis.DhisConvenienceTest.createDataElementGroup;
 import static org.hisp.dhis.DhisConvenienceTest.createDataElementGroupSet;
@@ -48,6 +52,10 @@ import static org.mockito.Mockito.mock;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.OutputFormat;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -56,6 +64,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
+import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
@@ -79,12 +88,31 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith( MockitoExtension.class )
 class QueryValidatorTest
 {
-
     private DefaultQueryValidator queryValidator;
 
     // -------------------------------------------------------------------------
     // Fixture
     // -------------------------------------------------------------------------
+
+    private CategoryOption coA;
+
+    private CategoryOption coB;
+
+    private CategoryOption coC;
+
+    private CategoryOption coD;
+
+    private Category caA;
+
+    private Category caB;
+
+    private CategoryCombo ccA;
+
+    private CategoryCombo ccB;
+
+    private CategoryOptionCombo cocC;
+
+    private CategoryOptionCombo cocD;
 
     private IndicatorType itA;
 
@@ -98,9 +126,15 @@ class QueryValidatorTest
 
     private DataElement deB;
 
+    private DataElement deC;
+
     private ProgramDataElementDimensionItem pdeA;
 
     private ProgramDataElementDimensionItem pdeB;
+
+    private DataElementOperand doC;
+
+    private DataElementOperand doD;
 
     private ReportingRate rrA;
 
@@ -122,6 +156,21 @@ class QueryValidatorTest
         queryValidator = new DefaultQueryValidator( mock( SystemSettingManager.class ) );
         PeriodType pt = new MonthlyPeriodType();
 
+        coA = createCategoryOption( 'A' );
+        coB = createCategoryOption( 'B' );
+        coC = createCategoryOption( 'C' );
+        coD = createCategoryOption( 'D' );
+
+        caA = createCategory( 'A', coA, coB );
+        caB = createCategory( 'B', coC, coD );
+
+        ccA = createCategoryCombo( 'A', caA );
+        ccB = createCategoryCombo( 'B', caB );
+        ccB.setSkipTotal( true );
+
+        cocC = createCategoryOptionCombo( ccB, coC );
+        cocD = createCategoryOptionCombo( ccB, coD );
+
         itA = createIndicatorType( 'A' );
 
         inA = createIndicator( 'A', itA );
@@ -131,9 +180,17 @@ class QueryValidatorTest
 
         deA = createDataElement( 'A', ValueType.INTEGER, AggregationType.SUM );
         deB = createDataElement( 'B', ValueType.INTEGER, AggregationType.SUM );
+        deC = createDataElement( 'C', ValueType.INTEGER, AggregationType.SUM );
+
+        deA.setCategoryCombo( ccA );
+        deB.setCategoryCombo( ccA );
+        deC.setCategoryCombo( ccB );
 
         pdeA = new ProgramDataElementDimensionItem( prA, deA );
         pdeB = new ProgramDataElementDimensionItem( prA, deB );
+
+        doC = new DataElementOperand( deC, cocC );
+        doD = new DataElementOperand( deC, cocD );
 
         DataSet dsA = createDataSet( 'A', pt );
 
@@ -202,6 +259,31 @@ class QueryValidatorTest
             .build();
 
         queryValidator.validate( params );
+    }
+
+    @Test
+    void validateFailureNoPeriods()
+    {
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .addDimension(
+                new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
+            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList() ) )
+            .addFilter( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( deA, inA ) ) ).build();
+
+        assertValidatonError( ErrorCode.E7104, params );
+    }
+
+    @Test
+    void validateFailureNoDataItems()
+    {
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .addDimension(
+                new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
+            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA, peB ) ) )
+            .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList() ) )
+            .build();
+
+        assertValidatonError( ErrorCode.E7102, params );
     }
 
     @Test
@@ -368,6 +450,79 @@ class QueryValidatorTest
             .withOutputFormat( OutputFormat.DATA_VALUE_SET ).build();
 
         assertValidatonError( ErrorCode.E7119, params );
+    }
+
+    /**
+     * Asserts that the total value cannot be retrieved for data elements with
+     * category combinations with skip total enabled.
+     */
+    @Test
+    void validateFailureSkipTotalDataElements()
+    {
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( deA, deC ) ) )
+            .addDimension(
+                new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
+            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA ) ) )
+            .build();
+
+        assertValidatonError( ErrorCode.E7134, params );
+    }
+
+    /**
+     * Asserts that the total value can be retrieved for data elements with
+     * category combinations with skip total enabled if the query specifies all
+     * categories of the category combination with items as dimensions.
+     */
+    @Test
+    void validateSuccessSkipTotalDataElementsWithCategoryDimension()
+    {
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( deA, deC ) ) )
+            .addDimension(
+                new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
+            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA ) ) )
+            .addDimension( new BaseDimensionalObject( caB.getDimension(), DimensionType.CATEGORY, getList( coC ) ) )
+            .build();
+
+        queryValidator.validate( params );
+    }
+
+    /**
+     * Asserts that the total value can be retrieved for data elements with
+     * category combinations with skip total enabled if the query specifies all
+     * categories of the category combination with items as filters.
+     */
+    @Test
+    void validateSuccessSkipTotalDataElementsWithCategoryFilter()
+    {
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( deA, deC ) ) )
+            .addDimension(
+                new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
+            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA ) ) )
+            .addFilter( new BaseDimensionalObject( caB.getDimension(), DimensionType.CATEGORY, getList( coD ) ) )
+            .build();
+
+        queryValidator.validate( params );
+    }
+
+    /**
+     * Asserts that the total value can be retrieved for data element operands
+     * with data elements category combinations with skip total enabled.
+     */
+    @Test
+    void validateSuccessSkipTotalWithOperands()
+    {
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .addDimension(
+                new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( doC, doD ) ) )
+            .addFilter(
+                new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
+            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA, peB ) ) )
+            .build();
+
+        queryValidator.validate( params );
     }
 
     @Test

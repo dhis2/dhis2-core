@@ -29,46 +29,44 @@ package org.hisp.dhis.user;
 
 import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
+import java.util.Map;
+
 import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Lars Helge Overland
  */
 @AllArgsConstructor
-@Component( "org.hisp.dhis.user.UserDeletionHandler" )
-public class UserDeletionHandler
-    extends DeletionHandler
+@Component
+public class UserDeletionHandler extends JdbcDeletionHandler
 {
     private final IdentifiableObjectManager idObjectManager;
-
-    private final JdbcTemplate jdbcTemplate;
 
     private static final DeletionVeto VETO = new DeletionVeto( User.class );
 
     @Override
     protected void register()
     {
-        whenDeleting( UserAuthorityGroup.class, this::deleteUserAuthorityGroup );
+        whenDeleting( UserRole.class, this::deleteUserRole );
         whenDeleting( OrganisationUnit.class, this::deleteOrganisationUnit );
         whenDeleting( UserGroup.class, this::deleteUserGroup );
-        whenVetoing( UserAuthorityGroup.class, this::allowDeleteUserAuthorityGroup );
+        whenVetoing( UserRole.class, this::allowDeleteUserRole );
         whenVetoing( FileResource.class, this::allowDeleteFileResource );
     }
 
-    private void deleteUserAuthorityGroup( UserAuthorityGroup authorityGroup )
+    private void deleteUserRole( UserRole role )
     {
-        for ( UserCredentials credentials : authorityGroup.getMembers() )
+        for ( User user : role.getMembers() )
         {
-            credentials.getUserAuthorityGroups().remove( authorityGroup );
-            idObjectManager.updateNoAcl( credentials );
+            user.getUserRoles().remove( role );
+            idObjectManager.updateNoAcl( user );
         }
     }
 
@@ -90,13 +88,13 @@ public class UserDeletionHandler
         }
     }
 
-    private DeletionVeto allowDeleteUserAuthorityGroup( UserAuthorityGroup authorityGroup )
+    private DeletionVeto allowDeleteUserRole( UserRole userRole )
     {
-        for ( UserCredentials credentials : authorityGroup.getMembers() )
+        for ( User credentials : userRole.getMembers() )
         {
-            for ( UserAuthorityGroup role : credentials.getUserAuthorityGroups() )
+            for ( UserRole role : credentials.getUserRoles() )
             {
-                if ( role.equals( authorityGroup ) )
+                if ( role.equals( userRole ) )
                 {
                     return new DeletionVeto( User.class, credentials.getName() );
                 }
@@ -107,8 +105,7 @@ public class UserDeletionHandler
 
     private DeletionVeto allowDeleteFileResource( FileResource fileResource )
     {
-        String sql = "SELECT COUNT(*) FROM userinfo where avatar=" + fileResource.getId();
-
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
+        String sql = "select count(*) from userinfo where avatar=:id";
+        return vetoIfExists( VETO, sql, Map.of( "id", fileResource.getId() ) );
     }
 }

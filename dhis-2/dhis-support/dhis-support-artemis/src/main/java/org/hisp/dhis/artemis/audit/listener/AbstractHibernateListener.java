@@ -197,7 +197,7 @@ public abstract class AbstractHibernateListener
             String pName = persister.getPropertyNames()[i];
             Property property = properties.get( pName );
 
-            if ( property == null || (!property.isOwner() && !property.isEmbeddedObject()) )
+            if ( shouldIgnoreProperty( property ) )
             {
                 continue;
             }
@@ -231,7 +231,7 @@ public abstract class AbstractHibernateListener
         }
         catch ( Exception ex )
         {
-            log.error( "Couldn't create proxy " + ex );
+            log.debug( "Couldn't create proxy " + DebugUtils.getStackTrace( ex ) );
         }
 
         return null;
@@ -330,5 +330,10 @@ public abstract class AbstractHibernateListener
         }
 
         return object;
+    }
+
+    private boolean shouldIgnoreProperty( Property property )
+    {
+        return property == null || (!property.isOwner() && !property.isEmbeddedObject()) || !property.isReadable();
     }
 }

@@ -34,9 +34,9 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.hisp.dhis.web.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpStatus;
 
 /**
  * Tests specifically the {@code fields} parameter aspect of the
@@ -106,7 +106,7 @@ class DatastoreFieldsControllerTest extends AbstractDatastoreControllerTest
     void testFields_RootAlias()
     {
         assertJson( "[{'key':'horse','name':'Fury'}]",
-            GET( "/dataStore/pets?fields=.(name)&headless=true&filter=_:eq:horse" ) );
+            GET( "/dataStore/pets?fields=.~hoist(name)&headless=true&filter=_:eq:horse" ) );
     }
 
     @Test
@@ -137,25 +137,29 @@ class DatastoreFieldsControllerTest extends AbstractDatastoreControllerTest
     @Test
     void testFields_PathStringWithAlias()
     {
-        assertJson( "["
+        String expected = "["
             + "{'key':'cat','food':{'name':'tuna'}},"
             + "{'key':'cow','food':{'name':'gras'}},"
             + "{'key':'hamster','food':{'name':'veggies'}},"
             + "{'key':'pig','food':{'name':'carrots'}}"
-            + "]",
-            GET( "/dataStore/pets?fields=eats.0(food)&headless=true" ) );
+            + "]";
+        assertJson( expected, GET( "/dataStore/pets?fields=eats.0~hoist(food)&headless=true" ) );
+        assertJson( expected, GET( "/dataStore/pets?fields=eats[0~hoist(food)]&headless=true" ) );
+        assertJson( expected, GET( "/dataStore/pets?fields=eats(0~hoist(food))&headless=true" ) );
     }
 
     @Test
     void testFields_Multiple()
     {
-        assertJson( "["
+        String expected = "["
             + "{'key':'cat','name':'Miao','food':'tuna'},"
             + "{'key':'cow','name':'Muuhh','food':'gras'},"
             + "{'key':'hamster','name':'Speedy','food':'veggies'},"
             + "{'key':'pig','name':'Oink','food':'carrots'}"
-            + "]",
-            GET( "/dataStore/pets?fields=name,eats.0.name(food)&headless=true" ) );
+            + "]";
+        assertJson( expected, GET( "/dataStore/pets?fields=name,eats.0.name~hoist(food)&headless=true" ) );
+        assertJson( expected, GET( "/dataStore/pets?fields=name,eats[0[name~hoist(food)]]&headless=true" ) );
+        assertJson( expected, GET( "/dataStore/pets?fields=name,eats(0(name~hoist(food)))&headless=true" ) );
     }
 
     @Test

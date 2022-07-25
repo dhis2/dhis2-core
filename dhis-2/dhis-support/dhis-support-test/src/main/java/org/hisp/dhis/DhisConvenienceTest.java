@@ -27,11 +27,11 @@
  */
 package org.hisp.dhis;
 
+import static com.google.common.collect.Sets.newHashSet;
 import static java.util.Arrays.asList;
-import static java.util.Collections.singletonList;
-import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.hisp.dhis.common.DataDimensionType.DISAGGREGATION;
 import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
 
 import java.io.File;
@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -47,6 +48,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -89,6 +91,8 @@ import org.hisp.dhis.dataset.notifications.DataSetNotificationRecipient;
 import org.hisp.dhis.dataset.notifications.DataSetNotificationTemplate;
 import org.hisp.dhis.dataset.notifications.DataSetNotificationTrigger;
 import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.eventvisualization.EventVisualizationType;
 import org.hisp.dhis.expression.Expression;
@@ -99,6 +103,7 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.fileresource.ExternalFileResource;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
+import org.hisp.dhis.hibernate.HibernateService;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.indicator.IndicatorGroupSet;
@@ -160,11 +165,13 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.trackedentityfilter.EntityQueryCriteria;
 import org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilter;
+import org.hisp.dhis.trackerdataview.TrackerDataView;
+import org.hisp.dhis.user.CurrentUserDetails;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAuthorityGroup;
-import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.utils.Dxf2NamespaceResolver;
@@ -175,23 +182,19 @@ import org.hisp.dhis.visualization.Visualization;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDateTime;
 import org.locationtech.jts.geom.Geometry;
-import org.springframework.aop.framework.Advised;
-import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.util.Assert;
 import org.springframework.util.MimeTypeUtils;
 import org.xml.sax.InputSource;
 
-import com.google.api.client.util.Strings;
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.hash.HashCode;
@@ -230,6 +233,8 @@ public abstract class DhisConvenienceTest
 
     private static final String EXT_TEST_DIR = System.getProperty( "user.home" ) + File.separator + "dhis2_test_dir";
 
+    public static final String ADMIN_USER_UID = "M5zQapPyTZI";
+
     public static final String DEFAULT_ADMIN_PASSWORD = "district";
 
     public static final String DEFAULT_USERNAME = "admin";
@@ -251,9 +256,10 @@ public abstract class DhisConvenienceTest
     @Autowired( required = false )
     protected CategoryService internalCategoryService;
 
-    protected static CategoryService categoryService;
+    @Autowired
+    protected HibernateService hibernateService;
 
-    private char nextUserName = 'k';
+    protected static CategoryService categoryService;
 
     @PostConstruct
     protected void initServices()
@@ -277,6 +283,7 @@ public abstract class DhisConvenienceTest
      * @param year the year.
      * @param month the month.
      * @param day the day of month.
+     *
      * @return a date.
      */
     public static Date getDate( int year, int month, int day )
@@ -289,6 +296,7 @@ public abstract class DhisConvenienceTest
      * Creates a date.
      *
      * @param s a string representation of a date
+     *
      * @return a date.
      */
     public static Date getDate( String s )
@@ -303,6 +311,7 @@ public abstract class DhisConvenienceTest
      * @param year the year.
      * @param month the month.
      * @param day the day of month.
+     *
      * @return a date.
      */
     public static Date date( int year, int month, int day )
@@ -314,6 +323,7 @@ public abstract class DhisConvenienceTest
      * Creates a date.
      *
      * @param day the day of the year.
+     *
      * @return a date.
      */
     public Date getDay( int day )
@@ -333,6 +343,7 @@ public abstract class DhisConvenienceTest
      *
      * @param actual the actual collection to check.
      * @param reference the reference objects to check against.
+     *
      * @return true if the collections are equal, false otherwise.
      */
     public static boolean equals( Collection<?> actual, Object... reference )
@@ -429,25 +440,6 @@ public abstract class DhisConvenienceTest
         }
     }
 
-    /**
-     * If the given class is advised by Spring AOP it will return the target
-     * class, i.e. the advised class. If not the given class is returned
-     * unchanged.
-     *
-     * @param object the object.
-     */
-    @SuppressWarnings( "unchecked" )
-    private <T> T getRealObject( T object )
-        throws Exception
-    {
-        if ( AopUtils.isAopProxy( object ) )
-        {
-            return (T) ((Advised) object).getTargetSource().getTarget();
-        }
-
-        return object;
-    }
-
     // -------------------------------------------------------------------------
     // Create object methods
     // -------------------------------------------------------------------------
@@ -527,6 +519,7 @@ public abstract class DhisConvenienceTest
      * @param categoryComboUniqueIdentifier A unique character to identify the
      *        category option combo.
      * @param categories the categories category options.
+     *
      * @return CategoryOptionCombo
      */
     public static CategoryCombo createCategoryCombo( char categoryComboUniqueIdentifier, Category... categories )
@@ -544,10 +537,28 @@ public abstract class DhisConvenienceTest
     }
 
     /**
+     * Creates a {@see CategoryCombo} with name, uid, and categories.
+     *
+     * @param name desired name
+     * @param uid desired uid
+     * @param categories categories for this combo
+     * @return {@see CategoryCombo}
+     */
+    public static CategoryCombo createCategoryCombo( String name, String uid, Category... categories )
+    {
+        CategoryCombo categoryCombo = new CategoryCombo( name, DISAGGREGATION, Arrays.asList( categories ) );
+        categoryCombo.setAutoFields();
+        categoryCombo.setUid( uid );
+
+        return categoryCombo;
+    }
+
+    /**
      * @param categoryComboUniqueIdentifier A unique character to identify the
      *        category combo.
      * @param categoryOptionUniqueIdentifiers Unique characters to identify the
      *        category options.
+     *
      * @return CategoryOptionCombo
      */
     public static CategoryOptionCombo createCategoryOptionCombo( char categoryComboUniqueIdentifier,
@@ -569,10 +580,31 @@ public abstract class DhisConvenienceTest
     }
 
     /**
+     * Creates a {@see CategoryOptionCombo} with name, uid, and options.
+     *
+     * @param name desired name
+     * @param uid desired uid
+     * @param categoryCombo category combination for this option combo
+     * @param categoryOptions category options for this option combo
+     * @return {@see CategoryOptionCombo}
+     */
+    public static CategoryOptionCombo createCategoryOptionCombo( String name, String uid, CategoryCombo categoryCombo,
+        CategoryOption... categoryOptions )
+    {
+        CategoryOptionCombo categoryOptionCombo = createCategoryOptionCombo( categoryCombo, categoryOptions );
+        categoryOptionCombo.setName( name );
+        categoryOptionCombo.setShortName( name );
+        categoryOptionCombo.setUid( uid );
+
+        return categoryOptionCombo;
+    }
+
+    /**
      * @param categoryCombo the category combo.
      * @param categoryOptions the category options.
-     * @return CategoryOptionCombo
      *
+     * @return CategoryOptionCombo
+     *         <p>
      *         Note: All the Category Options (COs) should be added to the
      *         Category Option Combo (COC) before the COC is added to the COs.
      *         That way the hashCode for the COC is stable when it is added to
@@ -616,6 +648,7 @@ public abstract class DhisConvenienceTest
      * @param categoryUniqueIdentifier A unique character to identify the
      *        category.
      * @param categoryOptions the category options.
+     *
      * @return Category
      */
     public static Category createCategory( char categoryUniqueIdentifier,
@@ -633,6 +666,25 @@ public abstract class DhisConvenienceTest
         return category;
     }
 
+    /**
+     * Creates a {@see Category} with name, uid, and options.
+     *
+     * @param name desired name
+     * @param uid desired uid
+     * @param categoryOptions options for this category
+     * @return {@see Category}
+     */
+    public static Category createCategory( String name, String uid,
+        CategoryOption... categoryOptions )
+    {
+        Category category = new Category( name, DISAGGREGATION, Arrays.asList( categoryOptions ) );
+        category.setAutoFields();
+        category.setShortName( name );
+        category.setUid( uid );
+
+        return category;
+    }
+
     public static CategoryOption createCategoryOption( char uniqueIdentifier )
     {
         CategoryOption categoryOption = new CategoryOption( "CategoryOption" + uniqueIdentifier );
@@ -642,9 +694,26 @@ public abstract class DhisConvenienceTest
     }
 
     /**
+     * Creates a {@see CategoryOption} with name and uid.
+     *
+     * @param name desired name
+     * @param uid desired uid
+     * @return {@see CategoryOption}
+     */
+    public static CategoryOption createCategoryOption( String name, String uid )
+    {
+        CategoryOption categoryOption = new CategoryOption( name );
+        categoryOption.setAutoFields();
+        categoryOption.setUid( uid );
+
+        return categoryOption;
+    }
+
+    /**
      * @param uniqueIdentifier A unique character to identify the category
      *        option group.
      * @param categoryOptions the category options.
+     *
      * @return CategoryOptionGroup
      */
     public static CategoryOptionGroup createCategoryOptionGroup( char uniqueIdentifier,
@@ -668,6 +737,7 @@ public abstract class DhisConvenienceTest
      * @param categoryGroupSetUniqueIdentifier A unique character to identify
      *        the category option group set.
      * @param categoryOptionGroups the category option groups.
+     *
      * @return CategoryOptionGroupSet
      */
     public static CategoryOptionGroupSet createCategoryOptionGroupSet( char categoryGroupSetUniqueIdentifier,
@@ -691,6 +761,14 @@ public abstract class DhisConvenienceTest
     public static Attribute createAttribute( char uniqueCharacter )
     {
         Attribute attribute = new Attribute( "Attribute" + uniqueCharacter, ValueType.TEXT );
+        attribute.setAutoFields();
+
+        return attribute;
+    }
+
+    public static Attribute createAttribute( String name, ValueType valueType )
+    {
+        Attribute attribute = new Attribute( name, valueType );
         attribute.setAutoFields();
 
         return attribute;
@@ -752,6 +830,18 @@ public abstract class DhisConvenienceTest
      */
     public static Indicator createIndicator( char uniqueCharacter, IndicatorType type )
     {
+        return createIndicator( uniqueCharacter, type, "Numerator", "Denominator" );
+    }
+
+    /**
+     * @param uniqueCharacter A unique character to identify the object.
+     * @param type The type.
+     * @param numerator The numerator.
+     * @param denominator The denominator.
+     */
+    public static Indicator createIndicator( char uniqueCharacter, IndicatorType type,
+        String numerator, String denominator )
+    {
         Indicator indicator = new Indicator();
         indicator.setAutoFields();
 
@@ -762,9 +852,9 @@ public abstract class DhisConvenienceTest
         indicator.setDescription( "IndicatorDescription" + uniqueCharacter );
         indicator.setAnnualized( false );
         indicator.setIndicatorType( type );
-        indicator.setNumerator( "Numerator" );
+        indicator.setNumerator( numerator );
         indicator.setNumeratorDescription( "NumeratorDescription" );
-        indicator.setDenominator( "Denominator" );
+        indicator.setDenominator( denominator );
         indicator.setDenominatorDescription( "DenominatorDescription" );
 
         return indicator;
@@ -1172,6 +1262,7 @@ public abstract class DhisConvenienceTest
 
     /**
      * @param uniqueCharacter A unique character to identify the object.
+     *
      * @return ValidationRuleGroup
      */
     public static ValidationRuleGroup createValidationRuleGroup( char uniqueCharacter )
@@ -1252,6 +1343,7 @@ public abstract class DhisConvenienceTest
         predictor.setOutput( output );
         predictor.setOutputCombo( combo );
         predictor.setName( "Predictor" + uniqueCharacter );
+        predictor.setShortName( "Predictor" + uniqueCharacter );
         predictor.setDescription( "Description" + uniqueCharacter );
         predictor.setGenerator( generator );
         predictor.setSampleSkipTest( skipTest );
@@ -1270,6 +1362,7 @@ public abstract class DhisConvenienceTest
      *
      * @param uniqueCharacter A unique character to identify the object.
      * @param predictors Predictors to add to the group.
+     *
      * @return PredictorGroup
      */
     public static PredictorGroup createPredictorGroup( char uniqueCharacter, Predictor... predictors )
@@ -1341,34 +1434,47 @@ public abstract class DhisConvenienceTest
         eventVisualization.setAutoFields();
         eventVisualization.setProgram( program );
         eventVisualization.setName( "EventVisualization" + uniqueCharacter );
-        eventVisualization.setType( EventVisualizationType.COLUMN );
+        eventVisualization.setType( EventVisualizationType.LINE_LIST );
 
         return eventVisualization;
     }
 
-    public static User createUser( char uniqueCharacter )
+    public static User makeUser( String uniqueCharacter )
     {
-        return createUser( uniqueCharacter, Lists.newArrayList() );
+        return makeUser( uniqueCharacter, Lists.newArrayList() );
     }
 
-    public static User createUser( char uniqueCharacter, List<String> auths )
+    private static final char[] USERNAME_CHARS = "abcdefghijklmnopqrstuvwxyz".toCharArray();
+
+    private static AtomicInteger uniqueCharCounter = new AtomicInteger( -1 );
+
+    private static String getNextUniqueChar()
     {
-        UserCredentials credentials = new UserCredentials();
+        int i = uniqueCharCounter.incrementAndGet();
+        if ( i >= USERNAME_CHARS.length - 1 )
+        {
+            uniqueCharCounter.set( 0 );
+        }
+        return String.valueOf( USERNAME_CHARS[i] );
+    }
+
+    public static User makeUser( String uniqueCharacter, List<String> auths )
+    {
         User user = new User();
+
         user.setUid( BASE_USER_UID + uniqueCharacter );
 
-        credentials.setUserInfo( user );
-        credentials.setCreatedBy( user );
-        user.setUserCredentials( credentials );
+        user.setCreatedBy( user );
 
-        credentials.setUsername( ("username" + uniqueCharacter).toLowerCase() );
-        credentials.setPassword( "password" + uniqueCharacter );
+        user.setUsername( ("username" + uniqueCharacter).toLowerCase() );
+        user.setPassword( "password" + uniqueCharacter );
 
         if ( auths != null && !auths.isEmpty() )
         {
-            UserAuthorityGroup role = new UserAuthorityGroup();
-            auths.stream().forEach( auth -> role.getAuthorities().add( auth ) );
-            credentials.getUserAuthorityGroups().add( role );
+            UserRole role = new UserRole();
+            role.setName( "Role_" + CodeGenerator.generateCode( 5 ) );
+            auths.forEach( auth -> role.getAuthorities().add( auth ) );
+            user.getUserRoles().add( role );
         }
 
         user.setFirstName( "FirstName" + uniqueCharacter );
@@ -1398,19 +1504,6 @@ public abstract class DhisConvenienceTest
         return mapView;
     }
 
-    public static UserCredentials createUserCredentials( char uniqueCharacter, User user )
-    {
-        UserCredentials credentials = new UserCredentials();
-        credentials.setName( "UserCredentials" + uniqueCharacter );
-        credentials.setUsername( ("username" + uniqueCharacter).toLowerCase() );
-        credentials.setPassword( "Password" + uniqueCharacter );
-        credentials.setUserInfo( user );
-        user.setUserCredentials( credentials );
-        credentials.setUser( user );
-
-        return credentials;
-    }
-
     public static UserGroup createUserGroup( char uniqueCharacter, Set<User> users )
     {
         UserGroup userGroup = new UserGroup();
@@ -1424,18 +1517,18 @@ public abstract class DhisConvenienceTest
         return userGroup;
     }
 
-    public static UserAuthorityGroup createUserAuthorityGroup( char uniqueCharacter )
+    public static UserRole createUserRole( char uniqueCharacter )
     {
-        return createUserAuthorityGroup( uniqueCharacter, new String[] {} );
+        return createUserRole( uniqueCharacter, new String[] {} );
     }
 
-    public static UserAuthorityGroup createUserAuthorityGroup( char uniqueCharacter, String... auths )
+    public static UserRole createUserRole( char uniqueCharacter, String... auths )
     {
-        UserAuthorityGroup role = new UserAuthorityGroup();
+        UserRole role = new UserRole();
         role.setAutoFields();
 
         role.setUid( BASE_UID + uniqueCharacter );
-        role.setName( "UserAuthorityGroup" + uniqueCharacter );
+        role.setName( "UserRole" + uniqueCharacter );
 
         for ( String auth : auths )
         {
@@ -1541,6 +1634,16 @@ public abstract class DhisConvenienceTest
         psi.setProgramInstance( pi );
         psi.setOrganisationUnit( organisationUnit );
 
+        return psi;
+    }
+
+    public static ProgramStageInstance createProgramStageInstance( ProgramInstance programInstance,
+        ProgramStage programStage, OrganisationUnit organisationUnit, Set<EventDataValue> dataValues )
+    {
+        ProgramStageInstance psi = createProgramStageInstance( programStage, programInstance, organisationUnit );
+        psi.setExecutionDate( new Date() );
+        psi.setStatus( EventStatus.ACTIVE );
+        psi.setEventDataValues( dataValues );
         return psi;
     }
 
@@ -1817,6 +1920,49 @@ public abstract class DhisConvenienceTest
         return relationship;
     }
 
+    public static Relationship createTeiToProgramInstanceRelationship( TrackedEntityInstance from, ProgramInstance to,
+        RelationshipType relationshipType )
+    {
+        Relationship relationship = new Relationship();
+        RelationshipItem _from = new RelationshipItem();
+        RelationshipItem _to = new RelationshipItem();
+
+        _from.setTrackedEntityInstance( from );
+        _to.setProgramInstance( to );
+
+        relationship.setRelationshipType( relationshipType );
+        relationship.setFrom( _from );
+        relationship.setTo( _to );
+        relationship.setKey( RelationshipUtils.generateRelationshipKey( relationship ) );
+        relationship.setInvertedKey( RelationshipUtils.generateRelationshipInvertedKey( relationship ) );
+
+        relationship.setAutoFields();
+
+        return relationship;
+    }
+
+    public static Relationship createTeiToProgramStageInstanceRelationship( TrackedEntityInstance from,
+        ProgramStageInstance to,
+        RelationshipType relationshipType )
+    {
+        Relationship relationship = new Relationship();
+        RelationshipItem _from = new RelationshipItem();
+        RelationshipItem _to = new RelationshipItem();
+
+        _from.setTrackedEntityInstance( from );
+        _to.setProgramStageInstance( to );
+
+        relationship.setRelationshipType( relationshipType );
+        relationship.setFrom( _from );
+        relationship.setTo( _to );
+        relationship.setKey( RelationshipUtils.generateRelationshipKey( relationship ) );
+        relationship.setInvertedKey( RelationshipUtils.generateRelationshipInvertedKey( relationship ) );
+
+        relationship.setAutoFields();
+
+        return relationship;
+    }
+
     public static RelationshipType createPersonToPersonRelationshipType( char uniqueCharacter, Program program,
         TrackedEntityType trackedEntityType, boolean isBidirectional )
     {
@@ -1878,12 +2024,18 @@ public abstract class DhisConvenienceTest
     {
         RelationshipType relationshipType = new RelationshipType();
 
+        RelationshipConstraint fromRelationShipConstraint = new RelationshipConstraint();
+        fromRelationShipConstraint.setTrackerDataView( TrackerDataView.builder().build() );
+
+        RelationshipConstraint toRelationShipConstraint = new RelationshipConstraint();
+        toRelationShipConstraint.setTrackerDataView( TrackerDataView.builder().build() );
+
         relationshipType.setFromToName( "from_" + uniqueCharacter );
         relationshipType.setToFromName( "to_" + uniqueCharacter );
         relationshipType.setAutoFields();
         relationshipType.setName( "RelationshipType_" + relationshipType.getUid() );
-        relationshipType.setFromConstraint( new RelationshipConstraint() );
-        relationshipType.setToConstraint( new RelationshipConstraint() );
+        relationshipType.setFromConstraint( fromRelationShipConstraint );
+        relationshipType.setToConstraint( toRelationShipConstraint );
 
         return relationshipType;
     }
@@ -1895,7 +2047,7 @@ public abstract class DhisConvenienceTest
         trackedEntityInstanceFilter.setName( "TrackedEntityType" + uniqueChar );
         trackedEntityInstanceFilter.setDescription( "TrackedEntityType" + uniqueChar + " description" );
         trackedEntityInstanceFilter.setProgram( program );
-
+        trackedEntityInstanceFilter.setEntityQueryCriteria( new EntityQueryCriteria() );
         return trackedEntityInstanceFilter;
     }
 
@@ -1959,6 +2111,7 @@ public abstract class DhisConvenienceTest
 
     /**
      * @param uniqueChar A unique character to identify the object.
+     *
      * @return TrackedEntityAttribute
      */
     public static TrackedEntityAttribute createTrackedEntityAttribute( char uniqueChar )
@@ -2025,6 +2178,7 @@ public abstract class DhisConvenienceTest
     /**
      * @param uniqueChar A unique character to identify the object.
      * @param content The content of the file
+     *
      * @return a fileResource object
      */
     public static FileResource createFileResource( char uniqueChar, byte[] content )
@@ -2045,6 +2199,7 @@ public abstract class DhisConvenienceTest
     /**
      * @param uniqueChar A unique character to identify the object.
      * @param content The content of the file
+     *
      * @return an externalFileResource object
      */
     public static ExternalFileResource createExternalFileResource( char uniqueChar, byte[] content )
@@ -2061,6 +2216,7 @@ public abstract class DhisConvenienceTest
     /**
      * @param uniqueCharacter A unique character to identify the object.
      * @param sql A query statement to retreive record/data from database.
+     *
      * @return a sqlView instance
      */
     public static SqlView createSqlView( char uniqueCharacter, String sql )
@@ -2080,6 +2236,7 @@ public abstract class DhisConvenienceTest
     /**
      * @param uniqueCharacter A unique character to identify the object.
      * @param value The value for constant
+     *
      * @return a constant instance
      */
     public static Constant createConstant( char uniqueCharacter, double value )
@@ -2287,6 +2444,7 @@ public abstract class DhisConvenienceTest
      *
      * @param allAuth whether to grant ALL authority to user.
      * @param auths authorities to grant to user.
+     *
      * @return the user.
      */
     protected User createUserAndInjectSecurityContext( boolean allAuth, String... auths )
@@ -2302,6 +2460,7 @@ public abstract class DhisConvenienceTest
      * @param organisationUnits the organisation units of the user.
      * @param allAuth whether to grant the ALL authority to user.
      * @param auths authorities to grant to user.
+     *
      * @return the user.
      */
     protected User createUserAndInjectSecurityContext( Set<OrganisationUnit> organisationUnits, boolean allAuth,
@@ -2320,6 +2479,7 @@ public abstract class DhisConvenienceTest
      *        user.
      * @param allAuth whether to grant the ALL authority to the user.
      * @param auths authorities to grant to the user.
+     *
      * @return the user.
      */
     protected User createUserAndInjectSecurityContext( Set<OrganisationUnit> organisationUnits,
@@ -2341,13 +2501,7 @@ public abstract class DhisConvenienceTest
      *        user.
      * @param allAuth whether to grant the ALL authority to the user.
      * @param auths authorities to grant to the user. =======
-     * @param organisationUnits the organisation units of the user.
-     * @param dataViewOrganisationUnits the data view organisation units of the
-     *        user.
-     * @param catDimensionConstraints the category dimension constraints of the
-     *        user.
-     * @param allAuth whether to grant the ALL authority to the user.
-     * @param auths authorities to grant to the user.
+     *
      * @return the user.
      */
     protected User createUserAndInjectSecurityContext( Set<OrganisationUnit> organisationUnits,
@@ -2360,7 +2514,7 @@ public abstract class DhisConvenienceTest
 
         if ( allAuth )
         {
-            authorities.add( UserAuthorityGroup.AUTHORITY_ALL );
+            authorities.add( UserRole.AUTHORITY_ALL );
         }
 
         if ( auths != null )
@@ -2368,13 +2522,14 @@ public abstract class DhisConvenienceTest
             authorities.addAll( Lists.newArrayList( auths ) );
         }
 
-        UserAuthorityGroup group = new UserAuthorityGroup();
+        UserRole group = new UserRole();
         group.setName( "Superuser" );
         group.getAuthorities().addAll( authorities );
+        userService.addUserRole( group );
 
-        userService.addUserAuthorityGroup( group );
-
-        User user = createUser( nextUserName++ );
+        User user = makeUser( getNextUniqueChar() );
+        user.setUsername( CodeGenerator.generateCode( 16 ) );
+        user.getUserRoles().add( group );
 
         if ( organisationUnits != null )
         {
@@ -2388,13 +2543,10 @@ public abstract class DhisConvenienceTest
 
         if ( catDimensionConstraints != null )
         {
-            user.getUserCredentials().setCatDimensionConstraints( catDimensionConstraints );
+            user.setCatDimensionConstraints( catDimensionConstraints );
         }
 
-        user.getUserCredentials().getUserAuthorityGroups().add( group );
         userService.addUser( user );
-        user.getUserCredentials().setUserInfo( user );
-        userService.addUserCredentials( user.getUserCredentials() );
 
         injectSecurityContext( user );
 
@@ -2406,20 +2558,12 @@ public abstract class DhisConvenienceTest
         Assert.notNull( userService, "UserService must be injected in test" );
     }
 
-    protected void saveAndInjectUserSecurityContext( User user )
-    {
-        userService.addUser( user );
-        userService.addUserCredentials( user.getUserCredentials() );
-
-        injectSecurityContext( user );
-    }
-
     protected User createUserWithId( String username, String uid, String... authorities )
     {
         return _createUser( username, Optional.of( uid ), null, authorities );
     }
 
-    protected User createUser( String username, String... authorities )
+    protected User createUserWithAuth( String username, String... authorities )
     {
         return _createUser( username, Optional.empty(), null, authorities );
     }
@@ -2433,51 +2577,55 @@ public abstract class DhisConvenienceTest
     {
         checkUserServiceWasInjected();
 
-        UserAuthorityGroup group = createAuthorityGroup( username, authorities );
+        UserRole userRole = createUserRole( username, authorities );
+        userService.addUserRole( userRole );
 
-        userService.addUserAuthorityGroup( group );
+        boolean present = uid.isPresent();
+        User user = present ? createUser( username, uid.get() ) : createUser( username );
+        user.setEmail( username + "@dhis2.org" );
+        user.setUsername( username );
+        user.setOpenId( openIDIdentifier );
+        user.getUserRoles().add( userRole );
 
-        User user = uid.isPresent() ? createUser( username, uid.get() ) : createUser( username );
+        if ( !Strings.isNullOrEmpty( openIDIdentifier ) )
+        {
+            user.setOpenId( openIDIdentifier );
+            user.setExternalAuth( true );
+        }
+
+        userService.encodeAndSetPassword( user, DEFAULT_ADMIN_PASSWORD );
 
         userService.addUser( user );
-
-        UserCredentials credentials = createUserCredentials( username, openIDIdentifier, user, group );
-
-        userService.encodeAndSetPassword( credentials, DEFAULT_ADMIN_PASSWORD );
-        userService.addUserCredentials( credentials );
-
-        user.setUserCredentials( credentials );
-        userService.updateUser( user );
 
         return user;
     }
 
-    protected User createAdminUser( String... authorities )
+    protected User createAndAddAdminUser( String... authorities )
     {
         checkUserServiceWasInjected();
+
+        UserRole role = createUserRole( "Superuser", authorities );
+        role.setUid( "yrB6vc5Ip3r" );
 
         String username = DEFAULT_USERNAME;
         String password = DEFAULT_ADMIN_PASSWORD;
 
-        UserAuthorityGroup group = createAuthorityGroup( "Superuser", authorities );
-        group.setUid( "yrB6vc5Ip3r" );
-
-        userService.addUserAuthorityGroup( group );
-
         User user = createUser( username );
-        user.setUid( "M5zQapPyTZI" );
+        user.setUuid( UUID.fromString( "6507f586-f154-4ec1-a25e-d7aa51de5216" ) );
+        user.setUid( ADMIN_USER_UID );
+        user.setName( "Admin" );
+        user.setUsername( username );
+        user.setPassword( password );
+        user.getUserRoles().add( role );
 
+        user.setCreatedBy( user );
+        role.setCreatedBy( user );
         userService.addUser( user );
 
-        UserCredentials credentials = createUserCredentials( username, null, user, group );
-        credentials.setUid( "KvMx6c1eoYo" );
-        credentials.setUuid( UUID.fromString( "6507f586-f154-4ec1-a25e-d7aa51de5216" ) );
-
-        userService.encodeAndSetPassword( credentials, password );
-        userService.addUserCredentials( credentials );
-
-        user.setUserCredentials( credentials );
+        userService.encodeAndSetPassword( user, password );
         userService.updateUser( user );
+
+        userService.addUserRole( role );
 
         return user;
     }
@@ -2489,9 +2637,14 @@ public abstract class DhisConvenienceTest
 
     protected final User createAndInjectAdminUser( String... authorities )
     {
-        User user = createAdminUser( authorities );
+        User user = createAndAddAdminUser( authorities );
         injectSecurityContext( user );
         return user;
+    }
+
+    protected void injectAdminUser()
+    {
+        injectSecurityContext( userService.getUser( ADMIN_USER_UID ) );
     }
 
     protected void injectSecurityContext( User user )
@@ -2501,17 +2654,23 @@ public abstract class DhisConvenienceTest
             clearSecurityContext();
             return;
         }
-        UserCredentials credentials = user.getUserCredentials();
-        switchCurrentUserTo(
-            credentials.getUsername(),
-            credentials.getPassword(),
-            credentials.getAllAuthorities()
-                .stream().map( SimpleGrantedAuthority::new ).collect( toList() ) );
+
+        hibernateService.flushSession();
+        user = userService.getUser( user.getUid() );
+
+        CurrentUserDetails currentUserDetails = userService.validateAndCreateUserDetails( user, user.getPassword() );
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken( currentUserDetails, "",
+            currentUserDetails.getAuthorities() );
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
+        context.setAuthentication( authentication );
+        SecurityContextHolder.setContext( context );
     }
 
     protected void clearSecurityContext()
     {
-        if ( SecurityContextHolder.getContext() != null )
+        SecurityContext context = SecurityContextHolder.getContext();
+        if ( context != null )
         {
             SecurityContextHolder.getContext().setAuthentication( null );
         }
@@ -2559,29 +2718,6 @@ public abstract class DhisConvenienceTest
         object.getSharing().addUserAccess( userAccess );
     }
 
-    protected void preCreateInjectAdminUserWithoutPersistence()
-    {
-        switchCurrentUserTo( DEFAULT_USERNAME, DEFAULT_ADMIN_PASSWORD,
-            singletonList( new SimpleGrantedAuthority( "ALL" ) ) );
-    }
-
-    protected User preCreateInjectAdminUser()
-    {
-        switchCurrentUserTo( DEFAULT_USERNAME, DEFAULT_ADMIN_PASSWORD,
-            singletonList( new SimpleGrantedAuthority( "ALL" ) ) );
-
-        return createAndInjectAdminUser( "ALL" );
-    }
-
-    protected void switchCurrentUserTo( String username, String password, List<GrantedAuthority> authorities )
-    {
-        UserDetails user = new org.springframework.security.core.userdetails.User( username, password, authorities );
-        Authentication authentication = new UsernamePasswordAuthenticationToken( user, "", authorities );
-        SecurityContext context = SecurityContextHolder.createEmptyContext();
-        context.setAuthentication( authentication );
-        SecurityContextHolder.setContext( context );
-    }
-
     private static User createUser( String username, String uid )
     {
         User user = new User();
@@ -2592,76 +2728,59 @@ public abstract class DhisConvenienceTest
         return user;
     }
 
-    private static User createUser( String username )
+    private static User createUser( String uniquePart )
     {
         User user = new User();
-        user.setCode( username );
-        user.setFirstName( username );
-        user.setSurname( username );
+        user.setCode( "Code" + uniquePart );
+        user.setFirstName( "FirstName" + uniquePart );
+        user.setSurname( "Surname" + uniquePart );
         return user;
     }
 
-    private static UserCredentials createUserCredentials( String username, String openIDIdentifier, User user,
-        UserAuthorityGroup group )
+    protected static UserRole createUserRole( String name, String... authorities )
     {
-        UserCredentials credentials = new UserCredentials();
-        credentials.setCode( username );
-        credentials.setCreatedBy( user );
-        credentials.setUserInfo( user );
-        credentials.setUsername( username.toLowerCase() );
-        credentials.getUserAuthorityGroups().add( group );
-
-        if ( !Strings.isNullOrEmpty( openIDIdentifier ) )
-        {
-            credentials.setOpenId( openIDIdentifier );
-            credentials.setExternalAuth( true );
-        }
-
-        return credentials;
-    }
-
-    private static UserAuthorityGroup createAuthorityGroup( String username, String... authorities )
-    {
-        UserAuthorityGroup group = new UserAuthorityGroup();
-        group.setCode( username );
-        group.setName( username );
-        group.setDescription( username );
+        UserRole group = new UserRole();
+        group.setCode( name );
+        group.setName( name );
+        group.setDescription( name );
         group.setAuthorities( Sets.newHashSet( authorities ) );
         return group;
     }
 
-    protected final User addUser( char uniqueCharacter )
+    protected final User addUser( String uniqueCharacter )
     {
-        return addUser( uniqueCharacter, (Consumer<UserCredentials>) null );
+        return addUser( uniqueCharacter, (Consumer<User>) null );
     }
 
-    protected final <T> User addUser( char uniqueCharacter, BiConsumer<UserCredentials, T> setter, T value )
+    protected final <T> User addUser( String uniqueCharacter, BiConsumer<User, T> setter, T value )
     {
-        return addUser( uniqueCharacter, credentials -> setter.accept( credentials, value ) );
+        return addUser( uniqueCharacter, user -> setter.accept( user, value ) );
     }
 
-    protected final User addUser( char uniqueCharacter, OrganisationUnit... units )
+    protected final User addUser( String uniqueCharacter, OrganisationUnit... units )
     {
         return addUser( uniqueCharacter,
-            credentials -> credentials.getUser().getOrganisationUnits().addAll( asList( units ) ) );
+            user -> user.getOrganisationUnits().addAll( asList( units ) ) );
     }
 
-    protected final User addUser( char uniqueCharacter, UserAuthorityGroup... roles )
+    protected final User addUser( String uniqueCharacter, UserRole... roles )
     {
         return addUser( uniqueCharacter,
-            credentials -> credentials.getUserAuthorityGroups().addAll( asList( roles ) ) );
+            user -> user.getUserRoles().addAll( asList( roles ) ) );
     }
 
-    protected final User addUser( char uniqueCharacter, Consumer<UserCredentials> consumer )
+    protected final User addUser( String uniqueCharacter, Consumer<User> consumer )
     {
+        uniqueCharacter = uniqueCharacter.toLowerCase();
+
         User user = createUser( uniqueCharacter );
-        UserCredentials credentials = createUserCredentials( uniqueCharacter, user );
+        user.setUsername( "username" + uniqueCharacter );
+        user.setEmail( "email" + uniqueCharacter );
         if ( consumer != null )
         {
-            consumer.accept( credentials );
+            consumer.accept( user );
         }
         userService.addUser( user );
-        userService.addUserCredentials( credentials );
         return user;
     }
 
@@ -2675,4 +2794,126 @@ public abstract class DhisConvenienceTest
         return programSection;
     }
 
+    private User persistUserAndRoles( User user )
+    {
+        for ( UserRole role : user.getUserRoles() )
+        {
+            role.setName( CodeGenerator.generateUid() );
+            userService.addUserRole( role );
+        }
+
+        userService.addUser( user );
+
+        return user;
+    }
+
+    protected User createAndAddUser( String userName )
+    {
+        return createAndAddUser( false, userName, null );
+    }
+
+    protected User createAndAddUser( Set<OrganisationUnit> organisationUnits,
+        Set<OrganisationUnit> dataViewOrganisationUnits, String... auths )
+    {
+        return createAndAddUser( false, CodeGenerator.generateUid(), organisationUnits, dataViewOrganisationUnits,
+            auths );
+    }
+
+    protected User createAndAddUser( String userName, OrganisationUnit orgUnit, String... auths )
+    {
+        return createAndAddUser( false, userName, orgUnit, auths );
+    }
+
+    protected User createAndAddUser( boolean superUserFlag, String userName, OrganisationUnit orgUnit, String... auths )
+    {
+        return createAndAddUser( superUserFlag, userName, orgUnit, null, auths );
+    }
+
+    protected User createAndAddUser( boolean superUserFlag, String userName, OrganisationUnit orgUnit,
+        OrganisationUnit dataViewOrganisationUnits, String... auths )
+    {
+        User user = _createUserAndRole( superUserFlag, userName, newHashSet( orgUnit ),
+            dataViewOrganisationUnits != null ? newHashSet( dataViewOrganisationUnits ) : newHashSet( orgUnit ),
+            auths );
+
+        persistUserAndRoles( user );
+
+        return user;
+    }
+
+    protected User createAndAddUser( boolean superUserFlag, String userName, Set<OrganisationUnit> orgUnits,
+        Set<OrganisationUnit> dataViewOrgUnits, String... auths )
+    {
+        User user = _createUserAndRole( superUserFlag, userName, (orgUnits),
+            dataViewOrgUnits != null ? (dataViewOrgUnits) : (orgUnits),
+            auths );
+
+        persistUserAndRoles( user );
+
+        return user;
+    }
+
+    private User _createUserAndRole( boolean superUserFlag, String username,
+        Set<OrganisationUnit> organisationUnits,
+        Set<OrganisationUnit> dataViewOrganisationUnits, String... auths )
+    {
+        UserRole userRole = new UserRole();
+        userRole.setName( "USER" );
+        userRole.setAutoFields();
+        userRole.getAuthorities().addAll( Arrays.asList( auths ) );
+        if ( superUserFlag )
+        {
+            userRole.getAuthorities().add( "ALL" );
+        }
+
+        User user = new User();
+        user.setUsername( username );
+        user.getUserRoles().add( userRole );
+        user.setFirstName( "First name" );
+        user.setSurname( "Last name" );
+        user.setOrganisationUnits( organisationUnits );
+        user.setDataViewOrganisationUnits( dataViewOrganisationUnits );
+        user.setAutoFields();
+        user.setCreatedBy( user );
+
+        return user;
+    }
+
+    protected User preCreateInjectAdminUser()
+    {
+        User user = preCreateInjectAdminUserWithoutPersistence();
+
+        userService.addUser( user );
+
+        user.getUserRoles().forEach( userRole -> userService.addUserRole( userRole ) );
+
+        userService.encodeAndSetPassword( user, user.getPassword() );
+        userService.updateUser( user );
+
+        return user;
+    }
+
+    protected User preCreateInjectAdminUserWithoutPersistence()
+    {
+        UserRole role = createUserRole( "Superuser_Test", "ALL" );
+        role.setUid( CodeGenerator.generateUid() );
+
+        User user = new User();
+        user.setFirstName( "Admin" );
+        user.setSurname( "User" );
+        user.setUsername( DEFAULT_USERNAME + "_test" );
+        user.setPassword( DEFAULT_ADMIN_PASSWORD );
+        user.getUserRoles().add( role );
+
+        CurrentUserDetails currentUserDetails = userService.validateAndCreateUserDetails( user, user.getPassword() );
+        Authentication authentication = new UsernamePasswordAuthenticationToken( currentUserDetails,
+            DEFAULT_ADMIN_PASSWORD,
+            List.of( new SimpleGrantedAuthority( "ALL" ) ) );
+
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
+        context.setAuthentication( authentication );
+        SecurityContextHolder.setContext( context );
+
+        return user;
+    }
 }

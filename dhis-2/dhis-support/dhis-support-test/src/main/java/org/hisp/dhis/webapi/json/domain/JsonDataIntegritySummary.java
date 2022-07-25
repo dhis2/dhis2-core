@@ -27,6 +27,11 @@
  */
 package org.hisp.dhis.webapi.json.domain;
 
+import java.time.LocalDateTime;
+
+import org.hisp.dhis.jsontree.Expected;
+import org.hisp.dhis.jsontree.JsonDate;
+
 /**
  * JSON API equivalent of
  * {@link org.hisp.dhis.dataintegrity.DataIntegritySummary}.
@@ -35,6 +40,16 @@ package org.hisp.dhis.webapi.json.domain;
  */
 public interface JsonDataIntegritySummary extends JsonDataIntegrityCheck
 {
+    @Expected
+    default LocalDateTime getFinishedTime()
+    {
+        return get( "finishedTime", JsonDate.class ).date();
+    }
+
+    default String getError()
+    {
+        return getString( "error" ).string( null );
+    }
 
     default int getCount()
     {

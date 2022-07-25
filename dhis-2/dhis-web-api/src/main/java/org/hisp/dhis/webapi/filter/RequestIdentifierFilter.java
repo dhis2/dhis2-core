@@ -58,14 +58,14 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class RequestIdentifierFilter
     extends OncePerRequestFilter
 {
-    private final static String SESSION_ID_KEY = "sessionId";
+    private static final String SESSION_ID_KEY = "sessionId";
 
     /**
      * The hash algorithm to use.
      */
-    private final String hashAlgo = "SHA-256";
+    private static final String HASH_ALGO = "SHA-256";
 
-    private final static String IDENTIFIER_PREFIX = "ID";
+    private static final String IDENTIFIER_PREFIX = "ID";
 
     private final boolean enabled;
 
@@ -88,7 +88,7 @@ public class RequestIdentifierFilter
             }
             catch ( NoSuchAlgorithmException e )
             {
-                log.error( String.format( "Invalid Hash algorithm provided (%s)", hashAlgo ), e );
+                log.error( String.format( "Invalid Hash algorithm provided (%s)", HASH_ALGO ), e );
             }
         }
 
@@ -99,7 +99,7 @@ public class RequestIdentifierFilter
         throws NoSuchAlgorithmException
     {
         byte[] data = sessionId.getBytes();
-        MessageDigest digester = MessageDigest.getInstance( hashAlgo );
+        MessageDigest digester = MessageDigest.getInstance( HASH_ALGO );
         digester.update( data );
         return Base64.getEncoder().encodeToString( digester.digest() );
     }

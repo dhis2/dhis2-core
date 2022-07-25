@@ -28,8 +28,8 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.util.Collections.singletonList;
-import static org.hisp.dhis.webapi.utils.WebClientUtils.assertSeries;
-import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
+import static org.hisp.dhis.web.WebClientUtils.assertSeries;
+import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -37,11 +37,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.web.HttpStatus;
+import org.hisp.dhis.web.HttpStatus.Series;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonUser;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatus.Series;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.controller.user.MeController} API.
@@ -50,10 +52,20 @@ import org.springframework.http.HttpStatus.Series;
  */
 class MeControllerTest extends DhisControllerConvenienceTest
 {
+    private User userA;
+
+    @BeforeEach
+    void setUp()
+    {
+        userA = createUserWithAuth( "userA", "ALL" );
+
+        switchContextToUser( userA );
+    }
 
     @Test
     void testGetCurrentUser()
     {
+        switchToSuperuser();
         assertEquals( getCurrentUser().getUid(), GET( "/me" ).content().as( JsonUser.class ).getId() );
     }
 

@@ -39,7 +39,6 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -130,8 +129,6 @@ public class DefaultEmailService
         }
 
         User user = new User();
-        UserCredentials credentials = new UserCredentials();
-        credentials.setUsername( recipient );
         user.setEmail( recipient );
 
         User sender = new User();

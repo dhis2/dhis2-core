@@ -47,6 +47,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.PagerUtils;
+import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -143,7 +144,7 @@ public class EnrollmentController
         if ( enrollmentCriteria.getEnrollment() == null )
         {
             ProgramInstanceQueryParams params = enrollmentCriteriaMapper.getFromUrl(
-                TextUtils.splitToArray( enrollmentCriteria.getOu(), TextUtils.SEMICOLON ),
+                TextUtils.splitToSet( enrollmentCriteria.getOu(), TextUtils.SEMICOLON ),
                 enrollmentCriteria.getOuMode(),
                 enrollmentCriteria.getLastUpdated(),
                 enrollmentCriteria.getLastUpdatedDuration(),
@@ -165,14 +166,21 @@ public class EnrollmentController
 
             if ( enrollments.getPager() != null )
             {
-                rootNode.addChild( NodeUtils.createPager( enrollments.getPager() ) );
+                if ( params.isTotalPages() )
+                {
+                    rootNode.addChild( NodeUtils.createPager( enrollments.getPager() ) );
+                }
+                else
+                {
+                    rootNode.addChild( NodeUtils.createSlimPager( (SlimPager) enrollments.getPager() ) );
+                }
             }
 
             listEnrollments = enrollments.getEnrollments();
         }
         else
         {
-            Set<String> enrollmentIds = TextUtils.splitToArray( enrollmentCriteria.getEnrollment(),
+            Set<String> enrollmentIds = TextUtils.splitToSet( enrollmentCriteria.getEnrollment(),
                 TextUtils.SEMICOLON );
             listEnrollments = enrollmentIds != null ? enrollmentIds.stream()
                 .map( enrollmentId -> enrollmentService.getEnrollment( enrollmentId ) ).collect( Collectors.toList() )

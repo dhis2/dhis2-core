@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.dataelement;
 
+import static org.hisp.dhis.common.DimensionalObject.TEXTVALUE_COLUMN_NAME;
+import static org.hisp.dhis.common.DimensionalObject.VALUE_COLUMN_NAME;
 import static org.hisp.dhis.dataset.DataSet.NO_EXPIRY;
 
 import java.util.ArrayList;
@@ -38,6 +40,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -91,6 +94,9 @@ public class DataElement extends BaseDimensionalItemObject
      */
     private ValueType valueType;
 
+    /**
+     * Abstract class representing options for value types.
+     */
     private ValueTypeOptions valueTypeOptions;
 
     /**
@@ -112,7 +118,7 @@ public class DataElement extends BaseDimensionalItemObject
     private String url;
 
     /**
-     * The data element groups which this
+     * The data element groups which this data element is a member of.
      */
     private Set<DataElementGroup> groups = new HashSet<>();
 
@@ -277,6 +283,35 @@ public class DataElement extends BaseDimensionalItemObject
     public boolean isFileType()
     {
         return getValueType().isFile();
+    }
+
+    /**
+     * Data type for use in analytics. Both text and date types are recognized
+     * as TEXT. Everything else is recognized as NUMERIC. Note that this needs
+     * to be based on the QueryModifiers.valueType if present.
+     */
+    public DataType getAnalyticsDataType()
+    {
+        ValueType vType = getValueType();
+
+        return (vType.isText() || vType.isDate())
+            ? DataType.TEXT
+            : DataType.NUMERIC;
+    }
+
+    /**
+     * The analytics value column to use for this data element.
+     */
+    public String getValueColumn()
+    {
+        if ( queryMods != null && queryMods.getSubExpression() != null )
+        {
+            return queryMods.getSubExpression();
+        }
+
+        return (getAnalyticsDataType() == DataType.TEXT)
+            ? TEXTVALUE_COLUMN_NAME
+            : VALUE_COLUMN_NAME;
     }
 
     /**
@@ -559,7 +594,9 @@ public class DataElement extends BaseDimensionalItemObject
     public ValueType getValueType()
     {
         // TODO return optionSet != null ? optionSet.getValueType() : valueType;
-        return valueType;
+        return (queryMods != null && queryMods.getValueType() != null)
+            ? queryMods.getValueType()
+            : valueType;
     }
 
     public void setValueType( ValueType valueType )

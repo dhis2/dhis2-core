@@ -31,6 +31,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import org.hisp.dhis.analytics.DataType;
+
 /**
  * @author Chau Thu Tran
  * @author Jim Grace
@@ -167,18 +169,21 @@ public interface ProgramIndicatorService
      * missing numeric values for data elements and attributes.
      *
      * @param expression the expression.
+     * @param dataType the data type to return.
      * @param programIndicator the program indicator to evaluate.
      * @param startDate the start date.
      * @param endDate the end date.
      * @return the SQL string.
      */
-    String getAnalyticsSql( String expression, ProgramIndicator programIndicator, Date startDate, Date endDate );
+    String getAnalyticsSql( String expression, DataType dataType, ProgramIndicator programIndicator,
+        Date startDate, Date endDate );
 
     /**
      * Gets the the analytics SQL clause of an expression. Does not ignore
      * missing numeric values for data elements and attributes.
      *
      * @param expression the expression.
+     * @param dataType the data type to return.
      * @param programIndicator the program indicator to evaluate.
      * @param startDate the start date.
      * @param endDate the end date.
@@ -187,8 +192,8 @@ public interface ProgramIndicatorService
      * @return the SQL string.
      */
 
-    String getAnalyticsSql( String expression, ProgramIndicator programIndicator, Date startDate, Date endDate,
-        String tableAlias );
+    String getAnalyticsSql( String expression, DataType dataType, ProgramIndicator programIndicator,
+        Date startDate, Date endDate, String tableAlias );
 
     /**
      * Returns a SQL clause which matches any value for the data elements and

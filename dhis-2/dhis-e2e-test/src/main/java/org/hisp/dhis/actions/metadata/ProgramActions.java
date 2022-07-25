@@ -27,10 +27,14 @@
  */
 package org.hisp.dhis.actions.metadata;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.oneOf;
+
+import java.util.Arrays;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.StringUtils;
-import org.hamcrest.Matchers;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
@@ -38,9 +42,8 @@ import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.utils.DataGenerator;
 
-import java.util.Arrays;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -96,7 +99,7 @@ public class ProgramActions
         JsonObject body = new JsonObjectBuilder( buildProgram( "WITHOUT_REGISTRATION", null, orgUnitsIds ) ).build();
         ApiResponse response = post( body );
 
-        createProgramStage( response.extractUid(), "DEFAULT STAGE" );
+        createProgramStage( response.extractUid(), "DEFAULT STAGE" + response.extractUid() );
 
         return response;
     }
@@ -128,12 +131,15 @@ public class ProgramActions
      */
     public String createProgramStage( String programId, String programStageName )
     {
-        ApiResponse response = programStageActions
-            .post( new JsonObjectBuilder().addProperty( "name", programStageName ).
-                addObject( "program" , new JsonObjectBuilder().addProperty( "id", programId ))
-                .addProperty( "publicAccess", "rwrw----" ).build() );
-        response.validate().statusCode( Matchers.is( Matchers.oneOf( 201, 200 ) ) );
+        JsonObject programStage = new JsonObjectBuilder()
+            .addProperty( "name", programStageName )
+            .addProperty( "code", programStageName )
+            .addObject( "program", new JsonObjectBuilder().addProperty( "id", programId ) )
+            .addProperty( "publicAccess", "rwrw----" ).build();
 
+        ApiResponse response = programStageActions.post( programStage );
+
+        response.validate().statusCode( is( oneOf( 201, 200 ) ) );
         return response.extractUid();
     }
 
@@ -193,6 +199,7 @@ public class ProgramActions
         JsonObject object = JsonObjectBuilder.jsonObject()
             .addProperty( "name", "AutoTest program " + random )
             .addProperty( "shortName", "AutoTest program " + random )
+            .addProperty( "code", "TA_PROGRAM_" + random )
             .addUserGroupAccess()
             .addProperty( "publicAccess", "rwrw----" )
             .build();
@@ -204,6 +211,7 @@ public class ProgramActions
     {
         return new JsonObjectBuilder( buildProgram() )
             .addProperty( "programType", programType )
+            .addProperty( "displayFrontPageList", "true" )
             .addProperty( "publicAccess", "rwrw----" )
             .build();
     }
@@ -220,7 +228,8 @@ public class ProgramActions
 
         if ( !StringUtils.isEmpty( trackedEntityTypeId ) )
         {
-            builder.addObject( "trackedEntityType", new JsonObjectBuilder().addProperty( "id", trackedEntityTypeId ) ).build();
+            builder.addObject( "trackedEntityType", new JsonObjectBuilder().addProperty( "id", trackedEntityTypeId ) )
+                .build();
         }
 
         return builder.build();

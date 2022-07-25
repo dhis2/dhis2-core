@@ -230,7 +230,8 @@ public class J2MEDataValueSMSListener
             storedBy = "[unknown] from [" + sender + "]";
         }
 
-        CategoryOptionCombo optionCombo = dataElementCategoryService.getCategoryOptionCombo( code.getOptionId() );
+        CategoryOptionCombo optionCombo = dataElementCategoryService
+            .getCategoryOptionCombo( code.getOptionId().getId() );
 
         DataValue dv = dataValueService.getDataValue( code.getDataElement(), period, orgUnit, optionCombo );
 
@@ -308,7 +309,8 @@ public class J2MEDataValueSMSListener
 
         for ( SMSCode code : command.getCodes() )
         {
-            CategoryOptionCombo optionCombo = dataElementCategoryService.getCategoryOptionCombo( code.getOptionId() );
+            CategoryOptionCombo optionCombo = dataElementCategoryService
+                .getCategoryOptionCombo( code.getOptionId().getId() );
 
             DataValue dv = dataValueService.getDataValue( code.getDataElement(), period, orgunit, optionCombo );
 

@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.DhisWebSpringTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpSession;
@@ -52,7 +53,10 @@ class PrePostSecurityAnnotationsTest extends DhisWebSpringTest
     void authorityNoAuthorityCantAccessApps()
         throws Exception
     {
+        User noAuthUser = createAndAddUser( "A", null, "NO_AUTHORITY" );
+        injectSecurityContext( noAuthUser );
         MockHttpSession session = getSession( "NO_AUTHORITY" );
-        mvc.perform( put( "/apps" ).session( session ) ).andExpect( status().isForbidden() );
+        mvc.perform( put( "/apps" ).session( session ) ).andExpect(
+            status().isForbidden() );
     }
 }

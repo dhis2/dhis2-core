@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dbms;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -77,6 +78,9 @@ public class HibernateDbmsManager
     @Override
     public void emptyDatabase()
     {
+        emptyTable( "maplegend" );
+        emptyTable( "maplegendset" );
+
         emptyTable( "constant" );
         emptyTable( "sqlview" );
 
@@ -106,6 +110,7 @@ public class HibernateDbmsManager
         emptyTable( "interpretation" );
 
         emptyTable( "report" );
+        emptyTable( "datastatisticsevent" );
 
         emptyTable( "visualization_yearlyseries" );
         emptyTable( "visualization_rows" );
@@ -243,6 +248,8 @@ public class HibernateDbmsManager
         emptyTable( "periodboundary" );
         emptyTable( "programindicator" );
         emptyTable( "programownershiphistory" );
+        emptyTable( "programtempownershipaudit" );
+        emptyTable( "programtempowner" );
         emptyTable( "program" );
 
         emptyTable( "programstageinstancefilter" );
@@ -319,7 +326,6 @@ public class HibernateDbmsManager
         emptyTable( "usergroup" );
 
         emptyTable( "previouspasswords" );
-        emptyTable( "users" );
         emptyTable( "usersetting" );
         emptyTable( "fileresource" );
         emptyTable( "trackedentitycomment" );
@@ -450,5 +456,23 @@ public class HibernateDbmsManager
         {
             log.debug( "Could not empty relationship tables" );
         }
+    }
+
+    @Override
+    public void evictObject( Object object )
+    {
+        sessionFactory.getCurrentSession().evict( object );
+    }
+
+    @Override
+    public boolean contains( Object object )
+    {
+        return sessionFactory.getCurrentSession().contains( object );
+    }
+
+    @Override
+    public Serializable getIdentifier( Object object )
+    {
+        return sessionFactory.getCurrentSession().getIdentifier( object );
     }
 }

@@ -55,6 +55,9 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
+import org.hisp.dhis.commons.collection.CollectionUtils;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
@@ -62,14 +65,11 @@ import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.UserInfo;
 import org.hisp.dhis.util.SharingUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.api.client.util.Lists;
 import com.google.common.base.Defaults;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.internal.Primitives;
@@ -91,7 +91,7 @@ public class DefaultIdentifiableObjectManager
     /**
      * Cache for default category objects. Disabled during test phase.
      */
-    private final Cache<IdentifiableObject> defaultObjectCache;
+    private final Cache<Long> defaultObjectCache;
 
     private final Set<IdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStores;
 
@@ -245,19 +245,17 @@ public class DefaultIdentifiableObjectManager
 
     @Override
     @Transactional( readOnly = true )
-    @SuppressWarnings( "unchecked" )
-    public <T extends IdentifiableObject> T get( String uid )
+    public IdentifiableObject find( String uid )
     {
         for ( IdentifiableObjectStore<? extends IdentifiableObject> store : identifiableObjectStores )
         {
-            T object = (T) store.getByUid( uid );
+            IdentifiableObject object = store.getByUid( uid );
 
             if ( object != null )
             {
                 return object;
             }
         }
-
         return null;
     }
 
@@ -289,6 +287,35 @@ public class DefaultIdentifiableObjectManager
         }
 
         return (T) store.getByUid( uid );
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public <T extends IdentifiableObject> T load( Class<T> type, String uid )
+        throws IllegalQueryException
+    {
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( type );
+
+        if ( store == null )
+        {
+            return null;
+        }
+
+        return (T) store.loadByUid( uid );
+    }
+
+    @Override
+    public <T extends IdentifiableObject> T load( Class<T> type, ErrorCode errorCode, String uid )
+        throws IllegalQueryException
+    {
+        T object = get( type, uid );
+
+        if ( object == null )
+        {
+            throw new IllegalQueryException( new ErrorMessage( errorCode, uid ) );
+        }
+
+        return object;
     }
 
     @Override
@@ -368,6 +395,22 @@ public class DefaultIdentifiableObjectManager
     @Override
     @Transactional( readOnly = true )
     @SuppressWarnings( "unchecked" )
+    public <T extends IdentifiableObject> T loadByCode( Class<T> type, String code )
+        throws IllegalQueryException
+    {
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( type );
+
+        if ( store == null )
+        {
+            return null;
+        }
+
+        return (T) store.loadByCode( code );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> T getByName( Class<T> type, String name )
     {
         IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( type );
@@ -385,14 +428,14 @@ public class DefaultIdentifiableObjectManager
     public <T extends IdentifiableObject> T getByUniqueAttributeValue( Class<T> type, Attribute attribute,
         String value )
     {
-        return getByUniqueAttributeValue( type, attribute, value, currentUserService.getCurrentUserInfo() );
+        return getByUniqueAttributeValue( type, attribute, value, currentUserService.getCurrentUser() );
     }
 
     @SuppressWarnings( "unchecked" )
     @Override
     @Transactional( readOnly = true )
     public <T extends IdentifiableObject> T getByUniqueAttributeValue( Class<T> type, Attribute attribute,
-        String value, UserInfo userInfo )
+        String value, User user )
     {
         IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( type );
 
@@ -401,7 +444,7 @@ public class DefaultIdentifiableObjectManager
             return null;
         }
 
-        return (T) store.getByUniqueAttributeValue( attribute, value, userInfo );
+        return (T) store.getByUniqueAttributeValue( attribute, value, user );
     }
 
     @Override
@@ -604,6 +647,30 @@ public class DefaultIdentifiableObjectManager
         }
 
         return list;
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public <T extends IdentifiableObject> List<T> loadByUid( Class<T> type, Collection<String> uids )
+        throws IllegalQueryException
+    {
+        if ( uids == null )
+        {
+            return new ArrayList<>();
+        }
+
+        List<T> objects = getByUid( type, uids );
+
+        List<String> identifiers = IdentifiableObjectUtils.getUids( objects );
+        List<String> difference = CollectionUtils.difference( uids, identifiers );
+
+        if ( !difference.isEmpty() )
+        {
+            throw new IllegalQueryException( new ErrorMessage(
+                ErrorCode.E1112, type.getSimpleName(), difference ) );
+        }
+
+        return objects;
     }
 
     @Override
@@ -1175,28 +1242,29 @@ public class DefaultIdentifiableObjectManager
         Attribute attribute, List<String> values )
     {
         IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( type );
-        return store != null ? store.getAllByAttributeAndValues( attribute, values ) : Lists.newArrayList();
+        return store != null ? store.getAllByAttributeAndValues( attribute, values ) : Collections.emptyList();
     }
 
     @Override
     @Transactional( readOnly = true )
     public Map<Class<? extends IdentifiableObject>, IdentifiableObject> getDefaults()
     {
-        IdentifiableObject categoryObjects = defaultObjectCache.get( Category.class.getName(),
-            key -> HibernateProxyUtils.unproxy( getByName( Category.class, DEFAULT ) ) );
-        IdentifiableObject categoryComboObjects = defaultObjectCache.get( CategoryCombo.class.getName(),
-            key -> HibernateProxyUtils.unproxy( getByName( CategoryCombo.class, DEFAULT ) ) );
-        IdentifiableObject categoryOptionObjects = defaultObjectCache.get( CategoryOption.class.getName(),
-            key -> HibernateProxyUtils.unproxy( getByName( CategoryOption.class, DEFAULT ) ) );
-        IdentifiableObject categoryOptionCombo = defaultObjectCache.get(
+        Long catId = defaultObjectCache.get( Category.class.getName(),
+            key -> getByName( Category.class, DEFAULT ).getId() );
+        Long cateComboId = defaultObjectCache.get( CategoryCombo.class.getName(),
+            key -> getByName( CategoryCombo.class, DEFAULT ).getId() );
+        Long catOptionId = defaultObjectCache.get( CategoryOption.class.getName(),
+            key -> getByName( CategoryOption.class, DEFAULT ).getId() );
+        Long catOptionComboId = defaultObjectCache.get(
             CategoryOptionCombo.class.getName(),
-            key -> HibernateProxyUtils.unproxy( getByName( CategoryOptionCombo.class, DEFAULT ) ) );
+            key -> getByName( CategoryOptionCombo.class, DEFAULT ).getId() );
 
         return new ImmutableMap.Builder<Class<? extends IdentifiableObject>, IdentifiableObject>()
-            .put( Category.class, Objects.requireNonNull( categoryObjects ) )
-            .put( CategoryCombo.class, Objects.requireNonNull( categoryComboObjects ) )
-            .put( CategoryOption.class, Objects.requireNonNull( categoryOptionObjects ) )
-            .put( CategoryOptionCombo.class, Objects.requireNonNull( categoryOptionCombo ) )
+            .put( Category.class, Objects.requireNonNull( get( Category.class, catId ) ) )
+            .put( CategoryCombo.class, Objects.requireNonNull( get( CategoryCombo.class, cateComboId ) ) )
+            .put( CategoryOption.class, Objects.requireNonNull( get( CategoryOption.class, catOptionId ) ) )
+            .put( CategoryOptionCombo.class,
+                Objects.requireNonNull( get( CategoryOptionCombo.class, catOptionComboId ) ) )
             .build();
     }
 
@@ -1264,7 +1332,7 @@ public class DefaultIdentifiableObjectManager
         {
             store = identifiableObjectStoreMap.get( type.getSuperclass() );
 
-            if ( store == null && !UserCredentials.class.isAssignableFrom( type ) )
+            if ( store == null )
             {
                 log.debug( "No IdentifiableObjectStore found for class: '{}'", type );
             }

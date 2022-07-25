@@ -37,14 +37,13 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-import net.minidev.json.JSONObject;
-
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import com.google.gson.Gson;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JOSEObjectType;
 import com.nimbusds.jose.JWSAlgorithm;
@@ -195,7 +194,7 @@ public class JwtUtils
             {
                 try
                 {
-                    builder.jwk( JWK.parse( new JSONObject( jwk ) ) );
+                    builder.jwk( JWK.parse( new Gson().toJson( jwk ) ) );
                 }
                 catch ( Exception ex )
                 {

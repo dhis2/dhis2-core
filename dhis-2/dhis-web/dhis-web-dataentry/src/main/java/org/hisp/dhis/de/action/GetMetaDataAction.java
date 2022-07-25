@@ -36,6 +36,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -51,12 +52,16 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dataset.LockException;
+import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorService;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserSettingKey;
+import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -114,6 +119,9 @@ public class GetMetaDataAction
 
     @Autowired
     private IdentifiableObjectManager identifiableObjectManager;
+
+    @Autowired
+    protected UserSettingService userSettingService;
 
     // -------------------------------------------------------------------------
     // Output
@@ -205,6 +213,9 @@ public class GetMetaDataAction
     {
         User user = currentUserService.getCurrentUser();
 
+        Locale dbLocale = getLocaleWithDefault( new TranslateParams( true ) );
+        CurrentUserUtil.setUserSetting( UserSettingKey.DB_LOCALE, dbLocale );
+
         Date lastUpdated = DateUtils.max( Sets.newHashSet(
             identifiableObjectManager.getLastUpdated( DataElement.class ),
             identifiableObjectManager.getLastUpdated( OptionSet.class ),
@@ -277,7 +288,7 @@ public class GetMetaDataAction
             categoryOptionMap.put( category.getUid(), categoryOptions );
         }
 
-        Set<String> invalidIds = new HashSet<>();
+        Set<String> nonAccessibleDataSetIds = new HashSet<>();
 
         for ( DataSet dataSet : dataSets )
         {
@@ -290,14 +301,14 @@ public class GetMetaDataAction
                     if ( !categoryOptionMap.containsKey( category.getUid() )
                         || categoryOptionMap.get( category.getUid() ).isEmpty() )
                     {
-                        invalidIds.add( dataSet.getUid() );
+                        nonAccessibleDataSetIds.add( dataSet.getUid() );
                         break;
                     }
                 }
             }
         }
 
-        dataSets = dataSets.stream().filter( dataSet -> !invalidIds.contains( dataSet.getUid() ) )
+        dataSets = dataSets.stream().filter( dataSet -> !nonAccessibleDataSetIds.contains( dataSet.getUid() ) )
             .collect( Collectors.toList() );
 
         lockExceptions = dataSetService.getAllLockExceptions();
@@ -309,5 +320,13 @@ public class GetMetaDataAction
         defaultCategoryCombo = categoryService.getDefaultCategoryCombo();
 
         return SUCCESS;
+    }
+
+    private Locale getLocaleWithDefault( TranslateParams translateParams )
+    {
+        return translateParams.isTranslate()
+            ? translateParams.getLocaleWithDefault(
+                (Locale) userSettingService.getUserSetting( UserSettingKey.DB_LOCALE ) )
+            : null;
     }
 }

@@ -37,6 +37,7 @@ import static org.hisp.dhis.util.DateUtils.dateIsValid;
 import static org.hisp.dhis.util.DateUtils.dateTimeIsValid;
 import static org.hisp.dhis.util.DateUtils.getMediumDate;
 import static org.hisp.dhis.util.DateUtils.parseDate;
+import static org.hisp.dhis.util.DateUtils.plusOneDay;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -81,6 +82,8 @@ class DateUtilsTest
         assertFalse( dateIsValid( "2017-04-31" ) );
         assertFalse( dateIsValid( "2017-04-32" ) );
         assertFalse( dateIsValid( "2016-09-31" ) );
+        assertFalse( dateIsValid( "0000-01-01" ) );
+        assertTrue( dateIsValid( "0001-01-01" ) );
         assertTrue( dateIsValid( NepaliCalendar.getInstance(), "2074-04-32" ) );
         assertFalse( dateIsValid( NepaliCalendar.getInstance(), "2074-03-32" ) );
         assertFalse( dateIsValid( NepaliCalendar.getInstance(), "2074-04-33" ) );
@@ -369,5 +372,13 @@ class DateUtilsTest
         final Date theNewDate = DateUtils.calculateDateFrom( anyInitialDate, -1, MILLISECOND );
         // Then
         assertThat( theNewDate, is( lessThan( anyInitialDate ) ) );
+    }
+
+    @Test
+    void testPlusOneDay()
+    {
+        final Date aDay = getMediumDate( "2021-01-01" );
+        final Date theDayAfter = getMediumDate( "2021-01-02" );
+        assertThat( theDayAfter, is( plusOneDay( aDay ) ) );
     }
 }

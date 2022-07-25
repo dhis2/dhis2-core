@@ -49,7 +49,6 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
-import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 
 /**
@@ -109,15 +108,6 @@ public class DefaultSchemaValidator implements SchemaValidator
             }
         }
 
-        if ( object instanceof User )
-        {
-            User user = (User) object;
-
-            if ( user.getUserCredentials() != null )
-            {
-                errors.addAll( validate( user.getUserCredentials(), persisted ) );
-            }
-        }
         return errors;
     }
 
@@ -226,7 +216,7 @@ public class DefaultSchemaValidator implements SchemaValidator
 
     private boolean isInvalidUsername( Property property, String value )
     {
-        return PropertyType.USERNAME == property.getPropertyType() && !ValidationUtils.usernameIsValid( value );
+        return PropertyType.USERNAME == property.getPropertyType() && !ValidationUtils.usernameIsValid( value, false );
     }
 
     private boolean isInvalidEmail( Property property, String value )

@@ -39,18 +39,19 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.SortProperty;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.hierarchy.HierarchyViolationException;
 import org.hisp.dhis.organisationunit.comparator.OrganisationUnitLevelComparator;
@@ -91,7 +92,7 @@ public class DefaultOrganisationUnitService
 
     private final OrganisationUnitStore organisationUnitStore;
 
-    private final DataSetService dataSetService;
+    private final IdentifiableObjectManager idObjectManager;
 
     private final OrganisationUnitLevelStore organisationUnitLevelStore;
 
@@ -102,12 +103,12 @@ public class DefaultOrganisationUnitService
     private final UserSettingService userSettingService;
 
     public DefaultOrganisationUnitService( OrganisationUnitStore organisationUnitStore,
-        DataSetService dataSetService, OrganisationUnitLevelStore organisationUnitLevelStore,
+        IdentifiableObjectManager idObjectManager, OrganisationUnitLevelStore organisationUnitLevelStore,
         CurrentUserService currentUserService, ConfigurationService configurationService,
         UserSettingService userSettingService, CacheProvider cacheProvider )
     {
         checkNotNull( organisationUnitStore );
-        checkNotNull( dataSetService );
+        checkNotNull( idObjectManager );
         checkNotNull( organisationUnitLevelStore );
         checkNotNull( currentUserService );
         checkNotNull( configurationService );
@@ -115,7 +116,7 @@ public class DefaultOrganisationUnitService
         checkNotNull( cacheProvider );
 
         this.organisationUnitStore = organisationUnitStore;
-        this.dataSetService = dataSetService;
+        this.idObjectManager = idObjectManager;
         this.organisationUnitLevelStore = organisationUnitLevelStore;
         this.currentUserService = currentUserService;
         this.configurationService = configurationService;
@@ -436,7 +437,7 @@ public class DefaultOrganisationUnitService
         User user = currentUserService.getCurrentUser();
 
         Set<OrganisationUnit> organisationUnits = user != null ? user.getOrganisationUnits() : null;
-        List<DataSet> dataSets = (user != null && user.isSuper()) ? null : dataSetService.getUserDataWrite( user );
+        List<DataSet> dataSets = idObjectManager.getDataWriteAll( DataSet.class );
 
         Map<String, Set<String>> associationSet = organisationUnitStore
             .getOrganisationUnitDataSetAssocationMap( organisationUnits, dataSets );
@@ -464,14 +465,16 @@ public class DefaultOrganisationUnitService
     @Transactional( readOnly = true )
     public boolean isInUserHierarchy( OrganisationUnit organisationUnit )
     {
-        return isInUserHierarchy( currentUserService.getCurrentUser(), organisationUnit );
+        User currentUser = currentUserService.getCurrentUser();
+        return isInUserHierarchy( currentUser, organisationUnit );
     }
 
     @Override
     @Transactional( readOnly = true )
     public boolean isInUserHierarchyCached( OrganisationUnit organisationUnit )
     {
-        return isInUserHierarchyCached( currentUserService.getCurrentUser(), organisationUnit );
+        User currentUser = currentUserService.getCurrentUser();
+        return isInUserHierarchyCached( currentUser, organisationUnit );
     }
 
     @Override
@@ -492,7 +495,74 @@ public class DefaultOrganisationUnitService
             return false;
         }
 
-        return organisationUnit.isDescendant( user.getOrganisationUnits() );
+        return isDescendant( organisationUnit, user.getOrganisationUnits() );
+    }
+
+    @Override
+    @Transactional
+    public boolean isDescendant( OrganisationUnit organisationUnit, Set<OrganisationUnit> ancestors )
+    {
+        Objects.requireNonNull( organisationUnit, "organisationUnit is null" );
+
+        if ( ancestors == null || ancestors.isEmpty() )
+        {
+            return false;
+        }
+
+        Set<String> ancestorsUid = new HashSet<>();
+        for ( OrganisationUnit ancestor : ancestors )
+        {
+            if ( ancestor == null )
+            {
+                continue;
+            }
+
+            String uid1 = ancestor.getUid();
+            ancestorsUid.add( uid1 );
+        }
+
+        OrganisationUnit unit = getOrganisationUnit( organisationUnit.getUid() );
+        if ( unit == null )
+        {
+            unit = organisationUnit;
+        }
+
+        while ( unit != null )
+        {
+            if ( ancestorsUid.contains( unit.getUid() ) )
+            {
+                return true;
+            }
+
+            unit = unit.getParent();
+        }
+
+        return false;
+    }
+
+    @Transactional( readOnly = true )
+    @Override
+    public boolean isDescendant( OrganisationUnit organisationUnit, OrganisationUnit ancestor )
+    {
+        if ( ancestor == null )
+        {
+            return false;
+        }
+
+        OrganisationUnit unit = getOrganisationUnit( organisationUnit.getUid() );
+
+        while ( unit != null )
+        {
+            if ( ancestor.equals( unit ) )
+            {
+                return true;
+            }
+
+            unit = unit.getParent();
+        }
+
+        return false;
+
     }
 
     @Override
@@ -519,7 +589,7 @@ public class DefaultOrganisationUnitService
             return false;
         }
 
-        return organisationUnit.isDescendant( user.getDataViewOrganisationUnitsWithFallback() );
+        return isDescendant( organisationUnit, user.getDataViewOrganisationUnitsWithFallback() );
     }
 
     @Override
@@ -566,7 +636,7 @@ public class DefaultOrganisationUnitService
             return false;
         }
 
-        return organisationUnit.isDescendant( user.getTeiSearchOrganisationUnitsWithFallback() );
+        return isDescendant( organisationUnit, user.getTeiSearchOrganisationUnitsWithFallback() );
     }
 
     @Override
@@ -575,7 +645,7 @@ public class DefaultOrganisationUnitService
     {
         OrganisationUnit organisationUnit = organisationUnitStore.getByUid( uid );
 
-        return organisationUnit != null && organisationUnit.isDescendant( organisationUnits );
+        return organisationUnit != null && isDescendant( organisationUnit, organisationUnits );
     }
 
     @Override
@@ -859,7 +929,7 @@ public class DefaultOrganisationUnitService
 
         // Go through the list and remove the ones located outside radius
 
-        if ( objects != null && objects.size() > 0 )
+        if ( objects != null && !objects.isEmpty() )
         {
             Iterator<OrganisationUnit> iter = objects.iterator();
 
@@ -977,7 +1047,7 @@ public class DefaultOrganisationUnitService
             FilterUtils.filter( unitsAtLevel,
                 new OrganisationUnitPolygonCoveringCoordinateFilter( longitude, latitude ) );
 
-            if ( unitsAtLevel.size() > 0 )
+            if ( !unitsAtLevel.isEmpty() )
             {
                 return unitsAtLevel;
             }

@@ -1,6 +1,66 @@
 {
   "relationshipTypes": [
     {
+      "code": "TA_TEI_TO_ENROLLMENT",
+      "id": "WmNgnmedbQj",
+      "name": "TA tei to enrollment",
+      "bidirectional": true,
+      "displayName": "TA tei to enrollment",
+      "publicAccess": "rw------",
+      "fromToName": "TA",
+      "externalAccess": false,
+      "displayFromToName": "TA",
+      "favorite": false,
+      "toConstraint": {
+        "relationshipEntity": "PROGRAM_INSTANCE",
+        "program": {
+          "id": "f1AyMswryyQ"
+        },
+        "trackerDataView": {
+          "attributes": [
+            "ypGAwVRNtVY",
+            "dIVt4l5vIOa",
+            "kZeSYCgaHTk"
+          ]
+        }
+      },
+      "sharing": {
+        "owner": "M5zQapPyTZI",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "access": "rwrw----",
+            "id": "OPVIvvXzNTw"
+          }
+        },
+        "external": false,
+        "public": "rwrw----",
+        "users": {}
+      },
+      "fromConstraint": {
+        "relationshipEntity": "TRACKED_ENTITY_INSTANCE",
+        "trackedEntityType": {
+          "id": "Q9GufDoplCL"
+        },
+        "program": {
+          "id": "f1AyMswryyQ"
+        },
+        "trackerDataView": {
+          "attributes": [
+            "ypGAwVRNtVY",
+            "dIVt4l5vIOa",
+            "dIVt4l5vIOa",
+            "kZeSYCgaHTk"
+          ],
+          "dataElements": []
+        }
+      },
+      "favorites": [],
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": []
+    },
+    {
       "id": "HrS7b5Lis6w",
       "name": "TA tei to event",
       "bidirectional": true,
@@ -10,28 +70,31 @@
       "toFromName": "Event of TEI",
       "externalAccess": false,
       "favorite": false,
-      "access": {
-        "read": true,
-        "update": true,
-        "externalize": true,
-        "delete": true,
-        "write": true,
-        "manage": true,
-        "data": {
-          "read": true,
-          "write": true
-        }
-      },
       "toConstraint": {
         "relationshipEntity": "PROGRAM_STAGE_INSTANCE",
         "program": {
           "id": "Zd2rkv8FsWq"
+        },
+        "programStage": {
+          "id": "jKLB23QZS4I"
+        },
+        "trackerDataView": {
+          "dataElements": [
+            "inc5BJvr4W5",
+            "ILRgzHhzFkg"
+          ]
         }
       },
       "fromConstraint": {
         "relationshipEntity": "TRACKED_ENTITY_INSTANCE",
         "trackedEntityType": {
           "id": "Q9GufDoplCL"
+        },
+        "trackerDataView": {
+          "attributes": [
+            "dIVt4l5vIOa",
+            "kZeSYCgaHTk"
+          ]
         }
       },
       "favorites": [],
@@ -71,12 +134,33 @@
         "relationshipEntity": "TRACKED_ENTITY_INSTANCE",
         "trackedEntityType": {
           "id": "Q9GufDoplCL"
+        },
+        "trackerDataView": {
+          "attributes": [
+            "dIVt4l5vIOa",
+            "kZeSYCgaHTk"
+          ]
         }
       },
       "fromConstraint": {
         "relationshipEntity": "PROGRAM_STAGE_INSTANCE",
         "program": {
           "id": "Zd2rkv8FsWq"
+        },
+        "programStage": {
+          "id": "jKLB23QZS4I"
+        },
+        "trackerDataView": {
+          "dataElements": [
+            "mB2QHw1tU96",
+            "BuZ5LGNfGET",
+            "inc5BJvr4W5",
+            "inc5BJvr4W5",
+            "BuZ5LGNfGEU",
+            "ZrqtjjveTFc",
+            "z3Z4TD3oBCP",
+            "ILRgzHhzFkg"
+          ]
         }
       },
       "favorites": [],
@@ -116,12 +200,18 @@
         "relationshipEntity": "PROGRAM_STAGE_INSTANCE",
         "program": {
           "id": "Zd2rkv8FsWq"
+        },
+        "programStage": {
+          "id": "jKLB23QZS4I"
         }
       },
       "fromConstraint": {
         "relationshipEntity": "PROGRAM_STAGE_INSTANCE",
         "program": {
           "id": "Zd2rkv8FsWq"
+        },
+        "programStage": {
+          "id": "jKLB23QZS4I"
         }
       },
       "favorites": [],
@@ -132,6 +222,107 @@
           "access": "rwrw----"
         }
       ],
+      "attributeValues": [],
+      "userAccesses": []
+    },
+    {
+      "code": "TA_TR_EVENT_TO_ENROLLMENT",
+      "lastUpdated": "2022-04-05T08:31:21.298",
+      "id": "mG2PLD7AVgX",
+      "href": "http://localhost:8080/api/relationshipTypes/mG2PLD7AVgX",
+      "created": "2022-04-05T08:31:13.188",
+      "name": "TA tracker event to enrollment",
+      "bidirectional": true,
+      "displayName": "TA tracker event to enrollment",
+      "publicAccess": "rw------",
+      "fromToName": "Event related to enrollment",
+      "externalAccess": false,
+      "displayFromToName": "Event related to enrollment",
+      "toFromName": "Enrollment related to event",
+      "displayToFromName": "Enrollment related to event",
+      "favorite": false,
+      "toConstraint": {
+        "relationshipEntity": "PROGRAM_INSTANCE",
+        "program": {
+          "id": "f1AyMswryyQ"
+        }
+      },
+      "sharing": {
+        "owner": "M5zQapPyTZI",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "access": "rwrw----",
+            "id": "OPVIvvXzNTw"
+          }
+        },
+        "external": false,
+        "public": "rw------",
+        "users": {}
+      },
+      "fromConstraint": {
+        "relationshipEntity": "PROGRAM_STAGE_INSTANCE",
+        "programStage": {
+          "id": "PaOOjwLVW23"
+        },
+        "trackerDataView": {
+          "dataElements": [
+            "mB2QHw1tU96",
+            "BuZ5LGNfGET",
+            "ZrqtjjveTFc"
+          ]
+        }
+      },
+      "favorites": [],
+      "translations": [],
+      "userGroupAccesses": [
+        {
+          "access": "rwrw----",
+          "userGroupUid": "OPVIvvXzNTw",
+          "displayName": "TA user group",
+          "id": "OPVIvvXzNTw"
+        }
+      ],
+      "attributeValues": [],
+      "userAccesses": []
+    },
+    {
+      "code": "TA_TEI_TO_TEI",
+      "id": "WmNgnmedbQK",
+      "name": "TA tei to tei",
+      "bidirectional": false,
+      "displayName": "TA tei to tei",
+      "publicAccess": "rw------",
+      "fromToName": "TA",
+      "externalAccess": false,
+      "displayFromToName": "TA",
+      "favorite": false,
+      "toConstraint": {
+        "relationshipEntity": "TRACKED_ENTITY_INSTANCE",
+        "trackedEntityType": {
+          "id": "Q9GufDoplCL"
+        }
+      },
+      "sharing": {
+        "owner": "M5zQapPyTZI",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "access": "rwrw----",
+            "id": "OPVIvvXzNTw"
+          }
+        },
+        "external": false,
+        "public": "rwrw----",
+        "users": {}
+      },
+      "fromConstraint": {
+        "relationshipEntity": "TRACKED_ENTITY_INSTANCE",
+        "trackedEntityType": {
+          "id": "Q9GufDoplCL"
+        }
+      },
+      "favorites": [],
+      "translations": [],
+      "userGroupAccesses": [],
       "attributeValues": [],
       "userAccesses": []
     }

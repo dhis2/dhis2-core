@@ -36,7 +36,11 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-@Mapper( uses = { DebugMapper.class, TrackedEntityTypeAttributeMapper.class } )
+@Mapper( uses = {
+    DebugMapper.class,
+    TrackedEntityTypeAttributeMapper.class,
+    AttributeValueMapper.class
+} )
 public interface TrackedEntityTypeMapper
     extends PreheatMapper<TrackedEntityType>
 {
@@ -45,6 +49,9 @@ public interface TrackedEntityTypeMapper
     @BeanMapping( ignoreByDefault = true )
     @Mapping( target = "id" )
     @Mapping( target = "uid" )
+    @Mapping( target = "name" )
+    @Mapping( target = "code" )
+    @Mapping( target = "attributeValues" )
     @Mapping( target = "featureType" )
     @Mapping( target = "sharing" )
     @Mapping( target = "trackedEntityTypeAttributes" )

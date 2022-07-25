@@ -58,15 +58,14 @@ public class DataValue
     private boolean providedElsewhere;
 
     @JsonProperty
-    @Builder.Default
-    private String dataElement = "";
+    private MetadataIdentifier dataElement;
 
     @JsonProperty
     private String value;
 
     @JsonProperty
-    private String createdBy;
+    private User createdBy;
 
     @JsonProperty
-    private String lastUpdatedBy;
+    private User updatedBy;
 }

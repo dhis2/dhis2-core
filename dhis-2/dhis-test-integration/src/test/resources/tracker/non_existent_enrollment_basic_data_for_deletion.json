@@ -1,0 +1,62 @@
+{
+  "importMode": "COMMIT",
+  "idSchemes": {
+    "dataElementIdScheme": {
+      "idScheme": "UID"
+    },
+    "orgUnitIdScheme": {
+      "idScheme": "UID"
+    },
+    "programIdScheme": {
+      "idScheme": "UID"
+    },
+    "programStageIdScheme": {
+      "idScheme": "UID"
+    },
+    "idScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionComboIdScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionIdScheme": {
+      "idScheme": "UID"
+    }
+  },
+  "importStrategy": "CREATE",
+  "atomicMode": "ALL",
+  "flushMode": "AUTO",
+  "validationMode": "FULL",
+  "skipPatternValidation": false,
+  "skipSideEffects": false,
+  "skipRuleEngine": false,
+  "trackedEntities": [],
+  "enrollments": [
+    {
+      "enrollment": "TvctPPhpD8w",
+      "createdAtClient": "2017-01-26T13:48:13.363",
+      "trackedEntity": "NCc1rCEOKaY",
+      "program": {
+        "idScheme": "UID",
+        "identifier": "E8o1E9tAppy"
+      },
+      "status": "ACTIVE",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
+      "orgUnitName": "Mbokie CHP",
+      "enrolledAt": "2021-03-28T12:05:00.000",
+      "occurredAt": "2021-03-28T12:05:00.000",
+      "followUp": false,
+      "deleted": false,
+      "events": [],
+      "relationships": [],
+      "attributes": [],
+      "notes": []
+    }
+  ],
+  "events": [],
+  "relationships": [],
+  "username": "system-process"
+}

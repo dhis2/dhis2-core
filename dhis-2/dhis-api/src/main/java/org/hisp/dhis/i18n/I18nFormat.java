@@ -42,9 +42,13 @@ import java.util.ResourceBundle;
 
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
+import org.hisp.dhis.period.BiMonthlyPeriodType;
 import org.hisp.dhis.period.BiWeeklyAbstractPeriodType;
+import org.hisp.dhis.period.FinancialPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.QuarterlyPeriodType;
+import org.hisp.dhis.period.SixMonthlyAbstractPeriodType;
 import org.hisp.dhis.period.WeeklyAbstractPeriodType;
 import org.hisp.dhis.period.WeeklyPeriodType;
 import org.joda.time.DateTime;
@@ -71,6 +75,12 @@ public class I18nFormat
     public static final String FORMAT_TIME = "HH:mm";
 
     public static final String FORMAT_DATETIME = "yyyy-MM-dd HH:mm";
+
+    public static final String FORMAT_PREFIX = "format.";
+
+    public static final String START_DATE_POSTFIX = ".startDate";
+
+    public static final String END_DATE_POSTFIX = ".endDate";
 
     private ResourceBundle resourceBundle;
 
@@ -239,62 +249,65 @@ public class I18nFormat
         String typeName = periodType.getName();
 
         if ( periodType instanceof WeeklyAbstractPeriodType ) // Use ISO dates
-                                                              // due to
-                                                              // potential week
-                                                              // confusion
+        // due to
+        // potential week
+        // confusion
         {
             DateTime dateTime = new DateTime( period.getStartDate() );
-            LocalDate date = Instant.ofEpochMilli( period.getStartDate().getTime() ).atZone( ZoneId.systemDefault() )
+            LocalDate startDate = Instant.ofEpochMilli( period.getStartDate().getTime() )
+                .atZone( ZoneId.systemDefault() )
+                .toLocalDate();
+            LocalDate endDate = Instant.ofEpochMilli( period.getEndDate().getTime() ).atZone( ZoneId.systemDefault() )
                 .toLocalDate();
             WeekFields weekFields = WeekFields.of( PeriodType.MAP_WEEK_TYPE.get( periodType.getName() ), 4 );
-
-            String year = String.valueOf( date.get( weekFields.weekBasedYear() ) );
-            String week = String.valueOf( date.get( weekFields.weekOfWeekBasedYear() ) );
+            String year = String.valueOf( startDate.get( weekFields.weekBasedYear() ) );
+            String week = String.valueOf( startDate.get( weekFields.weekOfWeekBasedYear() ) );
 
             if ( periodType instanceof WeeklyPeriodType )
             {
-                return String.format( "W%s %s", week, year );
+                return String.format( "Week %s %d-%02d-%02d - %d-%02d-%02d", week,
+                    startDate.getYear(), startDate.getMonth().getValue(), startDate.getDayOfMonth(),
+                    endDate.getYear(), endDate.getMonth().getValue(), endDate.getDayOfMonth() );
             }
 
             year += dateTime.dayOfWeek().getAsShortText() + " " + year;
 
-            return String.format( "W%s %s", week, year );
+            return String.format( "Week %s %s", week, year );
         }
         else if ( periodType instanceof BiWeeklyAbstractPeriodType )
         {
-            int year;
             int week;
-
             Calendar calendar = PeriodType.getCalendar();
             BiWeeklyAbstractPeriodType biWeeklyAbstractPeriodType = (BiWeeklyAbstractPeriodType) periodType;
-            DateTimeUnit dateTimeUnit = DateTimeUnit.fromJdkDate( period.getStartDate() );
+            DateTimeUnit startDateTimeUnit = DateTimeUnit.fromJdkDate( period.getStartDate() );
+            DateTimeUnit endDateTimeUnit = DateTimeUnit.fromJdkDate( period.getEndDate() );
 
             if ( calendar.isIso8601() )
             {
-                LocalDate date = LocalDate.of( dateTimeUnit.getYear(), dateTimeUnit.getMonth(), dateTimeUnit.getDay() );
+                LocalDate startDate = LocalDate.of( startDateTimeUnit.getYear(), startDateTimeUnit.getMonth(),
+                    startDateTimeUnit.getDay() );
                 WeekFields weekFields = WeekFields.of( DayOfWeek.MONDAY, 4 );
 
-                year = date.get( weekFields.weekBasedYear() );
-                week = (date.get( weekFields.weekOfWeekBasedYear() ) / 2) + 1;
+                week = (startDate.get( weekFields.weekOfWeekBasedYear() ) / 2) + 1;
             }
             else
             {
-                DateTimeUnit date = biWeeklyAbstractPeriodType.adjustToStartOfBiWeek( dateTimeUnit, calendar );
+                DateTimeUnit date = biWeeklyAbstractPeriodType.adjustToStartOfBiWeek( startDateTimeUnit, calendar );
                 week = calendar.week( date );
 
                 if ( week == 1 && date.getMonth() == calendar.monthsInYear() )
                 {
                     date.setYear( date.getYear() + 1 );
                 }
-
-                year = date.getYear();
             }
 
-            return String.format( "BiW%s %s", week, year );
+            return String.format( "Bi-Week %s %d-%02d-%02d - %d-%02d-%02d", week,
+                startDateTimeUnit.getYear(), startDateTimeUnit.getMonth(), startDateTimeUnit.getDay(),
+                endDateTimeUnit.getYear(), endDateTimeUnit.getMonth(), endDateTimeUnit.getDay() );
         }
 
-        String keyStartDate = "format." + typeName + ".startDate";
-        String keyEndDate = "format." + typeName + ".endDate";
+        String keyStartDate = getStartDateFormat( typeName, periodType );
+        String keyEndDate = getEndDateFormat( typeName, periodType );
 
         String startPattern = resourceBundle.getString( keyStartDate );
         String endPattern = resourceBundle.getString( keyEndDate );
@@ -334,6 +347,28 @@ public class I18nFormat
         {
             return INVALID_DATE;
         }
+    }
+
+    private static String getEndDateFormat( String typeName, PeriodType periodType )
+    {
+        if ( periodType instanceof BiMonthlyPeriodType || periodType instanceof QuarterlyPeriodType ||
+            periodType instanceof SixMonthlyAbstractPeriodType || periodType instanceof FinancialPeriodType )
+        {
+            return FORMAT_PREFIX + typeName + END_DATE_POSTFIX + ".ext";
+        }
+
+        return FORMAT_PREFIX + typeName + END_DATE_POSTFIX;
+    }
+
+    private static String getStartDateFormat( String typeName, PeriodType periodType )
+    {
+        if ( periodType instanceof BiMonthlyPeriodType || periodType instanceof QuarterlyPeriodType ||
+            periodType instanceof SixMonthlyAbstractPeriodType || periodType instanceof FinancialPeriodType )
+        {
+            return FORMAT_PREFIX + typeName + START_DATE_POSTFIX + ".ext";
+        }
+
+        return FORMAT_PREFIX + typeName + START_DATE_POSTFIX;
     }
 
     /**

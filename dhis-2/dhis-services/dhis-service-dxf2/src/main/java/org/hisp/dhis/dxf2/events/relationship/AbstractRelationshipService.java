@@ -307,8 +307,6 @@ public abstract class AbstractRelationshipService
             {
                 importSummaries.addImportSummary( updateRelationship( relationship, importOptions ) );
             }
-
-            clearSession();
         }
 
         return importSummaries;
@@ -328,7 +326,7 @@ public abstract class AbstractRelationshipService
         }
 
         org.hisp.dhis.relationship.Relationship daoRelationship = relationshipService
-            .getRelationship( relationship.getRelationship() );
+            .getRelationshipIncludeDeleted( relationship.getRelationship() );
 
         checkRelationship( relationship, importSummary );
 
@@ -341,6 +339,14 @@ public abstract class AbstractRelationshipService
             importSummary.getImportCount().incrementIgnored();
 
             return importSummary;
+        }
+        else if ( daoRelationship.isDeleted() )
+        {
+            String message = "Relationship '" + relationship.getRelationship()
+                + "' is already deleted and cannot be modified.";
+            return new ImportSummary( ImportStatus.ERROR, message )
+                .setReference( relationship.getRelationship() )
+                .incrementIgnored();
         }
 
         List<String> errors = trackerAccessManager.canWrite( importOptions.getUser(), daoRelationship );
@@ -506,8 +512,7 @@ public abstract class AbstractRelationshipService
             }
             else
             {
-                event = eventService.getEvent( dao.getProgramStageInstance() );
-                event.setRelationships( null );
+                event = eventService.getEvent( dao.getProgramStageInstance(), teiParams.isIncludeRelationships() );
             }
 
             relationshipItem.setEvent( event );
@@ -871,7 +876,7 @@ public abstract class AbstractRelationshipService
         }
         else
         {
-            if ( !relationshipService.relationshipExists( relationship.getRelationship() ) )
+            if ( !relationshipService.relationshipExistsIncludingDeleted( relationship.getRelationship() ) )
             {
                 create.add( relationship );
             }

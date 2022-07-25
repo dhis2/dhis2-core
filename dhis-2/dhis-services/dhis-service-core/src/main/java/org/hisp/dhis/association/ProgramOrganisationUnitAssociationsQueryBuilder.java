@@ -34,10 +34,14 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.stereotype.Service;
 
 @Service
-public class ProgramOrganisationUnitAssociationsQueryBuilder extends AbstractOrganisationUnitAssociationsQueryBuilder
+public class ProgramOrganisationUnitAssociationsQueryBuilder
+    extends AbstractOrganisationUnitAssociationsQueryBuilder
 {
     @Getter( AccessLevel.PROTECTED )
     private final String relationshipTableName = "program_organisationunits";
+
+    @Getter( AccessLevel.PROTECTED )
+    private final String orgUnitJoinColumnName = "organisationunitid";
 
     @Getter( AccessLevel.PROTECTED )
     private final String joinColumnName = "programid";

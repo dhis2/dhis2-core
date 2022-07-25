@@ -1,0 +1,90 @@
+{
+  "importMode": "COMMIT",
+  "idSchemes": {
+    "dataElementIdScheme": {
+      "idScheme": "UID"
+    },
+    "orgUnitIdScheme": {
+      "idScheme": "UID"
+    },
+    "programIdScheme": {
+      "idScheme": "UID"
+    },
+    "programStageIdScheme": {
+      "idScheme": "UID"
+    },
+    "idScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionComboIdScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionIdScheme": {
+      "idScheme": "UID"
+    }
+  },
+  "importStrategy": "CREATE",
+  "atomicMode": "ALL",
+  "flushMode": "AUTO",
+  "validationMode": "FULL",
+  "skipPatternValidation": false,
+  "skipSideEffects": false,
+  "skipRuleEngine": false,
+  "trackedEntities": [],
+  "enrollments": [],
+  "events": [
+    {
+      "event": "D9PbzJY8bJ1",
+      "status": "COMPLETED",
+      "program": {
+        "idScheme": "UID",
+        "identifier": "E8o1E9tAppy"
+      },
+      "programStage": {
+        "idScheme": "UID",
+        "identifier": "Qmqxq907VNz"
+      },
+      "enrollment": "TvctPPhpD8v",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cZ"
+      },
+      "relationships": [],
+      "occurredAt": "2019-01-28T00:00:00.000",
+      "scheduledAt": "2019-01-28T12:10:38.100",
+      "storedBy": "admin",
+      "followup": false,
+      "deleted": false,
+      "createdAt": "2019-01-28T12:10:38.108",
+      "updatedAt": "2019-01-28T12:10:38.109",
+      "attributeOptionCombo": {
+        "idScheme": "UID",
+        "identifier": "KKKKX50cXC0"
+      },
+      "attributeCategoryOptions": [
+        {
+          "idScheme": "UID",
+          "identifier": "xYerKDKCefk"
+        }
+      ],
+      "completedBy": "admin",
+      "completedAt": "2019-01-28T00:00:00.000",
+      "dataValues": [
+        {
+          "createdAt": "2019-01-28T12:10:38.113",
+          "updatedAt": "2019-01-28T12:10:38.113",
+          "storedBy": "admin",
+          "providedElsewhere": false,
+          "dataElement": {
+            "idScheme": "UID",
+            "identifier": "DSKTW8qFP0z"
+          },
+          "value": "2017-01-27T17:00:00.000Z"
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "relationships": [],
+  "username": "system-process"
+}

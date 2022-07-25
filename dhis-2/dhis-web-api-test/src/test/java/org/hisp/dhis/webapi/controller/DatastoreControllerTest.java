@@ -32,23 +32,25 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.hisp.dhis.datastore.MetadataDatastoreService.METADATA_STORE_NS;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.webapi.utils.WebClientUtils.assertSeries;
-import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
+import static org.hisp.dhis.web.WebClientUtils.assertSeries;
+import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.LocalDate;
+
 import org.hisp.dhis.datastore.DatastoreEntry;
 import org.hisp.dhis.datastore.DatastoreNamespaceProtection;
 import org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType;
 import org.hisp.dhis.datastore.DatastoreService;
+import org.hisp.dhis.web.HttpStatus;
+import org.hisp.dhis.web.HttpStatus.Series;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonDatastoreValue;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatus.Series;
 
 /**
  * Tests the {@link DatastoreController} using (mocked) REST requests.
@@ -110,6 +112,15 @@ class DatastoreControllerTest extends DhisControllerConvenienceTest
     {
         assertEquals( "Namespace not found: 'missing'",
             GET( "/dataStore/missing" ).error( HttpStatus.NOT_FOUND ).getMessage() );
+    }
+
+    @Test
+    void testGetKeysInNamespace_LastUpdatedFilter()
+    {
+        assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/cat", "{'answer': 42}" ) );
+        assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/dog", "{'answer': true}" ) );
+        assertTrue( GET( "/dataStore/pets?lastUpdated=" + (LocalDate.now().getYear() + 1) ).content().stringValues()
+            .isEmpty() );
     }
 
     @Test

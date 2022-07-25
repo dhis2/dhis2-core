@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.analytics.table.scheduling;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.Date;
+
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
@@ -43,21 +43,11 @@ import org.springframework.stereotype.Component;
 /**
  * @author Lars Helge Overland
  */
-@Component( "analyticsTableJob" )
+@Component
+@AllArgsConstructor
 public class AnalyticsTableJob implements Job
 {
     private final AnalyticsTableGenerator analyticsTableGenerator;
-
-    public AnalyticsTableJob( AnalyticsTableGenerator analyticsTableGenerator )
-    {
-        checkNotNull( analyticsTableGenerator );
-
-        this.analyticsTableGenerator = analyticsTableGenerator;
-    }
-
-    // -------------------------------------------------------------------------
-    // Implementation
-    // -------------------------------------------------------------------------
 
     @Override
     public JobType getJobType()

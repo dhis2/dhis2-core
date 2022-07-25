@@ -101,12 +101,11 @@ import com.google.common.collect.ImmutableList;
 @ExtendWith( MockitoExtension.class )
 class EventsAnalyticsManagerTest extends EventAnalyticsTest
 {
-
     @Mock
     private JdbcTemplate jdbcTemplate;
 
     @Mock
-    ExecutionPlanStore executionPlanStore;
+    private ExecutionPlanStore executionPlanStore;
 
     private JdbcEventAnalyticsManager subject;
 
@@ -115,8 +114,9 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
 
     private final static String TABLE_NAME = "analytics_event";
 
-    private final static String DEFAULT_COLUMNS_WITH_REGISTRATION = "psi,ps,executiondate,storedby,lastupdated,"
-        + "enrollmentdate,incidentdate,tei,pi,ST_AsGeoJSON(psigeometry, 6) as geometry,longitude,latitude,ouname,"
+    private final static String DEFAULT_COLUMNS_WITH_REGISTRATION = "psi,ps,executiondate,storedby,"
+        + "createdbydisplayname" + "," + "lastupdatedbydisplayname"
+        + ",lastupdated,enrollmentdate,incidentdate,tei,pi,ST_AsGeoJSON(psigeometry, 6) as geometry,longitude,latitude,ouname,"
         + "oucode,pistatus,psistatus";
 
     @BeforeEach
@@ -145,10 +145,12 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
 
         verify( jdbcTemplate ).queryForRowSet( sql.capture() );
 
-        String expected = "select psi,ps,executiondate,storedby,lastupdated,ST_AsGeoJSON(psigeometry, 6) as geometry,"
+        String expected = "select psi,ps,executiondate,storedby,"
+            + "createdbydisplayname" + "," + "lastupdatedbydisplayname"
+            + ",lastupdated,ST_AsGeoJSON(psigeometry, 6) as geometry,"
             + "longitude,latitude,ouname,oucode,pistatus,psistatus,ax.\"monthly\",ax.\"ou\"  from "
             + getTable( programA.getUid() )
-            + " as ax where ax.\"monthly\" in ('2000Q1') and ax.\"uidlevel1\" in ('ouabcdefghA') limit 101";
+            + " as ax where ax.\"monthly\" in ('2000Q1') and ax.\"uidlevel1\" in ('ouabcdefghA') and psistatus in ('ACTIVE','COMPLETED') limit 101";
 
         assertThat( sql.getValue(), is( expected ) );
     }
@@ -166,11 +168,14 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
 
         verify( jdbcTemplate ).queryForRowSet( sql.capture() );
 
-        String expected = "select psi,ps,executiondate,storedby,lastupdated,enrollmentdate,incidentdate,tei,pi,ST_AsGeoJSON(psigeometry, 6) "
-            + "as geometry,longitude,latitude,ouname,oucode,pistatus,psistatus,ax.\"monthly\",ax.\"ou\",\""
-            + dataElement.getUid() + "_name"
+        String expected = "select psi,ps,executiondate,storedby,"
+            + "createdbydisplayname" + "," + "lastupdatedbydisplayname"
+            + ",lastupdated,enrollmentdate,"
+            + "incidentdate,tei,pi,ST_AsGeoJSON(psigeometry, 6) as geometry,longitude,latitude,ouname,oucode,pistatus,"
+            + "psistatus,ax.\"monthly\",ax.\"ou\",\"" + dataElement.getUid() + "_name"
             + "\"  " + "from " + getTable( programA.getUid() )
-            + " as ax where ax.\"monthly\" in ('2000Q1') and ax.\"uidlevel1\" in ('ouabcdefghA') limit 101";
+            + " as ax where ax.\"monthly\" in ('2000Q1') and ax.\"uidlevel1\" in ('ouabcdefghA')"
+            + " and psistatus in ('ACTIVE','COMPLETED') limit 101";
 
         assertThat( sql.getValue(), is( expected ) );
     }
@@ -185,7 +190,8 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
         verify( jdbcTemplate ).queryForRowSet( sql.capture() );
 
         String expected = "ax.\"monthly\",ax.\"ou\"  from " + getTable( programA.getUid() )
-            + " as ax where ax.\"monthly\" in ('2000Q1') and ax.\"uidlevel1\" in ('ouabcdefghA') limit 101";
+            + " as ax where ax.\"monthly\" in ('2000Q1') and ax.\"uidlevel1\" in ('ouabcdefghA')"
+            + " and psistatus in ('ACTIVE','COMPLETED') limit 101";
 
         assertSql( expected, sql.getValue() );
     }
@@ -202,7 +208,7 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
 
         String expected = "ax.\"monthly\",ax.\"ou\"  from " + getTable( programA.getUid() )
             + " as ax where ax.\"monthly\" in ('2000Q1') and ax.\"uidlevel1\" in ('ouabcdefghA') and ax.\"ps\" = '"
-            + programStage.getUid() + "' limit 101";
+            + programStage.getUid() + "' and psistatus in ('ACTIVE','COMPLETED') limit 101";
 
         assertSql( expected, sql.getValue() );
     }
@@ -219,7 +225,7 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
 
         String expected = "ax.\"monthly\",ax.\"ou\",ax.\"fWIAEtYVEGk\"  from " + getTable( programA.getUid() )
             + " as ax where ax.\"monthly\" in ('2000Q1') and ax.\"uidlevel1\" in ('ouabcdefghA') and ax.\"ps\" = '"
-            + programStage.getUid() + "' limit 101";
+            + programStage.getUid() + "' and psistatus in ('ACTIVE','COMPLETED') limit 101";
 
         assertSql( expected, sql.getValue() );
     }
@@ -236,7 +242,8 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
 
         String expected = "ax.\"monthly\",ax.\"ou\",ax.\"fWIAEtYVEGk\"  from " + getTable( programA.getUid() )
             + " as ax where ax.\"monthly\" in ('2000Q1') and ax.\"uidlevel1\" in ('ouabcdefghA') and ax.\"ps\" = '"
-            + programStage.getUid() + "' and ax.\"fWIAEtYVEGk\" > '10' limit 101";
+            + programStage.getUid()
+            + "' and ax.\"fWIAEtYVEGk\" > '10' and psistatus in ('ACTIVE','COMPLETED') limit 101";
 
         assertSql( expected, sql.getValue() );
     }
@@ -253,6 +260,39 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
         String expected = "ax.\"monthly\",ax.\"ou\"  from " + getTable( programA.getUid() )
             + " as ax where ax.\"monthly\" in ('2000Q1') and ax.\"uidlevel1\" in ('ouabcdefghA')" +
             " and pistatus in ('ACTIVE','COMPLETED') and psistatus in ('SCHEDULE') limit 101";
+
+        assertSql( expected, sql.getValue() );
+    }
+
+    @Test
+    void verifyGetEventsWithScheduledDateTimeFieldParam()
+    {
+        mockEmptyRowSet();
+
+        subject.getEvents( createRequestParamsWithTimeField( "SCHEDULED_DATE" ), createGrid(), 100 );
+
+        verify( jdbcTemplate ).queryForRowSet( sql.capture() );
+
+        String expected = "ps.\"monthly\",ax.\"ou\"  from " + getTable( programA.getUid() )
+            + " as ax left join _dateperiodstructure as ps on cast(ax.\"duedate\" as date) = ps.\"dateperiod\" "
+            + "where ps.\"monthly\" in ('2000Q1') and ax.\"uidlevel1\" "
+            + "in ('ouabcdefghA') and pistatus in ('ACTIVE','COMPLETED') and psistatus in ('SCHEDULE') limit 101";
+
+        assertSql( expected, sql.getValue() );
+    }
+
+    @Test
+    void verifyGetEventsWithLastUpdatedTimeFieldParam()
+    {
+        mockEmptyRowSet();
+
+        subject.getEvents( createRequestParamsWithTimeField( "LAST_UPDATED" ), createGrid(), 100 );
+
+        verify( jdbcTemplate ).queryForRowSet( sql.capture() );
+
+        String expected = "ax.\"monthly\",ax.\"ou\"  from " + getTable( programA.getUid() ) + " as ax "
+            + "where (( ax.\"lastupdated\" >= '2000-01-01' and ax.\"lastupdated\" < '2000-04-01') )and ax.\"uidlevel1\" "
+            + "in ('ouabcdefghA') and pistatus in ('ACTIVE','COMPLETED') and psistatus in ('ACTIVE','COMPLETED','SCHEDULE') limit 101";
 
         assertSql( expected, sql.getValue() );
     }
@@ -330,7 +370,7 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
 
         String expected = "ax.\"monthly\",ax.\"ou\",ax.\"fWIAEtYVEGk\"  from " + getTable( programA.getUid() )
             + " as ax where ax.\"monthly\" in ('2000Q1') and ax.\"uidlevel1\" in ('ouabcdefghA') and ax.\"ps\" = '"
-            + programStage.getUid() + "' limit 101";
+            + programStage.getUid() + "' and psistatus in ('ACTIVE','COMPLETED') limit 101";
 
         assertSql( expected, sql.getValue() );
     }
@@ -346,7 +386,8 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
 
         String expected = "ax.\"monthly\",ax.\"ou\",ax.\"fWIAEtYVEGk\"  from " + getTable( programA.getUid() )
             + " as ax where ax.\"monthly\" in ('2000Q1') and ax.\"uidlevel1\" in ('ouabcdefghA') and ax.\"ps\" = '"
-            + programStage.getUid() + "' and ax.\"fWIAEtYVEGk\" > '10' limit 101";
+            + programStage.getUid()
+            + "' and ax.\"fWIAEtYVEGk\" > '10' and psistatus in ('ACTIVE','COMPLETED') limit 101";
 
         assertSql( expected, sql.getValue() );
     }
@@ -374,7 +415,8 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
         String expected = "select count(ax.\"psi\") as value,ax.\"monthly\",ax.\"ou\",ax.\"fWIAEtYVEGk\" from "
             + getTable( programA.getUid() )
             + " as ax where ax.\"monthly\" in ('2000Q1') and ax.\"uidlevel1\" in ('ouabcdefghA') and ax.\"ps\" = '"
-            + programStage.getUid() + "' group by ax.\"monthly\",ax.\"ou\",ax.\"fWIAEtYVEGk\" limit 200001";
+            + programStage.getUid()
+            + "' and psistatus in ('ACTIVE','COMPLETED') group by ax.\"monthly\",ax.\"ou\",ax.\"fWIAEtYVEGk\" limit 200001";
 
         assertThat( sql.getValue(), is( expected ) );
     }
@@ -403,7 +445,8 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
             + getTable( programA.getUid() )
             + " as ax where ax.\"monthly\" in ('2000Q1') and ax.\"uidlevel1\" in ('ouabcdefghA') and ax.\"ps\" = '"
             + programStage.getUid()
-            + "' and ax.\"fWIAEtYVEGk\" > '10' group by ax.\"monthly\",ax.\"ou\",ax.\"fWIAEtYVEGk\" limit 200001";
+            + "' and ax.\"fWIAEtYVEGk\" > '10' and psistatus in ('ACTIVE','COMPLETED')"
+            + " group by ax.\"monthly\",ax.\"ou\",ax.\"fWIAEtYVEGk\" limit 200001";
         assertThat( sql.getValue(), is( expected ) );
     }
 
@@ -446,9 +489,9 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
 
         final EventQueryParams.Builder eventQueryParamsBuilder = new EventQueryParams.Builder( params )
             .withProgram( program )
-            .addAscSortItem( piA )
-            .addDescSortItem( piB )
-            .addAscSortItem( deA );
+            .addAscSortItem( new QueryItem( piA ) )
+            .addDescSortItem( new QueryItem( piB ) )
+            .addAscSortItem( new QueryItem( deA ) );
 
         final String sql = subject.getEventsOrEnrollmentsSql( eventQueryParamsBuilder.build(), 100 );
 

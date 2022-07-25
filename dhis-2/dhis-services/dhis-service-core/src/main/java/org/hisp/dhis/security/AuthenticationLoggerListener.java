@@ -32,11 +32,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.security.oidc.DhisOidcUser;
-import org.hisp.dhis.user.UserCredentials;
 import org.springframework.context.ApplicationListener;
 import org.springframework.security.authentication.event.AbstractAuthenticationEvent;
 import org.springframework.security.authentication.event.AbstractAuthenticationFailureEvent;
 import org.springframework.security.authentication.event.InteractiveAuthenticationSuccessEvent;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
@@ -101,8 +101,8 @@ public class AuthenticationLoggerListener
 
             if ( principal != null )
             {
-                UserCredentials userCredentials = principal.getUserCredentials();
-                authName = userCredentials.getUsername();
+                UserDetails user = principal.getUser();
+                authName = user.getUsername();
             }
 
             WebAuthenticationDetails oauthDetails = (WebAuthenticationDetails) authenticationToken.getDetails();
@@ -116,8 +116,8 @@ public class AuthenticationLoggerListener
 
             if ( principal != null )
             {
-                UserCredentials userCredentials = principal.getUserCredentials();
-                authName = userCredentials.getUsername();
+                UserDetails user = principal.getUser();
+                authName = user.getUsername();
             }
         }
 

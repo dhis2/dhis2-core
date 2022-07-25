@@ -32,20 +32,29 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.DimensionalObject.ITEM_SEP;
 import static org.hisp.dhis.common.DimensionalObject.PROGRAMSTAGE_SEP;
 
+import java.util.Collections;
+import java.util.Date;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import lombok.RequiredArgsConstructor;
+
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.event.QueryItemLocator;
+import org.hisp.dhis.analytics.util.RepeatableStageParamsHelper;
+import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.PrimaryKeyObject;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.RepeatableStageParams;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.common.exception.InvalidRepeatableStageParamsException;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -67,6 +76,7 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
+@RequiredArgsConstructor
 public class DefaultQueryItemLocator
     implements QueryItemLocator
 {
@@ -82,19 +92,7 @@ public class DefaultQueryItemLocator
 
     private final RelationshipTypeService relationshipTypeService;
 
-    private final static String INDEX_REGEX = "\\[-?\\d+\\]";
-
-    public DefaultQueryItemLocator( ProgramStageService programStageService, DataElementService dataElementService,
-        TrackedEntityAttributeService attributeService, ProgramIndicatorService programIndicatorService,
-        LegendSetService legendSetService, RelationshipTypeService relationshipTypeService )
-    {
-        this.programStageService = programStageService;
-        this.dataElementService = dataElementService;
-        this.attributeService = attributeService;
-        this.programIndicatorService = programIndicatorService;
-        this.legendSetService = legendSetService;
-        this.relationshipTypeService = relationshipTypeService;
-    }
+    private final DataQueryService dataQueryService;
 
     @Override
     public QueryItem getQueryItemFromDimension( String dimension, Program program, EventOutputType type )
@@ -106,13 +104,32 @@ public class DefaultQueryItemLocator
         return getDataElement( dimension, program, legendSet, type )
             .orElseGet( () -> getTrackedEntityAttribute( dimension, program, legendSet )
                 .orElseGet( () -> getProgramIndicator( dimension, program, legendSet )
-                    .orElseThrow(
-                        () -> new IllegalQueryException( new ErrorMessage( ErrorCode.E7224, dimension ) ) ) ) );
+                    // if not DE, TEA or PI, we try to get as dynamic dimension
+                    .orElseGet( () -> getDynamicDimension( dimension )
+                        .orElseThrow(
+                            () -> new IllegalQueryException( new ErrorMessage( ErrorCode.E7224, dimension ) ) ) ) ) );
+    }
+
+    /**
+     * Given a UID representing a dimension, tries to check if it exists, and if
+     * true, returns a QueryItem using the passed UID
+     *
+     * @param dimension an UID representing a dimension
+     * @return a query item wrapping the specified dimension.
+     */
+    private Optional<QueryItem> getDynamicDimension( String dimension )
+    {
+        return Optional.ofNullable(
+            dataQueryService.getDimension( dimension, Collections.emptyList(), (Date) null,
+                Collections.emptyList(), null, true, IdScheme.UID ) )
+            .map( PrimaryKeyObject::getUid )
+            .map( BaseDimensionalItemObject::new )
+            .map( QueryItem::new );
     }
 
     private LegendSet getLegendSet( String dimension )
     {
-        dimension = removeOffset( dimension );
+        dimension = RepeatableStageParamsHelper.removeRepeatableStageParams( dimension );
 
         String[] legendSplit = dimension.split( ITEM_SEP );
 
@@ -123,7 +140,8 @@ public class DefaultQueryItemLocator
     private String getElement( String dimension, int pos )
     {
 
-        String dim = StringUtils.substringBefore( removeOffset( dimension ), ITEM_SEP );
+        String dim = StringUtils.substringBefore( RepeatableStageParamsHelper.removeRepeatableStageParams( dimension ),
+            ITEM_SEP );
 
         String[] dimSplit = dim.split( "\\" + PROGRAMSTAGE_SEP );
 
@@ -159,7 +177,8 @@ public class DefaultQueryItemLocator
             if ( programStage != null )
             {
                 qi.setProgramStage( programStage );
-                qi.setProgramStageOffset( getProgramStageOffset( dimension ) );
+
+                qi.setRepeatableStageParams( getRepeatableStageParams( dimension ) );
             }
             else if ( type != null && type.equals( EventOutputType.ENROLLMENT ) )
             {
@@ -182,6 +201,13 @@ public class DefaultQueryItemLocator
             ValueType valueType = legendSet != null ? ValueType.TEXT : at.getValueType();
 
             qi = new QueryItem( at, program, legendSet, valueType, at.getAggregationType(), at.getOptionSet() );
+
+            ProgramStage programStage = getProgramStageOrFail( dimension );
+
+            if ( programStage != null )
+            {
+                qi.setProgramStage( programStage );
+            }
         }
 
         return Optional.ofNullable( qi );
@@ -200,6 +226,8 @@ public class DefaultQueryItemLocator
 
         if ( pi != null )
         {
+            ProgramStage programStage = getProgramStageOrFail( dimension );
+
             if ( relationshipType != null )
             {
                 qi = new QueryItem( pi, program, legendSet, ValueType.NUMBER, pi.getAggregationType(), null,
@@ -211,6 +239,11 @@ public class DefaultQueryItemLocator
                 {
                     qi = new QueryItem( pi, program, legendSet, ValueType.NUMBER, pi.getAggregationType(), null );
                 }
+            }
+
+            if ( qi != null && programStage != null )
+            {
+                qi.setProgramStage( programStage );
             }
         }
 
@@ -226,34 +259,23 @@ public class DefaultQueryItemLocator
             : null);
     }
 
-    private static String removeOffset( String dimension )
+    private static RepeatableStageParams getRepeatableStageParams( String dimension )
     {
-        final Pattern pattern = Pattern.compile( INDEX_REGEX );
-
-        final Matcher matcher = pattern.matcher( dimension );
-
-        if ( matcher.find() )
+        try
         {
-            return dimension.replace( matcher.group( 0 ), "" );
+            RepeatableStageParams repeatableStageParams = RepeatableStageParamsHelper
+                .getRepeatableStageParams( dimension );
+
+            repeatableStageParams.setDimension( dimension );
+
+            return repeatableStageParams;
         }
-
-        return dimension;
-    }
-
-    private static int getProgramStageOffset( String dimension )
-    {
-        final Pattern pattern = Pattern.compile( INDEX_REGEX );
-
-        final Matcher matcher = pattern.matcher( dimension );
-
-        if ( matcher.find() )
+        catch ( InvalidRepeatableStageParamsException e )
         {
-            return Integer.parseInt( matcher.group( 0 )
-                .replace( "[", "" )
-                .replace( "]", "" ) );
-        }
+            ErrorMessage errorMessage = new ErrorMessage( dimension, ErrorCode.E1101 );
 
-        return 0;
+            throw new IllegalQueryException( errorMessage );
+        }
     }
 
     private RelationshipType getRelationshipTypeOrFail( String dimension )

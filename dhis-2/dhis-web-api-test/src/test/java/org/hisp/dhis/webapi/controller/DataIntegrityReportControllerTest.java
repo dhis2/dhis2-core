@@ -31,9 +31,9 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
-import static org.hisp.dhis.webapi.utils.WebClientUtils.objectReference;
-import static org.hisp.dhis.webapi.utils.WebClientUtils.objectReferences;
+import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.web.WebClientUtils.objectReference;
+import static org.hisp.dhis.web.WebClientUtils.objectReferences;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -42,11 +42,10 @@ import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitStore;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityReport;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 
 /**
  * Tests the {@link DataIntegrityController} API with focus API returning
@@ -54,9 +53,8 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
-class DataIntegrityReportControllerTest extends DhisControllerConvenienceTest
+class DataIntegrityReportControllerTest extends AbstractDataIntegrityControllerTest
 {
-
     /**
      * Needed to create cyclic references for org units
      */
@@ -188,7 +186,9 @@ class DataIntegrityReportControllerTest extends DhisControllerConvenienceTest
 
     private JsonDataIntegrityReport getDataIntegrityReport( String url )
     {
-        JsonObject response = POST( url ).content().getObject( "response" );
+        HttpResponse httpResponse = POST( url );
+        assertTrue( httpResponse.location().startsWith( "http://localhost/dataIntegrity/details?checks=" ) );
+        JsonObject response = httpResponse.content().getObject( "response" );
         String id = response.getString( "id" ).string();
         String jobType = response.getString( "jobType" ).string();
         return GET( "/system/taskSummaries/{type}/{id}", jobType, id ).content().as( JsonDataIntegrityReport.class );

@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.tracker.bundle.persister;
 
-import static com.google.api.client.util.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.time.Instant;
 import java.util.Collections;
@@ -40,8 +40,12 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import lombok.Builder;
+import lombok.Data;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
+import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -49,7 +53,8 @@ import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
-import org.hisp.dhis.tracker.TrackerIdScheme;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.converter.TrackerConverterService;
@@ -73,16 +78,20 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
 
     private final TrackerSideEffectConverterService sideEffectConverterService;
 
+    private final TrackedEntityDataValueAuditService trackedEntityDataValueAuditService;
+
     public EventPersister( ReservedValueService reservedValueService,
         TrackerConverterService<Event, ProgramStageInstance> eventConverter,
         TrackedEntityCommentService trackedEntityCommentService,
         TrackerSideEffectConverterService sideEffectConverterService,
-        TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService )
+        TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService,
+        TrackedEntityDataValueAuditService trackedEntityDataValueAuditService )
     {
         super( reservedValueService, trackedEntityAttributeValueAuditService );
         this.eventConverter = eventConverter;
         this.trackedEntityCommentService = trackedEntityCommentService;
         this.sideEffectConverterService = sideEffectConverterService;
+        this.trackedEntityDataValueAuditService = trackedEntityDataValueAuditService;
     }
 
     @Override
@@ -103,13 +112,13 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
     @Override
     protected void updatePreheat( TrackerPreheat preheat, ProgramStageInstance programStageInstance )
     {
-        preheat.putEvents( TrackerIdScheme.UID, Collections.singletonList( programStageInstance ) );
+        preheat.putEvents( Collections.singletonList( programStageInstance ) );
     }
 
     @Override
     protected boolean isNew( TrackerPreheat preheat, String uid )
     {
-        return preheat.getEvent( TrackerIdScheme.UID, uid ) == null;
+        return preheat.getEvent( uid ) == null;
     }
 
     @Override
@@ -131,11 +140,7 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
     @Override
     protected ProgramStageInstance convert( TrackerBundle bundle, Event event )
     {
-        Date now = new Date();
-        ProgramStageInstance programStageInstance = eventConverter.from( bundle.getPreheat(), event );
-        programStageInstance.setLastUpdated( now );
-        programStageInstance.setLastUpdatedBy( bundle.getUser() );
-        return programStageInstance;
+        return eventConverter.from( bundle.getPreheat(), event );
     }
 
     @Override
@@ -161,42 +166,74 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
     private void handleDataValues( Session session, TrackerPreheat preheat, Set<DataValue> payloadDataValues,
         ProgramStageInstance psi )
     {
-        Map<String, EventDataValue> dataValueDBMap = psi
-            .getEventDataValues()
-            .stream()
-            .collect( Collectors.toMap( EventDataValue::getDataElement, Function.identity() ) );
+        Map<String, EventDataValue> dataValueDBMap = Optional.ofNullable( preheat.getEvent( psi.getUid() ) )
+            .map( a -> a.getEventDataValues()
+                .stream()
+                .collect( Collectors.toMap( EventDataValue::getDataElement, Function.identity() ) ) )
+            .orElse( new HashMap<>() );
 
         for ( DataValue dv : payloadDataValues )
         {
-            DataElement dateElement = preheat.get( DataElement.class, dv.getDataElement() );
 
-            checkNotNull( dateElement,
+            final String persistedValue;
+            DataElement dataElement = preheat.getDataElement( dv.getDataElement() );
+            checkNotNull( dataElement,
                 "Data element should never be NULL here if validation is enforced before commit." );
 
-            EventDataValue eventDataValue = dataValueDBMap.getOrDefault( dv.getDataElement(), new EventDataValue() );
+            // EventDataValue.dataElement contains a UID
+            EventDataValue eventDataValue = dataValueDBMap.get( dataElement.getUid() );
+            AuditType auditType;
+            if ( eventDataValue == null )
+            {
+                eventDataValue = new EventDataValue();
+                persistedValue = dv.getValue();
+                auditType = AuditType.CREATE;
+            }
+            else
+            {
+                persistedValue = eventDataValue.getValue();
 
-            eventDataValue.setDataElement( dateElement.getUid() );
-            eventDataValue.setValue( dv.getValue() );
+                Optional<AuditType> optionalAuditType = Optional.ofNullable( dv.getValue() )
+                    .filter( v -> !dv.getValue().equals( persistedValue ) )
+                    .map( v1 -> AuditType.UPDATE )
+                    .or( () -> Optional.ofNullable( dv.getValue() ).map( a -> AuditType.READ )
+                        .or( () -> Optional.of( AuditType.DELETE ) ) );
+
+                auditType = optionalAuditType.orElse( null );
+            }
+
+            ValuesHolder valuesHolder = ValuesHolder.builder().providedElseWhere( dv.isProvidedElsewhere() )
+                .value( persistedValue ).build();
+
+            eventDataValue.setDataElement( dataElement.getUid() );
             eventDataValue.setStoredBy( dv.getStoredBy() );
 
             handleDataValueCreatedUpdatedDates( dv, eventDataValue );
 
-            if ( StringUtils.isEmpty( eventDataValue.getValue() ) )
+            if ( StringUtils.isEmpty( dv.getValue() ) )
             {
-                if ( dateElement.isFileType() )
+                if ( dataElement.isFileType() )
                 {
-                    unassignFileResource( session, preheat, dataValueDBMap.get( dv.getDataElement() ).getValue() );
+                    unassignFileResource( session, preheat, psi.getUid(), eventDataValue.getValue() );
                 }
+
                 psi.getEventDataValues().remove( eventDataValue );
             }
             else
             {
-                if ( dateElement.isFileType() )
+                eventDataValue.setValue( dv.getValue() );
+
+                if ( dataElement.isFileType() )
                 {
-                    assignFileResource( session, preheat, eventDataValue.getValue() );
+                    assignFileResource( session, preheat, psi.getUid(), eventDataValue.getValue() );
                 }
+
+                psi.getEventDataValues().remove( eventDataValue );
                 psi.getEventDataValues().add( eventDataValue );
             }
+
+            logTrackedEntityDataValueHistory( preheat.getUsername(), dataElement, psi, auditType,
+                new Date(), valuesHolder );
         }
     }
 
@@ -214,6 +251,24 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
             .orElseGet( Date::new );
     }
 
+    private void logTrackedEntityDataValueHistory( String userName,
+        DataElement de, ProgramStageInstance psi, AuditType auditType, Date created, ValuesHolder valuesHolder )
+    {
+        if ( auditType != null )
+        {
+            TrackedEntityDataValueAudit valueAudit = new TrackedEntityDataValueAudit();
+            valueAudit.setProgramStageInstance( psi );
+            valueAudit.setValue( valuesHolder.getValue() );
+            valueAudit.setAuditType( auditType );
+            valueAudit.setDataElement( de );
+            valueAudit.setModifiedBy( userName );
+            valueAudit.setProvidedElsewhere( valuesHolder.isProvidedElseWhere() );
+            valueAudit.setCreated( created );
+
+            trackedEntityDataValueAuditService.addTrackedEntityDataValueAudit( valueAudit );
+        }
+    }
+
     @Override
     protected void persistOwnership( TrackerPreheat preheat, ProgramStageInstance entity )
     {
@@ -225,5 +280,14 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
     {
         return Optional.ofNullable( entity.getProgramInstance() ).filter( pi -> pi.getEntityInstance() != null )
             .map( pi -> pi.getEntityInstance().getUid() ).orElse( null );
+    }
+
+    @Data
+    @Builder
+    static class ValuesHolder
+    {
+        private final String value;
+
+        private final boolean providedElseWhere;
     }
 }

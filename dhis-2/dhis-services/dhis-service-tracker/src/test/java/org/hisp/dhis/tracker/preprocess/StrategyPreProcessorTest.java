@@ -35,7 +35,6 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -128,10 +127,10 @@ class StrategyPreProcessorTest extends DhisConvenienceTest
         payloadRelationship.setRelationship( RELATIONSHIP_UID );
         newPayloadRelationship = new org.hisp.dhis.tracker.domain.Relationship();
         newPayloadRelationship.setRelationship( NEW_RELATIONSHIP_UID );
-        Mockito.when( preheat.getTrackedEntity( TrackerIdScheme.UID, TEI_UID ) ).thenReturn( tei );
-        Mockito.when( preheat.getEnrollment( TrackerIdScheme.UID, ENROLLMENT_UID ) ).thenReturn( pi );
-        Mockito.when( preheat.getEvent( TrackerIdScheme.UID, EVENT_UID ) ).thenReturn( psi );
-        Mockito.when( preheat.getRelationship( TrackerIdScheme.UID, payloadRelationship ) ).thenReturn( relationship );
+        Mockito.when( preheat.getTrackedEntity( TEI_UID ) ).thenReturn( tei );
+        Mockito.when( preheat.getEnrollment( ENROLLMENT_UID ) ).thenReturn( pi );
+        Mockito.when( preheat.getEvent( EVENT_UID ) ).thenReturn( psi );
+        Mockito.when( preheat.getRelationship( RELATIONSHIP_UID ) ).thenReturn( relationship );
     }
 
     @Test

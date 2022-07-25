@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.relationship;
 
-import static org.apache.commons.lang3.StringUtils.splitByWholeSeparatorPreserveAllTokens;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -52,30 +50,6 @@ public class RelationshipKey
     public String asString()
     {
         return String.join( RELATIONSHIP_KEY_SEPARATOR, type, from.asString(), to.asString() );
-    }
-
-    public static RelationshipKey fromString( String relationshipKeyAsString )
-    {
-        String[] splitKey = splitByWholeSeparatorPreserveAllTokens( relationshipKeyAsString,
-            RELATIONSHIP_KEY_SEPARATOR );
-        if ( splitKey.length != 7 )
-        {
-            throw new IllegalArgumentException(
-                "components in relationshipkey must be 7. Got " + relationshipKeyAsString + " instead" );
-        }
-        return RelationshipKey.builder()
-            .type( splitKey[0] )
-            .from( RelationshipItemKey.builder()
-                .trackedEntity( splitKey[1] )
-                .enrollment( splitKey[2] )
-                .event( splitKey[3] )
-                .build() )
-            .to( RelationshipItemKey.builder()
-                .trackedEntity( splitKey[4] )
-                .enrollment( splitKey[5] )
-                .event( splitKey[6] )
-                .build() )
-            .build();
     }
 
     public RelationshipKey inverseKey()
@@ -108,7 +82,7 @@ public class RelationshipKey
             }
             else if ( isEvent() )
             {
-                return enrollment;
+                return event;
             }
 
             return "ERROR";

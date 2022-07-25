@@ -48,10 +48,13 @@ public class MatchesJson
 
     private JSONCompareMode jsonCompareMode;
 
+    private String mismatch;
+
     public MatchesJson( final String expectedJSON )
     {
         this.expectedJSON = expectedJSON;
         this.jsonCompareMode = JSONCompareMode.LENIENT;
+        this.mismatch = "";
     }
 
     private static String toJSONString( final Object o )
@@ -73,7 +76,7 @@ public class MatchesJson
     @Override
     public void describeTo( Description description )
     {
-        description.appendValue( expectedJSON );
+        description.appendValue( mismatch );
     }
 
     @Override
@@ -85,8 +88,7 @@ public class MatchesJson
             JSONCompareResult result = JSONCompare.compareJSON( expectedJSON, actualJSON, jsonCompareMode );
             if ( result.failed() )
             {
-                mismatchDescription.appendText( "\n Actual: " + actualJSON + "\n" );
-                mismatchDescription.appendText( result.getMessage() );
+                mismatch = result.getMessage();
             }
 
             return result.passed();

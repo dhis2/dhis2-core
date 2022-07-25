@@ -45,6 +45,6 @@ public class DimItemIndicator
     public DimensionalItemId getDimensionalItemId( ExprContext ctx,
         CommonExpressionVisitor visitor )
     {
-        return new DimensionalItemId( INDICATOR, ctx.uid0.getText(), visitor.getPeriodOffset() );
+        return new DimensionalItemId( INDICATOR, ctx.uid0.getText(), visitor.getState().getQueryMods() );
     }
 }

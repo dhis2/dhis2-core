@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -97,7 +98,11 @@ class PredictionDataValueFetcherTest
 
     private DataElementOperand dataElementOperandB;
 
+    private DataElementOperand dataElementOperandAB;
+
     private DataElementOperand dataElementOperandX;
+
+    private DataElementOperand dataElementOperandZ;
 
     private Set<DataElementOperand> dataElementOperands;
 
@@ -133,9 +138,13 @@ class PredictionDataValueFetcherTest
 
     private DataValue dataValueB;
 
+    private DataValue dataValueAB;
+
     private DataValue dataValueC;
 
     private DataValue dataValueD;
+
+    private DataValue dataValueW;
 
     private DataValue dataValueX;
 
@@ -147,9 +156,13 @@ class PredictionDataValueFetcherTest
 
     private DeflatedDataValue deflatedDataValueB;
 
+    private DeflatedDataValue deflatedDataValueAB;
+
     private DeflatedDataValue deflatedDataValueC;
 
     private DeflatedDataValue deflatedDataValueD;
+
+    private DeflatedDataValue deflatedDataValueW;
 
     private DeflatedDataValue deflatedDataValueX;
 
@@ -160,6 +173,8 @@ class PredictionDataValueFetcherTest
     private FoundDimensionItemValue foundValueA;
 
     private FoundDimensionItemValue foundValueB;
+
+    private FoundDimensionItemValue foundValueAB;
 
     private FoundDimensionItemValue foundValueC;
 
@@ -208,9 +223,12 @@ class PredictionDataValueFetcherTest
 
         dataElementOperandA = new DataElementOperand( dataElementA, cocA );
         dataElementOperandB = new DataElementOperand( dataElementB, cocB );
+        dataElementOperandAB = new DataElementOperand( dataElementA, cocB );
         dataElementOperandX = new DataElementOperand( dataElementX, cocA );
+        dataElementOperandZ = new DataElementOperand( dataElementX, null );
 
-        dataElementOperands = Sets.newHashSet( dataElementOperandA, dataElementOperandB, dataElementOperandX );
+        dataElementOperands = Sets.newHashSet( dataElementOperandA, dataElementOperandB, dataElementOperandAB,
+            dataElementOperandX );
 
         periodA = createPeriod( "202201" );
         periodB = createPeriod( "202202" );
@@ -274,25 +292,31 @@ class PredictionDataValueFetcherTest
 
         dataValueA = new DataValue( dataElementA, periodA, orgUnitB, cocA, aocC, "10.0", "Y", null, null, null, false );
         dataValueB = new DataValue( dataElementA, periodA, orgUnitB, cocB, aocC, "15.0", "Y", null, null, null, false );
+        dataValueW = new DataValue( dataElementX, periodC, orgUnitB, cocB, aocD, "17.0", "Z", null, null, null, false );
         dataValueX = new DataValue( dataElementX, periodA, orgUnitB, cocA, aocD, "30.0", "Z", null, null, null, false );
         dataValueY = new DataValue( dataElementX, periodC, orgUnitB, cocA, aocC, "40.0", "Z", null, null, null, true );
         dataValueZ = new DataValue( dataElementX, periodC, orgUnitE, cocA, aocC, "50.0", "Z", null, null, null, false );
         dataValueC = new DataValue( dataElementB, periodB, orgUnitC, cocA, aocC, "18.0", "Y", null, null, null, false );
         dataValueD = new DataValue( dataElementB, periodB, orgUnitC, cocB, aocC, "20.0", "Y", null, null, null, true );
+        dataValueAB = new DataValue( dataElementA, periodA, orgUnitB, cocB, aocC, "60.0", "Y", null, null, null,
+            false );
 
         deflatedDataValueA = new DeflatedDataValue( dataValueA );
         deflatedDataValueB = new DeflatedDataValue( dataValueB );
+        deflatedDataValueW = new DeflatedDataValue( dataValueW );
         deflatedDataValueX = new DeflatedDataValue( dataValueX );
         deflatedDataValueY = new DeflatedDataValue( dataValueY );
         deflatedDataValueZ = new DeflatedDataValue( dataValueZ );
         deflatedDataValueC = new DeflatedDataValue( dataValueC );
         deflatedDataValueD = new DeflatedDataValue( dataValueD );
+        deflatedDataValueAB = new DeflatedDataValue( dataValueAB );
 
-        foundValueA = new FoundDimensionItemValue( orgUnitB, periodA, aocC, dataElementA, 25.0 );
+        foundValueA = new FoundDimensionItemValue( orgUnitB, periodA, aocC, dataElementA, 85.0 );
         foundValueB = new FoundDimensionItemValue( orgUnitC, periodB, aocC, dataElementB, 18.0 );
         foundValueC = new FoundDimensionItemValue( orgUnitB, periodA, aocC, dataElementOperandA, 10.0 );
         foundValueD = new FoundDimensionItemValue( orgUnitB, periodA, aocD, dataElementOperandX, 30.0 );
         foundValueE = new FoundDimensionItemValue( orgUnitB, periodC, aocC, dataElementOperandX, 50.0 );
+        foundValueAB = new FoundDimensionItemValue( orgUnitB, periodA, aocC, dataElementOperandAB, 75.0 );
 
         fetcher = new PredictionDataValueFetcher( dataValueService, categoryService );
     }
@@ -312,6 +336,7 @@ class PredictionDataValueFetcherTest
         when( dataValueService.getDeflatedDataValues( any( DataExportParams.class ) ) ).thenAnswer( p -> {
             BlockingQueue<DeflatedDataValue> blockingQueue = ((DataExportParams) p.getArgument( 0 )).getBlockingQueue();
             blockingQueue.put( deflatedDataValueA );
+            blockingQueue.put( deflatedDataValueAB );
             blockingQueue.put( deflatedDataValueB );
             blockingQueue.put( deflatedDataValueX );
             blockingQueue.put( deflatedDataValueY );
@@ -328,20 +353,62 @@ class PredictionDataValueFetcherTest
         PredictionData data1 = fetcher.getData();
         assertNotNull( data1 );
         assertEquals( orgUnitB, data1.getOrgUnit() );
-        assertContainsOnly( data1.getValues(), foundValueA, foundValueC, foundValueD, foundValueE );
+        assertContainsOnly( data1.getValues(), foundValueA, foundValueAB, foundValueC, foundValueD, foundValueE );
         assertContainsOnly( data1.getOldPredictions(), dataValueY );
 
         PredictionData data2 = fetcher.getData();
         assertNotNull( data2 );
         assertEquals( orgUnitC, data2.getOrgUnit() );
         assertContainsOnly( data2.getValues(), foundValueB );
-        assertContainsOnly( data2.getOldPredictions() );
+        assertTrue( data2.getOldPredictions().isEmpty() );
 
         PredictionData data3 = fetcher.getData();
         assertNull( data3 );
 
         PredictionData data4 = fetcher.getData();
         assertNull( data4 );
+    }
+
+    @Test
+    void testGetDataValuesWithAllDisaggregations()
+    {
+        when( categoryService.getCategoryOptionCombo( cocA.getId() ) ).thenReturn( cocA );
+        when( categoryService.getCategoryOptionCombo( cocB.getId() ) ).thenReturn( cocB );
+        when( categoryService.getCategoryOptionCombo( aocC.getId() ) ).thenReturn( aocC );
+        when( categoryService.getCategoryOptionCombo( aocD.getId() ) ).thenReturn( aocD );
+
+        when( dataValueService.getDeflatedDataValues( any( DataExportParams.class ) ) ).thenAnswer( p -> {
+            BlockingQueue<DeflatedDataValue> blockingQueue = ((DataExportParams) p.getArgument( 0 )).getBlockingQueue();
+            blockingQueue.put( deflatedDataValueA );
+            blockingQueue.put( deflatedDataValueAB );
+            blockingQueue.put( deflatedDataValueB );
+            blockingQueue.put( deflatedDataValueW );
+            blockingQueue.put( deflatedDataValueX );
+            blockingQueue.put( deflatedDataValueY );
+            blockingQueue.put( deflatedDataValueZ );
+            blockingQueue.put( deflatedDataValueC );
+            blockingQueue.put( deflatedDataValueD );
+            blockingQueue.put( END_OF_DDV_DATA );
+            return new ArrayList<>();
+        } );
+
+        fetcher.init( currentUserOrgUnits, ORG_UNIT_LEVEl, levelOneOrgUnits, queryPeriods, outputPeriods,
+            dataElements, dataElementOperands, dataElementOperandZ );
+
+        PredictionData data1 = fetcher.getData();
+        assertNotNull( data1 );
+        assertEquals( orgUnitB, data1.getOrgUnit() );
+        assertContainsOnly( data1.getValues(), foundValueA, foundValueAB, foundValueC, foundValueD, foundValueE );
+        assertContainsOnly( data1.getOldPredictions(), dataValueW, dataValueY );
+
+        PredictionData data2 = fetcher.getData();
+        assertNotNull( data2 );
+        assertEquals( orgUnitC, data2.getOrgUnit() );
+        assertContainsOnly( data2.getValues(), foundValueB );
+        assertTrue( data2.getOldPredictions().isEmpty() );
+
+        PredictionData data3 = fetcher.getData();
+        assertNull( data3 );
     }
 
     @Test

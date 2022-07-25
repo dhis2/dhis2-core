@@ -64,7 +64,8 @@ public class MetadataImportImportStrategyTests
 
     @ValueSource( strings = {
         "CODE",
-        "UID"
+        "UID",
+        "NAME"
     } )
     @ParameterizedTest
     public void shouldUpdateMetadataByIdentifier( String identifier )

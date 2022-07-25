@@ -31,6 +31,7 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensions;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.eventvisualization.EventVisualizationType.LINE_LIST;
 import static org.hisp.dhis.eventvisualization.EventVisualizationType.PIVOT_TABLE;
+import static org.hisp.dhis.feedback.ErrorCode.E7231;
 
 import java.io.IOException;
 import java.util.Date;
@@ -42,10 +43,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.DimensionService;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventchart.EventChartService;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -181,11 +184,25 @@ public class EventChartController
      */
     @Deprecated
     @Override
-    protected void forceFiltering( final List<String> filters )
+    protected void forceFiltering( final WebOptions webOptions, final List<String> filters )
     {
         filters.add( "type:!eq:PIVOT_TABLE" );
         filters.add( "type:!eq:LINE_LIST" );
         filters.add( "legacy:eq:true" );
+    }
+
+    @Override
+    protected void preUpdateEntity( final EventChart eventChart, final EventChart newEventChart )
+    {
+        /**
+         * If the EventChart was already marked as non-legacy, it cannot be
+         * updated through the legacy endpoints. It can be only updated through
+         * EventVisualization endpoints.
+         */
+        if ( eventChart != null && !eventChart.isLegacy() )
+        {
+            throw new IllegalQueryException( new ErrorMessage( E7231, "chart" ) );
+        }
     }
 
     @Override

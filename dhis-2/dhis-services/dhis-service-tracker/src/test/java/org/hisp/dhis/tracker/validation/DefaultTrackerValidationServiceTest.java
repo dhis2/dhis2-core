@@ -49,18 +49,19 @@ import java.util.function.BiConsumer;
 import lombok.Builder;
 
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.hooks.AbstractTrackerDtoValidationHook;
 import org.hisp.dhis.user.User;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
 class DefaultTrackerValidationServiceTest
@@ -116,7 +117,6 @@ class DefaultTrackerValidationServiceTest
         verify( hook2, times( 1 ) ).validate( any(), any() );
     }
 
-    @NotNull
     private User superUser()
     {
         User user = mock( User.class );
@@ -138,7 +138,8 @@ class DefaultTrackerValidationServiceTest
         private BiConsumer<ValidationErrorReporter, Event> validateEvent;
 
         @Override
-        public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity trackedEntity )
+        public void validateTrackedEntity( ValidationErrorReporter reporter, TrackerBundle bundle,
+            TrackedEntity trackedEntity )
         {
             if ( this.validateTrackedEntity != null )
             {
@@ -147,7 +148,7 @@ class DefaultTrackerValidationServiceTest
         }
 
         @Override
-        public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
+        public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
         {
             if ( this.validateEnrollment != null )
             {
@@ -156,7 +157,7 @@ class DefaultTrackerValidationServiceTest
         }
 
         @Override
-        public void validateEvent( ValidationErrorReporter reporter, Event event )
+        public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
         {
             if ( this.validateEvent != null )
             {
@@ -446,25 +447,21 @@ class DefaultTrackerValidationServiceTest
         assertTrue( bundle.getEvents().isEmpty() );
     }
 
-    @NotNull
     private TrackedEntity trackedEntity()
     {
         return TrackedEntity.builder().trackedEntity( CodeGenerator.generateUid() ).build();
     }
 
-    @NotNull
     private Enrollment enrollment()
     {
         return Enrollment.builder().enrollment( CodeGenerator.generateUid() ).build();
     }
 
-    @NotNull
     private Event event()
     {
         return Event.builder().event( CodeGenerator.generateUid() ).build();
     }
 
-    @NotNull
     private List<TrackedEntity> trackedEntities( TrackedEntity... trackedEntities )
     {
         // Note: the current AbstractTrackerDtoValidationHook relies on the
@@ -474,7 +471,6 @@ class DefaultTrackerValidationServiceTest
         return new ArrayList<>( Arrays.asList( trackedEntities ) );
     }
 
-    @NotNull
     private List<Enrollment> enrollments( Enrollment... enrollments )
     {
         // Note: the current AbstractTrackerDtoValidationHook relies on the
@@ -484,7 +480,6 @@ class DefaultTrackerValidationServiceTest
         return new ArrayList<>( Arrays.asList( enrollments ) );
     }
 
-    @NotNull
     private List<Event> events( Event... events )
     {
         // Note: the current AbstractTrackerDtoValidationHook relies on the
@@ -496,6 +491,8 @@ class DefaultTrackerValidationServiceTest
 
     private TrackerBundle.TrackerBundleBuilder newBundle()
     {
-        return TrackerBundle.builder().skipRuleEngine( true );
+        TrackerPreheat preheat = new TrackerPreheat();
+        preheat.setIdSchemes( TrackerIdSchemeParams.builder().build() );
+        return TrackerBundle.builder().preheat( preheat ).skipRuleEngine( true );
     }
 }

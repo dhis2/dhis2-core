@@ -39,6 +39,7 @@ import static org.hisp.dhis.common.QueryOperator.LE;
 import static org.hisp.dhis.common.QueryOperator.LIKE;
 import static org.hisp.dhis.common.QueryOperator.LT;
 import static org.hisp.dhis.common.QueryOperator.NE;
+import static org.hisp.dhis.common.QueryOperator.NEQ;
 import static org.hisp.dhis.common.QueryOperator.NIEQ;
 import static org.hisp.dhis.common.QueryOperator.NILIKE;
 import static org.hisp.dhis.common.QueryOperator.NLIKE;
@@ -64,8 +65,9 @@ public class QueryFilter
         .<QueryOperator, Function<Boolean, String>> builder()
         .put( EQ, isValueNull -> isValueNull ? "is" : "=" )
         .put( NE, isValueNull -> isValueNull ? "is not" : "!=" )
+        .put( NEQ, isValueNull -> isValueNull ? "is not" : "!=" )
         .put( IEQ, isValueNull -> isValueNull ? "is" : "=" )
-        .put( NIEQ, isValueNull -> isValueNull ? "is not" : "=" )
+        .put( NIEQ, isValueNull -> isValueNull ? "is not" : "!=" )
         .put( GT, unused -> ">" )
         .put( GE, unused -> ">=" )
         .put( LT, unused -> "<" )
@@ -125,22 +127,6 @@ public class QueryFilter
         return OPERATOR_MAP.get( operator ).apply( StringUtils.trimToEmpty( filter ).contains( NV ) );
     }
 
-    // TODO: unused. Remove ?
-    public String getJavaOperator()
-    {
-        if ( operator == null || operator == LIKE || operator == IN )
-        {
-            return null;
-        }
-
-        if ( operator == EQ ) // TODO why special case?
-        {
-            return "==";
-        }
-
-        return safelyGetOperator();
-    }
-
     public String getSqlFilter( final String encodedFilter )
     {
         if ( operator == null || encodedFilter == null )
@@ -150,9 +136,13 @@ public class QueryFilter
 
         if ( LIKE == operator || NLIKE == operator || ILIKE == operator || NILIKE == operator )
         {
-            return "'%" + encodedFilter + "%'";
+            return "'%" +
+                encodedFilter
+                    .replace( "_", "\\_" )
+                    .replace( "%", "\\%" )
+                + "%'";
         }
-        else if ( EQ == operator || NE == operator || IEQ == operator || NIEQ == operator )
+        else if ( EQ == operator || NE == operator || NEQ == operator || IEQ == operator || NIEQ == operator )
         {
             if ( encodedFilter.equals( NV ) )
             {
@@ -181,7 +171,7 @@ public class QueryFilter
     {
         final String sqlFilter = getSqlFilter( encodedFilter );
 
-        // Force lowercase so we can do "equal" comparison ignoring case.
+        // Force lowercase so we can compare ignoring case.
         if ( IEQ == operator || NIEQ == operator )
         {
             return valueType.isText() ? sqlFilter.toLowerCase() : sqlFilter;
@@ -192,7 +182,7 @@ public class QueryFilter
 
     public String getSqlFilterColumn( final String column, final ValueType valueType )
     {
-        // Force lowercase so we can do "equal" comparison ignoring case.
+        // Force lowercase so we can compare ignoring case.
         if ( IEQ == operator || NIEQ == operator )
         {
             return valueType.isText() ? wrapLower( column ) : column;

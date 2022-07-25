@@ -27,22 +27,21 @@
  */
 package org.hisp.dhis.actions.tracker.importer;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import org.hisp.dhis.Constants;
+import static org.awaitility.Awaitility.with;
+import static org.hamcrest.Matchers.notNullValue;
+
+import java.io.File;
+import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
-import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 
-import java.io.File;
-import java.time.Instant;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.logging.Logger;
-
-import static org.hamcrest.Matchers.notNullValue;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -50,7 +49,7 @@ import static org.hamcrest.Matchers.notNullValue;
 public class TrackerActions
     extends RestApiActions
 {
-    private Logger logger = Logger.getLogger( TrackerActions.class.getName() );
+    private Logger logger = LogManager.getLogger( TrackerActions.class.getName() );
 
     public TrackerActions()
     {
@@ -62,30 +61,19 @@ public class TrackerActions
         return this.get( "/jobs/" + jobId );
     }
 
-    public ApiResponse waitUntilJobIsCompleted( String jobId )
+    public void waitUntilJobIsCompleted( String jobId )
     {
         logger.info( String.format( "Waiting until tracker job with id %s is completed", jobId ) );
-        ApiResponse response = null;
-        boolean completed = false;
-        int maxAttempts = 100;
 
-        while ( !completed && maxAttempts > 0 )
-        {
-            response = getJob( jobId );
-            response.validate().statusCode( 200 );
-            completed = response.extractList( "completed" ).contains( true );
-            maxAttempts--;
-        }
+        Callable<Boolean> jobIsCompleted = () -> getJob( jobId )
+            .validateStatus( 200 )
+            .extractList( "completed" ).contains( true );
 
-        if ( maxAttempts == 0 )
-        {
-            logger.warning(
-                String.format( "Tracker job didn't complete in %d. Message: %s", maxAttempts,
-                    response.extract( "message" ) ) );
-        }
+        with()
+            .atMost( 20, TimeUnit.SECONDS )
+            .await().until( () -> jobIsCompleted.call() );
 
-        logger.info( "Tracker job is completed. Message: " + response.extract( "message" ) );
-        return response;
+        logger.info( "Tracker job is completed. Message: " + getJob( jobId ).extract( "message" ) );
     }
 
     public TrackerApiResponse postAndGetJobReport( File file )
@@ -128,12 +116,12 @@ public class TrackerActions
 
     public TrackerApiResponse getTrackedEntity( String entityId )
     {
-        return getTrackedEntity( entityId, new QueryParamsBuilder());
+        return getTrackedEntity( entityId, new QueryParamsBuilder() );
     }
 
     public TrackerApiResponse getTrackedEntity( String entityId, QueryParamsBuilder queryParamsBuilder )
     {
-        return new TrackerApiResponse( this.get( "/trackedEntities/" + entityId , queryParamsBuilder ));
+        return new TrackerApiResponse( this.get( "/trackedEntities/" + entityId, queryParamsBuilder ) );
     }
 
     public TrackerApiResponse getTrackedEntities( QueryParamsBuilder queryParamsBuilder )
@@ -149,6 +137,28 @@ public class TrackerActions
     public TrackerApiResponse getEvent( String eventId )
     {
         return new TrackerApiResponse( this.get( "/events/" + eventId ) );
+    }
+
+    public TrackerApiResponse getRelationship( String relationshipId )
+    {
+        return new TrackerApiResponse( this.get( "/relationships/" + relationshipId ) );
+    }
+
+    public void overrideOwnership( String tei, String program, String reason )
+    {
+        this.post(
+            String.format( "/ownership/override?trackedEntityInstance=%s&program=%s&reason=%s", tei, program, reason ),
+            new JsonObject() )
+            .validateStatus( 200 );
+    }
+
+    public void transferOwnership( String tei, String program, String ou )
+    {
+        this.update( String
+            .format( "/ownership/transfer?trackedEntityInstance=%s&program=%s&ou=%s", tei, program,
+                ou ),
+            new JsonObject() ).validateStatus( 200 );
+
     }
 
     private void saveCreatedData( ApiResponse response )

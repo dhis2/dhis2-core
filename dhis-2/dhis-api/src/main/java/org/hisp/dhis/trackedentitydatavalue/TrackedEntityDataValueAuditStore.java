@@ -29,9 +29,9 @@ package org.hisp.dhis.trackedentitydatavalue;
 
 import java.util.List;
 
-import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityDataValueAuditQueryParams;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -40,12 +40,11 @@ public interface TrackedEntityDataValueAuditStore
 {
     void addTrackedEntityDataValueAudit( TrackedEntityDataValueAudit trackedEntityDataValueAudit );
 
-    List<TrackedEntityDataValueAudit> getTrackedEntityDataValueAudits( List<DataElement> dataElements,
-        List<ProgramStageInstance> programStageInstances, AuditType auditType );
+    List<TrackedEntityDataValueAudit> getTrackedEntityDataValueAudits( TrackedEntityDataValueAuditQueryParams params );
 
-    List<TrackedEntityDataValueAudit> getTrackedEntityDataValueAudits( List<DataElement> dataElements,
-        List<ProgramStageInstance> programStageInstances, AuditType auditType, int first, int max );
+    int countTrackedEntityDataValueAudits( TrackedEntityDataValueAuditQueryParams params );
 
-    int countTrackedEntityDataValueAudits( List<DataElement> dataElements,
-        List<ProgramStageInstance> programStageInstances, AuditType auditType );
+    void deleteTrackedEntityDataValueAudit( DataElement dataElement );
+
+    void deleteTrackedEntityDataValueAudit( ProgramStageInstance programStageInstance );
 }

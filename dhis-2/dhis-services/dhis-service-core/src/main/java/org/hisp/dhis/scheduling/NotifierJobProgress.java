@@ -29,6 +29,8 @@ package org.hisp.dhis.scheduling;
 
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.system.notification.NotificationLevel;
@@ -48,6 +50,12 @@ public class NotifierJobProgress implements JobProgress
 
     private final JobConfiguration jobId;
 
+    private final AtomicBoolean hasCleared = new AtomicBoolean();
+
+    private int stageItems;
+
+    private int stageItem;
+
     @Override
     public boolean isCancellationRequested()
     {
@@ -60,7 +68,11 @@ public class NotifierJobProgress implements JobProgress
         String message = isNotEmpty( description )
             ? description
             : jobId.getJobType() + " process started";
-        notifier.clear( jobId ).notify( jobId, message );
+        if ( hasCleared.compareAndSet( false, true ) )
+        {
+            notifier.clear( jobId );
+        }
+        notifier.notify( jobId, message );
     }
 
     @Override
@@ -76,8 +88,10 @@ public class NotifierJobProgress implements JobProgress
     }
 
     @Override
-    public void startingStage( String description, int workItems )
+    public void startingStage( String description, int workItems, FailurePolicy onFailure )
     {
+        stageItems = workItems;
+        stageItem = 0;
         if ( isNotEmpty( description ) )
         {
             notifier.notify( jobId, description );
@@ -89,7 +103,7 @@ public class NotifierJobProgress implements JobProgress
     {
         if ( isNotEmpty( summary ) )
         {
-            notifier.notify( jobId, NotificationLevel.INFO, summary, isCancellationRequested() );
+            notifier.notify( jobId, NotificationLevel.INFO, summary, false );
         }
     }
 
@@ -98,17 +112,19 @@ public class NotifierJobProgress implements JobProgress
     {
         if ( isNotEmpty( error ) )
         {
-            notifier.notify( jobId, NotificationLevel.ERROR, error, isCancellationRequested() );
+            notifier.notify( jobId, NotificationLevel.ERROR, error, false );
         }
     }
 
     @Override
-    public void startingWorkItem( String description )
+    public void startingWorkItem( String description, FailurePolicy onFailure )
     {
         if ( isNotEmpty( description ) )
         {
-            notifier.notify( jobId, NotificationLevel.INFO, description );
+            String nOf = "[" + (stageItems > 0 ? stageItem + "/" + stageItems : "" + stageItem) + "] ";
+            notifier.notify( jobId, NotificationLevel.LOOP, nOf + description, false );
         }
+        stageItem++;
     }
 
     @Override
@@ -116,7 +132,8 @@ public class NotifierJobProgress implements JobProgress
     {
         if ( isNotEmpty( summary ) )
         {
-            notifier.notify( jobId, NotificationLevel.INFO, summary, false );
+            String nOf = "[" + (stageItems > 0 ? stageItem + "/" + stageItems : "" + stageItem) + "] ";
+            notifier.notify( jobId, NotificationLevel.LOOP, nOf + summary, false );
         }
     }
 

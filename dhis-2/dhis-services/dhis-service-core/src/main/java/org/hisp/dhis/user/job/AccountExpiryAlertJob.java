@@ -28,6 +28,7 @@
 package org.hisp.dhis.user.job;
 
 import static java.lang.String.format;
+import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
 
 import java.util.List;
 
@@ -43,15 +44,15 @@ import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccountExpiryInfo;
-import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Component;
 
 /**
  * Sends an email alert to all users that are soon to expire due to an account
- * expire date being set in {@link UserCredentials#getAccountExpiry()} that is
- * within the next {@link SettingKey#ACCOUNT_EXPIRES_IN_DAYS} interval.
+ * expire date being set in {@link User#getAccountExpiry()} that is within the
+ * next {@link SettingKey#ACCOUNT_EXPIRES_IN_DAYS} interval.
  *
  * The job only works when enabled via {@link SettingKey#ACCOUNT_EXPIRY_ALERT}.
  *
@@ -94,18 +95,18 @@ public class AccountExpiryAlertJob implements Job
             return;
         }
 
-        log.info( format( "%s has started", getJobType().name() ) );
+        progress.startingProcess( "Notify expiring account users" );
         int inDays = systemSettingManager.getIntSetting( SettingKey.ACCOUNT_EXPIRES_IN_DAYS );
         List<UserAccountExpiryInfo> soonExpiring = userService.getExpiringUserAccounts( inDays );
 
         if ( soonExpiring.isEmpty() )
         {
+            progress.completedProcess( "No expiring users" );
             return;
         }
-        progress.startingProcess();
-        log.info( format( "%d user accounts expire within next %d days", soonExpiring.size(), inDays ) );
+
         progress.startingStage( "Notify user accounts that expire within next " + inDays + " days",
-            soonExpiring.size() );
+            soonExpiring.size(), SKIP_ITEM_OUTLIER );
         progress.runStage( soonExpiring.stream(), UserAccountExpiryInfo::getUsername,
             user -> emailMessageSender.sendMessage( "Account Expiry Alert", computeEmailMessage( user ),
                 user.getEmail() ),

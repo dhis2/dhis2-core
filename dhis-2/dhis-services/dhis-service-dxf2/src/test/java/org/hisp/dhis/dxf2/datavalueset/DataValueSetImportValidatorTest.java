@@ -40,6 +40,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -70,11 +71,11 @@ import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -100,6 +101,8 @@ class DataValueSetImportValidatorTest
 
     private DataValueSetImportValidator validator;
 
+    private OrganisationUnitService organisationUnitService;
+
     @BeforeEach
     void setUp()
     {
@@ -108,9 +111,15 @@ class DataValueSetImportValidatorTest
         lockExceptionStore = mock( LockExceptionStore.class );
         approvalService = mock( DataApprovalService.class );
         dataValueService = mock( DataValueService.class );
+        organisationUnitService = mock( OrganisationUnitService.class );
+        when( organisationUnitService.isDescendant( any( OrganisationUnit.class ), any( Set.class ) ) )
+            .thenReturn( true );
+        when( organisationUnitService.isDescendant( any( OrganisationUnit.class ), any( OrganisationUnit.class ) ) )
+            .thenReturn( true );
+
         i18n = mock( I18n.class );
         validator = new DataValueSetImportValidator( aclService, accessManager, lockExceptionStore, approvalService,
-            dataValueService );
+            dataValueService, organisationUnitService );
         validator.init();
         setupUserCanWriteCategoryOptions( true );
         when( i18n.getString( anyString() ) ).thenAnswer( invocation -> invocation.getArgument( 0, String.class ) );
@@ -277,6 +286,11 @@ class DataValueSetImportValidatorTest
     @Test
     void testValidateDataValueOrgUnitInUserHierarchy()
     {
+        when( organisationUnitService.isDescendant( any( OrganisationUnit.class ), any( Set.class ) ) )
+            .thenReturn( false );
+        when( organisationUnitService.isDescendant( any( OrganisationUnit.class ), any( OrganisationUnit.class ) ) )
+            .thenReturn( false );
+
         DataValue dataValue = createRandomDataValue();
         DataValueContext valueContext = createDataValueContext( dataValue ).build();
         DataSetContext dataSetContext = createMinimalDataSetContext().build();
@@ -531,7 +545,7 @@ class DataValueSetImportValidatorTest
         context.getApprovalMap().put( key, true );
         assertTrue( validator.skipDataValue( dataValue, context, dataSetContext, valueContext ) );
         assertConflict( ErrorCode.E7642,
-            "Data is already approved for data set: `<object4>` period: `<object2>` organisation unit: `<object1>` attribute option combo: `<object3>`",
+            "Data already approved for data set: `<object4>` period: `<object2>` org unit: `<object1>` attribute option combo: `<object3>`",
             context, dataValue.getOrgUnit(), dataValue.getPeriod(), dataValue.getAttributeOptionCombo(),
             dataSetContext.getDataSet().getUid() );
     }
@@ -675,9 +689,7 @@ class DataValueSetImportValidatorTest
     private ImportContextBuilder createMinimalImportContext( DataValueContext valueContext )
     {
         User currentUser = new User();
-        UserCredentials credentials = new UserCredentials();
-        credentials.setUsername( "Guest" );
-        currentUser.setUserCredentials( credentials );
+        currentUser.setUsername( "Guest" );
         currentUser.setUid( CodeGenerator.generateUid() );
         return ImportContext.builder().summary( new ImportSummary() ).strategy( ImportStrategy.CREATE )
             .importOptions( new ImportOptions() ).currentUser( currentUser ).i18n( i18n )

@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.leader.election;
 
+import lombok.AllArgsConstructor;
+
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
@@ -36,21 +38,14 @@ import org.springframework.stereotype.Component;
 /**
  * Job that attempts to elect the current instance as the leader of the cluster.
  *
- * @author Ameen Mohamed
+ * @author Ameen Mohamed (original)
+ * @author Jan Bernitt (job progress tracking)
  */
 @Component
+@AllArgsConstructor
 public class LeaderRenewalJob implements Job
 {
-    private LeaderManager leaderManager;
-
-    public LeaderRenewalJob( LeaderManager leaderManager )
-    {
-        this.leaderManager = leaderManager;
-    }
-
-    // -------------------------------------------------------------------------
-    // Implementation
-    // -------------------------------------------------------------------------
+    private final LeaderManager leaderManager;
 
     @Override
     public JobType getJobType()
@@ -61,6 +56,7 @@ public class LeaderRenewalJob implements Job
     @Override
     public void execute( JobConfiguration jobConfiguration, JobProgress progress )
     {
-        leaderManager.renewLeader();
+        progress.startingProcess( "Elect leader node" );
+        progress.endingProcess( progress.runStage( () -> leaderManager.renewLeader( progress ) ) );
     }
 }

@@ -27,11 +27,12 @@
  */
 package org.hisp.dhis.dataelement;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.category.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
-import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import java.util.Iterator;
+import java.util.Map;
+
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -40,37 +41,22 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.OptionSet;
-import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Lars Helge Overland
  */
-@Component( "org.hisp.dhis.dataelement.DataElementDeletionHandler" )
-public class DataElementDeletionHandler
-    extends DeletionHandler
+@Component
+@AllArgsConstructor
+public class DataElementDeletionHandler extends JdbcDeletionHandler
 {
     private static final DeletionVeto VETO = new DeletionVeto( DataElement.class );
 
     private final IdentifiableObjectManager idObjectManager;
 
     private final CategoryService categoryService;
-
-    private final JdbcTemplate jdbcTemplate;
-
-    public DataElementDeletionHandler( IdentifiableObjectManager idObjectManager, CategoryService categoryService,
-        JdbcTemplate jdbcTemplate )
-    {
-        checkNotNull( idObjectManager );
-        checkNotNull( categoryService );
-        checkNotNull( jdbcTemplate );
-
-        this.idObjectManager = idObjectManager;
-        this.categoryService = categoryService;
-        this.jdbcTemplate = jdbcTemplate;
-    }
 
     @Override
     protected void register()
@@ -138,8 +124,7 @@ public class DataElementDeletionHandler
 
     private DeletionVeto allowDeleteOptionSet( OptionSet optionSet )
     {
-        String sql = "SELECT COUNT(*) FROM dataelement WHERE optionsetid = " + optionSet.getId();
-
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
+        String sql = "select count(*) from dataelement where optionsetid = :id";
+        return vetoIfExists( VETO, sql, Map.of( "id", optionSet.getId() ) );
     }
 }

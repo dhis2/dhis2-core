@@ -32,6 +32,7 @@ import static org.hisp.dhis.analytics.EventDataType.EVENTS;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensions;
 import static org.hisp.dhis.eventvisualization.EventVisualizationType.LINE_LIST;
 import static org.hisp.dhis.eventvisualization.EventVisualizationType.PIVOT_TABLE;
+import static org.hisp.dhis.feedback.ErrorCode.E7231;
 
 import java.io.IOException;
 import java.util.List;
@@ -41,7 +42,9 @@ import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 
 import org.hisp.dhis.common.DimensionService;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.eventreport.EventReport;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -118,10 +121,24 @@ public class EventReportController
      */
     @Deprecated
     @Override
-    protected void forceFiltering( final List<String> filters )
+    protected void forceFiltering( final WebOptions webOptions, final List<String> filters )
     {
         filters.add( "type:in:[PIVOT_TABLE,LINE_LIST]" );
         filters.add( "legacy:eq:true" );
+    }
+
+    @Override
+    protected void preUpdateEntity( final EventReport eventReport, final EventReport newEventReport )
+    {
+        /**
+         * If the EventReport was already marked as non-legacy, it cannot be
+         * updated through the legacy endpoints. It can be only updated through
+         * EventVisualization endpoints.
+         */
+        if ( eventReport != null && !eventReport.isLegacy() )
+        {
+            throw new IllegalQueryException( new ErrorMessage( E7231, "eventReport" ) );
+        }
     }
 
     @Override

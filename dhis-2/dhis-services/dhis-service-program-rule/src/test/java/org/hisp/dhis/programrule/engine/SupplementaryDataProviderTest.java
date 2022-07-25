@@ -44,8 +44,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAuthorityGroup;
-import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.UserRole;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -73,8 +72,6 @@ class SupplementaryDataProviderTest extends DhisConvenienceTest
     @InjectMocks
     private SupplementaryDataProvider providerToTest;
 
-    private User currentUser;
-
     private OrganisationUnit orgUnitA;
 
     private OrganisationUnit orgUnitB;
@@ -82,10 +79,9 @@ class SupplementaryDataProviderTest extends DhisConvenienceTest
     @BeforeEach
     void setUp()
     {
-        currentUser = createUser( 'A' );
-        UserCredentials userCredentials = createUserCredentials( 'A', currentUser );
-        userCredentials.setUserAuthorityGroups( getAuthorityGroups() );
-        when( currentUserService.getCurrentUser() ).thenReturn( currentUser );
+        User user = makeUser( "A" );
+        user.setUserRoles( getUserRoles() );
+        when( currentUserService.getCurrentUser() ).thenReturn( user );
         orgUnitA = createOrganisationUnit( 'A' );
         orgUnitB = createOrganisationUnit( 'B' );
         OrganisationUnitGroup orgUnitGroup = createOrganisationUnitGroup( 'A' );
@@ -102,7 +98,7 @@ class SupplementaryDataProviderTest extends DhisConvenienceTest
     {
         Map<String, List<String>> supplementaryData = providerToTest.getSupplementaryData( getProgramRules() );
         assertFalse( supplementaryData.isEmpty() );
-        assertEquals( getAuthorityGroupUids(), supplementaryData.get( "USER" ) );
+        assertEquals( getUserRoleUids(), supplementaryData.get( "USER" ) );
         assertFalse( supplementaryData.get( ORG_UNIT_GROUP_UID ).isEmpty() );
         assertEquals( orgUnitA.getUid(), supplementaryData.get( ORG_UNIT_GROUP_UID ).get( 0 ) );
         assertNull( supplementaryData.get( NOT_NEEDED_ORG_UNIT_GROUP_UID ) );
@@ -115,15 +111,15 @@ class SupplementaryDataProviderTest extends DhisConvenienceTest
         return Lists.newArrayList( programRule );
     }
 
-    private List<String> getAuthorityGroupUids()
+    private List<String> getUserRoleUids()
     {
-        return getAuthorityGroups().stream().map( UserAuthorityGroup::getUid ).collect( Collectors.toList() );
+        return getUserRoles().stream().map( UserRole::getUid ).collect( Collectors.toList() );
     }
 
-    private Set<UserAuthorityGroup> getAuthorityGroups()
+    private Set<UserRole> getUserRoles()
     {
-        UserAuthorityGroup groupA = createUserAuthorityGroup( 'A' );
-        UserAuthorityGroup groupB = createUserAuthorityGroup( 'B' );
+        UserRole groupA = createUserRole( 'A' );
+        UserRole groupB = createUserRole( 'B' );
         return Sets.newHashSet( groupA, groupB );
     }
 }

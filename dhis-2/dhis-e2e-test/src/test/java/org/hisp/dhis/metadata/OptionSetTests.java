@@ -28,7 +28,10 @@
 package org.hisp.dhis.metadata;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.emptyArray;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
@@ -147,23 +150,25 @@ public class OptionSetTests
         // arrange
         String optionId = createOption( createdOptionSet );
 
-        optionActions.optionSetActions.get( createdOptionSet + "/options/" + optionId )
+        optionActions.optionSetActions.get( createdOptionSet + "/gist?fields=options~member(" + optionId + ")" )
             .validate()
-            .statusCode( 200 );
+            .statusCode( 200 )
+            .body( "options", is( true ) );
 
         // act
         optionActions.optionSetActions.delete( createdOptionSet + "/options/" + optionId )
             .validate()
-            .statusCode( 204 );
+            .statusCode( 200 );
 
         // assert
         optionActions.optionSetActions.get( createdOptionSet )
             .validate()
             .statusCode( 200 );
 
-        optionActions.optionSetActions.get( createdOptionSet + "/options/" + optionId )
+        optionActions.optionSetActions.get( createdOptionSet + "/gist?fields=options~member(" + optionId + ")" )
             .validate()
-            .statusCode( 404 );
+            .statusCode( 200 )
+            .body( "options", is( false ) );
     }
 
     private String createOptionSet( String... optionIds )

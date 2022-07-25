@@ -43,7 +43,7 @@ import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.Order
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.POTENTIAL_DUPLICATE;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACKED_ENTITY_ID;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACKED_ENTITY_INSTANCE_ID;
-import static org.hisp.dhis.util.DateUtils.getDateAfterAddition;
+import static org.hisp.dhis.util.DateUtils.addDays;
 import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
@@ -136,6 +136,10 @@ public class HibernateTrackedEntityInstanceStore
     private static final String TEI_LASTUPDATED = " tei.lastUpdated";
 
     private static final String GT_EQUAL = " >= ";
+
+    private static final String UID_VALUE_SEPARATOR = ":";
+
+    private static final String UID_VALUE_PAIR_SEPARATOR = ";@//@;";
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -269,11 +273,11 @@ public class HibernateTrackedEntityInstanceStore
     {
         if ( teavString != null )
         {
-            String[] pairs = teavString.split( ";" );
+            String[] pairs = teavString.split( UID_VALUE_PAIR_SEPARATOR );
 
             for ( String pair : pairs )
             {
-                String[] teav = pair.split( ":" );
+                String[] teav = pair.split( UID_VALUE_SEPARATOR, 2 );
 
                 if ( teav.length == 2 )
                 {
@@ -430,8 +434,12 @@ public class HibernateTrackedEntityInstanceStore
             .append( "TET.uid AS " + TRACKED_ENTITY_ID + ", " )
             .append( "TEI.inactive AS " + INACTIVE_ID + ", " )
             .append( "TEI.potentialduplicate AS " + POTENTIAL_DUPLICATE )
-            .append( (params.isIncludeDeleted() ? ", TEI.deleted AS " + DELETED : "") )
-            .append( (params.hasAttributes() ? ", string_agg(TEA.uid || ':' || TEAV.value, ';') AS tea_values" : "") );
+            .append( params.isIncludeDeleted() ? ", TEI.deleted AS " + DELETED : "" )
+            .append(
+                params.hasAttributes()
+                    ? ", string_agg(TEA.uid || '" + UID_VALUE_SEPARATOR + "' || TEAV.value, '"
+                        + UID_VALUE_PAIR_SEPARATOR + "') AS tea_values"
+                    : "" );
 
         if ( !isGridQuery )
         {
@@ -602,7 +610,7 @@ public class HibernateTrackedEntityInstanceStore
             if ( params.hasLastUpdatedEndDate() )
             {
                 trackedEntity.append( whereAnd.whereAnd() ).append( " TEI.lastupdated < '" )
-                    .append( getMediumDateString( getDateAfterAddition( params.getLastUpdatedEndDate(), 1 ) ) )
+                    .append( getMediumDateString( addDays( params.getLastUpdatedEndDate(), 1 ) ) )
                     .append( SINGLE_QUOTE );
             }
         }
@@ -677,7 +685,8 @@ public class HibernateTrackedEntityInstanceStore
 
         attributes
             .append( "INNER JOIN trackedentityattributevalue Q " )
-            .append( "ON Q.trackedentityinstanceid IN (" )
+            .append( "ON Q.trackedentityinstanceid = TEI.trackedentityinstanceid " )
+            .append( "AND Q.trackedentityattributeid IN (" )
             .append( getCommaDelimitedString( itemIds ) )
             .append( ") AND (" );
 
@@ -822,7 +831,7 @@ public class HibernateTrackedEntityInstanceStore
         orgUnits
             .append( " INNER JOIN organisationunit OU " )
             .append( "ON OU.organisationunitid = " )
-            .append( (params.hasProgram() ? "PO.organisationunitid " : "TEI.organisationunitid ") );
+            .append( params.hasProgram() ? "PO.organisationunitid " : "TEI.organisationunitid " );
 
         if ( !params.hasOrganisationUnits() )
         {
@@ -837,10 +846,13 @@ public class HibernateTrackedEntityInstanceStore
 
             for ( OrganisationUnit organisationUnit : params.getOrganisationUnits() )
             {
+
+                OrganisationUnit byUid = organisationUnitStore.getByUid( organisationUnit.getUid() );
+
                 orgUnits
                     .append( orHlp.or() )
                     .append( "OU.path LIKE '" )
-                    .append( organisationUnit.getPath() )
+                    .append( byUid.getPath() )
                     .append( "%'" );
             }
 
@@ -1178,7 +1190,7 @@ public class HibernateTrackedEntityInstanceStore
             .append( "TET.uid, " )
             .append( "TEI.potentialduplicate, " )
             .append( "TEI.inactive " )
-            .append( (params.isIncludeDeleted() ? ", TEI.deleted " : "") );
+            .append( params.isIncludeDeleted() ? ", TEI.deleted " : "" );
 
         if ( !getOrderAttributes( params ).isEmpty() )
         {

@@ -155,23 +155,24 @@ class ValidationUtilsTest
     @Test
     void testUsernameIsValid()
     {
-        assertTrue( usernameIsValid( "johnmichaeldoe" ) );
-        assertTrue( usernameIsValid( "ted@johnson.com" ) );
-        assertTrue( usernameIsValid( "harry@gmail.com" ) );
-        assertTrue( usernameIsValid( "har_ry@gmail.com" ) );
-        assertFalse( usernameIsValid( "Harry@gmail.com" ) );
-        assertFalse( usernameIsValid( "_harry@gmail.com" ) );
-        assertFalse( usernameIsValid( "harry@gmail.com_" ) );
-        assertFalse( usernameIsValid( ".harry@gmail.com" ) );
-        assertFalse( usernameIsValid( "harry@gmail.com." ) );
-        assertFalse( usernameIsValid( "@harry@gmail.com" ) );
-        assertFalse( usernameIsValid( "harry@gmail.com@" ) );
-        assertFalse( usernameIsValid( "harry_@gmail.com" ) );
-        assertFalse( usernameIsValid( "har__ry@gmail.com" ) );
-        assertFalse( usernameIsValid( "harry@@gmail.com" ) );
-        assertFalse( usernameIsValid( "harry..gmail.com" ) );
-        assertFalse( usernameIsValid( null ) );
-        assertFalse( usernameIsValid( CodeGenerator.generateCode( 400 ) ) );
+        assertTrue( usernameIsValid( "johnmichaeldoe", false ) );
+        assertTrue( usernameIsValid( "ted@johnson.com", false ) );
+        assertTrue( usernameIsValid( "harry@gmail.com", false ) );
+        assertTrue( usernameIsValid( "har_ry@gmail.com", false ) );
+        assertTrue( usernameIsValid( "Harry@gmail.com", false ) );
+        assertTrue( usernameIsValid( "TeD@johnSon.com", false ) );
+        assertFalse( usernameIsValid( "_harry@gmail.com", false ) );
+        assertFalse( usernameIsValid( "harry@gmail.com_", false ) );
+        assertFalse( usernameIsValid( ".harry@gmail.com", false ) );
+        assertFalse( usernameIsValid( "harry@gmail.com.", false ) );
+        assertFalse( usernameIsValid( "@harry@gmail.com", false ) );
+        assertFalse( usernameIsValid( "harry@gmail.com@", false ) );
+        assertFalse( usernameIsValid( "harry_@gmail.com", false ) );
+        assertFalse( usernameIsValid( "har__ry@gmail.com", false ) );
+        assertFalse( usernameIsValid( "harry@@gmail.com", false ) );
+        assertFalse( usernameIsValid( "harry..gmail.com", false ) );
+        assertFalse( usernameIsValid( null, false ) );
+        assertFalse( usernameIsValid( CodeGenerator.generateCode( 400 ), false ) );
     }
 
     @Test

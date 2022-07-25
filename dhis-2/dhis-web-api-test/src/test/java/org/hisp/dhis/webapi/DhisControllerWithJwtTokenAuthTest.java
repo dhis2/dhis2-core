@@ -27,9 +27,14 @@
  */
 package org.hisp.dhis.webapi;
 
-import static org.hisp.dhis.webapi.utils.WebClientUtils.failOnException;
+import static org.hisp.dhis.web.WebClientUtils.failOnException;
 
+import javax.sql.DataSource;
+
+import org.hisp.dhis.IntegrationH2Test;
+import org.hisp.dhis.h2.H2SqlFunction;
 import org.hisp.dhis.jsontree.JsonResponse;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.utils.TestUtils;
 import org.hisp.dhis.webapi.security.config.WebMvcConfig;
@@ -56,8 +61,9 @@ import org.springframework.web.context.WebApplicationContext;
  */
 @ExtendWith( SpringExtension.class )
 @WebAppConfiguration
-@ContextConfiguration( classes = { WebMvcConfig.class, WebTestConfigurationWithJwtTokenAuth.class } )
+@ContextConfiguration( classes = { JwtConfigProviderConfiguration.class, WebMvcConfig.class } )
 @ActiveProfiles( "test-h2" )
+@IntegrationH2Test
 @Transactional
 public abstract class DhisControllerWithJwtTokenAuthTest extends DhisMockMvcControllerTest
 {
@@ -71,16 +77,30 @@ public abstract class DhisControllerWithJwtTokenAuthTest extends DhisMockMvcCont
     @Autowired
     private UserService _userService;
 
+    @Autowired
+    private DataSource dataSource;
+
     protected MockMvc mvc;
+
+    protected User superUser;
 
     @BeforeEach
     final void setup()
         throws Exception
     {
         userService = _userService;
+
+        clearSecurityContext();
+        superUser = createAndAddAdminUser( "ALL" );
+
         mvc = MockMvcBuilders.webAppContextSetup( webApplicationContext ).addFilter( springSecurityFilterChain )
             .build();
+
+        injectSecurityContext( superUser );
+
         TestUtils.executeStartupRoutines( webApplicationContext );
+
+        H2SqlFunction.registerH2Functions( dataSource );
     }
 
     @Override

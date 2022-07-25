@@ -27,33 +27,21 @@
  */
 package org.hisp.dhis.dimension;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
+import java.util.Map;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DataDimensionItem;
-import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-@Component( "org.hisp.dhis.dimension.DataDimensionItemDeletionHandler" )
-public class DataDimensionItemDeletionHandler
-    extends DeletionHandler
+@Component
+public class DataDimensionItemDeletionHandler extends JdbcDeletionHandler
 {
-
     private static final DeletionVeto VETO = new DeletionVeto( DataDimensionItem.class );
-
-    private final JdbcTemplate jdbcTemplate;
-
-    public DataDimensionItemDeletionHandler( JdbcTemplate jdbcTemplate )
-    {
-        checkNotNull( jdbcTemplate );
-        this.jdbcTemplate = jdbcTemplate;
-    }
 
     @Override
     protected void register()
@@ -63,9 +51,7 @@ public class DataDimensionItemDeletionHandler
 
     private DeletionVeto allowDeleteCategoryOptionCombo( CategoryOptionCombo optionCombo )
     {
-        String sql = "SELECT COUNT(*) FROM datadimensionitem where dataelementoperand_categoryoptioncomboid="
-            + optionCombo.getId();
-
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
+        String sql = "select count(*) from datadimensionitem where dataelementoperand_categoryoptioncomboid=:id";
+        return vetoIfExists( VETO, sql, Map.of( "id", optionCombo.getId() ) );
     }
 }

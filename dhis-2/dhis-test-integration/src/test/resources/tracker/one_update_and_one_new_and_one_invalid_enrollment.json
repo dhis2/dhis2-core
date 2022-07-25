@@ -1,0 +1,108 @@
+{
+  "importMode": "COMMIT",
+  "idSchemes": {
+    "dataElementIdScheme": {
+      "idScheme": "UID"
+    },
+    "orgUnitIdScheme": {
+      "idScheme": "UID"
+    },
+    "programIdScheme": {
+      "idScheme": "UID"
+    },
+    "programStageIdScheme": {
+      "idScheme": "UID"
+    },
+    "idScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionComboIdScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionIdScheme": {
+      "idScheme": "UID"
+    }
+  },
+  "importStrategy": "CREATE",
+  "atomicMode": "ALL",
+  "flushMode": "AUTO",
+  "validationMode": "FULL",
+  "skipPatternValidation": false,
+  "skipSideEffects": false,
+  "skipRuleEngine": false,
+  "trackedEntities": [],
+  "enrollments": [
+    {
+      "enrollment": "TvctPPhpD8u",
+      "createdAtClient": "2017-01-26T13:48:13.363",
+      "trackedEntity": "IOR1AXXl24H",
+      "program": {
+        "idScheme": "UID",
+        "identifier": "BFcipDERJnf"
+      },
+      "status": "COMPLETED",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "h4w96yEMlzO"
+      },
+      "orgUnitName": "Mbokie CHP",
+      "enrolledAt": "2019-03-28T12:05:00.000",
+      "occurredAt": "2019-03-28T12:05:00.000",
+      "followUp": false,
+      "deleted": false,
+      "events": [],
+      "relationships": [],
+      "attributes": [],
+      "notes": []
+    },
+    {
+      "enrollment": "NENROLLMENT",
+      "createdAtClient": "2017-01-26T13:48:13.363",
+      "trackedEntity": "CREATEDTEI1",
+      "program": {
+        "idScheme": "UID",
+        "identifier": "BFcipDERJnf"
+      },
+      "status": "ACTIVE",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "h4w96yEMlzO"
+      },
+      "orgUnitName": "Mbokie CHP",
+      "enrolledAt": "2019-03-28T12:05:00.000",
+      "occurredAt": "2019-03-28T12:05:00.000",
+      "followUp": false,
+      "deleted": false,
+      "events": [],
+      "relationships": [],
+      "attributes": [],
+      "notes": []
+    },
+    {
+      "enrollment": "INVALIDUID-TOOLONG",
+      "createdAtClient": "2017-01-26T13:48:13.363",
+      "trackedEntity": "CREATEDTEI1",
+      "program": {
+        "idScheme": "UID",
+        "identifier": "BFcipDERJnf"
+      },
+      "status": "ACTIVE",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "h4w96yEMlzO"
+      },
+      "orgUnitName": "Mbokie CHP",
+      "enrolledAt": "2019-03-28T12:05:00.000",
+      "occurredAt": "2019-03-28T12:05:00.000",
+      "followUp": false,
+      "deleted": false,
+      "events": [],
+      "relationships": [],
+      "attributes": [],
+      "notes": []
+    }
+  ],
+  "events": [],
+  "relationships": [],
+  "username": "system-process"
+}

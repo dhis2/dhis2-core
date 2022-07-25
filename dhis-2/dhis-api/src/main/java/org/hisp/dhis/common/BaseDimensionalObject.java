@@ -32,7 +32,11 @@ import static org.hisp.dhis.common.DisplayProperty.SHORTNAME;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
+
+import lombok.Getter;
+import lombok.Setter;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.QueryKey;
@@ -54,6 +58,10 @@ import com.google.common.base.MoreObjects;
 public class BaseDimensionalObject
     extends BaseNameableObject implements DimensionalObject
 {
+    @Setter
+    @Getter
+    private UUID groupUUID;
+
     /**
      * The type of this dimension.
      */
@@ -270,7 +278,8 @@ public class BaseDimensionalObject
         }
         else
         {
-            return getDimensionDisplayName();
+            String name = getDimensionDisplayName();
+            return name == null || name.isBlank() ? getDisplayName() : name;
         }
     }
 

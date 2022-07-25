@@ -28,27 +28,44 @@
 package org.hisp.dhis.dxf2.common;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.JsonResponse;
+import org.hisp.dhis.jsontree.JsonTypedAccess;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.web.client.ResponseExtractor;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Converts a response into an ImportSummary instance.
  *
  * @author Lars Helge Overland
- * @throws HttpServerErrorException if the response status code is different
- *         from 200 OK or 201 Created.
- * @throws IOException if converting the response into an ImportSummary failed.
  */
-public class ImportSummaryResponseExtractor
-    implements ResponseExtractor<ImportSummary>
+public class ImportSummaryResponseExtractor implements ResponseExtractor<ImportSummary>
 {
+    private static final ObjectMapper JSON_MAPPER = JacksonObjectMapperConfig.staticJsonMapper();
+
+    /**
+     * @param response from remote
+     * @return parsed {@link ImportSummary}
+     * @throws IOException if converting the response into an ImportSummary
+     *         failed.
+     */
     @Override
     public ImportSummary extractData( ClientHttpResponse response )
         throws IOException
     {
-        return JacksonObjectMapperConfig.staticJsonMapper().readValue( response.getBody(), ImportSummary.class );
+        JsonObject body = new JsonResponse( new String( response.getBody().readAllBytes(), StandardCharsets.UTF_8 ),
+            JsonTypedAccess.GLOBAL );
+        // auto-detect if it is wrapped in a WebMessage envelope
+        if ( body.has( "httpStatus", "response" ) ) // is a WebMessage wrapper
+        {
+            return JSON_MAPPER.readValue( body.getObject( "response" ).node().getDeclaration(), ImportSummary.class );
+        }
+        return JSON_MAPPER.readValue( body.node().getDeclaration(), ImportSummary.class );
     }
 }

@@ -6,12 +6,12 @@ pipeline {
     }
 
     triggers {
-        cron('H 23 * * 1,2,3,4,5,7')
+        pollSCM('H 23 * * *')
     }
 
     options {
         buildDiscarder(logRotator(numToKeepStr: '5'))
-        timeout(time: 20, activity: true)
+        timeout(time: 30)
     }
 
     environment {
@@ -49,7 +49,7 @@ pipeline {
 
         aborted {
             script {
-                slack.sendInactivityMessage(20)
+                slack.sendTimedoutMessage(30)
             }
         }
     }

@@ -27,25 +27,31 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static com.google.api.client.util.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1077;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1085;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1112;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ATTRIBUTE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL;
 
 import java.util.List;
 import java.util.Objects;
 
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.encryption.EncryptionStatus;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.TrackerDto;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.UniqueAttributeValue;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
+import org.hisp.dhis.tracker.util.Constant;
 import org.hisp.dhis.tracker.validation.service.attribute.TrackedAttributeValidationService;
 
 /**
@@ -56,12 +62,17 @@ public abstract class AttributeValidationHook extends AbstractTrackerDtoValidati
 
     private final TrackedAttributeValidationService teAttrService;
 
-    protected AttributeValidationHook( TrackedAttributeValidationService teAttrService )
+    private final DhisConfigurationProvider dhisConfigurationProvider;
+
+    protected AttributeValidationHook( TrackedAttributeValidationService teAttrService,
+        DhisConfigurationProvider dhisConfigurationProvider )
     {
         this.teAttrService = teAttrService;
+        this.dhisConfigurationProvider = dhisConfigurationProvider;
     }
 
-    protected void validateAttrValueType( ValidationErrorReporter errorReporter, TrackerDto dto, Attribute attr,
+    protected void validateAttrValueType( ValidationErrorReporter reporter, TrackerPreheat preheat, TrackerDto dto,
+        Attribute attr,
         TrackedEntityAttribute teAttr )
     {
         checkNotNull( attr, ATTRIBUTE_CANT_BE_NULL );
@@ -69,19 +80,17 @@ public abstract class AttributeValidationHook extends AbstractTrackerDtoValidati
 
         ValueType valueType = teAttr.getValueType();
 
-        TrackerImportValidationContext context = errorReporter.getValidationContext();
-
         String error;
 
         if ( valueType.equals( ValueType.ORGANISATION_UNIT ) )
         {
-            error = context.getOrganisationUnit( attr.getValue() ) == null
+            error = preheat.getOrganisationUnit( attr.getValue() ) == null
                 ? " Value " + attr.getValue() + " is not a valid org unit value"
                 : null;
         }
         else if ( valueType.equals( ValueType.USERNAME ) )
         {
-            error = context.usernameExists( attr.getValue() ) ? null
+            error = preheat.getUserByUsername( attr.getValue() ).isPresent() ? null
                 : " Value " + attr.getValue() + " is not a valid username value";
         }
         else
@@ -102,20 +111,37 @@ public abstract class AttributeValidationHook extends AbstractTrackerDtoValidati
 
         if ( error != null )
         {
-            TrackerBundle bundle = context.getBundle();
-            TrackerErrorReport err = TrackerErrorReport.builder()
-                .uid( dto.getUid() )
-                .trackerType( dto.getTrackerType() )
-                .errorCode( TrackerErrorCode.E1007 )
-                .addArg( valueType.toString() )
-                .addArg( error )
-                .build( bundle );
-            errorReporter.addError( err );
+            reporter.addError( dto, TrackerErrorCode.E1007, valueType, error );
         }
     }
 
-    protected void validateAttributeUniqueness( ValidationErrorReporter errorReporter,
-        TrackerDto dto,
+    protected void validateAttributeValue( ValidationErrorReporter reporter, TrackerDto trackerDto,
+        TrackedEntityAttribute tea,
+        String value )
+    {
+        checkNotNull( tea, TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL );
+        checkNotNull( value, TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL );
+
+        // Validate value (string) don't exceed the max length
+        reporter.addErrorIf( () -> value.length() > Constant.MAX_ATTR_VALUE_LENGTH, trackerDto,
+            E1077, value,
+            Constant.MAX_ATTR_VALUE_LENGTH );
+
+        // Validate if that encryption is configured properly if someone sets
+        // value to (confidential)
+        boolean isConfidential = tea.isConfidentialBool();
+        EncryptionStatus encryptionStatus = dhisConfigurationProvider.getEncryptionStatus();
+        reporter.addErrorIf( () -> isConfidential && !encryptionStatus.isOk(), trackerDto, E1112,
+            value, encryptionStatus.getKey() );
+
+        // Uses ValidationUtils to check that the data value corresponds to the
+        // data value type set on the attribute
+        final String result = dataValueIsValid( value, tea.getValueType() );
+        reporter.addErrorIf( () -> result != null, trackerDto, E1085, tea, result );
+    }
+
+    protected void validateAttributeUniqueness( ValidationErrorReporter reporter,
+        TrackerPreheat preheat, TrackerDto dto,
         String value,
         TrackedEntityAttribute trackedEntityAttribute,
         TrackedEntityInstance trackedEntityInstance,
@@ -126,16 +152,14 @@ public abstract class AttributeValidationHook extends AbstractTrackerDtoValidati
         if ( Boolean.FALSE.equals( trackedEntityAttribute.isUnique() ) )
             return;
 
-        List<UniqueAttributeValue> uniqueAttributeValues = errorReporter
-            .getValidationContext().getBundle().getPreheat().getUniqueAttributeValues();
+        List<UniqueAttributeValue> uniqueAttributeValues = preheat.getUniqueAttributeValues();
 
         for ( UniqueAttributeValue uniqueAttributeValue : uniqueAttributeValues )
         {
             boolean isTeaUniqueInOrgUnitScope = !trackedEntityAttribute.getOrgunitScope()
-                || Objects.equals( organisationUnit.getUid(), uniqueAttributeValue.getOrgUnitId() );
+                || uniqueAttributeValue.getOrgUnit().isEqualTo( organisationUnit );
 
-            boolean isTheSameTea = Objects.equals( uniqueAttributeValue.getAttributeUid(),
-                trackedEntityAttribute.getUid() );
+            boolean isTheSameTea = uniqueAttributeValue.getAttribute().isEqualTo( trackedEntityAttribute );
             boolean hasTheSameValue = Objects.equals( uniqueAttributeValue.getValue(), value );
             boolean isNotSameTei = trackedEntityInstance == null
                 || !Objects.equals( trackedEntityInstance.getUid(),
@@ -146,18 +170,9 @@ public abstract class AttributeValidationHook extends AbstractTrackerDtoValidati
                 && hasTheSameValue
                 && isNotSameTei )
             {
-                TrackerBundle bundle = errorReporter.getValidationContext().getBundle();
-                TrackerErrorReport err = TrackerErrorReport.builder()
-                    .uid( dto.getUid() )
-                    .trackerType( dto.getTrackerType() )
-                    .errorCode( TrackerErrorCode.E1064 )
-                    .addArg( value )
-                    .addArg( trackedEntityAttribute.getUid() )
-                    .build( bundle );
-                errorReporter.addError( err );
+                reporter.addError( dto, TrackerErrorCode.E1064, value, trackedEntityAttribute );
                 return;
             }
         }
     }
-
 }

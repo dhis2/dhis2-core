@@ -49,7 +49,6 @@ import org.hisp.dhis.analytics.data.handler.MetadataHandler;
 import org.hisp.dhis.analytics.data.handler.SchemaIdResponseMapper;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.resolver.ExpressionResolvers;
-import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -85,9 +84,6 @@ abstract class AnalyticsServiceBaseTest
 
     @Mock
     private ExpressionService expressionService;
-
-    @Mock
-    private ConstantService constantService;
 
     @Mock
     private OrganisationUnitService organisationUnitService;
@@ -131,7 +127,7 @@ abstract class AnalyticsServiceBaseTest
 
         HeaderHandler headerHandler = new HeaderHandler();
         MetadataHandler metadataHandler = new MetadataHandler( dataQueryService, schemaIdResponseMapper );
-        DataHandler dataHandler = new DataHandler( eventAnalyticsService, rawAnalyticsManager, constantService,
+        DataHandler dataHandler = new DataHandler( eventAnalyticsService, rawAnalyticsManager,
             resolvers, expressionService, queryPlanner, queryValidator, systemSettingManager, analyticsManager,
             organisationUnitService, executionPlanStore );
 

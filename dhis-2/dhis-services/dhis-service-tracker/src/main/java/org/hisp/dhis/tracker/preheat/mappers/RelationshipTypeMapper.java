@@ -35,7 +35,10 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
-@Mapper( uses = DebugMapper.class )
+@Mapper( uses = {
+    DebugMapper.class,
+    AttributeValueMapper.class
+} )
 public interface RelationshipTypeMapper extends PreheatMapper<RelationshipType>
 {
     RelationshipTypeMapper INSTANCE = Mappers.getMapper( RelationshipTypeMapper.class );
@@ -44,6 +47,8 @@ public interface RelationshipTypeMapper extends PreheatMapper<RelationshipType>
     @Mapping( target = "id" )
     @Mapping( target = "uid" )
     @Mapping( target = "code" )
+    @Mapping( target = "name" )
+    @Mapping( target = "attributeValues" )
     @Mapping( target = "fromConstraint", qualifiedByName = "constraintMapper" )
     @Mapping( target = "toConstraint", qualifiedByName = "constraintMapper" )
     @Mapping( target = "bidirectional" )

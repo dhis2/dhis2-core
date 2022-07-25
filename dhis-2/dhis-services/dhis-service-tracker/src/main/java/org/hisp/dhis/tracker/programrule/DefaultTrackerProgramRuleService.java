@@ -45,7 +45,6 @@ import org.hisp.dhis.programrule.engine.ProgramRuleEngine;
 import org.hisp.dhis.rules.models.RuleEffects;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerProgramRuleService;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.converter.RuleEngineConverterService;
@@ -123,7 +122,7 @@ public class DefaultTrackerProgramRuleService
             .from( bundle.getPreheat(), enrollment.getAttributes() );
 
         TrackedEntityInstance trackedEntity = bundle.getPreheat()
-            .getTrackedEntity( bundle.getIdentifier(), enrollment.getTrackedEntity() );
+            .getTrackedEntity( enrollment.getTrackedEntity() );
 
         List<TrackedEntityAttributeValue> payloadAttributeValues = bundle
             .getTrackedEntity( enrollment.getTrackedEntity() )
@@ -189,12 +188,12 @@ public class DefaultTrackerProgramRuleService
 
     private Program getProgramFromEvent( TrackerPreheat preheat, Event event )
     {
-        return preheat.get( Program.class, event.getProgram() );
+        return preheat.getProgram( event.getProgram() );
     }
 
     private ProgramInstance getEnrollment( TrackerBundle bundle, String enrollmentUid )
     {
-        return bundle.getPreheat().getEnrollment( TrackerIdScheme.UID, enrollmentUid );
+        return bundle.getPreheat().getEnrollment( enrollmentUid );
     }
 
     private Set<ProgramStageInstance> getEventsFromEnrollment( String enrollment, TrackerBundle bundle )
@@ -206,7 +205,6 @@ public class DefaultTrackerProgramRuleService
         // and are not present in the payload
         Stream<ProgramStageInstance> programStageInstances = bundle.getPreheat().getEvents().values()
             .stream()
-            .flatMap( psi -> psi.values().stream() )
             .filter( e -> e.getProgramInstance().getUid().equals( enrollment ) )
             .filter( e -> !bundleEventUids.contains( e.getUid() ) );
 

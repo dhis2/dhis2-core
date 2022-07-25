@@ -55,6 +55,7 @@ import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.eventvisualization.EventVisualizationService;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.legend.LegendSetService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
@@ -88,6 +89,8 @@ public class EventVisualizationController
 {
     private final DimensionService dimensionService;
 
+    private final LegendSetService legendSetService;
+
     private final OrganisationUnitService organisationUnitService;
 
     private final EventVisualizationService eventVisualizationService;
@@ -99,14 +102,11 @@ public class EventVisualizationController
     private final ContextUtils contextUtils;
 
     @GetMapping( value = { "/{uid}/data", "/{uid}/data.png" } )
-    void generateChart(
-        @PathVariable( "uid" ) String uid,
-        @RequestParam( value = "date", required = false ) Date date,
+    void generateChart( @PathVariable( "uid" ) String uid, @RequestParam( value = "date", required = false ) Date date,
         @RequestParam( value = "ou", required = false ) String ou,
         @RequestParam( value = "width", defaultValue = "800", required = false ) int width,
         @RequestParam( value = "height", defaultValue = "500", required = false ) int height,
-        @RequestParam( value = "attachment", required = false ) boolean attachment,
-        HttpServletResponse response )
+        @RequestParam( value = "attachment", required = false ) boolean attachment, HttpServletResponse response )
         throws IOException,
         WebMessageException
     {
@@ -184,6 +184,37 @@ public class EventVisualizationController
         }
     }
 
+    @Override
+    protected void preCreateEntity( final EventVisualization newEventVisualization )
+    {
+        /**
+         * Once a legacy EventVisualization is CREATED through this new
+         * endpoint, it will automatically become a non-legacy
+         * EventVisualization.
+         */
+        forceNonLegacy( newEventVisualization );
+    }
+
+    @Override
+    protected void preUpdateEntity( final EventVisualization eventVisualization,
+        final EventVisualization newEventVisualization )
+    {
+        /**
+         * Once a legacy EventVisualization is UPDATED through this new
+         * endpoint, it will automatically become a non-legacy
+         * EventVisualization.
+         */
+        forceNonLegacy( newEventVisualization );
+    }
+
+    private void forceNonLegacy( final EventVisualization eventVisualization )
+    {
+        if ( eventVisualization != null && eventVisualization.isLegacy() )
+        {
+            eventVisualization.setLegacy( false );
+        }
+    }
+
     private void prepare( final EventVisualization eventVisualization )
     {
         dimensionService.mergeAnalyticalObject( eventVisualization );
@@ -198,6 +229,24 @@ public class EventVisualizationController
         eventVisualization.getRowDimensions().addAll( getDimensions( eventVisualization.getRows() ) );
         eventVisualization.getFilterDimensions().addAll( getDimensions( eventVisualization.getFilters() ) );
         eventVisualization.associateSimpleDimensions();
+
+        maybeLoadLegendSetInto( eventVisualization );
+    }
+
+    /**
+     * Load the current/existing legendSet (if any is set) into the current
+     * visualization object, so the relationship can be persisted.
+     *
+     * @param eventVisualization
+     */
+    private void maybeLoadLegendSetInto( final EventVisualization eventVisualization )
+    {
+        if ( eventVisualization.getLegendDefinitions() != null
+            && eventVisualization.getLegendDefinitions().getLegendSet() != null )
+        {
+            eventVisualization.getLegendDefinitions().setLegendSet(
+                legendSetService.getLegendSet( eventVisualization.getLegendDefinitions().getLegendSet().getUid() ) );
+        }
     }
 
     private void doesNotAllowPivotAndReportChart( final EventVisualization eventVisualization )

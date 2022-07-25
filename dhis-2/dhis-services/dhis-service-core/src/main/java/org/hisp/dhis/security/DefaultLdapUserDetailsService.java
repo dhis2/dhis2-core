@@ -27,17 +27,13 @@
  */
 package org.hisp.dhis.security;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.system.util.SecurityUtils;
-import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.dao.DataAccessException;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -49,31 +45,11 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Slf4j
 @Service( "ldapUserDetailsService" )
+@AllArgsConstructor
 public class DefaultLdapUserDetailsService
     implements UserDetailsService
 {
-    public static final String ID = UserDetailsService.class.getName();
-
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final UserService userService;
-
-    private final SecurityService securityService;
-
-    public DefaultLdapUserDetailsService( UserService userService, SecurityService securityService )
-    {
-        checkNotNull( userService );
-        checkNotNull( securityService );
-
-        this.userService = userService;
-        this.securityService = securityService;
-    }
-
-    // -------------------------------------------------------------------------
-    // UserDetailsService implementation
-    // -------------------------------------------------------------------------
 
     @Override
     @Transactional( readOnly = true )
@@ -81,27 +57,20 @@ public class DefaultLdapUserDetailsService
         throws UsernameNotFoundException,
         DataAccessException
     {
-        UserCredentials credentials = userService.getUserCredentialsByUsername( username );
+        User user = userService.getUserByUsername( username );
+        if ( user == null )
+        {
+            throw new UsernameNotFoundException( String.format( "Username '%s' not found.", username ) );
+        }
 
-        if ( !credentials.isExternalAuth() || !credentials.hasLdapId() )
+        if ( !user.isExternalAuth() || !user.hasLdapId() )
         {
             throw new UsernameNotFoundException( "Wrong type of user, is not LDAP user." );
         }
 
-        boolean enabled = !credentials.isDisabled();
-        boolean credentialsNonExpired = userService.credentialsNonExpired( credentials );
-        boolean accountNonLocked = !securityService.isLocked( credentials.getUsername() );
-        boolean accountNonExpired = !userService.isAccountExpired( credentials );
+        String password = "EXTERNAL_LDAP_" + CodeGenerator.generateCode( 10 );
 
-        if ( ObjectUtils.anyIsFalse( enabled, credentialsNonExpired, accountNonLocked, accountNonExpired ) )
-        {
-            log.info( String.format(
-                "Login attempt for disabled/locked user: '%s', enabled: %b, account non-expired: %b, credentials non-expired: %b, account non-locked: %b",
-                username, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked ) );
-        }
-
-        return new User( credentials.getUsername(), "EXTERNAL_LDAP_" + CodeGenerator.generateCode( 10 ),
-            enabled, accountNonExpired, credentialsNonExpired, accountNonLocked,
-            SecurityUtils.getGrantedAuthorities( credentials ) );
+        return userService.validateAndCreateUserDetails( user, password );
     }
+
 }

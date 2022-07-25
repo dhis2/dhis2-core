@@ -679,13 +679,18 @@ public enum ConfigurationKey
     /**
      * API authentication feature. Enable or disable personal access tokens.
      */
-    ENABLE_API_TOKEN_AUTHENTICATION( "enable.api_token.authentication", Constants.OFF, false ),
+    ENABLE_API_TOKEN_AUTHENTICATION( "enable.api_token.authentication", Constants.ON, false ),
 
     /**
      * System update notifications system. Enable or disable the feature.
      */
     SYSTEM_UPDATE_NOTIFICATIONS_ENABLED( "system.update_notifications_enabled", Constants.ON, false ),
 
+    /**
+     * Number of possible concurrent sessions on different computers or browsers
+     * for each user. If configured to 1, the user will be logged out from any
+     * other session when a new session is started.
+     */
     MAX_SESSIONS_PER_USER( "max.sessions.per_user", "10", false );
 
     private final String key;

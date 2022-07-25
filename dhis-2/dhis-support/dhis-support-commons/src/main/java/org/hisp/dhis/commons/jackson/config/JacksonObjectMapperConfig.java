@@ -31,7 +31,9 @@ import java.time.Instant;
 import java.util.Date;
 
 import org.hibernate.SessionFactory;
+import org.hisp.dhis.commons.jackson.config.geometry.GeometrySerializer;
 import org.hisp.dhis.commons.jackson.config.geometry.JtsXmlModule;
+import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.PrecisionModel;
 import org.springframework.context.annotation.Bean;
@@ -128,6 +130,7 @@ public class JacksonObjectMapperConfig
     static
     {
         JtsModule jtsModule = new JtsModule( new GeometryFactory( new PrecisionModel(), 4326 ) );
+        jtsModule.addSerializer( Geometry.class, new GeometrySerializer() );
         jsonMapper.registerModule( jtsModule );
         dataValueJsonMapper.registerModule( jtsModule );
         xmlMapper.registerModule( new JtsXmlModule() );
@@ -170,7 +173,6 @@ public class JacksonObjectMapperConfig
 
         objectMapper.disable( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES );
         objectMapper.disable( DeserializationFeature.FAIL_ON_MISSING_EXTERNAL_TYPE_ID_PROPERTY );
-        objectMapper.enable( DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES );
         objectMapper.enable( DeserializationFeature.WRAP_EXCEPTIONS );
 
         objectMapper.disable( MapperFeature.AUTO_DETECT_FIELDS );

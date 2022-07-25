@@ -73,7 +73,6 @@ public class ObjectDeletionRequestedEvent
      */
     public static boolean shouldSkip( Class<?> type )
     {
-        return UserAccess.class.isAssignableFrom( type ) || UserGroupAccess.class.isAssignableFrom( type ) ? true
-            : false;
+        return UserAccess.class.isAssignableFrom( type ) || UserGroupAccess.class.isAssignableFrom( type );
     }
 }

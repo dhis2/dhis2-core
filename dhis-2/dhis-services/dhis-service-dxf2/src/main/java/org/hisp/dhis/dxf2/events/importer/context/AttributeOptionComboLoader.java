@@ -127,7 +127,7 @@ public class AttributeOptionComboLoader
     public CategoryOptionCombo getAttributeOptionCombo( CategoryCombo categoryCombo, String categoryOptions,
         String attributeOptionCombo, IdScheme idScheme )
     {
-        final Set<String> opts = TextUtils.splitToArray( categoryOptions, TextUtils.SEMICOLON );
+        final Set<String> opts = TextUtils.splitToSet( categoryOptions, TextUtils.SEMICOLON );
 
         return getAttributeOptionCombo( categoryCombo, opts, attributeOptionCombo, idScheme );
     }
@@ -347,7 +347,7 @@ public class AttributeOptionComboLoader
                 categoryOption.setName( rs.getString( "name" ) );
                 categoryOption.setStartDate( rs.getDate( "startdate" ) );
                 categoryOption.setEndDate( rs.getDate( "enddate" ) );
-                categoryOption.setSharing( getSharing( rs.getString( "sharing" ) ) );
+                categoryOption.setSharing( getSharing( rs.getObject( "sharing" ).toString() ) );
                 return categoryOption;
             } );
         }

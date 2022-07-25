@@ -34,6 +34,7 @@ import static org.hisp.dhis.analytics.AnalyticsCacheTtlMode.FIXED;
 import static org.hisp.dhis.analytics.AnalyticsCacheTtlMode.PROGRESSIVE;
 import static org.hisp.dhis.common.cache.CacheStrategy.CACHE_10_MINUTES;
 import static org.hisp.dhis.common.cache.CacheStrategy.CACHE_1_MINUTE;
+import static org.hisp.dhis.common.cache.CacheStrategy.CACHE_TWO_WEEKS;
 import static org.hisp.dhis.common.cache.CacheStrategy.NO_CACHE;
 import static org.hisp.dhis.setting.SettingKey.ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR;
 import static org.hisp.dhis.setting.SettingKey.ANALYTICS_CACHE_TTL_MODE;
@@ -164,7 +165,7 @@ class AnalyticsCacheSettingsTest
     {
         given( CACHE_10_MINUTES );
 
-        assertEquals( CACHE_10_MINUTES.toSeconds().longValue(), analyticsCacheSettings.fixedExpirationTimeOrDefault() );
+        assertEquals( CACHE_TWO_WEEKS.toSeconds().longValue(), analyticsCacheSettings.fixedExpirationTimeOrDefault() );
     }
 
     @Test
@@ -172,8 +173,7 @@ class AnalyticsCacheSettingsTest
     {
         given( NO_CACHE );
 
-        assertEquals( ((CacheStrategy) CACHE_STRATEGY.getDefaultValue()).toSeconds().longValue(),
-            analyticsCacheSettings.fixedExpirationTimeOrDefault() );
+        assertEquals( 0L, analyticsCacheSettings.fixedExpirationTimeOrDefault() );
     }
 
     @Test

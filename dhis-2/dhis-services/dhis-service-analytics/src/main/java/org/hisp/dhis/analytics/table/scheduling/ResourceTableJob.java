@@ -51,10 +51,6 @@ public class ResourceTableJob implements Job
         this.analyticsTableGenerator = analyticsTableGenerator;
     }
 
-    // -------------------------------------------------------------------------
-    // Implementation
-    // -------------------------------------------------------------------------
-
     @Override
     public JobType getJobType()
     {

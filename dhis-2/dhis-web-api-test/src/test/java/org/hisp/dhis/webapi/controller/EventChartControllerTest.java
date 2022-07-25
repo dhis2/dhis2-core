@@ -31,8 +31,8 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
-import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
-import static org.springframework.http.HttpStatus.CREATED;
+import static org.hisp.dhis.web.HttpStatus.CREATED;
+import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 
 import java.util.Map;
 
@@ -78,6 +78,8 @@ class EventChartControllerTest extends DhisControllerConvenienceTest
 
         // Then
         final JsonResponse response = GET( "/eventVisualizations/" + uid ).content();
+
+        @SuppressWarnings( "unchecked" )
         final Map<String, JsonNode> nodeMap = (Map<String, JsonNode>) response.node().value();
 
         assertThat( nodeMap.get( "name" ).toString(), containsString( "Name Test" ) );
@@ -96,6 +98,8 @@ class EventChartControllerTest extends DhisControllerConvenienceTest
 
         // Then
         final JsonResponse response = GET( "/eventCharts/" + uid ).content();
+
+        @SuppressWarnings( "unchecked" )
         final Map<String, JsonNode> nodeMap = (Map<String, JsonNode>) response.node().value();
 
         assertThat( nodeMap.values(), is( empty() ) );

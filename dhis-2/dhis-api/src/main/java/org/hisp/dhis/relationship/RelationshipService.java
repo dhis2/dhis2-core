@@ -75,6 +75,15 @@ public interface RelationshipService
     Relationship getRelationship( long id );
 
     /**
+     * Checks if relationship for given UID exists (including deleted
+     * relationships).
+     *
+     * @param uid Relationship UID to check for.
+     * @return return true if relationship exists, false otherwise.
+     */
+    boolean relationshipExistsIncludingDeleted( String uid );
+
+    /**
      * Fetches a {@link Relationship} based on a relationship identifying
      * attributes:
      *
@@ -86,6 +95,8 @@ public interface RelationshipService
     Optional<Relationship> getRelationshipByRelationship( Relationship relationship );
 
     Relationship getRelationship( String uid );
+
+    Relationship getRelationshipIncludeDeleted( String uid );
 
     List<Relationship> getRelationships( List<String> uids );
 

@@ -76,7 +76,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -123,9 +122,6 @@ public class CompleteDataSetRegistrationController
 
     @Autowired
     private DefaultCompleteDataSetRegistrationExchangeService registrationExchangeService;
-
-    @Autowired
-    private RenderService renderService;
 
     @Autowired
     private AsyncTaskExecutor taskExecutor;
@@ -279,8 +275,8 @@ public class CompleteDataSetRegistrationController
 
         for ( DataSet dataSet : dataSets )
         {
-            if ( dataSetService.isLocked( user, dataSet, period, organisationUnit, attributeOptionCombo, null,
-                multiOu ) )
+            if ( !dataSetService.getLockStatus( user, dataSet, period, organisationUnit, attributeOptionCombo, null,
+                multiOu ).isOpen() )
             {
                 lockedDataSets.add( dataSet.getUid() );
             }

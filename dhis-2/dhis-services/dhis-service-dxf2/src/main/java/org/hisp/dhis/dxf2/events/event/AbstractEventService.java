@@ -27,6 +27,11 @@
  */
 package org.hisp.dhis.dxf2.events.event;
 
+import static java.util.Collections.emptyMap;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+import static org.hisp.dhis.common.Pager.DEFAULT_PAGE_SIZE;
+import static org.hisp.dhis.common.SlimPager.FIRST_PAGE;
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ATTRIBUTE_OPTION_COMBO_ID;
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_BY_ID;
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_DATE_ID;
@@ -50,6 +55,7 @@ import static org.hisp.dhis.dxf2.events.event.EventSearchParams.PAGER_META_KEY;
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -78,6 +84,7 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dataelement.DataElement;
@@ -126,7 +133,6 @@ import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.transaction.annotation.Transactional;
@@ -292,25 +298,68 @@ public abstract class AbstractEventService implements EventService
         }
 
         Events events = new Events();
+        List<Event> eventList = new ArrayList<>();
 
         if ( params.isPaging() )
         {
-            int count = 0;
+            final Pager pager;
 
             if ( params.isTotalPages() )
             {
-                count = eventStore.getEventCount( params, organisationUnits );
+                eventList.addAll( eventStore.getEvents( params, organisationUnits, emptyMap() ) );
+
+                int count = eventStore.getEventCount( params, organisationUnits );
+                pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
+            }
+            else
+            {
+                pager = handleLastPageFlag( params, eventList, organisationUnits );
             }
 
-            Pager pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
             events.setPager( pager );
         }
-
-        List<Event> eventList = eventStore.getEvents( params, organisationUnits, Collections.emptyMap() );
 
         events.setEvents( eventList );
 
         return events;
+    }
+
+    /**
+     * This method will apply the logic related to the parameter
+     * 'totalPages=false'. This works in conjunction with the method:
+     * {@link EventStore#getEvents(EventSearchParams,List<OrganisationUnit>,Map<String,Set<String>>)}
+     *
+     * This is needed because we need to query (pageSize + 1) at DB level. The
+     * resulting query will allow us to evaluate if we are in the last page or
+     * not. And this is what his method does, returning the respective Pager
+     * object.
+     *
+     * @param params the request params
+     * @param eventList the reference to the list of Event
+     * @return the populated SlimPager instance
+     */
+    private Pager handleLastPageFlag( final EventSearchParams params,
+        final List<Event> eventList, final List<OrganisationUnit> organisationUnits )
+    {
+        final Integer originalPage = defaultIfNull( params.getPage(), FIRST_PAGE );
+        final Integer originalPageSize = defaultIfNull( params.getPageSize(), DEFAULT_PAGE_SIZE );
+        boolean isLastPage = false;
+
+        eventList.addAll( eventStore.getEvents( params, organisationUnits, emptyMap() ) );
+
+        if ( isNotEmpty( eventList ) )
+        {
+            isLastPage = eventList.size() <= originalPageSize;
+            if ( !isLastPage )
+            {
+                // Get the same number of elements of the pageSize, forcing
+                // the removal of the last additional element added at querying
+                // time.
+                eventList.retainAll( eventList.subList( 0, originalPageSize ) );
+            }
+        }
+
+        return new SlimPager( originalPage, originalPageSize, isLastPage );
     }
 
     @Transactional( readOnly = true )
@@ -406,20 +455,59 @@ public abstract class AbstractEventService implements EventService
 
         if ( params.isPaging() )
         {
-            int count = 0;
+            final Pager pager;
 
             if ( params.isTotalPages() )
             {
-                count = eventStore.getEventCount( params, organisationUnits );
+                int count = eventStore.getEventCount( params, organisationUnits );
+                pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
+            }
+            else
+            {
+                pager = handleLastPageFlag( params, grid );
             }
 
-            Pager pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
             metaData.put( PAGER_META_KEY, pager );
         }
 
         grid.setMetaData( metaData );
 
         return grid;
+    }
+
+    /**
+     * This method will apply the logic related to the parameter
+     * 'totalPages=false'. This works in conjunction with the method:
+     * {@link org.hisp.dhis.dxf2.events.event.JdbcEventStore#getEventPagingQuery(EventSearchParams)}
+     *
+     * This is needed because we need to query (pageSize + 1) at DB level. The
+     * resulting query will allow us to evaluate if we are in the last page or
+     * not. And this is what his method does, returning the respective Pager
+     * object.
+     *
+     * @param params the request params
+     * @param grid the populated Grid object
+     * @return the populated SlimPager instance
+     */
+    private Pager handleLastPageFlag( final EventSearchParams params, final Grid grid )
+    {
+        final Integer originalPage = defaultIfNull( params.getPage(), FIRST_PAGE );
+        final Integer originalPageSize = defaultIfNull( params.getPageSize(), DEFAULT_PAGE_SIZE );
+        boolean isLastPage = false;
+
+        if ( isNotEmpty( grid.getRows() ) )
+        {
+            isLastPage = grid.getRows().size() <= originalPageSize;
+            if ( !isLastPage )
+            {
+                // Get the same number of elements of the pageSize, forcing
+                // the removal of the last additional element added at querying
+                // time.
+                grid.getRows().retainAll( grid.getRows().subList( 0, originalPageSize ) );
+            }
+        }
+
+        return new SlimPager( originalPage, originalPageSize, isLastPage );
     }
 
     @Transactional( readOnly = true )
@@ -480,15 +568,15 @@ public abstract class AbstractEventService implements EventService
 
     @Transactional( readOnly = true )
     @Override
-    public Event getEvent( ProgramStageInstance programStageInstance )
+    public Event getEvent( ProgramStageInstance programStageInstance, boolean includeRelationships )
     {
-        return getEvent( programStageInstance, false, false );
+        return getEvent( programStageInstance, false, false, includeRelationships );
     }
 
     @Transactional( readOnly = true )
     @Override
     public Event getEvent( ProgramStageInstance programStageInstance, boolean isSynchronizationQuery,
-        boolean skipOwnershipCheck )
+        boolean skipOwnershipCheck, boolean includeRelationships )
     {
         if ( programStageInstance == null )
         {
@@ -526,6 +614,8 @@ public abstract class AbstractEventService implements EventService
             event.setAssignedUser( programStageInstance.getAssignedUser().getUid() );
             event.setAssignedUserUsername( programStageInstance.getAssignedUser().getUsername() );
             event.setAssignedUserDisplayName( programStageInstance.getAssignedUser().getName() );
+            event.setAssignedUserFirstName( programStageInstance.getAssignedUser().getFirstName() );
+            event.setAssignedUserSurname( programStageInstance.getAssignedUser().getSurname() );
         }
 
         User user = currentUserService.getCurrentUser();
@@ -601,10 +691,15 @@ public abstract class AbstractEventService implements EventService
 
         event.getNotes().addAll( NoteHelper.convertNotes( programStageInstance.getComments() ) );
 
-        event.setRelationships( programStageInstance.getRelationshipItems().stream()
-            .filter( Objects::nonNull )
-            .map( ( r ) -> relationshipService.getRelationship( r.getRelationship(), RelationshipParams.FALSE, user ) )
-            .collect( Collectors.toSet() ) );
+        if ( includeRelationships )
+        {
+            event.setRelationships( programStageInstance.getRelationshipItems()
+                .stream()
+                .filter( Objects::nonNull )
+                .map( r -> relationshipService.getRelationship( r.getRelationship(), RelationshipParams.FALSE,
+                    user ) )
+                .collect( Collectors.toSet() ) );
+        }
 
         return event;
     }
@@ -961,12 +1056,12 @@ public abstract class AbstractEventService implements EventService
         {
             validUsername = User.getSafeUsername( fallbackUsername );
         }
-        else if ( !ValidationUtils.usernameIsValid( userName ) )
+        else if ( !ValidationUtils.usernameIsValid( userName, false ) )
         {
             if ( importConflicts != null )
             {
                 importConflicts.addConflict( "Username", validUsername + " is more than "
-                    + UserCredentials.USERNAME_MAX_LENGTH + " characters, using current username instead" );
+                    + User.USERNAME_MAX_LENGTH + " characters, using current username instead" );
             }
 
             validUsername = User.getSafeUsername( fallbackUsername );

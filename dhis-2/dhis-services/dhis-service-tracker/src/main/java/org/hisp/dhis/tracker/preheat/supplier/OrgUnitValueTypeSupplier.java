@@ -29,20 +29,24 @@ package org.hisp.dhis.tracker.preheat.supplier;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.Attribute;
+import org.hisp.dhis.tracker.domain.DataValue;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.springframework.stereotype.Component;
 
@@ -60,30 +64,47 @@ public class OrgUnitValueTypeSupplier extends AbstractPreheatSupplier
     @Override
     public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
     {
-        List<TrackedEntityAttribute> attributes = preheat.getAll( TrackedEntityAttribute.class );
+        TrackerIdSchemeParams idSchemes = preheat.getIdSchemes();
 
-        List<String> orgUnitAttributes = attributes.stream()
+        List<MetadataIdentifier> orgUnitAttributes = preheat.getAll( TrackedEntityAttribute.class ).stream()
             .filter( at -> at.getValueType() == ValueType.ORGANISATION_UNIT )
-            .map( BaseIdentifiableObject::getUid )
+            .map( idSchemes::toMetadataIdentifier )
+            .collect( Collectors.toList() );
+
+        List<MetadataIdentifier> orgUnitDataElements = preheat.getAll( DataElement.class ).stream()
+            .filter( de -> de.getValueType() == ValueType.ORGANISATION_UNIT )
+            .map( idSchemes::toMetadataIdentifier )
             .collect( Collectors.toList() );
 
         List<String> orgUnitIds = new ArrayList<>();
-
         params.getTrackedEntities()
             .forEach( te -> collectResourceIds( orgUnitAttributes, orgUnitIds, te.getAttributes() ) );
         params.getEnrollments()
             .forEach( en -> collectResourceIds( orgUnitAttributes, orgUnitIds, en.getAttributes() ) );
+        params.getEvents()
+            .forEach( ev -> collectResourceIds( orgUnitDataElements, orgUnitIds, ev.getDataValues() ) );
 
-        preheat.put( TrackerIdentifier.UID, manager.getByUid( OrganisationUnit.class, orgUnitIds ) );
+        preheat.put( TrackerIdSchemeParam.UID, manager.getByUid( OrganisationUnit.class, orgUnitIds ) );
     }
 
-    private void collectResourceIds( List<String> orgUnitAttributes, List<String> orgUnitIds,
+    private void collectResourceIds( List<MetadataIdentifier> orgUnitAttributes, List<String> orgUnitIds,
         List<Attribute> attributes )
     {
         attributes.forEach( at -> {
             if ( orgUnitAttributes.contains( at.getAttribute() ) && !StringUtils.isEmpty( at.getValue() ) )
             {
                 orgUnitIds.add( at.getValue() );
+            }
+        } );
+    }
+
+    private void collectResourceIds( List<MetadataIdentifier> orgUnitDataElements, List<String> orgUnitIds,
+        Set<DataValue> dataValues )
+    {
+        dataValues.forEach( dv -> {
+            if ( orgUnitDataElements.contains( dv.getDataElement() ) && !StringUtils.isEmpty( dv.getValue() ) )
+            {
+                orgUnitIds.add( dv.getValue() );
             }
         } );
     }

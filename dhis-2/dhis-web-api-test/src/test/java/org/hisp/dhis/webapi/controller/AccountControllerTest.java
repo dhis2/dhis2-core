@@ -31,10 +31,13 @@ import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.jsontree.JsonResponse;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Tests the {@link AccountController} using (mocked) REST requests.
@@ -43,6 +46,8 @@ import org.springframework.http.HttpStatus;
  */
 class AccountControllerTest extends DhisControllerConvenienceTest
 {
+    @Autowired
+    private SystemSettingManager systemSettingManager;
 
     @Test
     void testRecoverAccount_NotEnabled()
@@ -63,8 +68,9 @@ class AccountControllerTest extends DhisControllerConvenienceTest
     @Test
     void testCreateAccount()
     {
+        systemSettingManager.saveSystemSetting( SettingKey.SELF_REGISTRATION_NO_RECAPTCHA, Boolean.TRUE );
         assertWebMessage( "Bad Request", 400, "ERROR", "User self registration is not allowed", POST(
-            "/account?username=test&firstName=fn&surname=sn&password=secret&email=test@example.com&phoneNumber=0123456789&employer=em" )
+            "/account?username=test&firstName=fn&surname=sn&password=Pass%23%23%23123663&email=test@example.com&phoneNumber=0123456789&employer=em" )
                 .content( HttpStatus.BAD_REQUEST ) );
     }
 

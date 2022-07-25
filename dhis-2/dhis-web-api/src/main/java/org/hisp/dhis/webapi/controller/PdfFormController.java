@@ -126,8 +126,10 @@ public class PdfFormController
 
         String fileName = dataSet.getName() + "_" + DateUtils.getMediumDateString() + ".pdf";
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PDF, CacheStrategy.NO_CACHE, fileName,
-            true );
+        contextUtils.configureResponse( response,
+            ContextUtils.CONTENT_TYPE_PDF, CacheStrategy.NO_CACHE, fileName, true );
+
+        response.setContentLength( outputStream.size() );
 
         response.setContentLength( outputStream.size() );
         outputStream.writeTo( response.getOutputStream() );

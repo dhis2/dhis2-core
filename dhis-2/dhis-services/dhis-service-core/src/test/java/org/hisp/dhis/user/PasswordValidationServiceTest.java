@@ -68,11 +68,13 @@ class PasswordValidationServiceTest
     {
         encoder = mock( PasswordEncoder.class );
         UserService userService = mock( UserService.class );
-        UserCredentials credentials = new UserCredentials();
-        credentials.setPreviousPasswords( asList( "$kyWalker1", "$kyWalker2", "$kyWalker3" ) );
-        when( userService.getUserCredentialsByUsername( anyString() ) ).thenReturn( credentials );
+        User user = new User();
+        user.setUsername( "Luke" );
+        user.setPreviousPasswords( asList( "$kyWalker1", "$kyWalker2", "$kyWalker3" ) );
+
+        when( userService.getUserByUsername( anyString() ) ).thenReturn( user );
+
         CurrentUserService currentUserService = mock( CurrentUserService.class );
-        when( currentUserService.getCurrentUsername() ).thenReturn( "Luke" );
         SystemSettingManager systemSettings = mock( SystemSettingManager.class );
         when( systemSettings.getIntSetting( SettingKey.MIN_PASSWORD_LENGTH ) ).thenReturn( 8 );
         when( systemSettings.getIntSetting( SettingKey.MAX_PASSWORD_LENGTH ) ).thenReturn( 16 );

@@ -28,9 +28,10 @@
 package org.hisp.dhis.pdf;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.Collections;
 
-import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.BaseSpringTest;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -50,12 +51,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
+import com.lowagie.text.DocumentException;
 
 /**
  * @author viet@dhis2.org
  */
 public class PdfDataEntryFormGeneratorTest
-    extends DhisSpringTest
+    extends BaseSpringTest
 {
     @Autowired
     private IdentifiableObjectManager manager;
@@ -71,6 +73,8 @@ public class PdfDataEntryFormGeneratorTest
 
     @Test
     public void testExport()
+        throws DocumentException,
+        IOException
     {
         PeriodType periodType = periodService.getPeriodTypeByName( MonthlyPeriodType.NAME );
         DataElement dataElement = createDataElement( 'A' );
@@ -108,5 +112,11 @@ public class PdfDataEntryFormGeneratorTest
         ByteArrayOutputStream baos = formGenerator.generateDataEntry( dataSet, settings );
 
         Assert.assertNotNull( baos );
+    }
+
+    @Override
+    protected boolean emptyDatabaseAfterTest()
+    {
+        return true;
     }
 }

@@ -82,7 +82,7 @@ public class JdbcStatisticsProvider
         map.put( Objects.VALIDATIONRULE, query( "select count(*) from validationrule;" ) );
         map.put( Objects.PROGRAM, query( "select count(*) from program;" ) );
         map.put( Objects.PERIOD, query( "select count(*) from period;" ) );
-        map.put( Objects.USER, query( "select count(*) from users;" ) );
+        map.put( Objects.USER, query( "select count(*) from userinfo;" ) );
         map.put( Objects.USERGROUP, query( "select count(*) from usergroup;" ) );
         map.put( Objects.VISUALIZATION, query( "select count(*) from visualization;" ) );
         map.put( Objects.EVENTVISUALIZATION, query( "select count(*) from eventvisualization;" ) );

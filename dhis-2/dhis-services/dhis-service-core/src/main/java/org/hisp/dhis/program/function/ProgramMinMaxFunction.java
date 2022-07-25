@@ -33,6 +33,7 @@ import java.util.Date;
 
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.parser.expression.ProgramExpressionParams;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramExpressionItem;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -52,8 +53,11 @@ public abstract class ProgramMinMaxFunction
     @Override
     public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        ProgramIndicator pi = visitor.getProgramIndicator();
         StatementBuilder sb = visitor.getStatementBuilder();
+
+        ProgramExpressionParams params = visitor.getProgParams();
+
+        ProgramIndicator pi = params.getProgramIndicator();
 
         String columnName = "";
 
@@ -72,8 +76,8 @@ public abstract class ProgramMinMaxFunction
             return columnName;
         }
 
-        Date startDate = visitor.getReportingStartDate();
-        Date endDate = visitor.getReportingEndDate();
+        Date startDate = params.getReportingStartDate();
+        Date endDate = params.getReportingEndDate();
 
         String eventTableName = "analytics_event_" + pi.getProgram().getUid();
         String programStage = ctx.uid0.getText();

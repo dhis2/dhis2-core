@@ -35,12 +35,11 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceStore;
-import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.preheat.DetachUtils;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.mappers.ProgramStageInstanceMapper;
+import org.hisp.dhis.tracker.preheat.supplier.DetachUtils;
 import org.springframework.stereotype.Component;
 
 /**
@@ -64,7 +63,7 @@ public class EventStrategy implements ClassBasedSupplierStrategy
             final List<String> rootEntities = params.getEvents().stream().map( Event::getEvent )
                 .collect( Collectors.toList() );
 
-            preheat.putEvents( TrackerIdScheme.UID,
+            preheat.putEvents(
                 DetachUtils.detach( this.getClass().getAnnotation( StrategyFor.class ).mapper(),
                     programStageInstances ),
                 params.getEvents().stream()

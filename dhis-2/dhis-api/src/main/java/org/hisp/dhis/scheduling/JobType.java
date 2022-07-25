@@ -29,9 +29,20 @@ package org.hisp.dhis.scheduling;
 
 import java.util.Map;
 
-import org.hisp.dhis.scheduling.parameters.*;
-
-import com.google.common.collect.ImmutableMap;
+import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
+import org.hisp.dhis.scheduling.parameters.ContinuousAnalyticsJobParameters;
+import org.hisp.dhis.scheduling.parameters.DataIntegrityJobParameters;
+import org.hisp.dhis.scheduling.parameters.DataSynchronizationJobParameters;
+import org.hisp.dhis.scheduling.parameters.DisableInactiveUsersJobParameters;
+import org.hisp.dhis.scheduling.parameters.EventProgramsDataSynchronizationJobParameters;
+import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
+import org.hisp.dhis.scheduling.parameters.MockJobParameters;
+import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
+import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
+import org.hisp.dhis.scheduling.parameters.PushAnalysisJobParameters;
+import org.hisp.dhis.scheduling.parameters.SmsJobParameters;
+import org.hisp.dhis.scheduling.parameters.TrackerProgramsDataSynchronizationJobParameters;
+import org.hisp.dhis.scheduling.parameters.TrackerTrigramIndexJobParameters;
 
 /**
  * Enum describing the different jobs in the system. Each job has a key, class,
@@ -46,12 +57,14 @@ import com.google.common.collect.ImmutableMap;
 public enum JobType
 {
     DATA_STATISTICS( false ),
-    DATA_INTEGRITY( true ),
+    DATA_INTEGRITY( true, SchedulingType.CRON, DataIntegrityJobParameters.class,
+        Map.of( "checks", "/api/dataIntegrity" ) ),
     RESOURCE_TABLE( true ),
-    ANALYTICS_TABLE( true, SchedulingType.CRON, AnalyticsJobParameters.class, ImmutableMap.of(
-        "skipTableTypes", "/api/analytics/tableTypes", "skipPrograms", "/api/programs" ) ),
+    ANALYTICS_TABLE( true, SchedulingType.CRON, AnalyticsJobParameters.class, Map.of(
+        "skipTableTypes", "/api/analytics/tableTypes",
+        "skipPrograms", "/api/programs" ) ),
     CONTINUOUS_ANALYTICS_TABLE( true, SchedulingType.FIXED_DELAY,
-        ContinuousAnalyticsJobParameters.class, ImmutableMap.of(
+        ContinuousAnalyticsJobParameters.class, Map.of(
             "skipTableTypes", "/api/analytics/tableTypes" ) ),
     DATA_SYNC( true, SchedulingType.CRON, DataSynchronizationJobParameters.class, null ),
     TRACKER_PROGRAMS_DATA_SYNC( true, SchedulingType.CRON,
@@ -66,17 +79,18 @@ public enum JobType
     PROGRAM_NOTIFICATIONS( true ),
     VALIDATION_RESULTS_NOTIFICATION( false ),
     CREDENTIALS_EXPIRY_ALERT( false ),
-    MONITORING( true, SchedulingType.CRON, MonitoringJobParameters.class, ImmutableMap.of(
-        "relativePeriods", "/api/periodTypes/relativePeriodTypes", "validationRuleGroups",
-        "/api/validationRuleGroups" ) ),
-    PUSH_ANALYSIS( true, SchedulingType.CRON, PushAnalysisJobParameters.class, ImmutableMap.of(
+    MONITORING( true, SchedulingType.CRON, MonitoringJobParameters.class, Map.of(
+        "relativePeriods", "/api/periodTypes/relativePeriodTypes",
+        "validationRuleGroups", "/api/validationRuleGroups" ) ),
+    PUSH_ANALYSIS( true, SchedulingType.CRON, PushAnalysisJobParameters.class, Map.of(
         "pushAnalysis", "/api/pushAnalysis" ) ),
     // TODO: Update API in tracker search optimization job map to reflect actual
     // api url after implementation
-    TRACKER_SEARCH_OPTIMIZATION( true, SchedulingType.CRON, TrackerTrigramIndexJobParameters.class, ImmutableMap.of(
+    TRACKER_SEARCH_OPTIMIZATION( true, SchedulingType.CRON, TrackerTrigramIndexJobParameters.class, Map.of(
         "attributes", "/api/trackedEntityAttributes/indexable" ) ),
-    PREDICTOR( true, SchedulingType.CRON, PredictorJobParameters.class, ImmutableMap.of(
-        "predictors", "/api/predictors", "predictorGroups", "/api/predictorGroups" ) ),
+    PREDICTOR( true, SchedulingType.CRON, PredictorJobParameters.class, Map.of(
+        "predictors", "/api/predictors",
+        "predictorGroups", "/api/predictorGroups" ) ),
     DATA_SET_NOTIFICATION( false ),
     REMOVE_USED_OR_EXPIRED_RESERVED_VALUES( false ),
     TRACKER_IMPORT_JOB( false ),
@@ -90,6 +104,7 @@ public enum JobType
     DATAVALUE_IMPORT_INTERNAL( false ),
     METADATA_IMPORT( false ),
     DATAVALUE_IMPORT( false ),
+    GEOJSON_IMPORT( false ),
     EVENT_IMPORT( false ),
     ENROLLMENT_IMPORT( false ),
     TEI_IMPORT( false ),
@@ -135,7 +150,31 @@ public enum JobType
 
     public boolean isUsingNotifications()
     {
-        return this == RESOURCE_TABLE || this == ANALYTICS_TABLE || this == CONTINUOUS_ANALYTICS_TABLE;
+        return this == RESOURCE_TABLE
+            || this == SEND_SCHEDULED_MESSAGE
+            || this == ANALYTICS_TABLE
+            || this == CONTINUOUS_ANALYTICS_TABLE
+            || this == DATA_SET_NOTIFICATION
+            || this == MONITORING
+            || this == VALIDATION_RESULTS_NOTIFICATION
+            || this == SYSTEM_VERSION_UPDATE_CHECK
+            || this == EVENT_PROGRAMS_DATA_SYNC
+            || this == TRACKER_PROGRAMS_DATA_SYNC
+            || this == DATA_SYNC
+            || this == SMS_SEND
+            || this == PUSH_ANALYSIS
+            || this == PREDICTOR;
+    }
+
+    public boolean isUsingErrorNotification()
+    {
+        return this == ANALYTICS_TABLE
+            || this == VALIDATION_RESULTS_NOTIFICATION
+            || this == DATA_SET_NOTIFICATION
+            || this == SYSTEM_VERSION_UPDATE_CHECK
+            || this == EVENT_PROGRAMS_DATA_SYNC
+            || this == TRACKER_PROGRAMS_DATA_SYNC
+            || this == PROGRAM_NOTIFICATIONS;
     }
 
     public boolean isCronSchedulingType()

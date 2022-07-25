@@ -31,7 +31,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.Collectors;
+
+import lombok.Getter;
+import lombok.Setter;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
@@ -50,8 +54,12 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
  *
  * @author Lars Helge Overland
  */
-public class QueryItem
+public class QueryItem implements GroupableItem
 {
+    @Getter
+    @Setter
+    private UUID groupUUID;
+
     private DimensionalItemObject item; // TODO DimensionObject
 
     private LegendSet legendSet;
@@ -68,7 +76,7 @@ public class QueryItem
 
     private ProgramStage programStage;
 
-    private int programStageOffset;
+    private RepeatableStageParams repeatableStageParams;
 
     private Boolean unique = false;
 
@@ -171,7 +179,9 @@ public class QueryItem
     {
         QueryKey key = new QueryKey();
 
-        key.add( "item", getItemId() ).addIgnoreNull( "filter", getFiltersAsString() );
+        key.add( "item", getItemId() )
+            .addIgnoreNull( "filter", getFiltersAsString() )
+            .addIgnoreNull( "program", maybeGetProgramUid() );
 
         if ( legendSet != null )
         {
@@ -179,6 +189,11 @@ public class QueryItem
         }
 
         return key.build();
+    }
+
+    private String maybeGetProgramUid()
+    {
+        return program != null ? program.getUid() : null;
     }
 
     /**
@@ -349,7 +364,7 @@ public class QueryItem
     @Override
     public int hashCode()
     {
-        return Objects.hash( item, program, programStage, programStageOffset );
+        return Objects.hash( item, program, programStage, repeatableStageParams );
     }
 
     @Override
@@ -375,16 +390,17 @@ public class QueryItem
         return Objects.equals( item, other.getItem() ) &&
             Objects.equals( program, other.getProgram() ) &&
             Objects.equals( programStage, other.getProgramStage() ) &&
-            programStageOffset == other.getProgramStageOffset();
+            Objects.equals( repeatableStageParams, other.getRepeatableStageParams() );
     }
 
     @Override
     public String toString()
     {
-        return "[Item: " + item + ", legend set: " + legendSet + ", filters: " + filters +
-            ", value type: " + valueType + ", optionSet: " + optionSet +
-            ", program: " + program + ", program stage: " + programStage +
-            "program stage offset: " + programStageOffset + "]";
+        return "[Item: " + item + ", legend set: " + legendSet + ", filters: " + filters
+            + ", value type: " + valueType + ", optionSet: " + optionSet
+            + ", program: " + program + ", program stage: " + programStage
+            + "repeatable program stage params: "
+            + (repeatableStageParams != null ? repeatableStageParams.toString() : null) + "]";
     }
 
     // -------------------------------------------------------------------------
@@ -468,7 +484,17 @@ public class QueryItem
 
     public int getProgramStageOffset()
     {
-        return programStageOffset;
+        return hasRepeatableStageParams() ? repeatableStageParams.getStartIndex() : 0;
+    }
+
+    public RepeatableStageParams getRepeatableStageParams()
+    {
+        return repeatableStageParams;
+    }
+
+    public boolean hasRepeatableStageParams()
+    {
+        return repeatableStageParams != null;
     }
 
     public void setProgramStage( ProgramStage programStage )
@@ -476,9 +502,9 @@ public class QueryItem
         this.programStage = programStage;
     }
 
-    public void setProgramStageOffset( int programStageOffset )
+    public void setRepeatableStageParams( RepeatableStageParams repeatableStageParams )
     {
-        this.programStageOffset = programStageOffset;
+        this.repeatableStageParams = repeatableStageParams;
     }
 
     public Boolean isUnique()

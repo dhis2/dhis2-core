@@ -1,77 +1,105 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>org.hisp.dhis</groupId>
-        <artifactId>dhis-support</artifactId>
-        <version>2.38-SNAPSHOT</version>
-    </parent>
+  <parent>
+    <groupId>org.hisp.dhis</groupId>
+    <artifactId>dhis-support</artifactId>
+    <version>2.39-SNAPSHOT</version>
+  </parent>
 
-    <artifactId>dhis-support-cache-invalidation</artifactId>
-    <packaging>jar</packaging>
-    <name>DHIS Cache invalidation Support</name>
+  <artifactId>dhis-support-cache-invalidation</artifactId>
+  <packaging>jar</packaging>
+  <name>DHIS Cache invalidation Support</name>
 
-    <dependencies>
+  <dependencies>
 
-        <!-- DHIS -->
+    <!-- DHIS -->
 
-        <dependency>
-            <groupId>org.hisp.dhis</groupId>
-            <artifactId>dhis-support-external</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.hisp.dhis</groupId>
-            <artifactId>dhis-support-hibernate</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.hisp.dhis</groupId>
-            <artifactId>dhis-support-system</artifactId>
-        </dependency>
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-support-external</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-support-hibernate</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-support-system</artifactId>
+    </dependency>
 
-        <!-- Debezium -->
-        <dependency>
-            <groupId>io.debezium</groupId>
-            <artifactId>debezium-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.debezium</groupId>
-            <artifactId>debezium-embedded</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.debezium</groupId>
-            <artifactId>debezium-connector-postgres</artifactId>
-        </dependency>
+    <!-- Debezium -->
+    <dependency>
+      <groupId>io.debezium</groupId>
+      <artifactId>debezium-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.debezium</groupId>
+      <artifactId>debezium-embedded</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.debezium</groupId>
+      <artifactId>debezium-connector-postgres</artifactId>
+    </dependency>
 
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <scope>provided</scope>
-        </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-context</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-beans</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.security</groupId>
+      <artifactId>spring-security-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>javax.annotation</groupId>
+      <artifactId>javax.annotation-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hibernate</groupId>
+      <artifactId>hibernate-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>javax.persistence</groupId>
+      <artifactId>javax.persistence-api</artifactId>
+    </dependency>
 
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <scope>provided</scope>
+    </dependency>
 
-        <!-- Test -->
-        <dependency>
-            <groupId>org.hamcrest</groupId>
-            <artifactId>hamcrest</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>net.ttddyy</groupId>
-            <artifactId>datasource-proxy</artifactId>
-        </dependency>
+    <!-- Test -->
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
 
-        <!-- Other -->
-
-
-    </dependencies>
-    <properties>
-        <rootDir>../../</rootDir>
-    </properties>
+  </dependencies>
+  <properties>
+    <rootDir>../../</rootDir>
+  </properties>
 </project>

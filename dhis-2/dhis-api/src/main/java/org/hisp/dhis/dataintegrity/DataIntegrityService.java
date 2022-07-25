@@ -44,8 +44,8 @@ public interface DataIntegrityService
      */
 
     /**
-     * @deprecated Replaced by {@link #getSummaries(Set, JobProgress)} and
-     *             {@link #getDetails(Set, JobProgress)}, kept for backwards
+     * @deprecated Replaced by {@link #getSummaries(Set, long)} and
+     *             {@link #getDetails(Set, long)}, kept for backwards
      *             compatibility until new UI exists
      */
     @Deprecated( since = "2.38", forRemoval = true )
@@ -55,9 +55,18 @@ public interface DataIntegrityService
      * New generic API
      */
 
-    Collection<DataIntegrityCheck> getDataIntegrityChecks();
+    default Collection<DataIntegrityCheck> getDataIntegrityChecks()
+    {
+        return getDataIntegrityChecks( Set.of() );
+    }
 
-    Map<String, DataIntegritySummary> getSummaries( Set<String> checks, JobProgress progress );
+    Collection<DataIntegrityCheck> getDataIntegrityChecks( Set<String> checks );
 
-    Map<String, DataIntegrityDetails> getDetails( Set<String> checks, JobProgress progress );
+    Map<String, DataIntegritySummary> getSummaries( Set<String> checks, long timeout );
+
+    Map<String, DataIntegrityDetails> getDetails( Set<String> checks, long timeout );
+
+    void runSummaryChecks( Set<String> checks, JobProgress progress );
+
+    void runDetailsChecks( Set<String> checks, JobProgress progress );
 }

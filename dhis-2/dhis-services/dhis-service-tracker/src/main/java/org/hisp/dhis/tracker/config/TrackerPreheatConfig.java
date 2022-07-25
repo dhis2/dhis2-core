@@ -42,6 +42,7 @@ public class TrackerPreheatConfig
 {
     private final List<Class<? extends PreheatSupplier>> preheatOrder = ImmutableList.of(
         ClassBasedSupplier.class,
+        DefaultsSupplier.class,
         TrackedEntityProgramInstanceSupplier.class,
         ProgramInstanceSupplier.class,
         ProgramInstancesWithAtLeastOneEventSupplier.class,
@@ -51,7 +52,11 @@ public class TrackerPreheatConfig
         PeriodTypeSupplier.class,
         UniqueAttributesSupplier.class,
         UserSupplier.class,
-        FileResourceSupplier.class );
+        UsernameValueTypeSupplier.class,
+        FileResourceSupplier.class,
+        EventCategoryOptionComboSupplier.class,
+        DuplicateRelationshipSupplier.class,
+        OrgUnitValueTypeSupplier.class );
 
     @Bean( "preheatOrder" )
     public List<String> getPreheatOrder()

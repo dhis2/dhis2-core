@@ -28,11 +28,11 @@
 package org.hisp.dhis.credentials;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.lang.String.format;
+import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
 
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -46,17 +46,20 @@ import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 /**
- * Created by zubair on 29.03.17.
+ * Sends an alert to users whose user credentials are soon expiring so that they
+ * have a chance to update their credentials.
+ *
+ * @author zubair (original)
+ * @author Jan Bernitt (job progress tracking)
  */
 @Slf4j
-@Component( "credentialsExpiryAlertJob" )
+@Component
 public class CredentialsExpiryAlertJob implements Job
 {
     private static final String SUBJECT = "Password Expiry Alert";
@@ -65,15 +68,11 @@ public class CredentialsExpiryAlertJob implements Job
 
     private static final String KEY_TASK = "credentialsExpiryAlertTask";
 
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+    private final UserService userService;
 
-    private UserService userService;
+    private final MessageSender emailMessageSender;
 
-    private MessageSender emailMessageSender;
-
-    private SystemSettingManager systemSettingManager;
+    private final SystemSettingManager systemSettingManager;
 
     public CredentialsExpiryAlertJob( UserService userService,
         @Qualifier( "emailMessageSender" ) MessageSender emailMessageSender, SystemSettingManager systemSettingManager )
@@ -87,10 +86,6 @@ public class CredentialsExpiryAlertJob implements Job
         this.systemSettingManager = systemSettingManager;
     }
 
-    // -------------------------------------------------------------------------
-    // Implementation
-    // -------------------------------------------------------------------------
-
     @Override
     public JobType getJobType()
     {
@@ -100,33 +95,18 @@ public class CredentialsExpiryAlertJob implements Job
     @Override
     public void execute( JobConfiguration jobConfiguration, JobProgress progress )
     {
-        boolean isExpiryAlertEnabled = systemSettingManager
-            .getBoolSetting( SettingKey.CREDENTIALS_EXPIRY_ALERT );
-
-        if ( !isExpiryAlertEnabled )
+        if ( !systemSettingManager.getBoolSetting( SettingKey.CREDENTIALS_EXPIRY_ALERT ) )
         {
-            log.info( String.format( "%s aborted. Expiry alerts are disabled", KEY_TASK ) );
-
+            log.info( format( "%s aborted. Expiry alerts are disabled", KEY_TASK ) );
             return;
         }
 
-        log.info( String.format( "%s has started", KEY_TASK ) );
-
-        List<User> users = userService.getExpiringUsers();
-
-        Map<String, String> content = new HashMap<>();
-
-        for ( User user : users )
-        {
-            if ( user.getEmail() != null )
-            {
-                content.put( user.getEmail(), createText( user ) );
-            }
-        }
-
-        log.info( String.format( "Users added for alert: %d", content.size() ) );
-
-        sendExpiryAlert( content );
+        progress.startingProcess( "User account expire alerts" );
+        progress.startingStage( "finding and preparing email recipients" );
+        List<User> users = progress.runStage( List.of(),
+            recipients -> format( "%d recipients", recipients.size() ), userService::getExpiringUsers );
+        sendExpiryAlert( users, progress );
+        progress.completedProcess( null );
     }
 
     @Override
@@ -137,35 +117,34 @@ public class CredentialsExpiryAlertJob implements Job
             return new ErrorReport( CredentialsExpiryAlertJob.class, ErrorCode.E7010,
                 "EMAIL gateway configuration does not exist" );
         }
-
         return Job.super.validate();
     }
 
-    private void sendExpiryAlert( Map<String, String> content )
+    private void sendExpiryAlert( List<User> users, JobProgress progress )
     {
+        progress.startingStage( "sending expiry alert emails", users.size(), SKIP_ITEM_OUTLIER );
         if ( emailMessageSender.isConfigured() )
         {
-            for ( String email : content.keySet() )
-            {
-                emailMessageSender.sendMessage( SUBJECT, content.get( email ), email );
-            }
+            progress.runStage( users,
+                user -> "to: " + user.getUsername(),
+                user -> emailMessageSender.sendMessage( SUBJECT, createText( user ), user.getEmail() ) );
         }
         else
         {
-            log.error( "Email service is not configured" );
+            progress.failedStage( "Email service is not configured" );
         }
     }
 
     private String createText( User user )
     {
-        return String.format( TEXT, user.getUsername(), getRemainingDays( user.getUserCredentials() ) );
+        return format( TEXT, user.getUsername(), getRemainingDays( user ) );
     }
 
-    private int getRemainingDays( UserCredentials userCredentials )
+    private int getRemainingDays( User user )
     {
         int daysBeforeChangeRequired = systemSettingManager.getIntSetting( SettingKey.CREDENTIALS_EXPIRES ) * 30;
 
-        Date passwordLastUpdated = userCredentials.getPasswordLastUpdated();
+        Date passwordLastUpdated = user.getPasswordLastUpdated();
 
         return (daysBeforeChangeRequired - DateUtils.daysBetween( passwordLastUpdated, new Date() ));
     }

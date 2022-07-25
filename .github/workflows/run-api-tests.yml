@@ -4,7 +4,10 @@ env:
   MAVEN_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=125
 
 on:
-  pull_request: 
+  push:
+    branches:
+      - master
+  pull_request:
     types: [ opened, labeled, synchronize ]
 concurrency:
     group: ${{ github.workflow}}-${{ github.ref }}
@@ -20,9 +23,9 @@ jobs:
     runs-on: ubuntu-latest
     if: "!contains(github.event.pull_request.labels.*.name, 'skip-api-tests')"
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set up JDK 11
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v3
         with:
           java-version: 11
           distribution: temurin
@@ -33,13 +36,13 @@ jobs:
 
       - name: Login to Docker Hub
         if: "contains(github.event.pull_request.labels.*.name, 'publish-docker-image')"
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         with:
           username: ${{ secrets.DHIS2_BOT_DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DHIS2_BOT_DOCKER_HUB_PASSWORD }}
       
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v2
         
       - name: Publish docker image
         if: "contains(github.event.pull_request.labels.*.name, 'publish-docker-image')"
@@ -48,7 +51,7 @@ jobs:
           docker push $DOCKER_CHANNEL:$PR_NUMBER
 
       - name: Build test image
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v3
         with:
           context: dhis-2/dhis-e2e-test
           push: false
@@ -59,7 +62,7 @@ jobs:
       - name: Run tests
         run: |
           cd dhis-2/dhis-e2e-test
-          IMAGE_NAME=$CORE_IMAGE_NAME docker-compose up -d
+          IMAGE_NAME=$CORE_IMAGE_NAME docker-compose up --remove-orphans -d
           IMAGE_NAME=$TEST_IMAGE_NAME docker-compose -f docker-compose.e2e.yml up --exit-code-from e2e-test
 
       - name: Upload logs
@@ -68,7 +71,7 @@ jobs:
           cd dhis-2/dhis-e2e-test
           docker-compose logs web > ~/logs.txt
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         if: failure()
         with:
           name: "tomcat_logs"

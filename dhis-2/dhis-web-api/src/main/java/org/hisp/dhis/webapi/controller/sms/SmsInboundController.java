@@ -51,7 +51,6 @@ import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.user.CurrentUser;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
@@ -74,7 +73,6 @@ import org.springframework.web.bind.annotation.RestController;
 @AllArgsConstructor
 public class SmsInboundController extends AbstractCrudController<IncomingSms>
 {
-
     private final IncomingSmsService incomingSMSService;
 
     private final RenderService renderService;
@@ -82,8 +80,6 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms>
     private final SMSCommandService smsCommandService;
 
     private final UserService userService;
-
-    private final CurrentUserService currentUserService;
 
     // -------------------------------------------------------------------------
     // POST

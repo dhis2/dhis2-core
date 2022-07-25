@@ -67,7 +67,7 @@ public class ClassBasedSupplier
     private final TrackerIdentifierCollector identifierCollector;
 
     /**
-     * A Map correlating a Tracker class name to the Preheat strategy class name
+     * A Map correlating a Tracker class name to the preheat strategy class name
      * to use to load the data
      */
     @Qualifier( "preheatStrategies" )
@@ -81,7 +81,7 @@ public class ClassBasedSupplier
          * is the reference type (e.g. Enrollment) and the value is a Set of
          * identifiers (e.g. a list of all Enrollment UIDs found in the payload)
          */
-        Map<Class<?>, Set<String>> identifierMap = identifierCollector.collect( params, preheat.getDefaults() );
+        Map<Class<?>, Set<String>> identifierMap = identifierCollector.collect( params );
 
         identifierMap.forEach( ( key, identifiers ) -> {
 

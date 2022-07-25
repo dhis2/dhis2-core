@@ -63,19 +63,16 @@ public class Event
     private EventStatus status = EventStatus.ACTIVE;
 
     @JsonProperty
-    private String program;
+    private MetadataIdentifier program;
 
     @JsonProperty
-    private String programStage;
+    private MetadataIdentifier programStage;
 
     @JsonProperty
     private String enrollment;
 
     @JsonProperty
-    private String orgUnit;
-
-    @JsonProperty
-    private String orgUnitName;
+    private MetadataIdentifier orgUnit;
 
     @JsonProperty
     @Builder.Default
@@ -109,10 +106,11 @@ public class Event
     private Instant updatedAtClient;
 
     @JsonProperty
-    private String attributeOptionCombo;
+    private MetadataIdentifier attributeOptionCombo;
 
     @JsonProperty
-    private String attributeCategoryOptions;
+    @Builder.Default
+    private Set<MetadataIdentifier> attributeCategoryOptions = new HashSet<>();
 
     @JsonProperty
     private String completedBy;
@@ -124,13 +122,13 @@ public class Event
     private Geometry geometry;
 
     @JsonProperty
-    private String assignedUser;
+    private User assignedUser;
 
     @JsonProperty
-    private String createdBy;
+    private User createdBy;
 
     @JsonProperty
-    private String updatedBy;
+    private User updatedBy;
 
     @JsonProperty
     @Builder.Default

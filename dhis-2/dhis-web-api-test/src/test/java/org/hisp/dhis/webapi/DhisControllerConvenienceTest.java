@@ -28,11 +28,19 @@
 package org.hisp.dhis.webapi;
 
 import static org.hisp.dhis.utils.JavaToJson.singleToDoubleQuotes;
-import static org.hisp.dhis.webapi.utils.WebClientUtils.failOnException;
+import static org.hisp.dhis.web.WebClientUtils.failOnException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 
+import java.util.Collections;
+
+import org.hisp.dhis.IntegrationH2Test;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.config.ConfigProviderConfiguration;
+import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.jsontree.JsonResponse;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.utils.TestUtils;
@@ -49,6 +57,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
@@ -62,17 +71,27 @@ import org.springframework.web.context.WebApplicationContext;
  */
 @ExtendWith( SpringExtension.class )
 @WebAppConfiguration
-@ContextConfiguration( classes = { MvcTestConfig.class, WebTestConfiguration.class } )
+@ContextConfiguration( classes = { ConfigProviderConfiguration.class, MvcTestConfig.class,
+    WebTestConfiguration.class } )
 @ActiveProfiles( "test-h2" )
+@IntegrationH2Test
 @Transactional
 public abstract class DhisControllerConvenienceTest extends DhisMockMvcControllerTest
 {
-
     @Autowired
     private WebApplicationContext webApplicationContext;
 
     @Autowired
     private UserService _userService;
+
+    @Autowired
+    protected CurrentUserService currentUserService;
+
+    @Autowired
+    protected IdentifiableObjectManager manager;
+
+    @Autowired
+    protected DbmsManager dbmsManager;
 
     private MockMvc mvc;
 
@@ -87,9 +106,19 @@ public abstract class DhisControllerConvenienceTest extends DhisMockMvcControlle
         throws Exception
     {
         userService = _userService;
+        clearSecurityContext();
+
+        superUser = createAndAddAdminUser( "ALL" );
+
         mvc = MockMvcBuilders.webAppContextSetup( webApplicationContext ).build();
+
+        switchContextToUser( superUser );
+        currentUser = superUser;
+
         TestUtils.executeStartupRoutines( webApplicationContext );
-        superUser = switchToNewUser( null, "ALL" );
+
+        dbmsManager.flushSession();
+        dbmsManager.clearSession();
     }
 
     protected final String getSuperuserUid()
@@ -102,9 +131,14 @@ public abstract class DhisControllerConvenienceTest extends DhisMockMvcControlle
         return currentUser;
     }
 
+    public User getSuperUser()
+    {
+        return superUser;
+    }
+
     protected final User switchToSuperuser()
     {
-        switchContextToUser( superUser );
+        switchContextToUser( userService.getUser( superUser.getUid() ) );
         return superUser;
     }
 
@@ -115,7 +149,8 @@ public abstract class DhisControllerConvenienceTest extends DhisMockMvcControlle
             // we need to be an admin to be allowed to create user groups
             switchContextToUser( superUser );
         }
-        currentUser = currentUser == null ? createAdminUser( authorities ) : createUser( username, authorities );
+
+        currentUser = createUserWithAuth( username, authorities );
         switchContextToUser( currentUser );
         return currentUser;
     }
@@ -123,6 +158,7 @@ public abstract class DhisControllerConvenienceTest extends DhisMockMvcControlle
     protected void switchContextToUser( User user )
     {
         injectSecurityContext( user );
+
         session = new MockHttpSession();
         session.setAttribute( HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
             SecurityContextHolder.getContext() );
@@ -140,8 +176,21 @@ public abstract class DhisControllerConvenienceTest extends DhisMockMvcControlle
             toResponse( mvc.perform( request.session( session ) ).andReturn().getResponse() ) ) );
     }
 
+    protected final MvcResult webRequestWithMvcResult( MockHttpServletRequestBuilder request )
+    {
+        return failOnException( () -> mvc.perform( request.session( session ) ).andReturn() );
+    }
+
     protected final void assertJson( String expected, HttpResponse actual )
     {
         assertEquals( singleToDoubleQuotes( expected ), actual.content().toString() );
+    }
+
+    protected void switchToUserWithOrgUnitDataView( String userName, String orgUnitId )
+    {
+        User user = makeUser( userName, Collections.singletonList( "ALL" ) );
+        user.getDataViewOrganisationUnits().add( manager.get( OrganisationUnit.class, orgUnitId ) );
+        userService.addUser( user );
+        switchContextToUser( user );
     }
 }

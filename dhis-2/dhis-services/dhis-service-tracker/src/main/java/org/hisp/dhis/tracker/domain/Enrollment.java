@@ -31,7 +31,10 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import org.hisp.dhis.tracker.TrackerType;
 import org.locationtech.jts.geom.Geometry;
@@ -67,16 +70,13 @@ public class Enrollment
     private String trackedEntity;
 
     @JsonProperty
-    private String program;
+    private MetadataIdentifier program;
 
     @JsonProperty
     private EnrollmentStatus status;
 
     @JsonProperty
-    private String orgUnit;
-
-    @JsonProperty
-    private String orgUnitName;
+    private MetadataIdentifier orgUnit;
 
     @JsonProperty
     private Instant enrolledAt;
@@ -100,10 +100,10 @@ public class Enrollment
     private String storedBy;
 
     @JsonProperty
-    private String createdBy;
+    private User createdBy;
 
     @JsonProperty
-    private String updatedBy;
+    private User updatedBy;
 
     @JsonProperty
     private Geometry geometry;

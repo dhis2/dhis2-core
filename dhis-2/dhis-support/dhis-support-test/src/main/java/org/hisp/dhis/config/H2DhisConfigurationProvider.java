@@ -55,9 +55,7 @@ public class H2DhisConfigurationProvider implements DhisConfigurationProvider
 {
     private static final String DEFAULT_CONFIGURATION_FILE_NAME = "h2TestConfig.conf";
 
-    private Properties properties;
-
-    private EncryptionStatus encryptionStatus = EncryptionStatus.OK;
+    protected Properties properties;
 
     public H2DhisConfigurationProvider()
     {
@@ -163,12 +161,7 @@ public class H2DhisConfigurationProvider implements DhisConfigurationProvider
     @Override
     public EncryptionStatus getEncryptionStatus()
     {
-        return encryptionStatus;
-    }
-
-    public void setEncryptionStatus( EncryptionStatus status )
-    {
-        this.encryptionStatus = status;
+        return EncryptionStatus.OK;
     }
 
     @Override
@@ -179,7 +172,7 @@ public class H2DhisConfigurationProvider implements DhisConfigurationProvider
                 : getPropertyOrDefault( v, v.getDefaultValue() != null ? v.getDefaultValue() : "" ) ) );
     }
 
-    private Properties getPropertiesFromFile( String fileName )
+    protected Properties getPropertiesFromFile( String fileName )
     {
         try
         {

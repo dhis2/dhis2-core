@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.dxf2.events.importer.context;
 
-import static org.apache.commons.collections.CollectionUtils.isEmpty;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
 import java.sql.ResultSet;
 import java.util.HashMap;

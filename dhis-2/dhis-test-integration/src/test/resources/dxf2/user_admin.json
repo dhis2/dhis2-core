@@ -1,0 +1,32 @@
+{
+  "users": [
+    {
+      "firstName": "admin",
+      "teiSearchOrganisationUnits": [ ],
+      "surname": "surname",
+      "lastUpdated": "2016-03-31T05:13:29.821+0000",
+      "dataViewOrganisationUnits": [ ],
+      "id": "M5zQapPyTZI",
+      "organisationUnits": [ ],
+        "externalAuth": false,
+        "invitation": false,
+        "lastLogin": "2016-03-31T05:06:45.456+0000",
+        "username": "admin",
+        "user": {
+          "id": "M5zQapPyTZI"
+        },
+        "catDimensionConstraints": [ ],
+        "passwordLastUpdated": "2016-03-31T05:06:45.457+0000",
+        "disabled": false,
+        "selfRegistered": false,
+        "userRoles": [
+          {
+            "id": "yrB6vc5Ip3r"
+          }
+        ],
+        "cogsDimensionConstraints": [ ],
+      "code": "admin",
+      "attributeValues": [ ]
+    }
+  ]
+}

@@ -27,9 +27,14 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import java.util.Collections;
-import java.util.List;
+import static java.util.Collections.singletonList;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -53,40 +58,38 @@ class OptionObjectBundleHookTest
 
     private Preheat preheat = new Preheat();
 
+    /**
+     * OptionSet.options doesn't contain to Option, but Option has reference to
+     * OptionSet.
+     * <p>
+     * Expected: OptionSet.options should contain referenced Option after
+     * preCreate.
+     */
     @Test
     void preCreate()
     {
         OptionSet optionSet = new OptionSet();
         optionSet.setUid( "jadhjSHdhs" );
-        Option option = new Option();
-        option.setOptionSet( optionSet );
-        OptionSet persistedOptionSet = new OptionSet();
-        persistedOptionSet.setUid( "jadhjSHdhs" );
-        preheat.put( PreheatIdentifier.UID, persistedOptionSet );
-        ObjectBundleParams objectBundleParams = new ObjectBundleParams();
-        objectBundleParams.setPreheatIdentifier( PreheatIdentifier.UID );
-        ObjectBundle bundle = new ObjectBundle( objectBundleParams, preheat, Collections.emptyMap() );
-        hook.preCreate( option, bundle );
-        Assertions.assertEquals( 1, persistedOptionSet.getOptions().size() );
-        Assertions.assertSame( option, persistedOptionSet.getOptions().get( 0 ) );
-    }
 
-    @Test
-    void preCreateOptionSetAvailable()
-    {
-        OptionSet optionSet = new OptionSet();
-        optionSet.setUid( "jadhjSHdhs" );
         Option option = new Option();
         option.setOptionSet( optionSet );
-        OptionSet persistedOptionSet = new OptionSet();
-        persistedOptionSet.setUid( "jadhjSHdhs" );
-        preheat.put( PreheatIdentifier.UID, persistedOptionSet );
+
+        preheat.put( PreheatIdentifier.UID, optionSet );
+
         ObjectBundleParams objectBundleParams = new ObjectBundleParams();
         objectBundleParams.setPreheatIdentifier( PreheatIdentifier.UID );
-        ObjectBundle bundle = new ObjectBundle( objectBundleParams, preheat,
-            Collections.singletonMap( OptionSet.class, Collections.singletonList( optionSet ) ) );
+
+        final Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objectMap = new HashMap<>();
+        objectMap.put( OptionSet.class, singletonList( optionSet ) );
+        objectMap.put( Option.class, singletonList( option ) );
+
+        ObjectBundle bundle = new ObjectBundle( objectBundleParams, preheat, objectMap );
         hook.preCreate( option, bundle );
-        Assertions.assertEquals( 0, persistedOptionSet.getOptions().size() );
+
+        optionSet = preheat.get( PreheatIdentifier.UID, OptionSet.class, "jadhjSHdhs" );
+
+        Assertions.assertEquals( 1, optionSet.getOptions().size() );
+        Assertions.assertSame( option, optionSet.getOptions().get( 0 ) );
     }
 
     @Test
@@ -108,7 +111,7 @@ class OptionObjectBundleHookTest
         ObjectBundleParams objectBundleParams = new ObjectBundleParams();
         objectBundleParams.setPreheatIdentifier( PreheatIdentifier.UID );
         ObjectBundle bundle = new ObjectBundle( objectBundleParams, preheat,
-            Collections.singletonMap( OptionSet.class, Collections.singletonList( persistedOptionSet ) ) );
+            Collections.singletonMap( OptionSet.class, singletonList( persistedOptionSet ) ) );
         List<ErrorReport> errors = hook.validate( option, bundle );
         Assertions.assertNotNull( errors );
         Assertions.assertEquals( 1, errors.size() );

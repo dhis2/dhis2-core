@@ -27,8 +27,11 @@
  */
 package org.hisp.dhis.program;
 
+import static org.hisp.dhis.common.ValueType.BOOLEAN;
+import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
+import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
@@ -37,6 +40,7 @@ import org.hisp.dhis.program.dataitem.ProgramItemAttribute;
 import org.hisp.dhis.program.dataitem.ProgramItemPsEventdate;
 import org.hisp.dhis.program.dataitem.ProgramItemStageElement;
 import org.hisp.dhis.program.variable.ProgramVariableItem;
+import org.hisp.dhis.system.util.ValidationUtils;
 
 /**
  * Program indicator expression item
@@ -53,18 +57,13 @@ import org.hisp.dhis.program.variable.ProgramVariableItem;
 public abstract class ProgramExpressionItem
     implements ExpressionItem
 {
-    @Override
-    public final Object getItemId( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        throw new ParserExceptionWithoutContext(
-            "Internal parsing error: getItemId called for program indicator item " + ctx.getText() );
-    }
+    private final static String COALESCE = "coalesce(";
 
     @Override
-    public final Object getOrgUnitGroup( ExprContext ctx, CommonExpressionVisitor visitor )
+    public final Object getExpressionInfo( ExprContext ctx, CommonExpressionVisitor visitor )
     {
         throw new ParserExceptionWithoutContext(
-            "Internal parsing error: getOrgUnitGroup called for program indicator item " + ctx.getText() );
+            "Internal parsing error: getExpressionInfo called for program indicator item " + ctx.getText() );
     }
 
     @Override
@@ -106,16 +105,39 @@ public abstract class ProgramExpressionItem
     }
 
     /**
+     * Get a null replacement value, but if the type is boolean get a number.
+     *
+     * @param valueType type to get a null replacement value for
+     * @return the replacement value
+     */
+    protected Object getNullReplacementValue( ValueType valueType )
+    {
+        return ValidationUtils.getNullReplacementValue( (valueType == BOOLEAN)
+            ? NUMBER
+            : valueType );
+    }
+
+    /**
      * Replace null SQL query values with 0 or '', depending on the value type.
      *
      * @param column the column (may be a subquery)
      * @param valueType the type of value that might be null
      * @return SQL to replace a null value with 0 or '' depending on type
      */
-    protected String replaceNullSqlValues( String column, ValueType valueType )
+    protected String replaceNullSqlValues( String column, CommonExpressionVisitor visitor, ValueType valueType )
     {
-        return valueType.isNumeric() || valueType.isBoolean()
-            ? "coalesce(" + column + "::numeric,0)"
-            : "coalesce(" + column + ",'')";
+        if ( valueType.isNumeric() || valueType.isBoolean() )
+        {
+            if ( visitor.getParams().getDataType() == DataType.BOOLEAN )
+            {
+                return COALESCE + column + "::numeric!=0,false)";
+            }
+            else
+            {
+                return COALESCE + column + "::numeric,0)";
+            }
+        }
+
+        return COALESCE + column + "::text,'')";
     }
 }

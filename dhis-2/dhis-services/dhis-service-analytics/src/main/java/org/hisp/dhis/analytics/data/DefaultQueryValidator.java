@@ -182,6 +182,10 @@ public class DefaultQueryValidator
         {
             error = new ErrorMessage( ErrorCode.E7115, getUids( nonAggDataElements ) );
         }
+        else if ( !params.getSkipTotalDataElements().isEmpty() )
+        {
+            error = new ErrorMessage( ErrorCode.E7134 );
+        }
         else if ( params.isOutputFormat( OutputFormat.DATA_VALUE_SET ) )
         {
             if ( !params.hasDimension( DATA_X_DIM_ID ) )

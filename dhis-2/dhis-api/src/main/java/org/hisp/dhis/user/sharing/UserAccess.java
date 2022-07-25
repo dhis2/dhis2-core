@@ -76,6 +76,7 @@ public class UserAccess
         user.setUid( getId() );
         userAccess.setUser( user );
         userAccess.setUid( getId() );
+        userAccess.setDisplayName( getDisplayName() );
 
         return userAccess;
     }

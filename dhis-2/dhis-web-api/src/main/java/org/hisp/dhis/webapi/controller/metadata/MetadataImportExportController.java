@@ -43,11 +43,12 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.csv.CsvImportClass;
@@ -72,7 +73,7 @@ import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -88,9 +89,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -98,6 +97,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 @Controller
 @RequestMapping( "/metadata" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+@Slf4j
 public class MetadataImportExportController
 {
     @Autowired
@@ -217,23 +217,20 @@ public class MetadataImportExportController
     }
 
     @GetMapping
-    public ResponseEntity<JsonNode> getMetadata(
+    public ResponseEntity<MetadataExportParams> getMetadata(
         @RequestParam( required = false, defaultValue = "false" ) boolean translate,
         @RequestParam( required = false ) String locale,
-        @RequestParam( required = false, defaultValue = "false" ) boolean download )
+        @RequestParam( defaultValue = "false" ) boolean download )
     {
         if ( translate )
         {
-            TranslateParams translateParams = new TranslateParams( true, locale );
-            setUserContext( currentUserService.getCurrentUser(), translateParams );
+            setTranslationParams( new TranslateParams( true, locale ) );
         }
 
         MetadataExportParams params = metadataExportService.getParamsFromMap( contextService.getParameterValuesMap() );
         metadataExportService.validate( params );
 
-        ObjectNode rootNode = metadataExportService.getMetadataAsNode( params );
-
-        return MetadataExportControllerUtils.createJsonNodeResponseEntity( rootNode, download );
+        return ResponseEntity.ok( params );
     }
 
     @ResponseBody
@@ -304,11 +301,10 @@ public class MetadataImportExportController
             .setLocation( "/system/tasks/" + GML_IMPORT );
     }
 
-    private void setUserContext( User user, TranslateParams translateParams )
+    private void setTranslationParams( TranslateParams translateParams )
     {
         Locale dbLocale = getLocaleWithDefault( translateParams );
-        UserContext.setUser( user );
-        UserContext.setUserSetting( UserSettingKey.DB_LOCALE, dbLocale );
+        CurrentUserUtil.setUserSetting( UserSettingKey.DB_LOCALE, dbLocale );
     }
 
     private Locale getLocaleWithDefault( TranslateParams translateParams )

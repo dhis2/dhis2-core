@@ -27,11 +27,12 @@
  */
 package org.hisp.dhis.programrule;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import java.util.Objects;
 import java.util.stream.Collectors;
+
+import lombok.AllArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -44,17 +45,11 @@ import org.springframework.stereotype.Component;
 /**
  * @author markusbekken
  */
-@Component( "org.hisp.dhis.programrule.ProgramRuleVariableDeletionHandler" )
-public class ProgramRuleVariableDeletionHandler
-    extends DeletionHandler
+@Component
+@AllArgsConstructor
+public class ProgramRuleVariableDeletionHandler extends DeletionHandler
 {
     private final ProgramRuleVariableService programRuleVariableService;
-
-    public ProgramRuleVariableDeletionHandler( ProgramRuleVariableService programRuleVariableService )
-    {
-        checkNotNull( programRuleVariableService );
-        this.programRuleVariableService = programRuleVariableService;
-    }
 
     @Override
     protected void register()

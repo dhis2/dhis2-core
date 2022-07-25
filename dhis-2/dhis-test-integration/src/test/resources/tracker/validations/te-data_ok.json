@@ -1,0 +1,260 @@
+{
+  "importMode": "COMMIT",
+  "idSchemes": {
+    "dataElementIdScheme": {
+      "idScheme": "UID"
+    },
+    "orgUnitIdScheme": {
+      "idScheme": "UID"
+    },
+    "programIdScheme": {
+      "idScheme": "UID"
+    },
+    "programStageIdScheme": {
+      "idScheme": "UID"
+    },
+    "idScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionComboIdScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionIdScheme": {
+      "idScheme": "UID"
+    }
+  },
+  "importStrategy": "CREATE",
+  "atomicMode": "ALL",
+  "flushMode": "AUTO",
+  "validationMode": "FULL",
+  "skipPatternValidation": false,
+  "skipSideEffects": false,
+  "skipRuleEngine": false,
+  "trackedEntities": [
+    {
+      "trackedEntity": "NCc1rCEOKaY",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "bPJ0FMtcnEh"
+      },
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
+      "inactive": false,
+      "deleted": false,
+      "potentialDuplicate": false,
+      "relationships": [],
+      "attributes": [],
+      "enrollments": []
+    },
+    {
+      "trackedEntity": "PB9VMezGkwA",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "bPJ0FMtcnEh"
+      },
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
+      "inactive": false,
+      "deleted": false,
+      "potentialDuplicate": false,
+      "relationships": [],
+      "attributes": [],
+      "enrollments": []
+    },
+    {
+      "trackedEntity": "N0wuhEwexUW",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "bPJ0FMtcnEh"
+      },
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
+      "inactive": false,
+      "deleted": false,
+      "potentialDuplicate": false,
+      "relationships": [],
+      "attributes": [],
+      "enrollments": []
+    },
+    {
+      "trackedEntity": "g3eF1fJXuSz",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "bPJ0FMtcnEh"
+      },
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
+      "inactive": false,
+      "deleted": false,
+      "potentialDuplicate": false,
+      "relationships": [],
+      "attributes": [],
+      "enrollments": []
+    },
+    {
+      "trackedEntity": "s9D7VHiYLwj",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "bPJ0FMtcnEh"
+      },
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
+      "inactive": false,
+      "deleted": false,
+      "potentialDuplicate": false,
+      "relationships": [],
+      "attributes": [],
+      "enrollments": []
+    },
+    {
+      "trackedEntity": "C5nACFyIFQo",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "bPJ0FMtcnEh"
+      },
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
+      "inactive": false,
+      "deleted": false,
+      "potentialDuplicate": false,
+      "relationships": [],
+      "attributes": [],
+      "enrollments": []
+    },
+    {
+      "trackedEntity": "Jx8Ul6pnRfM",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "bPJ0FMtcnEh"
+      },
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
+      "inactive": false,
+      "deleted": false,
+      "potentialDuplicate": false,
+      "relationships": [],
+      "attributes": [],
+      "enrollments": []
+    },
+    {
+      "trackedEntity": "Z324qoN3WrF",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "bPJ0FMtcnEh"
+      },
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
+      "inactive": false,
+      "deleted": false,
+      "potentialDuplicate": false,
+      "relationships": [],
+      "attributes": [],
+      "enrollments": []
+    },
+    {
+      "trackedEntity": "TGeGZIIt4MO",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "bPJ0FMtcnEh"
+      },
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
+      "inactive": false,
+      "deleted": false,
+      "potentialDuplicate": false,
+      "relationships": [],
+      "attributes": [],
+      "enrollments": []
+    },
+    {
+      "trackedEntity": "KSLmzEjaV6A",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "bPJ0FMtcnEh"
+      },
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
+      "inactive": false,
+      "deleted": false,
+      "potentialDuplicate": false,
+      "relationships": [],
+      "attributes": [],
+      "enrollments": []
+    },
+    {
+      "trackedEntity": "IybbQIQt6rn",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "bPJ0FMtcnEh"
+      },
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
+      "inactive": false,
+      "deleted": false,
+      "potentialDuplicate": false,
+      "relationships": [],
+      "attributes": [],
+      "enrollments": []
+    },
+    {
+      "trackedEntity": "daMwzsKN3oJ",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "bPJ0FMtcnEh"
+      },
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
+      "inactive": false,
+      "deleted": false,
+      "potentialDuplicate": false,
+      "relationships": [],
+      "attributes": [],
+      "enrollments": []
+    },
+    {
+      "trackedEntity": "pcSaZP9lFqu",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "bPJ0FMtcnEh"
+      },
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
+      "inactive": false,
+      "deleted": false,
+      "potentialDuplicate": false,
+      "relationships": [],
+      "attributes": [],
+      "enrollments": []
+    }
+  ],
+  "enrollments": [],
+  "events": [],
+  "relationships": [],
+  "username": "system-process"
+}

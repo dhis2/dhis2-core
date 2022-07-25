@@ -48,6 +48,7 @@ public class DhisPostgresDialect
         super();
         registerColumnType( Types.JAVA_OBJECT, "jsonb" );
         registerHibernateType( Types.OTHER, "pg-uuid" );
+        registerHibernateType( Types.ARRAY, StringArrayType.class.getName() );
         registerFunction( JsonbFunctions.EXTRACT_PATH,
             new StandardSQLFunction( JsonbFunctions.EXTRACT_PATH, StandardBasicTypes.STRING ) );
         registerFunction( JsonbFunctions.EXTRACT_PATH_TEXT,

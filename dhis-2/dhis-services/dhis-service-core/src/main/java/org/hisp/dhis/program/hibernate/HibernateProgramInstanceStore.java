@@ -131,6 +131,15 @@ public class HibernateProgramInstanceStore
             query.setMaxResults( params.getPageSizeWithDefault() );
         }
 
+        // When the clients choose to not show the total of pages.
+        if ( !params.isTotalPages() )
+        {
+            // Get pageSize + 1, so we are able to know if there is another
+            // page available. It adds one additional element into the list,
+            // as consequence. The caller needs to remove the last element.
+            query.setMaxResults( params.getPageSizeWithDefault() + 1 );
+        }
+
         return query.list();
     }
 

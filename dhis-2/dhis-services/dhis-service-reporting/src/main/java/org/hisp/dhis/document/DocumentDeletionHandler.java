@@ -27,37 +27,29 @@
  */
 package org.hisp.dhis.document;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
+
+import java.util.Map;
+
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceStorageStatus;
-import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionVeto;
+import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
 import org.hisp.dhis.user.User;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-@Component( "org.hisp.dhis.document.DocumentDeletionHandler" )
-public class DocumentDeletionHandler extends DeletionHandler
+@Component
+@AllArgsConstructor
+public class DocumentDeletionHandler extends JdbcDeletionHandler
 {
     private static final DeletionVeto VETO = new DeletionVeto( Document.class );
 
     private final DocumentService documentService;
-
-    private final JdbcTemplate jdbcTemplate;
-
-    public DocumentDeletionHandler( DocumentService documentService, JdbcTemplate jdbcTemplate )
-    {
-        checkNotNull( documentService );
-        checkNotNull( jdbcTemplate );
-
-        this.documentService = documentService;
-        this.jdbcTemplate = jdbcTemplate;
-    }
 
     @Override
     protected void register()
@@ -74,17 +66,16 @@ public class DocumentDeletionHandler extends DeletionHandler
 
     private DeletionVeto allowDeleteFileResource( FileResource fileResource )
     {
-        String sql = "SELECT COUNT(*) FROM document WHERE fileresource=" + fileResource.getId();
-
-        int result = jdbcTemplate.queryForObject( sql, Integer.class );
-
-        return result == 0 || fileResource.getStorageStatus() != FileResourceStorageStatus.STORED ? ACCEPT : VETO;
+        if ( fileResource.getStorageStatus() != FileResourceStorageStatus.STORED )
+        {
+            return ACCEPT;
+        }
+        String sql = "select count(*) from document where fileresource=:id";
+        return vetoIfExists( VETO, sql, Map.of( "id", fileResource.getId() ) );
     }
 
     private void deleteFileResource( FileResource fileResource )
     {
-        String sql = "DELETE FROM document WHERE fileresource=" + fileResource.getId();
-
-        jdbcTemplate.execute( sql );
+        delete( "delete from document where fileresource=:id", Map.of( "id", fileResource.getId() ) );
     }
 }

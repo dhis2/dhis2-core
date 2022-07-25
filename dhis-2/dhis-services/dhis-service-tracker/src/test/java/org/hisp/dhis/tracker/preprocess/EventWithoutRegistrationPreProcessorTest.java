@@ -35,9 +35,9 @@ import java.util.Collections;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -61,7 +61,7 @@ class EventWithoutRegistrationPreProcessorTest
     {
         // Given
         Event event = new Event();
-        event.setProgramStage( "programStageUid" );
+        event.setProgramStage( MetadataIdentifier.ofUid( "programStageUid" ) );
         TrackerBundle bundle = TrackerBundle.builder().events( Collections.singletonList( event ) ).build();
         ProgramInstance programInstance = new ProgramInstance();
         programInstance.setUid( "programInstanceUid" );
@@ -72,7 +72,7 @@ class EventWithoutRegistrationPreProcessorTest
         programStage.setProgram( program );
         TrackerPreheat preheat = new TrackerPreheat();
         preheat.putProgramInstancesWithoutRegistration( "programUid", programInstance );
-        preheat.put( TrackerIdentifier.UID, programStage );
+        preheat.put( programStage );
         bundle.setPreheat( preheat );
         // When
         preProcessorToTest.process( bundle );
@@ -85,7 +85,7 @@ class EventWithoutRegistrationPreProcessorTest
     {
         // Given
         Event event = new Event();
-        event.setProgramStage( "programStageUid" );
+        event.setProgramStage( MetadataIdentifier.ofUid( "programStageUid" ) );
         TrackerBundle bundle = TrackerBundle.builder().events( Collections.singletonList( event ) ).build();
         ProgramInstance programInstance = new ProgramInstance();
         programInstance.setUid( "programInstanceUid" );
@@ -95,7 +95,7 @@ class EventWithoutRegistrationPreProcessorTest
         programStage.setUid( "programStageUid" );
         TrackerPreheat preheat = new TrackerPreheat();
         preheat.putProgramInstancesWithoutRegistration( "programUid", programInstance );
-        preheat.put( TrackerIdentifier.UID, programStage );
+        preheat.put( programStage );
         bundle.setPreheat( preheat );
         // When
         preProcessorToTest.process( bundle );

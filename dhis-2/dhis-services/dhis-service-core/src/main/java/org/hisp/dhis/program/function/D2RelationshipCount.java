@@ -28,7 +28,7 @@
 package org.hisp.dhis.program.function;
 
 import static org.hisp.dhis.antlr.AntlrParserUtils.trimQuotes;
-import static org.hisp.dhis.parser.expression.CommonExpressionVisitor.DEFAULT_DOUBLE_VALUE;
+import static org.hisp.dhis.parser.expression.ParserUtils.DEFAULT_DOUBLE_VALUE;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
@@ -51,8 +51,8 @@ public class D2RelationshipCount
         {
             String relationshipId = trimQuotes( ctx.QUOTED_UID().getText() );
 
-            RelationshipType relationshipType = visitor.getRelationshipTypeService()
-                .getRelationshipType( relationshipId );
+            RelationshipType relationshipType = visitor.getIdObjectManager()
+                .get( RelationshipType.class, relationshipId );
 
             if ( relationshipType == null )
             {
@@ -80,6 +80,8 @@ public class D2RelationshipCount
 
         return "(select count(*) from relationship r" + relationshipIdConstraint +
             " join relationshipitem rifrom on rifrom.relationshipid = r.relationshipid" +
-            " join trackedentityinstance tei on rifrom.trackedentityinstanceid = tei.trackedentityinstanceid and tei.uid = ax.tei)";
+            " join trackedentityinstance tei on rifrom.trackedentityinstanceid = tei.trackedentityinstanceid and tei.uid = ax.tei"
+            +
+            " where r.deleted is false)";
     }
 }

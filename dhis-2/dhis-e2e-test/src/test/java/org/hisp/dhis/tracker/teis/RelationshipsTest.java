@@ -39,16 +39,16 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import org.hamcrest.Matchers;
-import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.metadata.MetadataActions;
 import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.actions.tracker.RelationshipActions;
+import org.hisp.dhis.actions.tracker.TEIActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
-import org.hisp.dhis.helpers.TestCleanUp;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
+import org.hisp.dhis.tracker.TrackerApiTest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -62,13 +62,13 @@ import com.google.gson.JsonObject;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class RelationshipsTest
-    extends ApiTest
+    extends TrackerApiTest
 {
     private static List<String> teis;
 
     private static List<String> events;
 
-    private RestApiActions trackedEntityInstanceActions;
+    private TEIActions trackedEntityInstanceActions;
 
     private MetadataActions metadataActions;
 
@@ -90,7 +90,7 @@ public class RelationshipsTest
             Arguments.arguments( "HrS7b5Lis6P", "event", events.get( 0 ), "event", events.get( 1 ) ), // event
                                                                                                       // to
                                                                                                       // event
-            Arguments.arguments( "xLmPUYJX8Ks", "trackedEntityInstance", teis.get( 0 ), "trackedEntityInstance",
+            Arguments.arguments( "WmNgnmedbQK", "trackedEntityInstance", teis.get( 0 ), "trackedEntityInstance",
                 teis.get( 1 ) ) ); // tei to tei
     }
 
@@ -99,7 +99,7 @@ public class RelationshipsTest
         throws Exception
     {
         relationshipActions = new RelationshipActions();
-        trackedEntityInstanceActions = new RestApiActions( "/trackedEntityInstances" );
+        trackedEntityInstanceActions = new TEIActions();
         metadataActions = new MetadataActions();
         eventActions = new EventActions();
 
@@ -145,6 +145,37 @@ public class RelationshipsTest
             .rootPath( "response.importSummaries[0]" )
             .body( "status", equalTo( "ERROR" ) )
             .body( "description", Matchers.stringContainsInOrder( "Relationship", "already exist" ) )
+            .body( "importCount.ignored", equalTo( 1 ) );
+    }
+
+    @Test
+    public void softDeletedRelationshipsShouldNotBeUpdated()
+    {
+        // create a relationship
+        JsonObject object = relationshipActions
+            .createRelationshipBody( "xLmPUYJX8Ks", "trackedEntityInstance", teis.get( 0 ), "trackedEntityInstance",
+                teis.get( 1 ) );
+
+        ApiResponse response = relationshipActions.post( object );
+
+        response.validate().statusCode( 200 );
+        createdRelationship = response.extractUid();
+
+        relationshipActions.softDelete( createdRelationship );
+
+        // Update soft deleted relationship
+        object.addProperty( "relationship", createdRelationship );
+        response = relationshipActions.post( object );
+
+        response.validate().statusCode( 409 )
+            .body( "status", equalTo( "ERROR" ) )
+            .body( "response.status", equalTo( "ERROR" ) )
+            .body( "response.ignored", equalTo( 1 ) )
+            .body( "response.total", equalTo( 1 ) )
+            .rootPath( "response.importSummaries[0]" )
+            .body( "status", equalTo( "ERROR" ) )
+            .body( "description", Matchers.containsString(
+                "Relationship '" + createdRelationship + "' is already deleted and cannot be modified." ) )
             .body( "importCount.ignored", equalTo( 1 ) );
     }
 
@@ -213,6 +244,6 @@ public class RelationshipsTest
     @AfterEach
     public void cleanup()
     {
-        new TestCleanUp().deleteEntity( "relationships", createdRelationship );
+        relationshipActions.delete( createdRelationship );
     }
 }

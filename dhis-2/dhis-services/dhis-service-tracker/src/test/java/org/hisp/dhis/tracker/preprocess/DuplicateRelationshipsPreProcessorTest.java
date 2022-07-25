@@ -32,8 +32,9 @@ import static org.hamcrest.Matchers.hasSize;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
@@ -65,8 +66,8 @@ class DuplicateRelationshipsPreProcessorTest
         relationshipTypeBidirectional.setBidirectional( true );
         RelationshipType relationshipTypeNonBidirectional = new RelationshipType();
         relationshipTypeNonBidirectional.setUid( REL_TYPE_NONBIDIRECTIONAL_UID );
-        preheat.put( TrackerIdentifier.UID, relationshipTypeBidirectional );
-        preheat.put( TrackerIdentifier.UID, relationshipTypeNonBidirectional );
+        preheat.put( TrackerIdSchemeParam.UID, relationshipTypeBidirectional );
+        preheat.put( TrackerIdSchemeParam.UID, relationshipTypeNonBidirectional );
         this.preProcessor = new DuplicateRelationshipsPreProcessor();
     }
 
@@ -77,11 +78,11 @@ class DuplicateRelationshipsPreProcessorTest
         String fromTeiUid = CodeGenerator.generateUid();
         String toTeiUid = CodeGenerator.generateUid();
         Relationship relationship1 = Relationship.builder().relationship( CodeGenerator.generateUid() )
-            .relationshipType( relType ).from( RelationshipItem.builder().trackedEntity( fromTeiUid ).build() )
-            .to( RelationshipItem.builder().trackedEntity( toTeiUid ).build() ).build();
+            .relationshipType( MetadataIdentifier.ofUid( relType ) ).from( trackedEntityRelationshipItem( fromTeiUid ) )
+            .to( trackedEntityRelationshipItem( toTeiUid ) ).build();
         Relationship relationship2 = Relationship.builder().relationship( CodeGenerator.generateUid() )
-            .relationshipType( relType ).from( RelationshipItem.builder().trackedEntity( fromTeiUid ).build() )
-            .to( RelationshipItem.builder().trackedEntity( toTeiUid ).build() ).build();
+            .relationshipType( MetadataIdentifier.ofUid( relType ) ).from( trackedEntityRelationshipItem( fromTeiUid ) )
+            .to( trackedEntityRelationshipItem( toTeiUid ) ).build();
         TrackerBundle bundle = TrackerBundle.builder().preheat( this.preheat )
             .relationships( Lists.newArrayList( relationship1, relationship2 ) ).build();
         preProcessor.process( bundle );
@@ -102,11 +103,11 @@ class DuplicateRelationshipsPreProcessorTest
         String fromTeiUid = CodeGenerator.generateUid();
         String toTeiUid = CodeGenerator.generateUid();
         Relationship relationship1 = Relationship.builder().relationship( CodeGenerator.generateUid() )
-            .relationshipType( relType ).from( RelationshipItem.builder().trackedEntity( fromTeiUid ).build() )
-            .to( RelationshipItem.builder().trackedEntity( toTeiUid ).build() ).build();
+            .relationshipType( MetadataIdentifier.ofUid( relType ) ).from( trackedEntityRelationshipItem( fromTeiUid ) )
+            .to( trackedEntityRelationshipItem( toTeiUid ) ).build();
         Relationship relationship2 = Relationship.builder().relationship( CodeGenerator.generateUid() )
-            .relationshipType( relType ).from( RelationshipItem.builder().trackedEntity( fromTeiUid ).build() )
-            .to( RelationshipItem.builder().trackedEntity( toTeiUid ).build() ).build();
+            .relationshipType( MetadataIdentifier.ofUid( relType ) ).from( trackedEntityRelationshipItem( fromTeiUid ) )
+            .to( trackedEntityRelationshipItem( toTeiUid ) ).build();
         TrackerBundle bundle = TrackerBundle.builder().preheat( this.preheat )
             .relationships( Lists.newArrayList( relationship1, relationship2 ) ).build();
         preProcessor.process( bundle );
@@ -126,13 +127,13 @@ class DuplicateRelationshipsPreProcessorTest
         String fromTeiUid = CodeGenerator.generateUid();
         String toTeiUid = CodeGenerator.generateUid();
         Relationship relationship1 = Relationship.builder().relationship( CodeGenerator.generateUid() )
-            .relationshipType( REL_TYPE_NONBIDIRECTIONAL_UID )
-            .from( RelationshipItem.builder().trackedEntity( fromTeiUid ).build() )
-            .to( RelationshipItem.builder().trackedEntity( toTeiUid ).build() ).build();
+            .relationshipType( MetadataIdentifier.ofUid( REL_TYPE_NONBIDIRECTIONAL_UID ) )
+            .from( trackedEntityRelationshipItem( fromTeiUid ) )
+            .to( trackedEntityRelationshipItem( toTeiUid ) ).build();
         Relationship relationship2 = Relationship.builder().relationship( CodeGenerator.generateUid() )
-            .relationshipType( REL_TYPE_NONBIDIRECTIONAL_UID )
-            .from( RelationshipItem.builder().trackedEntity( fromTeiUid ).build() )
-            .to( RelationshipItem.builder().enrollment( toTeiUid ).build() ).build();
+            .relationshipType( MetadataIdentifier.ofUid( REL_TYPE_NONBIDIRECTIONAL_UID ) )
+            .from( trackedEntityRelationshipItem( fromTeiUid ) )
+            .to( enrollmentRelationshipItem( toTeiUid ) ).build();
         TrackerBundle bundle = TrackerBundle.builder().preheat( this.preheat )
             .relationships( Lists.newArrayList( relationship1, relationship2 ) ).build();
         preProcessor.process( bundle );
@@ -153,13 +154,13 @@ class DuplicateRelationshipsPreProcessorTest
         String fromTeiUid = CodeGenerator.generateUid();
         String toTeiUid = CodeGenerator.generateUid();
         Relationship relationship1 = Relationship.builder().relationship( CodeGenerator.generateUid() )
-            .relationshipType( relType ).bidirectional( false )
-            .from( RelationshipItem.builder().trackedEntity( fromTeiUid ).build() )
-            .to( RelationshipItem.builder().trackedEntity( toTeiUid ).build() ).build();
+            .relationshipType( MetadataIdentifier.ofUid( relType ) ).bidirectional( false )
+            .from( trackedEntityRelationshipItem( fromTeiUid ) )
+            .to( trackedEntityRelationshipItem( toTeiUid ) ).build();
         Relationship relationship2 = Relationship.builder().relationship( CodeGenerator.generateUid() )
-            .relationshipType( relType ).bidirectional( false )
-            .from( RelationshipItem.builder().trackedEntity( toTeiUid ).build() )
-            .to( RelationshipItem.builder().trackedEntity( fromTeiUid ).build() ).build();
+            .relationshipType( MetadataIdentifier.ofUid( relType ) ).bidirectional( false )
+            .from( trackedEntityRelationshipItem( toTeiUid ) )
+            .to( trackedEntityRelationshipItem( fromTeiUid ) ).build();
         TrackerBundle bundle = TrackerBundle.builder().preheat( this.preheat )
             .relationships( Lists.newArrayList( relationship1, relationship2 ) ).build();
         preProcessor.process( bundle );
@@ -182,11 +183,11 @@ class DuplicateRelationshipsPreProcessorTest
         String fromTeiUid = CodeGenerator.generateUid();
         String toTeiUid = CodeGenerator.generateUid();
         Relationship relationship1 = Relationship.builder().relationship( CodeGenerator.generateUid() )
-            .relationshipType( relType ).from( RelationshipItem.builder().trackedEntity( fromTeiUid ).build() )
-            .to( RelationshipItem.builder().trackedEntity( toTeiUid ).build() ).build();
+            .relationshipType( MetadataIdentifier.ofUid( relType ) ).from( trackedEntityRelationshipItem( fromTeiUid ) )
+            .to( trackedEntityRelationshipItem( toTeiUid ) ).build();
         Relationship relationship2 = Relationship.builder().relationship( CodeGenerator.generateUid() )
-            .relationshipType( relType ).from( RelationshipItem.builder().trackedEntity( toTeiUid ).build() )
-            .to( RelationshipItem.builder().trackedEntity( fromTeiUid ).build() ).build();
+            .relationshipType( MetadataIdentifier.ofUid( relType ) ).from( trackedEntityRelationshipItem( toTeiUid ) )
+            .to( trackedEntityRelationshipItem( fromTeiUid ) ).build();
         TrackerBundle bundle = TrackerBundle.builder().preheat( this.preheat )
             .relationships( Lists.newArrayList( relationship1, relationship2 ) ).build();
         preProcessor.process( bundle );
@@ -209,16 +210,30 @@ class DuplicateRelationshipsPreProcessorTest
         String fromTeiUid = CodeGenerator.generateUid();
         String toTeiUid = CodeGenerator.generateUid();
         Relationship relationship1 = Relationship.builder().relationship( CodeGenerator.generateUid() )
-            .relationshipType( relType ).bidirectional( true )
-            .from( RelationshipItem.builder().trackedEntity( fromTeiUid ).build() )
-            .to( RelationshipItem.builder().trackedEntity( toTeiUid ).build() ).build();
+            .relationshipType( MetadataIdentifier.ofUid( relType ) ).bidirectional( true )
+            .from( trackedEntityRelationshipItem( fromTeiUid ) )
+            .to( trackedEntityRelationshipItem( toTeiUid ) ).build();
         Relationship relationship2 = Relationship.builder().relationship( CodeGenerator.generateUid() )
-            .relationshipType( relType ).bidirectional( true )
-            .from( RelationshipItem.builder().trackedEntity( fromTeiUid ).build() )
-            .to( RelationshipItem.builder().trackedEntity( toTeiUid ).build() ).build();
+            .relationshipType( MetadataIdentifier.ofUid( relType ) ).bidirectional( true )
+            .from( trackedEntityRelationshipItem( fromTeiUid ) )
+            .to( trackedEntityRelationshipItem( toTeiUid ) ).build();
         TrackerBundle bundle = TrackerBundle.builder().preheat( this.preheat )
             .relationships( Lists.newArrayList( relationship1, relationship2 ) ).build();
         preProcessor.process( bundle );
         assertThat( bundle.getRelationships(), hasSize( 1 ) );
+    }
+
+    private RelationshipItem trackedEntityRelationshipItem( String trackedEntityUid )
+    {
+        return RelationshipItem.builder()
+            .trackedEntity( trackedEntityUid )
+            .build();
+    }
+
+    private RelationshipItem enrollmentRelationshipItem( String enrollmentUid )
+    {
+        return RelationshipItem.builder()
+            .enrollment( enrollmentUid )
+            .build();
     }
 }

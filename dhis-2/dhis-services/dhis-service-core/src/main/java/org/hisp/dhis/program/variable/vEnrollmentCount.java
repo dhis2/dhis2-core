@@ -41,7 +41,7 @@ public class vEnrollmentCount
     @Override
     public Object getSql( CommonExpressionVisitor visitor )
     {
-        if ( visitor.getProgramIndicator().getAnalyticsType().equals( AnalyticsType.ENROLLMENT ) )
+        if ( visitor.getProgParams().getProgramIndicator().getAnalyticsType().equals( AnalyticsType.ENROLLMENT ) )
         {
             return "pi";
         }

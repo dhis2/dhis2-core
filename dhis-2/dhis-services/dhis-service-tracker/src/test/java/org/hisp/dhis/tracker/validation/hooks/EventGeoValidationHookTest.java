@@ -40,10 +40,12 @@ import static org.mockito.Mockito.when;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -66,20 +68,28 @@ class EventGeoValidationHookTest
     private EventGeoValidationHook hookToTest;
 
     @Mock
-    private TrackerImportValidationContext validationContext;
+    private TrackerPreheat preheat;
+
+    private TrackerBundle bundle;
+
+    private ValidationErrorReporter reporter;
 
     @BeforeEach
     public void setUp()
     {
         hookToTest = new EventGeoValidationHook();
 
-        TrackerBundle bundle = TrackerBundle.builder().build();
-
-        when( validationContext.getBundle() ).thenReturn( bundle );
+        bundle = TrackerBundle.builder()
+            .preheat( preheat )
+            .build();
 
         ProgramStage programStage = new ProgramStage();
         programStage.setFeatureType( FeatureType.POINT );
-        when( validationContext.getProgramStage( PROGRAM_STAGE ) ).thenReturn( programStage );
+        when( preheat.getProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE ) ) )
+            .thenReturn( programStage );
+
+        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
+        reporter = new ValidationErrorReporter( idSchemes );
     }
 
     @Test
@@ -87,13 +97,11 @@ class EventGeoValidationHookTest
     {
         // given
         Event event = new Event();
-        event.setProgramStage( PROGRAM_STAGE );
+        event.setProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE ) );
         event.setGeometry( new GeometryFactory().createPoint() );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
-
         // when
-        this.hookToTest.validateEvent( reporter, event );
+        this.hookToTest.validateEvent( reporter, bundle, event );
 
         // then
         assertFalse( reporter.hasErrors() );
@@ -107,10 +115,10 @@ class EventGeoValidationHookTest
         event.setProgramStage( null );
         event.setGeometry( new GeometryFactory().createPoint() );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        when( preheat.getProgramStage( (MetadataIdentifier) null ) ).thenReturn( null );
 
         // when
-        assertThrows( NullPointerException.class, () -> this.hookToTest.validateEvent( reporter, event ) );
+        assertThrows( NullPointerException.class, () -> this.hookToTest.validateEvent( reporter, bundle, event ) );
     }
 
     @Test
@@ -119,15 +127,13 @@ class EventGeoValidationHookTest
         // given
         Event event = new Event();
         event.setEvent( CodeGenerator.generateUid() );
-        event.setProgramStage( PROGRAM_STAGE );
+        event.setProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE ) );
         event.setGeometry( new GeometryFactory().createPoint() );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
-
         // when
-        when( validationContext.getProgramStage( event.getProgramStage() ) ).thenReturn( new ProgramStage() );
+        when( preheat.getProgramStage( event.getProgramStage() ) ).thenReturn( new ProgramStage() );
 
-        this.hookToTest.validateEvent( reporter, event );
+        this.hookToTest.validateEvent( reporter, bundle, event );
 
         // then
         hasTrackerError( reporter, E1074, EVENT, event.getUid() );
@@ -139,17 +145,15 @@ class EventGeoValidationHookTest
         // given
         Event event = new Event();
         event.setEvent( CodeGenerator.generateUid() );
-        event.setProgramStage( PROGRAM_STAGE );
+        event.setProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE ) );
         event.setGeometry( new GeometryFactory().createPoint() );
-
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
 
         // when
         ProgramStage programStage = new ProgramStage();
         programStage.setFeatureType( NONE );
-        when( validationContext.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
+        when( preheat.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
 
-        this.hookToTest.validateEvent( reporter, event );
+        this.hookToTest.validateEvent( reporter, bundle, event );
 
         // then
         hasTrackerError( reporter, E1012, EVENT, event.getUid() );
@@ -161,17 +165,15 @@ class EventGeoValidationHookTest
         // given
         Event event = new Event();
         event.setEvent( CodeGenerator.generateUid() );
-        event.setProgramStage( PROGRAM_STAGE );
+        event.setProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE ) );
         event.setGeometry( new GeometryFactory().createPoint() );
-
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
 
         // when
         ProgramStage programStage = new ProgramStage();
         programStage.setFeatureType( MULTI_POLYGON );
-        when( validationContext.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
+        when( preheat.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
 
-        this.hookToTest.validateEvent( reporter, event );
+        this.hookToTest.validateEvent( reporter, bundle, event );
 
         // then
         hasTrackerError( reporter, E1012, EVENT, event.getUid() );

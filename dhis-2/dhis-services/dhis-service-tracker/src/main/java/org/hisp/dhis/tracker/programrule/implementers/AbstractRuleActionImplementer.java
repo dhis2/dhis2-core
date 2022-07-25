@@ -32,16 +32,18 @@ import static org.hisp.dhis.rules.models.AttributeType.TRACKED_ENTITY_ATTRIBUTE;
 import static org.hisp.dhis.rules.models.AttributeType.UNKNOWN;
 import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.needsToValidateDataValues;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.rules.models.AttributeType;
 import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionAttribute;
 import org.hisp.dhis.rules.models.RuleEffect;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.DataValue;
@@ -51,13 +53,14 @@ import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.programrule.EnrollmentActionRule;
 import org.hisp.dhis.tracker.programrule.EventActionRule;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
+import org.hisp.dhis.tracker.programrule.RuleActionImplementer;
 
-import com.google.api.client.util.Lists;
-import com.google.common.collect.Maps;
+import com.google.common.collect.Lists;
 
 // TODO: Verify if we can remove checks on ProgramStage when Program Rule
 // validation is in place
-abstract public class AbstractRuleActionImplementer<T extends RuleAction>
+public abstract class AbstractRuleActionImplementer<T extends RuleAction>
+    implements RuleActionImplementer
 {
     /**
      * @return the class of the action that the implementer work with
@@ -80,7 +83,7 @@ abstract public class AbstractRuleActionImplementer<T extends RuleAction>
      * @return A list of program rule issues that can be either warnings or
      *         errors
      */
-    abstract List<ProgramRuleIssue> applyToEvents( Map.Entry<String, List<EventActionRule>> eventActionRules,
+    abstract List<ProgramRuleIssue> applyToEvents( Event event, List<EventActionRule> eventActionRules,
         TrackerBundle bundle );
 
     /**
@@ -91,8 +94,8 @@ abstract public class AbstractRuleActionImplementer<T extends RuleAction>
      * @return A list of program rule issues that can be either warnings or
      *         errors
      */
-    abstract List<ProgramRuleIssue> applyToEnrollments(
-        Map.Entry<String, List<EnrollmentActionRule>> enrollmentActionRules, TrackerBundle bundle );
+    abstract List<ProgramRuleIssue> applyToEnrollments( Enrollment enrollment,
+        List<EnrollmentActionRule> enrollmentActionRules, TrackerBundle bundle );
 
     /**
      * Get the content from the action.
@@ -105,29 +108,21 @@ abstract public class AbstractRuleActionImplementer<T extends RuleAction>
         return null;
     }
 
-    public Map<String, List<ProgramRuleIssue>> validateEvents( TrackerBundle bundle )
+    @Override
+    public List<ProgramRuleIssue> validateEvent( TrackerBundle bundle, List<RuleEffect> ruleEffects, Event event )
     {
-        Map<String, List<EventActionRule>> eventEffects = getEventEffects( bundle.getEventRuleEffects(), bundle );
+        List<EventActionRule> eventEffects = getEventEffects( event, ruleEffects, bundle );
 
-        return eventEffects
-            .entrySet()
-            .stream()
-            .map( entry -> Maps.immutableEntry( entry.getKey(), applyToEvents( entry, bundle ) ) )
-            .filter( entry -> !entry.getValue().isEmpty() )
-            .collect( Collectors.toMap( Map.Entry::getKey, Map.Entry::getValue ) );
+        return applyToEvents( event, eventEffects, bundle );
     }
 
-    public Map<String, List<ProgramRuleIssue>> validateEnrollments( TrackerBundle bundle )
+    @Override
+    public List<ProgramRuleIssue> validateEnrollment( TrackerBundle bundle, List<RuleEffect> ruleEffects,
+        Enrollment enrollment )
     {
-        Map<String, List<EnrollmentActionRule>> enrollmentEffects = getEnrollmentEffects(
-            bundle.getEnrollmentRuleEffects(), bundle );
+        List<EnrollmentActionRule> enrollmentEffects = getEnrollmentEffects( enrollment, ruleEffects, bundle );
 
-        return enrollmentEffects
-            .entrySet()
-            .stream()
-            .map( entry -> Maps.immutableEntry( entry.getKey(), applyToEnrollments( entry, bundle ) ) )
-            .filter( entry -> !entry.getValue().isEmpty() )
-            .collect( Collectors.toMap( Map.Entry::getKey, Map.Entry::getValue ) );
+        return applyToEnrollments( enrollment, enrollmentEffects, bundle );
     }
 
     /**
@@ -139,35 +134,25 @@ abstract public class AbstractRuleActionImplementer<T extends RuleAction>
      * @param bundle
      * @return A map of actions by event
      */
-    public Map<String, List<EventActionRule>> getEventEffects(
-        Map<String, List<RuleEffect>> effects, TrackerBundle bundle )
+    public List<EventActionRule> getEventEffects( Event event, List<RuleEffect> effects, TrackerBundle bundle )
     {
+        ProgramStage programStage = bundle.getPreheat().getProgramStage( event.getProgramStage() );
+        Set<DataValue> dataValues = event.getDataValues();
         return effects
-            .entrySet()
             .stream()
-            .filter( entry -> getEvent( bundle, entry.getKey() ).isPresent() )
-            .collect( Collectors.toMap( Map.Entry::getKey,
-                e -> {
-                    Event event = getEvent( bundle, e.getKey() ).get();
-                    ProgramStage programStage = bundle.getPreheat().get( ProgramStage.class, event.getProgramStage() );
-                    Set<DataValue> dataValues = event.getDataValues();
-
-                    List<EventActionRule> eventActionRules = e.getValue()
-                        .stream()
-                        .filter( effect -> getActionClass().isAssignableFrom( effect.ruleAction().getClass() ) )
-                        .filter( effect -> getAttributeType( effect.ruleAction() ) == UNKNOWN ||
-                            getAttributeType( effect.ruleAction() ) == DATA_ELEMENT )
-                        .map( effect -> new EventActionRule( effect.ruleId(), event.getEvent(), effect.data(),
-                            getField( (T) effect.ruleAction() ), getAttributeType( effect.ruleAction() ),
-                            getContent( (T) effect.ruleAction() ), dataValues ) )
-                        .filter( effect -> effect.getAttributeType() != DATA_ELEMENT ||
-                            isDataElementPartOfProgramStage( effect.getField(), programStage ) )
-                        .filter(
-                            effect -> effect.getAttributeType() != DATA_ELEMENT ||
-                                needsToValidateDataValues( event, programStage ) )
-                        .collect( Collectors.toList() );
-                    return eventActionRules;
-                } ) );
+            .filter( effect -> getActionClass().isAssignableFrom( effect.ruleAction().getClass() ) )
+            .filter( effect -> getAttributeType( effect.ruleAction() ) == UNKNOWN ||
+                getAttributeType( effect.ruleAction() ) == DATA_ELEMENT )
+            .map( effect -> new EventActionRule( effect.ruleId(), effect.data(),
+                getField( (T) effect.ruleAction() ),
+                getAttributeType( effect.ruleAction() ),
+                getContent( (T) effect.ruleAction() ), dataValues ) )
+            .filter( effect -> effect.getAttributeType() != DATA_ELEMENT ||
+                isDataElementPartOfProgramStage( effect.getField(), programStage ) )
+            .filter(
+                effect -> effect.getAttributeType() != DATA_ELEMENT ||
+                    needsToValidateDataValues( event, programStage ) )
+            .collect( Collectors.toList() );
     }
 
     /**
@@ -178,51 +163,31 @@ abstract public class AbstractRuleActionImplementer<T extends RuleAction>
      * @return A map of actions by enrollment
      */
     @SuppressWarnings( "unchecked" )
-    public Map<String, List<EnrollmentActionRule>> getEnrollmentEffects(
-        Map<String, List<RuleEffect>> effects, TrackerBundle bundle )
+    public List<EnrollmentActionRule> getEnrollmentEffects( Enrollment enrollment, List<RuleEffect> effects,
+        TrackerBundle bundle )
     {
+        List<Attribute> payloadTeiAttributes = getTrackedEntity( bundle, enrollment.getTrackedEntity() )
+            .map( TrackedEntity::getAttributes )
+            .orElse( Collections.emptyList() );
+        List<Attribute> attributes = mergeAttributes( enrollment.getAttributes(),
+            payloadTeiAttributes );
+
         return effects
-            .entrySet()
             .stream()
-            .filter( entry -> getEnrollment( bundle, entry.getKey() ).isPresent() )
-            .collect( Collectors.toMap( Map.Entry::getKey,
-                e -> {
-                    Enrollment enrollment = getEnrollment( bundle, e.getKey() ).get();
-                    TrackedEntityInstance tei = bundle.getPreheat()
-                        .getTrackedEntity( TrackerIdScheme.UID, enrollment.getTrackedEntity() );
-
-                    List<Attribute> payloadTeiAttributes = getTrackedEntity( bundle, enrollment.getTrackedEntity() )
-                        .map( te -> te.getAttributes() )
-                        .orElse( Collections.emptyList() );
-
-                    List<Attribute> attributes = mergeAttributes( enrollment.getAttributes(), payloadTeiAttributes );
-
-                    List<EnrollmentActionRule> enrollmentActionRules = e.getValue()
-                        .stream()
-                        .filter( effect -> getActionClass().isAssignableFrom( effect.ruleAction().getClass() ) )
-                        .filter( effect -> getAttributeType( effect.ruleAction() ) == UNKNOWN ||
-                            getAttributeType( effect.ruleAction() ) == TRACKED_ENTITY_ATTRIBUTE )
-                        .map( effect -> new EnrollmentActionRule( effect.ruleId(),
-                            enrollment.getEnrollment(), effect.data(),
-                            getField( (T) effect.ruleAction() ), getAttributeType( effect.ruleAction() ),
-                            getContent( (T) effect.ruleAction() ), attributes ) )
-                        .collect( Collectors.toList() );
-                    return enrollmentActionRules;
-                } ) );
+            .filter( effect -> getActionClass().isAssignableFrom( effect.ruleAction().getClass() ) )
+            .filter( effect -> getAttributeType( effect.ruleAction() ) == UNKNOWN ||
+                getAttributeType( effect.ruleAction() ) == TRACKED_ENTITY_ATTRIBUTE )
+            .map( effect -> new EnrollmentActionRule( effect.ruleId(), effect.data(),
+                getField( (T) effect.ruleAction() ),
+                getAttributeType( effect.ruleAction() ),
+                getContent( (T) effect.ruleAction() ), attributes ) )
+            .collect( Collectors.toList() );
     }
 
-    private List<Attribute> mergeAttributes(
-        List<Attribute> enrollmentAttributes, List<Attribute> attributes )
+    private List<Attribute> mergeAttributes( List<Attribute> enrollmentAttributes, List<Attribute> attributes )
     {
 
-        List<String> payloadAttributes = attributes.stream()
-            .map( Attribute::getAttribute )
-            .collect( Collectors.toList() );
-        payloadAttributes
-            .addAll( enrollmentAttributes.stream().map( Attribute::getAttribute ).collect( Collectors.toList() ) );
-
         List<Attribute> mergedAttributes = Lists.newArrayList();
-
         mergedAttributes.addAll( attributes );
         mergedAttributes.addAll( enrollmentAttributes );
         return mergedAttributes;
@@ -232,7 +197,7 @@ abstract public class AbstractRuleActionImplementer<T extends RuleAction>
     {
         return programStage.getDataElements()
             .stream()
-            .map( de -> de.getUid() )
+            .map( BaseIdentifiableObject::getUid )
             .anyMatch( de -> de.equals( dataElementUid ) );
     }
 

@@ -65,6 +65,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.sqlview.SqlView;
@@ -161,7 +162,9 @@ public class Attribute
 
         EVENT_REPORT( EventReport.class ),
 
-        EVENT_CHART( EventChart.class );
+        EVENT_CHART( EventChart.class ),
+
+        RELATIONSHIP_TYPE( RelationshipType.class );
 
         final Class<? extends IdentifiableObject> type;
 
@@ -202,6 +205,11 @@ public class Attribute
     public Attribute()
     {
 
+    }
+
+    public Attribute( String uid )
+    {
+        this.uid = uid;
     }
 
     public Attribute( String name, ValueType valueType )
@@ -721,6 +729,18 @@ public class Attribute
     public void setEventChartAttribute( boolean eventChartAttribute )
     {
         setAttribute( ObjectType.EVENT_CHART, eventChartAttribute );
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isRelationshipTypeAttribute()
+    {
+        return isAttribute( ObjectType.RELATIONSHIP_TYPE );
+    }
+
+    public void setRelationshipTypeAttribute( boolean relationshipTypeAttribute )
+    {
+        setAttribute( ObjectType.RELATIONSHIP_TYPE, relationshipTypeAttribute );
     }
 
     @JsonProperty

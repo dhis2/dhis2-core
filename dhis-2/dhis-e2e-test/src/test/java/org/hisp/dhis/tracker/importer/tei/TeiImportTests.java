@@ -27,21 +27,32 @@
  */
 package org.hisp.dhis.tracker.importer.tei;
 
-import com.google.gson.JsonObject;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
+
+import java.io.File;
+import java.util.stream.Stream;
+
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.tracker.TrackerNtiApiTest;
+import org.hisp.dhis.tracker.importer.databuilder.RelationshipDataBuilder;
+import org.hisp.dhis.tracker.importer.databuilder.TeiDataBuilder;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
-import java.io.File;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
-import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -49,20 +60,25 @@ import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
 public class TeiImportTests
     extends TrackerNtiApiTest
 {
+    private String teiId;
+
     @BeforeAll
     public void beforeAll()
+        throws Exception
     {
         loginActions.loginAsSuperUser();
+
+        teiId = super.importTei();
     }
 
     @Test
     public void shouldImportTei()
     {
         // arrange
-        JsonObject trackedEntities = new JsonObjectBuilder()
-            .addProperty( "trackedEntityType", "Q9GufDoplCL" )
-            .addProperty( "orgUnit", Constants.ORG_UNIT_IDS[0] )
-            .wrapIntoArray( "trackedEntities" );
+        JsonObject trackedEntities = new TeiDataBuilder()
+            .setTeiType( Constants.TRACKED_ENTITY_TYPE )
+            .setOu( Constants.ORG_UNIT_IDS[0] )
+            .array();
 
         // act
         TrackerApiResponse response = trackerActions.postAndGetJobReport( trackedEntities );
@@ -87,50 +103,23 @@ public class TeiImportTests
     }
 
     @Test
-    public void shouldImportTeiWithAttributes()
+    public void shouldImportTeiAndEnrollmentWithAttributes()
         throws Exception
     {
         JsonObject teiBody = new FileReaderUtils()
-            .readJsonAndGenerateData( new File( "src/test/resources/tracker/importer/teis/tei.json" ) );
+            .readJsonAndGenerateData(
+                new File( "src/test/resources/tracker/importer/teis/teiWithEnrollmentAndAttributes.json" ) );
 
         // act
         TrackerApiResponse response = trackerActions.postAndGetJobReport( teiBody );
 
         // assert
         response.validateSuccessfulImport()
-            .validateTeis()
-            .body( "stats.created", equalTo( 1 ) )
-            .body( "objectReports", notNullValue() )
-            .body( "objectReports[0].errorReports", empty() );
-
-        // assert that the TEI was imported
-        String teiId = response.extractImportedTeis().get( 0 );
-
-        ApiResponse teiResponse = trackerActions.getTrackedEntity( teiId );
-
-        teiResponse.validate()
-            .statusCode( 200 );
-
-        assertThat( teiResponse.getBody(), matchesJSON( teiBody.get( "trackedEntities" ).getAsJsonArray().get( 0 ) ) );
-    }
-
-    @Test
-    public void shouldImportTeiAndEnrollmentWithAttributes()
-            throws Exception
-    {
-        JsonObject teiBody = new FileReaderUtils()
-                .readJsonAndGenerateData( new File( "src/test/resources/tracker/importer/teis/teiWithEnrollmentAndAttributes.json" ) );
-
-        // act
-        TrackerApiResponse response = trackerActions.postAndGetJobReport( teiBody );
-
-        // assert
-        response.validateSuccessfulImport()
-                .validate()
-                .body( "stats.created", equalTo( 2 ) )
-                .rootPath( "bundleReport.typeReportMap" )
-                .body( "TRACKED_ENTITY.objectReports", hasSize( 1 ) )
-                .body( "ENROLLMENT.objectReports", hasSize( 1 ) );
+            .validate()
+            .body( "stats.created", equalTo( 2 ) )
+            .rootPath( "bundleReport.typeReportMap" )
+            .body( "TRACKED_ENTITY.objectReports", hasSize( 1 ) )
+            .body( "ENROLLMENT.objectReports", hasSize( 1 ) );
 
         // assert that the TEI was imported
         String teiId = response.extractImportedTeis().get( 0 );
@@ -144,10 +133,14 @@ public class TeiImportTests
     public void shouldImportTeisWithEnrollmentsEventsAndRelationship()
         throws Exception
     {
-        // the file contains 2 teis with 1 enrollment and 1 event each
         JsonObject teiPayload = new FileReaderUtils()
             .readJsonAndGenerateData(
                 new File( "src/test/resources/tracker/importer/teis/teisWithEnrollmentsAndEvents.json" ) );
+
+        JsonObjectBuilder.jsonObject( teiPayload )
+            .addArray( "relationships",
+                new RelationshipDataBuilder().buildTrackedEntityRelationship( "Kj6vYde4LHh", "Nav6inZRw1u",
+                    "xLmPUYJX8Ks" ) );
 
         // act
         TrackerApiResponse response = trackerActions.postAndGetJobReport( teiPayload );
@@ -166,6 +159,34 @@ public class TeiImportTests
         ApiResponse trackedEntityResponse = trackerActions
             .getTrackedEntity( teiBody.get( "trackedEntity" ).getAsString() + "?fields=*" ).validateStatus( 200 );
         assertThat( trackedEntityResponse.getBody(), matchesJSON( teiBody ) );
+    }
+
+    Stream<Arguments> shouldImportTeiAttributes()
+    {
+        return Stream.of(
+            Arguments.of( "xuAl9UIMcmI", Constants.ORG_UNIT_IDS[1], "ORGANISATION_UNIT" ),
+            Arguments.of( "kZeSYCgaHTk", "TEXT_ATTRIBUTE_VALUE", "TEXT" ),
+            Arguments.of( "aIga5mPOFOJ", "TA_MALE", "TEXT with optionSet" ),
+            Arguments.of( "ypGAwVRNtVY", "10", "NUMBER" ),
+            Arguments.of( "x5yfLot5VCM", "2010-10-01", "DATE" ) );
+    }
+
+    @MethodSource( )
+    @ParameterizedTest( name = "update tei with attribute value type {2}" )
+    public void shouldImportTeiAttributes( String teaId, String attributeValue, String attValueType )
+    {
+        JsonObject payload = new TeiDataBuilder()
+            .setId( teiId )
+            .setOu( Constants.ORG_UNIT_IDS[0] )
+            .addAttribute( teaId, attributeValue )
+            .array();
+
+        trackerActions.postAndGetJobReport( payload )
+            .validateSuccessfulImport();
+
+        trackerActions.getTrackedEntity( teiId + "?fields=attributes" )
+            .validate()
+            .body( "attributes.value", hasItem( attributeValue ) );
     }
 
 }

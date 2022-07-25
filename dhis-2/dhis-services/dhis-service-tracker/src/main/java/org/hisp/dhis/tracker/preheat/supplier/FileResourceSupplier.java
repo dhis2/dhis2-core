@@ -36,16 +36,15 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.DataValue;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.springframework.stereotype.Component;
 
@@ -62,22 +61,19 @@ public class FileResourceSupplier extends AbstractPreheatSupplier
     @Override
     public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
     {
-        List<TrackedEntityAttribute> attributes = preheat.getAll( TrackedEntityAttribute.class );
+        TrackerIdSchemeParams idSchemes = params.getIdSchemes();
 
-        List<String> fileResourceAttributes = attributes.stream()
-            .filter( at -> at.getValueType() == ValueType.FILE_RESOURCE )
-            .map( BaseIdentifiableObject::getUid )
+        List<MetadataIdentifier> fileResourceAttributes = preheat.getAll( TrackedEntityAttribute.class ).stream()
+            .filter( at -> at.getValueType().isFile() )
+            .map( idSchemes::toMetadataIdentifier )
             .collect( Collectors.toList() );
 
-        List<DataElement> dataElements = preheat.getAll( DataElement.class );
-
-        List<String> fileResourceDataElements = dataElements.stream()
-            .filter( at -> at.getValueType() == ValueType.FILE_RESOURCE )
-            .map( BaseIdentifiableObject::getUid )
+        List<MetadataIdentifier> fileResourceDataElements = preheat.getAll( DataElement.class ).stream()
+            .filter( at -> at.getValueType().isFile() )
+            .map( idSchemes::toMetadataIdentifier )
             .collect( Collectors.toList() );
 
         List<String> fileResourceIds = new ArrayList<>();
-
         params.getTrackedEntities()
             .forEach( te -> collectResourceIds( fileResourceAttributes, fileResourceIds, te.getAttributes() ) );
         params.getEnrollments()
@@ -85,11 +81,10 @@ public class FileResourceSupplier extends AbstractPreheatSupplier
         params.getEvents()
             .forEach( en -> collectResourceIds( fileResourceDataElements, fileResourceIds, en.getDataValues() ) );
 
-        List<FileResource> fileResources = fileResourceService.getFileResources( fileResourceIds );
-        preheat.put( TrackerIdentifier.UID, fileResources );
+        preheat.put( TrackerIdSchemeParam.UID, fileResourceService.getFileResources( fileResourceIds ) );
     }
 
-    private void collectResourceIds( List<String> fileResourceAttributes, List<String> fileResourceIds,
+    private void collectResourceIds( List<MetadataIdentifier> fileResourceAttributes, List<String> fileResourceIds,
         List<Attribute> attributes )
     {
         attributes.forEach( at -> {
@@ -100,7 +95,7 @@ public class FileResourceSupplier extends AbstractPreheatSupplier
         } );
     }
 
-    private void collectResourceIds( List<String> fileResourceDataElements, List<String> fileResourceIds,
+    private void collectResourceIds( List<MetadataIdentifier> fileResourceDataElements, List<String> fileResourceIds,
         Set<DataValue> dataElements )
     {
         dataElements.forEach( de -> {

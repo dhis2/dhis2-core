@@ -56,40 +56,34 @@ public class Pager
 
     public Pager( int page, long total )
     {
-        this.page = page;
-        this.total = total;
-
-        if ( this.page > getPageCount() )
-        {
-            this.page = getPageCount();
-        }
-
-        if ( this.page < 1 )
-        {
-            this.page = 1;
-        }
+        this.total = Math.max( total, 0 );
+        this.page = getPageInternal( page );
     }
 
     public Pager( int page, long total, int pageSize )
     {
-        this.page = page;
-        this.total = total >= 0 ? total : 0;
-        this.pageSize = pageSize > 0 ? pageSize : 1;
-
-        if ( this.page > getPageCount() )
-        {
-            this.page = getPageCount();
-        }
-
-        if ( this.page < 1 )
-        {
-            this.page = 1;
-        }
+        this.total = Math.max( total, 0 );
+        this.pageSize = Math.max( pageSize, 1 );
+        this.page = getPageInternal( page );
     }
 
+    @Override
     public String toString()
     {
         return "[Page: " + page + " total: " + total + " size: " + pageSize + " offset: " + getOffset() + "]";
+    }
+
+    /**
+     * Returns the page, ensuring the value is less or equal to total page count
+     * and greater or equal to 1.
+     *
+     * @param page the page.
+     * @return the page.
+     */
+    private int getPageInternal( int page )
+    {
+        page = Math.min( page, getPageCount() );
+        return Math.max( page, 1 );
     }
 
     public boolean pageSizeIsDefault()
@@ -112,9 +106,9 @@ public class Pager
     }
 
     /**
-     * How many items per page.
+     * Returns the number of items per page.
      *
-     * @return Number of items per page.
+     * @return The number of items per page.
      */
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
@@ -124,30 +118,21 @@ public class Pager
     }
 
     /**
-     * How many pages in total
+     * Returns the total number of pages.
      *
-     * @return Total number of pages
+     * @return The total number of pages.
      */
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public int getPageCount()
     {
-        int pageCount = 1;
-        long totalTmp = total;
-
-        while ( totalTmp > pageSize )
-        {
-            totalTmp -= pageSize;
-            pageCount++;
-        }
-
-        return pageCount;
+        return (int) Math.ceil( total / (double) pageSize );
     }
 
     /**
      * Return the current offset to start at.
      *
-     * @return Offset to start at
+     * @return The offset to start at.
      */
     public int getOffset()
     {
@@ -176,5 +161,17 @@ public class Pager
     public void setPrevPage( String prevPage )
     {
         this.prevPage = prevPage;
+    }
+
+    /**
+     * Sets pagination directly.
+     *
+     * @param page the page.
+     * @param pageSize the page size.
+     */
+    public void force( int page, int pageSize )
+    {
+        this.page = page;
+        this.pageSize = pageSize;
     }
 }

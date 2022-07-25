@@ -28,15 +28,17 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
+import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
+
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpStatus;
 
 /**
  * Tests the
@@ -86,7 +88,7 @@ class JobConfigurationControllerTest extends DhisControllerConvenienceTest
         String jobId = assertStatus( HttpStatus.CREATED, POST( "/jobConfigurations",
             "{'name':'test','jobType':'DATA_INTEGRITY','cronExpression':'0 0 12 ? * MON-FRI'}" ) );
         JsonObject parameters = assertJobConfigurationExists( jobId, "DATA_INTEGRITY" );
-        assertFalse( parameters.exists() );
+        assertTrue( parameters.exists() );
     }
 
     @Test
@@ -134,6 +136,45 @@ class JobConfigurationControllerTest extends DhisControllerConvenienceTest
         assertTrue( parameters.getBoolean( "sendNotifications" ).booleanValue() );
         assertTrue( parameters.getBoolean( "persistResults" ).booleanValue() );
         assertTrue( parameters.getArray( "validationRuleGroups" ).isEmpty() );
+    }
+
+    @Test
+    void testGetJobTypeInfo()
+    {
+        for ( JsonObject e : GET( "/jobConfigurations/jobTypes" ).content()
+            .getList( "jobTypes", JsonObject.class ) )
+        {
+            if ( e.getString( "jobType" ).string().equals( "ANALYTICS_TABLE" ) )
+            {
+                for ( JsonObject param : e.getList( "jobParameters", JsonObject.class ) )
+                {
+                    if ( param.getString( "name" ).string().equals( "skipTableTypes" ) )
+                    {
+                        assertEquals( List.of( "DATA_VALUE",
+                            "COMPLETENESS",
+                            "COMPLETENESS_TARGET",
+                            "ORG_UNIT_TARGET",
+                            "EVENT",
+                            "ENROLLMENT",
+                            "VALIDATION_RESULT" ), param.getArray( "constants" ).stringValues() );
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    void testGetJobTypesExtended()
+    {
+        JsonObject types = GET( "/jobConfigurations/jobTypesExtended" ).content();
+        JsonObject param = types.getObject( "ANALYTICS_TABLE" ).getObject( "skipTableTypes" );
+        assertEquals( List.of( "DATA_VALUE",
+            "COMPLETENESS",
+            "COMPLETENESS_TARGET",
+            "ORG_UNIT_TARGET",
+            "EVENT",
+            "ENROLLMENT",
+            "VALIDATION_RESULT" ), param.getArray( "constants" ).stringValues() );
     }
 
     private JsonObject assertJobConfigurationExists( String jobId, String expectedJobType )

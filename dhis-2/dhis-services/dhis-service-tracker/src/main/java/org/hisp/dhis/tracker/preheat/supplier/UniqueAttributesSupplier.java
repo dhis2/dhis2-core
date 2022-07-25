@@ -31,12 +31,14 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toSet;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -49,15 +51,17 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.hisp.dhis.tracker.TrackerIdScheme;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.Attribute;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.UniqueAttributeValue;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * This supplier will populate a list of {@link UniqueAttributeValue}s that
@@ -82,13 +86,14 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier
         List<TrackedEntityAttribute> uniqueTrackedEntityAttributes = trackedEntityAttributeService
             .getAllUniqueTrackedEntityAttributes();
 
-        Map<TrackedEntity, List<Attribute>> allUniqueAttributesByTrackedEntity = getAllAttributesByTrackedEntity(
+        Map<TrackedEntity, Set<Attribute>> allUniqueAttributesByTrackedEntity = getAllAttributesByTrackedEntity(
             params, preheat, uniqueTrackedEntityAttributes );
 
         List<UniqueAttributeValue> uniqueAttributeValuesFromPayload = getDuplicatedUniqueValuesInPayload(
             allUniqueAttributesByTrackedEntity );
 
         List<UniqueAttributeValue> uniqueAttributeValuesFromDB = getAlreadyPresentInDbUniqueValues(
+            params.getIdSchemes(),
             allUniqueAttributesByTrackedEntity, uniqueTrackedEntityAttributes );
 
         List<UniqueAttributeValue> uniqueAttributeValues = Stream
@@ -99,15 +104,15 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier
         preheat.setUniqueAttributeValues( uniqueAttributeValues );
     }
 
-    private Map<TrackedEntity, List<Attribute>> getAllAttributesByTrackedEntity( TrackerImportParams params,
+    private Map<TrackedEntity, Set<Attribute>> getAllAttributesByTrackedEntity( TrackerImportParams params,
         TrackerPreheat preheat, List<TrackedEntityAttribute> uniqueTrackedEntityAttributes )
     {
-        Map<TrackedEntity, List<Attribute>> teiUniqueAttributes = params.getTrackedEntities()
+        Map<TrackedEntity, Set<Attribute>> teiUniqueAttributes = params.getTrackedEntities()
             .stream()
             .collect( toMap( Function.identity(),
                 tei -> filterUniqueAttributes( tei.getAttributes(), uniqueTrackedEntityAttributes ) ) );
 
-        Map<TrackedEntity, List<Attribute>> enrollmentUniqueAttributes = params.getEnrollments()
+        Map<TrackedEntity, Set<Attribute>> enrollmentUniqueAttributes = params.getEnrollments()
             .stream()
             .collect( groupingBy( e -> getEntityForEnrollment( params, preheat, e.getTrackedEntity() ) ) )
             .entrySet()
@@ -115,14 +120,14 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier
             .collect( toMap( Map.Entry::getKey, e -> e.getValue().stream().flatMap(
                 en -> filterUniqueAttributes(
                     en.getAttributes(), uniqueTrackedEntityAttributes ).stream() )
-                .collect( toList() ) ) );
+                .collect( toSet() ) ) );
 
         return mergeAttributes( teiUniqueAttributes, enrollmentUniqueAttributes );
     }
 
     private TrackedEntity getEntityForEnrollment( TrackerImportParams params, TrackerPreheat preheat, String teiUid )
     {
-        TrackedEntityInstance trackedEntity = preheat.getTrackedEntity( TrackerIdScheme.UID, teiUid );
+        TrackedEntityInstance trackedEntity = preheat.getTrackedEntity( teiUid );
 
         // Get tei from Preheat
         Optional<TrackedEntity> optionalTei = params.getTrackedEntities()
@@ -137,7 +142,7 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier
         {
             TrackedEntity tei = new TrackedEntity();
             tei.setTrackedEntity( teiUid );
-            tei.setOrgUnit( trackedEntity.getOrganisationUnit().getUid() );
+            tei.setOrgUnit( params.getIdSchemes().toMetadataIdentifier( trackedEntity.getOrganisationUnit() ) );
             return tei;
         }
         else // TEI is not present. but we do not fail here.
@@ -149,8 +154,8 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier
         }
     }
 
-    private Map<TrackedEntity, List<Attribute>> mergeAttributes( Map<TrackedEntity, List<Attribute>> teiAttributes,
-        Map<TrackedEntity, List<Attribute>> enrollmentAttributes )
+    private Map<TrackedEntity, Set<Attribute>> mergeAttributes( Map<TrackedEntity, Set<Attribute>> teiAttributes,
+        Map<TrackedEntity, Set<Attribute>> enrollmentAttributes )
     {
         return Stream.concat( teiAttributes.entrySet().stream(),
             enrollmentAttributes.entrySet().stream() )
@@ -158,14 +163,14 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier
                 Map.Entry::getKey,
                 Map.Entry::getValue,
                 ( v1, v2 ) -> {
-                    List<Attribute> attributes = Lists.newArrayList( v1 );
+                    Set<Attribute> attributes = Sets.newHashSet( v1 );
                     attributes.addAll( v2 );
                     return attributes;
                 } ) );
     }
 
     private List<UniqueAttributeValue> getDuplicatedUniqueValuesInPayload(
-        Map<TrackedEntity, List<Attribute>> allAttributes )
+        Map<TrackedEntity, Set<Attribute>> allAttributes )
     {
 
         // TEIs grouped by attribute and value.
@@ -179,7 +184,7 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier
             return 1;
         } );
 
-        for ( Map.Entry<TrackedEntity, List<Attribute>> entry : allAttributes.entrySet() )
+        for ( Map.Entry<TrackedEntity, Set<Attribute>> entry : allAttributes.entrySet() )
         {
             for ( Attribute attribute : entry.getValue() )
             {
@@ -212,7 +217,7 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier
     }
 
     private List<UniqueAttributeValue> getAlreadyPresentInDbUniqueValues(
-        Map<TrackedEntity, List<Attribute>> allAttributesByTrackedEntity,
+        TrackerIdSchemeParams idSchemes, Map<TrackedEntity, Set<Attribute>> allAttributesByTrackedEntity,
         List<TrackedEntityAttribute> uniqueTrackedEntityAttributes )
     {
 
@@ -229,28 +234,28 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier
 
         return uniqueAttributeAlreadyPresentInDB
             .stream()
-            .map( av -> new UniqueAttributeValue( av.getEntityInstance().getUid(), av.getAttribute().getUid(),
-                av.getValue(), av.getEntityInstance().getOrganisationUnit().getUid() ) )
+            .map( av -> new UniqueAttributeValue( av.getEntityInstance().getUid(),
+                idSchemes.toMetadataIdentifier( av.getAttribute() ),
+                av.getValue(), idSchemes.toMetadataIdentifier( av.getEntityInstance().getOrganisationUnit() ) ) )
             .collect( toList() );
     }
 
-    private TrackedEntityAttribute extractAttribute( String attribute,
+    private TrackedEntityAttribute extractAttribute( MetadataIdentifier attribute,
         List<TrackedEntityAttribute> uniqueTrackedEntityAttributes )
     {
         return uniqueTrackedEntityAttributes
             .stream()
-            .filter( a -> a.getUid().equals( attribute ) )
+            .filter( attribute::isEqualTo )
             .findAny()
             .orElse( null );
     }
 
-    private List<Attribute> filterUniqueAttributes( List<Attribute> attributes,
+    private Set<Attribute> filterUniqueAttributes( List<Attribute> attributes,
         List<TrackedEntityAttribute> uniqueTrackedEntityAttributes )
     {
         return attributes.stream()
             .filter( tea -> uniqueTrackedEntityAttributes.stream().anyMatch(
-                uniqueAttr -> uniqueAttr.getUid().equals( tea.getAttribute() ) ) )
-            .distinct()
-            .collect( toList() );
+                uniqueAttr -> tea.getAttribute().isEqualTo( uniqueAttr ) ) )
+            .collect( toSet() );
     }
 }

@@ -27,16 +27,16 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
+import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonUser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpStatus;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.controller.user.UserLookupController}
@@ -78,6 +78,6 @@ class UserLookupControllerTest extends DhisControllerConvenienceTest
         JsonArray matches = GET( "/userLookup?query=John" ).content().getArray( "users" );
         assertEquals( 1, matches.size() );
         JsonUser user = matches.get( 0, JsonUser.class );
-        assertEquals( "John", user.getFirstName() );
+        assertEquals( "FirstNameJohn", user.getFirstName() );
     }
 }

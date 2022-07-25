@@ -27,17 +27,35 @@
  */
 package org.hisp.dhis.tracker.bundle;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.rules.models.RuleEffects;
-import org.hisp.dhis.tracker.*;
-import org.hisp.dhis.tracker.domain.*;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.tracker.AtomicMode;
+import org.hisp.dhis.tracker.FlushMode;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.tracker.ValidationMode;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.Relationship;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.user.User;
 
@@ -62,12 +80,6 @@ public class TrackerBundle
      */
     @Builder.Default
     private TrackerBundleMode importMode = TrackerBundleMode.COMMIT;
-
-    /**
-     * What identifiers to match on.
-     */
-    @Builder.Default
-    private TrackerIdScheme identifier = TrackerIdScheme.UID;
 
     /**
      * Sets import strategy (create, update, etc).
@@ -162,10 +174,6 @@ public class TrackerBundle
     @Builder.Default
     private Map<TrackerType, Map<String, TrackerImportStrategy>> resolvedStrategyMap = initStrategyMap();
 
-    private TrackerBundle()
-    {
-    }
-
     private static Map<TrackerType, Map<String, TrackerImportStrategy>> initStrategyMap()
     {
         Map<TrackerType, Map<String, TrackerImportStrategy>> resolvedStrategyMap = new EnumMap<>( TrackerType.class );
@@ -222,5 +230,30 @@ public class TrackerBundle
     public TrackerImportStrategy setStrategy( TrackerDto dto, TrackerImportStrategy strategy )
     {
         return this.getResolvedStrategyMap().get( dto.getTrackerType() ).put( dto.getUid(), strategy );
+    }
+
+    public TrackerImportStrategy getStrategy( TrackerDto dto )
+    {
+        return getResolvedStrategyMap().get( dto.getTrackerType() ).get( dto.getUid() );
+    }
+
+    public TrackedEntityInstance getTrackedEntityInstance( String id )
+    {
+        return getPreheat().getTrackedEntity( id );
+    }
+
+    public ProgramInstance getProgramInstance( String id )
+    {
+        return getPreheat().getEnrollment( id );
+    }
+
+    public ProgramStageInstance getProgramStageInstance( String event )
+    {
+        return getPreheat().getEvent( event );
+    }
+
+    public org.hisp.dhis.relationship.Relationship getRelationship( String relationship )
+    {
+        return getPreheat().getRelationship( relationship );
     }
 }

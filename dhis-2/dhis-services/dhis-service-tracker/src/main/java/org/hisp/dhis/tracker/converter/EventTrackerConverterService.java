@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.tracker.converter;
 
-import static com.google.api.client.util.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 import java.util.ArrayList;
@@ -42,6 +42,7 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
@@ -52,15 +53,15 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.UserInfoSnapshot;
-import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
+import org.hisp.dhis.tracker.domain.User;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 
-import com.google.api.client.util.Objects;
+import com.google.common.base.Objects;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -119,15 +120,16 @@ public class EventTrackerConverterService
 
             if ( ou != null )
             {
-                event.setOrgUnit( ou.getUid() );
-                event.setOrgUnitName( ou.getName() );
+                event.setOrgUnit( MetadataIdentifier.ofUid( ou ) );
             }
 
             event.setEnrollment( psi.getProgramInstance().getUid() );
-            event.setProgramStage( psi.getProgramStage().getUid() );
-            event.setAttributeOptionCombo( psi.getAttributeOptionCombo().getUid() );
-            event.setAttributeCategoryOptions( psi.getAttributeOptionCombo()
-                .getCategoryOptions().stream().map( CategoryOption::getUid ).collect( Collectors.joining( ";" ) ) );
+            event.setProgramStage( MetadataIdentifier.ofUid( psi.getProgramStage() ) );
+            event.setAttributeOptionCombo( MetadataIdentifier.ofUid( psi.getAttributeOptionCombo() ) );
+            event.setAttributeCategoryOptions( psi.getAttributeOptionCombo().getCategoryOptions().stream()
+                .map( CategoryOption::getUid )
+                .map( MetadataIdentifier::ofUid )
+                .collect( Collectors.toSet() ) );
 
             Set<EventDataValue> dataValues = psi.getEventDataValues();
 
@@ -136,14 +138,14 @@ public class EventTrackerConverterService
                 DataValue value = new DataValue();
                 value.setCreatedAt( DateUtils.instantFromDate( dataValue.getCreated() ) );
                 value.setUpdatedAt( DateUtils.instantFromDate( dataValue.getLastUpdated() ) );
-                value.setDataElement( dataValue.getDataElement() );
+                value.setDataElement( MetadataIdentifier.ofUid( dataValue.getDataElement() ) );
                 value.setValue( dataValue.getValue() );
                 value.setProvidedElsewhere( dataValue.getProvidedElsewhere() );
                 value.setStoredBy( dataValue.getStoredBy() );
-                value.setLastUpdatedBy( Optional.ofNullable( dataValue.getLastUpdatedByUserInfo() )
-                    .map( UserInfoSnapshot::getUsername ).orElse( "" ) );
+                value.setUpdatedBy( Optional.ofNullable( dataValue.getLastUpdatedByUserInfo() )
+                    .map( this::convertUserInfo ).orElse( null ) );
                 value.setCreatedBy( Optional.ofNullable( dataValue.getCreatedByUserInfo() )
-                    .map( UserInfoSnapshot::getUsername ).orElse( "" ) );
+                    .map( this::convertUserInfo ).orElse( null ) );
 
                 event.getDataValues().add( value );
             }
@@ -157,7 +159,7 @@ public class EventTrackerConverterService
     @Override
     public ProgramStageInstance from( TrackerPreheat preheat, Event event )
     {
-        ProgramStageInstance programStageInstance = preheat.getEvent( TrackerIdScheme.UID, event.getEvent() );
+        ProgramStageInstance programStageInstance = preheat.getEvent( event.getEvent() );
         return from( preheat, event, programStageInstance );
     }
 
@@ -182,15 +184,20 @@ public class EventTrackerConverterService
     private List<EventDataValue> getProgramStageInstanceDataValues( TrackerPreheat preheat, Event event )
     {
         List<EventDataValue> eventDataValues = new ArrayList<>();
-        ProgramStageInstance programStageInstance = preheat.getEvent( TrackerIdScheme.UID, event.getEvent() );
+        ProgramStageInstance programStageInstance = preheat.getEvent( event.getEvent() );
         if ( programStageInstance == null )
         {
             return eventDataValues;
         }
 
+        // Normalize identifiers as EventDataValue.dataElement are UIDs and
+        // payload dataElements can be in any idScheme
         Set<String> dataElements = event.getDataValues()
             .stream()
             .map( DataValue::getDataElement )
+            .map( preheat::getDataElement )
+            .filter( java.util.Objects::nonNull )
+            .map( BaseIdentifiableObject::getUid )
             .collect( Collectors.toSet() );
         for ( EventDataValue eventDataValue : programStageInstance.getEventDataValues() )
         {
@@ -204,9 +211,9 @@ public class EventTrackerConverterService
 
     private ProgramStageInstance from( TrackerPreheat preheat, Event event, ProgramStageInstance programStageInstance )
     {
-        ProgramStage programStage = preheat.get( ProgramStage.class, event.getProgramStage() );
-        Program program = preheat.get( Program.class, event.getProgram() );
-        OrganisationUnit organisationUnit = preheat.get( OrganisationUnit.class, event.getOrgUnit() );
+        ProgramStage programStage = preheat.getProgramStage( event.getProgramStage() );
+        Program program = preheat.getProgram( event.getProgram() );
+        OrganisationUnit organisationUnit = preheat.getOrganisationUnit( event.getOrgUnit() );
 
         Date now = new Date();
 
@@ -224,44 +231,42 @@ public class EventTrackerConverterService
         programStageInstance.setCreatedAtClient( DateUtils.fromInstant( event.getCreatedAtClient() ) );
         programStageInstance.setLastUpdatedAtClient( DateUtils.fromInstant( event.getUpdatedAtClient() ) );
         programStageInstance.setProgramInstance(
-            getProgramInstance( preheat, TrackerIdScheme.UID, event.getEnrollment(), program ) );
+            getProgramInstance( preheat, event.getEnrollment(), program ) );
 
         programStageInstance.setProgramStage( programStage );
         programStageInstance.setOrganisationUnit( organisationUnit );
         programStageInstance.setExecutionDate( DateUtils.fromInstant( event.getOccurredAt() ) );
         programStageInstance.setDueDate( DateUtils.fromInstant( event.getScheduledAt() ) );
 
-        String attributeOptionCombo = event.getAttributeOptionCombo();
-
-        if ( attributeOptionCombo != null )
+        if ( event.getAttributeOptionCombo().isNotBlank() )
         {
             programStageInstance.setAttributeOptionCombo(
-                preheat.get( CategoryOptionCombo.class, event.getAttributeOptionCombo() ) );
+                preheat.getCategoryOptionCombo( event.getAttributeOptionCombo() ) );
         }
         else
         {
-            programStageInstance.setAttributeOptionCombo(
-                (CategoryOptionCombo) preheat.getDefaults().get( CategoryOptionCombo.class ) );
+            programStageInstance.setAttributeOptionCombo( preheat.getDefault( CategoryOptionCombo.class ) );
         }
 
         programStageInstance.setGeometry( event.getGeometry() );
 
         EventStatus previousStatus = programStageInstance.getStatus();
-        Date completedDate = DateUtils.fromInstant( event.getCompletedAt() );
 
         programStageInstance.setStatus( event.getStatus() );
 
         if ( !Objects.equal( previousStatus, programStageInstance.getStatus() ) && programStageInstance.isCompleted() )
         {
-            programStageInstance.setCompletedDate( completedDate == null ? new Date() : completedDate );
-            programStageInstance
-                .setCompletedBy( event.getCompletedBy() != null ? event.getCompletedBy() : preheat.getUsername() );
+            programStageInstance.setCompletedDate( new Date() );
+            programStageInstance.setCompletedBy( preheat.getUsername() );
         }
 
-        if ( programStage.isEnableUserAssignment() )
+        if ( Boolean.TRUE.equals( programStage.isEnableUserAssignment() ) &&
+            event.getAssignedUser() != null
+            && !event.getAssignedUser().isEmpty() )
         {
-            User assignedUser = preheat.get( User.class, event.getAssignedUser() );
-            programStageInstance.setAssignedUser( assignedUser );
+            Optional<org.hisp.dhis.user.User> assignedUser = preheat
+                .getUserByUsername( event.getAssignedUser().getUsername() );
+            assignedUser.ifPresent( programStageInstance::setAssignedUser );
         }
 
         if ( program.isRegistration() && programStageInstance.getDueDate() == null &&
@@ -279,14 +284,10 @@ public class EventTrackerConverterService
             eventDataValue.setProvidedElsewhere( dataValue.isProvidedElsewhere() );
             // ensure dataElement is referred to by UID as multiple
             // dataElementIdSchemes are supported
-            DataElement dataElement = preheat.get( DataElement.class, dataValue.getDataElement() );
+            DataElement dataElement = preheat.getDataElement( dataValue.getDataElement() );
             eventDataValue.setDataElement( dataElement.getUid() );
             eventDataValue.setLastUpdatedByUserInfo( UserInfoSnapshot.from( preheat.getUser() ) );
-
-            User createdBy = preheat.getUsers().get( dataValue.getCreatedBy() );
-            eventDataValue
-                .setCreatedByUserInfo( Optional.ofNullable( createdBy ).map( u -> UserInfoSnapshot.from( createdBy ) )
-                    .orElseGet( () -> UserInfoSnapshot.from( preheat.getUser() ) ) );
+            eventDataValue.setCreatedByUserInfo( UserInfoSnapshot.from( preheat.getUser() ) );
 
             programStageInstance.getEventDataValues().add( eventDataValue );
         }
@@ -299,12 +300,11 @@ public class EventTrackerConverterService
         return programStageInstance;
     }
 
-    private ProgramInstance getProgramInstance( TrackerPreheat preheat, TrackerIdScheme identifier, String enrollment,
-        Program program )
+    private ProgramInstance getProgramInstance( TrackerPreheat preheat, String enrollment, Program program )
     {
         if ( ProgramType.WITH_REGISTRATION == program.getProgramType() )
         {
-            return preheat.getEnrollment( identifier, enrollment );
+            return preheat.getEnrollment( enrollment );
         }
 
         if ( ProgramType.WITHOUT_REGISTRATION == program.getProgramType() )
@@ -315,5 +315,15 @@ public class EventTrackerConverterService
         // no valid enrollment given and program not single event, just return
         // null
         return null;
+    }
+
+    private User convertUserInfo( UserInfoSnapshot userInfoSnapshot )
+    {
+        return User.builder()
+            .uid( userInfoSnapshot.getUid() )
+            .username( userInfoSnapshot.getUsername() )
+            .firstName( userInfoSnapshot.getFirstName() )
+            .surname( userInfoSnapshot.getSurname() )
+            .build();
     }
 }

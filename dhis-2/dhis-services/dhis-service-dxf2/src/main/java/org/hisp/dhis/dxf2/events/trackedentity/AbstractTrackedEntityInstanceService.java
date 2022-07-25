@@ -101,7 +101,6 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.locationtech.jts.geom.Geometry;
@@ -1507,12 +1506,12 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
         {
             return fallbackUsername;
         }
-        else if ( storedBy.length() > UserCredentials.USERNAME_MAX_LENGTH )
+        else if ( storedBy.length() > User.USERNAME_MAX_LENGTH )
         {
             if ( importConflicts != null )
             {
                 importConflicts.addConflict( "stored by", storedBy + " is more than "
-                    + UserCredentials.USERNAME_MAX_LENGTH + " characters, using current username instead" );
+                    + User.USERNAME_MAX_LENGTH + " characters, using current username instead" );
             }
 
             return fallbackUsername;
@@ -1616,7 +1615,8 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
             {
                 org.hisp.dhis.relationship.Relationship daoRelationship = relationshipItem.getRelationship();
 
-                if ( trackerAccessManager.canRead( user, daoRelationship ).isEmpty() )
+                if ( trackerAccessManager.canRead( user, daoRelationship ).isEmpty()
+                    && (params.isIncludeDeleted() || !daoRelationship.isDeleted()) )
                 {
                     Relationship relationship = relationshipService.getRelationship( relationshipItem.getRelationship(),
                         RelationshipParams.FALSE, user );

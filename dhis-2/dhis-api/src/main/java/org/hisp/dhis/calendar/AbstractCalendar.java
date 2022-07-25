@@ -279,6 +279,6 @@ public abstract class AbstractCalendar implements Calendar
             return false;
         }
 
-        return true;
+        return dateTime.getYear() > 0;
     }
 }

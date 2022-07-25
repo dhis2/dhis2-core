@@ -27,48 +27,27 @@
  */
 package org.hisp.dhis.dataset.notifications;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.scheduling.JobType.DATA_SET_NOTIFICATION;
 
 import java.util.Date;
 
-import org.hisp.dhis.message.MessageService;
+import lombok.AllArgsConstructor;
+
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.system.notification.NotificationLevel;
-import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.system.util.Clock;
 import org.springframework.stereotype.Component;
 
 /**
- * Created by zubair@dhis2.org on 21.07.17.
+ * @author zubair (original)
+ * @author Jan Bernitt (job progress tracking)
  */
-@Component( "dataSetNotificationJob" )
+@Component
+@AllArgsConstructor
 public class DataSetNotificationJob implements Job
 {
-    private DataSetNotificationService dataSetNotificationService;
-
-    private MessageService messageService;
-
-    private Notifier notifier;
-
-    public DataSetNotificationJob( DataSetNotificationService dataSetNotificationService, MessageService messageService,
-        Notifier notifier )
-    {
-        checkNotNull( dataSetNotificationService );
-        checkNotNull( messageService );
-        checkNotNull( notifier );
-
-        this.dataSetNotificationService = dataSetNotificationService;
-        this.messageService = messageService;
-        this.notifier = notifier;
-    }
-
-    // -------------------------------------------------------------------------
-    // Implementation
-    // -------------------------------------------------------------------------
+    private final DataSetNotificationService dataSetNotificationService;
 
     @Override
     public JobType getJobType()
@@ -77,32 +56,10 @@ public class DataSetNotificationJob implements Job
     }
 
     @Override
-    public void execute( JobConfiguration jobConfiguration, JobProgress progress )
+    public void execute( JobConfiguration config, JobProgress progress )
     {
-        final Clock clock = new Clock().startClock();
-
-        notifier.notify( jobConfiguration, "Sending scheduled dataset notifications" );
-
-        try
-        {
-            send();
-
-            notifier.notify( jobConfiguration, NotificationLevel.INFO,
-                "Sent scheduled dataset notifications: " + clock.time(), true );
-        }
-        catch ( RuntimeException ex )
-        {
-            notifier.notify( jobConfiguration, NotificationLevel.ERROR, "Process failed: " + ex.getMessage(), true );
-
-            messageService.sendSystemErrorNotification( "Scheduled dataset notifications failed", ex );
-
-            throw ex;
-        }
+        progress.startingProcess( "Dataset notification" );
+        dataSetNotificationService.sendScheduledDataSetNotificationsForDay( new Date(), progress );
+        progress.completedProcess( null );
     }
-
-    private void send()
-    {
-        dataSetNotificationService.sendScheduledDataSetNotificationsForDay( new Date() );
-    }
-
 }

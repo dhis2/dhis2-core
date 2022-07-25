@@ -35,12 +35,15 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import com.epam.reportportal.junit5.ReportPortalExtension;
+
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 @TestInstance( TestInstance.Lifecycle.PER_CLASS )
 @ExtendWith( ConfigurationExtension.class )
 @ExtendWith( MetadataSetupExtension.class )
+@ExtendWith( ReportPortalExtension.class )
 public abstract class ApiTest
 {
     @AfterAll

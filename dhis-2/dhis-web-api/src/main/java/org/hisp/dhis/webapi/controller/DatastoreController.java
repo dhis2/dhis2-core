@@ -41,6 +41,8 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import lombok.AllArgsConstructor;
+
 import org.apache.commons.beanutils.BeanUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.NamedParams;
@@ -49,10 +51,10 @@ import org.hisp.dhis.datastore.DatastoreQuery;
 import org.hisp.dhis.datastore.DatastoreQuery.Field;
 import org.hisp.dhis.datastore.DatastoreService;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.webapi.JsonWriter;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -64,16 +66,20 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 /**
  * @author Stian Sandvold
  */
 @Controller
 @RequestMapping( "/dataStore" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+@AllArgsConstructor
 public class DatastoreController
 {
-    @Autowired
-    private DatastoreService service;
+    private final DatastoreService service;
+
+    private final ObjectMapper jsonMapper;
 
     /**
      * Returns a JSON array of strings representing the different namespaces
@@ -100,7 +106,7 @@ public class DatastoreController
 
         List<String> keys = service.getKeysInNamespace( namespace, lastUpdated );
 
-        if ( keys.isEmpty() )
+        if ( keys.isEmpty() && !service.isUsedNamespace( namespace ) )
         {
             throw new NotFoundException( String.format( "Namespace not found: '%s'", namespace ) );
         }
@@ -127,21 +133,44 @@ public class DatastoreController
         try ( PrintWriter writer = response.getWriter();
             JsonWriter out = new JsonWriter( writer ) )
         {
-            if ( !query.isHeadless() )
+            try
             {
-                writer.write( "{\"pager\":{" );
-                writer.write( "\"page\":" + query.getPage() + "," );
-                writer.write( "\"pageSize\":" + query.getPageSize() + "," );
-                writer.write( "},\"entries\":" );
+                List<String> members = query.getFields().stream().map( Field::getAlias ).collect( toList() );
+                service.getFields( query, entries -> {
+                    if ( !query.isHeadless() )
+                    {
+                        writer.write( "{\"pager\":{" );
+                        writer.write( "\"page\":" + query.getPage() + "," );
+                        writer.write( "\"pageSize\":" + query.getPageSize() );
+                        writer.write( "},\"entries\":" );
+                    }
+                    out.writeEntries( members, entries );
+                    return true;
+                } );
+                if ( !query.isHeadless() )
+                {
+                    writer.write( "}" );
+                }
             }
-            List<String> members = query.getFields().stream().map( Field::getAlias ).collect( toList() );
-            service.getFields( query, entries -> {
-                out.writeEntries( members, entries );
-                return true;
-            } );
-            if ( !query.isHeadless() )
+            catch ( RuntimeException ex )
             {
-                writer.write( "}" );
+                response.setStatus( HttpServletResponse.SC_BAD_REQUEST );
+                Throwable cause = ex.getCause();
+                String msg = "Unknown error when running the query: "
+                    + (cause != null && ex.getMessage().contains( "could not extract ResultSet" )
+                        ? cause.getMessage()
+                        : ex.getMessage());
+                if ( cause != null && cause.getMessage().contains( "cannot cast type " )
+                    && cause.getMessage().contains( " to double precision" ) )
+                {
+                    String sortProperty = query.getOrder().getPath();
+                    msg = "Cannot use numeric sort order on property `" + sortProperty
+                        + "` as the property contains non-numeric values for matching entries. Use " + query.getOrder()
+                            .getDirection().name().substring( 1 )
+                        + " instead or apply a filter that only matches entries with numeric values for " + sortProperty
+                        + ".";
+                }
+                jsonMapper.writeValue( writer, WebMessageUtils.badRequest( msg ) );
             }
         }
     }

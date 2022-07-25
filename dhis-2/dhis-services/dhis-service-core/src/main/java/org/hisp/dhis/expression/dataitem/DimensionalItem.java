@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.expression.dataitem;
 
+import static org.hisp.dhis.common.ValueType.NUMBER;
+import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 import static org.hisp.dhis.parser.expression.ParserUtils.DOUBLE_VALUE_IF_NULL;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
@@ -48,7 +50,7 @@ public abstract class DimensionalItem
     implements ExpressionItem
 {
     @Override
-    public final Object getDescription( ExprContext ctx, CommonExpressionVisitor visitor )
+    public Object getDescription( ExprContext ctx, CommonExpressionVisitor visitor )
     {
         DimensionalItemId itemId = getDimensionalItemId( ctx, visitor );
 
@@ -62,20 +64,14 @@ public abstract class DimensionalItem
 
         visitor.getItemDescriptions().put( ctx.getText(), item.getDisplayName() );
 
-        return ValidationUtils.getNullReplacementValue( getItemValueType( item ) );
+        return ValidationUtils.getNullReplacementValue( getItemValueType( item, visitor ) );
     }
 
     @Override
-    public final Object getItemId( ExprContext ctx, CommonExpressionVisitor visitor )
+    public final Object getExpressionInfo( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        visitor.getItemIds().add( getDimensionalItemId( ctx, visitor ) );
+        visitor.getInfo().getItemIds().add( getDimensionalItemId( ctx, visitor ) );
 
-        return DOUBLE_VALUE_IF_NULL;
-    }
-
-    @Override
-    public final Object getOrgUnitGroup( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
         return DOUBLE_VALUE_IF_NULL;
     }
 
@@ -84,13 +80,13 @@ public abstract class DimensionalItem
     {
         DimensionalItemId itemId = getDimensionalItemId( ctx, visitor );
 
-        DimensionalItemObject item = visitor.getDimItemMap().get( itemId );
+        DimensionalItemObject item = visitor.getParams().getItemMap().get( itemId );
 
         Object value = (item != null)
-            ? visitor.getItemValueMap().get( item )
+            ? visitor.getParams().getValueMap().get( item )
             : null;
 
-        return visitor.handleNulls( value, getItemValueType( item ) );
+        return visitor.getState().handleNulls( value, getItemValueType( item, visitor ) );
     }
 
     /**
@@ -109,11 +105,21 @@ public abstract class DimensionalItem
 
     /**
      * Returns the value type of this item.
+     * <p>
+     * If within an indicator and not a subexpression, always returns number. If
+     * in an indicator subexpression or anywhere else (such as validation rule
+     * or predictor), returns the item's data type if it has one (defaulting to
+     * number).
      */
-    private ValueType getItemValueType( DimensionalItemObject item )
+    private ValueType getItemValueType( DimensionalItemObject item, CommonExpressionVisitor visitor )
     {
-        return (item instanceof ValueTypedDimensionalItemObject)
-            ? ((ValueTypedDimensionalItemObject) item).getValueType()
-            : ValueType.NUMBER;
+        if ( item instanceof ValueTypedDimensionalItemObject &&
+            (visitor.getParams().getParseType() != INDICATOR_EXPRESSION
+                || visitor.getState().isInSubexpression()) )
+        {
+            return ((ValueTypedDimensionalItemObject) item).getValueType();
+        }
+
+        return NUMBER;
     }
 }

@@ -40,6 +40,7 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncParams;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncPostProcessor;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncPreProcessor;
@@ -49,6 +50,8 @@ import org.hisp.dhis.dxf2.metadata.sync.exception.DhisVersionMismatchException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.dxf2.synch.SynchronizationManager;
 import org.hisp.dhis.metadata.version.MetadataVersion;
+import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.junit.jupiter.api.BeforeEach;
@@ -64,6 +67,8 @@ import org.springframework.retry.support.RetryTemplate;
 @ExtendWith( MockitoExtension.class )
 class MetadataSyncJobParametersTest
 {
+    private static final JobProgress JOB_PROGRESS = NoopJobProgress.INSTANCE;
+
     @Mock
     private SystemSettingManager systemSettingManager;
 
@@ -98,7 +103,8 @@ class MetadataSyncJobParametersTest
     @BeforeEach
     public void setUp()
     {
-        metadataSyncSummary = mock( MetadataSyncSummary.class );
+        metadataSyncSummary = new MetadataSyncSummary();
+        metadataSyncSummary.setImportReport( new ImportReport() );
         metadataVersion = mock( MetadataVersion.class );
         metadataVersions = new ArrayList<>();
         metadataVersions.add( metadataVersion );
@@ -114,21 +120,24 @@ class MetadataSyncJobParametersTest
         throws DhisVersionMismatchException
     {
         when( metadataSyncService.doMetadataSync( any( MetadataSyncParams.class ) ) ).thenReturn( metadataSyncSummary );
-        when( metadataSyncPreProcessor.handleCurrentMetadataVersion( metadataRetryContext ) )
+        when( metadataSyncPreProcessor.handleCurrentMetadataVersion( metadataRetryContext, JOB_PROGRESS ) )
             .thenReturn( metadataVersion );
-        when( metadataSyncPreProcessor.handleMetadataVersionsList( metadataRetryContext, metadataVersion ) )
-            .thenReturn( metadataVersions );
+        when(
+            metadataSyncPreProcessor.handleMetadataVersionsList( metadataRetryContext, metadataVersion, JOB_PROGRESS ) )
+                .thenReturn( metadataVersions );
         when( metadataSyncService.isSyncRequired( any( MetadataSyncParams.class ) ) ).thenReturn( true );
-        metadataSyncJob.runSyncTask( metadataRetryContext, metadataSyncJobParameters );
+        metadataSyncJob.runSyncTask( metadataRetryContext, metadataSyncJobParameters, JOB_PROGRESS );
 
-        verify( metadataSyncPreProcessor ).setUp( metadataRetryContext );
-        verify( metadataSyncPreProcessor ).handleDataValuePush( metadataRetryContext, metadataSyncJobParameters );
+        verify( metadataSyncPreProcessor ).setUp( metadataRetryContext, JOB_PROGRESS );
+        verify( metadataSyncPreProcessor ).handleDataValuePush( metadataRetryContext, metadataSyncJobParameters,
+            JOB_PROGRESS );
         verify( metadataSyncPreProcessor ).handleEventProgramsDataPush( metadataRetryContext,
-            metadataSyncJobParameters );
+            metadataSyncJobParameters, JOB_PROGRESS );
         verify( metadataSyncPreProcessor ).handleTrackerProgramsDataPush( metadataRetryContext,
-            metadataSyncJobParameters );
-        verify( metadataSyncPreProcessor ).handleCurrentMetadataVersion( metadataRetryContext );
-        verify( metadataSyncPreProcessor ).handleMetadataVersionsList( metadataRetryContext, metadataVersion );
+            metadataSyncJobParameters, JOB_PROGRESS );
+        verify( metadataSyncPreProcessor ).handleCurrentMetadataVersion( metadataRetryContext, JOB_PROGRESS );
+        verify( metadataSyncPreProcessor ).handleMetadataVersionsList( metadataRetryContext, metadataVersion,
+            JOB_PROGRESS );
         verify( metadataSyncService ).doMetadataSync( any( MetadataSyncParams.class ) );
         verify( metadataSyncPostProcessor ).handleSyncNotificationsAndAbortStatus( metadataSyncSummary,
             metadataRetryContext, metadataVersion );
@@ -140,25 +149,28 @@ class MetadataSyncJobParametersTest
     {
         when( metadataSyncService.doMetadataSync( any( MetadataSyncParams.class ) ) )
             .thenThrow( new MetadataSyncServiceException( "" ) );
-        when( metadataSyncPreProcessor.handleCurrentMetadataVersion( metadataRetryContext ) )
+        when( metadataSyncPreProcessor.handleCurrentMetadataVersion( metadataRetryContext, JOB_PROGRESS ) )
             .thenReturn( metadataVersion );
-        when( metadataSyncPreProcessor.handleMetadataVersionsList( metadataRetryContext, metadataVersion ) )
-            .thenReturn( metadataVersions );
+        when(
+            metadataSyncPreProcessor.handleMetadataVersionsList( metadataRetryContext, metadataVersion, JOB_PROGRESS ) )
+                .thenReturn( metadataVersions );
         doNothing().when( metadataRetryContext ).updateRetryContext( any( String.class ), any( String.class ),
             eq( metadataVersion ) );
         when( metadataSyncService.isSyncRequired( any( MetadataSyncParams.class ) ) ).thenReturn( true );
 
         assertThrows( MetadataSyncServiceException.class,
-            () -> metadataSyncJob.runSyncTask( metadataRetryContext, metadataSyncJobParameters ) );
+            () -> metadataSyncJob.runSyncTask( metadataRetryContext, metadataSyncJobParameters, JOB_PROGRESS ) );
 
-        verify( metadataSyncPreProcessor ).setUp( metadataRetryContext );
-        verify( metadataSyncPreProcessor ).handleDataValuePush( metadataRetryContext, metadataSyncJobParameters );
+        verify( metadataSyncPreProcessor ).setUp( metadataRetryContext, JOB_PROGRESS );
+        verify( metadataSyncPreProcessor ).handleDataValuePush( metadataRetryContext, metadataSyncJobParameters,
+            JOB_PROGRESS );
         verify( metadataSyncPreProcessor ).handleEventProgramsDataPush( metadataRetryContext,
-            metadataSyncJobParameters );
+            metadataSyncJobParameters, JOB_PROGRESS );
         verify( metadataSyncPreProcessor ).handleTrackerProgramsDataPush( metadataRetryContext,
-            metadataSyncJobParameters );
-        verify( metadataSyncPreProcessor ).handleCurrentMetadataVersion( metadataRetryContext );
-        verify( metadataSyncPreProcessor ).handleMetadataVersionsList( metadataRetryContext, metadataVersion );
+            metadataSyncJobParameters, JOB_PROGRESS );
+        verify( metadataSyncPreProcessor ).handleCurrentMetadataVersion( metadataRetryContext, JOB_PROGRESS );
+        verify( metadataSyncPreProcessor ).handleMetadataVersionsList( metadataRetryContext, metadataVersion,
+            JOB_PROGRESS );
         verify( metadataSyncService ).doMetadataSync( any( MetadataSyncParams.class ) );
         verify( metadataSyncPostProcessor, never() ).handleSyncNotificationsAndAbortStatus(
             metadataSyncSummary,
@@ -171,27 +183,29 @@ class MetadataSyncJobParametersTest
     {
         metadataVersions.add( metadataVersion );
 
-        when( metadataSyncPreProcessor.handleCurrentMetadataVersion( metadataRetryContext ) )
+        when( metadataSyncPreProcessor.handleCurrentMetadataVersion( metadataRetryContext, JOB_PROGRESS ) )
             .thenReturn( metadataVersion );
-        when( metadataSyncPreProcessor.handleMetadataVersionsList( metadataRetryContext, metadataVersion ) )
-            .thenReturn( metadataVersions );
+        when(
+            metadataSyncPreProcessor.handleMetadataVersionsList( metadataRetryContext, metadataVersion, JOB_PROGRESS ) )
+                .thenReturn( metadataVersions );
         when( metadataSyncService.doMetadataSync( any( MetadataSyncParams.class ) ) )
             .thenThrow( new DhisVersionMismatchException( "" ) );
         when( metadataSyncService.isSyncRequired( any( MetadataSyncParams.class ) ) ).thenReturn( true );
 
         assertThrows( DhisVersionMismatchException.class,
-            () -> metadataSyncJob.runSyncTask( metadataRetryContext, metadataSyncJobParameters ) );
+            () -> metadataSyncJob.runSyncTask( metadataRetryContext, metadataSyncJobParameters, JOB_PROGRESS ) );
 
-        verify( metadataSyncPreProcessor, times( 1 ) ).setUp( metadataRetryContext );
+        verify( metadataSyncPreProcessor, times( 1 ) ).setUp( metadataRetryContext, JOB_PROGRESS );
         verify( metadataSyncPreProcessor, times( 1 ) ).handleDataValuePush( metadataRetryContext,
-            metadataSyncJobParameters );
+            metadataSyncJobParameters, JOB_PROGRESS );
         verify( metadataSyncPreProcessor, times( 1 ) ).handleEventProgramsDataPush( metadataRetryContext,
-            metadataSyncJobParameters );
+            metadataSyncJobParameters, JOB_PROGRESS );
         verify( metadataSyncPreProcessor, times( 1 ) ).handleTrackerProgramsDataPush( metadataRetryContext,
-            metadataSyncJobParameters );
-        verify( metadataSyncPreProcessor, times( 1 ) ).handleCurrentMetadataVersion( metadataRetryContext );
+            metadataSyncJobParameters, JOB_PROGRESS );
+        verify( metadataSyncPreProcessor, times( 1 ) ).handleCurrentMetadataVersion( metadataRetryContext,
+            JOB_PROGRESS );
         verify( metadataSyncPreProcessor, times( 1 ) ).handleMetadataVersionsList( metadataRetryContext,
-            metadataVersion );
+            metadataVersion, JOB_PROGRESS );
         verify( metadataSyncService, times( 1 ) ).doMetadataSync( any( MetadataSyncParams.class ) );
     }
 
@@ -201,26 +215,28 @@ class MetadataSyncJobParametersTest
     {
         metadataVersions.add( metadataVersion );
 
-        when( metadataSyncPreProcessor.handleCurrentMetadataVersion( metadataRetryContext ) )
+        when( metadataSyncPreProcessor.handleCurrentMetadataVersion( metadataRetryContext, JOB_PROGRESS ) )
             .thenReturn( metadataVersion );
-        when( metadataSyncPreProcessor.handleMetadataVersionsList( metadataRetryContext, metadataVersion ) )
-            .thenReturn( metadataVersions );
+        when(
+            metadataSyncPreProcessor.handleMetadataVersionsList( metadataRetryContext, metadataVersion, JOB_PROGRESS ) )
+                .thenReturn( metadataVersions );
         when( metadataSyncService.doMetadataSync( any( MetadataSyncParams.class ) ) ).thenReturn( metadataSyncSummary );
         when( metadataSyncPostProcessor.handleSyncNotificationsAndAbortStatus( metadataSyncSummary,
             metadataRetryContext, metadataVersion ) ).thenReturn( true );
         when( metadataSyncService.isSyncRequired( any( MetadataSyncParams.class ) ) ).thenReturn( true );
-        metadataSyncJob.runSyncTask( metadataRetryContext, metadataSyncJobParameters );
+        metadataSyncJob.runSyncTask( metadataRetryContext, metadataSyncJobParameters, JOB_PROGRESS );
 
-        verify( metadataSyncPreProcessor, times( 1 ) ).setUp( metadataRetryContext );
+        verify( metadataSyncPreProcessor, times( 1 ) ).setUp( metadataRetryContext, JOB_PROGRESS );
         verify( metadataSyncPreProcessor, times( 1 ) ).handleDataValuePush( metadataRetryContext,
-            metadataSyncJobParameters );
+            metadataSyncJobParameters, JOB_PROGRESS );
         verify( metadataSyncPreProcessor, times( 1 ) ).handleEventProgramsDataPush( metadataRetryContext,
-            metadataSyncJobParameters );
+            metadataSyncJobParameters, JOB_PROGRESS );
         verify( metadataSyncPreProcessor, times( 1 ) ).handleTrackerProgramsDataPush( metadataRetryContext,
-            metadataSyncJobParameters );
-        verify( metadataSyncPreProcessor, times( 1 ) ).handleCurrentMetadataVersion( metadataRetryContext );
+            metadataSyncJobParameters, JOB_PROGRESS );
+        verify( metadataSyncPreProcessor, times( 1 ) ).handleCurrentMetadataVersion( metadataRetryContext,
+            JOB_PROGRESS );
         verify( metadataSyncPreProcessor, times( 1 ) ).handleMetadataVersionsList( metadataRetryContext,
-            metadataVersion );
+            metadataVersion, JOB_PROGRESS );
         verify( metadataSyncService, times( 1 ) ).doMetadataSync( any( MetadataSyncParams.class ) );
         verify( metadataSyncPostProcessor, times( 1 ) ).handleSyncNotificationsAndAbortStatus( metadataSyncSummary,
             metadataRetryContext, metadataVersion );

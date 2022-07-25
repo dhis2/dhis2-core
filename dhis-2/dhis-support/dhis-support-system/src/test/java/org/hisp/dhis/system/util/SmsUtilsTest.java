@@ -53,7 +53,6 @@ import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.sms.parse.SMSParserException;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -93,7 +92,6 @@ class SmsUtilsTest
         email = "test@example.com";
         userA = new User();
         userA.setAutoFields();
-        userA.setUserCredentials( new UserCredentials() );
         userA.setPhoneNumber( phoneNumber );
         userA.setEmail( email );
         organisationUnitA = new OrganisationUnit();

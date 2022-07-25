@@ -28,14 +28,12 @@
 package org.hisp.dhis.tracker.preheat.supplier;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -70,9 +68,7 @@ public class ProgramInstancesWithAtLeastOneEventSupplier extends JdbcAbstractPre
     @Override
     public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
     {
-        final Map<TrackerIdScheme, Map<String, ProgramInstance>> enrollmentsMap = preheat.getEnrollments();
-        final Map<String, ProgramInstance> enrollments = enrollmentsMap.getOrDefault( TrackerIdScheme.UID,
-            new HashMap<>() );
+        final Map<String, ProgramInstance> enrollments = preheat.getEnrollments();
         List<Long> programStageIds = enrollments.values().stream().map( BaseIdentifiableObject::getId )
             .collect( Collectors.toList() );
 

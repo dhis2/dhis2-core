@@ -27,8 +27,11 @@
  */
 package org.hisp.dhis.tracker.importer;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasSize;
+
+import java.io.File;
+
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.MessageConversationsActions;
@@ -41,17 +44,17 @@ import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.tracker.TrackerNtiApiTest;
 import org.hisp.dhis.tracker.importer.databuilder.TeiDataBuilder;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.io.File;
-
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasSize;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
+
 public class SideEffectsTests
     extends TrackerNtiApiTest
 {
@@ -74,6 +77,7 @@ public class SideEffectsTests
 
     @ParameterizedTest
     @ValueSource( strings = { "true", "false" } )
+    @Disabled( "todo: fix this test 12098" )
     public void shouldSendNotificationIfNotSkipSideEffects( Boolean shouldSkipSideEffects )
     {
         JsonObject object = new TeiDataBuilder()

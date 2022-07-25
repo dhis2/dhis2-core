@@ -45,7 +45,20 @@ public enum ErrorCode
     E1104( "Attribute option combo not found or not accessible: `{0}`" ),
     E1105( "Data set not found or not accessible: `{0}`" ),
     E1106( "There are duplicate translation record for property `{0}` and locale `{1}`" ),
-    E1107( "Object type `{0}` is not translatable." ),
+    E1107( "Object type `{0}` is not translatable" ),
+    E1108( "Could not add item to collection: {0}" ),
+    E1109( "Could not remove item from collection: {0}" ),
+    E1110( "Category combo not found or not accessible: `{0}`" ),
+    E1111( "Category option not found or not accessible: `{0}`" ),
+    E1112( "Objects of type `{0}` not found or not accessible: `{1}`" ),
+    E1113( "Object of type `{0}` not found or not accessible: `{1}`" ),
+    E1114( "Data set form type must be custom: `{0}`" ),
+    E1115( "Data element value type must match option set value type: `{0}`" ),
+    E1116( "Data element of value type multi text must have an option set: `{0}`" ),
+    E1117( "Data element `{0}` of value type multi text cannot use an option set `{1}` "
+        + "that uses the separator character in one of its codes: `{2}`" ),
+    E1118(
+        "Option set `{0}` of value type multi text cannot have options using the separator character in their code: `{1}`" ),
 
     /* Org unit merge */
     E1500( "At least two source orgs unit must be specified" ),
@@ -102,14 +115,19 @@ public enum ErrorCode
     E2029( "Data value is not a valid option of the data element option set: `{0}`" ),
     E2030( "Data value must match data element value type: `{0}`" ),
     E2031( "User does not have write access to category option combo: `{0}`" ),
-    E2032( "Data value does not exist" ),
+    E2032( "Data value not found or not accessible" ),
     E2033( "Follow-up must be specified" ),
     E2034( "Filter not supported: `{0}`" ),
     E2035( "Operator not supported: `{0}`" ),
     E2036( "Combination not supported: `{0}`" ),
     E2037( "Order not supported: `{0}`" ),
     E2038( "Field not supported: `{0}`" ),
-    E2039( "StageOffset is allowed only for repeatable stages (`{0}` is not repeatable)" ),
+    E2039( "Stage offset is allowed only for repeatable stages (`{0}` is not repeatable)" ),
+    E2040( "Both category combination and category options must be specified" ),
+    E2041( "Attribute option combo does not exist for given category combo and category options" ),
+    E2042( "Min value must be specified" ),
+    E2043( "Max value must be specified" ),
+    E2044( "Max value must be greater than min value" ),
 
     /* Outlier detection */
     E2200( "At least one data element must be specified" ),
@@ -200,8 +218,10 @@ public enum ErrorCode
     E4047( "DataElement `{0}` is not linked to any ProgramStageDataElement for program rule `{1}`" ),
     E4048( "TrackedEntityAttribute `{0}` is not linked to ProgramTrackedEntityAttribute for program rule `{1}`" ),
     E4049( "Property `{0}` requires a valid username, was given `{1}`." ),
-    E4050(
-        "One of the parameters DataElement, TrackedEntityAttribute or ProgramRuleVariable is required for program rule `{0}`" ),
+    E4054( "Property `{0}` already exists, was given `{1}`." ),
+    E4056( "Property `{0}` can not be changed, was given `{1}`." ),
+    E4055( "An user needs to have at least one user role associated with it." ),
+    E4050( "One of DataElement, TrackedEntityAttribute or ProgramRuleVariable is required for program rule `{0}`" ),
 
     /* ProgramRuleVariable validation */
     E4051( "A program rule variable with name `{0}` and program uid `{1}` already exists" ),
@@ -223,6 +243,8 @@ public enum ErrorCode
     E4311( "SQL query contains illegal keywords" ),
     E4312( "Current user is not authorised to read data from SQL view: `{0}`" ),
     E4313( "SQL query contains variable names that are invalid: `{0}`" ),
+    E4314( "Provided `{0}`: (`{1}`) are not part of the selected `{2}`" ),
+    E4315( "Provided Program: (`{0}`) is without registration" ),
 
     /* Preheat */
     E5000( "Found matching object for reference, but import mode is CREATE. Identifier was {0}, and object was {1}." ),
@@ -231,8 +253,7 @@ public enum ErrorCode
     E5003( "Property `{0}` with value `{1}` on object {2} already exists on object {3}." ),
     E5004( "Id `{0}` for type `{1}` exists on more than 1 object in the payload, removing all but the first found." ),
     E5005( "Properties `{0}` in objects `{1}` must be unique within the payload" ),
-    E5006(
-        "Non owner reference {0} on object {1} for association `{2}` is not allowed within payload for ERRORS_NOT_OWNER" ),
+    E5006( "Non-owner reference {0} on object {1} for association `{2}` disallowed for payload for ERRORS_NOT_OWNER" ),
 
     /* Metadata import */
     E6000( "Program `{0}` has more than one Program Instances" ),
@@ -240,6 +261,8 @@ public enum ErrorCode
         "This property need to be data element of value type date and belong the program stage." ),
     E6002( "Class name {0} is not supported." ),
     E6003( "Could not patch object with id {0}." ),
+    E6004( "Attribute `{0}` has invalid GeoJson value." ),
+    E6005( "Attribute `{0}` has unsupported GeoJson value." ),
 
     /* File resource */
     E6100( "Filename not present" ),
@@ -247,6 +270,21 @@ public enum ErrorCode
 
     /* Users */
     E6200( "Feedback message recipients user group not defined" ),
+    E6201( "User account not found" ),
+    E6202( "User account does not have a valid email address" ),
+    E6203( "SMTP server/email sending is not available" ),
+    E6204( "Username is already taken" ),
+    E6205( "Restore token does not exist" ),
+    E6206( "Restore type does not exist" ),
+    E6207( "Restore token is not in valid format" ),
+    E6208( "Restore token is incorrect" ),
+    E6209( "Restore token is not set for user account" ),
+    E6210( "Restore expiration date is not set for user account" ),
+    E6211( "User account restore invitation has expired" ),
+
+    /* Data exchange */
+    E6300( "DHIS 2 client request failed: {0} {1}" ),
+    E6301( "Analytics data exchange not found or not accessible: `{0}`" ),
 
     /* Scheduling */
     E7000( "Job of same type already scheduled with cron expression: `{0}`" ),
@@ -292,6 +330,8 @@ public enum ErrorCode
     E7131( "Query failed, likely because the query timed out" ),
     E7132( "An indicator expression caused division by zero operation" ),
     E7133( "Query cannot be executed, possibly because of invalid types or invalid operation" ),
+    E7134( "Cannot retrieve total value for data elements with skip total category combination" ),
+    E7135( "Date time is not parsable: `{0}`" ),
 
     /* Event analytics */
     E7200( "At least one organisation unit must be specified" ),
@@ -325,6 +365,7 @@ public enum ErrorCode
     E7228( "Fallback coordinate field is invalid: `{0}` " ),
     E7229( "Operator `{0}` does not allow missing value" ),
     E7230( "Header param `{0}` does not exist" ),
+    E7231( "Legacy `{0}` can be updated only through event visualizations" ),
 
     /* Org unit analytics */
     E7300( "At least one organisation unit must be specified" ),
@@ -372,17 +413,30 @@ public enum ErrorCode
     E7639( "Organisation unit: `{0}` is not valid for attribute option combo: `{1}`" ),
     E7640( "Current date is past expiry days for period: `{0}`  and data set: `{1}`" ),
     E7641( "Period: `{0}` is after latest open future period: `{2}` for data element: `{1}`" ),
-    E7642(
-        "Data is already approved for data set: `{3}` period: `{1}` organisation unit: `{0}` attribute option combo: `{2}`" ),
+    E7642( "Data already approved for data set: `{3}` period: `{1}` org unit: `{0}` attribute option combo: `{2}`" ),
     E7643( "Period: `{0}` is not open for this data set at this time: `{1}`" ),
     E7644( "Period: `{0}` does not conform to the open periods of associated data sets" ),
     E7645( "No data value for file resource exist for the given combination for data element: `{0}`" ),
 
-    // datastore query validation
+    /* Data store query validation */
     E7650( "Not a valid path: `{0}`" ),
     E7651( "Illegal fields expression. Expected `,`, `[` or `]` at position {0} but found `{1}`" ),
     E7652( "Illegal filter expression `{0}`: {1}" ),
-    E7653( "Illegal filter `{0}`: {1}" );
+    E7653( "Illegal filter `{0}`: {1}" ),
+
+    /* GeoJSON import validation and conflicts */
+    E7700( "Error reading JSON input: {0}" ),
+    E7701( "Input is not a valid GeoJSON document: {0}" ),
+    E7702( "GeoJSON attribute does not exist: {0}" ),
+    E7703( "GeoJSON attribute is not of type {0} but: {1}" ),
+    E7704( "GeoJSON attribute is not applicable to organisation units" ),
+    E7705( "GeoJSON feature lacks identifier property: `{0}`" ),
+    E7706( "GeoJSON feature lacks geometry property" ),
+    E7707( "GeoJSON geometry is not valid" ),
+    E7708( "GeoJSON target organisation unit does not exist" ),
+    E7709( "Organisation unit could not be updated with new GeoJSON geometry" ),
+    E7710( "User is not allowed to update the target organisation unit" ),
+    E7711( "Organisation unit cannot be uniquely identified by its name" );
 
     private String message;
 

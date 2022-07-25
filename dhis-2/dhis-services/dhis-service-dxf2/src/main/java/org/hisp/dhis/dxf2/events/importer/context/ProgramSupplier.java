@@ -41,7 +41,7 @@ import java.util.stream.Stream;
 
 import lombok.Data;
 
-import org.apache.commons.collections.MapUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
@@ -311,7 +311,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
                     program.setOpenDaysAfterCoEndDate( rs.getInt( "opendaysaftercoenddate" ) );
 
                     program.setProgramType( ProgramType.fromValue( rs.getString( "type" ) ) );
-                    program.setSharing( toSharing( rs.getString( "program_sharing" ) ) );
+                    program.setSharing( toSharing( rs.getObject( "program_sharing" ).toString() ) );
 
                     // Do not add program stages without primary key (this
                     // should not really happen, but the database does allow
@@ -334,7 +334,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
                         TrackedEntityType trackedEntityType = new TrackedEntityType();
                         trackedEntityType.setId( tetId );
                         trackedEntityType.setUid( rs.getString( "tet_uid" ) );
-                        trackedEntityType.setSharing( toSharing( rs.getString( "tet_sharing" ) ) );
+                        trackedEntityType.setSharing( toSharing( rs.getObject( "tet_sharing" ).toString() ) );
                         program.setTrackedEntityType( trackedEntityType );
                     }
 
@@ -374,7 +374,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
         programStage.setCode( rs.getString( "ps_code" ) );
         programStage.setName( rs.getString( "ps_name" ) );
         programStage.setSortOrder( rs.getInt( "sort_order" ) );
-        programStage.setSharing( toSharing( rs.getString( "ps_sharing" ) ) );
+        programStage.setSharing( toSharing( rs.getObject( "ps_sharing" ).toString() ) );
         programStage.setFeatureType(
             rs.getString( "ps_feature_type" ) != null ? FeatureType.valueOf( rs.getString( "ps_feature_type" ) )
                 : FeatureType.NONE );

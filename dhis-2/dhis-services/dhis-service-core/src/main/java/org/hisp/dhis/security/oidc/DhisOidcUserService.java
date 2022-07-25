@@ -31,7 +31,8 @@ import java.util.Map;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
@@ -62,19 +63,17 @@ public class DhisOidcUserService
     public OidcUser loadUser( OidcUserRequest userRequest )
         throws OAuth2AuthenticationException
     {
+        OidcUser oidcUser = super.loadUser( userRequest );
+
         ClientRegistration clientRegistration = userRequest.getClientRegistration();
+
         DhisOidcClientRegistration oidcClientRegistration = clientRegistrationRepository
             .getDhisOidcClientRegistration( clientRegistration.getRegistrationId() );
 
         String mappingClaimKey = oidcClientRegistration.getMappingClaimKey();
-
-        OidcUser oidcUser = super.loadUser( userRequest );
-
-        OidcUserInfo userInfo = oidcUser.getUserInfo();
         Map<String, Object> attributes = oidcUser.getAttributes();
-
         Object claimValue = attributes.get( mappingClaimKey );
-
+        OidcUserInfo userInfo = oidcUser.getUserInfo();
         if ( claimValue == null && userInfo != null )
         {
             claimValue = userInfo.getClaim( mappingClaimKey );
@@ -89,11 +88,11 @@ public class DhisOidcUserService
 
         if ( claimValue != null )
         {
-            UserCredentials userCredentials = userService.getUserCredentialsByOpenId( (String) claimValue );
-
-            if ( userCredentials != null )
+            User user = userService.getUserByOpenId( (String) claimValue );
+            if ( user != null )
             {
-                return new DhisOidcUser( userCredentials, attributes, IdTokenClaimNames.SUB, oidcUser.getIdToken() );
+                CurrentUserDetails userDetails = userService.validateAndCreateUserDetails( user, user.getPassword() );
+                return new DhisOidcUser( userDetails, attributes, IdTokenClaimNames.SUB, oidcUser.getIdToken() );
             }
         }
 

@@ -100,7 +100,7 @@ public class SecurityController
             throw new BadCredentialsException( "No current user" );
         }
 
-        if ( !SecurityUtils.verify( currentUser.getUserCredentials(), code ) )
+        if ( !SecurityUtils.verify( currentUser, code ) )
         {
             return unauthorized( "2FA code not authenticated" );
         }

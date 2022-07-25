@@ -29,7 +29,7 @@ package org.hisp.dhis.webapi.controller;
 
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toSet;
-import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
+import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -43,10 +43,12 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonResponse;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.json.domain.JsonError;
 import org.hisp.dhis.webapi.json.domain.JsonFollowupValue;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Tests the
@@ -57,6 +59,9 @@ import org.springframework.http.HttpStatus;
  */
 class FollowupAnalysisControllerTest extends AbstractDataValueControllerTest
 {
+
+    @Autowired
+    private CurrentUserService currentUserService;
 
     /**
      * This test makes sure the fields returned by a
@@ -79,9 +84,9 @@ class FollowupAnalysisControllerTest extends AbstractDataValueControllerTest
         assertEquals( "Monthly", value.getPeType() );
         assertEquals( LocalDate.of( 2021, 03, 01 ).atStartOfDay(), value.getPeStartDate() );
         assertEquals( LocalDate.of( 2021, 03, 31 ).atStartOfDay(), value.getPeEndDate() );
-        assertEquals( categoryOptionId, value.getCoc() );
+        assertEquals( categoryOptionComboId, value.getCoc() );
         assertEquals( "default", value.getCocName() );
-        assertEquals( categoryOptionId, value.getAoc() );
+        assertEquals( categoryOptionComboId, value.getAoc() );
         assertEquals( "default", value.getAocName() );
         assertEquals( "5", value.getValue() );
         assertEquals( "admin", value.getStoredBy() );

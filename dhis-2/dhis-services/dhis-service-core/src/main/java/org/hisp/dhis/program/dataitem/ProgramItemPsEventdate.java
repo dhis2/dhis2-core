@@ -27,11 +27,12 @@
  */
 package org.hisp.dhis.program.dataitem;
 
-import static org.hisp.dhis.parser.expression.CommonExpressionVisitor.DEFAULT_DATE_VALUE;
+import static org.hisp.dhis.parser.expression.ParserUtils.DEFAULT_DATE_VALUE;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.parser.expression.ProgramExpressionParams;
 import org.hisp.dhis.parser.expression.antlr.ExpressionParser;
 import org.hisp.dhis.program.ProgramExpressionItem;
 import org.hisp.dhis.program.ProgramStage;
@@ -64,8 +65,11 @@ public class ProgramItemPsEventdate
     @Override
     public final Object getSql( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
     {
+        ProgramExpressionParams params = visitor.getProgParams();
+
         return visitor.getStatementBuilder().getProgramIndicatorEventColumnSql(
             ctx.uid0.getText(), "executiondate",
-            visitor.getReportingStartDate(), visitor.getReportingEndDate(), visitor.getProgramIndicator() );
+            params.getReportingStartDate(), params.getReportingEndDate(),
+            params.getProgramIndicator() );
     }
 }

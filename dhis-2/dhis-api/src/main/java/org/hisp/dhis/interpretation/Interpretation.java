@@ -135,18 +135,24 @@ public class Interpretation
         this.text = text;
     }
 
-    public Interpretation( EventReport eventReport, OrganisationUnit organisationUnit, String text )
+    public Interpretation( EventVisualization eventVisualization, EventReport eventReport,
+        OrganisationUnit organisationUnit, String text )
     {
         this.eventReport = eventReport;
         eventReport.getInterpretations().add( this );
+        this.eventVisualization = eventVisualization;
+        eventVisualization.getInterpretations().add( this );
         this.organisationUnit = organisationUnit;
         this.text = text;
     }
 
-    public Interpretation( EventChart eventChart, OrganisationUnit organisationUnit, String text )
+    public Interpretation( EventVisualization eventVisualization, EventChart eventChart,
+        OrganisationUnit organisationUnit, String text )
     {
         this.eventChart = eventChart;
         eventChart.getInterpretations().add( this );
+        this.eventVisualization = eventVisualization;
+        eventVisualization.getInterpretations().add( this );
         this.organisationUnit = organisationUnit;
         this.text = text;
     }
@@ -179,6 +185,10 @@ public class Interpretation
         {
             return VISUALIZATION;
         }
+        else if ( eventVisualization != null )
+        {
+            return EVENT_VISUALIZATION;
+        }
         else if ( map != null )
         {
             return MAP;
@@ -190,10 +200,6 @@ public class Interpretation
         else if ( eventChart != null )
         {
             return EVENT_CHART;
-        }
-        else if ( eventVisualization != null )
-        {
-            return EVENT_VISUALIZATION;
         }
         else if ( dataSet != null )
         {

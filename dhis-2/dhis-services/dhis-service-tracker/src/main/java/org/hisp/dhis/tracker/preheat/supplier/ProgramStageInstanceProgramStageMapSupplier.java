@@ -27,17 +27,16 @@
  */
 package org.hisp.dhis.tracker.preheat.supplier;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Component;
 
@@ -75,7 +74,7 @@ public class ProgramStageInstanceProgramStageMapSupplier
     @Override
     public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
     {
-        if ( params.getEvents().size() == 0 )
+        if ( params.getEvents().isEmpty() )
         {
             return;
         }
@@ -83,7 +82,7 @@ public class ProgramStageInstanceProgramStageMapSupplier
         List<String> notRepeatableProgramStageUids = params.getEvents().stream()
             .map( Event::getProgramStage )
             .filter( Objects::nonNull )
-            .map( ps -> (ProgramStage) preheat.get( ProgramStage.class, ps ) )
+            .map( preheat::getProgramStage )
             .filter( Objects::nonNull )
             .filter( ps -> !ps.getRepeatable() )
             .map( ProgramStage::getUid )
@@ -98,18 +97,11 @@ public class ProgramStageInstanceProgramStageMapSupplier
 
         if ( !notRepeatableProgramStageUids.isEmpty() && !programInstanceUids.isEmpty() )
         {
-            List<Pair<String, String>> programStageWithEvents = new ArrayList<>();
-
             MapSqlParameterSource parameters = new MapSqlParameterSource();
             parameters.addValue( "programStageUids", notRepeatableProgramStageUids );
             parameters.addValue( "programInstanceUids", programInstanceUids );
-            jdbcTemplate.query( SQL, parameters, rs -> {
-
-                programStageWithEvents.add( Pair.of( rs.getString( PS_UID ), rs.getString( PI_UID ) ) );
-
-            } );
-
-            preheat.setProgramStageWithEvents( programStageWithEvents );
+            jdbcTemplate.query( SQL, parameters, (RowCallbackHandler) rs -> preheat
+                .addProgramStageWithEvents( rs.getString( PS_UID ), rs.getString( PI_UID ) ) );
         }
     }
 }

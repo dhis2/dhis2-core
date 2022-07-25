@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.legend;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
@@ -35,17 +35,11 @@ import org.springframework.stereotype.Component;
 /**
  * @author Lars Helge Overland
  */
-@Component( "org.hisp.dhis.legend.LegendSetDeletionHandler" )
-public class LegendSetDeletionHandler
-    extends DeletionHandler
+@Component
+@AllArgsConstructor
+public class LegendSetDeletionHandler extends DeletionHandler
 {
     private final LegendSetService legendSetService;
-
-    public LegendSetDeletionHandler( LegendSetService legendSetService )
-    {
-        checkNotNull( legendSetService );
-        this.legendSetService = legendSetService;
-    }
 
     @Override
     protected void register()

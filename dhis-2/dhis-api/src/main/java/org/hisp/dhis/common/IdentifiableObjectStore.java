@@ -34,7 +34,6 @@ import java.util.Set;
 
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserInfo;
 
 /**
  * @author Lars Helge Overland
@@ -83,12 +82,22 @@ public interface IdentifiableObjectStore<T>
     void delete( T object, User user );
 
     /**
-     * Retrieves the object with the given uid.
+     * Retrieves the object with the given UID, or null if no object exists.
      *
-     * @param uid the uid.
-     * @return the object with the given uid.
+     * @param uid the UID.
+     * @return the object with the given UID.
      */
     T getByUid( String uid );
+
+    /**
+     * Retrieves the object with the given UID, throws exception if no object
+     * exists.
+     *
+     * @param uid the UID.
+     * @return the object with the given UID.
+     * @throws IllegalQueryException if no object exists.
+     */
+    T loadByUid( String uid );
 
     /**
      * Retrieves the object with the given uid. Bypasses the ACL system.
@@ -107,12 +116,22 @@ public interface IdentifiableObjectStore<T>
     T getByName( String name );
 
     /**
-     * Retrieves the object with the given code.
+     * Retrieves the object with the given code, or null if no object exists.
      *
      * @param code the code.
      * @return the object with the given code.
      */
     T getByCode( String code );
+
+    /**
+     * Retrieves the object with the given code, throws exception if no object
+     * exists.
+     *
+     * @param code the code.
+     * @return the object with the given code.
+     * @throws IllegalQueryException if no object exists.
+     */
+    T loadByCode( String code );
 
     /**
      * Retrieves the attribute value associated with the unique attribute and
@@ -124,7 +143,16 @@ public interface IdentifiableObjectStore<T>
      */
     T getByUniqueAttributeValue( Attribute attribute, String value );
 
-    T getByUniqueAttributeValue( Attribute attribute, String value, UserInfo userInfo );
+    /**
+     * Retrieves the attribute value associated with the unique attribute, the
+     * given value and given user.
+     *
+     * @param attribute the attribute.
+     * @param value the value.
+     * @param user the user.
+     * @return the attribute value.
+     */
+    T getByUniqueAttributeValue( Attribute attribute, String value, User user );
 
     /**
      * Retrieves a List of all objects (sorted on name).
@@ -227,6 +255,15 @@ public interface IdentifiableObjectStore<T>
     List<T> getById( Collection<Long> ids );
 
     /**
+     * Retrieves a list of objects referenced by the given collection of ids.
+     *
+     * @param ids a collection of ids.
+     * @param user the {@link User} for sharing restrictions
+     * @return a list of objects.
+     */
+    List<T> getById( Collection<Long> ids, User user );
+
+    /**
      * Retrieves a list of objects referenced by the given collection of uids.
      *
      * @param uids a collection of uids.
@@ -240,6 +277,7 @@ public interface IdentifiableObjectStore<T>
      * Objects which are soft-deleted (deleted=true) are filtered out
      *
      * @param uids a collection of uids.
+     * @param user the {@link User} for sharing restrictions
      * @return a list of objects.
      */
     List<T> getByUid( Collection<String> uids, User user );
@@ -256,6 +294,7 @@ public interface IdentifiableObjectStore<T>
      * Retrieves a list of objects referenced by the given collection of codes.
      *
      * @param codes a collection of codes.
+     * @param user the {@link User} for sharing restrictions
      * @return a list of objects.
      */
     List<T> getByCode( Collection<String> codes, User user );
@@ -269,6 +308,15 @@ public interface IdentifiableObjectStore<T>
     List<T> getByName( Collection<String> names );
 
     /**
+     * Retrieves a list of objects referenced by the given collection of names.
+     *
+     * @param names a collection of names.
+     * @param user the {@link User} for sharing restrictions
+     * @return a list of objects.
+     */
+    List<T> getByName( Collection<String> names, User user );
+
+    /**
      * Retrieves a list of objects referenced by the given List of uids.
      * Bypasses the ACL system.
      *
@@ -276,14 +324,6 @@ public interface IdentifiableObjectStore<T>
      * @return a list of objects.
      */
     List<T> getByUidNoAcl( Collection<String> uids );
-
-    /**
-     * Returns all objects that are equal to or newer than given date.
-     *
-     * @param created Date to compare with.
-     * @return All objects equal or newer than given date.
-     */
-    List<T> getAllGeCreated( Date created );
 
     /**
      * Returns all objects which are equal to or older than the given date.
@@ -348,8 +388,6 @@ public interface IdentifiableObjectStore<T>
     List<T> getDataWriteAll();
 
     List<T> getDataWriteAll( User user );
-
-    List<T> getDataReadAll( int first, int max );
 
     /**
      * Remove given UserGroup UID from all sharing records in database

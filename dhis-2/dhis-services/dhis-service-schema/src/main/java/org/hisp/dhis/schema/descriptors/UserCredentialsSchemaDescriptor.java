@@ -29,7 +29,7 @@ package org.hisp.dhis.schema.descriptors;
 
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
-import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.UserCredentialsDto;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -45,6 +45,6 @@ public class UserCredentialsSchemaDescriptor implements SchemaDescriptor
     @Override
     public Schema getSchema()
     {
-        return new Schema( UserCredentials.class, SINGULAR, PLURAL );
+        return new Schema( UserCredentialsDto.class, SINGULAR, PLURAL );
     }
 }

@@ -42,6 +42,7 @@ public class NotificationLoggerUtil
     {
         switch ( notificationLevel )
         {
+        case LOOP:
         case DEBUG:
             logger.debug( message );
             break;

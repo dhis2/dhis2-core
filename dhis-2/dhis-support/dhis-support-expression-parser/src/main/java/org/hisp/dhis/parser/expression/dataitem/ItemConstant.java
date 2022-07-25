@@ -83,17 +83,4 @@ public class ItemConstant
 
         return Double.valueOf( constant.getValue() ).toString();
     }
-
-    @Override
-    public Object regenerate( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        Constant constant = visitor.getConstantMap().get( ctx.uid0.getText() );
-
-        if ( constant == null )
-        {
-            return ctx.getText();
-        }
-
-        return Double.valueOf( constant.getValue() ).toString();
-    }
 }

@@ -25,28 +25,25 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ---
-summary_uid: fQiLUgDYrz5
 name: categories_no_options
 description: Categories with no category options
 section: Categories
-section_order: 2
 summary_sql: >-
-    select 'categories_no_options' as indicator,
-    COUNT(*)::varchar as value,
-    (100 * COUNT(*) / (SELECT COUNT(*) FROM dataelementcategory)) || '%' as percent,
-    'Categories without category options' as description
+    select
+    COUNT(*) as value,
+    (100 * COUNT(*) / (SELECT COUNT(*) FROM dataelementcategory)) as percent
     from dataelementcategory where categoryid
     not in (select distinct categoryid from categories_categoryoptions);
-details_uid: QOI2PBHvksS
 details_sql: >-
     SELECT uid,name from dataelementcategory
     where categoryid
     not in (select distinct categoryid from categories_categoryoptions)
     ORDER BY name;
+details_id_type: categories
 severity: WARNING
 introduction: >
     Categories should always have at least a single category options.
-recommendation: |
+recommendation: >
     Any categories without category options should either be removed from the
     system if they are not in use. Otherwise, appropriate category options
     should be added to the category.

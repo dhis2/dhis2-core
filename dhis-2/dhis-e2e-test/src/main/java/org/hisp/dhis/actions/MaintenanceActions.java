@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.actions;
 
-import java.util.logging.Logger;
-
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 
@@ -40,11 +40,16 @@ import com.google.gson.JsonObject;
 public class MaintenanceActions
     extends RestApiActions
 {
-    private Logger logger = Logger.getLogger( MaintenanceActions.class.getName() );
+    private Logger logger = LogManager.getLogger( MaintenanceActions.class.getName() );
 
     public MaintenanceActions()
     {
         super( "/maintenance" );
+    }
+
+    public void removeSoftDeletedRelationships()
+    {
+        sendRequest( true, "softDeletedRelationshipRemoval=true" );
     }
 
     public void removeSoftDeletedEvents()
@@ -56,7 +61,7 @@ public class MaintenanceActions
     {
         sendRequest( true, "softDeletedEventRemoval=true", "softDeletedTrackedEntityInstanceRemoval=true",
             "softDeletedProgramStageInstanceRemoval=true", "softDeletedProgramInstanceRemoval=true",
-            "softDeletedDataValueRemoval=true" );
+            "softDeletedRelationshipRemoval=true", "softDeletedDataValueRemoval=true" );
     }
 
     private void sendRequest( boolean validate, String... queryParams )
@@ -71,7 +76,7 @@ public class MaintenanceActions
 
         if ( apiResponse.statusCode() != 204 )
         {
-            logger.warning( String
+            logger.warn( String
                 .format( "Maintenance failed with query params %s. Response: %s", queryParams,
                     apiResponse.getBody().toString() ) );
         }

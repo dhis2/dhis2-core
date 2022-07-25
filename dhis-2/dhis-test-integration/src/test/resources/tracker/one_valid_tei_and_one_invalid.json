@@ -1,0 +1,77 @@
+{
+  "importMode": "COMMIT",
+  "idSchemes": {
+    "dataElementIdScheme": {
+      "idScheme": "UID"
+    },
+    "orgUnitIdScheme": {
+      "idScheme": "UID"
+    },
+    "programIdScheme": {
+      "idScheme": "UID"
+    },
+    "programStageIdScheme": {
+      "idScheme": "UID"
+    },
+    "idScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionComboIdScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionIdScheme": {
+      "idScheme": "UID"
+    }
+  },
+  "importStrategy": "CREATE",
+  "atomicMode": "ALL",
+  "flushMode": "AUTO",
+  "validationMode": "FULL",
+  "skipPatternValidation": false,
+  "skipSideEffects": false,
+  "skipRuleEngine": false,
+  "trackedEntities": [
+    {
+      "trackedEntity": "VALIDTEIAAA",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "ja8NY4PW7Xm"
+      },
+      "createdAt": "2020-02-20T12:09:21.844",
+      "updatedAt": "2020-02-20T12:09:21.844",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "h4w96yEMlzO"
+      },
+      "inactive": false,
+      "deleted": false,
+      "potentialDuplicate": false,
+      "relationships": [],
+      "attributes": [],
+      "enrollments": []
+    },
+    {
+      "trackedEntity": "INVALIDTEIA",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "ja8NY4PW7Xm"
+      },
+      "createdAt": "2020-02-20T12:09:21.844",
+      "updatedAt": "2020-02-20T12:09:21.844",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "INVALID_OU"
+      },
+      "inactive": false,
+      "deleted": false,
+      "potentialDuplicate": false,
+      "relationships": [],
+      "attributes": [],
+      "enrollments": []
+    }
+  ],
+  "enrollments": [],
+  "events": [],
+  "relationships": [],
+  "username": "system-process"
+}

@@ -1,12 +1,12 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
     <groupId>org.hisp.dhis</groupId>
     <artifactId>dhis-services</artifactId>
-    <version>2.38-SNAPSHOT</version>
+    <version>2.39-SNAPSHOT</version>
   </parent>
 
   <artifactId>dhis-service-reporting</artifactId>
@@ -16,10 +16,6 @@
   <dependencies>
 
     <!-- DHIS -->
-    <dependency>
-      <groupId>org.locationtech.jts.io</groupId>
-      <artifactId>jts-io-common</artifactId>
-    </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-api</artifactId>
@@ -62,6 +58,10 @@
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-support-hibernate</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-support-jdbc</artifactId>
     </dependency>
     <dependency>
@@ -69,10 +69,100 @@
       <artifactId>dhis-support-system</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.hisp</groupId>
+      <artifactId>quick</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hisp.dhis.parser</groupId>
+      <artifactId>dhis-antlr-expression-parser</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
       <scope>provided</scope>
     </dependency>
+
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-jdbc</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-tx</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-context</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.security</groupId>
+      <artifactId>spring-security-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>javax.persistence</groupId>
+      <artifactId>javax.persistence-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>joda-time</groupId>
+      <artifactId>joda-time</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.velocity</groupId>
+      <artifactId>velocity</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hibernate</groupId>
+      <artifactId>hibernate-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-slf4j-impl</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.dataformat</groupId>
+      <artifactId>jackson-dataformat-xml</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-beans</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-annotations</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>jsr305</artifactId>
+    </dependency>
+
 
     <!-- JasperReports -->
 
@@ -81,20 +171,12 @@
       <artifactId>jasperreports</artifactId>
     </dependency>
     <dependency>
-      <groupId>net.sf.jasperreports</groupId>
-      <artifactId>jasperreports-fonts</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.jfree</groupId>
       <artifactId>jfreechart</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.apache.poi</groupId>
-      <artifactId>poi</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>commons-collections</groupId>
-      <artifactId>commons-collections</artifactId>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-collections4</artifactId>
     </dependency>
 
     <!-- GeoTools -->
@@ -105,20 +187,23 @@
     </dependency>
     <dependency>
       <groupId>org.geotools</groupId>
-      <artifactId>gt-epsg-wkt</artifactId>
+      <artifactId>gt-main</artifactId>
     </dependency>
     <dependency>
       <groupId>org.geotools</groupId>
-      <artifactId>gt-referencing</artifactId>
+      <artifactId>gt-opengis</artifactId>
     </dependency>
-
     <dependency>
-      <groupId>javax.media</groupId>
-      <artifactId>jai_imageio</artifactId>
+      <groupId>org.locationtech.jts</groupId>
+      <artifactId>jts-core</artifactId>
     </dependency>
 
     <!-- Test -->
-
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-support-test</artifactId>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-service-validation</artifactId>
@@ -150,10 +235,6 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-math3</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.jsoup</groupId>
-      <artifactId>jsoup</artifactId>
     </dependency>
 
   </dependencies>

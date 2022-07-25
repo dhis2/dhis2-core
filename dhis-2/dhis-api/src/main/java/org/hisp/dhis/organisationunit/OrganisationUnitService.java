@@ -404,6 +404,10 @@ public interface OrganisationUnitService extends OrganisationUnitDataIntegrityPr
      */
     boolean isInUserHierarchy( String uid, Set<OrganisationUnit> organisationUnits );
 
+    boolean isDescendant( OrganisationUnit organisationUnit, Set<OrganisationUnit> ancestors );
+
+    boolean isDescendant( OrganisationUnit organisationUnit, OrganisationUnit ancestor );
+
     /**
      * Indicates whether the given organisation unit is part of the hierarchy of
      * the data view organisation units of the current user.

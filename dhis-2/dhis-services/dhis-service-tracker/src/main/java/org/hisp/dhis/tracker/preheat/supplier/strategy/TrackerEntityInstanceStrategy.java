@@ -35,12 +35,11 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
-import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.preheat.DetachUtils;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.mappers.TrackedEntityInstanceMapper;
+import org.hisp.dhis.tracker.preheat.supplier.DetachUtils;
 import org.springframework.stereotype.Component;
 
 /**
@@ -70,7 +69,7 @@ public class TrackerEntityInstanceStrategy implements ClassBasedSupplierStrategy
                 .collect( Collectors.toList() );
 
             // Add to preheat
-            preheat.putTrackedEntities( TrackerIdScheme.UID,
+            preheat.putTrackedEntities(
                 DetachUtils.detach( this.getClass().getAnnotation( StrategyFor.class ).mapper(),
                     trackedEntityInstances ),
                 RootEntitiesUtils.filterOutNonRootEntities( ids, rootEntities ) );

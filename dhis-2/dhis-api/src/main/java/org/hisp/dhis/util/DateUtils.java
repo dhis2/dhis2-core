@@ -213,6 +213,19 @@ public class DateUtils
     }
 
     /**
+     * adds 1 day to provided Date and returns it
+     *
+     * @param date
+     * @return day after provided date
+     */
+    public static Date plusOneDay( Date date )
+    {
+        return Date.from( date
+            .toInstant()
+            .plus( 1, ChronoUnit.DAYS ) );
+    }
+
+    /**
      * Formats a Date according to the HTTP specification standard date format.
      *
      * @param date the Date to format.
@@ -612,18 +625,16 @@ public class DateUtils
     }
 
     /**
-     * This method adds days to a date
+     * Adds days to the given date.
      *
      * @param date the date.
      * @param days the number of days to add.
      */
-    public static Date getDateAfterAddition( Date date, int days )
+    public static Date addDays( Date date, int days )
     {
         Calendar cal = Calendar.getInstance();
-
         cal.setTime( date );
         cal.add( Calendar.DATE, days );
-
         return cal.getTime();
     }
 
@@ -829,6 +840,20 @@ public class DateUtils
     public static java.sql.Date asSqlDate( Date date )
     {
         return new java.sql.Date( date.getTime() );
+    }
+
+    /**
+     * Returns the latest, non-null date of the given dates. If all dates are
+     * null, then null is returned.
+     *
+     * @param dates the dates.
+     * @return the earliest, non-null date.
+     */
+    public static Date getEarliest( Date... dates )
+    {
+        return Lists.newArrayList( dates ).stream()
+            .filter( Objects::nonNull )
+            .min( Date::compareTo ).orElse( null );
     }
 
     /**

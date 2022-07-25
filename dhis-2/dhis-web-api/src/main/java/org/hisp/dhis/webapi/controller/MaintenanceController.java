@@ -167,6 +167,15 @@ public class MaintenanceController
         maintenanceService.deleteSoftDeletedProgramStageInstances();
     }
 
+    @RequestMapping( value = "/softDeletedRelationshipRemoval", method = { RequestMethod.PUT,
+        RequestMethod.POST } )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
+    public void deleteSoftDeletedRelationships()
+    {
+        maintenanceService.deleteSoftDeletedRelationships();
+    }
+
     @RequestMapping( value = "/softDeletedProgramInstanceRemoval", method = { RequestMethod.PUT, RequestMethod.POST } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
@@ -287,6 +296,7 @@ public class MaintenanceController
         @RequestParam( required = false ) boolean periodPruning,
         @RequestParam( required = false ) boolean zeroDataValueRemoval,
         @RequestParam( required = false ) boolean softDeletedDataValueRemoval,
+        @RequestParam( required = false ) boolean softDeletedRelationshipRemoval,
         @RequestParam( required = false ) boolean softDeletedEventRemoval,
         @RequestParam( required = false ) boolean softDeletedEnrollmentRemoval,
         @RequestParam( required = false ) boolean softDeletedTrackedEntityInstanceRemoval,
@@ -330,6 +340,11 @@ public class MaintenanceController
         if ( softDeletedDataValueRemoval )
         {
             deleteSoftDeletedDataValues();
+        }
+
+        if ( softDeletedRelationshipRemoval )
+        {
+            deleteSoftDeletedRelationships();
         }
 
         if ( softDeletedEventRemoval )

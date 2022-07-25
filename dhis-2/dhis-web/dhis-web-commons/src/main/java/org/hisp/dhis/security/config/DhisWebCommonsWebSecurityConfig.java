@@ -165,7 +165,6 @@ public class DhisWebCommonsWebSecurityConfig
         {
             auth.authenticationProvider( customLdapAuthenticationProvider );
             auth.authenticationProvider( twoFactorAuthenticationProvider );
-
             auth.authenticationEventPublisher( authenticationEventPublisher );
         }
 
@@ -193,10 +192,10 @@ public class DhisWebCommonsWebSecurityConfig
         {
             http
                 .authorizeRequests()
-
                 .accessDecisionManager( accessDecisionManager() )
-
                 .requestMatchers( analyticsPluginResources() ).permitAll()
+
+                // Dynamic content
                 .antMatchers( "/dhis-web-commons/i18nJavaScript.action" ).permitAll()
                 .antMatchers( "/oauth2/**" ).permitAll()
                 .antMatchers( "/dhis-web-commons/security/login.action" ).permitAll()

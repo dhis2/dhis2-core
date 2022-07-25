@@ -71,7 +71,8 @@ public class OrgUnitsTest
         String userName = (DataGenerator.randomString()).toLowerCase();
         String psw = "!XPTOqwerty1";
 
-        userActions.addUser( userName, psw );
+        userActions.addUserFull( "firstNameA", "lastNameB", userName, psw,
+            "NONE" );
         loginActions.loginAsUser( userName, psw );
 
         ApiResponse response = orgUnitActions.postDummyOrgUnit();

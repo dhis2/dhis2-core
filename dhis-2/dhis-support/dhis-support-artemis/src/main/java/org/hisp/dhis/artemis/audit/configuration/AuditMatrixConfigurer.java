@@ -39,7 +39,6 @@ import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.ImmutableMap;
@@ -63,7 +62,6 @@ import com.google.common.collect.ImmutableMap;
  * @author Luciano Fiandesio
  */
 @Component
-@DependsOn( "dhisConfigurationProvider" )
 public class AuditMatrixConfigurer
 {
     private final DhisConfigurationProvider config;

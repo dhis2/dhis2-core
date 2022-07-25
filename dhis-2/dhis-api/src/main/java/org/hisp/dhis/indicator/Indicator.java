@@ -42,7 +42,6 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.translation.Translatable;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
@@ -243,7 +242,8 @@ public class Indicator
         return getTranslation( "NUMERATOR_DESCRIPTION", getNumeratorDescription() );
     }
 
-    @JsonIgnore
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getExplodedNumerator()
     {
         return explodedNumerator;
@@ -286,7 +286,8 @@ public class Indicator
         return getTranslation( "DENOMINATOR_DESCRIPTION", getDenominatorDescription() );
     }
 
-    @JsonIgnore
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getExplodedDenominator()
     {
         return explodedDenominator;

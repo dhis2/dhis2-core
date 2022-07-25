@@ -85,7 +85,7 @@ public class AnalyticsController
     // Resources
     // -------------------------------------------------------------------------
 
-    @PreAuthorize( "hasRole('F_PERFORM_MAINTENANCE')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_ANALYTICS_EXPLAIN')" )
     @GetMapping( value = RESOURCE_PATH + EXPLAIN_PATH, produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
     public @ResponseBody Grid getExplainJson( // JSON
         AggregateAnalyticsQueryCriteria criteria,
@@ -206,8 +206,7 @@ public class AnalyticsController
     {
         final DataQueryRequest request = DataQueryRequest.newBuilder()
             .fromCriteria( criteria )
-            .apiVersion( apiVersion )
-            .allowAllPeriods( true ).build();
+            .apiVersion( apiVersion ).build();
 
         DataQueryParams params = dataQueryService.getFromRequest( request );
 
@@ -226,8 +225,7 @@ public class AnalyticsController
     {
         final DataQueryRequest request = DataQueryRequest.newBuilder()
             .fromCriteria( criteria )
-            .apiVersion( apiVersion )
-            .allowAllPeriods( true ).build();
+            .apiVersion( apiVersion ).build();
 
         DataQueryParams params = dataQueryService.getFromRequest( request );
 
@@ -271,12 +269,33 @@ public class AnalyticsController
         return analyticsService.getAggregatedDataValueSet( params );
     }
 
+    @GetMapping( value = RESOURCE_PATH + DATA_VALUE_SET_PATH + ".csv" )
+    public void getDataValueSetCsv(
+        AggregateAnalyticsQueryCriteria criteria,
+        DhisApiVersion apiVersion,
+        HttpServletResponse response )
+        throws Exception
+    {
+        DataQueryParams params = dataQueryService.getFromRequest( mapFromCriteria( criteria, apiVersion ) );
+
+        contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_CSV,
+            CacheStrategy.RESPECT_SYSTEM_SETTING, "data.csv", true, params.getLatestEndDate() );
+
+        Grid grid = analyticsService.getAggregatedDataValueSetAsGrid( params );
+
+        GridUtils.toCsv( grid, response.getWriter() );
+    }
+
     @GetMapping( value = RESOURCE_PATH + "/tableTypes", produces = { APPLICATION_JSON_VALUE,
         "application/javascript" } )
     public @ResponseBody AnalyticsTableType[] getTableTypes()
     {
         return AnalyticsTableType.values();
     }
+
+    // -------------------------------------------------------------------------
+    // Private methods
+    // -------------------------------------------------------------------------
 
     private Grid getGrid( AggregateAnalyticsQueryCriteria criteria, DhisApiVersion apiVersion, String contentType,
         HttpServletResponse response )
@@ -291,24 +310,26 @@ public class AnalyticsController
 
         if ( analyzeOnly )
         {
-            params = DataQueryParams.newBuilder( params ).withSkipData( false ).withAnalyzeOrderId().build();
+            params = DataQueryParams.newBuilder( params )
+                .withSkipData( false )
+                .withAnalyzeOrderId()
+                .build();
         }
 
-        contextUtils.configureAnalyticsResponse( response, contentType, CacheStrategy.RESPECT_SYSTEM_SETTING, null,
-            false, params.getLatestEndDate() );
+        contextUtils.configureAnalyticsResponse( response, contentType, CacheStrategy.RESPECT_SYSTEM_SETTING,
+            null, false, params.getLatestEndDate() );
 
         return analyticsService.getAggregatedDataValues( params, getItemsFromParam( criteria.getColumns() ),
             getItemsFromParam( criteria.getRows() ) );
     }
 
     private Grid getGridWithAttachment( AggregateAnalyticsQueryCriteria criteria, DhisApiVersion apiVersion,
-        String contentType, String file,
-        HttpServletResponse response )
+        String contentType, String file, HttpServletResponse response )
     {
         DataQueryParams params = dataQueryService.getFromRequest( mapFromCriteria( criteria, apiVersion ) );
 
-        contextUtils.configureAnalyticsResponse( response, contentType, CacheStrategy.RESPECT_SYSTEM_SETTING, file,
-            true, params.getLatestEndDate() );
+        contextUtils.configureAnalyticsResponse( response, contentType, CacheStrategy.RESPECT_SYSTEM_SETTING,
+            file, true, params.getLatestEndDate() );
 
         return analyticsService.getAggregatedDataValues( params, getItemsFromParam( criteria.getColumns() ),
             getItemsFromParam( criteria.getRows() ) );

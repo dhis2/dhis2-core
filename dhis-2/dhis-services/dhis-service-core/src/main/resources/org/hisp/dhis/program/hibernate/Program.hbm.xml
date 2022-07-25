@@ -101,7 +101,7 @@
 
     <set name="userRoles" table="program_userroles" inverse="true">
       <key column="programid" />
-      <many-to-many class="org.hisp.dhis.user.UserAuthorityGroup"
+      <many-to-many class="org.hisp.dhis.user.UserRole"
         column="userroleid" foreign-key="fk_program_userroles" />
     </set>
 

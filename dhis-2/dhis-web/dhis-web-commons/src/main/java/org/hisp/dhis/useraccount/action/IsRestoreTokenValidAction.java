@@ -27,9 +27,10 @@
  */
 package org.hisp.dhis.useraccount.action;
 
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.security.RestoreType;
 import org.hisp.dhis.security.SecurityService;
-import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -86,17 +87,17 @@ public class IsRestoreTokenValidAction
         String idToken = idAndRestoreToken[0];
         String restoreToken = idAndRestoreToken[1];
 
-        UserCredentials userCredentials = userService.getUserCredentialsByIdToken( idToken );
+        User user = userService.getUserByIdToken( idToken );
 
-        if ( userCredentials == null )
+        if ( user == null )
         {
             return ERROR;
         }
 
-        String errorMessage = securityService
-            .verifyRestoreToken( userCredentials, restoreToken, RestoreType.RECOVER_PASSWORD );
+        ErrorCode errorCode = securityService
+            .validateRestoreToken( user, restoreToken, RestoreType.RECOVER_PASSWORD );
 
-        if ( errorMessage != null )
+        if ( errorCode != null )
         {
             return ERROR;
         }

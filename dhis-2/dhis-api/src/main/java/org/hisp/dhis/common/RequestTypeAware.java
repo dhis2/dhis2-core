@@ -27,26 +27,45 @@
  */
 package org.hisp.dhis.common;
 
-import static org.hisp.dhis.common.RequestTypeAware.RequestType.QUERY;
+import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
+
+import lombok.Getter;
 
 public class RequestTypeAware
 {
-    private RequestType requestType = RequestType.OTHER;
+    private EndpointAction endpointAction = EndpointAction.OTHER;
 
-    public RequestTypeAware withQueryRequestType()
+    @Getter
+    private EndpointItem endpointItem;
+
+    public RequestTypeAware withQueryEndpointAction()
     {
-        requestType = QUERY;
+        endpointAction = QUERY;
         return this;
     }
 
-    public boolean isRequestTypeQuery()
+    public RequestTypeAware withEndpointItem( EndpointItem endpointItem )
     {
-        return QUERY == requestType;
+        this.endpointItem = endpointItem;
+        return this;
     }
 
-    enum RequestType
+    public boolean isQueryEndpoint()
+    {
+        return QUERY == endpointAction;
+    }
+
+    enum EndpointAction
     {
         QUERY,
-        OTHER;
+        OTHER
     }
+
+    public enum EndpointItem
+    {
+        EVENT,
+        ENROLLMENT,
+        TRACKED_ENTITY_INSTANCE
+    }
+
 }

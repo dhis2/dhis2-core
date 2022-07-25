@@ -58,6 +58,8 @@ public class ProgramNotificationMessageRenderer
         .put( ProgramTemplateVariable.INCIDENT_DATE, pi -> formatDate( pi.getIncidentDate() ) )
         .put( ProgramTemplateVariable.DAYS_SINCE_ENROLLMENT_DATE, pi -> daysSince( pi.getEnrollmentDate() ) )
         .put( ProgramTemplateVariable.ENROLLMENT_ORG_UNIT_ID, pi -> pi.getOrganisationUnit().getUid() )
+        .put( ProgramTemplateVariable.ENROLLMENT_ORG_UNIT_NAME, pi -> pi.getOrganisationUnit().getName() )
+        .put( ProgramTemplateVariable.ENROLLMENT_ORG_UNIT_CODE, pi -> pi.getOrganisationUnit().getCode() )
         .put( ProgramTemplateVariable.PROGRAM_ID, pi -> pi.getProgram().getUid() )
         .put( ProgramTemplateVariable.ENROLLMENT_ID, ProgramInstance::getUid )
         .put( ProgramTemplateVariable.TRACKED_ENTITY_ID, pi -> pi.getEntityInstance().getUid() )

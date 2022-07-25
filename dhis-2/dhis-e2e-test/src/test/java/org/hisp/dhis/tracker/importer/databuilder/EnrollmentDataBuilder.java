@@ -27,11 +27,12 @@
  */
 package org.hisp.dhis.tracker.importer.databuilder;
 
-import com.google.gson.JsonObject;
-import org.hisp.dhis.helpers.JsonObjectBuilder;
-
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+
+import org.hisp.dhis.helpers.JsonObjectBuilder;
+
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -43,7 +44,7 @@ public class EnrollmentDataBuilder implements TrackerImporterDataBuilder
     public EnrollmentDataBuilder()
     {
         jsonObjectBuilder = new JsonObjectBuilder();
-        //setStatus( "ACTIVE" );
+        // setStatus( "ACTIVE" );
         setEnrollmentDate( Instant.now().minus( 1, ChronoUnit.HOURS ).toString() );
         setIncidentDate( Instant.now().toString() );
     }
@@ -102,7 +103,7 @@ public class EnrollmentDataBuilder implements TrackerImporterDataBuilder
     public EnrollmentDataBuilder addEvent( EventDataBuilder builder )
     {
         jsonObjectBuilder.addOrAppendToArray( "events",
-            builder.single());
+            builder.single() );
         return this;
     }
 
@@ -113,7 +114,8 @@ public class EnrollmentDataBuilder implements TrackerImporterDataBuilder
 
     public EnrollmentDataBuilder addEvent( String programStage, String orgUnit, String status )
     {
-        //String eventDate = this.jsonObjectBuilder.build().get( "enrolledAt" ).getAsString();
+        // String eventDate = this.jsonObjectBuilder.build().get( "enrolledAt"
+        // ).getAsString();
 
         return addEvent(
             new EventDataBuilder().setProgramStage( programStage ).setOu( orgUnit ).setStatus( status ) );
@@ -124,7 +126,7 @@ public class EnrollmentDataBuilder implements TrackerImporterDataBuilder
         jsonObjectBuilder.addOrAppendToArray( "attributes", new JsonObjectBuilder()
             .addProperty( "attribute", attributeId )
             .addProperty( "value", value )
-            .build());
+            .build() );
 
         return this;
     }

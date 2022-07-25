@@ -54,13 +54,13 @@ import java.util.TreeMap;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.gist.GistQuery.Comparison;
@@ -107,6 +107,19 @@ final class GistBuilder
     private static final String GIST_PATH = "/gist";
 
     /**
+     * Defines the functions the builder needs to be able to run that depend on
+     * other parts of the system.
+     */
+    interface GistBuilderSupport
+    {
+        List<String> getUserGroupIdsByUserId( String userId );
+
+        Attribute getAttributeById( String attributeId );
+
+        Object getTypedAttributeValue( Attribute attribute, String value );
+    }
+
+    /**
      * HQL does not allow plain "null" in select columns list as the type is
      * unknown. Therefore we just cast it to some simple type. Which is not
      * important as the value will be {@code null} anyway.
@@ -122,15 +135,15 @@ final class GistBuilder
     private static final String ATTRIBUTES_PROPERTY = "attributeValues";
 
     static GistBuilder createFetchBuilder( GistQuery query, RelativePropertyContext context, GistAccessControl access,
-        Function<String, List<String>> userGroupsByUserId )
+        GistBuilderSupport support )
     {
-        return new GistBuilder( access, addSupportFields( query, context ), context, userGroupsByUserId );
+        return new GistBuilder( access, addSupportFields( query, context ), context, support );
     }
 
     static GistBuilder createCountBuilder( GistQuery query, RelativePropertyContext context, GistAccessControl access,
-        Function<String, List<String>> userGroupsByUserId )
+        GistBuilderSupport support )
     {
-        return new GistBuilder( access, query, context, userGroupsByUserId );
+        return new GistBuilder( access, query, context, support );
     }
 
     private final GistAccessControl access;
@@ -139,7 +152,7 @@ final class GistBuilder
 
     private final RelativePropertyContext context;
 
-    private final Function<String, List<String>> userGroupsByUserId;
+    private final GistBuilderSupport support;
 
     private final List<Consumer<Object[]>> fieldResultTransformers = new ArrayList<>();
 
@@ -263,7 +276,7 @@ final class GistBuilder
         fieldResultTransformers.add( transformer );
     }
 
-    private Object attributeValue( String attributeUid, Object attributeValues )
+    private Object attributeValue( String attributeUid, Object attributeValues, Attribute attribute )
     {
         @SuppressWarnings( "unchecked" )
         Set<AttributeValue> values = (Set<AttributeValue>) attributeValues;
@@ -271,7 +284,9 @@ final class GistBuilder
         {
             if ( attributeUid.equals( v.getAttribute().getUid() ) )
             {
-                return v.getValue();
+                return attribute != null
+                    ? support.getTypedAttributeValue( attribute, v.getValue() )
+                    : v.getValue();
             }
         }
         return null;
@@ -325,7 +340,7 @@ final class GistBuilder
         if ( !query.isInverse() )
         {
             return String.format(
-                "select %s from %s o left join o.%s as e where o.uid = :OwnerId and (%s) and (%s) order by %s",
+                "select %s from %s o inner join o.%s as e where o.uid = :OwnerId and (%s) and (%s) order by %s",
                 fields, ownerTable, collectionName, userFilters, accessFilters, orders );
         }
         return String.format(
@@ -392,12 +407,18 @@ final class GistBuilder
         }
         if ( field.isAttribute() )
         {
+            Attribute attribute = query.isTypedAttributeValues() ? support.getAttributeById( path ) : null;
             if ( field.getTransformation() == Transform.PLUCK )
             {
+                if ( attribute != null )
+                {
+                    addTransformer(
+                        row -> row[index] = support.getTypedAttributeValue( attribute, (String) row[index] ) );
+                }
                 return "jsonb_extract_path_text(e.attributeValues, '" + field.getPropertyPath() + "', 'value')";
             }
             int attrValuesFieldIndex = getSameParentFieldIndex( "", ATTRIBUTES_PROPERTY );
-            addTransformer( row -> row[index] = attributeValue( path, row[attrValuesFieldIndex] ) );
+            addTransformer( row -> row[index] = attributeValue( path, row[attrValuesFieldIndex], attribute ) );
             return HQL_NULL;
         }
         Property property = context.resolveMandatory( path );
@@ -429,7 +450,8 @@ final class GistBuilder
         }
         if ( field.getTransformation() == Transform.FROM )
         {
-            return createFromTransformedFieldHQL( index, field, path, property );
+            createFromTransformedFieldHQL( index, field, path, property );
+            return HQL_NULL;
         }
         if ( isPersistentReferenceField( property ) )
         {
@@ -447,12 +469,12 @@ final class GistBuilder
         return "e." + memberPath;
     }
 
-    private String createFromTransformedFieldHQL( int index, Field field, String path, Property property )
+    private void createFromTransformedFieldHQL( int index, Field field, String path, Property property )
     {
         Object bean = newQueryElementInstance();
         if ( bean == null )
         {
-            return HQL_NULL;
+            return;
         }
         String[] sources = field.getTransformationArgument().split( "," );
         List<Method> setters = stream( sources ).map( context::resolveMandatory ).map( Property::getSetterMethod )
@@ -474,7 +496,6 @@ final class GistBuilder
                 log.debug( "Failed to perform from transformation", ex );
             }
         } );
-        return HQL_NULL;
     }
 
     private String createReferenceFieldHQL( int index, Field field )
@@ -820,7 +841,7 @@ final class GistBuilder
         str.append( " " ).append( createOperatorLeftSideHQL( operator ) );
         if ( !operator.isUnary() )
         {
-            str.append( " :f_" + index ).append( createOperatorRightSideHQL( operator ) );
+            str.append( " :f_" ).append( index ).append( createOperatorRightSideHQL( operator ) );
         }
         return str.toString();
     }
@@ -855,7 +876,7 @@ final class GistBuilder
     {
         String userId = filter.getValue()[0];
         return JpaQueryUtils.generateHqlQueryForSharingCheck( tableName, getAccessPattern( filter ), userId,
-            userGroupsByUserId.apply( userId ) );
+            support.getUserGroupIdsByUserId( userId ) );
     }
 
     private String getAccessPattern( Filter filter )

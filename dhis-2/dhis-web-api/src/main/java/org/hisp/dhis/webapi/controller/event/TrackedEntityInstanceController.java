@@ -38,7 +38,8 @@ import static org.hisp.dhis.scheduling.JobType.TEI_IMPORT;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 
-import java.awt.*;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
@@ -265,7 +266,7 @@ public class TrackedEntityInstanceController
             MoreObjects.firstNonNull( dimension, ImageFileDimension.ORIGINAL ) );
 
         response.setContentType( fileResource.getContentType() );
-        response.setContentLength( (int) fileResource.getContentLength() );
+        response.setContentLengthLong( fileResource.getContentLength() );
         response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName() );
 
         try ( InputStream inputStream = fileResourceService.getFileResourceContent( fileResource ) )
@@ -495,19 +496,6 @@ public class TrackedEntityInstanceController
         return importSummary( importSummary );
     }
 
-    private boolean parseInputFlag( String flag )
-        throws BadRequestException
-    {
-        if ( "true".equals( flag ) || "false".equals( flag ) )
-        {
-            return Boolean.parseBoolean( flag );
-        }
-        else
-        {
-            throw new BadRequestException( "Flag must be true or false" );
-        }
-    }
-
     // -------------------------------------------------------------------------
     // HELPERS
     // -------------------------------------------------------------------------
@@ -530,26 +518,26 @@ public class TrackedEntityInstanceController
             return TrackedEntityInstanceParams.TRUE;
         }
 
-        TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
+        TrackedEntityInstanceParams params = TrackedEntityInstanceParams.FALSE;
 
         if ( joined.contains( "relationships" ) )
         {
-            params.setIncludeRelationships( true );
+            params = params.withIncludeRelationships( true );
         }
 
         if ( joined.contains( "enrollments" ) )
         {
-            params.setIncludeEnrollments( true );
+            params = params.withIncludeEnrollments( true );
         }
 
         if ( joined.contains( "events" ) )
         {
-            params.setIncludeEvents( true );
+            params = params.withIncludeEvents( true );
         }
 
         if ( joined.contains( "programOwners" ) )
         {
-            params.setIncludeProgramOwners( true );
+            params = params.withIncludeProgramOwners( true );
         }
 
         return params;

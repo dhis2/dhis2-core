@@ -44,6 +44,11 @@ public interface DimensionalItemObject
     String getDimensionItem();
 
     /**
+     * Gets the dimension item identifier with queryModsId if present.
+     */
+    String getDimensionItemWithQueryModsId();
+
+    /**
      * Gets the dimension item identifier based on the given identifier scheme.
      *
      * @param idScheme the identifier scheme.
@@ -90,12 +95,12 @@ public interface DimensionalItemObject
     TotalAggregationType getTotalAggregationType();
 
     /**
-     * Gets a Period Offset: the offset can be applied within an Indicator
-     * formula in order to "shift" the query period by the offset value (e.g.
-     * Jan 2020 with offset 1 becomes Feb 2020). An offset with value 0 means no
-     * offset.
-     *
-     * @return an int.
+     * Gets the query modifiers for an indicator expression.
      */
-    int getPeriodOffset();
+    QueryModifiers getQueryMods();
+
+    /**
+     * Sets the query modifiers for an indicator expression.
+     */
+    void setQueryMods( QueryModifiers queryMods );
 }

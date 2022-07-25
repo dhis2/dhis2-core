@@ -75,7 +75,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam.SortDirection;
 import org.hisp.dhis.webapi.controller.event.webrequest.EventCriteria;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
@@ -154,7 +153,6 @@ public class RequestToSearchParamsMapper
         boolean includeDeleted )
     {
         User user = currentUserService.getCurrentUser();
-        UserCredentials userCredentials = user.getUserCredentials();
 
         EventSearchParams params = new EventSearchParams();
 
@@ -179,12 +177,12 @@ public class RequestToSearchParamsMapper
             throw new IllegalQueryException( "Org unit is specified but does not exist: " + orgUnit );
         }
 
-        if ( pr != null && !userCredentials.isSuper() && !aclService.canDataRead( user, pr ) )
+        if ( pr != null && !user.isSuper() && !aclService.canDataRead( user, pr ) )
         {
             throw new IllegalQueryException( "User has no access to program: " + pr.getUid() );
         }
 
-        if ( ps != null && !userCredentials.isSuper() && !aclService.canDataRead( user, ps ) )
+        if ( ps != null && !user.isSuper() && !aclService.canDataRead( user, ps ) )
         {
             throw new IllegalQueryException( "User has no access to program stage: " + ps.getUid() );
         }
@@ -197,7 +195,7 @@ public class RequestToSearchParamsMapper
                 "Tracked entity instance is specified but does not exist: " + trackedEntityInstance );
         }
 
-        if ( attributeOptionCombo != null && !userCredentials.isSuper()
+        if ( attributeOptionCombo != null && !user.isSuper()
             && !aclService.canDataRead( user, attributeOptionCombo ) )
         {
             throw new IllegalQueryException(

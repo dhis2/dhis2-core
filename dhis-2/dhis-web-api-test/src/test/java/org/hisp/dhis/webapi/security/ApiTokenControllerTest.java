@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.webapi.security;
 
-import static org.hisp.dhis.webapi.WebClient.Body;
-import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
+import static org.hisp.dhis.web.WebClient.Body;
+import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -43,24 +43,24 @@ import org.hisp.dhis.schema.descriptors.ApiTokenSchemaDescriptor;
 import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.security.apikey.ApiTokenService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.web.HttpStatus;
+import org.hisp.dhis.web.WebClientUtils;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonApiToken;
-import org.hisp.dhis.webapi.utils.WebClientUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Slf4j
-@Transactional
 class ApiTokenControllerTest extends DhisControllerConvenienceTest
 {
 
     public static final String USER_A_USERNAME = "userA";
+
+    public static final String USER_B_USERNAME = "userB";
 
     @Autowired
     private ApiTokenService apiTokenService;
@@ -70,11 +70,17 @@ class ApiTokenControllerTest extends DhisControllerConvenienceTest
 
     private User userA;
 
+    private User userB;
+
     @BeforeEach
     final void setupTest()
     {
         this.renderService = _renderService;
-        userA = createUser( USER_A_USERNAME );
+        userA = createUserWithAuth( USER_A_USERNAME );
+        userB = createUserWithAuth( USER_B_USERNAME );
+
+        // Default user is userA
+        injectSecurityContext( userA );
     }
 
     @Test
@@ -279,7 +285,7 @@ class ApiTokenControllerTest extends DhisControllerConvenienceTest
     void testCantDeleteOtherTokens()
     {
         final ApiToken newToken = createNewEmptyToken();
-        switchContextToUser( userA );
+        switchContextToUser( userB );
         assertStatus( HttpStatus.NOT_FOUND, DELETE( ApiTokenSchemaDescriptor.API_ENDPOINT + "/" + newToken.getUid() ) );
     }
 

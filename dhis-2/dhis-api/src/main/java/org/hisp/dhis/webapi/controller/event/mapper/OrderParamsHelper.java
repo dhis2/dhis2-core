@@ -27,8 +27,12 @@
  */
 package org.hisp.dhis.webapi.controller.event.mapper;
 
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.isStaticColumn;
+
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -36,6 +40,7 @@ import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 
 @NoArgsConstructor( access = AccessLevel.PRIVATE )
@@ -53,5 +58,26 @@ public class OrderParamsHelper
                 .field( orderCriteria.getField() )
                 .build() )
             .collect( Collectors.toList() );
+    }
+
+    public static List<String> validateOrderParams( List<OrderParam> orderParams,
+        Map<String, TrackedEntityAttribute> attributes )
+    {
+        List<String> errors = new ArrayList<>();
+
+        if ( orderParams == null || orderParams.isEmpty() )
+        {
+            return errors;
+        }
+
+        for ( OrderParam orderParam : orderParams )
+        {
+            if ( !isStaticColumn( orderParam.getField() ) && !attributes.containsKey( orderParam.getField() ) )
+            {
+                errors.add( "Invalid order property: " + orderParam.getField() );
+            }
+        }
+
+        return errors;
     }
 }

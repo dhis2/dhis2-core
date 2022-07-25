@@ -27,17 +27,22 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.webapi.WebClient.Body;
-import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
+import static org.hisp.dhis.web.WebClient.Body;
+import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Collections;
 import java.util.List;
 
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.web.HttpMethod;
+import org.hisp.dhis.web.HttpStatus;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import org.springframework.test.web.servlet.MvcResult;
 
 /**
  * Test for the
@@ -47,29 +52,28 @@ import org.springframework.http.HttpStatus;
  */
 class DataValueControllerTest extends AbstractDataValueControllerTest
 {
-
     @Autowired
     private DataValueService dataValueService;
 
     @Test
     void testSetDataValuesFollowUp_Empty()
     {
-        assertEquals( "Follow-up must be specified",
-            PUT( "/dataValues/followups", Body( "{}" ) ).error( HttpStatus.CONFLICT ).getMessage() );
-        assertEquals( "Follow-up must be specified",
-            PUT( "/dataValues/followups", Body( "{'values':null}" ) ).error( HttpStatus.CONFLICT ).getMessage() );
-        assertEquals( "Follow-up must be specified",
-            PUT( "/dataValues/followups", Body( "{'values':[]}" ) ).error( HttpStatus.CONFLICT ).getMessage() );
+        assertEquals( ErrorCode.E2033,
+            PUT( "/dataValues/followups", Body( "{}" ) ).error( HttpStatus.CONFLICT ).getErrorCode() );
+        assertEquals( ErrorCode.E2033,
+            PUT( "/dataValues/followups", Body( "{'values':null}" ) ).error( HttpStatus.CONFLICT ).getErrorCode() );
+        assertEquals( ErrorCode.E2033,
+            PUT( "/dataValues/followups", Body( "{'values':[]}" ) ).error( HttpStatus.CONFLICT ).getErrorCode() );
     }
 
     @Test
     void testSetDataValuesFollowUp_NonExisting()
     {
         addDataValue( "2021-01", "2", null, false );
-        assertEquals( "Data value does not exist",
+        assertEquals( ErrorCode.E2032,
             PUT( "/dataValues/followups",
                 Body( String.format( "{'values':[%s]}", dataValueKeyJSON( "2021-02", true ) ) ) )
-                    .error( HttpStatus.CONFLICT ).getMessage() );
+                    .error( HttpStatus.CONFLICT ).getErrorCode() );
     }
 
     @Test
@@ -102,6 +106,54 @@ class DataValueControllerTest extends AbstractDataValueControllerTest
         assertFollowups( false, true, false );
     }
 
+    @Test
+    public void testAddDataValueWithBody()
+    {
+        String body = String.format( "{" +
+            "'dataElement':'%s'," +
+            "'categoryOptionCombo':'%s'," +
+            "'period':'202201'," +
+            "'orgUnit':'%s'," +
+            "'value':'24'," +
+            "'comment':'OK'}",
+            dataElementId, categoryOptionComboId, orgUnitId );
+
+        HttpResponse response = POST( "/dataValues", body );
+        assertStatus( HttpStatus.CREATED, response );
+    }
+
+    /**
+     * Check if the dataValueSet endpoint return correct fileName.
+     */
+    @Test
+    void testGetDataValueSetJsonWithAttachment()
+    {
+        String dsId = assertStatus( HttpStatus.CREATED,
+            POST( "/dataSets/",
+                "{'name':'My data set', 'periodType':'Monthly', 'dataSetElements':[{'dataElement':{'id':'"
+                    + dataElementId + "'}}]}" ) );
+
+        String body = String.format( "{" +
+            "'dataElement':'%s'," +
+            "'categoryOptionCombo':'%s'," +
+            "'period':'20220102'," +
+            "'orgUnit':'%s'," +
+            "'value':'24'," +
+            "'comment':'OK'}",
+            dataElementId, categoryOptionComboId, orgUnitId );
+
+        HttpResponse response = POST( "/dataValues", body );
+        assertStatus( HttpStatus.CREATED, response );
+        switchToUserWithOrgUnitDataView( "A", orgUnitId );
+        String url = "/dataValueSets?orgUnit=" + orgUnitId + "&startDate=2022-01-01&endDate=2022-01-30&dataSet=" + dsId
+            +
+            "&format=json&compression=zip&attachment=dataValues.json.zip";
+        MvcResult dataValueResponse = webRequestWithMvcResult(
+            buildMockRequest( HttpMethod.GET, url, Collections.emptyList(), null, null ) );
+        assertTrue( dataValueResponse.getResponse().getHeader( "Content-Disposition" )
+            .contains( "dataValues_2022-01-01_2022-01-30.json.zip" ) );
+    }
+
     private void assertFollowups( boolean... expected )
     {
         List<DataValue> values = dataValueService.getAllDataValues();
@@ -120,6 +172,6 @@ class DataValueControllerTest extends AbstractDataValueControllerTest
     {
         return String.format(
             "{'dataElement':'%s', 'period':'%s', 'orgUnit':'%s', 'categoryOptionCombo':'%s', 'followup':%b}",
-            dataElementId, period, orgUnitId, categoryOptionId, followup );
+            dataElementId, period, orgUnitId, categoryOptionComboId, followup );
     }
 }

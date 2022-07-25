@@ -29,14 +29,16 @@ package org.hisp.dhis.dxf2.dataset.streaming;
 
 import java.io.IOException;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration;
-import org.jfree.util.Log;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 
 /**
  * @author Halvdan Hoem Grelland
  */
+@Slf4j
 public class StreamingJsonCompleteDataSetRegistration
     extends CompleteDataSetRegistration
 {
@@ -161,7 +163,7 @@ public class StreamingJsonCompleteDataSetRegistration
         }
         catch ( IOException e )
         {
-            Log.error( e.getMessage() );
+            log.error( e.getMessage() );
         }
     }
 
@@ -179,7 +181,7 @@ public class StreamingJsonCompleteDataSetRegistration
         }
         catch ( IOException e )
         {
-            Log.error( e.getMessage() );
+            log.error( e.getMessage() );
         }
     }
 }

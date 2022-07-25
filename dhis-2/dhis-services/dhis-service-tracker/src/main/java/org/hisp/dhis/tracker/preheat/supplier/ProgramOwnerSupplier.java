@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.tracker.preheat.supplier;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -41,8 +40,9 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerStore;
-import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerImportParams;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.mappers.OrganisationUnitMapper;
 import org.springframework.stereotype.Component;
@@ -52,7 +52,6 @@ import org.springframework.stereotype.Component;
  */
 @RequiredArgsConstructor
 @Component
-@SupplierDependsOn( ClassBasedSupplier.class )
 public class ProgramOwnerSupplier extends AbstractPreheatSupplier
 {
     @NonNull
@@ -61,28 +60,26 @@ public class ProgramOwnerSupplier extends AbstractPreheatSupplier
     @Override
     public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
     {
-        final Map<String, TrackedEntityInstance> preheatedTrackedEntities = preheat.getTrackedEntities().getOrDefault(
-            TrackerIdScheme.UID,
-            new HashMap<>() );
-        final Map<String, ProgramInstance> preheatedEnrollments = preheat.getEnrollments().getOrDefault(
-            TrackerIdScheme.UID,
-            new HashMap<>() );
+        final Map<String, TrackedEntityInstance> preheatedTrackedEntities = preheat.getTrackedEntities();
+        final Map<String, ProgramInstance> preheatedEnrollments = preheat.getEnrollments();
         Set<Long> teiIds = new HashSet<>();
-        params.getEnrollments().stream().forEach( en -> {
+        for ( Enrollment en : params.getEnrollments() )
+        {
             TrackedEntityInstance tei = preheatedTrackedEntities.get( en.getTrackedEntity() );
             if ( tei != null )
             {
                 teiIds.add( tei.getId() );
             }
-        } );
+        }
 
-        params.getEvents().stream().forEach( ev -> {
+        for ( Event ev : params.getEvents() )
+        {
             ProgramInstance pi = preheatedEnrollments.get( ev.getEnrollment() );
             if ( pi != null && pi.getEntityInstance() != null )
             {
                 teiIds.add( pi.getEntityInstance().getId() );
             }
-        } );
+        }
 
         List<TrackedEntityProgramOwnerOrgUnit> tepos = trackedEntityProgramOwnerStore
             .getTrackedEntityProgramOwnerOrgUnits( teiIds );

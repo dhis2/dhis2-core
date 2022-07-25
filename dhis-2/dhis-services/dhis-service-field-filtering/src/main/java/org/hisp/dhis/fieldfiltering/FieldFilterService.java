@@ -27,21 +27,40 @@
  */
 package org.hisp.dhis.fieldfiltering;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
+import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.attribute.AttributeService;
+import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.fieldfiltering.transformers.IsEmptyFieldTransformer;
 import org.hisp.dhis.fieldfiltering.transformers.IsNotEmptyFieldTransformer;
+import org.hisp.dhis.fieldfiltering.transformers.KeyByFieldTransformer;
 import org.hisp.dhis.fieldfiltering.transformers.PluckFieldTransformer;
 import org.hisp.dhis.fieldfiltering.transformers.RenameFieldTransformer;
 import org.hisp.dhis.fieldfiltering.transformers.SizeFieldTransformer;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.UserGroupService;
+import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.OrderComparator;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -65,6 +84,38 @@ public class FieldFilterService
     @Qualifier( "jsonMapper" )
     private final ObjectMapper jsonMapper;
 
+    private final SchemaService schemaService;
+
+    private final AclService aclService;
+
+    private final CurrentUserService currentUserService;
+
+    private final UserGroupService userGroupService;
+
+    private final UserService userService;
+
+    private final AttributeService attributeService;
+
+    public FieldFilterService(
+        FieldPathHelper fieldPathHelper,
+        ObjectMapper jsonMapper,
+        SchemaService schemaService,
+        AclService aclService,
+        CurrentUserService currentUserService,
+        UserGroupService userGroupService,
+        UserService userService,
+        AttributeService attributeService )
+    {
+        this.fieldPathHelper = fieldPathHelper;
+        this.jsonMapper = configureFieldFilterObjectMapper( jsonMapper );
+        this.schemaService = schemaService;
+        this.aclService = aclService;
+        this.currentUserService = currentUserService;
+        this.userGroupService = userGroupService;
+        this.userService = userService;
+        this.attributeService = attributeService;
+    }
+
     private static class IgnoreJsonSerializerRefinementAnnotationInspector extends JacksonAnnotationIntrospector
     {
         /**
@@ -83,10 +134,21 @@ public class FieldFilterService
         }
     }
 
-    public FieldFilterService( FieldPathHelper fieldPathHelper, ObjectMapper jsonMapper )
+    public <T> ObjectNode toObjectNode( T object, List<String> filters )
     {
-        this.fieldPathHelper = fieldPathHelper;
-        this.jsonMapper = configureFieldFilterObjectMapper( jsonMapper );
+        List<ObjectNode> objectNodes = toObjectNodes( FieldFilterParams.of( List.of( object ), filters ) );
+
+        if ( objectNodes.isEmpty() )
+        {
+            return null;
+        }
+
+        return objectNodes.get( 0 );
+    }
+
+    public <T> List<ObjectNode> toObjectNodes( List<T> objects, List<String> filters )
+    {
+        return toObjectNodes( FieldFilterParams.of( objects, filters ) );
     }
 
     public List<ObjectNode> toObjectNodes( FieldFilterParams<?> params )
@@ -96,6 +158,78 @@ public class FieldFilterService
         if ( params.getObjects().isEmpty() )
         {
             return objectNodes;
+        }
+
+        List<FieldPath> fieldPaths = FieldFilterParser.parse( params.getFilters() );
+
+        if ( params.getUser() == null )
+        {
+            params.setUser( currentUserService.getCurrentUser() );
+        }
+
+        // In case we get a proxied object in we can't just use o.getClass(), we
+        // need to figure out the real class name by using HibernateProxyUtils.
+        Object firstObject = params.getObjects().iterator().next();
+        fieldPathHelper.apply( fieldPaths, HibernateProxyUtils.getRealClass( firstObject ) );
+
+        SimpleFilterProvider filterProvider = getSimpleFilterProvider( fieldPaths, params.isSkipSharing() );
+
+        // only set filter provider on a local copy so that we don't affect
+        // other object mappers (running across other threads)
+        ObjectMapper objectMapper = jsonMapper.copy().setFilterProvider( filterProvider );
+
+        Map<String, List<FieldTransformer>> fieldTransformers = getTransformers( fieldPaths );
+
+        for ( Object object : params.getObjects() )
+        {
+            applyAccess( params, fieldPaths, object );
+            applyUserAccessesDisplayName( params, fieldPaths, object );
+            applyUserGroupAccessesDisplayName( params, fieldPaths, object );
+            applyAttributeValuesAttribute( params, fieldPaths, object );
+
+            ObjectNode objectNode = objectMapper.valueToTree( object );
+            applyTransformers( objectNode, null, "", fieldTransformers );
+
+            objectNodes.add( objectNode );
+        }
+
+        return objectNodes;
+    }
+
+    /**
+     * JsonGenerator using given OutputStream.
+     *
+     * @param params Filter params to apply
+     * @param outputStream OutputStream
+     * @throws IOException
+     */
+    public void toObjectNodesStream( FieldFilterParams<?> params, OutputStream outputStream )
+        throws IOException
+    {
+        try ( JsonGenerator generator = jsonMapper.getFactory().createGenerator( outputStream ) )
+        {
+            toObjectNodesStream( params, generator );
+        }
+    }
+
+    /**
+     * Streams filtered object nodes using given JsonGenerator.
+     *
+     * @param params Filter params to apply
+     * @param generator Pre-created json generator
+     * @throws IOException
+     */
+    public void toObjectNodesStream( FieldFilterParams<?> params, JsonGenerator generator )
+        throws IOException
+    {
+        if ( params.getObjects().isEmpty() )
+        {
+            return;
+        }
+
+        if ( params.getUser() == null )
+        {
+            params.setUser( currentUserService.getCurrentUser() );
         }
 
         List<FieldPath> fieldPaths = FieldFilterParser.parse( params.getFilters() );
@@ -115,13 +249,75 @@ public class FieldFilterService
 
         for ( Object object : params.getObjects() )
         {
+            applyAccess( params, fieldPaths, object );
+            applyUserAccessesDisplayName( params, fieldPaths, object );
+            applyUserGroupAccessesDisplayName( params, fieldPaths, object );
+            applyAttributeValuesAttribute( params, fieldPaths, object );
+
             ObjectNode objectNode = objectMapper.valueToTree( object );
+            applyAttributeValueFields( object, objectNode, fieldPaths );
             applyTransformers( objectNode, null, "", fieldTransformers );
 
-            objectNodes.add( objectNode );
+            generator.writeObject( objectNode );
+        }
+    }
+
+    private void applyAttributeValueFields( Object object, ObjectNode objectNode, List<FieldPath> fieldPaths )
+    {
+        if ( !(object instanceof BaseIdentifiableObject) )
+        {
+            return;
+        }
+        for ( FieldPath path : fieldPaths )
+        {
+            if ( path.getProperty() == null && CodeGenerator.isValidUid( path.getFullPath() ) )
+            {
+                AttributeValue value = ((BaseIdentifiableObject) object).getAttributeValue( path.getFullPath() );
+                if ( value != null )
+                {
+                    String v = value.getValue();
+                    Attribute attribute = attributeService.getAttribute( value.getAttribute().getUid() );
+                    if ( v != null && !v.isBlank() && attribute.getValueType().isJson() )
+                    {
+                        try
+                        {
+                            objectNode.set( path.getFullPath(), jsonMapper.readTree( v ) );
+                        }
+                        catch ( JsonProcessingException e )
+                        {
+                            objectNode.put( path.getFullPath(), v );
+                        }
+                    }
+                    else
+                    {
+                        objectNode.put( path.getFullPath(), v );
+                    }
+                }
+            }
+        }
+    }
+
+    private void applyFieldPathVisitor( Object object, List<FieldPath> fieldPaths,
+        FieldFilterParams<?> params, Predicate<String> filter, Consumer<Object> consumer )
+    {
+        if ( object == null || params.isSkipSharing() )
+        {
+            return;
         }
 
-        return objectNodes;
+        Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );
+
+        if ( !schema.isIdentifiableObject() )
+        {
+            return;
+        }
+
+        fieldPaths.forEach( fp -> {
+            if ( filter.test( fp.toFullPath() ) )
+            {
+                fieldPathHelper.visitFieldPaths( object, List.of( fp ), consumer );
+            }
+        } );
     }
 
     public ObjectNode createObjectNode()
@@ -224,6 +420,9 @@ public class FieldFilterService
                 case "pluck":
                     fieldTransformers.add( new PluckFieldTransformer( fieldPathTransformer ) );
                     break;
+                case "keyBy":
+                    fieldTransformers.add( new KeyByFieldTransformer( fieldPathTransformer ) );
+                    break;
                 default:
                     // invalid transformer
                     break;
@@ -234,5 +433,56 @@ public class FieldFilterService
         }
 
         return transformerMap;
+    }
+
+    private void applyAttributeValuesAttribute( FieldFilterParams<?> params, List<FieldPath> fieldPaths, Object object )
+    {
+        applyFieldPathVisitor( object, fieldPaths, params,
+            s -> s.equals( "attributeValues.attribute" ) || s.endsWith( ".attributeValues.attribute" ),
+            o -> {
+                if ( o instanceof AttributeValue )
+                {
+                    ((AttributeValue) o).setAttribute(
+                        attributeService.getAttribute( ((AttributeValue) o).getAttribute().getUid() ) );
+                }
+            } );
+    }
+
+    private void applyUserGroupAccessesDisplayName( FieldFilterParams<?> params, List<FieldPath> fieldPaths,
+        Object object )
+    {
+        applyFieldPathVisitor( object, fieldPaths, params,
+            s -> s.equals( "userGroupAccesses.displayName" ) || s.endsWith( ".userGroupAccesses.displayName" ),
+            o -> {
+                if ( o instanceof BaseIdentifiableObject )
+                {
+                    ((BaseIdentifiableObject) o).getSharing().getUserGroups().values()
+                        .forEach( uga -> uga.setDisplayName( userGroupService.getDisplayName( uga.getId() ) ) );
+                }
+            } );
+    }
+
+    private void applyUserAccessesDisplayName( FieldFilterParams<?> params, List<FieldPath> fieldPaths, Object object )
+    {
+        applyFieldPathVisitor( object, fieldPaths, params,
+            s -> s.equals( "userAccesses.displayName" ) || s.endsWith( ".userAccesses.displayName" ), o -> {
+                if ( o instanceof BaseIdentifiableObject )
+                {
+                    ((BaseIdentifiableObject) o).getSharing().getUsers().values()
+                        .forEach( ua -> ua.setDisplayName( userService.getDisplayName( ua.getId() ) ) );
+                }
+            } );
+    }
+
+    private void applyAccess( FieldFilterParams<?> params, List<FieldPath> fieldPaths, Object object )
+    {
+        applyFieldPathVisitor( object, fieldPaths, params, s -> s.equals( "access" ) || s.endsWith( ".access" ),
+            o -> {
+                if ( o instanceof BaseIdentifiableObject )
+                {
+                    ((BaseIdentifiableObject) o)
+                        .setAccess( aclService.getAccess( ((IdentifiableObject) o), params.getUser() ) );
+                }
+            } );
     }
 }

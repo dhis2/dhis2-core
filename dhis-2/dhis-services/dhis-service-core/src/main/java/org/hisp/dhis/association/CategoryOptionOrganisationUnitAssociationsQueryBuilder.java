@@ -41,6 +41,9 @@ public class CategoryOptionOrganisationUnitAssociationsQueryBuilder
     private final String relationshipTableName = "categoryoption_organisationunits";
 
     @Getter( AccessLevel.PROTECTED )
+    private final String orgUnitJoinColumnName = "organisationunitid";
+
+    @Getter( AccessLevel.PROTECTED )
     private final String joinColumnName = "categoryoptionid";
 
     @Getter( AccessLevel.PROTECTED )

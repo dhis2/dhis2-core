@@ -52,15 +52,15 @@ public class LoginActions
         ApiResponse loggedInUser = getLoggedInUserInfo();
 
         if ( loggedInUser.getContentType().contains( "json" ) &&
-            loggedInUser.extract( "userCredentials.username" ) != null &&
-            loggedInUser.extract( "userCredentials.username" ).equals( username ) )
+            loggedInUser.extract( "username" ) != null &&
+            loggedInUser.extract( "username" ).equals( username ) )
         {
             return;
         }
 
         addAuthenticationHeader( username, password );
 
-        getLoggedInUserInfo().validate().statusCode( 200 ).body( "userCredentials.username", equalTo( username ) );
+        getLoggedInUserInfo().validate().statusCode( 200 ).body( "username", equalTo( username ) );
     }
 
     /**
@@ -69,7 +69,9 @@ public class LoginActions
      */
     public void loginAsSuperUser()
     {
-        loginAsUser( TestConfiguration.get().superUserUsername(), TestConfiguration.get().superUserPassword() );
+        String username = TestConfiguration.get().superUserUsername();
+        String password = TestConfiguration.get().superUserPassword();
+        loginAsUser( username, password );
     }
 
     /**
@@ -78,7 +80,9 @@ public class LoginActions
      */
     public void loginAsDefaultUser()
     {
-        loginAsUser( TestConfiguration.get().defaultUserUsername(), TestConfiguration.get().defaultUSerPassword() );
+        String username = TestConfiguration.get().defaultUserUsername();
+        String password = TestConfiguration.get().defaultUSerPassword();
+        loginAsUser( username, password );
     }
 
     public ApiResponse getLoggedInUserInfo()

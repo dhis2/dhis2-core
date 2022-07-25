@@ -38,6 +38,7 @@ import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.ResponseValidationHelper;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import com.google.gson.JsonArray;
@@ -81,6 +82,7 @@ public class LoginTests
     }
 
     @Test
+    @Disabled
     public void shouldBeAbleToLoginWithOAuth2()
     {
 
@@ -100,10 +102,11 @@ public class LoginTests
 
         loginActions.getLoggedInUserInfo().validate()
             .statusCode( 200 )
-            .body( "userCredentials.username", equalTo( userName ) );
+            .body( "username", equalTo( userName ) );
     }
 
     @Test
+    @Disabled
     public void shouldBeAbleToGetRefreshToken()
     {
         loginActions.addAuthenticationHeader( oauthClientId, secret );

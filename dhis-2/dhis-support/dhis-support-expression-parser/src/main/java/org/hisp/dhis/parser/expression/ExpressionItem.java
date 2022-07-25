@@ -27,12 +27,11 @@
  */
 package org.hisp.dhis.parser.expression;
 
-import static org.hisp.dhis.parser.expression.CommonExpressionVisitor.DEFAULT_DOUBLE_VALUE;
+import static org.hisp.dhis.parser.expression.ParserUtils.DEFAULT_DOUBLE_VALUE;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 import org.hisp.dhis.antlr.AntlrExprItem;
 import org.hisp.dhis.antlr.AntlrExpressionVisitor;
-import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 
 /**
@@ -43,13 +42,21 @@ import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 public interface ExpressionItem
     extends AntlrExprItem
 {
+    ExpressionItemMethod ITEM_GET_DESCRIPTIONS = ExpressionItem::getDescription;
+
+    ExpressionItemMethod ITEM_GET_EXPRESSION_INFO = ExpressionItem::getExpressionInfo;
+
+    ExpressionItemMethod ITEM_EVALUATE = ExpressionItem::evaluate;
+
+    ExpressionItemMethod ITEM_GET_SQL = ExpressionItem::getSql;
+
     /**
      * Collects the description of an individual data item, to use later in
      * constructing a description of the expression as a whole.
-     * <p/>
+     * <p>
      * This method only needs to be overridden for items that have UIDs that
      * need to be translated into human-readable object names.
-     * <p/>
+     * <p>
      * For other items, evaluate all paths to be sure that we collect the
      * description of any items that may be within this expression.
      *
@@ -63,13 +70,13 @@ public interface ExpressionItem
     }
 
     /**
-     * Collects the item id of an individual data item, so it can later be
-     * looked up in the database (as with indicators, validation rules and
-     * predictors.)
-     * <p/>
+     * Collects the information we need from an expression such as the ids of
+     * metadata items for which we will need to find the metadata, and then (at
+     * least for some items) the corresponding data.
+     * <p>
      * This method only needs to be overridden for items that have UIDs that
      * need to be looked up in the database.
-     * <p/>
+     * <p>
      * For other items, evaluate all paths to be sure that we collect the UIDs
      * of any items that may be within this expression. But don't return null
      * from this function, to make sure that no part of the expression is
@@ -79,7 +86,7 @@ public interface ExpressionItem
      * @param visitor the tree visitor
      * @return a dummy value for the item
      */
-    default Object getItemId( ExprContext ctx, CommonExpressionVisitor visitor )
+    default Object getExpressionInfo( ExprContext ctx, CommonExpressionVisitor visitor )
     {
         Object value = evaluateAllPaths( ctx, visitor );
 
@@ -87,40 +94,13 @@ public interface ExpressionItem
     }
 
     /**
-     * Collects the organisation unit group for which we will need counts.
-     * (applies to expression service items).
-     * <p/>
-     * This method only needs to be overridden for the organisation unit group
-     * count.
-     * <p/>
-     * For other items, evaluate all paths to be sure that we collect any
-     * organisation unit groups that may be within this expression. But if we
-     * hit a parser exception (like constant not found), continue.
-     *
-     * @param ctx the expression context
-     * @param visitor the tree visitor
-     * @return a dummy value for the item
-     */
-    default Object getOrgUnitGroup( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        try
-        {
-            return evaluateAllPaths( ctx, visitor );
-        }
-        catch ( ParserException e )
-        {
-            return DEFAULT_DOUBLE_VALUE;
-        }
-    }
-
-    /**
      * Returns the value of the expression item. Also used for syntax checking.
      * (For program indicator-only items, this may return a dummy value because
      * the real evaluation is done in SQL.)
-     * <p/>
+     * <p>
      * For the lower-level Antlr... items, this method calls the lower-level
      * evaluate routine.
-     * <p/>
+     * <p>
      * For all other items, this method must be overridden.
      *
      * @param ctx the expression context
@@ -135,9 +115,9 @@ public interface ExpressionItem
     /**
      * Provides a default implementation for the lower-level Antlr... evaluate
      * method.
-     * <p/>
+     * <p>
      * The lower-level Antlr... items must provide this method.
-     * <p/>
+     * <p>
      * If a higher-level item does not override the method evaluate(...
      * CommonExpressionVisitor ...) then this default implementation will be
      * called, resulting in an exception.
@@ -156,10 +136,10 @@ public interface ExpressionItem
      * Finds the value of an expression function, evaluating all the arguments
      * of logical functions that might not always evaluate all arguments based
      * on the truth value of some arguments (e.g. if, and, or, firstNonNull).
-     * <p/>
+     * <p>
      * For those few logical functions that may not normally evaluate all
      * arguments, this method must be overridden.
-     * <p/>
+     * <p>
      * For other items, this method does not need to be overridden.
      *
      * @param ctx the expression context
@@ -173,10 +153,10 @@ public interface ExpressionItem
 
     /**
      * Generates the SQL for a program indicator expression item.
-     * <p/>
+     * <p>
      * This method must be overridden for all items used in program indicator
      * expressions, otherwise an exception will be thrown.
-     * <p/>
+     * <p>
      * For other items, this method does not need to be overridden.
      *
      * @param ctx the expression context
@@ -185,31 +165,6 @@ public interface ExpressionItem
      */
     default Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        throw new ParserExceptionWithoutContext( "getSql not implemented for " + ctx.getText() );
-    }
-
-    /**
-     * Regenerates the original item syntax from the parse tree, or in some
-     * cases substitutes a value if one is present. This method is used to
-     * regenerate the expression in the backend while substituting key
-     * backend-determined values, such as DHIS 2 constants and the number of org
-     * units in an org unit group. The expression, with these backend-determined
-     * values substituted, can then be passed to the front-end for evaluation
-     * that fills in the other data values.
-     * <p/>
-     * This method only needs to be overridden for items such as DHIS 2
-     * constants and org unit groups counts that provide back-end values before
-     * the front-end fills in the data values.
-     * <p/>
-     * For other items, this method just reconstructs the expression text from
-     * the current token and the token's children.
-     *
-     * @param ctx the expression context
-     * @param visitor the tree visitor
-     * @return the regenerated expression (as a String) for the item
-     */
-    default Object regenerate( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        return visitor.regenerateAllChildren( ctx );
+        throw new ParserExceptionWithoutContext( "Not valid in this context: " + ctx.getText() );
     }
 }

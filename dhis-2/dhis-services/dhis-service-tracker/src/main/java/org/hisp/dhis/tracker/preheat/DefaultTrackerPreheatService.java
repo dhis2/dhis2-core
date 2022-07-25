@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.tracker.preheat;
 
-import static com.google.api.client.util.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.beans.Introspector;
 import java.util.List;
@@ -78,9 +78,8 @@ public class DefaultTrackerPreheatService implements TrackerPreheatService, Appl
     public TrackerPreheat preheat( TrackerImportParams params )
     {
         TrackerPreheat preheat = new TrackerPreheat();
-        preheat.setIdentifiers( params.getIdentifiers() );
+        preheat.setIdSchemes( params.getIdSchemes() );
         preheat.setUser( params.getUser() );
-        preheat.setDefaults( manager.getDefaults() );
 
         checkNotNull( preheat.getUser(), "TrackerPreheat is missing the user object." );
 

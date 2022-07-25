@@ -35,12 +35,11 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.relationship.RelationshipStore;
-import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.Relationship;
-import org.hisp.dhis.tracker.preheat.DetachUtils;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.mappers.RelationshipMapper;
+import org.hisp.dhis.tracker.preheat.supplier.DetachUtils;
 import org.springframework.stereotype.Component;
 
 /**
@@ -59,21 +58,16 @@ public class RelationshipStrategy implements ClassBasedSupplierStrategy
     {
         List<org.hisp.dhis.relationship.Relationship> relationships = retrieveRelationships( splitList );
 
-        preheat.putRelationships( TrackerIdScheme.UID,
+        preheat.putRelationships(
             DetachUtils.detach( this.getClass().getAnnotation( StrategyFor.class ).mapper(), relationships ) );
     }
 
     private List<org.hisp.dhis.relationship.Relationship> retrieveRelationships( List<List<String>> splitList )
     {
-        List<String> keys = splitList.stream().flatMap( List::stream )
-            .filter( identifier -> !CodeGenerator.isValidUid( identifier ) )
-            .collect( Collectors.toList() );
         List<String> uids = splitList.stream().flatMap( List::stream )
             .filter( CodeGenerator::isValidUid )
             .collect( Collectors.toList() );
 
-        uids.addAll( relationshipStore.getUidsByRelationshipKeys( keys ) );
-
-        return relationshipStore.getByUids( uids );
+        return relationshipStore.getByUidsIncludeDeleted( uids );
     }
 }

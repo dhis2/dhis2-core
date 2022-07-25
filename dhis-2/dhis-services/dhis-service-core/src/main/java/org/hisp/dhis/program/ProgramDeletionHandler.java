@@ -27,13 +27,14 @@
  */
 package org.hisp.dhis.program;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.category.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
 import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -44,15 +45,15 @@ import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.user.UserAuthorityGroup;
+import org.hisp.dhis.user.UserRole;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Chau Thu Tran
  */
-@Component( "org.hisp.dhis.program.ProgramDeletionHandler" )
-public class ProgramDeletionHandler
-    extends DeletionHandler
+@Component
+@AllArgsConstructor
+public class ProgramDeletionHandler extends DeletionHandler
 {
     private static final DeletionVeto VETO = new DeletionVeto( Program.class );
 
@@ -62,24 +63,12 @@ public class ProgramDeletionHandler
 
     private final CategoryService categoryService;
 
-    public ProgramDeletionHandler( ProgramService programService, IdentifiableObjectManager idObjectManager,
-        CategoryService categoryService )
-    {
-        checkNotNull( programService );
-        checkNotNull( idObjectManager );
-        checkNotNull( categoryService );
-
-        this.programService = programService;
-        this.idObjectManager = idObjectManager;
-        this.categoryService = categoryService;
-    }
-
     @Override
     protected void register()
     {
         whenDeleting( CategoryCombo.class, this::deleteCategoryCombo );
         whenDeleting( OrganisationUnit.class, this::deleteOrganisationUnit );
-        whenDeleting( UserAuthorityGroup.class, this::deleteUserAuthorityGroup );
+        whenDeleting( UserRole.class, this::deleteUserRole );
         whenVetoing( TrackedEntityType.class, this::allowDeleteTrackedEntityType );
         whenDeleting( TrackedEntityAttribute.class, this::deleteTrackedEntityAttribute );
         whenDeleting( DataEntryForm.class, this::deleteDataEntryForm );
@@ -111,7 +100,7 @@ public class ProgramDeletionHandler
         }
     }
 
-    private void deleteUserAuthorityGroup( UserAuthorityGroup group )
+    private void deleteUserRole( UserRole group )
     {
         Collection<Program> programs = idObjectManager.getAllNoAcl( Program.class );
 

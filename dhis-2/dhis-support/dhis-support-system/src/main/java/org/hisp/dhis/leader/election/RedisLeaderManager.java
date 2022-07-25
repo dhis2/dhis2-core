@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.leader.election;
 
+import static java.lang.String.format;
+
 import java.util.Calendar;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -36,6 +38,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -54,15 +57,15 @@ public class RedisLeaderManager implements LeaderManager
 
     private static final String CLUSTER_LEADER_RENEWAL = "Cluster leader renewal";
 
-    private String nodeUuid;
+    private final String nodeUuid;
 
-    private String nodeId;
+    private final String nodeId;
 
-    private Long timeToLiveSeconds;
+    private final Long timeToLiveSeconds;
 
     private SchedulingManager schedulingManager;
 
-    private StringRedisTemplate redisTemplate;
+    private final StringRedisTemplate redisTemplate;
 
     public RedisLeaderManager( Long timeToLiveMinutes, StringRedisTemplate redisTemplate,
         DhisConfigurationProvider dhisConfigurationProbider )
@@ -75,32 +78,39 @@ public class RedisLeaderManager implements LeaderManager
     }
 
     @Override
-    public void renewLeader()
+    public void renewLeader( JobProgress progress )
     {
         if ( isLeader() )
         {
-            log.debug( "Renewing leader with nodeId:" + this.nodeUuid );
-            redisTemplate.expire( KEY, timeToLiveSeconds, TimeUnit.SECONDS );
-            redisTemplate.expire( NODE_ID_KEY, timeToLiveSeconds, TimeUnit.SECONDS );
+            progress.startingStage( "Renewing leader with nodeId:" + nodeUuid );
+            progress.runStage( () -> {
+                redisTemplate.expire( KEY, timeToLiveSeconds, TimeUnit.SECONDS );
+                redisTemplate.expire( NODE_ID_KEY, timeToLiveSeconds, TimeUnit.SECONDS );
+            } );
         }
     }
 
     @Override
-    public void electLeader()
+    public void electLeader( JobProgress progress )
     {
-        log.debug( "Election attempt by nodeId:" + this.nodeUuid );
-        redisTemplate.opsForValue().setIfAbsent( KEY, nodeUuid, timeToLiveSeconds, TimeUnit.SECONDS );
-        redisTemplate.opsForValue().setIfAbsent( NODE_ID_KEY, nodeId, timeToLiveSeconds, TimeUnit.SECONDS );
+        progress.startingStage( "Election attempt by nodeId:" + nodeUuid );
+        progress.runStage( () -> {
+            redisTemplate.opsForValue().setIfAbsent( KEY, nodeUuid, timeToLiveSeconds, TimeUnit.SECONDS );
+            redisTemplate.opsForValue().setIfAbsent( NODE_ID_KEY, nodeId, timeToLiveSeconds, TimeUnit.SECONDS );
+        } );
         if ( isLeader() )
         {
-            renewLeader();
+            renewLeader( progress );
+
             Calendar calendar = Calendar.getInstance();
             calendar.add( Calendar.SECOND, (int) (this.timeToLiveSeconds / 2) );
-            log.debug( "Next leader renewal job nodeId:%s set at %s", this.nodeUuid, calendar.getTime().toString() );
+            progress.startingStage(
+                format( "Schedule leader renewal for nodeId:%s at: %s", nodeUuid, calendar.getTime() ) );
             JobConfiguration leaderRenewalJobConfiguration = new JobConfiguration( CLUSTER_LEADER_RENEWAL,
                 JobType.LEADER_RENEWAL, null, true );
             leaderRenewalJobConfiguration.setLeaderOnlyJob( true );
-            schedulingManager.scheduleWithStartTime( leaderRenewalJobConfiguration, calendar.getTime() );
+            progress.runStage(
+                () -> schedulingManager.scheduleWithStartTime( leaderRenewalJobConfiguration, calendar.getTime() ) );
         }
     }
 

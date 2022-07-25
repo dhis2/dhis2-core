@@ -112,7 +112,7 @@ public class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDim
     private List<CategoryOptionGroupSet> getAttributeCategoryOptionGroupSetsIfNeeded( Program program )
     {
         return Optional.of( program )
-            .filter( Program::hasCategoryCombo )
+            .filter( Program::hasNonDefaultCategoryCombo )
             .map( unused -> categoryService.getAllCategoryOptionGroupSets().stream()
                 .filter( this::isTypeAttribute )
                 .collect( Collectors.toList() ) )
@@ -127,7 +127,7 @@ public class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDim
     private Collection<Category> getCategoriesIfNeeded( Program program )
     {
         return Optional.of( program )
-            .filter( Program::hasCategoryCombo )
+            .filter( Program::hasNonDefaultCategoryCombo )
             .map( Program::getCategoryCombo )
             .map( CategoryCombo::getCategories )
             .orElse( Collections.emptyList() );

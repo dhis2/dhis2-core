@@ -1,9 +1,9 @@
 { "userRole":
   {
-	"name": "$!encoder.jsonEncode( ${userAuthorityGroup.name} )",
-	"uid": "$!encoder.jsonEncode( ${userAuthorityGroup.uid} )",
-	"members": "$!{userAuthorityGroup.members.size()}",
-	"dataSets": "$!{userAuthorityGroup.dataSets.size()}",
-	"reports": "$!{userAuthorityGroup.reports.size()}"
+	"name": "$!encoder.jsonEncode( ${userRole.name} )",
+	"uid": "$!encoder.jsonEncode( ${userRole.uid} )",
+	"members": "$!{userRole.members.size()}",
+	"dataSets": "$!{userRole.dataSets.size()}",
+	"reports": "$!{userRole.reports.size()}"
   }
 }

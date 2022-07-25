@@ -30,14 +30,14 @@ package org.hisp.dhis.program;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.startsWith;
+import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.antlr.AntlrParserUtils.castString;
-import static org.hisp.dhis.parser.expression.ParserUtils.DEFAULT_SAMPLE_PERIODS;
-import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_SQL;
+import static org.hisp.dhis.parser.expression.ExpressionItem.ITEM_GET_SQL;
 import static org.hisp.dhis.program.DefaultProgramIndicatorService.PROGRAM_INDICATOR_ITEMS;
+import static org.hisp.dhis.program.variable.vEventCount.DEFAULT_COUNT_CONDITION;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Date;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -46,14 +46,15 @@ import org.hisp.dhis.antlr.AntlrExprLiteral;
 import org.hisp.dhis.antlr.Parser;
 import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.antlr.literal.DefaultLiteral;
-import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.common.DimensionService;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.expression.ExpressionParams;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.parser.expression.ProgramExpressionParams;
 import org.hisp.dhis.random.BeanRandomizer;
-import org.hisp.dhis.relationship.RelationshipTypeService;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -81,16 +82,13 @@ class ProgramSqlGeneratorVariablesTest extends DhisConvenienceTest
     @Mock
     private ProgramStageService programStageService;
 
+    @Mock
+    private IdentifiableObjectManager idObjectManager;
+
+    @Mock
+    private DimensionService dimensionService;
+
     private StatementBuilder statementBuilder;
-
-    @Mock
-    private DataElementService dataElementService;
-
-    @Mock
-    private TrackedEntityAttributeService attributeService;
-
-    @Mock
-    private RelationshipTypeService relationshipTypeService;
 
     private CommonExpressionVisitor subject;
 
@@ -198,7 +196,7 @@ class ProgramSqlGeneratorVariablesTest extends DhisConvenienceTest
     void testEventCount()
     {
         String sql = castString( test( "V{event_count}", new DefaultLiteral(), eventIndicator ) );
-        assertThat( sql, is( "psi" ) );
+        assertThat( sql, is( "case " + DEFAULT_COUNT_CONDITION + " end" ) );
     }
 
     @Test
@@ -307,25 +305,31 @@ class ProgramSqlGeneratorVariablesTest extends DhisConvenienceTest
         dataElementsAndAttributesIdentifiers.add( BASE_UID + "b" );
         dataElementsAndAttributesIdentifiers.add( BASE_UID + "c" );
 
-        subject = CommonExpressionVisitor.newBuilder()
-            .withItemMap( PROGRAM_INDICATOR_ITEMS )
-            .withItemMethod( ITEM_GET_SQL )
-            .withConstantMap( new HashMap<>() )
-            .withProgramIndicatorService( programIndicatorService )
-            .withProgramStageService( programStageService )
-            .withDataElementService( dataElementService )
-            .withAttributeService( attributeService )
-            .withRelationshipTypeService( relationshipTypeService )
-            .withStatementBuilder( statementBuilder )
-            .withI18n( new I18n( null, null ) )
-            .withSamplePeriods( DEFAULT_SAMPLE_PERIODS )
-            .buildForProgramIndicatorExpressions();
+        ExpressionParams params = ExpressionParams.builder()
+            .dataType( NUMERIC )
+            .build();
+
+        ProgramExpressionParams progParams = ProgramExpressionParams.builder()
+            .programIndicator( programIndicator )
+            .reportingStartDate( startDate )
+            .reportingEndDate( endDate )
+            .dataElementAndAttributeIdentifiers( dataElementsAndAttributesIdentifiers )
+            .build();
+
+        subject = CommonExpressionVisitor.builder()
+            .idObjectManager( idObjectManager )
+            .dimensionService( dimensionService )
+            .programIndicatorService( programIndicatorService )
+            .programStageService( programStageService )
+            .statementBuilder( statementBuilder )
+            .i18n( new I18n( null, null ) )
+            .itemMap( PROGRAM_INDICATOR_ITEMS )
+            .itemMethod( ITEM_GET_SQL )
+            .params( params )
+            .progParams( progParams )
+            .build();
 
         subject.setExpressionLiteral( exprLiteral );
-        subject.setProgramIndicator( programIndicator );
-        subject.setReportingStartDate( startDate );
-        subject.setReportingEndDate( endDate );
-        subject.setDataElementAndAttributeIdentifiers( dataElementsAndAttributesIdentifiers );
 
         return Parser.visit( expression, subject );
     }

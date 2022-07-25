@@ -32,15 +32,14 @@ import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.addIssuesTo
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.hisp.dhis.rules.models.RuleEffect;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 import org.hisp.dhis.tracker.programrule.RuleActionImplementer;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import com.google.common.collect.Lists;
 
 /**
  * @author Enrico Colasante
@@ -58,15 +57,19 @@ public class EventRuleValidationHook
     }
 
     @Override
-    public void validateEvent( ValidationErrorReporter reporter, Event event )
+    public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
     {
-        TrackerImportValidationContext context = reporter.getValidationContext();
+        List<RuleEffect> ruleEffects = bundle.getEventRuleEffects().get( event.getEvent() );
+
+        if ( ruleEffects == null || ruleEffects.isEmpty() )
+        {
+            return;
+        }
 
         List<ProgramRuleIssue> programRuleIssues = validators
             .stream()
             .flatMap(
-                v -> v.validateEvents( context.getBundle() )
-                    .getOrDefault( event.getEvent(), Lists.newArrayList() ).stream() )
+                v -> v.validateEvent( bundle, ruleEffects, event ).stream() )
             .collect( Collectors.toList() );
 
         addIssuesToReporter( reporter, event, programRuleIssues );

@@ -27,35 +27,39 @@
  */
 package org.hisp.dhis.dxf2.sync;
 
+import java.util.Date;
+
+import lombok.Getter;
+
 import org.hisp.dhis.dxf2.synch.SystemInstance;
-import org.hisp.dhis.system.util.Clock;
+import org.hisp.dhis.scheduling.JobProgress;
 
 /**
  * @author David Katuscak <katuscak.d@gmail.com>
+ * @author Jan Bernitt (refactoring to interface and state class)
  */
-public abstract class DataSynchronizationWithPaging
+public interface DataSynchronizationWithPaging
 {
-    protected boolean syncResult = false;
-
-    protected Clock clock;
-
-    protected int objectsToSynchronize;
-
-    protected SystemInstance instance;
-
-    protected int pages;
-
-    public abstract SynchronizationResult synchronizeData( final int pageSize );
-
-    protected void runSyncWithPaging( int pageSize )
+    @Getter
+    class PagedDataSynchronisationContext extends DataSynchronizationWithoutPaging.DataSynchronizationContext
     {
-        syncResult = true;
+        private final int pages;
 
-        for ( int page = 1; page <= pages; page++ )
+        private final int pageSize;
+
+        public PagedDataSynchronisationContext( Date skipChangedBefore, int pageSize )
         {
-            synchronizePage( page, pageSize );
+            this( skipChangedBefore, 0, null, pageSize );
+        }
+
+        public PagedDataSynchronisationContext( Date skipChangedBefore, int objectsToSynchronize,
+            SystemInstance instance, int pageSize )
+        {
+            super( skipChangedBefore, objectsToSynchronize, instance );
+            this.pageSize = pageSize;
+            this.pages = (objectsToSynchronize / pageSize) + ((objectsToSynchronize % pageSize == 0) ? 0 : 1);
         }
     }
 
-    protected abstract void synchronizePage( int page, int pageSize );
+    SynchronizationResult synchronizeData( final int pageSize, JobProgress progress );
 }

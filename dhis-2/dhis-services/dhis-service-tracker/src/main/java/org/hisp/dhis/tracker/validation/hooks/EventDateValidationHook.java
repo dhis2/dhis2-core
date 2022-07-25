@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static com.google.api.client.util.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static java.time.Duration.ofDays;
 import static java.time.Instant.now;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1031;
@@ -46,9 +46,10 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.Authorities;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
 
@@ -60,11 +61,11 @@ public class EventDateValidationHook
     extends AbstractTrackerDtoValidationHook
 {
     @Override
-    public void validateEvent( ValidationErrorReporter reporter, Event event )
+    public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
     {
-        TrackerImportValidationContext context = reporter.getValidationContext();
+        TrackerPreheat preheat = bundle.getPreheat();
 
-        Program program = context.getProgram( event.getProgram() );
+        Program program = preheat.getProgram( event.getProgram() );
 
         if ( event.getOccurredAt() == null && occuredAtDateIsMandatory( event, program ) )
         {
@@ -78,14 +79,14 @@ public class EventDateValidationHook
             return;
         }
 
-        validateExpiryDays( reporter, event, program );
+        validateExpiryDays( reporter, bundle, event, program );
         validatePeriodType( reporter, event, program );
     }
 
-    private void validateExpiryDays( ValidationErrorReporter reporter, Event event, Program program )
+    private void validateExpiryDays( ValidationErrorReporter reporter, TrackerBundle bundle, Event event,
+        Program program )
     {
-        TrackerImportValidationContext context = reporter.getValidationContext();
-        User actingUser = context.getBundle().getUser();
+        User actingUser = bundle.getUser();
 
         checkNotNull( actingUser, TrackerImporterAssertErrors.USER_CANT_BE_NULL );
         checkNotNull( event, TrackerImporterAssertErrors.EVENT_CANT_BE_NULL );

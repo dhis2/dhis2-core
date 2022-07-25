@@ -51,7 +51,6 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -463,7 +462,7 @@ public class DefaultDataApprovalLevelService
 
         for ( OrganisationUnit unit : user.getOrganisationUnits() )
         {
-            if ( orgUnit.isDescendant( unit ) )
+            if ( organisationUnitService.isDescendant( orgUnit, unit ) )
             {
                 organisationUnit = unit;
                 break;
@@ -487,7 +486,7 @@ public class DefaultDataApprovalLevelService
         // Add user organisation units if authorized to approve at lower levels
         // ---------------------------------------------------------------------
 
-        if ( user.getUserCredentials().isAuthorized( DataApproval.AUTH_APPROVE_LOWER_LEVELS ) )
+        if ( user.isAuthorized( DataApproval.AUTH_APPROVE_LOWER_LEVELS ) )
         {
             for ( OrganisationUnit orgUnit : user.getOrganisationUnits() )
             {
@@ -736,10 +735,8 @@ public class DefaultDataApprovalLevelService
     {
         if ( cogs == null )
         {
-            UserCredentials userCredentials = user.getUserCredentials();
-
-            return CollectionUtils.isEmpty( userCredentials.getCogsDimensionConstraints() )
-                && CollectionUtils.isEmpty( userCredentials.getCatDimensionConstraints() );
+            return CollectionUtils.isEmpty( user.getCogsDimensionConstraints() )
+                && CollectionUtils.isEmpty( user.getCatDimensionConstraints() );
         }
 
         return !CollectionUtils.isEmpty( categoryService.getCategoryOptionGroups( cogs ) );
@@ -756,13 +753,11 @@ public class DefaultDataApprovalLevelService
     private List<DataApprovalLevel> subsetUserDataApprovalLevels( List<DataApprovalLevel> approvalLevels, User user,
         boolean lowestLevel )
     {
-        UserCredentials userCredentials = user.getUserCredentials();
-
         int lowestNumberOrgUnitLevel = getCurrentUsersLowestNumberOrgUnitLevel();
 
         boolean canSeeAllDimensions = CollectionUtils
-            .isEmpty( categoryService.getCoDimensionConstraints( userCredentials ) )
-            && CollectionUtils.isEmpty( categoryService.getCogDimensionConstraints( userCredentials ) );
+            .isEmpty( categoryService.getCoDimensionConstraints( user ) )
+            && CollectionUtils.isEmpty( categoryService.getCogDimensionConstraints( user ) );
 
         List<DataApprovalLevel> userDataApprovalLevels = new ArrayList<>();
 

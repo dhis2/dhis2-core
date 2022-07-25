@@ -34,8 +34,7 @@ import java.util.UUID;
 
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAuthorityGroup;
-import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 
 import com.google.common.collect.ImmutableSet;
@@ -64,6 +63,7 @@ public class DefaultAdminUserPopulator
         "F_APPROVE_DATA_LOWER_LEVELS",
         "F_ACCEPT_DATA_LOWER_LEVELS",
         "F_PERFORM_MAINTENANCE",
+        "F_PERFORM_ANALYTICS_EXPLAIN",
         "F_LOCALE_ADD",
         "F_GENERATE_MIN_MAX_VALUES",
         "F_RUN_VALIDATION",
@@ -89,7 +89,9 @@ public class DefaultAdminUserPopulator
         "F_TRACKER_IMPORTER_EXPERIMENTAL",
         "F_VIEW_SERVER_INFO",
         "F_ORG_UNIT_PROFILE_ADD",
-        "F_TRACKED_ENTITY_MERGE" );
+        "F_TRACKED_ENTITY_MERGE",
+        "F_DATAVALUE_ADD",
+        "F_DATAVALUE_DELETE" );
 
     private final UserService userService;
 
@@ -110,7 +112,7 @@ public class DefaultAdminUserPopulator
         }
 
         // ---------------------------------------------------------------------
-        // Assumes no UserAuthorityGroup called "Superuser" in database
+        // Assumes no UserRole called "Superuser" in database
         // ---------------------------------------------------------------------
 
         String username = "admin";
@@ -124,29 +126,23 @@ public class DefaultAdminUserPopulator
 
         userService.addUser( user );
 
-        UserAuthorityGroup userAuthorityGroup = new UserAuthorityGroup();
-        userAuthorityGroup.setUid( "yrB6vc5Ip3r" );
-        userAuthorityGroup.setCode( "Superuser" );
-        userAuthorityGroup.setName( "Superuser" );
-        userAuthorityGroup.setDescription( "Superuser" );
+        UserRole userRole = new UserRole();
+        userRole.setUid( "yrB6vc5Ip3r" );
+        userRole.setCode( "Superuser" );
+        userRole.setName( "Superuser" );
+        userRole.setDescription( "Superuser" );
 
-        userAuthorityGroup.setAuthorities( ALL_AUTHORITIES );
+        userRole.setAuthorities( ALL_AUTHORITIES );
 
-        userService.addUserAuthorityGroup( userAuthorityGroup );
+        userService.addUserRole( userRole );
 
-        UserCredentials userCredentials = new UserCredentials();
-        userCredentials.setUid( "KvMx6c1eoYo" );
-        userCredentials.setUuid( UUID.fromString( "6507f586-f154-4ec1-a25e-d7aa51de5216" ) );
-        userCredentials.setCode( username );
-        userCredentials.setUsername( username );
-        userCredentials.setUserInfo( user );
-        userCredentials.getUserAuthorityGroups().add( userAuthorityGroup );
+        user.setUuid( UUID.fromString( "6507f586-f154-4ec1-a25e-d7aa51de5216" ) );
+        user.setCode( username );
+        user.setUsername( username );
+        user.getUserRoles().add( userRole );
 
-        userService.encodeAndSetPassword( userCredentials, password );
-        userService.addUserCredentials( userCredentials );
+        userService.encodeAndSetPassword( user, password );
 
-        user.setUserCredentials( userCredentials );
-
-        userService.updateUser( user );
+        userService.addUser( user );
     }
 }

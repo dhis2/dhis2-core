@@ -60,8 +60,7 @@
                 <div><input type="password" id="j_password" name="j_password" autocomplete="off" placeholder="Password"
                             required></div>
                 <div>
-                    <label><input type="checkbox" name="2fa" value="2fa" id="2fa"/>$i18n.getString(
-                        'login_using_two_factor_authentication')</label>
+                  <input type="checkbox" name="2fa" value="2fa" id="2fa"/><label id="2FaLabel">$i18n.getString('login_using_two_factor_authentication')</label>
                     <input type="code" id="2fa_code" name="2fa_code"
                            placeholder="$i18n.getString('two_factor_authentication_code')" hidden readonly>
                 </div>

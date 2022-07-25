@@ -36,20 +36,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.apache.commons.collections.ListUtils;
+import org.apache.commons.collections4.ListUtils;
 import org.hamcrest.Matchers;
-import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.UserActions;
 import org.hisp.dhis.actions.metadata.MetadataActions;
-import org.hisp.dhis.actions.tracker.TEIActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.Me;
 import org.hisp.dhis.dto.OrgUnit;
 import org.hisp.dhis.dto.UserGroup;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.models.User;
+import org.hisp.dhis.tracker.TrackerApiTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -63,7 +62,7 @@ import com.google.gson.JsonObject;
  * @author Stian Sandvold
  */
 public class TrackedEntityInstanceAclReadTests
-    extends ApiTest
+    extends TrackerApiTest
 {
     private static final String _DATAREAD = "..r.*";
 
@@ -71,15 +70,12 @@ public class TrackedEntityInstanceAclReadTests
 
     private UserActions userActions;
 
-    private TEIActions teiActions;
-
     private static final List<User> users = new ArrayList<>();
 
     @BeforeAll
     public void before()
         throws Exception
     {
-        teiActions = new TEIActions();
         metadataActions = new MetadataActions();
         userActions = new UserActions();
 
@@ -119,7 +115,9 @@ public class TrackedEntityInstanceAclReadTests
         new LoginActions().loginAsUser( user.getUsername(), user.getPassword() );
 
         // Get User information from /me
-        Me me = new RestApiActions( "/me" ).get().as( Me.class );
+        ApiResponse apiResponse = new RestApiActions( "/me" ).get();
+        String asString = apiResponse.getAsString();
+        Me me = apiResponse.as( Me.class );
 
         // Add userGroups
         user.setGroups( me.getUserGroups().stream().map( UserGroup::getId ).collect( Collectors.toList() ) );

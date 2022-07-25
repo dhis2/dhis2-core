@@ -155,4 +155,7 @@ public interface OrganisationUnitStore
      * @return the list of org unit uids satisfying the params criteria
      */
     List<String> getOrganisationUnitUids( OrganisationUnitQueryParams params );
+
+    int updateAllOrganisationUnitsGeometryToNull();
+
 }

@@ -73,6 +73,7 @@ import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryPlanner;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
+import org.hisp.dhis.analytics.shared.LabelMapper;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -129,6 +130,10 @@ public class DefaultEventAnalyticsService
     private static final String NAME_EVENT_DATE = "Event date";
 
     private static final String NAME_STORED_BY = "Stored by";
+
+    private static final String NAME_CREATED_BY_DISPLAY_NAME = "Created by (display name)";
+
+    private static final String NAME_LAST_UPDATED_BY_DISPLAY_NAME = "Last updated by (display name)";
 
     private static final String NAME_LAST_UPDATED = "Last Updated";
 
@@ -189,7 +194,7 @@ public class DefaultEventAnalyticsService
         AnalyticsCache analyticsCache, EnrollmentAnalyticsManager enrollmentAnalyticsManager,
         SchemaIdResponseMapper schemaIdResponseMapper )
     {
-        super( securityManager, queryValidator );
+        super( securityManager, queryValidator, schemaIdResponseMapper );
 
         checkNotNull( dataElementService );
         checkNotNull( trackedEntityAttributeService );
@@ -223,7 +228,7 @@ public class DefaultEventAnalyticsService
     public Grid getAggregatedEventData( EventQueryParams params, List<String> columns, List<String> rows )
     {
         return AnalyticsUtils.isTableLayout( columns, rows )
-            ? getAggregatedEventDataTableLayout( params, columns, rows )
+            ? getMaybeAggregatedEventDataTableLayout( params, columns, rows )
             : getAggregatedEventData( params );
     }
 
@@ -270,7 +275,8 @@ public class DefaultEventAnalyticsService
      * @param rows the identifiers of the dimensions to use as rows.
      * @return aggregated data as a Grid object.
      */
-    private Grid getAggregatedEventDataTableLayout( EventQueryParams params, List<String> columns, List<String> rows )
+    private Grid getMaybeAggregatedEventDataTableLayout( EventQueryParams params, List<String> columns,
+        List<String> rows )
     {
         params.removeProgramIndicatorItems();
 
@@ -303,6 +309,7 @@ public class DefaultEventAnalyticsService
 
         List<Map<String, EventAnalyticsDimensionalItem>> rowPermutations = EventAnalyticsUtils
             .generateEventDataPermutations( tableRows );
+
         List<Map<String, EventAnalyticsDimensionalItem>> columnPermutations = EventAnalyticsUtils
             .generateEventDataPermutations( tableColumns );
 
@@ -386,13 +393,35 @@ public class DefaultEventAnalyticsService
                 fillDisplayList = false;
             }
 
-            rowDimensions.forEach( dimension -> outputGrid
-                .addValue( displayObjects.get( dimension ).getDisplayProperty( params.getDisplayProperty() ) ) );
+            maybeAddValuesInOutputGrid( rowDimensions, outputGrid, displayObjects, params );
 
             EventAnalyticsUtils.addValues( ids, grid, outputGrid );
         }
 
-        return outputGrid;
+        return getGridWithRows( grid, outputGrid );
+    }
+
+    /**
+     * return valid grid. Valid grid is first output grid with rows or the basic
+     * one
+     */
+    private static Grid getGridWithRows( Grid grid, Grid outputGrid )
+    {
+        return outputGrid.getRows().isEmpty() ? grid : outputGrid;
+    }
+
+    /**
+     * add values in output grid. Display objects are not empty if columns and
+     * rows are not epmty
+     */
+    private static void maybeAddValuesInOutputGrid( List<String> rowDimensions, Grid outputGrid,
+        Map<String, EventAnalyticsDimensionalItem> displayObjects, EventQueryParams params )
+    {
+        if ( !displayObjects.isEmpty() )
+        {
+            rowDimensions.forEach( dimension -> outputGrid
+                .addValue( displayObjects.get( dimension ).getDisplayProperty( params.getDisplayProperty() ) ) );
+        }
     }
 
     /**
@@ -606,26 +635,6 @@ public class DefaultEventAnalyticsService
         return grid;
     }
 
-    /**
-     * Substitutes the meta data of the grid with the identifier scheme meta
-     * data property indicated in the query. This happens only when a custom ID
-     * Schema is set.
-     *
-     * @param params the {@link EventQueryParams}.
-     * @param grid the grid.
-     */
-    private void maybeApplyIdScheme( EventQueryParams params, Grid grid )
-    {
-        if ( !params.isSkipMeta() )
-        {
-            if ( params.hasCustomIdSchemaSet() )
-            {
-                // Apply all schemas set/mapped to the grid.
-                grid.substituteMetaData( schemaIdResponseMapper.getSchemeIdResponseMap( params ) );
-            }
-        }
-    }
-
     // -------------------------------------------------------------------------
     // Query
     // -------------------------------------------------------------------------
@@ -633,11 +642,7 @@ public class DefaultEventAnalyticsService
     @Override
     public Grid getEvents( EventQueryParams params )
     {
-        final Grid grid = getGrid( params );
-
-        maybeApplyIdScheme( params, grid );
-
-        return grid;
+        return getGrid( params );
     }
 
     @Override
@@ -718,6 +723,10 @@ public class DefaultEventAnalyticsService
             .addHeader( new GridHeader( ITEM_EVENT_DATE,
                 LabelMapper.getEventDateLabel( params.getProgramStage(), NAME_EVENT_DATE ), DATE, false, true ) )
             .addHeader( new GridHeader( ITEM_STORED_BY, NAME_STORED_BY, TEXT, false, true ) )
+            .addHeader( new GridHeader(
+                ITEM_CREATED_BY_DISPLAY_NAME, NAME_CREATED_BY_DISPLAY_NAME, TEXT, false, true ) )
+            .addHeader( new GridHeader(
+                ITEM_LAST_UPDATED_BY_DISPLAY_NAME, NAME_LAST_UPDATED_BY_DISPLAY_NAME, TEXT, false, true ) )
             .addHeader( new GridHeader( ITEM_LAST_UPDATED, NAME_LAST_UPDATED, DATE, false, true ) );
 
         if ( params.containsScheduledDatePeriod() )
@@ -731,11 +740,11 @@ public class DefaultEventAnalyticsService
             grid
                 .addHeader( new GridHeader(
                     ITEM_ENROLLMENT_DATE,
-                    LabelMapper.getEnrollmentDateLabel( params.getProgramStage(), NAME_ENROLLMENT_DATE ), DATE, false,
+                    LabelMapper.getEnrollmentDateLabel( params.getProgram(), NAME_ENROLLMENT_DATE ), DATE, false,
                     true ) )
                 .addHeader( new GridHeader(
                     ITEM_INCIDENT_DATE,
-                    LabelMapper.getIncidentDateLabel( params.getProgramStage(), NAME_INCIDENT_DATE ), DATE, false,
+                    LabelMapper.getIncidentDateLabel( params.getProgram(), NAME_INCIDENT_DATE ), DATE, false,
                     true ) )
                 .addHeader( new GridHeader(
                     ITEM_TRACKED_ENTITY_INSTANCE, NAME_TRACKED_ENTITY_INSTANCE, TEXT, false, true ) )
@@ -783,12 +792,12 @@ public class DefaultEventAnalyticsService
 
         if ( params.getPartitions().hasAny() || params.isSkipPartitioning() )
         {
-            if ( params.isPaging() )
-            {
-                count += eventAnalyticsManager.getEventCount( params );
-            }
-
             eventAnalyticsManager.getEvents( params, grid, queryValidator.getMaxLimit() );
+
+            if ( params.isPaging() && params.isTotalPages() )
+            {
+                count = eventAnalyticsManager.getEventCount( params );
+            }
 
             timer.getTime( "Got events " + grid.getHeight() );
         }

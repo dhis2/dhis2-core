@@ -29,7 +29,6 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 
 import static java.util.Collections.emptyList;
 import static org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationUtils.createObjectReport;
-import static org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationUtils.joinObjects;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -50,8 +49,6 @@ import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.system.util.ReflectionUtils;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
 import org.springframework.stereotype.Component;
 
 /**
@@ -76,18 +73,7 @@ public class UniquenessCheck implements ObjectValidationCheck
         {
             List<ErrorReport> errorReports;
 
-            if ( object instanceof User )
-            {
-                User user = (User) object;
-                UserCredentials userCredentials = user.getUserCredentials();
-                errorReports = joinObjects(
-                    checkUniqueness( user, bundle.getPreheat(), bundle.getPreheatIdentifier(), ctx ),
-                    checkUniqueness( userCredentials, bundle.getPreheat(), bundle.getPreheatIdentifier(), ctx ) );
-            }
-            else
-            {
-                errorReports = checkUniqueness( object, bundle.getPreheat(), bundle.getPreheatIdentifier(), ctx );
-            }
+            errorReports = checkUniqueness( object, bundle.getPreheat(), bundle.getPreheatIdentifier(), ctx );
 
             if ( !errorReports.isEmpty() )
             {
@@ -138,11 +124,17 @@ public class UniquenessCheck implements ObjectValidationCheck
                 {
                     if ( !identifier.getIdentifier( object ).equals( objectIdentifier ) )
                     {
-                        errorReports.add( new ErrorReport( HibernateProxyUtils.getRealClass( object ), ErrorCode.E5003,
+                        String identifiersWithName = identifier.getIdentifiersWithName( object );
+
+                        ErrorReport errorReport = new ErrorReport( HibernateProxyUtils.getRealClass( object ),
+                            ErrorCode.E5003,
                             property.getName(),
-                            value, identifier.getIdentifiersWithName( object ), objectIdentifier )
-                                .setMainId( objectIdentifier )
-                                .setErrorProperty( property.getName() ) );
+                            value,
+                            identifiersWithName,
+                            objectIdentifier );
+
+                        errorReports
+                            .add( errorReport.setMainId( objectIdentifier ).setErrorProperty( property.getName() ) );
                     }
                 }
                 else

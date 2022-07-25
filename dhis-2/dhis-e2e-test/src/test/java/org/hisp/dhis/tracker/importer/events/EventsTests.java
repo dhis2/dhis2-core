@@ -27,8 +27,18 @@
  */
 package org.hisp.dhis.tracker.importer.events;
 
-import com.google.gson.JsonObject;
-import io.restassured.http.ContentType;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
+
+import java.io.File;
+import java.util.List;
+import java.util.stream.Stream;
+
+import joptsimple.internal.Strings;
+
 import org.hamcrest.Matchers;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.metadata.ProgramStageActions;
@@ -41,21 +51,16 @@ import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.tracker.TrackerNtiApiTest;
 import org.hisp.dhis.tracker.importer.databuilder.EventDataBuilder;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.io.File;
-import java.util.stream.Stream;
-
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
-import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
+import com.google.gson.JsonObject;
+import io.restassured.http.ContentType;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -63,6 +68,8 @@ import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
 public class EventsTests
     extends TrackerNtiApiTest
 {
+    private static final String OU_ID = Constants.ORG_UNIT_IDS[1];
+
     private static Stream<Arguments> provideEventFilesTestArguments()
     {
         return Stream.of(
@@ -92,13 +99,10 @@ public class EventsTests
             .body( "objectReports[0].errorReports", empty() );
 
         eventBody.getAsJsonArray( "events" ).forEach( event -> {
-                String eventId = event.getAsJsonObject().get( "event" ).getAsString();
-                ApiResponse response = trackerActions.get( "/events/" + eventId );
-                response.validate().statusCode( 200 );
-
-                assertThat( response.getBody(), matchesJSON( event ) );
-            }
-        );
+            trackerActions.getEvent( event.getAsJsonObject().get( "event" ).getAsString() )
+                .validate().statusCode( 200 )
+                .body( "", matchesJSON( event ) );
+        } );
 
     }
 
@@ -148,7 +152,7 @@ public class EventsTests
         JsonObject event = new EventDataBuilder()
             .setEnrollment( enrollmentId )
             .setTei( teiId )
-            .array( Constants.ORG_UNIT_IDS[0], program, programStage ).getAsJsonArray( "events" ).get( 0 ).getAsJsonObject();
+            .array( OU_ID, program, programStage ).getAsJsonArray( "events" ).get( 0 ).getAsJsonObject();
 
         JsonObject payload = new JsonObjectBuilder().addArray( "events", event, event ).build();
 
@@ -183,7 +187,7 @@ public class EventsTests
 
         JsonObject event = new EventDataBuilder()
             .setEnrollment( enrollmentId )
-            .array( Constants.ORG_UNIT_IDS[1], programId, programStageId );
+            .array( OU_ID, programId, programStageId );
 
         response = trackerActions.postAndGetJobReport( event )
             .validateSuccessfulImport();
@@ -194,6 +198,29 @@ public class EventsTests
             .get( "/events/" + eventId + "?fields=*" )
             .validate().statusCode( 200 )
             .body( "enrollment", equalTo( enrollmentId ) );
+    }
+
+    @Test
+    public void shouldImportWithCategoryCombo()
+    {
+        ApiResponse program = programActions.get( "", new QueryParamsBuilder().add( "programType=WITHOUT_REGISTRATION" )
+            .add( "filter=categoryCombo.code:!eq:default" )
+            .add( "filter=name:like:TA" )
+            .add( "fields=id,categoryCombo[categories[categoryOptions]]" ) );
+
+        String programId = program.extractString( "programs.id[0]" );
+        List<String> category = program
+            .extractList( "programs[0].categoryCombo.categories.categoryOptions.id.flatten()" );
+
+        Assumptions.assumeFalse( Strings.isNullOrEmpty( programId ) );
+
+        JsonObject object = new EventDataBuilder()
+            .setProgram( programId )
+            .setAttributeCategoryOptions( category )
+            .setOu( OU_ID ).array();
+
+        trackerActions.postAndGetJobReport( object )
+            .validateSuccessfulImport();
     }
 
     @AfterEach

@@ -32,7 +32,7 @@ import org.hisp.dhis.schema.Schema;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class Conjunction extends Junction
+public final class Conjunction extends Junction
 {
     public Conjunction( Schema schema )
     {

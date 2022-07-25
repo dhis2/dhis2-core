@@ -28,6 +28,7 @@
 package org.hisp.dhis.sms.job;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.lang.String.format;
 
 import java.util.HashSet;
 
@@ -41,34 +42,24 @@ import org.hisp.dhis.scheduling.parameters.SmsJobParameters;
 import org.hisp.dhis.sms.outbound.OutboundSms;
 import org.hisp.dhis.sms.outbound.OutboundSmsService;
 import org.hisp.dhis.sms.outbound.OutboundSmsStatus;
-import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-@Component( "sendSmsJob" )
+@Component
 public class SendSmsJob implements Job
 {
     private final MessageSender smsSender;
 
-    private final Notifier notifier;
-
     private final OutboundSmsService outboundSmsService;
 
-    public SendSmsJob( @Qualifier( "smsMessageSender" ) MessageSender smsSender, Notifier notifier,
-        OutboundSmsService outboundSmsService )
+    public SendSmsJob( @Qualifier( "smsMessageSender" ) MessageSender smsSender, OutboundSmsService outboundSmsService )
     {
         checkNotNull( smsSender );
-        checkNotNull( notifier );
         checkNotNull( outboundSmsService );
 
         this.smsSender = smsSender;
-        this.notifier = notifier;
         this.outboundSmsService = outboundSmsService;
     }
-
-    // -------------------------------------------------------------------------
-    // I18n
-    // -------------------------------------------------------------------------
 
     @Override
     public JobType getJobType()
@@ -77,33 +68,25 @@ public class SendSmsJob implements Job
     }
 
     @Override
-    public void execute( JobConfiguration jobConfiguration, JobProgress progress )
+    public void execute( JobConfiguration config, JobProgress progress )
     {
-        SmsJobParameters parameters = (SmsJobParameters) jobConfiguration.getJobParameters();
+        SmsJobParameters params = (SmsJobParameters) config.getJobParameters();
         OutboundSms sms = new OutboundSms();
-        sms.setSubject( parameters.getSmsSubject() );
-        sms.setMessage( parameters.getMessage() );
-        sms.setRecipients( new HashSet<>( parameters.getRecipientsList() ) );
+        sms.setSubject( params.getSmsSubject() );
+        sms.setMessage( params.getMessage() );
+        sms.setRecipients( new HashSet<>( params.getRecipientsList() ) );
 
-        notifier.notify( jobConfiguration, "Sending SMS" );
+        progress.startingProcess( "Send SMS" );
 
-        OutboundMessageResponse status = smsSender.sendMessage( sms.getSubject(), sms.getMessage(),
-            sms.getRecipients() );
+        progress.startingStage( format( "Sending SMS to %d recipients", sms.getRecipients().size() ) );
+        OutboundMessageResponse status = progress.runStage( (OutboundMessageResponse) null,
+            () -> smsSender.sendMessage( sms.getSubject(), sms.getMessage(), sms.getRecipients() ) );
 
-        if ( status.isOk() )
-        {
-            notifier.notify( jobConfiguration, "Message sending successful" );
+        sms.setStatus( status != null && status.isOk() ? OutboundSmsStatus.SENT : OutboundSmsStatus.FAILED );
+        progress.startingStage( format( "Persisting outcome as %s", sms.getStatus().name() ) );
+        progress.runStage( () -> outboundSmsService.save( sms ) );
 
-            sms.setStatus( OutboundSmsStatus.SENT );
-        }
-        else
-        {
-            notifier.notify( jobConfiguration, "Message sending failed" );
-
-            sms.setStatus( OutboundSmsStatus.FAILED );
-        }
-
-        outboundSmsService.save( sms );
+        progress.completedProcess( null );
     }
 
 }

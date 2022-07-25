@@ -34,8 +34,6 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 
-import javax.ws.rs.core.MediaType;
-
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.webapi.controller.exception.BadRequestException;
 import org.hisp.dhis.webapi.strategy.old.tracker.imports.impl.TrackedEntityInstanceAsyncStrategyImpl;
@@ -47,6 +45,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.MediaType;
 
 /**
  * @author Luca Cambi <luca@dhis2.org>
@@ -75,7 +74,7 @@ class TrackedEntityInstanceStrategyHandlerTest
         when( importOptions.isAsync() ).thenReturn( false );
 
         TrackerEntityInstanceRequest trackerEntityInstanceRequest = TrackerEntityInstanceRequest.builder()
-            .mediaType( MediaType.APPLICATION_JSON ).importOptions( importOptions ).build();
+            .mediaType( MediaType.APPLICATION_JSON.toString() ).importOptions( importOptions ).build();
 
         trackedEntityInstanceStrategyHandler.mergeOrDeleteTrackedEntityInstances( trackerEntityInstanceRequest );
 
@@ -91,7 +90,7 @@ class TrackedEntityInstanceStrategyHandlerTest
         when( importOptions.isAsync() ).thenReturn( true );
 
         TrackerEntityInstanceRequest trackerEntityInstanceRequest = TrackerEntityInstanceRequest.builder()
-            .mediaType( MediaType.APPLICATION_JSON ).importOptions( importOptions ).build();
+            .mediaType( MediaType.APPLICATION_JSON.toString() ).importOptions( importOptions ).build();
 
         trackedEntityInstanceStrategyHandler.mergeOrDeleteTrackedEntityInstances( trackerEntityInstanceRequest );
 

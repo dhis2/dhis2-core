@@ -2,7 +2,7 @@ org.hibernate.cache.internal.StandardQueryCache
 org.hibernate.cache.spi.UpdateTimestampsCache
 org.hisp.dhis.category.CategoryOption
 org.hisp.dhis.dataset.DataInputPeriod
-org.hisp.dhis.user.UserCredentials
+org.hisp.dhis.user.User
 org.hisp.dhis.option.OptionGroup
 org.hisp.dhis.period.PeriodType
 org.hisp.dhis.validation.ValidationRuleGroup
@@ -61,7 +61,7 @@ org.hisp.dhis.common.DataDimensionItem
 org.hisp.dhis.dataset.Section
 org.hisp.dhis.programrule.ProgramRule
 org.hisp.dhis.user.sharing.UserAccess
-org.hisp.dhis.user.UserAuthorityGroup
+org.hisp.dhis.user.UserRole
 org.hisp.dhis.period.RelativePeriods
 org.hisp.dhis.dataapproval.DataApprovalLevel
 org.hisp.dhis.fileresource.ExternalFileResource
@@ -78,7 +78,6 @@ org.hisp.dhis.program.Program
 org.hisp.dhis.program.ProgramSection
 org.hisp.dhis.dataelement.DataElement
 org.hisp.dhis.relationship.RelationshipType
-org.hisp.dhis.user.User
 org.hisp.dhis.category.CategoryOptionGroup
 org.hisp.dhis.dataelement.DataElementOperand
 org.hisp.dhis.color.ColorSet
@@ -96,7 +95,7 @@ org.hisp.dhis.dataapproval.DataApprovalAudit
 org.hisp.dhis.interpretation.Interpretation
 org.hisp.dhis.organisationunit.OrganisationUnitGroupSet.userGroupAccesses
 org.hisp.dhis.option.OptionSet.options
-org.hisp.dhis.user.UserAuthorityGroup.userGroupAccesses
+org.hisp.dhis.user.UserRole.userGroupAccesses
 org.hisp.dhis.mapping.ExternalMapLayer.userGroupAccesses
 org.hisp.dhis.constant.Constant.translations
 org.hisp.dhis.program.ProgramIndicatorGroup.userGroupAccesses
@@ -126,11 +125,11 @@ org.hisp.dhis.eventchart.EventChart.itemOrganisationUnitGroups
 org.hisp.dhis.program.ProgramIndicatorGroup.userAccesses
 org.hisp.dhis.trackedentity.TrackedEntityAttribute.userAccesses
 org.hisp.dhis.organisationunit.OrganisationUnitGroup.translations
-org.hisp.dhis.user.UserAuthorityGroup.translations
+org.hisp.dhis.user.UserRole.translations
 org.hisp.dhis.dataelement.DataElementGroupSet.members
 org.hisp.dhis.organisationunit.OrganisationUnit.translations
 org.hisp.dhis.indicator.Indicator.userAccesses
-org.hisp.dhis.user.UserCredentials.catDimensionConstraints
+org.hisp.dhis.user.User.catDimensionConstraints
 org.hisp.dhis.category.CategoryOptionGroup.members
 org.hisp.dhis.dataelement.DataElementGroupSet.translations
 org.hisp.dhis.organisationunit.OrganisationUnit.groups
@@ -191,7 +190,7 @@ org.hisp.dhis.user.User.groups
 org.hisp.dhis.program.ProgramTrackedEntityAttributeGroup.attributes
 org.hisp.dhis.user.UserGroup.userGroupAccesses
 org.hisp.dhis.dataelement.DataElementGroupSet.userGroupAccesses
-org.hisp.dhis.user.UserCredentials.cogsDimensionConstraints
+org.hisp.dhis.user.User.cogsDimensionConstraints
 org.hisp.dhis.program.Program.userAccesses
 org.hisp.dhis.dataset.Section.dataElements
 org.hisp.dhis.eventchart.EventChart.organisationUnitLevels
@@ -245,7 +244,7 @@ org.hisp.dhis.organisationunit.OrganisationUnitLevel.translations
 org.hisp.dhis.category.CategoryOption.translations
 org.hisp.dhis.validation.ValidationRuleGroup.userGroupAccesses
 org.hisp.dhis.document.Document.userGroupAccesses
-org.hisp.dhis.user.UserAuthorityGroup.authorities
+org.hisp.dhis.user.UserRole.authorities
 org.hisp.dhis.eventreport.EventReport.organisationUnitGroupSetDimensions
 org.hisp.dhis.indicator.Indicator.translations
 org.hisp.dhis.category.CategoryCombo.userAccesses
@@ -265,8 +264,7 @@ org.hisp.dhis.predictor.PredictorGroup.members
 org.hisp.dhis.document.Document.translations
 org.hisp.dhis.option.OptionSet.translations
 org.hisp.dhis.legend.LegendSet.attributeValues
-org.hisp.dhis.user.UserCredentials.userAuthorityGroups
-org.hisp.dhis.program.Program.organisationUnits
+org.hisp.dhis.user.User.userRolesdhis.program.Program.organisationUnits
 org.hisp.dhis.indicator.Indicator.userGroupAccesses
 org.hisp.dhis.category.CategoryOptionGroupSet.translations
 org.hisp.dhis.program.ProgramIndicator.attributeValues
@@ -320,7 +318,7 @@ org.hisp.dhis.validation.ValidationRule.translations
 org.hisp.dhis.indicator.IndicatorGroupSet.translations
 org.hisp.dhis.indicator.IndicatorGroup.userGroupAccesses
 org.hisp.dhis.category.Category.userAccesses
-org.hisp.dhis.user.UserAuthorityGroup.userAccesses
+org.hisp.dhis.user.UserRole.userAccesses
 org.hisp.dhis.program.ProgramIndicatorGroup.members
 org.hisp.dhis.indicator.IndicatorGroup.attributeValues
 org.hisp.dhis.eventreport.EventReport.translations

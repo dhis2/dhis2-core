@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.common;
 
+import static org.hisp.dhis.util.DateUtils.plusOneDay;
+
 import java.util.Date;
 
 import lombok.AllArgsConstructor;
@@ -46,4 +48,10 @@ public class DateRange
     private Date startDate;
 
     private Date endDate;
+
+    public Date getEndDatePlusOneDay()
+    {
+        return plusOneDay( endDate );
+    }
+
 }

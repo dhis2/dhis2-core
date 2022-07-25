@@ -36,9 +36,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.beanutils.BeanUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.schema.Property;
@@ -51,11 +51,10 @@ import org.springframework.stereotype.Component;
  *
  * @author Luciano Fiandesio
  */
+@Slf4j
 @Component
 public class SchemaToDataFetcher
 {
-    protected static final Log log = LogFactory.getLog( SchemaToDataFetcher.class );
-
     private final SessionFactory sessionFactory;
 
     public SchemaToDataFetcher( SessionFactory sessionFactory )

@@ -28,11 +28,14 @@
 package org.hisp.dhis.pushanalysis;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.stream.Collectors.joining;
+import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.io.UncheckedIOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -64,13 +67,10 @@ import org.hisp.dhis.mapgeneration.MapUtils;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.grid.GridUtils;
-import org.hisp.dhis.system.notification.NotificationLevel;
-import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.ChartUtils;
 import org.hisp.dhis.system.velocity.VelocityManager;
 import org.hisp.dhis.user.CurrentUserService;
@@ -86,7 +86,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MimeTypeUtils;
 
-import com.google.common.collect.Sets;
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
 
@@ -94,14 +93,11 @@ import com.google.common.io.ByteSource;
  * @author Stian Sandvold
  */
 @Slf4j
-@Service( "org.hisp.dhis.pushanalysis.PushAnalysisService" )
+@Service
 @Transactional
-public class DefaultPushAnalysisService
-    implements PushAnalysisService
+public class DefaultPushAnalysisService implements PushAnalysisService
 {
     private static final Encoder encoder = new Encoder();
-
-    private final Notifier notifier;
 
     private final SystemSettingManager systemSettingManager;
 
@@ -125,7 +121,7 @@ public class DefaultPushAnalysisService
 
     private final IdentifiableObjectStore<PushAnalysis> pushAnalysisStore;
 
-    public DefaultPushAnalysisService( Notifier notifier, SystemSettingManager systemSettingManager,
+    public DefaultPushAnalysisService( SystemSettingManager systemSettingManager,
         DhisConfigurationProvider dhisConfigurationProvider, ExternalFileResourceService externalFileResourceService,
         FileResourceService fileResourceService, CurrentUserService currentUserService,
         MapGenerationService mapGenerationService, VisualizationGridService visualizationGridService,
@@ -133,7 +129,6 @@ public class DefaultPushAnalysisService
         @Qualifier( "emailMessageSender" ) MessageSender messageSender,
         @Qualifier( "org.hisp.dhis.pushanalysis.PushAnalysisStore" ) IdentifiableObjectStore<PushAnalysis> pushAnalysisStore )
     {
-        checkNotNull( notifier );
         checkNotNull( systemSettingManager );
         checkNotNull( dhisConfigurationProvider );
         checkNotNull( externalFileResourceService );
@@ -146,7 +141,6 @@ public class DefaultPushAnalysisService
         checkNotNull( messageSender );
         checkNotNull( pushAnalysisStore );
 
-        this.notifier = notifier;
         this.systemSettingManager = systemSettingManager;
         this.dhisConfigurationProvider = dhisConfigurationProvider;
         this.externalFileResourceService = externalFileResourceService;
@@ -176,130 +170,106 @@ public class DefaultPushAnalysisService
         return pushAnalysisStore.getAll();
     }
 
-    @Override
-    public void runPushAnalysis( String uid, JobConfiguration jobId )
+    private void runPushAnalysis( String uid, JobProgress progress )
     {
-        // ----------------------------------------------------------------------
-        // Set up
-        // ----------------------------------------------------------------------
-
-        PushAnalysis pushAnalysis = pushAnalysisStore.getByUid( uid );
-        Set<User> receivingUsers = new HashSet<>();
-        notifier.clear( jobId );
-
         // ----------------------------------------------------------------------
         // Pre-check
         // ----------------------------------------------------------------------
-
-        log( jobId, NotificationLevel.INFO, "Starting pre-check on PushAnalysis", false, null );
+        PushAnalysis pushAnalysis = pushAnalysisStore.getByUid( uid );
+        progress.startingStage( "Starting pre-check on PushAnalysis " + uid
+            + ": " + ((pushAnalysis != null) ? pushAnalysis.getName() : "") );
 
         if ( pushAnalysis == null )
         {
-            log( jobId, NotificationLevel.ERROR,
-                "PushAnalysis with uid '" + uid + "' was not found. Terminating PushAnalysis", true, null );
+            progress.failedStage( "PushAnalysis with uid '" + uid + "' was not found. Terminating PushAnalysis" );
             return;
         }
-
-        if ( pushAnalysis.getRecipientUserGroups().size() == 0 )
+        if ( pushAnalysis.getRecipientUserGroups().isEmpty() )
         {
-            log( jobId, NotificationLevel.ERROR,
-                "PushAnalysis with uid '" + uid + "' has no userGroups assigned. Terminating PushAnalysis.", true,
-                null );
+            progress.failedStage(
+                "PushAnalysis with uid '" + uid + "' has no userGroups assigned. Terminating PushAnalysis." );
             return;
         }
 
         if ( pushAnalysis.getDashboard() == null )
         {
-            log( jobId, NotificationLevel.ERROR,
-                "PushAnalysis with uid '" + uid + "' has no dashboard assigned. Terminating PushAnalysis.", true,
-                null );
+            progress.failedStage(
+                "PushAnalysis with uid '" + uid + "' has no dashboard assigned. Terminating PushAnalysis." );
             return;
         }
 
         if ( dhisConfigurationProvider.getServerBaseUrl() == null )
         {
-            log( jobId, NotificationLevel.ERROR,
-                "Missing configuration '" + ConfigurationKey.SERVER_BASE_URL.getKey() + "'. Terminating PushAnalysis.",
-                true, null );
+            progress.failedStage( "Missing configuration '" + ConfigurationKey.SERVER_BASE_URL.getKey()
+                + "'. Terminating PushAnalysis." );
             return;
         }
 
-        log( jobId, NotificationLevel.INFO, "pre-check completed successfully", false, null );
+        progress.completedStage( "pre-check completed successfully" );
 
         // ----------------------------------------------------------------------
         // Compose list of users that can receive PushAnalysis
         // ----------------------------------------------------------------------
 
-        log( jobId, NotificationLevel.INFO, "Composing list of receiving users", false, null );
-
+        progress.startingStage( "Composing list of receiving users" );
+        Set<User> receivingUsers = new HashSet<>();
+        Set<User> skippedUsers = new HashSet<>();
         for ( UserGroup userGroup : pushAnalysis.getRecipientUserGroups() )
         {
             for ( User user : userGroup.getMembers() )
             {
                 if ( !user.hasEmail() )
                 {
-                    log( jobId, NotificationLevel.WARN,
-                        "Skipping user: User '" + user.getUsername() + "' is missing a valid email.", false, null );
-                    continue;
+                    skippedUsers.add( user );
                 }
-
-                receivingUsers.add( user );
+                else
+                {
+                    receivingUsers.add( user );
+                }
             }
         }
-
-        log( jobId, NotificationLevel.INFO, "List composed. " + receivingUsers.size() + " eligible users found.",
-            false, null );
+        progress.completedStage( "List composed. " + receivingUsers.size() + " eligible users found."
+            + "Skipping users without valid email: " + skippedUsers.stream().map( User::getUsername )
+                .collect( joining( "," ) ) );
 
         // ----------------------------------------------------------------------
         // Generating reports
         // ----------------------------------------------------------------------
-
-        log( jobId, NotificationLevel.INFO, "Generating and sending reports", false, null );
-
-        for ( User user : receivingUsers )
-        {
-            try
-            {
+        String name = pushAnalysis.getName();
+        progress.startingStage( "Generating and sending reports for PushAnalysis " + name,
+            receivingUsers.size(), SKIP_ITEM_OUTLIER );
+        progress.runStage( receivingUsers,
+            user -> "Generating and sending PushAnalysis " + name + " for user '" + user.getUsername() + "'.",
+            user -> {
                 String title = pushAnalysis.getTitle();
-                String html = generateHtmlReport( pushAnalysis, user, jobId );
-
+                String html = "";
+                try
+                {
+                    html = generateHtmlReport( pushAnalysis, user );
+                }
+                catch ( IOException ex )
+                {
+                    throw new UncheckedIOException( ex );
+                }
                 // TODO: Better handling of messageStatus; Might require
                 // refactoring of EmailMessageSender
                 @SuppressWarnings( "unused" )
                 Future<OutboundMessageResponse> status = messageSender
-                    .sendMessageAsync( title, html, "", null, Sets.newHashSet( user ), true );
-
-            }
-            catch ( Exception e )
-            {
-                log( jobId, NotificationLevel.ERROR,
-                    "Could not create or send report for PushAnalysis '" + pushAnalysis.getName() + "' and User '" +
-                        user.getUsername() + "': " + e.getMessage(),
-                    false, e );
-            }
-        }
+                    .sendMessageAsync( title, html, "", null, Set.of( user ), true );
+            } );
     }
 
     @Override
-    public void runPushAnalysis( List<String> uids, JobConfiguration jobId )
+    public void runPushAnalysis( List<String> uids, JobProgress progress )
     {
-        uids.forEach( uid -> runPushAnalysis( uid, jobId ) );
+        uids.forEach( uid -> runPushAnalysis( uid, progress ) );
     }
 
     @Override
-    public String generateHtmlReport( PushAnalysis pushAnalysis, User user, JobConfiguration jobId )
+    public String generateHtmlReport( PushAnalysis pushAnalysis, User user )
         throws IOException
     {
-        if ( jobId == null )
-        {
-            jobId = new JobConfiguration( "inMemoryGenerateHtmlReport", JobType.PUSH_ANALYSIS,
-                currentUserService.getCurrentUser().getUid(), true );
-            notifier.clear( jobId );
-        }
-
         user = user == null ? currentUserService.getCurrentUser() : user;
-        log( jobId, NotificationLevel.INFO, "Generating PushAnalysis for user '" + user.getUsername() + "'.", false,
-            null );
 
         // ----------------------------------------------------------------------
         // Pre-process the dashboardItem and store them as Strings
@@ -314,7 +284,7 @@ public class DefaultPushAnalysisService
             // In normal conditions all DashboardItem has a type.
             if ( item.getType() != null )
             {
-                itemHtml.put( item.getUid(), getItemHtml( item, user, jobId ) );
+                itemHtml.put( item.getUid(), getItemHtml( item, user ) );
                 itemLink.put( item.getUid(), getItemLink( item ) );
             }
         }
@@ -344,11 +314,7 @@ public class DefaultPushAnalysisService
 
         new VelocityManager().getEngine().getTemplate( "push-analysis-main-html.vm" ).merge( context, stringWriter );
 
-        log( jobId, NotificationLevel.INFO, "Finished generating PushAnalysis for user '" + user.getUsername() + "'.",
-            false, null );
-
         return stringWriter.toString().replaceAll( "\\R", "" );
-
     }
 
     // --------------------------------------------------------------------------
@@ -361,9 +327,8 @@ public class DefaultPushAnalysisService
      *
      * @param item to generate resource
      * @param user to generate for
-     * @param jobId for logging
      */
-    private String getItemHtml( DashboardItem item, User user, JobConfiguration jobId )
+    private String getItemHtml( DashboardItem item, User user )
         throws IOException
     {
         switch ( item.getType() )
@@ -372,15 +337,10 @@ public class DefaultPushAnalysisService
             return generateMapHtml( item.getMap(), user );
         case VISUALIZATION:
             return generateVisualizationHtml( item.getVisualization(), user );
-        case EVENT_CHART:
-            // TODO: Add support for EventCharts
-            return "";
-        case EVENT_REPORT:
-            // TODO: Add support for EventReports
-            return "";
         default:
-            log( jobId, NotificationLevel.WARN,
-                "Dashboard item of type '" + item.getType() + "' not supported. Skipping.", false, null );
+            // TODO: Add support for EventCharts
+            // TODO: Add support for EventReports
+            log.warn( "Dashboard item of type '" + item.getType() + "' not supported. Skipping." );
             return "";
         }
     }
@@ -503,38 +463,6 @@ public class DefaultPushAnalysisService
 
         return dhisConfigurationProvider.getServerBaseUrl() + "/api/externalFileResources/" + accessToken;
 
-    }
-
-    /**
-     * Helper method for logging both for custom logger and for notifier.
-     *
-     * @param jobId associated with the task running (for notifier)
-     * @param notificationLevel The level this message should be logged
-     * @param message message to be logged
-     * @param completed a flag indicating the task is completed (notifier)
-     * @param exception exception if one exists (logger)
-     */
-    private void log( JobConfiguration jobId, NotificationLevel notificationLevel, String message, boolean completed,
-        Throwable exception )
-    {
-        notifier.notify( jobId, notificationLevel, message, completed );
-
-        switch ( notificationLevel )
-        {
-        case DEBUG:
-            log.debug( message );
-        case INFO:
-            log.info( message );
-            break;
-        case WARN:
-            log.warn( message, exception );
-            break;
-        case ERROR:
-            log.error( message, exception );
-            break;
-        default:
-            break;
-        }
     }
 
     /**

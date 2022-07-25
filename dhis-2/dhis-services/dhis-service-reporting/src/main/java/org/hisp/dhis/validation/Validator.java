@@ -27,18 +27,21 @@
  */
 package org.hisp.dhis.validation;
 
+import static java.lang.Math.max;
+import static java.lang.Math.min;
+import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
-import org.hisp.dhis.analytics.AnalyticsService;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.springframework.context.ApplicationContext;
+import org.hisp.dhis.scheduling.JobProgress;
 
 import com.google.common.collect.Lists;
 
@@ -60,11 +63,9 @@ public class Validator
      *
      * @return a collection of any validations that were found
      */
-    public static List<ValidationResult> validate( ValidationRunContext context,
-        ApplicationContext applicationContext, AnalyticsService analyticsService )
+    public static List<ValidationResult> validate( ValidationRunContext context, DataValidationRunner runner,
+        JobProgress progress )
     {
-        CategoryService categoryService = applicationContext.getBean( CategoryService.class );
-
         int threadPoolSize = getThreadPoolSize( context );
 
         if ( threadPoolSize == 0 || context.getPeriodTypeXs().isEmpty() )
@@ -72,33 +73,29 @@ public class Validator
             return new ArrayList<>( context.getValidationResults() );
         }
 
-        ExecutorService executor = Executors.newFixedThreadPool( threadPoolSize );
+        int chunkSize = ValidationRunContext.ORG_UNITS_PER_TASK;
+        List<ValidationChunk> orgUnitLists = splitIntoChunks( context, chunkSize );
 
-        List<List<OrganisationUnit>> orgUnitLists = Lists.partition( context.getOrgUnits(),
-            ValidationRunContext.ORG_UNITS_PER_TASK );
+        progress.startingStage( "Evaluating validation rules in chunks of " + chunkSize, orgUnitLists.size(),
+            SKIP_ITEM_OUTLIER );
+        progress.runStageInParallel( threadPoolSize, orgUnitLists, ValidationChunk::toString,
+            chunk -> runner.run( chunk.getOrgUnits(), context ) );
 
-        for ( List<OrganisationUnit> orgUnits : orgUnitLists )
-        {
-            ValidationTask task = (ValidationTask) applicationContext.getBean( DataValidationTask.NAME );
-            task.init( orgUnits, context, analyticsService );
-
-            executor.execute( task );
-        }
-
-        executor.shutdown();
-
-        try
-        {
-            executor.awaitTermination( 6, TimeUnit.HOURS );
-        }
-        catch ( InterruptedException e )
-        {
-            executor.shutdownNow();
-        }
-
-        reloadAttributeOptionCombos( context.getValidationResults(), categoryService );
+        progress.startingStage( "Reloading attribute option combos" );
+        progress.runStage(
+            () -> reloadAttributeOptionCombos( context.getValidationResults(), runner.getCategoryService() ) );
 
         return new ArrayList<>( context.getValidationResults() );
+    }
+
+    private static List<ValidationChunk> splitIntoChunks( ValidationRunContext context, int chunkSize )
+    {
+        List<ValidationChunk> chunks = new ArrayList<>();
+        for ( List<OrganisationUnit> partition : Lists.partition( context.getOrgUnits(), chunkSize ) )
+        {
+            chunks.add( new ValidationChunk( chunks.size(), chunkSize, partition ) );
+        }
+        return chunks;
     }
 
     /**
@@ -109,36 +106,37 @@ public class Validator
      */
     private static int getThreadPoolSize( ValidationRunContext context )
     {
-        int threadPoolSize = SystemUtils.getCpuCores();
-
-        if ( threadPoolSize > 2 )
-        {
-            threadPoolSize--;
-        }
-
-        int numberOfTasks = context.getNumberOfTasks();
-
-        if ( threadPoolSize > numberOfTasks )
-        {
-            threadPoolSize = numberOfTasks;
-        }
-
-        return threadPoolSize;
+        return min( max( 2, SystemUtils.getCpuCores() - 1 ), context.getNumberOfTasks() );
     }
 
     /**
      * Reload attribute category option combos into this Hibernate context.
-     *
-     * @param results
-     * @param dataElementCategoryService
      */
     private static void reloadAttributeOptionCombos( Collection<ValidationResult> results,
-        CategoryService dataElementCategoryService )
+        CategoryService categoryService )
     {
         for ( ValidationResult result : results )
         {
-            result.setAttributeOptionCombo( dataElementCategoryService
+            result.setAttributeOptionCombo( categoryService
                 .getCategoryOptionCombo( result.getAttributeOptionCombo().getId() ) );
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    private static class ValidationChunk
+    {
+        private final int chunkNo;
+
+        private final int chunkSize;
+
+        private final List<OrganisationUnit> orgUnits;
+
+        @Override
+        public String toString()
+        {
+            int offset = chunkNo * chunkSize;
+            return offset + "-" + (offset + orgUnits.size() - 1);
         }
     }
 }

@@ -31,6 +31,7 @@
     <property name="path" column="path" access="property" unique="true" index="in_organisationunit_path" />
 
     <property name="hierarchyLevel" column="hierarchylevel" access="property" index="in_organisationunit_hierarchylevel" />
+    
     <property name="level" column="hierarchylevel" insert="false" update="false" />
 
     <property name="description" type="text" />
@@ -41,7 +42,7 @@
 
     <property name="comment" type="text" />
 
-    <property name="geometry" />
+    <property name="geometry" length="131072" />
 
     <property name="url" />
 

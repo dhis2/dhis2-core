@@ -27,13 +27,17 @@
  */
 package org.hisp.dhis.dto;
 
+import static org.hamcrest.core.IsNot.not;
+import static org.hamcrest.text.IsEmptyString.emptyOrNullString;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
+import org.hisp.dhis.jsontree.JsonResponse;
 
 import com.google.gson.JsonObject;
 
@@ -90,6 +94,14 @@ public class ApiResponse
         return raw.jsonPath().getString( path );
     }
 
+    public String extractStringFailIfEmpty( String path )
+    {
+        this.validate()
+            .body( path, not( emptyOrNullString() ) );
+
+        return raw.jsonPath().getString( path );
+    }
+
     public <T> T extractObject( String path, Class<T> type )
     {
         return raw.jsonPath()
@@ -135,6 +147,11 @@ public class ApiResponse
     public JsonObjectBuilder getBodyAsJsonBuilder()
     {
         return new JsonObjectBuilder( getBody() );
+    }
+
+    public JsonResponse getBodyAsJson()
+    {
+        return new JsonResponse( raw.asString() );
     }
 
     public boolean isEntityCreated()

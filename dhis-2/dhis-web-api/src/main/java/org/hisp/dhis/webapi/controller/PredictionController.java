@@ -35,17 +35,23 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
+import lombok.AllArgsConstructor;
+
 import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.Status;
+import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.predictor.PredictionService;
 import org.hisp.dhis.predictor.PredictionSummary;
 import org.hisp.dhis.predictor.PredictionTask;
+import org.hisp.dhis.scheduling.ControlledJobProgress;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.scheduling.NotifierJobProgress;
+import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -61,18 +67,20 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 @RequestMapping( value = PredictionController.RESOURCE_PATH )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+@AllArgsConstructor
 public class PredictionController
 {
     public static final String RESOURCE_PATH = "/predictions";
 
-    @Autowired
-    private CurrentUserService currentUserService;
+    private final CurrentUserService currentUserService;
 
-    @Autowired
-    private AsyncTaskExecutor taskExecutor;
+    private final AsyncTaskExecutor taskExecutor;
 
-    @Autowired
-    private PredictionService predictionService;
+    private final PredictionService predictionService;
+
+    private final Notifier notifier;
+
+    private final MessageService messageService;
 
     @RequestMapping( method = { RequestMethod.POST, RequestMethod.PUT } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PREDICTOR_RUN')" )
@@ -85,19 +93,21 @@ public class PredictionController
         @RequestParam( defaultValue = "false", required = false ) boolean async,
         HttpServletRequest request )
     {
+        JobConfiguration jobId = new JobConfiguration( "inMemoryPrediction", PREDICTOR,
+            currentUserService.getCurrentUser().getUid(), true );
+
+        JobProgress progress = new ControlledJobProgress( messageService, jobId,
+            new NotifierJobProgress( notifier, jobId ), true );
         if ( async )
         {
-            JobConfiguration jobId = new JobConfiguration( "inMemoryPrediction", PREDICTOR,
-                currentUserService.getCurrentUser().getUid(), true );
-
             taskExecutor.executeTask(
-                new PredictionTask( startDate, endDate, predictors, predictorGroups, predictionService, jobId ) );
+                new PredictionTask( startDate, endDate, predictors, predictorGroups, predictionService, progress ) );
 
             return jobConfigurationReport( jobId )
                 .setLocation( "/system/tasks/" + PREDICTOR );
         }
         PredictionSummary predictionSummary = predictionService.predictTask( startDate, endDate, predictors,
-            predictorGroups, null );
+            predictorGroups, progress );
 
         return new WebMessage( Status.OK, HttpStatus.OK )
             .setResponse( predictionSummary )

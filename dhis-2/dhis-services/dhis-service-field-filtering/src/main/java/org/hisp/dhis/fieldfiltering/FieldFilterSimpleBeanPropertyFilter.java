@@ -34,7 +34,10 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.scheduling.JobParameters;
+import org.hisp.dhis.system.util.AnnotationUtils;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonStreamContext;
 import com.fasterxml.jackson.databind.SerializerProvider;
@@ -71,29 +74,28 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
 
     protected boolean include( final PropertyWriter writer, final JsonGenerator jgen )
     {
-        PathValue pathValue = getPath( writer, jgen );
-        String path = pathValue.getPath();
+        PathContext ctx = getPath( writer, jgen );
 
-        if ( pathValue.getValue() == null )
+        if ( ctx.getCurrentValue() == null )
         {
             return false;
         }
 
         if ( skipSharing &&
-            StringUtils.equalsAny( path, "user", "publicAccess", "externalAccess", "userGroupAccesses",
+            StringUtils.equalsAny( ctx.getFullPath(), "user", "publicAccess", "externalAccess", "userGroupAccesses",
                 "userAccesses", "sharing" ) )
         {
             return false;
         }
 
-        if ( pathValue.isInsideMap() )
+        if ( ctx.isAlwaysExpand() )
         {
             return true;
         }
 
         for ( FieldPath fieldPath : fieldPaths )
         {
-            if ( fieldPath.toFullPath().equals( path ) )
+            if ( fieldPath.toFullPath().equals( ctx.getFullPath() ) )
             {
                 return true;
             }
@@ -102,26 +104,26 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
         return false;
     }
 
-    private PathValue getPath( PropertyWriter writer, JsonGenerator jgen )
+    private PathContext getPath( PropertyWriter writer, JsonGenerator jgen )
     {
         StringBuilder nestedPath = new StringBuilder();
         JsonStreamContext sc = jgen.getOutputContext();
-        Object value = null;
-        boolean isInsideMap = false;
+        Object currentValue = null;
+        boolean alwaysExpand = false;
 
         if ( sc != null )
         {
             nestedPath.append( writer.getName() );
-            value = sc.getCurrentValue();
+            currentValue = sc.getCurrentValue();
             sc = sc.getParent();
         }
 
         while ( sc != null )
         {
-            if ( sc.getCurrentValue() != null && Map.class.isAssignableFrom( sc.getCurrentValue().getClass() ) )
+            if ( isAlwaysExpandType( sc.getCurrentValue() ) )
             {
                 sc = sc.getParent();
-                isInsideMap = true;
+                alwaysExpand = true;
                 continue;
             }
 
@@ -134,12 +136,12 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
             sc = sc.getParent();
         }
 
-        if ( value != null && Map.class.isAssignableFrom( value.getClass() ) )
+        if ( isAlwaysExpandType( currentValue ) )
         {
-            isInsideMap = true;
+            alwaysExpand = true;
         }
 
-        return new PathValue( nestedPath.toString(), value, isInsideMap );
+        return new PathContext( nestedPath.toString(), currentValue, alwaysExpand );
     }
 
     @Override
@@ -155,6 +157,19 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
             writer.serializeAsOmittedField( pojo, jgen, provider );
         }
     }
+
+    private boolean isAlwaysExpandType( Object object )
+    {
+        if ( object == null )
+        {
+            return false;
+        }
+
+        Class<?> klass = object.getClass();
+
+        return Map.class.isAssignableFrom( klass ) || JobParameters.class.isAssignableFrom( klass )
+            || AnnotationUtils.isAnnotationPresent( klass, JsonTypeInfo.class );
+    }
 }
 
 /**
@@ -162,11 +177,14 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
  */
 @Data
 @RequiredArgsConstructor
-class PathValue
+class PathContext
 {
-    private final String path;
+    private final String fullPath;
 
-    private final Object value;
+    private final Object currentValue;
 
-    private final boolean insideMap;
+    /**
+     * true if special type we do not support field filtering on.
+     */
+    private final boolean alwaysExpand;
 }

@@ -55,6 +55,7 @@ import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.dataset.LockStatus;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.message.MessageSender;
@@ -175,6 +176,8 @@ class DataValueListenerTest extends DhisConvenienceTest
 
     private DataSet dataSet;
 
+    private DataSet dataSetB;
+
     private Period period;
 
     private User user;
@@ -204,8 +207,6 @@ class DataValueListenerTest extends DhisConvenienceTest
     private IncomingSms updatedIncomingSms;
 
     private OutboundMessageResponse response;
-
-    private boolean locked = false;
 
     private boolean smsConfigured = true;
 
@@ -267,7 +268,8 @@ class DataValueListenerTest extends DhisConvenienceTest
         when( smsCommandService.getSMSCommand( anyString(), any() ) ).thenReturn( keyValueCommand );
 
         // Mock for dataSetService
-        when( dataSetService.isLocked( any(), any( DataSet.class ), any(), any(), any(), any() ) ).thenReturn( locked );
+        when( dataSetService.getLockStatus( any(), any( DataSet.class ), any(), any(), any(), any() ) )
+            .thenReturn( LockStatus.OPEN );
 
         // Mock for incomingSmsService
         doAnswer( invocation -> {
@@ -322,7 +324,8 @@ class DataValueListenerTest extends DhisConvenienceTest
         when( smsCommandService.getSMSCommand( anyString(), any() ) ).thenReturn( keyValueCommand );
 
         incomingSms.setUser( user );
-        when( dataSetService.isLocked( any(), any( DataSet.class ), any(), any(), any(), any() ) ).thenReturn( true );
+        when( dataSetService.getLockStatus( any(), any( DataSet.class ), any(), any(), any(), any() ) )
+            .thenReturn( LockStatus.OPEN );
         subject.receive( incomingSms );
 
         verify( smsCommandService, times( 1 ) ).getSMSCommand( anyString(), any() );
@@ -350,7 +353,7 @@ class DataValueListenerTest extends DhisConvenienceTest
 
         assertEquals( message, SMSCommand.NO_USER_MESSAGE );
         assertNull( updatedIncomingSms );
-        verify( dataSetService, never() ).isLocked( any(), any( DataSet.class ), any(), any(), any(), any() );
+        verify( dataSetService, never() ).getLockStatus( any(), any( DataSet.class ), any(), any(), any(), any() );
     }
 
     @Test
@@ -374,7 +377,7 @@ class DataValueListenerTest extends DhisConvenienceTest
 
         assertEquals( message, SMSCommand.MORE_THAN_ONE_ORGUNIT_MESSAGE );
         assertNull( updatedIncomingSms );
-        verify( dataSetService, never() ).isLocked( any(), any( DataSet.class ), any(), any(), any(), any() );
+        verify( dataSetService, never() ).getLockStatus( any(), any( DataSet.class ), any(), any(), any(), any() );
 
         keyValueCommand.setMoreThanOneOrgUnitMessage( MORE_THAN_ONE_OU );
 
@@ -419,7 +422,7 @@ class DataValueListenerTest extends DhisConvenienceTest
 
         assertEquals( message, SMSCommand.WRONG_FORMAT_MESSAGE );
         assertNull( updatedIncomingSms );
-        verify( dataSetService, never() ).isLocked( any(), any( DataSet.class ), any(), any(), any(), any() );
+        verify( dataSetService, never() ).getLockStatus( any(), any( DataSet.class ), any(), any(), any(), any() );
 
         keyValueCommand.setWrongFormatMessage( WRONG_FORMAT );
         subject.receive( incomingSmsForCustomSeparator );
@@ -453,6 +456,29 @@ class DataValueListenerTest extends DhisConvenienceTest
         subject.receive( incomingSmsForCompulsoryCode );
 
         assertEquals( keyValueCommand.getSuccessMessage(), message );
+    }
+
+    @Test
+    void testIfOrgUnitNotInDataSet()
+    {
+        when( userService.getUser( anyString() ) ).thenReturn( user );
+        when( smsCommandService.getSMSCommand( anyString(), any() ) ).thenReturn( keyValueCommand );
+        doAnswer( invocation -> {
+            updatedIncomingSms = (IncomingSms) invocation.getArguments()[0];
+            return updatedIncomingSms;
+        } ).when( incomingSmsService ).update( any() );
+
+        keyValueCommand.setSeparator( null );
+        keyValueCommand.setCodeValueSeparator( null );
+        keyValueCommand.setDataset( dataSetB );
+
+        subject.receive( incomingSms );
+
+        assertNotNull( updatedIncomingSms );
+        assertEquals( SmsMessageStatus.FAILED, updatedIncomingSms.getStatus() );
+        assertFalse( updatedIncomingSms.isParsed() );
+        verify( dataSetService, times( 0 ) ).getLockStatus( any( User.class ), any( DataSet.class ),
+            any( Period.class ), any( OrganisationUnit.class ), any( CategoryOptionCombo.class ), any( Date.class ) );
     }
 
     @Test
@@ -498,25 +524,28 @@ class DataValueListenerTest extends DhisConvenienceTest
         organisationUnitA = createOrganisationUnit( 'O' );
         organisationUnitB = createOrganisationUnit( 'P' );
         dataSet = createDataSet( 'D' );
+        dataSetB = createDataSet( 'B' );
+        dataSet.addOrganisationUnit( organisationUnitA );
+        dataSet.addOrganisationUnit( organisationUnitB );
         period = createPeriod( new Date(), new Date() );
 
-        user = createUser( 'U' );
+        user = makeUser( "U" );
         user.setPhoneNumber( ORIGINATOR );
         user.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
 
-        userB = createUser( 'B' );
+        userB = makeUser( "B" );
         userB.setPhoneNumber( ORIGINATOR );
         userB.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
 
-        userC = createUser( 'C' );
+        userC = makeUser( "C" );
         userC.setPhoneNumber( ORIGINATOR );
         userC.setOrganisationUnits( Sets.newHashSet( organisationUnitA, organisationUnitB ) );
 
-        userWithNoOu = createUser( 'V' );
+        userWithNoOu = makeUser( "V" );
         userWithNoOu.setPhoneNumber( null );
         userWithNoOu.setOrganisationUnits( null );
 
-        userwithMultipleOu = createUser( 'W' );
+        userwithMultipleOu = makeUser( "W" );
         userwithMultipleOu.setPhoneNumber( ORIGINATOR );
         userwithMultipleOu.setOrganisationUnits( Sets.newHashSet( organisationUnitA, organisationUnitB ) );
 
@@ -537,10 +566,12 @@ class DataValueListenerTest extends DhisConvenienceTest
         smsCode = new SMSCode();
         smsCode.setCode( "de" );
         smsCode.setDataElement( dataElement );
+        smsCode.setOptionId( defaultCategoryOptionCombo );
 
         smsCodeForcompulsory = new SMSCode();
         smsCodeForcompulsory.setCode( "deb" );
         smsCodeForcompulsory.setDataElement( dataElementB );
+        smsCodeForcompulsory.setOptionId( categoryOptionCombo );
         smsCodeForcompulsory.setCompulsory( true );
 
         smsSpecialCharacter = new SMSSpecialCharacter();

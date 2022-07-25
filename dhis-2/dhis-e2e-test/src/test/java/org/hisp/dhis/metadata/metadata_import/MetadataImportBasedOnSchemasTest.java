@@ -69,7 +69,7 @@ public class MetadataImportBasedOnSchemasTest
         loginActions.loginAsSuperUser();
     }
 
-    @ParameterizedTest
+    @ParameterizedTest( name = "GET /{1}" )
     @MethodSource( "getSchemaEndpoints" )
     // todo add better schema validation when spec is ready
     public void getMatchesSchema( String endpoint, String schema )
@@ -93,12 +93,13 @@ public class MetadataImportBasedOnSchemasTest
             .validate().statusCode( 200 );
     }
 
-    @ParameterizedTest
+    @ParameterizedTest( name = "POST to /{1}" )
     @MethodSource( "getSchemaEndpoints" )
     public void postBasedOnSchema( String endpoint, String schema )
     {
         RestApiActions apiActions = new RestApiActions( endpoint );
 
+        // Contains conditionally required properties not marked as required
         List<String> blacklistedEndpoints = Arrays.asList( "jobConfigurations",
             "relationshipTypes",
             "messageConversations",
@@ -107,9 +108,7 @@ public class MetadataImportBasedOnSchemasTest
             "programRuleActions",
             "programRuleVariables",
             "eventCharts",
-            "programStages" ); // blacklisted because contains
-                                    // conditionally required properties, which
-                                    // are not marked as required
+            "programStages" );
 
         List<SchemaProperty> schemaProperties = schemasActions.getRequiredProperties( schema );
 

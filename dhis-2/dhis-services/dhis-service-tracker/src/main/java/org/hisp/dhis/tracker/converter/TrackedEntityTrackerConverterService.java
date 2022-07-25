@@ -36,7 +36,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.util.DateUtils;
@@ -77,7 +76,7 @@ public class TrackedEntityTrackerConverterService
     public TrackedEntityInstance from( TrackerPreheat preheat,
         TrackedEntity trackedEntity )
     {
-        TrackedEntityInstance tei = preheat.getTrackedEntity( TrackerIdScheme.UID,
+        TrackedEntityInstance tei = preheat.getTrackedEntity(
             trackedEntity.getTrackedEntity() );
         return from( preheat, trackedEntity, tei );
     }
@@ -94,10 +93,8 @@ public class TrackedEntityTrackerConverterService
 
     private TrackedEntityInstance from( TrackerPreheat preheat, TrackedEntity te, TrackedEntityInstance tei )
     {
-        OrganisationUnit organisationUnit = preheat.get( OrganisationUnit.class,
-            te.getOrgUnit() );
-        TrackedEntityType trackedEntityType = preheat.get( TrackedEntityType.class,
-            te.getTrackedEntityType() );
+        OrganisationUnit organisationUnit = preheat.getOrganisationUnit( te.getOrgUnit() );
+        TrackedEntityType trackedEntityType = preheat.getTrackedEntityType( te.getTrackedEntityType() );
 
         Date now = new Date();
 

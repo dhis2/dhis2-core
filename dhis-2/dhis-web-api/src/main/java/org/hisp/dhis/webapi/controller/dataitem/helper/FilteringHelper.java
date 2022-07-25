@@ -33,7 +33,6 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.ArrayUtils.isNotEmpty;
 import static org.apache.commons.lang3.EnumUtils.getEnumMap;
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.contains;
 import static org.apache.commons.lang3.StringUtils.deleteWhitespace;
@@ -42,7 +41,6 @@ import static org.apache.commons.lang3.StringUtils.split;
 import static org.apache.commons.lang3.StringUtils.substringBetween;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.apache.commons.lang3.StringUtils.wrap;
-import static org.hisp.dhis.common.UserContext.getUserSetting;
 import static org.hisp.dhis.common.ValueType.fromString;
 import static org.hisp.dhis.common.ValueType.getAggregatables;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_NAME;
@@ -83,12 +81,14 @@ import java.util.Locale;
 import java.util.Set;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataitem.query.QueryableDataItem;
 import org.hisp.dhis.feedback.ErrorMessage;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.dataitem.Filter;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
@@ -285,8 +285,8 @@ public class FilteringHelper
     public static void setFilteringParams( final Set<String> filters, final WebOptions options,
         final MapSqlParameterSource paramsMap, final User currentUser )
     {
-        final Locale currentLocale = defaultIfNull( getUserSetting( DB_LOCALE ),
-            getUserSetting( UI_LOCALE ) );
+        final Locale currentLocale = ObjectUtils.defaultIfNull( CurrentUserUtil.getUserSetting( DB_LOCALE ),
+            CurrentUserUtil.getUserSetting( UI_LOCALE ) );
 
         if ( currentLocale != null && isNotBlank( currentLocale.getLanguage() ) )
         {

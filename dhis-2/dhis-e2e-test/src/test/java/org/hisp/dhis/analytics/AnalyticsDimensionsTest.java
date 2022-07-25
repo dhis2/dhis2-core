@@ -25,10 +25,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.analytics;
 
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
+
 import org.hamcrest.CoreMatchers;
+import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
@@ -41,21 +49,19 @@ import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.Program;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.matchers.CustomMatchers;
+import org.hisp.dhis.helpers.matchers.Sorted;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.function.Consumer;
-
-import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
+@Tag( "category:analytics" )
 public class AnalyticsDimensionsTest
     extends ApiTest
 {
@@ -80,20 +86,36 @@ public class AnalyticsDimensionsTest
         analyticsEventActions = new AnalyticsEventActions();
     }
 
-    @ValueSource( strings = { "name:desc", "code:desc", "uid:asc", "lastUpdated:desc", "created:asc" } )
+    Stream<Arguments> shouldOrder()
+    {
+        return Stream.of(
+            Arguments.of( "name", "desc" ),
+            Arguments.of( "code", "desc" ),
+            Arguments.of( "uid", "asc" ),
+            Arguments.of( "id", "asc" ),
+            Arguments.of( "lastUpdated", "desc" ),
+            Arguments.of( "created", "asc" ),
+            Arguments.of( "displayName", "desc" ),
+            Arguments.of( "displayName", "asc" ),
+            Arguments.of( "dimensionType", "desc" ) );
+    }
+
+    @MethodSource
     @ParameterizedTest
-    public void shouldOrder( String order )
+    public void shouldOrder( String property, String direction )
     {
         QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder()
-            .add( "order", order );
+            .add( "order", String.format( "%s:%s", property, direction ) );
 
         analyticsEnrollmentsActions.query().getDimensions( trackerProgram.getUid(), queryParamsBuilder )
             .validate()
-            .body( "dimensions", hasSize( greaterThanOrEqualTo( 1 ) ) );
+            .body( "dimensions", hasSize( greaterThanOrEqualTo( 1 ) ) )
+            .body( "dimensions." + property, Sorted.by( direction ) );
 
         analyticsEventActions.query().getDimensions( trackerProgram.getProgramStages().get( 0 ), queryParamsBuilder )
             .validate()
-            .body( "dimensions", hasSize( greaterThanOrEqualTo( 1 ) ) );
+            .body( "dimensions", hasSize( greaterThanOrEqualTo( 1 ) ) )
+            .body( "dimensions." + property, Sorted.by( direction ) );
     }
 
     @Test
@@ -102,19 +124,6 @@ public class AnalyticsDimensionsTest
         analyticsEnrollmentsActions.query().getDimensionsByDimensionType( trackerProgram.getUid(), "DATA_ELEMENT" )
             .validate()
             .body( "dimensions.id", everyItem( CustomMatchers.startsWithOneOf( trackerProgram.getProgramStages() ) ) );
-    }
-
-    @ValueSource( strings = {
-        "DATA_ELEMENT", "PROGRAM_INDICATOR", "PROGRAM_ATTRIBUTE"
-    } )
-    @ParameterizedTest
-    public void shouldFilterByDimensionType( String dimensionType )
-    {
-        analyticsEnrollmentsActions.query().getDimensionsByDimensionType( trackerProgram.getUid(), dimensionType )
-            .validate()
-            .body( "dimensions", notNullValue() )
-            .body( "dimensions", hasSize( greaterThanOrEqualTo( 1 ) ) )
-            .body( "dimensions.dimensionType", everyItem( equalTo( dimensionType ) ) );
     }
 
     @Test
@@ -126,7 +135,8 @@ public class AnalyticsDimensionsTest
             .validate()
             .body( "dimensions.uid", not( hasItem( equalTo( teaNotAssignedToProgram ) ) ) );
 
-        analyticsEnrollmentsActions.aggregate().getDimensionsByDimensionType( trackerProgram.getUid(), "PROGRAM_ATTRIBUTE" )
+        analyticsEnrollmentsActions.aggregate()
+            .getDimensionsByDimensionType( trackerProgram.getUid(), "PROGRAM_ATTRIBUTE" )
             .validate()
             .body( "dimensions.uid", not( hasItem( equalTo( teaNotAssignedToProgram ) ) ) );
 
@@ -145,7 +155,8 @@ public class AnalyticsDimensionsTest
             .validate()
             .body( "dimensions.uid", not( CoreMatchers.hasItem( confidentialAttribute ) ) );
 
-        analyticsEnrollmentsActions.aggregate().getDimensionsByDimensionType( trackerProgram.getUid(), "PROGRAM_ATTRIBUTE" )
+        analyticsEnrollmentsActions.aggregate()
+            .getDimensionsByDimensionType( trackerProgram.getUid(), "PROGRAM_ATTRIBUTE" )
             .validate()
             .body( "dimensions.uid", CoreMatchers.hasItem( confidentialAttribute ) );
     }
@@ -165,8 +176,10 @@ public class AnalyticsDimensionsTest
         };
 
         validate.accept(
-            analyticsEnrollmentsActions.aggregate().getDimensionsByDimensionType( trackerProgram.getUid(), dimensionType ) );
-        validate.accept( analyticsEventActions.aggregate().getDimensions( trackerProgram.getProgramStages().get( 0 ) ) );
+            analyticsEnrollmentsActions.aggregate().getDimensionsByDimensionType( trackerProgram.getUid(),
+                dimensionType ) );
+        validate
+            .accept( analyticsEventActions.aggregate().getDimensions( trackerProgram.getProgramStages().get( 0 ) ) );
     }
 
     @Test
@@ -178,8 +191,9 @@ public class AnalyticsDimensionsTest
 
         analyticsEventActions.query().getDimensionsByDimensionType( trackerProgramStage, "DATA_ELEMENT" )
             .validate()
-            .body( "dimensions", hasSize( greaterThanOrEqualTo( 1 ) ) )
-            .body( "dimensions.id", everyItem( in( dataElements ) ) );
+            .body( "dimensions", hasSize( equalTo( dataElements.size() ) ) )
+            .body( "dimensions.id", everyItem( startsWith( trackerProgramStage ) ) )
+            .body( "dimensions.id", everyItem( CustomMatchers.containsOneOf( dataElements ) ) );
     }
 
     @Test
@@ -207,5 +221,44 @@ public class AnalyticsDimensionsTest
         validate.accept( analyticsEventActions.query()
             .getDimensions( programStage, new QueryParamsBuilder().add( "filter", "dimensionType:like:CATEGORY" ) ) );
 
+    }
+
+    Stream<Arguments> shouldFilter()
+    {
+        return Stream.of(
+            Arguments.of( "uid", "eq", "ISTEJWQz7tr", equalTo( "ISTEJWQz7tr" ) ),
+            Arguments.of( "uid", "ieq", "isteJWQz7tr", containsString( "ISTEJWQz7tr" ) ),
+            Arguments.of( "id", "ne", "ISTEJWQz7tr", not( equalTo( "ISTEJWQz7tr" ) ) ),
+            Arguments.of( "code", "like", "TA", containsString( "TA" ) ),
+            Arguments.of( "valueType", "like", "TEXT", oneOf( "TEXT", "LONG_TEXT" ) ),
+            Arguments.of( "id", "startsWith", trackerProgram.getProgramStages().get( 0 ),
+                startsWith( trackerProgram.getProgramStages().get( 0 ) ) ),
+            Arguments.of( "id", "endsWith", "BuZ5LGNfGET", endsWith( "BuZ5LGNfGET" ) ),
+            Arguments.of( "id", "!startsWith", trackerProgram.getProgramStages().get( 0 ),
+                not( startsWith( trackerProgram.getProgramStages().get( 0 ) ) ) ),
+            Arguments.of( "dimensionType", "eq", "DATA_ELEMENT", equalTo( "DATA_ELEMENT" ) ),
+            Arguments.of( "dimensionType", "eq", "PROGRAM_INDICATOR", equalTo( "PROGRAM_INDICATOR" ) ),
+            Arguments.of( "dimensionType", "eq", "PROGRAM_ATTRIBUTE", equalTo( "PROGRAM_ATTRIBUTE" ) )
+
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource
+    public void shouldFilter( String property, String operator, String value, Matcher matcher )
+    {
+        Consumer<ApiResponse> validate = response -> {
+            response.validate().statusCode( 200 )
+                .body( "dimensions", hasSize( greaterThanOrEqualTo( 1 ) ) )
+                .body( "dimensions." + property, everyItem( matcher ) );
+        };
+
+        validate.accept( analyticsEnrollmentsActions.query()
+            .getDimensions( trackerProgram.getUid(),
+                new QueryParamsBuilder().add( String.format( "filter=%s:%s:%s", property, operator, value ) ) ) );
+
+        validate.accept( analyticsEventActions.query()
+            .getDimensions( trackerProgram.getProgramStages().get( 0 ),
+                new QueryParamsBuilder().add( String.format( "filter=%s:%s:%s", property, operator, value ) ) ) );
     }
 }

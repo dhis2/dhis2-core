@@ -35,6 +35,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.user.User;
 
 /**
  * @author Morten Olav Hansen
@@ -50,6 +51,8 @@ public class FieldFilterParams<T>
 
     @Builder.Default
     private final Set<String> filters = Collections.singleton( "*" );
+
+    private User user;
 
     /**
      * Do not include sharing properties (user, sharing, publicAccess, etc).
@@ -76,6 +79,6 @@ public class FieldFilterParams<T>
 
     public FieldFilterParams<T> copyOf()
     {
-        return new FieldFilterParams<>( objects, filters, skipSharing );
+        return new FieldFilterParams<>( objects, filters, user, skipSharing );
     }
 }

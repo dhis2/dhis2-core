@@ -36,21 +36,17 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
@@ -60,6 +56,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 /**
  * Tests the utility methods of the {@link JobProgress} interface.
@@ -173,7 +170,8 @@ class JobProgressTest
         verify( progress, never() ).completedStage( anyString() );
         verify( progress, never() ).startingWorkItem( anyString() );
         verify( progress ).failedStage( any( IllegalStateException.class ) );
-        verify( progress, never() ).failedStage( anyString() );
+        verify( progress ).failedStage( "java.lang.IllegalStateException" );
+        assertFalse( progress.isSkipCurrentStage() );
     }
 
     @Test
@@ -197,21 +195,8 @@ class JobProgressTest
         verify( progress, never() ).completedStage( anyString() );
         verify( progress, never() ).startingWorkItem( anyString() );
         verify( progress ).failedStage( any( IllegalStateException.class ) );
-        verify( progress, never() ).failedStage( anyString() );
-    }
-
-    @Test
-    void testRunStageInParallel_CommonPool()
-    {
-        // runStageInParallel_Success(
-        // Runtime.getRuntime().availableProcessors() );
-    }
-
-    @Test
-    void testRunStageInParallel_CustomPool()
-    {
-        // runStageInParallel_Success( max( 2,
-        // Runtime.getRuntime().availableProcessors() / 2 ) );
+        verify( progress ).failedStage( "java.lang.IllegalStateException" );
+        assertFalse( progress.isSkipCurrentStage() );
     }
 
     @Test
@@ -245,7 +230,8 @@ class JobProgressTest
         };
         JobProgress progress = newMockJobProgress();
         List<Integer> items = IntStream.range( 1, parallelism * 2 ).boxed().collect( toList() );
-        assertTrue( progress.runStageInParallel( parallelism, items, String::valueOf, work ) );
+        progress.runStageInParallel( parallelism, items, String::valueOf, work );
+        assertFalse( progress.isSkipCurrentStage() );
         int itemCount = items.size();
         assertEquals( new HashSet<>( items ), new HashSet<>( worked ) );
         assertEquals( itemCount, enterCount.get() );
@@ -283,7 +269,8 @@ class JobProgressTest
         };
         JobProgress progress = newMockJobProgress();
         List<Integer> items = IntStream.range( 1, parallelism * 2 ).boxed().collect( toList() );
-        assertFalse( progress.runStageInParallel( parallelism, items, String::valueOf, work ) );
+        progress.runStageInParallel( parallelism, items, String::valueOf, work );
+        assertTrue( progress.isSkipCurrentStage() );
         int itemCount = items.size();
         int successCount = itemCount / 2;
         int errorCount = itemCount - successCount;
@@ -305,19 +292,8 @@ class JobProgressTest
         return String.format( "(%d/%d)", success, failed );
     }
 
-    @SuppressWarnings( "unchecked" )
     private static JobProgress newMockJobProgress()
     {
-        JobProgress progress = mock( JobProgress.class );
-        // wire run methods to their default implementation...
-        when( progress.runStage( any(), any(), any(), any() ) ).thenCallRealMethod();
-        when( progress.runStage( any( Stream.class ), any(), any() ) ).thenCallRealMethod();
-        when( progress.runStage( any( Collection.class ), any(), any() ) ).thenCallRealMethod();
-        when( progress.runStage( any( Map.class ) ) ).thenCallRealMethod();
-        when( progress.runStage( any( Collection.class ) ) ).thenCallRealMethod();
-        when( progress.runStage( any( Runnable.class ) ) ).thenCallRealMethod();
-        when( progress.runStage( any(), any() ) ).thenCallRealMethod();
-        when( progress.runStageInParallel( anyInt(), any(), any(), any() ) ).thenCallRealMethod();
-        return progress;
+        return Mockito.spy( JobProgress.class );
     }
 }

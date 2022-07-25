@@ -85,6 +85,13 @@ public class DefaultRelationshipService
     }
 
     @Override
+    @Transactional( readOnly = true )
+    public boolean relationshipExistsIncludingDeleted( String uid )
+    {
+        return relationshipStore.existsIncludingDeleted( uid );
+    }
+
+    @Override
     @Transactional
     public long addRelationship( Relationship relationship )
     {
@@ -111,6 +118,16 @@ public class DefaultRelationshipService
     public Relationship getRelationship( String uid )
     {
         return relationshipStore.getByUid( uid );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public Relationship getRelationshipIncludeDeleted( String uid )
+    {
+        return relationshipStore.getByUidsIncludeDeleted( List.of( uid ) )
+            .stream()
+            .findAny()
+            .orElse( null );
     }
 
     @Override

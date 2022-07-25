@@ -27,7 +27,10 @@
  */
 package org.hisp.dhis.metadata.programs;
 
-import com.google.gson.JsonObject;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import java.io.File;
+
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
@@ -37,9 +40,7 @@ import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.File;
-
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -52,6 +53,8 @@ public class ProgramRemovalTest
     private RestApiActions relationshipTypeActions;
 
     private String programId;
+
+    private String programStageId;
 
     private String relationshipTypeId;
 
@@ -82,6 +85,9 @@ public class ProgramRemovalTest
         programId = programActions.createProgram( "WITH_REGISTRATION" ).extractUid();
         assertNotNull( programId, "Failed to create program" );
 
+        programStageId = programActions.createProgramStage( programId, "stage1" );
+        assertNotNull( programStageId, "Failed to create programStage" );
+
         JsonObject relationshipType = new FileReaderUtils()
             .read( new File( "src/test/resources/tracker/relationshipTypes.json" ) )
             .replacePropertyValuesWithIds( "id" )
@@ -92,7 +98,8 @@ public class ProgramRemovalTest
             .addObject( "toConstraint", new JsonObjectBuilder()
                 .addProperty( "relationshipEntity", "PROGRAM_STAGE_INSTANCE" )
                 .addObject( "program", new JsonObjectBuilder().addProperty( "id", programId ) )
-            ).build();
+                .addObject( "programStage", new JsonObjectBuilder().addProperty( "id", programStageId ) ) )
+            .build();
 
         relationshipTypeId = relationshipTypeActions.create( relationshipType );
         assertNotNull( relationshipTypeId, "Failed to create relationshipType" );

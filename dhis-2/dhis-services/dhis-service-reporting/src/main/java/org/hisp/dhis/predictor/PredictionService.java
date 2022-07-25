@@ -30,7 +30,7 @@ package org.hisp.dhis.predictor;
 import java.util.Date;
 import java.util.List;
 
-import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
 
 /**
@@ -42,10 +42,23 @@ public interface PredictionService
      * Executes a predictor job run
      *
      * @param predictorJobParameters parameters for the predictor job run
-     * @param jobId associated with the task running (for notifier)
+     * @param progress track processing progress
      * @return a summary of what was predicted
      */
-    PredictionSummary predictJob( PredictorJobParameters predictorJobParameters, JobConfiguration jobId );
+    PredictionSummary predictJob( PredictorJobParameters predictorJobParameters, JobProgress progress );
+
+    /**
+     * Executes predictors and/or predictor groups for a date range in a job
+     *
+     * @param startDate the start date of the predictor run
+     * @param endDate the end date of the predictor run
+     * @param predictors predictor(s) to run
+     * @param predictorGroups predictor group(s) to run
+     * @param progress track processing progress
+     * @return a summary of what was predicted
+     */
+    PredictionSummary predictTask( Date startDate, Date endDate,
+        List<String> predictors, List<String> predictorGroups, JobProgress progress );
 
     /**
      * Executes predictors and/or predictor groups for a date range
@@ -54,11 +67,11 @@ public interface PredictionService
      * @param endDate the end date of the predictor run
      * @param predictors predictor(s) to run
      * @param predictorGroups predictor group(s) to run
-     * @param jobId associated with the task running (for notifier)
+     * @param progress track processing progress
      * @return a summary of what was predicted
      */
-    PredictionSummary predictTask( Date startDate, Date endDate,
-        List<String> predictors, List<String> predictorGroups, JobConfiguration jobId );
+    PredictionSummary predictAll( Date startDate, Date endDate,
+        List<String> predictors, List<String> predictorGroups, JobProgress progress );
 
     /**
      * Executes a single predictor for a date range

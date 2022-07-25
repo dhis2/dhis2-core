@@ -104,7 +104,8 @@ public class CsvFileReader
         return this;
     }
 
-    @Override public org.hisp.dhis.helpers.file.FileReader replacePropertyValuesRecursivelyWith( String propertyName,
+    @Override
+    public org.hisp.dhis.helpers.file.FileReader replacePropertyValuesRecursivelyWith( String propertyName,
         String replacedValue )
     {
         return null;

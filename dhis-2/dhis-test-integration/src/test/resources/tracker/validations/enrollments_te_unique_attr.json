@@ -1,0 +1,127 @@
+{
+  "importMode": "COMMIT",
+  "idSchemes": {
+    "dataElementIdScheme": {
+      "idScheme": "UID"
+    },
+    "orgUnitIdScheme": {
+      "idScheme": "UID"
+    },
+    "programIdScheme": {
+      "idScheme": "UID"
+    },
+    "programStageIdScheme": {
+      "idScheme": "UID"
+    },
+    "idScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionComboIdScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionIdScheme": {
+      "idScheme": "UID"
+    }
+  },
+  "importStrategy": "CREATE",
+  "atomicMode": "ALL",
+  "flushMode": "AUTO",
+  "validationMode": "FULL",
+  "skipPatternValidation": false,
+  "skipSideEffects": false,
+  "skipRuleEngine": false,
+  "trackedEntities": [],
+  "enrollments": [
+    {
+      "enrollment": "MNWZ6hnuhSw",
+      "updatedAt": "2019-08-19T13:58:26.874",
+      "trackedEntity": "Kj6vYde4LFf",
+      "program": {
+        "idScheme": "UID",
+        "identifier": "E8o1E9tAppy"
+      },
+      "status": "ACTIVE",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
+      "enrolledAt": "2019-08-19T00:00:00.000",
+      "occurredAt": "2019-08-19T00:00:00.000",
+      "followUp": false,
+      "deleted": false,
+      "storedBy": "admin",
+      "events": [],
+      "relationships": [],
+      "attributes": [
+        {
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "fmBIpOStKkF"
+          },
+          "displayName": "Attribute_Integer",
+          "storedBy": "admin",
+          "valueType": "INTEGER",
+          "value": "123"
+        },
+        {
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "TGqP5JNy6Es"
+          },
+          "displayName": "mandatory_program_attribute",
+          "storedBy": "admin",
+          "valueType": "TEXT",
+          "value": "ADDRESS STREET 1"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "enrollment": "MNWZ6hnuhSx",
+      "updatedAt": "2019-08-19T13:58:26.874",
+      "trackedEntity": "Kj6vYde4LHh",
+      "program": {
+        "idScheme": "UID",
+        "identifier": "E8o1E9tAppy"
+      },
+      "status": "COMPLETED",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
+      "enrolledAt": "2019-08-19T00:00:00.000",
+      "occurredAt": "2019-08-19T00:00:00.000",
+      "followUp": false,
+      "deleted": false,
+      "storedBy": "admin",
+      "events": [],
+      "relationships": [],
+      "attributes": [
+        {
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "fmBIpOStKkF"
+          },
+          "displayName": "Attribute_Integer",
+          "storedBy": "admin",
+          "valueType": "INTEGER",
+          "value": "123"
+        },
+        {
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "TGqP5JNy6Es"
+          },
+          "displayName": "mandatory_program_attribute",
+          "storedBy": "admin",
+          "valueType": "TEXT",
+          "value": "ADDRESS STREET 1"
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "events": [],
+  "relationships": [],
+  "username": "system-process"
+}

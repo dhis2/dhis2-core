@@ -173,7 +173,7 @@ class TrackerCrudTest
 
         when( relationshipService.processRelationshipList( anyList(), any() ) ).thenReturn( new ImportSummaries() );
 
-        when( userService.getUser( anyString() ) ).thenReturn( new User() );
+        when( userService.getUser( any() ) ).thenReturn( new User() );
         when( identifiableObjectManager.getObject( TrackedEntityType.class, IdScheme.UID, trackedEntityTypeUid ) )
             .thenReturn( new TrackedEntityType() );
         when( identifiableObjectManager.getObject( OrganisationUnit.class, IdScheme.UID, orgUnitUid ) )

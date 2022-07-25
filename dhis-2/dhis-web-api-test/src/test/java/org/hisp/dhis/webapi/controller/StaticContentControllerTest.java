@@ -29,12 +29,6 @@ package org.hisp.dhis.webapi.controller;
 
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
-import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
-import static org.apache.http.HttpStatus.SC_MOVED_TEMPORARILY;
-import static org.apache.http.HttpStatus.SC_NOT_FOUND;
-import static org.apache.http.HttpStatus.SC_NO_CONTENT;
-import static org.apache.http.HttpStatus.SC_OK;
-import static org.apache.http.HttpStatus.SC_UNSUPPORTED_MEDIA_TYPE;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.hisp.dhis.fileresource.FileResourceDomain.DOCUMENT;
@@ -59,13 +53,14 @@ import java.util.Optional;
 import org.hisp.dhis.fileresource.JCloudsFileResourceContentStore;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.webapi.DhisWebSpringTest;
-import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.ResultActions;
+
+import com.google.gson.JsonObject;
 
 /**
  * @author Luciano Fiandesio
@@ -100,7 +95,7 @@ class StaticContentControllerTest extends DhisWebSpringTest
         throws Exception
     {
         mvc.perform( get( URL + "idontexist" ).session( session ).contentType( APPLICATION_JSON_UTF8 ) )
-            .andExpect( status().is( SC_NOT_FOUND ) );
+            .andExpect( status().isNotFound() );
     }
 
     @Test
@@ -109,7 +104,7 @@ class StaticContentControllerTest extends DhisWebSpringTest
     {
         mvc.perform( get( URL + LOGO_BANNER ).accept( TEXT_HTML_VALUE ).session( session ) )
             .andExpect( redirectedUrlPattern( "**/dhis-web-commons/css/light_blue/logo_banner.png" ) )
-            .andExpect( status().is( SC_MOVED_TEMPORARILY ) );
+            .andExpect( status().isMovedTemporarily() );
     }
 
     @Test
@@ -122,7 +117,7 @@ class StaticContentControllerTest extends DhisWebSpringTest
         systemSettingManager.saveSystemSetting( USE_CUSTOM_LOGO_BANNER, TRUE );
         mvc.perform( get( URL + LOGO_BANNER ).accept( TEXT_HTML_VALUE ).session( session ) )
             .andExpect( content().contentType( MIME_PNG ) ).andExpect( content().bytes( mockMultipartFile.getBytes() ) )
-            .andExpect( status().is( SC_OK ) );
+            .andExpect( status().isOk() );
     }
 
     @Test
@@ -201,7 +196,7 @@ class StaticContentControllerTest extends DhisWebSpringTest
         throws Exception
     {
         mvc.perform( multipart( URL + LOGO_BANNER ).file( mockMultipartFile ).session( session ) )
-            .andExpect( status().is( SC_NO_CONTENT ) );
+            .andExpect( status().isNoContent() );
     }
 
     @Test
@@ -212,7 +207,7 @@ class StaticContentControllerTest extends DhisWebSpringTest
         mvc.perform( multipart( URL + LOGO_BANNER )
             .file( new MockMultipartFile( "file", "testlogo.png", IMAGE_JPEG.toString(), "image".getBytes() ) )
             .session( session ) ).andExpect( content().json( error ) )
-            .andExpect( status().is( SC_UNSUPPORTED_MEDIA_TYPE ) );
+            .andExpect( status().isUnsupportedMediaType() );
     }
 
     @Test
@@ -221,13 +216,19 @@ class StaticContentControllerTest extends DhisWebSpringTest
     {
         final String error = buildResponse( "Bad Request", 400, "ERROR", "This key is not supported." );
         mvc.perform( multipart( URL + "idontexist" ).file( mockMultipartFile ).session( session ) )
-            .andExpect( content().json( error ) ).andExpect( status().is( SC_BAD_REQUEST ) );
+            .andExpect( content().json( error ) ).andExpect( status().isBadRequest() );
     }
 
     private String buildResponse( String httpStatus, int code, String status, String message )
-        throws Exception
     {
-        return new JSONObject().put( "httpStatus", httpStatus ).put( "httpStatusCode", code ).put( "status", status )
-            .putOpt( "message", message ).toString();
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty( "httpStatus", httpStatus );
+        jsonObject.addProperty( "httpStatusCode", code );
+        jsonObject.addProperty( "status", status );
+        if ( message != null )
+        {
+            jsonObject.addProperty( "message", message );
+        }
+        return jsonObject.toString();
     }
 }

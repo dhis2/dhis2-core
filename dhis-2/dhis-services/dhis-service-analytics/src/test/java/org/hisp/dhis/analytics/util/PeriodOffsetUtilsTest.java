@@ -42,6 +42,7 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.QueryModifiers;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.period.CalendarPeriodType;
 import org.hisp.dhis.period.MonthlyPeriodType;
@@ -172,7 +173,7 @@ class PeriodOffsetUtilsTest
     private DataElement createDataElement( int offset )
     {
         DataElement de = DhisConvenienceTest.createDataElement( 'A' );
-        de.setPeriodOffset( offset );
+        de.setQueryMods( QueryModifiers.builder().periodOffset( offset ).build() );
         return de;
     }
 }

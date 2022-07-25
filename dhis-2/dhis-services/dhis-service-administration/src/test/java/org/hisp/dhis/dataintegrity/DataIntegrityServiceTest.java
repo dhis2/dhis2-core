@@ -61,8 +61,9 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import org.hibernate.SessionFactory;
+import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.antlr.ParserException;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
@@ -95,6 +96,7 @@ import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.random.BeanRandomizer;
+import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.validation.ValidationRuleService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -217,7 +219,7 @@ class DataIntegrityServiceTest
             programRuleVariableService, dataElementService, indicatorService, dataSetService,
             organisationUnitService, organisationUnitGroupService, validationRuleService, expressionService,
             dataEntryFormService, categoryService, periodService, programIndicatorService,
-            mock( SessionFactory.class ) );
+            mock( CacheProvider.class ), mock( DataIntegrityStore.class ), mock( SchemaService.class ) );
         setUpFixtures();
     }
 
@@ -525,6 +527,65 @@ class DataIntegrityServiceTest
         DataIntegrityIssue issue = issues.get( 0 );
         assertEquals( issueName( programIndicator ), issue.getName() );
         assertEquals( INVALID_EXPRESSION, issue.getComment() );
+    }
+
+    @Test
+    void programIndicatorGetAggregationTypeFallbackReturnsRelatedAggregationType()
+    {
+        // arrange
+        ProgramIndicator programIndicator = new ProgramIndicator();
+        programIndicator.setName( "Test-PI" );
+        programIndicator.setExpression( "#{someuid} + 1" );
+
+        // act
+        // assert
+        programIndicator.setAggregationType( AggregationType.AVERAGE_SUM_ORG_UNIT );
+        assertEquals( AggregationType.SUM, programIndicator.getAggregationTypeFallback() );
+
+        programIndicator.setAggregationType( AggregationType.LAST_IN_PERIOD );
+        assertEquals( AggregationType.SUM, programIndicator.getAggregationTypeFallback() );
+
+        programIndicator.setAggregationType( AggregationType.LAST );
+        assertEquals( AggregationType.SUM, programIndicator.getAggregationTypeFallback() );
+
+        programIndicator.setAggregationType( AggregationType.FIRST );
+        assertEquals( AggregationType.SUM, programIndicator.getAggregationTypeFallback() );
+
+        programIndicator.setAggregationType( AggregationType.LAST_IN_PERIOD_AVERAGE_ORG_UNIT );
+        assertEquals( AggregationType.AVERAGE, programIndicator.getAggregationTypeFallback() );
+
+        programIndicator.setAggregationType( AggregationType.FIRST_AVERAGE_ORG_UNIT );
+        assertEquals( AggregationType.AVERAGE, programIndicator.getAggregationTypeFallback() );
+
+        programIndicator.setAggregationType( AggregationType.LAST_AVERAGE_ORG_UNIT );
+        assertEquals( AggregationType.AVERAGE, programIndicator.getAggregationTypeFallback() );
+
+        programIndicator.setAggregationType( null );
+        assertEquals( AggregationType.AVERAGE, programIndicator.getAggregationTypeFallback() );
+
+        programIndicator.setAggregationType( AggregationType.CUSTOM );
+        assertEquals( AggregationType.CUSTOM, programIndicator.getAggregationTypeFallback() );
+
+        programIndicator.setAggregationType( AggregationType.AVERAGE );
+        assertEquals( AggregationType.AVERAGE, programIndicator.getAggregationTypeFallback() );
+
+        programIndicator.setAggregationType( AggregationType.SUM );
+        assertEquals( AggregationType.SUM, programIndicator.getAggregationTypeFallback() );
+
+        programIndicator.setAggregationType( AggregationType.STDDEV );
+        assertEquals( AggregationType.STDDEV, programIndicator.getAggregationTypeFallback() );
+
+        programIndicator.setAggregationType( AggregationType.COUNT );
+        assertEquals( AggregationType.COUNT, programIndicator.getAggregationTypeFallback() );
+
+        programIndicator.setAggregationType( AggregationType.MAX );
+        assertEquals( AggregationType.MAX, programIndicator.getAggregationTypeFallback() );
+
+        programIndicator.setAggregationType( AggregationType.MIN );
+        assertEquals( AggregationType.MIN, programIndicator.getAggregationTypeFallback() );
+
+        programIndicator.setAggregationType( AggregationType.DEFAULT );
+        assertEquals( AggregationType.AVERAGE, programIndicator.getAggregationTypeFallback() );
     }
 
     @Test

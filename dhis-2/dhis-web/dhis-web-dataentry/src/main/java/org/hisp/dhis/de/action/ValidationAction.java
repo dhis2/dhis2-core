@@ -44,6 +44,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.validation.ValidationAnalysisParams;
 import org.hisp.dhis.validation.ValidationResult;
 import org.hisp.dhis.validation.ValidationService;
@@ -250,7 +251,8 @@ public class ValidationAction
                 .withAttributeOptionCombo( attributeOptionCombo )
                 .build();
 
-            List<ValidationResult> results = new ArrayList<>( validationService.validationAnalysis( params ) );
+            List<ValidationResult> results = new ArrayList<>( validationService.validationAnalysis( params,
+                NoopJobProgress.INSTANCE ) );
 
             if ( !results.isEmpty() )
             {

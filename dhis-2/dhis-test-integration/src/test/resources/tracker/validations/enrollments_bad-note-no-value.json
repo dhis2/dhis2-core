@@ -1,0 +1,68 @@
+{
+  "importMode": "COMMIT",
+  "idSchemes": {
+    "dataElementIdScheme": {
+      "idScheme": "UID"
+    },
+    "orgUnitIdScheme": {
+      "idScheme": "UID"
+    },
+    "programIdScheme": {
+      "idScheme": "UID"
+    },
+    "programStageIdScheme": {
+      "idScheme": "UID"
+    },
+    "idScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionComboIdScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionIdScheme": {
+      "idScheme": "UID"
+    }
+  },
+  "importStrategy": "CREATE",
+  "atomicMode": "ALL",
+  "flushMode": "AUTO",
+  "validationMode": "FULL",
+  "skipPatternValidation": false,
+  "skipSideEffects": false,
+  "skipRuleEngine": false,
+  "trackedEntities": [],
+  "enrollments": [
+    {
+      "enrollment": "MNWZ6hnuhSw",
+      "updatedAt": "2019-08-19T13:58:26.874",
+      "trackedEntity": "Kj6vYde4LHh",
+      "program": {
+        "idScheme": "UID",
+        "identifier": "E8o1E9tAppy"
+      },
+      "status": "ACTIVE",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
+      "enrolledAt": "2019-08-19T00:00:00.000",
+      "occurredAt": "2019-08-19T00:00:00.000",
+      "followUp": false,
+      "deleted": false,
+      "storedBy": "admin",
+      "events": [],
+      "relationships": [],
+      "attributes": [],
+      "notes": [
+        {
+          "note": "RNWZ6hnuhSw",
+          "storedAt": "2019-08-19T13:58:26.874",
+          "storedBy": "admin"
+        }
+      ]
+    }
+  ],
+  "events": [],
+  "relationships": [],
+  "username": "system-process"
+}

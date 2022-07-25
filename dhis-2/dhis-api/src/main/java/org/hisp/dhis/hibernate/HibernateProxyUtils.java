@@ -29,12 +29,17 @@ package org.hisp.dhis.hibernate;
 
 import java.util.Objects;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hibernate.Hibernate;
+import org.hibernate.proxy.HibernateProxy;
 import org.hibernate.proxy.HibernateProxyHelper;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
+
+@Slf4j
 public class HibernateProxyUtils
 {
     private HibernateProxyUtils()
@@ -59,5 +64,19 @@ public class HibernateProxyUtils
     public static <T> T unproxy( T proxy )
     {
         return (T) Hibernate.unproxy( proxy );
+    }
+
+    public static <T> void initializeAndUnproxy( T entity )
+    {
+        if ( entity == null )
+        {
+            return;
+        }
+
+        Hibernate.initialize( entity );
+        if ( entity instanceof HibernateProxy )
+        {
+            ((HibernateProxy) entity).getHibernateLazyInitializer().getImplementation();
+        }
     }
 }

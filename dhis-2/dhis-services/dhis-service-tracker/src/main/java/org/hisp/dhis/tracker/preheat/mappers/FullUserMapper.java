@@ -38,7 +38,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
-@Mapper( uses = { DebugMapper.class, UserCredentialsMapper.class, OrganisationUnitMapper.class,
+@Mapper( uses = { DebugMapper.class, OrganisationUnitMapper.class,
     UserGroupMapper.class } )
 public interface FullUserMapper extends PreheatMapper<User>
 {
@@ -47,8 +47,12 @@ public interface FullUserMapper extends PreheatMapper<User>
     @BeanMapping( ignoreByDefault = true )
     @Mapping( target = "id" )
     @Mapping( target = "uid" )
+    @Mapping( target = "uuid" )
     @Mapping( target = "code" )
-    @Mapping( target = "userCredentials" )
+    @Mapping( target = "username" )
+    @Mapping( target = "userRoles" )
+    @Mapping( target = "firstName" )
+    @Mapping( target = "surname" )
     @Mapping( target = "organisationUnits", qualifiedByName = "organisationUnits" )
     @Mapping( target = "teiSearchOrganisationUnits", qualifiedByName = "teiSearchOrganisationUnits" )
     @Mapping( target = "groups", qualifiedByName = "groups" )

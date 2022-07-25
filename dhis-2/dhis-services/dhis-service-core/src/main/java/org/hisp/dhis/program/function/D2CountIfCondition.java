@@ -27,12 +27,14 @@
  */
 package org.hisp.dhis.program.function;
 
+import static org.hisp.dhis.analytics.DataType.BOOLEAN;
 import static org.hisp.dhis.antlr.AntlrParserUtils.castDouble;
 import static org.hisp.dhis.antlr.AntlrParserUtils.trimQuotes;
-import static org.hisp.dhis.parser.expression.CommonExpressionVisitor.DEFAULT_DOUBLE_VALUE;
+import static org.hisp.dhis.parser.expression.ParserUtils.DEFAULT_DOUBLE_VALUE;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.parser.expression.ProgramExpressionParams;
 
 /**
  * Program indicator function: d2 count if condition
@@ -60,9 +62,11 @@ public class D2CountIfCondition
     {
         String conditionExpression = getConditionalExpression( ctx );
 
+        ProgramExpressionParams params = visitor.getProgParams();
+
         String conditionSql = visitor.getProgramIndicatorService().getAnalyticsSql(
-            conditionExpression, visitor.getProgramIndicator(),
-            visitor.getReportingStartDate(), visitor.getReportingEndDate() );
+            conditionExpression, BOOLEAN, params.getProgramIndicator(),
+            params.getReportingStartDate(), params.getReportingEndDate() );
 
         return conditionSql.substring( 1 );
     }

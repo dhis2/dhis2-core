@@ -112,7 +112,7 @@ public class UserAccess
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String displayName()
+    public String getDisplayName()
     {
         return displayName;
     }
@@ -127,9 +127,9 @@ public class UserAccess
     {
         if ( user == null )
         {
-            User user = new User();
-            user.setUid( uid );
-            return user;
+            User newUser = new User();
+            newUser.setUid( uid );
+            return newUser;
         }
 
         return user;

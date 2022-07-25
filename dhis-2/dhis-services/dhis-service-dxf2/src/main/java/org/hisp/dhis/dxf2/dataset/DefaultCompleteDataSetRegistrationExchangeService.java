@@ -145,6 +145,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
     private final ObjectMapper jsonMapper;
 
+    private final OrganisationUnitService organisationUnitService;
+
     public DefaultCompleteDataSetRegistrationExchangeService(
         CompleteDataSetRegistrationExchangeStore cdsrStore,
         IdentifiableObjectManager idObjManager,
@@ -161,7 +163,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         AggregateAccessManager accessManager,
         DataSetNotificationEventPublisher notificationPublisher,
         MessageService messageService,
-        ObjectMapper jsonMapper )
+        ObjectMapper jsonMapper,
+        OrganisationUnitService organisationUnitService )
     {
         checkNotNull( cdsrStore );
         checkNotNull( idObjManager );
@@ -180,6 +183,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         checkNotNull( notificationPublisher );
         checkNotNull( messageService );
         checkNotNull( jsonMapper );
+        checkNotNull( organisationUnitService );
 
         this.cdsrStore = cdsrStore;
         this.idObjManager = idObjManager;
@@ -197,6 +201,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         this.notificationPublisher = notificationPublisher;
         this.messageService = messageService;
         this.jsonMapper = jsonMapper;
+        this.organisationUnitService = organisationUnitService;
     }
 
     // -------------------------------------------------------------------------
@@ -637,7 +642,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
             {
                 // CDSR already exists
 
-                if ( strategy.isCreateAndUpdate() || strategy.isUpdate() )
+                if ( strategy.isCreateAndUpdate() || strategy.isUpdate() || strategy.isSync() )
                 {
                     // Update existing CDSR
 
@@ -666,7 +671,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
             {
                 // CDSR does not already exist
 
-                if ( strategy.isCreateAndUpdate() || strategy.isCreate() )
+                if ( strategy.isCreateAndUpdate() || strategy.isCreate() || strategy.isSync() )
                 {
                     if ( existingCdsr != null )
                     {
@@ -745,12 +750,12 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         return errors;
     }
 
-    private static void validateOrgUnitInUserHierarchy( MetadataCaches mdCaches, MetadataProperties mdProps,
+    private void validateOrgUnitInUserHierarchy( MetadataCaches mdCaches, MetadataProperties mdProps,
         final Set<OrganisationUnit> userOrgUnits, String currentUsername )
         throws ImportConflictException
     {
         boolean inUserHierarchy = mdCaches.getOrgUnitInHierarchyMap().get( mdProps.orgUnit.getUid(),
-            () -> mdProps.orgUnit.isDescendant( userOrgUnits ) );
+            () -> organisationUnitService.isDescendant( mdProps.orgUnit, userOrgUnits ) );
 
         if ( !inUserHierarchy )
         {
@@ -804,7 +809,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
         boolean isOrgUnitValidForAoc = mdCaches.getAttrOptComboOrgUnitMap().get( aocOrgUnitKey, () -> {
             Set<OrganisationUnit> aocOrgUnits = aoc.getOrganisationUnits();
-            return aocOrgUnits == null || mdProps.orgUnit.isDescendant( aocOrgUnits );
+            return aocOrgUnits == null || organisationUnitService.isDescendant( mdProps.orgUnit, aocOrgUnits );
         } );
 
         if ( !isOrgUnitValidForAoc )

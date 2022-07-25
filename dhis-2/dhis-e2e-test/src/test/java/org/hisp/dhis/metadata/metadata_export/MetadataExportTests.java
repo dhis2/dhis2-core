@@ -82,6 +82,7 @@ public class MetadataExportTests
     @Test
     public void shouldNotExportUserMetadataWithoutAuthority()
     {
+
         loginActions.loginAsUser( userWithoutAccessUsername, userWithoutAccessPassword );
 
         metadataActions.get( "", new QueryParamsBuilder().add( "users=true" ) )

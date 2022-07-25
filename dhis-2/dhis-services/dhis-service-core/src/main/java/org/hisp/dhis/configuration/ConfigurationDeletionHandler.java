@@ -27,8 +27,9 @@
  */
 package org.hisp.dhis.configuration;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
+
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.indicator.IndicatorGroup;
@@ -37,27 +38,20 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserRole;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Chau Thu Tran
  */
-@Component( "org.hisp.dhis.configuration.ConfigurationDeletionHandler" )
-public class ConfigurationDeletionHandler
-    extends DeletionHandler
+@Component
+@AllArgsConstructor
+public class ConfigurationDeletionHandler extends DeletionHandler
 {
     private static final DeletionVeto VETO = new DeletionVeto( Configuration.class );
 
     private final ConfigurationService configService;
-
-    public ConfigurationDeletionHandler( ConfigurationService configService )
-    {
-        checkNotNull( configService );
-
-        this.configService = configService;
-    }
 
     @Override
     protected void register()
@@ -68,7 +62,7 @@ public class ConfigurationDeletionHandler
         whenVetoing( OrganisationUnitLevel.class, this::allowDeleteOrganisationUnitLevel );
         whenVetoing( OrganisationUnitGroupSet.class, this::allowDeleteOrganisationUnitGroupSet );
         whenVetoing( OrganisationUnit.class, this::allowDeleteOrganisationUnit );
-        whenVetoing( UserAuthorityGroup.class, this::allowDeleteUserAuthorityGroup );
+        whenVetoing( UserRole.class, this::allowDeleteUserRole );
     }
 
     private DeletionVeto allowDeleteUserGroup( UserGroup userGroup )
@@ -115,10 +109,10 @@ public class ConfigurationDeletionHandler
         return selfRegOrgUnit != null && selfRegOrgUnit.equals( organisationUnit ) ? VETO : ACCEPT;
     }
 
-    private DeletionVeto allowDeleteUserAuthorityGroup( UserAuthorityGroup userAuthorityGroup )
+    private DeletionVeto allowDeleteUserRole( UserRole userRole )
     {
-        UserAuthorityGroup selfRegRole = configService.getConfiguration().getSelfRegistrationRole();
+        UserRole selfRegRole = configService.getConfiguration().getSelfRegistrationRole();
 
-        return selfRegRole != null && selfRegRole.equals( userAuthorityGroup ) ? VETO : ACCEPT;
+        return selfRegRole != null && selfRegRole.equals( userRole ) ? VETO : ACCEPT;
     }
 }

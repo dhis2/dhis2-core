@@ -28,6 +28,7 @@
 package org.hisp.dhis.dimension;
 
 import static org.apache.commons.lang3.EnumUtils.isValidEnum;
+import static org.apache.commons.lang3.ObjectUtils.allNotNull;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -202,12 +203,11 @@ public class DataDimensionExtractor
         {
             if ( id.hasValidIds() )
             {
-                final BaseDimensionalItemObject dimensionalItemObject = getBaseDimensionalItemObject( atomicObjects,
+                final DimensionalItemObject dimensionalItemObject = getDimensionalItemObject( atomicObjects,
                     id );
 
                 if ( dimensionalItemObject != null )
                 {
-                    dimensionalItemObject.setPeriodOffset( id.getPeriodOffset() );
                     itemObjectMap.put( id, dimensionalItemObject );
                 }
             }
@@ -279,7 +279,7 @@ public class DataDimensionExtractor
         return new ProgramDataElementDimensionItem( program, dataElement );
     }
 
-    private BaseDimensionalItemObject getBaseDimensionalItemObject(
+    private DimensionalItemObject getDimensionalItemObject(
         final MapMap<Class<? extends IdentifiableObject>, String, IdentifiableObject> atomicObjects,
         final DimensionalItemId id )
     {
@@ -289,18 +289,12 @@ public class DataDimensionExtractor
         {
         case DATA_ELEMENT:
             DataElement dataElement = (DataElement) atomicObjects.getValue( DataElement.class, id.getId0() );
-            if ( dataElement != null )
-            {
-                dimensionalItemObject = cloneIfNeeded( dataElement, id );
-            }
+            dimensionalItemObject = withQueryMods( dataElement, id );
             break;
 
         case INDICATOR:
             final Indicator indicator = (Indicator) atomicObjects.getValue( Indicator.class, id.getId0() );
-            if ( indicator != null )
-            {
-                dimensionalItemObject = cloneIfNeeded( indicator, id );
-            }
+            dimensionalItemObject = withQueryMods( indicator, id );
             break;
 
         case DATA_ELEMENT_OPERAND:
@@ -313,8 +307,9 @@ public class DataDimensionExtractor
                 (id.getId1() != null) == (categoryOptionCombo != null) &&
                 (id.getId2() != null) == (attributeOptionCombo != null) )
             {
-                dimensionalItemObject = new DataElementOperand( dataElement, categoryOptionCombo,
-                    attributeOptionCombo );
+                dimensionalItemObject = new DataElementOperand( (DataElement) withQueryMods( dataElement, id ),
+                    categoryOptionCombo, attributeOptionCombo );
+                dimensionalItemObject.setQueryMods( id.getQueryMods() );
             }
             break;
 
@@ -329,7 +324,7 @@ public class DataDimensionExtractor
         case PROGRAM_DATA_ELEMENT:
             Program program = (Program) atomicObjects.getValue( Program.class, id.getId0() );
             dataElement = (DataElement) atomicObjects.getValue( DataElement.class, id.getId1() );
-            if ( program != null && dataElement != null )
+            if ( allNotNull( program, dataElement ) )
             {
                 dimensionalItemObject = new ProgramDataElementDimensionItem( program, dataElement );
             }
@@ -339,19 +334,14 @@ public class DataDimensionExtractor
             program = (Program) atomicObjects.getValue( Program.class, id.getId0() );
             final TrackedEntityAttribute attribute = (TrackedEntityAttribute) atomicObjects
                 .getValue( TrackedEntityAttribute.class, id.getId1() );
-            if ( program != null && attribute != null )
+            if ( allNotNull( program, attribute ) )
             {
                 dimensionalItemObject = new ProgramTrackedEntityAttributeDimensionItem( program, attribute );
             }
             break;
 
         case PROGRAM_INDICATOR:
-            final ProgramIndicator programIndicator = (ProgramIndicator) atomicObjects
-                .getValue( ProgramIndicator.class, id.getId0() );
-            if ( programIndicator != null )
-            {
-                dimensionalItemObject = cloneIfNeeded( programIndicator, id );
-            }
+            dimensionalItemObject = (ProgramIndicator) atomicObjects.getValue( ProgramIndicator.class, id.getId0() );
             break;
 
         default:
@@ -363,27 +353,29 @@ public class DataDimensionExtractor
     }
 
     /**
-     * Clones a BaseDimensionalItemObject if the periodOffset is not zero, so
-     * there can be a BaseDimensionalItemObject for each different periodOffset.
+     * Clones a BaseDimensionalItemObject if there are non-default query mods,
+     * so the BaseDimensionalItemObject can reflect the query mods.
      *
      * @param item the item to clone if needed.
-     * @param id the item id with the periodOffset.
+     * @param id the item id that may have non-default query modifiers.
      * @return the item or its clone.
      */
-    private BaseDimensionalItemObject cloneIfNeeded( final BaseDimensionalItemObject item, final DimensionalItemId id )
+    private BaseDimensionalItemObject withQueryMods( final BaseDimensionalItemObject item, final DimensionalItemId id )
     {
-        if ( id.getPeriodOffset() != 0 )
+        if ( item == null || id.getQueryMods() == null )
         {
-            try
-            {
-                return (BaseDimensionalItemObject) BeanUtils.cloneBean( item );
-            }
-            catch ( Exception e )
-            {
-                return null;
-            }
+            return item;
         }
 
-        return item;
+        try
+        {
+            BaseDimensionalItemObject clone = (BaseDimensionalItemObject) BeanUtils.cloneBean( item );
+            clone.setQueryMods( id.getQueryMods() );
+            return clone;
+        }
+        catch ( Exception e )
+        {
+            return null;
+        }
     }
 }

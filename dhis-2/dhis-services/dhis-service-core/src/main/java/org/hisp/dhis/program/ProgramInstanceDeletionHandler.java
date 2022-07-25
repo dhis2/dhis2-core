@@ -27,39 +27,29 @@
  */
 package org.hisp.dhis.program;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.Map;
 
-import org.hisp.dhis.system.deletion.DeletionHandler;
+import lombok.AllArgsConstructor;
+
 import org.hisp.dhis.system.deletion.DeletionVeto;
+import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Quang Nguyen
  */
-@Component( "org.hisp.dhis.program.ProgramInstanceDeletionHandler" )
-public class ProgramInstanceDeletionHandler
-    extends
-    DeletionHandler
+@Component
+@AllArgsConstructor
+public class ProgramInstanceDeletionHandler extends JdbcDeletionHandler
 {
     private static final DeletionVeto VETO = new DeletionVeto( ProgramInstance.class );
 
-    private final JdbcTemplate jdbcTemplate;
-
     private final ProgramInstanceService programInstanceService;
-
-    public ProgramInstanceDeletionHandler( JdbcTemplate jdbcTemplate, ProgramInstanceService programInstanceService )
-    {
-        checkNotNull( programInstanceService );
-        checkNotNull( jdbcTemplate );
-        this.programInstanceService = programInstanceService;
-        this.jdbcTemplate = jdbcTemplate;
-    }
 
     @Override
     protected void register()
@@ -83,10 +73,8 @@ public class ProgramInstanceDeletionHandler
         {
             return ACCEPT;
         }
-
-        String sql = "SELECT COUNT(*) FROM programinstance where programid = " + program.getId();
-
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
+        String sql = "select count(*) from programinstance where programid = :id";
+        return vetoIfExists( VETO, sql, Map.of( "id", program.getId() ) );
     }
 
     private void deleteProgram( Program program )

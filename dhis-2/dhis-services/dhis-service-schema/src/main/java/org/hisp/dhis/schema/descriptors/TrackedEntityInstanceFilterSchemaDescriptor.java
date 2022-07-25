@@ -52,6 +52,8 @@ public class TrackedEntityInstanceFilterSchemaDescriptor implements SchemaDescri
     {
         Schema schema = new Schema( TrackedEntityInstanceFilter.class, SINGULAR, PLURAL );
         schema.setRelativeApiEndpoint( API_ENDPOINT );
+        schema.setImplicitPrivateAuthority( true );
+        schema.setDefaultPrivate( true );
 
         schema.add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_PROGRAMSTAGE_ADD" ) ) );
         schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_PROGRAMSTAGE_DELETE" ) ) );

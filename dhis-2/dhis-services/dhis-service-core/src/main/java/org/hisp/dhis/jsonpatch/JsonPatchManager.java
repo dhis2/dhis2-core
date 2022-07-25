@@ -29,6 +29,11 @@ package org.hisp.dhis.jsonpatch;
 
 import static org.hisp.dhis.util.JsonUtils.jsonToObject;
 
+import java.util.Collection;
+
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.EmbeddedObject;
+import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
 import org.hisp.dhis.schema.Property;
@@ -40,6 +45,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
@@ -73,7 +79,7 @@ public class JsonPatchManager
      * @param object Jackson Object to apply the patch to.
      * @return New instance of the object with the patch applied.
      */
-    @Transactional
+    @Transactional( readOnly = true )
     @SuppressWarnings( "unchecked" )
     public <T> T apply( JsonPatch patch, T object )
         throws JsonPatchException
@@ -92,7 +98,6 @@ public class JsonPatchManager
         handleCollectionUpdates( object, schema, (ObjectNode) node );
 
         node = patch.apply( node );
-
         return (T) jsonToObject( node, object.getClass(), jsonMapper,
             ex -> new JsonPatchException( ex.getMessage() ) );
     }
@@ -101,11 +106,50 @@ public class JsonPatchManager
     {
         for ( Property property : schema.getProperties() )
         {
+
             if ( property.isCollection() )
             {
                 Object data = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
-                node.set( property.getCollectionName(), jsonMapper.valueToTree( data ) );
+
+                Collection<?> collection = (Collection<?>) data;
+
+                if ( CollectionUtils.isEmpty( collection ) )
+                {
+                    continue;
+                }
+
+                if ( BaseIdentifiableObject.class.isAssignableFrom( property.getItemKlass() )
+                    && !EmbeddedObject.class.isAssignableFrom( property.getItemKlass() ) )
+                {
+                    ArrayNode arrayNode = jsonMapper.createArrayNode();
+
+                    collection.forEach( item -> arrayNode.add( jsonMapper.valueToTree(
+                        shallowCopyIdentifiableObject( (BaseIdentifiableObject) item ) ) ) );
+
+                    node.set( property.getCollectionName(), arrayNode );
+                }
+                else
+                {
+                    node.set( property.getCollectionName(), jsonMapper.valueToTree( data ) );
+                }
             }
         }
+    }
+
+    /**
+     * Create a copy of given {@link BaseIdentifiableObject} but only with two
+     * properties: {@link BaseIdentifiableObject#setId(long)} and
+     * {@link BaseIdentifiableObject#setUid(String)}. No other properties will
+     * be copied.
+     *
+     * @param source the BaseIdentifiableObject to be cloned.
+     * @return a new BaseIdentifiableObject with id and uid properties.
+     */
+    private BaseIdentifiableObject shallowCopyIdentifiableObject( BaseIdentifiableObject source )
+    {
+        BaseIdentifiableObject clone = new BaseIdentifiableObject();
+        clone.setId( source.getId() );
+        clone.setUid( source.getUid() );
+        return clone;
     }
 }

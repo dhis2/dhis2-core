@@ -28,6 +28,7 @@
 package org.hisp.dhis.system.grid;
 
 import static java.util.stream.Collectors.toList;
+import static org.hisp.dhis.commons.collection.CollectionUtils.mapToList;
 import static org.hisp.dhis.feedback.ErrorCode.E7230;
 
 import java.io.Serializable;
@@ -39,7 +40,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -57,6 +57,7 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.PerformanceMetrics;
+import org.hisp.dhis.common.Reference;
 import org.hisp.dhis.common.adapter.JacksonRowDataSerializer;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.system.util.MathUtils;
@@ -116,9 +117,14 @@ public class ListGrid
 
     /**
      * A two dimensional List which simulates a grid where the first list
-     * represents rows and the second represents columns.
+     * represents all rows and the second represents a single row with columns.
      */
     private List<List<Object>> grid;
+
+    /**
+     * References.
+     */
+    private List<Reference> refs;
 
     /**
      * Indicating the current row in the grid for writing data.
@@ -135,6 +141,8 @@ public class ListGrid
      * the grid.
      */
     private Map<String, Integer> columnIndexMap = new HashMap<>();
+
+    private boolean lastDataRow;
 
     /**
      * Default constructor.
@@ -301,7 +309,13 @@ public class ListGrid
     @Override
     public int getIndexOfHeader( String name )
     {
-        return headers.indexOf( new GridHeader( name, null ) );
+        return headers.indexOf( new GridHeader( name ) );
+    }
+
+    @Override
+    public boolean headerExists( String name )
+    {
+        return getIndexOfHeader( name ) != -1;
     }
 
     @Override
@@ -477,6 +491,13 @@ public class ListGrid
     public List<List<Object>> getRows()
     {
         return grid;
+    }
+
+    @Override
+    @JsonProperty
+    public List<Reference> getRefs()
+    {
+        return refs;
     }
 
     @Override
@@ -1103,20 +1124,33 @@ public class ListGrid
     }
 
     @Override
-    public Grid maybeAddPerformanceMetrics( List<ExecutionPlan> plans )
+    public Grid addPerformanceMetrics( List<ExecutionPlan> plans )
     {
         if ( plans.isEmpty() )
         {
             return this;
         }
 
+        double total = plans.stream()
+            .map( ExecutionPlan::getTimeInMillis )
+            .reduce( 0.0, Double::sum );
+
         performanceMetrics = new PerformanceMetrics();
-
-        double total = plans.stream().map( ExecutionPlan::getTimeInMillis ).reduce( 0.0, Double::sum );
-
         performanceMetrics.setTotalTimeInMillis( Precision.round( total, 3 ) );
-
         performanceMetrics.setExecutionPlans( plans );
+
+        return this;
+    }
+
+    @Override
+    public Grid addReference( Reference reference )
+    {
+        if ( refs == null )
+        {
+            refs = new ArrayList<>();
+        }
+
+        refs.add( reference );
 
         return this;
     }
@@ -1127,18 +1161,8 @@ public class ListGrid
         return addRows( rs, -1 );
     }
 
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
-
-    /**
-     * This method will take a Grid and keep only the given list of headers. All
-     * other GridHeaders and respective columns will be removed from the Grid.
-     *
-     * @param headers
-     */
     @Override
-    public void keepOnlyThese( final Set<String> headers )
+    public void retainColumns( Set<String> headers )
     {
         final List<String> exclusions = getHeaders().stream().map( GridHeader::getName ).collect( toList() );
         exclusions.removeAll( headers );
@@ -1155,31 +1179,22 @@ public class ListGrid
         }
     }
 
-    /**
-     * Re-order the GridHeaders of the given Grid based on the List headers. The
-     * final Grid will have the all its headers defined in the same order as the
-     * given List of headers.
-     *
-     * @param headers
-     * @return a Set of indexes that holds the holds the new order
-     */
     @Override
-    public Set<Integer> repositionHeaders( final Set<String> headers )
+    public List<Integer> repositionHeaders( List<String> headers )
     {
         verifyGridState();
 
-        final List<String> gridHeaders = getHeaders().stream().map( GridHeader::getName ).collect( toList() );
+        final List<String> headerNames = mapToList( getHeaders(), GridHeader::getName );
         final List<GridHeader> orderedHeaders = new ArrayList<>();
-        final Set<Integer> newColumnIndexes = new LinkedHashSet<>();
+        final List<Integer> columnIndexes = new ArrayList<>();
 
-        for ( final String header : headers )
+        for ( String header : headers )
         {
-            if ( gridHeaders.contains( header ) )
+            if ( headerNames.contains( header ) )
             {
-                final int gridHeaderIndex = getIndexOfHeader( header );
-                orderedHeaders.add( getHeaders().get( gridHeaderIndex ) );
-
-                newColumnIndexes.add( gridHeaderIndex );
+                int headerIndex = getIndexOfHeader( header );
+                orderedHeaders.add( getHeaders().get( headerIndex ) );
+                columnIndexes.add( headerIndex );
             }
             else
             {
@@ -1189,36 +1204,45 @@ public class ListGrid
 
         replaceHeaders( orderedHeaders );
 
-        return newColumnIndexes;
+        return columnIndexes;
     }
 
-    /**
-     * Based on the given column indexes, this method will order the current
-     * columns in the Grid. The new positions of the columns will respect the
-     * new indexes.
-     *
-     * @param newColumnsIndexes
-     */
     @Override
-    public void repositionColumns( final Set<Integer> newColumnsIndexes )
+    public void repositionColumns( List<Integer> columnIndexes )
     {
         verifyGridState();
 
-        final List<List<Object>> allRows = getRows();
-        final List<Integer> newIndexes = new ArrayList<>( newColumnsIndexes );
+        List<List<Object>> rows = getRows();
 
-        for ( final List<Object> columns : allRows )
+        for ( List<Object> row : rows )
         {
-            final List<Object> orderedColumns = new ArrayList<>();
-            for ( int i = 0; i < columns.size(); i++ )
+            List<Object> orderedValues = new ArrayList<>();
+
+            for ( int i = 0; i < row.size(); i++ )
             {
-                orderedColumns.add( columns.get( newIndexes.get( i ) ) );
+                orderedValues.add( row.get( columnIndexes.get( i ) ) );
             }
 
-            columns.clear();
-            columns.addAll( orderedColumns );
+            row.clear();
+            row.addAll( orderedValues );
         }
     }
+
+    @Override
+    public boolean hasLastDataRow()
+    {
+        return lastDataRow;
+    }
+
+    @Override
+    public void setLastDataRow( boolean lastDataRow )
+    {
+        this.lastDataRow = lastDataRow;
+    }
+
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
 
     /**
      * Verifies that all grid rows are of the same length.

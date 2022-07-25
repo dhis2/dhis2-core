@@ -38,9 +38,10 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.tracker.domain.DataValue;
-import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.util.DateUtils;
+import org.hisp.dhis.webapi.controller.tracker.view.DataValue;
+import org.hisp.dhis.webapi.controller.tracker.view.Event;
+import org.hisp.dhis.webapi.controller.tracker.view.User;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
 import org.springframework.stereotype.Service;
@@ -95,17 +96,16 @@ public class TrackerCsvEventService
             templateDataValue.setUpdatedAt( event.getUpdatedAt() == null ? null : event.getUpdatedAt().toString() );
             templateDataValue.setUpdatedAtClient(
                 event.getUpdatedAtClient() == null ? null : event.getUpdatedAtClient().toString() );
-            templateDataValue.setCompletedBy( event.getCompletedBy() );
             templateDataValue
                 .setCompletedAt( event.getCompletedAt() == null ? null : event.getCompletedAt().toString() );
-            templateDataValue.setUpdatedBy( event.getUpdatedBy() );
+            templateDataValue.setUpdatedBy( event.getUpdatedBy().getUsername() );
             templateDataValue.setStoredBy( event.getStoredBy() );
             templateDataValue
                 .setCompletedAt( event.getCompletedAt() == null ? null : event.getCompletedAt().toString() );
             templateDataValue.setCompletedBy( event.getCompletedBy() );
             templateDataValue.setAttributeOptionCombo( event.getAttributeOptionCombo() );
             templateDataValue.setAttributeCategoryOptions( event.getAttributeCategoryOptions() );
-            templateDataValue.setAssignedUser( event.getAssignedUser() );
+            templateDataValue.setAssignedUser( event.getAssignedUser().getUsername() );
 
             if ( event.getGeometry() != null )
             {
@@ -184,7 +184,7 @@ public class TrackerCsvEventService
                 event.setStoredBy( dataValue.getStoredBy() );
                 event.setAttributeOptionCombo( dataValue.getAttributeOptionCombo() );
                 event.setAttributeCategoryOptions( dataValue.getAttributeCategoryOptions() );
-                event.setAssignedUser( dataValue.getAssignedUser() );
+                event.setAssignedUser( User.builder().username( dataValue.getAssignedUser() ).build() );
 
                 if ( dataValue.getGeometry() != null )
                 {

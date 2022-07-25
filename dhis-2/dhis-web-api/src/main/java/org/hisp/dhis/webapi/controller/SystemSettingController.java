@@ -32,7 +32,6 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -53,7 +52,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUser;
@@ -89,8 +87,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 public class SystemSettingController
 {
     private final SystemSettingManager systemSettingManager;
-
-    private final RenderService renderService;
 
     private final UserSettingService userSettingService;
 
@@ -266,26 +262,13 @@ public class SystemSettingController
         return Optional.empty();
     }
 
-    @GetMapping( produces = { APPLICATION_JSON_VALUE, ContextUtils.CONTENT_TYPE_HTML } )
+    @GetMapping( produces = APPLICATION_JSON_VALUE )
     public ResponseEntity<Map<String, Serializable>> getSystemSettingsJson(
         @RequestParam( value = "key", required = false ) Set<String> keys )
     {
         return ResponseEntity.ok()
             .cacheControl( CacheControl.noCache().cachePrivate() )
             .body( systemSettingManager.getSystemSettings( getSettingKeysToFetch( keys ) ) );
-    }
-
-    @GetMapping( produces = "application/javascript" )
-    public void getSystemSettingsJsonP( @RequestParam( value = "key", required = false ) Set<String> keys,
-        @RequestParam( defaultValue = "callback" ) String callback, HttpServletResponse response )
-        throws IOException
-    {
-        Set<SettingKey> settingKeys = getSettingKeysToFetch( keys );
-
-        response.setContentType( APPLICATION_JSON_VALUE );
-        response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
-        renderService.toJsonP( response.getOutputStream(), systemSettingManager.getSystemSettings( settingKeys ),
-            callback );
     }
 
     private Set<SettingKey> getSettingKeysToFetch( Set<String> keys )

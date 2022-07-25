@@ -26,25 +26,14 @@
     <many-to-one name="program" class="org.hisp.dhis.program.Program"
       column="programid" not-null="true" foreign-key="fk_trackedentityinstancefilter_programid" lazy="false" />
     
-    <property name="enrollmentStatus" length="50">
-      <type name="org.hibernate.type.EnumType">
-        <param name="enumClass">org.hisp.dhis.program.ProgramStatus</param>
-        <param name="useNamed">true</param>
-        <param name="type">12</param>
-      </type>
-    </property>
-    
-    <property name="followup" />
-    
-    <property name="enrollmentCreatedPeriod" type="jbFilterPeriod" />
-    
     <property name="eventFilters" type="jlbEventFilter" />
 
-    <property name="attributeValueFilters" type="jlbAttributeValueFilter" />
+    <property name="entityQueryCriteria" column="entityquerycriteria" type="jbEntityQueryCriteria" />
 
     <property name="translations" type="jblTranslations"/>
 
-    <!-- Sharing -->
+    <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_trackedentityinstancefilter_userid" />
+
     <property name="sharing" type="jsbObjectSharing"/>
     
   </class>

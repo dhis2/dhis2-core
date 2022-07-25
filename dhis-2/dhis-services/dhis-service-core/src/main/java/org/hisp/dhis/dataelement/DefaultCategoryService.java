@@ -37,6 +37,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.collections4.SetValuedMap;
+import org.hisp.dhis.association.jdbc.JdbcOrgUnitAssociationsStore;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryComboStore;
@@ -56,12 +57,10 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
-import org.hisp.dhis.program.jdbc.JdbcOrgUnitAssociationsStore;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -285,11 +284,11 @@ public class DefaultCategoryService
 
     @Override
     @Transactional( readOnly = true )
-    public Set<CategoryOption> getCoDimensionConstraints( UserCredentials userCredentials )
+    public Set<CategoryOption> getCoDimensionConstraints( User user )
     {
         Set<CategoryOption> options = null;
 
-        Set<Category> catConstraints = userCredentials.getCatDimensionConstraints();
+        Set<Category> catConstraints = user.getCatDimensionConstraints();
 
         if ( catConstraints != null && !catConstraints.isEmpty() )
         {
@@ -566,11 +565,7 @@ public class DefaultCategoryService
     @Transactional( readOnly = true )
     public CategoryOptionCombo getDefaultCategoryOptionCombo()
     {
-        CategoryCombo categoryCombo = getCategoryComboByName( CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME );
-
-        return categoryCombo != null && categoryCombo.hasOptionCombos()
-            ? categoryCombo.getOptionCombos().iterator().next()
-            : null;
+        return categoryOptionComboStore.getByName( CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME );
     }
 
     @Override
@@ -791,11 +786,11 @@ public class DefaultCategoryService
 
     @Override
     @Transactional( readOnly = true )
-    public Set<CategoryOptionGroup> getCogDimensionConstraints( UserCredentials userCredentials )
+    public Set<CategoryOptionGroup> getCogDimensionConstraints( User user )
     {
         Set<CategoryOptionGroup> groups = null;
 
-        Set<CategoryOptionGroupSet> cogsConstraints = userCredentials.getCogsDimensionConstraints();
+        Set<CategoryOptionGroupSet> cogsConstraints = user.getCogsDimensionConstraints();
 
         if ( cogsConstraints != null && !cogsConstraints.isEmpty() )
         {

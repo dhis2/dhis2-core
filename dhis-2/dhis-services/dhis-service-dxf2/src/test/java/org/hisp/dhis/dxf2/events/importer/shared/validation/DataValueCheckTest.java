@@ -36,12 +36,18 @@ import static org.hisp.dhis.dxf2.events.importer.EventTestUtils.createEventDataV
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
 import org.hisp.dhis.dxf2.events.importer.validation.BaseValidationTest;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ValidationStrategy;
@@ -77,6 +83,31 @@ class DataValueCheckTest extends BaseValidationTest
     @Test
     void verifyNoErrorOnNoDataValues()
     {
+        assertNoError( rule.check( new ImmutableEvent( event ), this.workContext ) );
+    }
+
+    @Test
+    void verifyDataValuesWithOptionSetOk()
+    {
+        DataElement dataElement = createDataElement( 'A' );
+        dataElement.setValueType( ValueType.TEXT );
+
+        List<Option> optionList = new ArrayList<>();
+
+        Option option = new Option();
+        option.setCode( "CODE" );
+        optionList.add( option );
+        optionList.add( null );
+
+        OptionSet optionSet = new OptionSet( "OptionSet", ValueType.TEXT, optionList );
+
+        dataElement.setOptionSet( optionSet );
+
+        DataElement de1 = addToDataElementMap( dataElement );
+
+        DataValue dv1 = createDataValue( de1.getUid(), "CODE" );
+        event.setDataValues( Sets.newHashSet( dv1 ) );
+
         assertNoError( rule.check( new ImmutableEvent( event ), this.workContext ) );
     }
 

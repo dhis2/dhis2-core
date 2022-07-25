@@ -62,7 +62,7 @@ public class TwoFAPopulator
         userQueryParams.setNot2FA( true );
 
         userService.getUsers( userQueryParams ).forEach( user -> {
-            user.getUserCredentials().setSecret( null );
+            user.setSecret( null );
             userService.updateUser( user );
         } );
     }

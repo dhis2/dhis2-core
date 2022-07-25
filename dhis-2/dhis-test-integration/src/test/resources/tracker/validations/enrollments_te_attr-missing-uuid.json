@@ -1,0 +1,92 @@
+{
+  "importMode": "COMMIT",
+  "idSchemes": {
+    "dataElementIdScheme": {
+      "idScheme": "UID"
+    },
+    "orgUnitIdScheme": {
+      "idScheme": "UID"
+    },
+    "programIdScheme": {
+      "idScheme": "UID"
+    },
+    "programStageIdScheme": {
+      "idScheme": "UID"
+    },
+    "idScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionComboIdScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionIdScheme": {
+      "idScheme": "UID"
+    }
+  },
+  "importStrategy": "CREATE",
+  "atomicMode": "ALL",
+  "flushMode": "AUTO",
+  "validationMode": "FULL",
+  "skipPatternValidation": false,
+  "skipSideEffects": false,
+  "skipRuleEngine": false,
+  "trackedEntities": [],
+  "enrollments": [
+    {
+      "enrollment": "MNWZ6hnuhSw",
+      "updatedAt": "2019-08-19T13:58:26.874",
+      "trackedEntity": "Kj6vYde4LHh",
+      "program": {
+        "idScheme": "UID",
+        "identifier": "E8o1E9tAppy"
+      },
+      "status": "ACTIVE",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
+      "enrolledAt": "2019-08-19T00:00:00.000",
+      "occurredAt": "2019-08-19T00:00:00.000",
+      "followUp": false,
+      "deleted": false,
+      "storedBy": "admin",
+      "events": [],
+      "relationships": [],
+      "attributes": [
+        {
+          "attribute": {
+            "idScheme": "UID"
+          },
+          "displayName": "Attribute_Integer",
+          "storedBy": "admin",
+          "valueType": "INTEGER",
+          "value": "123"
+        },
+        {
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "sTJvSLN7Kcb"
+          },
+          "displayName": "Attribute_Address",
+          "storedBy": "admin",
+          "valueType": "TEXT",
+          "value": "ADDRESS STREET 1"
+        },
+        {
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "TGqP5JNy6Es"
+          },
+          "displayName": "mandatory_program_attribute",
+          "storedBy": "admin",
+          "valueType": "TEXT",
+          "value": "ADDRESS STREET 1"
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "events": [],
+  "relationships": [],
+  "username": "system-process"
+}

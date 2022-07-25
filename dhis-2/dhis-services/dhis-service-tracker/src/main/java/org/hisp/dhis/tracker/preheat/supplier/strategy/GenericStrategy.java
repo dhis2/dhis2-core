@@ -33,7 +33,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.cache.PreheatCacheService;
 import org.hisp.dhis.tracker.preheat.mappers.CopyMapper;
@@ -55,7 +55,7 @@ public class GenericStrategy extends AbstractSchemaStrategy
     public void add( Class<?> klazz, List<List<String>> splitList, TrackerPreheat preheat )
     {
         Schema schema = schemaService.getDynamicSchema( klazz );
-        queryForIdentifiableObjects( preheat, schema, TrackerIdentifier.UID, splitList,
+        queryForIdentifiableObjects( preheat, schema, TrackerIdSchemeParam.UID, splitList,
             getClass().getAnnotation( StrategyFor.class ).mapper() );
     }
 }

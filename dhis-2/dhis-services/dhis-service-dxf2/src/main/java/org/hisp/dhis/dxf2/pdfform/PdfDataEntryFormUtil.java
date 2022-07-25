@@ -167,22 +167,15 @@ public class PdfDataEntryFormUtil
 
         switch ( cellContentType )
         {
+        case CELL_COLUMN_TYPE_HEADER: // fallthrough
         case CELL_COLUMN_TYPE_ENTRYFIELD:
             cell.setHorizontalAlignment( Element.ALIGN_CENTER );
             cell.setVerticalAlignment( Element.ALIGN_MIDDLE );
-
             break;
-
-        case CELL_COLUMN_TYPE_HEADER:
-            cell.setHorizontalAlignment( Element.ALIGN_CENTER );
-            cell.setVerticalAlignment( Element.ALIGN_MIDDLE );
-
-            break;
-
         case CELL_COLUMN_TYPE_LABEL:
             cell.setHorizontalAlignment( Element.ALIGN_RIGHT );
             cell.setVerticalAlignment( Element.ALIGN_TOP );
-
+            break;
         default:
             break;
         }

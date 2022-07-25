@@ -25,11 +25,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.tracker.importer.databuilder;
 
-import com.google.gson.JsonObject;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
+
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -43,6 +43,12 @@ public class RelationshipDataBuilder implements TrackerImporterDataBuilder
         this.jsonBuilder = new JsonObjectBuilder();
     }
 
+    public RelationshipDataBuilder setRelationshipId( String id )
+    {
+        this.jsonBuilder.addProperty( "relationship", id );
+        return this;
+    }
+
     public RelationshipDataBuilder setRelationshipType( String relationshipType )
     {
         this.jsonBuilder.addProperty( "relationshipType", relationshipType );
@@ -51,9 +57,7 @@ public class RelationshipDataBuilder implements TrackerImporterDataBuilder
 
     public RelationshipDataBuilder setFromEntity( String entityName, String entityId )
     {
-        this.jsonBuilder.addObject( "from", new JsonObjectBuilder()
-            .addProperty( entityName, entityId ) );
-
+        this.jsonBuilder.addObject( "from", relationshipItem( entityName, entityId ) );
         return this;
     }
 
@@ -64,15 +68,20 @@ public class RelationshipDataBuilder implements TrackerImporterDataBuilder
 
     public RelationshipDataBuilder setToEntity( String entityName, String entityId )
     {
-        this.jsonBuilder.addObject( "to", new JsonObjectBuilder()
-            .addProperty( entityName, entityId ) );
-
+        this.jsonBuilder.addObject( "to", relationshipItem( entityName, entityId ) );
         return this;
     }
 
     public RelationshipDataBuilder setToTrackedEntity( String trackedEntityId )
     {
         return setToEntity( "trackedEntity", trackedEntityId );
+    }
+
+    private JsonObjectBuilder relationshipItem( String type, String identifier )
+    {
+        return JsonObjectBuilder.jsonObject()
+            .addObject( type, JsonObjectBuilder.jsonObject()
+                .addProperty( type, identifier ) );
     }
 
     public RelationshipDataBuilder buildUniDirectionalRelationship( String teiA, String teiB )
@@ -94,10 +103,8 @@ public class RelationshipDataBuilder implements TrackerImporterDataBuilder
     {
         return new JsonObjectBuilder()
             .addProperty( "relationshipType", relationshipType )
-            .addObject( "from", new JsonObjectBuilder()
-                .addProperty( "trackedEntity", trackedEntity_1 ) )
-            .addObject( "to", new JsonObjectBuilder()
-                .addProperty( "trackedEntity", trackedEntity_2 ) )
+            .addObject( "from", relationshipItem( "trackedEntity", trackedEntity_1 ) )
+            .addObject( "to", relationshipItem( "trackedEntity", trackedEntity_2 ) )
             .build();
     }
 

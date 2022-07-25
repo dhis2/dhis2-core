@@ -27,7 +27,10 @@
  */
 package org.hisp.dhis.program.notification;
 
+import static java.lang.String.format;
+import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.program.notification.NotificationTrigger.PROGRAM_RULE;
+import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
 
 import java.util.Collections;
 import java.util.Date;
@@ -35,8 +38,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
 
@@ -66,7 +71,7 @@ import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageRecipients;
 import org.hisp.dhis.program.message.ProgramMessageService;
 import org.hisp.dhis.program.notification.template.snapshot.NotificationTemplateMapper;
-import org.hisp.dhis.system.util.Clock;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.User;
@@ -75,7 +80,6 @@ import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -131,66 +135,68 @@ public class DefaultProgramNotificationService
 
     @Override
     @Transactional
-    public void sendScheduledNotificationsForDay( Date notificationDate )
+    public void sendScheduledNotificationsForDay( Date notificationDate, JobProgress progress )
     {
-        Clock clock = new Clock( log ).startClock()
-            .logTime( "Processing ProgramStageNotification messages" );
+        progress.startingStage( "Fetching and filtering scheduled templates " );
+        List<ProgramNotificationTemplate> scheduledTemplates = progress.runStage( List.of(),
+            this::getScheduledTemplates );
 
-        List<ProgramNotificationTemplate> scheduledTemplates = getScheduledTemplates();
-
-        int totalMessageCount = 0;
-
-        for ( ProgramNotificationTemplate template : scheduledTemplates )
-        {
-            MessageBatch batch = createScheduledMessageBatchForDay( template, notificationDate );
-            sendAll( batch );
-
-            totalMessageCount += batch.messageCount();
-        }
-
-        clock.logTime( String.format( "Created and sent %d messages in %s", totalMessageCount, clock.time() ) );
+        progress.startingStage( "Processing ProgramStageNotification messages", scheduledTemplates.size(),
+            SKIP_ITEM_OUTLIER );
+        AtomicInteger totalMessageCount = new AtomicInteger();
+        progress.runStage( scheduledTemplates.stream(),
+            template -> "Processing template " + template.getName(),
+            template -> {
+                MessageBatch batch = createScheduledMessageBatchForDay( template, notificationDate );
+                sendAll( batch );
+                totalMessageCount.addAndGet( batch.messageCount() );
+            },
+            ( success, failed ) -> format( "Created and sent %d messages", totalMessageCount.get() ) );
     }
 
     @Override
     @Transactional
-    public void sendScheduledNotifications()
+    public void sendScheduledNotifications( JobProgress progress )
     {
-        Clock clock = new Clock( log ).startClock()
-            .logTime( "Processing ProgramStageNotification messages scheduled by program rules" );
+        progress.startingStage( "Fetching and filtering ProgramStageNotification messages scheduled by program rules" );
+        List<NotificationInstanceWithTemplate> instancesWithTemplates = progress.runStage( List.of(),
+            () -> identifiableObjectManager.getAll( ProgramNotificationInstance.class ).stream()
+                .map( this::withTemplate )
+                .filter( this::hasTemplate )
+                .filter( IS_SCHEDULED_BY_PROGRAM_RULE )
+                .collect( toList() ) );
 
-        List<NotificationInstanceWithTemplate> instancesWithTemplates = identifiableObjectManager
-            .getAll( ProgramNotificationInstance.class ).stream()
-            .map( this::withTemplate )
-            .filter( this::hasTemplate )
-            .filter( IS_SCHEDULED_BY_PROGRAM_RULE )
-            .collect( Collectors.toList() );
-
+        progress.startingStage( "Processing ProgramStageNotification messages scheduled by program rules",
+            instancesWithTemplates.size(), SKIP_ITEM_OUTLIER );
         if ( instancesWithTemplates.isEmpty() )
         {
+            progress.completedStage( "No instances with templates found." );
             return;
         }
 
-        int totalMessageCount;
+        List<MessageBatch> batches = progress.runStage( List.of(), () -> {
+            Stream<MessageBatch> programInstanceBatches = instancesWithTemplates.stream()
+                .filter( this::hasProgramInstance )
+                .map( iwt -> createProgramInstanceMessageBatch(
+                    iwt.getProgramNotificationTemplate(),
+                    List.of( iwt.getProgramNotificationInstance().getProgramInstance() ) ) );
 
-        List<MessageBatch> batches = instancesWithTemplates.stream()
-            .filter( this::hasProgramInstance )
-            .map( iwt -> createProgramInstanceMessageBatch(
-                iwt.getProgramNotificationTemplate(),
-                ImmutableList.of( iwt.getProgramNotificationInstance().getProgramInstance() ) ) )
-            .collect( Collectors.toList() );
+            Stream<MessageBatch> programStageInstanceBatches = instancesWithTemplates.stream()
+                .filter( this::hasProgramStageInstance )
+                .map( iwt -> createProgramStageInstanceMessageBatch(
+                    iwt.getProgramNotificationTemplate(),
+                    List.of( iwt.getProgramNotificationInstance().getProgramStageInstance() ) ) );
 
-        batches.addAll( instancesWithTemplates.stream()
-            .filter( this::hasProgramStageInstance )
-            .map( iwt -> createProgramStageInstanceMessageBatch(
-                iwt.getProgramNotificationTemplate(),
-                ImmutableList.of( iwt.getProgramNotificationInstance().getProgramStageInstance() ) ) )
-            .collect( Collectors.toList() ) );
+            return Stream.concat( programInstanceBatches, programStageInstanceBatches ).collect( toList() );
+        } );
 
-        batches.forEach( this::sendAll );
-
-        totalMessageCount = batches.stream().mapToInt( MessageBatch::messageCount ).sum();
-
-        clock.logTime( String.format( "Created and sent %d messages in %s", totalMessageCount, clock.time() ) );
+        progress.startingStage( "Sending message batches", batches.size(), SKIP_ITEM_OUTLIER );
+        progress.runStage( batches.stream(),
+            batch -> format( "Sending batch with %d DHIS messages and %d program messages",
+                batch.dhisMessages.size(), batch.programMessages.size() ),
+            this::sendAll,
+            ( success, failed ) -> format( "Created and sent %d messages",
+                batches.stream().mapToInt( MessageBatch::messageCount ).sum() ) );
     }
 
     private boolean hasProgramStageInstance( NotificationInstanceWithTemplate notificationInstanceWithTemplate )
@@ -309,7 +315,7 @@ public class DefaultProgramNotificationService
     public void sendProgramRuleTriggeredEventNotifications( long pnt, ProgramStageInstance programStageInstance )
     {
         MessageBatch messageBatch = createProgramStageInstanceMessageBatch( notificationTemplateService.get( pnt ),
-            Collections.singletonList( programStageInstance ) );
+            Collections.singletonList( programStageInstanceStore.getByUid( programStageInstance.getUid() ) ) );
         sendAll( messageBatch );
     }
 
@@ -334,7 +340,7 @@ public class DefaultProgramNotificationService
     {
         return identifiableObjectManager.getAll( ProgramNotificationTemplate.class ).stream()
             .filter( n -> n.getNotificationTrigger().isScheduled() )
-            .collect( Collectors.toList() );
+            .collect( toList() );
     }
 
     private void sendProgramStageInstanceNotifications( ProgramStageInstance programStageInstance,
@@ -525,7 +531,7 @@ public class DefaultProgramNotificationService
             List<String> recipientList = psi.getEventDataValues().stream()
                 .filter( dv -> template.getRecipientDataElement().getUid().equals( dv.getDataElement() ) )
                 .map( EventDataValue::getValue )
-                .collect( Collectors.toList() );
+                .collect( toList() );
 
             if ( template.getDeliveryChannels().contains( DeliveryChannel.SMS ) )
             {
@@ -567,7 +573,7 @@ public class DefaultProgramNotificationService
             List<String> recipientList = pi.getEntityInstance().getTrackedEntityAttributeValues().stream()
                 .filter( av -> template.getRecipientProgramAttribute().getUid().equals( av.getAttribute().getUid() ) )
                 .map( TrackedEntityAttributeValue::getPlainValue )
-                .collect( Collectors.toList() );
+                .collect( toList() );
 
             if ( template.getDeliveryChannels().contains( DeliveryChannel.SMS ) )
             {
@@ -635,11 +641,11 @@ public class DefaultProgramNotificationService
             return;
         }
 
-        log.debug( String.format( "Dispatching %d ProgramMessages", messages.size() ) );
+        log.debug( format( "Dispatching %d ProgramMessages", messages.size() ) );
 
         BatchResponseStatus status = programMessageService.sendMessages( Lists.newArrayList( messages ) );
 
-        log.debug( String.format( "Resulting status from ProgramMessageService:\n %s", status.toString() ) );
+        log.debug( format( "Resulting status from ProgramMessageService:%n %s", status.toString() ) );
     }
 
     private void sendAll( MessageBatch messageBatch )

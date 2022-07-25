@@ -109,7 +109,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -140,7 +139,6 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.ExecutionPlan;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.ReportingRateMetric;
-import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementOperand.TotalType;
@@ -173,8 +171,6 @@ public class DataHandler
 
     private final RawAnalyticsManager rawAnalyticsManager;
 
-    private final ConstantService constantService;
-
     private final ExpressionResolvers resolvers;
 
     private final ExpressionService expressionService;
@@ -194,14 +190,13 @@ public class DataHandler
     private final ExecutionPlanStore executionPlanStore;
 
     public DataHandler( EventAnalyticsService eventAnalyticsService, RawAnalyticsManager rawAnalyticsManager,
-        ConstantService constantService, ExpressionResolvers resolvers, ExpressionService expressionService,
+        ExpressionResolvers resolvers, ExpressionService expressionService,
         QueryPlanner queryPlanner, QueryValidator queryValidator, SystemSettingManager systemSettingManager,
         AnalyticsManager analyticsManager, OrganisationUnitService organisationUnitService,
         ExecutionPlanStore executionPlanStore )
     {
         checkNotNull( eventAnalyticsService );
         checkNotNull( rawAnalyticsManager );
-        checkNotNull( constantService );
         checkNotNull( resolvers );
         checkNotNull( expressionService );
         checkNotNull( queryPlanner );
@@ -213,7 +208,6 @@ public class DataHandler
 
         this.eventAnalyticsService = eventAnalyticsService;
         this.rawAnalyticsManager = rawAnalyticsManager;
-        this.constantService = constantService;
         this.resolvers = resolvers;
         this.expressionService = expressionService;
         this.queryPlanner = queryPlanner;
@@ -228,11 +222,11 @@ public class DataHandler
     {
         if ( params.analyzeOnly() )
         {
-            String key = params.getAnalyzeOrderId();
+            String key = params.getExplainOrderId();
 
             List<ExecutionPlan> plans = executionPlanStore.getExecutionPlans( key );
 
-            grid.maybeAddPerformanceMetrics( plans );
+            grid.addPerformanceMetrics( plans );
 
             executionPlanStore.removeExecutionPlans( key );
         }
@@ -262,8 +256,6 @@ public class DataHandler
                 ? dataSourceParams.getTypedFilterPeriods()
                 : dataSourceParams.getStartEndDatesToSingleList();
 
-            Map<String, Constant> constantMap = constantService.getConstantMap();
-
             // -----------------------------------------------------------------
             // Get indicator values
             // -----------------------------------------------------------------
@@ -285,7 +277,7 @@ public class DataHandler
             {
                 for ( List<DimensionItem> dimensionItems : dimensionItemPermutations )
                 {
-                    IndicatorValue value = getIndicatorValue( filterPeriods, constantMap, itemMap,
+                    IndicatorValue value = getIndicatorValue( filterPeriods, itemMap,
                         permutationOrgUnitTargetMap, permutationDimensionItemValueMap, indicator, dimensionItems );
 
                     addIndicatorValuesToGrid( params, grid, dataSourceParams, indicator, dimensionItems, value );
@@ -299,7 +291,6 @@ public class DataHandler
      * find the respective IndicatorValue.
      *
      * @param filterPeriods the filter periods.
-     * @param constantMap the current constants map.
      *        See @{{@link ConstantService#getConstantMap()}}.
      * @param permutationOrgUnitTargetMap the org unit permutation map. See
      *        {@link #getOrgUnitTargetMap(DataQueryParams, Collection)}.
@@ -314,7 +305,7 @@ public class DataHandler
      *        {@link DataQueryParams#getDimensionItemPermutations()}.
      * @return the IndicatorValue
      */
-    private IndicatorValue getIndicatorValue( List<Period> filterPeriods, Map<String, Constant> constantMap,
+    private IndicatorValue getIndicatorValue( List<Period> filterPeriods,
         Map<DimensionalItemId, DimensionalItemObject> itemMap,
         Map<String, Map<String, Integer>> permutationOrgUnitTargetMap,
         Map<String, List<DimensionItemObjectValue>> permutationDimensionItemValueMap,
@@ -337,7 +328,7 @@ public class DataHandler
             : null;
 
         return expressionService.getIndicatorValueObject( indicator, periods, itemMap,
-            convertToDimItemValueMap( values ), constantMap, orgUnitCountMap );
+            convertToDimItemValueMap( values ), orgUnitCountMap );
     }
 
     /**
@@ -872,7 +863,7 @@ public class DataHandler
     private Map<String, Map<String, Integer>> getOrgUnitTargetMap( DataQueryParams params,
         Collection<Indicator> indicators )
     {
-        Set<OrganisationUnitGroup> orgUnitGroups = expressionService.getIndicatorOrgUnitGroups( indicators );
+        List<OrganisationUnitGroup> orgUnitGroups = expressionService.getOrgUnitGroupCountGroups( indicators );
 
         if ( orgUnitGroups.isEmpty() )
         {
@@ -881,8 +872,7 @@ public class DataHandler
 
         DataQueryParams orgUnitTargetParams = newBuilder( params )
             .pruneToDimensionType( ORGANISATION_UNIT )
-            .addDimension( new BaseDimensionalObject( ORGUNIT_GROUP_DIM_ID,
-                ORGANISATION_UNIT_GROUP, new ArrayList<DimensionalItemObject>( orgUnitGroups ) ) )
+            .addDimension( new BaseDimensionalObject( ORGUNIT_GROUP_DIM_ID, ORGANISATION_UNIT_GROUP, orgUnitGroups ) )
             .withOutputFormat( ANALYTICS )
             .withSkipPartitioning( true )
             .withSkipDataDimensionValidation( true )
@@ -1067,8 +1057,12 @@ public class DataHandler
             return;
         }
 
-        final List<Object> adjustedRow = (dimensionalItemObject.getPeriodOffset() != 0)
-            ? getPeriodOffsetRow( row, periodIndex, dimensionalItemObject.getPeriodOffset() )
+        int periodOffset = (dimensionalItemObject.getQueryMods() == null)
+            ? 0
+            : dimensionalItemObject.getQueryMods().getPeriodOffset();
+
+        final List<Object> adjustedRow = (periodOffset != 0)
+            ? getPeriodOffsetRow( row, periodIndex, periodOffset )
             : row;
 
         if ( !isPeriodInPeriods( (String) adjustedRow.get( periodIndex ), basePeriods ) )
@@ -1199,5 +1193,4 @@ public class DataHandler
     {
         this.dataAggregator = dataAggregator;
     }
-
 }

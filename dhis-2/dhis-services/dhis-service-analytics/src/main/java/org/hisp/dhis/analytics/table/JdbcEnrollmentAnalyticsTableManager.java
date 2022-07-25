@@ -37,6 +37,7 @@ import static org.hisp.dhis.analytics.ColumnDataType.VARCHAR_255;
 import static org.hisp.dhis.analytics.ColumnDataType.VARCHAR_50;
 import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NOT_NULL;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.analytics.util.DisplayNameUtils.getDisplayName;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
 import java.util.ArrayList;
@@ -86,8 +87,6 @@ public class JdbcEnrollmentAnalyticsTableManager
             databaseInfo, jdbcTemplate );
     }
 
-    public static final String STORED_BY_COL_NAME = "storedby";
-
     private static final List<AnalyticsTableColumn> FIXED_COLS = ImmutableList.of(
         new AnalyticsTableColumn( quote( "pi" ), CHARACTER_11, NOT_NULL, "pi.uid" ),
         new AnalyticsTableColumn( quote( "enrollmentdate" ), TIMESTAMP, "pi.enrollmentdate" ),
@@ -95,7 +94,23 @@ public class JdbcEnrollmentAnalyticsTableManager
         new AnalyticsTableColumn( quote( "completeddate" ), TIMESTAMP,
             "case pi.status when 'COMPLETED' then pi.enddate end" ),
         new AnalyticsTableColumn( quote( "lastupdated" ), TIMESTAMP, "pi.lastupdated" ),
-        new AnalyticsTableColumn( quote( STORED_BY_COL_NAME ), VARCHAR_255, "pi.storedby" ),
+        new AnalyticsTableColumn( quote( "storedby" ), VARCHAR_255, "pi.storedby" ),
+        new AnalyticsTableColumn( quote( "createdbyusername" ), VARCHAR_255,
+            "pi.createdbyuserinfo ->> 'username' as createdbyusername" ),
+        new AnalyticsTableColumn( quote( "createdbyname" ), VARCHAR_255,
+            "pi.createdbyuserinfo ->> 'firstName' as createdbyname" ),
+        new AnalyticsTableColumn( quote( "createdbylastname" ), VARCHAR_255,
+            "pi.createdbyuserinfo ->> 'surname' as createdbylastname" ),
+        new AnalyticsTableColumn( quote( "createdbydisplayname" ), VARCHAR_255,
+            getDisplayName( "createdbyuserinfo", "pi", "createdbydisplayname" ) ),
+        new AnalyticsTableColumn( quote( "lastupdatedbyusername" ), VARCHAR_255,
+            "pi.lastupdatedbyuserinfo ->> 'username' as lastupdatedbyusername" ),
+        new AnalyticsTableColumn( quote( "lastupdatedbyname" ), VARCHAR_255,
+            "pi.lastupdatedbyuserinfo ->> 'firstName' as lastupdatedbyname" ),
+        new AnalyticsTableColumn( quote( "lastupdatedbylastname" ), VARCHAR_255,
+            "pi.lastupdatedbyuserinfo ->> 'surname' as lastupdatedbylastname" ),
+        new AnalyticsTableColumn( quote( "lastupdatedbydisplayname" ), VARCHAR_255,
+            getDisplayName( "lastupdatedbyuserinfo", "pi", "lastupdatedbydisplayname" ) ),
         new AnalyticsTableColumn( quote( "enrollmentstatus" ), VARCHAR_50, "pi.status" ),
         new AnalyticsTableColumn( quote( "longitude" ), DOUBLE,
             "CASE WHEN 'POINT' = GeometryType(pi.geometry) THEN ST_X(pi.geometry) ELSE null END" ),
@@ -192,6 +207,7 @@ public class JdbcEnrollmentAnalyticsTableManager
         if ( program.isRegistration() )
         {
             columns.add( new AnalyticsTableColumn( quote( "tei" ), CHARACTER_11, "tei.uid" ) );
+            columns.add( new AnalyticsTableColumn( quote( "teigeometry" ), GEOMETRY, "tei.geometry" ) );
         }
 
         return filterDimensionColumns( columns );

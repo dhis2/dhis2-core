@@ -1,0 +1,91 @@
+{
+  "importMode": "COMMIT",
+  "idSchemes": {
+    "dataElementIdScheme": {
+      "idScheme": "UID"
+    },
+    "orgUnitIdScheme": {
+      "idScheme": "UID"
+    },
+    "programIdScheme": {
+      "idScheme": "UID"
+    },
+    "programStageIdScheme": {
+      "idScheme": "UID"
+    },
+    "idScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionComboIdScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionIdScheme": {
+      "idScheme": "UID"
+    }
+  },
+  "importStrategy": "CREATE",
+  "atomicMode": "ALL",
+  "flushMode": "AUTO",
+  "validationMode": "FULL",
+  "skipPatternValidation": false,
+  "skipSideEffects": false,
+  "skipRuleEngine": false,
+  "trackedEntities": [
+    {
+      "trackedEntity": "bPJ0FMtcnER",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "bPJ0FMtcnEh"
+      },
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
+      "inactive": false,
+      "deleted": false,
+      "potentialDuplicate": false,
+      "relationships": [],
+      "attributes": [
+        {
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "cejWyOfXge6"
+          },
+          "storedBy": "admin",
+          "value": "Male"
+        }
+      ],
+      "enrollments": []
+    },
+    {
+      "trackedEntity": "bPJ0FMtcnEL",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "bPJ0FMtcnEh"
+      },
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
+      "inactive": false,
+      "deleted": false,
+      "potentialDuplicate": false,
+      "relationships": [],
+      "attributes": [
+        {
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "cejWyOfXge6"
+          },
+          "storedBy": "admin",
+          "value": "Female"
+        }
+      ],
+      "enrollments": []
+    }
+  ],
+  "enrollments": [],
+  "events": [],
+  "relationships": [],
+  "username": "system-process"
+}

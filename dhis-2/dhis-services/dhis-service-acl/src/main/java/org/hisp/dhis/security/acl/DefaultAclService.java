@@ -414,8 +414,11 @@ public class DefaultAclService implements AclService
     public <T extends IdentifiableObject> boolean canMakeClassPublic( User user, Class<T> klass )
     {
         Schema schema = schemaService.getSchema( klass );
-        return !(schema == null || !schema.isShareable())
-            && canAccess( user, schema.getAuthorityByType( AuthorityType.CREATE_PUBLIC ) );
+
+        if ( schema == null || !schema.isShareable() )
+            return false;
+
+        return canAccess( user, schema.getAuthorityByType( AuthorityType.CREATE_PUBLIC ) );
     }
 
     @Override
@@ -687,7 +690,7 @@ public class DefaultAclService implements AclService
 
     private boolean haveAuthority( User user, Collection<String> anyAuthorities )
     {
-        return containsAny( user.getUserCredentials().getAllAuthorities(), anyAuthorities );
+        return containsAny( user.getAllAuthorities(), anyAuthorities );
     }
 
     /**

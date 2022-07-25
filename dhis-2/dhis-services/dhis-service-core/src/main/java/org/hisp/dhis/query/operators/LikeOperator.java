@@ -89,12 +89,9 @@ public class LikeOperator<T extends Comparable<? super T>> extends Operator<T>
                 String.valueOf( args.get( 0 ) ).replace( "%", "" ),
                 jpaMatchMode );
         }
-        else
-        {
-            return JpaQueryUtils.stringPredicateIgnoreCase( builder, root.get( queryPath.getPath() ),
-                String.valueOf( args.get( 0 ) ).replace( "%", "" ),
-                jpaMatchMode );
-        }
+        return JpaQueryUtils.stringPredicateIgnoreCase( builder, root.get( queryPath.getPath() ),
+            String.valueOf( args.get( 0 ) ).replace( "%", "" ),
+            jpaMatchMode );
     }
 
     @Override

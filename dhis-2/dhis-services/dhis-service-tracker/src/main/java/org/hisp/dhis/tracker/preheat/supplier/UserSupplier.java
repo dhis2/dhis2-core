@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.tracker.preheat.supplier;
 
+import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -34,15 +36,15 @@ import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.preheat.DetachUtils;
+import org.hisp.dhis.tracker.domain.User;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.mappers.UserMapper;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Component;
 
 /**
@@ -55,16 +57,35 @@ public class UserSupplier extends AbstractPreheatSupplier
     @NonNull
     private final IdentifiableObjectManager manager;
 
+    @NonNull
+    private final UserService userService;
+
     @Override
     public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
     {
         Set<String> userUids = params.getEvents().stream()
             .filter( Objects::nonNull )
             .map( Event::getAssignedUser )
+            .filter( Objects::nonNull )
+            .map( User::getUid )
             .filter( CodeGenerator::isValidUid )
             .collect( Collectors.toSet() );
 
-        preheat.put( TrackerIdentifier.UID,
-            DetachUtils.detach( UserMapper.INSTANCE, manager.getByUid( User.class, userUids ) ) );
+        Set<String> usernames = params.getEvents().stream()
+            .filter( Objects::nonNull )
+            .map( Event::getAssignedUser )
+            .filter( Objects::nonNull )
+            .map( User::getUsername )
+            .filter( StringUtils::isNotBlank )
+            .collect( Collectors.toSet() );
+
+        List<org.hisp.dhis.user.User> users = userService.getUsersByUsernames( usernames );
+
+        Set<org.hisp.dhis.user.User> validUsers = new HashSet<>( DetachUtils.detach( UserMapper.INSTANCE, users ) );
+        Set<org.hisp.dhis.user.User> validUsersByUid = new HashSet<>(
+            DetachUtils.detach( UserMapper.INSTANCE, manager.getByUid( org.hisp.dhis.user.User.class, userUids ) ) );
+
+        preheat.addUsers( validUsers );
+        preheat.addUsers( validUsersByUid );
     }
 }

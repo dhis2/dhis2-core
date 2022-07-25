@@ -49,6 +49,7 @@ import org.hisp.dhis.datastatistics.DataStatisticsService;
 import org.hisp.dhis.datastatistics.EventInterval;
 import org.hisp.dhis.datastatistics.FavoriteStatistics;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
@@ -160,6 +161,6 @@ public class DataStatisticsController
     @PostMapping( "/snapshot" )
     public void saveSnapshot()
     {
-        dataStatisticsService.saveDataStatisticsSnapshot();
+        dataStatisticsService.saveDataStatisticsSnapshot( NoopJobProgress.INSTANCE );
     }
 }

@@ -51,13 +51,16 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.MOD;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.MUL;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.NE;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.NOT;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.NULL;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.OR;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.PAREN;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.PLUS;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.POWER;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.REMOVE_ZEROS;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.VERTICAL_BAR_2;
+import static org.hisp.dhis.util.DateUtils.parseDate;
 
-import java.util.List;
+import java.util.Date;
 
 import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.parser.expression.dataitem.ItemConstant;
@@ -69,6 +72,8 @@ import org.hisp.dhis.parser.expression.function.FunctionIsNull;
 import org.hisp.dhis.parser.expression.function.FunctionLeast;
 import org.hisp.dhis.parser.expression.function.FunctionLog;
 import org.hisp.dhis.parser.expression.function.FunctionLog10;
+import org.hisp.dhis.parser.expression.function.FunctionRemoveZeros;
+import org.hisp.dhis.parser.expression.literal.NullLiteral;
 import org.hisp.dhis.parser.expression.operator.OperatorCompareEqual;
 import org.hisp.dhis.parser.expression.operator.OperatorCompareGreaterThan;
 import org.hisp.dhis.parser.expression.operator.OperatorCompareGreaterThanOrEqual;
@@ -85,10 +90,7 @@ import org.hisp.dhis.parser.expression.operator.OperatorMathModulus;
 import org.hisp.dhis.parser.expression.operator.OperatorMathMultiply;
 import org.hisp.dhis.parser.expression.operator.OperatorMathPlus;
 import org.hisp.dhis.parser.expression.operator.OperatorMathPower;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
 /**
@@ -137,7 +139,7 @@ public class ParserUtils
         .put( GEQ, new OperatorCompareGreaterThanOrEqual() )
         .put( LEQ, new OperatorCompareLessThanOrEqual() )
 
-        // Functions
+        // Functions (alphabetical)
 
         .put( FIRST_NON_NULL, new FunctionFirstNonNull() )
         .put( GREATEST, new FunctionGreatest() )
@@ -147,31 +149,66 @@ public class ParserUtils
         .put( LEAST, new FunctionLeast() )
         .put( LOG, new FunctionLog() )
         .put( LOG10, new FunctionLog10() )
+        .put( REMOVE_ZEROS, new FunctionRemoveZeros() )
 
         // Data items
 
         .put( C_BRACE, new ItemConstant() )
 
+        // Literal
+
+        .put( NULL, new NullLiteral() )
+
         .build();
 
-    public static final ExpressionItemMethod ITEM_GET_DESCRIPTIONS = ExpressionItem::getDescription;
-
-    public static final ExpressionItemMethod ITEM_GET_IDS = ExpressionItem::getItemId;
-
-    public static final ExpressionItemMethod ITEM_GET_ORG_UNIT_GROUPS = ExpressionItem::getOrgUnitGroup;
-
-    public static final ExpressionItemMethod ITEM_EVALUATE = ExpressionItem::evaluate;
-
-    public static final ExpressionItemMethod ITEM_GET_SQL = ExpressionItem::getSql;
-
-    public static final ExpressionItemMethod ITEM_REGENERATE = ExpressionItem::regenerate;
+    /**
+     * Default value for data type double.
+     */
+    public static final double DEFAULT_DOUBLE_VALUE = 1d;
 
     /**
-     * Used for syntax checking when we don't have a list of actual periods for
-     * collecting samples.
+     * Default value for data type date.
      */
-    public static final List<Period> DEFAULT_SAMPLE_PERIODS = ImmutableList.of(
-        PeriodType.getPeriodFromIsoString( "20010101" ) );
+    public static final String DEFAULT_DATE_VALUE = "2017-07-08";
+
+    /**
+     * Default value for data type boolean.
+     */
+    public static final boolean DEFAULT_BOOLEAN_VALUE = false;
+
+    /**
+     * Parse a date. The input format is guaranteed by the expression parser to
+     * be yyyy-m-d where m and d may be either 1 or 2 digits each.
+     *
+     * @param dateString the date string
+     * @return the parsed date
+     */
+    public static Date parseExpressionDate( String dateString )
+    {
+        String[] dateParts = dateString.split( "-" );
+
+        String fixedDateString = dateParts[0] +
+            "-" + (dateParts[1].length() == 1 ? "0" : "") + dateParts[1] +
+            "-" + (dateParts[2].length() == 1 ? "0" : "") + dateParts[2];
+
+        Date date;
+
+        try
+        {
+            date = parseDate( fixedDateString );
+        }
+        catch ( Exception e )
+        {
+            throw new ParserExceptionWithoutContext( "Invalid date: " + dateString + " " + e.getMessage() );
+        }
+
+        if ( date == null )
+        {
+            throw new ParserExceptionWithoutContext( "Invalid date: " + dateString );
+        }
+
+        return date;
+    }
 
     /**
      * Assume that an item of the form #{...} has a syntax that could be used in

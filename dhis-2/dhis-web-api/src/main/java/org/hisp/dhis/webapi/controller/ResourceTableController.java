@@ -27,22 +27,28 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.createWebMessage;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 
 import java.util.HashSet;
 import java.util.Set;
 
+import lombok.AllArgsConstructor;
+
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.dxf2.scheduling.JobConfigurationWebMessageResponse;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobStatus;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
 import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -56,15 +62,14 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 @RequestMapping( value = ResourceTableController.RESOURCE_PATH )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+@AllArgsConstructor
 public class ResourceTableController
 {
     public static final String RESOURCE_PATH = "/resourceTables";
 
-    @Autowired
-    private SchedulingManager schedulingManager;
+    private final SchedulingManager schedulingManager;
 
-    @Autowired
-    private CurrentUserService currentUserService;
+    private final CurrentUserService currentUserService;
 
     @RequestMapping( value = "/analytics", method = { RequestMethod.PUT, RequestMethod.POST } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
@@ -104,9 +109,7 @@ public class ResourceTableController
             analyticsJobParameters, true, true );
         analyticsTableJob.setUserUid( currentUserService.getCurrentUser().getUid() );
 
-        schedulingManager.executeNow( analyticsTableJob );
-
-        return jobConfigurationReport( analyticsTableJob );
+        return execute( analyticsTableJob );
     }
 
     @RequestMapping( method = { RequestMethod.PUT, RequestMethod.POST } )
@@ -117,9 +120,7 @@ public class ResourceTableController
         JobConfiguration resourceTableJob = new JobConfiguration( "inMemoryResourceTableJob",
             JobType.RESOURCE_TABLE, currentUserService.getCurrentUser().getUid(), true );
 
-        schedulingManager.executeNow( resourceTableJob );
-
-        return jobConfigurationReport( resourceTableJob );
+        return execute( resourceTableJob );
     }
 
     @RequestMapping( value = "/monitoring", method = { RequestMethod.PUT, RequestMethod.POST } )
@@ -130,8 +131,18 @@ public class ResourceTableController
         JobConfiguration monitoringJob = new JobConfiguration( "inMemoryMonitoringJob", JobType.MONITORING, "",
             new MonitoringJobParameters(), true, true );
 
-        schedulingManager.executeNow( monitoringJob );
+        return execute( monitoringJob );
+    }
 
-        return jobConfigurationReport( monitoringJob );
+    private WebMessage execute( JobConfiguration configuration )
+    {
+        boolean success = schedulingManager.executeNow( configuration );
+        if ( !success )
+        {
+            configuration.setJobStatus( JobStatus.FAILED );
+            return createWebMessage( "Job of type " + configuration.getJobType() + " is already running", Status.ERROR,
+                HttpStatus.CONFLICT ).setResponse( new JobConfigurationWebMessageResponse( configuration ) );
+        }
+        return jobConfigurationReport( configuration );
     }
 }

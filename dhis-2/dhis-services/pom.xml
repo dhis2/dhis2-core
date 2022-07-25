@@ -1,25 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
     <groupId>org.hisp.dhis</groupId>
     <artifactId>dhis</artifactId>
-    <version>2.38-SNAPSHOT</version>
+    <version>2.39-SNAPSHOT</version>
   </parent>
 
   <artifactId>dhis-services</artifactId>
   <packaging>pom</packaging>
   <name>DHIS Services Parent Project</name>
 
-  <!--
-    Service modules are grouped in levels, where a module in a level can only
-    depend on modules on a lower level. Note: New services should be added
-    as high up in the list as possible (at the lowest level).
-
-    The purpose is to avoid circular dependencies and have a clean dependency
-    graph. The modules are built in ascending order according to the level.
-  -->
+  <!-- Service modules are grouped in levels, where a module in a level can 
+    only depend on modules on a lower level. Note: New services should be added 
+    as high up in the list as possible (at the lowest level). The purpose is 
+    to avoid circular dependencies and have a clean dependency graph. The modules 
+    are built in ascending order according to the level. -->
 
   <modules>
     <!-- Level 1 -->
@@ -30,7 +28,6 @@
     <module>dhis-service-audit-consumer</module>
     <!-- Level 4 -->
     <module>dhis-service-node</module>
-    <module>dhis-service-field-filtering</module>
     <!-- Level 5 -->
     <module>dhis-service-core</module>
     <!-- Level 6 -->
@@ -39,29 +36,16 @@
     <!-- Level 7 -->
     <module>dhis-service-administration</module>
     <module>dhis-service-dxf2</module>
+    <module>dhis-service-field-filtering</module>
     <!-- Level 8 -->
     <module>dhis-service-metadata-workflow</module>
     <module>dhis-service-analytics</module>
     <module>dhis-service-tracker</module>
     <!-- Level 9 -->
     <module>dhis-service-reporting</module>
+    <module>dhis-service-data-exchange</module>
   </modules>
 
-  <dependencies>
-
-    <!-- TODO Remove following dependencies once all above services pom.xml's are cleaned up; since this parent has no
-    dependencies -->
-    <!-- DHIS -->
-
-    <dependency>
-      <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-support-test</artifactId>
-    </dependency>
-  </dependencies>
   <properties>
     <rootDir>../</rootDir>
   </properties>

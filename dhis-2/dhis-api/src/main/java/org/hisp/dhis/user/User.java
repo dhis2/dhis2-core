@@ -27,7 +27,11 @@
  */
 package org.hisp.dhis.user;
 
+import static org.springframework.beans.BeanUtils.copyProperties;
+
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -36,7 +40,11 @@ import java.util.UUID;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MetadataObject;
@@ -46,7 +54,12 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.security.Authorities;
+import org.jboss.aerogear.security.otp.api.Base32;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
@@ -58,18 +71,127 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 @JacksonXmlRootElement( localName = "user", namespace = DxfNamespaces.DXF_2_0 )
 public class User
-    extends BaseIdentifiableObject implements MetadataObject
+    extends BaseIdentifiableObject implements MetadataObject, UserDetails
 {
+    public static final int USERNAME_MAX_LENGTH = 255;
+
     /**
-     * Required.
+     * Globally unique identifier for User.
      */
+    private UUID uuid;
+
+    /**
+     * Required and unique.
+     */
+    private String username;
+
+    /**
+     * Indicates whether this user can only be authenticated externally, such as
+     * through OpenID or LDAP.
+     */
+    private boolean externalAuth;
+
+    /**
+     * Unique OpenID.
+     */
+    private String openId;
+
+    /**
+     * Unique LDAP distinguished name.
+     */
+    private String ldapId;
+
+    /**
+     * Required. Will be stored as a hash.
+     */
+    private String password;
+
+    /**
+     * Required. Does this user have two factor authentication
+     */
+    private boolean twoFA;
+
+    /**
+     * Required. Automatically set in constructor
+     */
+    private String secret;
+
+    /**
+     * Date when password was changed.
+     */
+    private Date passwordLastUpdated;
+
+    /**
+     * Set of user roles.
+     */
+    private Set<UserRole> userRoles = new HashSet<>();
+
+    /**
+     * Category option group set dimensions to constrain data analytics
+     * aggregation.
+     */
+    private Set<CategoryOptionGroupSet> cogsDimensionConstraints = new HashSet<>();
+
+    /**
+     * Category dimensions to constrain data analytics aggregation.
+     */
+    private Set<Category> catDimensionConstraints = new HashSet<>();
+
+    /**
+     * List of previously used passwords.
+     */
+    private List<String> previousPasswords = new ArrayList<>();
+
+    /**
+     * Date of the user's last login.
+     */
+    private Date lastLogin;
+
+    /**
+     * The token used for a user account restore. Will be stored as a hash.
+     */
+    private String restoreToken;
+
+    /**
+     * The token used for a user lookup when sending restore and invite emails.
+     */
+    private String idToken;
+
+    /**
+     * The timestamp representing when the restore window expires.
+     */
+    private Date restoreExpiry;
+
+    /**
+     * Indicates whether this user was originally self registered.
+     */
+    private boolean selfRegistered;
+
+    /**
+     * Indicates whether this user is currently an invitation.
+     */
+    private boolean invitation;
+
+    /**
+     * Indicates whether this is user is disabled, which means the user cannot
+     * be authenticated.
+     */
+    private boolean disabled;
+
+    private boolean isCredentialsNonExpired;
+
+    private boolean isAccountNonLocked;
+
+    /**
+     * The timestamp representing when the user account expires. If not set the
+     * account does never expire.
+     */
+    private Date accountExpiry;
+
     private String surname;
 
     private String firstName;
 
-    /**
-     * Optional.
-     */
     private String email;
 
     private String phoneNumber;
@@ -96,8 +218,6 @@ public class User
 
     private Date lastCheckedInterpretations;
 
-    private UserCredentials userCredentials;
-
     private Set<UserGroup> groups = new HashSet<>();
 
     private String whatsApp;
@@ -112,9 +232,12 @@ public class User
 
     private FileResource avatar;
 
+    // Backward comp. field, will be removed when front-end has converted to new
+    // User model
+    private transient UserCredentialsDto userCredentialsRaw;
+
     /**
-     * Organisation units for data input and data capture operations. TODO move
-     * to UserCredentials.
+     * Organisation units for data input and data capture operations.
      */
     private Set<OrganisationUnit> organisationUnits = new HashSet<>();
 
@@ -139,9 +262,566 @@ public class User
      */
     private List<String> apps = new ArrayList<>();
 
+    public User()
+    {
+        this.twoFA = false;
+        this.lastLogin = null;
+        this.passwordLastUpdated = new Date();
+        if ( uuid == null )
+        {
+            uuid = UUID.randomUUID();
+        }
+        this.setSecret();
+    }
+
+    /**
+     * Returns a concatenated String of the display names of all user authority
+     * groups for this user.
+     */
+    public String getUserRoleNames()
+    {
+        return IdentifiableObjectUtils.join( userRoles );
+    }
+
+    /**
+     * Returns a set of the aggregated authorities for all user authority groups
+     * of this user.
+     */
+    public Set<String> getAllAuthorities()
+    {
+        Set<String> authorities = new HashSet<>();
+
+        for ( UserRole group : userRoles )
+        {
+            authorities.addAll( group.getAuthorities() );
+        }
+
+        authorities = Collections.unmodifiableSet( authorities );
+
+        return authorities;
+    }
+
+    /**
+     * Indicates whether this user has at least one authority through its user
+     * authority groups.
+     */
+    public boolean hasAuthorities()
+    {
+        for ( UserRole group : userRoles )
+        {
+            if ( group != null && group.getAuthorities() != null && !group.getAuthorities().isEmpty() )
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Tests whether this user has any of the authorities in the given set.
+     *
+     * @param auths the authorities to compare with.
+     *
+     * @return true or false.
+     */
+    public boolean hasAnyAuthority( Collection<String> auths )
+    {
+        return getAllAuthorities().stream().anyMatch( auths::contains );
+    }
+
+    /**
+     * Tests whether the user has the given authority. Returns true in any case
+     * if the user has the ALL authority.
+     */
+    public boolean isAuthorized( String auth )
+    {
+        if ( auth == null )
+        {
+            return false;
+        }
+
+        final Set<String> auths = getAllAuthorities();
+
+        return auths.contains( UserRole.AUTHORITY_ALL ) || auths.contains( auth );
+    }
+
+    /**
+     * Indicates whether this user is a super user, implying that the ALL
+     * authority is present in at least one of the user authority groups of this
+     * user.
+     */
+    public boolean isSuper()
+    {
+        return userRoles.stream().anyMatch( UserRole::isSuper );
+    }
+
+    /**
+     * Indicates whether this user can issue the given user authority group.
+     * First the given authority group must not be null. Second this user must
+     * not contain the given authority group. Third the authority group must be
+     * a subset of the aggregated user authorities of this user, or this user
+     * must have the ALL authority.
+     *
+     * @param group the user authority group.
+     * @param canGrantOwnUserRole indicates whether this users can grant its own
+     *        authority groups to others.
+     */
+    public boolean canIssueUserRole( UserRole group, boolean canGrantOwnUserRole )
+    {
+        if ( group == null )
+        {
+            return false;
+        }
+
+        final Set<String> authorities = getAllAuthorities();
+
+        if ( authorities.contains( UserRole.AUTHORITY_ALL ) )
+        {
+            return true;
+        }
+
+        if ( !canGrantOwnUserRole && userRoles.contains( group ) )
+        {
+            return false;
+        }
+
+        return authorities.containsAll( group.getAuthorities() );
+    }
+
+    /**
+     * Indicates whether this user can issue all of the user authority groups in
+     * the given collection.
+     *
+     * @param groups the collection of user authority groups.
+     * @param canGrantOwnUserRole indicates whether this users can grant its own
+     *        authority groups to others.
+     */
+    public boolean canIssueUserRoles( Collection<UserRole> groups, boolean canGrantOwnUserRole )
+    {
+        for ( UserRole group : groups )
+        {
+            if ( !canIssueUserRole( group, canGrantOwnUserRole ) )
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Indicates whether this user can modify the given user. This user must
+     * have the ALL authority or possess all user authorities of the other user
+     * to do so.
+     *
+     * @param other the user to modify.
+     */
+    public boolean canModifyUser( User other )
+    {
+        if ( other == null )
+        {
+            return false;
+        }
+
+        final Set<String> authorities = getAllAuthorities();
+
+        if ( authorities.contains( UserRole.AUTHORITY_ALL ) )
+        {
+            return true;
+        }
+
+        return authorities.containsAll( other.getAllAuthorities() );
+    }
+
+    /**
+     * Sets the last login property to the current date.
+     */
+    public void updateLastLogin()
+    {
+        this.lastLogin = new Date();
+    }
+
+    /**
+     * Returns the dimensions to use as constrains (filters) in data analytics
+     * aggregation.
+     */
+    public Set<DimensionalObject> getDimensionConstraints()
+    {
+        Set<DimensionalObject> constraints = new HashSet<>();
+
+        for ( CategoryOptionGroupSet cogs : cogsDimensionConstraints )
+        {
+            cogs.setDimensionType( DimensionType.CATEGORY_OPTION_GROUP_SET );
+            constraints.add( cogs );
+        }
+
+        for ( Category cat : catDimensionConstraints )
+        {
+            cat.setDimensionType( DimensionType.CATEGORY );
+            constraints.add( cat );
+        }
+
+        return constraints;
+    }
+
+    /**
+     * Indicates whether this user has user authority groups.
+     */
+    public boolean hasUserRoles()
+    {
+        return userRoles != null && !userRoles.isEmpty();
+    }
+
+    /**
+     * Indicates whether this user has dimension constraints.
+     */
+    public boolean hasDimensionConstraints()
+    {
+        Set<DimensionalObject> constraints = getDimensionConstraints();
+        return constraints != null && !constraints.isEmpty();
+    }
+
+    /**
+     * Indicates whether an LDAP identifier is set.
+     */
+    public boolean hasLdapId()
+    {
+        return ldapId != null && !ldapId.isEmpty();
+    }
+
+    /**
+     * Indicates whether a password is set.
+     */
+    public boolean hasPassword()
+    {
+        return password != null;
+    }
+
     // -------------------------------------------------------------------------
-    // Logic
+    // hashCode and equals
+    // ----------
+
+    public UUID getUuid()
+    {
+        return uuid;
+    }
+
+    public void setUuid( UUID uuid )
+    {
+        this.uuid = uuid;
+    }
+
+    @Override
+    @JsonProperty( access = JsonProperty.Access.WRITE_ONLY )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( value = PropertyType.PASSWORD, access = Property.Access.WRITE_ONLY )
+    @PropertyRange( min = 8, max = 60 )
+    public String getPassword()
+    {
+        return password;
+    }
+
+    public void setPassword( String password )
+    {
+        this.password = password;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isTwoFA()
+    {
+        return twoFA;
+    }
+
+    /**
+     * Set 2FA on user.
+     *
+     * @param twoFA true/false depending on activate or deactivate
+     */
+    public void setTwoFA( boolean twoFA )
+    {
+        this.twoFA = twoFA;
+    }
+
+    @JsonIgnore
+    public String getSecret()
+    {
+        return secret;
+    }
+
+    public void setSecret( String secret )
+    {
+        if ( secret == null )
+        {
+            setSecret();
+        }
+        else
+        {
+            this.secret = secret;
+        }
+    }
+
+    private void setSecret()
+    {
+        if ( this.secret == null )
+        {
+            this.secret = Base32.random();
+        }
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isExternalAuth()
+    {
+        return externalAuth;
+    }
+
+    public void setExternalAuth( boolean externalAuth )
+    {
+        this.externalAuth = externalAuth;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Date getPasswordLastUpdated()
+    {
+        return passwordLastUpdated;
+    }
+
+    public void setPasswordLastUpdated( Date passwordLastUpdated )
+    {
+        this.passwordLastUpdated = passwordLastUpdated;
+    }
+
+    @JsonProperty( "userRoles" )
+    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
+    @JacksonXmlElementWrapper( localName = "userRoles", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "userRole", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<UserRole> getUserRoles()
+    {
+        return userRoles;
+    }
+
+    public void setUserRoles( Set<UserRole> userRoles )
+    {
+        this.userRoles = userRoles;
+    }
+
+    @JsonProperty
+    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
+    @JacksonXmlElementWrapper( localName = "catDimensionConstraints", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "catDimensionConstraint", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<Category> getCatDimensionConstraints()
+    {
+        return catDimensionConstraints;
+    }
+
+    public void setCatDimensionConstraints( Set<Category> catDimensionConstraints )
+    {
+        this.catDimensionConstraints = catDimensionConstraints;
+    }
+
+    @JsonProperty
+    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
+    @JacksonXmlElementWrapper( localName = "cogsDimensionConstraints", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "cogsDimensionConstraint", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<CategoryOptionGroupSet> getCogsDimensionConstraints()
+    {
+        return cogsDimensionConstraints;
+    }
+
+    public void setCogsDimensionConstraints( Set<CategoryOptionGroupSet> cogsDimensionConstraints )
+    {
+        this.cogsDimensionConstraints = cogsDimensionConstraints;
+    }
+
+    @JsonIgnore
+    public List<String> getPreviousPasswords()
+    {
+        return previousPasswords;
+    }
+
+    public void setPreviousPasswords( List<String> previousPasswords )
+    {
+        this.previousPasswords = previousPasswords;
+    }
+
+    @Override
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( value = PropertyType.TEXT, required = Property.Value.FALSE )
+    public String getUsername()
+    {
+        return username;
+    }
+
+    public void setUsername( String username )
+    {
+        this.username = username;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getOpenId()
+    {
+        return openId;
+    }
+
+    public void setOpenId( String openId )
+    {
+        this.openId = openId;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getLdapId()
+    {
+        return ldapId;
+    }
+
+    public void setLdapId( String ldapId )
+    {
+        this.ldapId = ldapId;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Date getLastLogin()
+    {
+        return lastLogin;
+    }
+
+    public void setLastLogin( Date lastLogin )
+    {
+        this.lastLogin = lastLogin;
+    }
+
+    public String getIdToken()
+    {
+        return idToken;
+    }
+
+    public void setIdToken( String idToken )
+    {
+        this.idToken = idToken;
+    }
+
+    public String getRestoreToken()
+    {
+        return restoreToken;
+    }
+
+    public void setRestoreToken( String restoreToken )
+    {
+        this.restoreToken = restoreToken;
+    }
+
+    public Date getRestoreExpiry()
+    {
+        return restoreExpiry;
+    }
+
+    public void setRestoreExpiry( Date restoreExpiry )
+    {
+        this.restoreExpiry = restoreExpiry;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isSelfRegistered()
+    {
+        return selfRegistered;
+    }
+
+    public void setSelfRegistered( boolean selfRegistered )
+    {
+        this.selfRegistered = selfRegistered;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isInvitation()
+    {
+        return invitation;
+    }
+
+    public void setInvitation( boolean invitation )
+    {
+        this.invitation = invitation;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isDisabled()
+    {
+        return disabled;
+    }
+
+    public void setDisabled( boolean disabled )
+    {
+        this.disabled = disabled;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Date getAccountExpiry()
+    {
+        return accountExpiry;
+    }
+
+    public void setAccountExpiry( Date accountExpiry )
+    {
+        this.accountExpiry = accountExpiry;
+    }
+
     // -------------------------------------------------------------------------
+    // Two Factor Authentication methods
+    // -------------------------------------------------------------------------
+    @Override
+    public Collection<GrantedAuthority> getAuthorities()
+    {
+        Collection<GrantedAuthority> grantedAuthorities = new ArrayList<>();
+
+        getAllAuthorities()
+            .forEach( authority -> grantedAuthorities.add( new SimpleGrantedAuthority( authority ) ) );
+
+        return grantedAuthorities;
+    }
+
+    @Override
+    public boolean isAccountNonExpired()
+    {
+        return accountExpiry == null || accountExpiry.after( new Date() );
+    }
+
+    @Override
+    public boolean isAccountNonLocked()
+    {
+        return isAccountNonLocked;
+    }
+
+    public void setAccountNonLocked( boolean isAccountNonLocked )
+    {
+        this.isAccountNonLocked = isAccountNonLocked;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired()
+    {
+        return isCredentialsNonExpired;
+    }
+
+    public void setCredentialsNonExpired( boolean isCredentialsNonExpired )
+    {
+        this.isCredentialsNonExpired = isCredentialsNonExpired;
+    }
+
+    @Override
+    public boolean isEnabled()
+    {
+        return !isDisabled();
+    }
 
     public void addOrganisationUnit( OrganisationUnit unit )
     {
@@ -308,32 +988,6 @@ public class User
         return IdentifiableObjectUtils.join( organisationUnits );
     }
 
-    public String getUsername()
-    {
-        return userCredentials != null ? userCredentials.getUsername() : null;
-    }
-
-    public UUID getUuid()
-    {
-        return userCredentials != null ? userCredentials.getUuid() : null;
-    }
-
-    public boolean isSuper()
-    {
-        return userCredentials != null && userCredentials.isSuper();
-    }
-
-    /**
-     * Tests whether the user has the given authority. Returns true in any case
-     * if the user has the ALL authority.
-     *
-     * @param auth the authority.
-     */
-    public boolean isAuthorized( String auth )
-    {
-        return userCredentials != null && userCredentials.isAuthorized( auth );
-    }
-
     /**
      * Tests whether the user has the given authority. Returns true in any case
      * if the user has the ALL authority.
@@ -374,6 +1028,7 @@ public class User
      * Indicates whether this user can manage the given user group.
      *
      * @param userGroup the user group to test.
+     *
      * @return true if the given user group can be managed by this user, false
      *         if not.
      */
@@ -386,6 +1041,7 @@ public class User
      * Indicates whether this user can manage the given user.
      *
      * @param user the user to test.
+     *
      * @return true if the given user can be managed by this user, false if not.
      */
     public boolean canManage( User user )
@@ -410,6 +1066,7 @@ public class User
      * Indicates whether this user is managed by the given user group.
      *
      * @param userGroup the user group to test.
+     *
      * @return true if the given user group is managed by this user, false if
      *         not.
      */
@@ -422,6 +1079,7 @@ public class User
      * Indicates whether this user is managed by the given user.
      *
      * @param user the user to test.
+     *
      * @return true if the given user is managed by this user, false if not.
      */
     public boolean isManagedBy( User user )
@@ -639,19 +1297,6 @@ public class User
         this.lastCheckedInterpretations = lastCheckedInterpretations;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( required = Property.Value.TRUE, value = PropertyType.REFERENCE )
-    public UserCredentials getUserCredentials()
-    {
-        return userCredentials;
-    }
-
-    public void setUserCredentials( UserCredentials userCredentials )
-    {
-        this.userCredentials = userCredentials;
-    }
-
     @JsonProperty( "userGroups" )
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "userGroups", namespace = DxfNamespaces.DXF_2_0 )
@@ -813,30 +1458,50 @@ public class User
         return user != null ? user.getUsername() : defaultValue;
     }
 
-    @Override
-    public String toString()
+    // This is a temporary fix to maintain backwards compatibility with the old
+    // UserCredentials class. This method should not be used in new code!
+    @JsonProperty
+    public UserCredentialsDto getUserCredentials()
     {
-        return "{" +
-            "\"id\":\"" + id + "\", " +
-            "\"uid\":\"" + uid + "\", " +
-            "\"code\":\"" + code + "\", " +
-            "\"created\":\"" + created + "\", " +
-            "\"lastUpdated\":\"" + lastUpdated + "\", " +
-            "\"surname\":\"" + surname + "\", " +
-            "\"firstName\":\"" + firstName + "\", " +
-            "\"email\":\"" + email + "\", " +
-            "\"phoneNumber\":\"" + phoneNumber + "\", " +
-            "\"jobTitle\":\"" + jobTitle + "\", " +
-            "\"introduction\":\"" + introduction + "\", " +
-            "\"gender\":\"" + gender + "\", " +
-            "\"birthday\":\"" + birthday + "\", " +
-            "\"nationality\":\"" + nationality + "\", " +
-            "\"employer\":\"" + employer + "\", " +
-            "\"education\":\"" + education + "\", " +
-            "\"interests\":\"" + interests + "\", " +
-            "\"languages\":\"" + languages + "\", " +
-            "\"lastCheckedInterpretations\":\"" + lastCheckedInterpretations + "\", " +
-            "\"userCredentials\":\"" + userCredentials + "\", " +
-            "}";
+        UserCredentialsDto userCredentialsDto = new UserCredentialsDto();
+        copyProperties( this, userCredentialsDto, "userCredentials", "password", "userRoles", "secret",
+            "previousPasswords" );
+        Set<UserRole> roles = this.getUserRoles();
+        if ( roles != null && !roles.isEmpty() )
+        {
+            userCredentialsDto.setUserRoles( roles );
+        }
+        return userCredentialsDto;
+    }
+
+    public UserCredentialsDto getUserCredentialsRaw()
+    {
+        return this.userCredentialsRaw;
+    }
+
+    // This is a temporary fix to maintain backwards compatibility with the old
+    // UserCredentials class. This method should not be used in new code!
+    protected void setUserCredentials( UserCredentialsDto user )
+    {
+        this.userCredentialsRaw = user;
+    }
+
+    public static void populateUserCredentialsDtoFields( User user )
+    {
+        UserCredentialsDto userCredentialsRaw = user.getUserCredentialsRaw();
+        if ( userCredentialsRaw != null )
+        {
+            copyProperties( userCredentialsRaw, user, "password", "userRoles", "secret", "previousPasswords" );
+            if ( userCredentialsRaw.getPassword() != null )
+            {
+                user.setPassword( userCredentialsRaw.getPassword() );
+            }
+
+            Set<UserRole> userRoles = userCredentialsRaw.getUserRoles();
+            if ( userRoles != null )
+            {
+                user.setUserRoles( userRoles );
+            }
+        }
     }
 }

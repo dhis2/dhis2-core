@@ -92,7 +92,7 @@ public class HibernateValidationRuleStore
 
         validationRule.setPeriodType( periodType );
 
-        super.save( validationRule );
+        super.update( validationRule );
     }
 
     @Override

@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.hisp.dhis.analytics.EventOutputType;
+import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.BaseAnalyticalObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -218,6 +219,15 @@ public class MapView
     private transient List<OrganisationUnit> organisationUnitsAtLevel = new ArrayList<>();
 
     private transient List<OrganisationUnit> organisationUnitsInGroups = new ArrayList<>();
+
+    /**
+     * The displayName of the {@link Attribute} which has ID stored by property
+     * {@link MapView#orgUnitField}
+     * <p>
+     * The value of this transient property will be set in
+     * MapController#postProcessResponseEntity
+     */
+    private transient String orgUnitFieldDisplayName;
 
     public MapView()
     {
@@ -876,5 +886,17 @@ public class MapView
     public void setParentLevel( int parentLevel )
     {
         this.parentLevel = parentLevel;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getOrgUnitFieldDisplayName()
+    {
+        return orgUnitFieldDisplayName;
+    }
+
+    public void setOrgUnitFieldDisplayName( String orgUnitFieldDisplayName )
+    {
+        this.orgUnitFieldDisplayName = orgUnitFieldDisplayName;
     }
 }

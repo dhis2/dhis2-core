@@ -30,17 +30,16 @@ package org.hisp.dhis.webapi.controller;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
+import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.hisp.dhis.attribute.Attribute.ObjectType;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonString;
+import org.hisp.dhis.web.HttpStatus;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpStatus;
 
 /**
  * Tests the {@link org.hisp.dhis.gist.GistQuery.Field} related features of the
@@ -50,7 +49,6 @@ import org.springframework.http.HttpStatus;
  */
 class GistFieldsControllerTest extends AbstractGistControllerTest
 {
-
     @Test
     void testField_Sharing_EmbedsObject()
     {
@@ -80,7 +78,7 @@ class GistFieldsControllerTest extends AbstractGistControllerTest
     @Test
     void testField_Single_OwnerObject()
     {
-        assertEquals( "admin", GET( "/users/{uid}/surname/gist", getSuperuserUid() ).content().string() );
+        assertEquals( "Surnameadmin", GET( "/users/{uid}/surname/gist", getSuperuserUid() ).content().string() );
     }
 
     @Test
@@ -98,22 +96,12 @@ class GistFieldsControllerTest extends AbstractGistControllerTest
     }
 
     @Test
-    void testField_Complex_SquareBracketsSyntax()
-    {
-        JsonObject user = GET( "/users/{uid}/gist?fields=id,userCredentials[id,username]", getSuperuserUid() )
-            .content();
-        assertEquals( 2, user.size() );
-        assertEquals( asList( "id", "username" ), user.getObject( "userCredentials" ).names() );
-    }
-
-    @Test
     void testField_PresetExpandsToReadableFields()
     {
         switchToGuestUser();
         JsonArray users = GET( "/users/gist?headless=true" ).content();
         JsonObject user0 = users.getObject( 0 );
-        assertContainsOnly( user0.node().members().keySet(), "id", "code", "surname", "firstName", "userCredentials" );
-        assertContainsOnly( user0.getObject( "userCredentials" ).node().members().keySet(), "username" );
+        assertContainsOnly( user0.node().members().keySet(), "id", "code", "surname", "firstName", "username" );
         switchToSuperuser();
         users = GET( "/users/gist?headless=true" ).content();
         user0 = users.getObject( 0 );
@@ -200,39 +188,9 @@ class GistFieldsControllerTest extends AbstractGistControllerTest
     }
 
     @Test
-    void testField_Attribute()
-    {
-        // setup a DE with custom attribute value
-        String attrId = assertStatus( HttpStatus.CREATED, POST( "/attributes", "{" + "'name':'extra', "
-            + "'valueType':'TEXT', " + "'" + ObjectType.DATA_ELEMENT.getPropertyName() + "':true}" ) );
-        String ccId = GET(
-            "/categoryCombos/gist?fields=id,categoryOptionCombos::ids&pageSize=1&headless=true&filter=name:eq:default" )
-                .content().getObject( 0 ).getString( "id" ).string();
-        String deId = assertStatus( HttpStatus.CREATED,
-            POST( "/dataElements/",
-                "{'name':'My data element', 'shortName':'DE1', 'code':'DE1', 'valueType':'INTEGER', "
-                    + "'aggregationType':'SUM', 'zeroIsSignificant':false, 'domainType':'AGGREGATE', "
-                    + "'categoryCombo': {'id': '" + ccId + "'}," + "'attributeValues':[{'attribute': {'id':'" + attrId
-                    + "'}, 'value':'extra-value'}]" + "}" ) );
-        // test single field
-        assertEquals( "extra-value", GET( "/dataElements/{de}/gist?fields={attr}", deId, attrId ).content().string() );
-        // test multiple fields also with an alias 'extra'
-        JsonObject dataElement = GET( "/dataElements/{de}/gist?fields=id,name,{attr}::rename(extra)", deId, attrId )
-            .content();
-        assertEquals( deId, dataElement.getString( "id" ).string() );
-        assertEquals( "My data element", dataElement.getString( "name" ).string() );
-        assertEquals( "extra-value", dataElement.getString( "extra" ).string() );
-        // test in listing
-        JsonArray dataElements = GET( "/dataElements/gist?fields=id,name,{attr}::rename(extra)&headless=true", attrId )
-            .content();
-        assertEquals( 1, dataElements.size() );
-        assertEquals( "extra-value", dataElements.getObject( 0 ).getString( "extra" ).string() );
-    }
-
-    @Test
     void testField_UserNameAutomaticFromTransformation()
     {
         JsonArray users = GET( "/users/gist?fields=id,name&headless=true" ).content();
-        assertEquals( "admin admin", users.getObject( 0 ).getString( "name" ).string() );
+        assertEquals( "FirstNameadmin Surnameadmin", users.getObject( 0 ).getString( "name" ).string() );
     }
 }

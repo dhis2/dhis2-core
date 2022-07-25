@@ -27,44 +27,29 @@
  */
 package org.hisp.dhis.parser.expression;
 
-import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
-import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_REGENERATE;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
-import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
+
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
 
 import org.antlr.v4.runtime.ParserRuleContext;
-import org.apache.commons.lang3.Validate;
+import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.antlr.AntlrExpressionVisitor;
-import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
+import org.hisp.dhis.antlr.AntlrParserUtils;
 import org.hisp.dhis.common.DimensionService;
-import org.hisp.dhis.common.DimensionalItemId;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.MapMap;
-import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.QueryModifiers;
 import org.hisp.dhis.constant.Constant;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.expression.MissingValueStrategy;
+import org.hisp.dhis.expression.ExpressionInfo;
+import org.hisp.dhis.expression.ExpressionParams;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.jdbc.StatementBuilder;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
-import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
-import org.hisp.dhis.relationship.RelationshipTypeService;
-import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 
 /**
@@ -73,192 +58,76 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
  *
  * @author Jim Grace
  */
+@Getter
+@Setter
+@Builder( toBuilder = true )
 public class CommonExpressionVisitor
     extends AntlrExpressionVisitor
 {
+    private IdentifiableObjectManager idObjectManager;
+
     private DimensionService dimensionService;
-
-    private OrganisationUnitService organisationUnitService;
-
-    private OrganisationUnitGroupService organisationUnitGroupService;
 
     private ProgramIndicatorService programIndicatorService;
 
     private ProgramStageService programStageService;
 
-    private DataElementService dataElementService;
-
     private TrackedEntityAttributeService attributeService;
-
-    private RelationshipTypeService relationshipTypeService;
 
     private StatementBuilder statementBuilder;
 
     private I18n i18n;
 
     /**
-     * Map of ExprItem instances to call for each expression item
+     * Map of constant values to use in evaluating the expression.
+     */
+    @Builder.Default
+    private Map<String, Constant> constantMap = new HashMap<>();
+
+    /**
+     * Map of ExprItem object instances to call for each expression item.
      */
     private Map<Integer, ExpressionItem> itemMap;
 
     /**
-     * Method to call within the ExprItem instance
+     * Method to call within the ExprItem object instance.
      */
     private ExpressionItemMethod itemMethod;
 
     /**
-     * By default, replace nulls with 0 or ''.
+     * Parameters to evaluate the expression to a value.
      */
-    private boolean replaceNulls = true;
+    @Builder.Default
+    private ExpressionParams params = ExpressionParams.builder().build();
 
     /**
-     * By default, the offset is not set.
+     * Parameters to generate SQL from a program expression.
      */
-    private int periodOffset = 0;
-
-    private int stageOffset = Integer.MIN_VALUE;
+    @Builder.Default
+    private ProgramExpressionParams progParams = ProgramExpressionParams.builder().build();
 
     /**
-     * Used to collect the string replacements to build a description.
+     * State variables during an expression evaluation.
      */
+    @Builder.Default
+    private ExpressionState state = new ExpressionState();
+
+    /**
+     * Information found from parsing the raw expression (contains nothing that
+     * is the result of data or metadata found in the database).
+     */
+    @Builder.Default
+    private ExpressionInfo info = new ExpressionInfo();
+
+    /**
+     * Used to collect the string replacements to build a description. This may
+     * contain names of metadata from the database.
+     */
+    @Builder.Default
     private Map<String, String> itemDescriptions = new HashMap<>();
 
-    /**
-     * Constants to use in evaluating an expression.
-     */
-    private Map<String, Constant> constantMap = new HashMap<>();
-
-    /**
-     * Used to collect the dimensional item ids in the expression.
-     */
-    private Set<DimensionalItemId> itemIds = new HashSet<>();
-
-    /**
-     * Used to collect the sampled dimensional item ids in the expression.
-     */
-    private Set<DimensionalItemId> sampleItemIds = new HashSet<>();
-
-    /**
-     * Used to collect the organisation unit group ids in the expression.
-     */
-    private Set<String> orgUnitGroupIds = new HashSet<>();
-
-    /**
-     * Organisation unit group counts to use in evaluating an expression.
-     */
-    Map<String, Integer> orgUnitCountMap = new HashMap<>();
-
-    /**
-     * Organisation unit groups to use in evaluating an expression.
-     */
-    Map<String, OrganisationUnitGroup> orgUnitGroupMap = new HashMap<>();
-
-    /**
-     * The current organisation unit.
-     */
-    OrganisationUnit organisationUnit;
-
-    /**
-     * Count of days in period to use in evaluating an expression.
-     */
-    private Double days = null;
-
-    /**
-     * The {@see DimensionalItemObject}s present in the expression.
-     */
-    private Map<DimensionalItemId, DimensionalItemObject> dimItemMap;
-
-    /**
-     * Values to use for dimensional items in evaluating an expression.
-     */
-    private Map<DimensionalItemObject, Object> itemValueMap;
-
-    /**
-     * Dimensional item values by period for aggregating in evaluating an
-     * expression.
-     */
-    private MapMap<Period, DimensionalItemObject, Object> periodItemValueMap;
-
-    /**
-     * Periods to sample over for predictor sample functions.
-     */
-    private List<Period> samplePeriods;
-
-    /**
-     * Flag to check if a null date was found.
-     */
-    private boolean unprotectedNullDateFound = false;
-
-    /**
-     * Count of dimension items found.
-     */
-    private int itemsFound = 0;
-
-    /**
-     * Count of dimension item values found.
-     */
-    private int itemValuesFound = 0;
-
-    /**
-     * Strategy for handling missing values.
-     */
-    private MissingValueStrategy missingValueStrategy = NEVER_SKIP;
-
-    /**
-     * Current program indicator.
-     */
-    private ProgramIndicator programIndicator;
-
-    /**
-     * Reporting start date.
-     */
-    private Date reportingStartDate;
-
-    /**
-     * Reporting end date.
-     */
-    private Date reportingEndDate;
-
-    /**
-     * Idenfitiers of DataElements and Attribuetes in expression.
-     */
-    private Set<String> dataElementAndAttributeIdentifiers;
-
-    /**
-     * Default value for data type double.
-     */
-    public static final double DEFAULT_DOUBLE_VALUE = 1d;
-
-    /**
-     * Default value for data type date.
-     */
-    public static final String DEFAULT_DATE_VALUE = "2017-07-08";
-
-    /**
-     * Default value for data type boolean.
-     */
-    public static final boolean DEFAULT_BOOLEAN_VALUE = false;
-
     // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
-
-    protected CommonExpressionVisitor()
-    {
-    }
-
-    /**
-     * Creates a new Builder for CommonExpressionVisitor.
-     *
-     * @return a Builder for CommonExpressionVisitor.
-     */
-    public static Builder newBuilder()
-    {
-        return new CommonExpressionVisitor.Builder();
-    }
-
-    // -------------------------------------------------------------------------
-    // Visitor methods
+    // Visitor logic
     // -------------------------------------------------------------------------
 
     @Override
@@ -277,22 +146,13 @@ public class CommonExpressionVisitor
             return itemMethod.apply( item, ctx, this );
         }
 
-        if ( itemMethod == ITEM_REGENERATE )
-        {
-            return regenerateAllChildren( ctx );
-        }
-
-        if ( ctx.expr().size() > 0 ) // If there's an expr, visit the expr
+        if ( !ctx.expr().isEmpty() ) // If there's an expr, visit the expr
         {
             return visit( ctx.expr( 0 ) );
         }
 
         return visit( ctx.getChild( 0 ) ); // All others: visit first child.
     }
-
-    // -------------------------------------------------------------------------
-    // Logic for expression items
-    // -------------------------------------------------------------------------
 
     /**
      * Visits a context while allowing null values (not replacing them with 0 or
@@ -303,520 +163,65 @@ public class CommonExpressionVisitor
      */
     public Object visitAllowingNulls( ParserRuleContext ctx )
     {
-        boolean savedReplaceNulls = replaceNulls;
+        boolean savedReplaceNulls = state.isReplaceNulls();
 
-        replaceNulls = false;
+        state.setReplaceNulls( false );
 
         Object result = visit( ctx );
 
-        replaceNulls = savedReplaceNulls;
+        state.setReplaceNulls( savedReplaceNulls );
 
         return result;
     }
 
     /**
-     * Visits a context using a period offset.
+     * Visits a context with a configuration of query modifiers.
      *
      * @param ctx any context
+     * @param mods the query modifiers
      * @return the value with the applied offset
      */
-    public Object visitWithPeriodOffset( ParserRuleContext ctx, int offset )
+    public Object visitWithQueryMods( ParserRuleContext ctx, QueryModifiers mods )
     {
-        int savedPeriodOffset = periodOffset;
+        QueryModifiers savedQueryMods = state.getQueryMods();
 
-        periodOffset = offset;
+        state.setQueryMods( mods );
 
         Object result = visit( ctx );
 
-        periodOffset = savedPeriodOffset;
+        state.setQueryMods( savedQueryMods );
 
         return result;
     }
 
     /**
-     * Handles nulls and missing values.
-     * <p/>
-     * If we should replace nulls with the default value, then do so, and
-     * remember how many items found, and how many of them had values, for
-     * subsequent MissingValueStrategy analysis.
-     * <p/>
-     * If we should not replace nulls with the default value, then don't, as
-     * this is likely for some function that is testing for nulls, and a missing
-     * value should not count towards the MissingValueStrategy.
-     *
-     * @param value the (possibly null) value.
-     * @param valueType the type of value to substitute if null.
-     * @return the value we should return.
+     * Visit a parse subtree to generate SQL with a request that boolean items
+     * should generate a boolean value.
      */
-    public Object handleNulls( Object value, ValueType valueType )
+    public String sqlBooleanVisit( ExprContext ctx )
     {
-        if ( replaceNulls )
-        {
-            itemsFound++;
-            if ( value == null && valueType.isDate() )
-            {
-                unprotectedNullDateFound = true;
-                return null;
-            }
-            else if ( value == null )
-            {
-                return ValidationUtils.getNullReplacementValue( valueType );
-            }
-            else
-            {
-                itemValuesFound++;
-            }
-        }
-
-        return value;
+        return AntlrParserUtils.castString( visitWithDataType( ctx, DataType.BOOLEAN ) );
     }
 
     /**
-     * Validates a program stage id / data element id pair
-     *
-     * @param text expression text containing both program stage id and data
-     *        element id
-     * @param programStageId the program stage id
-     * @param dataElementId the data element id
-     * @return the ValueType of the data element
+     * Visit a parse subtree to generate SQL with a request that boolean items
+     * should generate a numeric value.
      */
-    public ValueType validateStageDataElement( String text, String programStageId, String dataElementId )
+    public String sqlNumericVisit( ExprContext ctx )
     {
-        ProgramStage programStage = programStageService.getProgramStage( programStageId );
-        DataElement dataElement = dataElementService.getDataElement( dataElementId );
-
-        if ( programStage == null )
-        {
-            throw new org.hisp.dhis.antlr.ParserExceptionWithoutContext(
-                "Program stage " + programStageId + " not found" );
-        }
-
-        if ( dataElement == null )
-        {
-            throw new ParserExceptionWithoutContext( "Data element " + dataElementId + " not found" );
-        }
-
-        String description = programStage.getDisplayName() + ProgramIndicator.SEPARATOR_ID
-            + dataElement.getDisplayName();
-
-        itemDescriptions.put( text, description );
-
-        return dataElement.getValueType();
-    }
-
-    /**
-     * Regenerates an expression by visiting all the children of the expression
-     * node (including any terminal nodes).
-     *
-     * @param ctx the expression context
-     * @return the regenerated expression (as a String)
-     */
-    public Object regenerateAllChildren( ExprContext ctx )
-    {
-        return ctx.children.stream().map( this::castStringVisit )
-            .collect( Collectors.joining() );
+        return AntlrParserUtils.castString( visitWithDataType( ctx, DataType.NUMERIC ) );
     }
 
     // -------------------------------------------------------------------------
-    // Getters and setters
+    // Supportive methods
     // -------------------------------------------------------------------------
 
-    public DimensionService getDimensionService()
+    private Object visitWithDataType( ExprContext ctx, DataType dataType )
     {
-        return dimensionService;
-    }
-
-    public OrganisationUnitService getOrganisationUnitService()
-    {
-        return organisationUnitService;
-    }
-
-    public OrganisationUnitGroupService getOrganisationUnitGroupService()
-    {
-        return organisationUnitGroupService;
-    }
-
-    public ProgramIndicatorService getProgramIndicatorService()
-    {
-        return programIndicatorService;
-    }
-
-    public ProgramStageService getProgramStageService()
-    {
-        return programStageService;
-    }
-
-    public DataElementService getDataElementService()
-    {
-        return dataElementService;
-    }
-
-    public TrackedEntityAttributeService getAttributeService()
-    {
-        return attributeService;
-    }
-
-    public RelationshipTypeService getRelationshipTypeService()
-    {
-        return relationshipTypeService;
-    }
-
-    public StatementBuilder getStatementBuilder()
-    {
-        return statementBuilder;
-    }
-
-    public I18n getI18n()
-    {
-        return i18n;
-    }
-
-    public ProgramIndicator getProgramIndicator()
-    {
-        return programIndicator;
-    }
-
-    public void setProgramIndicator(
-        ProgramIndicator programIndicator )
-    {
-        this.programIndicator = programIndicator;
-    }
-
-    public Date getReportingStartDate()
-    {
-        return reportingStartDate;
-    }
-
-    public void setReportingStartDate( Date reportingStartDate )
-    {
-        this.reportingStartDate = reportingStartDate;
-    }
-
-    public Date getReportingEndDate()
-    {
-        return reportingEndDate;
-    }
-
-    public void setReportingEndDate( Date reportingEndDate )
-    {
-        this.reportingEndDate = reportingEndDate;
-    }
-
-    public Set<String> getDataElementAndAttributeIdentifiers()
-    {
-        return dataElementAndAttributeIdentifiers;
-    }
-
-    public void setDataElementAndAttributeIdentifiers(
-        Set<String> dataElementAndAttributeIdentifiers )
-    {
-        this.dataElementAndAttributeIdentifiers = dataElementAndAttributeIdentifiers;
-    }
-
-    public Map<String, String> getItemDescriptions()
-    {
-        return itemDescriptions;
-    }
-
-    public Map<String, Constant> getConstantMap()
-    {
-        return constantMap;
-    }
-
-    public boolean getReplaceNulls()
-    {
-        return replaceNulls;
-    }
-
-    public void setReplaceNulls( boolean replaceNulls )
-    {
-        this.replaceNulls = replaceNulls;
-    }
-
-    public int getPeriodOffset()
-    {
-        return periodOffset;
-    }
-
-    public int getStageOffset()
-    {
-        return stageOffset;
-    }
-
-    public void setStageOffset( int stageOffset )
-    {
-        this.stageOffset = stageOffset;
-    }
-
-    public Set<DimensionalItemId> getItemIds()
-    {
-        return itemIds;
-    }
-
-    public void setItemIds( Set<DimensionalItemId> itemIds )
-    {
-        this.itemIds = itemIds;
-    }
-
-    public Set<DimensionalItemId> getSampleItemIds()
-    {
-        return sampleItemIds;
-    }
-
-    public void setSampleItemIds( Set<DimensionalItemId> sampleItemIds )
-    {
-        this.sampleItemIds = sampleItemIds;
-    }
-
-    public Set<String> getOrgUnitGroupIds()
-    {
-        return orgUnitGroupIds;
-    }
-
-    public Map<String, Integer> getOrgUnitCountMap()
-    {
-        return orgUnitCountMap;
-    }
-
-    public void setOrgUnitCountMap( Map<String, Integer> orgUnitCountMap )
-    {
-        this.orgUnitCountMap = orgUnitCountMap;
-    }
-
-    public Map<DimensionalItemObject, Object> getItemValueMap()
-    {
-        return itemValueMap;
-    }
-
-    public Map<String, OrganisationUnitGroup> getOrgUnitGroupMap()
-    {
-        return orgUnitGroupMap;
-    }
-
-    public void setOrgUnitGroupMap( Map<String, OrganisationUnitGroup> orgUnitGroupMap )
-    {
-        this.orgUnitGroupMap = orgUnitGroupMap;
-    }
-
-    public OrganisationUnit getOrganizationUnit()
-    {
-        return organisationUnit;
-    }
-
-    public void setOrganisationUnit( OrganisationUnit organisationUnit )
-    {
-        this.organisationUnit = organisationUnit;
-    }
-
-    public void setDimItemMap( Map<DimensionalItemId, DimensionalItemObject> dimItemMap )
-    {
-        this.dimItemMap = dimItemMap;
-    }
-
-    public Map<DimensionalItemId, DimensionalItemObject> getDimItemMap()
-    {
-        return dimItemMap;
-    }
-
-    public void setItemValueMap( Map<DimensionalItemObject, Object> itemValueMap )
-    {
-        this.itemValueMap = itemValueMap;
-    }
-
-    public MapMap<Period, DimensionalItemObject, Object> getPeriodItemValueMap()
-    {
-        return periodItemValueMap;
-    }
-
-    public void setPeriodItemValueMap( MapMap<Period, DimensionalItemObject, Object> periodItemValueMap )
-    {
-        this.periodItemValueMap = periodItemValueMap;
-    }
-
-    public List<Period> getSamplePeriods()
-    {
-        return samplePeriods;
-    }
-
-    public Double getDays()
-    {
-        return days;
-    }
-
-    public void setDays( Double days )
-    {
-        this.days = days;
-    }
-
-    public int getItemsFound()
-    {
-        return itemsFound;
-    }
-
-    public void setItemsFound( int itemsFound )
-    {
-        this.itemsFound = itemsFound;
-    }
-
-    public int getItemValuesFound()
-    {
-        return itemValuesFound;
-    }
-
-    public void setItemValuesFound( int itemValuesFound )
-    {
-        this.itemValuesFound = itemValuesFound;
-    }
-
-    public boolean isUnprotectedNullDateFound()
-    {
-        return unprotectedNullDateFound;
-    }
-
-    public MissingValueStrategy getMissingValueStrategy()
-    {
-        return missingValueStrategy;
-    }
-
-    // -------------------------------------------------------------------------
-    // Builder
-    // -------------------------------------------------------------------------
-
-    /**
-     * Builder for {@link CommonExpressionVisitor} instances.
-     */
-    public static class Builder
-    {
-        private CommonExpressionVisitor visitor;
-
-        protected Builder()
-        {
-            this.visitor = new CommonExpressionVisitor();
-        }
-
-        public Builder withItemMap( Map<Integer, ExpressionItem> itemMap )
-        {
-            this.visitor.itemMap = itemMap;
-            return this;
-        }
-
-        public Builder withItemMethod( ExpressionItemMethod itemMethod )
-        {
-            this.visitor.itemMethod = itemMethod;
-            return this;
-        }
-
-        public Builder withDimensionService( DimensionService dimensionService )
-        {
-            this.visitor.dimensionService = dimensionService;
-            return this;
-        }
-
-        public Builder withOrganisationUnitService( OrganisationUnitService organisationUnitService )
-        {
-            this.visitor.organisationUnitService = organisationUnitService;
-            return this;
-        }
-
-        public Builder withOrganisationUnitGroupService( OrganisationUnitGroupService organisationUnitGroupService )
-        {
-            this.visitor.organisationUnitGroupService = organisationUnitGroupService;
-            return this;
-        }
-
-        public Builder withProgramIndicatorService( ProgramIndicatorService programIndicatorService )
-        {
-            this.visitor.programIndicatorService = programIndicatorService;
-            return this;
-        }
-
-        public Builder withProgramStageService( ProgramStageService programStageService )
-        {
-            this.visitor.programStageService = programStageService;
-            return this;
-        }
-
-        public Builder withDataElementService( DataElementService dataElementService )
-        {
-            this.visitor.dataElementService = dataElementService;
-            return this;
-        }
-
-        public Builder withAttributeService( TrackedEntityAttributeService attributeService )
-        {
-            this.visitor.attributeService = attributeService;
-            return this;
-        }
-
-        public Builder withRelationshipTypeService( RelationshipTypeService relationshipTypeService )
-        {
-            this.visitor.relationshipTypeService = relationshipTypeService;
-            return this;
-        }
-
-        public Builder withStatementBuilder( StatementBuilder statementBuilder )
-        {
-            this.visitor.statementBuilder = statementBuilder;
-            return this;
-        }
-
-        public Builder withI18n( I18n i18n )
-        {
-            this.visitor.i18n = i18n;
-            return this;
-        }
-
-        public Builder withConstantMap( Map<String, Constant> constantMap )
-        {
-            this.visitor.constantMap = constantMap;
-            return this;
-        }
-
-        public Builder withSamplePeriods( List<Period> samplePeriods )
-        {
-            this.visitor.samplePeriods = samplePeriods;
-            return this;
-        }
-
-        public Builder withMissingValueStrategy( MissingValueStrategy missingValueStrategy )
-        {
-            this.visitor.missingValueStrategy = missingValueStrategy;
-            return this;
-        }
-
-        public CommonExpressionVisitor buildForExpressions()
-        {
-            Validate.notNull( this.visitor.dimensionService, "Missing required property 'dimensionService'" );
-            Validate.notNull( this.visitor.organisationUnitGroupService,
-                "Missing required property 'organisationUnitGroupService'" );
-            Validate.notNull( this.visitor.missingValueStrategy, "Missing required property 'missingValueStrategy'" );
-
-            return validateCommonProperties();
-        }
-
-        public CommonExpressionVisitor buildForProgramIndicatorExpressions()
-        {
-            Validate.notNull( this.visitor.programIndicatorService,
-                "Missing required property 'programIndicatorService'" );
-            Validate.notNull( this.visitor.programStageService, "Missing required property 'programStageService'" );
-            Validate.notNull( this.visitor.dataElementService, "Missing required property 'dataElementService'" );
-            Validate.notNull( this.visitor.attributeService, "Missing required property 'attributeService'" );
-            Validate.notNull( this.visitor.relationshipTypeService,
-                "Missing required property 'relationshipTypeService'" );
-            Validate.notNull( this.visitor.statementBuilder, "Missing required property 'statementBuilder'" );
-            Validate.notNull( this.visitor.i18n, "Missing required property 'i18n'" );
-
-            return validateCommonProperties();
-        }
-
-        private CommonExpressionVisitor validateCommonProperties()
-        {
-            Validate.notNull( this.visitor.constantMap, "Missing required property 'constantMap'" );
-            Validate.notNull( this.visitor.itemMap, "Missing required property 'itemMap'" );
-            Validate.notNull( this.visitor.itemMethod, "Missing required property 'itemMethod'" );
-            Validate.notNull( this.visitor.samplePeriods, "Missing required property 'samplePeriods'" );
-
-            return visitor;
-        }
+        ExpressionParams visitParams = params.toBuilder().dataType( dataType ).build();
+        CommonExpressionVisitor visitor = this.toBuilder().params( visitParams ).build();
+        visitor.setExpressionLiteral( this.expressionLiteral );
+
+        return visitor.visitExpr( ctx );
     }
 }

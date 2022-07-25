@@ -68,6 +68,7 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.PagerUtils;
+import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -261,9 +262,9 @@ public class EventController
                 conflict( "Illegal attribute option combo identifier: " + attributeCc + " " + attributeCos ) );
         }
 
-        Set<String> eventIds = TextUtils.splitToArray( event, TextUtils.SEMICOLON );
+        Set<String> eventIds = TextUtils.splitToSet( event, TextUtils.SEMICOLON );
 
-        Set<String> assignedUserIds = TextUtils.splitToArray( assignedUser, TextUtils.SEMICOLON );
+        Set<String> assignedUserIds = TextUtils.splitToSet( assignedUser, TextUtils.SEMICOLON );
 
         lastUpdatedStartDate = lastUpdatedStartDate != null ? lastUpdatedStartDate : lastUpdated;
 
@@ -335,9 +336,9 @@ public class EventController
                 conflict( "Illegal attribute option combo identifier: " + attributeCc + " " + attributeCos ) );
         }
 
-        Set<String> eventIds = TextUtils.splitToArray( event, TextUtils.SEMICOLON );
+        Set<String> eventIds = TextUtils.splitToSet( event, TextUtils.SEMICOLON );
 
-        Set<String> assignedUserIds = TextUtils.splitToArray( assignedUser, TextUtils.SEMICOLON );
+        Set<String> assignedUserIds = TextUtils.splitToSet( assignedUser, TextUtils.SEMICOLON );
 
         lastUpdatedStartDate = lastUpdatedStartDate != null ? lastUpdatedStartDate : lastUpdated;
 
@@ -408,9 +409,9 @@ public class EventController
                 conflict( "Illegal attribute option combo identifier: " + attributeCc + " " + attributeCos ) );
         }
 
-        Set<String> eventIds = TextUtils.splitToArray( event, TextUtils.SEMICOLON );
+        Set<String> eventIds = TextUtils.splitToSet( event, TextUtils.SEMICOLON );
 
-        Set<String> assignedUserIds = TextUtils.splitToArray( assignedUser, TextUtils.SEMICOLON );
+        Set<String> assignedUserIds = TextUtils.splitToSet( assignedUser, TextUtils.SEMICOLON );
 
         lastUpdatedStartDate = lastUpdatedStartDate != null ? lastUpdatedStartDate : lastUpdated;
 
@@ -482,9 +483,9 @@ public class EventController
                 conflict( "Illegal attribute option combo identifier: " + attributeCc + " " + attributeCos ) );
         }
 
-        Set<String> eventIds = TextUtils.splitToArray( event, TextUtils.SEMICOLON );
+        Set<String> eventIds = TextUtils.splitToSet( event, TextUtils.SEMICOLON );
 
-        Set<String> assignedUserIds = TextUtils.splitToArray( assignedUser, TextUtils.SEMICOLON );
+        Set<String> assignedUserIds = TextUtils.splitToSet( assignedUser, TextUtils.SEMICOLON );
 
         lastUpdatedStartDate = lastUpdatedStartDate != null ? lastUpdatedStartDate : lastUpdated;
 
@@ -518,7 +519,7 @@ public class EventController
         if ( fields.isEmpty() )
         {
             fields.add(
-                "event,uid,program,programType,status,assignedUser,orgUnit,orgUnitName,eventDate,orgUnit,orgUnitName,created,lastUpdated,followup" );
+                "event,uid,program,programType,status,assignedUser,orgUnit,orgUnitName,eventDate,orgUnit,orgUnitName,created,lastUpdated,followup,dataValues" );
         }
 
         EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
@@ -543,10 +544,7 @@ public class EventController
 
         RootNode rootNode = NodeUtils.createMetadata();
 
-        if ( events.getPager() != null )
-        {
-            rootNode.addChild( NodeUtils.createPager( events.getPager() ) );
-        }
+        addPager( params, events, rootNode );
 
         if ( !StringUtils.isEmpty( eventCriteria.getAttachment() ) )
         {
@@ -596,10 +594,7 @@ public class EventController
 
         RootNode rootNode = NodeUtils.createEvents();
 
-        if ( events.getPager() != null )
-        {
-            rootNode.addChild( NodeUtils.createPager( events.getPager() ) );
-        }
+        addPager( params, events, rootNode );
 
         if ( !StringUtils.isEmpty( eventCriteria.getAttachment() ) )
         {
@@ -613,6 +608,28 @@ public class EventController
                 .getChildren() );
 
         return rootNode;
+    }
+
+    /**
+     * Adds a pager object to the root node respecting the given params.
+     *
+     * @param params
+     * @param events
+     * @param rootNode
+     */
+    private void addPager( final EventSearchParams params, final Events events, final RootNode rootNode )
+    {
+        if ( events.getPager() != null )
+        {
+            if ( params.isTotalPages() )
+            {
+                rootNode.addChild( NodeUtils.createPager( events.getPager() ) );
+            }
+            else
+            {
+                rootNode.addChild( NodeUtils.createSlimPager( (SlimPager) events.getPager() ) );
+            }
+        }
     }
 
     @GetMapping( produces = { "application/csv", "application/csv+gzip", "text/csv" } )
@@ -692,7 +709,8 @@ public class EventController
         Model model, HttpServletRequest request )
         throws Exception
     {
-        Event event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( uid ) );
+        Event event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( uid ),
+            true );
 
         if ( event == null )
         {
@@ -710,7 +728,8 @@ public class EventController
         HttpServletResponse response, HttpServletRequest request )
         throws Exception
     {
-        Event event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( eventUid ) );
+        Event event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( eventUid ),
+            true );
 
         if ( event == null )
         {
@@ -775,7 +794,7 @@ public class EventController
             MoreObjects.firstNonNull( dimension, ImageFileDimension.ORIGINAL ) );
 
         response.setContentType( fileResource.getContentType() );
-        response.setContentLength( new Long( fileResource.getContentLength() ).intValue() );
+        response.setContentLengthLong( fileResource.getContentLength() );
         response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName() );
 
         try

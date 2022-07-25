@@ -32,12 +32,12 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.apache.logging.log4j.util.Strings;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.springframework.stereotype.Component;
 
 /**
@@ -55,15 +55,15 @@ public class EventProgramPreProcessor
     {
         List<Event> eventsToPreprocess = bundle.getEvents()
             .stream()
-            .filter( e -> Strings.isEmpty( e.getProgram() ) || Strings.isEmpty( e.getProgramStage() ) )
+            .filter( e -> e.getProgram().isBlank() || e.getProgramStage().isBlank() )
             .collect( Collectors.toList() );
 
         for ( Event event : eventsToPreprocess )
         {
             // Extract program from program stage
-            if ( Strings.isNotEmpty( event.getProgramStage() ) )
+            if ( event.getProgramStage().isNotBlank() )
             {
-                ProgramStage programStage = bundle.getPreheat().get( ProgramStage.class, event.getProgramStage() );
+                ProgramStage programStage = bundle.getPreheat().getProgramStage( event.getProgramStage() );
                 if ( Objects.nonNull( programStage ) )
                 {
                     // TODO remove if once metadata import is fixed
@@ -86,24 +86,44 @@ public class EventProgramPreProcessor
                         // a validation error for this edge case
                         return;
                     }
-                    event.setProgram( programStage.getProgram().getUid() );
-                    bundle.getPreheat().put( TrackerIdentifier.UID, programStage.getProgram() );
+                    TrackerIdSchemeParams idSchemes = bundle.getPreheat().getIdSchemes();
+                    event.setProgram( idSchemes.toMetadataIdentifier( programStage.getProgram() ) );
+                    bundle.getPreheat().put( programStage.getProgram() );
                 }
             }
             // If it is a program event, extract program stage from program
-            else if ( Strings.isNotEmpty( event.getProgram() ) )
+            else if ( event.getProgram().isNotBlank() )
             {
-                Program program = bundle.getPreheat().get( Program.class, event.getProgram() );
+                Program program = bundle.getPreheat().getProgram( event.getProgram() );
                 if ( Objects.nonNull( program ) && program.isWithoutRegistration() )
                 {
                     Optional<ProgramStage> programStage = program.getProgramStages().stream().findFirst();
                     if ( programStage.isPresent() )
                     {
-                        event.setProgramStage( programStage.get().getUid() );
-                        bundle.getPreheat().put( TrackerIdentifier.UID, programStage.get() );
+                        TrackerIdSchemeParams idSchemes = bundle.getPreheat().getIdSchemes();
+                        event.setProgramStage( idSchemes.toMetadataIdentifier( programStage.get() ) );
+                        bundle.getPreheat().put( programStage.get() );
                     }
                 }
             }
+        }
+        setAttributeOptionCombo( bundle );
+    }
+
+    private void setAttributeOptionCombo( TrackerBundle bundle )
+    {
+
+        TrackerPreheat preheat = bundle.getPreheat();
+        List<Event> events = bundle.getEvents().stream()
+            .filter( e -> e.getAttributeOptionCombo().isBlank() && !e.getAttributeCategoryOptions().isEmpty() )
+            .filter( e -> preheat.getProgram( e.getProgram() ) != null )
+            .collect( Collectors.toList() );
+
+        for ( Event e : events )
+        {
+            Program program = preheat.getProgram( e.getProgram() );
+            e.setAttributeOptionCombo( preheat.getCategoryOptionComboIdentifier( program.getCategoryCombo(),
+                e.getAttributeCategoryOptions() ) );
         }
     }
 }

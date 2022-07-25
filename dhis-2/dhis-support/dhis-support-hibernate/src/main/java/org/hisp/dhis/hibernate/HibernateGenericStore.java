@@ -28,8 +28,11 @@
 package org.hisp.dhis.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.lang.String.format;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -48,6 +51,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.StatelessSession;
 import org.hibernate.annotations.QueryHints;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.query.NativeQuery;
@@ -140,6 +144,11 @@ public class HibernateGenericStore<T>
     protected final Session getSession()
     {
         return sessionFactory.getCurrentSession();
+    }
+
+    protected final StatelessSession getStatelessSession()
+    {
+        return sessionFactory.openStatelessSession();
     }
 
     /**
@@ -276,6 +285,28 @@ public class HibernateGenericStore<T>
     protected final List<T> getList( CriteriaBuilder builder, JpaQueryParameters<T> parameters )
     {
         return getTypedQuery( builder, parameters ).getResultList();
+    }
+
+    protected final <V> List<T> getListFromPartitions( CriteriaBuilder builder, Collection<V> values, int partitionSize,
+        Function<Collection<V>, JpaQueryParameters<T>> createPartitionParams )
+    {
+        if ( values == null || values.isEmpty() )
+        {
+            return new ArrayList<>( 0 );
+        }
+        if ( values.size() <= partitionSize )
+        {
+            // fast path: avoid aggregation collection
+            return getList( builder, createPartitionParams.apply( values ) );
+        }
+
+        List<List<V>> partitionedValues = Lists.partition( new ArrayList<>( values ), partitionSize );
+        List<T> aggregate = new ArrayList<>();
+        for ( List<V> valuesPartition : partitionedValues )
+        {
+            aggregate.addAll( getList( builder, createPartitionParams.apply( valuesPartition ) ) );
+        }
+        return aggregate;
     }
 
     /**
@@ -636,6 +667,17 @@ public class HibernateGenericStore<T>
             builder.literal( attribute.getUid() ), builder.literal( "value" ) ).in( values ) );
 
         return getSession().createQuery( query ).list();
+    }
+
+    @Override
+    public int updateAllAttributeValues( Attribute attribute, String newValue, boolean createMissing )
+    {
+        String template = "update %s set attributevalues = jsonb_strip_nulls("
+            + "jsonb_set(cast(attributevalues as jsonb), '{%s}', cast(:value as jsonb), :createMissing))";
+        return getSession().createSQLQuery( format( template, getClazz().getSimpleName(), attribute.getUid() ) )
+            .setParameter( "value", newValue )
+            .setParameter( "createMissing", createMissing )
+            .executeUpdate();
     }
 
     /**

@@ -25,22 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.tracker.events;
 
-import com.google.gson.JsonObject;
+import static org.hamcrest.CoreMatchers.anyOf;
+import static org.hamcrest.CoreMatchers.hasItems;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.stream.Stream;
+
 import joptsimple.internal.Strings;
+
 import org.hamcrest.Matchers;
-import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
-import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.UserActions;
-import org.hisp.dhis.actions.metadata.ProgramActions;
 import org.hisp.dhis.actions.metadata.RelationshipTypeActions;
 import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.actions.tracker.importer.TrackerActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
+import org.hisp.dhis.tracker.TrackerApiTest;
 import org.hisp.dhis.tracker.importer.databuilder.RelationshipDataBuilder;
 import org.hisp.dhis.tracker.importer.databuilder.TeiDataBuilder;
 import org.hisp.dhis.utils.DataGenerator;
@@ -52,30 +64,15 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.stream.Stream;
-
-import static org.hamcrest.CoreMatchers.anyOf;
-import static org.hamcrest.CoreMatchers.hasItems;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.everyItem;
-import static org.hamcrest.Matchers.*;
-import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class EventExportTests
-    extends ApiTest
+    extends TrackerApiTest
 {
     private final String withoutRegistrationProgram = Constants.EVENT_PROGRAM_ID;
-
-    private EventActions eventActions;
 
     private final String withoutRegistrationProgramStage = Constants.EVENT_PROGRAM_STAGE_ID;
 
@@ -91,9 +88,9 @@ public class EventExportTests
 
     private final String captureOu = "DiszpKrYNg8"; // level 4
 
-    private final String searchOu = "O6uvpzGd5pu"; //level 2
+    private final String searchOu = "O6uvpzGd5pu"; // level 2
 
-    private final String dataReadOu = "YuQRtpLP10I"; //level 3
+    private final String dataReadOu = "YuQRtpLP10I"; // level 3
 
     private String closedProgramId;
 
@@ -107,34 +104,31 @@ public class EventExportTests
 
     String relationshipId;
 
-    private LoginActions loginActions;
-
     private UserActions userActions;
-
-    private ProgramActions programActions;
 
     @BeforeAll
     public void beforeAll()
     {
         userActions = new UserActions();
         eventActions = new EventActions();
-        loginActions = new LoginActions();
-        programActions = new ProgramActions();
 
         loginActions.loginAsSuperUser();
 
         setupUser();
-        closedProgramId = programActions.createProgramWithAccessLevel( "CLOSED", rootOu, captureOu, searchOu, dataReadOu );
+        closedProgramId = programActions.createProgramWithAccessLevel( "CLOSED", rootOu, captureOu, searchOu,
+            dataReadOu );
         closedProgramProgramStageId = programActions
             .createProgramStage( closedProgramId, "Event export tests" + DataGenerator.randomString() );
         setupTrackerEvents();
         setupEvents();
 
         String relationshipTypeId = new RelationshipTypeActions()
-            .createRelationshipType( "PROGRAM_STAGE_INSTANCE", withoutRegistrationProgram, "PROGRAM_STAGE_INSTANCE",
+            .createRelationshipType( "PROGRAM_STAGE_INSTANCE", withoutRegistrationProgramStage,
+                "PROGRAM_STAGE_INSTANCE",
                 withRegistrationProgram, true );
 
-        relationshipId = createRelationship( events.get( captureOu ), trackerEvents.get( captureOu ), relationshipTypeId );
+        relationshipId = createRelationship( events.get( captureOu ), trackerEvents.get( captureOu ),
+            relationshipTypeId );
 
     }
 
@@ -151,13 +145,14 @@ public class EventExportTests
             Arguments.of( "OU: capture", "SELECTED", captureOu, true, Arrays.asList( captureOu ) ),
             Arguments.of( "OU: search", "SELECTED", searchOu, false, null ),
             Arguments.of( "OU: data read", "SELECTED", dataReadOu, false, null ),
-            Arguments.of( "OU: data read ( DESCENDANTS ) ", "DESCENDANTS", captureOu, true, Arrays.asList( captureOu ) )
-        );
+            Arguments.of( "OU: data read ( DESCENDANTS ) ", "DESCENDANTS", captureOu, true,
+                Arrays.asList( captureOu ) ) );
     }
 
     @ParameterizedTest( name = "{0}" )
     @MethodSource
-    public void shouldUseCorrectScopeWhenOuIsProvided( String description, String mode, String orgUnitId, Boolean shouldReturn,
+    public void shouldUseCorrectScopeWhenOuIsProvided( String description, String mode, String orgUnitId,
+        Boolean shouldReturn,
         List<String> orgUnit )
     {
         loginActions.loginAsUser( userName, password );
@@ -171,6 +166,7 @@ public class EventExportTests
         if ( shouldReturn )
         {
             response.validate().statusCode( 200 )
+                .body( "events", hasSize( greaterThanOrEqualTo( 1 ) ) )
                 .body( "events.orgUnit", everyItem( in( orgUnit ) ) );
 
             return;
@@ -183,9 +179,10 @@ public class EventExportTests
     {
         return Stream.of(
             Arguments.of( "should use capture scope when no ou, no program", null, Arrays.asList( captureOu ) ),
-            Arguments.of( "should use capture scope when no ou, closed program", closedProgramId, Arrays.asList( captureOu ) ),
-            Arguments.of( "should use search scope when no ou, open program", withRegistrationProgram, Arrays.asList( captureOu, searchOu, dataReadOu ) )
-        );
+            Arguments.of( "should use capture scope when no ou, closed program", closedProgramId,
+                Arrays.asList( captureOu ) ),
+            Arguments.of( "should use search scope when no ou, open program", withRegistrationProgram,
+                Arrays.asList( captureOu, searchOu, dataReadOu ) ) );
     }
 
     @ParameterizedTest( name = "{0}" )
@@ -212,7 +209,8 @@ public class EventExportTests
         allEvents.addAll( trackerEvents.values() );
         return Stream.of(
             Arguments
-                .of( "Event program events", new ArrayList<>( events.values() ), Arrays.asList( captureOu, searchOu, dataReadOu ) ),
+                .of( "Event program events", new ArrayList<>( events.values() ),
+                    Arrays.asList( captureOu, searchOu, dataReadOu ) ),
             Arguments.of( "All programs events", allEvents, Arrays.asList( captureOu, searchOu, dataReadOu ) ),
             Arguments.of( "Tracker program events", new ArrayList<>( trackerEvents.values() ),
                 Arrays.asList( captureOu, searchOu, dataReadOu ) ) );
@@ -233,13 +231,16 @@ public class EventExportTests
     private Stream<Arguments> shouldUseCorrectScopeWhenOuModeIsProvided()
     {
         return Stream.of( new Arguments[] {
-            Arguments.of( "PROGRAM: tracker, OU_MODE: ACCESSIBLE, EXPECTED: search scope", "ACCESSIBLE", withRegistrationProgram,
+            Arguments.of( "PROGRAM: tracker, OU_MODE: ACCESSIBLE, EXPECTED: search scope", "ACCESSIBLE",
+                withRegistrationProgram,
                 Arrays.asList( captureOu, searchOu, dataReadOu ) ),
-            Arguments.of( "PROGRAM: event, OU_MODE: ACCESSIBLE, EXPECTED: search scope,", "ACCESSIBLE", withoutRegistrationProgram,
+            Arguments.of( "PROGRAM: event, OU_MODE: ACCESSIBLE, EXPECTED: search scope,", "ACCESSIBLE",
+                withoutRegistrationProgram,
                 Arrays.asList( searchOu, dataReadOu, captureOu ) ),
             Arguments.of( "PROGRAM: none, OU_MODE: ACCESSIBLE, EXPECTED: search scope", "ACCESSIBLE", null,
                 Arrays.asList( dataReadOu, captureOu, searchOu ) ),
-            Arguments.of( "PROGRAM: closed tracker, OU_MODE: ACCESSIBLE, EXPECTED: capture scope", "ACCESSIBLE", closedProgramId,
+            Arguments.of( "PROGRAM: closed tracker, OU_MODE: ACCESSIBLE, EXPECTED: capture scope", "ACCESSIBLE",
+                closedProgramId,
                 Arrays.asList( captureOu ) ),
             Arguments.of( "PROGRAM: none, OU_MODE: CAPTURE", "CAPTURE", null, Arrays.asList( captureOu ) )
         } );
@@ -260,24 +261,25 @@ public class EventExportTests
 
         eventActions.get( builder.build() )
             .validate().statusCode( 200 )
+            .body( "events", hasSize( greaterThanOrEqualTo( 1 ) ) )
             .body( "events.orgUnit", everyItem( in( expectedOrgUnits ) ) );
     }
 
     private Stream<Arguments> shouldReturnSingleEvent()
     {
         return Stream.of( new Arguments[] {
-            Arguments.of( "PROGRAM: event, OU: search, shouldReturn: true", events.get( searchOu ), true ),
-            Arguments.of( "PROGRAM: tracker, OU: search, shouldReturn: true", trackerEvents.get( searchOu ), true ),
-            Arguments.of( "PROGRAM: event, OU: dataRead, shouldReturn: true", events.get( dataReadOu ), true ),
-            Arguments.of( "PROGRAM: event, OU: root, shouldReturn: false", events.get( rootOu ), false ),
-            Arguments.of( "PROGRAM: tracker, OU: root, shouldReturn: false", trackerEvents.get( rootOu ), false ),
+            Arguments.of( "PROGRAM1: event, OU: search, shouldReturn: true", events.get( searchOu ), true ),
+            Arguments.of( "PROGRAM2: tracker, OU: search, shouldReturn: true", trackerEvents.get( searchOu ), true ),
+            Arguments.of( "PROGRAM3: event, OU: dataRead, shouldReturn: true", events.get( dataReadOu ), true ),
+            Arguments.of( "PROGRAM4: event, OU: root, shouldReturn: false", events.get( rootOu ), false ),
+            Arguments.of( "PROGRAM5: tracker, OU: root, shouldReturn: false", trackerEvents.get( rootOu ), false ),
             Arguments.of( "PROGRAM: tracker, OU: dataRead, shouldReturn: true ", trackerEvents.get( dataReadOu ),
                 true ),
             Arguments.of( "PROGRAM: closed tracker, OU: search, shouldReturn: false",
                 closedProgramEvents.get( searchOu ), false ),
-            Arguments.of( "PROGRAM: closed tracker, OU: dataRead, shouldReturn: false",
+            Arguments.of( "PROGRAM6: closed tracker, OU: dataRead, shouldReturn: false",
                 closedProgramEvents.get( dataReadOu ), false ),
-            Arguments.of( "PROGRAM: closed tracker, OU: capture, shouldReturn: true",
+            Arguments.of( "PROGRAM7: closed tracker, OU: capture, shouldReturn: true",
                 closedProgramEvents.get( captureOu ), true )
         } );
     }
@@ -316,7 +318,8 @@ public class EventExportTests
     {
 
         ApiResponse response = eventActions
-            .get( queryParams.replace( "eventId", events.get( captureOu ) ).replace( "programId", withoutRegistrationProgram ) )
+            .get( queryParams.replace( "eventId", events.get( captureOu ) ).replace( "programId",
+                withoutRegistrationProgram ) )
             .validateStatus( 200 );
         String body = "relationships";
 
@@ -340,7 +343,8 @@ public class EventExportTests
     public void shouldSkipRelationshipsForEventId( String queryParams )
     {
         ApiResponse response = eventActions
-            .get( queryParams.replace( "eventId", events.get( captureOu ) ).replace( "programId", withoutRegistrationProgram ) );
+            .get( queryParams.replace( "eventId", events.get( captureOu ) ).replace( "programId",
+                withoutRegistrationProgram ) );
         String body = "relationships";
 
         if ( response.extractList( "events" ) != null )
@@ -358,21 +362,26 @@ public class EventExportTests
     {
         loginActions.loginAsUser( userName, password );
 
-        eventActions.get( String.format( "?program=%s&ouMode=%s&orgUnit", withoutRegistrationProgram, "ALL", "ImspTQPwCqd" ) )
+        eventActions
+            .get( String.format( "?program=%s&ouMode=%s&orgUnit", withoutRegistrationProgram, "ALL", "ImspTQPwCqd" ) )
             .validate().statusCode( 409 )
             .body( "message", equalTo( "Current user is not authorized to query across all organisation units" ) );
     }
 
     private String createEvent( String ou )
     {
-        JsonObject payload = eventActions.createEventBody( ou, withoutRegistrationProgram, withoutRegistrationProgramStage );
+        JsonObject payload = eventActions.createEventBody( ou, withoutRegistrationProgram,
+            withoutRegistrationProgramStage );
 
-        return eventActions.post( payload, new QueryParamsBuilder().add( "skipCache=true" ) ).validateStatus( 200 ).extractUid();
+        return eventActions.post( payload, new QueryParamsBuilder().add( "skipCache=true" ) ).validateStatus( 200 )
+            .extractUid();
     }
 
     private String setupUser()
     {
-        String userId = userActions.addUser( userName, password );
+        String userId = userActions.addUserFull( "firstNameA", "lastNameB", userName, password,
+            "NONE" );
+
         userActions.grantUserAccessToOrgUnits( userId, captureOu, searchOu, dataReadOu );
         userActions.addUserToUserGroup( userId, Constants.USER_GROUP_ID );
 
@@ -393,7 +402,8 @@ public class EventExportTests
             JsonObject object = new TeiDataBuilder()
                 .buildWithEnrollmentAndEvent( Constants.TRACKED_ENTITY_TYPE, ou, withRegistrationProgram,
                     withRegistrationProgramStage );
-            String eventId = new TrackerActions().postAndGetJobReport( object ).validateSuccessfulImport().extractImportedEvents()
+            String eventId = new TrackerActions().postAndGetJobReport( object ).validateSuccessfulImport()
+                .extractImportedEvents()
                 .get( 0 );
 
             trackerEvents.put( ou, eventId );
@@ -403,7 +413,8 @@ public class EventExportTests
             object = new TeiDataBuilder()
                 .buildWithEnrollmentAndEvent( Constants.TRACKED_ENTITY_TYPE, ou, closedProgramId,
                     closedProgramProgramStageId );
-            eventId = new TrackerActions().postAndGetJobReport( object, new QueryParamsBuilder().add( "async", "false" ) )
+            eventId = new TrackerActions()
+                .postAndGetJobReport( object, new QueryParamsBuilder().add( "async", "false" ) )
                 .validateSuccessfulImport().extractImportedEvents()
                 .get( 0 );
 

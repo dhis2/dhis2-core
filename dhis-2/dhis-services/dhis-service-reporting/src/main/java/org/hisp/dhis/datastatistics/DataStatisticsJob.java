@@ -27,8 +27,7 @@
  */
 package org.hisp.dhis.datastatistics;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.scheduling.Job;
@@ -42,20 +41,11 @@ import org.springframework.stereotype.Component;
  * @author Julie Hill Roa
  */
 @Slf4j
-@Component( "dataStatisticsJob" )
+@Component
+@AllArgsConstructor
 public class DataStatisticsJob implements Job
 {
     private final DataStatisticsService dataStatisticsService;
-
-    public DataStatisticsJob( DataStatisticsService dataStatisticsService )
-    {
-        checkNotNull( dataStatisticsService );
-        this.dataStatisticsService = dataStatisticsService;
-    }
-
-    // -------------------------------------------------------------------------
-    // Implementation
-    // -------------------------------------------------------------------------
 
     @Override
     public JobType getJobType()
@@ -66,12 +56,16 @@ public class DataStatisticsJob implements Job
     @Override
     public void execute( JobConfiguration jobConfiguration, JobProgress progress )
     {
-        long id = dataStatisticsService.saveDataStatisticsSnapshot();
+        progress.startingProcess( "Create data statistics snapshot" );
+        long id = dataStatisticsService.saveDataStatisticsSnapshot( progress );
 
         if ( id > 0 )
         {
-            log.info( "Saved data statistics snapshot" );
+            progress.completedProcess( "Saved data statistics snapshot" );
+        }
+        else
+        {
+            progress.failedProcess( "no snapshot created" );
         }
     }
-
 }

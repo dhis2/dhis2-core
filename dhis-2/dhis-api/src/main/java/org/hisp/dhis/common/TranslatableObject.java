@@ -37,6 +37,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.schema.annotation.Gist;
 import org.hisp.dhis.translation.Translation;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserSettingKey;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -105,7 +106,7 @@ public class TranslatableObject
      */
     protected String getTranslation( String translationKey, String defaultValue )
     {
-        Locale locale = UserContext.getUserSetting( UserSettingKey.DB_LOCALE );
+        Locale locale = CurrentUserUtil.getUserSetting( UserSettingKey.DB_LOCALE );
 
         final String defaultTranslation = defaultValue != null ? defaultValue.trim() : null;
 

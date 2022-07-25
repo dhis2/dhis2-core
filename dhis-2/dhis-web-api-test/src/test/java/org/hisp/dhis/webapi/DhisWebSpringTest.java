@@ -34,9 +34,12 @@ import static org.springframework.restdocs.operation.preprocess.Preprocessors.pr
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.prettyPrint;
 
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.IntegrationH2Test;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.config.ConfigProviderConfiguration;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.utils.TestUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -64,8 +67,10 @@ import org.springframework.web.filter.CharacterEncodingFilter;
  */
 @ExtendWith( { RestDocumentationExtension.class, SpringExtension.class } )
 @WebAppConfiguration
-@ContextConfiguration( classes = { MvcTestConfig.class, WebTestConfiguration.class } )
+@ContextConfiguration( classes = { ConfigProviderConfiguration.class, MvcTestConfig.class,
+    WebTestConfiguration.class } )
 @ActiveProfiles( "test-h2" )
+@IntegrationH2Test
 @Transactional
 public abstract class DhisWebSpringTest extends DhisConvenienceTest
 {
@@ -91,6 +96,11 @@ public abstract class DhisWebSpringTest extends DhisConvenienceTest
         throws Exception
     {
         userService = _userService;
+        clearSecurityContext();
+
+        User all = createAndAddAdminUser( "ALL" );
+        injectSecurityContext( all );
+
         CharacterEncodingFilter characterEncodingFilter = new CharacterEncodingFilter();
         characterEncodingFilter.setEncoding( "UTF-8" );
         characterEncodingFilter.setForceEncoding( true );
@@ -114,11 +124,13 @@ public abstract class DhisWebSpringTest extends DhisConvenienceTest
 
     public MockHttpSession getSession( String... authorities )
     {
-        createAndInjectAdminUser( authorities );
+        // createAndInjectAdminUser( authorities );
 
         MockHttpSession session = new MockHttpSession();
+
         session.setAttribute( HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
             SecurityContextHolder.getContext() );
+
         return session;
     }
 

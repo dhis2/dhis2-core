@@ -70,7 +70,11 @@ abstract class EventAnalyticsTest
 
     protected ProgramStage programStage;
 
+    protected ProgramStage programStageWithRepeatableParams;
+
     protected Program programA;
+
+    protected Program programB;
 
     protected DataElement dataElementA;
 
@@ -78,7 +82,10 @@ abstract class EventAnalyticsTest
     void setUpData()
     {
         programA = createProgram( 'A' );
+        programB = createProgram( 'B' );
         programStage = createProgramStage( 'B', programA );
+        programStageWithRepeatableParams = createProgramStage( 'C', programB );
+        programStageWithRepeatableParams.setRepeatable( true );
         dataElementA = createDataElement( 'A', ValueType.INTEGER, AggregationType.SUM );
         dataElementA.setUid( "fWIAEtYVEGk" );
     }
@@ -153,6 +160,20 @@ abstract class EventAnalyticsTest
         params.withProgram( programA );
         params.withProgramStatuses( new LinkedHashSet<>( List.of( ACTIVE, COMPLETED ) ) );
         params.withEventStatuses( new LinkedHashSet<>( List.of( SCHEDULE ) ) );
+        return params.build();
+    }
+
+    protected EventQueryParams createRequestParamsWithTimeField( final String timeField )
+    {
+        OrganisationUnit ouA = createOrganisationUnit( 'A' );
+        ouA.setPath( "/" + ouA.getUid() );
+        EventQueryParams.Builder params = new EventQueryParams.Builder();
+        params.withPeriods( getList( createPeriod( "2000Q1" ) ), "monthly" );
+        params.withOrganisationUnits( getList( ouA ) );
+        params.withTableName( getTableName() + "_" + programA.getUid() );
+        params.withProgram( programA );
+        params.withProgramStatuses( new LinkedHashSet<>( List.of( ACTIVE, COMPLETED ) ) );
+        params.withTimeField( timeField );
         return params.build();
     }
 

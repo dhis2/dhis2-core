@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.tracker.preheat.supplier.strategy;
 
-import static org.hisp.dhis.tracker.TrackerIdentifierCollector.ID_WILDCARD;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -39,7 +37,6 @@ import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.fieldfilter.Defaults;
-import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.query.Restriction;
@@ -47,9 +44,8 @@ import org.hisp.dhis.query.Restrictions;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.tracker.TrackerIdScheme;
-import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerImportParams;
-import org.hisp.dhis.tracker.preheat.PreheatUtils;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.cache.PreheatCacheService;
 import org.hisp.dhis.tracker.preheat.mappers.CopyMapper;
@@ -73,7 +69,7 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
 
     private final PreheatCacheService cache;
 
-    public AbstractSchemaStrategy( SchemaService schemaService, QueryService queryService,
+    protected AbstractSchemaStrategy( SchemaService schemaService, QueryService queryService,
         IdentifiableObjectManager manager, PreheatCacheService preheatCacheService )
     {
         this.schemaService = schemaService;
@@ -85,10 +81,10 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
     @Override
     public void add( TrackerImportParams params, List<List<String>> splitList, TrackerPreheat preheat )
     {
-        TrackerIdentifier identifier = params.getIdentifiers().getByClass( getSchemaClass() );
+        TrackerIdSchemeParam idSchemeParam = params.getIdSchemes().getByClass( getSchemaClass() );
         Schema schema = schemaService.getDynamicSchema( getSchemaClass() );
 
-        queryForIdentifiableObjects( preheat, schema, identifier, splitList, mapper() );
+        queryForIdentifiableObjects( preheat, schema, idSchemeParam, splitList, mapper() );
     }
 
     protected Class<?> getSchemaClass()
@@ -97,11 +93,12 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
     }
 
     @SuppressWarnings( { "unchecked", "rawtypes" } )
-    protected void queryForIdentifiableObjects( TrackerPreheat preheat, Schema schema, TrackerIdentifier identifier,
+    protected void queryForIdentifiableObjects( TrackerPreheat preheat, Schema schema,
+        TrackerIdSchemeParam idSchemeParam,
         List<List<String>> splitList, Class<? extends PreheatMapper> mapper )
     {
 
-        TrackerIdScheme idScheme = identifier.getIdScheme();
+        TrackerIdScheme idScheme = idSchemeParam.getIdScheme();
         for ( List<String> ids : splitList )
         {
             List<? extends IdentifiableObject> objects;
@@ -109,16 +106,16 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
             if ( TrackerIdScheme.ATTRIBUTE.equals( idScheme ) )
             {
                 Attribute attribute = new Attribute();
-                attribute.setUid( identifier.getValue() );
+                attribute.setUid( idSchemeParam.getAttributeUid() );
                 objects = manager.getAllByAttributeAndValues(
                     (Class<? extends IdentifiableObject>) schema.getKlass(), attribute, ids );
             }
             else
             {
-                objects = cacheAwareFetch( preheat.getUser(), schema, identifier, ids, mapper );
+                objects = cacheAwareFetch( preheat.getUser(), schema, idSchemeParam, ids, mapper );
             }
 
-            preheat.put( identifier, objects );
+            preheat.put( idSchemeParam, objects );
         }
     }
 
@@ -128,63 +125,54 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
     }
 
     @SuppressWarnings( { "unchecked", "rawtypes" } )
-    private List<IdentifiableObject> cacheAwareFetch( User user, Schema schema, TrackerIdentifier identifier,
+    private List<IdentifiableObject> cacheAwareFetch( User user, Schema schema, TrackerIdSchemeParam idSchemeParam,
         List<String> ids, Class<? extends PreheatMapper> mapper )
     {
-        TrackerIdScheme idScheme = identifier.getIdScheme();
+        TrackerIdScheme idScheme = idSchemeParam.getIdScheme();
 
         List<IdentifiableObject> objects;
         final String cacheKey = buildCacheKey( schema );
 
         if ( isCacheable() ) // check if this strategy requires caching
         {
-            if ( isLoadAllEntities( ids ) )
+            Map<String, IdentifiableObject> foundInCache = new HashMap<>();
+            for ( String id : ids )
             {
-                return map( cacheAndReturnLookupData( schema ), mapper );
+                // is the object reference by the given id in cache?
+                cache.get( cacheKey, id )
+                    .ifPresent( identifiableObject -> foundInCache.put( id, identifiableObject ) );
+            }
+
+            // is there any object which was not found in cache?
+            if ( ids.size() > foundInCache.size() )
+            {
+                // remove from the list of ids the ids found in cache
+                ids.removeAll( foundInCache.keySet() );
+
+                // execute the query, fetching only the ids which are not in
+                // cache
+                objects = map(
+                    (List<IdentifiableObject>) queryService.query( buildQuery( schema, user, idScheme, ids ) ),
+                    mapper );
+
+                // put objects in query based on given scheme. If the key
+                // can't get resolved, send null to the
+                // cacheService, which will ignore the entry
+                objects.forEach( o -> cache.put( cacheKey, idSchemeParam.getIdentifier( o ), o, getCacheTTL(),
+                    getCapacity() ) );
+
+                // add back the cached objects to the final list
+                objects.addAll( foundInCache.values() );
             }
             else
             {
-                Map<String, IdentifiableObject> foundInCache = new HashMap<>();
-                for ( String id : ids )
-                {
-                    // is the object reference by the given id in cache?
-                    cache.get( cacheKey, id )
-                        .ifPresent( identifiableObject -> foundInCache.put( id, identifiableObject ) );
-                }
-
-                // is there any object which was not found in cache?
-                if ( ids.size() > foundInCache.size() )
-                {
-                    // remove from the list of ids the ids found in cache
-                    ids.removeAll( foundInCache.keySet() );
-
-                    // execute the query, fetching only the ids which are not in
-                    // cache
-                    objects = map(
-                        (List<IdentifiableObject>) queryService.query( buildQuery( schema, user, idScheme, ids ) ),
-                        mapper );
-
-                    // put objects in query based on given scheme. If the key
-                    // can't get resolved, send null to the
-                    // cacheService, which will ignore the entry
-                    objects.forEach( o -> cache.put( cacheKey,
-                        PreheatUtils.resolveKey( identifier, o ).orElseGet( null ), o, getCacheTTL(), getCapacity() ) );
-
-                    // add back the cached objects to the final list
-                    objects.addAll( foundInCache.values() );
-                }
-                else
-                {
-                    objects = new ArrayList<>( foundInCache.values() );
-                }
+                objects = new ArrayList<>( foundInCache.values() );
             }
         }
         else
         {
-            objects = isLoadAllEntities( ids ) ? manager.getAll( (Class<IdentifiableObject>) schema.getKlass() )
-                : map(
-                    (List<IdentifiableObject>) queryService.query( buildQuery( schema, user, idScheme, ids ) ),
-                    mapper );
+            objects = map( (List<IdentifiableObject>) queryService.query( buildQuery( schema, user, idScheme, ids ) ),
+                mapper );
         }
 
         return objects;
@@ -229,31 +217,6 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
         {
             return Restrictions.in( "id", ids );
         }
-    }
-
-    @SuppressWarnings( "unchecked" )
-    private List<IdentifiableObject> cacheAndReturnLookupData( Schema schema )
-    {
-        List<IdentifiableObject> objects;
-        if ( cache.hasKey( buildCacheKey( schema ) ) && !cache.getAll( buildCacheKey( schema ) ).isEmpty() )
-        {
-            objects = new ArrayList<>( cache.getAll( buildCacheKey( schema ) ) );
-
-        }
-        else
-        {
-            objects = manager.getAll( (Class<IdentifiableObject>) schema.getKlass() );
-
-            objects.forEach( rt -> cache.put( HibernateProxyUtils.getRealClass( rt ).getSimpleName(),
-                rt.getUid(), rt, getCacheTTL(), getCapacity() ) );
-        }
-
-        return objects;
-    }
-
-    private boolean isLoadAllEntities( List<String> ids )
-    {
-        return ids.size() == 1 && ids.contains( ID_WILDCARD );
     }
 
     @SuppressWarnings( "rawtypes" )

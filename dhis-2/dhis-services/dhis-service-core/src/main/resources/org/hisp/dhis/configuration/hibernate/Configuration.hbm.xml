@@ -32,7 +32,7 @@
     <many-to-one name="infrastructuralPeriodType" class="org.hisp.dhis.period.PeriodType"
         column="infrastructuralperiodtypeid" foreign-key="fk_configuration_infrastructural_periodtype" />
 
-    <many-to-one name="selfRegistrationRole" class="org.hisp.dhis.user.UserAuthorityGroup"
+    <many-to-one name="selfRegistrationRole" class="org.hisp.dhis.user.UserRole"
         column="selfregistrationrole" foreign-key="fk_configuration_selfregistrationrole" />
 
     <many-to-one name="selfRegistrationOrgUnit" class="org.hisp.dhis.organisationunit.OrganisationUnit"

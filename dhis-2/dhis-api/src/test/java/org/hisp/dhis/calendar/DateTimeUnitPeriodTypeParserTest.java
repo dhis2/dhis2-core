@@ -54,6 +54,8 @@ class DateTimeUnitPeriodTypeParserTest
         // daily
         assertEquals( new DateInterval( new DateTimeUnit( 2014, 2, 4, true ), new DateTimeUnit( 2014, 2, 4, true ) ),
             format.parse( "20140204" ) );
+        assertEquals( new DateInterval( new DateTimeUnit( 2014, 2, 4, true ), new DateTimeUnit( 2014, 2, 4, true ) ),
+            format.parse( "2014-02-04" ) );
         // weekly
         assertEquals(
             new DateInterval( new DateTimeUnit( 2013, 12, 30, 1, true ), new DateTimeUnit( 2014, 1, 5, 7, true ) ),

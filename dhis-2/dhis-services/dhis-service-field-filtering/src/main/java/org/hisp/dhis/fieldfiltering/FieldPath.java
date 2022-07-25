@@ -98,6 +98,15 @@ public class FieldPath
         this.transformers = new ArrayList<>();
     }
 
+    public FieldPath( String name, List<String> path, boolean exclude, boolean preset )
+    {
+        this.name = name;
+        this.path = path;
+        this.exclude = exclude;
+        this.preset = preset;
+        this.transformers = new ArrayList<>();
+    }
+
     /**
      * @return Dot separated path + field name (i.e. path.to.field)
      */

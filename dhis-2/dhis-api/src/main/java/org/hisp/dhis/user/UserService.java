@@ -30,7 +30,9 @@ package org.hisp.dhis.user;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import javax.annotation.Nullable;
@@ -127,7 +129,7 @@ public interface UserService
      * @param usernames the usernames of the collection of Users to retrieve.
      * @return the User.
      */
-    List<UserCredentials> getUserCredentialsByUsernames( Collection<String> usernames );
+    List<User> getUsersByUsernames( Collection<String> usernames );
 
     /**
      * Returns a List of all Users.
@@ -157,21 +159,11 @@ public interface UserService
     /**
      * Checks if the given user represents the last user with ALL authority.
      *
-     * @param userCredentials the user.
+     * @param user the user.
      * @return true if the given user represents the last user with ALL
      *         authority.
      */
-    boolean isLastSuperUser( UserCredentials userCredentials );
-
-    /**
-     * Checks if the given user role represents the last role with ALL
-     * authority.
-     *
-     * @param userAuthorityGroup the user role.
-     * @return true if the given user role represents the last role with ALL
-     *         authority.
-     */
-    boolean isLastSuperRole( UserAuthorityGroup userAuthorityGroup );
+    boolean isLastSuperUser( User user );
 
     /**
      * Returns a list of users based on the given query parameters. The default
@@ -224,104 +216,50 @@ public interface UserService
 
     boolean canAddOrUpdateUser( Collection<String> userGroups, User currentUser );
 
-    // -------------------------------------------------------------------------
-    // UserCredentials
-    // -------------------------------------------------------------------------
-
     /**
-     * Adds a UserCredentials.
-     *
-     * @param userCredentials the UserCredentials to add.
-     * @return the User which the UserCredentials is associated with.
-     */
-    long addUserCredentials( UserCredentials userCredentials );
-
-    /**
-     * Updates a UserCredentials.
-     *
-     * @param userCredentials the UserCredentials to update.
-     */
-    void updateUserCredentials( UserCredentials userCredentials );
-
-    /**
-     * Retrieves the UserCredentials associated with the User with the given id
-     * token.
+     * Retrieves the User associated with the User with the given id token.
      *
      * @param token the id token of the User.
-     * @return the UserCredentials.
+     * @return the User.
      */
-    public UserCredentials getUserCredentialsByIdToken( String token );
+    User getUserByIdToken( String token );
+
+    User getUserWithEagerFetchAuthorities( String username );
 
     /**
-     * Retrieves the UserCredentials associated with the User with the given
-     * name.
-     *
-     * @param username the name of the User.
-     * @return the UserCredentials.
-     */
-    UserCredentials getUserCredentialsByUsername( String username );
-
-    UserCredentials getUserCredentialsWithEagerFetchAuthorities( String username );
-
-    /**
-     * Retrieves the UserCredentials associated with the User with the given
-     * OpenID.
+     * Retrieves the User associated with the User with the given OpenID.
      *
      * @param openId the openId of the User.
-     * @return the UserCredentials or null if there is no match
+     * @return the User or null if there is no match
      */
-    UserCredentials getUserCredentialsByOpenId( String openId );
+    User getUserByOpenId( String openId );
 
     /**
-     * Retrieves the UserCredentials associated with the User with the given
-     * LDAP ID.
+     * Retrieves the User associated with the User with the given LDAP ID.
      *
      * @param ldapId the ldapId of the User.
-     * @return the UserCredentials.
+     * @return the User.
      */
-    UserCredentials getUserCredentialsByLdapId( String ldapId );
-
-    /**
-     * Retrieves all UserCredentials.
-     *
-     * @return a List of UserCredentials.
-     */
-    List<UserCredentials> getAllUserCredentials();
+    User getUserByLdapId( String ldapId );
 
     /**
      * Encodes and sets the password of the User. Due to business logic required
      * on password updates the password for a user should only be changed using
-     * this method or {@link #encodeAndSetPassword(UserCredentials, String)
-     * encodeAndSetPassword} and not directly on the User or UserCredentials
-     * object.
+     * this method or {@link #encodeAndSetPassword(User, String)
+     * encodeAndSetPassword} and not directly on the User or User object.
      * <p>
      * Note that the changes made to the User object are not persisted.
      *
-     * @param user the User.
+     * @param user the User
      * @param rawPassword the raw password.
      */
     void encodeAndSetPassword( User user, String rawPassword );
 
     /**
-     * Encodes and sets the password of the UserCredentials. Due to business
-     * logic required on password updates the password for a user should only be
-     * changed using this method or {@link #encodeAndSetPassword(User, String)
-     * encodeAndSetPassword} and not directly on the User or UserCredentials
-     * object.
-     * <p>
-     * Note that the changes made to the UserCredentials object are not
-     * persisted.
+     * Updates the last login date of User with the given username with the
+     * current date.
      *
-     * @param userCredentials the UserCredentials.
-     * @param rawPassword the raw password.
-     */
-    void encodeAndSetPassword( UserCredentials userCredentials, String rawPassword );
-
-    /**
-     * Updates the last login date of UserCredentials with the given username
-     * with the current date.
-     *
-     * @param username the username of the UserCredentials.
+     * @param username the username of the User.
      */
     void setLastLogin( String username );
 
@@ -329,95 +267,95 @@ public interface UserService
 
     int getActiveUsersCount( Date since );
 
-    boolean credentialsNonExpired( UserCredentials credentials );
+    boolean userNonExpired( User user );
 
     // -------------------------------------------------------------------------
-    // UserAuthorityGroup
+    // UserRole
     // -------------------------------------------------------------------------
 
     /**
-     * Adds a UserAuthorityGroup.
+     * Adds a UserRole.
      *
-     * @param userAuthorityGroup the UserAuthorityGroup.
+     * @param userRole the UserRole.
      * @return the generated identifier.
      */
-    long addUserAuthorityGroup( UserAuthorityGroup userAuthorityGroup );
+    long addUserRole( UserRole userRole );
 
     /**
-     * Updates a UserAuthorityGroup.
+     * Updates a UserRole.
      *
-     * @param userAuthorityGroup the UserAuthorityGroup.
+     * @param userRole the UserRole.
      */
-    void updateUserAuthorityGroup( UserAuthorityGroup userAuthorityGroup );
+    void updateUserRole( UserRole userRole );
 
     /**
-     * Retrieves the UserAuthorityGroup with the given identifier.
+     * Retrieves the UserRole with the given identifier.
      *
-     * @param id the identifier of the UserAuthorityGroup to retrieve.
-     * @return the UserAuthorityGroup.
+     * @param id the identifier of the UserRole to retrieve.
+     * @return the UserRole.
      */
-    UserAuthorityGroup getUserAuthorityGroup( long id );
+    UserRole getUserRole( long id );
 
     /**
-     * Retrieves the UserAuthorityGroup with the given identifier.
+     * Retrieves the UserRole with the given identifier.
      *
-     * @param uid the identifier of the UserAuthorityGroup to retrieve.
-     * @return the UserAuthorityGroup.
+     * @param uid the identifier of the UserRole to retrieve.
+     * @return the UserRole.
      */
-    UserAuthorityGroup getUserAuthorityGroup( String uid );
+    UserRole getUserRole( String uid );
 
     /**
-     * Retrieves the UserAuthorityGroup with the given name.
+     * Retrieves the UserRole with the given name.
      *
-     * @param name the name of the UserAuthorityGroup to retrieve.
-     * @return the UserAuthorityGroup.
+     * @param name the name of the UserRole to retrieve.
+     * @return the UserRole.
      */
-    UserAuthorityGroup getUserAuthorityGroupByName( String name );
+    UserRole getUserRoleByName( String name );
 
     /**
-     * Deletes a UserAuthorityGroup.
+     * Deletes a UserRole.
      *
-     * @param userAuthorityGroup the UserAuthorityGroup to delete.
+     * @param userRole the UserRole to delete.
      */
-    void deleteUserAuthorityGroup( UserAuthorityGroup userAuthorityGroup );
+    void deleteUserRole( UserRole userRole );
 
     /**
-     * Retrieves all UserAuthorityGroups.
+     * Retrieves all UserRole.
      *
-     * @return a List of UserAuthorityGroups.
+     * @return a List of UserRole.
      */
-    List<UserAuthorityGroup> getAllUserAuthorityGroups();
+    List<UserRole> getAllUserRoles();
 
     /**
-     * Retrieves UserAuthorityGroups with the given UIDs.
+     * Retrieves UserRole with the given UIDs.
      *
      * @param uids the UIDs.
-     * @return a List of UserAuthorityGroups.
+     * @return a List of UserRolea.
      */
-    List<UserAuthorityGroup> getUserRolesByUid( Collection<String> uids );
+    List<UserRole> getUserRolesByUid( Collection<String> uids );
 
     /**
-     * Retrieves all UserAuthorityGroups.
+     * Retrieves all UserRole.
      *
-     * @return a List of UserAuthorityGroups.
+     * @return a List of UserRole.
      */
-    List<UserAuthorityGroup> getUserRolesBetween( int first, int max );
+    List<UserRole> getUserRolesBetween( int first, int max );
 
     /**
-     * Retrieves all UserAuthorityGroups.
+     * Retrieves all UserRole.
      *
-     * @return a List of UserAuthorityGroups.
+     * @return a List of UserRoles.
      */
-    List<UserAuthorityGroup> getUserRolesBetweenByName( String name, int first, int max );
+    List<UserRole> getUserRolesBetweenByName( String name, int first, int max );
 
     /**
-     * Returns the number of UserAuthorityGroups which are associated with the
-     * given DataSet.
+     * Returns the number of UserRoles which are associated with the given
+     * DataSet.
      *
      * @param dataSet the DataSet.
-     * @return number of UserAuthorityGroups.
+     * @return number of UserRoles.
      */
-    int countDataSetUserAuthorityGroups( DataSet dataSet );
+    int countDataSetUserRoles( DataSet dataSet );
 
     /**
      * Filters the given collection of user roles based on whether the current
@@ -425,16 +363,14 @@ public interface UserService
      *
      * @param userRoles the collection of user roles.
      */
-    void canIssueFilter( Collection<UserAuthorityGroup> userRoles );
+    void canIssueFilter( Collection<UserRole> userRoles );
 
     List<ErrorReport> validateUser( User user, User currentUser );
 
     /**
-     * Returns list of active users whose credentials are expiring with in few
-     * days.
+     * Returns list of active users who are expiring with in few days.
      *
-     * @return list of active users whose credentials are expiring with in few
-     *         days.
+     * @return list of active users who are expiring with in few days.
      */
     List<User> getExpiringUsers();
 
@@ -451,22 +387,22 @@ public interface UserService
      * Expire a user's active sessions retrieved from the Spring security's
      * org.springframework.security.core.session.SessionRegistry
      *
-     * @param credentials the user credentials
+     * @param user the user
      */
-    void expireActiveSessions( UserCredentials credentials );
+    void expireActiveSessions( User user );
 
     /**
      * Whether or not the provided account is expired right now.
      *
-     * @param credentials the user credentials
+     * @param user the user
      * @return true, if the provided account is already expired, otherwise false
      */
-    boolean isAccountExpired( UserCredentials credentials );
+    boolean isAccountExpired( User user );
 
     /**
-     * Sets {@link UserCredentials#setDisabled(boolean)} to {@code true} for all
-     * users where the {@link UserCredentials#getLastLogin()} is before or equal
-     * to the provided pivot {@link Date}.
+     * Sets {@link User#setDisabled(boolean)} to {@code true} for all users
+     * where the {@link User#getLastLogin()} is before or equal to the provided
+     * pivot {@link Date}.
      *
      * @param inactiveSince the most recent point in time that is considered
      *        inactive together with accounts only active further in the past.#
@@ -475,15 +411,15 @@ public interface UserService
     int disableUsersInactiveSince( Date inactiveSince );
 
     /**
-     * Selects all not disabled users where the
-     * {@link UserCredentials#getLastLogin()} is within the given time-frame and
-     * which have an email address.
+     * Selects all not disabled users where the {@link User#getLastLogin()} is
+     * within the given time-frame and which have an email address.
      *
      * @param from start of the selected time-frame (inclusive)
      * @param to end of the selected time-frame (exclusive)
-     * @return user emails having a last login within the given time-frame.
+     * @return user emails having a last login within the given time-frame as
+     *         keys and if available their preferred locale as value
      */
-    Set<String> findNotifiableUsersWithLastLoginBetween( Date from, Date to );
+    Map<String, Optional<Locale>> findNotifiableUsersWithLastLoginBetween( Date from, Date to );
 
     /**
      * Get user display name by concat( firstname,' ', surname ) Return null if
@@ -495,5 +431,10 @@ public interface UserService
      * Given an Authorities's name, retrieves a list of users that has that
      * authority.
      */
-    List<UserCredentials> getUsersWithAuthority( String authority );
+    List<User> getUsersWithAuthority( String authority );
+
+    CurrentUserDetails validateAndCreateUserDetails( User user, String password );
+
+    CurrentUserDetailsImpl createUserDetails( User user, String password, boolean accountNonLocked,
+        boolean credentialsNonExpired );
 }

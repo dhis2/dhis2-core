@@ -43,7 +43,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserGroup;
 import org.springframework.stereotype.Service;
 
@@ -118,7 +117,7 @@ public class NotificationTemplateMapper
                 toBaseIdentifiableObject( userSnapshot, User::new,
                     ImmutableList.of(
                         u -> u.setName( userSnapshot.getName() ),
-                        u -> u.setUserCredentials( toUserCredentials( userSnapshot.getUserCredentials() ) ),
+                        u -> u.setUsername( userSnapshot.getUsername() ),
                         u -> u.setEmail( userSnapshot.getEmail() ),
                         u -> u.setPhoneNumber( userSnapshot.getPhoneNumber() ),
                         u -> u.setOrganisationUnits(
@@ -138,7 +137,7 @@ public class NotificationTemplateMapper
                 toIdentifiableObjectSnapshot( user, UserSnapshot::new,
                     ImmutableList.of(
                         u -> u.setName( user.getName() ),
-                        u -> u.setUserCredentials( toUserCredentialsSnapshot( user.getUserCredentials() ) ),
+                        u -> u.setUsername( user.getUsername() ),
                         u -> u.setEmail( user.getEmail() ),
                         u -> u.setPhoneNumber( user.getPhoneNumber() ),
                         u -> u.setOrganisationUnit(
@@ -182,22 +181,6 @@ public class NotificationTemplateMapper
                     ou -> ou.setUsers( toUserSnapshot( organisationUnit.getUsers(), level + 1 ) ) ) );
         }
         return null;
-    }
-
-    private UserCredentials toUserCredentials( UserCredentialsSnapshot userCredentialsSnapshot )
-    {
-        return toBaseIdentifiableObject( userCredentialsSnapshot,
-            UserCredentials::new,
-            ImmutableList.of(
-                userCredential -> userCredential.setUsername( userCredentialsSnapshot.getUsername() ) ) );
-    }
-
-    private UserCredentialsSnapshot toUserCredentialsSnapshot( UserCredentials userCredentials )
-    {
-        return toIdentifiableObjectSnapshot( userCredentials,
-            UserCredentialsSnapshot::new,
-            ImmutableList.of(
-                userCredential -> userCredential.setUsername( userCredentials.getUsername() ) ) );
     }
 
     private <T extends IdentifiableObjectSnapshot> T toIdentifiableObjectSnapshot( BaseIdentifiableObject from,

@@ -41,6 +41,7 @@ public class vAnalyticsPeriodStart
     @Override
     public Object getSql( CommonExpressionVisitor visitor )
     {
-        return visitor.getStatementBuilder().encode( DateUtils.getSqlDateString( visitor.getReportingStartDate() ) );
+        return visitor.getStatementBuilder().encode( DateUtils.getSqlDateString(
+            visitor.getProgParams().getReportingStartDate() ) );
     }
 }

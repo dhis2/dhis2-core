@@ -28,11 +28,18 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_CREATED_BY_DISPLAY_NAME;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_ENROLLMENT_DATE;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_EVENT_DATE;
+import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_EVENT_STATUS;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_INCIDENT_DATE;
+import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LAST_UPDATED;
+import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LAST_UPDATED_BY_DISPLAY_NAME;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_ORG_UNIT_CODE;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_ORG_UNIT_NAME;
+import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_PROGRAM_STATUS;
+import static org.hisp.dhis.analytics.event.data.DefaultEventDataQueryService.SortableItems.isSortable;
+import static org.hisp.dhis.analytics.event.data.DefaultEventDataQueryService.SortableItems.translateItemIfNecessary;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
@@ -40,10 +47,17 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionFromParam;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionItemsFromParam;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionalItemIds;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
@@ -57,11 +71,13 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.EventAnalyticalObject;
 import org.hisp.dhis.common.EventDataQueryRequest;
+import org.hisp.dhis.common.GroupableItem;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.common.RequestTypeAware;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataelement.DataElement;
@@ -84,7 +100,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Lars Helge Overland
@@ -93,14 +108,17 @@ import com.google.common.collect.ImmutableSet;
 public class DefaultEventDataQueryService
     implements EventDataQueryService
 {
+    private static final String COL_NAME_PROGRAM_STATUS_EVENTS = "pistatus";
+
+    private static final String COL_NAME_PROGRAM_STATUS_ENROLLMENTS = "enrollmentstatus";
+
+    private static final String COL_NAME_EVENT_STATUS = "psistatus";
+
     private static final String COL_NAME_EVENTDATE = "executiondate";
 
     private static final String COL_NAME_ENROLLMENTDATE = "enrollmentdate";
 
     private static final String COL_NAME_INCIDENTDATE = "incidentdate";
-
-    private static final ImmutableSet<String> SORTABLE_ITEMS = ImmutableSet.of(
-        ITEM_ENROLLMENT_DATE, ITEM_INCIDENT_DATE, ITEM_EVENT_DATE, ITEM_ORG_UNIT_NAME, ITEM_ORG_UNIT_CODE );
 
     private final ProgramService programService;
 
@@ -215,8 +233,11 @@ public class DefaultEventDataQueryService
             .withPage( request.getPage() )
             .withPageSize( request.getPageSize() )
             .withPaging( request.isPaging() )
+            .withTotalPages( request.isTotalPages() )
             .withProgramStatuses( request.getProgramStatus() )
-            .withApiVersion( request.getApiVersion() );
+            .withApiVersion( request.getApiVersion() )
+            .withEnhancedConditions( request.isEnhancedConditions() )
+            .withEndpointItem( request.getEndpointItem() );
 
         if ( analyzeOnly )
         {
@@ -227,8 +248,9 @@ public class DefaultEventDataQueryService
 
         EventQueryParams eventQueryParams = builder.build();
 
-        // partitioning can be used only when default period is specified
-        if ( hasNotDefaultPeriod( eventQueryParams ) )
+        // partitioning can be used only when default period is specified.
+        // empty period dimension means default period.
+        if ( hasPeriodDimension( eventQueryParams ) && hasNotDefaultPeriod( eventQueryParams ) )
         {
             builder.withSkipPartitioning( true );
             eventQueryParams = builder.build();
@@ -237,13 +259,23 @@ public class DefaultEventDataQueryService
         return eventQueryParams;
     }
 
+    private boolean hasPeriodDimension( EventQueryParams eventQueryParams )
+    {
+        return Objects.nonNull( getPeriodDimension( eventQueryParams ) );
+    }
+
     private boolean hasNotDefaultPeriod( EventQueryParams eventQueryParams )
     {
-        return Optional.ofNullable( eventQueryParams.getDimension( PERIOD_DIM_ID ) )
+        return Optional.ofNullable( getPeriodDimension( eventQueryParams ) )
             .map( DimensionalObject::getItems )
             .orElse( Collections.emptyList() )
             .stream()
             .noneMatch( this::isDefaultPeriod );
+    }
+
+    private DimensionalObject getPeriodDimension( EventQueryParams eventQueryParams )
+    {
+        return eventQueryParams.getDimension( PERIOD_DIM_ID );
     }
 
     private boolean isDefaultPeriod( DimensionalItemObject dimensionalItemObject )
@@ -257,7 +289,7 @@ public class DefaultEventDataQueryService
         {
             for ( String sort : request.getAsc() )
             {
-                params.addAscSortItem( getSortItem( sort, pr, request.getOutputType() ) );
+                params.addAscSortItem( getSortItem( sort, pr, request.getOutputType(), request.getEndpointItem() ) );
             }
         }
 
@@ -265,7 +297,7 @@ public class DefaultEventDataQueryService
         {
             for ( String sort : request.getDesc() )
             {
-                params.addDescSortItem( getSortItem( sort, pr, request.getOutputType() ) );
+                params.addDescSortItem( getSortItem( sort, pr, request.getOutputType(), request.getEndpointItem() ) );
             }
         }
     }
@@ -276,22 +308,30 @@ public class DefaultEventDataQueryService
     {
         if ( request.getFilter() != null )
         {
-            for ( String dim : request.getFilter() )
+            for ( Set<String> filterGroup : request.getFilter() )
             {
-                String dimensionId = getDimensionFromParam( dim );
-
-                List<String> items = getDimensionItemsFromParam( dim );
-
-                DimensionalObject dimObj = dataQueryService.getDimension( dimensionId,
-                    items, request.getRelativePeriodDate(), userOrgUnits, format, true, false, idScheme );
-
-                if ( dimObj != null )
+                UUID groupUUID = UUID.randomUUID();
+                for ( String dim : filterGroup )
                 {
-                    params.addFilter( dimObj );
-                }
-                else
-                {
-                    params.addItemFilter( getQueryItem( dim, pr, request.getOutputType() ) );
+                    String dimensionId = getDimensionFromParam( dim );
+
+                    List<String> items = getDimensionItemsFromParam( dim );
+
+                    GroupableItem groupableItem = dataQueryService.getDimension( dimensionId,
+                        items, request.getRelativePeriodDate(), userOrgUnits, format, true, idScheme );
+
+                    if ( groupableItem != null )
+                    {
+                        params.addFilter( (DimensionalObject) groupableItem );
+                    }
+                    else
+                    {
+                        groupableItem = getQueryItem( dim, pr, request.getOutputType() );
+                        params.addItemFilter( (QueryItem) groupableItem );
+                    }
+
+                    groupableItem.setGroupUUID( groupUUID );
+
                 }
             }
         }
@@ -303,22 +343,30 @@ public class DefaultEventDataQueryService
     {
         if ( request.getDimension() != null )
         {
-            for ( String dim : request.getDimension() )
+            for ( Set<String> dimensionGroup : request.getDimension() )
             {
-                String dimensionId = getDimensionFromParam( dim );
+                UUID groupUUID = UUID.randomUUID();
 
-                List<String> items = getDimensionItemsFromParam( dim );
-
-                DimensionalObject dimObj = dataQueryService.getDimension( dimensionId,
-                    items, request.getRelativePeriodDate(), userOrgUnits, format, true, false, idScheme );
-
-                if ( dimObj != null )
+                for ( String dim : dimensionGroup )
                 {
-                    params.addDimension( dimObj );
-                }
-                else
-                {
-                    params.addItem( getQueryItem( dim, pr, request.getOutputType() ) );
+                    String dimensionId = getDimensionFromParam( dim );
+
+                    List<String> items = getDimensionItemsFromParam( dim );
+
+                    GroupableItem groupableItem = dataQueryService.getDimension( dimensionId,
+                        items, request, userOrgUnits, format, true, idScheme );
+
+                    if ( groupableItem != null )
+                    {
+                        params.addDimension( (DimensionalObject) groupableItem );
+                    }
+                    else
+                    {
+                        groupableItem = getQueryItem( dim, pr, request.getOutputType() );
+                        params.addItem( (QueryItem) groupableItem );
+                    }
+
+                    groupableItem.setGroupUUID( groupUUID );
                 }
             }
         }
@@ -341,7 +389,7 @@ public class DefaultEventDataQueryService
         for ( DimensionalObject dimension : ListUtils.union( object.getColumns(), object.getRows() ) )
         {
             DimensionalObject dimObj = dataQueryService.getDimension( dimension.getDimension(),
-                getDimensionalItemIds( dimension.getItems() ), date, null, format, true, false, idScheme );
+                getDimensionalItemIds( dimension.getItems() ), date, null, format, true, idScheme );
 
             if ( dimObj != null )
             {
@@ -357,7 +405,7 @@ public class DefaultEventDataQueryService
         for ( DimensionalObject filter : object.getFilters() )
         {
             DimensionalObject dimObj = dataQueryService.getDimension( filter.getDimension(),
-                getDimensionalItemIds( filter.getItems() ), date, null, format, true, false, idScheme );
+                getDimensionalItemIds( filter.getItems() ), date, null, format, true, idScheme );
 
             if ( dimObj != null )
             {
@@ -435,7 +483,8 @@ public class DefaultEventDataQueryService
         return getQueryItem( dimension, program, type );
     }
 
-    private QueryItem getQueryItem( String dimensionString, Program program, EventOutputType type )
+    @Override
+    public QueryItem getQueryItem( String dimensionString, Program program, EventOutputType type )
     {
         String[] split = dimensionString.split( DIMENSION_NAME_SEP );
 
@@ -452,6 +501,9 @@ public class DefaultEventDataQueryService
             {
                 QueryOperator operator = QueryOperator.fromString( split[i] );
                 QueryFilter filter = new QueryFilter( operator, split[i + 1] );
+                // FE uses HH.MM time format instead of HH:MM. This is not
+                // compatible with db table/cell values
+                modifyFilterWhenTimeQueryItem( queryItem, filter );
                 queryItem.addFilter( filter );
             }
         }
@@ -459,23 +511,24 @@ public class DefaultEventDataQueryService
         return queryItem;
     }
 
-    private DimensionalItemObject getSortItem( String item, Program program, EventOutputType type )
+    private static void modifyFilterWhenTimeQueryItem( QueryItem queryItem, QueryFilter filter )
     {
-        QueryItem queryItem;
-
-        if ( SORTABLE_ITEMS.contains( item.toLowerCase() ) )
+        if ( queryItem.getItem() instanceof DataElement
+            && ((DataElement) queryItem.getItem()).getValueType() == ValueType.TIME )
         {
-            item = ITEM_EVENT_DATE.equalsIgnoreCase( item ) ? COL_NAME_EVENTDATE : item;
-            item = ITEM_ENROLLMENT_DATE.equalsIgnoreCase( item ) ? COL_NAME_ENROLLMENTDATE : item;
-            item = ITEM_INCIDENT_DATE.equalsIgnoreCase( item ) ? COL_NAME_INCIDENTDATE : item;
-            queryItem = new QueryItem( new BaseDimensionalItemObject( item ) );
-        }
-        else
-        {
-            queryItem = getQueryItem( item, program, type );
+            filter.setFilter( filter.getFilter().replace( ".", ":" ) );
         }
 
-        return queryItem.getItem();
+    }
+
+    private QueryItem getSortItem( String item, Program program, EventOutputType type,
+        RequestTypeAware.EndpointItem endpointItem )
+    {
+        if ( isSortable( item ) )
+        {
+            return new QueryItem( new BaseDimensionalItemObject( translateItemIfNecessary( item, endpointItem ) ) );
+        }
+        return getQueryItem( item, program, type );
     }
 
     private DimensionalItemObject getValueDimension( String value )
@@ -509,5 +562,63 @@ public class DefaultEventDataQueryService
             throwIllegalQueryEx( errorCode, field );
         }
         return field;
+    }
+
+    @Getter
+    @RequiredArgsConstructor
+    enum SortableItems
+    {
+        ENROLLMENT_DATE( ITEM_ENROLLMENT_DATE, COL_NAME_ENROLLMENTDATE ),
+        INCIDENT_DATE( ITEM_INCIDENT_DATE, COL_NAME_INCIDENTDATE ),
+        EVENT_DATE( ITEM_EVENT_DATE, COL_NAME_EVENTDATE ),
+        ORG_UNIT_NAME( ITEM_ORG_UNIT_NAME ),
+        ORG_UNIT_CODE( ITEM_ORG_UNIT_CODE ),
+        PROGRAM_STATUS( ITEM_PROGRAM_STATUS, COL_NAME_PROGRAM_STATUS_EVENTS, COL_NAME_PROGRAM_STATUS_ENROLLMENTS ),
+        EVENT_STATUS( ITEM_EVENT_STATUS, COL_NAME_EVENT_STATUS ),
+        CREATED_BY_DISPLAY_NAME( ITEM_CREATED_BY_DISPLAY_NAME ),
+        LAST_UPDATED_BY_DISPLAY_NAME( ITEM_LAST_UPDATED_BY_DISPLAY_NAME ),
+        LAST_UPDATED( ITEM_LAST_UPDATED );
+
+        private final String itemName;
+
+        private final String eventColumnName;
+
+        private final String enrollmentColumnName;
+
+        SortableItems( String itemName )
+        {
+            this.itemName = itemName;
+            this.eventColumnName = null;
+            this.enrollmentColumnName = null;
+        }
+
+        SortableItems( String itemName, String columnName )
+        {
+            this.itemName = itemName;
+            this.eventColumnName = columnName;
+            this.enrollmentColumnName = columnName;
+        }
+
+        static boolean isSortable( String itemName )
+        {
+            return Arrays.stream( values() )
+                .map( SortableItems::getItemName )
+                .anyMatch( itemName::equals );
+        }
+
+        static String translateItemIfNecessary( String item, RequestTypeAware.EndpointItem type )
+        {
+            return Arrays.stream( values() )
+                .filter( sortableItems -> sortableItems.getItemName().equals( item ) )
+                .findFirst()
+                .map( sortableItems -> sortableItems.getColumnName( type ) )
+                .orElse( item );
+        }
+
+        private String getColumnName( RequestTypeAware.EndpointItem type )
+        {
+            return type == RequestTypeAware.EndpointItem.EVENT ? eventColumnName : enrollmentColumnName;
+        }
+
     }
 }

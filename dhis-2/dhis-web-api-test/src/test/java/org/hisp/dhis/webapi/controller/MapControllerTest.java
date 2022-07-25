@@ -27,11 +27,15 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
+import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.JsonResponse;
+import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpStatus;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.controller.mapping.MapController} using
@@ -55,4 +59,25 @@ class MapControllerTest extends DhisControllerConvenienceTest
         assertWebMessage( "Not Found", 404, "ERROR", "Map does not exist: xyz",
             PUT( "/maps/xyz", "{'name':'My updated map'}" ).content( HttpStatus.NOT_FOUND ) );
     }
+
+    @Test
+    void testGetWithMapViewAndOrgUnitField()
+    {
+        String attrId = assertStatus( HttpStatus.CREATED, POST( "/attributes",
+            "{  'name':'GeoJsonAttribute', " + "'valueType':'GEOJSON', " + "'organisationUnit':true}" ) );
+
+        String mapId = assertStatus( HttpStatus.CREATED, POST( "/maps/",
+            "{\"name\":\"My map\", \"mapViews\":[ { \"orgUnitField\": \"" + attrId + "\", " +
+                "\"layer\": \"thematic1\",\"renderingStrategy\": \"SINGLE\" } ]}" ) );
+
+        JsonResponse map = GET( "/maps/{uid}", mapId ).content();
+        assertNotNull( map.getArray( "mapViews" ) );
+        assertEquals( 1, map.getArray( "mapViews" ).size() );
+
+        JsonObject mapView = map.getArray( "mapViews" ).get( 0 ).as( JsonObject.class );
+        assertEquals( attrId, mapView.getString( "orgUnitField" ).string() );
+        assertEquals( "GeoJsonAttribute", mapView.getString( "orgUnitFieldDisplayName" ).string() );
+
+    }
+
 }

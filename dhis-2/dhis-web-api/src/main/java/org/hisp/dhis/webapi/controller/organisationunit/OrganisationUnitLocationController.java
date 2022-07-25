@@ -41,7 +41,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.system.filter.OrganisationUnitPolygonCoveringCoordinateFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -63,9 +62,6 @@ public class OrganisationUnitLocationController
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
-
-    @Autowired
-    private RenderService renderService;
 
     /**
      * Get Organisation Units within a distance from a location

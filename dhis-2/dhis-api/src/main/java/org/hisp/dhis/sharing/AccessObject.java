@@ -40,6 +40,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 public abstract class AccessObject
     implements Serializable
 {
+    protected String displayName;
+
     protected String access;
 
     protected String id;
@@ -48,6 +50,18 @@ public abstract class AccessObject
     {
         this.access = access;
         this.id = id;
+    }
+
+    @JsonProperty( access = JsonProperty.Access.READ_ONLY )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDisplayName()
+    {
+        return displayName;
+    }
+
+    public void setDisplayName( String displayName )
+    {
+        this.displayName = displayName;
     }
 
     @JsonProperty

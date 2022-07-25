@@ -25,8 +25,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.tracker.deduplication.merge;
+
+import static org.hamcrest.CoreMatchers.*;
+
+import java.util.Arrays;
 
 import org.hamcrest.Matchers;
 import org.hisp.dhis.Constants;
@@ -37,10 +40,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-
-import java.util.Arrays;
-
-import static org.hamcrest.CoreMatchers.*;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -60,7 +59,8 @@ public class PotentialDuplicatesMergeTests
         String teiA = createTei( Constants.TRACKED_ENTITY_TYPE );
         String teiB = createTeiWithEnrollmentsAndEvents().extractImportedTeis().get( 0 );
 
-        String potentialDuplicate = potentialDuplicatesActions.createAndValidatePotentialDuplicate( teiA, teiB, "OPEN" );
+        String potentialDuplicate = potentialDuplicatesActions.createAndValidatePotentialDuplicate( teiA, teiB,
+            "OPEN" );
 
         String admin_username = "taadmin";
         loginActions.loginAsUser( admin_username, USER_PASSWORD );
@@ -75,25 +75,30 @@ public class PotentialDuplicatesMergeTests
 
         trackerActions.getTrackedEntity( teiA + "?fields=*" )
             .validate().statusCode( 200 )
-            .body( "createdBy", equalTo( "tasuperadmin" ) )
-            .body( "updatedBy", equalTo( admin_username ) )
-            .body( "enrollments.updatedBy", everyItem( equalTo( admin_username ) ) );
+            .body( "createdBy.username", equalTo( "tasuperadmin" ) )
+            .body( "updatedBy.username", equalTo( admin_username ) )
+            .body( "enrollments.updatedBy.username", everyItem( equalTo( admin_username ) ) );
     }
 
     @ValueSource( strings = { "enrollments", "relationships", "trackedEntityAttributes" } )
     @ParameterizedTest
     public void shouldCheckReferences( String property )
     {
-        String id = "nlXNK4b7LVr"; // id of a program. Valid, but there won't be any enrollments, relationships or TEAs with that id.
+        String id = "nlXNK4b7LVr"; // id of a program. Valid, but there won't be
+                                   // any enrollments, relationships or TEAs
+                                   // with that id.
         String teiA = createTei( Constants.TRACKED_ENTITY_TYPE );
         String teiB = createTei( Constants.TRACKED_ENTITY_TYPE );
 
-        String potentialDuplicate = potentialDuplicatesActions.createAndValidatePotentialDuplicate( teiA, teiB, "OPEN" );
+        String potentialDuplicate = potentialDuplicatesActions.createAndValidatePotentialDuplicate( teiA, teiB,
+            "OPEN" );
 
-        potentialDuplicatesActions.manualMergePotentialDuplicate( potentialDuplicate, new JsonObjectBuilder().addArray( property,
-            Arrays.asList( id ) ).build() )
+        potentialDuplicatesActions
+            .manualMergePotentialDuplicate( potentialDuplicate, new JsonObjectBuilder().addArray( property,
+                Arrays.asList( id ) ).build() )
             .validate().statusCode( 409 )
-            .body( "message", both( containsString( "Merging conflict: Duplicate has no" ) ).and( containsString( id ) ) );
+            .body( "message",
+                both( containsString( "Merging conflict: Duplicate has no" ) ).and( containsString( id ) ) );
     }
 
     @Test
@@ -104,7 +109,8 @@ public class PotentialDuplicatesMergeTests
         String teiA = createTei( Constants.TRACKED_ENTITY_TYPE );
         String teiB = createTei( trackedEntityType );
 
-        String potentialDuplicate = potentialDuplicatesActions.createAndValidatePotentialDuplicate( teiA, teiB, "OPEN" );
+        String potentialDuplicate = potentialDuplicatesActions.createAndValidatePotentialDuplicate( teiA, teiB,
+            "OPEN" );
 
         potentialDuplicatesActions.autoMergePotentialDuplicate( potentialDuplicate )
             .validate().statusCode( 409 )

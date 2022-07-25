@@ -33,7 +33,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 
 import lombok.Builder;
 import lombok.Data;
@@ -42,12 +41,11 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.schema.AbstractPropertyTransformer;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.SerializerProvider;
@@ -102,18 +100,12 @@ public class UserPropertyTransformer
 
     private UserDto buildUserDto( User user )
     {
-        UserCredentials userCredentials = user.getUserCredentials();
-
         UserDto.UserDtoBuilder builder = UserDto.builder()
             .id( user.getUid() )
             .code( user.getCode() )
             .displayName( user.getDisplayName() )
-            .name( user.getName() );
-
-        if ( userCredentials != null )
-        {
-            builder.username( userCredentials.getUsername() );
-        }
+            .name( user.getName() )
+            .username( user.getUsername() );
 
         return builder.build();
     }
@@ -174,18 +166,12 @@ public class UserPropertyTransformer
         public void serialize( User user, JsonGenerator gen, SerializerProvider provider )
             throws IOException
         {
-            UserCredentials userCredentials = user.getUserCredentials();
-
             gen.writeStartObject();
             gen.writeStringField( "id", user.getUid() );
             gen.writeStringField( "code", user.getCode() );
             gen.writeStringField( "name", user.getName() );
             gen.writeStringField( "displayName", user.getDisplayName() );
-
-            if ( userCredentials != null )
-            {
-                gen.writeStringField( "username", userCredentials.getUsername() );
-            }
+            gen.writeStringField( "username", user.getUsername() );
 
             gen.writeEndObject();
         }
@@ -200,12 +186,9 @@ public class UserPropertyTransformer
 
         @Override
         public User deserialize( JsonParser jp, DeserializationContext ctxt )
-            throws IOException,
-            JsonProcessingException
+            throws IOException
         {
             User user = new User();
-            UserCredentials userCredentials = new UserCredentials();
-            user.setUserCredentials( userCredentials );
 
             JsonNode node = jp.getCodec().readTree( jp );
 
@@ -216,11 +199,10 @@ public class UserPropertyTransformer
                 if ( CodeGenerator.isValidUid( identifier ) )
                 {
                     user.setUid( identifier );
-                    userCredentials.setUid( identifier );
                 }
                 else
                 {
-                    userCredentials.setUuid( UUID.fromString( identifier ) );
+                    throw new JsonParseException( jp, "Invalid user identifier: " + identifier );
                 }
             }
 
@@ -229,12 +211,11 @@ public class UserPropertyTransformer
                 String code = node.get( "code" ).asText();
 
                 user.setCode( code );
-                userCredentials.setCode( code );
             }
 
             if ( node.has( "username" ) )
             {
-                userCredentials.setUsername( node.get( "username" ).asText() );
+                user.setUsername( node.get( "username" ).asText() );
             }
 
             return user;

@@ -32,7 +32,6 @@ import static org.apache.commons.lang3.StringUtils.trimToNull;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 import javax.annotation.PostConstruct;
@@ -43,9 +42,11 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DateRange;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataapproval.DataApproval;
 import org.hisp.dhis.dataapproval.DataApprovalService;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.LockExceptionStore;
 import org.hisp.dhis.datavalue.AggregateAccessManager;
@@ -56,6 +57,7 @@ import org.hisp.dhis.dxf2.datavalueset.ImportContext.DataValueContext;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.ValidationUtils;
@@ -81,6 +83,8 @@ public class DataValueSetImportValidator
     private final DataApprovalService approvalService;
 
     private final DataValueService dataValueService;
+
+    private final OrganisationUnitService organisationUnitService;
 
     /**
      * Validation on the {@link DataSet} level
@@ -140,7 +144,7 @@ public class DataValueSetImportValidator
         register( this::validateDataValueCategoryOptionComboAccess );
         register( DataValueSetImportValidator::validateDataValueAttrOptionComboExists );
         register( this::validateDataValueAttrOptionComboAccess );
-        register( DataValueSetImportValidator::validateDataValueOrgUnitInUserHierarchy );
+        register( this::validateDataValueOrgUnitInUserHierarchy );
         register( DataValueSetImportValidator::validateDataValueIsDefined );
         register( DataValueSetImportValidator::validateDataValueIsValid );
         register( DataValueSetImportValidator::validateDataValueCommentIsValid );
@@ -156,7 +160,7 @@ public class DataValueSetImportValidator
         register( DataValueSetImportValidator::checkDataValueStrictOrgUnits );
         register( DataValueSetImportValidator::checkDataValueStoredByIsValid );
         register( DataValueSetImportValidator::checkDataValuePeriodWithinAttrOptionComboRange );
-        register( DataValueSetImportValidator::checkDataValueOrgUnitValidForAttrOptionCombo );
+        register( this::checkDataValueOrgUnitValidForAttrOptionCombo );
         register( this::checkDataValueTodayNotPastPeriodExpiry );
         register( DataValueSetImportValidator::checkDataValueNotAfterLatestOpenFuturePeriod );
         register( this::checkDataValueNotAlreadyApproved );
@@ -342,11 +346,11 @@ public class DataValueSetImportValidator
         }
     }
 
-    private static void validateDataValueOrgUnitInUserHierarchy( DataValueEntry dataValue, ImportContext context,
+    private void validateDataValueOrgUnitInUserHierarchy( DataValueEntry dataValue, ImportContext context,
         DataSetContext dataSetContext, DataValueContext valueContext )
     {
         boolean inUserHierarchy = context.getOrgUnitInHierarchyMap().get( valueContext.getOrgUnit().getUid(),
-            () -> valueContext.getOrgUnit().isDescendant( context.getCurrentOrgUnits() ) );
+            () -> organisationUnitService.isDescendant( valueContext.getOrgUnit(), context.getCurrentOrgUnits() ) );
 
         if ( !inUserHierarchy )
         {
@@ -372,7 +376,7 @@ public class DataValueSetImportValidator
         String value = ValidationUtils.normalizeBoolean( dataValue.getValue(),
             valueContext.getDataElement().getValueType() );
 
-        String errorKey = ValidationUtils.dataValueIsValid( value, valueContext.getDataElement() );
+        String errorKey = ValidationUtils.dataValueIsValid( value, valueContext.getDataElement(), false );
 
         if ( errorKey != null )
         {
@@ -396,13 +400,19 @@ public class DataValueSetImportValidator
     private static void validateDataValueOptionsExist( DataValueEntry dataValue, ImportContext context,
         DataSetContext dataSetContext, DataValueContext valueContext )
     {
-        Optional<Set<String>> optionCodes = context.getDataElementOptionsMap().get(
-            valueContext.getDataElement().getUid(),
-            () -> valueContext.getDataElement().hasOptionSet()
-                ? Optional.of( valueContext.getDataElement().getOptionSet().getOptionCodesAsSet() )
-                : Optional.empty() );
-
-        if ( optionCodes.isPresent() && !optionCodes.get().contains( dataValue.getValue() ) )
+        DataElement de = valueContext.getDataElement();
+        if ( !de.hasOptionSet() )
+        {
+            return;
+        }
+        Set<String> optionCodes = context.getDataElementOptionsMap().get( de.getUid(),
+            () -> de.getOptionSet().getOptionCodesAsSet() );
+        ValueType valueType = de.getValueType();
+        String value = dataValue.getValue();
+        boolean invalid = valueType != ValueType.MULTI_TEXT
+            ? !optionCodes.contains( value )
+            : !optionCodes.containsAll( ValueType.splitMultiText( value ) );
+        if ( invalid )
         {
             context.addConflict( valueContext.getIndex(),
                 DataValueImportConflict.DATA_ELEMENT_INVALID_OPTION, dataValue.getDataElement() );
@@ -551,7 +561,7 @@ public class DataValueSetImportValidator
         }
     }
 
-    private static void checkDataValueOrgUnitValidForAttrOptionCombo( DataValueEntry dataValue, ImportContext context,
+    private void checkDataValueOrgUnitValidForAttrOptionCombo( DataValueEntry dataValue, ImportContext context,
         DataSetContext dataSetContext, DataValueContext valueContext )
     {
         if ( !context.getAttrOptionComboOrgUnitMap()
@@ -564,10 +574,10 @@ public class DataValueSetImportValidator
         }
     }
 
-    private static boolean isOrgUnitValidForAttrOptionCombo( DataValueContext valueContext )
+    private boolean isOrgUnitValidForAttrOptionCombo( DataValueContext valueContext )
     {
         Set<OrganisationUnit> aocOrgUnits = valueContext.getAttrOptionCombo().getOrganisationUnits();
-        return aocOrgUnits == null || valueContext.getOrgUnit().isDescendant( aocOrgUnits );
+        return aocOrgUnits == null || organisationUnitService.isDescendant( valueContext.getOrgUnit(), aocOrgUnits );
     }
 
     private void checkDataValueTodayNotPastPeriodExpiry( DataValueEntry dataValue, ImportContext context,

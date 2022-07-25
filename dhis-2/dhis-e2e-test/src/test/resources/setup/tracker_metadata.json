@@ -29,6 +29,71 @@
   ],
   "programs": [
     {
+      "code": "TA_EVENT_PROGRAM_WITH_CAT_COMBO",
+      "name": "TA Event program with category combo",
+      "translations": [],
+      "sharing": {
+        "owner": "M5zQapPyTZI",
+        "external": false,
+        "users": {},
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "access": "rwrw----",
+            "id": "OPVIvvXzNTw"
+          }
+        },
+        "public": "rw------"
+      },
+      "shortName": "TA event program with cat combo",
+      "version": 0,
+      "programType": "WITHOUT_REGISTRATION",
+      "displayIncidentDate": true,
+      "ignoreOverdueEvents": false,
+      "onlyEnrollOnce": false,
+      "notificationTemplates": [],
+      "selectEnrollmentDatesInFuture": false,
+      "selectIncidentDatesInFuture": false,
+      "categoryCombo": {
+        "id": "p0bh43XdKy5"
+      },
+      "skipOffline": false,
+      "displayFrontPageList": false,
+      "useFirstStageDuringRegistration": false,
+      "expiryDays": 0,
+      "completeEventsExpiryDays": 0,
+      "openDaysAfterCoEndDate": 0,
+      "minAttributesRequiredToSearch": 1,
+      "maxTeiCountToReturn": 0,
+      "accessLevel": "OPEN",
+      "id": "jDnjGYZFkA2",
+      "attributeValues": [],
+      "organisationUnits": [],
+      "programStages": [
+        {
+          "id": "fFNTQZPt2Jz"
+        }
+      ],
+      "programSections": [],
+      "organisationUnits": [
+        {
+          "id": "O6uvpzGd5pu"
+        },
+        {
+          "id": "g8upMTyEZGZ"
+        },
+        {
+          "id": "ImspTQPwCqd"
+        },
+        {
+          "id": "YuQRtpLP10I"
+        },
+        {
+          "id": "DiszpKrYNg8"
+        }
+      ],
+      "programTrackedEntityAttributes": []
+    },
+    {
       "code": "TA TRACKER_PROGRAM",
       "lastUpdated": "2022-01-07T12:45:47.385",
       "id": "f1AyMswryyQ",
@@ -690,7 +755,7 @@
       "name": "TA Last name",
       "shortName": "TA Last name",
       "aggregationType": "NONE",
-      "displayInListNoProgram": false,
+      "displayInListNoProgram": true,
       "pattern": "",
       "skipSynchronization": false,
       "generated": false,
@@ -786,7 +851,7 @@
       "name": "TA First name",
       "shortName": "TA First name",
       "aggregationType": "NONE",
-      "displayInListNoProgram": false,
+      "displayInListNoProgram": true,
       "pattern": "",
       "skipSynchronization": false,
       "generated": false,
@@ -811,6 +876,178 @@
       "translations": [],
       "attributeValues": [],
       "legendSets": []
+    },
+    {
+      "lastUpdated": "2022-04-25T07:50:08.746",
+      "id": "xuAl9UIMcmI",
+      "href": "http://localhost:8080/api/trackedEntityAttributes/xuAl9UIMcmI",
+      "created": "2022-04-25T07:50:08.746",
+      "name": "TA org unit",
+      "shortName": "TA org unit",
+      "code": "TA_ORG_UNIT_ATTRIBUTE",
+      "publicAccess": "rw------",
+      "generated": false,
+      "valueType": "ORGANISATION_UNIT",
+      "confidential": false,
+      "displayFormName": "TA org unit",
+      "unique": false,
+      "favorite": false,
+      "aggregationType": "NONE",
+      "displayInListNoProgram": false,
+      "displayName": "TA org unit",
+      "pattern": "",
+      "skipSynchronization": false,
+      "displayShortName": "TA org unit",
+      "externalAccess": false,
+      "displayOnVisitSchedule": false,
+      "orgunitScope": false,
+      "dimensionItem": "xuAl9UIMcmI",
+      "inherit": false,
+      "optionSetValue": false,
+      "sharing": {
+        "owner": "M5zQapPyTZI",
+        "userGroups": {},
+        "external": false,
+        "public": "rw------",
+        "users": {}
+      },
+      "access": {
+        "read": true,
+        "update": true,
+        "externalize": true,
+        "delete": true,
+        "write": true,
+        "manage": true
+      },
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": [],
+      "favorites": []
+    },
+    {
+      "lastUpdated": "2022-04-20T05:56:36.627",
+      "id": "zaFORM1InP3",
+      "created": "2022-04-20T05:56:36.627",
+      "name": "TA auto generated ou code",
+      "shortName": "TA auto generated ou code",
+      "code": "TA_AUTO_GENERATED_OU_CODE",
+      "publicAccess": "rw------",
+      "generated": true,
+      "valueType": "TEXT",
+      "confidential": false,
+      "displayFormName": "TA auto generated ou code",
+      "unique": true,
+      "favorite": false,
+      "dimensionItemType": "PROGRAM_ATTRIBUTE",
+      "aggregationType": "NONE",
+      "displayInListNoProgram": false,
+      "displayName": "TA auto generated ou code",
+      "pattern": "ORG_UNIT_CODE() + \"/\" + RANDOM(###)",
+      "skipSynchronization": false,
+      "displayShortName": "TA auto generated ou code",
+      "externalAccess": false,
+      "displayOnVisitSchedule": false,
+      "orgunitScope": false,
+      "dimensionItem": "zaFORM1InP3",
+      "inherit": false,
+      "optionSetValue": false,
+      "sharing": {
+        "owner": "M5zQapPyTZI",
+        "userGroups": {},
+        "external": false,
+        "public": "rw------",
+        "users": {}
+      },
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": [],
+      "favorites": []
+    },
+    {
+      "lastUpdated": "2022-04-20T05:54:49.887",
+      "id": "XaWmZShaP3I",
+      "created": "2022-04-20T05:54:49.887",
+      "name": "TA auto generated random",
+      "shortName": "TA auto generated random",
+      "code": "TA_AUTO_GENERATED_RANDOM",
+      "publicAccess": "rw------",
+      "generated": true,
+      "valueType": "TEXT",
+      "confidential": false,
+      "displayFormName": "TA auto generated random",
+      "unique": true,
+      "favorite": false,
+      "dimensionItemType": "PROGRAM_ATTRIBUTE",
+      "aggregationType": "NONE",
+      "displayInListNoProgram": false,
+      "displayName": "TA auto generated random",
+      "pattern": "\"TA_\" + RANDOM(###)",
+      "skipSynchronization": false,
+      "displayShortName": "TA auto generated random",
+      "externalAccess": false,
+      "displayOnVisitSchedule": false,
+      "orgunitScope": false,
+      "dimensionItem": "XaWmZShaP3I",
+      "inherit": false,
+      "optionSetValue": false,
+      "sharing": {
+        "owner": "M5zQapPyTZI",
+        "userGroups": {},
+        "external": false,
+        "public": "rw------",
+        "users": {}
+      },
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": [],
+      "favorites": []
+    },
+    {
+      "lastUpdated": "2022-04-20T05:55:39.638",
+      "id": "qUH2LHGwGjj",
+      "created": "2022-04-20T05:55:39.638",
+      "name": "TA auto generated sequential",
+      "shortName": "TA auto generated sequential",
+      "code": "TA_AUTO_GENERATED_SEQUENTIAL",
+      "publicAccess": "rw------",
+      "generated": true,
+      "valueType": "TEXT",
+      "confidential": false,
+      "displayFormName": "TA auto generated sequential",
+      "unique": true,
+      "favorite": false,
+      "dimensionItemType": "PROGRAM_ATTRIBUTE",
+      "aggregationType": "NONE",
+      "displayInListNoProgram": false,
+      "displayName": "TA auto generated sequential",
+      "pattern": "\"TA_\" + SEQUENTIAL(####)",
+      "skipSynchronization": false,
+      "displayShortName": "TA auto generated sequential",
+      "externalAccess": false,
+      "displayOnVisitSchedule": false,
+      "orgunitScope": false,
+      "dimensionItem": "qUH2LHGwGjj",
+      "inherit": false,
+      "optionSetValue": false,
+      "sharing": {
+        "owner": "M5zQapPyTZI",
+        "userGroups": {},
+        "external": false,
+        "public": "rw------",
+        "users": {}
+      },
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": [],
+      "favorites": []
     }
   ],
   "programStages": [
@@ -1527,6 +1764,218 @@
       "attributeValues": [],
       "userAccesses": [],
       "programStageSections": []
+    },
+    {
+      "name": "TA Event program with category combo",
+      "created": "2022-02-22T09:08:17.945",
+      "lastUpdated": "2022-02-22T09:08:57.901",
+      "translations": [],
+      "createdBy": {
+        "id": "M5zQapPyTZI",
+        "code": "admin",
+        "name": "admin admin",
+        "displayName": "admin admin",
+        "username": "admin"
+      },
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI",
+        "code": "admin",
+        "name": "admin admin",
+        "displayName": "admin admin",
+        "username": "admin"
+      },
+      "sharing": {
+        "owner": "M5zQapPyTZI",
+        "external": false,
+        "users": {},
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "access": "rwrw----",
+            "id": "OPVIvvXzNTw"
+          }
+        },
+        "public": "rw------"
+      },
+      "minDaysFromStart": 0,
+      "program": {
+        "id": "jDnjGYZFkA2"
+      },
+      "programStageDataElements": [
+        {
+          "created": "2022-02-22T09:08:39.533",
+          "lastUpdated": "2022-02-22T09:08:39.533",
+          "programStage": {
+            "id": "fFNTQZPt2Jz"
+          },
+          "dataElement": {
+            "id": "ILRgzHhzFkg"
+          },
+          "compulsory": false,
+          "allowProvidedElsewhere": false,
+          "sortOrder": 3,
+          "displayInReports": false,
+          "allowFutureDate": false,
+          "renderOptionsAsRadio": false,
+          "skipSynchronization": false,
+          "skipAnalytics": false,
+          "id": "a8FVesoeq3l"
+        },
+        {
+          "created": "2022-02-22T09:08:39.532",
+          "lastUpdated": "2022-02-22T09:08:39.532",
+          "programStage": {
+            "id": "fFNTQZPt2Jz"
+          },
+          "dataElement": {
+            "id": "ZrqtjjveTFc"
+          },
+          "compulsory": false,
+          "allowProvidedElsewhere": false,
+          "sortOrder": 2,
+          "displayInReports": false,
+          "allowFutureDate": false,
+          "renderOptionsAsRadio": false,
+          "skipSynchronization": false,
+          "skipAnalytics": false,
+          "id": "rmX9aZ68EGw"
+        },
+        {
+          "created": "2022-02-22T09:08:39.533",
+          "lastUpdated": "2022-02-22T09:08:39.533",
+          "programStage": {
+            "id": "fFNTQZPt2Jz"
+          },
+          "dataElement": {
+            "id": "BuZ5LGNfGET"
+          },
+          "compulsory": false,
+          "allowProvidedElsewhere": false,
+          "sortOrder": 1,
+          "displayInReports": false,
+          "allowFutureDate": false,
+          "renderOptionsAsRadio": false,
+          "skipSynchronization": false,
+          "skipAnalytics": false,
+          "id": "kB3F6zsNy6m"
+        },
+        {
+          "created": "2022-02-22T09:08:39.533",
+          "lastUpdated": "2022-02-22T09:08:39.533",
+          "translations": [],
+          "externalAccess": false,
+          "userGroupAccesses": [],
+          "userAccesses": [],
+          "favorites": [],
+          "sharing": {
+            "external": false,
+            "users": {},
+            "userGroups": {}
+          },
+          "programStage": {
+            "id": "fFNTQZPt2Jz"
+          },
+          "dataElement": {
+            "id": "BuZ5LGNfGET"
+          },
+          "compulsory": false,
+          "allowProvidedElsewhere": false,
+          "sortOrder": 1,
+          "displayInReports": false,
+          "allowFutureDate": false,
+          "renderOptionsAsRadio": false,
+          "skipSynchronization": false,
+          "skipAnalytics": false,
+          "favorite": false,
+          "id": "kB3F6zsNy6m",
+          "attributeValues": []
+        },
+        {
+          "created": "2022-02-22T09:08:39.532",
+          "lastUpdated": "2022-02-22T09:08:39.532",
+          "translations": [],
+          "externalAccess": false,
+          "userGroupAccesses": [],
+          "userAccesses": [],
+          "favorites": [],
+          "sharing": {
+            "external": false,
+            "users": {},
+            "userGroups": {}
+          },
+          "programStage": {
+            "id": "fFNTQZPt2Jz"
+          },
+          "dataElement": {
+            "id": "ZrqtjjveTFc"
+          },
+          "compulsory": false,
+          "allowProvidedElsewhere": false,
+          "sortOrder": 2,
+          "displayInReports": false,
+          "allowFutureDate": false,
+          "renderOptionsAsRadio": false,
+          "skipSynchronization": false,
+          "skipAnalytics": false,
+          "favorite": false,
+          "id": "rmX9aZ68EGw",
+          "attributeValues": []
+        },
+        {
+          "created": "2022-02-22T09:08:39.533",
+          "lastUpdated": "2022-02-22T09:08:39.533",
+          "translations": [],
+          "externalAccess": false,
+          "userGroupAccesses": [],
+          "userAccesses": [],
+          "favorites": [],
+          "sharing": {
+            "external": false,
+            "users": {},
+            "userGroups": {}
+          },
+          "programStage": {
+            "id": "fFNTQZPt2Jz"
+          },
+          "dataElement": {
+            "id": "ILRgzHhzFkg"
+          },
+          "compulsory": false,
+          "allowProvidedElsewhere": false,
+          "sortOrder": 3,
+          "displayInReports": false,
+          "allowFutureDate": false,
+          "renderOptionsAsRadio": false,
+          "skipSynchronization": false,
+          "skipAnalytics": false,
+          "favorite": false,
+          "id": "a8FVesoeq3l",
+          "attributeValues": []
+        }
+      ],
+      "autoGenerateEvent": true,
+      "validationStrategy": "ON_UPDATE_AND_INSERT",
+      "displayGenerateEventBox": true,
+      "featureType": "NONE",
+      "blockEntryForm": false,
+      "preGenerateUID": false,
+      "remindCompleted": false,
+      "generatedByEnrollmentDate": false,
+      "allowGenerateNextVisit": false,
+      "openAfterEnrollment": false,
+      "hideDueDate": false,
+      "enableUserAssignment": false,
+      "id": "fFNTQZPt2Jz",
+      "createdBy": {
+        "id": "M5zQapPyTZI",
+        "code": "admin",
+        "name": "admin admin",
+        "displayName": "admin admin",
+        "username": "admin"
+      },
+      "attributeValues": [],
+      "repeatable": false,
+      "programStageSections": [],
+      "notificationTemplates": []
     }
   ],
   "optionSets": [
@@ -1567,7 +2016,7 @@
       "maxTeiCountToReturn": 0,
       "allowAuditLog": true,
       "featureType": "POLYGON",
-      "minAttributesRequiredToSearch": 1,
+      "minAttributesRequiredToSearch": 0,
       "sharing": {
         "owner": "M5zQapPyTZI",
         "userGroups": {
@@ -1583,23 +2032,23 @@
       "attributeValues": [],
       "trackedEntityTypeAttributes": [
         {
-          "lastUpdated": "2022-01-07T12:45:47.353",
+          "lastUpdated": "2022-04-25T08:34:44.294",
           "id": "IvcLJpReZPS",
           "created": "2019-02-05T13:46:01.219",
           "displayName": "TA Person TA First name",
           "displayShortName": "null TA First name",
           "externalAccess": false,
           "valueType": "TEXT",
-          "searchable": false,
-          "displayInList": false,
+          "searchable": true,
+          "displayInList": true,
           "name": "TA Person TA First name",
           "favorite": false,
           "access": {
             "read": true,
             "update": true,
             "externalize": true,
-            "write": true,
             "delete": true,
+            "write": true,
             "manage": true
           },
           "trackedEntityAttribute": {
@@ -1620,27 +2069,175 @@
           "userAccesses": []
         },
         {
-          "lastUpdated": "2022-01-07T12:45:47.353",
+          "lastUpdated": "2022-04-25T08:34:44.295",
           "id": "C8qhzRpGTXd",
           "created": "2019-02-05T13:46:01.220",
           "displayName": "TA Person TA Last name",
           "displayShortName": "null TA Last name",
           "externalAccess": false,
           "valueType": "TEXT",
-          "searchable": false,
-          "displayInList": false,
+          "searchable": true,
+          "displayInList": true,
           "name": "TA Person TA Last name",
           "favorite": false,
           "access": {
             "read": true,
             "update": true,
             "externalize": true,
-            "write": true,
             "delete": true,
+            "write": true,
             "manage": true
           },
           "trackedEntityAttribute": {
             "id": "kZeSYCgaHTk"
+          },
+          "sharing": {
+            "userGroups": {},
+            "external": false,
+            "users": {}
+          },
+          "trackedEntityType": {
+            "id": "Q9GufDoplCL"
+          },
+          "favorites": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
+        },
+        {
+          "lastUpdated": "2022-04-25T08:34:44.295",
+          "id": "n8KjrDJ5Emp",
+          "created": "2022-04-25T08:31:04.681",
+          "displayName": "TA Person TA org unit",
+          "displayShortName": "null TA org unit",
+          "externalAccess": false,
+          "valueType": "ORGANISATION_UNIT",
+          "searchable": false,
+          "displayInList": false,
+          "name": "TA Person TA org unit",
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "trackedEntityAttribute": {
+            "id": "xuAl9UIMcmI"
+          },
+          "sharing": {
+            "userGroups": {},
+            "external": false,
+            "users": {}
+          },
+          "trackedEntityType": {
+            "id": "Q9GufDoplCL"
+          },
+          "favorites": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
+        },
+        {
+          "lastUpdated": "2022-04-25T08:34:44.295",
+          "id": "U24HbxtG4Lb",
+          "created": "2022-04-25T08:34:44.231",
+          "displayName": "TA Person TA Sex",
+          "displayShortName": "null TA_SEX",
+          "externalAccess": false,
+          "valueType": "TEXT",
+          "searchable": true,
+          "displayInList": true,
+          "name": "TA Person TA Sex",
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "trackedEntityAttribute": {
+            "id": "aIga5mPOFOJ"
+          },
+          "sharing": {
+            "userGroups": {},
+            "external": false,
+            "users": {}
+          },
+          "trackedEntityType": {
+            "id": "Q9GufDoplCL"
+          },
+          "favorites": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
+        },
+        {
+          "lastUpdated": "2022-04-25T08:34:44.296",
+          "id": "Et1ILb9X3W6",
+          "created": "2022-04-25T08:34:44.231",
+          "displayName": "TA Person TA Age in years",
+          "displayShortName": "null TA Age in years",
+          "externalAccess": false,
+          "valueType": "INTEGER_ZERO_OR_POSITIVE",
+          "searchable": true,
+          "displayInList": true,
+          "name": "TA Person TA Age in years",
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "trackedEntityAttribute": {
+            "id": "ypGAwVRNtVY"
+          },
+          "sharing": {
+            "userGroups": {},
+            "external": false,
+            "users": {}
+          },
+          "trackedEntityType": {
+            "id": "Q9GufDoplCL"
+          },
+          "favorites": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
+        },
+        {
+          "lastUpdated": "2022-04-25T08:34:44.296",
+          "id": "LrwVDwdPMPr",
+          "created": "2022-04-25T08:34:44.231",
+          "displayName": "TA Person TA Date of birth",
+          "displayShortName": "null TA DOB",
+          "externalAccess": false,
+          "valueType": "DATE",
+          "searchable": true,
+          "displayInList": true,
+          "name": "TA Person TA Date of birth",
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "trackedEntityAttribute": {
+            "id": "x5yfLot5VCM"
           },
           "sharing": {
             "userGroups": {},

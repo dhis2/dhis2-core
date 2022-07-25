@@ -62,9 +62,9 @@ public class PasswordHistoryValidationRule implements PasswordValidationRule
             return PasswordValidationResult.VALID;
         }
 
-        UserCredentials userCredentials = userService.getUserCredentialsByUsername( credentials.getUsername() );
+        User user = userService.getUserByUsername( credentials.getUsername() );
 
-        List<String> previousPasswords = userCredentials.getPreviousPasswords();
+        List<String> previousPasswords = user.getPreviousPasswords();
         for ( String encodedPassword : previousPasswords )
         {
             if ( passwordEncoder.matches( credentials.getPassword(), encodedPassword ) )
@@ -77,7 +77,7 @@ public class PasswordHistoryValidationRule implements PasswordValidationRule
         if ( previousPasswords.size() == HISTORY_LIMIT )
         {
             previousPasswords.remove( 0 );
-            userService.updateUserCredentials( userCredentials );
+            userService.updateUser( user );
         }
 
         return PasswordValidationResult.VALID;
@@ -85,9 +85,9 @@ public class PasswordHistoryValidationRule implements PasswordValidationRule
 
     private boolean isRuleApplicable( CredentialsInfo credentials )
     {
-        UserCredentials userCredentials = userService.getUserCredentialsByUsername( credentials.getUsername() );
+        User user = userService.getUserByUsername( credentials.getUsername() );
 
-        if ( !userService.credentialsNonExpired( userCredentials ) )
+        if ( !userService.userNonExpired( user ) )
         {
             return true;
         }

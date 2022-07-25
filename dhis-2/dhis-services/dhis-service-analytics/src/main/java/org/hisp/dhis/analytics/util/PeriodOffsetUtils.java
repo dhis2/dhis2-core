@@ -69,11 +69,11 @@ public class PeriodOffsetUtils
 
         for ( DimensionalItemObject item : dimension.getItems() )
         {
-            if ( item.getPeriodOffset() != 0 )
+            if ( item.getQueryMods() != null && item.getQueryMods().getPeriodOffset() != 0 )
             {
                 for ( DimensionalItemObject period : params.getPeriods() )
                 {
-                    Period shiftedPeriod = shiftPeriod( (Period) period, item.getPeriodOffset() );
+                    Period shiftedPeriod = shiftPeriod( (Period) period, item.getQueryMods().getPeriodOffset() );
 
                     if ( !periods.contains( shiftedPeriod ) )
                     {

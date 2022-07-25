@@ -75,6 +75,7 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.Assert;
@@ -209,18 +210,13 @@ public abstract class AbstractJdbcTableManager
     @Override
     public void swapTable( AnalyticsTableUpdateParams params, AnalyticsTable table )
     {
-        boolean tableExists = partitionManager.tableExists( table.getTableName() );
-        boolean skipMasterTable = params.isPartialUpdate() && tableExists;
+        log.info( "Swapping master table including partitions: '{}'", table.getTableName() );
 
-        log.info( "Swapping table, master table exists: {}, skip master table: {}", tableExists, skipMasterTable );
+        swapTable( table );
 
         if ( getPartitionColumn() != null )
         {
             table.getTablePartitions().forEach( p -> swapTable( table, p ) );
-        }
-        else
-        {
-            swapTable( table );
         }
     }
 
@@ -228,6 +224,12 @@ public abstract class AbstractJdbcTableManager
     public void dropTempTable( AnalyticsTable table )
     {
         dropTableCascade( table.getTempTableName() );
+    }
+
+    @Override
+    public void dropTempTablePartition( AnalyticsTablePartition tablePartition )
+    {
+        dropTableCascade( tablePartition.getTempTableName() );
     }
 
     @Override
@@ -345,9 +347,9 @@ public abstract class AbstractJdbcTableManager
         {
             jdbcTemplate.execute( sql );
         }
-        catch ( BadSqlGrammarException ex )
+        catch ( DataAccessException ex )
         {
-            log.debug( ex.getMessage() );
+            log.error( ex.getMessage() );
         }
     }
 
@@ -595,18 +597,18 @@ public abstract class AbstractJdbcTableManager
         String tempTableName = tablePartition.getTempTableName();
 
         final String[] sqlSteps = {
-            " alter table " + mainTableName + " detach partition " + realTableName,
-            " drop table " + realTableName + " cascade",
-            " alter table " + tempTableName + " rename to " + realTableName,
-            " alter table " + mainTableName + " attach partition " + realTableName
+            " alter table if exists " + mainTableName + " detach partition " + realTableName,
+            " drop table if exists " + realTableName + " cascade",
+            " alter table if exists " + tempTableName + " rename to " + realTableName,
+            " alter table if exists " + mainTableName + " attach partition " + realTableName
                 + " for values in (" + tablePartition.getYear() + ")"
         };
 
-        final String sql = String.join( ";", sqlSteps ) + ";";
-
-        log.debug( sql );
-
-        executeSilently( sql );
+        for ( int i = 0; i < sqlSteps.length; i++ )
+        {
+            log.debug( sqlSteps[i] );
+            executeSilently( sqlSteps[i] );
+        }
     }
 
     private void swapTable( AnalyticsTable mainTable )
@@ -616,7 +618,7 @@ public abstract class AbstractJdbcTableManager
 
         final String[] sqlSteps = {
             " drop table if exists " + mainTableName + " cascade",
-            " alter table " + tempTableName + " rename to " + mainTableName
+            " alter table if exists " + tempTableName + " rename to " + mainTableName
         };
 
         final String sql = String.join( ";", sqlSteps ) + ";";
@@ -648,7 +650,7 @@ public abstract class AbstractJdbcTableManager
     {
         createTableAsPartitionOf( table, partition );
 
-        String tableName = partition == null ? table.getTableName() : partition.getTempTableName();
+        String tableName = partition == null ? table.getTempTableName() : partition.getTempTableName();
         String sqlCreate = "create table if not exists " + tableName + " (";
         for ( AnalyticsTableColumn col : ListUtils.union( table.getDimensionColumns(), table.getValueColumns() ) )
         {
@@ -683,7 +685,7 @@ public abstract class AbstractJdbcTableManager
         if ( partition != null && getPartitionColumn() != null )
         {
             String createTableAsPartitionOfSql = "create table if not exists " + partition.getTableName()
-                + " partition of " + table.getTableName() + " for values in " + "(" + partition.getYear() + ")";
+                + " partition of " + table.getTempTableName() + " for values in " + "(" + partition.getYear() + ")";
 
             log.debug( "Creating table: '{}', columns: {}", partition.getTableName(),
                 table.getDimensionColumns().size() );

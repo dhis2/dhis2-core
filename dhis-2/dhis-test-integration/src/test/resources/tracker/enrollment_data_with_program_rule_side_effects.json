@@ -1,0 +1,101 @@
+{
+  "importMode": "COMMIT",
+  "idSchemes": {
+    "dataElementIdScheme": {
+      "idScheme": "UID"
+    },
+    "orgUnitIdScheme": {
+      "idScheme": "UID"
+    },
+    "programIdScheme": {
+      "idScheme": "UID"
+    },
+    "programStageIdScheme": {
+      "idScheme": "UID"
+    },
+    "idScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionComboIdScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionIdScheme": {
+      "idScheme": "UID"
+    }
+  },
+  "importStrategy": "CREATE",
+  "atomicMode": "ALL",
+  "flushMode": "AUTO",
+  "validationMode": "FULL",
+  "skipPatternValidation": false,
+  "skipSideEffects": false,
+  "skipRuleEngine": false,
+  "trackedEntities": [
+    {
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "nEenWmSyUEp"
+      },
+      "trackedEntity": "IOR1AXXl24H",
+      "createdAt": "2020-02-20T12:09:21.844",
+      "updatedAt": "2020-02-20T12:09:21.844",
+      "clientCreatedAt": "2020-02-20T12:09:21.844",
+      "clientUpdatedAt": "2020-02-20T12:09:21.844",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "PlKwabX2xRW"
+      },
+      "inactive": false,
+      "deleted": false,
+      "featureType": "NONE",
+      "attributes": [
+        {
+          "updatedAt": "2020-02-10T10:56:07.591",
+          "storedBy": "admin",
+          "createdAt": "2020-02-10T10:56:07.588",
+          "valueType": "INTEGER",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "sYn3tkL3XKa"
+          },
+          "value": "123"
+        }
+      ],
+      "programOwners": [
+        {
+          "ownerOrgUnit": {
+            "idScheme": "UID",
+            "identifier": "PlKwabX2xRW"
+          },
+          "program": {
+            "idScheme": "UID",
+            "identifier": "BFcipDERJne"
+          },
+          "trackedEntity": "IOR1AXXl24H"
+        }
+      ]
+    }
+  ],
+  "enrollments": [
+    {
+      "enrollment": "TvctPPhpD8u",
+      "created": "2020-02-20T12:09:21.844",
+      "lastUpdated": "2020-02-20T12:09:21.844",
+      "createdAtClient": "2020-02-20T12:09:21.844",
+      "trackedEntity": "IOR1AXXl24H",
+      "program": {
+        "idScheme": "UID",
+        "identifier": "BFcipDERJne"
+      },
+      "status": "ACTIVE",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "PlKwabX2xRW"
+      },
+      "enrolledAt": "2020-02-20T12:09:21.844",
+      "occurredAt": "2020-02-20T12:09:21.844",
+      "followup": false,
+      "deleted": false
+    }
+  ]
+}

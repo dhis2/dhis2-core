@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.event;
 
+import static java.util.Arrays.asList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
@@ -35,6 +36,9 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 import static org.hisp.dhis.common.FallbackCoordinateFieldType.OU_GEOMETRY;
 import static org.hisp.dhis.common.FallbackCoordinateFieldType.PSI_GEOMETRY;
+import static org.hisp.dhis.event.EventStatus.ACTIVE;
+import static org.hisp.dhis.event.EventStatus.COMPLETED;
+import static org.hisp.dhis.event.EventStatus.SCHEDULE;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -72,6 +76,7 @@ import org.hisp.dhis.common.FallbackCoordinateFieldType;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.RequestTypeAware;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
@@ -118,6 +123,8 @@ public class EventQueryParams
     public static final ImmutableSet<FallbackCoordinateFieldType> FALLBACK_COORDINATE_FIELD_TYPES = ImmutableSet.of(
         OU_GEOMETRY, PSI_GEOMETRY );
 
+    private static final Set<EventStatus> DEFAULT_EVENT_STATUS = new LinkedHashSet<>( asList( ACTIVE, COMPLETED ) );
+
     /**
      * The query items.
      */
@@ -129,7 +136,7 @@ public class EventQueryParams
     private List<QueryItem> itemFilters = new ArrayList<>();
 
     /**
-     * The headers.
+     * TODO Change to List? TODO Add Javadoc
      */
     protected Set<String> headers = new LinkedHashSet<>();
 
@@ -151,12 +158,12 @@ public class EventQueryParams
     /**
      * Columns to sort ascending.
      */
-    private List<DimensionalItemObject> asc = new ArrayList<>();
+    private List<QueryItem> asc = new ArrayList<>();
 
     /**
      * Columns to sort descending.
      */
-    private List<DimensionalItemObject> desc = new ArrayList<>();
+    private List<QueryItem> desc = new ArrayList<>();
 
     /**
      * The organisation unit selection mode.
@@ -179,6 +186,11 @@ public class EventQueryParams
     private boolean paging;
 
     /**
+     * The total pages flag.
+     */
+    private boolean totalPages;
+
+    /**
      * The value sort order.
      */
     private SortOrder sortOrder;
@@ -197,7 +209,7 @@ public class EventQueryParams
     /**
      * Indicates the event status.
      */
-    private Set<EventStatus> eventStatus;
+    private Set<EventStatus> eventStatus = new LinkedHashSet<>();
 
     /**
      * Indicates whether the data dimension items should be collapsed into a
@@ -256,7 +268,7 @@ public class EventQueryParams
     /**
      * Indicates the program status
      */
-    private Set<ProgramStatus> programStatus;
+    private Set<ProgramStatus> programStatus = new LinkedHashSet<>();
 
     /**
      * Indicates whether to include metadata details to response
@@ -275,6 +287,15 @@ public class EventQueryParams
      */
     @Getter
     protected Map<AnalyticsDateFilter, DateRange> dateRangeByDateFilter = new HashMap<>();
+
+    /**
+     * flag to enable enhanced OR conditions
+     */
+    @Getter
+    protected boolean enhancedCondition = false;
+
+    @Getter
+    protected RequestTypeAware.EndpointItem endpointItem;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -307,7 +328,6 @@ public class EventQueryParams
         params.partitions = new Partitions( this.partitions );
         params.tableName = this.tableName;
         params.periodType = this.periodType;
-
         params.program = this.program;
         params.programStage = this.programStage;
         params.items = new ArrayList<>( this.items );
@@ -322,11 +342,12 @@ public class EventQueryParams
         params.page = this.page;
         params.pageSize = this.pageSize;
         params.paging = this.paging;
+        params.totalPages = this.totalPages;
         params.sortOrder = this.sortOrder;
         params.limit = this.limit;
         params.outputType = this.outputType;
         params.outputIdScheme = this.outputIdScheme;
-        params.eventStatus = this.eventStatus;
+        params.eventStatus = new LinkedHashSet<>( this.eventStatus );
         params.collapseDataDimensions = this.collapseDataDimensions;
         params.coordinatesOnly = this.coordinatesOnly;
         params.coordinateOuFallback = this.coordinateOuFallback;
@@ -337,13 +358,15 @@ public class EventQueryParams
         params.fallbackCoordinateField = this.fallbackCoordinateField;
         params.bbox = this.bbox;
         params.includeClusterPoints = this.includeClusterPoints;
-        params.programStatus = this.programStatus;
+        params.programStatus = new LinkedHashSet<>( this.programStatus );
         params.includeMetadataDetails = this.includeMetadataDetails;
         params.dataIdScheme = this.dataIdScheme;
         params.periodType = this.periodType;
-        params.analyzeOrderId = this.analyzeOrderId;
+        params.explainOrderId = this.explainOrderId;
         params.dateRangeByDateFilter = this.dateRangeByDateFilter;
         params.skipPartitioning = this.skipPartitioning;
+        params.enhancedCondition = this.enhancedCondition;
+        params.endpointItem = this.endpointItem;
         return params;
     }
 
@@ -423,8 +446,9 @@ public class EventQueryParams
         itemFilters.forEach( e -> key.add( "itemFilter", "[" + e.getKey() + "]" ) );
         headers.forEach( header -> key.add( "headers", "[" + header + "]" ) );
         itemProgramIndicators.forEach( e -> key.add( "itemProgramIndicator", e.getUid() ) );
-        asc.forEach( e -> e.getUid() );
-        desc.forEach( e -> e.getUid() );
+        eventStatus.forEach( status -> key.add( "eventStatus", "[" + status + "]" ) );
+        asc.forEach( e -> e.getItem().getUid() );
+        desc.forEach( e -> e.getItem().getUid() );
 
         return key
             .addIgnoreNull( "value", value, () -> value.getUid() )
@@ -437,7 +461,6 @@ public class EventQueryParams
             .addIgnoreNull( "limit", limit )
             .addIgnoreNull( "outputType", outputType )
             .addIgnoreNull( "outputIdScheme", outputIdScheme )
-            .addIgnoreNull( "eventStatus", eventStatus )
             .addIgnoreNull( "collapseDataDimensions", collapseDataDimensions )
             .addIgnoreNull( "coordinatesOnly", coordinatesOnly )
             .addIgnoreNull( "coordinateOuFallback", coordinateOuFallback )
@@ -822,7 +845,12 @@ public class EventQueryParams
 
     public boolean isPaging()
     {
-        return paging || page != null || pageSize != null;
+        return paging && (page != null || pageSize != null);
+    }
+
+    public boolean isTotalPages()
+    {
+        return totalPages;
     }
 
     public int getPageWithDefault()
@@ -994,7 +1022,7 @@ public class EventQueryParams
         return programIndicator;
     }
 
-    public List<DimensionalItemObject> getAsc()
+    public List<QueryItem> getAsc()
     {
         return asc;
     }
@@ -1005,7 +1033,7 @@ public class EventQueryParams
         return dimensions;
     }
 
-    public List<DimensionalItemObject> getDesc()
+    public List<QueryItem> getDesc()
     {
         return desc;
     }
@@ -1045,6 +1073,7 @@ public class EventQueryParams
         return outputType;
     }
 
+    @Override
     public IdScheme getOutputIdScheme()
     {
         return outputIdScheme;
@@ -1052,7 +1081,36 @@ public class EventQueryParams
 
     public Set<EventStatus> getEventStatus()
     {
-        return eventStatus;
+        if ( isNotEmpty( eventStatus ) )
+        {
+            return eventStatus;
+        }
+
+        if ( TimeField.fieldIsValid( timeField ) )
+        {
+            final Optional<TimeField> time = TimeField.of( timeField );
+
+            if ( time.isPresent() )
+            {
+                switch ( time.get() )
+                {
+                case SCHEDULED_DATE:
+                    return Set.of( SCHEDULE );
+                case LAST_UPDATED:
+                    final Set<EventStatus> statuses = new LinkedHashSet<>( DEFAULT_EVENT_STATUS );
+                    statuses.add( SCHEDULE );
+                    return statuses;
+                default:
+                    return DEFAULT_EVENT_STATUS;
+                }
+            }
+        }
+        else if ( containsScheduledDatePeriod() )
+        {
+            return Set.of( SCHEDULE );
+        }
+
+        return DEFAULT_EVENT_STATUS;
     }
 
     public boolean isCollapseDataDimensions()
@@ -1177,6 +1235,7 @@ public class EventQueryParams
             return this;
         }
 
+        @Override
         public Builder addDimension( DimensionalObject dimension )
         {
             this.params.addDimension( dimension );
@@ -1189,6 +1248,7 @@ public class EventQueryParams
             return this;
         }
 
+        @Override
         public Builder removeDimensionOrFilter( String dimension )
         {
             this.params.dimensions.remove( new BaseDimensionalObject( dimension ) );
@@ -1203,6 +1263,7 @@ public class EventQueryParams
             return this;
         }
 
+        @Override
         public Builder addFilter( DimensionalObject filter )
         {
             this.params.addFilter( filter );
@@ -1333,6 +1394,12 @@ public class EventQueryParams
             return this;
         }
 
+        public Builder withTotalPages( boolean totalPages )
+        {
+            this.params.totalPages = totalPages;
+            return this;
+        }
+
         public Builder withPartitions( Partitions partitions )
         {
             this.params.partitions = partitions;
@@ -1345,13 +1412,13 @@ public class EventQueryParams
             return this;
         }
 
-        public Builder addAscSortItem( DimensionalItemObject sortItem )
+        public Builder addAscSortItem( QueryItem sortItem )
         {
             this.params.asc.add( sortItem );
             return this;
         }
 
-        public Builder addDescSortItem( DimensionalItemObject sortItem )
+        public Builder addDescSortItem( QueryItem sortItem )
         {
             this.params.desc.add( sortItem );
             return this;
@@ -1395,7 +1462,11 @@ public class EventQueryParams
 
         public Builder withEventStatuses( Set<EventStatus> eventStatuses )
         {
-            this.params.eventStatus = eventStatuses;
+            if ( isNotEmpty( eventStatuses ) )
+            {
+                this.params.eventStatus.addAll( eventStatuses );
+            }
+
             return this;
         }
 
@@ -1455,7 +1526,11 @@ public class EventQueryParams
 
         public Builder withProgramStatuses( Set<ProgramStatus> programStatuses )
         {
-            this.params.programStatus = programStatuses;
+            if ( isNotEmpty( programStatuses ) )
+            {
+                this.params.programStatus.addAll( programStatuses );
+            }
+
             return this;
         }
 
@@ -1491,7 +1566,7 @@ public class EventQueryParams
 
         public Builder withAnalyzeOrderId()
         {
-            this.params.analyzeOrderId = UUID.randomUUID().toString();
+            this.params.explainOrderId = UUID.randomUUID().toString();
             return this;
         }
 
@@ -1500,9 +1575,21 @@ public class EventQueryParams
             this.params.skipPartitioning = skipPartitioning;
         }
 
+        public Builder withEnhancedConditions( boolean enhancedConditions )
+        {
+            this.params.enhancedCondition = enhancedConditions;
+            return this;
+        }
+
         public EventQueryParams build()
         {
             return params;
+        }
+
+        public Builder withEndpointItem( RequestTypeAware.EndpointItem endpointItem )
+        {
+            this.params.endpointItem = endpointItem;
+            return this;
         }
     }
 }

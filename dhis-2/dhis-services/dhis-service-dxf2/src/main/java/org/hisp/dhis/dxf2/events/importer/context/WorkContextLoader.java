@@ -30,6 +30,8 @@ package org.hisp.dhis.dxf2.events.importer.context;
 import java.util.List;
 import java.util.Map;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -39,7 +41,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,6 +48,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Luciano Fiandesio
  */
 @Component
+@Slf4j
 public class WorkContextLoader
 {
     private final ProgramSupplier programSupplier;
@@ -126,6 +128,9 @@ public class WorkContextLoader
         final Map<String, ProgramStageInstance> programStageInstanceMap = programStageInstanceSupplier
             .get( localImportOptions, events );
 
+        final Map<String, ProgramStageInstance> persistedProgramStageInstanceMap = programStageInstanceSupplier
+            .get( localImportOptions, events );
+
         final Map<String, Pair<TrackedEntityInstance, Boolean>> teiMap = trackedEntityInstanceSupplier
             .get( localImportOptions, events );
 
@@ -135,6 +140,7 @@ public class WorkContextLoader
             .importOptions( localImportOptions )
             .programsMap( programSupplier.get( localImportOptions, events ) )
             .programStageInstanceMap( programStageInstanceMap )
+            .persistedProgramStageInstanceMap( persistedProgramStageInstanceMap )
             .organisationUnitMap( orgUniMap )
             .trackedEntityInstanceMap( teiMap )
             .programInstanceMap( programInstanceSupplier.get( localImportOptions, teiMap, events ) )
@@ -167,29 +173,30 @@ public class WorkContextLoader
             //
             if ( currentUser != null )
             {
-                UserCredentials userCredentials = currentUser.getUserCredentials();
-                initUserCredentials( userCredentials );
+                initUser( currentUser );
                 importOptions.setUser( currentUser );
+            }
+            else
+            {
+                log.error( "No current user found" );
             }
         }
         else
         {
-            final User user = importOptions.getUser();
-            UserCredentials userCredentials = user.getUserCredentials();
-            initUserCredentials( userCredentials );
+            initUser( importOptions.getUser() );
         }
     }
 
     /**
-     * Force Hibernate to pre-load all collections for the
-     * {@see UserCredentials} object and fetch the "isSuper()" data. This is
-     * required to avoid an Hibernate error later, when this object becomes
-     * detached from the Hibernate Session.
+     * Force Hibernate to pre-load all collections for the {@see User} object
+     * and fetch the "isSuper()" data. This is required to avoid an Hibernate
+     * error later, when this object becomes detached from the Hibernate
+     * Session.
      */
-    private void initUserCredentials( UserCredentials userCredentials )
+    private void initUser( User user )
     {
-        userCredentials = HibernateProxyUtils.unproxy( userCredentials );
+        user = HibernateProxyUtils.unproxy( user );
 
-        userCredentials.isSuper();
+        user.isSuper();
     }
 }

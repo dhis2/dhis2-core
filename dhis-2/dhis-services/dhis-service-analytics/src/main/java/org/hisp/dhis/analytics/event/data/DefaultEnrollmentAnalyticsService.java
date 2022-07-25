@@ -33,11 +33,13 @@ import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.TEXT;
 
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
+import org.hisp.dhis.analytics.data.handler.SchemaIdResponseMapper;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryPlanner;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
+import org.hisp.dhis.analytics.shared.LabelMapper;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.system.grid.ListGrid;
@@ -66,6 +68,10 @@ public class DefaultEnrollmentAnalyticsService
 
     private static final String NAME_STORED_BY = "Stored by";
 
+    private static final String NAME_CREATED_BY_DISPLAY_NAME = "Created by (display name)";
+
+    private static final String NAME_LAST_UPDATED_BY_DISPLAY_NAME = "Last updated by (display name)";
+
     private static final String NAME_LAST_UPDATED = "Last Updated";
 
     private static final String NAME_LONGITUDE = "Longitude";
@@ -82,16 +88,21 @@ public class DefaultEnrollmentAnalyticsService
 
     private final EventQueryPlanner queryPlanner;
 
+    private final SchemaIdResponseMapper schemaIdResponseMapper;
+
     public DefaultEnrollmentAnalyticsService( EnrollmentAnalyticsManager enrollmentAnalyticsManager,
-        AnalyticsSecurityManager securityManager, EventQueryPlanner queryPlanner, EventQueryValidator queryValidator )
+        AnalyticsSecurityManager securityManager, EventQueryPlanner queryPlanner, EventQueryValidator queryValidator,
+        SchemaIdResponseMapper schemaIdResponseMapper )
     {
-        super( securityManager, queryValidator );
+        super( securityManager, queryValidator, schemaIdResponseMapper );
 
         checkNotNull( enrollmentAnalyticsManager );
         checkNotNull( queryPlanner );
+        checkNotNull( schemaIdResponseMapper );
 
         this.enrollmentAnalyticsManager = enrollmentAnalyticsManager;
         this.queryPlanner = queryPlanner;
+        this.schemaIdResponseMapper = schemaIdResponseMapper;
     }
 
     // -------------------------------------------------------------------------
@@ -113,11 +124,17 @@ public class DefaultEnrollmentAnalyticsService
             .addHeader( new GridHeader(
                 ITEM_TEI, NAME_TEI, TEXT, false, true ) )
             .addHeader( new GridHeader(
-                ITEM_ENROLLMENT_DATE, NAME_ENROLLMENT_DATE, DATE, false, true ) )
+                ITEM_ENROLLMENT_DATE, LabelMapper.getEnrollmentDateLabel( params.getProgram(), NAME_ENROLLMENT_DATE ),
+                DATE, false, true ) )
             .addHeader( new GridHeader(
-                ITEM_INCIDENT_DATE, NAME_INCIDENT_DATE, DATE, false, true ) )
+                ITEM_INCIDENT_DATE, LabelMapper.getIncidentDateLabel( params.getProgram(), NAME_INCIDENT_DATE ), DATE,
+                false, true ) )
             .addHeader( new GridHeader(
                 ITEM_STORED_BY, NAME_STORED_BY, TEXT, false, true ) )
+            .addHeader( new GridHeader(
+                ITEM_CREATED_BY_DISPLAY_NAME, NAME_CREATED_BY_DISPLAY_NAME, TEXT, false, true ) )
+            .addHeader( new GridHeader(
+                ITEM_LAST_UPDATED_BY_DISPLAY_NAME, NAME_LAST_UPDATED_BY_DISPLAY_NAME, TEXT, false, true ) )
             .addHeader( new GridHeader(
                 ITEM_LAST_UPDATED, NAME_LAST_UPDATED, DATE, false, true ) )
             .addHeader( new GridHeader(
@@ -145,7 +162,7 @@ public class DefaultEnrollmentAnalyticsService
 
         long count = 0;
 
-        if ( params.isPaging() )
+        if ( params.isTotalPages() )
         {
             count += enrollmentAnalyticsManager.getEnrollmentCount( params );
         }

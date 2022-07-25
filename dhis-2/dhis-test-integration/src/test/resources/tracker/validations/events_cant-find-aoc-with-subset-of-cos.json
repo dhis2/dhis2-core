@@ -1,0 +1,71 @@
+{
+  "importMode": "COMMIT",
+  "idSchemes": {
+    "dataElementIdScheme": {
+      "idScheme": "UID"
+    },
+    "orgUnitIdScheme": {
+      "idScheme": "UID"
+    },
+    "programIdScheme": {
+      "idScheme": "UID"
+    },
+    "programStageIdScheme": {
+      "idScheme": "UID"
+    },
+    "idScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionComboIdScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionIdScheme": {
+      "idScheme": "UID"
+    }
+  },
+  "importStrategy": "CREATE",
+  "atomicMode": "ALL",
+  "flushMode": "AUTO",
+  "validationMode": "FULL",
+  "skipPatternValidation": false,
+  "skipSideEffects": false,
+  "skipRuleEngine": false,
+  "trackedEntities": [],
+  "enrollments": [],
+  "events": [
+    {
+      "event": "ihl3R5N2Tx1",
+      "status": "ACTIVE",
+      "program": {
+        "idScheme": "UID",
+        "identifier": "o4dcWCsO6p9"
+      },
+      "programStage": {
+        "idScheme": "UID",
+        "identifier": "A9dLfii5MEu"
+      },
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
+      "relationships": [],
+      "occurredAt": "2019-08-01T00:00:00.000",
+      "scheduledAt": "2019-08-19T13:59:13.688",
+      "followup": false,
+      "deleted": false,
+      "attributeOptionCombo": {
+        "idScheme": "UID"
+      },
+      "attributeCategoryOptions": [
+        {
+          "idScheme": "UID",
+          "identifier": "zRXSQ4AQu7I"
+        }
+      ],
+      "dataValues": [],
+      "notes": []
+    }
+  ],
+  "relationships": [],
+  "username": "system-process"
+}

@@ -28,12 +28,12 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.lang.String.format;
-import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
+import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 
+import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpStatus;
 
 /**
  * Tests the {@link LockExceptionController} using (mocked) REST requests.
@@ -54,7 +54,7 @@ class LockExceptionControllerTest extends DhisControllerConvenienceTest
             POST( "/dataSets/", "{'name':'My data set', 'periodType':'Monthly'}" ) );
         ouId = assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnits/", "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}" ) );
-        assertStatus( HttpStatus.NO_CONTENT, POST( "/organisationUnits/{ou}/dataSets/{ds}", ouId, dsId ) );
+        assertStatus( HttpStatus.OK, POST( "/organisationUnits/{ou}/dataSets/{ds}", ouId, dsId ) );
     }
 
     @Test

@@ -28,23 +28,8 @@
 package org.hisp.dhis.metadata.metadata_import;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.everyItem;
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasItems;
-import static org.hamcrest.Matchers.hasProperty;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.oneOf;
-import static org.hamcrest.Matchers.stringContainsInOrder;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -222,7 +207,7 @@ public class MetadataImportTest
         ApiResponse response = metadataActions.post( metadata, queryParamsBuilder );
         response.validate()
             .statusCode( 200 )
-            .body( not( equalTo( "null" ) ) )
+            .body( notNullValue() )
             .body( "response.name", equalTo( "metadataImport" ) )
             .body( "response.jobType", equalTo( "METADATA_IMPORT" ) );
 
@@ -230,16 +215,15 @@ public class MetadataImportTest
 
         // Validate that job was successful
 
-        response = systemActions.waitUntilTaskCompleted( "METADATA_IMPORT", taskId );
-
-        assertThat( response.extractList( "message" ), hasItem( containsString( "Import:Start" ) ) );
-        assertThat( response.extractList( "message" ), hasItem( containsString( "Import:Done" ) ) );
+        systemActions.waitUntilTaskCompleted( "METADATA_IMPORT", taskId )
+            .validate()
+            .body( "message", hasItem( containsString( "Import:Start" ) ) )
+            .body( "message", hasItem( containsString( "Import:Done" ) ) );
 
         // validate task summaries were created
-        response = systemActions.getTaskSummariesResponse( "METADATA_IMPORT", taskId );
-
-        response.validate().statusCode( 200 )
-            .body( not( equalTo( "null" ) ) )
+        systemActions.waitForTaskSummaries( "METADATA_IMPORT", taskId )
+            .validate()
+            .body( notNullValue() )
             .body( "status", equalTo( "WARNING" ) )
             .body( "typeReports", notNullValue() )
             .rootPath( "typeReports" )
@@ -248,7 +232,6 @@ public class MetadataImportTest
             .body( "objectReports", notNullValue() )
             .body( "objectReports", hasSize( greaterThanOrEqualTo( 1 ) ) )
             .body( "objectReports.errorReports", notNullValue() );
-
     }
 
     @Test
@@ -282,19 +265,16 @@ public class MetadataImportTest
         assertNotNull( taskId, "Task id was not returned" );
         // Validate that job was successful
 
-        response = systemActions.waitUntilTaskCompleted( "METADATA_IMPORT", taskId );
-
-        response.validate()
-            .statusCode( 200 )
+        systemActions.waitUntilTaskCompleted( "METADATA_IMPORT", taskId )
+            .validate()
             .body( "message", notNullValue() )
             .body( "message", hasItem( containsString( "Import:Start" ) ) )
             .body( "message", hasItem( containsString( "Import:Done" ) ) );
 
         // validate task summaries were created
-        response = systemActions.getTaskSummariesResponse( "METADATA_IMPORT", taskId );
-
-        response.validate().statusCode( 200 )
-            .body( not( equalTo( "null" ) ) )
+        systemActions.waitForTaskSummaries( "METADATA_IMPORT", taskId )
+            .validate()
+            .body( notNullValue() )
             .body( "status", equalTo( "OK" ) )
             .body( "typeReports", notNullValue() )
             .rootPath( "typeReports" )

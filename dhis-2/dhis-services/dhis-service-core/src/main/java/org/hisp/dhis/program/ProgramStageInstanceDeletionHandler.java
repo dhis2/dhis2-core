@@ -27,14 +27,13 @@
  */
 package org.hisp.dhis.program;
 
-import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
+import java.util.Map;
 
 import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
 import org.springframework.stereotype.Component;
 
 /**
@@ -42,11 +41,9 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
-public class ProgramStageInstanceDeletionHandler extends DeletionHandler
+public class ProgramStageInstanceDeletionHandler extends JdbcDeletionHandler
 {
     private static final DeletionVeto VETO = new DeletionVeto( ProgramStageInstance.class );
-
-    private final JdbcTemplate jdbcTemplate;
 
     private final ProgramStageInstanceService programStageInstanceService;
 
@@ -61,8 +58,9 @@ public class ProgramStageInstanceDeletionHandler extends DeletionHandler
 
     private DeletionVeto allowDeleteProgramStage( ProgramStage programStage )
     {
-        return vetoIfExists(
-            "SELECT COUNT(*) FROM programstageinstance WHERE programstageid = " + programStage.getId() );
+        return vetoIfExists( VETO,
+            "select count(*) from programstageinstance where programstageid = :id",
+            Map.of( "id", programStage.getId() ) );
     }
 
     private void deleteProgramInstance( ProgramInstance programInstance )
@@ -75,20 +73,14 @@ public class ProgramStageInstanceDeletionHandler extends DeletionHandler
 
     private DeletionVeto allowDeleteProgram( Program program )
     {
-        return vetoIfExists(
-            "SELECT COUNT(*) FROM programstageinstance psi join programinstance pi on pi.programinstanceid=psi.programinstanceid where pi.programid = "
-                + program.getId() );
+        return vetoIfExists( VETO,
+            "select count(*) from programstageinstance psi join programinstance pi on pi.programinstanceid=psi.programinstanceid where pi.programid = :id",
+            Map.of( "id", program.getId() ) );
     }
 
     private DeletionVeto allowDeleteDataElement( DataElement dataElement )
     {
-        return vetoIfExists(
-            "select count(*) from programstageinstance where eventdatavalues ? '" + dataElement.getUid() + "'" );
-    }
-
-    private DeletionVeto vetoIfExists( String sql )
-    {
-        Integer count = jdbcTemplate.queryForObject( sql, Integer.class );
-        return count == null || count == 0 ? ACCEPT : VETO;
+        return vetoIfExists( VETO, "select count(*) from programstageinstance where eventdatavalues ?? :uid",
+            Map.of( "uid", dataElement.getUid() ) );
     }
 }

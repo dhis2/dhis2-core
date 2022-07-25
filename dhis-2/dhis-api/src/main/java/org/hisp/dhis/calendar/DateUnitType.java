@@ -27,6 +27,15 @@
  */
 package org.hisp.dhis.calendar;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
 import org.hisp.dhis.period.*;
 
 /**
@@ -34,7 +43,7 @@ import org.hisp.dhis.period.*;
  */
 public enum DateUnitType
 {
-    DAILY( DailyPeriodType.NAME, "\\b(\\d{4})(\\d{2})(\\d{2})\\b" ),
+    DAILY( DailyPeriodType.NAME, List.of( "\\b(\\d{4})(\\d{2})(\\d{2})\\b", "\\b(\\d{4})-(\\d{2})-(\\d{2})\\b" ) ),
     WEEKLY( WeeklyPeriodType.NAME, "\\b(\\d{4})W(\\d[\\d]?)\\b" ),
     WEEKLY_WEDNESDAY( WeeklyWednesdayPeriodType.NAME, "\\b(\\d{4})WedW(\\d[\\d]?)\\b" ),
     WEEKLY_THURSDAY( WeeklyThursdayPeriodType.NAME, "\\b(\\d{4})ThuW(\\d[\\d]?)\\b" ),
@@ -53,36 +62,47 @@ public enum DateUnitType
     FINANCIAL_OCTOBER( FinancialOctoberPeriodType.NAME, "\\b(\\d{4})Oct\\b" ),
     FINANCIAL_NOVEMBER( FinancialNovemberPeriodType.NAME, "\\b(\\d{4})Nov\\b" );
 
+    @Getter
     private final String name;
 
-    private final String pattern;
+    @Getter
+    private final Collection<Pattern> patterns;
 
-    public String getName()
-    {
-        return name;
-    }
-
-    public String getPattern()
-    {
-        return pattern;
-    }
-
-    DateUnitType( String name, String pattern )
+    DateUnitType( String name, String patterns )
     {
         this.name = name;
-        this.pattern = pattern;
+        this.patterns = List.of( Pattern.compile( patterns ) );
     }
 
-    public static DateUnitType find( String pattern )
+    DateUnitType( String name, Collection<String> patterns )
+    {
+        this.name = name;
+        this.patterns = patterns.stream()
+            .map( Pattern::compile )
+            .collect( Collectors.toList() );
+    }
+
+    public static Optional<DateUnitTypeWithPattern> find( String isoString )
     {
         for ( DateUnitType type : DateUnitType.values() )
         {
-            if ( pattern.matches( type.pattern ) )
+            for ( Pattern pattern : type.getPatterns() )
             {
-                return type;
+                if ( pattern.matcher( isoString ).matches() )
+                {
+                    return Optional.of( DateUnitTypeWithPattern.of( type, pattern ) );
+                }
             }
         }
+        return Optional.empty();
+    }
 
-        return null;
+    @Getter
+    @AllArgsConstructor( staticName = "of" )
+    public static class DateUnitTypeWithPattern
+    {
+        private final DateUnitType dateUnitType;
+
+        private final Pattern pattern;
     }
 }

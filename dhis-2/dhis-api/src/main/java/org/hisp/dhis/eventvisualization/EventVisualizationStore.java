@@ -65,6 +65,16 @@ public interface EventVisualizationStore extends
     List<EventVisualization> getReports( int first, int max );
 
     /**
+     * Query the EventVisualization collection and retrieve the
+     * EventVisualizations of type Line List ONLY.
+     *
+     * @param first the first result row
+     * @param max the maximum result row
+     * @return a list of EventVisualization containing only Line List
+     */
+    List<EventVisualization> getLineLists( int first, int max );
+
+    /**
      * Query the EventVisualization collection and retrieve only the
      * EventVisualizations of type Chart comparing the name using the given
      * "chars".

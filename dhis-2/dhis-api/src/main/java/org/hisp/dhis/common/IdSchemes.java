@@ -40,6 +40,8 @@ import com.google.common.base.MoreObjects;
  */
 public class IdSchemes
 {
+    public static final IdScheme DEFAULT_ID_SCHEME = IdScheme.UID;
+
     private IdScheme idScheme;
 
     private IdScheme dataElementIdScheme;
@@ -81,7 +83,7 @@ public class IdSchemes
 
     public IdScheme getIdScheme()
     {
-        return IdScheme.from( ObjectUtils.firstNonNull( idScheme, IdScheme.UID ) );
+        return IdScheme.from( ObjectUtils.firstNonNull( idScheme, DEFAULT_ID_SCHEME ) );
     }
 
     public IdSchemes setIdScheme( String idScheme )
@@ -116,7 +118,7 @@ public class IdSchemes
 
     public IdScheme getDataElementGroupIdScheme()
     {
-        return getScheme( dataElementIdScheme );
+        return getScheme( dataElementGroupIdScheme );
     }
 
     public IdSchemes setDataElementGroupIdScheme( String idScheme )

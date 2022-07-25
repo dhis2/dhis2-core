@@ -32,6 +32,7 @@ import static org.hisp.dhis.scheduling.JobType.DATAVALUE_IMPORT;
 import static org.hisp.dhis.scheduling.JobType.METADATA_IMPORT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Deque;
 import java.util.Map;
@@ -40,23 +41,20 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 
-import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Lars Helge Overland
  */
-class NotifierTest extends DhisSpringTest
+class NotifierTest extends DhisConvenienceTest
 {
+    private Notifier notifier = new InMemoryNotifier();
 
-    @Autowired
-    private Notifier notifier;
-
-    private final User user = createUser( 'A' );
+    private final User user = makeUser( "A" );
 
     private final JobConfiguration dataValueImportJobConfig;
 
@@ -212,16 +210,18 @@ class NotifierTest extends DhisSpringTest
 
     @Test
     void testInsertingNotificationJobConcurrently()
-        throws InterruptedException
     {
+        notifier.notify( createJobConfig( -1 ), "zero" );
         ExecutorService e = Executors.newFixedThreadPool( 5 );
-        IntStream.range( 0, 500 ).forEach( i -> {
+        IntStream.range( 0, 1000 ).forEach( i -> {
             e.execute( () -> {
-                notifier.notify( createJobConfig( i ), "somethingid" );
+                notifier.notify( createJobConfig( i ), "somethingid" + i );
             } );
         } );
         awaitTermination( e );
-        assertEquals( 500, notifier.getNotificationsByJobType( METADATA_IMPORT ).size() );
+        int actualSize = notifier.getNotificationsByJobType( METADATA_IMPORT ).size();
+        int delta = actualSize - 500;
+        assertTrue( delta <= 5, "delta should not be larger than number of workers but was: " + delta );
     }
 
     private JobConfiguration createJobConfig( int i )

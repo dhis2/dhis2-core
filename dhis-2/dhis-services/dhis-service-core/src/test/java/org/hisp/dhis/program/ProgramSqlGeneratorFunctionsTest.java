@@ -29,14 +29,16 @@ package org.hisp.dhis.program;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.antlr.AntlrParserUtils.castString;
 import static org.hisp.dhis.common.ValueType.TEXT;
-import static org.hisp.dhis.parser.expression.ParserUtils.DEFAULT_SAMPLE_PERIODS;
-import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_DESCRIPTIONS;
-import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_SQL;
+import static org.hisp.dhis.parser.expression.ExpressionItem.ITEM_GET_DESCRIPTIONS;
+import static org.hisp.dhis.parser.expression.ExpressionItem.ITEM_GET_SQL;
 import static org.hisp.dhis.program.AnalyticsType.ENROLLMENT;
 import static org.hisp.dhis.program.DefaultProgramIndicatorService.PROGRAM_INDICATOR_ITEMS;
+import static org.hisp.dhis.program.variable.vEventCount.DEFAULT_COUNT_CONDITION;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -47,26 +49,27 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.antlr.AntlrExprLiteral;
 import org.hisp.dhis.antlr.Parser;
 import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.antlr.literal.DefaultLiteral;
+import org.hisp.dhis.common.DimensionService;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
-import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.expression.ExpressionParams;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ExpressionItemMethod;
+import org.hisp.dhis.parser.expression.ProgramExpressionParams;
 import org.hisp.dhis.parser.expression.literal.SqlLiteral;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -79,7 +82,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith( MockitoExtension.class )
 class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
 {
-
     private ProgramIndicator programIndicator;
 
     private Program programA;
@@ -91,6 +93,8 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     private DataElement dataElementC;
 
     private DataElement dataElementD;
+
+    private DataElement dataElementE;
 
     private ProgramStage programStageA;
 
@@ -105,22 +109,16 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     private Date endDate = getDate( 2020, 12, 31 );
 
     @Mock
-    private ProgramIndicatorService programIndicatorService;
+    private IdentifiableObjectManager idObjectManager;
 
     @Mock
-    private ConstantService constantService;
+    private ProgramIndicatorService programIndicatorService;
 
     @Mock
     private ProgramStageService programStageService;
 
     @Mock
-    private DataElementService dataElementService;
-
-    @Mock
-    private TrackedEntityAttributeService attributeService;
-
-    @Mock
-    private RelationshipTypeService relationshipTypeService;
+    private DimensionService dimensionService;
 
     private StatementBuilder statementBuilder;
 
@@ -144,6 +142,11 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
         dataElementD.setDomainType( DataElementDomain.TRACKER );
         dataElementD.setUid( "DataElmentD" );
         dataElementD.setValueType( ValueType.DATE );
+
+        dataElementE = createDataElement( 'E' );
+        dataElementE.setDomainType( DataElementDomain.TRACKER );
+        dataElementE.setUid( "DataElmentE" );
+        dataElementE.setValueType( ValueType.BOOLEAN );
 
         attributeA = createTrackedEntityAttribute( 'A', ValueType.NUMBER );
         attributeA.setUid( "Attribute0A" );
@@ -179,21 +182,47 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     @Test
     void testCondition()
     {
-        when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
+        when( idObjectManager.get( DataElement.class, dataElementA.getUid() ) ).thenReturn( dataElementA );
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
-        when( programIndicatorService.getAnalyticsSql( anyString(), eq( programIndicator ), eq( startDate ),
-            eq( endDate ) ) )
-                .thenAnswer( i -> test( (String) i.getArguments()[0] ) );
+        when( programIndicatorService.getAnalyticsSql( anyString(), any( DataType.class ), eq( programIndicator ),
+            eq( startDate ), eq( endDate ) ) )
+                .thenAnswer( i -> test( (String) i.getArguments()[0], (DataType) i.getArguments()[1] ) );
 
         String sql = test( "d2:condition('#{ProgrmStagA.DataElmentA} > 3',10 + 5,3 * 2)" );
         assertThat( sql, is( "case when (coalesce(\"DataElmentA\"::numeric,0) > 3) then 10 + 5 else 3 * 2 end" ) );
     }
 
     @Test
+    void testConditionWithBooleanAsBoolean()
+    {
+        when( idObjectManager.get( DataElement.class, dataElementE.getUid() ) ).thenReturn( dataElementE );
+        when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
+        when( programIndicatorService.getAnalyticsSql( anyString(), any( DataType.class ), eq( programIndicator ),
+            eq( startDate ), eq( endDate ) ) )
+                .thenAnswer( i -> test( (String) i.getArguments()[0], (DataType) i.getArguments()[1] ) );
+
+        String sql = test( "d2:condition('#{ProgrmStagA.DataElmentE}',10 + 5,3 * 2)" );
+        assertThat( sql, is( "case when (coalesce(\"DataElmentE\"::numeric!=0,false)) then 10 + 5 else 3 * 2 end" ) );
+    }
+
+    @Test
+    void testConditionWithBooleanAsNumeric()
+    {
+        when( idObjectManager.get( DataElement.class, dataElementE.getUid() ) ).thenReturn( dataElementE );
+        when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
+        when( programIndicatorService.getAnalyticsSql( anyString(), any( DataType.class ), eq( programIndicator ),
+            eq( startDate ), eq( endDate ) ) )
+                .thenAnswer( i -> test( (String) i.getArguments()[0], (DataType) i.getArguments()[1] ) );
+
+        String sql = test( "d2:condition('#{ProgrmStagA.DataElmentE} > 0',10 + 5,3 * 2)" );
+        assertThat( sql, is( "case when (coalesce(\"DataElmentE\"::numeric,0) > 0) then 10 + 5 else 3 * 2 end" ) );
+    }
+
+    @Test
     void testCount()
     {
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
-        when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
+        when( idObjectManager.get( DataElement.class, dataElementA.getUid() ) ).thenReturn( dataElementA );
 
         String sql = test( "d2:count(#{ProgrmStagA.DataElmentA})" );
         assertThat( sql, is( "(select count(\"DataElmentA\") " +
@@ -207,7 +236,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     void testCountWithStartEventBoundary()
     {
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
-        when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
+        when( idObjectManager.get( DataElement.class, dataElementA.getUid() ) ).thenReturn( dataElementA );
 
         setStartEventBoundary();
 
@@ -224,7 +253,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     void testCountWithEndEventBoundary()
     {
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
-        when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
+        when( idObjectManager.get( DataElement.class, dataElementA.getUid() ) ).thenReturn( dataElementA );
 
         setEndEventBoundary();
 
@@ -241,7 +270,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     void testCountWithStartAndEndEventBoundary()
     {
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
-        when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
+        when( idObjectManager.get( DataElement.class, dataElementA.getUid() ) ).thenReturn( dataElementA );
 
         setStartAndEndEventBoundary();
 
@@ -258,10 +287,10 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     void testCountIfCondition()
     {
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
-        when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
-        when( programIndicatorService.getAnalyticsSql( anyString(), eq( programIndicator ), eq( startDate ),
-            eq( endDate ) ) )
-                .thenAnswer( i -> test( (String) i.getArguments()[0] ) );
+        when( idObjectManager.get( DataElement.class, dataElementA.getUid() ) ).thenReturn( dataElementA );
+        when( programIndicatorService.getAnalyticsSql( anyString(), any( DataType.class ), eq( programIndicator ),
+            eq( startDate ), eq( endDate ) ) )
+                .thenAnswer( i -> test( (String) i.getArguments()[0], (DataType) i.getArguments()[1] ) );
 
         String sql = test( "d2:countIfCondition(#{ProgrmStagA.DataElmentA},'>5')" );
         assertThat( sql, is( "(select count(\"DataElmentA\") " +
@@ -271,10 +300,31 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     }
 
     @Test
+    void testCountIfConditionWithBooleanAsNumeric()
+    {
+        // Note: A boolean within a comparison should be treated as numeric.
+        // PostgreSQL allows comparision of a text column with a numeric value.
+
+        when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
+        when( idObjectManager.get( DataElement.class, dataElementA.getUid() ) ).thenReturn( dataElementA );
+        when( idObjectManager.get( DataElement.class, dataElementE.getUid() ) ).thenReturn( dataElementE );
+        when( programIndicatorService.getAnalyticsSql( anyString(), any( DataType.class ), eq( programIndicator ),
+            eq( startDate ), eq( endDate ) ) )
+                .thenAnswer( i -> test( (String) i.getArguments()[0], (DataType) i.getArguments()[1] ) );
+
+        String sql = test( "d2:countIfCondition(#{ProgrmStagA.DataElmentA},'>#{ProgrmStagA.DataElmentE}')" );
+        assertThat( sql, is( "(select count(\"DataElmentA\") " +
+            "from analytics_event_Program000A " +
+            "where analytics_event_Program000A.pi = ax.pi " +
+            "and \"DataElmentA\" is not null and \"DataElmentA\" > coalesce(\"DataElmentE\"::numeric,0) " +
+            "and ps = 'ProgrmStagA')" ) );
+    }
+
+    @Test
     void testCountIfValueNumeric()
     {
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
-        when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
+        when( idObjectManager.get( DataElement.class, dataElementA.getUid() ) ).thenReturn( dataElementA );
 
         String sql = test( "d2:countIfValue(#{ProgrmStagA.DataElmentA},55)" );
         assertThat( sql, is( "(select count(\"DataElmentA\") " +
@@ -288,7 +338,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     void testCountIfValueString()
     {
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
-        when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
+        when( idObjectManager.get( DataElement.class, dataElementA.getUid() ) ).thenReturn( dataElementA );
 
         dataElementA.setValueType( TEXT );
 
@@ -303,8 +353,8 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     @Test
     void testDaysBetween()
     {
-        when( dataElementService.getDataElement( dataElementC.getUid() ) ).thenReturn( dataElementC );
-        when( dataElementService.getDataElement( dataElementD.getUid() ) ).thenReturn( dataElementD );
+        when( idObjectManager.get( DataElement.class, dataElementC.getUid() ) ).thenReturn( dataElementC );
+        when( idObjectManager.get( DataElement.class, dataElementD.getUid() ) ).thenReturn( dataElementD );
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
         when( programStageService.getProgramStage( programStageB.getUid() ) ).thenReturn( programStageB );
 
@@ -315,8 +365,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     @Test
     void testHasValueDataElement()
     {
-
-        when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
+        when( idObjectManager.get( DataElement.class, dataElementA.getUid() ) ).thenReturn( dataElementA );
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
 
         String sql = test( "d2:hasValue(#{ProgrmStagA.DataElmentA})" );
@@ -326,7 +375,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     @Test
     void testHasValueAttribute()
     {
-        when( attributeService.getTrackedEntityAttribute( attributeA.getUid() ) ).thenReturn( attributeA );
+        when( idObjectManager.get( TrackedEntityAttribute.class, attributeA.getUid() ) ).thenReturn( attributeA );
 
         String sql = test( "d2:hasValue(A{Attribute0A})" );
         assertThat( sql, is( "(\"Attribute0A\" is not null)" ) );
@@ -335,8 +384,8 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     @Test
     void testMinutesBetween()
     {
-        when( dataElementService.getDataElement( dataElementC.getUid() ) ).thenReturn( dataElementC );
-        when( dataElementService.getDataElement( dataElementD.getUid() ) ).thenReturn( dataElementD );
+        when( idObjectManager.get( DataElement.class, dataElementC.getUid() ) ).thenReturn( dataElementC );
+        when( idObjectManager.get( DataElement.class, dataElementD.getUid() ) ).thenReturn( dataElementD );
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
         when( programStageService.getProgramStage( programStageB.getUid() ) ).thenReturn( programStageB );
 
@@ -348,8 +397,8 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     @Test
     void testMonthsBetween()
     {
-        when( dataElementService.getDataElement( dataElementC.getUid() ) ).thenReturn( dataElementC );
-        when( dataElementService.getDataElement( dataElementD.getUid() ) ).thenReturn( dataElementD );
+        when( idObjectManager.get( DataElement.class, dataElementC.getUid() ) ).thenReturn( dataElementC );
+        when( idObjectManager.get( DataElement.class, dataElementD.getUid() ) ).thenReturn( dataElementD );
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
         when( programStageService.getProgramStage( programStageB.getUid() ) ).thenReturn( programStageB );
 
@@ -363,7 +412,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     @Test
     void testOizp()
     {
-        when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
+        when( idObjectManager.get( DataElement.class, dataElementA.getUid() ) ).thenReturn( dataElementA );
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
 
         String sql = test( "66 + d2:oizp(#{ProgrmStagA.DataElmentA} + 4)" );
@@ -376,26 +425,30 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
         String sql = test( "d2:relationshipCount()" );
         assertThat( sql, is( "(select count(*) from relationship r " +
             "join relationshipitem rifrom on rifrom.relationshipid = r.relationshipid " +
-            "join trackedentityinstance tei on rifrom.trackedentityinstanceid = tei.trackedentityinstanceid and tei.uid = ax.tei)" ) );
+            "join trackedentityinstance tei on rifrom.trackedentityinstanceid = tei.trackedentityinstanceid and tei.uid = ax.tei"
+            +
+            " where r.deleted is false)" ) );
     }
 
     @Test
     void testRelationshipCountWithRelationshipId()
     {
-        when( relationshipTypeService.getRelationshipType( relTypeA.getUid() ) ).thenReturn( relTypeA );
+        when( idObjectManager.get( RelationshipType.class, relTypeA.getUid() ) ).thenReturn( relTypeA );
 
         String sql = test( "d2:relationshipCount('RelatnTypeA')" );
         assertThat( sql, is( "(select count(*) from relationship r " +
             "join relationshiptype rt on r.relationshiptypeid = rt.relationshiptypeid and rt.uid = 'RelatnTypeA' " +
             "join relationshipitem rifrom on rifrom.relationshipid = r.relationshipid " +
-            "join trackedentityinstance tei on rifrom.trackedentityinstanceid = tei.trackedentityinstanceid and tei.uid = ax.tei)" ) );
+            "join trackedentityinstance tei on rifrom.trackedentityinstanceid = tei.trackedentityinstanceid and tei.uid = ax.tei"
+            +
+            " where r.deleted is false)" ) );
     }
 
     @Test
     void testWeeksBetween()
     {
-        when( dataElementService.getDataElement( dataElementC.getUid() ) ).thenReturn( dataElementC );
-        when( dataElementService.getDataElement( dataElementD.getUid() ) ).thenReturn( dataElementD );
+        when( idObjectManager.get( DataElement.class, dataElementC.getUid() ) ).thenReturn( dataElementC );
+        when( idObjectManager.get( DataElement.class, dataElementD.getUid() ) ).thenReturn( dataElementD );
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
         when( programStageService.getProgramStage( programStageB.getUid() ) ).thenReturn( programStageB );
 
@@ -443,7 +496,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     void testZing()
     {
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
-        when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
+        when( idObjectManager.get( DataElement.class, dataElementA.getUid() ) ).thenReturn( dataElementA );
 
         String sql = test( "d2:zing(#{ProgrmStagA.DataElmentA})" );
         assertThat( sql, is( "greatest(0,coalesce(\"DataElmentA\"::numeric,0))" ) );
@@ -453,7 +506,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     void testZpvcOneArg()
     {
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
-        when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
+        when( idObjectManager.get( DataElement.class, dataElementA.getUid() ) ).thenReturn( dataElementA );
 
         String sql = test( "d2:zpvc(#{ProgrmStagA.DataElmentA})" );
         assertThat( sql, is( "nullif(cast((" +
@@ -465,8 +518,8 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     void testZpvcTwoArgs()
     {
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
-        when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
-        when( dataElementService.getDataElement( dataElementB.getUid() ) ).thenReturn( dataElementB );
+        when( idObjectManager.get( DataElement.class, dataElementA.getUid() ) ).thenReturn( dataElementA );
+        when( idObjectManager.get( DataElement.class, dataElementB.getUid() ) ).thenReturn( dataElementB );
 
         String sql = test( "d2:zpvc(#{ProgrmStagA.DataElmentA},#{ProgrmStagA.DataElmentB})" );
         assertThat( sql, is( "nullif(cast((" +
@@ -482,7 +535,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
         assertThat( sql, is( "ln(distinct pi)" ) );
 
         sql = test( "log(V{event_count},3)" );
-        assertThat( sql, is( "log(3,psi)" ) );
+        assertThat( sql, is( "log(3,case " + DEFAULT_COUNT_CONDITION + " end)" ) );
     }
 
     @Test
@@ -503,7 +556,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     void testVectorAvg()
     {
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
-        when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
+        when( idObjectManager.get( DataElement.class, dataElementA.getUid() ) ).thenReturn( dataElementA );
 
         String sql = test( "avg(#{ProgrmStagA.DataElmentA})" );
         assertThat( sql, is( "avg(coalesce(\"DataElmentA\"::numeric,0))" ) );
@@ -513,7 +566,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     void testVectorCount()
     {
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
-        when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
+        when( idObjectManager.get( DataElement.class, dataElementA.getUid() ) ).thenReturn( dataElementA );
 
         String sql = test( "count(#{ProgrmStagA.DataElmentA})" );
         assertThat( sql, is( "count(coalesce(\"DataElmentA\"::numeric,0))" ) );
@@ -526,7 +579,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     void testVectorMax()
     {
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
-        when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
+        when( idObjectManager.get( DataElement.class, dataElementA.getUid() ) ).thenReturn( dataElementA );
 
         String sql = test( "max(#{ProgrmStagA.DataElmentA})" );
         assertThat( sql, is( "max(coalesce(\"DataElmentA\"::numeric,0))" ) );
@@ -536,7 +589,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     void testVectorMin()
     {
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
-        when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
+        when( idObjectManager.get( DataElement.class, dataElementA.getUid() ) ).thenReturn( dataElementA );
 
         String sql = test( "min(#{ProgrmStagA.DataElmentA})" );
         assertThat( sql, is( "min(coalesce(\"DataElmentA\"::numeric,0))" ) );
@@ -546,7 +599,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     void testVectorStddev()
     {
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
-        when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
+        when( idObjectManager.get( DataElement.class, dataElementA.getUid() ) ).thenReturn( dataElementA );
 
         String sql = test( "stddev(#{ProgrmStagA.DataElmentA})" );
         assertThat( sql, is( "stddev_samp(coalesce(\"DataElmentA\"::numeric,0))" ) );
@@ -556,7 +609,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     void testVectorSum()
     {
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
-        when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
+        when( idObjectManager.get( DataElement.class, dataElementA.getUid() ) ).thenReturn( dataElementA );
 
         String sql = test( "sum(#{ProgrmStagA.DataElmentA})" );
         assertThat( sql, is( "sum(coalesce(\"DataElmentA\"::numeric,0))" ) );
@@ -566,7 +619,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     void testVectorVariance()
     {
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
-        when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
+        when( idObjectManager.get( DataElement.class, dataElementA.getUid() ) ).thenReturn( dataElementA );
 
         String sql = test( "variance(#{ProgrmStagA.DataElmentA})" );
         assertThat( sql, is( "variance(coalesce(\"DataElmentA\"::numeric,0))" ) );
@@ -585,38 +638,49 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
 
     private String test( String expression )
     {
-        test( expression, new DefaultLiteral(), ITEM_GET_DESCRIPTIONS );
+        return test( expression, NUMERIC );
+    }
 
-        return castString( test( expression, new SqlLiteral(), ITEM_GET_SQL ) );
+    private String test( String expression, DataType dataType )
+    {
+        test( expression, new DefaultLiteral(), ITEM_GET_DESCRIPTIONS, dataType );
+
+        return castString( test( expression, new SqlLiteral(), ITEM_GET_SQL, dataType ) );
     }
 
     private Object test( String expression, AntlrExprLiteral exprLiteral,
-        ExpressionItemMethod itemMethod )
+        ExpressionItemMethod itemMethod, DataType dataType )
     {
         Set<String> dataElementsAndAttributesIdentifiers = new LinkedHashSet<>();
         dataElementsAndAttributesIdentifiers.add( BASE_UID + "a" );
         dataElementsAndAttributesIdentifiers.add( BASE_UID + "b" );
         dataElementsAndAttributesIdentifiers.add( BASE_UID + "c" );
 
-        CommonExpressionVisitor visitor = CommonExpressionVisitor.newBuilder()
-            .withItemMap( PROGRAM_INDICATOR_ITEMS )
-            .withItemMethod( itemMethod )
-            .withConstantMap( constantService.getConstantMap() )
-            .withProgramIndicatorService( programIndicatorService )
-            .withProgramStageService( programStageService )
-            .withDataElementService( dataElementService )
-            .withAttributeService( attributeService )
-            .withRelationshipTypeService( relationshipTypeService )
-            .withStatementBuilder( statementBuilder )
-            .withI18n( new I18n( null, null ) )
-            .withSamplePeriods( DEFAULT_SAMPLE_PERIODS )
-            .buildForProgramIndicatorExpressions();
+        ExpressionParams params = ExpressionParams.builder()
+            .dataType( dataType )
+            .build();
+
+        ProgramExpressionParams progParams = ProgramExpressionParams.builder()
+            .programIndicator( programIndicator )
+            .reportingStartDate( startDate )
+            .reportingEndDate( endDate )
+            .dataElementAndAttributeIdentifiers( dataElementsAndAttributesIdentifiers )
+            .build();
+
+        CommonExpressionVisitor visitor = CommonExpressionVisitor.builder()
+            .idObjectManager( idObjectManager )
+            .dimensionService( dimensionService )
+            .programIndicatorService( programIndicatorService )
+            .programStageService( programStageService )
+            .statementBuilder( statementBuilder )
+            .i18n( new I18n( null, null ) )
+            .itemMap( PROGRAM_INDICATOR_ITEMS )
+            .itemMethod( itemMethod )
+            .params( params )
+            .progParams( progParams )
+            .build();
 
         visitor.setExpressionLiteral( exprLiteral );
-        visitor.setProgramIndicator( programIndicator );
-        visitor.setReportingStartDate( startDate );
-        visitor.setReportingEndDate( endDate );
-        visitor.setDataElementAndAttributeIdentifiers( dataElementsAndAttributesIdentifiers );
 
         return Parser.visit( expression, visitor );
     }

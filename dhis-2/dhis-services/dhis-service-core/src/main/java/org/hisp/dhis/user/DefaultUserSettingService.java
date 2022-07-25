@@ -107,11 +107,11 @@ public class DefaultUserSettingService
     @Transactional
     public void saveUserSetting( UserSettingKey key, Serializable value, String username )
     {
-        UserCredentials credentials = userService.getUserCredentialsByUsername( username );
+        User user = userService.getUserByUsername( username );
 
-        if ( credentials != null )
+        if ( user != null )
         {
-            saveUserSetting( key, value, credentials.getUserInfo() );
+            saveUserSetting( key, value, user );
         }
     }
 
@@ -338,14 +338,14 @@ public class DefaultUserSettingService
      */
     private SerializableOptional getUserSettingOptional( UserSettingKey key, String username )
     {
-        UserCredentials userCredentials = userService.getUserCredentialsByUsername( username );
+        User user = userService.getUserByUsername( username );
 
-        if ( userCredentials == null )
+        if ( user == null )
         {
             return SerializableOptional.empty();
         }
 
-        UserSetting setting = userSettingStore.getUserSettingTx( userCredentials.getUserInfo(), key.getName() );
+        UserSetting setting = userSettingStore.getUserSettingTx( user, key.getName() );
 
         Serializable value = setting != null && setting.hasValue() ? setting.getValue() : key.getDefaultValue();
 

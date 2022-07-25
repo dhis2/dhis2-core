@@ -27,12 +27,15 @@
  */
 package org.hisp.dhis.indicator;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.commons.collections4.CollectionUtils.containsAny;
 import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
+import java.util.Iterator;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -47,22 +50,13 @@ import org.springframework.stereotype.Component;
 /**
  * @author Lars Helge Overland
  */
-@Component( "org.hisp.dhis.indicator.IndicatorDeletionHandler" )
-public class IndicatorDeletionHandler
-    extends DeletionHandler
+@Component
+@AllArgsConstructor
+public class IndicatorDeletionHandler extends DeletionHandler
 {
     private final IndicatorService indicatorService;
 
     private final ExpressionService expressionService;
-
-    public IndicatorDeletionHandler( IndicatorService indicatorService, ExpressionService expressionService )
-    {
-        checkNotNull( indicatorService );
-        checkNotNull( expressionService );
-
-        this.indicatorService = indicatorService;
-        this.expressionService = expressionService;
-    }
 
     @Override
     protected void register()
@@ -110,14 +104,13 @@ public class IndicatorDeletionHandler
     {
         for ( Indicator indicator : indicatorService.getAllIndicators() )
         {
-            for ( LegendSet ls : indicator.getLegendSets() )
+            for ( Iterator<LegendSet> itr = indicator.getLegendSets().iterator(); itr.hasNext(); )
             {
-                if ( legendSet.equals( ls ) )
+                if ( legendSet.equals( itr.next() ) )
                 {
-                    indicator.getLegendSets().remove( ls );
+                    itr.remove();
                     indicatorService.updateIndicator( indicator );
                 }
-
             }
         }
     }
@@ -126,23 +119,19 @@ public class IndicatorDeletionHandler
     {
         for ( Indicator indicator : indicatorService.getAllIndicators() )
         {
-            Set<DataElement> daels = expressionService.getExpressionDataElements( indicator.getNumerator(),
-                INDICATOR_EXPRESSION );
-
-            if ( daels != null && daels.contains( dataElement ) )
-            {
-                return new DeletionVeto( Indicator.class, indicator.getName() );
-            }
-
-            daels = expressionService.getExpressionDataElements( indicator.getDenominator(), INDICATOR_EXPRESSION );
-
-            if ( daels != null && daels.contains( dataElement ) )
+            if ( getElementIds( indicator.getNumerator() ).contains( dataElement.getUid() ) ||
+                getElementIds( indicator.getDenominator() ).contains( dataElement.getUid() ) )
             {
                 return new DeletionVeto( Indicator.class, indicator.getName() );
             }
         }
 
         return ACCEPT;
+    }
+
+    private Set<String> getElementIds( String expression )
+    {
+        return expressionService.getExpressionDataElementIds( expression, INDICATOR_EXPRESSION );
     }
 
     private DeletionVeto allowDeleteCategoryCombo( CategoryCombo categoryCombo )
@@ -152,25 +141,18 @@ public class IndicatorDeletionHandler
 
         for ( Indicator indicator : indicatorService.getAllIndicators() )
         {
-            Set<String> comboIds = expressionService.getExpressionOptionComboIds(
-                indicator.getNumerator(), INDICATOR_EXPRESSION );
-            comboIds.retainAll( optionComboIds );
-
-            if ( !comboIds.isEmpty() )
-            {
-                return new DeletionVeto( Indicator.class, indicator.getName() );
-            }
-
-            comboIds = expressionService.getExpressionOptionComboIds(
-                indicator.getDenominator(), INDICATOR_EXPRESSION );
-            comboIds.retainAll( optionComboIds );
-
-            if ( !comboIds.isEmpty() )
+            if ( containsAny( getOptionComboIds( indicator.getNumerator() ), optionComboIds ) ||
+                containsAny( getOptionComboIds( indicator.getDenominator() ), optionComboIds ) )
             {
                 return new DeletionVeto( Indicator.class, indicator.getName() );
             }
         }
 
         return ACCEPT;
+    }
+
+    private Set<String> getOptionComboIds( String expression )
+    {
+        return expressionService.getExpressionOptionComboIds( expression, INDICATOR_EXPRESSION );
     }
 }

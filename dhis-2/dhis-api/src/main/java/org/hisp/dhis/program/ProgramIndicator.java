@@ -36,7 +36,12 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.BaseDataDimensionalItemObject;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DimensionItemType;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.ObjectStyle;
 import org.springframework.util.Assert;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -136,11 +141,31 @@ public class ProgramIndicator
     }
 
     /**
-     * Returns aggregation type, if not exists returns AVERAGE.
+     * Returns aggregation type (for example for aggregation function supported
+     * by postgres), if not exists returns AVERAGE.
      */
     public AggregationType getAggregationTypeFallback()
     {
-        return aggregationType != null ? aggregationType : AggregationType.AVERAGE;
+        if ( aggregationType == null )
+        {
+            return AggregationType.AVERAGE;
+        }
+
+        switch ( aggregationType )
+        {
+        case AVERAGE_SUM_ORG_UNIT:
+        case FIRST:
+        case LAST:
+        case LAST_IN_PERIOD:
+            return AggregationType.SUM;
+        case FIRST_AVERAGE_ORG_UNIT:
+        case LAST_AVERAGE_ORG_UNIT:
+        case LAST_IN_PERIOD_AVERAGE_ORG_UNIT:
+        case DEFAULT:
+            return AggregationType.AVERAGE;
+        default:
+            return aggregationType;
+        }
     }
 
     public void addProgramIndicatorGroup( ProgramIndicatorGroup group )

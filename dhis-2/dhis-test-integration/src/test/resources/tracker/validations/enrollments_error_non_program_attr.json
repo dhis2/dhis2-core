@@ -1,0 +1,93 @@
+{
+  "importMode": "COMMIT",
+  "idSchemes": {
+    "dataElementIdScheme": {
+      "idScheme": "UID"
+    },
+    "orgUnitIdScheme": {
+      "idScheme": "UID"
+    },
+    "programIdScheme": {
+      "idScheme": "UID"
+    },
+    "programStageIdScheme": {
+      "idScheme": "UID"
+    },
+    "idScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionComboIdScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionIdScheme": {
+      "idScheme": "UID"
+    }
+  },
+  "importStrategy": "CREATE",
+  "atomicMode": "ALL",
+  "flushMode": "AUTO",
+  "validationMode": "FULL",
+  "skipPatternValidation": false,
+  "skipSideEffects": false,
+  "skipRuleEngine": false,
+  "trackedEntities": [],
+  "enrollments": [
+    {
+      "enrollment": "MNWZ6hnuhSw",
+      "updatedAt": "2019-08-19T13:58:26.874",
+      "trackedEntity": "Kj6vYde4LHh",
+      "program": {
+        "idScheme": "UID",
+        "identifier": "E8o1E9tAppy"
+      },
+      "status": "ACTIVE",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
+      "enrolledAt": "2019-08-19T00:00:00.000",
+      "occurredAt": "2019-08-19T00:00:00.000",
+      "followUp": false,
+      "deleted": false,
+      "storedBy": "admin",
+      "events": [],
+      "relationships": [],
+      "attributes": [
+        {
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "sYn3tkL3XKa"
+          },
+          "displayName": "Attribute_Integer",
+          "storedBy": "admin",
+          "valueType": "INTEGER",
+          "value": "123"
+        },
+        {
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "TsfP85GKsU5"
+          },
+          "displayName": "Attribute_Text",
+          "storedBy": "admin",
+          "valueType": "TEXT",
+          "value": "Test"
+        },
+        {
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "sTGqP5JNy6E"
+          },
+          "displayName": "Attribute_Date",
+          "storedBy": "admin",
+          "valueType": "DATE",
+          "value": "2020-02-10"
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "events": [],
+  "relationships": [],
+  "username": "system-process"
+}

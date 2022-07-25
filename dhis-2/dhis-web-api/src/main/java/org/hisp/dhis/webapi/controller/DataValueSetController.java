@@ -50,7 +50,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.UncheckedIOException;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -58,7 +58,7 @@ import java.util.zip.ZipOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import lombok.extern.slf4j.Slf4j;
+import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -66,6 +66,7 @@ import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.dxf2.adx.AdxDataService;
 import org.hisp.dhis.dxf2.adx.AdxException;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -74,11 +75,12 @@ import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.datavalueset.tasks.ImportDataValueTask;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.node.Provider;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -92,25 +94,20 @@ import org.springframework.web.bind.annotation.ResponseBody;
  * @author Lars Helge Overland
  */
 @Controller
+@RequiredArgsConstructor
 @RequestMapping( value = "/dataValueSets" )
-@Slf4j
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class DataValueSetController
 {
-    @Autowired
-    private DataValueSetService dataValueSetService;
+    private final DataValueSetService dataValueSetService;
 
-    @Autowired
-    private AdxDataService adxDataService;
+    private final AdxDataService adxDataService;
 
-    @Autowired
-    private CurrentUserService currentUserService;
+    private final CurrentUserService currentUserService;
 
-    @Autowired
-    private AsyncTaskExecutor taskExecutor;
+    private final AsyncTaskExecutor taskExecutor;
 
-    @Autowired
-    private SessionFactory sessionFactory;
+    private final SessionFactory sessionFactory;
 
     // -------------------------------------------------------------------------
     // Get
@@ -147,7 +144,8 @@ public class DataValueSetController
         HttpServletResponse response )
     {
         getDataValueSet( attachment, compression, "xml", response, CONTENT_TYPE_XML,
-            out -> dataValueSetService.exportDataValueSetXml( dataValueSetService.getFromUrl( params ), out ) );
+            () -> dataValueSetService.getFromUrl( params ),
+            ( exportParams, out ) -> dataValueSetService.exportDataValueSetXml( exportParams, out ) );
     }
 
     @GetMapping( produces = CONTENT_TYPE_XML_ADX )
@@ -157,10 +155,11 @@ public class DataValueSetController
         HttpServletResponse response )
     {
         getDataValueSet( attachment, compression, "xml", response, CONTENT_TYPE_XML_ADX,
-            out -> {
+            () -> adxDataService.getFromUrl( params ),
+            ( exportParams, out ) -> {
                 try
                 {
-                    adxDataService.writeDataValueSet( adxDataService.getFromUrl( params ), out );
+                    adxDataService.writeDataValueSet( exportParams, out );
                 }
                 catch ( AdxException ex )
                 {
@@ -177,7 +176,8 @@ public class DataValueSetController
         HttpServletResponse response )
     {
         getDataValueSet( attachment, compression, "json", response, CONTENT_TYPE_JSON,
-            out -> dataValueSetService.exportDataValueSetJson( dataValueSetService.getFromUrl( params ), out ) );
+            () -> dataValueSetService.getFromUrl( params ),
+            ( exportParams, out ) -> dataValueSetService.exportDataValueSetJson( exportParams, out ) );
     }
 
     @GetMapping( produces = CONTENT_TYPE_CSV )
@@ -187,21 +187,26 @@ public class DataValueSetController
         HttpServletResponse response )
     {
         getDataValueSet( attachment, compression, "csv", response, CONTENT_TYPE_CSV,
-            out -> dataValueSetService.exportDataValueSetCsv( dataValueSetService.getFromUrl( params ),
+            () -> dataValueSetService.getFromUrl( params ),
+            ( exportParams, out ) -> dataValueSetService.exportDataValueSetCsv( exportParams,
                 new PrintWriter( out ) ) );
     }
 
     private void getDataValueSet( String attachment,
         String compression, String format, HttpServletResponse response, String contentType,
-        Consumer<OutputStream> writeOutput )
+        Provider<DataExportParams> createParams,
+        BiConsumer<DataExportParams, OutputStream> writeOutput )
     {
+        DataExportParams params = createParams.provide();
+        dataValueSetService.validate( params );
+
         response.setContentType( contentType );
         setNoStore( response );
 
         try (
-            OutputStream out = compress( response, attachment, Compression.fromValue( compression ), format ) )
+            OutputStream out = compress( params, response, attachment, Compression.fromValue( compression ), format ) )
         {
-            writeOutput.accept( out );
+            writeOutput.accept( params, out );
         }
         catch ( IOException ex )
         {
@@ -353,12 +358,13 @@ public class DataValueSetController
      * @return Compressed OutputStream if given compression is given, otherwise
      *         just return uncompressed outputStream
      */
-    private OutputStream compress( HttpServletResponse response, String attachment, Compression compression,
+    private OutputStream compress( DataExportParams params, HttpServletResponse response, String attachment,
+        Compression compression,
         String format )
         throws IOException,
         HttpMessageNotWritableException
     {
-        String fileName = StringUtils.isEmpty( attachment ) ? "datavalue" : attachment;
+        String fileName = getAttachmentFileName( attachment, params );
 
         if ( Compression.GZIP == compression )
         {
@@ -391,11 +397,44 @@ public class DataValueSetController
             // no-compression option.
             if ( !StringUtils.isEmpty( attachment ) )
             {
-                response.addHeader( ContextUtils.HEADER_CONTENT_DISPOSITION, "attachment; filename=" + attachment );
+                response.addHeader( ContextUtils.HEADER_CONTENT_DISPOSITION,
+                    "attachment; filename=" + fileName + "." + format );
                 response.addHeader( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
             }
 
             return response.getOutputStream();
         }
+    }
+
+    /**
+     * Generate file name with format "dataValues_startDate_endDate" or
+     * <p>
+     * "{attachment}_startDate_endDate" if value of the attachment parameter is
+     * not empty.
+     * <p>
+     * Date format is "yyyy-mm-dd". This can only apply if the request has
+     * startDate and endDate. Otherwise, will return default file name
+     * "dataValues".
+     *
+     * @param attachment The attachment parameter.
+     * @param params {@link DataExportParams} contains startDate and endDate
+     *        parameter.
+     * @return the export file name.
+     */
+    private String getAttachmentFileName( String attachment, DataExportParams params )
+    {
+        String fileName = StringUtils.isEmpty( attachment ) ? "dataValues" : attachment;
+
+        if ( params.getStartDate() == null || params.getEndDate() == null )
+        {
+            return fileName;
+        }
+
+        String dates = String.join( "_", DateUtils.getSqlDateString( params.getStartDate() ),
+            DateUtils.getSqlDateString( params.getEndDate() ) );
+
+        fileName = fileName.contains( "." ) ? fileName.substring( 0, fileName.indexOf( "." ) ) : fileName;
+
+        return String.join( "_", fileName, dates );
     }
 }

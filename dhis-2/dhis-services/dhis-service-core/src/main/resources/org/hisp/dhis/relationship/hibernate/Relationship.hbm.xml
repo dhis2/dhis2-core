@@ -15,10 +15,6 @@
 
         &identifiableProperties;
 
-        <property name="formName" type="text"/>
-
-        <property name="description" type="text"/>
-
         <property name="style" type="jbObjectStyle" column="style"/>
 
         <many-to-one name="relationshipType"
@@ -44,6 +40,8 @@
         <property name="key" column="key" type="string" length="255" not-null="true" />
 
         <property name="invertedKey" column="inverted_key" type="string" length="255" not-null="true" />
+
+        <property name="deleted" column="deleted"/>
 
     </class>
 </hibernate-mapping>

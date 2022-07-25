@@ -77,7 +77,6 @@ public class TrackedEntityDataValueAudit
         this.dataElement = dataElement;
         this.programStageInstance = programStageInstance;
         this.providedElsewhere = providedElsewhere;
-
         this.created = new Date();
         this.value = value;
         this.modifiedBy = modifiedBy;
@@ -113,6 +112,14 @@ public class TrackedEntityDataValueAudit
             && Objects.equals( this.providedElsewhere, other.providedElsewhere )
             && Objects.equals( this.modifiedBy, other.modifiedBy )
             && Objects.equals( this.auditType, other.auditType );
+    }
+
+    @Override
+    public String toString()
+    {
+        return "[dataElement: '" + dataElement.getUid() + "', " +
+            "programStageInstance: '" + programStageInstance.getUid() + "', " +
+            "value: '" + value + "']";
     }
 
     // -------------------------------------------------------------------------

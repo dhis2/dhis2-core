@@ -31,6 +31,7 @@ import static org.hisp.dhis.DhisConvenienceTest.createCategoryOption;
 import static org.hisp.dhis.DhisConvenienceTest.createCategoryOptionCombo;
 import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -116,7 +117,7 @@ class CategoryOptionResolverTest
     {
         // arrange
         dimensionalItemId = new DimensionalItemId( DimensionItemType.DATA_ELEMENT_OPERAND, uid1,
-            CATEGORY_OPTION_PREFIX + uid2, uid3, 0, createIndicatorExpression() );
+            CATEGORY_OPTION_PREFIX + uid2, uid3, createIndicatorExpression() );
 
         String expression = createIndicatorExpression();
 
@@ -129,8 +130,7 @@ class CategoryOptionResolverTest
 
         // assert
 
-        assertEquals( expectedResolvedIndicatorExpression( coc1.getUid(), coc2.getUid(), coc3.getUid() ),
-            resolvedExpression );
+        assertResolvedExpressionEquals( resolvedExpression, coc1.getUid(), coc2.getUid(), coc3.getUid() );
     }
 
     @Test
@@ -138,7 +138,7 @@ class CategoryOptionResolverTest
     {
         // arrange
         dimensionalItemId = new DimensionalItemId( DimensionItemType.DATA_ELEMENT_OPERAND, uid1,
-            CATEGORY_OPTION_PREFIX + uid2, uid3, 0, createIndicatorExpression() );
+            CATEGORY_OPTION_PREFIX + uid2, uid3, createIndicatorExpression() );
 
         String expression = createIndicatorExpression();
 
@@ -151,8 +151,7 @@ class CategoryOptionResolverTest
 
         // assert
 
-        assertEquals( expectedResolvedIndicatorExpression( coc1.getUid(), coc2.getUid(), coc3.getUid() ),
-            resolvedExpression );
+        assertResolvedExpressionEquals( resolvedExpression, coc1.getUid(), coc2.getUid(), coc3.getUid() );
     }
 
     @Test
@@ -160,7 +159,7 @@ class CategoryOptionResolverTest
     {
         // arrange
         dimensionalItemId = new DimensionalItemId( DimensionItemType.DATA_ELEMENT_OPERAND, uid1,
-            uid2, uid3, 0, createIndicatorExpression() );
+            uid2, uid3, createIndicatorExpression() );
 
         String expression = createIndicatorExpression();
 
@@ -181,7 +180,7 @@ class CategoryOptionResolverTest
     {
         // arrange
         dimensionalItemId = new DimensionalItemId( DimensionItemType.DATA_ELEMENT_OPERAND, uid1,
-            uid2, uid3, 0, createIndicatorExpression() );
+            uid2, uid3, createIndicatorExpression() );
 
         String expression = "lsdjflakjdflkajdslfhaglakujdhfg";
 
@@ -202,7 +201,17 @@ class CategoryOptionResolverTest
         return String.format( "#{%s.co:%s.%s}", uid1, uid2, uid3 );
     }
 
-    private String expectedResolvedIndicatorExpression( String coc1_uid, String coc2_uid, String coc3_uid )
+    private void assertResolvedExpressionEquals( String result, String cocUid1, String cocUid2, String cocUid3 )
+    {
+        assertTrue( result.equals( formatExpression( cocUid1, cocUid2, cocUid3 ) )
+            || result.equals( formatExpression( cocUid1, cocUid3, cocUid2 ) )
+            || result.equals( formatExpression( cocUid2, cocUid3, cocUid1 ) )
+            || result.equals( formatExpression( cocUid2, cocUid1, cocUid3 ) )
+            || result.equals( formatExpression( cocUid3, cocUid1, cocUid2 ) )
+            || result.equals( formatExpression( cocUid3, cocUid2, cocUid1 ) ) );
+    }
+
+    private String formatExpression( String coc1_uid, String coc2_uid, String coc3_uid )
     {
         return String.format( "(#{%s.%s.%s}+#{%s.%s.%s}+#{%s.%s.%s})",
             uid1, coc1_uid, uid3,

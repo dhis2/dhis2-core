@@ -1,10 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.hisp.dhis</groupId>
     <artifactId>dhis</artifactId>
-    <version>2.38-SNAPSHOT</version>
+    <version>2.39-SNAPSHOT</version>
   </parent>
   <artifactId>dhis-web</artifactId>
   <packaging>pom</packaging>
@@ -15,7 +16,6 @@
     <module>dhis-web-commons</module>
     <module>dhis-web-commons-resources</module>
     <module>dhis-web-dataentry</module>
-    <module>dhis-web-approval</module>
     <module>dhis-web-portal</module>
     <module>dhis-web-apps</module>
   </modules>
@@ -62,7 +62,7 @@
         <artifactId>maven-war-plugin</artifactId>
         <version>${maven-war-plugin.version}</version>
         <configuration>
-            <failOnMissingWebXml>false</failOnMissingWebXml>
+          <failOnMissingWebXml>false</failOnMissingWebXml>
           <archiveClasses>true</archiveClasses>
           <dependentWarExcludes>**/web.xml</dependentWarExcludes>
           <archive>
@@ -135,6 +135,8 @@
         <artifactId>jetty-maven-plugin</artifactId>
         <version>${jetty.version}</version>
         <configuration>
+          <requestLog implementation="org.eclipse.jetty.server.CustomRequestLog">
+          </requestLog>
           <systemProperties>
             <systemProperty>
               <name>org.eclipse.jetty.server.Request.maxFormContentSize</name>
@@ -149,13 +151,6 @@
       </plugin>
     </plugins>
   </build>
-
-  <dependencies>
-    <dependency>
-      <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-support-test</artifactId>
-    </dependency>
-  </dependencies>
 
   <dependencyManagement>
     <dependencies>

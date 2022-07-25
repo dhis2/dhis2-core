@@ -28,7 +28,6 @@
 package org.hisp.dhis.config;
 
 import java.beans.PropertyVetoException;
-import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -145,7 +144,8 @@ public class DataSourceConfig
     @Primary
     public DataSource dataSource( @Qualifier( "actualDataSource" ) DataSource actualDataSource )
     {
-        boolean enableQueryLogging = dhisConfig.isEnabled( ConfigurationKey.ENABLE_QUERY_LOGGING );
+        boolean enableQueryLogging = dhisConfig.isEnabled(
+            ConfigurationKey.ENABLE_QUERY_LOGGING );
 
         if ( !enableQueryLogging )
         {
@@ -163,18 +163,22 @@ public class DataSourceConfig
         ProxyDataSourceBuilder b = ProxyDataSourceBuilder
 
             .create( actualDataSource )
-            .name( "ProxyDS_DHIS2_" + dhisConfig.getProperty( ConfigurationKey.DB_POOL_TYPE ) +
+            .name( "ProxyDS_DHIS2_" + dhisConfig.getProperty(
+                ConfigurationKey.DB_POOL_TYPE ) +
                 "_" + CodeGenerator.generateCode( 5 ) )
 
             .logSlowQueryBySlf4j(
-                Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.SLOW_QUERY_LOGGING_THRESHOLD_TIME_MS ) ),
+                Integer.parseInt( dhisConfig.getProperty(
+                    ConfigurationKey.SLOW_QUERY_LOGGING_THRESHOLD_TIME_MS ) ),
                 TimeUnit.MILLISECONDS, SLF4JLogLevel.WARN )
 
             .listener( listener )
             .proxyResultSet();
 
-        boolean elapsedTimeLogging = dhisConfig.isEnabled( ConfigurationKey.ELAPSED_TIME_QUERY_LOGGING_ENABLED );
-        boolean methodLoggingEnabled = dhisConfig.isEnabled( ConfigurationKey.METHOD_QUERY_LOGGING_ENABLED );
+        boolean elapsedTimeLogging = dhisConfig.isEnabled(
+            ConfigurationKey.ELAPSED_TIME_QUERY_LOGGING_ENABLED );
+        boolean methodLoggingEnabled = dhisConfig.isEnabled(
+            ConfigurationKey.METHOD_QUERY_LOGGING_ENABLED );
 
         if ( methodLoggingEnabled )
         {
@@ -184,7 +188,8 @@ public class DataSourceConfig
         if ( elapsedTimeLogging )
         {
             b.afterQuery(
-                ( execInfo, queryInfoList ) -> log.info( "Query took " + execInfo.getElapsedTime() + "msec" ) );
+                ( execInfo, queryInfoList ) -> log.info( "Query took " +
+                    execInfo.getElapsedTime() + "msec" ) );
         }
 
         return b.build();
@@ -192,10 +197,36 @@ public class DataSourceConfig
 
     private static void executeAfterMethod( MethodExecutionContext executionContext )
     {
-        Method method = executionContext.getMethod();
-        Class<?> targetClass = executionContext.getTarget().getClass();
+        Thread thread = Thread.currentThread();
+        StackTraceElement[] stackTrace = thread.getStackTrace();
 
-        log.info( "JDBC: " + targetClass.getSimpleName() + "#" + method.getName() );
+        for ( int i = 0; i < stackTrace.length; i++ )
+        {
+            StackTraceElement stackTraceElement = stackTrace[i];
+            String methodName = stackTraceElement.getMethodName();
+            String className = stackTraceElement.getClassName();
+            int pos = className.lastIndexOf( '.' );
+            String packageName = className.substring( 0, pos );
+
+            if ( className.contains( "org.hisp.dhis.cacheinvalidation.KnownTransactionsService" ) || methodName.equals(
+                "getSingleResult" ) || methodName.equals( "doFilterInternal" ) )
+            {
+                break;
+            }
+
+            if ( packageName.startsWith( "org.hisp.dhis" ) && !methodName.equals( "executeAfterMethod" ) )
+            {
+                StackTraceElement nextElement = stackTrace[i - 1];
+                String methodName1 = nextElement.getMethodName();
+                String className1 = nextElement.getClassName();
+
+                log.info(
+                    "---- JDBC: " + className + "#" + methodName + " ---- \n ----" + className1 + "#" + methodName1 );
+                break;
+            }
+
+        }
+
     }
 
     private static class PrettyQueryEntryCreator extends DefaultQueryLogEntryCreator
@@ -209,7 +240,7 @@ public class DataSourceConfig
             try
             {
                 Objects.requireNonNull( query );
-                return this.formatter.format( query );
+                return this.formatter.format( query ) + "\n";
             }
             catch ( Exception e )
             {

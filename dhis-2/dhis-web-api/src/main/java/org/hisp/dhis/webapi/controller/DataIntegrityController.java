@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
@@ -46,9 +47,9 @@ import org.hisp.dhis.dataintegrity.DataIntegritySummary;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.scheduling.parameters.DataIntegrityJobParameters;
+import org.hisp.dhis.scheduling.parameters.DataIntegrityJobParameters.DataIntegrityReportType;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -81,9 +82,19 @@ public class DataIntegrityController
         @RequestParam( required = false ) List<String> checks,
         @CurrentUser User currentUser )
     {
+        return runDataIntegrityAsync( checks, currentUser, "runDataIntegrity", DataIntegrityReportType.REPORT )
+            .setLocation( "/dataIntegrity/details?checks=" + toChecksList( checks ) );
+    }
+
+    private WebMessage runDataIntegrityAsync( Collection<String> checks,
+        User currentUser,
+        String description,
+        DataIntegrityReportType type )
+    {
         DataIntegrityJobParameters params = new DataIntegrityJobParameters();
         params.setChecks( toUniformCheckNames( checks ) );
-        JobConfiguration config = new JobConfiguration( "runDataIntegrity", JobType.DATA_INTEGRITY, null,
+        params.setType( type );
+        JobConfiguration config = new JobConfiguration( description, JobType.DATA_INTEGRITY, null,
             params, true, true );
         config.setUserUid( currentUser.getUid() );
         config.setAutoFields();
@@ -97,45 +108,77 @@ public class DataIntegrityController
 
     @GetMapping
     @ResponseBody
-    public Collection<DataIntegrityCheck> getAvailableChecks()
+    public Collection<DataIntegrityCheck> getAvailableChecks(
+        @RequestParam( required = false ) Set<String> checks,
+        @RequestParam( required = false ) String section )
     {
-        return dataIntegrityService.getDataIntegrityChecks();
+        Collection<DataIntegrityCheck> matches = dataIntegrityService
+            .getDataIntegrityChecks( toUniformCheckNames( checks ) );
+        return section == null || section.isBlank()
+            ? matches
+            : matches.stream().filter( check -> section.equals( check.getSection() ) ).collect( toList() );
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     @GetMapping( "/summary" )
     @ResponseBody
-    public Map<String, DataIntegritySummary> runAndGetSummaries(
-        @RequestParam( required = false ) Set<String> checks )
+    public Map<String, DataIntegritySummary> getSummaries(
+        @RequestParam( required = false ) Set<String> checks,
+        @RequestParam( required = false, defaultValue = "0" ) long timeout )
     {
-        return dataIntegrityService.getSummaries( toUniformCheckNames( checks ), NoopJobProgress.INSTANCE );
+        return dataIntegrityService.getSummaries( toUniformCheckNames( checks ), timeout );
+    }
+
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
+    @PostMapping( "/summary" )
+    @ResponseBody
+    public WebMessage runSummariesCheck(
+        @RequestParam( required = false ) Set<String> checks,
+        @CurrentUser User currentUser )
+    {
+        return runDataIntegrityAsync( checks, currentUser, "runSummariesCheck", DataIntegrityReportType.SUMMARY )
+            .setLocation( "/dataIntegrity/summary?checks=" + toChecksList( checks ) );
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     @GetMapping( "/details" )
     @ResponseBody
-    public Map<String, DataIntegrityDetails> runAndGetDetails(
-        @RequestParam( required = false ) Set<String> checks )
+    public Map<String, DataIntegrityDetails> getDetails(
+        @RequestParam( required = false ) Set<String> checks,
+        @RequestParam( required = false, defaultValue = "0" ) long timeout )
     {
-        return dataIntegrityService.getDetails( toUniformCheckNames( checks ), NoopJobProgress.INSTANCE );
+        return dataIntegrityService.getDetails( toUniformCheckNames( checks ), timeout );
+    }
+
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
+    @PostMapping( "/details" )
+    @ResponseBody
+    public WebMessage runDetailsCheck(
+        @RequestParam( required = false ) Set<String> checks,
+        @CurrentUser User currentUser )
+    {
+        return runDataIntegrityAsync( checks, currentUser, "runDetailsCheck", DataIntegrityReportType.DETAILS )
+            .setLocation( "/dataIntegrity/details?checks=" + toChecksList( checks ) );
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     @GetMapping( "/{check}/summary" )
     @ResponseBody
-    public DataIntegritySummary runAndGetSummary( @PathVariable String check )
+    public DataIntegritySummary getSummary( @PathVariable String check,
+        @RequestParam( required = false, defaultValue = "0" ) long timeout )
     {
         Set<String> checks = toUniformCheckNames( Set.of( check ) );
-        return dataIntegrityService.getSummaries( checks, NoopJobProgress.INSTANCE ).get( checks.iterator().next() );
+        return dataIntegrityService.getSummaries( checks, timeout ).get( checks.iterator().next() );
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     @GetMapping( "/{check}/details" )
     @ResponseBody
-    public DataIntegrityDetails runAndGetDetails( @PathVariable String check )
+    public DataIntegrityDetails getDetails( @PathVariable String check,
+        @RequestParam( required = false, defaultValue = "0" ) long timeout )
     {
         Set<String> checks = toUniformCheckNames( Set.of( check ) );
-        return dataIntegrityService.getDetails( checks, NoopJobProgress.INSTANCE ).get( checks.iterator().next() );
+        return dataIntegrityService.getDetails( checks, timeout ).get( checks.iterator().next() );
     }
 
     /**
@@ -148,4 +191,8 @@ public class DataIntegrityController
             : checks.stream().map( check -> check.replace( '-', '_' ) ).collect( toUnmodifiableSet() );
     }
 
+    private String toChecksList( Collection<String> checks )
+    {
+        return checks == null || checks.isEmpty() ? "" : String.join( ",", checks );
+    }
 }

@@ -56,14 +56,14 @@ public class DefaultEventStore
     implements
     EventStore
 {
-    private final static String GET_EVENTS_SQL = EventQuery.getQuery();
+    private static final String GET_EVENTS_SQL = EventQuery.getQuery();
 
-    private final static String GET_DATAVALUES_SQL = "select psi.uid as key, " +
+    private static final String GET_DATAVALUES_SQL = "select psi.uid as key, " +
         "psi.eventdatavalues " +
         "from programstageinstance psi " +
         "where psi.programstageinstanceid in (:ids)";
 
-    private final static String GET_NOTES_SQL = "select pi.uid as key, tec.uid, tec.commenttext, " +
+    private static final String GET_NOTES_SQL = "select pi.uid as key, tec.uid, tec.commenttext, " +
         "tec.creator, tec.created " +
         "from trackedentitycomment tec " +
         "join programstageinstancecomments psic " +
@@ -71,13 +71,15 @@ public class DefaultEventStore
         "join programinstance pi on psic.programstageinstanceid = pi.programinstanceid " +
         "where psic.programstageinstanceid in (:ids)";
 
-    private final static String ACL_FILTER_SQL = "CASE WHEN p.type = 'WITH_REGISTRATION' THEN " +
+    private static final String ACL_FILTER_SQL = "CASE WHEN p.type = 'WITH_REGISTRATION' THEN " +
         "p.trackedentitytypeid in (:trackedEntityTypeIds) else true END " +
         "AND psi.programstageid in (:programStageIds) AND pi.programid IN (:programIds)";
 
-    private final static String ACL_FILTER_SQL_NO_PROGRAM_STAGE = "CASE WHEN p.type = 'WITH_REGISTRATION' THEN " +
+    private static final String ACL_FILTER_SQL_NO_PROGRAM_STAGE = "CASE WHEN p.type = 'WITH_REGISTRATION' THEN " +
         "p.trackedentitytypeid in (:trackedEntityTypeIds) else true END " +
         "AND pi.programid IN (:programIds)";
+
+    private static final String FILTER_OUT_DELETED_EVENTS = "psi.deleted=false";
 
     public DefaultEventStore( JdbcTemplate jdbcTemplate )
     {
@@ -112,7 +114,8 @@ public class DefaultEventStore
 
         if ( programStages.isEmpty() )
         {
-            jdbcTemplate.query( withAclCheck( GET_EVENTS_SQL, ctx, ACL_FILTER_SQL_NO_PROGRAM_STAGE ),
+            jdbcTemplate.query(
+                getQuery( GET_EVENTS_SQL, ctx, ACL_FILTER_SQL_NO_PROGRAM_STAGE, FILTER_OUT_DELETED_EVENTS ),
                 createIdsParam( enrollmentsId )
                     .addValue( "trackedEntityTypeIds", ctx.getTrackedEntityTypes() )
                     .addValue( "programStageIds", programStages )
@@ -121,7 +124,7 @@ public class DefaultEventStore
         }
         else
         {
-            jdbcTemplate.query( withAclCheck( GET_EVENTS_SQL, ctx, ACL_FILTER_SQL ),
+            jdbcTemplate.query( getQuery( GET_EVENTS_SQL, ctx, ACL_FILTER_SQL, FILTER_OUT_DELETED_EVENTS ),
                 createIdsParam( enrollmentsId )
                     .addValue( "trackedEntityTypeIds", ctx.getTrackedEntityTypes() )
                     .addValue( "programStageIds", programStages )

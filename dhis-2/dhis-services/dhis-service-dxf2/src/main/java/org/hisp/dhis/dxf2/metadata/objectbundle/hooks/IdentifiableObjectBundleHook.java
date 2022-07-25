@@ -122,6 +122,8 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
             }
 
             attributeValue.setAttribute( attribute );
+
+            attributeValue.setValue( attributeValue.getValue().replaceAll( "\\s{2,}", StringUtils.SPACE ) );
         }
     }
 

@@ -1,0 +1,1972 @@
+{
+  "system": {
+    "rev": "1e9ad0f",
+    "version": "2.32-SNAPSHOT",
+    "date": "2019-01-28T11:34:56.545"
+  },
+  "users": [
+    {
+      "code": "admin",
+      "lastUpdated": "2019-01-28T11:04:32.097",
+      "id": "M5zQapPyTZI",
+      "created": "2019-01-28T11:03:39.373",
+      "surname": "admin",
+      "firstName": "admin",
+      "name": "admin admin",
+      "lastLogin": "2019-01-28T11:34:56.529",
+      "displayName": "admin admin",
+      "externalAuth": false,
+      "externalAccess": false,
+      "disabled": false,
+      "twoFA": false,
+      "passwordLastUpdated": "2019-01-28T11:04:32.052",
+      "invitation": false,
+      "selfRegistered": false,
+      "favorite": false,
+      "username": "admin",
+      "access": {
+        "read": true,
+        "update": true,
+        "externalize": true,
+        "delete": true,
+        "write": true,
+        "manage": true
+      },
+      "favorites": [],
+      "cogsDimensionConstraints": [],
+      "catDimensionConstraints": [],
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userRoles": [
+        {
+          "id": "yrB6vc5Ip3r"
+        }
+      ],
+      "userAccesses": [],
+      "teiSearchOrganisationUnits": [],
+      "organisationUnits": [
+        {
+          "id": "PlKwabX2xRW"
+        }
+      ],
+      "dataViewOrganisationUnits": [
+        {
+          "id": "PlKwabX2xRW"
+        }
+      ],
+      "attributeValues": []
+    }
+  ],
+  "trackedEntityTypes": [
+    {
+      "created": "2020-02-10T09:09:22.093",
+      "lastUpdated": "2020-02-10T09:56:30.292",
+      "name": "Person",
+      "id": "nEenWmSyUEp",
+      "publicAccess": "rwrw----",
+      "maxTeiCountToReturn": 0,
+      "allowAuditLog": true,
+      "featureType": "NONE",
+      "minAttributesRequiredToSearch": 1,
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "style": {},
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "trackedEntityTypeAttributes": [],
+      "translations": [],
+      "userAccesses": []
+    }
+  ],
+  "organisationUnits": [
+    {
+      "created": "2019-01-28T11:04:13.489",
+      "lastUpdated": "2019-01-28T11:04:13.592",
+      "name": "Country",
+      "id": "PlKwabX2xRW",
+      "shortName": "Country",
+      "path": "/PlKwabX2xRW",
+      "featureType": "NONE",
+      "openingDate": "2019-01-28T00:00:00.000",
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "attributeValues": [],
+      "translations": []
+    }
+  ],
+  "programStages": [
+    {
+      "lastUpdated": "2019-01-28T11:23:20.850",
+      "id": "NpsdDv6kKSO",
+      "created": "2019-01-28T11:23:20.850",
+      "name": "ProgramA",
+      "allowGenerateNextVisit": false,
+      "preGenerateUID": false,
+      "publicAccess": "rw------",
+      "openAfterEnrollment": false,
+      "repeatable": false,
+      "remindCompleted": false,
+      "displayGenerateEventBox": true,
+      "generatedByEnrollmentDate": false,
+      "validationStrategy": "ON_COMPLETE",
+      "autoGenerateEvent": true,
+      "hideDueDate": false,
+      "blockEntryForm": false,
+      "minDaysFromStart": 0,
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "program": {
+        "id": "BFcipDERJne"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "notificationTemplates": [],
+      "programStageDataElements": [
+        {
+          "lastUpdated": "2019-01-28T11:23:20.855",
+          "id": "RdF6LNrfp8u",
+          "created": "2019-01-28T11:23:20.855",
+          "displayInReports": false,
+          "skipSynchronization": false,
+          "externalAccess": false,
+          "renderOptionsAsRadio": false,
+          "allowFutureDate": false,
+          "compulsory": false,
+          "allowProvidedElsewhere": false,
+          "sortOrder": 1,
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "programStage": {
+            "id": "NpsdDv6kKSO"
+          },
+          "dataElement": {
+            "id": "DSKTW8qFP0z"
+          },
+          "favorites": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
+        },
+        {
+          "lastUpdated": "2019-01-28T11:23:20.854",
+          "id": "MPf0QjbPRkg",
+          "created": "2019-01-28T11:23:20.854",
+          "displayInReports": false,
+          "skipSynchronization": false,
+          "externalAccess": false,
+          "renderOptionsAsRadio": false,
+          "allowFutureDate": false,
+          "compulsory": false,
+          "allowProvidedElsewhere": false,
+          "sortOrder": 2,
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "programStage": {
+            "id": "NpsdDv6kKSO"
+          },
+          "dataElement": {
+            "id": "IwQPSXgrAFb"
+          },
+          "favorites": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
+        },
+        {
+          "lastUpdated": "2019-01-28T11:23:20.853",
+          "id": "WZBLLAhtuOg",
+          "created": "2019-01-28T11:23:20.853",
+          "displayInReports": false,
+          "skipSynchronization": false,
+          "externalAccess": false,
+          "renderOptionsAsRadio": false,
+          "allowFutureDate": false,
+          "compulsory": false,
+          "allowProvidedElsewhere": false,
+          "sortOrder": 3,
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "programStage": {
+            "id": "NpsdDv6kKSO"
+          },
+          "dataElement": {
+            "id": "VD2olWcRozZ"
+          },
+          "favorites": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
+        },
+        {
+          "lastUpdated": "2019-01-28T11:23:20.852",
+          "id": "fMD9HVc2jy0",
+          "created": "2019-01-28T11:23:20.852",
+          "displayInReports": false,
+          "skipSynchronization": false,
+          "externalAccess": false,
+          "renderOptionsAsRadio": false,
+          "allowFutureDate": false,
+          "compulsory": false,
+          "allowProvidedElsewhere": false,
+          "sortOrder": 4,
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "programStage": {
+            "id": "NpsdDv6kKSO"
+          },
+          "dataElement": {
+            "id": "WS3e6pInnuA"
+          },
+          "favorites": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
+        },
+        {
+          "lastUpdated": "2019-01-28T11:23:20.851",
+          "id": "YadpyRl6rCY",
+          "created": "2019-01-28T11:23:20.851",
+          "displayInReports": false,
+          "skipSynchronization": false,
+          "externalAccess": false,
+          "renderOptionsAsRadio": false,
+          "allowFutureDate": false,
+          "compulsory": false,
+          "allowProvidedElsewhere": false,
+          "sortOrder": 5,
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "programStage": {
+            "id": "NpsdDv6kKSO"
+          },
+          "dataElement": {
+            "id": "h7hXjNVMiRl"
+          },
+          "favorites": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
+        },
+        {
+          "lastUpdated": "2019-01-28T11:23:20.853",
+          "id": "dG8ptcmit3x",
+          "created": "2019-01-28T11:23:20.853",
+          "displayInReports": false,
+          "skipSynchronization": false,
+          "externalAccess": false,
+          "renderOptionsAsRadio": false,
+          "allowFutureDate": false,
+          "compulsory": false,
+          "allowProvidedElsewhere": false,
+          "sortOrder": 6,
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "programStage": {
+            "id": "NpsdDv6kKSO"
+          },
+          "dataElement": {
+            "id": "B02nObyoBBn"
+          },
+          "favorites": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
+        },
+        {
+          "lastUpdated": "2019-01-28T11:23:20.851",
+          "id": "EfAFy36DGFn",
+          "created": "2019-01-28T11:23:20.851",
+          "displayInReports": false,
+          "skipSynchronization": false,
+          "externalAccess": false,
+          "renderOptionsAsRadio": false,
+          "allowFutureDate": false,
+          "compulsory": false,
+          "allowProvidedElsewhere": false,
+          "sortOrder": 7,
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "programStage": {
+            "id": "NpsdDv6kKSO"
+          },
+          "dataElement": {
+            "id": "BfpVvdUBAmT"
+          },
+          "favorites": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
+        },
+        {
+          "lastUpdated": "2019-01-28T11:23:20.854",
+          "id": "HtHFncwxkaR",
+          "created": "2019-01-28T11:23:20.854",
+          "displayInReports": false,
+          "skipSynchronization": false,
+          "externalAccess": false,
+          "renderOptionsAsRadio": false,
+          "allowFutureDate": false,
+          "compulsory": false,
+          "allowProvidedElsewhere": false,
+          "sortOrder": 8,
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "programStage": {
+            "id": "NpsdDv6kKSO"
+          },
+          "dataElement": {
+            "id": "KCLriKKezWO"
+          },
+          "favorites": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
+        },
+        {
+          "lastUpdated": "2019-01-28T11:23:20.853",
+          "id": "h8OfB8W7usu",
+          "created": "2019-01-28T11:23:20.853",
+          "displayInReports": false,
+          "skipSynchronization": false,
+          "externalAccess": false,
+          "renderOptionsAsRadio": false,
+          "allowFutureDate": false,
+          "compulsory": false,
+          "allowProvidedElsewhere": false,
+          "sortOrder": 9,
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "programStage": {
+            "id": "NpsdDv6kKSO"
+          },
+          "dataElement": {
+            "id": "dZ5h3pGJaIM"
+          },
+          "favorites": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
+        },
+        {
+          "lastUpdated": "2019-01-28T11:23:20.852",
+          "id": "HK9zFHkLCbG",
+          "created": "2019-01-28T11:23:20.852",
+          "displayInReports": false,
+          "skipSynchronization": false,
+          "externalAccess": false,
+          "renderOptionsAsRadio": false,
+          "allowFutureDate": false,
+          "compulsory": false,
+          "allowProvidedElsewhere": false,
+          "sortOrder": 10,
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "programStage": {
+            "id": "NpsdDv6kKSO"
+          },
+          "dataElement": {
+            "id": "A8qxpcalLtf"
+          },
+          "favorites": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
+        },
+        {
+          "lastUpdated": "2019-01-28T11:23:20.852",
+          "id": "q7TARxdJZ8c",
+          "created": "2019-01-28T11:23:20.852",
+          "displayInReports": false,
+          "skipSynchronization": false,
+          "externalAccess": false,
+          "renderOptionsAsRadio": false,
+          "allowFutureDate": false,
+          "compulsory": false,
+          "allowProvidedElsewhere": false,
+          "sortOrder": 11,
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "programStage": {
+            "id": "NpsdDv6kKSO"
+          },
+          "dataElement": {
+            "id": "zal5vkVEpV0"
+          },
+          "favorites": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
+        },
+        {
+          "lastUpdated": "2019-01-28T11:23:20.852",
+          "id": "ROvWwbZcAkk",
+          "created": "2019-01-28T11:23:20.852",
+          "displayInReports": false,
+          "skipSynchronization": false,
+          "externalAccess": false,
+          "renderOptionsAsRadio": false,
+          "allowFutureDate": false,
+          "compulsory": false,
+          "allowProvidedElsewhere": false,
+          "sortOrder": 12,
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "programStage": {
+            "id": "NpsdDv6kKSO"
+          },
+          "dataElement": {
+            "id": "kAfSfT69m0E"
+          },
+          "favorites": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
+        },
+        {
+          "lastUpdated": "2019-01-28T11:23:20.851",
+          "id": "p2ZqtMqQa1Y",
+          "created": "2019-01-28T11:23:20.851",
+          "displayInReports": false,
+          "skipSynchronization": false,
+          "externalAccess": false,
+          "renderOptionsAsRadio": false,
+          "allowFutureDate": false,
+          "compulsory": false,
+          "allowProvidedElsewhere": false,
+          "sortOrder": 13,
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "programStage": {
+            "id": "NpsdDv6kKSO"
+          },
+          "dataElement": {
+            "id": "wIUShyK7lIa"
+          },
+          "favorites": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
+        },
+        {
+          "lastUpdated": "2019-01-28T11:23:20.850",
+          "id": "s181Ho0f6xK",
+          "created": "2019-01-28T11:23:20.850",
+          "displayInReports": false,
+          "skipSynchronization": false,
+          "externalAccess": false,
+          "renderOptionsAsRadio": false,
+          "allowFutureDate": false,
+          "compulsory": false,
+          "allowProvidedElsewhere": false,
+          "sortOrder": 14,
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "programStage": {
+            "id": "NpsdDv6kKSO"
+          },
+          "dataElement": {
+            "id": "ICfA0klVxkd"
+          },
+          "favorites": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
+        },
+        {
+          "lastUpdated": "2019-01-28T11:23:20.854",
+          "id": "yNH2Oqw7LRH",
+          "created": "2019-01-28T11:23:20.854",
+          "displayInReports": false,
+          "skipSynchronization": false,
+          "externalAccess": false,
+          "renderOptionsAsRadio": false,
+          "allowFutureDate": false,
+          "compulsory": false,
+          "allowProvidedElsewhere": false,
+          "sortOrder": 15,
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "programStage": {
+            "id": "NpsdDv6kKSO"
+          },
+          "dataElement": {
+            "id": "xaPkxL28aPx"
+          },
+          "favorites": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
+        },
+        {
+          "lastUpdated": "2019-01-28T11:23:20.853",
+          "id": "QwgS2SpaTYv",
+          "created": "2019-01-28T11:23:20.853",
+          "displayInReports": false,
+          "skipSynchronization": false,
+          "externalAccess": false,
+          "renderOptionsAsRadio": false,
+          "allowFutureDate": false,
+          "compulsory": false,
+          "allowProvidedElsewhere": false,
+          "sortOrder": 16,
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "programStage": {
+            "id": "NpsdDv6kKSO"
+          },
+          "dataElement": {
+            "id": "Kvm949EFjjv"
+          },
+          "favorites": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
+        },
+        {
+          "lastUpdated": "2019-01-28T11:23:20.855",
+          "id": "I8TuUtpNWcS",
+          "created": "2019-01-28T11:23:20.855",
+          "displayInReports": false,
+          "skipSynchronization": false,
+          "externalAccess": false,
+          "renderOptionsAsRadio": false,
+          "allowFutureDate": false,
+          "compulsory": false,
+          "allowProvidedElsewhere": false,
+          "sortOrder": 17,
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "programStage": {
+            "id": "NpsdDv6kKSO"
+          },
+          "dataElement": {
+            "id": "xaQ4gqDYGL9"
+          },
+          "favorites": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
+        },
+        {
+          "lastUpdated": "2019-01-28T11:23:20.854",
+          "id": "iT30nQalWDK",
+          "created": "2019-01-28T11:23:20.854",
+          "displayInReports": false,
+          "skipSynchronization": false,
+          "externalAccess": false,
+          "renderOptionsAsRadio": false,
+          "allowFutureDate": false,
+          "compulsory": false,
+          "allowProvidedElsewhere": false,
+          "sortOrder": 18,
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "programStage": {
+            "id": "NpsdDv6kKSO"
+          },
+          "dataElement": {
+            "id": "MqGMwzt7M7w"
+          },
+          "favorites": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
+        },
+        {
+          "lastUpdated": "2019-01-28T11:23:20.850",
+          "id": "SFEcH91v8Jk",
+          "created": "2019-01-28T11:23:20.850",
+          "displayInReports": false,
+          "skipSynchronization": false,
+          "externalAccess": false,
+          "renderOptionsAsRadio": false,
+          "allowFutureDate": false,
+          "compulsory": false,
+          "allowProvidedElsewhere": false,
+          "sortOrder": 19,
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "programStage": {
+            "id": "NpsdDv6kKSO"
+          },
+          "dataElement": {
+            "id": "WdTLfnn4S1I"
+          },
+          "favorites": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
+        },
+        {
+          "lastUpdated": "2019-01-28T11:23:20.853",
+          "id": "elrpmODPeIz",
+          "created": "2019-01-28T11:23:20.853",
+          "displayInReports": false,
+          "skipSynchronization": false,
+          "externalAccess": false,
+          "renderOptionsAsRadio": false,
+          "allowFutureDate": false,
+          "compulsory": false,
+          "allowProvidedElsewhere": false,
+          "sortOrder": 20,
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "programStage": {
+            "id": "NpsdDv6kKSO"
+          },
+          "dataElement": {
+            "id": "IrEJvSSO2wL"
+          },
+          "favorites": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
+        },
+        {
+          "lastUpdated": "2019-01-28T11:23:20.854",
+          "id": "PuSutCsvpZQ",
+          "created": "2019-01-28T11:23:20.854",
+          "displayInReports": false,
+          "skipSynchronization": false,
+          "externalAccess": false,
+          "renderOptionsAsRadio": false,
+          "allowFutureDate": false,
+          "compulsory": false,
+          "allowProvidedElsewhere": false,
+          "sortOrder": 21,
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "programStage": {
+            "id": "NpsdDv6kKSO"
+          },
+          "dataElement": {
+            "id": "yA28JQPotGS"
+          },
+          "favorites": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
+        },
+        {
+          "lastUpdated": "2019-01-28T11:23:20.854",
+          "id": "aOqDjCfmlEU",
+          "created": "2019-01-28T11:23:20.854",
+          "displayInReports": false,
+          "skipSynchronization": false,
+          "externalAccess": false,
+          "renderOptionsAsRadio": false,
+          "allowFutureDate": false,
+          "compulsory": false,
+          "allowProvidedElsewhere": false,
+          "sortOrder": 22,
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "programStage": {
+            "id": "NpsdDv6kKSO"
+          },
+          "dataElement": {
+            "id": "hxUvZqnmBDv"
+          },
+          "favorites": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
+        },
+        {
+          "lastUpdated": "2019-01-28T11:23:20.851",
+          "id": "f1sbsjUg7FK",
+          "created": "2019-01-28T11:23:20.851",
+          "displayInReports": false,
+          "skipSynchronization": false,
+          "externalAccess": false,
+          "renderOptionsAsRadio": false,
+          "allowFutureDate": false,
+          "compulsory": false,
+          "allowProvidedElsewhere": false,
+          "sortOrder": 23,
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "programStage": {
+            "id": "NpsdDv6kKSO"
+          },
+          "dataElement": {
+            "id": "JXF90RhgNiI"
+          },
+          "favorites": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
+        },
+        {
+          "lastUpdated": "2019-01-28T11:23:20.852",
+          "id": "qJhPz1McJ1B",
+          "created": "2019-01-28T11:23:20.852",
+          "displayInReports": false,
+          "skipSynchronization": false,
+          "externalAccess": false,
+          "renderOptionsAsRadio": false,
+          "allowFutureDate": false,
+          "compulsory": false,
+          "allowProvidedElsewhere": false,
+          "sortOrder": 24,
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "programStage": {
+            "id": "NpsdDv6kKSO"
+          },
+          "dataElement": {
+            "id": "gfEoDU4GtXK"
+          },
+          "favorites": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
+        },
+        {
+          "lastUpdated": "2019-01-28T11:23:20.853",
+          "id": "pfHPdnIeCTL",
+          "created": "2019-01-28T11:23:20.853",
+          "displayInReports": false,
+          "skipSynchronization": false,
+          "externalAccess": false,
+          "renderOptionsAsRadio": false,
+          "allowFutureDate": false,
+          "compulsory": false,
+          "allowProvidedElsewhere": false,
+          "sortOrder": 25,
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "programStage": {
+            "id": "NpsdDv6kKSO"
+          },
+          "dataElement": {
+            "id": "qw67QlOlzdp"
+          },
+          "favorites": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
+        }
+      ],
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "programStageSections": []
+    },
+    {
+      "lastUpdated": "2019-01-28T11:23:20.850",
+      "id": "NpsdDv6kKSf",
+      "created": "2019-01-28T11:23:20.850",
+      "name": "ProgramStageB",
+      "allowGenerateNextVisit": false,
+      "preGenerateUID": false,
+      "publicAccess": "rw------",
+      "openAfterEnrollment": false,
+      "repeatable": true,
+      "remindCompleted": false,
+      "displayGenerateEventBox": true,
+      "generatedByEnrollmentDate": false,
+      "validationStrategy": "ON_COMPLETE",
+      "autoGenerateEvent": true,
+      "hideDueDate": false,
+      "blockEntryForm": false,
+      "minDaysFromStart": 0,
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "program": {
+        "id": "BFcipDERJwr"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "notificationTemplates": [],
+      "programStageDataElements":[],
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "programStageSections": []
+    }
+  ],
+  "categoryCombos": [
+    {
+      "code": "default",
+      "created": "2019-01-28T11:01:30.765",
+      "lastUpdated": "2019-01-28T11:01:30.777",
+      "name": "default",
+      "id": "bjDvmb4bfuf",
+      "dataDimensionType": "DISAGGREGATION",
+      "publicAccess": "rw------",
+      "skipTotal": false,
+      "userGroupAccesses": [],
+      "translations": [],
+      "userAccesses": [],
+      "categories": [
+        {
+          "id": "GLevLNI9wkl"
+        }
+      ]
+    }
+  ],
+  "programs": [
+    {
+      "lastUpdated": "2019-01-28T11:23:20.906",
+      "id": "BFcipDERJne",
+      "created": "2019-01-28T11:23:20.906",
+      "name": "ProgramA",
+      "shortName": "ProgramA",
+      "publicAccess": "rw------",
+      "completeEventsExpiryDays": 0,
+      "ignoreOverdueEvents": false,
+      "skipOffline": false,
+      "minAttributesRequiredToSearch": 1,
+      "displayFrontPageList": false,
+      "onlyEnrollOnce": false,
+      "programType": "WITHOUT_REGISTRATION",
+      "accessLevel": "OPEN",
+      "version": 0,
+      "maxTeiCountToReturn": 0,
+      "selectIncidentDatesInFuture": false,
+      "displayIncidentDate": true,
+      "selectEnrollmentDatesInFuture": false,
+      "expiryDays": 0,
+      "useFirstStageDuringRegistration": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "programTrackedEntityAttributes": [],
+      "notificationTemplates": [],
+      "translations": [],
+      "organisationUnits": [
+        {
+          "id": "PlKwabX2xRW"
+        }
+      ],
+      "userGroupAccesses": [],
+      "programSections": [],
+      "attributeValues": [],
+      "programStages": [
+        {
+          "id": "NpsdDv6kKSO"
+        }
+      ],
+      "userAccesses": []
+    },
+    {
+      "lastUpdated": "2019-01-28T11:23:20.906",
+      "id": "BFcipDERJwr",
+      "created": "2019-01-28T11:23:20.906",
+      "name": "ProgramA",
+      "shortName": "ProgramA",
+      "publicAccess": "rw------",
+      "completeEventsExpiryDays": 0,
+      "ignoreOverdueEvents": false,
+      "skipOffline": false,
+      "minAttributesRequiredToSearch": 1,
+      "displayFrontPageList": false,
+      "onlyEnrollOnce": false,
+      "programType": "WITH_REGISTRATION",
+      "accessLevel": "OPEN",
+      "version": 0,
+      "maxTeiCountToReturn": 0,
+      "selectIncidentDatesInFuture": false,
+      "displayIncidentDate": true,
+      "selectEnrollmentDatesInFuture": false,
+      "expiryDays": 0,
+      "useFirstStageDuringRegistration": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "trackedEntityType": {
+        "id": "nEenWmSyUEp"
+      },
+      "programTrackedEntityAttributes": [],
+      "notificationTemplates": [],
+      "translations": [],
+      "organisationUnits": [
+        {
+          "id": "PlKwabX2xRW"
+        }
+      ],
+      "userGroupAccesses": [],
+      "programSections": [],
+      "attributeValues": [],
+      "programStages": [
+        {
+          "id": "NpsdDv6kKSf"
+        }
+      ],
+      "userAccesses": []
+    }
+  ],
+  "dataElements": [
+    {
+      "lastUpdated": "2019-01-28T11:18:43.608",
+      "id": "DSKTW8qFP0z",
+      "created": "2019-01-28T11:18:43.608",
+      "name": "DE Age",
+      "shortName": "DE Age",
+      "aggregationType": "NONE",
+      "domainType": "TRACKER",
+      "publicAccess": "rw------",
+      "valueType": "AGE",
+      "zeroIsSignificant": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": [],
+      "aggregationLevels": []
+    },
+    {
+      "lastUpdated": "2019-01-28T11:18:06.707",
+      "id": "IwQPSXgrAFb",
+      "created": "2019-01-28T11:18:06.707",
+      "name": "DE Coordinate",
+      "shortName": "DE Coordinate",
+      "aggregationType": "NONE",
+      "domainType": "TRACKER",
+      "publicAccess": "rw------",
+      "valueType": "COORDINATE",
+      "zeroIsSignificant": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": [],
+      "aggregationLevels": []
+    },
+    {
+      "lastUpdated": "2019-01-28T11:13:55.384",
+      "id": "VD2olWcRozZ",
+      "created": "2019-01-28T11:13:55.384",
+      "name": "DE Date",
+      "shortName": "DE Date",
+      "aggregationType": "NONE",
+      "domainType": "TRACKER",
+      "publicAccess": "rw------",
+      "valueType": "DATE",
+      "zeroIsSignificant": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": [],
+      "aggregationLevels": []
+    },
+    {
+      "lastUpdated": "2019-01-28T11:14:08.334",
+      "id": "WS3e6pInnuA",
+      "created": "2019-01-28T11:14:08.334",
+      "name": "DE DateTime",
+      "shortName": "DE DateTime",
+      "aggregationType": "NONE",
+      "domainType": "TRACKER",
+      "publicAccess": "rw------",
+      "valueType": "DATETIME",
+      "zeroIsSignificant": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": [],
+      "aggregationLevels": []
+    },
+    {
+      "lastUpdated": "2019-01-28T11:13:13.209",
+      "id": "h7hXjNVMiRl",
+      "created": "2019-01-28T11:13:13.209",
+      "name": "DE Email",
+      "shortName": "DE Email",
+      "aggregationType": "NONE",
+      "domainType": "TRACKER",
+      "publicAccess": "rw------",
+      "valueType": "EMAIL",
+      "zeroIsSignificant": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": [],
+      "aggregationLevels": []
+    },
+    {
+      "lastUpdated": "2019-01-28T11:19:57.497",
+      "id": "B02nObyoBBn",
+      "created": "2019-01-28T11:19:57.497",
+      "name": "DE File",
+      "shortName": "DE File",
+      "aggregationType": "NONE",
+      "domainType": "TRACKER",
+      "publicAccess": "rw------",
+      "valueType": "FILE_RESOURCE",
+      "zeroIsSignificant": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": [],
+      "aggregationLevels": []
+    },
+    {
+      "lastUpdated": "2019-01-28T11:20:11.051",
+      "id": "BfpVvdUBAmT",
+      "created": "2019-01-28T11:20:11.051",
+      "name": "DE Image",
+      "shortName": "DE Image",
+      "aggregationType": "NONE",
+      "domainType": "TRACKER",
+      "publicAccess": "rw------",
+      "valueType": "IMAGE",
+      "zeroIsSignificant": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": [],
+      "aggregationLevels": []
+    },
+    {
+      "lastUpdated": "2019-01-28T11:16:05.916",
+      "id": "KCLriKKezWO",
+      "created": "2019-01-28T11:16:05.916",
+      "name": "DE Integer",
+      "shortName": "DE Integer",
+      "aggregationType": "NONE",
+      "domainType": "TRACKER",
+      "publicAccess": "rw------",
+      "valueType": "INTEGER",
+      "zeroIsSignificant": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": [],
+      "aggregationLevels": []
+    },
+    {
+      "lastUpdated": "2019-01-28T11:12:43.931",
+      "id": "dZ5h3pGJaIM",
+      "created": "2019-01-28T11:12:43.931",
+      "name": "DE Letter",
+      "shortName": "DE Letter",
+      "aggregationType": "NONE",
+      "domainType": "TRACKER",
+      "publicAccess": "rw------",
+      "valueType": "LETTER",
+      "zeroIsSignificant": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": [],
+      "aggregationLevels": []
+    },
+    {
+      "lastUpdated": "2019-01-28T11:10:14.851",
+      "id": "A8qxpcalLtf",
+      "created": "2019-01-28T11:10:14.851",
+      "name": "DE LongText",
+      "shortName": "DE LongText",
+      "aggregationType": "NONE",
+      "domainType": "TRACKER",
+      "publicAccess": "rw------",
+      "valueType": "LONG_TEXT",
+      "zeroIsSignificant": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": [],
+      "aggregationLevels": []
+    },
+    {
+      "lastUpdated": "2019-01-28T11:16:36.742",
+      "id": "zal5vkVEpV0",
+      "created": "2019-01-28T11:16:36.742",
+      "name": "DE NegativeInteger",
+      "shortName": "DE NegativeInteger",
+      "aggregationType": "NONE",
+      "domainType": "TRACKER",
+      "publicAccess": "rw------",
+      "valueType": "INTEGER_NEGATIVE",
+      "zeroIsSignificant": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": [],
+      "aggregationLevels": []
+    },
+    {
+      "lastUpdated": "2019-01-28T11:14:41.115",
+      "id": "kAfSfT69m0E",
+      "created": "2019-01-28T11:14:41.115",
+      "name": "DE Number",
+      "shortName": "DE Number",
+      "aggregationType": "NONE",
+      "domainType": "TRACKER",
+      "publicAccess": "rw------",
+      "valueType": "NUMBER",
+      "zeroIsSignificant": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": [],
+      "aggregationLevels": []
+    },
+    {
+      "lastUpdated": "2019-01-28T11:18:30.291",
+      "id": "wIUShyK7lIa",
+      "created": "2019-01-28T11:18:30.291",
+      "name": "DE OrgUnit",
+      "shortName": "DE OrgUnit",
+      "aggregationType": "NONE",
+      "domainType": "TRACKER",
+      "publicAccess": "rw------",
+      "valueType": "ORGANISATION_UNIT",
+      "zeroIsSignificant": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": [],
+      "aggregationLevels": []
+    },
+    {
+      "lastUpdated": "2019-01-28T11:15:52.196",
+      "id": "ICfA0klVxkd",
+      "created": "2019-01-28T11:15:52.196",
+      "name": "DE Percentage",
+      "shortName": "DE Percentage",
+      "aggregationType": "NONE",
+      "domainType": "TRACKER",
+      "publicAccess": "rw------",
+      "valueType": "PERCENTAGE",
+      "zeroIsSignificant": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": [],
+      "aggregationLevels": []
+    },
+    {
+      "lastUpdated": "2019-01-28T11:12:57.476",
+      "id": "xaPkxL28aPx",
+      "created": "2019-01-28T11:12:57.476",
+      "name": "DE PhoneNumber",
+      "shortName": "DE PhoneNumber",
+      "aggregationType": "NONE",
+      "domainType": "TRACKER",
+      "publicAccess": "rw------",
+      "valueType": "PHONE_NUMBER",
+      "zeroIsSignificant": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": [],
+      "aggregationLevels": []
+    },
+    {
+      "lastUpdated": "2019-01-28T11:16:22.783",
+      "id": "Kvm949EFjjv",
+      "created": "2019-01-28T11:16:22.783",
+      "name": "DE PositiveInteger",
+      "shortName": "DE PositiveInteger",
+      "aggregationType": "NONE",
+      "domainType": "TRACKER",
+      "publicAccess": "rw------",
+      "valueType": "INTEGER_POSITIVE",
+      "zeroIsSignificant": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": [],
+      "aggregationLevels": []
+    },
+    {
+      "lastUpdated": "2019-01-28T11:17:15.879",
+      "id": "xaQ4gqDYGL9",
+      "created": "2019-01-28T11:17:15.879",
+      "name": "DE PositiveOrZeroInteger",
+      "shortName": "DE PositiveOrZeroInteger",
+      "aggregationType": "NONE",
+      "domainType": "TRACKER",
+      "publicAccess": "rw------",
+      "valueType": "INTEGER_ZERO_OR_POSITIVE",
+      "zeroIsSignificant": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": [],
+      "aggregationLevels": []
+    },
+    {
+      "lastUpdated": "2019-01-28T11:09:48.320",
+      "id": "MqGMwzt7M7w",
+      "created": "2019-01-28T11:09:48.320",
+      "name": "DE Text",
+      "shortName": "DE Text",
+      "aggregationType": "NONE",
+      "domainType": "TRACKER",
+      "publicAccess": "rw------",
+      "valueType": "TEXT",
+      "zeroIsSignificant": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": [],
+      "aggregationLevels": []
+    },
+    {
+      "lastUpdated": "2019-01-28T11:14:26.160",
+      "id": "WdTLfnn4S1I",
+      "created": "2019-01-28T11:14:26.160",
+      "name": "DE Time",
+      "shortName": "DE Time",
+      "aggregationType": "NONE",
+      "domainType": "TRACKER",
+      "publicAccess": "rw------",
+      "valueType": "TIME",
+      "zeroIsSignificant": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": [],
+      "aggregationLevels": []
+    },
+    {
+      "lastUpdated": "2019-01-28T11:17:34.761",
+      "id": "IrEJvSSO2wL",
+      "created": "2019-01-28T11:17:34.761",
+      "name": "DE TrackerAssociate",
+      "shortName": "DE TrackerAssociate",
+      "aggregationType": "NONE",
+      "domainType": "TRACKER",
+      "publicAccess": "rw------",
+      "valueType": "TRACKER_ASSOCIATE",
+      "zeroIsSignificant": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": [],
+      "aggregationLevels": []
+    },
+    {
+      "lastUpdated": "2019-01-28T11:15:39.336",
+      "id": "yA28JQPotGS",
+      "created": "2019-01-28T11:15:39.336",
+      "name": "DE UnitInterval",
+      "shortName": "DE UnitInterval",
+      "aggregationType": "NONE",
+      "domainType": "TRACKER",
+      "publicAccess": "rw------",
+      "valueType": "UNIT_INTERVAL",
+      "zeroIsSignificant": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": [],
+      "aggregationLevels": []
+    },
+    {
+      "lastUpdated": "2019-01-28T11:19:41.405",
+      "id": "hxUvZqnmBDv",
+      "created": "2019-01-28T11:19:41.405",
+      "name": "DE URL",
+      "shortName": "DE URL",
+      "aggregationType": "NONE",
+      "domainType": "TRACKER",
+      "publicAccess": "rw------",
+      "valueType": "URL",
+      "zeroIsSignificant": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": [],
+      "aggregationLevels": []
+    },
+    {
+      "lastUpdated": "2019-01-28T11:17:52.546",
+      "id": "JXF90RhgNiI",
+      "created": "2019-01-28T11:17:52.546",
+      "name": "DE Username",
+      "shortName": "DE Username",
+      "aggregationType": "NONE",
+      "domainType": "TRACKER",
+      "publicAccess": "rw------",
+      "valueType": "USERNAME",
+      "zeroIsSignificant": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": [],
+      "aggregationLevels": []
+    },
+    {
+      "lastUpdated": "2019-01-28T11:13:29.993",
+      "id": "gfEoDU4GtXK",
+      "created": "2019-01-28T11:13:29.993",
+      "name": "DE YesNo",
+      "shortName": "DE YesNo",
+      "aggregationType": "NONE",
+      "domainType": "TRACKER",
+      "publicAccess": "rw------",
+      "valueType": "BOOLEAN",
+      "zeroIsSignificant": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": [],
+      "aggregationLevels": []
+    },
+    {
+      "lastUpdated": "2019-01-28T11:13:42.875",
+      "id": "qw67QlOlzdp",
+      "created": "2019-01-28T11:13:42.875",
+      "name": "DE YesOnly",
+      "shortName": "DE YesOnly",
+      "aggregationType": "NONE",
+      "domainType": "TRACKER",
+      "publicAccess": "rw------",
+      "valueType": "TRUE_ONLY",
+      "zeroIsSignificant": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": [],
+      "aggregationLevels": []
+    }
+  ],
+  "categoryOptionCombos": [
+    {
+      "lastUpdated": "2019-01-28T11:01:30.775",
+      "code": "default",
+      "created": "2019-01-28T11:01:30.771",
+      "name": "default",
+      "id": "HllvX50cXC0",
+      "ignoreApproval": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "translations": [],
+      "attributeValues": [],
+      "categoryOptions": [
+        {
+          "id": "xYerKDKCefk"
+        }
+      ]
+    },
+    {
+      "lastUpdated": "2019-01-28T11:01:30.775",
+      "code": "COCA",
+      "created": "2019-01-28T11:01:30.771",
+      "name": "COCAname",
+      "id": "XXXvX50cXC0",
+      "ignoreApproval": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "translations": [],
+      "attributeValues": [],
+      "categoryOptions": [
+        {
+          "id": "xYerKDKCefk"
+        }
+      ]
+    }
+  ],
+  "categories": [
+    {
+      "code": "default",
+      "created": "2019-01-28T11:01:30.756",
+      "lastUpdated": "2019-01-28T11:01:30.839",
+      "name": "default",
+      "shortName": "default",
+      "id": "GLevLNI9wkl",
+      "dataDimensionType": "DISAGGREGATION",
+      "publicAccess": "rw------",
+      "dataDimension": false,
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "translations": [],
+      "userAccesses": [],
+      "categoryOptions": [
+        {
+          "id": "xYerKDKCefk"
+        }
+      ]
+    }
+  ],
+  "categoryOptions": [
+    {
+      "code": "default",
+      "created": "2019-01-28T11:01:30.702",
+      "lastUpdated": "2019-01-28T11:01:30.780",
+      "name": "default",
+      "id": "xYerKDKCefk",
+      "publicAccess": "rwrw----",
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "translations": [],
+      "userAccesses": [],
+      "organisationUnits": []
+    },
+    {
+      "code": "COA",
+      "created": "2019-01-28T11:01:30.702",
+      "lastUpdated": "2019-01-28T11:01:30.780",
+      "name": "COAname",
+      "id": "XXXrKDKCefk",
+      "publicAccess": "rwrw----",
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "translations": [],
+      "userAccesses": [],
+      "organisationUnits": []
+    }
+  ],
+  "userRoles": [
+    {
+      "code": "Superuser",
+      "created": "2019-01-28T11:03:39.381",
+      "lastUpdated": "2019-01-28T11:03:39.381",
+      "name": "Superuser",
+      "id": "yrB6vc5Ip3r",
+      "publicAccess": "--------",
+      "description": "Superuser",
+      "userGroupAccesses": [],
+      "authorities": [
+        "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS",
+        "ALL",
+        "F_USERGROUP_MANAGING_RELATIONSHIPS_ADD",
+        "F_USER_VIEW",
+        "F_GENERATE_MIN_MAX_VALUES",
+        "F_ORGANISATIONUNIT_MOVE",
+        "F_USER_GROUPS_READ_ONLY_ADD_MEMBERS",
+        "F_PREDICTOR_RUN",
+        "F_IGNORE_TRACKER_REQUIRED_VALUE_VALIDATION",
+        "F_RUN_VALIDATION",
+        "F_IMPORT_DATA",
+        "F_LOCALE_ADD",
+        "F_REPLICATE_USER",
+        "F_SEND_EMAIL",
+        "F_INSERT_CUSTOM_JS_CSS",
+        "F_ENROLLMENT_CASCADE_DELETE",
+        "F_METADATA_IMPORT",
+        "F_EXPORT_EVENTS",
+        "F_VIEW_EVENT_ANALYTICS",
+        "F_VIEW_UNAPPROVED_DATA",
+        "F_IMPORT_EVENTS",
+        "F_PERFORM_MAINTENANCE",
+        "F_USERGROUP_MANAGING_RELATIONSHIPS_VIEW",
+        "F_METADATA_EXPORT",
+        "F_TEI_CASCADE_DELETE",
+        "F_EXPORT_DATA",
+        "F_APPROVE_DATA",
+        "F_ACCEPT_DATA_LOWER_LEVELS",
+        "F_EDIT_EXPIRED",
+        "F_PROGRAM_DASHBOARD_CONFIG_ADMIN",
+        "F_APPROVE_DATA_LOWER_LEVELS",
+        "F_UNCOMPLETE_EVENT"
+      ],
+      "translations": [],
+      "userAccesses": []
+    }
+  ],
+  "trackedEntityAttributes": [
+    {
+      "lastUpdated": "2020-02-10T09:10:22.603",
+      "id": "sYn3tkL3XKa",
+      "created": "2020-02-10T09:10:22.603",
+      "name": "Attribute_Integer",
+      "shortName": "Attribute_Integer",
+      "aggregationType": "SUM",
+      "displayInListNoProgram": false,
+      "publicAccess": "rw------",
+      "pattern": "",
+      "skipSynchronization": false,
+      "generated": false,
+      "displayOnVisitSchedule": false,
+      "valueType": "INTEGER",
+      "orgunitScope": false,
+      "confidential": false,
+      "unique": false,
+      "inherit": false,
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": []
+    }
+  ]
+}

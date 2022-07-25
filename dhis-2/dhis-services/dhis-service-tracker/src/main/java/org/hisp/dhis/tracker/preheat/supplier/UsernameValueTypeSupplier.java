@@ -28,27 +28,23 @@
 package org.hisp.dhis.tracker.preheat.supplier;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.Attribute;
-import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.preheat.DetachUtils;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.mappers.UserMapper;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Component;
 
@@ -69,9 +65,10 @@ public class UsernameValueTypeSupplier extends AbstractPreheatSupplier
     {
         List<TrackedEntityAttribute> attributes = preheat.getAll( TrackedEntityAttribute.class );
 
-        List<String> usernameAttributes = attributes.stream()
+        TrackerIdSchemeParams idSchemes = preheat.getIdSchemes();
+        List<MetadataIdentifier> usernameAttributes = attributes.stream()
             .filter( at -> at.getValueType() == ValueType.USERNAME )
-            .map( BaseIdentifiableObject::getUid )
+            .map( idSchemes::toMetadataIdentifier )
             .collect( Collectors.toList() );
 
         List<String> usernames = new ArrayList<>();
@@ -80,24 +77,13 @@ public class UsernameValueTypeSupplier extends AbstractPreheatSupplier
             .forEach( te -> collectResourceIds( usernameAttributes, usernames, te.getAttributes() ) );
         params.getEnrollments()
             .forEach( en -> collectResourceIds( usernameAttributes, usernames, en.getAttributes() ) );
-        List<String> usernamesFromEvents = params.getEvents().stream()
-            .map( Event::getCreatedBy )
-            .filter( Objects::nonNull )
-            .collect( Collectors.toList() );
-        usernames.addAll( usernamesFromEvents );
 
-        List<User> users = userService.getUserCredentialsByUsernames( usernames )
-            .stream()
-            .map( UserCredentials::getUser )
-            .collect( Collectors.toList() );
+        List<User> users = userService.getUsersByUsernames( usernames );
 
-        Map<String, User> validUsers = DetachUtils.detach( UserMapper.INSTANCE, users ).stream()
-            .collect( Collectors.toMap( User::getUsername, Function.identity() ) );
-
-        preheat.setUsers( validUsers );
+        preheat.addUsers( new HashSet<>( DetachUtils.detach( UserMapper.INSTANCE, users ) ) );
     }
 
-    private void collectResourceIds( List<String> usernameAttributes, List<String> usernames,
+    private void collectResourceIds( List<MetadataIdentifier> usernameAttributes, List<String> usernames,
         List<Attribute> attributes )
     {
         attributes.forEach( at -> {

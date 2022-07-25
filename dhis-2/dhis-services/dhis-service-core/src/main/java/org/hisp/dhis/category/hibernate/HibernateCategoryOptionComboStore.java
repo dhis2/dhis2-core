@@ -30,6 +30,7 @@ package org.hisp.dhis.category.hibernate;
 import java.util.List;
 import java.util.Set;
 
+import org.hibernate.NonUniqueResultException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
@@ -54,7 +55,7 @@ public class HibernateCategoryOptionComboStore
     extends HibernateIdentifiableObjectStore<CategoryOptionCombo>
     implements CategoryOptionComboStore
 {
-    private DbmsManager dbmsManager;
+    private final DbmsManager dbmsManager;
 
     public HibernateCategoryOptionComboStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService,
@@ -69,14 +70,16 @@ public class HibernateCategoryOptionComboStore
     public CategoryOptionCombo getCategoryOptionCombo( CategoryCombo categoryCombo,
         Set<CategoryOption> categoryOptions )
     {
-        String hql = "from CategoryOptionCombo co where co.categoryCombo = :categoryCombo";
+        StringBuilder hql = new StringBuilder( "from CategoryOptionCombo co where co.categoryCombo = :categoryCombo" );
 
         for ( CategoryOption option : categoryOptions )
         {
-            hql += " and :option" + option.getId() + " in elements (co.categoryOptions)";
+            hql.append( " and :option" );
+            hql.append( option.getId() );
+            hql.append( " in elements (co.categoryOptions)" );
         }
 
-        Query<CategoryOptionCombo> query = getQuery( hql );
+        Query<CategoryOptionCombo> query = getQuery( hql.toString() );
 
         query.setParameter( "categoryCombo", categoryCombo );
 
@@ -85,7 +88,21 @@ public class HibernateCategoryOptionComboStore
             query.setParameter( "option" + option.getId(), option );
         }
 
-        return query.uniqueResult();
+        CategoryOptionCombo categoryOptionCombo = null;
+        try
+        {
+            categoryOptionCombo = query.uniqueResult();
+        }
+        catch ( NonUniqueResultException e )
+        {
+            // given only a subset of category options multiple
+            // categoryOptionCombos could be found
+            // from the perspective of the clients the categoryOptionCombo has
+            // not been found as only one is expected
+            // (see signature). Return null in that case, as when no result has
+            // been found.
+        }
+        return categoryOptionCombo;
     }
 
     @Override

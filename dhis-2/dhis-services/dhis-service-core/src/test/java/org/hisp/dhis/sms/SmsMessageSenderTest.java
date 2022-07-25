@@ -30,6 +30,7 @@ package org.hisp.dhis.sms;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anySet;
@@ -55,6 +56,8 @@ import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatchStatus;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponseSummary;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.sms.config.BulkSmsGatewayConfig;
 import org.hisp.dhis.sms.config.BulkSmsHttpGateway;
 import org.hisp.dhis.sms.config.GatewayAdministrationService;
@@ -99,7 +102,8 @@ class SmsMessageSenderTest
     @Mock
     private BulkSmsHttpGateway bulkSmsGateway;
 
-    private ArrayList<SmsGateway> smsGateways;
+    @Mock
+    private SystemSettingManager systemSettingManager;
 
     private SmsGatewayConfig smsGatewayConfig;
 
@@ -107,27 +111,27 @@ class SmsMessageSenderTest
 
     private OutboundMessageResponse failedStatus;
 
-    private List<OutboundMessageResponse> summaryResponses = new ArrayList<>();
+    private final List<OutboundMessageResponse> summaryResponses = new ArrayList<>();
 
     private List<OutboundMessage> outboundMessages = new ArrayList<>();
 
-    private Set<String> recipientsNonNormalized = Sets.newHashSet( "+4740222222", "0047407777777" );
+    private final Set<String> recipientsNonNormalized = Sets.newHashSet( "+4740222222", "0047407777777" );
 
-    private Set<String> recipientsNormalized = Sets.newHashSet( "4740222222", "47407777777" );
+    private final Set<String> recipientsNormalized = Sets.newHashSet( "4740222222", "47407777777" );
 
-    private Set<String> generatedRecipients = Sets.newHashSet();
+    private final Set<String> generatedRecipients = Sets.newHashSet();
 
     private Set<User> users = new HashSet<>();
 
     private User sender;
 
-    private String subject = "subject";
+    private final String subject = "subject";
 
-    private String text = "text message";
+    private final String text = "text message";
 
-    private String gateway = "bulksms";
+    private final String footer = "footer";
 
-    private String footer = "footer";
+    private final Integer maxSmsLength = 10000;
 
     @BeforeEach
     public void initTest()
@@ -135,12 +139,13 @@ class SmsMessageSenderTest
 
         setUp();
 
-        smsGateways = new ArrayList<>();
+        ArrayList<SmsGateway> smsGateways = new ArrayList<>();
 
         smsGateways.add( bulkSmsGateway );
 
         smsMessageSender = new SmsMessageSender( gatewayAdministrationService, smsGateways, userSettingService,
-            outboundSmsService );
+            outboundSmsService, systemSettingManager );
+
     }
 
     private void mockGateway()
@@ -158,6 +163,10 @@ class SmsMessageSenderTest
     @Test
     void testSendMessageWithGatewayConfig()
     {
+
+        when( systemSettingManager.getSystemSetting( SettingKey.SMS_MAX_LENGTH, Integer.class ) )
+            .thenReturn( maxSmsLength );
+
         // stub for GateAdministrationService
         when( gatewayAdministrationService.getDefaultGateway() ).thenReturn( smsGatewayConfig );
         mockGateway();
@@ -211,6 +220,9 @@ class SmsMessageSenderTest
     @Test
     void testSendMessageWithListOfUsers()
     {
+        when( systemSettingManager.getSystemSetting( SettingKey.SMS_MAX_LENGTH, Integer.class ) )
+            .thenReturn( maxSmsLength );
+
         when( gatewayAdministrationService.getDefaultGateway() ).thenReturn( smsGatewayConfig );
         when( userSettingService.getUserSetting( any(), any() ) ).thenReturn( Boolean.TRUE );
         when( bulkSmsGateway.send( anyString(), anyString(), anySet(), isA( BulkSmsGatewayConfig.class ) ) )
@@ -250,6 +262,9 @@ class SmsMessageSenderTest
     @Test
     void testSendMessageWithSingleRecipient()
     {
+        when( systemSettingManager.getSystemSetting( SettingKey.SMS_MAX_LENGTH, Integer.class ) )
+            .thenReturn( maxSmsLength );
+
         when( bulkSmsGateway.accept( any() ) ).thenReturn( true );
         when( gatewayAdministrationService.getDefaultGateway() ).thenReturn( smsGatewayConfig );
         when( bulkSmsGateway.send( anyString(), anyString(), anySet(), isA( BulkSmsGatewayConfig.class ) ) )
@@ -264,6 +279,10 @@ class SmsMessageSenderTest
     @Test
     void testSendMessageFailed()
     {
+
+        when( systemSettingManager.getSystemSetting( SettingKey.SMS_MAX_LENGTH, Integer.class ) )
+            .thenReturn( maxSmsLength );
+
         // stub for GateAdministrationService
         when( gatewayAdministrationService.getDefaultGateway() ).thenReturn( smsGatewayConfig );
         mockGateway();
@@ -282,6 +301,10 @@ class SmsMessageSenderTest
     @Test
     void testNumberNormalization()
     {
+
+        when( systemSettingManager.getSystemSetting( SettingKey.SMS_MAX_LENGTH, Integer.class ) )
+            .thenReturn( maxSmsLength );
+
         // stub for GateAdministrationService
         when( gatewayAdministrationService.getDefaultGateway() ).thenReturn( smsGatewayConfig );
         mockGateway();
@@ -310,6 +333,9 @@ class SmsMessageSenderTest
     @Test
     void testSendMessageWithMaxRecipients()
     {
+        when( systemSettingManager.getSystemSetting( SettingKey.SMS_MAX_LENGTH, Integer.class ) )
+            .thenReturn( maxSmsLength );
+
         when( gatewayAdministrationService.getDefaultGateway() ).thenReturn( smsGatewayConfig );
         mockGateway();
         List<Set<String>> recipientList = new ArrayList<>();
@@ -329,6 +355,41 @@ class SmsMessageSenderTest
         assertTrue( status.isOk() );
 
         recipientList.forEach( set -> assertTrue( set.size() <= MAX_ALLOWED_RECIPIENTS ) );
+    }
+
+    @Test
+    void testSendMessageWithSmsLengthGreaterThanDefaultMaxSmsLength()
+    {
+
+        when( systemSettingManager.getSystemSetting( SettingKey.SMS_MAX_LENGTH, Integer.class ) )
+            .thenReturn( maxSmsLength );
+
+        when( gatewayAdministrationService.getDefaultGateway() ).thenReturn( smsGatewayConfig );
+        mockGateway();
+
+        OutboundMessageResponse status = smsMessageSender.sendMessage( subject,
+            "x".repeat( Math.max( 0, maxSmsLength + 1 ) ),
+            recipientsNormalized );
+
+        assertNull( smsGatewayConfig.getMaxSmsLength() );
+        assertFalse( status.isOk() );
+        assertEquals( GatewayResponse.SMS_TEXT_MESSAGE_TOO_LONG, status.getResponseObject() );
+    }
+
+    @Test
+    void testSendMessageWithSmsLengthGreaterThanGatewayMaxSmsLength()
+    {
+        smsGatewayConfig.setMaxSmsLength( maxSmsLength.toString() );
+        when( gatewayAdministrationService.getDefaultGateway() ).thenReturn( smsGatewayConfig );
+        mockGateway();
+
+        OutboundMessageResponse status = smsMessageSender.sendMessage( subject,
+            "x".repeat( Math.max( 0, maxSmsLength + 1 ) ),
+            recipientsNormalized );
+
+        assertFalse( status.isOk() );
+        assertEquals( GatewayResponse.SMS_TEXT_MESSAGE_TOO_LONG, status.getResponseObject() );
+        verify( systemSettingManager, times( 0 ) ).getSystemSetting( SettingKey.SMS_MAX_LENGTH, Integer.class );
     }
 
     @Test
@@ -500,6 +561,7 @@ class SmsMessageSenderTest
 
         smsGatewayConfig = new BulkSmsGatewayConfig();
         smsGatewayConfig.setUrlTemplate( "" );
+        String gateway = "bulksms";
         smsGatewayConfig.setName( gateway );
         smsGatewayConfig.setUsername( " " );
         smsGatewayConfig.setPassword( "" );

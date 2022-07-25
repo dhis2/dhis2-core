@@ -51,6 +51,7 @@ import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
 import org.hisp.dhis.dataapproval.exceptions.DataApprovalException;
+import org.hisp.dhis.dataexchange.client.Dhis2ClientException;
 import org.hisp.dhis.deduplication.PotentialDuplicateConflictException;
 import org.hisp.dhis.deduplication.PotentialDuplicateForbiddenException;
 import org.hisp.dhis.dxf2.adx.AdxException;
@@ -93,6 +94,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.web.client.RestClientException;
 
 import com.fasterxml.jackson.core.JsonParseException;
 
@@ -115,9 +117,23 @@ public class CrudControllerAdvice
         binder.registerCustomEditor( IdentifiableProperty.class, new FromTextPropertyEditor( String::toUpperCase ) );
     }
 
+    @ExceptionHandler( RestClientException.class )
+    @ResponseBody
+    public WebMessage restClientExceptionHandler( RestClientException ex )
+    {
+        return createWebMessage( ex.getMessage(), Status.ERROR, HttpStatus.SERVICE_UNAVAILABLE );
+    }
+
     @ExceptionHandler( IllegalQueryException.class )
     @ResponseBody
     public WebMessage illegalQueryExceptionHandler( IllegalQueryException ex )
+    {
+        return conflict( ex.getMessage(), ex.getErrorCode() );
+    }
+
+    @ExceptionHandler( Dhis2ClientException.class )
+    @ResponseBody
+    public WebMessage dhis2ClientException( Dhis2ClientException ex )
     {
         return conflict( ex.getMessage(), ex.getErrorCode() );
     }

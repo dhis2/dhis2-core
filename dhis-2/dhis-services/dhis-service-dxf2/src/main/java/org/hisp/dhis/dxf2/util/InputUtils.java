@@ -40,6 +40,8 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
 
@@ -73,11 +75,45 @@ public class InputUtils
      * @param skipFallback whether to skip fallback to default option combo if
      *        attribute option combo is not found.
      * @return the attribute option combo identified from the given input, or
-     *         null. if the input was invalid.
+     *         null if the input was invalid.
      */
     public CategoryOptionCombo getAttributeOptionCombo( String cc, String cp, boolean skipFallback )
     {
-        String cacheKey = TextUtils.joinHyphen( cc, cp, String.valueOf( skipFallback ) );
+        Set<String> options = TextUtils.splitToSet( cp, TextUtils.SEMICOLON );
+
+        return getAttributeOptionCombo( cc, options, skipFallback );
+    }
+
+    /**
+     * Validates and retrieves the attribute option combo. Does not attempt to
+     * fall back to the default option combo. Throws
+     * {@link IllegalQueryException} if the attribute option combo does not
+     * exist.
+     *
+     * @param cc the category combo identifier.
+     * @param options the set of category option identifiers.
+     * @return the attribute option combo identified from the given input.
+     * @throws IllegalQueryException if the attribute option combo does not
+     *         exist.
+     */
+    public CategoryOptionCombo getAttributeOptionCombo( String cc, Set<String> options )
+    {
+        return getAttributeOptionCombo( cc, options, true );
+    }
+
+    /**
+     * Validates and retrieves the attribute option combo.
+     *
+     * @param cc the category combo identifier.
+     * @param options the set of category option identifiers.
+     * @param skipFallback whether to skip fallback to default option combo if
+     *        attribute option combo is not found.
+     * @return the attribute option combo identified from the given input, or
+     *         null if the input was invalid.
+     */
+    public CategoryOptionCombo getAttributeOptionCombo( String cc, Set<String> options, boolean skipFallback )
+    {
+        String cacheKey = TextUtils.joinHyphen( cc, TextUtils.joinHyphen( options ), String.valueOf( skipFallback ) );
 
         Long id = attrOptionComboIdCache.getIfPresent( cacheKey ).orElse( null );
 
@@ -87,7 +123,7 @@ public class InputUtils
         }
         else
         {
-            CategoryOptionCombo aoc = getAttributeOptionComboInternal( cc, cp, skipFallback );
+            CategoryOptionCombo aoc = getAttributeOptionComboInternal( cc, options, skipFallback );
 
             if ( aoc != null )
             {
@@ -98,25 +134,22 @@ public class InputUtils
         }
     }
 
-    private CategoryOptionCombo getAttributeOptionComboInternal( String cc, String cp, boolean skipFallback )
+    private CategoryOptionCombo getAttributeOptionComboInternal( String cc, Set<String> options, boolean skipFallback )
     {
-        Set<String> opts = TextUtils.splitToArray( cp, TextUtils.SEMICOLON );
-
         // ---------------------------------------------------------------------
         // Attribute category combo validation
         // ---------------------------------------------------------------------
 
-        if ( (cc == null && opts != null || (cc != null && opts == null)) )
+        if ( (cc == null && options != null) || (cc != null && options == null) )
         {
-            throw new IllegalQueryException(
-                "Both or none of category combination and category options must be present" );
+            throw new IllegalQueryException( ErrorCode.E2040 );
         }
 
         CategoryCombo categoryCombo = null;
 
         if ( cc != null && (categoryCombo = idObjectManager.get( CategoryCombo.class, cc )) == null )
         {
-            throw new IllegalQueryException( "Illegal category combo identifier: " + cc );
+            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E1110, cc ) );
         }
 
         if ( categoryCombo == null )
@@ -129,38 +162,34 @@ public class InputUtils
             categoryCombo = categoryService.getDefaultCategoryCombo();
         }
 
-        return getAttributeOptionCombo( categoryCombo, opts, null, IdScheme.UID );
+        return getAttributeOptionCombo( categoryCombo, options, null, IdScheme.UID );
     }
 
     /**
-     * Validates and retrieves the attribute option combo. 409 conflict as
-     * status code along with a textual message will be set on the response in
-     * case of invalid input.
+     * Validates and retrieves the attribute option combo.
      *
      * @param categoryCombo the category combo.
-     * @param opts list of category option uid.
+     * @param options list of category option identifiers.
      * @return the attribute option combo identified from the given input, or
      *         null if the input was invalid.
      */
-    public CategoryOptionCombo getAttributeOptionCombo( CategoryCombo categoryCombo, Set<String> opts,
+    public CategoryOptionCombo getAttributeOptionCombo( CategoryCombo categoryCombo, Set<String> options,
         IdScheme idScheme )
     {
-        return getAttributeOptionCombo( categoryCombo, opts, null, idScheme );
+        return getAttributeOptionCombo( categoryCombo, options, null, idScheme );
     }
 
     /**
-     * Validates and retrieves the attribute option combo. 409 conflict as
-     * status code along with a textual message will be set on the response in
-     * case of invalid input.
+     * Validates and retrieves the attribute option combo.
      *
      * @param categoryCombo the category combo.
-     * @param opts list of category option uid.
+     * @param options list of category option identifiers.
      * @param attributeOptionCombo the explicit attribute option combo
      *        identifier.
      * @return the attribute option combo identified from the given input, or
      *         null if the input was invalid.
      */
-    public CategoryOptionCombo getAttributeOptionCombo( CategoryCombo categoryCombo, Set<String> opts,
+    public CategoryOptionCombo getAttributeOptionCombo( CategoryCombo categoryCombo, Set<String> options,
         String attributeOptionCombo, IdScheme idScheme )
     {
         if ( categoryCombo == null )
@@ -174,17 +203,17 @@ public class InputUtils
 
         CategoryOptionCombo attrOptCombo = null;
 
-        if ( opts != null )
+        if ( options != null )
         {
             Set<CategoryOption> categoryOptions = new HashSet<>();
 
-            for ( String uid : opts )
+            for ( String option : options )
             {
-                CategoryOption categoryOption = idObjectManager.getObject( CategoryOption.class, idScheme, uid );
+                CategoryOption categoryOption = idObjectManager.getObject( CategoryOption.class, idScheme, option );
 
                 if ( categoryOption == null )
                 {
-                    throw new IllegalQueryException( "Illegal category option identifier: " + uid );
+                    throw new IllegalQueryException( new ErrorMessage( ErrorCode.E1111, option ) );
                 }
 
                 categoryOptions.add( categoryOption );
@@ -194,8 +223,7 @@ public class InputUtils
 
             if ( attrOptCombo == null )
             {
-                throw new IllegalQueryException(
-                    "Attribute option combo does not exist for given category combo and category options" );
+                throw new IllegalQueryException( ErrorCode.E2041 );
             }
         }
         else if ( attributeOptionCombo != null )
@@ -212,21 +240,15 @@ public class InputUtils
             attrOptCombo = categoryService.getDefaultCategoryOptionCombo();
         }
 
-        if ( attrOptCombo == null )
-        {
-            throw new IllegalQueryException( "Default attribute option combo does not exist" );
-        }
-
         return attrOptCombo;
     }
 
     /**
-     * Checks if user is authorized to force data input. Having just the
-     * authority is not enough. User has to explicitly ask for it.
+     * Checks if user is authorized to force data input.
      *
      * @param currentUser the user attempting to force data input
      * @param force request to force data input
-     * @return true if authorized and requested for it, otherwise false
+     * @return true if authorized and requested for it, otherwise false.
      */
     public boolean canForceDataInput( User currentUser, boolean force )
     {

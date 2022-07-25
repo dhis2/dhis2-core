@@ -40,6 +40,7 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.DataIntegrityJobParameters;
+import org.hisp.dhis.scheduling.parameters.DataIntegrityJobParameters.DataIntegrityReportType;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.stereotype.Component;
@@ -47,7 +48,7 @@ import org.springframework.stereotype.Component;
 /**
  * @author Halvdan Hoem Grelland <halvdanhg@gmail.com>
  */
-@Component( "dataIntegrityJob" )
+@Component
 @AllArgsConstructor
 public class DataIntegrityJob implements Job
 {
@@ -68,8 +69,25 @@ public class DataIntegrityJob implements Job
         Set<String> checks = parameters == null
             ? Set.of()
             : parameters.getChecks();
-        Timer timer = new SystemTimer().start();
 
+        DataIntegrityReportType type = parameters == null ? null : parameters.getType();
+        if ( type == null || type == DataIntegrityReportType.REPORT )
+        {
+            runReport( config, progress, checks );
+        }
+        else if ( type == DataIntegrityReportType.SUMMARY )
+        {
+            dataIntegrityService.runSummaryChecks( checks, progress );
+        }
+        else
+        {
+            dataIntegrityService.runDetailsChecks( checks, progress );
+        }
+    }
+
+    private void runReport( JobConfiguration config, JobProgress progress, Set<String> checks )
+    {
+        Timer timer = new SystemTimer().start();
         notifier.notify(
             config, NotificationLevel.INFO,
             "Starting data integrity job", false );

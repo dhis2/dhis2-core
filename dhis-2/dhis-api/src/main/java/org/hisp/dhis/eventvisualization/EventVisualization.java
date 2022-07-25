@@ -64,8 +64,6 @@ import org.hisp.dhis.common.RegressionType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.i18n.I18nFormat;
-import org.hisp.dhis.legend.LegendDisplayStrategy;
-import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
@@ -76,6 +74,7 @@ import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.visualization.LegendDefinitions;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -125,9 +124,10 @@ public class EventVisualization extends BaseAnalyticalObject
 
     protected Integer rangeAxisDecimals;
 
-    protected LegendSet legendSet;
-
-    protected LegendDisplayStrategy legendDisplayStrategy;
+    /**
+     * The legend and legend set definitions.
+     */
+    private LegendDefinitions legendDefinitions;
 
     // -------------------------------------------------------------------------
     // Dimensional properties
@@ -209,6 +209,11 @@ public class EventVisualization extends BaseAnalyticalObject
 
     /**
      * Indicates whether this is a legacy row (EventChart or EventReport).
+     *
+     * - EventVisualizations created through the new App will never be legacy.
+     *
+     * - Legacy EventVisualizations updated through the new App will always
+     * become non-legacy.
      */
     private boolean legacy;
 
@@ -646,29 +651,16 @@ public class EventVisualization extends BaseAnalyticalObject
         this.rangeAxisDecimals = rangeAxisDecimals;
     }
 
-    @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JsonProperty( "legend" )
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    public LegendSet getLegendSet()
+    public LegendDefinitions getLegendDefinitions()
     {
-        return legendSet;
+        return legendDefinitions;
     }
 
-    public void setLegendSet( LegendSet legendSet )
+    public void setLegendDefinitions( LegendDefinitions legendDefinitions )
     {
-        this.legendSet = legendSet;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public LegendDisplayStrategy getLegendDisplayStrategy()
-    {
-        return legendDisplayStrategy;
-    }
-
-    public void setLegendDisplayStrategy( LegendDisplayStrategy legendDisplayStrategy )
-    {
-        this.legendDisplayStrategy = legendDisplayStrategy;
+        this.legendDefinitions = legendDefinitions;
     }
 
     @JsonProperty
@@ -834,7 +826,7 @@ public class EventVisualization extends BaseAnalyticalObject
         this.simpleDimensions = simpleDimensions;
     }
 
-    @JsonProperty
+    @JsonProperty( "repetitions" )
     @JacksonXmlElementWrapper( localName = "repetitions", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "repetition", namespace = DxfNamespaces.DXF_2_0 )
     public List<EventRepetition> getEventRepetitions()
@@ -1052,6 +1044,8 @@ public class EventVisualization extends BaseAnalyticalObject
         this.showDimensionLabels = showDimensionLabels;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public boolean isLegacy()
     {
         return legacy;

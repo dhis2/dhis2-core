@@ -41,6 +41,7 @@ public class vAnalyticsPeriodEnd
     @Override
     public Object getSql( CommonExpressionVisitor visitor )
     {
-        return visitor.getStatementBuilder().encode( DateUtils.getSqlDateString( visitor.getReportingEndDate() ) );
+        return visitor.getStatementBuilder().encode( DateUtils.getSqlDateString(
+            visitor.getProgParams().getReportingEndDate() ) );
     }
 }

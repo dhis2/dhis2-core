@@ -42,6 +42,8 @@ import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.QUERY_MODS_ID_SEPARATOR;
+import static org.hisp.dhis.common.DimensionalObject.VALUE_COLUMN_NAME;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 
@@ -414,6 +416,16 @@ public class DataQueryParams
     protected transient DataType dataType;
 
     /**
+     * The value column (value column name or sub-expression).
+     */
+    protected transient String valueColumn;
+
+    /**
+     * Id of query modifiers affecting data in this query.
+     */
+    protected transient String queryModsId;
+
+    /**
      * The aggregation period type for this query.
      */
     protected transient String periodType;
@@ -489,8 +501,9 @@ public class DataQueryParams
      */
     protected transient boolean skipDataDimensionValidation = false;
 
-    protected String analyzeOrderId;
+    protected String explainOrderId;
 
+    // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
 
@@ -577,6 +590,8 @@ public class DataQueryParams
         params.partitions = new Partitions( this.partitions );
         params.tableName = this.tableName;
         params.dataType = this.dataType;
+        params.valueColumn = this.valueColumn;
+        params.queryModsId = this.queryModsId;
         params.periodType = this.periodType;
         params.dataPeriodType = this.dataPeriodType;
         params.skipPartitioning = this.skipPartitioning;
@@ -589,19 +604,19 @@ public class DataQueryParams
         params.dataApprovalLevels = new HashMap<>( this.dataApprovalLevels );
         params.skipDataDimensionValidation = this.skipDataDimensionValidation;
         params.userOrgUnitType = this.userOrgUnitType;
-        params.analyzeOrderId = this.analyzeOrderId;
+        params.explainOrderId = this.explainOrderId;
 
         return params;
     }
 
-    public String getAnalyzeOrderId()
+    public String getExplainOrderId()
     {
-        return analyzeOrderId;
+        return explainOrderId;
     }
 
     public boolean analyzeOnly()
     {
-        return analyzeOrderId != null;
+        return explainOrderId != null;
     }
 
     /**
@@ -882,6 +897,17 @@ public class DataQueryParams
                 DimensionType.ORGANISATION_UNIT_LEVEL, PREFIX_ORG_UNIT_LEVEL + l.getLevel(), l.getName(),
                 Lists.newArrayList() ) )
             .collect( Collectors.toList() );
+    }
+
+    /**
+     * For the data dimension only: returns the query mods id prefixed by the
+     * separator, or an empty string if there is no query mods id.
+     */
+    public String getQueryModsId( DimensionalObject dimension )
+    {
+        return (dimension.getUid().equals( DATA_X_DIM_ID ) && queryModsId != null)
+            ? QUERY_MODS_ID_SEPARATOR + queryModsId
+            : "";
     }
 
     /**
@@ -1326,6 +1352,9 @@ public class DataQueryParams
         return outputOrgUnitIdScheme != null && !IdScheme.UID.equals( outputOrgUnitIdScheme );
     }
 
+    /**
+     * Indicates whether a non-default identifier scheme is specified.
+     */
     public boolean hasCustomIdSchemaSet()
     {
         return isGeneralOutputIdSchemeSet() || isOutputDataElementIdSchemeSet() || isOutputOrgUnitIdSchemeSet();
@@ -1376,6 +1405,22 @@ public class DataQueryParams
     public boolean hasDataPeriodType()
     {
         return dataPeriodType != null;
+    }
+
+    /**
+     * Indicates whether this query has a start date.
+     */
+    public boolean hasStartDate()
+    {
+        return startDate != null;
+    }
+
+    /**
+     * Indicates whether this query has an end date.
+     */
+    public boolean hasEndDate()
+    {
+        return endDate != null;
     }
 
     /**
@@ -1567,6 +1612,21 @@ public class DataQueryParams
         }
 
         return null;
+    }
+
+    /**
+     * Returns the data elements which category combinations have skip total
+     * enabled, and not all categories of the category combo of the given data
+     * element are specified as dimensions or filters with items.
+     */
+    public List<DataElement> getSkipTotalDataElements()
+    {
+        List<DataElement> dataElements = DimensionalObjectUtils.asTypedList( getAllDataElements() );
+
+        return dataElements.stream()
+            .filter( de -> de.getCategoryCombo().isSkipTotal() )
+            .filter( de -> !isAllCategoriesDimensionOrFilterWithItems( de ) )
+            .collect( Collectors.toList() );
     }
 
     // -------------------------------------------------------------------------
@@ -1869,6 +1929,27 @@ public class DataQueryParams
             dimension.getItems().removeAll( existing );
             dimension.getItems().addAll( options );
         }
+    }
+
+    /**
+     * Indicates whether all categories of the category combo of the given data
+     * element are specified as dimensions or filters with items.
+     *
+     * @param dataElement the {@link DataElement}.
+     * @return true if all categories of the category combo of the given data
+     *         element are specified as dimensions or filters with items.
+     */
+    private boolean isAllCategoriesDimensionOrFilterWithItems( DataElement dataElement )
+    {
+        for ( Category category : dataElement.getCategoryCombo().getCategories() )
+        {
+            if ( !hasDimensionOrFilterWithItems( category.getDimension() ) )
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     // -------------------------------------------------------------------------
@@ -2272,6 +2353,13 @@ public class DataQueryParams
         return dataType;
     }
 
+    public String getValueColumn()
+    {
+        return (valueColumn != null)
+            ? valueColumn
+            : VALUE_COLUMN_NAME;
+    }
+
     public String getPeriodType()
     {
         return periodType;
@@ -2580,10 +2668,10 @@ public class DataQueryParams
     }
 
     /**
-     * Returns a single list containing a Period object based on the "startDate"
+     * Returns a single list containing a period object based on the "startDate"
      * and "endDate" dates.
      *
-     * @return a single Period list or empty list if "startDate" or "endDate" is
+     * @return a single period list or empty list if "startDate" or "endDate" is
      *         null.
      */
     public List<Period> getStartEndDatesToSingleList()
@@ -2708,6 +2796,7 @@ public class DataQueryParams
     // -------------------------------------------------------------------------
     // Builder of immutable instances
     // -------------------------------------------------------------------------
+
     /**
      * Builder for {@link DataQueryParams} instances.
      */
@@ -3202,6 +3291,18 @@ public class DataQueryParams
             return this;
         }
 
+        public Builder withValueColumn( String valueColumn )
+        {
+            this.params.valueColumn = valueColumn;
+            return this;
+        }
+
+        public Builder withQueryModsId( String queryModsId )
+        {
+            this.params.queryModsId = queryModsId;
+            return this;
+        }
+
         public Builder withStartDate( Date startDate )
         {
             this.params.startDate = startDate;
@@ -3265,7 +3366,7 @@ public class DataQueryParams
 
         public Builder withAnalyzeOrderId()
         {
-            this.params.analyzeOrderId = UUID.randomUUID().toString();
+            this.params.explainOrderId = UUID.randomUUID().toString();
             return this;
         }
 

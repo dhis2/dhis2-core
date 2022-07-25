@@ -1,74 +1,74 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>org.hisp.dhis</groupId>
-        <artifactId>dhis-web</artifactId>
-        <version>2.38-SNAPSHOT</version>
-    </parent>
+  <parent>
+    <groupId>org.hisp.dhis</groupId>
+    <artifactId>dhis-web</artifactId>
+    <version>2.39-SNAPSHOT</version>
+  </parent>
 
-    <artifactId>dhis-web-apps</artifactId>
-    <packaging>war</packaging>
-    <name>DHIS Web Apps</name>
+  <artifactId>dhis-web-apps</artifactId>
+  <packaging>war</packaging>
+  <name>DHIS Web Apps</name>
 
-    <build>
-        <finalName>dhis-web-apps</finalName>
+  <build>
+    <finalName>dhis-web-apps</finalName>
 
-        <plugins>
-            <plugin>
-                <groupId>com.github.eirslett</groupId>
-                <artifactId>frontend-maven-plugin</artifactId>
-                <version>1.6</version>
-                <configuration>
-                    <installDirectory>target</installDirectory>
-                    <environmentVariables>
-                        <BUILD_DIR>${project.build.directory}</BUILD_DIR>
-                        <ARTIFACT_ID>${project.artifactId}</ARTIFACT_ID>
-                        <APPS>./apps-to-bundle.json</APPS>
-                        <DEFAULT_BRANCH>master</DEFAULT_BRANCH>
-                    </environmentVariables> 
-                </configuration>
-                <executions>
+    <plugins>
+      <plugin>
+        <groupId>com.github.eirslett</groupId>
+        <artifactId>frontend-maven-plugin</artifactId>
+        <version>1.6</version>
+        <configuration>
+          <installDirectory>target</installDirectory>
+          <environmentVariables>
+            <BUILD_DIR>${project.build.directory}</BUILD_DIR>
+            <ARTIFACT_ID>${project.artifactId}</ARTIFACT_ID>
+            <APPS>./apps-to-bundle.json</APPS>
+            <DEFAULT_BRANCH>master</DEFAULT_BRANCH>
+          </environmentVariables>
+        </configuration>
+        <executions>
 
-                    <execution>
-                        <id>install node and npm</id>
-                        <phase>generate-resources</phase>
-                        <goals>
-                            <goal>install-node-and-npm</goal>
-                        </goals>
-                        <configuration>
-                            <nodeVersion>v8.11.1</nodeVersion>
-                        </configuration>
-                    </execution>
+          <execution>
+            <id>install node and npm</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>install-node-and-npm</goal>
+            </goals>
+            <configuration>
+              <nodeVersion>v16.13.2</nodeVersion>
+            </configuration>
+          </execution>
 
-                    <execution>
-                        <id>npm install</id>
-                        <goals>
-                            <goal>npm</goal>
-                        </goals>
-                        <phase>generate-resources</phase>
-                    </execution>
+          <execution>
+            <id>npm install</id>
+            <goals>
+              <goal>npm</goal>
+            </goals>
+            <phase>generate-resources</phase>
+          </execution>
 
-                    <execution>
-                        <id>clone apps</id>
-                        <goals>
-                            <goal>npm</goal>
-                        </goals>
-                        <phase>generate-resources</phase>
-                        <configuration>
-                            <arguments>run bundle-apps</arguments>
-                        </configuration>
-                    </execution>
+          <execution>
+            <id>clone apps</id>
+            <goals>
+              <goal>npm</goal>
+            </goals>
+            <phase>generate-resources</phase>
+            <configuration>
+              <arguments>run bundle-apps</arguments>
+            </configuration>
+          </execution>
 
-                </executions>
-            </plugin>
+        </executions>
+      </plugin>
 
-        </plugins>
-    </build>
+    </plugins>
+  </build>
 
-    <properties>
-        <rootDir>../../</rootDir>
-    </properties>
+  <properties>
+    <rootDir>../../</rootDir>
+  </properties>
 </project>

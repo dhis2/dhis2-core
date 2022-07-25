@@ -57,11 +57,17 @@ class CategoryComboMapTest
 
     private CategoryOption coD;
 
+    private CategoryOption coX;
+
     private Category cA;
 
     private Category cB;
 
+    private Category cX;
+
     private CategoryCombo ccA;
+
+    private CategoryCombo ccX;
 
     private CategoryOptionCombo cocAC;
 
@@ -70,6 +76,8 @@ class CategoryComboMapTest
     private CategoryOptionCombo cocBC;
 
     private CategoryOptionCombo cocBD;
+
+    private CategoryOptionCombo cocX;
 
     private CategoryComboMap ccm;
 
@@ -84,52 +92,66 @@ class CategoryComboMapTest
         coB = new CategoryOption( "CategoryOption B" );
         coC = new CategoryOption( "CategoryOption C" );
         coD = new CategoryOption( dName );
+        coX = new CategoryOption( "CategoryOption X" );
         coA.setCode( "coA" );
         coB.setCode( "coB" );
         coC.setCode( "coC" );
         coD.setCode( dCode );
+        coX.setCode( "coX" );
         coA.setUid( "coAAAAAAAAA" );
         coB.setUid( "coBBBBBBBBB" );
         coC.setUid( "coCCCCCCCCC" );
         coD.setUid( dUid );
+        coX.setUid( "coXXXXXXXXX" );
         cA = new Category( "Category A", DISAGGREGATION, Lists.newArrayList( coA, coB ) );
         cB = new Category( "Category B", DISAGGREGATION, Lists.newArrayList( coC, coD ) );
+        cX = new Category( "Category X", DISAGGREGATION, Lists.newArrayList( coX ) );
         cA.setCode( "cA" );
         cB.setCode( "cB" );
         cA.setUid( "cAAAAAAAAAA" );
         cB.setUid( "cBBBBBBBBBB" );
+        cX.setUid( "cXXXXXXXXXX" );
         ccA = new CategoryCombo( "CategoryCombo A", DISAGGREGATION, Lists.newArrayList( cA, cB ) );
         ccA.setCode( "ccA" );
         ccA.setUid( "ccAAAAAAAAA" );
+        ccX = new CategoryCombo( "CategoryCombo X", DISAGGREGATION, Lists.newArrayList( cX ) );
         cocAC = new CategoryOptionCombo();
         cocAD = new CategoryOptionCombo();
         cocBC = new CategoryOptionCombo();
         cocBD = new CategoryOptionCombo();
+        cocX = new CategoryOptionCombo();
         cocAC.setName( "CategoryOptionCombo AC" );
         cocAD.setName( "CategoryOptionCombo AD" );
         cocBC.setName( "CategoryOptionCombo BC" );
         cocBD.setName( "CategoryOptionCombo BD" );
+        cocX.setName( "CategoryOptionCombo X" );
         cocAC.setCode( "cocAC" );
         cocAD.setCode( "cocAD" );
         cocBC.setCode( "cocBC" );
         cocBD.setCode( "cocBD" );
+        cocX.setCode( "cocX" );
         cocAC.setUid( "cocACAAAAAA" );
         cocAD.setUid( "cocADDDDDDD" );
         cocBC.setUid( "cocBCCCCCCC" );
         cocBD.setUid( "cocBDDDDDDD" );
+        cocX.setUid( "cocXXXXXXXX" );
         cocAC.setCategoryCombo( ccA );
         cocAD.setCategoryCombo( ccA );
         cocBC.setCategoryCombo( ccA );
         cocBD.setCategoryCombo( ccA );
+        cocX.setCategoryCombo( ccX );
         cocAC.setCategoryOptions( Sets.newHashSet( coA, coC ) );
         cocAD.setCategoryOptions( Sets.newHashSet( coA, coD ) );
         cocBC.setCategoryOptions( Sets.newHashSet( coB, coC ) );
         cocBD.setCategoryOptions( Sets.newHashSet( coB, coD ) );
+        cocX.setCategoryOptions( Sets.newHashSet( coX ) );
         coA.setCategoryOptionCombos( Sets.newHashSet( cocAC, cocAD ) );
         coB.setCategoryOptionCombos( Sets.newHashSet( cocBC, cocBD ) );
         coC.setCategoryOptionCombos( Sets.newHashSet( cocAC, cocBC ) );
         coD.setCategoryOptionCombos( Sets.newHashSet( cocAD, cocBD ) );
+        coX.setCategoryOptionCombos( Sets.newHashSet( cocX ) );
         ccA.setOptionCombos( Sets.newHashSet( cocAC, cocAD, cocBC, cocBD ) );
+        ccX.setOptionCombos( Sets.newHashSet( cocX ) );
     }
 
     @Test
@@ -172,8 +194,8 @@ class CategoryComboMapTest
     void testGetCategoryOptionComboNoCategoryOption()
     {
         setUp();
-        cB.getCategoryOptions().clear();
-        expectException( UID, "No categoryOption in Category B matching CategoryOptionCombo AD" );
+        cX.getCategoryOptions().clear();
+        expectException( UID, "No categoryOption in Category X matching CategoryOptionCombo X", ccX );
     }
 
     @Test
@@ -200,11 +222,17 @@ class CategoryComboMapTest
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
+
     private void expectException( IdScheme idScheme, String message )
+    {
+        expectException( idScheme, message, ccA );
+    }
+
+    private void expectException( IdScheme idScheme, String message, CategoryCombo cc )
     {
         try
         {
-            new CategoryComboMap( ccA, idScheme );
+            new CategoryComboMap( cc, idScheme );
             fail( "Expected CategoryComboMapException." );
         }
         catch ( CategoryComboMapException e )

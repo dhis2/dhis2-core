@@ -33,16 +33,18 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collections;
 
-import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleMode;
+import org.hisp.dhis.tracker.config.TrackerTest;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class DefaultTrackerValidationServiceConfigOrderTest extends DhisSpringTest
+class DefaultTrackerValidationServiceConfigOrderTest extends TrackerTest
 {
     @Autowired
     TrackerValidationService trackerValidationService;
@@ -61,7 +63,10 @@ class DefaultTrackerValidationServiceConfigOrderTest extends DhisSpringTest
 
         Event event = new Event();
         event.setEvent( "invalidUid" );
+        TrackerPreheat preheat = new TrackerPreheat();
+        preheat.setIdSchemes( TrackerIdSchemeParams.builder().build() );
         TrackerBundle bundle = TrackerBundle.builder()
+            .preheat( preheat )
             .importMode( TrackerBundleMode.VALIDATE )
             .validationMode( ValidationMode.FAIL_FAST )
             .skipRuleEngine( true )

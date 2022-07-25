@@ -43,8 +43,8 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
-import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserRole;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -85,7 +85,7 @@ public class Configuration
 
     private PeriodType infrastructuralPeriodType;
 
-    private UserAuthorityGroup selfRegistrationRole;
+    private UserRole selfRegistrationRole;
 
     private OrganisationUnit selfRegistrationOrgUnit;
 
@@ -225,12 +225,12 @@ public class Configuration
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public UserAuthorityGroup getSelfRegistrationRole()
+    public UserRole getSelfRegistrationRole()
     {
         return selfRegistrationRole;
     }
 
-    public void setSelfRegistrationRole( UserAuthorityGroup selfRegistrationRole )
+    public void setSelfRegistrationRole( UserRole selfRegistrationRole )
     {
         this.selfRegistrationRole = selfRegistrationRole;
     }

@@ -50,7 +50,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 @Setter
 @NoArgsConstructor
 @JacksonXmlRootElement( localName = "dataValueSet", namespace = DxfNamespaces.DXF_2_0 )
-public final class DataValueSet
+public class DataValueSet
 {
     // --------------------------------------------------------------------------
     // Options

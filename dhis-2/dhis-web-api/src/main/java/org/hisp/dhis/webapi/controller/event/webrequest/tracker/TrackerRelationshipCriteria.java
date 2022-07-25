@@ -27,27 +27,119 @@
  */
 package org.hisp.dhis.webapi.controller.event.webrequest.tracker;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
 import static org.hisp.dhis.webapi.controller.event.webrequest.tracker.FieldTranslatorSupport.translate;
 
 import java.util.Optional;
 
-import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 
-@Data
 @NoArgsConstructor
+@EqualsAndHashCode( exclude = { "identifier", "identifierName", "identifierClass" } )
 public class TrackerRelationshipCriteria extends PagingAndSortingCriteriaAdapter
 {
 
-    private String tei;
+    private String trackedEntity;
 
+    @Setter
     private String enrollment;
 
+    @Setter
     private String event;
+
+    private String identifier;
+
+    private String identifierName;
+
+    private Class<?> identifierClass;
+
+    public void setTei( String tei )
+    {
+        // this setter is kept for backwards-compatibility
+        // query parameter 'tei' should still be allowed, but 'trackedEntity' is
+        // preferred.
+        this.trackedEntity = tei;
+    }
+
+    public void setTrackedEntity( String trackedEntity )
+    {
+        this.trackedEntity = trackedEntity;
+    }
+
+    public String getIdentifierParam()
+        throws WebMessageException
+    {
+        if ( this.identifier != null )
+        {
+            return this.identifier;
+        }
+
+        int count = 0;
+        if ( !StringUtils.isBlank( this.trackedEntity ) )
+        {
+            this.identifier = this.trackedEntity;
+            this.identifierName = "trackedEntity";
+            this.identifierClass = TrackedEntityInstance.class;
+            count++;
+        }
+        if ( !StringUtils.isBlank( this.enrollment ) )
+        {
+            this.identifier = this.enrollment;
+            this.identifierName = "enrollment";
+            this.identifierClass = ProgramInstance.class;
+            count++;
+        }
+        if ( !StringUtils.isBlank( this.event ) )
+        {
+            this.identifier = this.event;
+            this.identifierName = "event";
+            this.identifierClass = ProgramStageInstance.class;
+            count++;
+        }
+
+        if ( count == 0 )
+        {
+            throw new WebMessageException(
+                badRequest( "Missing required parameter 'trackedEntity', 'enrollment' or 'event'." ) );
+        }
+        else if ( count > 1 )
+        {
+            throw new WebMessageException(
+                badRequest( "Only one of parameters 'trackedEntity', 'enrollment' or 'event' is allowed." ) );
+        }
+        return this.identifier;
+    }
+
+    public String getIdentifierName()
+        throws WebMessageException
+    {
+        if ( this.identifierName == null )
+        {
+            this.getIdentifierParam();
+        }
+        return this.identifierName;
+    }
+
+    public Class<?> getIdentifierClass()
+        throws WebMessageException
+    {
+        if ( this.identifierClass == null )
+        {
+            this.getIdentifierParam();
+        }
+        return this.identifierClass;
+    }
 
     @Override
     public boolean isLegacy()

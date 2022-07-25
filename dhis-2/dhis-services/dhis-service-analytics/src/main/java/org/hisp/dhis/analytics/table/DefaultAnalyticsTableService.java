@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.table;
 
 import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexName;
 import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexes;
+import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
 import java.util.Collection;
@@ -98,6 +99,7 @@ public class DefaultAnalyticsTableService
         progress.startingStage( "Validating Analytics Table " + tableType );
         String validState = tableManager.validState();
         progress.completedStage( validState );
+
         if ( validState != null || progress.isCancellationRequested() )
         {
             return;
@@ -120,7 +122,8 @@ public class DefaultAnalyticsTableService
         progress.runStage( () -> tableManager.preCreateTables( params ) );
         clock.logTime( "Performed pre-create table work " + tableType );
 
-        progress.startingStage( "Dropping temp tables " + tableType, tables.size() );
+        dropTempTablesPartitions( tables, progress );
+        progress.startingStage( "Dropping temp tables (if any) " + tableType, tables.size() );
         dropTempTables( tables, progress );
         clock.logTime( "Dropped temp tables" );
 
@@ -149,7 +152,7 @@ public class DefaultAnalyticsTableService
         }
 
         List<AnalyticsIndex> indexes = getIndexes( partitions );
-        progress.startingStage( "Creating indexes " + tableType, indexes.size() );
+        progress.startingStage( "Creating indexes " + tableType, indexes.size(), SKIP_ITEM_OUTLIER );
         createIndexes( indexes, progress );
         clock.logTime( "Created indexes" );
 
@@ -174,7 +177,12 @@ public class DefaultAnalyticsTableService
     {
         Set<String> tables = tableManager.getExistingDatabaseTables();
 
-        tables.forEach( tableManager::dropTableCascade );
+        // The filter is a quick fix to not drop `analyticsdataexchange`
+        // that is not part of the analytics table.
+        // It was getting drop only because of the name.
+        tables.stream()
+            .filter( tableName -> !"analyticsdataexchange".equals( tableName ) )
+            .forEach( tableManager::dropTableCascade );
 
         log.info( "Analytics tables dropped" );
     }
@@ -196,9 +204,24 @@ public class DefaultAnalyticsTableService
     /**
      * Drops the given temporary analytics tables.
      */
-    private void dropTempTables( List<AnalyticsTable> tables, JobProgress progress )
+    private void dropTempTables( final List<AnalyticsTable> tables, final JobProgress progress )
     {
+
         progress.runStage( tables, AnalyticsTable::getTableName, tableManager::dropTempTable );
+    }
+
+    /**
+     * Drops the given temporary analytics tables.
+     */
+    private void dropTempTablesPartitions( final List<AnalyticsTable> tables, final JobProgress progress )
+    {
+        for ( final AnalyticsTable table : tables )
+        {
+            progress.startingStage( "Dropping table partitions of table " + table.getTableName(),
+                table.getTablePartitions().size() );
+            progress.runStage( table.getTablePartitions(), AnalyticsTablePartition::getTableName,
+                tableManager::dropTempTablePartition );
+        }
     }
 
     /**
@@ -269,7 +292,7 @@ public class DefaultAnalyticsTableService
     private void createIndexes( List<AnalyticsIndex> indexes, JobProgress progress )
     {
         AnalyticsTableType type = getAnalyticsTableType();
-        log.info( "No of analytics table indexes: " + indexes.size() );
+
         progress.runStageInParallel( getProcessNo(), indexes,
             index -> getIndexName( index, type ).replace( "\"", "" ),
             tableManager::createIndex );

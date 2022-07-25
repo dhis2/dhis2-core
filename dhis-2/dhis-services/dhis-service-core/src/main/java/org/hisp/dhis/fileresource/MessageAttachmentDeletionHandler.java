@@ -27,26 +27,18 @@
  */
 package org.hisp.dhis.fileresource;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
-import org.hisp.dhis.system.deletion.DeletionHandler;
+import java.util.Map;
+
 import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
 import org.springframework.stereotype.Component;
 
-@Component( "org.hisp.dhis.fileresource.MessageAttachmentDeletionHandler" )
-public class MessageAttachmentDeletionHandler extends DeletionHandler
+@Component
+public class MessageAttachmentDeletionHandler extends JdbcDeletionHandler
 {
     private static final DeletionVeto VETO = new DeletionVeto( FileResource.class );
-
-    private final JdbcTemplate jdbcTemplate;
-
-    public MessageAttachmentDeletionHandler( JdbcTemplate jdbcTemplate )
-    {
-        checkNotNull( jdbcTemplate );
-        this.jdbcTemplate = jdbcTemplate;
-    }
 
     @Override
     protected void register()
@@ -57,17 +49,16 @@ public class MessageAttachmentDeletionHandler extends DeletionHandler
 
     private DeletionVeto allowDeleteFileResource( FileResource fileResource )
     {
-        String sql = "SELECT COUNT(*) FROM messageattachments WHERE fileresourceid=" + fileResource.getId();
-
-        int result = jdbcTemplate.queryForObject( sql, Integer.class );
-
-        return result == 0 || fileResource.getStorageStatus() != FileResourceStorageStatus.STORED ? ACCEPT : VETO;
+        if ( fileResource.getStorageStatus() != FileResourceStorageStatus.STORED )
+        {
+            return ACCEPT;
+        }
+        String sql = "select count(*) from messageattachments where fileresourceid=:id";
+        return vetoIfExists( VETO, sql, Map.of( "id", fileResource.getId() ) );
     }
 
     private void deleteFileResource( FileResource fileResource )
     {
-        String sql = "DELETE FROM messageattachments WHERE fileresourceid=" + fileResource.getId();
-
-        jdbcTemplate.execute( sql );
+        delete( "delete from messageattachments where fileresourceid=:id", Map.of( "id", fileResource.getId() ) );
     }
 }

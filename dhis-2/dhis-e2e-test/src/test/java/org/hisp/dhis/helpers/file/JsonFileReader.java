@@ -35,6 +35,8 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import org.hisp.dhis.actions.IdGenerator;
+import org.hisp.dhis.helpers.JsonObjectBuilder;
+import org.hisp.dhis.helpers.JsonParserUtils;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -71,8 +73,27 @@ public class JsonFileReader
         return replacePropertyValuesWith( propertyName, "uniqueid" );
     }
 
+    /***
+     * Replaces all occurrences of a string with unique generated id
+     *
+     * @param strToReplace
+     * @return
+     */
+    public JsonFileReader replaceStringsWithIds( String... strToReplace )
+    {
+        String replacedJson = obj.toString();
+        for ( String s : strToReplace )
+        {
+            replacedJson = replacedJson.replaceAll( s, new IdGenerator().generateUniqueId() );
+        }
+
+        obj = JsonParserUtils.toJsonObject( replacedJson );
+
+        return this;
+    }
+
     @Override
-    public FileReader replacePropertyValuesWith( String propertyName, String replacedValue )
+    public JsonFileReader replacePropertyValuesWith( String propertyName, String replacedValue )
     {
         replace( p -> {
             JsonObject object = ((JsonElement) p).getAsJsonObject();
@@ -92,7 +113,7 @@ public class JsonFileReader
     }
 
     @Override
-    public FileReader replacePropertyValuesRecursivelyWith( String propertyName, String replacedValue )
+    public JsonFileReader replacePropertyValuesRecursivelyWith( String propertyName, String replacedValue )
     {
         replace( obj, jsonObject -> {
             if ( !jsonObject.has( propertyName ) )
@@ -112,10 +133,14 @@ public class JsonFileReader
         return this;
     }
 
-
     public JsonObject get()
     {
         return obj;
+    }
+
+    public JsonObjectBuilder getAsObjectBuilder()
+    {
+        return new JsonObjectBuilder( obj );
     }
 
     @Override
@@ -151,7 +176,7 @@ public class JsonFileReader
         {
             for ( JsonElement e : root.getAsJsonArray() )
             {
-                replace( e,function );
+                replace( e, function );
             }
         }
         else if ( root.isJsonObject() )
@@ -163,7 +188,7 @@ public class JsonFileReader
                 JsonElement element = jsonObjRoot.get( key );
                 if ( element.isJsonArray() )
                 {
-                    replace( element,function );
+                    replace( element, function );
                 }
             }
         }

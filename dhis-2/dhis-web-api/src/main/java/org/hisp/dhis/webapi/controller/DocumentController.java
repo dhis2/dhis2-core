@@ -97,7 +97,7 @@ public class DocumentController
             FileResource fileResource = document.getFileResource();
 
             response.setContentType( fileResource.getContentType() );
-            response.setContentLength( new Long( fileResource.getContentLength() ).intValue() );
+            response.setContentLengthLong( fileResource.getContentLength() );
             response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName() );
 
             try

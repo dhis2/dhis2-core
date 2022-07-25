@@ -27,9 +27,12 @@
  */
 package org.hisp.dhis.actions.tracker;
 
-import com.google.gson.JsonObject;
+import org.hisp.dhis.actions.MaintenanceActions;
 import org.hisp.dhis.actions.RestApiActions;
+import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
+
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -40,6 +43,29 @@ public class RelationshipActions
     public RelationshipActions()
     {
         super( "/relationships" );
+    }
+
+    /**
+     * Hard deletes relationship.
+     *
+     * @param relationshipId ID of relationship to delete
+     */
+    @Override
+    public ApiResponse delete( String relationshipId )
+    {
+        ApiResponse response = super.delete( relationshipId );
+        new MaintenanceActions().removeSoftDeletedRelationships();
+
+        return response;
+    }
+
+    public ApiResponse softDelete( String relationshipId )
+    {
+        ApiResponse response = super.delete( relationshipId );
+
+        response.validate().statusCode( 200 );
+
+        return response;
     }
 
     public JsonObject createRelationshipBody( String relationshipTypeId, String fromEntity, String fromEntityId,

@@ -29,6 +29,7 @@ package org.hisp.dhis.resourcetable;
 
 import static java.util.Comparator.reverseOrder;
 import static java.util.stream.Collectors.toList;
+import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -77,7 +78,7 @@ import com.google.common.collect.Lists;
  * @author Lars Helge Overland
  */
 @Slf4j
-@Service( "org.hisp.dhis.resourcetable.ResourceTableService" )
+@Service
 @AllArgsConstructor
 public class DefaultResourceTableService
     implements ResourceTableService
@@ -196,7 +197,7 @@ public class DefaultResourceTableService
         List<OrganisationUnitLevel> orgUnitLevels = Lists.newArrayList(
             dataApprovalLevelService.getOrganisationUnitApprovalLevels() );
 
-        if ( orgUnitLevels.size() > 0 )
+        if ( !orgUnitLevels.isEmpty() )
         {
             resourceTableStore.generateResourceTable( new DataApprovalMinLevelResourceTable( orgUnitLevels ) );
         }
@@ -215,7 +216,7 @@ public class DefaultResourceTableService
             .filter( view -> !view.isQuery() )
             .collect( toList() );
 
-        progress.startingStage( "Create SQL views", nonQueryViews.size() );
+        progress.startingStage( "Create SQL views", nonQueryViews.size(), SKIP_ITEM );
         progress.runStage( nonQueryViews, SqlView::getViewName, view -> {
             try
             {
@@ -236,7 +237,7 @@ public class DefaultResourceTableService
             .filter( view -> !view.isQuery() )
             .sorted( reverseOrder() )
             .collect( toList() );
-        progress.startingStage( "Drop SQL views", nonQueryViews.size() );
+        progress.startingStage( "Drop SQL views", nonQueryViews.size(), SKIP_ITEM );
         progress.runStage( nonQueryViews, SqlView::getViewName, sqlViewService::deleteSqlView );
     }
 }

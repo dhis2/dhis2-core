@@ -1,0 +1,93 @@
+{
+  "importMode": "COMMIT",
+  "idSchemes": {
+    "dataElementIdScheme": {
+      "idScheme": "UID"
+    },
+    "orgUnitIdScheme": {
+      "idScheme": "UID"
+    },
+    "programIdScheme": {
+      "idScheme": "UID"
+    },
+    "programStageIdScheme": {
+      "idScheme": "UID"
+    },
+    "idScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionComboIdScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionIdScheme": {
+      "idScheme": "UID"
+    }
+  },
+  "importStrategy": "CREATE",
+  "atomicMode": "ALL",
+  "flushMode": "AUTO",
+  "validationMode": "FULL",
+  "skipPatternValidation": false,
+  "skipSideEffects": false,
+  "skipRuleEngine": false,
+  "trackedEntities": [],
+  "enrollments": [],
+  "events": [
+    {
+      "event": "T1FVaihz1pm",
+      "status": "ACTIVE",
+      "program": {
+        "idScheme": "UID",
+        "identifier": "rT3rvcn2vid"
+      },
+      "programStage": {
+        "idScheme": "UID",
+        "identifier": "o68AuhbJDSz"
+      },
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
+      "relationships": [],
+      "occurredAt": "2018-12-31T06:13:07.000",
+      "followup": false,
+      "deleted": false,
+      "attributeOptionCombo": {
+        "idScheme": "UID",
+        "identifier": "OOlvX50cXC0"
+      },
+      "attributeCategoryOptions": [],
+      "dataValues": [],
+      "notes": []
+    },
+    {
+      "event": "LkAsjXR2BDM",
+      "status": "ACTIVE",
+      "program": {
+        "idScheme": "UID"
+      },
+      "programStage": {
+        "idScheme": "UID",
+        "identifier": "o68AuhbJDSz"
+      },
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
+      "relationships": [],
+      "occurredAt": "2020-08-01T00:00:00.000",
+      "scheduledAt": "2020-08-19T13:59:13.688",
+      "followup": false,
+      "deleted": false,
+      "attributeOptionCombo": {
+        "idScheme": "UID",
+        "identifier": "OOlvX50cXC0"
+      },
+      "attributeCategoryOptions": [],
+      "dataValues": [],
+      "notes": []
+    }
+  ],
+  "relationships": [],
+  "username": "system-process"
+}

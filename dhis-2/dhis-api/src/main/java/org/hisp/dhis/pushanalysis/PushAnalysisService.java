@@ -30,7 +30,7 @@ package org.hisp.dhis.pushanalysis;
 import java.io.IOException;
 import java.util.List;
 
-import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.user.User;
 
 /**
@@ -60,11 +60,10 @@ public interface PushAnalysisService
      *
      * @param pushAnalysis PushAnalysis to generate report from
      * @param user User to base data on
-     * @param jobId JobId to track process
      * @return String containing a HTML report
      * @throws IOException if the upload of report content failed.
      */
-    String generateHtmlReport( PushAnalysis pushAnalysis, User user, JobConfiguration jobId )
+    String generateHtmlReport( PushAnalysis pushAnalysis, User user )
         throws IOException;
 
     /**
@@ -72,10 +71,8 @@ public interface PushAnalysisService
      * PushAnalysis, using generateHtmlReport to generate the reports for each
      * individual user in the UserGroups.
      *
-     * @param uid of the PushAnalysis
-     * @param jobId to track process
+     * @param uids UIDs of the PushAnalysis to run
+     * @param progress tracking of the processing
      */
-    void runPushAnalysis( String uid, JobConfiguration jobId );
-
-    void runPushAnalysis( List<String> uids, JobConfiguration jobId );
+    void runPushAnalysis( List<String> uids, JobProgress progress );
 }

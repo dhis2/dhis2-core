@@ -27,17 +27,17 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
+import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpStatus;
 
 /**
  * Tests the {@link SharingController} using (mocked) REST requests.
@@ -106,7 +106,7 @@ class SharingControllerTest extends DhisControllerConvenienceTest
         assertEquals( "test", object.getString( "displayName" ).string() );
         assertEquals( "rw------", object.getString( "publicAccess" ).string() );
         assertFalse( object.getBoolean( "externalAccess" ).booleanValue() );
-        assertEquals( "admin admin", object.getObject( "user" ).getString( "name" ).string() );
+        assertEquals( "FirstNameadmin Surnameadmin", object.getObject( "user" ).getString( "name" ).string() );
         assertEquals( 0, object.getArray( "userGroupAccesses" ).size() );
         assertEquals( 0, object.getArray( "userAccesses" ).size() );
     }

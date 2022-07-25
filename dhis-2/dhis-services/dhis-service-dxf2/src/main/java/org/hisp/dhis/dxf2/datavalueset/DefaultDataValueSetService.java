@@ -123,6 +123,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 
 /**
  * Note that a mock BatchHandler factory is being injected.
@@ -207,6 +208,7 @@ public class DefaultDataValueSetService
     {
         DataExportParams params = new DataExportParams();
         IdSchemes inputIdSchemes = urlParams.getInputIdSchemes();
+
         if ( !isEmpty( urlParams.getDataSet() ) )
         {
             params.getDataSets().addAll( identifiableObjectManager.getObjects(
@@ -254,6 +256,12 @@ public class DefaultDataValueSetService
                 CategoryOptionCombo.class,
                 IdentifiableProperty.in( inputIdSchemes, IdSchemes::getAttributeOptionComboIdScheme ),
                 urlParams.getAttributeOptionCombo() ) );
+        }
+        else if ( urlParams.getAttributeCombo() != null && !isEmpty( urlParams.getAttributeOptions() ) )
+        {
+            params.getAttributeOptionCombos().addAll(
+                Lists.newArrayList( inputUtils.getAttributeOptionCombo(
+                    urlParams.getAttributeCombo(), urlParams.getAttributeOptions() ) ) );
         }
 
         return params
@@ -578,6 +586,13 @@ public class DefaultDataValueSetService
     public ImportSummary importDataValueSetCsv( InputStream in, ImportOptions options )
     {
         return importDataValueSetCsv( in, options, null );
+    }
+
+    @Override
+    @Transactional
+    public ImportSummary importDataValueSet( DataValueSet dataValueSet, ImportOptions options )
+    {
+        return importDataValueSet( options, null, () -> new SimpleDataValueSetReader( dataValueSet ) );
     }
 
     @Override

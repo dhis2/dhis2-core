@@ -57,7 +57,7 @@ public class Mutation
      */
     private Operation operation = Operation.ADDITION;
 
-    enum Operation
+    public enum Operation
     {
         ADDITION,
         DELETION

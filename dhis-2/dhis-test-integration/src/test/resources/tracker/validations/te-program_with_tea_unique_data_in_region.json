@@ -1,0 +1,68 @@
+{
+  "importMode": "COMMIT",
+  "idSchemes": {
+    "dataElementIdScheme": {
+      "idScheme": "UID"
+    },
+    "orgUnitIdScheme": {
+      "idScheme": "UID"
+    },
+    "programIdScheme": {
+      "idScheme": "UID"
+    },
+    "programStageIdScheme": {
+      "idScheme": "UID"
+    },
+    "idScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionComboIdScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionIdScheme": {
+      "idScheme": "UID"
+    }
+  },
+  "importStrategy": "CREATE",
+  "atomicMode": "ALL",
+  "flushMode": "AUTO",
+  "validationMode": "FULL",
+  "skipPatternValidation": false,
+  "skipSideEffects": false,
+  "skipRuleEngine": false,
+  "trackedEntities": [
+    {
+      "trackedEntity": "cNEZTkdAvre",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "KrYIdvLxkMb"
+      },
+      "createdAtClient": "2020-02-20T12:09:21.844",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "cNEZTkdAvfe"
+      },
+      "inactive": false,
+      "deleted": false,
+      "potentialDuplicate": false,
+      "relationships": [],
+      "attributes": [
+        {
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "p5TPxx5Uhrf"
+          },
+          "displayName": "Attribute_Identifier_Integer",
+          "storedBy": "admin",
+          "valueType": "INTEGER_POSITIVE",
+          "value": "321"
+        }
+      ],
+      "enrollments": []
+    }
+  ],
+  "enrollments": [],
+  "events": [],
+  "relationships": [],
+  "username": "system-process"
+}

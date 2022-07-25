@@ -31,25 +31,19 @@ import java.io.Serializable;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.temporal.WeekFields;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 
 import org.hisp.dhis.calendar.impl.Iso8601Calendar;
 import org.hisp.dhis.period.BiWeeklyPeriodType;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.WeeklyAbstractPeriodType;
 
-import com.google.common.collect.Maps;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class DateUnitPeriodTypeParser implements PeriodTypeParser, Serializable
 {
-    private final Map<String, Pattern> compileCache = Maps.newHashMap();
-
     private static CalendarService calendarService;
 
     public static void setCalendarService( CalendarService calendarService )
@@ -81,27 +75,16 @@ public class DateUnitPeriodTypeParser implements PeriodTypeParser, Serializable
     @Override
     public DateInterval parse( Calendar calendar, String period )
     {
-        DateUnitType dateUnitType = DateUnitType.find( period );
+        return DateUnitType.find( period )
+            .map( dateUnitTypeWithPattern -> parseInternal( calendar, period, dateUnitTypeWithPattern ) )
+            .orElse( null );
+    }
 
-        if ( dateUnitType == null )
-        {
-            return null;
-        }
-
-        if ( compileCache.get( dateUnitType.getName() ) == null )
-        {
-            try
-            {
-                Pattern pattern = Pattern.compile( dateUnitType.getPattern() );
-                compileCache.put( dateUnitType.getName(), pattern );
-            }
-            catch ( PatternSyntaxException ex )
-            {
-                return null;
-            }
-        }
-
-        Pattern pattern = compileCache.get( dateUnitType.getName() );
+    private DateInterval parseInternal( Calendar calendar, String period,
+        DateUnitType.DateUnitTypeWithPattern dateUnitTypeWithPattern )
+    {
+        Pattern pattern = dateUnitTypeWithPattern.getPattern();
+        DateUnitType dateUnitType = dateUnitTypeWithPattern.getDateUnitType();
         Matcher matcher = pattern.matcher( period );
         boolean match = matcher.find();
 

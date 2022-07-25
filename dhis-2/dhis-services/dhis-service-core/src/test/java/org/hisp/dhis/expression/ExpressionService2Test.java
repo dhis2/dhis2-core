@@ -28,10 +28,12 @@
 package org.hisp.dhis.expression;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hisp.dhis.antlr.AntlrParserUtils.castDouble;
 import static org.hisp.dhis.category.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
 import static org.hisp.dhis.expression.Expression.SEPARATOR;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_DAYS;
@@ -40,14 +42,17 @@ import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
 import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 import static org.hisp.dhis.expression.ParseType.PREDICTOR_EXPRESSION;
 import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertMapEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.hamcrest.MockitoHamcrest.argThat;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -58,37 +63,39 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.math3.util.Precision;
-import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.analytics.DataType;
+import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.cache.NoOpCache;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
-import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
+import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.indicator.IndicatorValue;
+import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
@@ -98,7 +105,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -109,26 +115,14 @@ import com.google.common.collect.Sets;
  * @author Luciano Fiandesio
  */
 @ExtendWith( MockitoExtension.class )
-class ExpressionService2Test extends DhisSpringTest
+class ExpressionService2Test extends DhisConvenienceTest
 {
 
     @Mock
     private HibernateGenericStore<Expression> hibernateGenericStore;
 
     @Mock
-    private DataElementService dataElementService;
-
-    @Mock
-    private CategoryService categoryService;
-
-    @Mock
     private ConstantService constantService;
-
-    @Mock
-    private OrganisationUnitService organisationUnitService;
-
-    @Mock
-    private OrganisationUnitGroupService organisationUnitGroupService;
 
     @Mock
     private DimensionService dimensionService;
@@ -136,7 +130,13 @@ class ExpressionService2Test extends DhisSpringTest
     @Mock
     private IdentifiableObjectManager idObjectManager;
 
-    @Autowired
+    @Mock
+    private StatementBuilder statementBuilder;
+
+    @Mock
+    private I18nManager i18nManager;
+
+    @Mock
     private CacheProvider cacheProvider;
 
     private DefaultExpressionService target;
@@ -205,6 +205,14 @@ class ExpressionService2Test extends DhisSpringTest
 
     private OrganisationUnitGroup groupB;
 
+    private DataSet dataSetA;
+
+    private DataSet dataSetB;
+
+    private Program programA;
+
+    private Program programB;
+
     private ReportingRate reportingRate;
 
     private String expressionA;
@@ -248,8 +256,9 @@ class ExpressionService2Test extends DhisSpringTest
     @BeforeEach
     public void setUp()
     {
-        target = new DefaultExpressionService( hibernateGenericStore, dataElementService, constantService,
-            organisationUnitService, organisationUnitGroupService, dimensionService, idObjectManager, cacheProvider );
+        when( cacheProvider.createAllConstantsCache() ).thenReturn( new NoOpCache<>() );
+        target = new DefaultExpressionService( hibernateGenericStore, constantService, dimensionService,
+            idObjectManager, statementBuilder, i18nManager, cacheProvider );
 
         categoryOptionA = new CategoryOption( "Under 5" );
         categoryOptionB = new CategoryOption( "Over 5" );
@@ -320,9 +329,21 @@ class ExpressionService2Test extends DhisSpringTest
         groupB = createOrganisationUnitGroup( 'B' );
         groupB.addOrganisationUnit( unitB );
 
-        DataSet dataSetA = createDataSet( 'A' );
+        dataSetA = createDataSet( 'A' );
         dataSetA.setUid( "a23dataSetA" );
         dataSetA.addOrganisationUnit( unitA );
+
+        dataSetB = createDataSet( 'B' );
+        dataSetB.setUid( "a23dataSetB" );
+        dataSetB.addOrganisationUnit( unitA );
+
+        programA = createProgram( 'A' );
+        programA.setUid( "a23programA" );
+        programA.addOrganisationUnit( unitA );
+
+        programB = createProgram( 'B' );
+        programB.setUid( "a23programB" );
+        dataSetB.addOrganisationUnit( unitB );
 
         reportingRate = new ReportingRate( dataSetA );
 
@@ -397,12 +418,37 @@ class ExpressionService2Test extends DhisSpringTest
         }
     }
 
+    private <T extends IdentifiableObject> Map<String, T> getMap( T... idObjects )
+    {
+        return IdentifiableObjectUtils.getIdMap( List.of( idObjects ), IdScheme.UID );
+    }
+
     private Double exprValue( String expression, Map<DimensionalItemId, DimensionalItemObject> itemMap,
         Map<DimensionalItemObject, Object> valueMap, Map<String, Integer> orgUnitCountMap, Integer days )
     {
-        return target.getExpressionValue( expression, INDICATOR_EXPRESSION, itemMap, valueMap,
-            constantMap(), orgUnitCountMap, null, days, NEVER_SKIP, null );
+        return castDouble( target.getExpressionValue( ExpressionParams.builder()
+            .expression( expression )
+            .parseType( INDICATOR_EXPRESSION )
+            .itemMap( itemMap )
+            .valueMap( valueMap )
+            .orgUnitCountMap( orgUnitCountMap )
+            .days( days )
+            .missingValueStrategy( NEVER_SKIP )
+            .build() ) );
     }
+
+    private void mockConstantService()
+    {
+        when( constantService.getConstantMap() ).thenReturn(
+            ImmutableMap.<String, Constant> builder()
+                .put( constantA.getUid(), constantA )
+                .put( constantB.getUid(), constantB )
+                .build() );
+    }
+
+    // -------------------------------------------------------------------------
+    // Tests
+    // -------------------------------------------------------------------------
 
     @Test
     void testGetExpressionElementAndOptionComboIds()
@@ -427,11 +473,7 @@ class ExpressionService2Test extends DhisSpringTest
     @Test
     void testGetExpressionDimensionalItemIds()
     {
-        when( constantService.getConstantMap() ).thenReturn(
-            ImmutableMap.<String, Constant> builder()
-                .put( constantA.getUid(), constantA )
-                .put( constantB.getUid(), constantB )
-                .build() );
+        mockConstantService();
 
         Set<DimensionalItemId> itemIds = target.getExpressionDimensionalItemIds( expressionI, INDICATOR_EXPRESSION );
 
@@ -444,56 +486,138 @@ class ExpressionService2Test extends DhisSpringTest
     }
 
     @Test
-    void testGetExpressionDimensionalItemMapsNullOrEmpty()
+    void testGetExpressionInfoItemIdsNullOrEmpty()
     {
-        Map<DimensionalItemId, DimensionalItemObject> itemMap = new HashMap<>();
-        Map<DimensionalItemId, DimensionalItemObject> sampleItemMap = new HashMap<>();
+        ExpressionInfo info;
 
-        target.getExpressionDimensionalItemMaps( null, INDICATOR_EXPRESSION, DataType.NUMERIC, itemMap, sampleItemMap );
-        assertEquals( 0, itemMap.size() );
-        assertEquals( 0, sampleItemMap.size() );
+        info = target.getExpressionInfo( ExpressionParams.builder()
+            .expression( null )
+            .parseType( INDICATOR_EXPRESSION )
+            .build() );
+        assertEquals( 0, info.getAllItemIds().size() );
+        assertEquals( 0, info.getSampleItemIds().size() );
 
-        target.getExpressionDimensionalItemMaps( "", INDICATOR_EXPRESSION, DataType.NUMERIC, itemMap, sampleItemMap );
-        assertEquals( 0, itemMap.size() );
-        assertEquals( 0, sampleItemMap.size() );
+        info = target.getExpressionInfo( ExpressionParams.builder()
+            .expression( "" )
+            .parseType( INDICATOR_EXPRESSION )
+            .build() );
+        assertEquals( 0, info.getAllItemIds().size() );
+        assertEquals( 0, info.getSampleItemIds().size() );
     }
 
     @Test
-    void testGetExpressionDimensionalItemMaps()
+    void testGetExpressionInfo()
     {
-        Set<DimensionalItemId> itemIds = Sets.newHashSet(
-            getId( opA ), getId( opB ), getId( opC ), getId( opD ) );
+        String expression = "#{" + opA.getDimensionItem() + "}" +
+            "+sum(#{" + deB.getUid() + "})" +
+            "+sum(D{" + pdeA.getDimensionItem() + "})" +
+            "+R{" + reportingRate.getUid() + ".REPORTING_RATE}" +
+            "+if(orgUnit.ancestor(" + unitA.getUid() + "," + unitB.getUid() + "),1,0)" +
+            "+if(orgUnit.group(" + groupA.getUid() + "," + groupB.getUid() + "),1,0)" +
+            "+if(orgUnit.dataSet(" + dataSetA.getUid() + "," + dataSetB.getUid() + "),1,0)" +
+            "+if(orgUnit.program(" + programA.getUid() + "," + programB.getUid() + "),1,0)";
 
-        Set<DimensionalItemId> sampleIds = Sets.newHashSet(
-            getId( opA ), getId( opB ) );
+        ExpressionInfo info = target.getExpressionInfo( ExpressionParams.builder()
+            .expression( expression )
+            .parseType( PREDICTOR_EXPRESSION )
+            .build() );
 
-        Map<DimensionalItemId, DimensionalItemObject> expectedItemMap = ImmutableMap.of(
+        assertContainsOnly( info.getItemIds(), getId( opA ), getId( reportingRate ) );
+        assertContainsOnly( info.getSampleItemIds(), getId( deB ), getId( pdeA ) );
+        assertContainsOnly( info.getAllItemIds(), getId( opA ), getId( reportingRate ), getId( deB ), getId( pdeA ) );
+        assertContainsOnly( info.getOrgUnitGroupIds(), groupA.getUid(), groupB.getUid() );
+        assertContainsOnly( info.getOrgUnitDataSetIds(), dataSetA.getUid(), dataSetB.getUid() );
+        assertContainsOnly( info.getOrgUnitProgramIds(), programA.getUid(), programB.getUid() );
+        assertTrue( info.getOrgUnitGroupCountIds().isEmpty() );
+    }
+
+    @Test
+    void testGetExpressionInfoOrgUnitGroupCountIds()
+    {
+        String expression = "OUG{" + groupA.getUid() + "}" +
+            "+OUG{" + groupB.getUid() + "}";
+
+        ExpressionInfo info = target.getExpressionInfo( ExpressionParams.builder()
+            .expression( expression )
+            .parseType( INDICATOR_EXPRESSION )
+            .build() );
+
+        assertContainsOnly( info.getOrgUnitGroupCountIds(), groupA.getUid(), groupB.getUid() );
+        assertTrue( info.getItemIds().isEmpty() );
+        assertTrue( info.getSampleItemIds().isEmpty() );
+        assertTrue( info.getAllItemIds().isEmpty() );
+        assertTrue( info.getOrgUnitGroupIds().isEmpty() );
+        assertTrue( info.getOrgUnitDataSetIds().isEmpty() );
+        assertTrue( info.getOrgUnitProgramIds().isEmpty() );
+    }
+
+    @Test
+    void testGetExpressionInfoChainedCalls()
+    {
+        String expression1 = "#{" + opA.getDimensionItem() + "}" +
+            " + sum(#{" + deB.getUid() + "})";
+
+        ExpressionInfo info = target.getExpressionInfo( ExpressionParams.builder()
+            .expression( expression1 )
+            .parseType( PREDICTOR_EXPRESSION )
+            .build() );
+
+        String expression2 = "D{" + pdeA.getDimensionItem() + "}" +
+            " + sum(R{" + reportingRate.getUid() + ".REPORTING_RATE})";
+
+        target.getExpressionInfo( ExpressionParams.builder()
+            .expressionInfo( info )
+            .expression( expression2 )
+            .parseType( PREDICTOR_EXPRESSION )
+            .build() );
+
+        assertContainsOnly( info.getItemIds(), getId( opA ), getId( pdeA ) );
+        assertContainsOnly( info.getSampleItemIds(), getId( deB ), getId( reportingRate ) );
+    }
+
+    @Test
+    void testGetBaseExpressionParams()
+    {
+        ExpressionInfo info = new ExpressionInfo();
+
+        info.getItemIds().addAll( List.of( getId( opA ), getId( deB ) ) );
+        info.getSampleItemIds().addAll( List.of( getId( reportingRate ), getId( pdeA ) ) );
+        info.getOrgUnitGroupIds().addAll( List.of( groupA.getUid(), groupB.getUid() ) );
+        info.getOrgUnitDataSetIds().addAll( List.of( dataSetA.getUid(), dataSetB.getUid() ) );
+        info.getOrgUnitProgramIds().addAll( List.of( programA.getUid(), programB.getUid() ) );
+
+        when( dimensionService.getNoAclDataDimensionalItemObjectMap( (Set<DimensionalItemId>) argThat(
+            containsInAnyOrder( getId( opA ), getId( deB ), getId( reportingRate ), getId( pdeA ) ) ) ) )
+                .thenReturn( Map.of(
+                    getId( opA ), opA,
+                    getId( deB ), deB,
+                    getId( reportingRate ), reportingRate,
+                    getId( pdeA ), pdeA ) );
+
+        when( idObjectManager.getNoAcl( eq( OrganisationUnitGroup.class ), (java.util.Collection<String>) argThat(
+            containsInAnyOrder( groupA.getUid(), groupB.getUid() ) ) ) )
+                .thenReturn( List.of( groupA, groupB ) );
+
+        when( idObjectManager.getNoAcl( eq( DataSet.class ), (java.util.Collection<String>) argThat(
+            containsInAnyOrder( dataSetA.getUid(), dataSetB.getUid() ) ) ) )
+                .thenReturn( List.of( dataSetA, dataSetB ) );
+
+        when( idObjectManager.getNoAcl( eq( Program.class ), (java.util.Collection<String>) argThat(
+            containsInAnyOrder( programA.getUid(), programB.getUid() ) ) ) )
+                .thenReturn( List.of( programA, programB ) );
+
+        ExpressionParams baseParams = target.getBaseExpressionParams( info );
+
+        Map<DimensionalItemId, DimensionalItemObject> expectedItemMap = Map.of(
             getId( opA ), opA,
-            getId( opB ), opB,
-            getId( opC ), opC,
-            getId( opD ), opD );
+            getId( deB ), deB,
+            getId( reportingRate ), reportingRate,
+            getId( pdeA ), pdeA );
 
-        Map<DimensionalItemId, DimensionalItemObject> expectedSampleMap = ImmutableMap.of(
-            getId( opA ), opA,
-            getId( opB ), opB );
-
-        when( dimensionService.getDataDimensionalItemObjectMap( itemIds ) ).thenReturn( expectedItemMap );
-        when( dimensionService.getDataDimensionalItemObjectMap( sampleIds ) ).thenReturn( expectedSampleMap );
-
-        when( constantService.getConstantMap() ).thenReturn(
-            ImmutableMap.<String, Constant> builder()
-                .put( constantA.getUid(), constantA )
-                .put( constantB.getUid(), constantB )
-                .build() );
-
-        Map<DimensionalItemId, DimensionalItemObject> resultItemMap = new HashMap<>();
-        Map<DimensionalItemId, DimensionalItemObject> resultSampleMap = new HashMap<>();
-
-        target.getExpressionDimensionalItemMaps( expressionL, PREDICTOR_EXPRESSION, DataType.NUMERIC,
-            resultItemMap, resultSampleMap );
-
-        assertMapEquals( expectedItemMap, resultItemMap );
-        assertMapEquals( expectedSampleMap, resultSampleMap );
+        assertMapEquals( expectedItemMap, baseParams.getItemMap() );
+        assertMapEquals( getMap( groupA, groupB ), baseParams.getOrgUnitGroupMap() );
+        assertMapEquals( getMap( dataSetA, dataSetB ), baseParams.getDataSetMap() );
+        assertMapEquals( getMap( programA, programB ), baseParams.getProgramMap() );
     }
 
     @Test
@@ -514,11 +638,7 @@ class ExpressionService2Test extends DhisSpringTest
 
         when( dimensionService.getDataDimensionalItemObjectMap( itemIds ) ).thenReturn( itemMap );
 
-        when( constantService.getConstantMap() ).thenReturn(
-            ImmutableMap.<String, Constant> builder()
-                .put( constantA.getUid(), constantA )
-                .put( constantB.getUid(), constantB )
-                .build() );
+        mockConstantService();
 
         Indicator indicator = createIndicator( 'A', null );
         indicator.setNumerator( expressionI );
@@ -532,52 +652,22 @@ class ExpressionService2Test extends DhisSpringTest
     }
 
     @Test
-    void testGetExpressionDataElements()
+    void testGetExpressionDataElementIds()
     {
-        when( dataElementService.getDataElement( opA.getDimensionItem().split( "\\." )[0] ) )
-            .thenReturn( opA.getDataElement() );
-        when( dataElementService.getDataElement( opB.getDimensionItem().split( "\\." )[0] ) )
-            .thenReturn( opB.getDataElement() );
-        Set<DataElement> dataElements = target.getExpressionDataElements( expressionA, INDICATOR_EXPRESSION );
+        Set<String> dataElementIds = target.getExpressionDataElementIds( expressionA, INDICATOR_EXPRESSION );
 
-        assertThat( dataElements, hasSize( 2 ) );
-        assertThat( dataElements, hasItems( opA.getDataElement(), opB.getDataElement() ) );
+        assertThat( dataElementIds, hasSize( 2 ) );
+        assertThat( dataElementIds, hasItems( opA.getDataElement().getUid(), opB.getDataElement().getUid() ) );
 
-        // Expression G
-        when( dataElementService.getDataElement( deA.getUid() ) ).thenReturn( deA );
-        when( dataElementService.getDataElement( deB.getUid() ) ).thenReturn( deB );
-        when( dataElementService.getDataElement( deC.getUid() ) ).thenReturn( deC );
+        dataElementIds = target.getExpressionDataElementIds( expressionG, INDICATOR_EXPRESSION );
 
-        dataElements = target.getExpressionDataElements( expressionG, INDICATOR_EXPRESSION );
+        assertThat( dataElementIds, hasSize( 3 ) );
+        assertThat( dataElementIds, hasItems( deA.getUid(), deB.getUid(), deC.getUid() ) );
 
-        assertThat( dataElements, hasSize( 3 ) );
-        assertThat( dataElements, hasItems( deA, deB, deC ) );
+        dataElementIds = target.getExpressionDataElementIds( expressionM, INDICATOR_EXPRESSION );
 
-        dataElements = target.getExpressionDataElements( expressionM, INDICATOR_EXPRESSION );
-
-        assertThat( dataElements, hasSize( 2 ) );
-        assertThat( dataElements, hasItems( deA, deB ) );
-    }
-
-    @Test
-    void testExpressionDimensionalItemMapsReportingRates()
-    {
-        Set<DimensionalItemId> itemIds = Sets.newHashSet( getId( reportingRate ), getId( opB ) );
-
-        Map<DimensionalItemId, DimensionalItemObject> expectedItemMap = ImmutableMap.of(
-            getId( reportingRate ), reportingRate,
-            getId( opB ), opB );
-
-        when( dimensionService.getDataDimensionalItemObjectMap( itemIds ) ).thenReturn( expectedItemMap );
-
-        Map<DimensionalItemId, DimensionalItemObject> resultItemMap = new HashMap<>();
-        Map<DimensionalItemId, DimensionalItemObject> resultSampleMap = new HashMap<>();
-
-        target.getExpressionDimensionalItemMaps( expressionR, INDICATOR_EXPRESSION, DataType.NUMERIC,
-            resultItemMap, resultSampleMap );
-
-        assertEquals( expectedItemMap, resultItemMap );
-        assertEquals( 0, resultSampleMap.size() );
+        assertThat( dataElementIds, hasSize( 2 ) );
+        assertThat( dataElementIds, hasItems( deA.getUid(), deB.getUid() ) );
     }
 
     @Test
@@ -593,11 +683,7 @@ class ExpressionService2Test extends DhisSpringTest
     @Test
     void testExpressionIsValid()
     {
-        when( constantService.getConstantMap() ).thenReturn(
-            ImmutableMap.<String, Constant> builder()
-                .put( constantA.getUid(), constantA )
-                .put( constantB.getUid(), constantB )
-                .build() );
+        mockConstantService();
         when( dimensionService.getDataDimensionalItemObject( getId( deA ) ) ).thenReturn( deA );
         when( dimensionService.getDataDimensionalItemObject( getId( deE ) ) ).thenReturn( deE );
         when( dimensionService.getDataDimensionalItemObject( getId( opA ) ) ).thenReturn( opA );
@@ -607,7 +693,7 @@ class ExpressionService2Test extends DhisSpringTest
         when( dimensionService.getDataDimensionalItemObject( getId( opE ) ) ).thenReturn( opE );
         when( dimensionService.getDataDimensionalItemObject( getId( opF ) ) ).thenReturn( opF );
         when( dimensionService.getDataDimensionalItemObject( getId( reportingRate ) ) ).thenReturn( reportingRate );
-        when( organisationUnitGroupService.getOrganisationUnitGroup( groupA.getUid() ) ).thenReturn( groupA );
+        when( idObjectManager.get( OrganisationUnitGroup.class, groupA.getUid() ) ).thenReturn( groupA );
 
         assertTrue( target.expressionIsValid( expressionA, VALIDATION_RULE_EXPRESSION ).isValid() );
         assertTrue( target.expressionIsValid( expressionB, VALIDATION_RULE_EXPRESSION ).isValid() );
@@ -663,11 +749,7 @@ class ExpressionService2Test extends DhisSpringTest
     @Test
     void testGetExpressionDescription()
     {
-        when( constantService.getConstantMap() ).thenReturn(
-            ImmutableMap.<String, Constant> builder()
-                .put( constantA.getUid(), constantA )
-                .put( constantB.getUid(), constantB )
-                .build() );
+        mockConstantService();
         when( dimensionService.getDataDimensionalItemObject( getId( opA ) ) ).thenReturn( opA );
         when( dimensionService.getDataDimensionalItemObject( getId( opB ) ) ).thenReturn( opB );
 
@@ -680,7 +762,7 @@ class ExpressionService2Test extends DhisSpringTest
         description = target.getExpressionDescription( expressionE, INDICATOR_EXPRESSION );
         assertThat( description, is( opA.getDisplayName() + "*" + constantA.getDisplayName() ) );
 
-        when( organisationUnitGroupService.getOrganisationUnitGroup( groupA.getUid() ) ).thenReturn( groupA );
+        when( idObjectManager.get( OrganisationUnitGroup.class, groupA.getUid() ) ).thenReturn( groupA );
         description = target.getExpressionDescription( expressionH, INDICATOR_EXPRESSION );
         assertThat( description, is( opA.getDisplayName() + "*" + groupA.getDisplayName() ) );
 
@@ -716,6 +798,8 @@ class ExpressionService2Test extends DhisSpringTest
         Map<String, Integer> orgUnitCountMap = new HashMap<>();
         orgUnitCountMap.put( groupA.getUid(), groupA.getMembers().size() );
 
+        mockConstantService();
+
         assertEquals( 46d, exprValue( expressionA, itemMap, valueMap, null, null ), DELTA );
         assertEquals( 17d, exprValue( expressionD, itemMap, valueMap, null, 5 ), DELTA );
         assertEquals( 24d, exprValue( expressionE, itemMap, valueMap, null, null ), DELTA );
@@ -734,11 +818,7 @@ class ExpressionService2Test extends DhisSpringTest
 
         when( dimensionService.getDataDimensionalItemObjectMap( itemIds ) ).thenReturn( expectedItemMap );
 
-        when( constantService.getConstantMap() ).thenReturn(
-            ImmutableMap.<String, Constant> builder()
-                .put( constantA.getUid(), constantA )
-                .put( constantB.getUid(), constantB )
-                .build() );
+        mockConstantService();
 
         IndicatorType indicatorType = new IndicatorType( "A", 100, false );
 
@@ -755,7 +835,7 @@ class ExpressionService2Test extends DhisSpringTest
         valueMap.put( new DataElementOperand( deA, coc ), 12d );
 
         IndicatorValue value = target.getIndicatorValueObject( indicatorA, Collections.singletonList( period ),
-            itemMap, valueMap, constantMap(), null );
+            itemMap, valueMap, null );
 
         assertNotNull( value );
         assertEquals( 24d, value.getNumeratorValue(), DELTA );
@@ -778,11 +858,7 @@ class ExpressionService2Test extends DhisSpringTest
 
         when( dimensionService.getDataDimensionalItemObjectMap( itemIds ) ).thenReturn( expectedItemMap );
 
-        when( constantService.getConstantMap() ).thenReturn(
-            ImmutableMap.<String, Constant> builder()
-                .put( constantA.getUid(), constantA )
-                .put( constantB.getUid(), constantB )
-                .build() );
+        mockConstantService();
 
         IndicatorType indicatorType = new IndicatorType( "A", 100, false );
 
@@ -803,7 +879,7 @@ class ExpressionService2Test extends DhisSpringTest
         valueMap.put( new DataElementOperand( deB, cocA ), 10d );
 
         IndicatorValue value = target.getIndicatorValueObject( indicatorB, Collections.singletonList( period ),
-            itemMap, valueMap, constantMap(), null );
+            itemMap, valueMap, null );
 
         assertNotNull( value );
         assertEquals( 36d, value.getNumeratorValue(), DELTA );
@@ -892,17 +968,39 @@ class ExpressionService2Test extends DhisSpringTest
     }
 
     @Test
-    void testGetExpressionOrgUnitGroups()
+    void testGetExpressionOrgUnitGroupCountGroups()
     {
-        when( organisationUnitGroupService.getOrganisationUnitGroup( groupA.getUid() ) ).thenReturn( groupA );
-        Set<OrganisationUnitGroup> groups = target.getExpressionOrgUnitGroups( expressionH, INDICATOR_EXPRESSION );
+        IndicatorType indicatorType = new IndicatorType( "A", 100, false );
+
+        Indicator indicatorA = createIndicator( 'A', indicatorType );
+        indicatorA.setAnnualized( true );
+        indicatorA.setNumerator( expressionG );
+        indicatorA.setDenominator( expressionH );
+
+        when( idObjectManager.getByUid( OrganisationUnitGroup.class, Set.of( groupA.getUid() ) ) )
+            .thenReturn( List.of( groupA ) );
+
+        List<OrganisationUnitGroup> groups = target.getOrgUnitGroupCountGroups( List.of( indicatorA ) );
         assertThat( groups, hasSize( 1 ) );
         assertThat( groups, hasItem( groupA ) );
 
-        groups = target.getExpressionOrgUnitGroups( null, INDICATOR_EXPRESSION );
-
+        groups = target.getOrgUnitGroupCountGroups( null );
         assertNotNull( groups );
         assertThat( groups, hasSize( 0 ) );
+    }
+
+    @Test
+    void testGetExpressionOrgUnitGroupIds()
+    {
+        String expression = "if( orgUnit.group(groupUidABC,groupUidDEF), 1, 0)";
+        Set<String> ids = target.getExpressionOrgUnitGroupIds( expression, PREDICTOR_EXPRESSION );
+        assertThat( ids, hasSize( 2 ) );
+        assertThat( ids, hasItem( "groupUidABC" ) );
+        assertThat( ids, hasItem( "groupUidDEF" ) );
+
+        ids = target.getExpressionOrgUnitGroupIds( null, PREDICTOR_EXPRESSION );
+        assertNotNull( ids );
+        assertThat( ids, hasSize( 0 ) );
     }
 
     @Test
@@ -915,11 +1013,7 @@ class ExpressionService2Test extends DhisSpringTest
 
         when( dimensionService.getDataDimensionalItemObjectMap( itemIds ) ).thenReturn( expectedItemMap );
 
-        when( constantService.getConstantMap() ).thenReturn(
-            ImmutableMap.<String, Constant> builder()
-                .put( constantA.getUid(), constantA )
-                .put( constantB.getUid(), constantB )
-                .build() );
+        mockConstantService();
 
         List<Period> periods = new ArrayList<>( 6 );
 
@@ -948,7 +1042,7 @@ class ExpressionService2Test extends DhisSpringTest
             .getIndicatorDimensionalItemMap( Arrays.asList( indicatorA ) );
 
         IndicatorValue value = target.getIndicatorValueObject(
-            indicatorA, periods, itemMap, valueMap, constantMap(), null );
+            indicatorA, periods, itemMap, valueMap, null );
 
         assertNotNull( value );
         assertEquals( 24d, value.getNumeratorValue(), DELTA );
@@ -969,11 +1063,7 @@ class ExpressionService2Test extends DhisSpringTest
 
         when( dimensionService.getDataDimensionalItemObjectMap( itemIds ) ).thenReturn( expectedItemMap );
 
-        when( constantService.getConstantMap() ).thenReturn(
-            ImmutableMap.<String, Constant> builder()
-                .put( constantA.getUid(), constantA )
-                .put( constantB.getUid(), constantB )
-                .build() );
+        mockConstantService();
 
         IndicatorType indicatorType = new IndicatorType( "A", 100, false );
 
@@ -993,7 +1083,7 @@ class ExpressionService2Test extends DhisSpringTest
             .getIndicatorDimensionalItemMap( Arrays.asList( indicatorA ) );
 
         IndicatorValue value = target.getIndicatorValueObject(
-            indicatorA, null, itemMap, valueMap, constantMap(), null );
+            indicatorA, null, itemMap, valueMap, null );
 
         assertNotNull( value );
         assertEquals( 24d, value.getNumeratorValue(), DELTA );
@@ -1022,7 +1112,7 @@ class ExpressionService2Test extends DhisSpringTest
             .getIndicatorDimensionalItemMap( Arrays.asList( indicatorA ) );
 
         IndicatorValue value = target.getIndicatorValueObject(
-            indicatorA, null, itemMap, valueMap, constantMap(), null );
+            indicatorA, null, itemMap, valueMap, null );
 
         assertNull( value );
     }
@@ -1045,15 +1135,8 @@ class ExpressionService2Test extends DhisSpringTest
             .getIndicatorDimensionalItemMap( Arrays.asList( indicatorA ) );
 
         IndicatorValue value = target.getIndicatorValueObject(
-            indicatorA, null, itemMap, valueMap, constantMap(), null );
+            indicatorA, null, itemMap, valueMap, null );
 
         assertNull( value );
-    }
-
-    private Map<String, Constant> constantMap()
-    {
-        Map<String, Constant> constantMap = new HashMap<>();
-        constantMap.put( constantA.getUid(), new Constant( "two", 2.0 ) );
-        return constantMap;
     }
 }

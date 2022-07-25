@@ -53,6 +53,8 @@ import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.translation.Translation;
+import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.sharing.Sharing;
@@ -79,19 +81,19 @@ public class BaseIdentifiableObject
     protected long id;
 
     /**
-     * The Unique Identifier for this Object.
+     * The unique identifier for this object.
      */
     @AuditAttribute
     protected String uid;
 
     /**
-     * The unique code for this Object.
+     * The unique code for this object.
      */
     @AuditAttribute
     protected String code;
 
     /**
-     * The name of this Object. Required and unique.
+     * The name of this object. Required and unique.
      */
     protected String name;
 
@@ -139,7 +141,7 @@ public class BaseIdentifiableObject
     protected transient String publicAccess;
 
     /**
-     * User who created this object This field is immutable and must not be
+     * User who created this object. This field is immutable and must not be
      * updated.
      */
     @Immutable
@@ -171,7 +173,7 @@ public class BaseIdentifiableObject
     protected User lastUpdatedBy;
 
     /**
-     * Jsonb Sharing
+     * Object sharing (JSONB).
      */
     protected Sharing sharing = new Sharing();
 
@@ -405,7 +407,7 @@ public class BaseIdentifiableObject
      */
     protected String getTranslation( String translationKey, String defaultValue )
     {
-        Locale locale = UserContext.getUserSetting( UserSettingKey.DB_LOCALE );
+        Locale locale = CurrentUserUtil.getUserSetting( UserSettingKey.DB_LOCALE );
 
         final String defaultTranslation = defaultValue != null ? defaultValue.trim() : null;
 
@@ -560,9 +562,8 @@ public class BaseIdentifiableObject
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isFavorite()
     {
-        User user = UserContext.getUser();
-
-        return user != null && favorites != null ? favorites.contains( user.getUid() ) : false;
+        CurrentUserDetails user = CurrentUserUtil.getCurrentUserDetails();
+        return user != null && favorites != null && favorites.contains( user.getUid() );
     }
 
     @Override

@@ -57,6 +57,14 @@ public interface MaintenanceStore
     int deleteSoftDeletedProgramStageInstances();
 
     /**
+     * Permanently deletes relationships which have been soft deleted, i.e.
+     * relationships where the deleted property is true.
+     *
+     * @return the number of deleted relationships
+     */
+    int deleteSoftDeletedRelationships();
+
+    /**
      * Permanently deletes program instances which have been soft deleted, i.e.
      * program instances where the deleted property is true.
      *

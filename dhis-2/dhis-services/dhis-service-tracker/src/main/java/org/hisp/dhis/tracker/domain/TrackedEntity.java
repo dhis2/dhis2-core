@@ -31,7 +31,10 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import org.hisp.dhis.tracker.TrackerType;
 import org.locationtech.jts.geom.Geometry;
@@ -52,7 +55,7 @@ public class TrackedEntity
     private String trackedEntity;
 
     @JsonProperty
-    private String trackedEntityType;
+    private MetadataIdentifier trackedEntityType;
 
     @JsonProperty
     private Instant createdAt;
@@ -67,7 +70,7 @@ public class TrackedEntity
     private Instant updatedAtClient;
 
     @JsonProperty
-    private String orgUnit;
+    private MetadataIdentifier orgUnit;
 
     @JsonProperty
     private boolean inactive;
@@ -85,10 +88,10 @@ public class TrackedEntity
     private String storedBy;
 
     @JsonProperty
-    private String createdBy;
+    private User createdBy;
 
     @JsonProperty
-    private String updatedBy;
+    private User updatedBy;
 
     @JsonProperty
     @Builder.Default
@@ -101,10 +104,6 @@ public class TrackedEntity
     @JsonProperty
     @Builder.Default
     private List<Enrollment> enrollments = new ArrayList<>();
-
-    @JsonProperty
-    @Builder.Default
-    private List<ProgramOwner> programOwners = new ArrayList<>();
 
     @Override
     public String getUid()

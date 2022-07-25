@@ -30,14 +30,12 @@ package org.hisp.dhis.attribute;
 import java.io.Serializable;
 import java.util.Objects;
 
-import org.hisp.dhis.common.CustomAttributeSerializer;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
@@ -135,7 +133,6 @@ public class AttributeValue
     }
 
     @JsonProperty
-    @JsonSerialize( using = CustomAttributeSerializer.class )
     @Property( value = PropertyType.REFERENCE, required = Property.Value.TRUE )
     public Attribute getAttribute()
     {

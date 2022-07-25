@@ -54,7 +54,7 @@ public class Relationship implements TrackerDto
     private String relationshipName;
 
     @JsonProperty
-    private String relationshipType;
+    private MetadataIdentifier relationshipType;
 
     @JsonProperty
     private Instant createdAt;
@@ -64,6 +64,9 @@ public class Relationship implements TrackerDto
 
     @JsonProperty
     private boolean bidirectional;
+
+    @JsonProperty
+    private boolean deleted;
 
     @JsonProperty
     private RelationshipItem from;

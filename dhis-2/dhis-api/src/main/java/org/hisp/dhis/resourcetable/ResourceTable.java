@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.resourcetable;
 
+import static java.time.LocalDate.now;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -37,6 +39,10 @@ import org.hisp.dhis.common.CodeGenerator;
  */
 public abstract class ResourceTable<T>
 {
+    public static final int FIRST_YEAR_SUPPORTED = 1975;
+
+    public static final int LATEST_YEAR_SUPPORTED = now().plusYears( 2 ).getYear();
+
     protected static final String TEMP_TABLE_SUFFIX = "_temp";
 
     protected List<T> objects;

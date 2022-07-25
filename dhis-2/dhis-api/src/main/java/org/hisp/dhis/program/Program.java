@@ -56,7 +56,7 @@ import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.translation.Translatable;
-import org.hisp.dhis.user.UserAuthorityGroup;
+import org.hisp.dhis.user.UserRole;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -95,7 +95,7 @@ public class Program
 
     private List<ProgramTrackedEntityAttribute> programAttributes = new ArrayList<>();
 
-    private Set<UserAuthorityGroup> userRoles = new HashSet<>();
+    private Set<UserRole> userRoles = new HashSet<>();
 
     private Set<ProgramIndicator> programIndicators = new HashSet<>();
 
@@ -569,12 +569,12 @@ public class Program
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "userRoles", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "userRole", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<UserAuthorityGroup> getUserRoles()
+    public Set<UserRole> getUserRoles()
     {
         return userRoles;
     }
 
-    public void setUserRoles( Set<UserAuthorityGroup> userRoles )
+    public void setUserRoles( Set<UserRole> userRoles )
     {
         this.userRoles = userRoles;
     }
@@ -726,7 +726,7 @@ public class Program
      * Indicates whether this program has a category combination which is
      * different from the default category combination.
      */
-    public boolean hasCategoryCombo()
+    public boolean hasNonDefaultCategoryCombo()
     {
         return categoryCombo != null && !CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME.equals( categoryCombo.getName() );
     }

@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.pushanalysis.scheduling;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import java.util.List;
+
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.pushanalysis.PushAnalysisService;
 import org.hisp.dhis.scheduling.Job;
@@ -40,20 +42,11 @@ import org.springframework.stereotype.Component;
 /**
  * @author Stian Sandvold
  */
-@Component( "pushAnalysisJob" )
+@Component
+@AllArgsConstructor
 public class PushAnalysisJob implements Job
 {
     private final PushAnalysisService pushAnalysisService;
-
-    public PushAnalysisJob( PushAnalysisService pushAnalysisService )
-    {
-        checkNotNull( pushAnalysisService );
-        this.pushAnalysisService = pushAnalysisService;
-    }
-
-    // -------------------------------------------------------------------------
-    // Implementation
-    // -------------------------------------------------------------------------
 
     @Override
     public JobType getJobType()
@@ -62,11 +55,14 @@ public class PushAnalysisJob implements Job
     }
 
     @Override
-    public void execute( JobConfiguration jobConfiguration, JobProgress progress )
+    public void execute( JobConfiguration config, JobProgress progress )
     {
-        PushAnalysisJobParameters parameters = (PushAnalysisJobParameters) jobConfiguration.getJobParameters();
+        PushAnalysisJobParameters params = (PushAnalysisJobParameters) config.getJobParameters();
 
-        pushAnalysisService.runPushAnalysis( parameters.getPushAnalysis(), jobConfiguration );
+        List<String> pushAnalysis = params.getPushAnalysis();
+        progress.startingProcess( "Push analysis for " + pushAnalysis );
+        pushAnalysisService.runPushAnalysis( pushAnalysis, progress );
+        progress.completedProcess( null );
     }
 
 }

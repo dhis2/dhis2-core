@@ -192,6 +192,13 @@ public class DefaultTrackedEntityAttributeService
 
     @Override
     @Transactional( readOnly = true )
+    public List<TrackedEntityAttribute> getTrackedEntityAttributesById( List<Long> ids )
+    {
+        return attributeStore.getById( ids );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
     public List<TrackedEntityAttribute> getTrackedEntityAttributesByDisplayOnVisitSchedule(
         boolean displayOnVisitSchedule )
     {
@@ -272,7 +279,7 @@ public class DefaultTrackedEntityAttributeService
         }
         else if ( ValueType.USERNAME == valueType )
         {
-            if ( userService.getUserCredentialsByUsername( value ) == null )
+            if ( userService.getUserByUsername( value ) == null )
             {
                 return "Value '" + errorValue + "' is not a valid username for attribute "
                     + trackedEntityAttribute.getUid();

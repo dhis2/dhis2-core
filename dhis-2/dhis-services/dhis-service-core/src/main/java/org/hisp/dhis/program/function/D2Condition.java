@@ -27,11 +27,13 @@
  */
 package org.hisp.dhis.program.function;
 
+import static org.hisp.dhis.analytics.DataType.BOOLEAN;
 import static org.hisp.dhis.antlr.AntlrParserUtils.castClass;
 import static org.hisp.dhis.antlr.AntlrParserUtils.trimQuotes;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.parser.expression.ProgramExpressionParams;
 import org.hisp.dhis.program.ProgramExpressionItem;
 
 /**
@@ -63,8 +65,11 @@ public class D2Condition
     {
         String testExpression = trimQuotes( ctx.stringLiteral().getText() );
 
-        String testSql = visitor.getProgramIndicatorService().getAnalyticsSql( testExpression,
-            visitor.getProgramIndicator(), visitor.getReportingStartDate(), visitor.getReportingEndDate() );
+        ProgramExpressionParams params = visitor.getProgParams();
+
+        String testSql = visitor.getProgramIndicatorService().getAnalyticsSql( testExpression, BOOLEAN,
+            params.getProgramIndicator(), params.getReportingStartDate(),
+            params.getReportingEndDate() );
 
         String valueIfTrue = visitor.castStringVisit( ctx.expr( 0 ) );
         String valueIfFalse = visitor.castStringVisit( ctx.expr( 1 ) );

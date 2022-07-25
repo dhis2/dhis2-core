@@ -47,7 +47,6 @@ import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -60,13 +59,6 @@ public class UnregisteredSMSListener
     extends
     CommandSMSListener
 {
-
-    private static final String USER_NAME = "anonymous";
-
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final SMSCommandService smsCommandService;
 
     private final UserService userService;
@@ -116,30 +108,21 @@ public class UnregisteredSMSListener
 
         if ( userGroup != null )
         {
-            UserCredentials anonymousUser = userService.getUserCredentialsByUsername( userName );
-
+            User anonymousUser = userService.getUserByUsername( userName );
             if ( anonymousUser == null )
             {
                 User user = new User();
-
-                UserCredentials usercredential = new UserCredentials();
-                usercredential.setUsername( userName );
-                usercredential.setPassword( USER_NAME );
-                usercredential.setUserInfo( user );
-
                 user.setSurname( userName );
                 user.setFirstName( "" );
-                user.setUserCredentials( usercredential );
                 user.setAutoFields();
 
-                userService.addUserCredentials( usercredential );
                 userService.addUser( user );
 
-                anonymousUser = userService.getUserCredentialsByUsername( userName );
+                anonymousUser = userService.getUserByUsername( userName );
             }
 
             messageService.sendMessage( new MessageConversationParams.Builder( userGroup.getMembers(),
-                anonymousUser.getUserInfo(), smsCommand.getName(), sms.getText(), MessageType.SYSTEM, null ).build() );
+                anonymousUser, smsCommand.getName(), sms.getText(), MessageType.SYSTEM, null ).build() );
 
             sendFeedback( smsCommand.getReceivedMessage(), sms.getOriginator(), INFO );
 

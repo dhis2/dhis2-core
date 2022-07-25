@@ -65,11 +65,8 @@ public class NotLikeOperator<T extends Comparable<? super T>> extends Operator<T
             return Restrictions.like( queryPath.getPath(), String.valueOf( args.get( 0 ) ).replace( "%", "\\%" ),
                 matchMode );
         }
-        else
-        {
-            return Restrictions.ilike( queryPath.getPath(), String.valueOf( args.get( 0 ) ).replace( "%", "\\%" ),
-                matchMode );
-        }
+        return Restrictions.ilike( queryPath.getPath(), String.valueOf( args.get( 0 ) ).replace( "%", "\\%" ),
+            matchMode );
     }
 
     @Override
@@ -81,12 +78,9 @@ public class NotLikeOperator<T extends Comparable<? super T>> extends Operator<T
                 String.valueOf( args.get( 0 ) ).replace( "%", "" ),
                 jpaMatchMode );
         }
-        else
-        {
-            return JpaQueryUtils.stringPredicateIgnoreCase( builder, root.get( queryPath.getPath() ),
-                String.valueOf( args.get( 0 ) ).replace( "%", "" ),
-                jpaMatchMode );
-        }
+        return JpaQueryUtils.stringPredicateIgnoreCase( builder, root.get( queryPath.getPath() ),
+            String.valueOf( args.get( 0 ) ).replace( "%", "" ),
+            jpaMatchMode );
     }
 
     @Override

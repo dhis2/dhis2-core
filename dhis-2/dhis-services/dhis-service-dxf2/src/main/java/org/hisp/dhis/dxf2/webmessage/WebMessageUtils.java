@@ -213,7 +213,7 @@ public final class WebMessageUtils
         if ( importReport.getStatus() != Status.OK )
         {
             return new WebMessage( Status.WARNING, HttpStatus.CONFLICT )
-                .setMessage( "One more more errors occurred, please see full details in import report." )
+                .setMessage( "One or more errors occurred, please see full details in import report." )
                 .setResponse( new ImportReportWebMessageResponse( importReport ) );
         }
         return ok()
@@ -227,7 +227,7 @@ public final class WebMessageUtils
             return ok()
                 .setResponse( new TypeReportWebMessageResponse( typeReport ) );
         }
-        return conflict( "One more more errors occurred, please see full details in import report." )
+        return conflict( "One or more errors occurred, please see full details in import report." )
             .setResponse( new TypeReportWebMessageResponse( typeReport ) );
     }
 
@@ -247,7 +247,7 @@ public final class WebMessageUtils
                 .setResponse( new ObjectReportWebMessageResponse( objectReport ) );
         }
         return new WebMessage( Status.WARNING, HttpStatus.CONFLICT )
-            .setMessage( "One more more errors occurred, please see full details in import report." )
+            .setMessage( "One or more errors occurred, please see full details in import report." )
             .setResponse( new ObjectReportWebMessageResponse( objectReport ) );
     }
 
@@ -268,7 +268,7 @@ public final class WebMessageUtils
             .setResponse( new ErrorReportsWebMessageResponse( errorReports ) );
     }
 
-    public static TypeReport typeReport( Class clazz, List<ErrorReport> errorReports )
+    public static TypeReport typeReport( Class<?> clazz, List<ErrorReport> errorReports )
     {
         ObjectReport objectReport = new ObjectReport( clazz, 0 );
         objectReport.addErrorReports( errorReports );

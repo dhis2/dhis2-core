@@ -132,7 +132,7 @@ public class GetDataSetsAction
         {
             User user = currentUserService.getCurrentUser();
 
-            if ( user != null && user.getUserCredentials() != null )
+            if ( user != null )
             {
                 dataSets.retainAll( dataSetService.getUserDataWrite( user ) );
             }

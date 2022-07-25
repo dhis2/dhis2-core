@@ -27,16 +27,16 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
+import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonResponse;
+import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonTypeReport;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpStatus;
 
 /**
  * @author viet@dhis2.org
@@ -65,6 +65,6 @@ class ProgramStageControllerTest extends DhisControllerConvenienceTest
         JsonResponse programStage = GET( "/programStages/{id}", programStageId ).content();
         assertEquals( "VoZMWi7rBgj", programStage.getString( "program.id" ).string() );
         JsonResponse program = GET( "/programs/{id}", "VoZMWi7rBgj" ).content();
-        assertEquals( programStageId, program.getJsonDocument().get( "$.programStages[0].id" ).value() );
+        assertEquals( programStageId, program.getString( "programStages[0].id" ).string() );
     }
 }

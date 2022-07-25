@@ -27,10 +27,11 @@
  */
 package org.hisp.dhis.actions.metadata;
 
-import com.google.gson.JsonObject;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.utils.DataGenerator;
+
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -68,7 +69,7 @@ public class RelationshipTypeActions
         {
         case "PROGRAM_STAGE_INSTANCE":
             builder
-                .addObject( "program", new JsonObjectBuilder().addProperty( "id", id ) );
+                .addObject( "programStage", new JsonObjectBuilder().addProperty( "id", id ) );
             break;
 
         case "TRACKED_ENTITY_INSTANCE":

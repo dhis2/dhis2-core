@@ -27,20 +27,21 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
+import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonDataApprovalPermissions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 
 /**
  * Tests the {@link DataApprovalController} using (mocked) REST requests.
@@ -68,7 +69,7 @@ class DataApprovalControllerTest extends DhisControllerConvenienceTest
         ouId = assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnits/", "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01', "
                 + "'parent':{'id': '" + ou1Id + "'}}" ) );
-        assertStatus( HttpStatus.NO_CONTENT,
+        assertStatus( HttpStatus.OK,
             POST( "/users/" + getCurrentUser().getUid() + "/organisationUnits/" + ou1Id ) );
         String level1Id = assertStatus( HttpStatus.CREATED,
             POST( "/dataApprovalLevels/", "{'name':'L1', 'level': 1, 'orgUnitLevel': 1}" ) );
@@ -80,6 +81,8 @@ class DataApprovalControllerTest extends DhisControllerConvenienceTest
         dsId = assertStatus( HttpStatus.CREATED,
             POST( "/dataSets/", "{'name':'My data set', 'periodType':'Monthly', " + "'workflow': {'id':'" + wfId + "'},"
                 + "'organisationUnits':[{'id':'" + ou1Id + "'},{'id':'" + ouId + "'}]" + "}" ) );
+
+        getSuperUser().addOrganisationUnit( manager.get( OrganisationUnit.class, ouId ) );
     }
 
     @Test

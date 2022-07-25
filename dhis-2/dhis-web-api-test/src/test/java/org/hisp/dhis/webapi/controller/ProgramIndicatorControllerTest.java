@@ -27,9 +27,13 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.web.WebClient.Body;
+import static org.hisp.dhis.web.WebClient.ContentType;
+import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
+
+import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpStatus;
 
 /**
  * Tests the
@@ -45,27 +49,45 @@ class ProgramIndicatorControllerTest extends DhisControllerConvenienceTest
     void testGetExpressionDescription()
     {
         assertWebMessage( "OK", 200, "OK", "Valid",
-            POST( "/programIndicators/expression/description", "70" ).content( HttpStatus.OK ) );
+            POST( "/programIndicators/expression/description", Body( "70" ), ContentType( TEXT_PLAIN_VALUE ) )
+                .content( HttpStatus.OK ) );
     }
 
     @Test
     void testGetExpressionDescription_MalformedExpression()
     {
         assertWebMessage( "OK", 200, "ERROR", "Expression is not valid",
-            POST( "/programIndicators/filter/description", "illegal" ).content( HttpStatus.OK ) );
+            POST( "/programIndicators/filter/description", Body( "illegal" ), ContentType( TEXT_PLAIN_VALUE ) )
+                .content( HttpStatus.OK ) );
     }
 
     @Test
     void testValidateFilter()
     {
         assertWebMessage( "OK", 200, "OK", "Valid",
-            POST( "/programIndicators/filter/description", "1 < 2" ).content( HttpStatus.OK ) );
+            POST( "/programIndicators/filter/description", Body( "1 < 2" ), ContentType( TEXT_PLAIN_VALUE ) )
+                .content( HttpStatus.OK ) );
     }
 
     @Test
     void testValidateFilter_MalformedExpression()
     {
         assertWebMessage( "OK", 200, "ERROR", "Expression is not valid",
-            POST( "/programIndicators/filter/description", "illegal" ).content( HttpStatus.OK ) );
+            POST( "/programIndicators/filter/description", Body( "illegal" ), ContentType( TEXT_PLAIN_VALUE ) )
+                .content( HttpStatus.OK ) );
+    }
+
+    @Test
+    void testValidateFilterJson()
+    {
+        assertWebMessage( "OK", 200, "OK", "Valid",
+            POST( "/programIndicators/filter/description", "{ 'expression': '1 < 2' }" ).content( HttpStatus.OK ) );
+    }
+
+    @Test
+    void testGetJsonExpressionDescription()
+    {
+        assertWebMessage( "OK", 200, "OK", "Valid",
+            POST( "/programIndicators/expression/description", "{ 'expression': 70 }" ).content( HttpStatus.OK ) );
     }
 }

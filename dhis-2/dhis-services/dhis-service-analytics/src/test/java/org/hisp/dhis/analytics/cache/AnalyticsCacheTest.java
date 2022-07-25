@@ -29,9 +29,7 @@ package org.hisp.dhis.analytics.cache;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.any;
 
-import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -78,7 +76,7 @@ class AnalyticsCacheTest
 
         final Cache<Grid> cache = new LocalCache<>( cacheBuilder );
 
-        Mockito.<Cache<Grid>> when( cacheProvider.createAnalyticsResponseCache( any( Duration.class ) ) )
+        Mockito.<Cache<Grid>> when( cacheProvider.createAnalyticsCache() )
             .thenReturn( cache );
 
         final AnalyticsCache analyticsCache = new AnalyticsCache( cacheProvider, settings );

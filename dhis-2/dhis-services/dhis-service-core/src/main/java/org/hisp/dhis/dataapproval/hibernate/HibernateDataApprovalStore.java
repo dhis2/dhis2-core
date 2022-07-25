@@ -66,8 +66,10 @@ import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -103,6 +105,8 @@ public class HibernateDataApprovalStore
 
     private final PeriodService periodService;
 
+    private final PeriodStore periodStore;
+
     private CurrentUserService currentUserService;
 
     private final CategoryService categoryService;
@@ -111,27 +115,33 @@ public class HibernateDataApprovalStore
 
     private final StatementBuilder statementBuilder;
 
+    private final OrganisationUnitService organisationUnitService;
+
     public HibernateDataApprovalStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CacheProvider cacheProvider, PeriodService periodService,
-        CurrentUserService currentUserService, CategoryService categoryService,
+        PeriodStore periodStore, CurrentUserService currentUserService, CategoryService categoryService,
         SystemSettingManager systemSettingManager,
-        StatementBuilder statementBuilder )
+        StatementBuilder statementBuilder, OrganisationUnitService organisationUnitService )
     {
         super( sessionFactory, jdbcTemplate, publisher, DataApproval.class, false );
 
         checkNotNull( cacheProvider );
         checkNotNull( periodService );
+        checkNotNull( periodStore );
         checkNotNull( currentUserService );
         checkNotNull( categoryService );
         checkNotNull( systemSettingManager );
         checkNotNull( statementBuilder );
+        checkNotNull( organisationUnitService );
 
         this.periodService = periodService;
+        this.periodStore = periodStore;
         this.currentUserService = currentUserService;
         this.categoryService = categoryService;
         this.systemSettingManager = systemSettingManager;
         this.statementBuilder = statementBuilder;
         this.isApprovedCache = cacheProvider.createIsDataApprovedCache();
+        this.organisationUnitService = organisationUnitService;
     }
 
     @Override
@@ -235,7 +245,12 @@ public class HibernateDataApprovalStore
 
     private boolean dataApprovalExistsInternal( DataApproval dataApproval )
     {
-        Period storedPeriod = periodService.reloadPeriod( dataApproval.getPeriod() );
+        Period storedPeriod = periodStore.reloadPeriod( dataApproval.getPeriod() );
+
+        if ( storedPeriod == null )
+        {
+            return false;
+        }
 
         String sql = "select dataapprovalid " +
             "from dataapproval " +
@@ -277,8 +292,8 @@ public class HibernateDataApprovalStore
             && categoryService.getDefaultCategoryOptionCombo().equals( attributeOptionCombos.toArray()[0] );
 
         boolean maySeeDefaultCategoryCombo = (CollectionUtils
-            .isEmpty( user.getUserCredentials().getCogsDimensionConstraints() )
-            && CollectionUtils.isEmpty( user.getUserCredentials().getCatDimensionConstraints() ));
+            .isEmpty( user.getCogsDimensionConstraints() )
+            && CollectionUtils.isEmpty( user.getCatDimensionConstraints() ));
 
         // ---------------------------------------------------------------------
         // Validate
@@ -309,7 +324,7 @@ public class HibernateDataApprovalStore
         {
             for ( OrganisationUnit orgUnit : orgUnits )
             {
-                if ( !orgUnit.isDescendant( userOrgUnits ) )
+                if ( !organisationUnitService.isDescendant( orgUnit, userOrgUnits ) )
                 {
                     log.debug( "User " + user.getUsername() + " can't see orgUnit " + orgUnit.getName() );
 

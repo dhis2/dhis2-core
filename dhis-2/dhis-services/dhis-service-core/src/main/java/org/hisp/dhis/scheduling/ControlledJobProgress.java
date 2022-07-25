@@ -27,13 +27,19 @@
  */
 package org.hisp.dhis.scheduling;
 
+import static java.lang.String.format;
+import static org.hisp.dhis.scheduling.JobProgress.getMessage;
+
+import java.time.Duration;
 import java.util.Deque;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import org.hisp.dhis.message.MessageService;
 
 /**
  * The {@link ControlledJobProgress} take care of the flow control aspect of
@@ -46,16 +52,22 @@ import lombok.RequiredArgsConstructor;
  *
  * @author Jan Bernitt
  */
-@RequiredArgsConstructor
+@Slf4j
 public class ControlledJobProgress implements JobProgress
 {
+    private final MessageService messageService;
+
     private final JobConfiguration configuration;
 
     private final JobProgress tracker;
 
-    private final boolean cancelOnFailure;
+    private final boolean abortOnFailure;
 
     private final AtomicBoolean cancellationRequested = new AtomicBoolean();
+
+    private final AtomicBoolean abortAfterFailure = new AtomicBoolean();
+
+    private final AtomicBoolean skipCurrentStage = new AtomicBoolean();
 
     private final Deque<Process> processes = new ConcurrentLinkedDeque<>();
 
@@ -65,11 +77,31 @@ public class ControlledJobProgress implements JobProgress
 
     private final ThreadLocal<Item> incompleteItem = new ThreadLocal<>();
 
+    private final boolean usingErrorNotification;
+
+    public ControlledJobProgress( JobConfiguration configuration )
+    {
+        this( null, configuration, NoopJobProgress.INSTANCE, true );
+    }
+
+    public ControlledJobProgress( MessageService messageService, JobConfiguration configuration,
+        JobProgress tracker, boolean abortOnFailure )
+    {
+        this.messageService = messageService;
+        this.configuration = configuration;
+        this.tracker = tracker;
+        this.abortOnFailure = abortOnFailure;
+        this.usingErrorNotification = messageService != null && configuration.getJobType().isUsingErrorNotification();
+    }
+
     public void requestCancellation()
     {
         if ( cancellationRequested.compareAndSet( false, true ) )
         {
-            processes.forEach( Process::cancel );
+            processes.forEach( p -> {
+                p.cancel();
+                logWarn( p, "cancelled", "cancellation requested by user" );
+            } );
         }
     }
 
@@ -85,30 +117,53 @@ public class ControlledJobProgress implements JobProgress
     }
 
     @Override
+    public boolean isSkipCurrentStage()
+    {
+        return skipCurrentStage.get() || isCancellationRequested();
+    }
+
+    @Override
     public void startingProcess( String description )
     {
+        if ( isCancellationRequested() )
+        {
+            throw new CancellationException();
+        }
         tracker.startingProcess( description );
         incompleteProcess.set( null );
         incompleteStage.set( null );
         incompleteItem.remove();
-        addProcessRecord( description );
+        Process process = addProcessRecord( description );
+        logInfo( process, "started", description );
     }
 
     @Override
     public void completedProcess( String summary )
     {
         tracker.completedProcess( summary );
-        getOrAddLastIncompleteProcess().complete( summary );
+        Process process = getOrAddLastIncompleteProcess();
+        process.complete( summary );
+        logInfo( process, "completed", summary );
     }
 
     @Override
     public void failedProcess( String error )
     {
         tracker.failedProcess( error );
-        if ( processes.getLast().getStatus() != Status.CANCELLED )
+        Process process = processes.peekLast();
+        if ( process == null || process.getCompletedTime() != null )
         {
-            possiblyRequestCancellation();
-            getOrAddLastIncompleteProcess().completeExceptionally( error, null );
+            return;
+        }
+        if ( process.getStatus() != Status.CANCELLED )
+        {
+            automaticAbort( false, error, null );
+            process.completeExceptionally( error, null );
+            logError( process, null, error );
+        }
+        else
+        {
+            process.completeExceptionally( error, null );
         }
     }
 
@@ -116,82 +171,156 @@ public class ControlledJobProgress implements JobProgress
     public void failedProcess( Exception cause )
     {
         tracker.failedProcess( cause );
-        if ( processes.getLast().getStatus() != Status.CANCELLED )
+        Process process = processes.peekLast();
+        if ( process == null || process.getCompletedTime() != null )
         {
-            possiblyRequestCancellation();
-            getOrAddLastIncompleteProcess().completeExceptionally( cause.getMessage(), cause );
+            return;
+        }
+        if ( process.getStatus() != Status.CANCELLED )
+        {
+            cause = cancellationAsAbort( cause );
+            String message = getMessage( cause );
+            automaticAbort( false, message, cause );
+            process.completeExceptionally( message, cause );
+            sendErrorNotification( process, cause );
+            logError( process, cause, message );
+        }
+        else
+        {
+            process.completeExceptionally( getMessage( cause ), cause );
         }
     }
 
     @Override
-    public void startingStage( String description, int workItems )
+    public void startingStage( String description, int workItems, FailurePolicy onFailure )
     {
         if ( isCancellationRequested() )
         {
             throw new CancellationException();
         }
+        skipCurrentStage.set( false );
         tracker.startingStage( description, workItems );
-        addStageRecord( getOrAddLastIncompleteProcess(), description, workItems );
+        Stage stage = addStageRecord( getOrAddLastIncompleteProcess(), description, workItems, onFailure );
+        logInfo( stage, "started", description );
     }
 
     @Override
     public void completedStage( String summary )
     {
         tracker.completedStage( summary );
-        getOrAddLastIncompleteStage().complete( summary );
+        Stage stage = getOrAddLastIncompleteStage();
+        stage.complete( summary );
+        logInfo( stage, "completed", summary );
     }
 
     @Override
     public void failedStage( String error )
     {
         tracker.failedStage( error );
-        possiblyRequestCancellation();
-        getOrAddLastIncompleteStage().completeExceptionally( error, null );
+        Stage stage = getOrAddLastIncompleteStage();
+        stage.completeExceptionally( error, null );
+        if ( stage.getOnFailure() != FailurePolicy.SKIP_STAGE )
+        {
+            automaticAbort( error, null );
+        }
+        logError( stage, null, error );
     }
 
     @Override
     public void failedStage( Exception cause )
     {
+        cause = cancellationAsAbort( cause );
         tracker.failedStage( cause );
-        possiblyRequestCancellation();
-        getOrAddLastIncompleteStage().completeExceptionally( cause.getMessage(), cause );
+        String message = getMessage( cause );
+        Stage stage = getOrAddLastIncompleteStage();
+        stage.completeExceptionally( message, cause );
+        if ( stage.getOnFailure() != FailurePolicy.SKIP_STAGE )
+        {
+            automaticAbort( message, cause );
+            sendErrorNotification( stage, cause );
+        }
+        logError( stage, cause, message );
     }
 
     @Override
-    public void startingWorkItem( String description )
+    public void startingWorkItem( String description, FailurePolicy onFailure )
     {
-        tracker.startingWorkItem( description );
-        addItemRecord( getOrAddLastIncompleteStage(), description );
+        tracker.startingWorkItem( description, onFailure );
+        Item item = addItemRecord( getOrAddLastIncompleteStage(), description, onFailure );
+        logDebug( item, "started", description );
     }
 
     @Override
     public void completedWorkItem( String summary )
     {
         tracker.completedWorkItem( summary );
-        getOrAddLastIncompleteItem().complete( summary );
+        Item item = getOrAddLastIncompleteItem();
+        item.complete( summary );
+        logDebug( item, "completed", summary );
     }
 
     @Override
     public void failedWorkItem( String error )
     {
         tracker.failedWorkItem( error );
-        possiblyRequestCancellation();
-        getOrAddLastIncompleteItem().completeExceptionally( error, null );
+        Item item = getOrAddLastIncompleteItem();
+        item.completeExceptionally( error, null );
+        if ( !isSkipped( item ) )
+        {
+            automaticAbort( error, null );
+        }
+        logError( item, null, error );
     }
 
     @Override
     public void failedWorkItem( Exception cause )
     {
-        tracker.failedProcess( cause );
-        possiblyRequestCancellation();
-        getOrAddLastIncompleteItem().completeExceptionally( cause.getMessage(), cause );
+        tracker.failedWorkItem( cause );
+        String message = getMessage( cause );
+        Item item = getOrAddLastIncompleteItem();
+        item.completeExceptionally( message, cause );
+        if ( !isSkipped( item ) )
+        {
+            automaticAbort( message, cause );
+            sendErrorNotification( item, cause );
+        }
+        logError( item, cause, message );
     }
 
-    private void possiblyRequestCancellation()
+    private boolean isSkipped( Item item )
     {
-        if ( cancelOnFailure )
+        FailurePolicy onFailure = item.getOnFailure();
+        if ( onFailure == FailurePolicy.SKIP_STAGE )
         {
-            requestCancellation();
+            skipCurrentStage.set( true );
+            return true;
+        }
+        return onFailure == FailurePolicy.SKIP_ITEM
+            || onFailure == FailurePolicy.SKIP_ITEM_OUTLIER
+                && incompleteStage.get().getItems().stream().anyMatch( i -> i.status == Status.SUCCESS );
+    }
+
+    private void automaticAbort( String error, Exception cause )
+    {
+        automaticAbort( true, error, cause );
+    }
+
+    private void automaticAbort( boolean abortProcess, String error, Exception cause )
+    {
+        if ( abortOnFailure
+            // OBS! we only mark abort if we could mark cancellation
+            // if we already cancelled manually we do not abort but cancel
+            && cancellationRequested.compareAndSet( false, true )
+            && abortAfterFailure.compareAndSet( false, true )
+            && abortProcess )
+        {
+            processes.forEach( process -> {
+                if ( !process.isComplete() )
+                {
+                    process.completeExceptionally( error, cause );
+                    logWarn( process, "aborted", "aborted after error: " + error );
+                }
+            } );
         }
     }
 
@@ -220,13 +349,14 @@ public class ControlledJobProgress implements JobProgress
         Stage stage = incompleteStage.get();
         return stage != null && !stage.isComplete()
             ? stage
-            : addStageRecord( getOrAddLastIncompleteProcess(), null, -1 );
+            : addStageRecord( getOrAddLastIncompleteProcess(), null, -1, FailurePolicy.PARENT );
     }
 
-    private Stage addStageRecord( Process process, String description, int totalItems )
+    private Stage addStageRecord( Process process, String description, int totalItems, FailurePolicy onFailure )
     {
         Deque<Stage> stages = process.getStages();
-        Stage stage = new Stage( description, totalItems );
+        Stage stage = new Stage( description, totalItems,
+            onFailure == FailurePolicy.PARENT ? FailurePolicy.FAIL : onFailure );
         stages.addLast( stage );
         incompleteStage.set( stage );
         return stage;
@@ -237,15 +367,90 @@ public class ControlledJobProgress implements JobProgress
         Item item = incompleteItem.get();
         return item != null && !item.isComplete()
             ? item
-            : addItemRecord( getOrAddLastIncompleteStage(), null );
+            : addItemRecord( getOrAddLastIncompleteStage(), null, FailurePolicy.PARENT );
     }
 
-    private Item addItemRecord( Stage stage, String description )
+    private Item addItemRecord( Stage stage, String description, FailurePolicy onFailure )
     {
         Deque<Item> items = stage.getItems();
-        Item item = new Item( description );
+        Item item = new Item( description,
+            onFailure == FailurePolicy.PARENT ? stage.getOnFailure() : onFailure );
         items.addLast( item );
         incompleteItem.set( item );
         return item;
+    }
+
+    private Exception cancellationAsAbort( Exception cause )
+    {
+        return cause instanceof CancellationException
+            && (abortAfterFailure.get() || skipCurrentStage.get())
+                ? new RuntimeException( "processing aborted: " + getMessage( cause ) )
+                : cause;
+    }
+
+    private void sendErrorNotification( Node node, Exception cause )
+    {
+        if ( usingErrorNotification )
+        {
+            String subject = node.getClass().getSimpleName() + " failed: " + node.getDescription();
+            try
+            {
+                messageService.sendSystemErrorNotification( subject, cause );
+            }
+            catch ( Exception ex )
+            {
+                log.debug( "Failed to send error notification for failed job processing" );
+            }
+        }
+    }
+
+    private void logError( Node failed, Exception cause, String message )
+    {
+        if ( log.isErrorEnabled() )
+        {
+            String msg = formatLogMessage( failed, "failed", message );
+            if ( cause != null )
+            {
+                log.error( msg, cause );
+            }
+            else
+            {
+                log.error( msg );
+            }
+        }
+    }
+
+    private void logDebug( Node source, String action, String message )
+    {
+        if ( log.isDebugEnabled() )
+        {
+            log.debug( formatLogMessage( source, action, message ) );
+        }
+    }
+
+    private void logInfo( Node source, String action, String message )
+    {
+        if ( log.isInfoEnabled() )
+        {
+            log.info( formatLogMessage( source, action, message ) );
+        }
+    }
+
+    private void logWarn( Node source, String action, String message )
+    {
+        if ( log.isWarnEnabled() )
+        {
+            log.warn( formatLogMessage( source, action, message ) );
+        }
+    }
+
+    private String formatLogMessage( Node source, String action, String message )
+    {
+        String duration = source.isComplete()
+            ? " after " + Duration.ofMillis( source.getDuration() ).toString().substring( 2 ).toLowerCase()
+            : "";
+        String msg = message == null ? "" : ": " + message;
+        return format( "[%s %s] %s %s%s%s", configuration.getJobType().name(), configuration.getUid(),
+            source.getClass().getSimpleName(), action, duration, msg );
     }
 }

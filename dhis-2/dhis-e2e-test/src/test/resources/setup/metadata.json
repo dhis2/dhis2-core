@@ -58,11 +58,8 @@
       "categories": [
         {
           "id": "saPUs0jjtP0",
+          "name": "TA Category attribute",
           "code": "TA_CATEGORY_ATTRIBUTE"
-        },
-        {
-          "id": "X7EZvFo6ero",
-          "code": "TA_CATEGORY_ATTRIBUTE_2"
         }
       ]
     },
@@ -108,9 +105,30 @@
         "public": "rw------",
         "users": {}
       },
+      "categoryOptions": [
+        {
+          "id": "fjvZIRlTBrp",
+          "name": "TA category option A",
+          "code": "TA_CATOPT_A"
+        }
+      ],
+      "categoryCombos": [
+        {
+          "id": "p0bh43XdKy5",
+          "name": "TA Category combo attribute",
+          "code": "TA_CATEGORY_COMBO_ATTRIBUTE"
+        }
+      ],
+      "userGroupAccesses": [],
       "attributeValues": [],
-      "translations": [],
-      "categoryOptions": []
+      "userAccesses": [],
+      "items": [
+        {
+          "id": "fjvZIRlTBrp",
+          "name": "TA category option A",
+          "code": "TA_CATOPT_A"
+        }
+      ]
     },
     {
       "code": "TA_CATEGORY_ATTRIBUTE_2",
@@ -2837,13 +2855,44 @@
       "translations": []
     }
   ],
+  "categoryOptionCombos": [
+    {
+      "id": "igZVvNyxlTM",
+      "name": "TA category option combo A",
+      "code": "TA_CATEGORY_OPTION_COMBO_A",
+      "categoryOptions": [
+        {
+          "id": "fjvZIRlTBrp",
+          "name": "TA category option A",
+          "code": "TA_CATOPT_A"
+        }
+      ],
+      "categoryCombo": {
+        "id": "p0bh43XdKy5",
+        "name": "TA Category combo attribute",
+        "code": "TA_CATEGORY_COMBO_ATTRIBUTE"
+      },
+      "lastUpdated": "2019-08-26T14:24:45.065",
+      "created": "2017-06-02T11:03:03.291",
+      "ignoreApproval": false,
+      "translations": [],
+      "attributeValues": [],
+      "sharing": {
+        "owner": "GOLswS44mh8",
+        "external": false,
+        "users": {},
+        "userGroups": {},
+        "public": "rw------"
+      }
+    }
+  ],
   "categoryOptions": [
     {
+      "id": "fjvZIRlTBrp",
+      "name": "TA category option A",
+      "code": "TA_CATOPT_A",
       "created": "2021-06-02T15:43:13.212",
       "lastUpdated": "2021-06-02T15:43:13.212",
-      "name": "category option A",
-      "code": "CATOPT_A",
-      "id": "fjvZIRlTBrp",
       "sharing": {
         "owner": "GOLswS44mh8",
         "external": false,

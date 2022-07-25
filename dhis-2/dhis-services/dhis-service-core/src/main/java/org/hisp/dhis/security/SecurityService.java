@@ -30,8 +30,8 @@ package org.hisp.dhis.security;
 import java.io.IOException;
 
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
 
 /**
  * @author Lars Helge Overland
@@ -86,59 +86,48 @@ public interface SecurityService
     void prepareUserForInvite( User user );
 
     /**
-     * Indicates whether a restore/invite is allowed for the given user. The
-     * requirements are:
-     * <p>
-     * <ul>
-     * <li>email_not_configured_for_system</li>
-     * <li>no_user_credentials</li>
-     * <li>user_does_not_have_valid_email</li>
-     * <li>user_has_critical_authorities</li>
-     * </ul>
+     * Indicates whether a restore/invite is allowed for the given user. Returns
+     * an error code if the restore cannot be performed, null otherwise.
      *
-     * @param credentials the user credentials.
-     * @return a string if restore cannot be performed, null otherwise.
+     * @param user the user.
+     * @return an {@link ErrorCode} if restore cannot be performed, null
+     *         otherwise.
      */
-    String validateRestore( UserCredentials credentials );
+    ErrorCode validateRestore( User user );
 
     /**
      * Indicates whether an invite is allowed for the given user. Delegates to
-     * validateRestore( UserCredentials ). The requirements are.
-     * <p>
-     * <ul>
-     * <li>no_user_credentials</li>
-     * <li>username_taken</li>
-     * </ul>
+     * validateRestore( User ).
      *
-     * @param credentials the user credentials.
+     * @param user the user.
      * @return a string if invite cannot be performed, null otherwise.
      */
-    String validateInvite( UserCredentials credentials );
+    ErrorCode validateInvite( User user );
 
     /**
      * Invokes the initRestore method and dispatches email messages with restore
      * information to the user, or sends an invite email.
      *
-     * @param credentials the credentials for the user to send restore message.
+     * @param user the user to send restore message.
      * @param rootPath the root path of the request.
      * @param restoreOptions restore options, including type of restore.
-     * @return false if any of the arguments are null or if the user credentials
-     *         identified by the user name does not exist, true otherwise.
+     * @return false if any of the arguments are null or if the user identified
+     *         by the user name does not exist, true otherwise.
      */
-    boolean sendRestoreOrInviteMessage( UserCredentials credentials, String rootPath, RestoreOptions restoreOptions );
+    boolean sendRestoreOrInviteMessage( User user, String rootPath, RestoreOptions restoreOptions );
 
     /**
-     * Populates the restoreToken property and idToken of the given credentials
-     * with a hashed version of auto-generated values. Sets the restoreExpiry
-     * property with a date time some interval from now depending on the restore
-     * type. Changes are persisted.
+     * Populates the restoreToken property and idToken of the given user with a
+     * hashed version of auto-generated values. Sets the restoreExpiry property
+     * with a date time some interval from now depending on the restore type.
+     * Changes are persisted.
      *
-     * @param credentials the user credentials.
+     * @param user the user.
      * @param restoreOptions restore options, including type of restore.
      * @return an encoded string containing both id token and
      *         hashed/restoreToken, delimited with : clear-text code.
      */
-    String generateAndPersistTokens( UserCredentials credentials, RestoreOptions restoreOptions );
+    String generateAndPersistTokens( User user, RestoreOptions restoreOptions );
 
     /**
      * Decodes the id and hashed/restore token used for restore or invite.
@@ -158,55 +147,45 @@ public interface SecurityService
     RestoreOptions getRestoreOptions( String token );
 
     /**
-     * Tests whether the given token is valid for the given user name. If true,
-     * it will update the user credentials identified by the given user name
-     * with the new password. In order to succeed, the given token must match
-     * the ones on the credentials, and the current date must be before the
-     * expiry date time of the credentials.
+     * Tests whether the given token is valid for the given username. If true,
+     * it will update the user identified by the given username with the new
+     * password. In order to succeed, the given token must match the ones on the
+     * user, and the current date must be before the expiry date time of the
+     * user.
      *
-     * @param credentials the user credentials.
+     * @param user the user.
      * @param token the token.
      * @param newPassword the proposed new password.
      * @param restoreType type of restore operation (e.g. pw recovery, invite).
      * @return true or false.
      */
-    boolean restore( UserCredentials credentials, String token, String newPassword, RestoreType restoreType );
+    boolean restore( User user, String token, String newPassword, RestoreType restoreType );
 
     /**
-     * Tests whether the given token and code are valid for the given user name.
+     * Tests whether the given token and code are valid for the given username.
      * In order to succeed, the given token and code must match the ones on the
-     * credentials, and the current date must be before the expiry date time of
-     * the credentials.
+     * user, and the current date must be before the expiry date time of the
+     * user.
      *
-     * @param credentials the user credentials.
+     * @param user the user.
      * @param token the token.
      * @param restoreType type of restore operation (e.g. pw recovery, invite).
      * @return true or false.
      */
-    boolean canRestore( UserCredentials credentials, String token, RestoreType restoreType );
+    boolean canRestore( User user, String token, RestoreType restoreType );
 
     /**
      * Tests whether the given token in combination with the given user name is
      * valid, i.e. whether the hashed version of the token matches the one on
-     * the user credentials identified by the given user name.
+     * the user identified by the given username.
      *
-     * @param credentials the user credentials.
+     * @param user the user.
      * @param token the token.
-     * @return error message if any of the arguments are null or if the user
-     *         credentials identified by the user name does not exist, null if
-     *         the arguments are valid.
+     * @return error code if any of the arguments are null or if the user
+     *         identified by the username does not exist, null if the arguments
+     *         are valid.
      */
-    String verifyRestoreToken( UserCredentials credentials, String token, RestoreType restoreType );
-
-    /**
-     * Indicates whether the given username is an invite. The username is
-     * considered an invite if it is null or matches the invite username pattern
-     * of invite-<email>-<uid>.
-     *
-     * @param username the username.
-     * @return true if the username represents an account invitation.
-     */
-    boolean isInviteUsername( String username );
+    ErrorCode validateRestoreToken( User user, String token, RestoreType restoreType );
 
     /**
      * Checks whether current user has read access to object.

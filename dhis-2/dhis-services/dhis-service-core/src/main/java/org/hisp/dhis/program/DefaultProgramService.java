@@ -35,10 +35,11 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.collections4.SetValuedMap;
+import org.hisp.dhis.association.jdbc.JdbcOrgUnitAssociationsStore;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.jdbc.JdbcOrgUnitAssociationsStore;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -61,6 +62,8 @@ public class DefaultProgramService
     // -------------------------------------------------------------------------
 
     private final ProgramStore programStore;
+
+    private final IdentifiableObjectManager idObjectManager;
 
     private final CurrentUserService currentUserService;
 
@@ -144,15 +147,9 @@ public class DefaultProgramService
 
     @Override
     @Transactional( readOnly = true )
-    public List<Program> getUserPrograms()
+    public List<Program> getCurrentUserPrograms()
     {
-        return getUserPrograms( currentUserService.getCurrentUser() );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<Program> getUserPrograms( User user )
-    {
+        User user = currentUserService.getCurrentUser();
         if ( user == null || user.isSuper() )
         {
             return getAllPrograms();
@@ -195,9 +192,10 @@ public class DefaultProgramService
     }
 
     @Override
-    public SetValuedMap<String, String> getProgramOrganisationUnitsAssociationsForCurrentUser(
-        Set<String> programUids )
+    public SetValuedMap<String, String> getProgramOrganisationUnitsAssociationsForCurrentUser( Set<String> programUids )
     {
+        idObjectManager.loadByUid( Program.class, programUids );
+
         return jdbcOrgUnitAssociationsStore.getOrganisationUnitsAssociationsForCurrentUser( programUids );
     }
 

@@ -54,6 +54,10 @@ public interface EventAnalyticsService
 
     String ITEM_STORED_BY = "storedby";
 
+    String ITEM_CREATED_BY_DISPLAY_NAME = "createdbydisplayname";
+
+    String ITEM_LAST_UPDATED_BY_DISPLAY_NAME = "lastupdatedbydisplayname";
+
     String ITEM_LAST_UPDATED = "lastupdated";
 
     String ITEM_SCHEDULED_DATE = "scheduleddate";

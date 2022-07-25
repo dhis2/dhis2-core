@@ -27,9 +27,6 @@
  */
 package org.hisp.dhis.webapi.mvc.interceptor;
 
-import static org.hisp.dhis.common.UserContext.reset;
-import static org.hisp.dhis.common.UserContext.setUser;
-import static org.hisp.dhis.common.UserContext.setUserSetting;
 import static org.hisp.dhis.user.UserSettingKey.DB_LOCALE;
 
 import java.util.Locale;
@@ -41,6 +38,7 @@ import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingService;
 import org.springframework.beans.factory.InitializingBean;
@@ -81,35 +79,21 @@ public class UserContextInterceptor extends HandlerInterceptorAdapter implements
     @Override
     public boolean preHandle( final HttpServletRequest request,
         final HttpServletResponse response, final Object handler )
-        throws Exception
     {
-        boolean translate = !"false".equals( request.getParameter( PARAM_TRANSLATE ) );
+        String parameter = request.getParameter( PARAM_TRANSLATE );
+        boolean translate = !"false".equals( parameter );
 
         String locale = request.getParameter( PARAM_LOCALE );
 
-        User user = currentUserService.getCurrentUserInTransaction();
+        User user = currentUserService.getCurrentUser();
 
         if ( user != null )
         {
-            configureUserContext( user, new TranslateParams( translate, locale ) );
+            final Locale dbLocale = getLocaleWithDefault( new TranslateParams( translate, locale ), user );
+            CurrentUserUtil.setUserSetting( DB_LOCALE, dbLocale );
         }
 
         return true;
-    }
-
-    @Override
-    public void afterCompletion( final HttpServletRequest request, final HttpServletResponse response,
-        final Object handler, final Exception ex )
-    {
-        reset();
-    }
-
-    private void configureUserContext( final User user, final TranslateParams translateParams )
-    {
-        final Locale dbLocale = getLocaleWithDefault( translateParams, user );
-
-        setUser( user );
-        setUserSetting( DB_LOCALE, dbLocale );
     }
 
     private Locale getLocaleWithDefault( final TranslateParams translateParams, final User user )

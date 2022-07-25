@@ -40,8 +40,6 @@ import lombok.NonNull;
 
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
-import org.hisp.dhis.analytics.dimension.DimensionFilteringAndPagingService;
-import org.hisp.dhis.analytics.dimension.DimensionMapperService;
 import org.hisp.dhis.analytics.dimensions.AnalyticsDimensionsPagingWrapper;
 import org.hisp.dhis.analytics.event.EventAnalyticsDimensionsService;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
@@ -52,8 +50,13 @@ import org.hisp.dhis.common.DimensionsCriteria;
 import org.hisp.dhis.common.EventDataQueryRequest;
 import org.hisp.dhis.common.EventsAnalyticsQueryCriteria;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.RequestTypeAware;
 import org.hisp.dhis.common.cache.CacheStrategy;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.grid.GridUtils;
+import org.hisp.dhis.webapi.dimension.DimensionFilteringAndPagingService;
+import org.hisp.dhis.webapi.dimension.DimensionMapperService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -98,11 +101,14 @@ public class EventAnalyticsController
     @NotNull
     private final DimensionMapperService dimensionMapperService;
 
+    @NotNull
+    private final SystemSettingManager systemSettingManager;
+
     // -------------------------------------------------------------------------
     // Aggregate
     // -------------------------------------------------------------------------
 
-    @PreAuthorize( "hasRole('F_PERFORM_MAINTENANCE')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_ANALYTICS_EXPLAIN')" )
     @GetMapping( value = RESOURCE_PATH + "/aggregate/{program}" + EXPLAIN_PATH, produces = { APPLICATION_JSON_VALUE,
         "application/javascript" } )
     public @ResponseBody Grid getExplainAggregateJson( // JSON, JSONP
@@ -122,7 +128,7 @@ public class EventAnalyticsController
 
         if ( params.analyzeOnly() )
         {
-            grid.maybeAddPerformanceMetrics( executionPlanStore.getExecutionPlans( params.getAnalyzeOrderId() ) );
+            grid.addPerformanceMetrics( executionPlanStore.getExecutionPlans( params.getExplainOrderId() ) );
         }
 
         return grid;
@@ -275,7 +281,7 @@ public class EventAnalyticsController
     // Query
     // -------------------------------------------------------------------------
 
-    @PreAuthorize( "hasRole('F_PERFORM_MAINTENANCE')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_ANALYTICS_EXPLAIN')" )
     @GetMapping( value = RESOURCE_PATH + "/query/{program}" + EXPLAIN_PATH, produces = { APPLICATION_JSON_VALUE,
         "application/javascript" } )
     public @ResponseBody Grid getExplainQueryJson( // JSON, JSONP
@@ -292,7 +298,7 @@ public class EventAnalyticsController
 
         if ( params.analyzeOnly() )
         {
-            grid.maybeAddPerformanceMetrics( executionPlanStore.getExecutionPlans( params.getAnalyzeOrderId() ) );
+            grid.addPerformanceMetrics( executionPlanStore.getExecutionPlans( params.getExplainOrderId() ) );
         }
 
         return grid;
@@ -420,8 +426,12 @@ public class EventAnalyticsController
     private EventQueryParams getEventQueryParams( String program, EventsAnalyticsQueryCriteria criteria,
         DhisApiVersion apiVersion, boolean analyzeOnly )
     {
+        criteria
+            .definePageSize( systemSettingManager.getIntSetting( SettingKey.ANALYTICS_MAX_LIMIT ) );
+
         EventDataQueryRequest request = EventDataQueryRequest.builder()
-            .fromCriteria( (EventsAnalyticsQueryCriteria) criteria.withQueryRequestType() )
+            .fromCriteria( (EventsAnalyticsQueryCriteria) criteria.withQueryEndpointAction()
+                .withEndpointItem( RequestTypeAware.EndpointItem.EVENT ) )
             .program( program )
             .apiVersion( apiVersion ).build();
 

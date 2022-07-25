@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.dataset;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -38,6 +36,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import lombok.RequiredArgsConstructor;
+
+import org.apache.commons.collections4.SetValuedMap;
+import org.hisp.dhis.association.jdbc.JdbcOrgUnitAssociationsStore;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataapproval.DataApprovalService;
 import org.hisp.dhis.dataelement.DataElement;
@@ -49,7 +51,7 @@ import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.springframework.context.annotation.Lazy;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -58,6 +60,7 @@ import com.google.common.collect.Lists;
 /**
  * @author Lars Helge Overland
  */
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.dataset.DataSetService" )
 public class DefaultDataSetService
     implements DataSetService
@@ -72,21 +75,10 @@ public class DefaultDataSetService
 
     private final DataApprovalService dataApprovalService;
 
-    private CurrentUserService currentUserService;
+    @Qualifier( "jdbcDataSetOrgUnitAssociationsStore" )
+    private final JdbcOrgUnitAssociationsStore jdbcOrgUnitAssociationsStore;
 
-    public DefaultDataSetService( DataSetStore dataSetStore, LockExceptionStore lockExceptionStore,
-        @Lazy DataApprovalService dataApprovalService, CurrentUserService currentUserService )
-    {
-        checkNotNull( dataSetStore );
-        checkNotNull( lockExceptionStore );
-        checkNotNull( dataApprovalService );
-        checkNotNull( currentUserService );
-
-        this.dataSetStore = dataSetStore;
-        this.lockExceptionStore = lockExceptionStore;
-        this.dataApprovalService = dataApprovalService;
-        this.currentUserService = currentUserService;
-    }
+    private final CurrentUserService currentUserService;
 
     // -------------------------------------------------------------------------
     // DataSet
@@ -170,24 +162,6 @@ public class DefaultDataSetService
 
     @Override
     @Transactional( readOnly = true )
-    public List<DataSet> getAllDataRead()
-    {
-        User user = currentUserService.getCurrentUser();
-
-        return getUserDataRead( user );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<DataSet> getAllDataWrite()
-    {
-        User user = currentUserService.getCurrentUser();
-
-        return getUserDataWrite( user );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
     public List<DataSet> getUserDataWrite( User user )
     {
         if ( user == null )
@@ -267,6 +241,84 @@ public class DefaultDataSetService
     }
 
     @Override
+    @Transactional( readOnly = true )
+    public LockStatus getLockStatus( User user, DataSet dataSet, Period period, OrganisationUnit organisationUnit,
+        CategoryOptionCombo attributeOptionCombo, Date now )
+    {
+        if ( dataApprovalService.isApproved( dataSet.getWorkflow(), period, organisationUnit, attributeOptionCombo ) )
+        {
+            return LockStatus.APPROVED;
+        }
+
+        if ( isLocked( user, dataSet, period, organisationUnit, now ) )
+        {
+            return LockStatus.LOCKED;
+        }
+
+        return LockStatus.OPEN;
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public LockStatus getLockStatus( User user, DataSet dataSet, Period period, OrganisationUnit organisationUnit,
+        CategoryOptionCombo attributeOptionCombo, Date now, boolean useOrgUnitChildren )
+    {
+        if ( !useOrgUnitChildren )
+        {
+            return getLockStatus( user, dataSet, period, organisationUnit, attributeOptionCombo, now );
+        }
+
+        if ( organisationUnit == null || !organisationUnit.hasChild() )
+        {
+            return LockStatus.OPEN;
+        }
+
+        for ( OrganisationUnit child : organisationUnit.getChildren() )
+        {
+            LockStatus childLockStatus = getLockStatus( user, dataSet, period, child, attributeOptionCombo, now );
+            if ( !childLockStatus.isOpen() )
+            {
+                return childLockStatus;
+            }
+        }
+
+        return LockStatus.OPEN;
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public LockStatus getLockStatus( User user, DataElement dataElement, Period period,
+        OrganisationUnit organisationUnit,
+        CategoryOptionCombo attributeOptionCombo, Date now )
+    {
+        if ( user == null || !user.isAuthorized( Authorities.F_EDIT_EXPIRED.getAuthority() ) )
+        {
+            now = now != null ? now : new Date();
+
+            boolean expired = dataElement.isExpired( period, now );
+
+            if ( expired && lockExceptionStore.getCount( dataElement, period, organisationUnit ) == 0L )
+            {
+                return LockStatus.LOCKED;
+            }
+        }
+
+        DataSet dataSet = dataElement.getApprovalDataSet();
+
+        if ( dataSet == null )
+        {
+            return LockStatus.OPEN;
+        }
+
+        if ( dataApprovalService.isApproved( dataSet.getWorkflow(), period, organisationUnit, attributeOptionCombo ) )
+        {
+            return LockStatus.APPROVED;
+        }
+
+        return LockStatus.OPEN;
+    }
+
+    @Override
     @Transactional
     public void deleteLockExceptionCombination( DataSet dataSet, Period period )
     {
@@ -293,68 +345,6 @@ public class DefaultDataSetService
     {
         return dataSet.isLocked( user, period, now )
             && lockExceptionStore.getCount( dataSet, period, organisationUnit ) == 0L;
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public boolean isLocked( User user, DataSet dataSet, Period period, OrganisationUnit organisationUnit,
-        CategoryOptionCombo attributeOptionCombo, Date now )
-    {
-        return isLocked( user, dataSet, period, organisationUnit, now ) ||
-            dataApprovalService.isApproved( dataSet.getWorkflow(), period, organisationUnit, attributeOptionCombo );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public boolean isLocked( User user, DataSet dataSet, Period period, OrganisationUnit organisationUnit,
-        CategoryOptionCombo attributeOptionCombo, Date now, boolean useOrgUnitChildren )
-    {
-        if ( !useOrgUnitChildren )
-        {
-            return isLocked( user, dataSet, period, organisationUnit, attributeOptionCombo, now );
-        }
-
-        if ( organisationUnit == null || !organisationUnit.hasChild() )
-        {
-            return false;
-        }
-
-        for ( OrganisationUnit child : organisationUnit.getChildren() )
-        {
-            if ( isLocked( user, dataSet, period, child, attributeOptionCombo, now ) )
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public boolean isLocked( User user, DataElement dataElement, Period period, OrganisationUnit organisationUnit,
-        CategoryOptionCombo attributeOptionCombo, Date now )
-    {
-        if ( user == null || !user.isAuthorized( Authorities.F_EDIT_EXPIRED.getAuthority() ) )
-        {
-            now = now != null ? now : new Date();
-
-            boolean expired = dataElement.isExpired( period, now );
-
-            if ( expired && lockExceptionStore.getCount( dataElement, period, organisationUnit ) == 0L )
-            {
-                return true;
-            }
-        }
-
-        DataSet dataSet = dataElement.getApprovalDataSet();
-
-        if ( dataSet == null )
-        {
-            return false;
-        }
-
-        return dataApprovalService.isApproved( dataSet.getWorkflow(), period, organisationUnit, attributeOptionCombo );
     }
 
     @Override
@@ -391,6 +381,21 @@ public class DefaultDataSetService
 
         return new ArrayList<>( returnList );
     }
+
+    @Override
+    @Transactional( readOnly = true )
+    public SetValuedMap<String, String> getDataSetOrganisationUnitsAssociations()
+    {
+        Set<String> uids = getUserDataWrite( currentUserService.getCurrentUser() ).stream()
+            .map( DataSet::getUid )
+            .collect( Collectors.toSet() );
+
+        return jdbcOrgUnitAssociationsStore.getOrganisationUnitsAssociationsForCurrentUser( uids );
+    }
+
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
 
     private List<LockException> getLockExceptionByOrganisationUnit( String operator, String orgUnitIds,
         Collection<LockException> lockExceptions )

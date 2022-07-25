@@ -1,0 +1,309 @@
+{
+  "system": {
+    "id": "38c6f1b0-e6f9-4bc5-b923-0ae66c738b87",
+    "rev": "0cf7a6e",
+    "version": "2.34-SNAPSHOT",
+    "date": "2020-02-25T10:59:44.514"
+  },
+  "trackedEntityAttributes": [
+    {
+      "lastUpdated": "2020-02-10T10:08:27.188",
+      "id": "ccccc5ttttt",
+      "created": "2020-02-10T09:12:11.348",
+      "name": "Attribute_Image",
+      "shortName": "Attribute_Image",
+      "publicAccess": "rw------",
+      "aggregationType": "COUNT",
+      "skipSynchronization": false,
+      "generated": false,
+      "valueType": "IMAGE",
+      "orgunitScope": false,
+      "confidential": false,
+      "unique": false,
+      "inherit": false,
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": []
+    }
+  ],
+  "trackedEntityTypes": [
+    {
+      "created": "2020-02-10T09:09:22.093",
+      "lastUpdated": "2020-02-25T10:54:34.963",
+      "name": "Person",
+      "id": "KrYIdvLxkMb",
+      "publicAccess": "rwrw----",
+      "maxTeiCountToReturn": 0,
+      "allowAuditLog": false,
+      "featureType": "NONE",
+      "minAttributesRequiredToSearch": 1,
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "style": {},
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "trackedEntityTypeAttributes": [
+        {
+          "lastUpdated": "2020-02-25T10:54:34.965",
+          "id": "fOV8XA0v4ep",
+          "created": "2020-02-10T09:12:52.050",
+          "name": "Person Attribute_Image",
+          "displayName": "Person Attribute_Image",
+          "displayShortName": "null Attribute_Image",
+          "mandatory": true,
+          "externalAccess": false,
+          "valueType": "DATE",
+          "searchable": true,
+          "displayInList": true,
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "trackedEntityAttribute": {
+            "id": "ccccc5ttttt"
+          },
+          "trackedEntityType": {
+            "id": "KrYIdvLxkMb"
+          },
+          "favorites": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
+        }
+      ]
+    }
+  ],
+  "programs": [
+    {
+      "code": "Program",
+      "lastUpdated": "2020-02-20T12:08:40.004",
+      "id": "hJUBNVQWl4e",
+      "created": "2020-02-12T13:39:22.692",
+      "name": "Program",
+      "shortName": "Program",
+      "publicAccess": "rwrw----",
+      "completeEventsExpiryDays": 0,
+      "ignoreOverdueEvents": false,
+      "skipOffline": false,
+      "minAttributesRequiredToSearch": 0,
+      "displayFrontPageList": false,
+      "onlyEnrollOnce": false,
+      "programType": "WITH_REGISTRATION",
+      "accessLevel": "OPEN",
+      "version": 3,
+      "maxTeiCountToReturn": 0,
+      "selectIncidentDatesInFuture": false,
+      "displayIncidentDate": true,
+      "selectEnrollmentDatesInFuture": false,
+      "expiryDays": 0,
+      "useFirstStageDuringRegistration": false,
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "trackedEntityType": {
+        "id": "KrYIdvLxkMb"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "programTrackedEntityAttributes": [
+        {
+          "lastUpdated": "2020-02-20T12:08:40.006",
+          "id": "OQeqChgVcMi",
+          "created": "2020-02-12T15:07:06.260",
+          "name": "Program Attribute_Identifier_Image",
+          "displayName": "Program Attribute_Identifier_Image",
+          "mandatory": true,
+          "displayShortName": "Program Attribute_Identifier_Image",
+          "externalAccess": false,
+          "renderOptionsAsRadio": false,
+          "valueType": "IMAGE",
+          "searchable": false,
+          "displayInList": true,
+          "sortOrder": 1,
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "program": {
+            "id": "hJUBNVQWl4e"
+          },
+          "trackedEntityAttribute": {
+            "id": "ccccc5ttttt"
+          },
+          "favorites": [],
+          "programTrackedEntityAttributeGroups": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
+        }
+      ],
+      "notificationTemplates": [],
+      "translations": [],
+      "organisationUnits": [
+        {
+          "id": "cNEZTkdAvmg"
+        }
+      ],
+      "userGroupAccesses": [],
+      "programSections": [],
+      "attributeValues": [],
+      "programStages": [],
+      "userAccesses": []
+    }
+  ],
+  "organisationUnits": [
+    {
+      "code": "Country",
+      "level": 1,
+      "created": "2020-02-10T09:07:13.082",
+      "lastUpdated": "2020-02-10T09:52:02.551",
+      "name": "Country",
+      "id": "cNEZTkdAvmg",
+      "shortName": "Country",
+      "path": "/cNEZTkdAvmg",
+      "openingDate": "2020-02-10T00:00:00.000",
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "attributeValues": [],
+      "translations": []
+    }
+  ],
+  "userRoles": [
+    {
+      "code": "Superuser",
+      "created": "2020-02-10T09:06:38.148",
+      "lastUpdated": "2020-02-10T09:52:02.499",
+      "name": "Superuser",
+      "id": "yrB6vc5Ip3r",
+      "publicAccess": "--------",
+      "description": "Superuser",
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "userGroupAccesses": [],
+      "authorities": [
+        "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS",
+        "ALL",
+        "F_USERGROUP_MANAGING_RELATIONSHIPS_ADD",
+        "F_USER_VIEW",
+        "F_GENERATE_MIN_MAX_VALUES",
+        "F_ORGANISATIONUNIT_MOVE",
+        "F_USER_GROUPS_READ_ONLY_ADD_MEMBERS",
+        "F_PREDICTOR_RUN",
+        "F_IGNORE_TRACKER_REQUIRED_VALUE_VALIDATION",
+        "F_SKIP_DATA_IMPORT_AUDIT",
+        "F_RUN_VALIDATION",
+        "F_IMPORT_DATA",
+        "F_LOCALE_ADD",
+        "F_REPLICATE_USER",
+        "F_SEND_EMAIL",
+        "F_INSERT_CUSTOM_JS_CSS",
+        "F_ENROLLMENT_CASCADE_DELETE",
+        "F_METADATA_IMPORT",
+        "F_EXPORT_EVENTS",
+        "F_VIEW_EVENT_ANALYTICS",
+        "F_VIEW_UNAPPROVED_DATA",
+        "F_IMPORT_EVENTS",
+        "F_PERFORM_MAINTENANCE",
+        "F_USERGROUP_MANAGING_RELATIONSHIPS_VIEW",
+        "F_METADATA_EXPORT",
+        "F_TEI_CASCADE_DELETE",
+        "F_EXPORT_DATA",
+        "F_APPROVE_DATA",
+        "F_ACCEPT_DATA_LOWER_LEVELS",
+        "F_EDIT_EXPIRED",
+        "F_PROGRAM_DASHBOARD_CONFIG_ADMIN",
+        "F_APPROVE_DATA_LOWER_LEVELS",
+        "F_UNCOMPLETE_EVENT"
+      ],
+      "translations": [],
+      "userAccesses": []
+    }
+  ],
+  "users": [
+    {
+      "code": "admin",
+      "lastUpdated": "2020-02-10T09:52:02.511",
+      "id": "M5zQapPyTZI",
+      "created": "2020-02-10T09:06:38.138",
+      "surname": "admin",
+      "lastCheckedInterpretations": "2020-02-10T09:06:47.644",
+      "firstName": "admin",
+      "name": "admin admin",
+      "lastLogin": "2020-02-25T10:52:18.540",
+      "displayName": "admin admin",
+      "externalAuth": false,
+      "externalAccess": false,
+      "disabled": false,
+      "twoFA": false,
+      "passwordLastUpdated": "2020-02-10T09:07:34.946",
+      "invitation": false,
+      "selfRegistered": false,
+      "favorite": false,
+      "username": "admin",
+      "access": {
+        "read": true,
+        "update": true,
+        "externalize": true,
+        "delete": true,
+        "write": true,
+        "manage": true
+      },
+      "favorites": [],
+      "cogsDimensionConstraints": [],
+      "catDimensionConstraints": [],
+      "translations": [],
+      "userGroupAccesses": [],
+      "userRoles": [
+        {
+          "id": "yrB6vc5Ip3r"
+        }
+      ],
+      "userAccesses": [],
+      "teiSearchOrganisationUnits": [],
+      "organisationUnits": [
+        {
+          "id": "cNEZTkdAvmg"
+        }
+      ],
+      "dataViewOrganisationUnits": [
+        {
+          "id": "cNEZTkdAvmg"
+        }
+      ],
+      "attributeValues": []
+    }
+  ]
+}

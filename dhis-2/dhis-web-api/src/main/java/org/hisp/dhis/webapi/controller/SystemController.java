@@ -47,9 +47,10 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.fieldfiltering.FieldFilterParams;
+import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.setting.StyleManager;
 import org.hisp.dhis.setting.StyleObject;
@@ -76,6 +77,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.csv.CsvFactory;
 import com.fasterxml.jackson.dataformat.csv.CsvGenerator;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
@@ -107,13 +109,13 @@ public class SystemController
     private Notifier notifier;
 
     @Autowired
-    private RenderService renderService;
-
-    @Autowired
     private I18nManager i18nManager;
 
     @Autowired
     private StatisticsProvider statisticsProvider;
+
+    @Autowired
+    private FieldFilterService fieldFilterService;
 
     private static final CsvFactory CSV_FACTORY = new CsvMapper().getFactory();
 
@@ -121,8 +123,7 @@ public class SystemController
     // UID Generator
     // -------------------------------------------------------------------------
 
-    @GetMapping( value = { "/uid", "/id" }, produces = { MediaType.APPLICATION_JSON_VALUE,
-        MediaType.APPLICATION_XML_VALUE } )
+    @GetMapping( value = { "/uid", "/id" } )
     public @ResponseBody CodeList getUid(
         @RequestParam( required = false, defaultValue = "1" ) Integer limit,
         HttpServletResponse response )
@@ -143,17 +144,19 @@ public class SystemController
             .setUseHeader( true )
             .build();
 
-        CsvGenerator csvGenerator = CSV_FACTORY.createGenerator( response.getOutputStream() );
-        csvGenerator.setSchema( schema );
-
-        for ( String code : codeList.getCodes() )
+        try ( CsvGenerator csvGenerator = CSV_FACTORY.createGenerator( response.getOutputStream() ) )
         {
-            csvGenerator.writeStartObject();
-            csvGenerator.writeStringField( "uid", code );
-            csvGenerator.writeEndObject();
-        }
+            csvGenerator.setSchema( schema );
 
-        csvGenerator.flush();
+            for ( String code : codeList.getCodes() )
+            {
+                csvGenerator.writeStartObject();
+                csvGenerator.writeStringField( "uid", code );
+                csvGenerator.writeEndObject();
+            }
+
+            csvGenerator.flush();
+        }
     }
 
     @GetMapping( value = "/uuid", produces = { APPLICATION_JSON_VALUE,
@@ -172,13 +175,13 @@ public class SystemController
     // Tasks
     // -------------------------------------------------------------------------
 
-    @GetMapping( value = "/tasks", produces = { "*/*", APPLICATION_JSON_VALUE } )
+    @GetMapping( value = "/tasks", produces = APPLICATION_JSON_VALUE )
     public ResponseEntity<Map<JobType, Map<String, Deque<Notification>>>> getTasksJson()
     {
         return ResponseEntity.ok().cacheControl( noStore() ).body( notifier.getNotifications() );
     }
 
-    @GetMapping( value = "/tasks/{jobType}", produces = { "*/*", APPLICATION_JSON_VALUE } )
+    @GetMapping( value = "/tasks/{jobType}", produces = APPLICATION_JSON_VALUE )
     public ResponseEntity<Map<String, Deque<Notification>>> getTasksExtendedJson(
         @PathVariable( "jobType" ) String jobType )
     {
@@ -189,7 +192,7 @@ public class SystemController
         return ResponseEntity.ok().cacheControl( noStore() ).body( notifications );
     }
 
-    @GetMapping( value = "/tasks/{jobType}/{jobId}", produces = { "*/*", APPLICATION_JSON_VALUE } )
+    @GetMapping( value = "/tasks/{jobType}/{jobId}", produces = APPLICATION_JSON_VALUE )
     public ResponseEntity<Collection<Notification>> getTaskJsonByUid( @PathVariable( "jobType" ) String jobType,
         @PathVariable( "jobId" ) String jobId )
     {
@@ -204,7 +207,7 @@ public class SystemController
     // Tasks summary
     // -------------------------------------------------------------------------
 
-    @GetMapping( value = "/taskSummaries/{jobType}", produces = { "*/*", APPLICATION_JSON_VALUE } )
+    @GetMapping( value = "/taskSummaries/{jobType}", produces = APPLICATION_JSON_VALUE )
     public ResponseEntity<Map<String, Object>> getTaskSummaryExtendedJson( @PathVariable( "jobType" ) String jobType )
     {
         if ( jobType != null )
@@ -219,7 +222,7 @@ public class SystemController
         return ResponseEntity.ok().cacheControl( noStore() ).build();
     }
 
-    @GetMapping( value = "/taskSummaries/{jobType}/{jobId}", produces = { "*/*", APPLICATION_JSON_VALUE } )
+    @GetMapping( value = "/taskSummaries/{jobType}/{jobId}", produces = APPLICATION_JSON_VALUE )
     public ResponseEntity<Object> getTaskSummaryJson( @PathVariable( "jobType" ) String jobType,
         @PathVariable( "jobId" ) String jobId )
     {
@@ -241,7 +244,8 @@ public class SystemController
     // -------------------------------------------------------------------------
 
     @GetMapping( value = "/info", produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
-    public @ResponseBody SystemInfo getSystemInfo(
+    public @ResponseBody ResponseEntity<ObjectNode> getSystemInfo(
+        @RequestParam( defaultValue = "*" ) List<String> fields,
         HttpServletRequest request,
         HttpServletResponse response )
     {
@@ -257,7 +261,10 @@ public class SystemController
 
         setNoStore( response );
 
-        return info;
+        FieldFilterParams<SystemInfo> params = FieldFilterParams.of( info, fields );
+        List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( params );
+
+        return ResponseEntity.ok( objectNodes.get( 0 ) );
     }
 
     @GetMapping( value = "/objectCounts" )

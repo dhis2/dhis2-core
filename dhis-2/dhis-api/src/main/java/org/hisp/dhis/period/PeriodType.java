@@ -32,6 +32,7 @@ import java.sql.ResultSet;
 import java.time.DayOfWeek;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
@@ -458,8 +459,11 @@ public abstract class PeriodType
      */
     public static PeriodType getPeriodTypeFromIsoString( String isoPeriod )
     {
-        DateUnitType dateUnitType = DateUnitType.find( isoPeriod );
-        return dateUnitType != null ? PERIOD_TYPE_MAP.get( dateUnitType.getName() ) : null;
+        return DateUnitType.find( isoPeriod )
+            .map( DateUnitType.DateUnitTypeWithPattern::getDateUnitType )
+            .map( DateUnitType::getName )
+            .map( PERIOD_TYPE_MAP::get )
+            .orElse( null );
     }
 
     /**
@@ -494,7 +498,7 @@ public abstract class PeriodType
      * @param isoPeriods the date strings in ISO format.
      * @return a period.
      */
-    public static List<Period> getPeriodsFromIsoStrings( List<String> isoPeriods )
+    public static List<Period> getPeriodsFromIsoStrings( Collection<String> isoPeriods )
     {
         List<Period> periods = new ArrayList<>();
 

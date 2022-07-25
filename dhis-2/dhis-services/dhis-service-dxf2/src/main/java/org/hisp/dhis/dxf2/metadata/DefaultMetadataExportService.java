@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.dxf2.metadata;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -72,7 +74,6 @@ import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.legend.LegendSet;
-import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.program.Program;
@@ -103,6 +104,8 @@ import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.visualization.Visualization;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
 
@@ -130,6 +133,8 @@ public class DefaultMetadataExportService implements MetadataExportService
 
     private final AttributeService attributeService;
 
+    private final ObjectMapper objectMapper;
+
     @Override
     @SuppressWarnings( "unchecked" )
     public Map<Class<? extends IdentifiableObject>, List<? extends IdentifiableObject>> getMetadata(
@@ -148,8 +153,8 @@ public class DefaultMetadataExportService implements MetadataExportService
             schemaService.getMetadataSchemas().stream()
                 .filter( schema -> schema.isIdentifiableObject() && schema.isPersisted() )
                 .filter( s -> !s.isSecondaryMetadata() )
-                .forEach(
-                    schema -> params.getClasses().add( (Class<? extends IdentifiableObject>) schema.getKlass() ) );
+                .forEach( schema -> params.getClasses()
+                    .add( (Class<? extends IdentifiableObject>) schema.getKlass() ) );
         }
 
         log.info( "(" + params.getUsername() + ") Export:Start" );
@@ -193,7 +198,7 @@ public class DefaultMetadataExportService implements MetadataExportService
     }
 
     @Override
-    public ObjectNode getMetadataAsNode( MetadataExportParams params )
+    public ObjectNode getMetadataAsObjectNode( MetadataExportParams params )
     {
         ObjectNode rootNode = fieldFilterService.createObjectNode();
         SystemInfo systemInfo = systemService.getSystemInfo();
@@ -224,6 +229,51 @@ public class DefaultMetadataExportService implements MetadataExportService
         }
 
         return rootNode;
+    }
+
+    @Override
+    public void getMetadataAsObjectNodeStream( MetadataExportParams params, OutputStream outputStream )
+        throws IOException
+    {
+        SystemInfo systemInfo = systemService.getSystemInfo();
+        Map<Class<? extends IdentifiableObject>, List<? extends IdentifiableObject>> metadata = getMetadata( params );
+        User currentUser = currentUserService.getCurrentUser();
+
+        try ( JsonGenerator generator = objectMapper.getFactory().createGenerator( outputStream ) )
+        {
+            generator.writeStartObject();
+
+            generator.writeObjectFieldStart( "system" );
+            generator.writeStringField( "id", systemInfo.getSystemId() );
+            generator.writeStringField( "rev", systemInfo.getRevision() );
+            generator.writeStringField( "version", systemInfo.getVersion() );
+            generator.writeStringField( "date", DateUtils.getIso8601( systemInfo.getServerDate() ) );
+            generator.writeEndObject();
+
+            for ( Class<? extends IdentifiableObject> klass : metadata.keySet() )
+            {
+                List<Object> objects = new ArrayList<>( metadata.get( klass ) );
+
+                if ( objects.isEmpty() )
+                {
+                    continue;
+                }
+
+                FieldFilterParams<?> fieldFilterParams = FieldFilterParams.builder()
+                    .objects( objects )
+                    .filters( new HashSet<>( params.getFields( klass ) ) )
+                    .skipSharing( params.getSkipSharing() )
+                    .user( currentUser )
+                    .build();
+
+                String plural = schemaService.getDynamicSchema( klass ).getPlural();
+                generator.writeArrayFieldStart( plural );
+                fieldFilterService.toObjectNodesStream( fieldFilterParams, generator );
+                generator.writeEndArray();
+            }
+
+            generator.writeEndObject();
+        }
     }
 
     @Override
@@ -886,17 +936,6 @@ public class DefaultMetadataExportService implements MetadataExportService
         return metadata;
     }
 
-    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleMapView(
-        SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, MapView mapView )
-    {
-        if ( mapView == null )
-            return metadata;
-        metadata.putValue( MapView.class, mapView );
-        handleAttributes( metadata, mapView );
-
-        return metadata;
-    }
-
     private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleMap(
         SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, org.hisp.dhis.mapping.Map map )
     {
@@ -904,8 +943,6 @@ public class DefaultMetadataExportService implements MetadataExportService
             return metadata;
         metadata.putValue( org.hisp.dhis.mapping.Map.class, map );
         handleAttributes( metadata, map );
-
-        map.getMapViews().forEach( mapView -> handleMapView( metadata, mapView ) );
 
         return metadata;
     }
@@ -955,15 +992,15 @@ public class DefaultMetadataExportService implements MetadataExportService
         return metadata;
     }
 
-    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleEmbbedItem(
-        SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, InterpretableObject embbededItem )
+    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleEmbeddedItem(
+        SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, InterpretableObject embeddedItem )
     {
-        if ( embbededItem == null )
+        if ( embeddedItem == null )
             return metadata;
 
-        if ( embbededItem.getInterpretations() != null )
+        if ( embeddedItem.getInterpretations() != null )
         {
-            embbededItem.getInterpretations()
+            embeddedItem.getInterpretations()
                 .forEach( interpretation -> handleInterpretation( metadata, interpretation ) );
         }
 
@@ -993,7 +1030,7 @@ public class DefaultMetadataExportService implements MetadataExportService
         handleEventChart( metadata, dashboardItem.getEventChart() );
         handleEventReport( metadata, dashboardItem.getEventReport() );
         handleMap( metadata, dashboardItem.getMap() );
-        handleEmbbedItem( metadata, dashboardItem.getEmbeddedItem() );
+        handleEmbeddedItem( metadata, dashboardItem.getEmbeddedItem() );
 
         dashboardItem.getReports().forEach( report -> handleReport( metadata, report ) );
         dashboardItem.getResources().forEach( document -> handleDocument( metadata, document ) );

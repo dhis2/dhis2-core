@@ -28,6 +28,7 @@
 package org.hisp.dhis.program.variable;
 
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.parser.expression.ProgramExpressionParams;
 
 /**
  * @author Zubair Asghar
@@ -43,8 +44,10 @@ public class vEventStatus implements ProgramVariable
     @Override
     public Object getSql( CommonExpressionVisitor visitor )
     {
+        ProgramExpressionParams params = visitor.getProgParams();
+
         return visitor.getStatementBuilder().getProgramIndicatorEventColumnSql(
-            null, "psistatus", visitor.getReportingStartDate(), visitor.getReportingEndDate(),
-            visitor.getProgramIndicator() );
+            null, "psistatus", params.getReportingStartDate(), params.getReportingEndDate(),
+            params.getProgramIndicator() );
     }
 }

@@ -29,6 +29,7 @@ package org.hisp.dhis.dataintegrity;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -78,6 +79,9 @@ class DataIntegrityYamlReader
         @JsonProperty( "details_sql" )
         String detailsSql;
 
+        @JsonProperty( "details_id_type" )
+        String detailsIdType;
+
         @JsonProperty
         String introduction;
 
@@ -89,6 +93,7 @@ class DataIntegrityYamlReader
     }
 
     public static void readDataIntegrityYaml( String listFile, Consumer<DataIntegrityCheck> adder,
+        BinaryOperator<String> info,
         Function<String, Function<DataIntegrityCheck, DataIntegritySummary>> sqlToSummary,
         Function<String, Function<DataIntegrityCheck, DataIntegrityDetails>> sqlToDetails )
     {
@@ -113,11 +118,14 @@ class DataIntegrityYamlReader
                 CheckYamlFile e = yaml.readValue( new ClassPathResource( path ).getInputStream(),
                     CheckYamlFile.class );
 
+                String name = e.name.trim();
                 adder.accept( DataIntegrityCheck.builder()
-                    .name( trim( e.name ) )
-                    .description( trim( e.description ) )
-                    .introduction( trim( e.introduction ) )
-                    .recommendation( trim( e.recommendation ) )
+                    .name( name )
+                    .displayName( info.apply( name + ".name", name.replace( '_', ' ' ) ) )
+                    .description( info.apply( name + ".description", trim( e.description ) ) )
+                    .introduction( info.apply( name + ".introduction", trim( e.introduction ) ) )
+                    .recommendation( info.apply( name + ".recommendation", trim( e.recommendation ) ) )
+                    .issuesIdType( trim( e.detailsIdType ) )
                     .section( trim( e.section ) )
                     .severity( e.severity )
                     .runSummaryCheck( sqlToSummary.apply( sanitiseSQL( e.summarySql ) ) )
@@ -147,8 +155,7 @@ class DataIntegrityYamlReader
             .replaceAll( "select '[^']+' as [^,]+,", "select " )
             .replaceAll( "'[^']+' as description", "" )
             .replace( "::varchar", "" )
-            .replace( "|| '%'", "" )
-            .replaceAll( " as [^,]+,", "," ) );
+            .replace( "|| '%'", "" ) );
     }
 
 }

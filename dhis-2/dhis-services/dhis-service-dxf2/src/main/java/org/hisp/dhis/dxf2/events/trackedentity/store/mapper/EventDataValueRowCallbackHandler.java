@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.hisp.dhis.dxf2.events.event.DataValue;
+import org.hisp.dhis.program.UserInfoSnapshot;
 import org.postgresql.util.PGobject;
 import org.springframework.jdbc.core.RowCallbackHandler;
 
@@ -82,11 +83,28 @@ public class EventDataValueRowCallbackHandler implements
             value.setLastUpdated( (String) jsonValues.get( "lastUpdated" ) );
             value.setStoredBy( (String) jsonValues.get( "storedBy" ) );
             value.setProvidedElsewhere( (Boolean) jsonValues.get( "providedElsewhere" ) );
+            value.setCreatedByUserInfo( buildUserInfoSnapshot( (Map) jsonValues.get( "createdByUserInfo" ) ) );
+            value.setLastUpdatedByUserInfo( buildUserInfoSnapshot( (Map) jsonValues.get( "lastUpdatedByUserInfo" ) ) );
 
             dataValues.add( value );
         }
 
         return dataValues;
+    }
+
+    private UserInfoSnapshot buildUserInfoSnapshot( Map createdByUserInfo )
+    {
+        if ( createdByUserInfo == null )
+        {
+            return null;
+        }
+
+        UserInfoSnapshot userInfoSnapshot = new UserInfoSnapshot();
+        userInfoSnapshot.setUid( (String) createdByUserInfo.get( "uid" ) );
+        userInfoSnapshot.setUsername( (String) createdByUserInfo.get( "username" ) );
+        userInfoSnapshot.setFirstName( (String) createdByUserInfo.get( "firstName" ) );
+        userInfoSnapshot.setSurname( (String) createdByUserInfo.get( "surname" ) );
+        return userInfoSnapshot;
     }
 
     public Map<String, List<DataValue>> getItems()

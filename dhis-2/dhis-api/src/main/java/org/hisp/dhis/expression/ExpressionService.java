@@ -35,12 +35,9 @@ import java.util.Set;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.constant.Constant;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorValue;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.period.Period;
 
@@ -128,7 +125,7 @@ public interface ExpressionService
      * @param indicators the set of indicators.
      * @return a Set of OrganisationUnitGroups.
      */
-    Set<OrganisationUnitGroup> getIndicatorOrgUnitGroups( Collection<Indicator> indicators );
+    List<OrganisationUnitGroup> getOrgUnitGroupCountGroups( Collection<Indicator> indicators );
 
     /**
      * Generates the calculated value for the given parameters based on the
@@ -138,13 +135,12 @@ public interface ExpressionService
      * @param periods a List of periods for which to calculate the value.
      * @param itemMap map of dimensional item id to object in expression.
      * @param valueMap the map of data values.
-     * @param constantMap the map of constants.
      * @param orgUnitCountMap the map of organisation unit group member counts.
      * @return the calculated value as a double.
      */
     IndicatorValue getIndicatorValueObject( Indicator indicator, List<Period> periods,
         Map<DimensionalItemId, DimensionalItemObject> itemMap, Map<DimensionalItemObject, Object> valueMap,
-        Map<String, Constant> constantMap, Map<String, Integer> orgUnitCountMap );
+        Map<String, Integer> orgUnitCountMap );
 
     /**
      * Substitutes any constants and org unit group member counts in the
@@ -190,6 +186,26 @@ public interface ExpressionService
     String getExpressionDescription( String expression, ParseType parseType, DataType dataType );
 
     /**
+     * Gets information we need from an expression string.
+     *
+     * @param params the expression parameters.
+     * @return the expression information.
+     */
+    ExpressionInfo getExpressionInfo( ExpressionParams params );
+
+    /**
+     * From expression info, create a "base" expression parameters object with
+     * certain metadata fields supplied that are needed for later evaluation.
+     * <p>
+     * Before evaluation, the caller will need to add to this "base" object
+     * fields such as expression, parseType, dataType, valueMap, etc.
+     *
+     * @param info the expression information.
+     * @return the expression parameters with metadata pre-filled.
+     */
+    ExpressionParams getBaseExpressionParams( ExpressionInfo info );
+
+    /**
      * Returns UIDs of Data Elements and associated Option Combos (if any) found
      * in the Data Element Operands an expression.
      * <p/>
@@ -205,15 +221,15 @@ public interface ExpressionService
     Set<String> getExpressionElementAndOptionComboIds( String expression, ParseType parseType );
 
     /**
-     * Returns all data elements found in the given expression string, including
-     * those found in data element operands. Returns an empty set if the given
-     * expression is null.
+     * Returns all data element ids found in the given expression string,
+     * including those found in data element operands. Returns an empty set if
+     * the given expression is null.
      *
      * @param expression the expression string.
      * @param parseType the type of expression to parse.
-     * @return a Set of data elements included in the expression string.
+     * @return a Set of data elements ids included in the expression string.
      */
-    Set<DataElement> getExpressionDataElements( String expression, ParseType parseType );
+    Set<String> getExpressionDataElementIds( String expression, ParseType parseType );
 
     /**
      * Returns all CategoryOptionCombo uids in the given expression string that
@@ -227,21 +243,6 @@ public interface ExpressionService
     Set<String> getExpressionOptionComboIds( String expression, ParseType parseType );
 
     /**
-     * Returns all dimensional item objects in the given expression, returning
-     * separately the items to be sampled inside any vector functions. Items are
-     * returned as a map from itemId to object.
-     *
-     * @param expression the expression string.
-     * @param parseType the type of expression to parse.
-     * @param dataType the data type the expression should return.
-     * @param itemMap map to insert the items into.
-     * @param sampleItemMap map to insert the sampled items into.
-     */
-    void getExpressionDimensionalItemMaps( String expression, ParseType parseType, DataType dataType,
-        Map<DimensionalItemId, DimensionalItemObject> itemMap,
-        Map<DimensionalItemId, DimensionalItemObject> sampleItemMap );
-
-    /**
      * Returns all dimensional item object ids in the given expression.
      *
      * @param expression the expression string.
@@ -249,15 +250,6 @@ public interface ExpressionService
      * @return a Set of dimensional item object ids.
      */
     Set<DimensionalItemId> getExpressionDimensionalItemIds( String expression, ParseType parseType );
-
-    /**
-     * Returns all OrganisationUnitGroups in the given expression.
-     *
-     * @param expression the expression string.
-     * @param parseType the type of expression to parse.
-     * @return a Set of OrganisationUnitGroups in the expression string.
-     */
-    Set<OrganisationUnitGroup> getExpressionOrgUnitGroups( String expression, ParseType parseType );
 
     /**
      * Returns set of all OrganisationUnitGroup UIDs in the given expression.
@@ -275,59 +267,19 @@ public interface ExpressionService
     /**
      * Generates the calculated value for an expression.
      *
-     * @param expression the expression string.
-     * @param parseType the type of expression to parse.
+     * @param params the expression parameters.
      * @return the calculated value.
      */
-    Object getExpressionValue( String expression, ParseType parseType );
+    Object getExpressionValue( ExpressionParams params );
+
+    // -------------------------------------------------------------------------
+    // Gets a (possibly cached) constant map
+    // -------------------------------------------------------------------------
 
     /**
-     * Generates the calculated numeric value for an expression.
+     * Gets the (possibly cached) constant map.
      *
-     * @param expression the expression string.
-     * @param parseType the type of expression to parse.
-     * @param itemMap map of dimensional item objects to value in expression.
-     * @param valueMap the dimensional item object values to use for
-     *        calculation.
-     * @param constantMap map of constants to use for calculation.
-     * @param orgUnitCountMap the map of organisation unit group member counts.
-     * @param orgUnitGroupMap the map of organisation unit groups.
-     * @param days the number of days to use in the calculation.
-     * @param missingValueStrategy the strategy to use when data values are
-     *        missing when calculating the expression.
-     * @param orgUnit the current organisation unit.
-     * @return the calculated value as a double.
+     * @return the constant map.
      */
-    Double getExpressionValue( String expression, ParseType parseType,
-        Map<DimensionalItemId, DimensionalItemObject> itemMap, Map<DimensionalItemObject, Object> valueMap,
-        Map<String, Constant> constantMap, Map<String, Integer> orgUnitCountMap,
-        Map<String, OrganisationUnitGroup> orgUnitGroupMap, Integer days,
-        MissingValueStrategy missingValueStrategy, OrganisationUnit orgUnit );
-
-    /**
-     * Generates the calculated value for an expression.
-     *
-     * @param expression the expression string.
-     * @param parseType the type of expression to parse.
-     * @param itemMap map of dimensional item objects to value in expression.
-     * @param valueMap the dimensional item object values to use for
-     *        calculation.
-     * @param constantMap map of constants to use for calculation.
-     * @param orgUnitCountMap the map of organisation unit group member counts.
-     * @param orgUnitGroupMap the map of organisation unit groups.
-     * @param days the number of days to use in the calculation.
-     * @param missingValueStrategy the strategy to use when data values are
-     *        missing when calculating the expression.
-     * @param orgUnit the current organisation unit.
-     * @param samplePeriods periods for samples to aggregate.
-     * @param periodValueMap values for aggregate functions by period.
-     * @param dataType the data type the expression should return.
-     * @return the calculated value.
-     */
-    Object getExpressionValue( String expression, ParseType parseType,
-        Map<DimensionalItemId, DimensionalItemObject> itemMap, Map<DimensionalItemObject, Object> valueMap,
-        Map<String, Constant> constantMap, Map<String, Integer> orgUnitCountMap,
-        Map<String, OrganisationUnitGroup> orgUnitGroupMap, Integer days,
-        MissingValueStrategy missingValueStrategy, OrganisationUnit orgUnit, List<Period> samplePeriods,
-        MapMap<Period, DimensionalItemObject, Object> periodValueMap, DataType dataType );
+    Map<String, Constant> getConstantMap();
 }

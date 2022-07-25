@@ -36,9 +36,7 @@ import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionAssign;
 import org.hisp.dhis.rules.models.RuleEffect;
@@ -59,20 +57,11 @@ public class RuleActionAssignValueImplementer implements RuleActionImplementer
 
     private RuleVariableInMemoryMap variableMap;
 
-    private final ProgramInstanceService programInstanceService;
-
-    private final ProgramStageInstanceService programStageInstanceService;
-
-    public RuleActionAssignValueImplementer( RuleVariableInMemoryMap variableMap,
-        ProgramInstanceService programInstanceService, ProgramStageInstanceService programStageInstanceService )
+    public RuleActionAssignValueImplementer( RuleVariableInMemoryMap variableMap )
     {
         checkNotNull( variableMap );
-        checkNotNull( programInstanceService );
-        checkNotNull( programStageInstanceService );
 
         this.variableMap = variableMap;
-        this.programInstanceService = programInstanceService;
-        this.programStageInstanceService = programStageInstanceService;
     }
 
     @Override
@@ -119,7 +108,7 @@ public class RuleActionAssignValueImplementer implements RuleActionImplementer
             variable = matcher.group( 0 ).trim();
         }
 
-        log.info( "Assigning: " + variable + " with value: " + value );
+        log.debug( "Assigning: " + variable + " with value: " + value );
 
         if ( !variableMap.containsKey( programInstance.getUid() ) )
         {

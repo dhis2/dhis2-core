@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.*;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1126;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1127;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1128;
 
 import lombok.RequiredArgsConstructor;
 
@@ -37,12 +39,12 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
 
 /**
@@ -55,41 +57,37 @@ public class PreCheckUpdatableFieldsValidationHook
 {
     @Override
     public void validateTrackedEntity( ValidationErrorReporter reporter,
-        TrackedEntity trackedEntity )
+        TrackerBundle bundle, TrackedEntity trackedEntity )
     {
-        TrackerImportValidationContext context = reporter.getValidationContext();
-
-        TrackedEntityInstance trackedEntityInstance = context
+        TrackedEntityInstance trackedEntityInstance = bundle
             .getTrackedEntityInstance( trackedEntity.getTrackedEntity() );
 
-        reporter.addErrorIf( () -> !trackedEntityInstance.getTrackedEntityType().getUid()
-            .equals( trackedEntity.getTrackedEntityType() ), trackedEntity, E1126, "trackedEntityType" );
+        reporter.addErrorIf(
+            () -> !trackedEntity.getTrackedEntityType().isEqualTo( trackedEntityInstance.getTrackedEntityType() ),
+            trackedEntity, E1126, "trackedEntityType" );
     }
 
     @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
+    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
-        TrackerImportValidationContext context = reporter.getValidationContext();
-
-        ProgramInstance pi = context.getProgramInstance( enrollment.getEnrollment() );
+        ProgramInstance pi = bundle.getProgramInstance( enrollment.getEnrollment() );
         Program program = pi.getProgram();
         TrackedEntityInstance trackedEntityInstance = pi.getEntityInstance();
 
-        reporter.addErrorIf( () -> !program.getUid().equals( enrollment.getProgram() ), enrollment, E1127, "program" );
+        reporter.addErrorIf( () -> !enrollment.getProgram().isEqualTo( program ), enrollment, E1127,
+            "program" );
         reporter.addErrorIf( () -> !trackedEntityInstance.getUid().equals( enrollment.getTrackedEntity() ), enrollment,
             E1127, "trackedEntity" );
     }
 
     @Override
-    public void validateEvent( ValidationErrorReporter reporter, Event event )
+    public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
     {
-        TrackerImportValidationContext context = reporter.getValidationContext();
-
-        ProgramStageInstance programStageInstance = context.getProgramStageInstance( event.getEvent() );
+        ProgramStageInstance programStageInstance = bundle.getProgramStageInstance( event.getEvent() );
         ProgramStage programStage = programStageInstance.getProgramStage();
         ProgramInstance programInstance = programStageInstance.getProgramInstance();
 
-        reporter.addErrorIf( () -> !event.getProgramStage().equals( programStage.getUid() ), event, E1128,
+        reporter.addErrorIf( () -> !event.getProgramStage().isEqualTo( programStage ), event, E1128,
             "programStage" );
         reporter.addErrorIf(
             () -> event.getEnrollment() != null && !event.getEnrollment().equals( programInstance.getUid() ),
@@ -103,7 +101,8 @@ public class PreCheckUpdatableFieldsValidationHook
     }
 
     @Override
-    public void validateRelationship( ValidationErrorReporter reporter, Relationship relationship )
+    public void validateRelationship( ValidationErrorReporter reporter, TrackerBundle bundle,
+        Relationship relationship )
     {
         // Nothing to do
     }

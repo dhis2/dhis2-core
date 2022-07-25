@@ -27,9 +27,19 @@
  */
 package org.hisp.dhis.user;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.HashSet;
 import java.util.Set;
 
+import lombok.extern.slf4j.Slf4j;
+
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * This interface defined methods for getting access to the currently logged in
@@ -39,67 +49,87 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
  * @author Torgeir Lorange Ostby
  * @version $Id: CurrentUserService.java 5708 2008-09-16 14:28:32Z larshelg $
  */
-public interface CurrentUserService
+@Service( "org.hisp.dhis.user.CurrentUserService" )
+@Slf4j
+public class CurrentUserService
 {
-    String ID = CurrentUserService.class.getName();
+    private final UserStore userStore;
+
+    private final Cache<CurrentUserGroupInfo> currentUserGroupInfoCache;
+
+    public CurrentUserService( @Lazy UserStore userStore, CacheProvider cacheProvider )
+    {
+        checkNotNull( userStore );
+
+        this.userStore = userStore;
+        this.currentUserGroupInfoCache = cacheProvider.createCurrentUserGroupInfoCache();
+    }
 
     /**
      * @return the username of the currently logged in user. If no user is
      *         logged in or the auto access admin is active, null is returned.
      */
-    String getCurrentUsername();
+    public String getCurrentUsername()
+    {
+        return CurrentUserUtil.getCurrentUsername();
+    }
 
-    /**
-     * @return the currently logged in user. If no user is logged in or the auto
-     *         access admin is active, null is returned.
-     */
-    User getCurrentUser();
+    public User getCurrentUser()
+    {
+        String username = CurrentUserUtil.getCurrentUsername();
 
-    User getCurrentUserInTransaction();
+        return userStore.getUserByUsername( username );
+    }
 
-    /**
-     * @return the user info for the currently logged in user. If no user is
-     *         logged in or the auto access admin is active, null is returned.
-     */
-    UserInfo getCurrentUserInfo();
+    @Transactional( readOnly = true )
+    public boolean currentUserIsSuper()
+    {
+        User user = getCurrentUser();
 
-    /**
-     * @return the data capture organisation units of the current user, empty
-     *         set if no current user.
-     */
-    Set<OrganisationUnit> getCurrentUserOrganisationUnits();
+        return user != null && user.isSuper();
+    }
 
-    /**
-     * @return true if the current logged in user has the ALL privileges set,
-     *         false otherwise.
-     */
-    boolean currentUserIsSuper();
+    @Transactional( readOnly = true )
+    public Set<OrganisationUnit> getCurrentUserOrganisationUnits()
+    {
+        User user = getCurrentUser();
 
-    /**
-     * Indicates whether the current user has been granted the given authority.
-     */
-    boolean currentUserIsAuthorized( String auth );
+        return user != null ? new HashSet<>( user.getOrganisationUnits() ) : new HashSet<>();
+    }
 
-    /**
-     * Return UserCredentials of current User
-     *
-     * @return UserCredentials of current User
-     */
-    UserCredentials getCurrentUserCredentials();
+    @Transactional( readOnly = true )
+    public boolean currentUserIsAuthorized( String auth )
+    {
+        User user = getCurrentUser();
 
-    /**
-     * Return {@link CurrentUserGroupInfo} of current User
-     */
-    CurrentUserGroupInfo getCurrentUserGroupsInfo();
+        return user != null && user.isAuthorized( auth );
+    }
 
-    /**
-     * Invalidate UserGroupInfo Cache for given username Ignore if username
-     * doesn't exist
-     */
-    void invalidateUserGroupCache( String username );
+    @Transactional( readOnly = true )
+    public CurrentUserGroupInfo getCurrentUserGroupsInfo()
+    {
+        CurrentUserDetails user = CurrentUserUtil.getCurrentUserDetails();
 
-    /**
-     * Get {@link CurrentUserGroupInfo} by given {@link UserInfo}
-     */
-    CurrentUserGroupInfo getCurrentUserGroupsInfo( UserInfo userInfo );
+        return user == null ? null : getCurrentUserGroupsInfo( user.getUid() );
+    }
+
+    @Transactional( readOnly = true )
+    public CurrentUserGroupInfo getCurrentUserGroupsInfo( String userUID )
+    {
+        return currentUserGroupInfoCache
+            .get( userUID, key -> userStore.getCurrentUserGroupInfo( key ) );
+    }
+
+    @Transactional( readOnly = true )
+    public void invalidateUserGroupCache( String userUID )
+    {
+        try
+        {
+            currentUserGroupInfoCache.invalidate( userUID );
+        }
+        catch ( NullPointerException exception )
+        {
+            // Ignore if key doesn't exist
+        }
+    }
 }

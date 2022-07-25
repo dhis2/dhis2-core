@@ -1,0 +1,379 @@
+{
+  "system": {
+    "rev": "1e9ad0f",
+    "version": "2.32-SNAPSHOT",
+    "date": "2019-01-28T11:34:56.545"
+  },
+  "trackedEntityTypes": [
+    {
+      "created": "2020-05-31T08:59:52.758",
+      "lastUpdated": "2020-05-31T11:41:22.419",
+      "name": "Person",
+      "id": "nEenWmSyUEp",
+      "publicAccess": "rw------",
+      "description": "person",
+      "maxTeiCountToReturn": 0,
+      "allowAuditLog": false,
+      "featureType": "NONE",
+      "minAttributesRequiredToSearch": 1,
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "trackedEntityTypeAttributes": [],
+      "translations": [],
+      "userAccesses": []
+    }
+  ],
+  "users": [
+    {
+      "code": "admin",
+      "lastUpdated": "2019-01-28T11:04:32.097",
+      "id": "M5zQapPyTZI",
+      "created": "2019-01-28T11:03:39.373",
+      "surname": "admin",
+      "firstName": "admin",
+      "name": "admin admin",
+      "lastLogin": "2019-01-28T11:34:56.529",
+      "displayName": "admin admin",
+      "externalAuth": false,
+      "externalAccess": false,
+      "disabled": false,
+      "twoFA": false,
+      "passwordLastUpdated": "2019-01-28T11:04:32.052",
+      "invitation": false,
+      "selfRegistered": false,
+      "favorite": false,
+      "username": "admin",
+      "access": {
+        "read": true,
+        "update": true,
+        "externalize": true,
+        "delete": true,
+        "write": true,
+        "manage": true
+      },
+      "favorites": [],
+      "cogsDimensionConstraints": [],
+      "catDimensionConstraints": [],
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userRoles": [
+        {
+          "id": "yrB6vc5Ip3r"
+        }
+      ],
+      "userAccesses": [],
+      "teiSearchOrganisationUnits": [],
+      "organisationUnits": [
+        {
+          "id": "PlKwabX2xRW"
+        }
+      ],
+      "dataViewOrganisationUnits": [
+        {
+          "id": "PlKwabX2xRW"
+        }
+      ],
+      "attributeValues": []
+    }
+  ],
+  "organisationUnits": [
+    {
+      "created": "2019-01-28T11:04:13.489",
+      "lastUpdated": "2019-01-28T11:04:13.592",
+      "name": "Country",
+      "id": "PlKwabX2xRW",
+      "shortName": "Country",
+      "path": "/PlKwabX2xRW",
+      "featureType": "NONE",
+      "openingDate": "2019-01-28T00:00:00.000",
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "attributeValues": [],
+      "translations": []
+    }
+  ],
+  "programs": [
+    {
+      "lastUpdated": "2019-01-28T11:23:20.906",
+      "id": "BFcipDERJne",
+      "created": "2019-01-28T11:23:20.906",
+      "name": "ProgramA",
+      "shortName": "ProgramA",
+      "publicAccess": "rw------",
+      "completeEventsExpiryDays": 0,
+      "ignoreOverdueEvents": false,
+      "skipOffline": false,
+      "minAttributesRequiredToSearch": 1,
+      "displayFrontPageList": false,
+      "onlyEnrollOnce": false,
+      "programType": "WITH_REGISTRATION",
+      "accessLevel": "OPEN",
+      "version": 2,
+      "maxTeiCountToReturn": 0,
+      "selectIncidentDatesInFuture": false,
+      "displayIncidentDate": true,
+      "selectEnrollmentDatesInFuture": false,
+      "expiryDays": 0,
+      "useFirstStageDuringRegistration": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "trackedEntityType": {
+        "id": "nEenWmSyUEp"
+      },
+      "notificationTemplates": [],
+      "translations": [],
+      "organisationUnits": [
+        {
+          "id": "PlKwabX2xRW"
+        }
+      ],
+      "programTrackedEntityAttributes": [
+        {
+          "lastUpdated": "2020-05-31T11:41:22.440",
+          "id": "tRazDycN3jq",
+          "created": "2020-05-31T09:02:52.581",
+          "name": "test-program test-tei-attribute",
+          "displayName": "test-program test-tei-attribute",
+          "mandatory": false,
+          "displayShortName": "test-program test-tei-attribute",
+          "externalAccess": false,
+          "renderOptionsAsRadio": false,
+          "valueType": "TEXT",
+          "searchable": false,
+          "displayInList": false,
+          "sortOrder": 1,
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "program": {
+            "id": "BFcipDERJne"
+          },
+          "trackedEntityAttribute": {
+            "id": "sYn3tkL3XKa"
+          },
+          "favorites": [],
+          "programTrackedEntityAttributeGroups": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
+        }
+      ],
+      "userGroupAccesses": [],
+      "programSections": [],
+      "attributeValues": [],
+      "userAccesses": []
+    }
+  ],
+  "userRoles": [
+    {
+      "code": "Superuser",
+      "created": "2019-01-28T11:03:39.381",
+      "lastUpdated": "2019-01-28T11:03:39.381",
+      "name": "Superuser",
+      "id": "yrB6vc5Ip3r",
+      "publicAccess": "--------",
+      "description": "Superuser",
+      "userGroupAccesses": [],
+      "authorities": [
+        "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS",
+        "ALL",
+        "F_USERGROUP_MANAGING_RELATIONSHIPS_ADD",
+        "F_USER_VIEW",
+        "F_GENERATE_MIN_MAX_VALUES",
+        "F_ORGANISATIONUNIT_MOVE",
+        "F_USER_GROUPS_READ_ONLY_ADD_MEMBERS",
+        "F_PREDICTOR_RUN",
+        "F_IGNORE_TRACKER_REQUIRED_VALUE_VALIDATION",
+        "F_RUN_VALIDATION",
+        "F_IMPORT_DATA",
+        "F_LOCALE_ADD",
+        "F_REPLICATE_USER",
+        "F_SEND_EMAIL",
+        "F_INSERT_CUSTOM_JS_CSS",
+        "F_ENROLLMENT_CASCADE_DELETE",
+        "F_METADATA_IMPORT",
+        "F_EXPORT_EVENTS",
+        "F_VIEW_EVENT_ANALYTICS",
+        "F_VIEW_UNAPPROVED_DATA",
+        "F_IMPORT_EVENTS",
+        "F_PERFORM_MAINTENANCE",
+        "F_USERGROUP_MANAGING_RELATIONSHIPS_VIEW",
+        "F_METADATA_EXPORT",
+        "F_TEI_CASCADE_DELETE",
+        "F_EXPORT_DATA",
+        "F_APPROVE_DATA",
+        "F_ACCEPT_DATA_LOWER_LEVELS",
+        "F_EDIT_EXPIRED",
+        "F_PROGRAM_DASHBOARD_CONFIG_ADMIN",
+        "F_APPROVE_DATA_LOWER_LEVELS",
+        "F_UNCOMPLETE_EVENT"
+      ],
+      "translations": [],
+      "userAccesses": []
+    }
+  ],
+  "trackedEntityAttributes": [
+    {
+      "lastUpdated": "2020-02-10T09:10:22.603",
+      "id": "sYn3tkL3XKa",
+      "created": "2020-02-10T09:10:22.603",
+      "name": "Attribute_Integer",
+      "shortName": "Attribute_Integer",
+      "aggregationType": "SUM",
+      "displayInListNoProgram": false,
+      "publicAccess": "rw------",
+      "pattern": "",
+      "skipSynchronization": false,
+      "generated": false,
+      "displayOnVisitSchedule": false,
+      "valueType": "INTEGER",
+      "orgunitScope": false,
+      "confidential": false,
+      "unique": false,
+      "inherit": false,
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": []
+    }
+  ],
+  "programRules": [
+    {
+      "created": "2020-05-31T09:04:26.184",
+      "lastUpdated": "2020-05-31T11:58:16.310",
+      "name": "test-program-rule",
+      "id": "lmgRJ5WF2x8",
+      "description": "test-program-rule",
+      "condition": "true",
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "program": {
+        "id": "BFcipDERJne"
+      },
+      "translations": [],
+      "programRuleActions": [
+        {
+          "id": "VzMCAo8HrpO"
+        }
+      ]
+    }
+  ],
+  "programRuleActions": [
+    {
+      "created": "2020-05-31T09:04:26.175",
+      "lastUpdated": "2020-05-31T11:58:16.304",
+      "id": "VzMCAo8HrpO",
+      "programRuleActionType": "SCHEDULEMESSAGE",
+      "data": "'2020-06-20'",
+      "templateUid": "FdIeUL4gyoB",
+      "evaluationTime": "ALWAYS",
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "programRule": {
+        "id": "lmgRJ5WF2x8"
+      },
+      "evaluationEnvironments": [
+        "ANDROID",
+        "WEB"
+      ]
+    }
+  ],
+  "programNotificationTemplates": [
+    {
+      "lastUpdated": "2020-05-31T11:35:18.355",
+      "id": "FdIeUL4gyoB",
+      "href": "http://localhost:8081/api/programNotificationTemplates/FdIeUL4gyoB",
+      "created": "2020-05-31T11:35:18.355",
+      "name": "test-program-notification",
+      "displayName": "test-program-notification",
+      "externalAccess": false,
+      "notificationTrigger": "PROGRAM_RULE",
+      "subjectTemplate": "test subject",
+      "notificationRecipient": "USER_GROUP",
+      "favorite": false,
+      "messageTemplate": "test message ",
+      "access": {
+        "read": true,
+        "update": true,
+        "externalize": true,
+        "delete": true,
+        "write": true,
+        "manage": true
+      },
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "favorites": [],
+      "translations": [],
+      "userGroupAccesses": [],
+      "deliveryChannels": [],
+      "attributeValues": [],
+      "userAccesses": []
+    },
+    {
+      "lastUpdated": "2020-05-31T11:35:18.355",
+      "id": "FdIeUL4gyoC",
+      "href": "http://localhost:8081/api/programNotificationTemplates/FdIeUL4gyoC",
+      "created": "2020-05-31T11:35:18.355",
+      "name": "test-program-notification2",
+      "displayName": "test-program-notification2",
+      "externalAccess": false,
+      "notificationTrigger": "PROGRAM_RULE",
+      "subjectTemplate": "test subject",
+      "notificationRecipient": "USER_GROUP",
+      "favorite": false,
+      "messageTemplate": "test message ",
+      "access": {
+        "read": true,
+        "update": true,
+        "externalize": true,
+        "delete": true,
+        "write": true,
+        "manage": true
+      },
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "favorites": [],
+      "translations": [],
+      "userGroupAccesses": [],
+      "deliveryChannels": [],
+      "attributeValues": [],
+      "userAccesses": []
+    }
+  ]
+}

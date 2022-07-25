@@ -37,40 +37,70 @@ import javax.persistence.criteria.Root;
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.user.CurrentUserGroupInfo;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserInfo;
 
 /**
- * Interface which extends GenericStore and exposes support methods for
- * retrieving criteria.
+ * Interface which contains methods for generating predicates which are used
+ * validating sharing access permission.
  *
  * @author Lars Helge Overland
  */
 public interface InternalHibernateGenericStore<T>
     extends GenericStore<T>
 {
-    List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder );
-
+    /**
+     * Get List of JPA Query Predicates for checking
+     * AclService.LIKE_READ_METADATA sharing access of current {@link User}.
+     *
+     * @param builder {@link CriteriaBuilder} used for generating
+     *        {@link Predicate}
+     * @return List of {@link Predicate}
+     */
     List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, User user );
 
-    List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, UserInfo userInfo );
-
-    List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, String access );
-
+    /**
+     * Get List of JPA Query Predicates for checking sharing access of current
+     * {@link User} based on given access String.
+     *
+     * @param builder {@link CriteriaBuilder} used for generating
+     *        {@link Predicate}.
+     * @param user {@link User} for checking.
+     * @param access access string for checking.
+     * @return List of {@link Predicate}
+     */
     List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, User user, String access );
 
-    List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, UserInfo userInfo,
-        CurrentUserGroupInfo groupInfo, String access );
-
-    List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder );
-
+    /**
+     * Get List of JPA Query Predicates for checking AclService.LIKE_READ_DATA
+     * sharing access of current {@link User}.
+     *
+     * @param builder {@link CriteriaBuilder} used for generating
+     *        {@link Predicate}.
+     * @param user {@link User} for checking.
+     * @return List of {@link Predicate}
+     */
     List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, User user );
 
-    List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, UserInfo userInfo );
-
-    List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, String access );
-
-    List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, UserInfo userInfo,
+    /**
+     * Get List of JPA Query Predicates for checking data sharing access of
+     * current {@link User} based on given access String.
+     *
+     * @param builder {@link CriteriaBuilder} used for generating
+     *        {@link Predicate}.
+     * @param user {@link User} for checking.
+     * @param groupInfo {@link CurrentUserGroupInfo}
+     * @return List of {@link Predicate}
+     */
+    List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, User user,
         CurrentUserGroupInfo groupInfo, String access );
 
+    /**
+     * Get List of JPA Query Predicates for checking data sharing access of
+     * current {@link User} based on given access String.
+     *
+     * @param builder {@link CriteriaBuilder} used for generating
+     *        {@link Predicate}.
+     * @param user {@link User} for checking.
+     * @return List of {@link Predicate}
+     */
     List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, User user, String access );
 }

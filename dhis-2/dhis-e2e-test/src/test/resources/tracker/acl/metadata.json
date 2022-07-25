@@ -1291,45 +1291,36 @@
       "created": "2020-04-17T14:35:28.939",
       "surname": "UserD",
       "firstName": "UserD",
-      "userCredentials": {
-        "lastUpdated": "2020-04-17T14:35:28.918",
-        "id": "r1NQCqhl7jB",
-        "created": "2020-04-17T14:35:28.918",
-        "name": "UserD UserD",
-        "displayName": "UserD UserD",
-        "externalAuth": false,
-        "externalAccess": false,
-        "disabled": false,
-        "twoFA": false,
-        "passwordLastUpdated": "2020-04-17T14:35:28.946",
-        "invitation": false,
-        "selfRegistered": false,
-        "favorite": false,
-        "username": "User D",
-        "userInfo": {
-          "id": "Lpa5INiC3Qf"
-        },
-        "access": {
-          "read": true,
-          "update": true,
-          "externalize": true,
-          "delete": true,
-          "write": true,
-          "manage": true
-        },
-        "favorites": [],
-        "cogsDimensionConstraints": [],
-        "catDimensionConstraints": [],
-        "translations": [],
-        "userGroupAccesses": [],
-        "attributeValues": [],
-        "userRoles": [
-          {
-            "id": "UbhT3bXWUyb"
-          }
-        ],
-        "userAccesses": []
+      "name": "UserD UserD",
+      "displayName": "UserD UserD",
+      "externalAuth": false,
+      "externalAccess": false,
+      "disabled": false,
+      "twoFA": false,
+      "passwordLastUpdated": "2020-04-17T14:35:28.946",
+      "invitation": false,
+      "selfRegistered": false,
+      "favorite": false,
+      "username": "User D",
+      "access": {
+        "read": true,
+        "update": true,
+        "externalize": true,
+        "delete": true,
+        "write": true,
+        "manage": true
       },
+      "favorites": [],
+      "cogsDimensionConstraints": [],
+      "catDimensionConstraints": [],
+      "translations": [],
+      "userGroupAccesses": [],
+      "userRoles": [
+        {
+          "id": "UbhT3bXWUyb"
+        }
+      ],
+      "userAccesses": [],
       "teiSearchOrganisationUnits": [
         {
           "id": "OUQ3Ny4FaF5"
@@ -1352,45 +1343,36 @@
       "created": "2020-04-17T14:35:00.883",
       "surname": "UserC",
       "firstName": "UserC",
-      "userCredentials": {
-        "lastUpdated": "2020-04-17T14:35:00.863",
-        "id": "kh8xw0YBOXi",
-        "created": "2020-04-17T14:35:00.863",
-        "name": "UserC UserC",
-        "displayName": "UserC UserC",
-        "externalAuth": false,
-        "externalAccess": false,
-        "disabled": false,
-        "twoFA": false,
-        "passwordLastUpdated": "2020-04-17T14:35:00.889",
-        "invitation": false,
-        "selfRegistered": false,
-        "favorite": false,
-        "username": "User C",
-        "userInfo": {
-          "id": "CKrrGm5Be8O"
-        },
-        "access": {
-          "read": true,
-          "update": true,
-          "externalize": true,
-          "delete": true,
-          "write": true,
-          "manage": true
-        },
-        "favorites": [],
-        "cogsDimensionConstraints": [],
-        "catDimensionConstraints": [],
-        "translations": [],
-        "userGroupAccesses": [],
-        "attributeValues": [],
-        "userRoles": [
-          {
-            "id": "UbhT3bXWUyb"
-          }
-        ],
-        "userAccesses": []
+      "name": "UserC UserC",
+      "displayName": "UserC UserC",
+      "externalAuth": false,
+      "externalAccess": false,
+      "disabled": false,
+      "twoFA": false,
+      "passwordLastUpdated": "2020-04-17T14:35:00.889",
+      "invitation": false,
+      "selfRegistered": false,
+      "favorite": false,
+      "username": "User C",
+      "access": {
+        "read": true,
+        "update": true,
+        "externalize": true,
+        "delete": true,
+        "write": true,
+        "manage": true
       },
+      "favorites": [],
+      "cogsDimensionConstraints": [],
+      "catDimensionConstraints": [],
+      "translations": [],
+      "userGroupAccesses": [],
+      "userRoles": [
+        {
+          "id": "UbhT3bXWUyb"
+        }
+      ],
+      "userAccesses": [],
       "teiSearchOrganisationUnits": [
         {
           "id": "tAXoecmVen9"
@@ -1413,45 +1395,36 @@
       "created": "2020-04-17T14:34:24.172",
       "surname": "UserALL",
       "firstName": "UserALL",
-      "userCredentials": {
-        "lastUpdated": "2020-04-17T14:34:24.154",
-        "id": "pa8HUgISEf4",
-        "created": "2020-04-17T14:34:24.154",
-        "name": "UserALL UserALL",
-        "displayName": "UserALL UserALL",
-        "externalAuth": false,
-        "externalAccess": false,
-        "disabled": false,
-        "twoFA": false,
-        "passwordLastUpdated": "2020-04-17T14:34:24.177",
-        "invitation": false,
-        "selfRegistered": false,
-        "favorite": false,
-        "username": "User ALL",
-        "userInfo": {
-          "id": "GTqb3WOZMop"
-        },
-        "access": {
-          "read": true,
-          "update": true,
-          "externalize": true,
-          "delete": true,
-          "write": true,
-          "manage": true
-        },
-        "favorites": [],
-        "cogsDimensionConstraints": [],
-        "catDimensionConstraints": [],
-        "translations": [],
-        "userGroupAccesses": [],
-        "attributeValues": [],
-        "userRoles": [
-          {
-            "id": "BuL50qd9Tlw"
-          }
-        ],
-        "userAccesses": []
+      "name": "UserALL UserALL",
+      "displayName": "UserALL UserALL",
+      "externalAuth": false,
+      "externalAccess": false,
+      "disabled": false,
+      "twoFA": false,
+      "passwordLastUpdated": "2020-04-17T14:34:24.177",
+      "invitation": false,
+      "selfRegistered": false,
+      "favorite": false,
+      "username": "User ALL",
+      "access": {
+        "read": true,
+        "update": true,
+        "externalize": true,
+        "delete": true,
+        "write": true,
+        "manage": true
       },
+      "favorites": [],
+      "cogsDimensionConstraints": [],
+      "catDimensionConstraints": [],
+      "translations": [],
+      "userGroupAccesses": [],
+      "userRoles": [
+        {
+          "id": "BuL50qd9Tlw"
+        }
+      ],
+      "userAccesses": [],
       "teiSearchOrganisationUnits": [
         {
           "id": "tAXoecmVen9"
@@ -1520,45 +1493,36 @@
       "created": "2020-04-17T14:33:07.588",
       "surname": "UserB",
       "firstName": "UserB",
-      "userCredentials": {
-        "lastUpdated": "2020-04-17T14:33:40.947",
-        "id": "yC4oetVMK7F",
-        "created": "2020-04-17T14:33:40.947",
-        "name": "UserB UserB",
-        "displayName": "UserB UserB",
-        "externalAuth": false,
-        "externalAccess": false,
-        "disabled": false,
-        "twoFA": false,
-        "passwordLastUpdated": "2020-04-17T14:33:40.947",
-        "invitation": false,
-        "selfRegistered": false,
-        "favorite": false,
-        "username": "User B",
-        "userInfo": {
-          "id": "aDy67f9ijOe"
-        },
-        "access": {
-          "read": true,
-          "update": true,
-          "externalize": true,
-          "delete": true,
-          "write": true,
-          "manage": true
-        },
-        "favorites": [],
-        "cogsDimensionConstraints": [],
-        "catDimensionConstraints": [],
-        "translations": [],
-        "userGroupAccesses": [],
-        "attributeValues": [],
-        "userRoles": [
-          {
-            "id": "UbhT3bXWUyb"
-          }
-        ],
-        "userAccesses": []
+      "name": "UserB UserB",
+      "displayName": "UserB UserB",
+      "externalAuth": false,
+      "externalAccess": false,
+      "disabled": false,
+      "twoFA": false,
+      "passwordLastUpdated": "2020-04-17T14:33:40.947",
+      "invitation": false,
+      "selfRegistered": false,
+      "favorite": false,
+      "username": "User B",
+      "access": {
+        "read": true,
+        "update": true,
+        "externalize": true,
+        "delete": true,
+        "write": true,
+        "manage": true
       },
+      "favorites": [],
+      "cogsDimensionConstraints": [],
+      "catDimensionConstraints": [],
+      "translations": [],
+      "userGroupAccesses": [],
+      "userRoles": [
+        {
+          "id": "UbhT3bXWUyb"
+        }
+      ],
+      "userAccesses": [],
       "teiSearchOrganisationUnits": [
         {
           "id": "OUQ3Ny4FaF5"
@@ -1581,45 +1545,36 @@
       "created": "2020-04-17T14:30:41.131",
       "surname": "UserA",
       "firstName": "UserA",
-      "userCredentials": {
-        "lastUpdated": "2020-04-17T14:32:53.338",
-        "id": "n0EixwrtfKO",
-        "created": "2020-04-17T14:32:53.338",
-        "name": "UserA UserA",
-        "displayName": "UserA UserA",
-        "externalAuth": false,
-        "externalAccess": false,
-        "disabled": false,
-        "twoFA": false,
-        "passwordLastUpdated": "2020-04-17T14:32:53.338",
-        "invitation": false,
-        "selfRegistered": false,
-        "favorite": false,
-        "username": "User A",
-        "userInfo": {
-          "id": "O2PajOxjJSa"
-        },
-        "access": {
-          "read": true,
-          "update": true,
-          "externalize": true,
-          "delete": true,
-          "write": true,
-          "manage": true
-        },
-        "favorites": [],
-        "cogsDimensionConstraints": [],
-        "catDimensionConstraints": [],
-        "translations": [],
-        "userGroupAccesses": [],
-        "attributeValues": [],
-        "userRoles": [
-          {
-            "id": "UbhT3bXWUyb"
-          }
-        ],
-        "userAccesses": []
+      "name": "UserA UserA",
+      "displayName": "UserA UserA",
+      "externalAuth": false,
+      "externalAccess": false,
+      "disabled": false,
+      "twoFA": false,
+      "passwordLastUpdated": "2020-04-17T14:32:53.338",
+      "invitation": false,
+      "selfRegistered": false,
+      "favorite": false,
+      "username": "User A",
+      "access": {
+        "read": true,
+        "update": true,
+        "externalize": true,
+        "delete": true,
+        "write": true,
+        "manage": true
       },
+      "favorites": [],
+      "cogsDimensionConstraints": [],
+      "catDimensionConstraints": [],
+      "translations": [],
+      "userGroupAccesses": [],
+      "userRoles": [
+        {
+          "id": "UbhT3bXWUyb"
+        }
+      ],
+      "userAccesses": [],
       "teiSearchOrganisationUnits": [
         {
           "id": "tAXoecmVen9"
@@ -2021,7 +1976,8 @@
         "F_EDIT_EXPIRED",
         "F_PROGRAM_DASHBOARD_CONFIG_ADMIN",
         "F_APPROVE_DATA_LOWER_LEVELS",
-        "F_UNCOMPLETE_EVENT"
+        "F_UNCOMPLETE_EVENT",
+        "F_NONE"
       ],
       "translations": [],
       "userAccesses": []

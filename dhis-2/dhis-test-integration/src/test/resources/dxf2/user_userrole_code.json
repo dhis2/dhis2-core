@@ -1,0 +1,81 @@
+{
+  "userRoles": [
+    {
+      "created": "2014-12-26T14:21:00.602",
+      "lastUpdated": "2018-02-19T12:04:23.711",
+      "name": "User manager",
+      "href": "https://play.dhis2.org/dev/api/userRoles/xJZBzAHI88H",
+      "id": "xJZBzAHI88H",
+      "displayName": "User manager",
+      "publicAccess": "--------",
+      "description": "User manager",
+      "externalAccess": false,
+      "favorite": false,
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "authorities": [
+        "M_dhis-web-maintenance-user",
+        "F_USER_VIEW",
+        "M_dhis-web-dashboard",
+        "F_USER_DELETE",
+        "F_USER_ADD"
+      ]
+    }
+  ],
+  "organisationUnits": [
+    {
+      "path": "/inVD5SdytkT",
+      "openingDate": "2016-03-11T17:00:00.000+0000",
+      "lastUpdated": "2016-03-12T06:19:49.665+0000",
+      "created": "2016-03-12T06:19:49.649+0000",
+      "shortName": "country",
+      "user": {
+        "id": "enHApD3I6Ho"
+      },
+      "attributeValues": [],
+      "code": "country",
+      "name": "Country",
+      "description": "",
+      "featureType": "NONE",
+      "uuid": "0f2d7a85-3b6e-4cae-9d5a-e2903331629b"
+    }
+  ],
+  "users": [
+    {
+      "firstName": "User",
+      "email": "user@a.org",
+      "surname": "AA",
+      "attributeValues": [],
+      "id": "sPWjoHSY03y",
+      "dataViewOrganisationUnits": [
+        {
+          "code": "country"
+        }
+      ],
+      "organisationUnits": [
+        {
+          "code": "country"
+        }
+      ],
+        "username": "UserAA",
+        "userRoles": [
+          {
+            "id": "xJZBzAHI88H"
+          }
+        ],
+        "invitation": false,
+        "disabled": false,
+        "externalAuth": false,
+        "cogsDimensionConstraints": [],
+        "user": {
+          "id": "sPWjoHSY03y"
+        },
+        "selfRegistered": false,
+        "catDimensionConstraints": [],
+        "lastLogin": "2016-03-12T06:20:43.407+0000",
+        "created": "2016-03-12T06:20:43.508+0000",
+        "passwordLastUpdated": "2016-03-12T06:20:43.407+0000",
+      "teiSearchOrganisationUnits": []
+    }
+  ]
+}

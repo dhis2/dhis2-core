@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.trackedentity;
 
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
@@ -160,7 +162,7 @@ public class TrackedEntityAttribute
     @Override
     public boolean hasLegendSet()
     {
-        return legendSets != null;
+        return isNotEmpty( legendSets );
     }
 
     @JsonIgnore

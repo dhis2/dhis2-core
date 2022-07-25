@@ -28,32 +28,36 @@
 package org.hisp.dhis.dxf2.common;
 
 import java.io.IOException;
-import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
+import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
-import org.hisp.dhis.dxf2.webmessage.utils.WebMessageParseUtils;
+import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.JsonResponse;
+import org.hisp.dhis.jsontree.JsonTypedAccess;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.web.client.ResponseExtractor;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author aamerm
  */
-public class ImportSummariesResponseExtractor
-    implements ResponseExtractor<ImportSummaries>
+public class ImportSummariesResponseExtractor implements ResponseExtractor<ImportSummaries>
 {
+    private static final ObjectMapper JSON_MAPPER = JacksonObjectMapperConfig.staticJsonMapper();
+
     @Override
     public ImportSummaries extractData( ClientHttpResponse response )
         throws IOException
     {
-        InputStream stream = response.getBody();
-
-        ImportSummaries summary = null;
-
-        if ( stream != null )
+        JsonObject body = new JsonResponse( new String( response.getBody().readAllBytes(), StandardCharsets.UTF_8 ),
+            JsonTypedAccess.GLOBAL );
+        // auto-detect if it is wrapped in a WebMessage envelope
+        if ( body.has( "httpStatus", "response" ) ) // is a WebMessage wrapper
         {
-            summary = WebMessageParseUtils.fromWebMessageResponse( stream, ImportSummaries.class );
+            return JSON_MAPPER.readValue( body.getObject( "response" ).node().getDeclaration(), ImportSummaries.class );
         }
-
-        return summary;
+        return JSON_MAPPER.readValue( body.node().getDeclaration(), ImportSummaries.class );
     }
 }

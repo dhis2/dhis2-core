@@ -35,7 +35,7 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.security.oidc.DhisOidcUser;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetails;
-import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
@@ -86,8 +86,7 @@ public class AuthenticationListener
 
             if ( principal != null )
             {
-                UserCredentials userCredentials = principal.getUserCredentials();
-                username = userCredentials.getUsername();
+                username = principal.getUser().getUsername();
             }
 
             WebAuthenticationDetails tokenDetails = (WebAuthenticationDetails) authenticationToken.getDetails();
@@ -118,8 +117,7 @@ public class AuthenticationListener
         {
             OAuth2LoginAuthenticationToken authenticationToken = (OAuth2LoginAuthenticationToken) auth;
             DhisOidcUser principal = (DhisOidcUser) authenticationToken.getPrincipal();
-            UserCredentials userCredentials = principal.getUserCredentials();
-            username = userCredentials.getUsername();
+            username = principal.getUser().getUsername();
 
             WebAuthenticationDetails tokenDetails = (WebAuthenticationDetails) authenticationToken.getDetails();
             String remoteAddress = tokenDetails.getRemoteAddress();
@@ -132,14 +130,21 @@ public class AuthenticationListener
 
     private void registerSuccessfulLogin( String username )
     {
-        UserCredentials credentials = userService.getUserCredentialsByUsername( username );
+        User user = userService.getUserByUsername( username );
 
         boolean readOnly = config.isReadOnlyMode();
 
-        if ( Objects.nonNull( credentials ) && !readOnly )
+        if ( Objects.nonNull( user ) && !readOnly )
         {
-            credentials.updateLastLogin();
-            userService.updateUserCredentials( credentials );
+            user.updateLastLogin();
+            try
+            {
+                userService.updateUser( user );
+            }
+            catch ( Exception e )
+            {
+                log.warn( "Failed to update the user!", e );
+            }
         }
 
         securityService.registerSuccessfulLogin( username );

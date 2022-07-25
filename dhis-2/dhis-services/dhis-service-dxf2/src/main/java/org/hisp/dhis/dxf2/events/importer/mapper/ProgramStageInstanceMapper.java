@@ -37,11 +37,14 @@ import static org.hisp.dhis.util.DateUtils.parseDate;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -65,7 +68,40 @@ public class ProgramStageInstanceMapper extends AbstractMapper<Event, ProgramSta
     {
         ProgramStageInstance psi = workContext.getProgramStageInstanceMap().get( event.getUid() );
 
-        return psi == null ? mapForInsert( event ) : mapForUpdate( event, psi );
+        if ( psi == null )
+        {
+            psi = mapForInsert( event );
+        }
+        else
+        {
+            mapForUpdate( event, psi );
+        }
+
+        return mapDataValueIdentifier( psi, super.workContext.getDataElementMap() );
+    }
+
+    /**
+     * Set data element identifier to uid. We run the psi through this method to
+     * make sure data value identifiers are UID. Otherwise, we would store data
+     * values with whatever identifier is used for import, for example CODE or
+     * ATTRIBUTE.
+     *
+     * @param psi the psi with the datavalues to normalize to uid identifiers
+     * @param dataElementMap a map of persisted data elements.
+     * @return a program stage instance with normalized data values.
+     */
+    private ProgramStageInstance mapDataValueIdentifier( ProgramStageInstance psi,
+        Map<String, DataElement> dataElementMap )
+    {
+        for ( EventDataValue dv : psi.getEventDataValues() )
+        {
+            DataElement de = dataElementMap.get( dv.getDataElement() );
+            if ( de != null )
+            {
+                dv.setDataElement( de.getUid() );
+            }
+        }
+        return psi;
     }
 
     private ProgramStageInstance mapForUpdate( Event event, ProgramStageInstance psi )

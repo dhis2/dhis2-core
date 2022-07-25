@@ -47,6 +47,7 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.dataset.LockStatus;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -169,6 +170,8 @@ class AggregateDataSetSMSListenerTest extends
 
         when( organisationUnitService.getOrganisationUnit( anyString() ) ).thenReturn( organisationUnit );
         when( dataSetService.getDataSet( anyString() ) ).thenReturn( dataSet );
+        when( dataSetService.getLockStatus( any(), any( DataSet.class ), any(), any(), any(), any() ) )
+            .thenReturn( LockStatus.OPEN );
         when( dataValueService.addDataValue( any() ) ).thenReturn( true );
         when( categoryService.getCategoryOptionCombo( anyString() ) ).thenReturn( categoryOptionCombo );
         when( dataElementService.getDataElement( anyString() ) ).thenReturn( dataElement );
@@ -220,7 +223,7 @@ class AggregateDataSetSMSListenerTest extends
         throws SmsCompressionException
     {
         organisationUnit = createOrganisationUnit( 'O' );
-        user = createUser( 'U' );
+        user = makeUser( "U" );
         user.setPhoneNumber( ORIGINATOR );
         user.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
         dataSet = createDataSet( 'D' );

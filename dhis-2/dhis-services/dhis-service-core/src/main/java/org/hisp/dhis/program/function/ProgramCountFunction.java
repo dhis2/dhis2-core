@@ -34,6 +34,7 @@ import java.util.Date;
 import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.parser.expression.ProgramExpressionParams;
 import org.hisp.dhis.program.ProgramExpressionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.dataitem.ProgramItemStageElement;
@@ -51,11 +52,14 @@ public abstract class ProgramCountFunction
     {
         validateCountFunctionArgs( ctx );
 
-        ProgramIndicator pi = visitor.getProgramIndicator();
         StatementBuilder sb = visitor.getStatementBuilder();
 
-        Date startDate = visitor.getReportingStartDate();
-        Date endDate = visitor.getReportingEndDate();
+        ProgramExpressionParams params = visitor.getProgParams();
+
+        ProgramIndicator pi = params.getProgramIndicator();
+
+        Date startDate = params.getReportingStartDate();
+        Date endDate = params.getReportingEndDate();
 
         String programStage = ctx.uid0.getText();
         String dataElement = ctx.uid1.getText();

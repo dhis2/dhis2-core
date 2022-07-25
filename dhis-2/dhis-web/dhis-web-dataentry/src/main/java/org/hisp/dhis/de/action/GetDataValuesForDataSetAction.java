@@ -44,6 +44,7 @@ import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.dataset.LockStatus;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
@@ -195,11 +196,11 @@ public class GetDataValuesForDataSetAction
         return minMaxDataElements;
     }
 
-    private boolean locked = false;
+    private LockStatus locked = LockStatus.OPEN;
 
-    public boolean isLocked()
+    public String getLocked()
     {
-        return locked;
+        return locked.name();
     }
 
     private boolean complete = false;
@@ -335,8 +336,8 @@ public class GetDataValuesForDataSetAction
                 lastUpdatedBy = registration.getLastUpdatedBy();
             }
 
-            locked = dataSetService.isLocked( currentUser, dataSet, period, organisationUnit, attributeOptionCombo,
-                null );
+            locked = dataSetService.getLockStatus( currentUser, dataSet, period, organisationUnit,
+                attributeOptionCombo, null );
         }
         else
         {
@@ -348,10 +349,10 @@ public class GetDataValuesForDataSetAction
             {
                 if ( ou.getDataSets().contains( dataSet ) )
                 {
-                    locked = dataSetService.isLocked( currentUser, dataSet, period, organisationUnit,
+                    locked = dataSetService.getLockStatus( currentUser, dataSet, period, ou,
                         attributeOptionCombo, null );
 
-                    if ( locked )
+                    if ( !locked.isOpen() )
                     {
                         break;
                     }
