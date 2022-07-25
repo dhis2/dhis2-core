@@ -27,10 +27,8 @@
  */
 package org.hisp.dhis.sms.config;
 
-import org.hisp.dhis.sms.config.views.SmsConfigurationViews;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.JsonView;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
@@ -41,7 +39,7 @@ public class ClickatellGatewayConfig
 {
     private static final long serialVersionUID = -4286107769356591957L;
 
-    @JsonView( SmsConfigurationViews.Public.class )
+    @JsonProperty
     private String authToken;
 
     public String getAuthToken()
