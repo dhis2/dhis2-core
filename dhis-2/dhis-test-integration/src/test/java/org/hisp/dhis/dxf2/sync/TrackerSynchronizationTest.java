@@ -31,77 +31,30 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
 
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
-import org.hisp.dhis.dxf2.events.aggregates.TrackedEntityInstanceAggregate;
-import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
-import org.hisp.dhis.dxf2.events.trackedentity.JacksonTrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
-import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.query.QueryService;
-import org.hisp.dhis.relationship.RelationshipService;
-import org.hisp.dhis.relationship.RelationshipTypeService;
-import org.hisp.dhis.reservedvalue.ReservedValueService;
-import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeStore;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
-import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author David Katuscak (katuscak.d@gmail.com)
  */
 class TrackerSynchronizationTest extends SingleSetupIntegrationTestBase
 {
-
     @Autowired
     private UserService _userService;
-
-    @Autowired
-    private org.hisp.dhis.trackedentity.TrackedEntityInstanceService teiService;
-
-    @Autowired
-    private SessionFactory sessionFactory;
-
-    @Autowired
-    private CurrentUserService currentUserService;
-
-    @Autowired
-    private TrackedEntityAttributeService trackedEntityAttributeService;
-
-    @Autowired
-    private RelationshipService _relationshipService;
-
-    @Autowired
-    private org.hisp.dhis.dxf2.events.relationship.RelationshipService relationshipService;
-
-    @Autowired
-    private RelationshipTypeService relationshipTypeService;
 
     @Autowired
     private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
@@ -110,101 +63,44 @@ class TrackerSynchronizationTest extends SingleSetupIntegrationTestBase
     private IdentifiableObjectManager manager;
 
     @Autowired
-    private DbmsManager dbmsManager;
-
-    @Autowired
-    private EnrollmentService enrollmentService;
-
-    @Autowired
-    private ProgramInstanceService programInstanceService;
-
-    @Autowired
-    private SchemaService schemaService;
-
-    @Autowired
-    private QueryService queryService;
-
-    @Autowired
-    private ReservedValueService reservedValueService;
-
-    @Autowired
-    private TrackerAccessManager trackerAccessManager;
-
-    @Autowired
-    private FileResourceService fileResourceService;
-
-    @Autowired
-    private TrackerOwnershipManager trackerOwnershipAccessManager;
-
-    @Autowired
-    private TrackedEntityInstanceAuditService trackedEntityInstanceAuditService;
-
-    @Autowired
-    private TrackedEntityTypeService trackedEntityTypeService;
-
-    @Autowired
-    private Notifier notifier;
-
-    @Autowired
-    private ObjectMapper jsonMapper;
-
-    @Autowired
-    private TrackedEntityInstanceAggregate trackedEntityInstanceAggregate;
-
-    @Autowired
-    private TrackedEntityAttributeStore trackedEntityAttributeStore;
-
-    @Autowired
-    @Qualifier( "xmlMapper" )
-    private ObjectMapper xmlMapper;
-
     private TrackedEntityInstanceService subject;
 
     private TrackedEntityInstanceQueryParams queryParams;
 
     private TrackedEntityInstanceParams params;
 
-    private Session currentSession;
-
     private void prepareDataForTest()
     {
         TrackedEntityAttribute teaA = createTrackedEntityAttribute( 'a' );
         TrackedEntityAttribute teaB = createTrackedEntityAttribute( 'b' );
         teaB.setSkipSynchronization( true );
-        currentSession.save( teaA );
-        currentSession.save( teaB );
+        manager.save( teaA );
+        manager.save( teaB );
         TrackedEntityType tet = createTrackedEntityType( 'a' );
         TrackedEntityTypeAttribute tetaA = new TrackedEntityTypeAttribute( tet, teaA, true, false );
         TrackedEntityTypeAttribute tetaB = new TrackedEntityTypeAttribute( tet, teaB, true, false );
         tet.getTrackedEntityTypeAttributes().add( tetaA );
         tet.getTrackedEntityTypeAttributes().add( tetaB );
-        currentSession.save( tet );
+        manager.save( tet );
         OrganisationUnit ou = createOrganisationUnit( 'a' );
+        manager.save( ou );
         TrackedEntityInstance tei = createTrackedEntityInstance( 'a', ou, teaA );
         tei.setTrackedEntityType( tet );
         TrackedEntityAttributeValue teavB = createTrackedEntityAttributeValue( 'b', tei, teaB );
-        tei.getTrackedEntityAttributeValues().add( teavB );
         TrackedEntityAttributeValue teavA = createTrackedEntityAttributeValue( 'a', tei, teaA );
-        tei.getTrackedEntityAttributeValues().add( teavA );
-        currentSession.save( ou );
-        currentSession.save( tei );
-        currentSession.save( teavA );
-        currentSession.save( teavB );
+        manager.save( tei );
+        trackedEntityAttributeValueService.addTrackedEntityAttributeValue( teavA );
+        trackedEntityAttributeValueService.addTrackedEntityAttributeValue( teavB );
+        tei.getTrackedEntityAttributeValues().addAll( List.of( teavA, teavB ) );
+        manager.update( tei );
     }
 
     @Override
     public void setUpTest()
     {
         userService = _userService;
-        currentSession = sessionFactory.getCurrentSession();
         User user = createUserWithAuth( "userUID0001" );
-        currentSession.save( user );
-        subject = new JacksonTrackedEntityInstanceService( teiService, trackedEntityAttributeService,
-            _relationshipService, relationshipService, relationshipTypeService, trackedEntityAttributeValueService,
-            manager, _userService, dbmsManager, enrollmentService, programInstanceService, currentUserService,
-            schemaService, queryService, reservedValueService, trackerAccessManager, fileResourceService,
-            trackerOwnershipAccessManager, trackedEntityInstanceAggregate, trackedEntityAttributeStore,
-            trackedEntityInstanceAuditService, trackedEntityTypeService, notifier, jsonMapper, xmlMapper );
+        manager.save( user );
         prepareSyncParams();
         prepareDataForTest();
     }
@@ -218,13 +114,6 @@ class TrackerSynchronizationTest extends SingleSetupIntegrationTestBase
     }
 
     @Test
-    @Disabled
-    /*
-     * TODO: fails in H2 with newer
-     * AbstractTrackedEntityInstanceService::getTrackedEntityInstances because
-     * of some custom postgresql syntax/function. We should find a way to test
-     * this in a different way
-     */
     void testSkipSyncFunctionality()
     {
         List<org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance> fetchedTeis = subject

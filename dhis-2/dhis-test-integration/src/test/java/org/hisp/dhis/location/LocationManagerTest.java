@@ -41,7 +41,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.external.location.LocationManagerException;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -49,7 +48,6 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Lars Helge Overland
  * @version $Id$
  */
-@Disabled( "takes forever to run, enable to test modifications" )
 @Slf4j
 class LocationManagerTest extends SingleSetupIntegrationTestBase
 {

@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.tracker.bundle;
 
-import static org.hisp.dhis.tracker.Assertions.assertNoImportErrors;
+import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -90,7 +90,7 @@ class ReportSummaryDeleteIntegrationTest extends TrackerTest
         assertEquals( 9, params.getTrackedEntities().size() );
 
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
-        assertNoImportErrors( trackerImportReport );
+        assertNoErrors( trackerImportReport );
         assertDeletedObjects( 9, trackerImportReport.getBundleReport(), TrackerType.TRACKED_ENTITY );
         // remaining
         assertEquals( 4, manager.getAll( TrackedEntityInstance.class ).size() );
@@ -107,7 +107,7 @@ class ReportSummaryDeleteIntegrationTest extends TrackerTest
         params.setImportStrategy( TrackerImportStrategy.DELETE );
 
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
-        assertNoImportErrors( trackerImportReport );
+        assertNoErrors( trackerImportReport );
 
         assertDeletedObjects( 1, trackerImportReport.getBundleReport(), TrackerType.ENROLLMENT );
         // remaining
@@ -125,7 +125,7 @@ class ReportSummaryDeleteIntegrationTest extends TrackerTest
 
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
 
-        assertNoImportErrors( trackerImportReport );
+        assertNoErrors( trackerImportReport );
         assertDeletedObjects( 1, trackerImportReport.getBundleReport(), TrackerType.EVENT );
         // remaining
         assertEquals( 1, manager.getAll( ProgramStageInstance.class ).size() );
@@ -155,7 +155,7 @@ class ReportSummaryDeleteIntegrationTest extends TrackerTest
 
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
 
-        assertNoImportErrors( trackerImportReport );
+        assertNoErrors( trackerImportReport );
         assertDeletedObjects( 1, trackerImportReport.getBundleReport(), TrackerType.ENROLLMENT );
         assertDeletedObjects( 1, trackerImportReport.getBundleReport(), TrackerType.TRACKED_ENTITY );
     }

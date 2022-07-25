@@ -87,12 +87,6 @@ class AclServiceTest extends TransactionalIntegrationTest
     private JdbcTemplate jdbcTemplate;
 
     @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
-    @Override
     protected void setUpTest()
         throws Exception
     {

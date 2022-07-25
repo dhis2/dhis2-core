@@ -28,27 +28,36 @@
 package org.hisp.dhis.tracker;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.function.Supplier;
 
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
+import org.hisp.dhis.tracker.report.TrackerValidationReport;
 
 public class Assertions
 {
 
-    public static void assertNoImportErrors( TrackerImportReport report )
+    public static void assertNoErrors( TrackerImportReport report )
     {
         assertNotNull( report );
-        assertEquals( TrackerStatus.OK, report.getStatus(), errorMessage( report ) );
+        assertEquals( TrackerStatus.OK, report.getStatus(),
+            errorMessage( "Expected import with status OK, instead got:\n", report.getValidationReport() ) );
     }
 
-    private static Supplier<String> errorMessage( TrackerImportReport report )
+    public static void assertNoErrors( TrackerValidationReport report )
+    {
+        assertNotNull( report );
+        assertFalse( report.hasErrors(), errorMessage( "Expected no validation errors, instead got:\n", report ) );
+    }
+
+    private static Supplier<String> errorMessage( String errorTitle, TrackerValidationReport report )
     {
         return () -> {
-            StringBuilder msg = new StringBuilder( "Expected import with status OK, instead got:\n" );
-            report.getValidationReport().getErrors()
+            StringBuilder msg = new StringBuilder( errorTitle );
+            report.getErrors()
                 .forEach( e -> {
                     msg.append( e.getErrorCode() );
                     msg.append( ": " );

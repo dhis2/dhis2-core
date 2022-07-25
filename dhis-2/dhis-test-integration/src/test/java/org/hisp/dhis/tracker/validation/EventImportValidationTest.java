@@ -33,7 +33,7 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Every.everyItem;
-import static org.hisp.dhis.tracker.Assertions.assertNoImportErrors;
+import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.hisp.dhis.tracker.TrackerImportStrategy.CREATE_AND_UPDATE;
 import static org.hisp.dhis.tracker.TrackerImportStrategy.DELETE;
 import static org.hisp.dhis.tracker.TrackerImportStrategy.UPDATE;
@@ -92,9 +92,9 @@ class EventImportValidationTest extends TrackerTest
         setUpMetadata( "tracker/tracker_basic_metadata.json" );
         injectAdminUser();
 
-        assertNoImportErrors( trackerImportService.importTracker( fromJson(
+        assertNoErrors( trackerImportService.importTracker( fromJson(
             "tracker/validations/enrollments_te_te-data.json" ) ) );
-        assertNoImportErrors( trackerImportService
+        assertNoErrors( trackerImportService
             .importTracker( fromJson( "tracker/validations/enrollments_te_enrollments-data.json" ) ) );
     }
 
@@ -117,7 +117,7 @@ class EventImportValidationTest extends TrackerTest
         TrackerImportReport trackerImportReport = trackerImportService
             .importTracker( fromJson( "tracker/validations/events-with_valid_option_value.json" ) );
 
-        assertNoImportErrors( trackerImportReport );
+        assertNoErrors( trackerImportReport );
     }
 
     @Test
@@ -127,7 +127,7 @@ class EventImportValidationTest extends TrackerTest
         TrackerImportReport trackerImportReport = trackerImportService
             .importTracker( fromJson( "tracker/validations/events-with-registration.json" ) );
 
-        assertNoImportErrors( trackerImportReport );
+        assertNoErrors( trackerImportReport );
     }
 
     @Test
@@ -137,7 +137,7 @@ class EventImportValidationTest extends TrackerTest
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( fromJson(
             "tracker/validations/events-without-attribute-option-combo.json" ) );
 
-        assertNoImportErrors( trackerImportReport );
+        assertNoErrors( trackerImportReport );
     }
 
     @Test
@@ -149,12 +149,12 @@ class EventImportValidationTest extends TrackerTest
 
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
 
-        assertNoImportErrors( trackerImportReport );
+        assertNoErrors( trackerImportReport );
 
         trackerBundleParams.setImportStrategy( UPDATE );
         trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
 
-        assertNoImportErrors( trackerImportReport );
+        assertNoErrors( trackerImportReport );
     }
 
     @Test
@@ -197,10 +197,15 @@ class EventImportValidationTest extends TrackerTest
     {
         TrackerImportParams trackerImportParams = fromJson(
             "tracker/validations/events_non-repeatable-programstage_part1.json" );
+
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
+
+        assertNoErrors( trackerImportReport );
+
         trackerImportParams = fromJson( "tracker/validations/events_non-repeatable-programstage_part2.json" );
+
         trackerImportReport = trackerImportService.importTracker( trackerImportParams );
+
         assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
         assertThat( trackerImportReport.getValidationReport().getErrors(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1039 ) ) ) );
@@ -409,7 +414,7 @@ class EventImportValidationTest extends TrackerTest
 
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
 
-        assertNoImportErrors( trackerImportReport );
+        assertNoErrors( trackerImportReport );
 
         manager.flush();
         manager.clear();
@@ -419,7 +424,7 @@ class EventImportValidationTest extends TrackerTest
         paramsDelete.setImportStrategy( DELETE );
 
         TrackerImportReport trackerImportReportDelete = trackerImportService.importTracker( paramsDelete );
-        assertNoImportErrors( trackerImportReportDelete );
+        assertNoErrors( trackerImportReportDelete );
         assertEquals( 1, trackerImportReportDelete.getStats().getDeleted() );
     }
 
@@ -432,7 +437,7 @@ class EventImportValidationTest extends TrackerTest
         // When
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
         // Then
-        assertNoImportErrors( trackerImportReport );
+        assertNoErrors( trackerImportReport );
         return trackerImportReport;
     }
 
