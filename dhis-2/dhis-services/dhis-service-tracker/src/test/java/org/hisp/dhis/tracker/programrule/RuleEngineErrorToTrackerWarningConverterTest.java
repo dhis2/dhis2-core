@@ -45,7 +45,7 @@ import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.programrule.implementers.RuleEngineErrorLogger;
+import org.hisp.dhis.tracker.programrule.implementers.RuleEngineErrorToTrackerWarningConverter;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -56,7 +56,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.google.common.collect.Lists;
 
 @ExtendWith( MockitoExtension.class )
-class RuleEngineErrorLoggerTest extends DhisConvenienceTest
+class RuleEngineErrorToTrackerWarningConverterTest extends DhisConvenienceTest
 {
 
     private final static String RULE_EVENT_ID = "Rule_event_id";
@@ -75,7 +75,7 @@ class RuleEngineErrorLoggerTest extends DhisConvenienceTest
 
     private static ProgramStage programStage;
 
-    private final RuleEngineErrorLogger ruleEngineErrorLogger = new RuleEngineErrorLogger();
+    private final RuleEngineErrorToTrackerWarningConverter ruleEngineErrorToTrackerWarningConverter = new RuleEngineErrorToTrackerWarningConverter();
 
     private TrackerBundle bundle;
 
@@ -95,7 +95,8 @@ class RuleEngineErrorLoggerTest extends DhisConvenienceTest
     void testValidateEventWithError()
     {
         when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStage ) ) ).thenReturn( programStage );
-        List<ProgramRuleIssue> issues = ruleEngineErrorLogger.validateEvent( bundle, getRuleEventEffects(),
+        List<ProgramRuleIssue> issues = ruleEngineErrorToTrackerWarningConverter.validateEvent( bundle,
+            getRuleEventEffects(),
             getEvent() );
 
         assertFalse( issues.isEmpty() );
@@ -108,7 +109,8 @@ class RuleEngineErrorLoggerTest extends DhisConvenienceTest
     @Test
     void testValidateEnrollmentWithError()
     {
-        List<ProgramRuleIssue> issues = ruleEngineErrorLogger.validateEnrollment( bundle, getRuleEnrollmentEffects(),
+        List<ProgramRuleIssue> issues = ruleEngineErrorToTrackerWarningConverter.validateEnrollment( bundle,
+            getRuleEnrollmentEffects(),
             getEnrollment() );
 
         assertFalse( issues.isEmpty() );

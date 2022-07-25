@@ -50,7 +50,7 @@ import com.google.common.collect.Lists;
  * @Author Enrico Colasante
  */
 @Component
-public class RuleEngineErrorLogger
+public class RuleEngineErrorToTrackerWarningConverter
     extends AbstractRuleActionImplementer<RuleActionError>
     implements RuleActionImplementer
 {
