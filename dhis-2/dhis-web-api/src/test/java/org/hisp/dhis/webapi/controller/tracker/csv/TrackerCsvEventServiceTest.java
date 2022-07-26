@@ -32,14 +32,18 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.List;
 
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.User;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.locationtech.jts.io.ParseException;
 
@@ -48,7 +52,52 @@ import com.google.common.io.Files;
 class TrackerCsvEventServiceTest
 {
 
-    private TrackerCsvEventService serviceToTest = new TrackerCsvEventService();
+    private TrackerCsvEventService service;
+
+    @BeforeEach
+    void setUp()
+    {
+        service = new TrackerCsvEventService();
+    }
+
+    @Test
+    void writeEventsHandlesEventsWithNullEventFields()
+        throws IOException
+    {
+        // this is not to say Events will ever be defined in such a way, just to
+        // prevent any further NPEs from slipping through
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        service.writeEvents( out, Collections.singletonList( new Event() ), false );
+
+        assertEquals( "", out.toString() );
+    }
+
+    @Test
+    void writeEvents()
+        throws IOException
+    {
+
+        DataValue dataValue = DataValue.builder()
+            .dataElement( "color" )
+            .value( "red" )
+            .providedElsewhere( true )
+            .build();
+        Event event = Event.builder()
+            .event( "BuA2R2Gr4vt" )
+            .followup( true )
+            .deleted( false )
+            .status( EventStatus.ACTIVE )
+            .dataValues( Collections.singleton( dataValue ) )
+            .build();
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        service.writeEvents( out, Collections.singletonList( event ), false );
+
+        assertEquals( "BuA2R2Gr4vt,ACTIVE,,,,,,,,,,,true,false,,,,,,,,,,,color,red,,true,,,\n", out.toString() );
+    }
 
     @Test
     void testReadEventsFromFileWithHeader()
@@ -57,7 +106,9 @@ class TrackerCsvEventServiceTest
     {
         File event = new File( "src/test/resources/controller/tracker/csv/event.csv" );
         InputStream inputStream = Files.asByteSource( event ).openStream();
-        List<Event> events = serviceToTest.readEvents( inputStream, true );
+
+        List<Event> events = service.readEvents( inputStream, true );
+
         assertFalse( events.isEmpty() );
         assertEquals( 1, events.size() );
         assertEquals( "eventId", events.get( 0 ).getEvent() );
@@ -90,7 +141,9 @@ class TrackerCsvEventServiceTest
     {
         File event = new File( "src/test/resources/controller/tracker/csv/completeEvent.csv" );
         InputStream inputStream = Files.asByteSource( event ).openStream();
-        List<Event> events = serviceToTest.readEvents( inputStream, false );
+
+        List<Event> events = service.readEvents( inputStream, false );
+
         assertFalse( events.isEmpty() );
         assertEquals( 1, events.size() );
         assertEquals( "eventId", events.get( 0 ).getEvent() );
@@ -120,7 +173,7 @@ class TrackerCsvEventServiceTest
             assertEquals( "2020-02-26T23:08:00Z", dv.getUpdatedAt().toString() );
             assertEquals( "dataElement", dv.getDataElement() );
             assertEquals( "admin", dv.getStoredBy() );
-            assertEquals( false, dv.isProvidedElsewhere() );
+            assertFalse( dv.isProvidedElsewhere() );
         } );
     }
 }
