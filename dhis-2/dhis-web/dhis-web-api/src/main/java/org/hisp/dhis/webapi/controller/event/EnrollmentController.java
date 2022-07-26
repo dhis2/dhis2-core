@@ -44,6 +44,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.PagerUtils;
+import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -127,24 +128,42 @@ public class EnrollmentController
 
     @RequestMapping( value = "", method = RequestMethod.GET )
     public @ResponseBody RootNode getEnrollments(
-        @RequestParam( required = false ) String ou,
-        @RequestParam( required = false ) OrganisationUnitSelectionMode ouMode,
-        @RequestParam( required = false ) String program,
-        @RequestParam( required = false ) ProgramStatus programStatus,
-        @RequestParam( required = false ) Boolean followUp,
-        @RequestParam( required = false ) Date lastUpdated,
-        @RequestParam( required = false ) String lastUpdatedDuration,
-        @RequestParam( required = false ) Date programStartDate,
-        @RequestParam( required = false ) Date programEndDate,
-        @RequestParam( required = false ) String trackedEntityType,
-        @RequestParam( required = false ) String trackedEntityInstance,
-        @RequestParam( required = false ) String enrollment,
-        @RequestParam( required = false ) Integer page,
-        @RequestParam( required = false ) Integer pageSize,
-        @RequestParam( required = false ) boolean totalPages,
-        @RequestParam( required = false ) Boolean skipPaging,
-        @RequestParam( required = false ) Boolean paging,
-        @RequestParam( required = false, defaultValue = "false" ) boolean includeDeleted )
+        @RequestParam( required = false )
+        String ou,
+        @RequestParam( required = false )
+        OrganisationUnitSelectionMode ouMode,
+        @RequestParam( required = false )
+        String program,
+        @RequestParam( required = false )
+        ProgramStatus programStatus,
+        @RequestParam( required = false )
+        Boolean followUp,
+        @RequestParam( required = false )
+        Date lastUpdated,
+        @RequestParam( required = false )
+        String lastUpdatedDuration,
+        @RequestParam( required = false )
+        Date programStartDate,
+        @RequestParam( required = false )
+        Date programEndDate,
+        @RequestParam( required = false )
+        String trackedEntityType,
+        @RequestParam( required = false )
+        String trackedEntityInstance,
+        @RequestParam( required = false )
+        String enrollment,
+        @RequestParam( required = false )
+        Integer page,
+        @RequestParam( required = false )
+        Integer pageSize,
+        @RequestParam( required = false )
+        boolean totalPages,
+        @RequestParam( required = false )
+        Boolean skipPaging,
+        @RequestParam( required = false )
+        Boolean paging,
+        @RequestParam( required = false, defaultValue = "false" )
+        boolean includeDeleted )
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
@@ -172,7 +191,14 @@ public class EnrollmentController
 
             if ( enrollments.getPager() != null )
             {
-                rootNode.addChild( NodeUtils.createPager( enrollments.getPager() ) );
+                if ( params.isTotalPages() )
+                {
+                    rootNode.addChild( NodeUtils.createPager( enrollments.getPager() ) );
+                }
+                else
+                {
+                    rootNode.addChild( NodeUtils.createSlimPager( (SlimPager) enrollments.getPager() ) );
+                }
             }
 
             listEnrollments = enrollments.getEnrollments();
@@ -192,8 +218,10 @@ public class EnrollmentController
     }
 
     @RequestMapping( value = "/{id}", method = RequestMethod.GET )
-    public @ResponseBody Enrollment getEnrollment( @PathVariable String id,
-        @RequestParam Map<String, String> parameters, Model model )
+    public @ResponseBody Enrollment getEnrollment( @PathVariable
+    String id,
+        @RequestParam
+        Map<String, String> parameters, Model model )
         throws NotFoundException
     {
         return getEnrollment( id );
@@ -204,7 +232,8 @@ public class EnrollmentController
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE )
-    public void postEnrollmentJson( @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
+    public void postEnrollmentJson( @RequestParam( defaultValue = "CREATE_AND_UPDATE" )
+    ImportStrategy strategy,
         ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
         throws IOException
     {
@@ -249,7 +278,8 @@ public class EnrollmentController
     }
 
     @RequestMapping( value = "", method = RequestMethod.POST, consumes = MediaType.APPLICATION_XML_VALUE, produces = MediaType.APPLICATION_XML_VALUE )
-    public void postEnrollmentXml( @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
+    public void postEnrollmentXml( @RequestParam( defaultValue = "CREATE_AND_UPDATE" )
+    ImportStrategy strategy,
         ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
         throws IOException
     {
@@ -298,7 +328,8 @@ public class EnrollmentController
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/{id}/note", method = RequestMethod.POST, consumes = "application/json" )
-    public void updateEnrollmentForNoteJson( @PathVariable String id, HttpServletRequest request,
+    public void updateEnrollmentForNoteJson( @PathVariable
+    String id, HttpServletRequest request,
         HttpServletResponse response )
         throws IOException
     {
@@ -308,7 +339,8 @@ public class EnrollmentController
     }
 
     @RequestMapping( value = "/{id}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_XML_VALUE, produces = MediaType.APPLICATION_XML_VALUE )
-    public void updateEnrollmentXml( @PathVariable String id, ImportOptions importOptions, HttpServletRequest request,
+    public void updateEnrollmentXml( @PathVariable
+    String id, ImportOptions importOptions, HttpServletRequest request,
         HttpServletResponse response )
         throws IOException
     {
@@ -320,7 +352,8 @@ public class EnrollmentController
     }
 
     @RequestMapping( value = "/{id}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE )
-    public void updateEnrollmentJson( @PathVariable String id, ImportOptions importOptions, HttpServletRequest request,
+    public void updateEnrollmentJson( @PathVariable
+    String id, ImportOptions importOptions, HttpServletRequest request,
         HttpServletResponse response )
         throws IOException
     {
@@ -333,7 +366,8 @@ public class EnrollmentController
 
     @RequestMapping( value = "/{id}/cancelled", method = RequestMethod.PUT )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void cancelEnrollment( @PathVariable String id )
+    public void cancelEnrollment( @PathVariable
+    String id )
         throws WebMessageException
     {
         if ( !programInstanceService.programInstanceExists( id ) )
@@ -346,7 +380,8 @@ public class EnrollmentController
 
     @RequestMapping( value = "/{id}/completed", method = RequestMethod.PUT )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void completeEnrollment( @PathVariable String id )
+    public void completeEnrollment( @PathVariable
+    String id )
         throws WebMessageException
     {
         if ( !programInstanceService.programInstanceExists( id ) )
@@ -359,7 +394,8 @@ public class EnrollmentController
 
     @RequestMapping( value = "/{id}/incompleted", method = RequestMethod.PUT )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void incompleteEnrollment( @PathVariable String id )
+    public void incompleteEnrollment( @PathVariable
+    String id )
         throws WebMessageException
     {
         if ( !programInstanceService.programInstanceExists( id ) )
@@ -375,7 +411,8 @@ public class EnrollmentController
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/{id}", method = RequestMethod.DELETE )
-    public void deleteEnrollment( @PathVariable String id, HttpServletRequest request, HttpServletResponse response )
+    public void deleteEnrollment( @PathVariable
+    String id, HttpServletRequest request, HttpServletResponse response )
     {
         ImportSummary importSummary = enrollmentService.deleteEnrollment( id );
         webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );

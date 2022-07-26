@@ -1480,11 +1480,21 @@ public class JdbcEventStore implements EventStore
 
     private String getEventPagingQuery( EventSearchParams params )
     {
-        StringBuilder sqlBuilder = new StringBuilder().append( " " );
+        final StringBuilder sqlBuilder = new StringBuilder().append( " " );
+        int pageSize = params.getPageSizeWithDefault();
+
+        // When the clients choose to not show the total of pages.
+        if ( !params.isTotalPages() )
+        {
+            // Get pageSize + 1, so we are able to know if there is another
+            // page available. It adds one additional element into the list,
+            // as consequence. The caller needs to remove the last element.
+            pageSize++;
+        }
 
         if ( !params.isSkipPaging() )
         {
-            sqlBuilder.append( "limit " ).append( params.getPageSizeWithDefault() ).append( " offset " )
+            sqlBuilder.append( "limit " ).append( pageSize ).append( " offset " )
                 .append( params.getOffset() ).append( " " );
         }
 
