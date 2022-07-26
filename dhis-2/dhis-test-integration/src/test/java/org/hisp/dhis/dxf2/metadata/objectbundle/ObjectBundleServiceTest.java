@@ -785,7 +785,6 @@ class ObjectBundleServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    @Disabled
     void testCreateDataSetNoDSEDefaults()
         throws IOException
     {

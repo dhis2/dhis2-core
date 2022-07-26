@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.security.apikey;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 
 import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.user.CurrentUserDetails;
@@ -123,9 +124,21 @@ public class ApiTokenAuthenticationToken extends AbstractAuthenticationToken imp
     }
 
     @Override
+    public boolean isSuper()
+    {
+        return user.isSuper();
+    }
+
+    @Override
     public String getUid()
     {
         return user.getUid();
+    }
+
+    @Override
+    public Set<String> getUserGroupIds()
+    {
+        return user.getUserGroupIds();
     }
 
     @Override
