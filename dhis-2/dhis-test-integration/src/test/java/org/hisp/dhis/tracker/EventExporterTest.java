@@ -28,7 +28,7 @@
 package org.hisp.dhis.tracker;
 
 import static com.google.common.collect.Sets.newHashSet;
-import static org.hisp.dhis.tracker.Assertions.assertNoImportErrors;
+import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -87,7 +87,7 @@ class EventExporterTest extends TrackerTest
     {
         setUpMetadata( "tracker/simple_metadata.json" );
         userA = userService.getUser( "M5zQapPyTZI" );
-        assertNoImportErrors(
+        assertNoErrors(
             trackerImportService.importTracker( fromJson( "tracker/event_and_enrollment.json", userA.getUid() ) ) );
         orgUnit = manager.get( OrganisationUnit.class, "h4w96yEMlzO" );
         programStage = manager.get( ProgramStage.class, "NpsdDv6kKSO" );

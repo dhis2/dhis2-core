@@ -33,8 +33,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.rules.models.AttributeType;
 import org.hisp.dhis.tracker.domain.Attribute;
 
 @Getter
@@ -49,27 +47,7 @@ public class EnrollmentActionRule
 
     private final String field;
 
-    private final AttributeType attributeType;
-
     private String content;
 
     private final List<Attribute> attributes;
-
-    public String getValue()
-    {
-        StringBuilder stringBuilder = new StringBuilder();
-        if ( !StringUtils.isEmpty( content ) )
-        {
-            stringBuilder.append( data );
-        }
-        if ( !StringUtils.isEmpty( stringBuilder.toString() ) )
-        {
-            stringBuilder.append( " " );
-        }
-        if ( !StringUtils.isEmpty( data ) )
-        {
-            stringBuilder.append( data );
-        }
-        return stringBuilder.toString();
-    }
 }
