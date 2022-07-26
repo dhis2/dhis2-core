@@ -44,6 +44,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.PagerUtils;
+import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -172,7 +173,14 @@ public class EnrollmentController
 
             if ( enrollments.getPager() != null )
             {
-                rootNode.addChild( NodeUtils.createPager( enrollments.getPager() ) );
+                if ( params.isTotalPages() )
+                {
+                    rootNode.addChild( NodeUtils.createPager( enrollments.getPager() ) );
+                }
+                else
+                {
+                    rootNode.addChild( NodeUtils.createSlimPager( (SlimPager) enrollments.getPager() ) );
+                }
             }
 
             listEnrollments = enrollments.getEnrollments();

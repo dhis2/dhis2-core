@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.dxf2.events.enrollment;
 
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+import static org.hisp.dhis.common.SlimPager.FIRST_PAGE;
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 import static org.hisp.dhis.trackedentity.TrackedEntityAttributeService.TEA_VALUE_MAX_LENGTH;
 
@@ -53,6 +56,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.collection.CollectionUtils;
@@ -188,7 +192,8 @@ public abstract class AbstractEnrollmentService
     @Override
     public Enrollments getEnrollments( ProgramInstanceQueryParams params )
     {
-        Enrollments enrollments = new Enrollments();
+        final Enrollments enrollments = new Enrollments();
+        final List<ProgramInstance> programInstances = new ArrayList<>();
 
         if ( !params.isPaging() && !params.isSkipPaging() )
         {
@@ -197,22 +202,65 @@ public abstract class AbstractEnrollmentService
 
         if ( params.isPaging() )
         {
-            int count = 0;
+            final Pager pager;
 
             if ( params.isTotalPages() )
             {
-                count = programInstanceService.countProgramInstances( params );
-            }
+                programInstances.addAll( programInstanceService.getProgramInstances( params ) );
 
-            Pager pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
+                final int count = programInstanceService.countProgramInstances( params );
+                pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
+            }
+            else
+            {
+                pager = handleLastPageFlag( params, programInstances );
+            }
 
             enrollments.setPager( pager );
         }
 
-        List<ProgramInstance> programInstances = programInstanceService.getProgramInstances( params );
         enrollments.setEnrollments( getEnrollments( programInstances ) );
 
         return enrollments;
+    }
+
+    /**
+     * This method will apply the logic related to the parameter
+     * 'totalPages=false'. This works in conjunction with the method:
+     * {@link org.hisp.dhis.program.hibernate.HibernateProgramInstanceStore#getProgramInstances(ProgramInstanceQueryParams)}
+     *
+     * This is needed because we need to query (pageSize + 1) at DB level. The
+     * resulting query will allow us to evaluate if we are in the last page or
+     * not. And this is what his method does, returning the respective Pager
+     * object.
+     *
+     * @param params the request params
+     * @param programInstances the reference to the list of ProgramInstance
+     * @return the populated SlimPager instance
+     */
+    private Pager handleLastPageFlag( final ProgramInstanceQueryParams params,
+        final List<ProgramInstance> programInstances )
+    {
+        final int originalPage = params.getPage();
+        final int originalPageSize = params.getPageSize();
+        boolean isLastPage = false;
+
+        programInstances.addAll( programInstanceService.getProgramInstances( params ) );
+
+        if ( isNotEmpty( programInstances ) )
+        {
+            isLastPage = programInstances.size() <= originalPageSize;
+            if ( !isLastPage )
+            {
+                // Get the same number of elements of the pageSize, forcing
+                // the removal of the last additional element added at querying
+                // time.
+                programInstances.retainAll( programInstances.subList( 0, originalPageSize ) );
+            }
+        }
+
+        return new SlimPager( defaultIfNull( originalPage, FIRST_PAGE ), originalPageSize,
+            isLastPage );
     }
 
     @Override
