@@ -25,22 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common.adapter;
+package org.hisp.dhis.dxf2.metadata.objectbundle.validation.attribute;
+
+import java.util.List;
+import java.util.function.Function;
+import java.util.function.Predicate;
+
+import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.util.DateUtils;
 
 /**
- * This class defines metadata model property's names of
- * {@link org.hisp.dhis.common.BaseIdentifiableObject} Those constants will help
- * supporting type-safe queries with JPA Criteria API. TODO: This should be
- * replaced with JPAMetaModelEntityProcessor's auto generated class
+ * Contains validators for Date types of {@link ValueType}
+ *
+ * @author viet
  */
-public class BaseIdentifiableObject_
+@FunctionalInterface
+public interface DateCheck extends Function<String, List<ErrorReport>>
 {
-    public static final String CREATED_BY = "createdBy";
+    DateCheck empty = str -> List.of();
 
-    public static final String TRANSLATIONS = "translations";
+    DateCheck isDate = check( DateUtils::dateIsValid, ErrorCode.E6014 );
 
-    public static final String SHARING = "sharing";
+    DateCheck isDateTime = check( DateUtils::dateTimeIsValid, ErrorCode.E6015 );
 
-    public static final String ATTRIBUTE_VALUES = "attributeValues";
-
+    static DateCheck check( final Predicate<String> predicate, ErrorCode errorCode )
+    {
+        return str -> !predicate.test( str ) ? List.of( new ErrorReport( AttributeValue.class, errorCode, str ) )
+            : List.of();
+    }
 }

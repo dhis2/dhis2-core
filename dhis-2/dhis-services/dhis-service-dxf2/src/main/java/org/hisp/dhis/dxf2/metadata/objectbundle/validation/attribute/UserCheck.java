@@ -25,22 +25,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common.adapter;
+package org.hisp.dhis.dxf2.metadata.objectbundle.validation.attribute;
+
+import java.util.List;
+import java.util.function.BiFunction;
+import java.util.function.Predicate;
+
+import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.user.UserService;
 
 /**
- * This class defines metadata model property's names of
- * {@link org.hisp.dhis.common.BaseIdentifiableObject} Those constants will help
- * supporting type-safe queries with JPA Criteria API. TODO: This should be
- * replaced with JPAMetaModelEntityProcessor's auto generated class
+ * Contains validators for User types of {@link ValueType} such as
+ * {@link ValueType#USERNAME}.
+ * <p>
+ * The first argument of this {@link BiFunction} is the value of the
+ * {@link AttributeValue} which is the UID of the current object.
+ * <p>
+ * The second argument is the {@link Predicate} which responsible for checking
+ * object existence by calling {@link UserService} methods
+ * <p>
+ * The function returns a list of {@link ErrorReport}
+ * <p>
+ * Example:
+ *
+ * <pre>
+ * {@code UserCheck.isUserNameExist.apply( value, klass -> userService.getUserByUsername( value ) != null ) }
+ * </pre>
+ *
+ * @author viet
  */
-public class BaseIdentifiableObject_
+@FunctionalInterface
+public interface UserCheck extends BiFunction<String, UserService, List<ErrorReport>>
 {
-    public static final String CREATED_BY = "createdBy";
+    UserCheck empty = ( userName, userService ) -> List.of();
 
-    public static final String TRANSLATIONS = "translations";
-
-    public static final String SHARING = "sharing";
-
-    public static final String ATTRIBUTE_VALUES = "attributeValues";
-
+    UserCheck isUserNameExist = ( userName, userService ) -> userService.getUserByUsername( userName ) == null
+        ? List.of( new ErrorReport( AttributeValue.class, ErrorCode.E6020, userName ) )
+        : List.of();
 }

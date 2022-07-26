@@ -25,22 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common.adapter;
+package org.hisp.dhis.dxf2.metadata.objectbundle.validation.attribute;
+
+import java.util.function.Consumer;
+
+import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.feedback.ErrorReport;
 
 /**
- * This class defines metadata model property's names of
- * {@link org.hisp.dhis.common.BaseIdentifiableObject} Those constants will help
- * supporting type-safe queries with JPA Criteria API. TODO: This should be
- * replaced with JPAMetaModelEntityProcessor's auto generated class
+ * Validator for Metadata {@link AttributeValue}.
+ * <p>
+ * This will be called during the metadata import process.
+ *
+ * @author viet
  */
-public class BaseIdentifiableObject_
+public interface AttributeValidator
 {
-    public static final String CREATED_BY = "createdBy";
-
-    public static final String TRANSLATIONS = "translations";
-
-    public static final String SHARING = "sharing";
-
-    public static final String ATTRIBUTE_VALUES = "attributeValues";
-
+    /**
+     * Validate {@link AttributeValue} based on given {@link ValueType} and
+     * value.
+     * <p>
+     * Validation error will be generated and added to {@link Consumer}
+     * addError.
+     *
+     * @param valueType Metadata Attribute {@link ValueType}.
+     * @param value the value for validating.
+     * @param addError {@link Consumer} which will accept generated
+     *        {@link ErrorReport}
+     */
+    void validate( ValueType valueType, String value, Consumer<ErrorReport> addError );
 }

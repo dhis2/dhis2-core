@@ -25,22 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common.adapter;
+package org.hisp.dhis.dxf2.metadata.objectbundle.validation.attribute;
+
+import java.util.List;
+import java.util.function.Function;
+import java.util.function.Predicate;
+
+import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.system.util.MathUtils;
+import org.hisp.dhis.system.util.ValidationUtils;
 
 /**
- * This class defines metadata model property's names of
- * {@link org.hisp.dhis.common.BaseIdentifiableObject} Those constants will help
- * supporting type-safe queries with JPA Criteria API. TODO: This should be
- * replaced with JPAMetaModelEntityProcessor's auto generated class
+ * Contains validators for Text types of {@link ValueType}
+ *
+ * @author viet
  */
-public class BaseIdentifiableObject_
+@FunctionalInterface
+public interface TextCheck extends Function<String, List<ErrorReport>>
 {
-    public static final String CREATED_BY = "createdBy";
+    DateCheck empty = $ -> List.of();
 
-    public static final String TRANSLATIONS = "translations";
+    DateCheck isBoolean = check( str -> MathUtils.isBool( str ), ErrorCode.E6016 );
 
-    public static final String SHARING = "sharing";
+    DateCheck isTrueOnly = check( str -> "true".equals( str ), ErrorCode.E6017 );
 
-    public static final String ATTRIBUTE_VALUES = "attributeValues";
+    DateCheck isEmail = check( str -> ValidationUtils.emailIsValid( str ), ErrorCode.E6018 );
 
+    static DateCheck check( final Predicate<String> predicate, ErrorCode errorCode )
+    {
+        return str -> !predicate.test( str ) ? List.of( new ErrorReport( AttributeValue.class, errorCode, str ) )
+            : List.of();
+    }
 }

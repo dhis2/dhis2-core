@@ -25,22 +25,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common.adapter;
+package org.hisp.dhis.dxf2.metadata.objectbundle.validation.attribute;
+
+import java.util.List;
+import java.util.function.Function;
+import java.util.function.Predicate;
+
+import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.system.util.MathUtils;
 
 /**
- * This class defines metadata model property's names of
- * {@link org.hisp.dhis.common.BaseIdentifiableObject} Those constants will help
- * supporting type-safe queries with JPA Criteria API. TODO: This should be
- * replaced with JPAMetaModelEntityProcessor's auto generated class
+ * Contains validators for Number types of {@link AttributeValue}
+ *
+ * @author viet
  */
-public class BaseIdentifiableObject_
+@FunctionalInterface
+public interface NumberCheck extends Function<String, List<ErrorReport>>
 {
-    public static final String CREATED_BY = "createdBy";
+    NumberCheck empty = str -> List.of();
 
-    public static final String TRANSLATIONS = "translations";
+    NumberCheck isInteger = check( MathUtils::isInteger, ErrorCode.E6006 );
 
-    public static final String SHARING = "sharing";
+    NumberCheck isPositiveInteger = check( MathUtils::isPositiveInteger, ErrorCode.E6007 );
 
-    public static final String ATTRIBUTE_VALUES = "attributeValues";
+    NumberCheck isNegativeInteger = check( MathUtils::isNegativeInteger, ErrorCode.E6013 );
 
+    NumberCheck isNumber = check( MathUtils::isNumeric, ErrorCode.E6008 );
+
+    NumberCheck isZeroOrPositiveInteger = check( MathUtils::isZeroOrPositiveInteger, ErrorCode.E6009 );
+
+    NumberCheck isPercentage = check( MathUtils::isPercentage, ErrorCode.E6010 );
+
+    NumberCheck isUnitInterval = check( MathUtils::isUnitInterval, ErrorCode.E6011 );
+
+    static NumberCheck check( final Predicate<String> predicate, ErrorCode errorCode )
+    {
+        return str -> !predicate.test( str ) ? List.of( new ErrorReport( AttributeValue.class, errorCode, str ) )
+            : List.of();
+    }
 }

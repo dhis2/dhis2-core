@@ -240,7 +240,7 @@ class ObjectBundleServiceTest extends TransactionalIntegrationTest
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
         assertTrue( validate.hasErrorReports() );
-        assertEquals( 5, validate.getErrorReportsCountByCode( DataElement.class, ErrorCode.E5002 ) );
+        assertEquals( 4, validate.getErrorReportsCountByCode( DataElement.class, ErrorCode.E5002 ) );
         assertEquals( 3, validate.getErrorReportsCountByCode( DataElement.class, ErrorCode.E4000 ) );
     }
 
