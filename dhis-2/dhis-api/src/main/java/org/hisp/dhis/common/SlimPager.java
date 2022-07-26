@@ -45,7 +45,7 @@ public class SlimPager extends Pager
 {
     public static final int FIRST_PAGE = 1;
 
-    private Boolean lastPage;
+    private final Boolean lastPage;
 
     public SlimPager( final int page, final int pageSize, final Boolean lastPage )
     {
