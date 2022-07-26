@@ -2059,7 +2059,7 @@ public class JdbcEventStore implements EventStore
 
         if ( params.getOrgUnit() != null && !params.isPathOrganisationUnitMode() )
         {
-            orgUnitSql.append( " psi.organisationunitid = " )
+            orgUnitSql.append( " ou.organisationunitid = " )
                 .append( params.getOrgUnit()
                     .getId() )
                 .append( " " );
@@ -2108,7 +2108,7 @@ public class JdbcEventStore implements EventStore
                 {
                     orgUnitSql.insert( 0, " (" );
                     orgUnitSql.append( orHlp.or() )
-                        .append( " (psi.organisationunitid = " )
+                        .append( " (ou.organisationunitid = " )
                         .append( params.getOrgUnit()
                             .getId() )
                         .append( ")) " );
