@@ -1377,19 +1377,22 @@ public class HibernateTrackedEntityInstanceStore
 
         if ( limit == 0 && !params.isPaging() )
         {
-            return limitOffset
-                .append( LIMIT )
-                .append( SPACE )
-                .append( teiQueryLimit )
-                .append( SPACE )
-                .toString();
+
+            return Optional.of( teiQueryLimit ).filter( a -> teiQueryLimit == 0 ).map( a -> "" )
+                .orElseGet( () -> limitOffset
+                    .append( LIMIT )
+                    .append( SPACE )
+                    .append( teiQueryLimit )
+                    .append( SPACE )
+                    .toString() );
+
         }
         else if ( limit == 0 && params.isPaging() )
         {
             return limitOffset
                 .append( LIMIT )
                 .append( SPACE )
-                .append( Math.min( teiQueryLimit, params.getPageSizeWithDefault() ) )
+                .append( params.getPageSizeWithDefault() )
                 .append( SPACE )
                 .append( OFFSET )
                 .append( SPACE )
@@ -1402,7 +1405,7 @@ public class HibernateTrackedEntityInstanceStore
             return limitOffset
                 .append( LIMIT )
                 .append( SPACE )
-                .append( Math.min( limit + 1, Math.min( teiQueryLimit, params.getPageSizeWithDefault() ) ) )
+                .append( Math.min( limit + 1, params.getPageSizeWithDefault() ) )
                 .append( SPACE )
                 .append( OFFSET )
                 .append( SPACE )
