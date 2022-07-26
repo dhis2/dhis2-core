@@ -3,8 +3,6 @@ package org.hisp.dhis.trackedentityinstance;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Sets;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -135,7 +133,7 @@ public class TrackedEntityInstanceQueryLimitTest extends TransactionalIntegratio
     }
 
     @Test
-    public void testTeiQueryLimitDefaultSetting()
+    public void testTeiQueryLimitDefaultValue()
     {
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
         params.setProgram( program );
