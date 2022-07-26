@@ -28,13 +28,16 @@
 package org.hisp.dhis.analytics.common;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
 
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.junit.jupiter.api.Test;
 
 class CommonQueryRequestProcessorTest
 {
 
-    CommonQueryRequestProcessor commonQueryRequestProcessor = new CommonQueryRequestProcessor();
+    CommonQueryRequestProcessor commonQueryRequestProcessor = new CommonQueryRequestProcessor(
+        mock( SystemSettingManager.class ) );
 
     @Test
     void testEventDate()

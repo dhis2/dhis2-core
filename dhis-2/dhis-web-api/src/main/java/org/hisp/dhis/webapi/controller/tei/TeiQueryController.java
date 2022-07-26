@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.controller.tei;
 
 import static org.hisp.dhis.analytics.shared.GridHeaders.retainHeadersOnGrid;
-import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.TRACKED_ENTITY_INSTANCE;
 import static org.hisp.dhis.common.cache.CacheStrategy.RESPECT_SYSTEM_SETTING;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
 
@@ -117,15 +116,12 @@ class TeiQueryController
         final String trackedEntityType,
         final TeiQueryRequest teiQueryRequest,
         final CommonQueryRequest commonQueryRequest,
-        final AnalyticsPagingCriteria pagingRequest,
         final HttpServletResponse response )
     {
         final QueryRequest<TeiQueryRequest> queryRequest = QueryRequest.<TeiQueryRequest> builder()
             .request( teiQueryRequestProcessor.process(
                 teiQueryRequest.withTrackedEntityType( trackedEntityType ) ) )
             .commonQueryRequest( commonQueryRequestProcessor.process( commonQueryRequest ) )
-            .pagingCriteria( pagingCriteriaProcessor.process( (AnalyticsPagingCriteria) pagingRequest
-                .withEndpointItem( TRACKED_ENTITY_INSTANCE ).withQueryEndpointAction() ) )
             .build();
 
         commonQueryRequestValidator.validate( queryRequest.getCommonQueryRequest() );

@@ -51,8 +51,7 @@ public class TeiRequestMapper
         return TeiQueryParams.builder()
             .trackedEntityType( getTrackedEntityType( queryRequest ) )
             .commonParams( commonQueryRequestMapper.map(
-                queryRequest.getCommonQueryRequest(),
-                queryRequest.getPagingCriteria() ) )
+                queryRequest.getCommonQueryRequest() ) )
             .build();
     }
 

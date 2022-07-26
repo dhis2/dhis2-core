@@ -34,6 +34,8 @@ import static org.hisp.dhis.commons.collection.CollectionUtils.emptyIfNull;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.AnalyticsDateFilter;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.stereotype.Component;
 
 /**
@@ -45,6 +47,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class CommonQueryRequestProcessor implements Processor<CommonQueryRequest>
 {
+    private final SystemSettingManager systemSettingManager;
 
     @Override
     public CommonQueryRequest process( final CommonQueryRequest commonQueryRequest )
@@ -56,6 +59,22 @@ public class CommonQueryRequestProcessor implements Processor<CommonQueryRequest
                     AnalyticsDateFilter::appliesToTei,
                     analyticsDateFilter -> o -> analyticsDateFilter.getTeiExtractor()
                         .apply( (CommonQueryRequest) o ),
-                    commonQueryRequest ) ) );
+                    commonQueryRequest ) ) )
+            .withPageSize( computePageSize( commonQueryRequest ) );
+    }
+
+    private Integer computePageSize( CommonQueryRequest commonQueryRequest )
+    {
+        int analyticsMaxPageSize = systemSettingManager.getIntSetting( SettingKey.ANALYTICS_MAX_LIMIT );
+        if ( commonQueryRequest.isPaging() )
+        {
+            return commonQueryRequest.getPageSize() != null &&
+                commonQueryRequest.getPageSize() > analyticsMaxPageSize ? analyticsMaxPageSize
+                    : commonQueryRequest.getPageSize();
+        }
+        else
+        {
+            return analyticsMaxPageSize;
+        }
     }
 }

@@ -120,4 +120,25 @@ public class CommonQueryRequest
 
     private String lastUpdated;
 
+    /**
+     * The page number. Default page is 1.
+     */
+    private Integer page = 1;
+
+    /**
+     * The page size.
+     */
+    private Integer pageSize = 50;
+
+    /**
+     * The paging parameter. When set to false we should not paginate. The
+     * default is true (always paginate).
+     */
+    private boolean paging = true;
+
+    /**
+     * The paging parameter. When set to false we should not count total pages.
+     * The default is false.
+     */
+    private boolean totalPages = false;
 }

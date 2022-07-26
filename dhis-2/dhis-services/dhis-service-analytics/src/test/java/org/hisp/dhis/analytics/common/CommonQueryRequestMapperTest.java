@@ -104,7 +104,6 @@ class CommonQueryRequestMapperTest
         final String queryItem = "EQ:john";
         final String dimension = "ur1Edk5Oe2n[1].jdRD35YwbRH[y].yLIPuJHRgey";
 
-        final AnalyticsPagingCriteria theAnalyticsPagingCriteria = new AnalyticsPagingCriteria();
         final List<OrganisationUnit> organisationUnits = List.of( new OrganisationUnit( "org-1" ),
             new OrganisationUnit( "org-2" ) );
         final List<Program> programs = List.of( program1, program2 );
@@ -134,7 +133,7 @@ class CommonQueryRequestMapperTest
 
         // When
         final CommonParams params = new CommonQueryRequestMapper( i18nManager, dataQueryService, eventDataQueryService,
-            programService, dimensionIdentifierConverter ).map( aCommonQueryRequest, theAnalyticsPagingCriteria );
+            programService, dimensionIdentifierConverter ).map( aCommonQueryRequest );
 
         // Then
         assertEquals( 2, params.getPrograms().size(), "Should contain 2 programs." );
@@ -200,7 +199,7 @@ class CommonQueryRequestMapperTest
 
         // When
         final CommonParams params = new CommonQueryRequestMapper( i18nManager, dataQueryService, eventDataQueryService,
-            programService, dimensionIdentifierConverter ).map( aCommonQueryRequest, theAnalyticsPagingCriteria );
+            programService, dimensionIdentifierConverter ).map( aCommonQueryRequest );
 
         // Then
         assertEquals( 2, params.getPrograms().size(), "Should contain 2 programs." );
@@ -279,7 +278,7 @@ class CommonQueryRequestMapperTest
 
         // When
         final CommonParams params = new CommonQueryRequestMapper( i18nManager, dataQueryService, eventDataQueryService,
-            programService, dimensionIdentifierConverter ).map( aCommonQueryRequest, theAnalyticsPagingCriteria );
+            programService, dimensionIdentifierConverter ).map( aCommonQueryRequest );
 
         // Then
         assertEquals( 2, params.getPrograms().size(), "Should contain 2 programs." );
@@ -336,7 +335,7 @@ class CommonQueryRequestMapperTest
         // When
         final IllegalArgumentException thrown = assertThrows( IllegalArgumentException.class,
             () -> new CommonQueryRequestMapper( i18nManager, dataQueryService, eventDataQueryService,
-                programService, dimensionIdentifierConverter ).map( aCommonQueryRequest, theAnalyticsPagingCriteria ) );
+                programService, dimensionIdentifierConverter ).map( aCommonQueryRequest ) );
 
         // Then
         assertEquals( "The following programs couldn't be found: [ur1Edk5Oe2n]", thrown.getMessage(),
@@ -387,7 +386,7 @@ class CommonQueryRequestMapperTest
 
         // When
         final CommonParams params = new CommonQueryRequestMapper( i18nManager, dataQueryService, eventDataQueryService,
-            programService, dimensionIdentifierConverter ).map( aCommonQueryRequest, theAnalyticsPagingCriteria );
+            programService, dimensionIdentifierConverter ).map( aCommonQueryRequest );
 
         // Then
         assertEquals( 2, params.getPrograms().size(), "Should contain 2 programs." );
@@ -441,7 +440,7 @@ class CommonQueryRequestMapperTest
         // When
         final IllegalArgumentException thrown = assertThrows( IllegalArgumentException.class,
             () -> new CommonQueryRequestMapper( i18nManager, dataQueryService, eventDataQueryService,
-                programService, dimensionIdentifierConverter ).map( aCommonQueryRequest, theAnalyticsPagingCriteria ) );
+                programService, dimensionIdentifierConverter ).map( aCommonQueryRequest ) );
 
         // Then
         assertEquals( "yLIPuJHRgey is not a fully qualified dimension", thrown.getMessage(),
@@ -498,7 +497,7 @@ class CommonQueryRequestMapperTest
 
         // When
         final CommonParams params = new CommonQueryRequestMapper( i18nManager, dataQueryService, eventDataQueryService,
-            programService, dimensionIdentifierConverter ).map( aCommonQueryRequest, theAnalyticsPagingCriteria );
+            programService, dimensionIdentifierConverter ).map( aCommonQueryRequest );
 
         // Then
         assertThat( params.getDimensionIdentifiers(), hasSize( 1 ) );
