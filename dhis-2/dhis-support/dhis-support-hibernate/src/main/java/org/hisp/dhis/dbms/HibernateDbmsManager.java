@@ -52,6 +52,8 @@ public class HibernateDbmsManager
 
     private JdbcTemplate jdbcTemplate;
 
+    private String tables;
+
     public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
     {
         this.jdbcTemplate = jdbcTemplate;
@@ -77,6 +79,52 @@ public class HibernateDbmsManager
 
     @Override
     public void emptyDatabase()
+    {
+        emptyDB();
+        // emptyTables();
+
+        log.debug( "Cleared database contents" );
+
+        cacheManager.clearCache();
+
+        log.debug( "Cleared Hibernate cache" );
+
+        flushSession();
+    }
+
+    @Override
+    public void clearSession()
+    {
+        sessionFactory.getCurrentSession().flush();
+        sessionFactory.getCurrentSession().clear();
+    }
+
+    @Override
+    public void flushSession()
+    {
+        sessionFactory.getCurrentSession().flush();
+    }
+
+    public void emptyDB()
+    {
+
+        List<String> strings = jdbcTemplate.queryForList(
+            "SELECT input_table_name AS truncate_query " +
+                "FROM(" +
+                "SELECT table_schema || '.' || table_name AS input_table_name " +
+                "FROM information_schema.tables " +
+                "WHERE table_schema NOT IN ('pg_catalog', 'information_schema') " +
+                "AND table_schema NOT LIKE 'pg_toast%' " +
+                "AND table_name <> 'flyway_schema_history'" +
+                "AND table_type <> 'VIEW' ) " +
+                "AS information;",
+            String.class );
+        this.tables = String.join( ",", strings );
+
+        jdbcTemplate.update( "TRUNCATE " + this.tables + ";" );
+    }
+
+    private void emptyTables()
     {
         emptyTable( "keyjsonvalue" );
 
@@ -350,27 +398,6 @@ public class HibernateDbmsManager
         emptyTable( "sequentialnumbercounter" );
 
         emptyTable( "audit" );
-
-        log.debug( "Cleared database contents" );
-
-        cacheManager.clearCache();
-
-        log.debug( "Cleared Hibernate cache" );
-
-        flushSession();
-    }
-
-    @Override
-    public void clearSession()
-    {
-        sessionFactory.getCurrentSession().flush();
-        sessionFactory.getCurrentSession().clear();
-    }
-
-    @Override
-    public void flushSession()
-    {
-        sessionFactory.getCurrentSession().flush();
     }
 
     @Override
