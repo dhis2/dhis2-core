@@ -87,9 +87,6 @@ class TeiQueryController
     private final Processor<CommonQueryRequest> commonQueryRequestProcessor;
 
     @NonNull
-    private final Processor<AnalyticsPagingCriteria> pagingCriteriaProcessor;
-
-    @NonNull
     private final Validator<QueryRequest<TeiQueryRequest>> teiQueryRequestValidator;
 
     @NonNull
