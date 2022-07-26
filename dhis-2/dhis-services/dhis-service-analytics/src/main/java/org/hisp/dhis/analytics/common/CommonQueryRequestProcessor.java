@@ -49,15 +49,13 @@ public class CommonQueryRequestProcessor implements Processor<CommonQueryRequest
     @Override
     public CommonQueryRequest process( final CommonQueryRequest commonQueryRequest )
     {
-        return commonQueryRequest.toBuilder()
-            .dimension(
-                getDimensionsWithRefactoredPeDimension(
-                    emptyIfNull( commonQueryRequest.getDimension() ),
-                    getCustomDateFilters(
-                        AnalyticsDateFilter::appliesToTei,
-                        analyticsDateFilter -> o -> analyticsDateFilter.getTeiExtractor()
-                            .apply( (CommonQueryRequest) o ),
-                        commonQueryRequest ) ) )
-            .build();
+        return commonQueryRequest.withDimension(
+            getDimensionsWithRefactoredPeDimension(
+                emptyIfNull( commonQueryRequest.getDimension() ),
+                getCustomDateFilters(
+                    AnalyticsDateFilter::appliesToTei,
+                    analyticsDateFilter -> o -> analyticsDateFilter.getTeiExtractor()
+                        .apply( (CommonQueryRequest) o ),
+                    commonQueryRequest ) ) );
     }
 }

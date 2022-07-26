@@ -27,15 +27,14 @@
  */
 package org.hisp.dhis.analytics.common;
 
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.With;
 
@@ -52,12 +51,11 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 @Getter
 @Setter
 @With
-@Builder( toBuilder = true )
-// @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class CommonQueryRequest
 {
 
-    @Builder.Default
     private Set<String> program = new LinkedHashSet<>();
 
     private String userOrgUnit;
@@ -65,13 +63,11 @@ public class CommonQueryRequest
     /**
      * The dimensions to be returned/filtered at.
      */
-    @Builder.Default
     private Set<String> dimension = new LinkedHashSet<>();
 
     /**
      * The filters to be applied at querying time.
      */
-    @Builder.Default
     private Set<String> filter = new HashSet<>();
 
     /**
@@ -79,18 +75,14 @@ public class CommonQueryRequest
      * headers in the respective order. As the headers should not be duplicated,
      * this is represented as Set.
      */
-    @Builder.Default
     private Set<String> headers = new LinkedHashSet<>();
 
     private OrganisationUnitSelectionMode ouMode;
 
-    @Builder.Default
     private Set<String> asc = new HashSet<>();
 
-    @Builder.Default
     private Set<String> desc = new HashSet<>();
 
-    @Builder.Default
     private IdScheme dataIdScheme = IdScheme.UID;
 
     private Date relativePeriodDate;
@@ -128,8 +120,4 @@ public class CommonQueryRequest
 
     private String lastUpdated;
 
-    public boolean hasHeaders()
-    {
-        return isNotEmpty( getHeaders() );
-    }
 }

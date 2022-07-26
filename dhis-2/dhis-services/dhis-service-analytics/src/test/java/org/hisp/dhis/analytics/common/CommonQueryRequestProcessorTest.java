@@ -39,13 +39,12 @@ class CommonQueryRequestProcessorTest
     @Test
     void testEventDate()
     {
-        CommonQueryRequest request = CommonQueryRequest.builder()
-            .eventDate( "IpHINAT79UW.LAST_YEAR" )
-            .incidentDate( "LAST_MONTH" )
-            .enrollmentDate( "2021-06-30" )
-            .lastUpdated( "TODAY" )
-            .scheduledDate( "YESTERDAY" )
-            .build();
+        CommonQueryRequest request = new CommonQueryRequest()
+            .withEventDate( "IpHINAT79UW.LAST_YEAR" )
+            .withIncidentDate( "LAST_MONTH" )
+            .withEnrollmentDate( "2021-06-30" )
+            .withLastUpdated( "TODAY" )
+            .withScheduledDate( "YESTERDAY" );
 
         assertEquals(
             commonQueryRequestProcessor.process( request ).getDimension().stream().findFirst().orElse( null ),
