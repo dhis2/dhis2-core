@@ -75,6 +75,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -988,13 +989,28 @@ public class JdbcEventStore implements EventStore
             + "inner join programstage ps on ps.programstageid=psi.programstageid "
             + "inner join categoryoptioncombo coc on coc.categoryoptioncomboid=psi.attributeoptioncomboid "
             + "inner join categoryoptioncombos_categoryoptions cocco on psi.attributeoptioncomboid=cocco.categoryoptioncomboid "
-            + "inner join dataelementcategoryoption deco on cocco.categoryoptionid=deco.categoryoptionid "
-            + "left join trackedentityprogramowner po on (pi.trackedentityinstanceid=po.trackedentityinstanceid) "
-            + "inner join organisationunit ou on (coalesce(po.organisationunitid, psi.organisationunitid)=ou.organisationunitid) "
-            + "left join trackedentityinstance tei on tei.trackedentityinstanceid=pi.trackedentityinstanceid "
-            + "left join organisationunit teiou on (tei.organisationunitid=teiou.organisationunitid) "
-            + "left join users auc on (psi.assigneduserid=auc.userid) "
-            + "left join userinfo au on (auc.userid=au.userinfoid) " );
+            + "inner join dataelementcategoryoption deco on cocco.categoryoptionid=deco.categoryoptionid " );
+
+        if ( Optional.ofNullable( params.getProgram() )
+            .filter( p -> Objects.nonNull( p.getProgramType() ) && p.getProgramType() == ProgramType.WITH_REGISTRATION )
+            .isPresent() )
+        {
+            sqlBuilder.append(
+                "left join trackedentityprogramowner po on (pi.trackedentityinstanceid=po.trackedentityinstanceid) " )
+                .append(
+                    "inner join organisationunit ou on (coalesce(po.organisationunitid, psi.organisationunitid)=ou.organisationunitid) " );
+        }
+        else
+        {
+            sqlBuilder.append(
+                "inner join organisationunit ou on psi.organisationunitid=ou.organisationunitid " );
+        }
+
+        sqlBuilder
+            .append( "left join trackedentityinstance tei on tei.trackedentityinstanceid=pi.trackedentityinstanceid "
+                + "left join organisationunit teiou on (tei.organisationunitid=teiou.organisationunitid) "
+                + "left join users auc on (psi.assigneduserid=auc.userid) "
+                + "left join userinfo au on (auc.userid=au.userinfoid) " );
 
         Set<String> joinedColumns = new HashSet<>();
 
