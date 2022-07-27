@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.tracker.bundle;
 
-import static org.hisp.dhis.tracker.Assertions.assertNoImportErrors;
+import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
@@ -80,7 +80,7 @@ class TrackedEntityAttributeValueAuditTest extends TrackerTest
     void testTrackedEntityAttributeValueAuditCreate()
         throws IOException
     {
-        assertNoImportErrors(
+        assertNoErrors(
             trackerImportService.importTracker( fromJson( "tracker/te_program_with_tea_data.json" ) ) );
 
         List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
@@ -103,7 +103,7 @@ class TrackedEntityAttributeValueAuditTest extends TrackerTest
         TrackerImportParams trackerImportParams = fromJson( "tracker/te_program_with_tea_data.json" );
 
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertNoImportErrors( trackerImportReport );
+        assertNoErrors( trackerImportReport );
         List<TrackedEntityAttributeValue> attributeValues1 = trackedEntityAttributeValueService
             .getTrackedEntityAttributeValues( manager.getAll( TrackedEntityInstance.class ).get( 0 ) );
         List<TrackedEntityAttribute> attributes1 = attributeValues1.stream()
@@ -111,7 +111,7 @@ class TrackedEntityAttributeValueAuditTest extends TrackerTest
         trackerImportParams = fromJson( "tracker/te_program_with_tea_null_data.json" );
         trackerImportParams.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
         trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertNoImportErrors( trackerImportReport );
+        assertNoErrors( trackerImportReport );
         List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
         List<TrackedEntityAttributeValueAudit> attributeValueAudits = attributeValueAuditService
             .getTrackedEntityAttributeValueAudits( attributes1, trackedEntityInstances, AuditType.DELETE );
