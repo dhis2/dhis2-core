@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.tracker.bundle;
 
+import static org.hisp.dhis.tracker.Assertions.assertHasError;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
-import java.util.List;
 
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -44,9 +44,7 @@ import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
-import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -140,10 +138,7 @@ class ReportSummaryDeleteIntegrationTest extends TrackerTest
 
         TrackerImportReport importReport = trackerImportService.importTracker( params );
 
-        assertEquals( TrackerStatus.ERROR, importReport.getStatus() );
-        assertTrue( importReport.getValidationReport().hasErrors() );
-        List<TrackerErrorReport> trackerErrorReports = importReport.getValidationReport().getErrors();
-        assertEquals( TrackerErrorCode.E1081, trackerErrorReports.get( 0 ).getErrorCode() );
+        assertHasError( importReport, TrackerErrorCode.E1081 );
     }
 
     @Test
