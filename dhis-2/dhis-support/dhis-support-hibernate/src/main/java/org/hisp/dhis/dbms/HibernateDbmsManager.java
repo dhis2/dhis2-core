@@ -30,6 +30,7 @@ package org.hisp.dhis.dbms;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -108,18 +109,21 @@ public class HibernateDbmsManager
     public void emptyDB()
     {
 
-        List<String> strings = jdbcTemplate.queryForList(
-            "SELECT input_table_name AS truncate_query " +
-                "FROM(" +
-                "SELECT table_schema || '.' || table_name AS input_table_name " +
-                "FROM information_schema.tables " +
-                "WHERE table_schema NOT IN ('pg_catalog', 'information_schema') " +
-                "AND table_schema NOT LIKE 'pg_toast%' " +
-                "AND table_name <> 'flyway_schema_history'" +
-                "AND table_type <> 'VIEW' ) " +
-                "AS information;",
-            String.class );
-        this.tables = String.join( ",", strings );
+        if ( Objects.isNull( this.tables ) )
+        {
+            List<String> strings = jdbcTemplate.queryForList(
+                "SELECT input_table_name AS truncate_query " +
+                    "FROM(" +
+                    "SELECT table_schema || '.' || table_name AS input_table_name " +
+                    "FROM information_schema.tables " +
+                    "WHERE table_schema NOT IN ('pg_catalog', 'information_schema') " +
+                    "AND table_schema NOT LIKE 'pg_toast%' " +
+                    "AND table_name <> 'flyway_schema_history'" +
+                    "AND table_type <> 'VIEW' ) " +
+                    "AS information;",
+                String.class );
+            this.tables = String.join( ",", strings );
+        }
 
         jdbcTemplate.update( "TRUNCATE " + this.tables + ";" );
     }
