@@ -119,6 +119,12 @@ public class TrackerCsvEventService
                 }
             }
 
+            if ( event.getDataValues().isEmpty() )
+            {
+                dataValues.add( templateDataValue );
+                continue;
+            }
+
             for ( DataValue value : event.getDataValues() )
             {
                 CsvEventDataValue dataValue = new CsvEventDataValue( templateDataValue );
