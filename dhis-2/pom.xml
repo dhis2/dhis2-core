@@ -719,6 +719,8 @@
               <ignoredUnusedDeclaredDependency>javax.servlet:javax.servlet-api</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.apache.xmlgraphics:batik-codec</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.apache.jclouds.provider:aws-s3</ignoredUnusedDeclaredDependency>
+              <ignoredUnusedDeclaredDependency>org.testcontainers:postgresql</ignoredUnusedDeclaredDependency>
+              <ignoredUnusedDeclaredDependency>org.testcontainers:jdbc</ignoredUnusedDeclaredDependency>
               <!-- Removing makes some tests fail -->
               <ignoredUnusedDeclaredDependency>io.netty:netty-all</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.hibernate.validator:hibernate-validator</ignoredUnusedDeclaredDependency>
