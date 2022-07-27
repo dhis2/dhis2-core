@@ -38,6 +38,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.tracker.domain.DataValue;
@@ -71,17 +72,40 @@ class TrackerCsvEventServiceTest
 
         service.writeEvents( out, Collections.singletonList( new Event() ), false );
 
-        assertEquals( "", out.toString() );
+        assertEquals( ",ACTIVE,,,,,,,,,,,false,false,,,,,,,,,,,,,,,,,\n", out.toString() );
     }
 
     @Test
-    void writeEvents()
+    void writeEventsWithoutDataValues()
+        throws IOException
+    {
+        Event event = Event.builder()
+            .event( "BuA2R2Gr4vt" )
+            .followup( true )
+            .deleted( false )
+            .status( EventStatus.ACTIVE )
+            .build();
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        service.writeEvents( out, Collections.singletonList( event ), false );
+
+        assertEquals( "BuA2R2Gr4vt,ACTIVE,,,,,,,,,,,true,false,,,,,,,,,,,,,,,,,\n", out.toString() );
+    }
+
+    @Test
+    void writeEventsWithDataValuesIntoASingleRow()
         throws IOException
     {
 
-        DataValue dataValue = DataValue.builder()
+        DataValue dataValue1 = DataValue.builder()
             .dataElement( "color" )
-            .value( "red" )
+            .value( "purple" )
+            .providedElsewhere( true )
+            .build();
+        DataValue dataValue2 = DataValue.builder()
+            .dataElement( "color" )
+            .value( "yellow" )
             .providedElsewhere( true )
             .build();
         Event event = Event.builder()
@@ -89,14 +113,23 @@ class TrackerCsvEventServiceTest
             .followup( true )
             .deleted( false )
             .status( EventStatus.ACTIVE )
-            .dataValues( Collections.singleton( dataValue ) )
+            .dataValues( Set.of( dataValue1, dataValue2 ) )
             .build();
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
         service.writeEvents( out, Collections.singletonList( event ), false );
 
-        assertEquals( "BuA2R2Gr4vt,ACTIVE,,,,,,,,,,,true,false,,,,,,,,,,,color,red,,true,,,\n", out.toString() );
+        assertInCSV( out, "BuA2R2Gr4vt,ACTIVE,,,,,,,,,,,true,false,,,,,,,,,,,color,yellow,,true,,,\n" );
+        assertInCSV( out, "BuA2R2Gr4vt,ACTIVE,,,,,,,,,,,true,false,,,,,,,,,,,color,purple,,true,,,\n" );
+    }
+
+    private void assertInCSV( ByteArrayOutputStream out, String expectedLine )
+    {
+        // not using assertEquals as dataValues are in a Set so its order in the
+        // CSV is not guaranteed
+        assertTrue( out.toString().contains( expectedLine ),
+            () -> "expected line is not in CSV:\nexpected line:\n" + expectedLine + "\ngot CSV:\n" + out );
     }
 
     @Test
