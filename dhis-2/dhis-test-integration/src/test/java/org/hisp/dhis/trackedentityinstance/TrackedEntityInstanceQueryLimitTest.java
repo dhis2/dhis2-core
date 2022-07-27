@@ -29,11 +29,10 @@
 package org.hisp.dhis.trackedentityinstance;
 
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import com.google.common.collect.Sets;
-import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hamcrest.Matchers;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -47,7 +46,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
@@ -74,13 +72,7 @@ public class TrackedEntityInstanceQueryLimitTest extends TransactionalIntegratio
     private ProgramService programService;
 
     @Autowired
-    private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
-
-    @Autowired
     private ProgramInstanceService programInstanceService;
-
-    @Autowired
-    private IdentifiableObjectManager manager;
 
     @Autowired
     private UserService _userService;
@@ -102,13 +94,6 @@ public class TrackedEntityInstanceQueryLimitTest extends TransactionalIntegratio
     private TrackedEntityType teiType;
 
     private User user;
-
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
 
     @Override
     protected void setUpTest()
@@ -161,18 +146,18 @@ public class TrackedEntityInstanceQueryLimitTest extends TransactionalIntegratio
     }
 
     @Test
-    public void testTeiQueryLimitDefaultValue()
+    public void testTeiQueryLimitConfiguredValue()
     {
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
         params.setProgram( program );
         params.setOrganisationUnits(Sets.newHashSet( orgUnitA ) );
         params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
         params.setUser( user );
-        params.setInternalSearch(false);
+        params.setSkipPaging(true);
 
         List<Long> teis = trackedEntityInstanceService.getTrackedEntityInstanceIds( params, false, false );
 
-        assertFalse( teis.isEmpty() );
-        assertEquals( 4, teis.size() );
+        assertThat( teis, Matchers.hasSize( Matchers.is( 3) ) );
+        assertThat( teis, Matchers.contains( tei1.getId(), tei2.getId(), tei3.getId() ) );
     }
 }
