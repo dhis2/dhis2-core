@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.table;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
+import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE;
 import static org.hisp.dhis.analytics.ColumnDataType.BOOLEAN;
 import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
 import static org.hisp.dhis.analytics.ColumnDataType.INTEGER;
@@ -37,6 +38,7 @@ import static org.hisp.dhis.analytics.ColumnDataType.VARCHAR_1200;
 import static org.hisp.dhis.analytics.ColumnDataType.VARCHAR_255;
 import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NOT_NULL;
 import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NULL;
+import static org.hisp.dhis.analytics.IndexType.GIN;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 
 import java.util.ArrayList;
@@ -55,7 +57,6 @@ import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
-import org.hisp.dhis.analytics.IndexType;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -75,27 +76,27 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.ImmutableList;
 
-@Service( "org.hisp.dhis.analytics.TEITrackedEntityInstanceAnalyticsTableManager" )
-public class JdbcTEITrackedEntityInstancesAnalyticsTableManager extends AbstractJdbcTableManager
+@Component( "org.hisp.dhis.analytics.TeiAnalyticsTableManager" )
+public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager
 {
+
     private final TrackedEntityTypeService trackedEntityTypeService;
 
     private final ProgramService programService;
 
     private final TrackedEntityAttributeService trackedEntityAttributeService;
 
-    public JdbcTEITrackedEntityInstancesAnalyticsTableManager( IdentifiableObjectManager idObjectManager,
-        OrganisationUnitService organisationUnitService,
-        CategoryService categoryService, SystemSettingManager systemSettingManager,
-        DataApprovalLevelService dataApprovalLevelService, ResourceTableService resourceTableService,
-        AnalyticsTableHookService tableHookService, StatementBuilder statementBuilder,
-        PartitionManager partitionManager, DatabaseInfo databaseInfo, JdbcTemplate jdbcTemplate,
-        TrackedEntityTypeService trackedEntityTypeService, ProgramService programService,
+    public JdbcTeiAnalyticsTableManager( IdentifiableObjectManager idObjectManager,
+        OrganisationUnitService organisationUnitService, CategoryService categoryService,
+        SystemSettingManager systemSettingManager, DataApprovalLevelService dataApprovalLevelService,
+        ResourceTableService resourceTableService, AnalyticsTableHookService tableHookService,
+        StatementBuilder statementBuilder, PartitionManager partitionManager, DatabaseInfo databaseInfo,
+        JdbcTemplate jdbcTemplate, TrackedEntityTypeService trackedEntityTypeService, ProgramService programService,
         TrackedEntityAttributeService trackedEntityAttributeService )
     {
         super( idObjectManager, organisationUnitService, categoryService, systemSettingManager,
@@ -134,7 +135,7 @@ public class JdbcTEITrackedEntityInstancesAnalyticsTableManager extends Abstract
     @Override
     public AnalyticsTableType getAnalyticsTableType()
     {
-        return AnalyticsTableType.TRACKED_ENTITY_INSTANCE_TEI;
+        return TRACKED_ENTITY_INSTANCE;
     }
 
     /**
@@ -160,14 +161,10 @@ public class JdbcTEITrackedEntityInstancesAnalyticsTableManager extends Abstract
                 List<AnalyticsTableColumn> columns = new ArrayList<>( getFixedColumns() );
 
                 CollectionUtils.emptyIfNull( programsByTetUid.get( tet.getUid() ) )
-                    .forEach( program -> columns.add(
-                        new AnalyticsTableColumn(
-                            quote( program.getUid() ), BOOLEAN,
-                            " exists(\n" +
-                                "        (select 1 from programinstance pi_0, program p_0\n" +
-                                "                 where pi_0.trackedentityinstanceid = tei.trackedentityinstanceid\n" +
-                                "                 and p_0.programid = pi_0.programid\n" +
-                                "                 and p_0.uid='" + program.getUid() + "'))" ) ) );
+                    .forEach( program -> columns.add( new AnalyticsTableColumn( quote( program.getUid() ), BOOLEAN,
+                        " exists((select 1 from programinstance pi_0, program p_0"
+                            + " where pi_0.trackedentityinstanceid = tei.trackedentityinstanceid"
+                            + " and p_0.programid = pi_0.programid and p_0.uid='" + program.getUid() + "'))" ) ) );
 
                 List<TrackedEntityAttribute> trackedEntityAttributes = new ArrayList<>();
 
@@ -180,53 +177,30 @@ public class JdbcTEITrackedEntityInstancesAnalyticsTableManager extends Abstract
                 columns.addAll( trackedEntityAttributes.stream()
                     .map( BaseIdentifiableObject::getUid )
                     .distinct()
-                    .map( teaUid -> new AnalyticsTableColumn(
-                        quote( teaUid ), VARCHAR_1200,
-                        " (SELECT teavin.value from trackedentityattribute teain " +
-                            " INNER JOIN trackedentityattributevalue teavin ON teain.trackedentityattributeid = teavin.trackedentityattributeid "
-                            +
-                            " WHERE tei.trackedentityinstanceid = teavin.trackedentityinstanceid AND teain.uid = '" +
-                            teaUid + "')" ) )
+                    .map( teaUid -> new AnalyticsTableColumn( quote( teaUid ), VARCHAR_1200,
+                        " (select teavin.value from trackedentityattribute teain "
+                            + " inner join trackedentityattributevalue teavin on teain.trackedentityattributeid = teavin.trackedentityattributeid "
+                            + " where tei.trackedentityinstanceid = teavin.trackedentityinstanceid and teain.uid = '"
+                            + teaUid + "')" ) )
                     .collect( Collectors.toList() ) );
 
                 columns.add(
                     new AnalyticsTableColumn(
                         quote( "enrollments" ), JSONB,
-                        "(SELECT JSON_AGG(\n" +
-                            "                    JSON_BUILD_OBJECT(\n" +
-                            "                            'programUid', p_0.uid,\n" +
-                            "                            'programInstanceUid', pi_0.uid,\n" +
-                            "                            'enrollmentDate', pi_0.enrollmentdate,\n" +
-                            "                            'incidentDate', pi_0.incidentdate,\n" +
-                            "                            'endDate', pi_0.enddate,\n" +
-                            "                            'events', (SELECT JSON_AGG(\n" +
-                            "                                                      JSON_BUILD_OBJECT(\n" +
-                            "                                                              'programStageUid', ps_0.uid,\n"
-                            +
-                            "                                                              'programStageInstanceUid', psi_0.uid,\n"
-                            +
-                            "                                                              'executionDate', psi_0.executiondate,\n"
-                            +
-                            "                                                              'dueDate', psi_0.duedate,\n"
-                            +
-                            "                                                              'eventDataValues', psi_0.eventdatavalues)\n"
-                            +
-                            "                                                  )\n" +
-                            "                                       FROM programstageinstance psi_0,\n" +
-                            "                                            programstage ps_0\n" +
-                            "                                       WHERE psi_0.programinstanceid = pi_0.programinstanceid\n"
-                            +
-                            "                                         AND ps_0.programstageid = psi_0.programstageid))\n"
-                            +
-                            "                )\n" +
-                            "     FROM programinstance pi_0,\n" +
-                            "          program p_0\n" +
-                            "     WHERE pi_0.trackedentityinstanceid = tei.trackedentityinstanceid\n" +
-                            "       AND p_0.programid = pi_0.programid)" )
-                                .withIndexType( IndexType.GIN ) );
+                        "(select JSON_AGG(JSON_BUILD_OBJECT('programUid', p_0.uid,"
+                            + " 'programInstanceUid', pi_0.uid, 'enrollmentDate', pi_0.enrollmentdate,"
+                            + " 'incidentDate', pi_0.incidentdate,'endDate', pi_0.enddate, 'events', "
+                            + " (select JSON_AGG(JSON_BUILD_OBJECT('programStageUid', ps_0.uid,"
+                            + " 'programStageInstanceUid', psi_0.uid, 'executionDate', psi_0.executiondate,"
+                            + " 'dueDate', psi_0.duedate, 'eventDataValues', psi_0.eventdatavalues))"
+                            + " from programstageinstance psi_0, programstage ps_0"
+                            + " where psi_0.programinstanceid = pi_0.programinstanceid"
+                            + " and ps_0.programstageid = psi_0.programstageid)))"
+                            + " from programinstance pi_0, program p_0"
+                            + " where pi_0.trackedentityinstanceid = tei.trackedentityinstanceid"
+                            + " and p_0.programid = pi_0.programid)" ).withIndexType( GIN ) );
 
-                return new AnalyticsTable( getAnalyticsTableType(), columns,
-                    newArrayList(), tet );
+                return new AnalyticsTable( getAnalyticsTableType(), columns, newArrayList(), tet );
             } ).collect( Collectors.toList() );
     }
 
@@ -317,7 +291,7 @@ public class JdbcTEITrackedEntityInstancesAnalyticsTableManager extends Abstract
             sql += col.getName() + ",";
         }
 
-        sql = TextUtils.removeLastComma( sql ) + ") SELECT ";
+        sql = TextUtils.removeLastComma( sql ) + ") select ";
 
         for ( AnalyticsTableColumn col : columns )
         {
@@ -329,18 +303,17 @@ public class JdbcTEITrackedEntityInstancesAnalyticsTableManager extends Abstract
             sql += col.getAlias() + ",";
         }
 
-        sql = TextUtils.removeLastComma( sql ) +
-            " FROM trackedentityinstance tei " +
-            " LEFT JOIN programinstance pi on pi.trackedentityinstanceid = tei.trackedentityinstanceid" +
-            " LEFT JOIN program p on p.programid = pi.programid" +
-            " LEFT JOIN programstageinstance psi on psi.programinstanceid = pi.programinstanceid" +
-            " LEFT JOIN programstage ps on ps.programstageid = psi.programstageid" +
-            " LEFT JOIN organisationunit ou ON tei.organisationunitid = ou.organisationunitid" +
-            " LEFT JOIN _orgunitstructure ous ON ous.organisationunitid = ou.organisationunitid" +
-
-            " WHERE tei.trackedentitytypeid = " + partition.getMasterTable().getTrackedEntityType().getId() +
-            " GROUP BY " +
-            FIXED_COLS.stream()
+        sql = TextUtils.removeLastComma( sql )
+            + " from trackedentityinstance tei"
+            + " left join programinstance pi on pi.trackedentityinstanceid = tei.trackedentityinstanceid"
+            + " left join program p on p.programid = pi.programid"
+            + " left join programstageinstance psi on psi.programinstanceid = pi.programinstanceid"
+            + " left join programstage ps on ps.programstageid = psi.programstageid"
+            + " left join organisationunit ou on tei.organisationunitid = ou.organisationunitid"
+            + " left join _orgunitstructure ous on ous.organisationunitid = ou.organisationunitid"
+            + " where tei.trackedentitytypeid = " + partition.getMasterTable().getTrackedEntityType().getId()
+            + " group by "
+            + FIXED_COLS.stream()
                 .map( AnalyticsTableColumn::getAlias )
                 .filter( alias -> !"enrollments".equals( alias ) )
                 .collect( Collectors.joining( "," ) );

@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.table;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
+import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_EVENTS;
 import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
 import static org.hisp.dhis.analytics.ColumnDataType.INTEGER;
 import static org.hisp.dhis.analytics.ColumnDataType.JSONB;
@@ -63,39 +64,32 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.ImmutableList;
 
-@Service( "org.hisp.dhis.analytics.TEIEventsAnalyticsTableManager" )
-public class JdbcTEIEventsAnalyticsTableManager extends AbstractJdbcTableManager
+@Component( "org.hisp.dhis.analytics.TeiEventsAnalyticsTableManager" )
+public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
 {
+
     private final TrackedEntityTypeService trackedEntityTypeService;
 
     private final ProgramService programService;
 
-    private final TrackedEntityAttributeService trackedEntityAttributeService;
-
-    public JdbcTEIEventsAnalyticsTableManager( IdentifiableObjectManager idObjectManager,
-        OrganisationUnitService organisationUnitService,
-        CategoryService categoryService, SystemSettingManager systemSettingManager,
-        DataApprovalLevelService dataApprovalLevelService, ResourceTableService resourceTableService,
-        AnalyticsTableHookService tableHookService, StatementBuilder statementBuilder,
-        PartitionManager partitionManager, DatabaseInfo databaseInfo, JdbcTemplate jdbcTemplate,
-        TrackedEntityTypeService trackedEntityTypeService, ProgramService programService,
-        TrackedEntityAttributeService trackedEntityAttributeService )
+    public JdbcTeiEventsAnalyticsTableManager( IdentifiableObjectManager idObjectManager,
+        OrganisationUnitService organisationUnitService, CategoryService categoryService,
+        SystemSettingManager systemSettingManager, DataApprovalLevelService dataApprovalLevelService,
+        ResourceTableService resourceTableService, AnalyticsTableHookService tableHookService,
+        StatementBuilder statementBuilder, PartitionManager partitionManager, DatabaseInfo databaseInfo,
+        JdbcTemplate jdbcTemplate, TrackedEntityTypeService trackedEntityTypeService, ProgramService programService )
     {
         super( idObjectManager, organisationUnitService, categoryService, systemSettingManager,
-            dataApprovalLevelService, resourceTableService,
-            tableHookService, statementBuilder, partitionManager, databaseInfo, jdbcTemplate );
-
-        checkNotNull( trackedEntityAttributeService );
-        this.trackedEntityAttributeService = trackedEntityAttributeService;
+            dataApprovalLevelService, resourceTableService, tableHookService, statementBuilder, partitionManager,
+            databaseInfo, jdbcTemplate );
 
         checkNotNull( programService );
         this.programService = programService;
@@ -131,7 +125,7 @@ public class JdbcTEIEventsAnalyticsTableManager extends AbstractJdbcTableManager
     @Override
     public AnalyticsTableType getAnalyticsTableType()
     {
-        return AnalyticsTableType.TRACKED_ENTITY_INSTANCE_EVENTS;
+        return TRACKED_ENTITY_INSTANCE_EVENTS;
     }
 
     /**

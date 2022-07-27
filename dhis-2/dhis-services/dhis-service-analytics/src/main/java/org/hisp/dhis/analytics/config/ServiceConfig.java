@@ -33,7 +33,6 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -45,31 +44,34 @@ import org.springframework.context.annotation.Configuration;
 public class ServiceConfig
 {
 
-    @Bean( "org.hisp.dhis.analytics.TEITrackedEntityInstancesAnalyticsTableService" )
-    public DefaultAnalyticsTableService teiTrackedEntityInstancesAnalyticsTableManager(
-        @Qualifier( "org.hisp.dhis.analytics.TEITrackedEntityInstanceAnalyticsTableManager" ) AnalyticsTableManager tableManager,
-        OrganisationUnitService organisationUnitService, DataElementService dataElementService,
-        ResourceTableService resourceTableService, Notifier notifier, SystemSettingManager systemSettingManager )
+    @Bean( "org.hisp.dhis.analytics.TeiAnalyticsTableService" )
+    public DefaultAnalyticsTableService teiAnalyticsTableManager(
+        @Qualifier( "org.hisp.dhis.analytics.TeiAnalyticsTableManager" ) AnalyticsTableManager tableManager,
+        OrganisationUnitService organisationUnitService,
+        DataElementService dataElementService, ResourceTableService resourceTableService,
+        SystemSettingManager systemSettingManager )
     {
         return new DefaultAnalyticsTableService( tableManager, organisationUnitService, dataElementService,
             resourceTableService, systemSettingManager );
     }
 
-    @Bean( "org.hisp.dhis.analytics.TEIEventsAnalyticsTableService" )
+    @Bean( "org.hisp.dhis.analytics.TeiEventsAnalyticsTableService" )
     public DefaultAnalyticsTableService teiEventsAnalyticsTableManager(
-        @Qualifier( "org.hisp.dhis.analytics.TEIEventsAnalyticsTableManager" ) AnalyticsTableManager tableManager,
-        OrganisationUnitService organisationUnitService, DataElementService dataElementService,
-        ResourceTableService resourceTableService, Notifier notifier, SystemSettingManager systemSettingManager )
+        @Qualifier( "org.hisp.dhis.analytics.TeiEventsAnalyticsTableManager" ) AnalyticsTableManager tableManager,
+        OrganisationUnitService organisationUnitService,
+        DataElementService dataElementService, ResourceTableService resourceTableService,
+        SystemSettingManager systemSettingManager )
     {
         return new DefaultAnalyticsTableService( tableManager, organisationUnitService, dataElementService,
             resourceTableService, systemSettingManager );
     }
 
-    @Bean( "org.hisp.dhis.analytics.TEIEnrollmentsAnalyticsTableService" )
+    @Bean( "org.hisp.dhis.analytics.TeiEnrollmentsAnalyticsTableService" )
     public DefaultAnalyticsTableService teiEnrollmentsAnalyticsTableManager(
-        @Qualifier( "org.hisp.dhis.analytics.TEIEnrollmentsAnalyticsTableManager" ) AnalyticsTableManager tableManager,
-        OrganisationUnitService organisationUnitService, DataElementService dataElementService,
-        ResourceTableService resourceTableService, Notifier notifier, SystemSettingManager systemSettingManager )
+        @Qualifier( "org.hisp.dhis.analytics.TeiEnrollmentsAnalyticsTableManager" ) AnalyticsTableManager tableManager,
+        OrganisationUnitService organisationUnitService,
+        DataElementService dataElementService, ResourceTableService resourceTableService,
+        SystemSettingManager systemSettingManager )
     {
         return new DefaultAnalyticsTableService( tableManager, organisationUnitService, dataElementService,
             resourceTableService, systemSettingManager );
@@ -78,8 +80,9 @@ public class ServiceConfig
     @Bean( "org.hisp.dhis.analytics.AnalyticsTableService" )
     public DefaultAnalyticsTableService analyticsTableService(
         @Qualifier( "org.hisp.dhis.analytics.AnalyticsTableManager" ) AnalyticsTableManager tableManager,
-        OrganisationUnitService organisationUnitService, DataElementService dataElementService,
-        ResourceTableService resourceTableService, Notifier notifier, SystemSettingManager systemSettingManager )
+        OrganisationUnitService organisationUnitService,
+        DataElementService dataElementService, ResourceTableService resourceTableService,
+        SystemSettingManager systemSettingManager )
     {
         return new DefaultAnalyticsTableService( tableManager, organisationUnitService, dataElementService,
             resourceTableService, systemSettingManager );
@@ -88,8 +91,9 @@ public class ServiceConfig
     @Bean( "org.hisp.dhis.analytics.CompletenessTableService" )
     public DefaultAnalyticsTableService completenessTableService(
         @Qualifier( "org.hisp.dhis.analytics.CompletenessTableManager" ) AnalyticsTableManager tableManager,
-        OrganisationUnitService organisationUnitService, DataElementService dataElementService,
-        ResourceTableService resourceTableService, Notifier notifier, SystemSettingManager systemSettingManager )
+        OrganisationUnitService organisationUnitService,
+        DataElementService dataElementService, ResourceTableService resourceTableService,
+        SystemSettingManager systemSettingManager )
     {
         return new DefaultAnalyticsTableService( tableManager, organisationUnitService, dataElementService,
             resourceTableService, systemSettingManager );
@@ -98,8 +102,9 @@ public class ServiceConfig
     @Bean( "org.hisp.dhis.analytics.CompletenessTargetTableService" )
     public DefaultAnalyticsTableService completenessTargetTableService(
         @Qualifier( "org.hisp.dhis.analytics.CompletenessTargetTableManager" ) AnalyticsTableManager tableManager,
-        OrganisationUnitService organisationUnitService, DataElementService dataElementService,
-        ResourceTableService resourceTableService, Notifier notifier, SystemSettingManager systemSettingManager )
+        OrganisationUnitService organisationUnitService,
+        DataElementService dataElementService, ResourceTableService resourceTableService,
+        SystemSettingManager systemSettingManager )
     {
         return new DefaultAnalyticsTableService( tableManager, organisationUnitService, dataElementService,
             resourceTableService, systemSettingManager );
@@ -108,8 +113,9 @@ public class ServiceConfig
     @Bean( "org.hisp.dhis.analytics.OrgUnitTargetTableService" )
     public DefaultAnalyticsTableService orgUnitTargetTableService(
         @Qualifier( "org.hisp.dhis.analytics.OrgUnitTargetTableManager" ) AnalyticsTableManager tableManager,
-        OrganisationUnitService organisationUnitService, DataElementService dataElementService,
-        ResourceTableService resourceTableService, Notifier notifier, SystemSettingManager systemSettingManager )
+        OrganisationUnitService organisationUnitService,
+        DataElementService dataElementService, ResourceTableService resourceTableService,
+        SystemSettingManager systemSettingManager )
     {
         return new DefaultAnalyticsTableService( tableManager, organisationUnitService, dataElementService,
             resourceTableService, systemSettingManager );
@@ -118,8 +124,9 @@ public class ServiceConfig
     @Bean( "org.hisp.dhis.analytics.EventAnalyticsTableService" )
     public DefaultAnalyticsTableService eventAnalyticsTableService(
         @Qualifier( "org.hisp.dhis.analytics.EventAnalyticsTableManager" ) AnalyticsTableManager tableManager,
-        OrganisationUnitService organisationUnitService, DataElementService dataElementService,
-        ResourceTableService resourceTableService, Notifier notifier, SystemSettingManager systemSettingManager )
+        OrganisationUnitService organisationUnitService,
+        DataElementService dataElementService, ResourceTableService resourceTableService,
+        SystemSettingManager systemSettingManager )
     {
         return new DefaultAnalyticsTableService( tableManager, organisationUnitService, dataElementService,
             resourceTableService, systemSettingManager );
@@ -128,8 +135,9 @@ public class ServiceConfig
     @Bean( "org.hisp.dhis.analytics.ValidationResultTableService" )
     public DefaultAnalyticsTableService validationResultTableService(
         @Qualifier( "org.hisp.dhis.analytics.ValidationResultAnalyticsTableManager" ) AnalyticsTableManager tableManager,
-        OrganisationUnitService organisationUnitService, DataElementService dataElementService,
-        ResourceTableService resourceTableService, Notifier notifier, SystemSettingManager systemSettingManager )
+        OrganisationUnitService organisationUnitService,
+        DataElementService dataElementService, ResourceTableService resourceTableService,
+        SystemSettingManager systemSettingManager )
     {
         return new DefaultAnalyticsTableService( tableManager, organisationUnitService, dataElementService,
             resourceTableService, systemSettingManager );
@@ -138,8 +146,9 @@ public class ServiceConfig
     @Bean( "org.hisp.dhis.analytics.EnrollmentAnalyticsTableService" )
     public DefaultAnalyticsTableService enrollmentAnalyticsTableManager(
         @Qualifier( "org.hisp.dhis.analytics.EnrollmentAnalyticsTableManager" ) AnalyticsTableManager tableManager,
-        OrganisationUnitService organisationUnitService, DataElementService dataElementService,
-        ResourceTableService resourceTableService, Notifier notifier, SystemSettingManager systemSettingManager )
+        OrganisationUnitService organisationUnitService,
+        DataElementService dataElementService, ResourceTableService resourceTableService,
+        SystemSettingManager systemSettingManager )
     {
         return new DefaultAnalyticsTableService( tableManager, organisationUnitService, dataElementService,
             resourceTableService, systemSettingManager );
