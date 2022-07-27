@@ -70,7 +70,7 @@ jobs:
           cache: maven
       - name: Run integration tests
         run: mvn clean verify --threads 2C --batch-mode --no-transfer-progress -Pintegration -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty
-        timeout-minutes: 30
+        timeout-minutes: 60
       - uses: actions/upload-artifact@v3
         name: Upload test logs on failure
         if: failure()
