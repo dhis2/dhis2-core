@@ -48,7 +48,6 @@ import org.hisp.dhis.analytics.tei.TeiAnalyticsQueryService;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.analytics.tei.TeiQueryRequest;
 import org.hisp.dhis.analytics.tei.TeiRequestMapper;
-import org.hisp.dhis.common.AnalyticsPagingCriteria;
 import org.hisp.dhis.common.DimensionsCriteria;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.webapi.dimension.DimensionFilteringAndPagingService;
@@ -127,11 +126,11 @@ class TeiQueryController
         contextUtils.configureResponse( response, CONTENT_TYPE_JSON, RESPECT_SYSTEM_SETTING );
 
         final TeiQueryParams params = mapper.map( queryRequest );
-        final Grid grid = teiAnalyticsQueryService.getGrid( params );
+        final Grid grid = teiAnalyticsQueryService.getGrid( params, commonQueryRequest );
 
         retainHeadersOnGrid( grid, queryRequest.getCommonQueryRequest().getHeaders() );
 
-        return teiAnalyticsQueryService.getGrid( params, commonQueryRequest.isSkipHeaders() );
+        return teiAnalyticsQueryService.getGrid( params, commonQueryRequest );
     }
 
     /**

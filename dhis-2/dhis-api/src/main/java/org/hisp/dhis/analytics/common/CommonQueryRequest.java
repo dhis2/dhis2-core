@@ -108,6 +108,11 @@ public class CommonQueryRequest
     private boolean skipRounding;
 
     /**
+     * Indicates if full metadata details should be provided.
+     */
+    private boolean includeMetadataDetails;
+
+    /**
      * Custom date filters
      */
     private String eventDate;

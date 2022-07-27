@@ -39,6 +39,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.hisp.dhis.analytics.common.CommonQueryRequest;
+import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.junit.jupiter.api.BeforeAll;
@@ -69,7 +71,8 @@ class GridAdaptorTest
         final Map<Column, List<Object>> mockResultMap = mockResultMap();
 
         // When
-        final Grid grid = gridAdaptor.createGrid( mockGridHeaders, false, mockResultMap );
+        final Grid grid = gridAdaptor.createGrid( mockGridHeaders, mockResultMap, TeiQueryParams.builder().build(),
+            new CommonQueryRequest() );
 
         // Then
         assertNotNull( grid, "Should not be null: grid" );
@@ -89,7 +92,8 @@ class GridAdaptorTest
         // When
         final IllegalArgumentException ex = assertThrows(
             IllegalArgumentException.class,
-            () -> gridAdaptor.createGrid( emptyGridHeaders, false, anyResultMap ),
+            () -> gridAdaptor.createGrid( emptyGridHeaders, anyResultMap, TeiQueryParams.builder().build(),
+                new CommonQueryRequest() ),
             "Expected exception not thrown: createGrid()" );
 
         // Then

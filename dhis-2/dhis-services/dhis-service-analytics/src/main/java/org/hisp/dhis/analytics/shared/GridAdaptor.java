@@ -28,15 +28,23 @@
 package org.hisp.dhis.analytics.shared;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS;
+import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.PAGER;
 import static org.springframework.util.Assert.noNullElements;
 import static org.springframework.util.Assert.notEmpty;
 import static org.springframework.util.Assert.notNull;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.hisp.dhis.analytics.common.CommonQueryRequest;
+import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.MetadataItem;
+import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.springframework.stereotype.Component;
 
@@ -62,16 +70,18 @@ public class GridAdaptor
      * @throws IllegalArgumentException if headers is null/empty or contain at
      *         least one null element, or if the queryResult is null
      */
-    public Grid createGrid( final List<GridHeader> headers, final boolean skipHeaders,
-        final Map<Column, List<Object>> resultMap )
+    public Grid createGrid( final List<GridHeader> headers,
+        final Map<Column, List<Object>> resultMap, final TeiQueryParams teiQueryParams,
+        final CommonQueryRequest commonQueryRequest )
     {
         notEmpty( headers, "The 'headers' must not be null/empty" );
         noNullElements( headers, "The 'headers' must not contain null elements" );
         notEmpty( resultMap, "The 'resultMap' must not be null/empty" );
         notNull( resultMap, "The 'queryResult' must not be null" );
+        notNull( teiQueryParams, "The 'teiQueryParams' must not be null" );
+        notNull( commonQueryRequest, "The 'commonQueryRequest' must not be null" );
 
         final Grid grid = new ListGrid();
-
         boolean rowsAdded = false;
 
         for ( final GridHeader header : headers )
@@ -84,7 +94,7 @@ public class GridAdaptor
                 rowsAdded = true;
             }
 
-            if ( !skipHeaders )
+            if ( !commonQueryRequest.isSkipHeaders() )
             {
                 // Note that the header column must match the result map key.
                 grid.addHeader( header );
@@ -93,6 +103,51 @@ public class GridAdaptor
             grid.addColumn( columnRows );
         }
 
+        if ( !commonQueryRequest.isSkipMeta() )
+        {
+            grid.setMetaData( getMetadata( teiQueryParams, commonQueryRequest ) );
+        }
+
         return grid;
+    }
+
+    /**
+     * returns metadata based on teiQueryParams and rendered by
+     * commonQueryRequest
+     *
+     * @param teiQueryParams
+     * @param commonQueryRequest
+     * @return
+     */
+    private static Map<String, Object> getMetadata( final TeiQueryParams teiQueryParams,
+        final CommonQueryRequest commonQueryRequest )
+    {
+        final Map<String, Object> metadata = new HashMap<>();
+
+        metadata.put( PAGER.getKey(),
+            commonQueryRequest.isTotalPages()
+                ? new Pager( commonQueryRequest.getPage(), 1, commonQueryRequest.getPageSize() )
+                : new SlimPager( commonQueryRequest.getPage(), commonQueryRequest.getPageSize(), true ) );
+
+        if ( teiQueryParams.getCommonParams() == null )
+        {
+            return metadata;
+        }
+
+        if ( teiQueryParams.getCommonParams().getDimensionIdentifiers() != null )
+        {
+            final Map<String, MetadataItem> metadataItems = new HashMap<>();
+
+            teiQueryParams.getCommonParams().getDimensionIdentifiers()
+                .forEach(
+                    dimIdentifiers -> dimIdentifiers.forEach( di -> di.getDimension().getDimensionalObject().getItems()
+                        .forEach( dio -> metadataItems.put( dio.getUid(),
+                            commonQueryRequest.isIncludeMetadataDetails() ? new MetadataItem( dio.getUid(), dio )
+                                : new MetadataItem( dio.getDisplayName() ) ) ) ) );
+
+            metadata.put( ITEMS.getKey(), metadataItems );
+        }
+
+        return metadata;
     }
 }
