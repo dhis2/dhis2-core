@@ -28,7 +28,6 @@
 
 package org.hisp.dhis.trackedentityinstance;
 
-
 import static org.hamcrest.MatcherAssert.assertThat;
 
 import com.google.common.collect.Sets;
