@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.config;
 
-import static org.hisp.dhis.container.DhisPostgisContainerProvider.DEFAULT_TAG;
-
 import java.util.Properties;
 
 import lombok.extern.slf4j.Slf4j;
@@ -53,6 +51,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Testcontainers
 public class IntegrationTestConfig
 {
+    public static final String POSTGIS_VERSION = "10-2.5-alpine";
+
     private static final String POSTGRES_DATABASE_NAME = "dhis";
 
     private static final String POSTGRES_CREDENTIALS = "dhis";
@@ -84,8 +84,9 @@ public class IntegrationTestConfig
 
         Properties properties = new Properties();
 
-        properties.setProperty( "connection.url", "jdbc:tc:postgis:" + DEFAULT_TAG + ":///" + POSTGRES_DATABASE_NAME +
-            "?TC_INITSCRIPT=db/extensions.sql&TC_TMPFS=/testtmpfs:rw" );
+        properties.setProperty( "connection.url",
+            "jdbc:tc:postgis:" + POSTGIS_VERSION + ":///" + POSTGRES_DATABASE_NAME +
+                "?TC_INITSCRIPT=db/extensions.sql&TC_TMPFS=/testtmpfs:rw" );
         properties.setProperty( "connection.dialect", "org.hisp.dhis.hibernate.dialect.DhisPostgresDialect" );
         properties.setProperty( "connection.driver_class", "org.postgresql.Driver" );
         properties.setProperty( "connection.username", POSTGRES_CREDENTIALS );
