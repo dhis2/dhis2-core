@@ -40,7 +40,6 @@ import java.util.Set;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -49,7 +48,6 @@ import com.google.common.collect.Sets;
 /**
  * @author Lars Helge Overland
  */
-@Disabled
 class MessageServiceTest extends SingleSetupIntegrationTestBase
 {
 

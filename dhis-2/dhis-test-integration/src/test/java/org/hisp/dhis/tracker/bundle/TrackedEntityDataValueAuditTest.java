@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.tracker.bundle;
 
-import static org.hisp.dhis.tracker.Assertions.assertNoImportErrors;
+import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -79,11 +79,11 @@ public class TrackedEntityDataValueAuditTest extends TrackerTest
     void testTrackedEntityDataValueAuditCreate()
         throws IOException
     {
-        assertNoImportErrors(
+        assertNoErrors(
             trackerImportService.importTracker( fromJson( "tracker/event_and_enrollment_with_data_values.json" ) ) );
-        assertNoImportErrors(
+        assertNoErrors(
             trackerImportService.importTracker( fromJson( "tracker/event_with_data_values_for_update_audit.json" ) ) );
-        assertNoImportErrors(
+        assertNoErrors(
             trackerImportService.importTracker( fromJson( "tracker/event_with_data_values_for_delete_audit.json" ) ) );
 
         DataElement dataElement = manager.search( DataElement.class, DE );
