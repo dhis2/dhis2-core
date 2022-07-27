@@ -146,7 +146,7 @@ public class MvcTestConfig implements WebMvcConfigurer
         .put( "pdf", MediaType.APPLICATION_PDF )
         .put( "xls", parseMediaType( "application/vnd.ms-excel" ) )
         .put( "xlsx", parseMediaType( "application/vnd.ms-excel" ) )
-        .put( "csv", parseMediaType( "application/csv" ) )
+        .put( "csv", parseMediaType( "text/csv" ) )
         .put( "csv.gz", parseMediaType( "application/csv+gzip" ) )
         .put( "csv.zip", parseMediaType( "application/csv+zip" ) )
         .put( "adx.xml", parseMediaType( "application/adx+xml" ) )
