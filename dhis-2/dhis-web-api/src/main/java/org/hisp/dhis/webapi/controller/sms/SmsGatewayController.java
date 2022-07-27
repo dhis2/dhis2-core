@@ -33,20 +33,25 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
+import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.commons.jackson.domain.JsonRoot;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.fieldfiltering.FieldFilterParams;
+import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.sms.config.GatewayAdministrationService;
+import org.hisp.dhis.sms.config.SmsConfiguration;
 import org.hisp.dhis.sms.config.SmsConfigurationManager;
 import org.hisp.dhis.sms.config.SmsGatewayConfig;
-import org.hisp.dhis.sms.config.views.SmsConfigurationViews;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -54,11 +59,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fasterxml.jackson.databind.MapperFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * Zubair <rajazubair.asghar@gmail.com>
@@ -82,23 +87,28 @@ public class SmsGatewayController
     @Autowired
     private SmsConfigurationManager smsConfigurationManager;
 
+    @Autowired
+    private FieldFilterService fieldFilterService;
+
     // -------------------------------------------------------------------------
     // GET
     // -------------------------------------------------------------------------
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
     @GetMapping( produces = APPLICATION_JSON_VALUE )
-    public void getGateways( HttpServletResponse response )
-        throws IOException
+    public ResponseEntity<JsonRoot> getGateways( @RequestParam( defaultValue = "*" ) List<String> fields )
     {
-        generateOutput( response, smsConfigurationManager.getSmsConfiguration() );
+        SmsConfiguration smsConfiguration = smsConfigurationManager.getSmsConfiguration();
+        FieldFilterParams<?> params = FieldFilterParams.of( smsConfiguration.getGateways(), fields );
+
+        return ResponseEntity.ok( JsonRoot.of( "gateways", fieldFilterService.toObjectNodes( params ) ) );
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
     @GetMapping( value = "/{uid}", produces = APPLICATION_JSON_VALUE )
-    public void getGatewayConfiguration( @PathVariable String uid, HttpServletResponse response )
-        throws WebMessageException,
-        IOException
+    public ResponseEntity<ObjectNode> getGatewayConfiguration( @PathVariable String uid,
+        @RequestParam( defaultValue = "*" ) List<String> fields )
+        throws WebMessageException
     {
         SmsGatewayConfig gateway = gatewayAdminService.getByUid( uid );
 
@@ -107,7 +117,7 @@ public class SmsGatewayController
             throw new WebMessageException( notFound( "No gateway found" ) );
         }
 
-        generateOutput( response, gateway );
+        return ResponseEntity.ok( fieldFilterService.toObjectNode( gateway, fields ) );
     }
 
     // -------------------------------------------------------------------------
@@ -193,16 +203,5 @@ public class SmsGatewayController
         gatewayAdminService.removeGatewayByUid( uid );
 
         return ok( "Gateway removed successfully" );
-    }
-
-    private void generateOutput( HttpServletResponse response, Object value )
-        throws IOException
-    {
-        response.setContentType( APPLICATION_JSON_VALUE );
-
-        ObjectMapper jsonMapper = new ObjectMapper();
-        jsonMapper.disable( MapperFeature.DEFAULT_VIEW_INCLUSION );
-        jsonMapper.writerWithView( SmsConfigurationViews.Public.class )
-            .writeValue( response.getOutputStream(), value );
     }
 }

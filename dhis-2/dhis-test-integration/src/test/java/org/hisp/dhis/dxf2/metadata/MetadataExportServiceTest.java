@@ -198,10 +198,4 @@ class MetadataExportServiceTest extends TransactionalIntegrationTest
         assertTrue( object.getUserGroupAccesses().isEmpty() );
         // assertFalse( object.getExternalAccess() );
     }
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
 }

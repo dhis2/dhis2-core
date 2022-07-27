@@ -59,12 +59,6 @@ class QueryParserTest extends IntegrationTestBase
     @Autowired
     private OrganisationUnitStore organisationUnitStore;
 
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
     @Autowired
     private UserService _userService;
 

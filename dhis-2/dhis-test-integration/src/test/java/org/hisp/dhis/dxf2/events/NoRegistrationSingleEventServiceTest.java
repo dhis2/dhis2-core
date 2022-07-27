@@ -90,12 +90,6 @@ class NoRegistrationSingleEventServiceTest extends TransactionalIntegrationTest
     private ProgramStage programStageA;
 
     @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
-    @Override
     protected void setUpTest()
         throws Exception
     {

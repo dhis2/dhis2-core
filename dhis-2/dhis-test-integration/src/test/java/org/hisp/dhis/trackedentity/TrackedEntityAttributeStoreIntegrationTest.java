@@ -213,11 +213,4 @@ class TrackedEntityAttributeStoreIntegrationTest
         assertNotNull( attributeIds );
         assertTrue( attributeIds.contains( attributeW.getId() ) );
     }
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
 }

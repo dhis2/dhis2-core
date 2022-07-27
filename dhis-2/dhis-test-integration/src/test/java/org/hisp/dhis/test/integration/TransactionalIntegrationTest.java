@@ -88,7 +88,7 @@ public abstract class TransactionalIntegrationTest extends BaseSpringTest
     }
 
     @Override
-    protected boolean emptyDatabaseAfterTest()
+    protected final boolean emptyDatabaseAfterTest()
     {
         return true;
     }
