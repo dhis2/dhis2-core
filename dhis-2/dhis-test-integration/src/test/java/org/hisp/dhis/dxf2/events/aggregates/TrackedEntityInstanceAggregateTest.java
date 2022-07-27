@@ -397,12 +397,11 @@ class TrackedEntityInstanceAggregateTest extends TrackerTest
     @Test
     void testFetchTrackedEntityInstancesWithoutEvents()
     {
-        doInTransaction( () -> {
-            this.persistTrackedEntityInstanceWithEnrollmentAndEvents();
-            this.persistTrackedEntityInstanceWithEnrollmentAndEvents();
-            this.persistTrackedEntityInstanceWithEnrollmentAndEvents();
-            this.persistTrackedEntityInstanceWithEnrollmentAndEvents();
-        } );
+
+        this.persistTrackedEntityInstanceWithEnrollmentAndEvents();
+        this.persistTrackedEntityInstanceWithEnrollmentAndEvents();
+        this.persistTrackedEntityInstanceWithEnrollmentAndEvents();
+        this.persistTrackedEntityInstanceWithEnrollmentAndEvents();
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         queryParams.setTrackedEntityType( trackedEntityTypeA );
@@ -453,7 +452,7 @@ class TrackedEntityInstanceAggregateTest extends TrackerTest
     void testEventMapping()
     {
         final Date currentTime = new Date();
-        doInTransaction( this::persistTrackedEntityInstanceWithEnrollmentAndEvents );
+        persistTrackedEntityInstanceWithEnrollmentAndEvents();
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         queryParams.setTrackedEntityType( trackedEntityTypeA );
