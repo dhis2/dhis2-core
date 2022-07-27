@@ -56,7 +56,7 @@ import java.util.List;
 /**
  * @author Zubair Asghar
  */
-public class TrackedEntityInstanceQueryLimitTest extends TransactionalIntegrationTest
+class TrackedEntityInstanceQueryLimitTest extends TransactionalIntegrationTest
 {
     @Autowired
     private OrganisationUnitService organisationUnitService;
@@ -145,7 +145,7 @@ public class TrackedEntityInstanceQueryLimitTest extends TransactionalIntegratio
     }
 
     @Test
-    public void testTeiQueryLimitConfiguredValue()
+    void testTeiQueryLimitConfiguredValue()
     {
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
         params.setProgram( program );
