@@ -35,7 +35,6 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.rules.models.AttributeType;
 import org.hisp.dhis.rules.models.RuleActionAssign;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -104,7 +103,7 @@ public class AssignValueImplementer
             else
             {
                 issues.add( new ProgramRuleIssue( actionRule.getRuleUid(), TrackerErrorCode.E1307,
-                    Lists.newArrayList( actionRule.getField(), actionRule.getValue() ), IssueType.ERROR ) );
+                    Lists.newArrayList( actionRule.getField(), actionRule.getData() ), IssueType.ERROR ) );
             }
         }
 
@@ -113,11 +112,6 @@ public class AssignValueImplementer
 
     public Optional<DataValue> getDataValue( EventActionRule actionRule, TrackerPreheat preheat )
     {
-        if ( AttributeType.DATA_ELEMENT != actionRule.getAttributeType() )
-        {
-            return Optional.empty();
-        }
-
         DataElement dataElement = preheat.getDataElement( actionRule.getField() );
         return actionRule.getDataValues()
             .stream()
@@ -141,7 +135,7 @@ public class AssignValueImplementer
             {
                 addOrOverwriteAttribute( enrollment, actionRule, bundle );
                 issues.add( new ProgramRuleIssue( actionRule.getRuleUid(), TrackerErrorCode.E1310,
-                    Lists.newArrayList( actionRule.getField(), actionRule.getValue() ),
+                    Lists.newArrayList( actionRule.getField(), actionRule.getData() ),
                     IssueType.WARNING ) );
             }
             else
@@ -157,12 +151,6 @@ public class AssignValueImplementer
 
     private Optional<Attribute> getAttribute( EnrollmentActionRule actionRule, TrackerPreheat preheat )
     {
-
-        if ( AttributeType.TRACKED_ENTITY_ATTRIBUTE != actionRule.getAttributeType() )
-        {
-            return Optional.empty();
-        }
-
         TrackedEntityAttribute attribute = preheat.getTrackedEntityAttribute( actionRule.getField() );
         return actionRule.getAttributes()
             .stream()
@@ -173,7 +161,7 @@ public class AssignValueImplementer
     private boolean isTheSameValue( EventActionRule actionRule, TrackerPreheat preheat )
     {
         DataElement dataElement = preheat.getDataElement( actionRule.getField() );
-        String dataValue = actionRule.getValue();
+        String dataValue = actionRule.getData();
         Optional<DataValue> optionalDataValue = actionRule.getDataValues().stream()
             .filter( dv -> dv.getDataElement().isEqualTo( dataElement ) )
             .findAny();
@@ -188,7 +176,7 @@ public class AssignValueImplementer
     private boolean isTheSameValue( EnrollmentActionRule actionRule, TrackerPreheat preheat )
     {
         TrackedEntityAttribute attribute = preheat.getTrackedEntityAttribute( actionRule.getField() );
-        String value = actionRule.getValue();
+        String value = actionRule.getData();
         Optional<Attribute> optionalAttribute = actionRule.getAttributes().stream()
             .filter( at -> at.getAttribute().isEqualTo( attribute ) )
             .findAny();
@@ -223,13 +211,13 @@ public class AssignValueImplementer
 
         if ( dataValue.isPresent() )
         {
-            dataValue.get().setValue( actionRule.getValue() );
+            dataValue.get().setValue( actionRule.getData() );
         }
         else
         {
             event.getDataValues()
                 .add( createDataValue( bundle.getPreheat().getIdSchemes().toMetadataIdentifier( dataElement ),
-                    actionRule.getValue() ) );
+                    actionRule.getData() ) );
         }
     }
 

@@ -70,7 +70,7 @@ public class DocumentDeletionHandler extends JdbcDeletionHandler
         {
             return ACCEPT;
         }
-        String sql = "select count(*) from document where fileresource=:id";
+        String sql = "select 1 from document where fileresource=:id limit 1";
         return vetoIfExists( VETO, sql, Map.of( "id", fileResource.getId() ) );
     }
 

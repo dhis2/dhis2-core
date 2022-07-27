@@ -78,6 +78,8 @@ public class HibernateDbmsManager
     @Override
     public void emptyDatabase()
     {
+        emptyTable( "keyjsonvalue" );
+
         emptyTable( "maplegend" );
         emptyTable( "maplegendset" );
 
