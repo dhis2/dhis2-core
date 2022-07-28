@@ -872,6 +872,7 @@ public class DefaultUserService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public boolean canCurrentUserCanModify( User currentUser, User userToModify, Consumer<ErrorReport> errors )
     {
         if ( !aclService.canUpdate( currentUser, userToModify ) )

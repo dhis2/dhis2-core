@@ -228,12 +228,6 @@ class UserControllerTest extends DhisControllerConvenienceTest
                     .content( HttpStatus.CREATED ) );
     }
 
-    @Test
-    void testDisableTwoFA()
-    {
-
-    }
-
     private String extractTokenFromEmailText( String message )
     {
         int tokenPos = message.indexOf( "?token=" );
