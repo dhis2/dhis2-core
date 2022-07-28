@@ -138,7 +138,7 @@
     <fop.version>2.7</fop.version>
     <mapstruct.version>1.5.2.Final</mapstruct.version>
     <geotools.version>27.0</geotools.version>
-    <jts.version>1.18.2</jts.version>
+    <jts.version>1.19.0</jts.version>
 
     <!-- Apache Artemis -->
     <artemis.version>2.23.1</artemis.version>
