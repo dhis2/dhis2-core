@@ -98,14 +98,15 @@ public class TrackerCsvEventService
                 event.getUpdatedAtClient() == null ? null : event.getUpdatedAtClient().toString() );
             templateDataValue
                 .setCompletedAt( event.getCompletedAt() == null ? null : event.getCompletedAt().toString() );
-            templateDataValue.setUpdatedBy( event.getUpdatedBy().getUsername() );
+            templateDataValue.setUpdatedBy( event.getUpdatedBy() == null ? null : event.getUpdatedBy().getUsername() );
             templateDataValue.setStoredBy( event.getStoredBy() );
             templateDataValue
                 .setCompletedAt( event.getCompletedAt() == null ? null : event.getCompletedAt().toString() );
             templateDataValue.setCompletedBy( event.getCompletedBy() );
             templateDataValue.setAttributeOptionCombo( event.getAttributeOptionCombo() );
             templateDataValue.setAttributeCategoryOptions( event.getAttributeCategoryOptions() );
-            templateDataValue.setAssignedUser( event.getAssignedUser().getUsername() );
+            templateDataValue
+                .setAssignedUser( event.getAssignedUser() == null ? null : event.getAssignedUser().getUsername() );
 
             if ( event.getGeometry() != null )
             {
@@ -116,6 +117,12 @@ public class TrackerCsvEventService
                     templateDataValue.setLongitude( event.getGeometry().getCoordinate().x );
                     templateDataValue.setLatitude( event.getGeometry().getCoordinate().y );
                 }
+            }
+
+            if ( event.getDataValues().isEmpty() )
+            {
+                dataValues.add( templateDataValue );
+                continue;
             }
 
             for ( DataValue value : event.getDataValues() )

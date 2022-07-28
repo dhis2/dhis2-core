@@ -65,7 +65,7 @@ public class CompleteDataSetRegistrationDeletionHandler extends JdbcDeletionHand
 
     private DeletionVeto allowDeletePeriod( Period period )
     {
-        return vetoIfExists( VETO, "select count(*) from completedatasetregistration where periodid= :id",
+        return vetoIfExists( VETO, "select 1 from completedatasetregistration where periodid= :id limit 1",
             Map.of( "id", period.getId() ) );
     }
 
@@ -77,7 +77,7 @@ public class CompleteDataSetRegistrationDeletionHandler extends JdbcDeletionHand
     private DeletionVeto allowDeleteCategoryOptionCombo( CategoryOptionCombo optionCombo )
     {
         return vetoIfExists( VETO,
-            "select count(*) from completedatasetregistration where attributeoptioncomboid= :id",
+            "select 1 from completedatasetregistration where attributeoptioncomboid= :id limit 1",
             Map.of( "id", optionCombo.getId() ) );
     }
 
