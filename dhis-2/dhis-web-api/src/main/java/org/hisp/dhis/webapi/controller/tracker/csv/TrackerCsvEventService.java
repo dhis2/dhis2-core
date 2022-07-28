@@ -193,7 +193,7 @@ public class TrackerCsvEventService
                 event.setAttributeCategoryOptions( dataValue.getAttributeCategoryOptions() );
                 event.setAssignedUser( User.builder().username( dataValue.getAssignedUser() ).build() );
 
-                if ( dataValue.getGeometry() != null )
+                if ( StringUtils.isNotBlank( dataValue.getGeometry() ) )
                 {
                     event.setGeometry( new WKTReader().read( dataValue.getGeometry() ) );
                 }

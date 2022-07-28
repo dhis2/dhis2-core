@@ -148,7 +148,7 @@ public class DefaultCsvEventService
                 event.setCompletedDate( dataValue.getCompletedDate() );
                 event.setCompletedBy( dataValue.getCompletedBy() );
 
-                if ( dataValue.getGeometry() != null )
+                if ( StringUtils.isNotBlank( dataValue.getGeometry() ) )
                 {
                     event.setGeometry( new WKTReader().read( dataValue.getGeometry() ) );
                 }
