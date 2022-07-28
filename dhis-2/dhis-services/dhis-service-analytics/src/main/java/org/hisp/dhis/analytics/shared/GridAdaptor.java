@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics.shared;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.DIMENSIONS;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.PAGER;
 import static org.springframework.util.Assert.noNullElements;
@@ -37,6 +38,7 @@ import static org.springframework.util.Assert.notNull;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
@@ -44,6 +46,7 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.MetadataItem;
 import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.common.PrimaryKeyObject;
 import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.springframework.stereotype.Component;
@@ -142,10 +145,22 @@ public class GridAdaptor
                 .forEach(
                     dimIdentifiers -> dimIdentifiers.forEach( di -> di.getDimension().getDimensionalObject().getItems()
                         .forEach( dio -> metadataItems.put( dio.getUid(),
-                            commonQueryRequest.isIncludeMetadataDetails() ? new MetadataItem( dio.getUid(), dio )
+                            commonQueryRequest.isIncludeMetadataDetails()
+                                ? new MetadataItem( dio.getDisplayName(), dio )
                                 : new MetadataItem( dio.getDisplayName() ) ) ) ) );
 
             metadata.put( ITEMS.getKey(), metadataItems );
+
+            final Map<String, List<String>> metadataDimensions = new HashMap<>();
+
+            teiQueryParams.getCommonParams().getDimensionIdentifiers()
+                .forEach(
+                    dimIdentifiers -> dimIdentifiers
+                        .forEach( di -> metadataDimensions.put( di.getDimension().getDimensionalObject().getUid(),
+                            di.getDimension().getDimensionalObject().getItems().stream()
+                                .map( PrimaryKeyObject::getUid ).collect( Collectors.toList() ) ) ) );
+
+            metadata.put( DIMENSIONS.getKey(), metadataDimensions );
         }
 
         return metadata;
