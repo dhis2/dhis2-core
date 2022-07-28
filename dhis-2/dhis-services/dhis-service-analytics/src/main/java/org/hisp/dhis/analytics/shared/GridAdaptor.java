@@ -158,11 +158,11 @@ public class GridAdaptor
             final Map<String, List<String>> metadataDimensions = new HashMap<>();
 
             teiQueryParams.getCommonParams().getDimensionIdentifiers()
-                .forEach(
-                    dimIdentifiers -> dimIdentifiers
-                        .forEach( di -> metadataDimensions.put( di.getDimension().getDimensionalObject().getUid(),
-                            di.getDimension().getDimensionalObject().getItems().stream()
-                                .map( PrimaryKeyObject::getUid ).collect( Collectors.toList() ) ) ) );
+                .stream()
+                .flatMap( Collection::stream )
+                .forEach( di -> metadataDimensions.put( di.getDimension().getDimensionalObject().getUid(),
+                    di.getDimension().getDimensionalObject().getItems().stream()
+                        .map( PrimaryKeyObject::getUid ).collect( Collectors.toList() ) ) );
 
             metadata.put( DIMENSIONS.getKey(), metadataDimensions );
         }
