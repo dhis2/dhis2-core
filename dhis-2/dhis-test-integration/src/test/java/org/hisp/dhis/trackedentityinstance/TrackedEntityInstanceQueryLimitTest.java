@@ -29,9 +29,11 @@
 package org.hisp.dhis.trackedentityinstance;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.contains;
 
 import com.google.common.collect.Sets;
-import org.hamcrest.Matchers;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -58,6 +60,7 @@ import java.util.List;
  */
 class TrackedEntityInstanceQueryLimitTest extends TransactionalIntegrationTest
 {
+    
     @Autowired
     private OrganisationUnitService organisationUnitService;
 
@@ -156,7 +159,7 @@ class TrackedEntityInstanceQueryLimitTest extends TransactionalIntegrationTest
 
         List<Long> teis = trackedEntityInstanceService.getTrackedEntityInstanceIds( params, false, false );
 
-        assertThat( teis, Matchers.hasSize( Matchers.is( 3) ) );
-        assertThat( teis, Matchers.contains( tei1.getId(), tei2.getId(), tei3.getId() ) );
+        assertThat( teis, hasSize( is( 3) ) );
+        assertThat( teis, contains( tei1.getId(), tei2.getId(), tei3.getId() ) );
     }
 }
