@@ -41,6 +41,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.ValueType;
 
 import com.google.common.collect.ImmutableList;
 
@@ -135,6 +136,24 @@ public class DimensionParam
             return DimensionParamObjectType.byForeignType( dimensionalObject.getDimensionType() );
         }
         return DimensionParamObjectType.byForeignType( queryItem.getItem().getDimensionItemType() );
+    }
+
+    public ValueType getValueType()
+    {
+        if ( isDimensionalObject() )
+        {
+            return dimensionalObject.getValueType();
+        }
+        return queryItem.getValueType();
+    }
+
+    public String getDimensionObjectUid()
+    {
+        if ( isDimensionalObject() )
+        {
+            return dimensionalObject.getUid();
+        }
+        return queryItem.getItem().getUid();
     }
 
 }

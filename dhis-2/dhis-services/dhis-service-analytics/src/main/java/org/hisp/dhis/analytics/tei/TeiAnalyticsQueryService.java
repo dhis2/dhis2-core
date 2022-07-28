@@ -40,6 +40,8 @@ import org.hisp.dhis.analytics.shared.QueryExecutor;
 import org.hisp.dhis.analytics.shared.QueryGenerator;
 import org.hisp.dhis.analytics.shared.SqlQuery;
 import org.hisp.dhis.analytics.shared.SqlQueryResult;
+import org.hisp.dhis.analytics.tei.query.Query;
+import org.hisp.dhis.analytics.tei.query.QueryContext;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.springframework.stereotype.Service;
@@ -72,6 +74,9 @@ public class TeiAnalyticsQueryService
      */
     public Grid getGrid( final TeiQueryParams teiQueryParams, final CommonQueryRequest commonQueryRequest )
     {
+        Query queryNg = QueryContext.of( teiQueryParams ).getQuery();
+        String q = queryNg.render();
+
         notNull( teiQueryParams, "The 'teiParams' must not be null" );
 
         final SqlQuery query = (SqlQuery) teiJdbcQuery.from( teiQueryParams );
