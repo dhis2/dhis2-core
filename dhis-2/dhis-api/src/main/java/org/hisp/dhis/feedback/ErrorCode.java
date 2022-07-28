@@ -229,6 +229,9 @@ public enum ErrorCode
     E4052( "For program rule variable with name `{0}` following keywords are forbidden : and , or , not" ),
     E4053( "Program stage `{0}` must reference a program." ),
 
+    /* Metadata Validation (continued) */
+    E4060( "Object could not be deleted: {0}" ),
+
     /* SQL views */
     E4300( "SQL query is null" ),
     E4301( "SQL query must be a select query" ),
