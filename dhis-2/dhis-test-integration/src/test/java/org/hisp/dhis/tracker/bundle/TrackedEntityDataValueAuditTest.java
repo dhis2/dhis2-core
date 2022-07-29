@@ -54,6 +54,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class TrackedEntityDataValueAuditTest extends TrackerTest
 {
     private static final String ORIGINAL_VALUE = "value1";
+
     private static final String UPDATED_VALUE = "value1-updated";
 
     private static final String PSI = "D9PbzJY8bJO";
@@ -113,21 +114,23 @@ public class TrackedEntityDataValueAuditTest extends TrackerTest
                 .setProgramStageInstances( List.of( psi ) )
                 .setAuditType( AuditType.DELETE ) );
 
-        assertAll( () ->  assertNotNull( createdAudit ), () ->  assertNotNull( updatedAudit ), () ->  assertNotNull( deletedAudit ));
+        assertAll( () ->  assertNotNull( createdAudit ), () ->  assertNotNull( updatedAudit ),
+            () ->  assertNotNull( deletedAudit ));
         assertAuditCollection( createdAudit, AuditType.CREATE, ORIGINAL_VALUE );
         assertAuditCollection( updatedAudit, AuditType.UPDATE, ORIGINAL_VALUE );
         assertAuditCollection( deletedAudit, AuditType.DELETE, UPDATED_VALUE );
 
     }
 
-    private void assertAuditCollection( List<TrackedEntityDataValueAudit> audits, AuditType auditType, String expectedValue )
+    private void assertAuditCollection( List<TrackedEntityDataValueAudit> audits, AuditType auditType,
+        String expectedValue )
     {
         assertAll( () ->  assertFalse( audits.isEmpty() ),
-                () -> assertEquals( auditType, audits.get(0).getAuditType() ,
-                        () -> "Expected audit type is "+ auditType +" but found " + audits.get(0).getAuditType() ),
-                () -> assertEquals( audits.get(0).getDataElement().getUid(), dataElement.getUid(),
-                        () -> "Expected dataElement is "+ dataElement.getUid()+" but found " + audits.get(0).getDataElement().getUid() ),
-                () -> assertEquals( expectedValue,audits.get(0).getValue(),
-                        () -> "Expected value is "+ expectedValue +" but found " + audits.get(0).getValue() ) );
+            () -> assertEquals( auditType, audits.get(0).getAuditType() ,
+                () -> "Expected audit type is "+ auditType +" but found " + audits.get(0).getAuditType() ),
+            () -> assertEquals( audits.get(0).getDataElement().getUid(), dataElement.getUid(),
+                () -> "Expected dataElement is "+ dataElement.getUid()+" but found " + audits.get(0).getDataElement().getUid() ),
+            () -> assertEquals( expectedValue,audits.get(0).getValue(),
+                () -> "Expected value is "+ expectedValue +" but found " + audits.get(0).getValue() ) );
     }
 }
