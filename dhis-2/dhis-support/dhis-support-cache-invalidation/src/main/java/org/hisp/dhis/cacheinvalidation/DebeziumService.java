@@ -165,6 +165,9 @@ public class DebeziumService
         props.setProperty( "database.dbname", dbName );
         props.setProperty( "snapshot.mode", "never" );
         props.setProperty( "slot.drop.on.stop", "true" );
+        props.setProperty( "event.processing.failure.handling.mode", "warn" );
+        props.setProperty( "event.deserialization.failure.handling.mode", "warn" );
+        props.setProperty( "heartbeat.interval.ms", "1000" );
         props.setProperty( "table.exclude.list",
             "public.spatial_ref_sys,"
                 + "postgis.spatial_ref_sys,"
