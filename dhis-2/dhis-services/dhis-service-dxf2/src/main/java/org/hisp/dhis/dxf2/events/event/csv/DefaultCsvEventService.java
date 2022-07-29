@@ -32,6 +32,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dxf2.events.event.DataValue;
@@ -60,6 +61,8 @@ public class DefaultCsvEventService
 
     private static final CsvSchema CSV_SCHEMA = CSV_MAPPER.schemaFor( CsvEventDataValue.class )
         .withLineSeparator( "\n" );
+
+    private static final Pattern TRIM_SINGLE_QUOTES = Pattern.compile( "^'|'$" );
 
     @Override
     public void writeEvents( OutputStream outputStream, List<Event> events, boolean withHeader )
@@ -150,7 +153,8 @@ public class DefaultCsvEventService
 
                 if ( StringUtils.isNotBlank( dataValue.getGeometry() ) )
                 {
-                    event.setGeometry( new WKTReader().read( dataValue.getGeometry() ) );
+                    event.setGeometry( new WKTReader()
+                        .read( TRIM_SINGLE_QUOTES.matcher( dataValue.getGeometry() ).replaceAll( "" ) ) );
                 }
                 else if ( dataValue.getLongitude() != null && dataValue.getLatitude() != null )
                 {
