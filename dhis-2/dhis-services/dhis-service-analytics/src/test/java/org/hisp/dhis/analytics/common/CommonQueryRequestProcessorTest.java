@@ -28,24 +28,26 @@
 package org.hisp.dhis.analytics.common;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
 
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.junit.jupiter.api.Test;
 
 class CommonQueryRequestProcessorTest
 {
 
-    CommonQueryRequestProcessor commonQueryRequestProcessor = new CommonQueryRequestProcessor();
+    CommonQueryRequestProcessor commonQueryRequestProcessor = new CommonQueryRequestProcessor(
+        mock( SystemSettingManager.class ) );
 
     @Test
     void testEventDate()
     {
-        CommonQueryRequest request = CommonQueryRequest.builder()
-            .eventDate( "IpHINAT79UW.LAST_YEAR" )
-            .incidentDate( "LAST_MONTH" )
-            .enrollmentDate( "2021-06-30" )
-            .lastUpdated( "TODAY" )
-            .scheduledDate( "YESTERDAY" )
-            .build();
+        CommonQueryRequest request = new CommonQueryRequest()
+            .withEventDate( "IpHINAT79UW.LAST_YEAR" )
+            .withIncidentDate( "LAST_MONTH" )
+            .withEnrollmentDate( "2021-06-30" )
+            .withLastUpdated( "TODAY" )
+            .withScheduledDate( "YESTERDAY" );
 
         assertEquals(
             commonQueryRequestProcessor.process( request ).getDimension().stream().findFirst().orElse( null ),

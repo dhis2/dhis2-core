@@ -34,6 +34,7 @@ import java.util.List;
 
 import lombok.AllArgsConstructor;
 
+import org.hisp.dhis.analytics.common.CommonQueryRequest;
 import org.hisp.dhis.analytics.shared.GridAdaptor;
 import org.hisp.dhis.analytics.shared.QueryExecutor;
 import org.hisp.dhis.analytics.shared.QueryGenerator;
@@ -69,14 +70,16 @@ public class TeiAnalyticsQueryService
      * @return the populated Grid object
      * @throws IllegalArgumentException if the given teiParams is null
      */
-    public Grid getGrid( final TeiQueryParams teiQueryParams )
+    public Grid getGrid( final TeiQueryParams teiQueryParams, final CommonQueryRequest commonQueryRequest )
     {
         notNull( teiQueryParams, "The 'teiParams' must not be null" );
 
         final SqlQuery query = (SqlQuery) teiJdbcQuery.from( teiQueryParams );
+
         final SqlQueryResult result = queryExecutor.execute( query );
         final List<GridHeader> headers = from( query.getColumns() );
 
-        return gridAdaptor.createGrid( headers, result.result() );
+        return gridAdaptor.createGrid( headers, result.result(),
+            teiQueryParams.getCommonParams(), commonQueryRequest );
     }
 }

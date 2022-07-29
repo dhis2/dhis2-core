@@ -27,16 +27,16 @@
  */
 package org.hisp.dhis.analytics.common;
 
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.With;
 
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -50,11 +50,12 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
  */
 @Getter
 @Setter
-@Builder( toBuilder = true )
+@With
+@NoArgsConstructor
+@AllArgsConstructor
 public class CommonQueryRequest
 {
 
-    @Builder.Default
     private Set<String> program = new LinkedHashSet<>();
 
     private String userOrgUnit;
@@ -62,13 +63,11 @@ public class CommonQueryRequest
     /**
      * The dimensions to be returned/filtered at.
      */
-    @Builder.Default
     private Set<String> dimension = new LinkedHashSet<>();
 
     /**
      * The filters to be applied at querying time.
      */
-    @Builder.Default
     private Set<String> filter = new HashSet<>();
 
     /**
@@ -76,26 +75,15 @@ public class CommonQueryRequest
      * headers in the respective order. As the headers should not be duplicated,
      * this is represented as Set.
      */
-    @Builder.Default
     private Set<String> headers = new LinkedHashSet<>();
 
     private OrganisationUnitSelectionMode ouMode;
 
-    @Builder.Default
     private Set<String> asc = new HashSet<>();
 
-    @Builder.Default
     private Set<String> desc = new HashSet<>();
 
-    @Builder.Default
     private IdScheme dataIdScheme = IdScheme.UID;
-
-    /**
-     * When set to true, this will count the total of pages related to the
-     * current query. If enabled this might cause performance issues depending
-     * on the result size.
-     */
-    private boolean totalPages;
 
     private Date relativePeriodDate;
 
@@ -120,6 +108,21 @@ public class CommonQueryRequest
     private boolean skipRounding;
 
     /**
+     * Indicates if full metadata details should be provided.
+     */
+    private boolean includeMetadataDetails;
+
+    /**
+     * Indicates if organization unit hierarchy should be provided
+     */
+    private boolean hierarchyMeta;
+
+    /**
+     * Indicates if additional ou hierarchy data should be provided
+     */
+    private boolean showHierarchy;
+
+    /**
      * Custom date filters
      */
     private String eventDate;
@@ -132,8 +135,25 @@ public class CommonQueryRequest
 
     private String lastUpdated;
 
-    public boolean hasHeaders()
-    {
-        return isNotEmpty( getHeaders() );
-    }
+    /**
+     * The page number. Default page is 1.
+     */
+    private Integer page = 1;
+
+    /**
+     * The page size.
+     */
+    private Integer pageSize = 50;
+
+    /**
+     * The paging parameter. When set to false we should not paginate. The
+     * default is true (always paginate).
+     */
+    private boolean paging = true;
+
+    /**
+     * The paging parameter. When set to false we should not count total pages.
+     * The default is false.
+     */
+    private boolean totalPages = false;
 }

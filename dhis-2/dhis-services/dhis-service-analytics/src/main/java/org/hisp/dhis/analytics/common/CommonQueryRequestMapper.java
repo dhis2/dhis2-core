@@ -48,7 +48,6 @@ import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.dimension.DimensionParamType;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
-import org.hisp.dhis.common.AnalyticsPagingCriteria;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -80,7 +79,7 @@ public class CommonQueryRequestMapper
 
     private final DimensionIdentifierConverter dimensionIdentifierConverter;
 
-    public CommonParams map( CommonQueryRequest request, AnalyticsPagingCriteria pagingCriteria )
+    public CommonParams map( CommonQueryRequest request )
     {
         List<OrganisationUnit> userOrgUnits = dataQueryService.getUserOrgUnits( null, request.getUserOrgUnit() );
 
@@ -89,12 +88,10 @@ public class CommonQueryRequestMapper
         return CommonParams.builder()
             .programs( programs )
             .pagingAndSortingParams( AnalyticsPagingAndSortingParams.builder()
-                .countRequested( pagingCriteria.isTotalPages() )
-                .requestPaged( pagingCriteria.isPaging() )
-                .page( pagingCriteria.getPage() )
-                .pageSize( pagingCriteria.getPageSize() )
-                // not mapping EndpointItem and RequestType -- not needed at the
-                // moment
+                .countRequested( request.isTotalPages() )
+                .requestPaged( request.isPaging() )
+                .page( request.getPage() )
+                .pageSize( request.getPageSize() )
                 .build() )
             .dimensionIdentifiers( retrieveDimensionParams( request, programs, userOrgUnits ) )
             .build();
