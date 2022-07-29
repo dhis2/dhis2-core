@@ -39,12 +39,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.hisp.dhis.analytics.common.CommonParams;
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.user.CurrentUserService;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 
 /**
  * // TODO: Improve unit tests and coverage
@@ -57,10 +60,13 @@ class GridAdaptorTest
 {
     private static GridAdaptor gridAdaptor;
 
+    @Mock
+    static private CurrentUserService currentUserService;
+
     @BeforeAll
     static void setUp()
     {
-        gridAdaptor = new GridAdaptor();
+        gridAdaptor = new GridAdaptor( currentUserService );
     }
 
     @Test
@@ -71,7 +77,7 @@ class GridAdaptorTest
         final Map<Column, List<Object>> mockResultMap = mockResultMap();
 
         // When
-        final Grid grid = gridAdaptor.createGrid( mockGridHeaders, mockResultMap, TeiQueryParams.builder().build(),
+        final Grid grid = gridAdaptor.createGrid( mockGridHeaders, mockResultMap, CommonParams.builder().build(),
             new CommonQueryRequest() );
 
         // Then
@@ -92,7 +98,8 @@ class GridAdaptorTest
         // When
         final IllegalArgumentException ex = assertThrows(
             IllegalArgumentException.class,
-            () -> gridAdaptor.createGrid( emptyGridHeaders, anyResultMap, TeiQueryParams.builder().build(),
+            () -> gridAdaptor.createGrid( emptyGridHeaders, anyResultMap,
+                TeiQueryParams.builder().build().getCommonParams(),
                 new CommonQueryRequest() ),
             "Expected exception not thrown: createGrid()" );
 

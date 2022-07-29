@@ -27,28 +27,43 @@
  */
 package org.hisp.dhis.analytics.shared;
 
+import static java.util.stream.Collectors.toMap;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.DIMENSIONS;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS;
+import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_ANCESTORS;
+import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_HIERARCHY;
+import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARCHY;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.PAGER;
+import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentGraphMap;
+import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraphMap;
 import static org.springframework.util.Assert.noNullElements;
 import static org.springframework.util.Assert.notEmpty;
 import static org.springframework.util.Assert.notNull;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import lombok.AllArgsConstructor;
+
+import org.hisp.dhis.analytics.common.CommonParams;
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
-import org.hisp.dhis.analytics.tei.TeiQueryParams;
+import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
+import org.hisp.dhis.analytics.common.dimension.DimensionParam;
+import org.hisp.dhis.common.DimensionItemType;
+import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.MetadataItem;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PrimaryKeyObject;
 import org.hisp.dhis.common.SlimPager;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.system.grid.ListGrid;
+import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.stereotype.Component;
 
 /**
@@ -58,9 +73,12 @@ import org.springframework.stereotype.Component;
  *
  * @author maikel arabori
  */
+@AllArgsConstructor
 @Component
 public class GridAdaptor
 {
+
+    private final CurrentUserService currentUserService;
 
     /**
      * /** Based on the given headers and result map, this method takes care of
@@ -74,14 +92,14 @@ public class GridAdaptor
      *         least one null element, or if the queryResult is null
      */
     public Grid createGrid( final List<GridHeader> headers,
-        final Map<Column, List<Object>> resultMap, final TeiQueryParams teiQueryParams,
+        final Map<Column, List<Object>> resultMap, final CommonParams commonParams,
         final CommonQueryRequest commonQueryRequest )
     {
         notEmpty( headers, "The 'headers' must not be null/empty" );
         noNullElements( headers, "The 'headers' must not contain null elements" );
         notEmpty( resultMap, "The 'resultMap' must not be null/empty" );
         notNull( resultMap, "The 'queryResult' must not be null" );
-        notNull( teiQueryParams, "The 'teiQueryParams' must not be null" );
+        notNull( commonParams, "The 'commonParams' must not be null" );
         notNull( commonQueryRequest, "The 'commonQueryRequest' must not be null" );
 
         final Grid grid = new ListGrid();
@@ -108,7 +126,7 @@ public class GridAdaptor
 
         if ( !commonQueryRequest.isSkipMeta() )
         {
-            grid.setMetaData( getMetadata( teiQueryParams, commonQueryRequest ) );
+            grid.setMetaData( getMetadata( commonParams, commonQueryRequest ) );
         }
 
         return grid;
@@ -118,11 +136,11 @@ public class GridAdaptor
      * returns metadata based on teiQueryParams and rendered by
      * commonQueryRequest
      *
-     * @param teiQueryParams
+     * @param commonParams
      * @param commonQueryRequest
      * @return
      */
-    private static Map<String, Object> getMetadata( final TeiQueryParams teiQueryParams,
+    private Map<String, Object> getMetadata( final CommonParams commonParams,
         final CommonQueryRequest commonQueryRequest )
     {
         final Map<String, Object> metadata = new HashMap<>();
@@ -132,16 +150,16 @@ public class GridAdaptor
                 ? new Pager( commonQueryRequest.getPage(), 1, commonQueryRequest.getPageSize() )
                 : new SlimPager( commonQueryRequest.getPage(), commonQueryRequest.getPageSize(), true ) );
 
-        if ( teiQueryParams.getCommonParams() == null )
+        if ( commonParams == null )
         {
             return metadata;
         }
 
-        if ( teiQueryParams.getCommonParams().getDimensionIdentifiers() != null )
+        if ( commonParams.getDimensionIdentifiers() != null )
         {
             final Map<String, MetadataItem> metadataItems = new HashMap<>();
 
-            teiQueryParams.getCommonParams().getDimensionIdentifiers()
+            commonParams.getDimensionIdentifiers()
                 .stream()
                 .flatMap( Collection::stream )
                 .map( DimensionIdentifier::getDimension )
@@ -157,7 +175,7 @@ public class GridAdaptor
 
             final Map<String, List<String>> metadataDimensions = new HashMap<>();
 
-            teiQueryParams.getCommonParams().getDimensionIdentifiers()
+            commonParams.getDimensionIdentifiers()
                 .stream()
                 .flatMap( Collection::stream )
                 .forEach( di -> metadataDimensions.put( di.getDimension().getDimensionalObject().getUid(),
@@ -165,6 +183,53 @@ public class GridAdaptor
                         .map( PrimaryKeyObject::getUid ).collect( Collectors.toList() ) ) );
 
             metadata.put( DIMENSIONS.getKey(), metadataDimensions );
+
+            if ( commonQueryRequest.isHierarchyMeta() || commonQueryRequest.isShowHierarchy() )
+            {
+                List<OrganisationUnit> roots = currentUserService.getCurrentUser()
+                    .getOrganisationUnits().stream().sorted().collect( Collectors.toList() );
+
+                List<OrganisationUnit> organisationUnits = commonParams.getDimensionIdentifiers()
+                    .stream()
+                    .flatMap( Collection::stream )
+                    .map( DimensionIdentifier::getDimension )
+                    .map( DimensionParam::getDimensionalObject )
+                    .map( DimensionalObject::getItems )
+                    .flatMap( Collection::stream )
+                    .filter( i -> i.getDimensionItemType() == DimensionItemType.ORGANISATION_UNIT )
+                    .map( i -> (OrganisationUnit) i )
+                    .collect( Collectors.toList() );
+
+                final Map<String, Object> orgUnitsMetadata = putOrganisationUnitsHierarchyToMetadata( roots,
+                    organisationUnits, commonQueryRequest.isHierarchyMeta(), commonQueryRequest.isShowHierarchy() );
+
+                metadata.putAll( orgUnitsMetadata );
+            }
+        }
+
+        return metadata;
+    }
+
+    private static Map<String, Object> putOrganisationUnitsHierarchyToMetadata( List<OrganisationUnit> roots,
+        List<OrganisationUnit> organisationUnits,
+        boolean hierarchyMeta, boolean showHierarchy )
+    {
+        final Map<String, Object> metadata = new HashMap<>();
+
+        if ( hierarchyMeta )
+        {
+            metadata.put( ORG_UNIT_HIERARCHY.getKey(), getParentGraphMap( organisationUnits, roots ) );
+        }
+
+        if ( showHierarchy )
+        {
+            Map<Object, List<?>> ancestorMap = organisationUnits.stream()
+                .collect( toMap( OrganisationUnit::getUid, ou -> ou.getAncestorNames( roots, true ) ) );
+
+            metadata.put( ORG_UNIT_ANCESTORS.getKey(), ancestorMap );
+
+            metadata.put( ORG_UNIT_NAME_HIERARCHY.getKey(),
+                getParentNameGraphMap( organisationUnits, roots, true ) );
         }
 
         return metadata;

@@ -79,6 +79,7 @@ public class TeiAnalyticsQueryService
         final SqlQueryResult result = queryExecutor.execute( query );
         final List<GridHeader> headers = from( query.getColumns() );
 
-        return gridAdaptor.createGrid( headers, result.result(), teiQueryParams, commonQueryRequest );
+        return gridAdaptor.createGrid( headers, result.result(),
+            teiQueryParams.getCommonParams(), commonQueryRequest );
     }
 }
