@@ -26,7 +26,7 @@ TOMCAT_IMAGE="tomcat"
 DEFAULT_TOMCAT_TAG="9.0-jdk11-openjdk-slim"
 
 TOMCAT_DEBIAN_TAGS=(
-    "8.5-jdk11-openjdk-slim"
+    # "8.5-jdk11-openjdk-slim" # commenting it out for build time performance measurements TECH-1279
     "9.0-jdk11-openjdk-slim"
 )
 
