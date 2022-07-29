@@ -114,7 +114,7 @@ public class TrackedEntityDataValueAuditTest extends TrackerTest
                 .setProgramStageInstances( List.of( psi ) )
                 .setAuditType( AuditType.DELETE ) );
 
-        assertAll( () ->  assertNotNull( createdAudit ), () ->  assertNotNull( updatedAudit ),
+        assertAll( () -> assertNotNull( createdAudit ), () -> assertNotNull( updatedAudit ),
             () ->  assertNotNull( deletedAudit ));
         assertAuditCollection( createdAudit, AuditType.CREATE, ORIGINAL_VALUE );
         assertAuditCollection( updatedAudit, AuditType.UPDATE, ORIGINAL_VALUE );
@@ -125,7 +125,7 @@ public class TrackedEntityDataValueAuditTest extends TrackerTest
     private void assertAuditCollection( List<TrackedEntityDataValueAudit> audits, AuditType auditType,
         String expectedValue )
     {
-        assertAll( () ->  assertFalse( audits.isEmpty() ),
+        assertAll( () -> assertFalse( audits.isEmpty() ),
             () -> assertEquals( auditType, audits.get(0).getAuditType() ,
                 () -> "Expected audit type is "+ auditType +" but found " + audits.get(0).getAuditType() ),
             () -> assertEquals( audits.get(0).getDataElement().getUid(), dataElement.getUid(),
