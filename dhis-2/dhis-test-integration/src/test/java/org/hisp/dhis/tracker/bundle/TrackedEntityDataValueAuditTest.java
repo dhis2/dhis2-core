@@ -32,12 +32,10 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.io.IOException;
 import java.util.List;
 
-import org.hamcrest.Matcher;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
@@ -131,6 +129,5 @@ public class TrackedEntityDataValueAuditTest extends TrackerTest
                         () -> "Expected dataElement is "+ dataElement.getUid()+" but found " + audits.get(0).getDataElement().getUid() ),
                 () -> assertEquals( expectedValue,audits.get(0).getValue(),
                         () -> "Expected value is "+ expectedValue +" but found " + audits.get(0).getValue() ) );
-
     }
 }
