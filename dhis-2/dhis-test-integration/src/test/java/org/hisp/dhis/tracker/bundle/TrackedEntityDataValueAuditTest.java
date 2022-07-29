@@ -115,7 +115,7 @@ public class TrackedEntityDataValueAuditTest extends TrackerTest
                 .setAuditType( AuditType.DELETE ) );
 
         assertAll( () -> assertNotNull( createdAudit ), () -> assertNotNull( updatedAudit ),
-            () ->  assertNotNull( deletedAudit ));
+            () -> assertNotNull( deletedAudit ));
         assertAuditCollection( createdAudit, AuditType.CREATE, ORIGINAL_VALUE );
         assertAuditCollection( updatedAudit, AuditType.UPDATE, ORIGINAL_VALUE );
         assertAuditCollection( deletedAudit, AuditType.DELETE, UPDATED_VALUE );
@@ -126,11 +126,11 @@ public class TrackedEntityDataValueAuditTest extends TrackerTest
         String expectedValue )
     {
         assertAll( () -> assertFalse( audits.isEmpty() ),
-            () -> assertEquals( auditType, audits.get(0).getAuditType() ,
-                () -> "Expected audit type is " + auditType + " but found " + audits.get(0).getAuditType() ),
-            () -> assertEquals( audits.get(0).getDataElement().getUid(), dataElement.getUid(),
-                () -> "Expected dataElement is " + dataElement.getUid()+ " but found " + audits.get(0).getDataElement().getUid() ),
-            () -> assertEquals( expectedValue,audits.get(0).getValue(),
-                () -> "Expected value is " + expectedValue + " but found " + audits.get(0).getValue() ) );
+            () -> assertEquals( auditType, audits.get( 0 ).getAuditType() ,
+                () -> "Expected audit type is " + auditType + " but found " + audits.get( 0 ).getAuditType() ),
+            () -> assertEquals( audits.get( 0 ).getDataElement().getUid(), dataElement.getUid(),
+                () -> "Expected dataElement is " + dataElement.getUid()+ " but found " + audits.get( 0 ).getDataElement().getUid() ),
+            () -> assertEquals( expectedValue,audits.get( 0 ).getValue(),
+                () -> "Expected value is " + expectedValue + " but found " + audits.get( 0 ).getValue() ) );
     }
 }
