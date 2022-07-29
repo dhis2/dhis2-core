@@ -80,7 +80,7 @@
     <nimbus.jose.jwt.version>9.23</nimbus.jose.jwt.version>
 
     <!-- Spring -->
-    <spring.version>5.3.21</spring.version>
+    <spring.version>5.3.22</spring.version>
     <spring-data-redis.version>2.7.1</spring-data-redis.version>
     <spring-session-data-redis.version>2.7.0</spring-session-data-redis.version>
     <spring-mobile-device.version>1.1.5.RELEASE</spring-mobile-device.version>
@@ -142,7 +142,7 @@
 
     <!-- Apache Artemis -->
     <artemis.version>2.23.1</artemis.version>
-    <netty-all.version>4.1.78.Final</netty-all.version>
+    <netty-all.version>4.1.79.Final</netty-all.version>
     <classgraph.version>4.8.149</classgraph.version>
 
     <!-- SMS/SMPP -->
