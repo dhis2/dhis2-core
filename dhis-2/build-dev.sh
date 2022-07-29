@@ -57,11 +57,11 @@ ONLY_DEFAULT=1 $ROOT/docker/build-containers.sh $IMAGE:$TAG $TAG
 
 print "Successfully created Docker image $IMAGE:$TAG"
 
-# if test -z $D2CLUSTER; then
-#     print "No cluster name specified, skipping deploy"
-# else
-#     print "Deploying to d2 cluster $D2CLUSTER..."
-#
-#     d2 cluster up $D2CLUSTER --image $IMAGE:$TAG
-#     d2 cluster logs $D2CLUSTER
-# fi
+if test -z $D2CLUSTER; then
+    print "No cluster name specified, skipping deploy"
+else
+    print "Deploying to d2 cluster $D2CLUSTER..."
+
+    d2 cluster up $D2CLUSTER --image $IMAGE:$TAG
+    d2 cluster logs $D2CLUSTER
+fi
