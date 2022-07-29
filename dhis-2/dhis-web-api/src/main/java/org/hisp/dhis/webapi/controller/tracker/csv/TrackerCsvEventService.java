@@ -64,7 +64,7 @@ public class TrackerCsvEventService
 {
     private static final CsvMapper CSV_MAPPER = new CsvMapper().enable( CsvParser.Feature.WRAP_AS_ARRAY );
 
-    private static final Pattern TRIM_SINGLE_QUOTES = Pattern.compile( "(?:^')|(?:'$)" );
+    private static final Pattern TRIM_SINGLE_QUOTES = Pattern.compile( "^'|'$" );
 
     @Override
     public void writeEvents( OutputStream outputStream, List<Event> events, boolean withHeader )

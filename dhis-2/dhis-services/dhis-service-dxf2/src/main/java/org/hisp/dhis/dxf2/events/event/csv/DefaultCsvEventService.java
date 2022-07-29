@@ -62,7 +62,7 @@ public class DefaultCsvEventService
     private static final CsvSchema CSV_SCHEMA = CSV_MAPPER.schemaFor( CsvEventDataValue.class )
         .withLineSeparator( "\n" );
 
-    private static final Pattern TRIM_SINGLE_QUOTES = Pattern.compile( "(?:^')|(?:'$)" );
+    private static final Pattern TRIM_SINGLE_QUOTES = Pattern.compile( "^'|'$" );
 
     @Override
     public void writeEvents( OutputStream outputStream, List<Event> events, boolean withHeader )
