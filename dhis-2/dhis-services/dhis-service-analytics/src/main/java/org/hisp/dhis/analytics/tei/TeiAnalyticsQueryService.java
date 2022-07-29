@@ -75,6 +75,7 @@ public class TeiAnalyticsQueryService
     public Grid getGrid( final TeiQueryParams teiQueryParams, final CommonQueryRequest commonQueryRequest )
     {
         Query queryNg = QueryContext.of( teiQueryParams ).getQuery();
+        // output should look like: https://pastebin.com/4aK9ZxEQ
         String q = queryNg.render();
 
         notNull( teiQueryParams, "The 'teiParams' must not be null" );
