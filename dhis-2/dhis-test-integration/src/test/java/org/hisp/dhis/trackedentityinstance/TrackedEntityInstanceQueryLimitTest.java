@@ -29,11 +29,13 @@
 package org.hisp.dhis.trackedentityinstance;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 
-import com.google.common.collect.Sets;
+import java.util.Date;
+import java.util.List;
+
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -52,8 +54,7 @@ import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Date;
-import java.util.List;
+import com.google.common.collect.Sets;
 
 /**
  * @author Zubair Asghar
@@ -84,13 +85,19 @@ class TrackedEntityInstanceQueryLimitTest extends TransactionalIntegrationTest
     private Program program;
 
     private ProgramInstance pi1;
+
     private ProgramInstance pi2;
+
     private ProgramInstance pi3;
+
     private ProgramInstance pi4;
 
     private TrackedEntityInstance tei1;
+
     private TrackedEntityInstance tei2;
+
     private TrackedEntityInstance tei3;
+
     private TrackedEntityInstance tei4;
 
     private TrackedEntityType teiType;
@@ -155,11 +162,12 @@ class TrackedEntityInstanceQueryLimitTest extends TransactionalIntegrationTest
         params.setOrganisationUnits(Sets.newHashSet( orgUnitA ) );
         params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
         params.setUser( user );
-        params.setSkipPaging(true);
+        params.setSkipPaging(true );
 
-        List<Long> teis = trackedEntityInstanceService.getTrackedEntityInstanceIds( params, false, false );
+        List<Long> teis = trackedEntityInstanceService.getTrackedEntityInstanceIds( params,
+    false, false );
 
-        assertThat( teis, hasSize( is( 3) ) );
+        assertThat( teis, hasSize( is( 3 ) ) );
         assertThat( teis, contains( tei1.getId(), tei2.getId(), tei3.getId() ) );
     }
 }
