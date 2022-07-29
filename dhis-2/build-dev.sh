@@ -40,8 +40,8 @@ print() {
 print "Building dhis2-core..."
 
 export MAVEN_OPTS="-Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=25 -Dmaven.test.skip=true"
-mvn clean install --batch-mode --no-transfer-progress --threads 1C -Pdev -f "$DIR"/pom.xml -pl -dhis-web-embedded-jetty
-mvn clean install --batch-mode --no-transfer-progress --threads 1C -Pdev -f "$DIR"/dhis-web/pom.xml
+# mvn clean install --batch-mode --no-transfer-progress --threads 1C -Pdev -f "$DIR"/pom.xml -pl -dhis-web-embedded-jetty
+# mvn clean install --batch-mode --no-transfer-progress --threads 1C -Pdev -f "$DIR"/dhis-web/pom.xml
 
 rm -rf "$ARTIFACTS/*"
 mkdir -p "$ARTIFACTS"
@@ -57,11 +57,11 @@ ONLY_DEFAULT=1 $ROOT/docker/build-containers.sh $IMAGE:$TAG $TAG
 
 print "Successfully created Docker image $IMAGE:$TAG"
 
-if test -z $D2CLUSTER; then
-    print "No cluster name specified, skipping deploy"
-else
-    print "Deploying to d2 cluster $D2CLUSTER..."
-
-    d2 cluster up $D2CLUSTER --image $IMAGE:$TAG
-    d2 cluster logs $D2CLUSTER
-fi
+# if test -z $D2CLUSTER; then
+#     print "No cluster name specified, skipping deploy"
+# else
+#     print "Deploying to d2 cluster $D2CLUSTER..."
+#
+#     d2 cluster up $D2CLUSTER --image $IMAGE:$TAG
+#     d2 cluster logs $D2CLUSTER
+# fi
