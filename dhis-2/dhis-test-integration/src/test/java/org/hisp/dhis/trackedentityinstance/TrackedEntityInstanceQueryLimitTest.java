@@ -25,7 +25,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.trackedentityinstance;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -61,7 +60,7 @@ import com.google.common.collect.Sets;
  */
 class TrackedEntityInstanceQueryLimitTest extends TransactionalIntegrationTest
 {
-    
+
     @Autowired
     private OrganisationUnitService organisationUnitService;
 
@@ -106,12 +105,12 @@ class TrackedEntityInstanceQueryLimitTest extends TransactionalIntegrationTest
 
     @Override
     protected void setUpTest()
-            throws Exception
+        throws Exception
     {
         userService = _userService;
         user = createAndInjectAdminUser();
 
-        orgUnitA = createOrganisationUnit("A" );
+        orgUnitA = createOrganisationUnit( "A" );
         organisationUnitService.addOrganisationUnit( orgUnitA );
 
         user.getOrganisationUnits().add( orgUnitA );
@@ -146,10 +145,10 @@ class TrackedEntityInstanceQueryLimitTest extends TransactionalIntegrationTest
         programInstanceService.addProgramInstance( pi3 );
         programInstanceService.addProgramInstance( pi4 );
 
-        programInstanceService.enrollTrackedEntityInstance( tei1, program, new Date(), new Date(), orgUnitA);
-        programInstanceService.enrollTrackedEntityInstance( tei2, program, new Date(), new Date(), orgUnitA);
-        programInstanceService.enrollTrackedEntityInstance( tei3, program, new Date(), new Date(), orgUnitA);
-        programInstanceService.enrollTrackedEntityInstance( tei4, program, new Date(), new Date(), orgUnitA);
+        programInstanceService.enrollTrackedEntityInstance( tei1, program, new Date(), new Date(), orgUnitA );
+        programInstanceService.enrollTrackedEntityInstance( tei2, program, new Date(), new Date(), orgUnitA );
+        programInstanceService.enrollTrackedEntityInstance( tei3, program, new Date(), new Date(), orgUnitA );
+        programInstanceService.enrollTrackedEntityInstance( tei4, program, new Date(), new Date(), orgUnitA );
 
         userService.addUser( user );
     }
@@ -159,13 +158,13 @@ class TrackedEntityInstanceQueryLimitTest extends TransactionalIntegrationTest
     {
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
         params.setProgram( program );
-        params.setOrganisationUnits(Sets.newHashSet( orgUnitA ) );
+        params.setOrganisationUnits( Sets.newHashSet( orgUnitA ) );
         params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
         params.setUser( user );
-        params.setSkipPaging(true );
+        params.setSkipPaging( true );
 
         List<Long> teis = trackedEntityInstanceService.getTrackedEntityInstanceIds( params,
-    false, false );
+            false, false );
 
         assertThat( teis, hasSize( is( 3 ) ) );
         assertThat( teis, contains( tei1.getId(), tei2.getId(), tei3.getId() ) );
