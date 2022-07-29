@@ -129,7 +129,7 @@ public class TrackedEntityDataValueAuditTest extends TrackerTest
             () -> assertEquals( auditType, audits.get( 0 ).getAuditType(),
                 () -> "Expected audit type is " + auditType + " but found " + audits.get( 0 ).getAuditType() ),
             () -> assertEquals( audits.get( 0 ).getDataElement().getUid(), dataElement.getUid(),
-                () -> "Expected dataElement is " + dataElement.getUid()+ " but found "
+                () -> "Expected dataElement is " + dataElement.getUid() + " but found "
                     + audits.get( 0 ).getDataElement().getUid() ),
             () -> assertEquals( expectedValue, audits.get( 0 ).getValue(),
                 () -> "Expected value is " + expectedValue + " but found " + audits.get( 0 ).getValue() ) );
