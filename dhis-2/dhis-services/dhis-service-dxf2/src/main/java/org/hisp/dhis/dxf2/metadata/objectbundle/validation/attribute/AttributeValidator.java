@@ -25,23 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.option;
+package org.hisp.dhis.dxf2.metadata.objectbundle.validation.attribute;
 
-import java.util.List;
+import java.util.function.Consumer;
 
-import org.hisp.dhis.common.DataDimensionType;
-import org.hisp.dhis.common.GenericDimensionalObjectStore;
+import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.feedback.ErrorReport;
 
 /**
- * @author Viet Nguyen <viet@dhis2.org>
+ * Validator for Metadata {@link AttributeValue}.
+ * <p>
+ * This will be called during the metadata import process.
+ *
+ * @author viet
  */
-
-public interface OptionGroupStore
-    extends GenericDimensionalObjectStore<OptionGroup>
+public interface AttributeValidator
 {
-    List<OptionGroup> getOptionGroups( OptionGroupSet groupSet );
-
-    List<OptionGroup> getOptionGroupsByOptionId( String optionId );
-
-    List<OptionGroup> getOptionGroupsNoAcl( DataDimensionType dataDimensionType, boolean dataDimension );
+    /**
+     * Validate {@link AttributeValue} based on given {@link ValueType} and
+     * value.
+     * <p>
+     * Validation error will be generated and added to {@link Consumer}
+     * addError.
+     *
+     * @param valueType Metadata Attribute {@link ValueType}.
+     * @param value the value for validating.
+     * @param addError {@link Consumer} which will accept generated
+     *        {@link ErrorReport}
+     */
+    void validate( ValueType valueType, String value, Consumer<ErrorReport> addError );
 }
