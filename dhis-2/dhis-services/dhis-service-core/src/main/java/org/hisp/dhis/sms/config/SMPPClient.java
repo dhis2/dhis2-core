@@ -43,6 +43,7 @@ import org.jsmpp.extra.NegativeResponseException;
 import org.jsmpp.extra.ResponseTimeoutException;
 import org.jsmpp.session.BindParameter;
 import org.jsmpp.session.SMPPSession;
+import org.jsmpp.session.SubmitMultiResult;
 import org.jsmpp.util.AbsoluteTimeFormatter;
 import org.jsmpp.util.DeliveryReceiptState;
 import org.jsmpp.util.TimeFormatter;
