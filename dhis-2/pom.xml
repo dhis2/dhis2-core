@@ -137,7 +137,7 @@
     <batik-transcoder.version>1.14</batik-transcoder.version>
     <fop.version>2.7</fop.version>
     <mapstruct.version>1.5.2.Final</mapstruct.version>
-    <geotools.version>27.0</geotools.version>
+    <geotools.version>27.1</geotools.version>
     <jts.version>1.19.0</jts.version>
 
     <!-- Apache Artemis -->
