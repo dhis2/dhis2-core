@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
+import java.util.List;
 
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.CodeGenerator;
@@ -63,10 +64,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith( MockitoExtension.class )
 public class EventReferralValidationHookTest extends DhisConvenienceTest
 {
-    public static final String ORG_UNIT_UID = CodeGenerator.generateUid();
-
-    public static final String TEI_TYPE_UID = CodeGenerator.generateUid();
-
     public static final String TEI_UID = CodeGenerator.generateUid();
 
     public static final String PROGRAM_UID = CodeGenerator.generateUid();
@@ -74,8 +71,6 @@ public class EventReferralValidationHookTest extends DhisConvenienceTest
     public static final String PROGRAM_STAGE_UID = CodeGenerator.generateUid();
 
     public static final String PROGRAM_STAGE_REFERRAL_UID = CodeGenerator.generateUid();
-
-    public static final String ENROLLMENT_UID = CodeGenerator.generateUid();
 
     private Program program;
 
@@ -114,17 +109,7 @@ public class EventReferralValidationHookTest extends DhisConvenienceTest
         when( preheat.getProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_UID ) ) )
             .thenReturn( programStage );
 
-        Event event = Event.builder()
-            .event( CodeGenerator.generateUid() )
-            .program( MetadataIdentifier.ofUid( program ) )
-            .programStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_UID ) )
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_UID ) )
-            .attributeOptionCombo( MetadataIdentifier.EMPTY_UID )
-            .enrollment( ENROLLMENT_UID )
-            .relationships( Arrays.asList( relationship ) )
-            .build();
-
-        subject.validateEvent( reporter, bundle, event );
+        subject.validateEvent( reporter, bundle, createEvent( PROGRAM_STAGE_UID, Arrays.asList( relationship ) ) );
 
         assertEquals( 0, reporter.getReportList().size() );
     }
@@ -135,17 +120,8 @@ public class EventReferralValidationHookTest extends DhisConvenienceTest
         when( preheat.getProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_REFERRAL_UID ) ) )
             .thenReturn( programStageReferral );
 
-        Event event = Event.builder()
-            .event( CodeGenerator.generateUid() )
-            .program( MetadataIdentifier.ofUid( program ) )
-            .programStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_REFERRAL_UID ) )
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_UID ) )
-            .attributeOptionCombo( MetadataIdentifier.EMPTY_UID )
-            .enrollment( ENROLLMENT_UID )
-            .relationships( Arrays.asList( relationship ) )
-            .build();
-
-        subject.validateEvent( reporter, bundle, event );
+        subject.validateEvent( reporter, bundle,
+            createEvent( PROGRAM_STAGE_REFERRAL_UID, Arrays.asList( relationship ) ) );
 
         assertEquals( 0, reporter.getReportList().size() );
     }
@@ -156,17 +132,8 @@ public class EventReferralValidationHookTest extends DhisConvenienceTest
         when( preheat.getProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_REFERRAL_UID ) ) )
             .thenReturn( programStageReferral );
 
-        Event event = Event.builder()
-            .event( CodeGenerator.generateUid() )
-            .program( MetadataIdentifier.ofUid( program ) )
-            .programStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_REFERRAL_UID ) )
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_UID ) )
-            .attributeOptionCombo( MetadataIdentifier.EMPTY_UID )
-            .enrollment( ENROLLMENT_UID )
-            .relationships( Arrays.asList( relationshipIncomplete ) )
-            .build();
-
-        subject.validateEvent( reporter, bundle, event );
+        subject.validateEvent( reporter, bundle,
+            createEvent( PROGRAM_STAGE_REFERRAL_UID, Arrays.asList( relationshipIncomplete ) ) );
 
         assertAll( () -> assertEquals( 1, reporter.getReportList().size() ),
             () -> assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1312 ) ) );
@@ -178,14 +145,20 @@ public class EventReferralValidationHookTest extends DhisConvenienceTest
         when( preheat.getProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_REFERRAL_UID ) ) )
             .thenReturn( programStageReferral );
 
-        Event event = Event.builder()
-            .programStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_REFERRAL_UID ) )
-            .build();
-
-        subject.validateEvent( reporter, bundle, event );
+        subject.validateEvent( reporter, bundle, createEvent( PROGRAM_STAGE_REFERRAL_UID, Arrays.asList() ) );
 
         assertAll( () -> assertEquals( 1, reporter.getReportList().size() ),
             () -> assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1311 ) ) );
+    }
+
+    private Event createEvent( String psiUid, List<Relationship> relationships )
+    {
+        return Event.builder()
+            .event( CodeGenerator.generateUid() )
+            .program( MetadataIdentifier.ofUid( program ) )
+            .programStage( MetadataIdentifier.ofUid( psiUid ) )
+            .relationships( relationships )
+            .build();
     }
 
     private void init()
