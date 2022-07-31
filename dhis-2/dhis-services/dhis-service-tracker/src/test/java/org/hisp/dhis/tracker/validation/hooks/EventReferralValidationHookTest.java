@@ -37,14 +37,10 @@ import java.util.Arrays;
 
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
@@ -59,8 +55,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import com.google.common.collect.Sets;
 
 /**
  * @author rajazubair
@@ -83,19 +77,11 @@ public class EventReferralValidationHookTest extends DhisConvenienceTest
 
     public static final String ENROLLMENT_UID = CodeGenerator.generateUid();
 
-    private OrganisationUnit orgUnit;
-
-    private TrackedEntityType teiType;
-
     private Program program;
 
     private ProgramStage programStage;
 
     private ProgramStage programStageReferral;
-
-    private TrackedEntityInstance tei;
-
-    private ProgramInstance programInstance;
 
     private Relationship relationship;
 
@@ -204,17 +190,9 @@ public class EventReferralValidationHookTest extends DhisConvenienceTest
 
     private void init()
     {
-        orgUnit = createOrganisationUnit( "A" );
-        orgUnit.setUid( ORG_UNIT_UID );
-
-        teiType = createTrackedEntityType( 'T' );
-        teiType.setUid( TEI_TYPE_UID );
-
         program = createProgram( 'P' );
         program.setProgramType( ProgramType.WITH_REGISTRATION );
-        program.setTrackedEntityType( teiType );
         program.setUid( PROGRAM_UID );
-        program.setOrganisationUnits( Sets.newHashSet( orgUnit ) );
 
         programStage = createProgramStage( 'S', program );
         programStage.setUid( PROGRAM_STAGE_UID );
@@ -224,13 +202,6 @@ public class EventReferralValidationHookTest extends DhisConvenienceTest
         programStageReferral.setUid( PROGRAM_STAGE_REFERRAL_UID );
         programStageReferral.setProgram( program );
         programStageReferral.setReferral( true );
-
-        tei = createTrackedEntityInstance( orgUnit );
-        tei.setUid( TEI_UID );
-        tei.setTrackedEntityType( teiType );
-
-        programInstance = createProgramInstance( program, tei, orgUnit );
-        programInstance.setUid( PROGRAM_STAGE_UID );
 
         RelationshipType relType = createRelTypeConstraint( TRACKED_ENTITY_INSTANCE, TRACKED_ENTITY_INSTANCE );
 
