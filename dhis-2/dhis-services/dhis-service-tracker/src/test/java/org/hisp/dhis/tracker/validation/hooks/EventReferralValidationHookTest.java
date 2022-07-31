@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
 import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTANCE;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
@@ -181,8 +182,8 @@ public class EventReferralValidationHookTest extends DhisConvenienceTest
 
         subject.validateEvent( reporter, bundle, event );
 
-        assertEquals( 1, reporter.getReportList().size() );
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1312 ) );
+        assertAll( () -> assertEquals( 1, reporter.getReportList().size() ),
+            () -> assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1312 ) ) );
     }
 
     @Test
@@ -192,18 +193,13 @@ public class EventReferralValidationHookTest extends DhisConvenienceTest
             .thenReturn( programStageReferral );
 
         Event event = Event.builder()
-            .event( CodeGenerator.generateUid() )
-            .program( MetadataIdentifier.ofUid( program ) )
             .programStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_REFERRAL_UID ) )
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_UID ) )
-            .attributeOptionCombo( MetadataIdentifier.EMPTY_UID )
-            .enrollment( ENROLLMENT_UID )
             .build();
 
         subject.validateEvent( reporter, bundle, event );
 
-        assertEquals( 1, reporter.getReportList().size() );
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1311 ) );
+        assertAll( () -> assertEquals( 1, reporter.getReportList().size() ),
+            () -> assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1311 ) ) );
     }
 
     private void init()
