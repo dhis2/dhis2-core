@@ -183,8 +183,7 @@ public class FieldFilterService
         for ( Object object : params.getObjects() )
         {
             applyAccess( params, fieldPaths, object );
-            applyUserAccessesDisplayName( params, fieldPaths, object );
-            applyUserGroupAccessesDisplayName( params, fieldPaths, object );
+            applySharingDisplayNames( params, fieldPaths, object );
             applyAttributeValuesAttribute( params, fieldPaths, object );
 
             ObjectNode objectNode = objectMapper.valueToTree( object );
@@ -250,8 +249,7 @@ public class FieldFilterService
         for ( Object object : params.getObjects() )
         {
             applyAccess( params, fieldPaths, object );
-            applyUserAccessesDisplayName( params, fieldPaths, object );
-            applyUserGroupAccessesDisplayName( params, fieldPaths, object );
+            applySharingDisplayNames( params, fieldPaths, object );
             applyAttributeValuesAttribute( params, fieldPaths, object );
 
             ObjectNode objectNode = objectMapper.valueToTree( object );
@@ -448,27 +446,19 @@ public class FieldFilterService
             } );
     }
 
-    private void applyUserGroupAccessesDisplayName( FieldFilterParams<?> params, List<FieldPath> fieldPaths,
-        Object object )
+    private void applySharingDisplayNames( FieldFilterParams<?> params, List<FieldPath> fieldPaths,
+        Object root )
     {
-        applyFieldPathVisitor( object, fieldPaths, params,
-            s -> s.equals( "userGroupAccesses.displayName" ) || s.endsWith( ".userGroupAccesses.displayName" ),
+        applyFieldPathVisitor( root, fieldPaths, params,
+            s -> s.contains( "sharing" )
+                || s.equals( "userGroupAccesses.displayName" ) || s.endsWith( ".userGroupAccesses.displayName" )
+                || s.equals( "userAccesses.displayName" ) || s.endsWith( ".userAccesses.displayName" ),
             o -> {
-                if ( o instanceof BaseIdentifiableObject )
+                if ( root instanceof BaseIdentifiableObject )
                 {
-                    ((BaseIdentifiableObject) o).getSharing().getUserGroups().values()
+                    ((BaseIdentifiableObject) root).getSharing().getUserGroups().values()
                         .forEach( uga -> uga.setDisplayName( userGroupService.getDisplayName( uga.getId() ) ) );
-                }
-            } );
-    }
-
-    private void applyUserAccessesDisplayName( FieldFilterParams<?> params, List<FieldPath> fieldPaths, Object object )
-    {
-        applyFieldPathVisitor( object, fieldPaths, params,
-            s -> s.equals( "userAccesses.displayName" ) || s.endsWith( ".userAccesses.displayName" ), o -> {
-                if ( o instanceof BaseIdentifiableObject )
-                {
-                    ((BaseIdentifiableObject) o).getSharing().getUsers().values()
+                    ((BaseIdentifiableObject) root).getSharing().getUsers().values()
                         .forEach( ua -> ua.setDisplayName( userService.getDisplayName( ua.getId() ) ) );
                 }
             } );
