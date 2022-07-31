@@ -66,7 +66,6 @@ import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.webapi.DhisWebSpringTest;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -102,7 +101,6 @@ class ContextUtilsTest extends DhisWebSpringTest
     }
 
     @Test
-    @Disabled
     void testConfigureResponseReturnsCorrectHeaderValueForAllCacheStrategies()
     {
         contextUtils.configureResponse( response, null, NO_CACHE, null, false );

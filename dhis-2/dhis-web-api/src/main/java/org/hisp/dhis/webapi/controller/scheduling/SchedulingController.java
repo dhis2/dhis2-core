@@ -69,6 +69,13 @@ public class SchedulingController
 {
     private final SchedulingManager schedulingManager;
 
+    @GetMapping( value = { "/running/types", "/running/types/" }, produces = APPLICATION_JSON_VALUE )
+    @ResponseBody
+    public Collection<JobType> getRunningProgressTypesOnly()
+    {
+        return schedulingManager.getRunningTypes();
+    }
+
     @GetMapping( value = { "/running", "/running/" }, produces = APPLICATION_JSON_VALUE )
     @ResponseBody
     public Map<JobType, Collection<ProcessInfo>> getRunningProgressTypes()

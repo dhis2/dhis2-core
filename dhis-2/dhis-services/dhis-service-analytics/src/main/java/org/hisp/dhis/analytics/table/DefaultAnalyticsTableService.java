@@ -177,7 +177,12 @@ public class DefaultAnalyticsTableService
     {
         Set<String> tables = tableManager.getExistingDatabaseTables();
 
-        tables.forEach( tableManager::dropTableCascade );
+        // The filter is a quick fix to not drop `analyticsdataexchange`
+        // that is not part of the analytics table.
+        // It was getting drop only because of the name.
+        tables.stream()
+            .filter( tableName -> !"analyticsdataexchange".equals( tableName ) )
+            .forEach( tableManager::dropTableCascade );
 
         log.info( "Analytics tables dropped" );
     }

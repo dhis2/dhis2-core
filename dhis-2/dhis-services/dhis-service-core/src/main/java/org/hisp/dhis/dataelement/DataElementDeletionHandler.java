@@ -124,7 +124,7 @@ public class DataElementDeletionHandler extends JdbcDeletionHandler
 
     private DeletionVeto allowDeleteOptionSet( OptionSet optionSet )
     {
-        String sql = "select count(*) from dataelement where optionsetid = :id";
+        String sql = "select 1 from dataelement where optionsetid = :id limit 1";
         return vetoIfExists( VETO, sql, Map.of( "id", optionSet.getId() ) );
     }
 }

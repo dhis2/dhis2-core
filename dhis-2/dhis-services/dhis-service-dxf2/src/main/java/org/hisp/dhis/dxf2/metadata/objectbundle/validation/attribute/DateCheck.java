@@ -25,45 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.config;
+package org.hisp.dhis.dxf2.metadata.objectbundle.validation.attribute;
 
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.ldap.authentication.LdapAuthenticator;
-import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
+import java.util.List;
+import java.util.function.Function;
+import java.util.function.Predicate;
+
+import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.util.DateUtils;
 
 /**
- * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
+ * Contains validators for Date types of {@link ValueType}
+ *
+ * @author viet
  */
-@Configuration
-@ComponentScan( "org.hisp.dhis" )
-public class UnitTestConfig
+@FunctionalInterface
+public interface DateCheck extends Function<String, List<ErrorReport>>
 {
-    @Bean( name = "dhisConfigurationProvider" )
-    public DhisConfigurationProvider dhisConfigurationProvider()
-    {
-        return new H2DhisConfigurationProvider();
-    }
+    DateCheck empty = str -> List.of();
 
-    @Bean
-    public PasswordEncoder encoder()
-    {
-        return new BCryptPasswordEncoder();
-    }
+    DateCheck isDate = check( DateUtils::dateIsValid, ErrorCode.E6014 );
 
-    @Bean
-    public LdapAuthenticator ldapAuthenticator()
-    {
-        return authentication -> null;
-    }
+    DateCheck isDateTime = check( DateUtils::dateTimeIsValid, ErrorCode.E6015 );
 
-    @Bean
-    public LdapAuthoritiesPopulator ldapAuthoritiesPopulator()
+    static DateCheck check( final Predicate<String> predicate, ErrorCode errorCode )
     {
-        return ( dirContextOperations, s ) -> null;
+        return str -> !predicate.test( str ) ? List.of( new ErrorReport( AttributeValue.class, errorCode, str ) )
+            : List.of();
     }
 }

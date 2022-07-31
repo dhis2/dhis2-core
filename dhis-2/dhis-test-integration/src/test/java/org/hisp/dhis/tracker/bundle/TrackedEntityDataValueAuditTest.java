@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.tracker.bundle;
 
-import static org.hisp.dhis.tracker.Assertions.assertNoImportErrors;
+import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -52,6 +52,8 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class TrackedEntityDataValueAuditTest extends TrackerTest
 {
+    private static final String ORIGINAL_VALUE = "value1";
+
     private static final String PSI = "D9PbzJY8bJO";
 
     public static final String DE = "DATAEL00001";
@@ -77,11 +79,11 @@ public class TrackedEntityDataValueAuditTest extends TrackerTest
     void testTrackedEntityDataValueAuditCreate()
         throws IOException
     {
-        assertNoImportErrors(
+        assertNoErrors(
             trackerImportService.importTracker( fromJson( "tracker/event_and_enrollment_with_data_values.json" ) ) );
-        assertNoImportErrors(
+        assertNoErrors(
             trackerImportService.importTracker( fromJson( "tracker/event_with_data_values_for_update_audit.json" ) ) );
-        assertNoImportErrors(
+        assertNoErrors(
             trackerImportService.importTracker( fromJson( "tracker/event_with_data_values_for_delete_audit.json" ) ) );
 
         DataElement dataElement = manager.search( DataElement.class, DE );
@@ -122,6 +124,7 @@ public class TrackedEntityDataValueAuditTest extends TrackerTest
             assertEquals( a.getAuditType(), AuditType.UPDATE );
             assertEquals( a.getDataElement().getUid(), dataElement.getUid() );
             assertEquals( a.getProgramStageInstance().getUid(), psi.getUid() );
+            assertEquals( ORIGINAL_VALUE, a.getValue() );
         } );
 
         deletedAudit.forEach( a -> {

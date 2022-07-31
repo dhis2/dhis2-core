@@ -25,50 +25,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system;
+package org.hisp.dhis.dxf2.metadata.objectbundle.validation.attribute;
 
-import static org.hisp.dhis.external.conf.ConfigurationKey.SYSTEM_UPDATE_NOTIFICATIONS_ENABLED;
+import java.util.List;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.scheduling.Job;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.scheduling.JobType;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.system.util.MathUtils;
 
 /**
- * @author Morten Svanæs (original)
- * @author Jan Bernitt (job progress tracking)
+ * Contains validators for Number types of {@link AttributeValue}
+ *
+ * @author viet
  */
-@Slf4j
-@Component
-@AllArgsConstructor
-public class SystemUpdateAlertJob implements Job
+@FunctionalInterface
+public interface NumberCheck extends Function<String, List<ErrorReport>>
 {
-    private final DhisConfigurationProvider dhisConfig;
+    NumberCheck empty = str -> List.of();
 
-    private final SystemUpdateService systemUpdateService;
+    NumberCheck isInteger = check( MathUtils::isInteger, ErrorCode.E6006 );
 
-    @Override
-    public JobType getJobType()
+    NumberCheck isPositiveInteger = check( MathUtils::isPositiveInteger, ErrorCode.E6007 );
+
+    NumberCheck isNegativeInteger = check( MathUtils::isNegativeInteger, ErrorCode.E6013 );
+
+    NumberCheck isNumber = check( MathUtils::isNumeric, ErrorCode.E6008 );
+
+    NumberCheck isZeroOrPositiveInteger = check( MathUtils::isZeroOrPositiveInteger, ErrorCode.E6009 );
+
+    NumberCheck isPercentage = check( MathUtils::isPercentage, ErrorCode.E6010 );
+
+    NumberCheck isUnitInterval = check( MathUtils::isUnitInterval, ErrorCode.E6011 );
+
+    static NumberCheck check( final Predicate<String> predicate, ErrorCode errorCode )
     {
-        return JobType.SYSTEM_VERSION_UPDATE_CHECK;
-    }
-
-    @Override
-    public void execute( JobConfiguration config, JobProgress progress )
-    {
-        if ( !dhisConfig.isEnabled( SYSTEM_UPDATE_NOTIFICATIONS_ENABLED ) )
-        {
-            log.info( String.format( "%s aborted. System update alerts are disabled",
-                JobType.SYSTEM_VERSION_UPDATE_CHECK.name() ) );
-            return;
-        }
-        progress.startingProcess( "System update alert" );
-        systemUpdateService.sendMessageForEachVersion( SystemUpdateService.getLatestNewerThanCurrent(), progress );
-        progress.completedProcess( null );
+        return str -> !predicate.test( str ) ? List.of( new ErrorReport( AttributeValue.class, errorCode, str ) )
+            : List.of();
     }
 }

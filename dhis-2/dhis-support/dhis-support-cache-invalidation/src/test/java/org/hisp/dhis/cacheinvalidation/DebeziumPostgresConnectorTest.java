@@ -25,36 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.container;
+package org.hisp.dhis.cacheinvalidation;
 
-import org.testcontainers.containers.JdbcDatabaseContainer;
-import org.testcontainers.containers.PostgisContainerProvider;
-import org.testcontainers.utility.DockerImageName;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import org.junit.jupiter.api.Test;
+
+import io.debezium.connector.postgresql.PostgresConnector;
 
 /**
- * Custom PostgisContainerProvider to create {@link DhisPostgreSQLContainer}
+ * Test to make sure that the Debezium Postgres connector is available. It is
+ * needed for PostgreSQL cache invalidation in a DHIS2 cluster configuration.
  *
- * @author Ameen Mohamed <ameen@dhis2.org>
+ * @author Jim Grace
  */
-@SuppressWarnings( "rawtypes" )
-public class DhisPostgisContainerProvider
-    extends PostgisContainerProvider
+class DebeziumPostgresConnectorTest
 {
-    private static final String DEFAULT_TAG = "10-2.5-alpine";
-
-    private static final String DEFAULT_IMAGE = "postgis/postgis";
-
-    @Override
-    public JdbcDatabaseContainer newInstance()
+    @Test
+    void testDebeziumPostgresConnectorPresent()
     {
-        return newInstance( DEFAULT_TAG );
-    }
-
-    @Override
-    public JdbcDatabaseContainer newInstance( String tag )
-    {
-        DockerImageName postgres = DockerImageName.parse( DEFAULT_IMAGE + ":" + tag )
-            .asCompatibleSubstituteFor( "postgres" );
-        return new DhisPostgreSQLContainer( postgres );
+        assertEquals( "PostgresConnector", PostgresConnector.class.getSimpleName() );
     }
 }

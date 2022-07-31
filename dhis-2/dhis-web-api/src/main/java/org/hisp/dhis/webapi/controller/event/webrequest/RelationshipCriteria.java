@@ -25,52 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.metadata;
+package org.hisp.dhis.webapi.controller.event.webrequest;
 
-import org.hisp.dhis.dxf2.metadata.MetadataExportService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.UserSettingService;
-import org.hisp.dhis.webapi.service.ContextService;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseEntity;
-
-import com.fasterxml.jackson.databind.JsonNode;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
- * Unit tests for {@link MetadataExportControllerTest}.
- *
- * @author Volker Schmidt
+ * @author Luca Cambi
  */
-@ExtendWith( MockitoExtension.class )
-class MetadataExportControllerTest
+@Data
+@NoArgsConstructor
+public class RelationshipCriteria extends PagingAndSortingCriteriaAdapter
 {
-    @Mock
-    private MetadataExportService metadataExportService;
+    private String tei;
 
-    @Mock
-    private ContextService contextService;
+    private String enrollment;
 
-    @Mock
-    private CurrentUserService currentUserService;
+    private String event;
 
-    @Mock
-    private UserSettingService userSettingService;
-
-    @InjectMocks
-    private MetadataImportExportController controller;
-
-    @Test
-    void withDownload()
+    /**
+     * TODO Add Pager
+     */
+    @Override
+    public boolean isSkipPaging()
     {
-        ResponseEntity<JsonNode> responseEntity = controller.getMetadataDownload( false, null, true );
-        Assertions.assertNotNull( responseEntity.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ) );
-        Assertions.assertEquals( "attachment; filename=metadata",
-            responseEntity.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ).get( 0 ) );
+        return true;
     }
 }
