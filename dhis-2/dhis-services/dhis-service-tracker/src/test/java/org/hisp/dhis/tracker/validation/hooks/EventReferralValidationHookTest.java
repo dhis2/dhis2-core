@@ -62,7 +62,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  */
 
 @ExtendWith( MockitoExtension.class )
-public class EventReferralValidationHookTest extends DhisConvenienceTest
+class EventReferralValidationHookTest extends DhisConvenienceTest
 {
     public static final String TEI_UID = CodeGenerator.generateUid();
 
@@ -104,7 +104,7 @@ public class EventReferralValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void verifyValidationSuccessForNonReferralEvent()
+    void verifyValidationSuccessForNonReferralEvent()
     {
         when( preheat.getProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_UID ) ) )
             .thenReturn( programStage );
@@ -115,7 +115,7 @@ public class EventReferralValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void verifyValidationSuccessIfReferralHasCompleteRelationShip()
+    void verifyValidationSuccessIfReferralHasCompleteRelationShip()
     {
         when( preheat.getProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_REFERRAL_UID ) ) )
             .thenReturn( programStageReferral );
@@ -127,7 +127,7 @@ public class EventReferralValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void verifyValidationFailIfReferralHasInCompleteRelationShip()
+    void verifyValidationFailIfReferralHasInCompleteRelationShip()
     {
         when( preheat.getProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_REFERRAL_UID ) ) )
             .thenReturn( programStageReferral );
@@ -140,7 +140,7 @@ public class EventReferralValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void verifyValidationFailIfReferralHasNoRelationShip()
+    void verifyValidationFailIfReferralHasNoRelationShip()
     {
         when( preheat.getProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_REFERRAL_UID ) ) )
             .thenReturn( programStageReferral );
