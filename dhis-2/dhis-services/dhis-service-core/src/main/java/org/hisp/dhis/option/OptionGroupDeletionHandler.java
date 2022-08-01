@@ -29,19 +29,38 @@ package org.hisp.dhis.option;
 
 import java.util.List;
 
-import org.hisp.dhis.common.DataDimensionType;
-import org.hisp.dhis.common.GenericDimensionalObjectStore;
+import lombok.AllArgsConstructor;
 
-/**
- * @author Viet Nguyen <viet@dhis2.org>
- */
+import org.apache.commons.collections4.CollectionUtils;
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-public interface OptionGroupStore
-    extends GenericDimensionalObjectStore<OptionGroup>
+@Component
+@AllArgsConstructor
+public class OptionGroupDeletionHandler extends DeletionHandler
 {
-    List<OptionGroup> getOptionGroups( OptionGroupSet groupSet );
+    @Autowired
+    private OptionGroupStore optionGroupStore;
 
-    List<OptionGroup> getOptionGroupsByOptionId( String optionId );
+    @Override
+    protected void register()
+    {
+        whenDeleting( Option.class, this::deleteOption );
+    }
 
-    List<OptionGroup> getOptionGroupsNoAcl( DataDimensionType dataDimensionType, boolean dataDimension );
+    private void deleteOption( Option option )
+    {
+        List<OptionGroup> optionGroup = optionGroupStore.getOptionGroupsByOptionId( option.getUid() );
+
+        if ( CollectionUtils.isEmpty( optionGroup ) )
+        {
+            return;
+        }
+
+        optionGroup.forEach( og -> {
+            og.removeOption( option );
+            optionGroupStore.update( og );
+        } );
+    }
 }

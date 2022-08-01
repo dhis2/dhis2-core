@@ -25,23 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.option;
+package org.hisp.dhis.dxf2.metadata.objectbundle.validation.attribute;
 
 import java.util.List;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
-import org.hisp.dhis.common.DataDimensionType;
-import org.hisp.dhis.common.GenericDimensionalObjectStore;
+import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.system.util.MathUtils;
+import org.hisp.dhis.system.util.ValidationUtils;
 
 /**
- * @author Viet Nguyen <viet@dhis2.org>
+ * Contains validators for Text types of {@link ValueType}
+ *
+ * @author viet
  */
-
-public interface OptionGroupStore
-    extends GenericDimensionalObjectStore<OptionGroup>
+@FunctionalInterface
+public interface TextCheck extends Function<String, List<ErrorReport>>
 {
-    List<OptionGroup> getOptionGroups( OptionGroupSet groupSet );
+    DateCheck empty = $ -> List.of();
 
-    List<OptionGroup> getOptionGroupsByOptionId( String optionId );
+    DateCheck isBoolean = check( str -> MathUtils.isBool( str ), ErrorCode.E6016 );
 
-    List<OptionGroup> getOptionGroupsNoAcl( DataDimensionType dataDimensionType, boolean dataDimension );
+    DateCheck isTrueOnly = check( str -> "true".equals( str ), ErrorCode.E6017 );
+
+    DateCheck isEmail = check( str -> ValidationUtils.emailIsValid( str ), ErrorCode.E6018 );
+
+    static DateCheck check( final Predicate<String> predicate, ErrorCode errorCode )
+    {
+        return str -> !predicate.test( str ) ? List.of( new ErrorReport( AttributeValue.class, errorCode, str ) )
+            : List.of();
+    }
 }
