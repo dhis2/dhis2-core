@@ -68,6 +68,16 @@ public class HibernateOptionGroupStore
     }
 
     @Override
+    public List<OptionGroup> getOptionGroupsByOptionId( String optionId )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicates( getSharingPredicates( builder ) )
+            .addPredicate( root -> builder.equal( root.join( "members" ).get( "uid" ), optionId ) ) );
+    }
+
+    @Override
     public List<OptionGroup> getOptionGroupsNoAcl( DataDimensionType dataDimensionType, boolean dataDimension )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
