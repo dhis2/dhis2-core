@@ -544,23 +544,21 @@ public class User
         this.twoFA = twoFA;
     }
 
+    public boolean getTwoFA()
+    {
+        return twoFA;
+    }
+
     @JsonIgnore
     public String getSecret()
     {
         return secret;
     }
 
-//    public void setSecret( String secret )
-//    {
-//        if ( secret == null )
-//        {
-//            generateNewSecret();
-//        }
-//        else
-//        {
-//            this.secret = secret;
-//        }
-//    }
+    public void setSecret( String secret )
+    {
+        this.secret = secret;
+    }
 
     public void generateNewSecret()
     {

@@ -455,7 +455,14 @@ public class MeController
         currentUser.setEducation( stringWithDefault( user.getEducation(), currentUser.getEducation() ) );
         currentUser.setInterests( stringWithDefault( user.getInterests(), currentUser.getInterests() ) );
         currentUser.setLanguages( stringWithDefault( user.getLanguages(), currentUser.getLanguages() ) );
+
+        // TODO: NOT ALLOWED AFTER 13332
+        // if ( currentUser.getTwoFA() != user.getTwoFA() )
+        // {
+        // throw new RunException( "Not allowed to use this endpoint!" );
+        // }
         currentUser.setTwoFA( user.isTwoFA() );
+
     }
 
     private void updatePassword( User currentUser, String password )

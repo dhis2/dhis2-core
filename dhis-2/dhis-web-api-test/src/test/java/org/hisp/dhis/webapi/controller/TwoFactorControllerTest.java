@@ -27,24 +27,69 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.hisp.dhis.jsontree.JsonResponse;
+import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.controller.security.TwoFactorController;
+import org.jboss.aerogear.security.otp.Totp;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests the {@link TwoFactorController}
- * sing (mocked) REST requests.
+ * Tests the {@link TwoFactorController} sing (mocked) REST requests.
  *
  * @author Jan Bernitt
  */
 class TwoFactorControllerTest extends DhisControllerConvenienceTest
 {
-
     @Test
     void testAuthenticate2FA()
     {
         assertWebMessage( "Unauthorized", 401, "ERROR", "2FA code not authenticated",
             GET( "/2fa/authenticate?code=xyz" ).content( HttpStatus.UNAUTHORIZED ) );
     }
+
+    @Test
+    void testQr2FA()
+    {
+        JsonResponse content = GET( "/2fa/qr" ).content( HttpStatus.ACCEPTED );
+        String url = content.getMap( "url", JsonString.class ).toString();
+
+        assertTrue( url.startsWith( "\"https://chart.googleapis.com" ) );
+    }
+
+    @Test
+    void testEnable2FA()
+    {
+        String code = new Totp( getCurrentUser().getSecret() ).now();
+
+        assertStatus( HttpStatus.OK, POST( "/2fa/enable", "{'code':'" + code + "'}" ) );
+    }
+
+    @Test
+    void testEnable2FAWrongCode()
+    {
+        assertEquals( "Invalid code",
+            POST( "/2fa/enable", "{'code':'wrong'}" ).error( HttpStatus.Series.CLIENT_ERROR ).getMessage() );
+    }
+
+    @Test
+    void testDisable2FA()
+    {
+        String code = new Totp( getCurrentUser().getSecret() ).now();
+
+        assertStatus( HttpStatus.OK, POST( "/2fa/disable", "{'code':'" + code + "'}" ) );
+    }
+
+    @Test
+    void testDisable2FAWrongCode()
+    {
+        assertEquals( "Invalid code",
+            POST( "/2fa/disable", "{'code':'wrong'}" ).error( HttpStatus.Series.CLIENT_ERROR ).getMessage() );
+    }
+
 }

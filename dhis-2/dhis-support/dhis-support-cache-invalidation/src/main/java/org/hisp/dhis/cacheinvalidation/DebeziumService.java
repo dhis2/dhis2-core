@@ -141,7 +141,6 @@ public class DebeziumService
 
         this.shutdownOnConnectorStopOrError = dhisConfig
             .isEnabled( ConfigurationKey.DEBEZIUM_SHUTDOWN_ON_CONNECTOR_STOP );
-// feat: make mandatory initial challenge when setting up MFA/2FA
         // Build replication slot name as:
         // "dhis2_[EPOCH_SECONDS]_[OPTIONAL_CONFIG_ID]_[UUID4]
         long timeNow = System.currentTimeMillis() / 1000L;
