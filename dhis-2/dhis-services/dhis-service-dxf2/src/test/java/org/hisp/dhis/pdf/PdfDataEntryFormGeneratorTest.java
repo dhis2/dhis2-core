@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.pdf;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Collections;
@@ -46,7 +48,6 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -72,7 +73,7 @@ public class PdfDataEntryFormGeneratorTest
     private PeriodService periodService;
 
     @Test
-    public void testExport()
+    void testExport()
         throws DocumentException,
         IOException
     {
@@ -111,7 +112,7 @@ public class PdfDataEntryFormGeneratorTest
 
         ByteArrayOutputStream baos = formGenerator.generateDataEntry( dataSet, settings );
 
-        Assert.assertNotNull( baos );
+        assertNotNull( baos );
     }
 
     @Override
