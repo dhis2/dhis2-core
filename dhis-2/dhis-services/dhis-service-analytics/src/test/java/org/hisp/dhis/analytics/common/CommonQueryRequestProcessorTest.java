@@ -50,7 +50,7 @@ class CommonQueryRequestProcessorTest
             .withScheduledDate( "YESTERDAY" );
 
         assertEquals(
-            commonQueryRequestProcessor.process( request ).getDimension().stream().findFirst().orElse( null ),
-            "pe:IpHINAT79UW.LAST_YEAR:EVENT_DATE;2021-06-30:ENROLLMENT_DATE;YESTERDAY:SCHEDULED_DATE;LAST_MONTH:INCIDENT_DATE;TODAY:LAST_UPDATED" );
+            "pe:IpHINAT79UW.LAST_YEAR:EVENT_DATE;2021-06-30:ENROLLMENT_DATE;YESTERDAY:SCHEDULED_DATE;LAST_MONTH:INCIDENT_DATE;TODAY:LAST_UPDATED",
+            commonQueryRequestProcessor.process( request ).getDimension().stream().findFirst().orElse( null ) );
     }
 }

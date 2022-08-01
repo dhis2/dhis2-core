@@ -42,6 +42,11 @@ import org.hisp.dhis.program.ProgramStageDataElement;
  */
 public class PrefixedDimensions
 {
+
+    private PrefixedDimensions()
+    {
+    }
+
     public static Collection<PrefixedDimension> ofProgramIndicators( Set<ProgramIndicator> programIndicators )
     {
         return programIndicators.stream()

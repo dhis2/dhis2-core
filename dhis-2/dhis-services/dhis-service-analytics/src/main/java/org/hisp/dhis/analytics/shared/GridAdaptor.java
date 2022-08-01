@@ -197,7 +197,7 @@ public class GridAdaptor
                     .map( DimensionalObject::getItems )
                     .flatMap( Collection::stream )
                     .filter( i -> i.getDimensionItemType() == DimensionItemType.ORGANISATION_UNIT )
-                    .map( i -> (OrganisationUnit) i )
+                    .map( OrganisationUnit.class::cast )
                     .collect( Collectors.toList() );
 
                 final Map<String, Object> orgUnitsMetadata = putOrganisationUnitsHierarchyToMetadata( roots,

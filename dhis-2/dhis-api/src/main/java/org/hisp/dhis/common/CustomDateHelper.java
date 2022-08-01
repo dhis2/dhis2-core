@@ -48,6 +48,10 @@ import org.apache.commons.lang3.StringUtils;
 public class CustomDateHelper
 {
 
+    private CustomDateHelper()
+    {
+    }
+
     public static String getCustomDateFilters( Predicate<AnalyticsDateFilter> appliesTo,
         Function<AnalyticsDateFilter, Function<Object, String>> function, Object criteria )
     {

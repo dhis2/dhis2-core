@@ -51,7 +51,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class TeiAnalyticsDimensionsServiceTest
+class TeiAnalyticsDimensionsServiceTest
 {
     private TeiAnalyticsDimensionsService teiAnalyticsDimensionsService;
 

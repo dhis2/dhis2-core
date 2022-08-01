@@ -138,7 +138,7 @@ public class DimensionIdentifierConverter
     private List<DimensionIdentifier.ElementWithOffset<String>> parseFullDimensionId( String fullDimensionId )
     {
         return Arrays.stream( StringUtils.split( fullDimensionId, DIMENSION_SEPARATOR ) )
-            .map( e -> elementWithOffsetBytString( e ) )
+            .map( this::elementWithOffsetBytString )
             .collect( Collectors.toList() );
     }
 

@@ -60,8 +60,6 @@ public class AnalyticsIndexHelper
 
     private static final String PREFIX_INDEX = "in_";
 
-    private static final short MAX_POSTGRES_NAME_LENGTH = 63;
-
     private AnalyticsIndexHelper()
     {
     }
