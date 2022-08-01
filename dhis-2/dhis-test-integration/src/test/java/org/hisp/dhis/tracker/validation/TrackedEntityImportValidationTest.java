@@ -27,12 +27,8 @@
  */
 package org.hisp.dhis.tracker.validation;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasProperty;
-import static org.hamcrest.core.Every.everyItem;
-import static org.hamcrest.core.IsIterableContaining.hasItem;
+import static org.hisp.dhis.tracker.Assertions.assertHasErrors;
+import static org.hisp.dhis.tracker.Assertions.assertHasOnlyErrors;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.hisp.dhis.tracker.validation.Users.USER_1;
 import static org.hisp.dhis.tracker.validation.Users.USER_3;
@@ -80,10 +76,10 @@ class TrackedEntityImportValidationTest extends TrackerTest
         throws IOException
     {
         TrackerImportParams params = fromJson( "tracker/validations/te-with_invalid_option_value.json" );
+
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
-        assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
-        assertThat( trackerImportReport.getValidationReport().getErrors(),
-            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1125 ) ) ) );
+
+        assertHasOnlyErrors( trackerImportReport, TrackerErrorCode.E1125 );
     }
 
     @Test
@@ -102,10 +98,10 @@ class TrackedEntityImportValidationTest extends TrackerTest
         throws IOException
     {
         TrackerImportParams params = fromJson( "tracker/validations/te-with_unique_attributes.json" );
+
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
-        assertEquals( 2, trackerImportReport.getValidationReport().getErrors().size() );
-        assertThat( trackerImportReport.getValidationReport().getErrors(),
-            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1064 ) ) ) );
+
+        assertHasErrors( trackerImportReport, 2, TrackerErrorCode.E1064 );
     }
 
     @Test
@@ -128,11 +124,9 @@ class TrackedEntityImportValidationTest extends TrackerTest
         params.setUser( user );
         params.setAtomicMode( AtomicMode.OBJECT );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
-        assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
+        assertHasOnlyErrors( trackerImportReport, TrackerErrorCode.E1000 );
         assertEquals( 2, trackerImportReport.getStats().getCreated() );
         assertEquals( 1, trackerImportReport.getStats().getIgnored() );
-        assertThat( trackerImportReport.getValidationReport().getErrors(),
-            contains( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1000 ) ) ) );
     }
 
     @Test
@@ -175,11 +169,9 @@ class TrackedEntityImportValidationTest extends TrackerTest
         params.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
         params.setAtomicMode( AtomicMode.OBJECT );
         trackerImportReport = trackerImportService.importTracker( params );
-        assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
+        assertHasOnlyErrors( trackerImportReport, TrackerErrorCode.E1003 );
         assertEquals( 2, trackerImportReport.getStats().getUpdated() );
         assertEquals( 1, trackerImportReport.getStats().getIgnored() );
-        assertThat( trackerImportReport.getValidationReport().getErrors(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1003 ) ) ) );
     }
 
     @Test
@@ -189,10 +181,10 @@ class TrackedEntityImportValidationTest extends TrackerTest
         TrackerImportParams params = fromJson( "tracker/validations/te-data_ok.json" );
         User user = userService.getUser( USER_1 );
         params.setUser( user );
+
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
-        assertEquals( 13, trackerImportReport.getValidationReport().getErrors().size() );
-        assertThat( trackerImportReport.getValidationReport().getErrors(),
-            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1001 ) ) ) );
+
+        assertHasErrors( trackerImportReport, 13, TrackerErrorCode.E1001 );
     }
 
     @Test
@@ -224,9 +216,8 @@ class TrackedEntityImportValidationTest extends TrackerTest
     {
         TrackerImportParams params = fromJson( "tracker/validations/te-data_error_attr-non-existing.json" );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
-        assertEquals( 2, trackerImportReport.getValidationReport().getErrors().size() );
-        assertThat( trackerImportReport.getValidationReport().getErrors(),
-            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1006 ) ) ) );
+
+        assertHasErrors( trackerImportReport, 2, TrackerErrorCode.E1006 );
     }
 
     @Test
@@ -234,8 +225,7 @@ class TrackedEntityImportValidationTest extends TrackerTest
         throws IOException
     {
         TrackerImportParams params = fromJson( "tracker/validations/enrollments_te_te-data.json" );
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
-        assertNoErrors( trackerImportReport );
+        assertNoErrors( trackerImportService.importTracker( params ) );
         importProgramInstances();
         manager.flush();
         manager.clear();
@@ -243,10 +233,10 @@ class TrackedEntityImportValidationTest extends TrackerTest
         User user2 = userService.getUser( USER_4 );
         params.setUser( user2 );
         params.setImportStrategy( TrackerImportStrategy.DELETE );
-        trackerImportReport = trackerImportService.importTracker( params );
-        assertEquals( 2, trackerImportReport.getValidationReport().getErrors().size() );
-        assertThat( trackerImportReport.getValidationReport().getErrors(),
-            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1100 ) ) ) );
+
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
+
+        assertHasErrors( trackerImportReport, 2, TrackerErrorCode.E1100 );
     }
 
     @Test

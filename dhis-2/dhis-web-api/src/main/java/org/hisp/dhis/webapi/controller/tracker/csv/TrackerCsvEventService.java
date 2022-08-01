@@ -33,6 +33,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -62,6 +63,8 @@ public class TrackerCsvEventService
     implements CsvEventService<Event>
 {
     private static final CsvMapper CSV_MAPPER = new CsvMapper().enable( CsvParser.Feature.WRAP_AS_ARRAY );
+
+    private static final Pattern TRIM_SINGLE_QUOTES = Pattern.compile( "^'|'$" );
 
     @Override
     public void writeEvents( OutputStream outputStream, List<Event> events, boolean withHeader )
@@ -98,14 +101,15 @@ public class TrackerCsvEventService
                 event.getUpdatedAtClient() == null ? null : event.getUpdatedAtClient().toString() );
             templateDataValue
                 .setCompletedAt( event.getCompletedAt() == null ? null : event.getCompletedAt().toString() );
-            templateDataValue.setUpdatedBy( event.getUpdatedBy().getUsername() );
+            templateDataValue.setUpdatedBy( event.getUpdatedBy() == null ? null : event.getUpdatedBy().getUsername() );
             templateDataValue.setStoredBy( event.getStoredBy() );
             templateDataValue
                 .setCompletedAt( event.getCompletedAt() == null ? null : event.getCompletedAt().toString() );
             templateDataValue.setCompletedBy( event.getCompletedBy() );
             templateDataValue.setAttributeOptionCombo( event.getAttributeOptionCombo() );
             templateDataValue.setAttributeCategoryOptions( event.getAttributeCategoryOptions() );
-            templateDataValue.setAssignedUser( event.getAssignedUser().getUsername() );
+            templateDataValue
+                .setAssignedUser( event.getAssignedUser() == null ? null : event.getAssignedUser().getUsername() );
 
             if ( event.getGeometry() != null )
             {
@@ -116,6 +120,12 @@ public class TrackerCsvEventService
                     templateDataValue.setLongitude( event.getGeometry().getCoordinate().x );
                     templateDataValue.setLatitude( event.getGeometry().getCoordinate().y );
                 }
+            }
+
+            if ( event.getDataValues().isEmpty() )
+            {
+                dataValues.add( templateDataValue );
+                continue;
             }
 
             for ( DataValue value : event.getDataValues() )
@@ -186,9 +196,10 @@ public class TrackerCsvEventService
                 event.setAttributeCategoryOptions( dataValue.getAttributeCategoryOptions() );
                 event.setAssignedUser( User.builder().username( dataValue.getAssignedUser() ).build() );
 
-                if ( dataValue.getGeometry() != null )
+                if ( StringUtils.isNotBlank( dataValue.getGeometry() ) )
                 {
-                    event.setGeometry( new WKTReader().read( dataValue.getGeometry() ) );
+                    event.setGeometry( new WKTReader()
+                        .read( TRIM_SINGLE_QUOTES.matcher( dataValue.getGeometry() ).replaceAll( "" ) ) );
                 }
                 else if ( dataValue.getLongitude() != null && dataValue.getLatitude() != null )
                 {

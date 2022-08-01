@@ -49,9 +49,8 @@ public class AssertTrackerValidationReport
         assertTrue( report.hasError( err -> code == err.getErrorCode() &&
             type == err.getTrackerType() &&
             uid.equals( err.getUid() ) ),
-            String.format( "error with code %s, type %s, uid %s not found in report with %d unique error(s)", code,
-                type,
-                uid, report.size() ) );
+            String.format( "error with code %s, type %s, uid %s not found in report with error(s) %s", code,
+                type, uid, report.getErrors() ) );
     }
 
     public static void assertHasWarning( TrackerValidationReport report, TrackerErrorCode code, TrackerDto dto )
@@ -66,7 +65,7 @@ public class AssertTrackerValidationReport
         assertTrue( report.hasWarning( warning -> code == warning.getWarningCode() &&
             type == warning.getTrackerType() &&
             uid.equals( warning.getUid() ) ),
-            String.format( "warning with code %s, type %s, uid %s not found in report with %d warnings(s)", code, type,
-                uid, report.getWarnings().size() ) );
+            String.format( "warning with code %s, type %s, uid %s not found in report with warnings(s) %s", code, type,
+                uid, report.getWarnings() ) );
     }
 }

@@ -228,6 +228,9 @@ public enum ErrorCode
     E4052( "For program rule variable with name `{0}` following keywords are forbidden : and , or , not" ),
     E4053( "Program stage `{0}` must reference a program." ),
 
+    /* Metadata Validation (continued) */
+    E4060( "Object could not be deleted: {0}" ),
+
     /* SQL views */
     E4300( "SQL query is null" ),
     E4301( "SQL query must be a select query" ),
@@ -263,6 +266,21 @@ public enum ErrorCode
     E6003( "Could not patch object with id {0}." ),
     E6004( "Attribute `{0}` has invalid GeoJson value." ),
     E6005( "Attribute `{0}` has unsupported GeoJson value." ),
+    E6006( "AttributeValue `{0}` is an invalid Integer value." ),
+    E6007( "AttributeValue `{0}` is an invalid Positive Integer value." ),
+    E6008( "AttributeValue `{0}` is an invalid Number value." ),
+    E6009( "AttributeValue `{0}` is an invalid Zero or Positive Integer value." ),
+    E6010( "AttributeValue `{0}` is an invalid Percentage value." ),
+    E6011( "AttributeValue `{0}` is an invalid Unit Interval value." ),
+    E6012( "Attribute `{0}` is not assigned to `{1}`." ),
+    E6013( "AttributeValue `{0}` is an invalid Negative Integer value." ),
+    E6014( "AttributeValue `{0}` is an invalid Date value." ),
+    E6015( "AttributeValue `{0}` is an invalid Datetime value." ),
+    E6016( "AttributeValue `{0}` is an invalid Boolean value." ),
+    E6017( "AttributeValue `{0}` is an invalid TRUE value." ),
+    E6018( "AttributeValue `{0}` is an invalid Email value." ),
+    E6019( "AttributeValue `{0}` is an invalid `{1}` ID." ),
+    E6020( "AttributeValue `{0}` is an invalid Username." ),
 
     /* File resource */
     E6100( "Filename not present" ),
