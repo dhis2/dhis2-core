@@ -163,7 +163,7 @@
     <lombok.version>1.18.24</lombok.version>
     <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
     <joda-time.version>2.10.14</joda-time.version>
-    <cron-utils.version>9.1.8</cron-utils.version>
+    <cron-utils.version>9.2.0</cron-utils.version>
     <validation-api.version>2.0.1.Final</validation-api.version>
     <hibernate-validator.version>6.2.0.Final</hibernate-validator.version>
     <commons-collections4.version>4.4</commons-collections4.version>
