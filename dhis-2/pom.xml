@@ -88,7 +88,7 @@
     <spring-restdocs.version>2.0.6.RELEASE</spring-restdocs.version>
     <spring-ldap.version>2.4.1</spring-ldap.version>
     <cache2k-api.version>1.6.0.Final</cache2k-api.version>
-    <lettuce.version>6.1.8.RELEASE</lettuce.version>
+    <lettuce.version>6.2.0.RELEASE</lettuce.version>
 
     <!--DBMS -->
     <flyway-core.version>8.5.13</flyway-core.version>
