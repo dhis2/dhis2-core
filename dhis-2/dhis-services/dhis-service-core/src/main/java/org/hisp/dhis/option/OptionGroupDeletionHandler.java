@@ -44,12 +44,13 @@ public class OptionGroupDeletionHandler extends DeletionHandler
     private OptionGroupStore optionGroupStore;
 
     @Override
-    protected void register()
+    protected String getClassName()
     {
-        whenDeleting( Option.class, this::deleteOption );
+        return OptionGroup.class.getSimpleName();
     }
 
-    private void deleteOption( Option option )
+    @Override
+    public void deleteOption( Option option )
     {
         List<OptionGroup> optionGroup = optionGroupStore.getOptionGroupsByOptionId( option.getUid() );
 
