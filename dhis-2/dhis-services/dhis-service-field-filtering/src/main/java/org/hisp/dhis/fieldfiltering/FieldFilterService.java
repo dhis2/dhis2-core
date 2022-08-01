@@ -451,7 +451,9 @@ public class FieldFilterService
     {
         applyFieldPathVisitor( root, fieldPaths, params,
             s -> s.contains( "sharing" )
+                || s.equals( "userGroupAccesses" ) || s.endsWith( ".userGroupAccesses" )
                 || s.equals( "userGroupAccesses.displayName" ) || s.endsWith( ".userGroupAccesses.displayName" )
+                || s.equals( "userAccesses" ) || s.endsWith( ".userAccesses" )
                 || s.equals( "userAccesses.displayName" ) || s.endsWith( ".userAccesses.displayName" ),
             o -> {
                 if ( root instanceof BaseIdentifiableObject )
@@ -459,6 +461,13 @@ public class FieldFilterService
                     ((BaseIdentifiableObject) root).getSharing().getUserGroups().values()
                         .forEach( uga -> uga.setDisplayName( userGroupService.getDisplayName( uga.getId() ) ) );
                     ((BaseIdentifiableObject) root).getSharing().getUsers().values()
+                        .forEach( ua -> ua.setDisplayName( userService.getDisplayName( ua.getId() ) ) );
+                }
+                else if ( o instanceof BaseIdentifiableObject )
+                {
+                    ((BaseIdentifiableObject) o).getSharing().getUserGroups().values()
+                        .forEach( uga -> uga.setDisplayName( userGroupService.getDisplayName( uga.getId() ) ) );
+                    ((BaseIdentifiableObject) o).getSharing().getUsers().values()
                         .forEach( ua -> ua.setDisplayName( userService.getDisplayName( ua.getId() ) ) );
                 }
             } );
