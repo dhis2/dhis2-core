@@ -137,7 +137,7 @@
     <batik-transcoder.version>1.14</batik-transcoder.version>
     <fop.version>2.7</fop.version>
     <mapstruct.version>1.5.2.Final</mapstruct.version>
-    <geotools.version>27.0</geotools.version>
+    <geotools.version>27.1</geotools.version>
     <jts.version>1.19.0</jts.version>
 
     <!-- Apache Artemis -->
@@ -205,7 +205,7 @@
     <!-- Maven plugin versions -->
     <maven-surefire-plugin.version>3.0.0-M7</maven-surefire-plugin.version>
     <maven-compiler-plugin.version>3.10.1</maven-compiler-plugin.version>
-    <maven-resources-plugin.version>3.2.0</maven-resources-plugin.version>
+    <maven-resources-plugin.version>3.3.0</maven-resources-plugin.version>
     <maven-failsafe-plugin.version>3.0.0-M7</maven-failsafe-plugin.version>
     <maven-javadoc-plugin.version>3.4.0</maven-javadoc-plugin.version>
     <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
