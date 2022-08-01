@@ -44,6 +44,8 @@
                     </ignoredNonTestScopedDependencies>
                     <!-- If code from the following modules is accessed in tests they'll have to move up to ignoredNonTestScopedDependency -->
                     <ignoredUnusedDeclaredDependencies>
+                        <!-- log4j-slf4j-impl is needed to log using slf4j see https://www.slf4j.org/codes.html#noProviders -->
+                        <ignoredUnusedDeclaredDependency>org.apache.logging.log4j:log4j-slf4j-impl</ignoredUnusedDeclaredDependency>
                         <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-audit-consumer</ignoredUnusedDeclaredDependency>
                         <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-metadata-workflow</ignoredUnusedDeclaredDependency>
                         <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-artemis</ignoredUnusedDeclaredDependency>
@@ -245,6 +247,11 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j-impl</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>

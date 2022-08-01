@@ -25,23 +25,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.option;
+package org.hisp.dhis.dxf2.metadata.objectbundle.validation.attribute;
 
 import java.util.List;
+import java.util.function.BiFunction;
+import java.util.function.Predicate;
 
-import org.hisp.dhis.common.DataDimensionType;
-import org.hisp.dhis.common.GenericDimensionalObjectStore;
+import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.user.UserService;
 
 /**
- * @author Viet Nguyen <viet@dhis2.org>
+ * Contains validators for User types of {@link ValueType} such as
+ * {@link ValueType#USERNAME}.
+ * <p>
+ * The first argument of this {@link BiFunction} is the value of the
+ * {@link AttributeValue} which is the UID of the current object.
+ * <p>
+ * The second argument is the {@link Predicate} which responsible for checking
+ * object existence by calling {@link UserService} methods
+ * <p>
+ * The function returns a list of {@link ErrorReport}
+ * <p>
+ * Example:
+ *
+ * <pre>
+ * {@code UserCheck.isUserNameExist.apply( value, klass -> userService.getUserByUsername( value ) != null ) }
+ * </pre>
+ *
+ * @author viet
  */
-
-public interface OptionGroupStore
-    extends GenericDimensionalObjectStore<OptionGroup>
+@FunctionalInterface
+public interface UserCheck extends BiFunction<String, UserService, List<ErrorReport>>
 {
-    List<OptionGroup> getOptionGroups( OptionGroupSet groupSet );
+    UserCheck empty = ( userName, userService ) -> List.of();
 
-    List<OptionGroup> getOptionGroupsByOptionId( String optionId );
-
-    List<OptionGroup> getOptionGroupsNoAcl( DataDimensionType dataDimensionType, boolean dataDimension );
+    UserCheck isUserNameExist = ( userName, userService ) -> userService.getUserByUsername( userName ) == null
+        ? List.of( new ErrorReport( AttributeValue.class, ErrorCode.E6020, userName ) )
+        : List.of();
 }
