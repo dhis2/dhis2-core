@@ -33,6 +33,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -62,6 +63,8 @@ public class TrackerCsvEventService
     implements CsvEventService<Event>
 {
     private static final CsvMapper CSV_MAPPER = new CsvMapper().enable( CsvParser.Feature.WRAP_AS_ARRAY );
+
+    private static final Pattern TRIM_SINGLE_QUOTES = Pattern.compile( "^'|'$" );
 
     @Override
     public void writeEvents( OutputStream outputStream, List<Event> events, boolean withHeader )
@@ -193,9 +196,10 @@ public class TrackerCsvEventService
                 event.setAttributeCategoryOptions( dataValue.getAttributeCategoryOptions() );
                 event.setAssignedUser( User.builder().username( dataValue.getAssignedUser() ).build() );
 
-                if ( dataValue.getGeometry() != null )
+                if ( StringUtils.isNotBlank( dataValue.getGeometry() ) )
                 {
-                    event.setGeometry( new WKTReader().read( dataValue.getGeometry() ) );
+                    event.setGeometry( new WKTReader()
+                        .read( TRIM_SINGLE_QUOTES.matcher( dataValue.getGeometry() ).replaceAll( "" ) ) );
                 }
                 else if ( dataValue.getLongitude() != null && dataValue.getLatitude() != null )
                 {

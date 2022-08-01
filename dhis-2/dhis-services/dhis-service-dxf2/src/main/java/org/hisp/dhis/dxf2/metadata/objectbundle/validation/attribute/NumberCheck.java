@@ -25,36 +25,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.container;
+package org.hisp.dhis.dxf2.metadata.objectbundle.validation.attribute;
 
-import org.testcontainers.containers.JdbcDatabaseContainer;
-import org.testcontainers.containers.PostgisContainerProvider;
-import org.testcontainers.utility.DockerImageName;
+import java.util.List;
+import java.util.function.Function;
+import java.util.function.Predicate;
+
+import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.system.util.MathUtils;
 
 /**
- * Custom PostgisContainerProvider to create {@link DhisPostgreSQLContainer}
+ * Contains validators for Number types of {@link AttributeValue}
  *
- * @author Ameen Mohamed <ameen@dhis2.org>
+ * @author viet
  */
-@SuppressWarnings( "rawtypes" )
-public class DhisPostgisContainerProvider
-    extends PostgisContainerProvider
+@FunctionalInterface
+public interface NumberCheck extends Function<String, List<ErrorReport>>
 {
-    private static final String DEFAULT_TAG = "10-2.5-alpine";
+    NumberCheck empty = str -> List.of();
 
-    private static final String DEFAULT_IMAGE = "postgis/postgis";
+    NumberCheck isInteger = check( MathUtils::isInteger, ErrorCode.E6006 );
 
-    @Override
-    public JdbcDatabaseContainer newInstance()
+    NumberCheck isPositiveInteger = check( MathUtils::isPositiveInteger, ErrorCode.E6007 );
+
+    NumberCheck isNegativeInteger = check( MathUtils::isNegativeInteger, ErrorCode.E6013 );
+
+    NumberCheck isNumber = check( MathUtils::isNumeric, ErrorCode.E6008 );
+
+    NumberCheck isZeroOrPositiveInteger = check( MathUtils::isZeroOrPositiveInteger, ErrorCode.E6009 );
+
+    NumberCheck isPercentage = check( MathUtils::isPercentage, ErrorCode.E6010 );
+
+    NumberCheck isUnitInterval = check( MathUtils::isUnitInterval, ErrorCode.E6011 );
+
+    static NumberCheck check( final Predicate<String> predicate, ErrorCode errorCode )
     {
-        return newInstance( DEFAULT_TAG );
-    }
-
-    @Override
-    public JdbcDatabaseContainer newInstance( String tag )
-    {
-        DockerImageName postgres = DockerImageName.parse( DEFAULT_IMAGE + ":" + tag )
-            .asCompatibleSubstituteFor( "postgres" );
-        return new DhisPostgreSQLContainer( postgres );
+        return str -> !predicate.test( str ) ? List.of( new ErrorReport( AttributeValue.class, errorCode, str ) )
+            : List.of();
     }
 }
