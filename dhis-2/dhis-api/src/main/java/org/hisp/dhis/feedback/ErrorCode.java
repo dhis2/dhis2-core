@@ -164,6 +164,7 @@ public enum ErrorCode
     E3017( "Invalid user group access string: `{0}`" ),
     E3018( "Invalid user access string: `{0}`" ),
     E3019( "Sharing is not enabled for this object `{0}`" ),
+    E3020( "You must have permissions to create user, or ability to manage at least one user group for the user." ),
 
     /* Metadata Validation */
     E4000( "Missing required property `{0}`." ),
