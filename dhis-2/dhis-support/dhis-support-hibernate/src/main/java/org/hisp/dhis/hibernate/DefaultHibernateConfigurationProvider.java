@@ -32,6 +32,8 @@ import static org.hibernate.cfg.AvailableSettings.CACHE_REGION_FACTORY;
 import static org.hibernate.cfg.AvailableSettings.DIALECT;
 import static org.hibernate.cfg.AvailableSettings.GENERATE_STATISTICS;
 import static org.hibernate.cfg.AvailableSettings.HBM2DDL_AUTO;
+import static org.hibernate.cfg.AvailableSettings.USE_QUERY_CACHE;
+import static org.hibernate.cfg.AvailableSettings.USE_SECOND_LEVEL_CACHE;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -244,6 +246,8 @@ public class DefaultHibernateConfigurationProvider
         set( ConfigurationKey.ENCRYPTION_PASSWORD.getKey(),
             configProvider.getProperty( ConfigurationKey.ENCRYPTION_PASSWORD ), p );
 
+        set( USE_SECOND_LEVEL_CACHE, configProvider.getProperty( ConfigurationKey.USE_SECOND_LEVEL_CACHE ), p );
+        set( USE_QUERY_CACHE, configProvider.getProperty( ConfigurationKey.USE_QUERY_CACHE ), p );
         set( HBM2DDL_AUTO, configProvider.getProperty( ConfigurationKey.CONNECTION_SCHEMA ), p );
 
         // Enable Hibernate statistics if Hibernate Monitoring is enabled

@@ -34,7 +34,7 @@ public class PostgresDhisConfigurationProvider
     extends H2DhisConfigurationProvider
 {
 
-    private static final String DEFAULT_CONFIGURATION_FILE_NAME = "h2TestConfig.conf";
+    private static final String DEFAULT_CONFIGURATION_FILE_NAME = "postgresTestConfig.conf";
 
     public PostgresDhisConfigurationProvider()
     {
