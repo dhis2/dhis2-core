@@ -173,50 +173,27 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
                 .collect( Collectors.toMap( EventDataValue::getDataElement, Function.identity() ) ) )
             .orElse( new HashMap<>() );
 
-        Date today = new Date();
+        payloadDataValues.forEach( dv -> {
 
-        for ( DataValue dv : payloadDataValues )
-        {
-            final String persistedValue;
-            AuditType auditType;
-
-            DataElement dateElement = preheat.get( DataElement.class, dv.getDataElement() );
-
-            checkNotNull( dateElement,
+            DataElement dataElement = preheat.get( DataElement.class, dv.getDataElement() );
+            checkNotNull( dataElement,
                 "Data element should never be NULL here if validation is enforced before commit." );
 
-            EventDataValue eventDataValue = dataValueDBMap.get( dv.getDataElement() );
+            // EventDataValue.dataElement contains a UID
+            EventDataValue eventDataValue = dataValueDBMap.get( dataElement.getUid() );
 
-            if ( eventDataValue == null )
-            {
-                eventDataValue = new EventDataValue();
-                persistedValue = dv.getValue();
-                auditType = AuditType.CREATE;
-            }
-            else
-            {
-                persistedValue = eventDataValue.getValue();
+            ValuesHolder valuesHolder = getAuditParameters( eventDataValue, dv );
 
-                Optional<AuditType> optionalAuditType = Optional.ofNullable( dv.getValue() )
-                    .filter( v -> !dv.getValue().equals( persistedValue ) )
-                    .map( v1 -> AuditType.UPDATE )
-                    .or( () -> Optional.ofNullable( dv.getValue() ).map( a -> AuditType.READ )
-                        .or( () -> Optional.of( AuditType.DELETE ) ) );
+            eventDataValue = valuesHolder.getEventDataValue();
 
-                auditType = optionalAuditType.orElse( null );
-            }
-
-            ValuesHolder valuesHolder = ValuesHolder.builder().providedElseWhere( dv.isProvidedElsewhere() )
-                .value( persistedValue ).build();
-
-            eventDataValue.setDataElement( dateElement.getUid() );
+            eventDataValue.setDataElement( dataElement.getUid() );
             eventDataValue.setStoredBy( dv.getStoredBy() );
 
             handleDataValueCreatedUpdatedDates( dv, eventDataValue );
 
             if ( StringUtils.isEmpty( dv.getValue() ) )
             {
-                if ( dateElement.isFileType() )
+                if ( dataElement.isFileType() )
                 {
                     unassignFileResource( session, preheat, dataValueDBMap.get( dv.getDataElement() ).getValue() );
                 }
@@ -227,7 +204,7 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
             {
                 eventDataValue.setValue( dv.getValue() );
 
-                if ( dateElement.isFileType() )
+                if ( dataElement.isFileType() )
                 {
                     assignFileResource( session, preheat, eventDataValue.getValue() );
                 }
@@ -236,9 +213,9 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
                 psi.getEventDataValues().add( eventDataValue );
             }
 
-            logTrackedEntityDataValueHistory( preheat.getUsername(), dateElement, psi, auditType,
-                today, valuesHolder );
-        }
+            logTrackedEntityDataValueHistory( preheat.getUsername(), dataElement, psi,
+                new Date(), valuesHolder );
+        } );
     }
 
     private void handleDataValueCreatedUpdatedDates( DataValue dv, EventDataValue eventDataValue )
@@ -255,22 +232,11 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
             .orElseGet( Date::new );
     }
 
-    @Override
-    protected void persistOwnership( TrackerPreheat preheat, ProgramStageInstance entity )
-    {
-        // DO NOTHING. Event creation does not create ownership records.
-    }
-
-    @Override
-    protected String getUpdatedTrackedEntity( ProgramStageInstance entity )
-    {
-        return Optional.ofNullable( entity.getProgramInstance() ).filter( pi -> pi.getEntityInstance() != null )
-            .map( pi -> pi.getEntityInstance().getUid() ).orElse( null );
-    }
-
     private void logTrackedEntityDataValueHistory( String userName,
-        DataElement de, ProgramStageInstance psi, AuditType auditType, Date created, ValuesHolder valuesHolder )
+        DataElement de, ProgramStageInstance psi, Date created, ValuesHolder valuesHolder )
     {
+        AuditType auditType = valuesHolder.getAuditType();
+
         if ( auditType != null )
         {
             TrackedEntityDataValueAudit valueAudit = new TrackedEntityDataValueAudit();
@@ -286,6 +252,67 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
         }
     }
 
+    @Override
+    protected void persistOwnership( TrackerPreheat preheat, ProgramStageInstance entity )
+    {
+        // DO NOTHING. Event creation does not create ownership records.
+    }
+
+    @Override
+    protected String getUpdatedTrackedEntity( ProgramStageInstance entity )
+    {
+        return Optional.ofNullable( entity.getProgramInstance() ).filter( pi -> pi.getEntityInstance() != null )
+            .map( pi -> pi.getEntityInstance().getUid() ).orElse( null );
+    }
+
+    private boolean isNewDataValue( EventDataValue eventDataValue, DataValue dv )
+    {
+        return eventDataValue == null
+            || (eventDataValue.getCreated() == null && StringUtils.isNotBlank( dv.getValue() ));
+    }
+
+    private boolean isDeletion( EventDataValue eventDataValue, DataValue dv )
+    {
+        return StringUtils.isNotBlank( eventDataValue.getValue() ) && StringUtils.isBlank( dv.getValue() );
+    }
+
+    private boolean isUpdate( EventDataValue eventDataValue, DataValue dv )
+    {
+        return !StringUtils.equals( dv.getValue(), eventDataValue.getValue() );
+    }
+
+    private ValuesHolder getAuditParameters( EventDataValue eventDataValue, DataValue dv )
+    {
+        String persistedValue;
+
+        AuditType auditType = null;
+
+        if ( isNewDataValue( eventDataValue, dv ) )
+        {
+            eventDataValue = new EventDataValue();
+            persistedValue = dv.getValue();
+            auditType = AuditType.CREATE;
+        }
+        else
+        {
+            persistedValue = eventDataValue.getValue();
+
+            if ( isUpdate( eventDataValue, dv ) )
+            {
+                auditType = AuditType.UPDATE;
+            }
+
+            if ( isDeletion( eventDataValue, dv ) )
+            {
+                auditType = AuditType.DELETE;
+            }
+        }
+
+        return ValuesHolder.builder().value( persistedValue ).providedElseWhere( dv.isProvidedElsewhere() )
+            .auditType( auditType )
+            .eventDataValue( eventDataValue ).build();
+    }
+
     @Data
     @Builder
     static class ValuesHolder
@@ -293,5 +320,9 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
         private final String value;
 
         private final boolean providedElseWhere;
+
+        private final AuditType auditType;
+
+        private final EventDataValue eventDataValue;
     }
 }
