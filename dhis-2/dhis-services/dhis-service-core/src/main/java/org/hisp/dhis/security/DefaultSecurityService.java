@@ -28,6 +28,7 @@
 package org.hisp.dhis.security;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -651,7 +652,7 @@ public class DefaultSecurityService
     }
 
     @Override
-    public void validate2FAUpdate( boolean before, boolean after, User user )
+    public void validate2FAUpdate( boolean before, boolean after, User userToModify )
     {
         if ( before == after )
         {
@@ -673,7 +674,7 @@ public class DefaultSecurityService
 
         // Current user can not update their own 2FA settings, must use
         // /2fa/enable or disable API, even if they are admin.
-        if ( currentUserDetails.getUid().equals( user.getUid() ) )
+        if ( currentUserDetails.getUid().equals( userToModify.getUid() ) )
         {
             throw new UpdateAccessDeniedException(
                 "User cannot update their own user's 2FA settings via this API endpoint, must use /2fa/enable or disable API" );
@@ -687,7 +688,14 @@ public class DefaultSecurityService
 
         // If current user has access to manage this user, they can disable 2FA.
         User currentUser = userService.getUser( currentUserDetails.getUid() );
-        if ( !aclService.canUpdate( currentUser, user ) )
+        if ( !aclService.canUpdate( currentUser, userToModify ) )
+        {
+            throw new UpdateAccessDeniedException(
+                String.format( "User `%s` is not allowed to update object `%s`.", currentUser.getUsername(),
+                    userToModify ) );
+        }
+        if ( !userService.canAddOrUpdateUser( getUids( userToModify.getGroups() ), currentUser )
+            || !currentUser.canModifyUser( userToModify ) )
         {
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this user." );
         }

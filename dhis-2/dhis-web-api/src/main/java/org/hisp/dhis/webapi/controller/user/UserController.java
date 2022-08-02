@@ -572,6 +572,15 @@ public class UserController
         setExpires( uid, null );
     }
 
+    /**
+     * "Disable two-factor authentication for the user with the given uid."
+     * <p>
+     *
+     * @param uid The uid of the user to disable two-factor authentication for.
+     * @param currentUser This is the user that is currently logged in.
+     *
+     * @return A WebMessage object.
+     */
     @PostMapping( "/{uid}/twoFA/disabled" )
     public WebMessage disableTwoFA( @PathVariable( "uid" ) String uid, @CurrentUser User currentUser )
     {

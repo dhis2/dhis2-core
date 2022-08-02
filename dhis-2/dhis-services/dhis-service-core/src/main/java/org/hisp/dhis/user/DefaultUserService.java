@@ -854,13 +854,19 @@ public class DefaultUserService
 
     @Override
     @Transactional
-    public void disableTwoFA( User currentUser, String userId, Consumer<ErrorReport> errors )
+    public void disableTwoFA( User currentUser, String userUID, Consumer<ErrorReport> errors )
     {
-        User user = getUser( userId );
-
+        User user = getUser( userUID );
         if ( user == null )
         {
             throw new IllegalArgumentException( "User not found" );
+        }
+
+        if ( currentUser.getUid().equals( user.getUid() ) )
+        {
+            // Cannot disable 2FA for yourself with this API endpoint.
+            errors.accept( new ErrorReport( UserRole.class, ErrorCode.E3021, currentUser.getUsername(),
+                user.getName() ) );
         }
 
         if ( !canCurrentUserCanModify( currentUser, user, errors ) )

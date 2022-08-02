@@ -439,7 +439,20 @@ public interface UserService
     CurrentUserDetailsImpl createUserDetails( User user, String password, boolean accountNonLocked,
         boolean credentialsNonExpired );
 
-    void disableTwoFA( User currentUser, String userId, Consumer<ErrorReport> errors );
+    /**
+     * "If the current user is not the user being modified, and the current user
+     * has the authority to modify the user, then disable two-factor
+     * authentication for the user."
+     * <p>
+     * The first thing we do is get the user object from the database. If the
+     * user doesn't exist, we throw an exception
+     *
+     * @param currentUser The user who is making the request.
+     * @param userUID The user UID of the user to disable 2FA for.
+     * @param errors A Consumer<ErrorReport> object that will be called if there
+     *        is an error.
+     */
+    void disableTwoFA( User currentUser, String userUID, Consumer<ErrorReport> errors );
 
     boolean canCurrentUserCanModify( User currentUser, User userToModify, Consumer<ErrorReport> errors );
 }

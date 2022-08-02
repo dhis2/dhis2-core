@@ -456,13 +456,12 @@ public class MeController
         currentUser.setInterests( stringWithDefault( user.getInterests(), currentUser.getInterests() ) );
         currentUser.setLanguages( stringWithDefault( user.getLanguages(), currentUser.getLanguages() ) );
 
-        // TODO: NOT ALLOWED AFTER 13332
-        // if ( currentUser.getTwoFA() != user.getTwoFA() )
-        // {
-        // throw new RunException( "Not allowed to use this endpoint!" );
-        // }
-        currentUser.setTwoFA( user.isTwoFA() );
-
+        // TODO: NOT ALLOWED AFTER 13332, breaks current API/UI (2.39) 2.38
+        // backport later
+        if ( currentUser.getTwoFA() != user.getTwoFA() )
+        {
+            throw new IllegalArgumentException( "Not allowed to disable 2FA with this endpoint!" );
+        }
     }
 
     private void updatePassword( User currentUser, String password )
