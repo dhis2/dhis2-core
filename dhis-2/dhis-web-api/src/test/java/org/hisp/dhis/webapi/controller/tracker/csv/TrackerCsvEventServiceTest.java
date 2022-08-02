@@ -32,10 +32,12 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -46,6 +48,11 @@ import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webapi.controller.tracker.view.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.io.ParseException;
 
 import com.google.common.io.Files;
@@ -55,10 +62,13 @@ class TrackerCsvEventServiceTest
 
     private TrackerCsvEventService service;
 
+    private GeometryFactory geometryFactory;
+
     @BeforeEach
     void setUp()
     {
         service = new TrackerCsvEventService();
+        geometryFactory = new GeometryFactory();
     }
 
     @Test
@@ -208,5 +218,26 @@ class TrackerCsvEventServiceTest
             assertEquals( "admin", dv.getStoredBy() );
             assertFalse( dv.isProvidedElsewhere() );
         } );
+    }
+
+    @ValueSource( strings = {
+        ",,,,,,,,,POINT (-11.4283223849698 8.06311527044516)",
+        ",,,,,,,,,\"POINT (-11.4283223849698 8.06311527044516)\"",
+        ",,,,,,,,,'POINT (-11.4283223849698 8.06311527044516)'",
+    } )
+    @ParameterizedTest
+    void testReadEventsParsesGeometryEvenIfQuoted( String csv )
+        throws IOException,
+        ParseException
+    {
+
+        InputStream in = new ByteArrayInputStream( csv.getBytes( StandardCharsets.UTF_8 ) );
+
+        List<Event> events = service.readEvents( in, false );
+
+        assertFalse( events.isEmpty() );
+        assertEquals( 1, events.size() );
+        Point expected = geometryFactory.createPoint( new Coordinate( -11.4283223849698, 8.06311527044516 ) );
+        assertEquals( expected, events.get( 0 ).getGeometry() );
     }
 }
