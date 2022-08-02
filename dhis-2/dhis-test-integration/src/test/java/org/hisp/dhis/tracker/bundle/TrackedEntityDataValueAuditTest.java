@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.bundle;
 
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -54,6 +55,8 @@ public class TrackedEntityDataValueAuditTest extends TrackerTest
 {
     private static final String ORIGINAL_VALUE = "value1";
 
+    private static final String UPDATED_VALUE = "value1-updated";
+
     private static final String PSI = "D9PbzJY8bJO";
 
     public static final String DE = "DATAEL00001";
@@ -66,6 +69,10 @@ public class TrackedEntityDataValueAuditTest extends TrackerTest
 
     @Autowired
     private TrackedEntityDataValueAuditService dataValueAuditService;
+
+    private DataElement dataElement;
+
+    private ProgramStageInstance psi;
 
     @Override
     protected void initTest()
@@ -86,8 +93,8 @@ public class TrackedEntityDataValueAuditTest extends TrackerTest
         assertNoErrors(
             trackerImportService.importTracker( fromJson( "tracker/event_with_data_values_for_delete_audit.json" ) ) );
 
-        DataElement dataElement = manager.search( DataElement.class, DE );
-        ProgramStageInstance psi = manager.search( ProgramStageInstance.class, PSI );
+        dataElement = manager.search( DataElement.class, DE );
+        psi = manager.search( ProgramStageInstance.class, PSI );
         assertNotNull( dataElement );
         assertNotNull( psi );
 
@@ -107,30 +114,24 @@ public class TrackedEntityDataValueAuditTest extends TrackerTest
                 .setProgramStageInstances( List.of( psi ) )
                 .setAuditType( AuditType.DELETE ) );
 
-        assertNotNull( createdAudit );
-        assertNotNull( updatedAudit );
-        assertNotNull( deletedAudit );
-        assertFalse( createdAudit.isEmpty() );
-        assertFalse( updatedAudit.isEmpty() );
-        assertFalse( deletedAudit.isEmpty() );
+        assertAll( () -> assertNotNull( createdAudit ), () -> assertNotNull( updatedAudit ),
+            () -> assertNotNull( deletedAudit ) );
+        assertAuditCollection( createdAudit, AuditType.CREATE, ORIGINAL_VALUE );
+        assertAuditCollection( updatedAudit, AuditType.UPDATE, ORIGINAL_VALUE );
+        assertAuditCollection( deletedAudit, AuditType.DELETE, UPDATED_VALUE );
 
-        createdAudit.forEach( a -> {
-            assertEquals( a.getAuditType(), AuditType.CREATE );
-            assertEquals( a.getDataElement().getUid(), dataElement.getUid() );
-            assertEquals( a.getProgramStageInstance().getUid(), psi.getUid() );
-        } );
+    }
 
-        updatedAudit.forEach( a -> {
-            assertEquals( a.getAuditType(), AuditType.UPDATE );
-            assertEquals( a.getDataElement().getUid(), dataElement.getUid() );
-            assertEquals( a.getProgramStageInstance().getUid(), psi.getUid() );
-            assertEquals( ORIGINAL_VALUE, a.getValue() );
-        } );
-
-        deletedAudit.forEach( a -> {
-            assertEquals( a.getAuditType(), AuditType.DELETE );
-            assertEquals( a.getDataElement().getUid(), dataElement.getUid() );
-            assertEquals( a.getProgramStageInstance().getUid(), psi.getUid() );
-        } );
+    private void assertAuditCollection( List<TrackedEntityDataValueAudit> audits, AuditType auditType,
+        String expectedValue )
+    {
+        assertAll( () -> assertFalse( audits.isEmpty() ),
+            () -> assertEquals( auditType, audits.get( 0 ).getAuditType(),
+                () -> "Expected audit type is " + auditType + " but found " + audits.get( 0 ).getAuditType() ),
+            () -> assertEquals( audits.get( 0 ).getDataElement().getUid(), dataElement.getUid(),
+                () -> "Expected dataElement is " + dataElement.getUid() + " but found "
+                    + audits.get( 0 ).getDataElement().getUid() ),
+            () -> assertEquals( expectedValue, audits.get( 0 ).getValue(),
+                () -> "Expected value is " + expectedValue + " but found " + audits.get( 0 ).getValue() ) );
     }
 }
