@@ -53,8 +53,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.relationship.RelationshipConstraint;
-import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -1129,22 +1127,6 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
             .attributeOptionCombo( MetadataIdentifier.EMPTY_UID )
             .enrollment( ENROLLMENT_ID );
-    }
-
-    private RelationshipType createRelTypeConstraint( @SuppressWarnings( "SameParameterValue" ) RelationshipEntity from,
-        @SuppressWarnings( "SameParameterValue" ) RelationshipEntity to )
-    {
-        RelationshipType relType = new RelationshipType();
-        relType.setUid( CodeGenerator.generateUid() );
-        RelationshipConstraint relationshipConstraintFrom = new RelationshipConstraint();
-        relationshipConstraintFrom.setRelationshipEntity( from );
-        RelationshipConstraint relationshipConstraintTo = new RelationshipConstraint();
-        relationshipConstraintTo.setRelationshipEntity( to );
-
-        relType.setFromConstraint( relationshipConstraintFrom );
-        relType.setToConstraint( relationshipConstraintTo );
-
-        return relType;
     }
 
     private RelationshipItem trackedEntityRelationshipItem( String trackedEntityUid )
