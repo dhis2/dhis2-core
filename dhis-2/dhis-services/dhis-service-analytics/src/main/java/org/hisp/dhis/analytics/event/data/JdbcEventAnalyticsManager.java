@@ -49,6 +49,7 @@ import static org.hisp.dhis.feedback.ErrorCode.E7133;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 import static org.postgresql.util.PSQLState.DIVISION_BY_ZERO;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -276,6 +277,7 @@ public class JdbcEventAnalyticsManager
     @Override
     public Rectangle getRectangle( EventQueryParams params )
     {
+        // TODO
         String fallback = params.getFallbackCoordinateField();
         String quotedClusterFieldFraction;
         if ( fallback == null || !params.isCoordinateOuFallback() )
@@ -539,11 +541,7 @@ public class JdbcEventAnalyticsManager
         {
             if ( params.isCoordinateOuFallback() )
             {
-                sql += hlp.whereAnd() + " (" +
-                    quoteAlias( resolveCoordinateFieldColumnName( params.getCoordinateField(), params ) ) +
-                    " is not null or " +
-                    quoteAlias( resolveCoordinateFieldColumnName( params.getFallbackCoordinateField(), params ) ) +
-                    " is not null )";
+                sql += hlp.whereAnd() + " (" + getSqlSnippetForFallbackCoordinateFields( params ) + ")";
             }
             else
             {
@@ -603,6 +601,19 @@ public class JdbcEventAnalyticsManager
             .stream()
             .map( org -> toInCondition( org, collect.get( org ) ) )
             .collect( joining( " and " ) );
+    }
+
+    private String getSqlSnippetForFallbackCoordinateFields( EventQueryParams params )
+    {
+        if ( params.getFallbackCoordinateField() == null )
+        {
+            return "";
+        }
+
+        return Arrays.stream( params.getFallbackCoordinateField().split( "," ) )
+            .map( f -> quoteAlias( resolveCoordinateFieldColumnName( f, params ) ) +
+                " is not null" )
+            .collect( joining( " or " ) );
     }
 
     private String toInCondition( String org, List<OrganisationUnit> organisationUnits )
