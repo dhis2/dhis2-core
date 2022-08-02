@@ -153,7 +153,7 @@ public class DefaultDataValueService
         if ( config.isEnabled( CHANGELOG_AGGREGATE ) )
         {
             DataValueAudit dataValueAudit = new DataValueAudit( dataValue, dataValue.getAuditValue(),
-                    dataValue.getStoredBy(), AuditType.CREATE );
+                dataValue.getStoredBy(), AuditType.CREATE );
 
             dataValueAuditService.addDataValueAudit( dataValueAudit );
         }
