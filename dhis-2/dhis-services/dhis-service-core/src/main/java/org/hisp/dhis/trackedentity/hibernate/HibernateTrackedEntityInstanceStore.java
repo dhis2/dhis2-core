@@ -58,7 +58,6 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import javax.annotation.PostConstruct;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
@@ -82,13 +81,14 @@ import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.dxf2.events.event.EventContext;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceStoreServicesSupplier;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
@@ -147,26 +147,28 @@ public class HibernateTrackedEntityInstanceStore
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private final TrackedEntityInstanceStoreServicesSupplier instanceStoreServicesSupplier;
+    private OrganisationUnitStore organisationUnitStore;
 
     private StatementBuilder statementBuilder;
 
+    private DhisConfigurationProvider configurationProvider;
+
+    // TODO too many arguments in constructor. This needs to be refactored.
     public HibernateTrackedEntityInstanceStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService,
-        AclService aclService, TrackedEntityInstanceStoreServicesSupplier instanceStoreServicesSupplier )
+        AclService aclService, StatementBuilder statementBuilder,
+        OrganisationUnitStore organisationUnitStore, DhisConfigurationProvider configurationProvider )
     {
         super( sessionFactory, jdbcTemplate, publisher, TrackedEntityInstance.class, currentUserService, aclService,
             false );
 
-        checkNotNull( instanceStoreServicesSupplier );
+        checkNotNull( statementBuilder );
+        checkNotNull( organisationUnitStore );
+        checkNotNull( configurationProvider );
 
-        this.instanceStoreServicesSupplier = instanceStoreServicesSupplier;
-    }
-
-    @PostConstruct
-    public void init()
-    {
-        this.statementBuilder = instanceStoreServicesSupplier.getStatementBuilder();
+        this.statementBuilder = statementBuilder;
+        this.organisationUnitStore = organisationUnitStore;
+        this.configurationProvider = configurationProvider;
     }
 
     // -------------------------------------------------------------------------
@@ -852,7 +854,7 @@ public class HibernateTrackedEntityInstanceStore
             for ( OrganisationUnit organisationUnit : params.getOrganisationUnits() )
             {
 
-                OrganisationUnit byUid = instanceStoreServicesSupplier.getOrganisationUnitStore()
+                OrganisationUnit byUid = organisationUnitStore
                     .getByUid( organisationUnit.getUid() );
 
                 orgUnits
@@ -1372,7 +1374,7 @@ public class HibernateTrackedEntityInstanceStore
         StringBuilder limitOffset = new StringBuilder();
         int limit = params.getMaxTeiLimit();
         int teiQueryLimit = Integer
-            .parseInt( instanceStoreServicesSupplier.getConfigurationProvider()
+            .parseInt( configurationProvider
                 .getProperty( ConfigurationKey.TRACKER_TRACKED_ENTITY_QUERY_LIMIT ) );
 
         if ( limit == 0 && !params.isPaging() )
@@ -1577,7 +1579,7 @@ public class HibernateTrackedEntityInstanceStore
     {
         if ( uid != null )
         {
-            return Optional.ofNullable( instanceStoreServicesSupplier.getOrganisationUnitStore().getByUid( uid ) )
+            return Optional.ofNullable( organisationUnitStore.getByUid( uid ) )
                 .orElseGet( () -> new OrganisationUnit( "" ) ).getName();
         }
 
