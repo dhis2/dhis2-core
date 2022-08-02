@@ -160,10 +160,10 @@ class DataValueAuditBatchHandlerTest extends SingleSetupIntegrationTestBase
         batchHandler.flush();
         List<DataValueAudit> auditsA = auditService.getDataValueAudits( dataValueA );
         assertNotNull( auditsA );
-        assertEquals( 3, auditsA.size() );
+        assertEquals( 2, auditsA.size() );
         List<DataValueAudit> auditsB = auditService.getDataValueAudits( dataValueB );
         assertNotNull( auditsB );
-        assertEquals( 3, auditsB.size() );
+        assertEquals( 2, auditsB.size() );
     }
 
     /**
@@ -187,7 +187,7 @@ class DataValueAuditBatchHandlerTest extends SingleSetupIntegrationTestBase
         auditA.setModifiedBy( "bill" );
         batchHandler.updateObject( auditA );
         List<DataValueAudit> audits = auditService.getDataValueAudits( dataValueA );
-        assertEquals( 2, audits.size() );
+        assertEquals( 1, audits.size() );
         assertEquals( "bill", audits.get( 0 ).getModifiedBy() );
     }
 }

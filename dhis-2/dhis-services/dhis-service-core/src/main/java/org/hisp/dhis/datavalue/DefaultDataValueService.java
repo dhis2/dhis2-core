@@ -150,14 +150,6 @@ public class DefaultDataValueService
             dataValueStore.addDataValue( dataValue );
         }
 
-        if ( config.isEnabled( CHANGELOG_AGGREGATE ) )
-        {
-            DataValueAudit dataValueAudit = new DataValueAudit( dataValue, dataValue.getAuditValue(),
-                dataValue.getStoredBy(), AuditType.CREATE );
-
-            dataValueAuditService.addDataValueAudit( dataValueAudit );
-        }
-
         return true;
     }
 
