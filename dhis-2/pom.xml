@@ -81,14 +81,14 @@
 
     <!-- Spring -->
     <spring.version>5.3.22</spring.version>
-    <spring-data-redis.version>2.7.1</spring-data-redis.version>
+    <spring-data-redis.version>2.7.2</spring-data-redis.version>
     <spring-session-data-redis.version>2.7.0</spring-session-data-redis.version>
     <spring-mobile-device.version>1.1.5.RELEASE</spring-mobile-device.version>
     <spring-retry.version>1.3.3</spring-retry.version>
     <spring-restdocs.version>2.0.6.RELEASE</spring-restdocs.version>
     <spring-ldap.version>2.4.1</spring-ldap.version>
     <cache2k-api.version>1.6.0.Final</cache2k-api.version>
-    <lettuce.version>6.1.8.RELEASE</lettuce.version>
+    <lettuce.version>6.2.0.RELEASE</lettuce.version>
 
     <!--DBMS -->
     <flyway-core.version>8.5.13</flyway-core.version>
@@ -125,7 +125,7 @@
     <jclouds.version>2.5.0</jclouds.version>
 
     <!-- Reporting -->
-    <jasperreports.version>6.19.1</jasperreports.version>
+    <jasperreports.version>6.20.0</jasperreports.version>
     <jfreechart.version>1.5.3</jfreechart.version>
     <htmlparser.version>2.1</htmlparser.version>
     <htmllexer.version>2.1</htmllexer.version>
@@ -137,7 +137,7 @@
     <batik-transcoder.version>1.14</batik-transcoder.version>
     <fop.version>2.7</fop.version>
     <mapstruct.version>1.5.2.Final</mapstruct.version>
-    <geotools.version>27.0</geotools.version>
+    <geotools.version>27.1</geotools.version>
     <jts.version>1.19.0</jts.version>
 
     <!-- Apache Artemis -->
@@ -163,7 +163,7 @@
     <lombok.version>1.18.24</lombok.version>
     <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
     <joda-time.version>2.10.14</joda-time.version>
-    <cron-utils.version>9.1.8</cron-utils.version>
+    <cron-utils.version>9.2.0</cron-utils.version>
     <validation-api.version>2.0.1.Final</validation-api.version>
     <hibernate-validator.version>6.2.0.Final</hibernate-validator.version>
     <commons-collections4.version>4.4</commons-collections4.version>
