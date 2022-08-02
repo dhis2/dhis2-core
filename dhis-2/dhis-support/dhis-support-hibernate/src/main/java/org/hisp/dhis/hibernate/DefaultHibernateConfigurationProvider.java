@@ -247,7 +247,7 @@ public class DefaultHibernateConfigurationProvider
         set( ConfigurationKey.ENCRYPTION_PASSWORD.getKey(),
             configProvider.getProperty( ConfigurationKey.ENCRYPTION_PASSWORD ), p );
 
-        if ( SystemUtils.isTestRun( environment.getActiveProfiles() ) )
+        if ( SystemUtils.isH2( environment.getActiveProfiles() ) )
         {
             set( HBM2DDL_AUTO, configProvider.getProperty( ConfigurationKey.CONNECTION_SCHEMA ), p );
             set( USE_SECOND_LEVEL_CACHE, "false", p );
