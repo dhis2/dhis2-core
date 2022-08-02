@@ -31,7 +31,6 @@ import java.util.Properties;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -87,17 +86,6 @@ public class IntegrationTestConfig
         properties.setProperty( "connection.url",
             "jdbc:tc:postgis:" + POSTGIS_VERSION + ":///" + POSTGRES_DATABASE_NAME +
                 "?TC_INITSCRIPT=db/extensions.sql&TC_TMPFS=/testtmpfs:rw" );
-        properties.setProperty( "connection.dialect", "org.hisp.dhis.hibernate.dialect.DhisPostgresDialect" );
-        properties.setProperty( "connection.driver_class", "org.postgresql.Driver" );
-        properties.setProperty( "connection.username", POSTGRES_CREDENTIALS );
-        properties.setProperty( "connection.password", POSTGRES_CREDENTIALS );
-        properties.setProperty( ConfigurationKey.AUDIT_USE_IN_MEMORY_QUEUE_ENABLED.getKey(), "off" );
-        properties.setProperty( "metadata.audit.persist", "on" );
-        properties.setProperty( "tracker.audit.persist", "on" );
-        properties.setProperty( "aggregate.audit.persist", "on" );
-        properties.setProperty( "audit.metadata", CREATE_UPDATE_DELETE );
-        properties.setProperty( "audit.tracker", CREATE_UPDATE_DELETE );
-        properties.setProperty( "audit.aggregate", CREATE_UPDATE_DELETE );
 
         dhisConfigurationProvider.addProperties( properties );
 

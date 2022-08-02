@@ -32,8 +32,6 @@ import static org.hibernate.cfg.AvailableSettings.CACHE_REGION_FACTORY;
 import static org.hibernate.cfg.AvailableSettings.DIALECT;
 import static org.hibernate.cfg.AvailableSettings.GENERATE_STATISTICS;
 import static org.hibernate.cfg.AvailableSettings.HBM2DDL_AUTO;
-import static org.hibernate.cfg.AvailableSettings.USE_QUERY_CACHE;
-import static org.hibernate.cfg.AvailableSettings.USE_SECOND_LEVEL_CACHE;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -54,7 +52,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.cfg.Configuration;
-import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManagerException;
@@ -247,16 +244,7 @@ public class DefaultHibernateConfigurationProvider
         set( ConfigurationKey.ENCRYPTION_PASSWORD.getKey(),
             configProvider.getProperty( ConfigurationKey.ENCRYPTION_PASSWORD ), p );
 
-        if ( SystemUtils.isTestRun( environment.getActiveProfiles() ) )
-        {
-            set( USE_SECOND_LEVEL_CACHE, "false", p );
-            set( USE_QUERY_CACHE, "false", p );
-        }
-
-        if ( SystemUtils.isH2( environment.getActiveProfiles() ) )
-        {
-            set( HBM2DDL_AUTO, configProvider.getProperty( ConfigurationKey.CONNECTION_SCHEMA ), p );
-        }
+        set( HBM2DDL_AUTO, configProvider.getProperty( ConfigurationKey.CONNECTION_SCHEMA ), p );
 
         // Enable Hibernate statistics if Hibernate Monitoring is enabled
         if ( configProvider.isEnabled( ConfigurationKey.MONITORING_HIBERNATE_ENABLED ) )
