@@ -57,7 +57,7 @@ import org.springframework.stereotype.Component;
  * This is one of the validators of the Metadata Import service.
  * <p>
  * It will validate Metadata {@link Attribute} of all importing objects by
- * executing all {@link AttributeValidator}
+ * executing {@link AttributeValidator}'s functions.
  *
  * @author viet
  */
@@ -79,6 +79,7 @@ public class MetadataAttributeCheck implements ObjectValidationCheck
         {
             return;
         }
+
         Set<Attribute> attributes = bundle.getPreheat().getAttributesByClass( klass );
 
         Map<String, ValueType> valueTypesMap = attributes != null && !attributes.isEmpty()
