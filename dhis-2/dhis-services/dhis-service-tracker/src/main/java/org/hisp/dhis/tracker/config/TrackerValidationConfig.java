@@ -122,7 +122,6 @@ public class TrackerValidationConfig
             EventGeoValidationHook.class,
             EventNoteValidationHook.class,
             EventDataValuesValidationHook.class,
-            EventReferralValidationHook.class,
 
             RelationshipsValidationHook.class,
 
