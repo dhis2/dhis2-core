@@ -62,6 +62,7 @@ public interface ProgramStageMapper extends PreheatMapper<ProgramStage>
     @Mapping( target = "userAccesses", qualifiedByName = "userAccesses" )
     @Mapping( target = "program", qualifiedByName = "program" )
     @Mapping( target = "repeatable" )
+    @Mapping( target = "referral" )
     @Mapping( target = "programStageDataElements" )
     @Mapping( target = "enableUserAssignment" )
     @Mapping( target = "validationStrategy" )

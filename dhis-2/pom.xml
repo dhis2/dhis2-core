@@ -91,7 +91,7 @@
     <lettuce.version>6.2.0.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-core.version>8.5.13</flyway-core.version>
+    <flyway-core.version>9.0.4</flyway-core.version>
     <hibernate.version>5.6.10.Final</hibernate.version>
     <hibernate-types.version>2.17.1</hibernate-types.version>
     <!-- Data sources,db pools and db drivers -->
@@ -159,7 +159,7 @@
     <guava.version>31.1-jre</guava.version>
     <jsr305.version>3.0.2</jsr305.version>
     <imgscalr-lib.version>4.2</imgscalr-lib.version>
-    <google-api-client.version>1.35.2</google-api-client.version>
+    <google-api-client.version>2.0.0</google-api-client.version>
     <lombok.version>1.18.24</lombok.version>
     <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
     <joda-time.version>2.10.14</joda-time.version>
