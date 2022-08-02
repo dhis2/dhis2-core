@@ -138,6 +138,14 @@ public class DefaultDataValueService
 
         DataValue softDelete = dataValueStore.getSoftDeletedDataValue( dataValue );
 
+        if ( config.isEnabled( CHANGELOG_AGGREGATE ) )
+        {
+            DataValueAudit dataValueAudit = new DataValueAudit( dataValue, dataValue.getAuditValue(),
+                dataValue.getStoredBy(), AuditType.CREATE );
+
+            dataValueAuditService.addDataValueAudit( dataValueAudit );
+        }
+
         if ( softDelete != null )
         {
             softDelete.mergeWith( dataValue );
