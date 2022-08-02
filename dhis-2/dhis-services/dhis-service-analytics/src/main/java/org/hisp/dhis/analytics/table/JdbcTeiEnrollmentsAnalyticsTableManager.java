@@ -68,8 +68,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.ImmutableList;
-
 @Component( "org.hisp.dhis.analytics.TeiEnrollmentsAnalyticsTableManager" )
 public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableManager
 {
@@ -91,7 +89,7 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
         this.trackedEntityTypeService = trackedEntityTypeService;
     }
 
-    private static final List<AnalyticsTableColumn> FIXED_COLS = ImmutableList.of(
+    private static final List<AnalyticsTableColumn> FIXED_COLS = List.of(
         new AnalyticsTableColumn( quote( "trackedentityinstanceuid" ), CHARACTER_11, NOT_NULL, "tei.uid" ),
         new AnalyticsTableColumn( quote( "programuid" ), CHARACTER_11, NULL, "p.uid" ),
         new AnalyticsTableColumn( quote( "programinstanceuid" ), CHARACTER_11, NULL, "pi.uid" ),
@@ -206,7 +204,7 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
 
         validateDimensionColumns( columns );
 
-        String sql = "insert into " + partition.getTempTableName() + " (";
+        StringBuilder sql = new StringBuilder( "insert into " + partition.getTempTableName() + " (" );
 
         for ( AnalyticsTableColumn col : ListUtils.union( columns, values ) )
         {
@@ -215,10 +213,10 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
                 continue;
             }
 
-            sql += col.getName() + ",";
+            sql.append( col.getName() + "," );
         }
 
-        sql = TextUtils.removeLastComma( sql ) + ") select ";
+        TextUtils.removeLastComma( sql ).append( ") select " );
 
         for ( AnalyticsTableColumn col : columns )
         {
@@ -227,22 +225,22 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
                 continue;
             }
 
-            sql += col.getAlias() + ",";
+            sql.append( col.getAlias() + "," );
         }
 
-        sql = TextUtils.removeLastComma( sql )
-            + " from trackedentityinstance tei "
-            + " left join programinstance pi on pi.trackedentityinstanceid = tei.trackedentityinstanceid"
-            + " left join program p on p.programid = pi.programid"
-            + " left join programstageinstance psi on psi.programinstanceid = pi.programinstanceid"
-            + " left join programstage ps on ps.programstageid = psi.programstageid"
-            + " left join organisationunit ou on pi.organisationunitid = ou.organisationunitid"
-            + " left join _orgunitstructure ous on ous.organisationunitid = ou.organisationunitid"
-            + " where tei.trackedentitytypeid = " + partition.getMasterTable().getTrackedEntityType().getId()
-            + " group by "
-            + FIXED_COLS.stream().map( AnalyticsTableColumn::getAlias ).collect( Collectors.joining( "," ) );
+        TextUtils.removeLastComma( sql )
+            .append( " from trackedentityinstance tei " )
+            .append( " left join programinstance pi on pi.trackedentityinstanceid = tei.trackedentityinstanceid" )
+            .append( " left join program p on p.programid = pi.programid" )
+            .append( " left join programstageinstance psi on psi.programinstanceid = pi.programinstanceid" )
+            .append( " left join programstage ps on ps.programstageid = psi.programstageid" )
+            .append( " left join organisationunit ou on pi.organisationunitid = ou.organisationunitid" )
+            .append( " left join _orgunitstructure ous on ous.organisationunitid = ou.organisationunitid" )
+            .append( " where tei.trackedentitytypeid = " + partition.getMasterTable().getTrackedEntityType().getId() )
+            .append( " group by " )
+            .append( FIXED_COLS.stream().map( AnalyticsTableColumn::getAlias ).collect( Collectors.joining( "," ) ) );
 
-        invokeTimeAndLog( sql, partition.getTempTableName() );
+        invokeTimeAndLog( sql.toString(), partition.getTempTableName() );
     }
 
     /**

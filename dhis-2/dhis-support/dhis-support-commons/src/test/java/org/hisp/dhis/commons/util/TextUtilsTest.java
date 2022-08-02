@@ -29,7 +29,10 @@ package org.hisp.dhis.commons.util;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hisp.dhis.commons.util.TextUtils.*;
+import static org.hisp.dhis.commons.util.TextUtils.htmlLinks;
+import static org.hisp.dhis.commons.util.TextUtils.removeNonEssentialChars;
+import static org.hisp.dhis.commons.util.TextUtils.subString;
+import static org.hisp.dhis.commons.util.TextUtils.trimEnd;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
@@ -134,11 +137,25 @@ class TextUtilsTest
     @Test
     void testRemoveLastComma()
     {
-        assertEquals( null, TextUtils.removeLastComma( null ) );
+        final String nullValue = null;
+
+        assertEquals( null, TextUtils.removeLastComma( nullValue ) );
         assertEquals( "", TextUtils.removeLastComma( "" ) );
         assertEquals( "tom,john", TextUtils.removeLastComma( "tom,john," ) );
         assertEquals( "tom, john", TextUtils.removeLastComma( "tom, john, " ) );
         assertEquals( "tom, john", TextUtils.removeLastComma( "tom, john,  " ) );
+    }
+
+    @Test
+    void testRemoveLastCommaStringBuilder()
+    {
+        final StringBuilder nullValue = null;
+
+        assertEquals( null, TextUtils.removeLastComma( nullValue ) );
+        assertEquals( "", TextUtils.removeLastComma( new StringBuilder() ).toString() );
+        assertEquals( "tom,john", TextUtils.removeLastComma( new StringBuilder( "tom,john," ) ).toString() );
+        assertEquals( "tom, john", TextUtils.removeLastComma( new StringBuilder( "tom, john, " ) ).toString() );
+        assertEquals( "tom, john", TextUtils.removeLastComma( new StringBuilder( "tom, john,  " ) ).toString() );
     }
 
     @Test

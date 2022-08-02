@@ -39,11 +39,11 @@ import lombok.RequiredArgsConstructor;
  */
 @Data
 @AllArgsConstructor( staticName = "of" )
-public class DimensionIdentifier<P, PS, D>
+public class DimensionIdentifier<P, S, D>
 {
     private final ElementWithOffset<P> program;
 
-    private final ElementWithOffset<PS> programStage;
+    private final ElementWithOffset<S> programStage;
 
     private final D dimension;
 

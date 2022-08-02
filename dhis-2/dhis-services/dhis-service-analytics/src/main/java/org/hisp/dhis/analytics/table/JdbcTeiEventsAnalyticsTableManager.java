@@ -70,8 +70,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.ImmutableList;
-
 @Component( "org.hisp.dhis.analytics.TeiEventsAnalyticsTableManager" )
 public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
 {
@@ -98,7 +96,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
         this.trackedEntityTypeService = trackedEntityTypeService;
     }
 
-    private static final List<AnalyticsTableColumn> FIXED_COLS = ImmutableList.of(
+    private static final List<AnalyticsTableColumn> FIXED_COLS = List.of(
         new AnalyticsTableColumn( quote( "trackedentityinstanceuid" ), CHARACTER_11, NOT_NULL, "tei.uid" ),
         new AnalyticsTableColumn( quote( "programuid" ), CHARACTER_11, NULL, "p.uid" ),
         new AnalyticsTableColumn( quote( "programinstanceuid" ), CHARACTER_11, NULL, "pi.uid" ),
@@ -248,7 +246,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
 
         validateDimensionColumns( columns );
 
-        String sql = "insert into " + partition.getTempTableName() + " (";
+        StringBuilder sql = new StringBuilder( "insert into " + partition.getTempTableName() + " (" );
 
         for ( AnalyticsTableColumn col : ListUtils.union( columns, values ) )
         {
@@ -257,10 +255,10 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
                 continue;
             }
 
-            sql += col.getName() + ",";
+            sql.append( col.getName() + "," );
         }
 
-        sql = TextUtils.removeLastComma( sql ) + ") SELECT DISTINCT ";
+        TextUtils.removeLastComma( sql ).append( ") select distinct " );
 
         for ( AnalyticsTableColumn col : columns )
         {
@@ -269,20 +267,20 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
                 continue;
             }
 
-            sql += col.getAlias() + ",";
+            sql.append( col.getAlias() + "," );
         }
 
-        sql = TextUtils.removeLastComma( sql ) +
-            " FROM trackedentityinstance tei " +
-            " LEFT JOIN programinstance pi on pi.trackedentityinstanceid = tei.trackedentityinstanceid" +
-            " LEFT JOIN program p on p.programid = pi.programid" +
-            " LEFT JOIN programstageinstance psi on psi.programinstanceid = pi.programinstanceid" +
-            " LEFT JOIN programstage ps on ps.programstageid = psi.programstageid" +
-            " LEFT JOIN organisationunit ou ON psi.organisationunitid = ou.organisationunitid" +
-            " LEFT JOIN _orgunitstructure ous ON ous.organisationunitid = ou.organisationunitid" +
-            " WHERE tei.trackedentitytypeid = " + partition.getMasterTable().getTrackedEntityType().getId();
+        TextUtils.removeLastComma( sql )
+            .append( " from trackedentityinstance tei " )
+            .append( " left join programinstance pi on pi.trackedentityinstanceid = tei.trackedentityinstanceid" )
+            .append( " left join program p on p.programid = pi.programid" )
+            .append( " left join programstageinstance psi on psi.programinstanceid = pi.programinstanceid" )
+            .append( " left join programstage ps on ps.programstageid = psi.programstageid" )
+            .append( " left join organisationunit ou on psi.organisationunitid = ou.organisationunitid" )
+            .append( " left join _orgunitstructure ous on ous.organisationunitid = ou.organisationunitid" )
+            .append( " where tei.trackedentitytypeid = " + partition.getMasterTable().getTrackedEntityType().getId() );
 
-        invokeTimeAndLog( sql, partition.getTempTableName() );
+        invokeTimeAndLog( sql.toString(), partition.getTempTableName() );
     }
 
     /**

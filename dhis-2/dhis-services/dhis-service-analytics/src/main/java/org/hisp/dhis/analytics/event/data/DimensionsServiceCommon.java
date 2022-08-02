@@ -76,11 +76,11 @@ public class DimensionsServiceCommon
         BOOLEAN,
         TRUE_ONLY );
 
-    private final static Map<OperationType, Predicate<ValueType>> OPERATION_FILTER = Map.of(
+    private static final Map<OperationType, Predicate<ValueType>> OPERATION_FILTER = Map.of(
         OperationType.QUERY, not( QUERY_DISALLOWED_VALUE_TYPES::contains ),
         OperationType.AGGREGATE, AGGREGATE_ALLOWED_VALUE_TYPES::contains );
 
-    private final static Map<Class<?>, Function<PrefixedDimension, ValueType>> VALUE_TYPE_GETTERS_BY_CLASS = Map.of(
+    private static final Map<Class<?>, Function<PrefixedDimension, ValueType>> VALUE_TYPE_GETTERS_BY_CLASS = Map.of(
         TrackedEntityAttribute.class, pd -> ((TrackedEntityAttribute) pd.getItem()).getValueType(),
         DataElement.class, pd -> ((DataElement) pd.getItem()).getValueType(),
         ProgramStageDataElement.class, pd -> ((ProgramStageDataElement) pd.getItem()).getDataElement().getValueType() );
