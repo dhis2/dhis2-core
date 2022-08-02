@@ -46,7 +46,6 @@ import org.hisp.dhis.tracker.validation.hooks.EventDataValuesValidationHook;
 import org.hisp.dhis.tracker.validation.hooks.EventDateValidationHook;
 import org.hisp.dhis.tracker.validation.hooks.EventGeoValidationHook;
 import org.hisp.dhis.tracker.validation.hooks.EventNoteValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.EventReferralValidationHook;
 import org.hisp.dhis.tracker.validation.hooks.EventRuleValidationHook;
 import org.hisp.dhis.tracker.validation.hooks.PreCheckDataRelationsValidationHook;
 import org.hisp.dhis.tracker.validation.hooks.PreCheckExistenceValidationHook;
