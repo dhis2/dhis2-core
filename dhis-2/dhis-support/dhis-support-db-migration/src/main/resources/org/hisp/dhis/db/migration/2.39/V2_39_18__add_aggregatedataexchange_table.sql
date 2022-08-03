@@ -24,7 +24,7 @@ create table aggregatedataexchange (
     constraint aggregatedataexchange_uid_key unique (uid),
     constraint aggregatedataexchange_code_key unique (code),
     constraint aggregatedataexchange_name_key unique (name),
-    constraint aggregatedataexchange_pkey primary key (aggregatedataexchange)
+    constraint aggregatedataexchange_pkey primary key (aggregatedataexchangeid)
 );
 
 -- Add aggregatedataexchange foreign keys
