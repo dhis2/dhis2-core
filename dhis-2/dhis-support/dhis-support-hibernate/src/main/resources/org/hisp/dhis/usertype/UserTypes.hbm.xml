@@ -164,11 +164,11 @@
   </typedef>
   
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbAggregateDataExchangeSource">
-    <param name="clazz">org.hisp.dhis.dataexchange.analytics.Source</param>
+    <param name="clazz">org.hisp.dhis.dataexchange.aggregate.Source</param>
   </typedef>  
 
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbAggregateDataExchangeTarget">
-    <param name="clazz">org.hisp.dhis.dataexchange.analytics.Target</param>
+    <param name="clazz">org.hisp.dhis.dataexchange.aggregate.Target</param>
   </typedef>  
 
 </hibernate-mapping>
