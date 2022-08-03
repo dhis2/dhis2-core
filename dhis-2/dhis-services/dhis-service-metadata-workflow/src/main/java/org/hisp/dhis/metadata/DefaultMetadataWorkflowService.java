@@ -251,7 +251,8 @@ public class DefaultMetadataWorkflowService implements MetadataWorkflowService
     private ImportReport acceptRemove( MetadataProposal proposal, ObjectBundleMode mode )
     {
         return importService.importMetadata(
-            createImportParams( mode, ImportStrategy.DELETE, objectManager.get( proposal.getTargetId() ) ) );
+            createImportParams( mode, ImportStrategy.DELETE, objectManager.get(
+                proposal.getTarget().getType(), proposal.getTargetId() ) ) );
     }
 
     private MetadataImportParams createImportParams( ObjectBundleMode mode, ImportStrategy strategy,

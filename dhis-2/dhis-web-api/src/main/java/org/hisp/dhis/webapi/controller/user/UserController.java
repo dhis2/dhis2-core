@@ -70,7 +70,9 @@ import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.fieldfilter.Defaults;
@@ -568,6 +570,20 @@ public class UserController
         throws Exception
     {
         setExpires( uid, null );
+    }
+
+    @PostMapping( "/{uid}/twoFA/disabled" )
+    public WebMessage disableTwoFA( @PathVariable( "uid" ) String uid, @CurrentUser User currentUser )
+    {
+        List<ErrorReport> errors = new ArrayList<>();
+        userService.disableTwoFA( currentUser, uid, error -> errors.add( error ) );
+
+        if ( errors.isEmpty() )
+        {
+            return WebMessageUtils.ok();
+        }
+
+        return WebMessageUtils.errorReports( errors );
     }
 
     // -------------------------------------------------------------------------

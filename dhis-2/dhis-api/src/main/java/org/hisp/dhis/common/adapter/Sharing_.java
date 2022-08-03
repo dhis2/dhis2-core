@@ -25,36 +25,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.container;
-
-import org.testcontainers.containers.JdbcDatabaseContainer;
-import org.testcontainers.containers.PostgisContainerProvider;
-import org.testcontainers.utility.DockerImageName;
+package org.hisp.dhis.common.adapter;
 
 /**
- * Custom PostgisContainerProvider to create {@link DhisPostgreSQLContainer}
- *
- * @author Ameen Mohamed <ameen@dhis2.org>
+ * This class defines metadata model property's names of
+ * {@link org.hisp.dhis.user.sharing.Sharing}
  */
-@SuppressWarnings( "rawtypes" )
-public class DhisPostgisContainerProvider
-    extends PostgisContainerProvider
+public class Sharing_
 {
-    private static final String DEFAULT_TAG = "10-2.5-alpine";
+    public static final String PUBLIC = "public";
 
-    private static final String DEFAULT_IMAGE = "postgis/postgis";
+    public static final String OWNER = "owner";
 
-    @Override
-    public JdbcDatabaseContainer newInstance()
-    {
-        return newInstance( DEFAULT_TAG );
-    }
+    public static final String EXTERNAL = "external";
 
-    @Override
-    public JdbcDatabaseContainer newInstance( String tag )
-    {
-        DockerImageName postgres = DockerImageName.parse( DEFAULT_IMAGE + ":" + tag )
-            .asCompatibleSubstituteFor( "postgres" );
-        return new DhisPostgreSQLContainer( postgres );
-    }
+    public static final String USERS = "users";
+
+    public static final String USER_GROUPS = "userGroups";
 }

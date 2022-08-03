@@ -62,7 +62,7 @@ public abstract class IntegrationTestBase extends BaseSpringTest
     }
 
     @Override
-    protected boolean emptyDatabaseAfterTest()
+    protected final boolean emptyDatabaseAfterTest()
     {
         return true;
     }

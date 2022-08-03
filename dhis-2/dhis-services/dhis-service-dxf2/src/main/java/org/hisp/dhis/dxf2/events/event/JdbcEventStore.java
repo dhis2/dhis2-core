@@ -88,6 +88,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -1022,7 +1024,8 @@ public class JdbcEventStore implements EventStore
         StringBuilder sqlBuilder = new StringBuilder().append( "select " )
             .append( getEventSelectIdentifiersByIdScheme( params.getIdSchemes() ) )
             .append( " psi.uid as psi_uid, " )
-            .append( "ou.uid as ou_uid, p.uid as p_uid, ps.uid as ps_uid, coc.uid as coc_uid, " )
+            .append( "ou.uid as ou_uid, p.uid as p_uid, ps.uid as ps_uid, " )
+            .append( "coc.uid as coc_uid, " )
             .append(
                 "psi.programstageinstanceid as psi_id, psi.status as psi_status, psi.executiondate as psi_executiondate, " )
             .append(
@@ -1034,7 +1037,8 @@ public class JdbcEventStore implements EventStore
                 "ST_AsText( psi.geometry ) as psi_geometry, au.uid as user_assigned, (au.firstName || ' ' || au.surName) as user_assigned_name," )
             .append( "au.firstName as user_assigned_first_name, au.surName as user_assigned_surname, " )
             .append(
-                "au.username as user_assigned_username, cocco.categoryoptionid AS cocco_categoryoptionid, deco.uid AS deco_uid, " );
+                "au.username as user_assigned_username," )
+            .append( "cocco.categoryoptionid AS cocco_categoryoptionid, deco.uid AS deco_uid, " );
 
         if ( (params.getCategoryOptionCombo() == null || params.getCategoryOptionCombo().isDefault())
             && !isSuper( user ) )
@@ -1062,14 +1066,28 @@ public class JdbcEventStore implements EventStore
             .append( "inner join programinstance pi on pi.programinstanceid=psi.programinstanceid " )
             .append( "inner join program p on p.programid=pi.programid " )
             .append( "inner join programstage ps on ps.programstageid=psi.programstageid " )
-            .append( "inner join categoryoptioncombo coc on coc.categoryoptioncomboid=psi.attributeoptioncomboid " )
+            .append(
+                "inner join categoryoptioncombo coc on coc.categoryoptioncomboid=psi.attributeoptioncomboid " )
             .append(
                 "inner join categoryoptioncombos_categoryoptions cocco on psi.attributeoptioncomboid=cocco.categoryoptioncomboid " )
-            .append( "inner join dataelementcategoryoption deco on cocco.categoryoptionid=deco.categoryoptionid " )
-            .append(
+            .append( "inner join dataelementcategoryoption deco on cocco.categoryoptionid=deco.categoryoptionid " );
+
+        if ( Optional.ofNullable( params.getProgram() )
+            .filter( p -> Objects.nonNull( p.getProgramType() ) && p.getProgramType() == ProgramType.WITH_REGISTRATION )
+            .isPresent() )
+        {
+            sqlBuilder.append(
                 "left join trackedentityprogramowner po on (pi.trackedentityinstanceid=po.trackedentityinstanceid) " )
-            .append(
-                "inner join organisationunit ou on (coalesce(po.organisationunitid, psi.organisationunitid)=ou.organisationunitid) " )
+                .append(
+                    "inner join organisationunit ou on (coalesce(po.organisationunitid, psi.organisationunitid)=ou.organisationunitid) " );
+        }
+        else
+        {
+            sqlBuilder.append(
+                "inner join organisationunit ou on psi.organisationunitid=ou.organisationunitid " );
+        }
+
+        sqlBuilder
             .append( "left join trackedentityinstance tei on tei.trackedentityinstanceid=pi.trackedentityinstanceid " )
             .append( "left join organisationunit teiou on (tei.organisationunitid=teiou.organisationunitid) " )
             .append( "left join userinfo au on (psi.assigneduserid=au.userinfoid) " );
@@ -1078,6 +1096,7 @@ public class JdbcEventStore implements EventStore
 
         StringBuilder eventDataValuesWhereSql = new StringBuilder();
 
+        int filterCount = 0;
         for ( QueryItem item : params.getDataElementsAndFilters() )
         {
             final String col = item.getItemId();
@@ -1110,73 +1129,66 @@ public class JdbcEventStore implements EventStore
             {
                 for ( QueryFilter filter : item.getFilters() )
                 {
-                    final String encodedFilter = statementBuilder.encode( filter.getFilter(), false );
+                    if ( eventDataValuesWhereSql.length() > 0 )
+                    {
+                        eventDataValuesWhereSql.append( " and " );
+                    }
 
-                    final String queryCol = item.isNumeric() ? " CAST( " + dataValueValueSql + " AS NUMERIC)"
-                        : "lower( " + dataValueValueSql + " )";
+                    final String queryCol = " lower( " + dataValueValueSql + " )";
+
+                    String bindParameter = "parameter_" + ++filterCount;
 
                     if ( !item.hasOptionSet() )
                     {
-                        if ( eventDataValuesWhereSql.length() > 0 )
+                        if ( QueryOperator.IN.getValue().equalsIgnoreCase( filter.getSqlOperator() ) )
                         {
-                            eventDataValuesWhereSql.append( " and " );
-                        }
+                            mapSqlParameterSource.addValue( bindParameter, QueryFilter.getFilterItems( StringUtils
+                                .lowerCase( filter.getFilter() ) ) );
 
-                        if ( QueryOperator.LIKE.getValue().equalsIgnoreCase( filter.getSqlOperator() ) )
-                        {
-                            eventDataValuesWhereSql.append( " " )
-                                .append( queryCol )
-                                .append( " " )
-                                .append( filter.getSqlOperator() )
-                                .append( " " )
-                                .append( StringUtils.lowerCase( filter.getSqlFilter( encodedFilter ) ) )
-                                .append( " " );
+                            eventDataValuesWhereSql.append(
+                                inCondition( filter, bindParameter, queryCol ) );
                         }
                         else
                         {
+                            mapSqlParameterSource.addValue( bindParameter,
+                                StringUtils.lowerCase( filter.getSqlBindFilter() ) );
+
                             eventDataValuesWhereSql.append( " " )
                                 .append( queryCol )
                                 .append( " " )
                                 .append( filter.getSqlOperator() )
                                 .append( " " )
-                                .append( StringUtils.lowerCase(
-                                    item.isNumeric() ? encodedFilter : filter.getSqlFilter( encodedFilter ) ) )
+                                .append( ":" )
+                                .append( bindParameter )
                                 .append( " " );
                         }
                     }
-                    else if ( QueryOperator.IN.getValue().equalsIgnoreCase( filter.getSqlOperator() ) )
-                    {
-                        sqlBuilder.append( "and " )
-                            .append( queryCol )
-                            .append( " " )
-                            .append( filter.getSqlOperator() )
-                            .append( " " )
-                            .append( StringUtils
-                                .lowerCase( item.isNumeric() ? encodedFilter : filter.getSqlFilter( encodedFilter ) ) )
-                            .append( " " );
-                    }
-                    else if ( QueryOperator.LIKE.getValue().equalsIgnoreCase( filter.getSqlOperator() ) )
-                    {
-                        sqlBuilder.append( "and lower(" )
-                            .append( optCol )
-                            .append( DOT_NAME )
-                            .append( " " )
-                            .append( filter.getSqlOperator() )
-                            .append( " " )
-                            .append( StringUtils.lowerCase( filter.getSqlFilter( encodedFilter ) ) )
-                            .append( " " );
-                    }
                     else
                     {
-                        sqlBuilder.append( "and lower(" )
-                            .append( optCol )
-                            .append( DOT_NAME )
-                            .append( " " )
-                            .append( filter.getSqlOperator() )
-                            .append( " " )
-                            .append( StringUtils
-                                .lowerCase( item.isNumeric() ? encodedFilter : filter.getSqlFilter( encodedFilter ) ) )
-                            .append( " " );
+                        if ( QueryOperator.IN.getValue().equalsIgnoreCase( filter.getSqlOperator() ) )
+                        {
+                            mapSqlParameterSource.addValue( bindParameter, QueryFilter.getFilterItems( StringUtils
+                                .lowerCase( filter.getFilter() ) ) );
+
+                            sqlBuilder.append( " and " );
+                            sqlBuilder.append(
+                                inCondition( filter, bindParameter, queryCol ) );
+                        }
+                        else
+                        {
+                            mapSqlParameterSource.addValue( bindParameter,
+                                StringUtils.lowerCase( filter.getSqlBindFilter() ) );
+
+                            sqlBuilder.append( "and lower(" )
+                                .append( optCol )
+                                .append( DOT_NAME )
+                                .append( " " )
+                                .append( filter.getSqlOperator() )
+                                .append( " " )
+                                .append( ":" )
+                                .append( bindParameter )
+                                .append( " " );
+                        }
                     }
                 }
             }
@@ -1185,7 +1197,7 @@ public class JdbcEventStore implements EventStore
         if ( (params.getCategoryOptionCombo() == null || params.getCategoryOptionCombo().isDefault())
             && !isSuper( user ) )
         {
-            sqlBuilder.append( getCategoryOptionSharingForUser( user ) );
+            sqlBuilder.append( getCategoryOptionSharingForUser( user, mapSqlParameterSource ) );
         }
 
         if ( eventDataValuesWhereSql.length() > 0 )
@@ -1223,9 +1235,9 @@ public class JdbcEventStore implements EventStore
 
         if ( params.getProgramStatus() != null )
         {
-            mapSqlParameterSource.addValue( "program_status", "'" + params.getProgramStatus() + "'" );
+            mapSqlParameterSource.addValue( "program_status", params.getProgramStatus().name() );
 
-            sqlBuilder.append( hlp.whereAnd() ).append( " pi.status = " ).append( ":program_status" );
+            sqlBuilder.append( hlp.whereAnd() ).append( " pi.status = " ).append( ":program_status " );
         }
 
         if ( params.getFollowUp() != null )
@@ -1247,15 +1259,19 @@ public class JdbcEventStore implements EventStore
 
         if ( params.getCategoryOptionCombo() != null )
         {
-            mapSqlParameterSource.addValue( "attributeoptioncomboid", params.getCategoryOptionCombo().getId() );
+            mapSqlParameterSource.addValue( "attributeoptioncomboid",
+                params.getCategoryOptionCombo().getId() );
 
-            sqlBuilder.append( hlp.whereAnd() ).append( " psi.attributeoptioncomboid = " )
-                .append( ":attributeoptioncomboid" ).append( " " );
+            sqlBuilder.append( hlp.whereAnd() )
+                .append( " psi.attributeoptioncomboid = " )
+                .append( ":attributeoptioncomboid" )
+                .append( " " );
         }
 
         if ( !CollectionUtils.isEmpty( organisationUnits ) || params.getOrgUnit() != null )
         {
-            sqlBuilder.append( hlp.whereAnd() ).append( getOrgUnitSql( hlp, params, organisationUnits ) );
+            sqlBuilder.append( hlp.whereAnd() )
+                .append( getOrgUnitSql( hlp, params, mapSqlParameterSource, organisationUnits ) );
         }
 
         if ( params.getStartDate() != null )
@@ -1281,7 +1297,7 @@ public class JdbcEventStore implements EventStore
 
         if ( params.getProgramType() != null )
         {
-            mapSqlParameterSource.addValue( "programType", "'" + params.getProgramType() + "'" );
+            mapSqlParameterSource.addValue( "programType", params.getProgramType().name() );
 
             sqlBuilder.append( hlp.whereAnd() ).append( " p.type = " ).append( ":programType" )
                 .append( " " );
@@ -1378,6 +1394,19 @@ public class JdbcEventStore implements EventStore
         return sqlBuilder.toString();
     }
 
+    private String inCondition( QueryFilter filter, String boundParameter, String queryCol )
+    {
+        return new StringBuilder()
+            .append( queryCol )
+            .append( " " )
+            .append( filter.getSqlOperator() )
+            .append( " " )
+            .append( "(" )
+            .append( ":" )
+            .append( boundParameter )
+            .append( ") " ).toString();
+    }
+
     /**
      * From, join and where clause. For dataElement params, restriction is set
      * in inner join. For query params, restriction is set in where clause.
@@ -1445,7 +1474,8 @@ public class JdbcEventStore implements EventStore
                     {
                         sqlBuilder.append( "and lower( " ).append( optCol ).append( DOT_NAME ).append( " " )
                             .append( filter.getSqlOperator() ).append( " " )
-                            .append( StringUtils.lowerCase( filter.getSqlFilter( encodedFilter ) ) ).append( " " );
+                            .append( StringUtils.lowerCase( filter.getSqlFilter( encodedFilter ) ) )
+                            .append( " " );
                     }
                 }
             }
@@ -1458,7 +1488,8 @@ public class JdbcEventStore implements EventStore
 
         if ( !organisationUnits.isEmpty() || params.getOrgUnit() != null )
         {
-            sqlBuilder.append( hlp.whereAnd() ).append( getOrgUnitSql( hlp, params, organisationUnits ) );
+            sqlBuilder.append( hlp.whereAnd() )
+                .append( getOrgUnitSql( hlp, params, new MapSqlParameterSource(), organisationUnits ) );
         }
 
         if ( params.getProgramStage() != null )
@@ -1605,7 +1636,7 @@ public class JdbcEventStore implements EventStore
         return sqlBuilder.toString();
     }
 
-    private String getCategoryOptionSharingForUser( User user )
+    private String getCategoryOptionSharingForUser( User user, MapSqlParameterSource mapSqlParameterSource )
     {
         StringBuilder sqlBuilder = new StringBuilder().append( " left join ( " );
 
@@ -1615,7 +1646,7 @@ public class JdbcEventStore implements EventStore
             + "left join ("
             + "select deco.categoryoptionid as deco_id, deco.uid as deco_uid , "
             + "( select ( " + JpaQueryUtils.generateSQlQueryForSharingCheck( "deco.sharing",
-                user, AclService.LIKE_READ_DATA )
+                user, AclService.LIKE_READ_DATA, mapSqlParameterSource )
             + " ) ) as can_access "
             + "from dataelementcategoryoption deco " );
 
@@ -2038,49 +2069,63 @@ public class JdbcEventStore implements EventStore
         return batch.stream().sorted( Comparator.comparing( ProgramStageInstance::getUid ) ).collect( toList() );
     }
 
-    private String getOrgUnitSql( SqlHelper hlp, EventSearchParams params, List<OrganisationUnit> organisationUnits )
+    private String getOrgUnitSql( SqlHelper hlp, EventSearchParams params, MapSqlParameterSource mapSqlParameterSource,
+        List<OrganisationUnit> organisationUnits )
     {
         StringBuilder orgUnitSql = new StringBuilder();
 
         if ( params.getOrgUnit() != null && !params.isPathOrganisationUnitMode() )
         {
+            mapSqlParameterSource.addValue( "organisationunitid", params.getOrgUnit()
+                .getId() );
+
             orgUnitSql.append( " ou.organisationunitid = " )
-                .append( params.getOrgUnit()
-                    .getId() )
+                .append( ":organisationunitid" )
                 .append( " " );
         }
         else
         {
             SqlHelper orHlp = new SqlHelper( true );
-            String path = "ou.path LIKE '";
+            String path = "ou.path LIKE ";
+            int count = 0;
+
             for ( OrganisationUnit organisationUnit : organisationUnits )
             {
+                String boundOuPath = "ouPath_" + ++count;
                 OrganisationUnit unit = organisationUnitStore.getByUid( organisationUnit.getUid() );
+                mapSqlParameterSource.addValue( boundOuPath, unit.getPath() + "%" );
 
-                if ( params.isOrganisationUnitMode( OrganisationUnitSelectionMode.DESCENDANTS ) )
+                if ( params.isOrganisationUnitMode( OrganisationUnitSelectionMode.DESCENDANTS )
+                    || params.isOrganisationUnitMode( OrganisationUnitSelectionMode.CHILDREN ) )
                 {
+                    String boundOuLevel = "ouLevel_" + count;
+
+                    mapSqlParameterSource.addValue( boundOuLevel,
+                        params.isOrganisationUnitMode( OrganisationUnitSelectionMode.DESCENDANTS ) ? unit.getLevel()
+                            : unit.getLevel() + 1 );
+
+                    String hierarchyLevel = params.isOrganisationUnitMode( OrganisationUnitSelectionMode.DESCENDANTS )
+                        ? " ou.hierarchylevel > "
+                        : " ou.hierarchylevel = ";
+
                     orgUnitSql.append( orHlp.or() )
                         .append( path )
-                        .append( unit.getPath() )
-                        .append( "%' " )
+                        .append( ":" )
+                        .append( boundOuPath )
+                        .append( " " )
                         .append( hlp.whereAnd() )
-                        .append( " ou.hierarchylevel > " )
-                        .append( unit.getLevel() );
-                }
-                else if ( params.isOrganisationUnitMode( OrganisationUnitSelectionMode.CHILDREN ) )
-                {
-                    orgUnitSql.append( orHlp.or() )
-                        .append( path )
-                        .append( unit.getPath() )
-                        .append( "%' " )
-                        .append( hlp.whereAnd() )
-                        .append( " ou.hierarchylevel = " )
-                        .append( unit.getLevel() + 1 );
+                        .append( hierarchyLevel )
+                        .append( ":" )
+                        .append( boundOuLevel )
+                        .append( " " );
                 }
                 else
                 {
-                    orgUnitSql.append( orHlp.or() ).append( path )
-                        .append( unit.getPath() ).append( "%' " );
+                    orgUnitSql.append( orHlp.or() )
+                        .append( path )
+                        .append( ":" )
+                        .append( boundOuPath )
+                        .append( " " );
                 }
             }
 
@@ -2091,11 +2136,13 @@ public class JdbcEventStore implements EventStore
 
                 if ( params.isPathOrganisationUnitMode() )
                 {
+                    mapSqlParameterSource.addValue( "organisationunitid", params.getOrgUnit()
+                        .getId() );
+
                     orgUnitSql.insert( 0, " (" );
                     orgUnitSql.append( orHlp.or() )
                         .append( " (ou.organisationunitid = " )
-                        .append( params.getOrgUnit()
-                            .getId() )
+                        .append( ":organisationunitid" )
                         .append( ")) " );
                 }
             }
