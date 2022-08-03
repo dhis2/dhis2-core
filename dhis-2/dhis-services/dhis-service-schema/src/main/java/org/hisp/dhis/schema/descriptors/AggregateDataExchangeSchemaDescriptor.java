@@ -29,7 +29,7 @@ package org.hisp.dhis.schema.descriptors;
 
 import java.util.List;
 
-import org.hisp.dhis.dataexchange.analytics.AggregateDataExchange;
+import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
 import org.hisp.dhis.security.Authority;

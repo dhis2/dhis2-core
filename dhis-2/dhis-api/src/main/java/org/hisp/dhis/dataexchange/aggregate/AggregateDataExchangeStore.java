@@ -25,33 +25,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataexchange.analytics;
+package org.hisp.dhis.dataexchange.aggregate;
 
-import java.io.Serializable;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-@Getter
-@Setter
-@NoArgsConstructor
-@Accessors( chain = true )
-public class TargetRequest
-    implements Serializable
+public interface AggregateDataExchangeStore
+    extends IdentifiableObjectStore<AggregateDataExchange>
 {
-    @JsonProperty
-    private String dataElementIdScheme;
-
-    @JsonProperty
-    private String orgUnitIdScheme;
-
-    @JsonProperty
-    private String categoryOptionComboIdScheme;
-
-    @JsonProperty
-    private String idScheme;
 }

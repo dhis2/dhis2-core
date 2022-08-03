@@ -25,33 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataexchange.analytics;
+package org.hisp.dhis.dataexchange.aggregate;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.MetadataObject;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 @Getter
 @Setter
+@NoArgsConstructor
 @Accessors( chain = true )
-@JacksonXmlRootElement( localName = "aggregateDataExchange", namespace = DxfNamespaces.DXF_2_0 )
-public class AggregateDataExchange
-    extends BaseIdentifiableObject
-    implements MetadataObject
+public class Source
+    implements Serializable
 {
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    private Source source;
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    private Target target;
+    private List<SourceRequest> requests = new ArrayList<>();
 }

@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataexchange.analytics;
+package org.hisp.dhis.dataexchange.aggregate;
 
 import java.io.Serializable;
 
@@ -40,18 +40,18 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Setter
 @NoArgsConstructor
 @Accessors( chain = true )
-public class Target
+public class TargetRequest
     implements Serializable
 {
     @JsonProperty
-    private TargetType type;
-
-    /**
-     * Only relevant for {@link TargetType#EXTERNAL}.
-     */
-    @JsonProperty
-    private Api api;
+    private String dataElementIdScheme;
 
     @JsonProperty
-    private TargetRequest request;
+    private String orgUnitIdScheme;
+
+    @JsonProperty
+    private String categoryOptionComboIdScheme;
+
+    @JsonProperty
+    private String idScheme;
 }

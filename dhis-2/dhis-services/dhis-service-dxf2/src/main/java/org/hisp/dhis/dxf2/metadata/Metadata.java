@@ -54,7 +54,7 @@ import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataentryform.DataEntryForm;
-import org.hisp.dhis.dataexchange.analytics.AggregateDataExchange;
+import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.document.Document;

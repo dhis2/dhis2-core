@@ -33,8 +33,8 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
 import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchangeService;
-import org.hisp.dhis.dataexchange.analytics.AggregateDataExchange;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.schema.descriptors.AggregateDataExchangeSchemaDescriptor;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;

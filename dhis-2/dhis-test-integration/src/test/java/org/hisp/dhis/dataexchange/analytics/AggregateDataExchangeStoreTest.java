@@ -34,6 +34,15 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import java.util.List;
 
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
+import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchangeStore;
+import org.hisp.dhis.dataexchange.aggregate.Api;
+import org.hisp.dhis.dataexchange.aggregate.Filter;
+import org.hisp.dhis.dataexchange.aggregate.Source;
+import org.hisp.dhis.dataexchange.aggregate.SourceRequest;
+import org.hisp.dhis.dataexchange.aggregate.Target;
+import org.hisp.dhis.dataexchange.aggregate.TargetRequest;
+import org.hisp.dhis.dataexchange.aggregate.TargetType;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

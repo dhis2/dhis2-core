@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataexchange.analytics;
+package org.hisp.dhis.dataexchange.aggregate;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -42,9 +42,24 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Setter
 @NoArgsConstructor
 @Accessors( chain = true )
-public class Source
+public class SourceRequest
     implements Serializable
 {
     @JsonProperty
-    private List<SourceRequest> requests = new ArrayList<>();
+    private List<String> dx = new ArrayList<>();
+
+    @JsonProperty
+    private List<String> pe = new ArrayList<>();
+
+    @JsonProperty
+    private List<String> ou = new ArrayList<>();
+
+    @JsonProperty
+    private List<Filter> filters = new ArrayList<>();
+
+    @JsonProperty
+    private String inputIdScheme;
+
+    @JsonProperty
+    private String outputIdScheme;
 }

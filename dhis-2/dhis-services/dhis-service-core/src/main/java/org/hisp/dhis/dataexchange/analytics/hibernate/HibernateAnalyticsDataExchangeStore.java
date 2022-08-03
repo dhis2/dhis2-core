@@ -29,8 +29,8 @@ package org.hisp.dhis.dataexchange.analytics.hibernate;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.dataexchange.analytics.AggregateDataExchange;
-import org.hisp.dhis.dataexchange.analytics.AggregateDataExchangeStore;
+import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
+import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchangeStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
