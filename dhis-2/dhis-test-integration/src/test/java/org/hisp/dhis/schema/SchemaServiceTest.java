@@ -91,7 +91,7 @@ class SchemaServiceTest extends SingleSetupIntegrationTestBase
     @Test
     void testGetSchemaByPluralName()
     {
-        Schema schema = schemaService.getSchemaByPluralName( "analyticsDataExchanges" );
+        Schema schema = schemaService.getSchemaByPluralName( "aggregateDataExchanges" );
         assertNotNull( schema );
         assertEquals( AggregateDataExchange.class, schema.getKlass() );
     }

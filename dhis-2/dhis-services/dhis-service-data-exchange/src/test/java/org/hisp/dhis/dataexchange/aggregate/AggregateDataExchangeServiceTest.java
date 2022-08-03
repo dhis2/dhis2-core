@@ -66,7 +66,7 @@ class AggregateDataExchangeServiceTest
     private AnalyticsService analyticsService;
 
     @Mock
-    private AggregateDataExchangeStore analyticsDataExchangeStore;
+    private AggregateDataExchangeStore aggregateDataExchangeStore;
 
     @Mock
     private DataQueryService dataQueryService;
@@ -80,7 +80,7 @@ class AggregateDataExchangeServiceTest
     void beforeEach()
     {
         service = new AggregateDataExchangeService(
-            analyticsService, analyticsDataExchangeStore, dataQueryService, dataValueSetService );
+            analyticsService, aggregateDataExchangeStore, dataQueryService, dataValueSetService );
     }
 
     @Test

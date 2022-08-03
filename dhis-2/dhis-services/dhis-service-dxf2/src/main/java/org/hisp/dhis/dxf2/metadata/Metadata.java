@@ -221,16 +221,16 @@ public class Metadata
     }
 
     @JsonProperty
-    @JacksonXmlElementWrapper( localName = "analyticsDataExchanges", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "analyticsDataExchange", namespace = DxfNamespaces.DXF_2_0 )
-    public List<AggregateDataExchange> getAnalyticsDataExchanges()
+    @JacksonXmlElementWrapper( localName = "aggregateDataExchanges", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "aggregateDataExchange", namespace = DxfNamespaces.DXF_2_0 )
+    public List<AggregateDataExchange> getAggregateDataExchanges()
     {
         return getValues( AggregateDataExchange.class );
     }
 
-    public void setAnalyticsDataExchanges( List<AggregateDataExchange> analyticsDataExchanges )
+    public void setAggregateDataExchanges( List<AggregateDataExchange> aggregateDataExchanges )
     {
-        setValues( AggregateDataExchange.class, analyticsDataExchanges );
+        setValues( AggregateDataExchange.class, aggregateDataExchanges );
     }
 
     @JsonProperty

@@ -926,11 +926,11 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testImportAnalyticsDataExchange()
+    void testImportAggregateDataExchange()
         throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/analytics_data_exchange.json" ).getInputStream(), RenderFormat.JSON );
+            new ClassPathResource( "dxf2/aggregate_data_exchange.json" ).getInputStream(), RenderFormat.JSON );
         MetadataImportParams params = createParams( ImportStrategy.CREATE_AND_UPDATE, metadata );
         ImportReport report = importService.importMetadata( params );
         TypeReport typeReport = report.getTypeReport( AggregateDataExchange.class );

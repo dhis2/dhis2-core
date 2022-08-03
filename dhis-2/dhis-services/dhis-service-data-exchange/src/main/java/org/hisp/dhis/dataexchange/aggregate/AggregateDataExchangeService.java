@@ -64,7 +64,7 @@ public class AggregateDataExchangeService
 {
     private final AnalyticsService analyticsService;
 
-    private final AggregateDataExchangeStore analyticsDataExchangeStore;
+    private final AggregateDataExchangeStore aggregateDataExchangeStore;
 
     private final DataQueryService dataQueryService;
 
@@ -78,7 +78,7 @@ public class AggregateDataExchangeService
      */
     public ImportSummaries exchangeData( String uid )
     {
-        AggregateDataExchange exchange = analyticsDataExchangeStore.loadByUid( uid );
+        AggregateDataExchange exchange = aggregateDataExchangeStore.loadByUid( uid );
 
         return exchangeData( exchange );
     }
@@ -108,7 +108,7 @@ public class AggregateDataExchangeService
      */
     public List<Grid> getSourceData( String uid )
     {
-        AggregateDataExchange exchange = analyticsDataExchangeStore.loadByUid( uid );
+        AggregateDataExchange exchange = aggregateDataExchangeStore.loadByUid( uid );
 
         return mapToList( exchange.getSource().getRequests(),
             request -> analyticsService.getAggregatedDataValues( toDataQueryParams( request ) ) );

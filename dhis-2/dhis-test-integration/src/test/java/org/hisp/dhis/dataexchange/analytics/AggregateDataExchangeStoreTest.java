@@ -57,8 +57,8 @@ class AggregateDataExchangeStoreTest extends TransactionalIntegrationTest
     @Test
     void testSaveGet()
     {
-        AggregateDataExchange deA = getAnalyticsDataExchange( 'A' );
-        AggregateDataExchange deB = getAnalyticsDataExchange( 'B' );
+        AggregateDataExchange deA = getAggregateDataExchange( 'A' );
+        AggregateDataExchange deB = getAggregateDataExchange( 'B' );
 
         store.save( deA );
         store.save( deB );
@@ -70,7 +70,7 @@ class AggregateDataExchangeStoreTest extends TransactionalIntegrationTest
     @Test
     void testUpdate()
     {
-        AggregateDataExchange de = getAnalyticsDataExchange( 'A' );
+        AggregateDataExchange de = getAggregateDataExchange( 'A' );
 
         store.save( de );
 
@@ -89,7 +89,7 @@ class AggregateDataExchangeStoreTest extends TransactionalIntegrationTest
         assertEquals( "https://play.dhis2.org/dev", de.getTarget().getApi().getUrl() );
     }
 
-    private AggregateDataExchange getAnalyticsDataExchange( char uniqueChar )
+    private AggregateDataExchange getAggregateDataExchange( char uniqueChar )
     {
         SourceRequest sourceRequest = new SourceRequest();
         sourceRequest.getDx().addAll( List.of( "LrDpG50RAU9", "uR5HCiJhQ1w" ) );

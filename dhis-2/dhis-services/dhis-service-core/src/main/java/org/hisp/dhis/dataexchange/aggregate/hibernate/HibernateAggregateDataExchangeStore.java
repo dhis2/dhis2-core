@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataexchange.analytics.hibernate;
+package org.hisp.dhis.dataexchange.aggregate.hibernate;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
@@ -37,12 +37,12 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-@Repository( "org.hisp.dhis.dataexchange.analytics.AnalyticsDataExchangeStore" )
-public class HibernateAnalyticsDataExchangeStore
+@Repository( "org.hisp.dhis.dataexchange.aggregate.AggregateDataExchangeStore" )
+public class HibernateAggregateDataExchangeStore
     extends HibernateIdentifiableObjectStore<AggregateDataExchange>
     implements AggregateDataExchangeStore
 {
-    public HibernateAnalyticsDataExchangeStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+    public HibernateAggregateDataExchangeStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
         super( sessionFactory, jdbcTemplate, publisher,
