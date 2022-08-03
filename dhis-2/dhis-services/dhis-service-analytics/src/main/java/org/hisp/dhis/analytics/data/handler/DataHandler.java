@@ -663,7 +663,7 @@ public class DataHandler
 
         grid.addRow()
             .addValues( dataRow.toArray() )
-            .addValue( getRoundedValueObject( params, value ) );
+            .addValue( params.isSkipRounding() ? value : getRoundedValueObject( params, value ) );
 
         if ( params.isIncludeNumDen() )
         {
