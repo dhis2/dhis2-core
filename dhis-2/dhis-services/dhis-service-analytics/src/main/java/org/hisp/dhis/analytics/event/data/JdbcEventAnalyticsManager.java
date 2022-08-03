@@ -65,6 +65,7 @@ import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.ProgramIndicatorSubqueryBuilder;
+import org.hisp.dhis.analytics.util.AnalyticsSqlUtils;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -277,7 +278,6 @@ public class JdbcEventAnalyticsManager
     @Override
     public Rectangle getRectangle( EventQueryParams params )
     {
-        // TODO
         String fallback = params.getFallbackCoordinateField();
         String quotedClusterFieldFraction;
         if ( fallback == null || !params.isCoordinateOuFallback() )
@@ -287,7 +287,9 @@ public class JdbcEventAnalyticsManager
         else
         {
             quotedClusterFieldFraction = "coalesce(" + quoteAlias( params.getCoordinateField() ) + ","
-                + quoteAlias( fallback ) + ")";
+                + Arrays.stream( fallback.split( "," ) ).map( AnalyticsSqlUtils::quoteAlias )
+                    .collect( joining( "," ) )
+                + ")";
         }
 
         String sql = "select count(psi) as " + COL_COUNT +
