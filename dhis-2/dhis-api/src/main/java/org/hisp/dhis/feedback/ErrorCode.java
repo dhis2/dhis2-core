@@ -282,6 +282,7 @@ public enum ErrorCode
     E6018( "AttributeValue `{0}` is an invalid email value." ),
     E6019( "AttributeValue `{0}` is an invalid `{1}` ID." ),
     E6020( "AttributeValue `{0}` is an invalid Username." ),
+    E6021( "AttributeValue `{0}` is an invalid phone number." ),
 
     /* File resource */
     E6100( "Filename not present" ),
