@@ -27,16 +27,25 @@
  */
 package org.hisp.dhis.dataelement;
 
+import static java.lang.String.format;
+import static java.util.Arrays.stream;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,9 +55,11 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 class DataElementServiceTest extends TransactionalIntegrationTest
 {
-
     @Autowired
     private DataElementService dataElementService;
+
+    @Autowired
+    private IdentifiableObjectStore<OptionSet> optionStore;
 
     // -------------------------------------------------------------------------
     // Tests
@@ -83,6 +94,38 @@ class DataElementServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
+    void testAddDataElement_WithOptionSet()
+    {
+        DataElement de = createDataElementWithOptionSet( ValueType.MULTI_TEXT, ValueType.MULTI_TEXT );
+        assertDoesNotThrow( () -> dataElementService.addDataElement( de ) );
+    }
+
+    @Test
+    void testAddDataElement_WithOptionSetValueTypeMismatch()
+    {
+        DataElement de = createDataElementWithOptionSet( ValueType.TEXT, ValueType.MULTI_TEXT );
+
+        IllegalQueryException ex = assertThrows( IllegalQueryException.class,
+            () -> dataElementService.addDataElement( de ) );
+        assertEquals( ErrorCode.E1115, ex.getErrorCode() );
+        assertEquals( "Data element value type must match option set value type: `MULTI_TEXT`", ex.getMessage() );
+    }
+
+    @Test
+    void testAddDataElement_WithOptionSetHavingCodeWithSeparator()
+    {
+        DataElement de = createDataElementWithOptionSet( ValueType.MULTI_TEXT,
+            ValueType.MULTI_TEXT, "A", "B", "C,D" );
+
+        IllegalQueryException ex = assertThrows( IllegalQueryException.class,
+            () -> dataElementService.addDataElement( de ) );
+        assertEquals( ErrorCode.E1117, ex.getErrorCode() );
+        assertEquals( format(
+            "Data element `%s` of value type multi text cannot use an option set `%s` that uses the separator character in one of its codes: `C,D`",
+            de.getUid(), de.getOptionSet().getUid() ), ex.getMessage() );
+    }
+
+    @Test
     void testUpdateDataElement()
     {
         DataElement dataElementA = createDataElement( 'A' );
@@ -96,6 +139,44 @@ class DataElementServiceTest extends TransactionalIntegrationTest
         dataElementA = dataElementService.getDataElement( idA );
         assertNotNull( dataElementA.getValueType() );
         assertEquals( ValueType.BOOLEAN, dataElementA.getValueType() );
+    }
+
+    @Test
+    void testUpdateDataElement_WithOptionSet()
+    {
+        DataElement de = createDataElementWithOptionSet( ValueType.MULTI_TEXT, ValueType.MULTI_TEXT );
+        dataElementService.addDataElement( de );
+        de.setName( "new-name" );
+        assertDoesNotThrow( () -> dataElementService.updateDataElement( de ) );
+    }
+
+    @Test
+    void testUpdateDataElement_WithOptionSetValueTypeMismatch()
+    {
+        DataElement de = createDataElementWithOptionSet( ValueType.MULTI_TEXT, ValueType.MULTI_TEXT );
+        dataElementService.addDataElement( de );
+        de.setValueType( ValueType.TEXT );
+
+        IllegalQueryException ex = assertThrows( IllegalQueryException.class,
+            () -> dataElementService.updateDataElement( de ) );
+        assertEquals( ErrorCode.E1115, ex.getErrorCode() );
+        assertEquals( "Data element value type must match option set value type: `MULTI_TEXT`", ex.getMessage() );
+    }
+
+    @Test
+    void testUpdateDataElement_WithOptionSetHavingCodeWithSeparator()
+    {
+        DataElement de = createDataElement( 'A' );
+        dataElementService.addDataElement( de );
+        de.setValueType( ValueType.MULTI_TEXT );
+        de.setOptionSet( addOptionSet( ValueType.MULTI_TEXT, "A", "B", "C,D" ) );
+
+        IllegalQueryException ex = assertThrows( IllegalQueryException.class,
+            () -> dataElementService.updateDataElement( de ) );
+        assertEquals( ErrorCode.E1117, ex.getErrorCode() );
+        assertEquals( format(
+            "Data element `%s` of value type multi text cannot use an option set `%s` that uses the separator character in one of its codes: `C,D`",
+            de.getUid(), de.getOptionSet().getUid() ), ex.getMessage() );
     }
 
     @Test
@@ -348,5 +429,29 @@ class DataElementServiceTest extends TransactionalIntegrationTest
         DataElement de = createDataElement( 'A', ValueType.URL, AggregationType.SUM );
         long id = dataElementService.addDataElement( de );
         assertNotNull( dataElementService.getDataElement( id ) );
+    }
+
+    private DataElement createDataElementWithOptionSet( ValueType deValueType, ValueType osValueType )
+    {
+        return createDataElementWithOptionSet( deValueType, osValueType, "A" );
+    }
+
+    private DataElement createDataElementWithOptionSet( ValueType deValueType, ValueType osValueType, String... codes )
+    {
+        DataElement de = createDataElement( 'A' );
+        de.setOptionSet( addOptionSet( osValueType, codes ) );
+        de.setValueType( deValueType );
+        return de;
+    }
+
+    private OptionSet addOptionSet( ValueType osValueType, String... codes )
+    {
+        OptionSet options = createOptionSet( 'A',
+            stream( codes ).map( code -> new Option( code, code ) ).toArray( Option[]::new ) );
+        options.setValueType( osValueType );
+        // we use the store to even be able to save a set with separator
+        // character in codes
+        optionStore.save( options );
+        return options;
     }
 }

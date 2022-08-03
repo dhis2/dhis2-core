@@ -649,12 +649,6 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     }
 
     private Object test( String expression, AntlrExprLiteral exprLiteral,
-        ExpressionItemMethod itemMethod )
-    {
-        return test( expression, exprLiteral, itemMethod, NUMERIC );
-    }
-
-    private Object test( String expression, AntlrExprLiteral exprLiteral,
         ExpressionItemMethod itemMethod, DataType dataType )
     {
         Set<String> dataElementsAndAttributesIdentifiers = new LinkedHashSet<>();

@@ -35,7 +35,6 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -51,7 +50,6 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Component;
@@ -61,10 +59,8 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
-@Slf4j
 public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
 {
-
     public static final String USERNAME = "username";
 
     private final UserService userService;
@@ -74,8 +70,6 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
     private final CurrentUserService currentUserService;
 
     private final AclService aclService;
-
-    private final UserGroupService userGroupService;
 
     @Override
     public void validate( User user, ObjectBundle bundle,

@@ -53,6 +53,12 @@ public enum ErrorCode
     E1112( "Objects of type `{0}` not found or not accessible: `{1}`" ),
     E1113( "Object of type `{0}` not found or not accessible: `{1}`" ),
     E1114( "Data set form type must be custom: `{0}`" ),
+    E1115( "Data element value type must match option set value type: `{0}`" ),
+    E1116( "Data element of value type multi text must have an option set: `{0}`" ),
+    E1117( "Data element `{0}` of value type multi text cannot use an option set `{1}` "
+        + "that uses the separator character in one of its codes: `{2}`" ),
+    E1118(
+        "Option set `{0}` of value type multi text cannot have options using the separator character in their code: `{1}`" ),
 
     /* Org unit merge */
     E1500( "At least two source orgs unit must be specified" ),
@@ -158,6 +164,7 @@ public enum ErrorCode
     E3017( "Invalid user group access string: `{0}`" ),
     E3018( "Invalid user access string: `{0}`" ),
     E3019( "Sharing is not enabled for this object `{0}`" ),
+    E3020( "You must have permissions to create user, or ability to manage at least one user group for the user." ),
 
     /* Metadata Validation */
     E4000( "Missing required property `{0}`." ),
@@ -222,6 +229,9 @@ public enum ErrorCode
     E4052( "For program rule variable with name `{0}` following keywords are forbidden : and , or , not" ),
     E4053( "Program stage `{0}` must reference a program." ),
 
+    /* Metadata Validation (continued) */
+    E4060( "Object could not be deleted: {0}" ),
+
     /* SQL views */
     E4300( "SQL query is null" ),
     E4301( "SQL query must be a select query" ),
@@ -257,6 +267,21 @@ public enum ErrorCode
     E6003( "Could not patch object with id {0}." ),
     E6004( "Attribute `{0}` has invalid GeoJson value." ),
     E6005( "Attribute `{0}` has unsupported GeoJson value." ),
+    E6006( "AttributeValue `{0}` is an invalid integer value." ),
+    E6007( "AttributeValue `{0}` is an invalid positive integer value." ),
+    E6008( "AttributeValue `{0}` is an invalid number value." ),
+    E6009( "AttributeValue `{0}` is an invalid zero or positive integer value." ),
+    E6010( "AttributeValue `{0}` is an invalid percentage value." ),
+    E6011( "AttributeValue `{0}` is an invalid Unit Interval value." ),
+    E6012( "Attribute `{0}` is not assigned to `{1}`." ),
+    E6013( "AttributeValue `{0}` is an invalid negative integer value." ),
+    E6014( "AttributeValue `{0}` is an invalid Date value." ),
+    E6015( "AttributeValue `{0}` is an invalid Datetime value." ),
+    E6016( "AttributeValue `{0}` is an invalid boolean value." ),
+    E6017( "AttributeValue `{0}` is an invalid TRUE value." ),
+    E6018( "AttributeValue `{0}` is an invalid email value." ),
+    E6019( "AttributeValue `{0}` is an invalid `{1}` ID." ),
+    E6020( "AttributeValue `{0}` is an invalid Username." ),
 
     /* File resource */
     E6100( "Filename not present" ),

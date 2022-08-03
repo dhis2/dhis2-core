@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.split.orgunit;
 
-import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
@@ -43,7 +42,6 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 class OrgUnitSplitValidatorTest extends SingleSetupIntegrationTestBase
 {
-
     @Autowired
     private OrganisationUnitService organisationUnitService;
 

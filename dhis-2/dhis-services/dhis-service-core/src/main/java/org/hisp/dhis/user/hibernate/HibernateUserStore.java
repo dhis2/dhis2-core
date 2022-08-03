@@ -114,7 +114,7 @@ public class HibernateUserStore
     {
         super.save( user, clearSharing );
 
-        currentUserService.invalidateUserGroupCache( user.getUsername() );
+        currentUserService.invalidateUserGroupCache( user.getUid() );
     }
 
     @Override
@@ -535,12 +535,12 @@ public class HibernateUserStore
     }
 
     @Override
-    public CurrentUserGroupInfo getCurrentUserGroupInfo( User user )
+    public CurrentUserGroupInfo getCurrentUserGroupInfo( String userUID )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
         CriteriaQuery<Object[]> query = builder.createQuery( Object[].class );
         Root<User> root = query.from( User.class );
-        query.where( builder.equal( root.get( "id" ), user.getId() ) );
+        query.where( builder.equal( root.get( "uid" ), userUID ) );
         query.select( builder.array( root.get( "uid" ), root.join( "groups", JoinType.LEFT ).get( "uid" ) ) );
 
         Session session = getSession();
@@ -550,7 +550,7 @@ public class HibernateUserStore
 
         if ( CollectionUtils.isEmpty( results ) )
         {
-            currentUserGroupInfo.setUserUID( user.getUid() );
+            currentUserGroupInfo.setUserUID( userUID );
             return currentUserGroupInfo;
         }
 
@@ -600,6 +600,7 @@ public class HibernateUserStore
     }
 
     @Override
+    @SuppressWarnings( "unchecked" )
     public String getDisplayName( String userUid )
     {
         String sql = "select concat(firstname, ' ', surname) from userinfo where uid =:uid";

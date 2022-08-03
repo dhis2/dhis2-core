@@ -80,7 +80,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.joda.time.DateTime;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -150,12 +149,6 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest
     private TrackedEntityType trackedEntityType;
 
     @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
-    @Override
     protected void setUpTest()
         throws Exception
     {
@@ -217,7 +210,6 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest
             null, organisationUnitA );
         programInstanceService.enrollTrackedEntityInstance( dateConflictsMaleA, programA,
             DateTime.now().plusMonths( 1 ).toDate(), DateTime.now().plusMonths( 2 ).toDate(), organisationUnitA );
-        manager.flush();
     }
 
     @Test
@@ -247,7 +239,6 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    @Disabled
     void testUpdatePerson()
     {
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstanceService
@@ -369,7 +360,6 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest
      * FIXME luciano: this is ignored because there is a bug in tracker, so that
      * new events that fail to validate are reported as success.
      */
-    @Disabled
     @Test
     void testUpdateTeiByCompletingExistingEnrollmentAndUpdateExistingEventsInSameEnrollment()
     {
@@ -487,17 +477,15 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    @Disabled
     void testSavePerson()
     {
         TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
-        // person.setName( "NAME" );
+        trackedEntityInstance.setTrackedEntityInstance( CodeGenerator.generateUid() );
         trackedEntityInstance.setOrgUnit( organisationUnitA.getUid() );
+        trackedEntityInstance.setTrackedEntityType( trackedEntityType.getUid() );
         ImportSummary importSummary = trackedEntityInstanceService.addTrackedEntityInstance( trackedEntityInstance,
             null );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
-        // assertEquals( "NAME", personService.getTrackedEntityInstance(
-        // importSummary.getReference() ).getName() );
     }
 
     @Test

@@ -80,7 +80,6 @@ import com.google.common.collect.Sets;
  */
 class ValidationResultStoreTest extends TransactionalIntegrationTest
 {
-
     private static final String ACCESS_NONE = "--------";
 
     private static final String ACCESS_READ = "r-------";
@@ -200,12 +199,6 @@ class ValidationResultStoreTest extends TransactionalIntegrationTest
     // Set up/tear down
     // -------------------------------------------------------------------------
     @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
-    @Override
     public void setUpTest()
         throws Exception
     {
@@ -296,17 +289,9 @@ class ValidationResultStoreTest extends TransactionalIntegrationTest
     }
 
     // -------------------------------------------------------------------------
-    // Test helper methods
-    // -------------------------------------------------------------------------
-    private void setMockUserService( CurrentUserService mockUserService )
-    {
-        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService, mockUserService,
-            validationResultStore );
-    }
-
-    // -------------------------------------------------------------------------
     // Test ValidationResultStore
     // -------------------------------------------------------------------------
+
     @Test
     void testSaveValidationResult()
         throws Exception
