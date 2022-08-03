@@ -54,10 +54,6 @@ public class IntegrationTestConfig
 
     private static final String POSTGRES_DATABASE_NAME = "dhis";
 
-    private static final String POSTGRES_CREDENTIALS = "dhis";
-
-    public static final String CREATE_UPDATE_DELETE = "CREATE;UPDATE;DELETE";
-
     @Bean
     public LdapAuthenticator ldapAuthenticator()
     {

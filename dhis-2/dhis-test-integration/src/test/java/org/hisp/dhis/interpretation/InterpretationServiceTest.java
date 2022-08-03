@@ -45,6 +45,7 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.visualization.VisualizationService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -91,6 +92,11 @@ class InterpretationServiceTest extends TransactionalIntegrationTest
         throws Exception
     {
         userService = _userService;
+    }
+
+    @BeforeEach
+    void beforeTest()
+    {
         userA = makeUser( "A" );
         userB = makeUser( "B" );
         userC = createUserWithAuth( "C.D-E_F" );
