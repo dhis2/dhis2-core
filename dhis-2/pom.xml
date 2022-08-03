@@ -91,7 +91,7 @@
     <lettuce.version>6.2.0.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-core.version>9.0.4</flyway-core.version>
+    <flyway-core.version>9.1.0</flyway-core.version>
     <hibernate.version>5.6.10.Final</hibernate.version>
     <hibernate-types.version>2.17.1</hibernate-types.version>
     <!-- Data sources,db pools and db drivers -->
@@ -205,7 +205,7 @@
     <!-- Maven plugin versions -->
     <maven-surefire-plugin.version>3.0.0-M7</maven-surefire-plugin.version>
     <maven-compiler-plugin.version>3.10.1</maven-compiler-plugin.version>
-    <maven-resources-plugin.version>3.2.0</maven-resources-plugin.version>
+    <maven-resources-plugin.version>3.3.0</maven-resources-plugin.version>
     <maven-failsafe-plugin.version>3.0.0-M7</maven-failsafe-plugin.version>
     <maven-javadoc-plugin.version>3.4.0</maven-javadoc-plugin.version>
     <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>

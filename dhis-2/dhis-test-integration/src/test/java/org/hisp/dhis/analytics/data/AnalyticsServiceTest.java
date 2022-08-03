@@ -615,15 +615,15 @@ class AnalyticsServiceTest
             .withOutputFormat( OutputFormat.ANALYTICS ).build();
 
         assertDataValues(
-            Map.of( "deabcdefghC-ouabcdefghB-201703", 6.0 ),
+            Map.of( "deabcdefghC-ouabcdefghB-201703", 6L ),
             params );
 
         AnalyticsTestUtils.assertResultSet(
-            Map.of( "deabcdefghC-ouabcdefghB-201703", 6.0 ),
+            Map.of( "deabcdefghC-ouabcdefghB-201703", 6L ),
             getDataValueSet( params ) );
 
         assertMapEquals(
-            Map.of( "deabcdefghC-201703-ouabcdefghB", 6.0 ),
+            Map.of( "deabcdefghC-201703-ouabcdefghB", 6L ),
             getDataValueMapping( new Visualization( "deC_ouB_2017_03",
                 List.of( deC ), emptyList(), emptyList(), List.of( peMar ), List.of( ouB ),
                 false, true, true ) ) );
@@ -640,15 +640,15 @@ class AnalyticsServiceTest
             .withOutputFormat( OutputFormat.ANALYTICS ).build();
 
         assertDataValues(
-            Map.of( "deabcdefghA-ouabcdefghA-2017Q1", 308.0 ),
+            Map.of( "deabcdefghA-ouabcdefghA-2017Q1", 308L ),
             params );
 
         AnalyticsTestUtils.assertResultSet(
-            Map.of( "deabcdefghA-ouabcdefghA-2017Q1", 308.0 ),
+            Map.of( "deabcdefghA-ouabcdefghA-2017Q1", 308L ),
             getDataValueSet( params ) );
 
         assertMapEquals(
-            Map.of( "deabcdefghA-2017Q1-ouabcdefghA", 308.0 ),
+            Map.of( "deabcdefghA-2017Q1-ouabcdefghA", 308L ),
             getDataValueMapping( new Visualization( "deA_ouA_2017_Q01",
                 List.of( deA ), emptyList(), emptyList(), List.of( quarter ), List.of( ouA ),
                 false, true, true ) ) );
@@ -832,7 +832,7 @@ class AnalyticsServiceTest
     void test_deA_ouB_ouC_2017_02()
     {
         assertDataValues(
-            Map.of( "deabcdefghA-201702", 233.0 ),
+            Map.of( "deabcdefghA-201702", 233L ),
             DataQueryParams.newBuilder()
                 .withFilterOrganisationUnits( List.of( ouB, ouC ) )
                 .withDataElements( List.of( deA ) )
@@ -858,7 +858,7 @@ class AnalyticsServiceTest
     void test_ouB_2017_01_01_2017_02_20()
     {
         assertDataValues(
-            Map.of( "deabcdefghA-ouabcdefghB", 68.0 ),
+            Map.of( "deabcdefghA-ouabcdefghB", 68L ),
             DataQueryParams.newBuilder()
                 .withDataElements( Lists.newArrayList( deA, deB ) )
                 .withOrganisationUnit( ouB )
