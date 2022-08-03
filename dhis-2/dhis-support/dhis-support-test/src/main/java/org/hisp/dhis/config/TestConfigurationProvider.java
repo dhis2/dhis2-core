@@ -37,6 +37,7 @@ import java.util.stream.Stream;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -155,7 +156,7 @@ public abstract class TestConfigurationProvider implements DhisConfigurationProv
     {
         return Stream.of( ConfigurationKey.values() )
             .collect( Collectors.toMap( ConfigurationKey::getKey, v -> v.isConfidential() ? ""
-                : getPropertyOrDefault( v, v.getDefaultValue() != null ? v.getDefaultValue() : "" ) ) );
+                : getPropertyOrDefault( v, ObjectUtils.defaultIfNull( v.getDefaultValue(), "" ) ) ) );
     }
 
     protected Properties getPropertiesFromFile( String fileName )
