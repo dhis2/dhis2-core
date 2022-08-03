@@ -106,7 +106,7 @@ public class DefaultDataValueAuditService
 
     @Override
     @Transactional( readOnly = true )
-    public List<DataValueAudit> getDataValueAuditsForDataEntry( DataElement dataElement, Period period,
+    public List<DataValueAudit> getDataValueAudits( DataElement dataElement, Period period,
         OrganisationUnit organisationUnit, CategoryOptionCombo categoryOptionCombo,
         CategoryOptionCombo attributeOptionCombo )
     {
@@ -134,16 +134,6 @@ public class DefaultDataValueAuditService
         }
 
         return audits;
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<DataValueAudit> getDataValueAudits( DataElement dataElement, Period period,
-        OrganisationUnit organisationUnit, CategoryOptionCombo categoryOptionCombo,
-        CategoryOptionCombo attributeOptionCombo )
-    {
-        return dataValueAuditStore.getDataValueAudits( List.of( dataElement ), List.of( period ),
-            List.of( organisationUnit ), categoryOptionCombo, attributeOptionCombo, null );
     }
 
     @Override
