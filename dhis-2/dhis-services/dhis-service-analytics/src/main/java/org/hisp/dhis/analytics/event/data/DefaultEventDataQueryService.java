@@ -439,7 +439,8 @@ public class DefaultEventDataQueryService
     @Override
     public String getFallbackCoordinateField( String fallbackCoordinateField, String program )
     {
-        if ( "teigeometry".equals( fallbackCoordinateField ) && !programService.getProgram( program ).isRegistration() )
+        if ( FallbackCoordinateFieldType.TEI_GEOMETRY.getValue().equals( fallbackCoordinateField )
+            && !programService.getProgram( program ).isRegistration() )
         {
             return getDefaultFallbackCoordinateFields( program );
         }

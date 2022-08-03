@@ -697,7 +697,6 @@ public class EventQueryParams
     {
         List<String> fcFields = fallbackCoordinateField == null ? new ArrayList<>()
             : List.of( fallbackCoordinateField.split( "," ) );
-        ;
 
         return EventQueryParams.FALLBACK_COORDINATE_FIELD_TYPES.stream()
             .anyMatch( t -> fcFields.contains( t.getValue() ) );

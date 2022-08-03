@@ -605,11 +605,18 @@ public class JdbcEventAnalyticsManager
             .collect( joining( " and " ) );
     }
 
+    /**
+     * The method produces a snippet like this: ax."psigeometry" is not null or
+     * ax."pigeometry" is NOT NULL or ax."ougeometry" is NOT NULL
+     *
+     * @param params
+     * @return
+     */
     private String getSqlSnippetForFallbackCoordinateFields( EventQueryParams params )
     {
         if ( params.getFallbackCoordinateField() == null )
         {
-            return "";
+            return StringUtils.EMPTY;
         }
 
         return Arrays.stream( params.getFallbackCoordinateField().split( "," ) )
