@@ -363,6 +363,11 @@
             <artifactId>quick</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.lowagie</groupId>
+            <artifactId>itext</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <properties>
