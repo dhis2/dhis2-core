@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.pdf;
+package org.hisp.dhis.dxf2.pdf;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -33,7 +33,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Collections;
 
-import org.hisp.dhis.BaseSpringTest;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -48,6 +47,7 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -58,7 +58,7 @@ import com.lowagie.text.DocumentException;
  * @author viet@dhis2.org
  */
 public class PdfDataEntryFormGeneratorTest
-    extends BaseSpringTest
+    extends SingleSetupIntegrationTestBase
 {
     @Autowired
     private IdentifiableObjectManager manager;
@@ -113,11 +113,5 @@ public class PdfDataEntryFormGeneratorTest
         ByteArrayOutputStream baos = formGenerator.generateDataEntry( dataSet, settings );
 
         assertNotNull( baos );
-    }
-
-    @Override
-    protected boolean emptyDatabaseAfterTest()
-    {
-        return true;
     }
 }
