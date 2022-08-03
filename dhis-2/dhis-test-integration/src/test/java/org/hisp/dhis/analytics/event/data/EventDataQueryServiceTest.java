@@ -245,7 +245,7 @@ class EventDataQueryServiceTest extends SingleSetupIntegrationTestBase
         assertEquals( AnalyticsAggregationType.AVERAGE, params.getAggregationType() );
         assertFalse( params.isCoordinateOuFallback() );
         assertEquals( "psigeometry", params.getCoordinateField() );
-        assertEquals( "ougeometry", params.getFallbackCoordinateField() );
+        assertEquals( "psigeometry,pigeometry,teigeometry,ougeometry", params.getFallbackCoordinateField() );
     }
 
     @Test
