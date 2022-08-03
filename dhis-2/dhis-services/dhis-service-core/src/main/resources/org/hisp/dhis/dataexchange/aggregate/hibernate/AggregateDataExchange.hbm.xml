@@ -6,18 +6,19 @@
   >
 
 <hibernate-mapping>
-  <class name="org.hisp.dhis.dataexchange.analytics.AnalyticsDataExchange" table="analyticsdataexchange">
+  <class name="org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange" table="aggregatedataexchange">
 
     <cache usage="read-write" />
 
-    <id name="id" column="analyticsdataexchangeid">
+    <id name="id" column="aggregatedataexchangeid">
       <generator class="native" />
     </id>
     &identifiableProperties;
 
     <property name="name" column="name" not-null="true" unique="false" length="230" />
 
-    <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_analyticsdataexchange_userid" />
+    <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid" 
+      foreign-key="fk_aggregatedataexchange_userid_userinfoid" />
 
     <property name="translations" column="translations" type="jblTranslations"/>
 
@@ -25,7 +26,7 @@
 
     <property name="attributeValues" column="attributevalues" type="jsbAttributeValues"/>
     
-    <property name="source" type="jbAnalyticsDataExchangeSource" column="source" not-null="true" />
+    <property name="source" type="jbAggregateDataExchangeSource" column="source" not-null="true" />
 
     <property name="target" type="jbAnalyticsDataExchangeTarget" column="target" not-null="true" />
 

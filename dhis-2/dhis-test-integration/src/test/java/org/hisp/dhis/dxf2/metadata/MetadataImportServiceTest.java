@@ -48,7 +48,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dashboard.Dashboard;
-import org.hisp.dhis.dataexchange.analytics.AnalyticsDataExchange;
+import org.hisp.dhis.dataexchange.analytics.AggregateDataExchange;
 import org.hisp.dhis.dataexchange.analytics.TargetType;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.Section;
@@ -933,7 +933,7 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
             new ClassPathResource( "dxf2/analytics_data_exchange.json" ).getInputStream(), RenderFormat.JSON );
         MetadataImportParams params = createParams( ImportStrategy.CREATE_AND_UPDATE, metadata );
         ImportReport report = importService.importMetadata( params );
-        TypeReport typeReport = report.getTypeReport( AnalyticsDataExchange.class );
+        TypeReport typeReport = report.getTypeReport( AggregateDataExchange.class );
 
         assertNotNull( report.getStats() );
         assertNotNull( typeReport );
@@ -942,14 +942,14 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
         assertEquals( 5, report.getStats().getCreated() );
         assertEquals( 2, typeReport.getStats().getCreated() );
 
-        AnalyticsDataExchange aeA = manager.get( AnalyticsDataExchange.class, "iFOyIpQciyk" );
+        AggregateDataExchange aeA = manager.get( AggregateDataExchange.class, "iFOyIpQciyk" );
         assertNotNull( aeA );
         assertNotNull( aeA.getSource() );
         assertNotNull( aeA.getTarget() );
         assertEquals( "iFOyIpQciyk", aeA.getUid() );
         assertEquals( TargetType.INTERNAL, aeA.getTarget().getType() );
 
-        AnalyticsDataExchange aeB = manager.get( AnalyticsDataExchange.class, "PnWccbwCJLQ" );
+        AggregateDataExchange aeB = manager.get( AggregateDataExchange.class, "PnWccbwCJLQ" );
         assertNotNull( aeB );
         assertNotNull( aeB.getSource() );
         assertNotNull( aeB.getTarget() );

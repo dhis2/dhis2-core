@@ -29,8 +29,8 @@ package org.hisp.dhis.dataexchange.analytics.hibernate;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.dataexchange.analytics.AnalyticsDataExchange;
-import org.hisp.dhis.dataexchange.analytics.AnalyticsDataExchangeStore;
+import org.hisp.dhis.dataexchange.analytics.AggregateDataExchange;
+import org.hisp.dhis.dataexchange.analytics.AggregateDataExchangeStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
@@ -39,13 +39,13 @@ import org.springframework.stereotype.Repository;
 
 @Repository( "org.hisp.dhis.dataexchange.analytics.AnalyticsDataExchangeStore" )
 public class HibernateAnalyticsDataExchangeStore
-    extends HibernateIdentifiableObjectStore<AnalyticsDataExchange>
-    implements AnalyticsDataExchangeStore
+    extends HibernateIdentifiableObjectStore<AggregateDataExchange>
+    implements AggregateDataExchangeStore
 {
     public HibernateAnalyticsDataExchangeStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
         super( sessionFactory, jdbcTemplate, publisher,
-            AnalyticsDataExchange.class, currentUserService, aclService, false );
+            AggregateDataExchange.class, currentUserService, aclService, false );
     }
 }

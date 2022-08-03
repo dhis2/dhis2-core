@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataexchange.analytics;
+package org.hisp.dhis.dataexchange.aggregate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -45,6 +45,14 @@ import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.dataexchange.analytics.AggregateDataExchange;
+import org.hisp.dhis.dataexchange.analytics.AggregateDataExchangeStore;
+import org.hisp.dhis.dataexchange.analytics.Api;
+import org.hisp.dhis.dataexchange.analytics.Source;
+import org.hisp.dhis.dataexchange.analytics.SourceRequest;
+import org.hisp.dhis.dataexchange.analytics.Target;
+import org.hisp.dhis.dataexchange.analytics.TargetRequest;
+import org.hisp.dhis.dataexchange.analytics.TargetType;
 import org.hisp.dhis.dataexchange.client.Dhis2Client;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
@@ -60,13 +68,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith( MockitoExtension.class )
-class AnalyticsDataExchangeServiceTest
+class AggregateDataExchangeServiceTest
 {
     @Mock
     private AnalyticsService analyticsService;
 
     @Mock
-    private AnalyticsDataExchangeStore analyticsDataExchangeStore;
+    private AggregateDataExchangeStore analyticsDataExchangeStore;
 
     @Mock
     private DataQueryService dataQueryService;
@@ -74,12 +82,12 @@ class AnalyticsDataExchangeServiceTest
     @Mock
     private DataValueSetService dataValueSetService;
 
-    private AnalyticsDataExchangeService service;
+    private AggregateDataExchangeService service;
 
     @BeforeEach
     void beforeEach()
     {
-        service = new AnalyticsDataExchangeService(
+        service = new AggregateDataExchangeService(
             analyticsService, analyticsDataExchangeStore, dataQueryService, dataValueSetService );
     }
 
@@ -118,7 +126,7 @@ class AnalyticsDataExchangeServiceTest
             .setType( TargetType.INTERNAL )
             .setApi( new Api() )
             .setRequest( request );
-        AnalyticsDataExchange exchange = new AnalyticsDataExchange()
+        AggregateDataExchange exchange = new AggregateDataExchange()
             .setSource( source )
             .setTarget( target );
 
@@ -144,7 +152,7 @@ class AnalyticsDataExchangeServiceTest
             .setType( TargetType.EXTERNAL )
             .setApi( new Api() )
             .setRequest( request );
-        AnalyticsDataExchange exchange = new AnalyticsDataExchange()
+        AggregateDataExchange exchange = new AggregateDataExchange()
             .setTarget( target );
 
         ImportOptions options = service.toImportOptions( exchange );
@@ -182,7 +190,7 @@ class AnalyticsDataExchangeServiceTest
             .setType( TargetType.EXTERNAL )
             .setApi( api );
 
-        AnalyticsDataExchange exchange = new AnalyticsDataExchange()
+        AggregateDataExchange exchange = new AggregateDataExchange()
             .setTarget( target );
 
         Dhis2Client client = service.getDhis2Client( exchange );

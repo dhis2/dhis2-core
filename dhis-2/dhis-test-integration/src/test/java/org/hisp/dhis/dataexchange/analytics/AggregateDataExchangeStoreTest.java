@@ -38,18 +38,18 @@ import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class AnalyticsDataExchangeStoreTest extends TransactionalIntegrationTest
+class AggregateDataExchangeStoreTest extends TransactionalIntegrationTest
 {
     private static final String UID_SCHEME = IdScheme.UID.name();
 
     @Autowired
-    private AnalyticsDataExchangeStore store;
+    private AggregateDataExchangeStore store;
 
     @Test
     void testSaveGet()
     {
-        AnalyticsDataExchange deA = getAnalyticsDataExchange( 'A' );
-        AnalyticsDataExchange deB = getAnalyticsDataExchange( 'B' );
+        AggregateDataExchange deA = getAnalyticsDataExchange( 'A' );
+        AggregateDataExchange deB = getAnalyticsDataExchange( 'B' );
 
         store.save( deA );
         store.save( deB );
@@ -61,7 +61,7 @@ class AnalyticsDataExchangeStoreTest extends TransactionalIntegrationTest
     @Test
     void testUpdate()
     {
-        AnalyticsDataExchange de = getAnalyticsDataExchange( 'A' );
+        AggregateDataExchange de = getAnalyticsDataExchange( 'A' );
 
         store.save( de );
 
@@ -80,7 +80,7 @@ class AnalyticsDataExchangeStoreTest extends TransactionalIntegrationTest
         assertEquals( "https://play.dhis2.org/dev", de.getTarget().getApi().getUrl() );
     }
 
-    private AnalyticsDataExchange getAnalyticsDataExchange( char uniqueChar )
+    private AggregateDataExchange getAnalyticsDataExchange( char uniqueChar )
     {
         SourceRequest sourceRequest = new SourceRequest();
         sourceRequest.getDx().addAll( List.of( "LrDpG50RAU9", "uR5HCiJhQ1w" ) );
@@ -105,7 +105,7 @@ class AnalyticsDataExchangeStoreTest extends TransactionalIntegrationTest
             .setType( TargetType.EXTERNAL )
             .setRequest( new TargetRequest() );
 
-        AnalyticsDataExchange exchange = new AnalyticsDataExchange();
+        AggregateDataExchange exchange = new AggregateDataExchange();
         exchange.setAutoFields();
         exchange.setName( "DataExchange" + uniqueChar );
         exchange.setSource( source );

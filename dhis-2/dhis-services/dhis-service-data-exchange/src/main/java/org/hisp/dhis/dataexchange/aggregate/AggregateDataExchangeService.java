@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataexchange.analytics;
+package org.hisp.dhis.dataexchange.aggregate;
 
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
@@ -44,6 +44,13 @@ import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.dataexchange.analytics.AggregateDataExchange;
+import org.hisp.dhis.dataexchange.analytics.AggregateDataExchangeStore;
+import org.hisp.dhis.dataexchange.analytics.Api;
+import org.hisp.dhis.dataexchange.analytics.Filter;
+import org.hisp.dhis.dataexchange.analytics.SourceRequest;
+import org.hisp.dhis.dataexchange.analytics.TargetRequest;
+import org.hisp.dhis.dataexchange.analytics.TargetType;
 import org.hisp.dhis.dataexchange.client.Dhis2Client;
 import org.hisp.dhis.dataexchange.client.Dhis2Config;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -60,11 +67,11 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @RequiredArgsConstructor
-public class AnalyticsDataExchangeService
+public class AggregateDataExchangeService
 {
     private final AnalyticsService analyticsService;
 
-    private final AnalyticsDataExchangeStore analyticsDataExchangeStore;
+    private final AggregateDataExchangeStore analyticsDataExchangeStore;
 
     private final DataQueryService dataQueryService;
 
@@ -73,12 +80,12 @@ public class AnalyticsDataExchangeService
     /**
      * Runs the analytics data exchange with the given identifier.
      *
-     * @param uid the {@link AnalyticsDataExchange} identifier.
+     * @param uid the {@link AggregateDataExchange} identifier.
      * @return an {@link ImportSummaries}.
      */
     public ImportSummaries exchangeData( String uid )
     {
-        AnalyticsDataExchange exchange = analyticsDataExchangeStore.loadByUid( uid );
+        AggregateDataExchange exchange = analyticsDataExchangeStore.loadByUid( uid );
 
         return exchangeData( exchange );
     }
@@ -86,10 +93,10 @@ public class AnalyticsDataExchangeService
     /**
      * Runs the given analytics data exchange.
      *
-     * @param uid the {@link AnalyticsDataExchange}.
+     * @param uid the {@link AggregateDataExchange}.
      * @return an {@link ImportSummaries}.
      */
-    public ImportSummaries exchangeData( AnalyticsDataExchange exchange )
+    public ImportSummaries exchangeData( AggregateDataExchange exchange )
     {
         ImportSummaries summaries = new ImportSummaries();
 
@@ -103,12 +110,12 @@ public class AnalyticsDataExchangeService
      * Returns the source data for the analytics data exchange with the given
      * identifier.
      *
-     * @param uid the {@link AnalyticsDataExchange} identifier.
+     * @param uid the {@link AggregateDataExchange} identifier.
      * @return the source data for the analytics data exchange.
      */
     public List<Grid> getSourceData( String uid )
     {
-        AnalyticsDataExchange exchange = analyticsDataExchangeStore.loadByUid( uid );
+        AggregateDataExchange exchange = analyticsDataExchangeStore.loadByUid( uid );
 
         return mapToList( exchange.getSource().getRequests(),
             request -> analyticsService.getAggregatedDataValues( toDataQueryParams( request ) ) );
@@ -117,13 +124,13 @@ public class AnalyticsDataExchangeService
     /**
      * Exchanges data from the source as defined by the given
      * {@link SourceRequest} to the target as defined by the given
-     * {@link AnalyticsDataExchange}.
+     * {@link AggregateDataExchange}.
      *
-     * @param exchange the {@link AnalyticsDataExchange}.
+     * @param exchange the {@link AggregateDataExchange}.
      * @param request the {@link SourceRequest}.
      * @return an {@link ImportSummary} describing the outcome of the exchange.
      */
-    ImportSummary exchangeData( AnalyticsDataExchange exchange, SourceRequest request )
+    ImportSummary exchangeData( AggregateDataExchange exchange, SourceRequest request )
     {
         DataValueSet dataValueSet = analyticsService.getAggregatedDataValueSet( toDataQueryParams( request ) );
 
@@ -134,11 +141,11 @@ public class AnalyticsDataExchangeService
     /**
      * Imports the given {@link DataValueSet} to this instance of DHIS 2.
      *
-     * @param exchange the {@link AnalyticsDataExchange}.
+     * @param exchange the {@link AggregateDataExchange}.
      * @param dataValueSet the {@link DataValueSet}.
      * @return an {@link ImportSummary} describing the outcome of the exchange.
      */
-    ImportSummary pushToInternal( AnalyticsDataExchange exchange, DataValueSet dataValueSet )
+    ImportSummary pushToInternal( AggregateDataExchange exchange, DataValueSet dataValueSet )
     {
         return dataValueSetService.importDataValueSet( dataValueSet, toImportOptions( exchange ) );
     }
@@ -147,25 +154,25 @@ public class AnalyticsDataExchangeService
      * Exchanges the given {@link DataValueSet} to an external instance of DHIS
      * 2. The location and credentials of the target DHIS 2 instance and the
      * import options to use for the data exchange are specified by the target
-     * API of the given {@link AnalyticsDataExchange}.
+     * API of the given {@link AggregateDataExchange}.
      *
-     * @param exchange the {@link AnalyticsDataExchange}.
+     * @param exchange the {@link AggregateDataExchange}.
      * @param dataValueSet the {@link DataValueSet}.
      * @return an {@link ImportSummary} describing the outcome of the exchange.
      */
-    ImportSummary pushToExternal( AnalyticsDataExchange exchange, DataValueSet dataValueSet )
+    ImportSummary pushToExternal( AggregateDataExchange exchange, DataValueSet dataValueSet )
     {
         return getDhis2Client( exchange ).saveDataValueSet( dataValueSet, toImportOptions( exchange ) );
     }
 
     /**
      * Converts the {@link TargetRequest} of the given
-     * {@link AnalyticsDataExchange} to an {@link ImportOptions}.
+     * {@link AggregateDataExchange} to an {@link ImportOptions}.
      *
-     * @param exchange the {@link AnalyticsDataExchange}.
+     * @param exchange the {@link AggregateDataExchange}.
      * @return an {@link ImportOptions}.
      */
-    ImportOptions toImportOptions( AnalyticsDataExchange exchange )
+    ImportOptions toImportOptions( AggregateDataExchange exchange )
     {
         TargetRequest request = exchange.getTarget().getRequest();
 
@@ -252,12 +259,12 @@ public class AnalyticsDataExchangeService
 
     /**
      * Returns a {@link Dhis2Client} based on the given
-     * {@link AnalyticsDataExchange}.
+     * {@link AggregateDataExchange}.
      *
-     * @param exchange the {@link AnalyticsDataExchange}.
+     * @param exchange the {@link AggregateDataExchange}.
      * @return a {@link Dhis2Client}.
      */
-    Dhis2Client getDhis2Client( AnalyticsDataExchange exchange )
+    Dhis2Client getDhis2Client( AggregateDataExchange exchange )
     {
         Api api = exchange.getTarget().getApi();
 

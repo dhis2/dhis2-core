@@ -163,11 +163,11 @@
     <param name="clazz">org.hisp.dhis.trackerdataview.TrackerDataView</param>
   </typedef>
   
-  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbAnalyticsDataExchangeSource">
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbAggregateDataExchangeSource">
     <param name="clazz">org.hisp.dhis.dataexchange.analytics.Source</param>
   </typedef>  
 
-  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbAnalyticsDataExchangeTarget">
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbAggregateDataExchangeTarget">
     <param name="clazz">org.hisp.dhis.dataexchange.analytics.Target</param>
   </typedef>  
 

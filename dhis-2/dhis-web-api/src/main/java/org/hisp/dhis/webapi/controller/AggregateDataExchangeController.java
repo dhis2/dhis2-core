@@ -33,10 +33,10 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.dataexchange.analytics.AnalyticsDataExchange;
-import org.hisp.dhis.dataexchange.analytics.AnalyticsDataExchangeService;
+import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchangeService;
+import org.hisp.dhis.dataexchange.analytics.AggregateDataExchange;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
-import org.hisp.dhis.schema.descriptors.AnalyticsDataExchangeSchemaDescriptor;
+import org.hisp.dhis.schema.descriptors.AggregateDataExchangeSchemaDescriptor;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -52,16 +52,16 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping( value = AnalyticsDataExchangeSchemaDescriptor.API_ENDPOINT )
+@RequestMapping( value = AggregateDataExchangeSchemaDescriptor.API_ENDPOINT )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class AnalyticsDataExchangeController
-    extends AbstractCrudController<AnalyticsDataExchange>
+public class AggregateDataExchangeController
+    extends AbstractCrudController<AggregateDataExchange>
 {
-    private final AnalyticsDataExchangeService service;
+    private final AggregateDataExchangeService service;
 
     @PostMapping( "/exchange" )
     @ResponseStatus( value = HttpStatus.OK )
-    public ImportSummaries runDataExchange( @RequestBody AnalyticsDataExchange exchange )
+    public ImportSummaries runDataExchange( @RequestBody AggregateDataExchange exchange )
     {
         return service.exchangeData( exchange );
     }
