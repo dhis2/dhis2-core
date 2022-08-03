@@ -75,6 +75,22 @@ public interface DataValueAuditService
     List<DataValueAudit> getDataValueAudits( DataValue dataValue );
 
     /**
+     * Returns data value audits for the given parameters. This is a special
+     * version that also adds current data value, and marks the first audit as
+     * type CREATE.
+     *
+     * @param dataElement the {@link DataElement}.
+     * @param period the {@link Period}.
+     * @param organisationUnit the {@link OrganisationUnit}.
+     * @param categoryOptionCombo the {@link CategoryOptionCombo}.
+     * @param attributeOptionCombo the {@link CategoryOptionCombo}.
+     * @return a list of {@link DataValueAudit}.
+     */
+    List<DataValueAudit> getDataValueAuditsForDataEntry( DataElement dataElement, Period period,
+        OrganisationUnit organisationUnit, CategoryOptionCombo categoryOptionCombo,
+        CategoryOptionCombo attributeOptionCombo );
+
+    /**
      * Returns data value audits for the given parameters.
      *
      * @param dataElement the {@link DataElement}.

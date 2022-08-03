@@ -77,7 +77,7 @@ public class DataValueContextController
         CategoryOptionCombo co = dataValidator.getAndValidateCategoryOptionCombo( params.getCo() );
         CategoryOptionCombo ao = dataValidator.getAndValidateAttributeOptionCombo( params.getCc(), params.getCp() );
 
-        List<DataValueAudit> audits = dataValueAuditService.getDataValueAudits( de, pe, ou, co, ao );
+        List<DataValueAudit> audits = dataValueAuditService.getDataValueAuditsForDataEntry( de, pe, ou, co, ao );
 
         List<Period> periods = periodService.getPeriods( pe, 13 );
 
