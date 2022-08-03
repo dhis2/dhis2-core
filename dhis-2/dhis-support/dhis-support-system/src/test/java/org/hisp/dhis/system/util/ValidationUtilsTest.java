@@ -35,6 +35,7 @@ import static org.hisp.dhis.system.util.ValidationUtils.emailIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.expressionIsValidSQl;
 import static org.hisp.dhis.system.util.ValidationUtils.getLatitude;
 import static org.hisp.dhis.system.util.ValidationUtils.getLongitude;
+import static org.hisp.dhis.system.util.ValidationUtils.isPhoneNumber;
 import static org.hisp.dhis.system.util.ValidationUtils.isValidHexColor;
 import static org.hisp.dhis.system.util.ValidationUtils.normalizeBoolean;
 import static org.hisp.dhis.system.util.ValidationUtils.passwordIsValid;
@@ -247,6 +248,27 @@ class ValidationUtilsTest
         assertTrue( isValidHexColor( "ffAAb4" ) );
         assertTrue( isValidHexColor( "#4a6" ) );
         assertTrue( isValidHexColor( "abc" ) );
+    }
+
+    @Test
+    void testIsPhoneNumber()
+    {
+        assertTrue( isPhoneNumber( "+ 47 33 987 937" ) );
+        assertTrue( isPhoneNumber( "+4733987937" ) );
+        assertTrue( isPhoneNumber( "123456" ) );
+        assertTrue( isPhoneNumber( "(+47) 3398 7937" ) );
+        assertTrue( isPhoneNumber( "(47) 3398 7937" ) );
+        assertTrue( isPhoneNumber( "(47) 3398 7937 ext 123" ) );
+        assertTrue( isPhoneNumber( "(47) 3398 7937.123" ) );
+        assertTrue( isPhoneNumber( "01234567890123456789012345678901234567890123456789" ) ); // 50
+                                                                                             // characters
+        assertFalse( isPhoneNumber( "012345678901234567890123456789012345678901234567890" ) ); // 51
+                                                                                               // characters
+        assertFalse( isPhoneNumber( "+AA4733987937" ) );
+        assertFalse( isPhoneNumber( "+AA4733987937" ) );
+        assertFalse( isPhoneNumber( "12345" ) );
+        assertFalse( isPhoneNumber( "" ) );
+        assertFalse( isPhoneNumber( " " ) );
     }
 
     @Test
