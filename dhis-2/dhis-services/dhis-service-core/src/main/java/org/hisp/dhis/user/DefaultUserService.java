@@ -75,6 +75,7 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.filter.UserRoleCanIssueFilter;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
+import org.jboss.aerogear.security.otp.api.Base32;
 import org.joda.time.DateTime;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.session.SessionInformation;
@@ -763,10 +764,25 @@ public class DefaultUserService
 
     @Override
     @Transactional
-    public void set2FA( User user, Boolean twoFa )
+    public void set2FA( User user, boolean enable )
     {
-        user.generateNewSecret();
-        user.setTwoFA( twoFa );
+        // Do nothing if current state is the same as the requested state
+        if ( user.getTwoFA() == enable )
+        {
+            return;
+        }
+
+        if ( user.getSecret() == null )
+        {
+            throw new IllegalStateException( "User secret not set!" );
+        }
+
+        if ( !enable )
+        {
+            user.setSecret( null );
+        }
+
+        user.setTwoFA( enable );
 
         updateUser( user );
     }
@@ -874,8 +890,7 @@ public class DefaultUserService
             return;
         }
 
-        user.setTwoFA( false );
-        updateUser( user );
+        set2FA( user, false );
     }
 
     @Override
@@ -897,5 +912,14 @@ public class DefaultUserService
         }
 
         return true;
+    }
+
+    @Override
+    @Transactional
+    public void generateTwoFactorSecret( User currentUser )
+    {
+        String secret = Base32.random();
+        currentUser.setSecret( secret );
+        updateUser( currentUser );
     }
 }

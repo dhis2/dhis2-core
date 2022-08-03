@@ -34,7 +34,8 @@ import java.nio.charset.StandardCharsets;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.user.User;
 import org.jboss.aerogear.security.otp.Totp;
-import org.springframework.util.Assert;
+
+import com.google.common.base.Strings;
 
 /**
  * @author Henning Håkonsen
@@ -54,11 +55,16 @@ public class TwoFactorUtils
      */
     public static String generateQrUrl( String appName, User user )
     {
-        Assert.notNull( user.getSecret(), "User must have a secret" );
+        String secret = user.getSecret();
+        if ( Strings.isNullOrEmpty( secret ) )
+        {
+            throw new IllegalArgumentException( "User must have a secret" );
+        }
 
         String app = (APP_NAME_PREFIX + StringUtils.stripToEmpty( appName )).replace( " ", "%20" );
+
         String url = String.format( "otpauth://totp/%s:%s?secret=%s&issuer=%s",
-            app, user.getUsername(), user.getSecret(), app );
+            app, user.getUsername(), secret, app );
 
         try
         {
@@ -79,9 +85,13 @@ public class TwoFactorUtils
      */
     public static boolean verify( User user, String code )
     {
-        Assert.notNull( user.getSecret(), "User must have a secret" );
+        String secret = user.getSecret();
+        if ( Strings.isNullOrEmpty( secret ) )
+        {
+            throw new IllegalArgumentException( "User must have a secret" );
+        }
 
-        Totp totp = new Totp( user.getSecret() );
+        Totp totp = new Totp( secret );
         try
         {
             return totp.verify( code );

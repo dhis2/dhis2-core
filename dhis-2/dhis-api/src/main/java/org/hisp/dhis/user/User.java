@@ -54,7 +54,6 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.security.Authorities;
-import org.jboss.aerogear.security.otp.api.Base32;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -271,7 +270,6 @@ public class User
         {
             uuid = UUID.randomUUID();
         }
-        this.generateNewSecret();
     }
 
     /**
@@ -558,14 +556,6 @@ public class User
     public void setSecret( String secret )
     {
         this.secret = secret;
-    }
-
-    public void generateNewSecret()
-    {
-        if ( this.secret == null )
-        {
-            this.secret = Base32.random();
-        }
     }
 
     @JsonProperty

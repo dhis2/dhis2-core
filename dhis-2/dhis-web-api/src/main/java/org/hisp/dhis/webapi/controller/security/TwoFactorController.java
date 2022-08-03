@@ -59,8 +59,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 /**
  * @author Henning Håkonsen
  * @author Morten Svanaes
@@ -76,17 +74,24 @@ public class TwoFactorController
 
     private final SystemSettingManager systemSettingManager;
 
-    private final ObjectMapper jsonMapper;
-
     @GetMapping( value = "/qr", produces = APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.ACCEPTED )
     @ResponseBody
     public Map<String, Object> getQrCode( @CurrentUser User currentUser )
+        throws WebMessageException
     {
         if ( currentUser == null )
         {
             throw new BadCredentialsException( "No current user" );
         }
+
+        if ( currentUser.getTwoFA() )
+        {
+            throw new WebMessageException( conflict( "User already has two factor authentication enabled, "
+                + "disable 2FA before you create a new QR code." ) );
+        }
+
+        defaultUserService.generateTwoFactorSecret( currentUser );
 
         String appName = systemSettingManager.getStringSetting( SettingKey.APPLICATION_TITLE );
         String url = TwoFactorUtils.generateQrUrl( appName, currentUser );

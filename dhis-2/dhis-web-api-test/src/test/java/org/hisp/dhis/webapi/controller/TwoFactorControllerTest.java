@@ -29,10 +29,17 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.List;
 
 import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.jsontree.JsonString;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.controller.security.TwoFactorController;
@@ -49,6 +56,8 @@ class TwoFactorControllerTest extends DhisControllerConvenienceTest
     @Test
     void testAuthenticate2FA()
     {
+        // Generate a new secret for
+        GET( "/2fa/qr" ).content( HttpStatus.ACCEPTED );
         assertWebMessage( "Unauthorized", 401, "ERROR", "2FA code not authenticated",
             GET( "/2fa/authenticate?code=xyz" ).content( HttpStatus.UNAUTHORIZED ) );
     }
@@ -56,15 +65,46 @@ class TwoFactorControllerTest extends DhisControllerConvenienceTest
     @Test
     void testQr2FA()
     {
+        assertFalse( getCurrentUser().getTwoFA() );
+        assertNull( getCurrentUser().getSecret() );
         JsonResponse content = GET( "/2fa/qr" ).content( HttpStatus.ACCEPTED );
-        String url = content.getMap( "url", JsonString.class ).toString();
+        User user = userService.getUser( CurrentUserUtil.getCurrentUserDetails().getUid() );
+        assertNotNull( user.getSecret() );
 
+        String url = content.getMap( "url", JsonString.class ).toString();
         assertTrue( url.startsWith( "\"https://chart.googleapis.com" ) );
+    }
+
+    @Test
+    void testQr2FAConflictMustDisableFirst()
+    {
+        assertFalse( getCurrentUser().getTwoFA() );
+        assertNull( getCurrentUser().getSecret() );
+        GET( "/2fa/qr" ).content( HttpStatus.ACCEPTED );
+        User user = userService.getUser( CurrentUserUtil.getCurrentUserDetails().getUid() );
+        assertNotNull( user.getSecret() );
+
+        String code = new Totp( user.getSecret() ).now();
+        assertStatus( HttpStatus.OK, POST( "/2fa/enable", "{'code':'" + code + "'}" ) );
+
+        user = userService.getUser( CurrentUserUtil.getCurrentUserDetails().getUid() );
+        assertNotNull( user.getSecret() );
+        assertTrue( user.getTwoFA() );
+
+        GET( "/2fa/qr" ).content( HttpStatus.CONFLICT );
     }
 
     @Test
     void testEnable2FA()
     {
+        User newUser = makeUser( "X", List.of( "TEST" ) );
+        newUser.setEmail( "valid.x@email.com" );
+        newUser.setTwoFA( true );
+        userService.addUser( newUser );
+        userService.generateTwoFactorSecret( newUser );
+
+        switchToNewUser( newUser );
+
         String code = new Totp( getCurrentUser().getSecret() ).now();
 
         assertStatus( HttpStatus.OK, POST( "/2fa/enable", "{'code':'" + code + "'}" ) );
@@ -80,6 +120,14 @@ class TwoFactorControllerTest extends DhisControllerConvenienceTest
     @Test
     void testDisable2FA()
     {
+        User newUser = makeUser( "Y", List.of( "TEST" ) );
+        newUser.setEmail( "valid.y@email.com" );
+        newUser.setTwoFA( true );
+        userService.addUser( newUser );
+        userService.generateTwoFactorSecret( newUser );
+
+        switchToNewUser( newUser );
+
         String code = new Totp( getCurrentUser().getSecret() ).now();
 
         assertStatus( HttpStatus.OK, POST( "/2fa/disable", "{'code':'" + code + "'}" ) );
