@@ -141,7 +141,7 @@
     <jts.version>1.19.0</jts.version>
 
     <!-- Apache Artemis -->
-    <artemis.version>2.23.1</artemis.version>
+    <artemis.version>2.24.0</artemis.version>
     <netty-all.version>4.1.79.Final</netty-all.version>
     <classgraph.version>4.8.149</classgraph.version>
 
