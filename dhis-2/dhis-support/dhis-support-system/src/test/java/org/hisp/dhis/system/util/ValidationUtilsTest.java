@@ -260,10 +260,10 @@ class ValidationUtilsTest
         assertTrue( isPhoneNumber( "(47) 3398 7937" ) );
         assertTrue( isPhoneNumber( "(47) 3398 7937 ext 123" ) );
         assertTrue( isPhoneNumber( "(47) 3398 7937.123" ) );
-        assertTrue( isPhoneNumber( "01234567890123456789012345678901234567890123456789" ) ); // 50
-                                                                                             // characters
-        assertFalse( isPhoneNumber( "012345678901234567890123456789012345678901234567890" ) ); // 51
-                                                                                               // characters
+        // 50 characters
+        assertTrue( isPhoneNumber( "01234567890123456789012345678901234567890123456789" ) );
+        // 51 characters
+        assertFalse( isPhoneNumber( "012345678901234567890123456789012345678901234567890" ) );
         assertFalse( isPhoneNumber( "+AA4733987937" ) );
         assertFalse( isPhoneNumber( "+AA4733987937" ) );
         assertFalse( isPhoneNumber( "12345" ) );
