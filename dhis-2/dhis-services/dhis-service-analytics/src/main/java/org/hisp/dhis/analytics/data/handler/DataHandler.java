@@ -667,7 +667,7 @@ public class DataHandler
 
         grid.addRow()
             .addValues( dataRow.toArray() )
-            .addValue( getRoundedValueObject( params, value ) );
+            .addValue( params.isSkipRounding() ? value : getRoundedValueObject( params, value ) );
 
         if ( params.isIncludeNumDen() )
         {
@@ -990,7 +990,7 @@ public class DataHandler
                 {
                     result.put( join( remove( row.toArray( new Object[0] ), valueIndex ), DIMENSION_SEP ),
                         new DimensionItemObjectValue(
-                            dimensionalItem, ((Number) row.get( valueIndex )) ) );
+                            dimensionalItem, ((Number) row.get( valueIndex )).doubleValue() ) );
                 }
             }
         }

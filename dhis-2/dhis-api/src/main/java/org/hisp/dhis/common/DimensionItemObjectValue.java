@@ -36,5 +36,5 @@ public class DimensionItemObjectValue
 {
     private final DimensionalItemObject dimensionalItemObject;
 
-    private final Number value;
+    private final Double value;
 }
