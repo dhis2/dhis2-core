@@ -181,25 +181,32 @@ class AnalyticsUtilsTest extends DhisConvenienceTest
     {
         DataQueryParams paramsA = DataQueryParams.newBuilder().build();
         DataQueryParams paramsB = DataQueryParams.newBuilder().withSkipRounding( true ).build();
-        assertEquals( null, AnalyticsUtils.getRoundedValueObject( paramsA, null ) );
-        assertEquals( "Car", AnalyticsUtils.getRoundedValueObject( paramsA, "Car" ) );
-        assertEquals( 3L, AnalyticsUtils.getRoundedValueObject( paramsA, 3d ) );
-        assertEquals( 1000L, AnalyticsUtils.getRoundedValueObject( paramsA, 1000.00000000 ) );
-        assertEquals( 67L, AnalyticsUtils.getRoundedValueObject( paramsA, 67.0 ) );
-        assertEquals( (Double) AnalyticsUtils.getRoundedValueObject( paramsA, 3.123 ), 0.01, 3.1 );
-        assertEquals( (Double) AnalyticsUtils.getRoundedValueObject( paramsB, 3.123 ), 0.01, 3.123 );
+        assertEquals( null, AnalyticsUtils.getRoundedValueObject( paramsA, null ), "Should be null" );
+        assertEquals( "Car", AnalyticsUtils.getRoundedValueObject( paramsA, "Car" ), "Should be a String: Car" );
+        assertEquals( 3L, AnalyticsUtils.getRoundedValueObject( paramsA, 3d ), "Should be a long value: 3" );
+        assertEquals( 1000L, AnalyticsUtils.getRoundedValueObject( paramsA, 1000.00000000 ),
+            "Should be a long value: 1000" );
+        assertEquals( 67L, AnalyticsUtils.getRoundedValueObject( paramsA, 67.0 ), "Should be a long value: 67" );
+        assertEquals( 3.1, (Double) AnalyticsUtils.getRoundedValueObject( paramsA, 3.123 ), 0.01,
+            "Should be a double value: 3.1" );
+        assertEquals( 3.123, (Double) AnalyticsUtils.getRoundedValueObject( paramsB, 3.123 ), 0.01,
+            "Should be a double value: 3.123" );
     }
 
     @Test
     void testEndsWithZeroDecimal()
     {
-        assertFalse( AnalyticsUtils.endsWithZeroAsDecimalDigit( -20.4 ) );
-        assertFalse( AnalyticsUtils.endsWithZeroAsDecimalDigit( 20.000000001 ) );
-        assertFalse( AnalyticsUtils.endsWithZeroAsDecimalDigit( 1000000.000000001 ) );
+        assertFalse( AnalyticsUtils.endsWithZeroAsDecimalDigit( -20.4 ), "The value -20.4 has non-zero decimals" );
+        assertFalse( AnalyticsUtils.endsWithZeroAsDecimalDigit( 20.000000001 ),
+            "The value 20.000000001 has non-zero decimals" );
+        assertFalse( AnalyticsUtils.endsWithZeroAsDecimalDigit( 1000000.000000001 ),
+            "The value 1000000.000000001 has non-zero decimals" );
 
-        assertTrue( AnalyticsUtils.endsWithZeroAsDecimalDigit( -20.0 ) );
-        assertTrue( AnalyticsUtils.endsWithZeroAsDecimalDigit( 20.000000000 ) );
-        assertTrue( AnalyticsUtils.endsWithZeroAsDecimalDigit( 1000000.0000 ) );
+        assertTrue( AnalyticsUtils.endsWithZeroAsDecimalDigit( -20.0 ), "The value -20.0 has zero decimals" );
+        assertTrue( AnalyticsUtils.endsWithZeroAsDecimalDigit( 20.000000000 ),
+            "The value 20.000000000 has zero decimals" );
+        assertTrue( AnalyticsUtils.endsWithZeroAsDecimalDigit( 1000000.0000 ),
+            "The value 1000000.0000 has zero decimals" );
     }
 
     @Test
@@ -208,11 +215,11 @@ class AnalyticsUtilsTest extends DhisConvenienceTest
         DataQueryParams paramsA = DataQueryParams.newBuilder().build();
         DataQueryParams paramsB = DataQueryParams.newBuilder().withSkipRounding( true ).build();
         assertEquals( null, AnalyticsUtils.getRoundedValue( paramsA, null, null ) );
-        assertEquals( AnalyticsUtils.getRoundedValue( paramsA, null, 3d ).doubleValue(), 0.01, 3d );
-        assertEquals( AnalyticsUtils.getRoundedValue( paramsA, null, 3.123 ).doubleValue(), 0.01, 3.1 );
-        assertEquals( AnalyticsUtils.getRoundedValue( paramsA, 1, 3.123 ).doubleValue(), 0.01, 3.1 );
-        assertEquals( AnalyticsUtils.getRoundedValue( paramsA, 2, 3.123 ).doubleValue(), 0.01, 3.12 );
-        assertEquals( AnalyticsUtils.getRoundedValue( paramsB, 3, 3.123 ).doubleValue(), 0.01, 3.123 );
+        assertEquals( 3d, AnalyticsUtils.getRoundedValue( paramsA, null, 3d ).doubleValue(), 0.01 );
+        assertEquals( 3.1, AnalyticsUtils.getRoundedValue( paramsA, null, 3.123 ).doubleValue(), 0.01 );
+        assertEquals( 3.1, AnalyticsUtils.getRoundedValue( paramsA, 1, 3.123 ).doubleValue(), 0.01 );
+        assertEquals( 3.12, AnalyticsUtils.getRoundedValue( paramsA, 2, 3.123 ).doubleValue(), 0.01 );
+        assertEquals( 3.123, AnalyticsUtils.getRoundedValue( paramsB, 3, 3.123 ).doubleValue(), 0.01 );
         assertEquals( 3l, AnalyticsUtils.getRoundedValue( paramsB, 0, 3.123 ).longValue() );
         assertEquals( 12l, AnalyticsUtils.getRoundedValue( paramsB, 0, 12.34 ).longValue() );
         assertEquals( 13l, AnalyticsUtils.getRoundedValue( paramsB, 0, 13.999 ).longValue() );
