@@ -183,6 +183,7 @@
     <!-- Monitoring -->
     <micrometer-spring-legacy.version>1.3.20</micrometer-spring-legacy.version>
     <micrometer-registry-prometheus.version>1.9.2</micrometer-registry-prometheus.version>
+    <micrometer-core.version>1.9.2</micrometer-core.version>
 
     <!-- Logging -->
     <log4j.version>2.18.0</log4j.version>
@@ -2377,6 +2378,11 @@
         <groupId>io.micrometer</groupId>
         <artifactId>micrometer-registry-prometheus</artifactId>
         <version>${micrometer-registry-prometheus.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.micrometer</groupId>
+        <artifactId>micrometer-core</artifactId>
+        <version>${micrometer-core.version}</version>
       </dependency>
 
       <dependency>
