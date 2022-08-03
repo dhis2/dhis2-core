@@ -122,6 +122,9 @@ public class DefaultDataValueAuditService
         {
             DataValueAudit dataValueAudit = new DataValueAudit( dataValue, dataValue.getValue(),
                 dataValue.getStoredBy(), AuditType.UPDATE );
+            dataValueAudit.setCreated( dataValue.getLastUpdated() );
+            dataValueAudit.setModifiedBy( dataValue.getStoredBy() );
+
             audits.add( dataValueAudit );
         }
 
@@ -130,7 +133,24 @@ public class DefaultDataValueAuditService
 
         if ( !audits.isEmpty() )
         {
-            audits.get( audits.size() - 1 ).setAuditType( AuditType.CREATE );
+            DataValueAudit dataValueAudit = audits.get( audits.size() - 1 );
+
+            DataValueAudit clone = new DataValueAudit();
+            clone.setAuditType( AuditType.CREATE );
+            clone.setValue( dataValueAudit.getValue() );
+            clone.setDataElement( dataValueAudit.getDataElement() );
+            clone.setPeriod( dataValueAudit.getPeriod() );
+            clone.setOrganisationUnit( dataValueAudit.getOrganisationUnit() );
+            clone.setCategoryOptionCombo( dataValueAudit.getCategoryOptionCombo() );
+            clone.setAttributeOptionCombo( dataValueAudit.getAttributeOptionCombo() );
+
+            if ( dataValue != null )
+            {
+                clone.setCreated( dataValue.getCreated() );
+                clone.setModifiedBy( dataValue.getStoredBy() );
+            }
+
+            audits.set( audits.size() - 1, clone );
         }
 
         return audits;
