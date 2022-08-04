@@ -31,7 +31,11 @@ import static org.hisp.dhis.analytics.DataQueryParams.VALUE_HEADER_NAME;
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -45,7 +49,18 @@ import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.DataDimensionItemType;
+import org.hisp.dhis.common.DimensionItemType;
+import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.DimensionalObjectUtils;
+import org.hisp.dhis.common.DisplayProperty;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementOperand.TotalType;
@@ -54,7 +69,13 @@ import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.*;
+import org.hisp.dhis.period.DailyPeriodType;
+import org.hisp.dhis.period.FinancialAprilPeriodType;
+import org.hisp.dhis.period.FinancialJulyPeriodType;
+import org.hisp.dhis.period.FinancialNovemberPeriodType;
+import org.hisp.dhis.period.FinancialOctoberPeriodType;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -173,11 +194,16 @@ public class AnalyticsUtilsTest
         DataQueryParams paramsA = DataQueryParams.newBuilder().build();
         DataQueryParams paramsB = DataQueryParams.newBuilder().withSkipRounding( true ).build();
 
-        assertEquals( null, AnalyticsUtils.getRoundedValueObject( paramsA, null ) );
-        assertEquals( "Car", AnalyticsUtils.getRoundedValueObject( paramsA, "Car" ) );
-        assertEquals( 3d, AnalyticsUtils.getRoundedValueObject( paramsA, 3d ) );
-        assertEquals( 3.1, (Double) AnalyticsUtils.getRoundedValueObject( paramsA, 3.123 ), 0.01 );
-        assertEquals( 3.123, (Double) AnalyticsUtils.getRoundedValueObject( paramsB, 3.123 ), 0.01 );
+        assertEquals( "Should be null", null, AnalyticsUtils.getRoundedValueObject( paramsA, null ) );
+        assertEquals( "Should be a String: Car", "Car", AnalyticsUtils.getRoundedValueObject( paramsA, "Car" ) );
+        assertEquals( "Should be a long value: 3", 3L, AnalyticsUtils.getRoundedValueObject( paramsA, 3d ) );
+        assertEquals( "Should be a long value: 1000", 1000L,
+            AnalyticsUtils.getRoundedValueObject( paramsA, 1000.00000000 ) );
+        assertEquals( "Should be a long value: 67", 67L, AnalyticsUtils.getRoundedValueObject( paramsA, 67.0 ) );
+        assertEquals( "Should be a double value: 3.1", 3.1,
+            (Double) AnalyticsUtils.getRoundedValueObject( paramsA, 3.123 ), 0.01 );
+        assertEquals( "Should be a double value: 3.123", 3.123,
+            (Double) AnalyticsUtils.getRoundedValueObject( paramsB, 3.123 ), 0.01 );
     }
 
     @Test
@@ -195,6 +221,20 @@ public class AnalyticsUtilsTest
         assertEquals( 3l, AnalyticsUtils.getRoundedValue( paramsB, 0, 3.123 ).longValue() );
         assertEquals( 12l, AnalyticsUtils.getRoundedValue( paramsB, 0, 12.34 ).longValue() );
         assertEquals( 13l, AnalyticsUtils.getRoundedValue( paramsB, 0, 13.999 ).longValue() );
+    }
+
+    @Test
+    public void testEndsWithZeroDecimal()
+    {
+        assertFalse( "The value -20.4 has non-zero decimals", AnalyticsUtils.endsWithZeroAsDecimal( -20.4 ) );
+        assertFalse( "The value 20.000000001 has non-zero decimals",
+            AnalyticsUtils.endsWithZeroAsDecimal( 20.000000001 ) );
+        assertFalse( "The value 1000000.000000001 has non-zero decimals",
+            AnalyticsUtils.endsWithZeroAsDecimal( 1000000.000000001 ) );
+
+        assertTrue( "The value -20.0 has zero decimals", AnalyticsUtils.endsWithZeroAsDecimal( -20.0 ) );
+        assertTrue( "The value 20.000000000 has zero decimals", AnalyticsUtils.endsWithZeroAsDecimal( 20.000000000 ) );
+        assertTrue( "The value 1000000.0000 has zero decimals", AnalyticsUtils.endsWithZeroAsDecimal( 1000000.0000 ) );
     }
 
     @Test
