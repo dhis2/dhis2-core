@@ -34,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashSet;
 
-import org.hisp.dhis.dataexchange.analytics.AnalyticsDataExchange;
+import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
@@ -83,17 +83,17 @@ class SchemaServiceTest extends SingleSetupIntegrationTestBase
     @Test
     void testGetSchema()
     {
-        Schema schema = schemaService.getSchema( AnalyticsDataExchange.class );
+        Schema schema = schemaService.getSchema( AggregateDataExchange.class );
         assertNotNull( schema );
-        assertEquals( AnalyticsDataExchange.class, schema.getKlass() );
+        assertEquals( AggregateDataExchange.class, schema.getKlass() );
     }
 
     @Test
     void testGetSchemaByPluralName()
     {
-        Schema schema = schemaService.getSchemaByPluralName( "analyticsDataExchanges" );
+        Schema schema = schemaService.getSchemaByPluralName( "aggregateDataExchanges" );
         assertNotNull( schema );
-        assertEquals( AnalyticsDataExchange.class, schema.getKlass() );
+        assertEquals( AggregateDataExchange.class, schema.getKlass() );
     }
 
     @Test

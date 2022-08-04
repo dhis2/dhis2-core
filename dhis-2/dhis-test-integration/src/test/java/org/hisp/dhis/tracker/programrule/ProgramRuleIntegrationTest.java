@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker.programrule;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasProperty;
@@ -174,10 +173,7 @@ class ProgramRuleIntegrationTest extends TrackerTest
         trackerImportReport = trackerImportService.importTracker( params );
 
         assertNoErrors( trackerImportReport );
-        assertEquals( 4, trackerImportReport.getValidationReport().getWarnings().size() );
-        // TODO: Review this test when DHIS2-13468 is fixed
-        assertThat( trackerImportReport.getValidationReport().getWarnings(),
-            hasItem( hasProperty( "message", containsString( "Only event present is in the future" ) ) ) );
+        assertEquals( 3, trackerImportReport.getValidationReport().getWarnings().size() );
     }
 
     @Test

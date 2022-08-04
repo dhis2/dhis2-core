@@ -25,10 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataexchange.analytics;
+package org.hisp.dhis.dataexchange.aggregate;
 
-public enum TargetType
+import java.io.Serializable;
+
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@Accessors( chain = true )
+public class Target
+    implements Serializable
 {
-    INTERNAL,
-    EXTERNAL;
+    @JsonProperty
+    private TargetType type;
+
+    /**
+     * Only relevant for {@link TargetType#EXTERNAL}.
+     */
+    @JsonProperty
+    private Api api;
+
+    @JsonProperty
+    private TargetRequest request;
 }
