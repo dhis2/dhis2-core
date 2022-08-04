@@ -36,6 +36,8 @@ import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCR
 import java.util.Date;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
@@ -59,6 +61,7 @@ import org.springframework.stereotype.Service;
  *
  * @author Lars Helge Overland
  */
+@Slf4j
 @Service
 public class AggregateDataExchangeService
 {
@@ -110,6 +113,9 @@ public class AggregateDataExchangeService
 
         exchange.getSource().getRequests()
             .forEach( request -> summaries.addImportSummary( exchangeData( exchange, request ) ) );
+
+        log.info( "Aggregate data exchange completed: '{}', type: '{}'",
+            exchange.getUid(), exchange.getTarget().getType() );
 
         return summaries;
     }
@@ -277,6 +283,9 @@ public class AggregateDataExchangeService
         Api api = exchange.getTarget().getApi();
 
         String password = api.getPassword() != null ? encryptor.decrypt( api.getPassword() ) : null;
+
+        System.out.println( "ENC passw " + api.getPassword() );
+        System.out.println( "DEC passw " + password );
 
         return new Dhis2Client( new Dhis2Config( api.getUrl(), api.getUsername(), password ) );
     }
