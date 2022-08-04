@@ -75,7 +75,6 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.filter.UserRoleCanIssueFilter;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
-import org.joda.time.DateTime;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
@@ -739,23 +738,6 @@ public class DefaultUserService
     }
 
     @Override
-    @Transactional( readOnly = true )
-    public List<User> getExpiringUsers()
-    {
-        int daysBeforePasswordChangeRequired = systemSettingManager
-            .getIntSetting( SettingKey.CREDENTIALS_EXPIRES ) * 30;
-
-        Date daysPassed = new DateTime( new Date() ).minusDays( daysBeforePasswordChangeRequired - EXPIRY_THRESHOLD )
-            .toDate();
-
-        UserQueryParams userQueryParams = new UserQueryParams()
-            .setDisabled( false )
-            .setPasswordLastUpdated( daysPassed );
-
-        return userStore.getExpiringUsers( userQueryParams );
-    }
-
-    @Override
     public List<UserAccountExpiryInfo> getExpiringUserAccounts( int inDays )
     {
         return userStore.getExpiringUserAccounts( inDays );
@@ -795,6 +777,13 @@ public class DefaultUserService
     public Map<String, Optional<Locale>> findNotifiableUsersWithLastLoginBetween( Date from, Date to )
     {
         return userStore.findNotifiableUsersWithLastLoginBetween( from, to );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public Map<String, Optional<Locale>> findNotifiableUsersWithPasswordLastUpdatedBetween( Date from, Date to )
+    {
+        return userStore.findNotifiableUsersWithPasswordLastUpdatedBetween( from, to );
     }
 
     @Override
