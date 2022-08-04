@@ -57,12 +57,17 @@ import org.hisp.dhis.user.UserService;
  *
  * @author viet
  */
-@FunctionalInterface
-public interface UserCheck extends BiFunction<String, UserService, List<ErrorReport>>
+public class UserCheck
 {
-    UserCheck empty = ( userName, userService ) -> List.of();
+    interface Function extends BiFunction<String, UserService, List<ErrorReport>>
+    {
+    }
 
-    UserCheck isUserNameExist = ( userName, userService ) -> userService.getUserByUsername( userName ) == null
-        ? List.of( new ErrorReport( AttributeValue.class, ErrorCode.E6020, userName ) )
-        : List.of();
+    static final Function empty = ( userName, userService ) -> List.of();
+
+    static final Function isUserNameExist = ( userName,
+        userService ) -> userService.getUserByUsername( userName ) == null
+            ? List.of( new ErrorReport( AttributeValue.class, ErrorCode.E6020, userName ) )
+            : List.of();
+
 }

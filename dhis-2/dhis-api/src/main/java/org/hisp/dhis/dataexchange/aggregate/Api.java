@@ -25,10 +25,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataexchange.analytics;
+package org.hisp.dhis.dataexchange.aggregate;
 
 import java.io.Serializable;
-import java.util.List;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -41,12 +40,15 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Setter
 @NoArgsConstructor
 @Accessors( chain = true )
-public class Filter
+public class Api
     implements Serializable
 {
     @JsonProperty
-    private String dimension;
+    private String url;
 
     @JsonProperty
-    private List<String> items;
+    private String username;
+
+    @JsonProperty
+    private String password; // TODO Custom encryption
 }

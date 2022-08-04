@@ -50,7 +50,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
  * <p>
  * The second argument is the {@link Predicate} which responsible for checking
  * object existence by calling
- * {@link IdentifiableObjectManager#get(Class, long)}
+ * {@link IdentifiableObjectManager#get(Class, String)}
  * <p>
  * The function returns a list of {@link ErrorReport}
  * <p>

@@ -34,6 +34,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 import javax.annotation.Nullable;
 
@@ -437,4 +438,8 @@ public interface UserService
 
     CurrentUserDetailsImpl createUserDetails( User user, String password, boolean accountNonLocked,
         boolean credentialsNonExpired );
+
+    void disableTwoFA( User currentUser, String userId, Consumer<ErrorReport> errors );
+
+    boolean canCurrentUserCanModify( User currentUser, User userToModify, Consumer<ErrorReport> errors );
 }

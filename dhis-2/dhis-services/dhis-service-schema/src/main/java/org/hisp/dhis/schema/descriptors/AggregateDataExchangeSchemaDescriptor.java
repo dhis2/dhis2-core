@@ -25,11 +25,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataexchange.analytics;
+package org.hisp.dhis.schema.descriptors;
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import java.util.List;
 
-public interface AnalyticsDataExchangeStore
-    extends IdentifiableObjectStore<AnalyticsDataExchange>
+import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
+import org.hisp.dhis.security.Authority;
+import org.hisp.dhis.security.AuthorityType;
+
+import com.google.common.collect.Lists;
+
+public class AggregateDataExchangeSchemaDescriptor
+    implements SchemaDescriptor
 {
+    public static final String SINGULAR = "aggregateDataExchange";
+
+    public static final String PLURAL = "aggregateDataExchanges";
+
+    public static final String API_ENDPOINT = "/" + PLURAL;
+
+    @Override
+    public Schema getSchema()
+    {
+        Schema schema = new Schema( AggregateDataExchange.class, SINGULAR, PLURAL );
+        schema.setRelativeApiEndpoint( API_ENDPOINT );
+        schema.setOrder( 1900 );
+
+        schema.add( new Authority( AuthorityType.CREATE_PUBLIC,
+            Lists.newArrayList( "F_AGGREGATE_DATA_EXCHANGE_PUBLIC_ADD" ) ) );
+        schema.add( new Authority( AuthorityType.CREATE_PRIVATE,
+            Lists.newArrayList( "F_AGGREGATE_DATA_EXCHANGE_PRIVATE_ADD" ) ) );
+        schema.add( new Authority( AuthorityType.DELETE, List.of( "F_AGGREGATE_DATA_EXCHANGE_DELETE" ) ) );
+
+        return schema;
+    }
 }

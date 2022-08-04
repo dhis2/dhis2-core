@@ -25,33 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataexchange.analytics;
+package org.hisp.dhis.dataexchange.aggregate.hibernate;
 
-import java.io.Serializable;
+import org.hibernate.SessionFactory;
+import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
+import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchangeStore;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-@Getter
-@Setter
-@NoArgsConstructor
-@Accessors( chain = true )
-public class TargetRequest
-    implements Serializable
+@Repository( "org.hisp.dhis.dataexchange.aggregate.AggregateDataExchangeStore" )
+public class HibernateAggregateDataExchangeStore
+    extends HibernateIdentifiableObjectStore<AggregateDataExchange>
+    implements AggregateDataExchangeStore
 {
-    @JsonProperty
-    private String dataElementIdScheme;
-
-    @JsonProperty
-    private String orgUnitIdScheme;
-
-    @JsonProperty
-    private String categoryOptionComboIdScheme;
-
-    @JsonProperty
-    private String idScheme;
+    public HibernateAggregateDataExchangeStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
+    {
+        super( sessionFactory, jdbcTemplate, publisher,
+            AggregateDataExchange.class, currentUserService, aclService, false );
+    }
 }
