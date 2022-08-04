@@ -58,6 +58,11 @@ public class AggregateDataExchangeObjectBundleHook
         encryptSecret( exchange );
     }
 
+    /**
+     * Encrypts the target API password.
+     *
+     * @param exchange the {@link AggregateDataExchange}.
+     */
     private void encryptSecret( AggregateDataExchange exchange )
     {
         if ( exchange != null && exchange.getTarget() != null && exchange.getTarget().getApi() != null )
