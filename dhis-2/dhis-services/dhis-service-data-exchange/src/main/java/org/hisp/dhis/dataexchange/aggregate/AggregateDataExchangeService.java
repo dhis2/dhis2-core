@@ -284,9 +284,6 @@ public class AggregateDataExchangeService
 
         String password = api.getPassword() != null ? encryptor.decrypt( api.getPassword() ) : null;
 
-        System.out.println( "ENC passw " + api.getPassword() );
-        System.out.println( "DEC passw " + password );
-
         return new Dhis2Client( new Dhis2Config( api.getUrl(), api.getUsername(), password ) );
     }
 }
