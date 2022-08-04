@@ -99,7 +99,6 @@ import static org.hisp.dhis.period.PeriodType.getPeriodTypeFromIsoString;
 import static org.hisp.dhis.setting.SettingKey.ANALYTICS_MAX_LIMIT;
 import static org.hisp.dhis.setting.SettingKey.DATABASE_SERVER_CPUS;
 import static org.hisp.dhis.system.grid.GridUtils.getGridIndexByDimensionItem;
-import static org.hisp.dhis.system.util.MathUtils.getRounded;
 import static org.hisp.dhis.system.util.MathUtils.getWithin;
 import static org.hisp.dhis.system.util.MathUtils.isZero;
 import static org.hisp.dhis.util.ObjectUtils.firstNonNull;
@@ -546,7 +545,8 @@ public class DataHandler
     {
         for ( Map.Entry<String, Double> entry : aggregatedDataMap.entrySet() )
         {
-            Double value = params.isSkipRounding() ? entry.getValue() : getRounded( entry.getValue() );
+            Number value = params.isSkipRounding() ? entry.getValue()
+                : (Number) getRoundedValueObject( params, entry.getValue() );
 
             grid.addRow()
                 .addValues( entry.getKey().split( DIMENSION_SEP ) )
@@ -651,7 +651,7 @@ public class DataHandler
 
         grid.addRow()
             .addValues( dataRow.toArray() )
-            .addValue( params.isSkipRounding() ? value : getRounded( value ) );
+            .addValue( params.isSkipRounding() ? value : getRoundedValueObject( params, value ) );
 
         if ( params.isIncludeNumDen() )
         {
