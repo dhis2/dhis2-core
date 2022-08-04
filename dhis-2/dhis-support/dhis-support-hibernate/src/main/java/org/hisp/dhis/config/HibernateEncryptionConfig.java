@@ -51,7 +51,7 @@ public class HibernateEncryptionConfig
 {
     public static final String TRIPLE_DES_STRING_ENCRYPTOR = "tripleDesStringEncryptor";
 
-    public static final String AES_128_STRING_ENCRYPTOR = "tripleDesStringEncryptor";
+    public static final String AES_128_STRING_ENCRYPTOR = "aes128StringEncryptor";
 
     @Autowired
     private HibernateConfigurationProvider hibernateConfigurationProvider;
