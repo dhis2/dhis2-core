@@ -28,7 +28,7 @@
     
     <property name="source" type="jbAggregateDataExchangeSource" column="source" not-null="true" />
 
-    <property name="target" type="jbAnalyticsDataExchangeTarget" column="target" not-null="true" />
+    <property name="target" type="jbAggregateDataExchangeTarget" column="target" not-null="true" />
 
   </class>
 
