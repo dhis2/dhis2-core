@@ -25,40 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.dataexchange.aggregate;
 
-import java.util.List;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 
-import org.hisp.dhis.dataexchange.analytics.AnalyticsDataExchange;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
-import org.hisp.dhis.security.Authority;
-import org.hisp.dhis.security.AuthorityType;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.MetadataObject;
 
-import com.google.common.collect.Lists;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
-public class AnalyticsDataExchangeSchemaDescriptor
-    implements SchemaDescriptor
+@Getter
+@Setter
+@Accessors( chain = true )
+@JacksonXmlRootElement( localName = "aggregateDataExchange", namespace = DxfNamespaces.DXF_2_0 )
+public class AggregateDataExchange
+    extends BaseIdentifiableObject
+    implements MetadataObject
 {
-    public static final String SINGULAR = "analyticsDataExchange";
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    private Source source;
 
-    public static final String PLURAL = "analyticsDataExchanges";
-
-    public static final String API_ENDPOINT = "/" + PLURAL;
-
-    @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( AnalyticsDataExchange.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 1900 );
-
-        schema.add( new Authority( AuthorityType.CREATE_PUBLIC,
-            Lists.newArrayList( "F_ANALYTICS_DATA_EXCHANGE_PUBLIC_ADD" ) ) );
-        schema.add( new Authority( AuthorityType.CREATE_PRIVATE,
-            Lists.newArrayList( "F_ANALYTICS_DATA_EXCHANGE_PRIVATE_ADD" ) ) );
-        schema.add( new Authority( AuthorityType.DELETE, List.of( "F_ANALYTICS_DATA_EXCHANGE_DELETE" ) ) );
-
-        return schema;
-    }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    private Target target;
 }
