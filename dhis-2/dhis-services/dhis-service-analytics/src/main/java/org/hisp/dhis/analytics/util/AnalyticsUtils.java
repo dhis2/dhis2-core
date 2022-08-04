@@ -270,7 +270,7 @@ public class AnalyticsUtils
 
         final Double rounded = getRounded( (Double) value );
 
-        if ( endsWithZeroAsDecimalDigit( rounded ) )
+        if ( endsWithZeroAsDecimal( rounded ) )
         {
             return rounded.longValue();
         }
@@ -293,7 +293,7 @@ public class AnalyticsUtils
      * @param value
      * @return true if the value has "0" as decimal digits, false otherwise
      */
-    public static boolean endsWithZeroAsDecimalDigit( final double value )
+    public static boolean endsWithZeroAsDecimal( final double value )
     {
         return ((value * 10) % 10 == 0);
     }
