@@ -75,8 +75,7 @@ public class HibernateEncryptionConfig
     }
 
     // AES string encryptor, requires BouncyCastle and JCE extended policy (due
-    // to
-    // issue mentioned above)
+    // to issue mentioned above)
     @Bean( "aes128StringEncryptor" )
     public PooledPBEStringEncryptor aes128StringEncryptor()
     {

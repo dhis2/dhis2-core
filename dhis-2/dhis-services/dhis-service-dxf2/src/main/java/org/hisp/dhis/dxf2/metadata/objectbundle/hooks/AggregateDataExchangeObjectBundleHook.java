@@ -29,7 +29,6 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import lombok.RequiredArgsConstructor;
 
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
 import org.hisp.dhis.dataexchange.aggregate.Api;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -65,7 +64,7 @@ public class AggregateDataExchangeObjectBundleHook
         {
             Api api = exchange.getTarget().getApi();
 
-            if ( api != null && StringUtils.isNotBlank( api.getPassword() ) )
+            if ( api != null && api.getPassword() != null )
             {
                 String encryptedPassword = encryptor.encrypt( api.getPassword() );
                 api.setPassword( encryptedPassword );

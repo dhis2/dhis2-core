@@ -51,6 +51,8 @@ import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.jasypt.encryption.pbe.PBEStringCleanablePasswordEncryptor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 /**
@@ -69,6 +71,9 @@ public class AggregateDataExchangeService
     private final DataQueryService dataQueryService;
 
     private final DataValueSetService dataValueSetService;
+
+    @Qualifier( "aes128StringEncryptor" )
+    private final PBEStringCleanablePasswordEncryptor encryptor;
 
     /**
      * Runs the analytics data exchange with the given identifier.
@@ -261,6 +266,8 @@ public class AggregateDataExchangeService
     {
         Api api = exchange.getTarget().getApi();
 
-        return new Dhis2Client( new Dhis2Config( api.getUrl(), api.getUsername(), api.getPassword() ) );
+        String password = api.getPassword() != null ? encryptor.decrypt( api.getPassword() ) : null;
+
+        return new Dhis2Client( new Dhis2Config( api.getUrl(), api.getUsername(), password ) );
     }
 }
