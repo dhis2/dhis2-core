@@ -119,7 +119,7 @@ class AnalyticsServiceTest extends IntegrationTestBase
 
     private Map<String, AnalyticalObject> analyticalObjectHashMap = new HashMap<>();
 
-    private Map<String, Map<String, Double>> results = new HashMap<>();
+    private Map<String, Map<String, Number>> results = new HashMap<>();
 
     @Autowired
     private List<AnalyticsTableService> analyticsTableServices;
@@ -540,52 +540,55 @@ class AnalyticsServiceTest extends IntegrationTestBase
         analyticalObjectHashMap.put( "inC_deB_deC_2017_Q01", inC_deB_deC_2017_Q01_analytical );
         // Set results
         // --------------------------------------------------------------------
-        Map<String, Double> de_avg_2017_03_keyValue = new HashMap<>();
+        Map<String, Number> de_avg_2017_03_keyValue = new HashMap<>();
         de_avg_2017_03_keyValue.put( "deabcdefghC-201703", 6.75 );
-        Map<String, Double> deC_ouB_2017_03_keyValue = new HashMap<>();
-        deC_ouB_2017_03_keyValue.put( "deabcdefghC-ouabcdefghB-201703", 6.0 );
-        deC_ouB_2017_03_keyValue.put( "deabcdefghC-201703-ouabcdefghB", 6.0 );
-        Map<String, Double> deA_ouA_2017_Q01_keyValue = new HashMap<>();
-        deA_ouA_2017_Q01_keyValue.put( "deabcdefghA-ouabcdefghA-2017Q1", 308.0 );
-        deA_ouA_2017_Q01_keyValue.put( "deabcdefghA-2017Q1-ouabcdefghA", 308.0 );
-        Map<String, Double> inA_2017_keyValue = new HashMap<>();
+        Map<String, Number> deC_ouB_2017_03_keyValue = new HashMap<>();
+        deC_ouB_2017_03_keyValue.put( "deabcdefghC-ouabcdefghB-201703", 6L );
+        deC_ouB_2017_03_keyValue.put( "deabcdefghC-201703-ouabcdefghB", 6L );
+        Map<String, Number> deA_ouA_2017_Q01_keyValue = new HashMap<>();
+        deA_ouA_2017_Q01_keyValue.put( "deabcdefghA-ouabcdefghA-2017Q1", 308L );
+        deA_ouA_2017_Q01_keyValue.put( "deabcdefghA-2017Q1-ouabcdefghA", 308L );
+        Map<String, Number> inA_2017_keyValue = new HashMap<>();
+        // Indicators, default to ".0" decimal when no decimal digit is set.
         inA_2017_keyValue.put( "inabcdefghA-2017", 308.0 );
-        Map<String, Double> inB_deB_deC_2017_Q01_keyValue = new HashMap<>();
+        Map<String, Number> inB_deB_deC_2017_Q01_keyValue = new HashMap<>();
+        // Indicators, default to ".0" decimal when no decimal digit is set.
         inB_deB_deC_2017_Q01_keyValue.put( "inabcdefghB-2017Q1", 567.0 );
-        Map<String, Double> inC_deB_deC_2017_Q01_keyValue = new HashMap<>();
+        Map<String, Number> inC_deB_deC_2017_Q01_keyValue = new HashMap<>();
         inC_deB_deC_2017_Q01_keyValue.put( "inabcdefghC-2017Q1", 258.50 );
         inC_deB_deC_2017_Q01_keyValue.put( "inabcdefghC-2017Q1-ouabcdefghA", 258.50 );
-        Map<String, Double> inD_deA_deB_deC_2017_Q01_keyValue = new HashMap<>();
+        Map<String, Number> inD_deA_deB_deC_2017_Q01_keyValue = new HashMap<>();
         inD_deA_deB_deC_2017_Q01_keyValue.put( "inabcdefghD-2017Q1", 29.8 );
-        Map<String, Double> inE_deA_reRateA_2017_Q01_keyValue = new HashMap<>();
+        Map<String, Number> inE_deA_reRateA_2017_Q01_keyValue = new HashMap<>();
         inE_deA_reRateA_2017_Q01_keyValue.put( "inabcdefghE-ouabcdefghD-2017Q1", 99.6 );
-        Map<String, Double> inF_deA_reRateB_2017_Q01_keyValue = new HashMap<>();
+        Map<String, Number> inF_deA_reRateB_2017_Q01_keyValue = new HashMap<>();
         inF_deA_reRateB_2017_Q01_keyValue.put( "inabcdefghF-ouabcdefghD-2017Q1", 199.4 );
-        Map<String, Double> inG_deE_periodOffsets_2017_07_keyvalue = new HashMap<>();
+        Map<String, Number> inG_deE_periodOffsets_2017_07_keyvalue = new HashMap<>();
+        // Indicators, default to ".0" decimal when no decimal digit is set.
         inG_deE_periodOffsets_2017_07_keyvalue.put( "inabcdefghG-ouabcdefghA-201707", 3.0 );
-        Map<String, Double> deA_ouB_ouC_2017_02_keyValue = new HashMap<>();
-        deA_ouB_ouC_2017_02_keyValue.put( "deabcdefghA-201702", 233.0 );
-        Map<String, Double> deA_deB_deD_ouC_ouE_2017_04_keyValue = new HashMap<>();
+        Map<String, Number> deA_ouB_ouC_2017_02_keyValue = new HashMap<>();
+        deA_ouB_ouC_2017_02_keyValue.put( "deabcdefghA-201702", 233L );
+        Map<String, Number> deA_deB_deD_ouC_ouE_2017_04_keyValue = new HashMap<>();
         deA_deB_deD_ouC_ouE_2017_04_keyValue.put( "deabcdefghD-201704", 10.5 );
-        Map<String, Double> deA_deB_2017_Q01_keyValue = new HashMap<>();
+        Map<String, Number> deA_deB_2017_Q01_keyValue = new HashMap<>();
         deA_deB_2017_Q01_keyValue.put( "2017Q1", 53.3 );
-        Map<String, Double> ouB_2017_01_01_2017_02_20_keyValue = new HashMap<>();
-        ouB_2017_01_01_2017_02_20_keyValue.put( "deabcdefghA-ouabcdefghB", 68.0 );
-        Map<String, Double> reRate_2017_Q01_ouC_keyValue = new HashMap<>();
-        reRate_2017_Q01_ouC_keyValue.put( "a23dataSetA.REPORTING_RATE-ouabcdefghC-2017Q1", 100.0 );
-        Map<String, Double> reRate_2017_Q01_ouD_keyValue = new HashMap<>();
+        Map<String, Number> ouB_2017_01_01_2017_02_20_keyValue = new HashMap<>();
+        ouB_2017_01_01_2017_02_20_keyValue.put( "deabcdefghA-ouabcdefghB", 68L );
+        Map<String, Number> reRate_2017_Q01_ouC_keyValue = new HashMap<>();
+        reRate_2017_Q01_ouC_keyValue.put( "a23dataSetA.REPORTING_RATE-ouabcdefghC-2017Q1", 100L );
+        Map<String, Number> reRate_2017_Q01_ouD_keyValue = new HashMap<>();
         reRate_2017_Q01_ouD_keyValue.put( "a23dataSetB.REPORTING_RATE-ouabcdefghD-2017Q1", 33.3 );
-        Map<String, Double> ou_2017_validationruleA_keyValue = new HashMap<>();
-        ou_2017_validationruleA_keyValue.put( "a234567vruA-ouabcdefghA-2017", 4.0 );
-        ou_2017_validationruleA_keyValue.put( "a234567vruA-ouabcdefghB-2017", 2.0 );
-        Map<String, Double> ou_2017_validationruleB_keyValue = new HashMap<>();
-        ou_2017_validationruleB_keyValue.put( "a234567vruB-ouabcdefghA-2017", 3.0 );
-        ou_2017_validationruleB_keyValue.put( "a234567vruB-ouabcdefghB-2017", 2.0 );
-        Map<String, Double> ou_2017_validationruleAB_keyValue = new HashMap<>();
-        ou_2017_validationruleAB_keyValue.put( "a234567vruA-ouabcdefghA-2017", 4.0 );
-        ou_2017_validationruleAB_keyValue.put( "a234567vruA-ouabcdefghB-2017", 2.0 );
-        ou_2017_validationruleAB_keyValue.put( "a234567vruB-ouabcdefghA-2017", 3.0 );
-        ou_2017_validationruleAB_keyValue.put( "a234567vruB-ouabcdefghB-2017", 2.0 );
+        Map<String, Number> ou_2017_validationruleA_keyValue = new HashMap<>();
+        ou_2017_validationruleA_keyValue.put( "a234567vruA-ouabcdefghA-2017", 4L );
+        ou_2017_validationruleA_keyValue.put( "a234567vruA-ouabcdefghB-2017", 2L );
+        Map<String, Number> ou_2017_validationruleB_keyValue = new HashMap<>();
+        ou_2017_validationruleB_keyValue.put( "a234567vruB-ouabcdefghA-2017", 3L );
+        ou_2017_validationruleB_keyValue.put( "a234567vruB-ouabcdefghB-2017", 2L );
+        Map<String, Number> ou_2017_validationruleAB_keyValue = new HashMap<>();
+        ou_2017_validationruleAB_keyValue.put( "a234567vruA-ouabcdefghA-2017", 4L );
+        ou_2017_validationruleAB_keyValue.put( "a234567vruA-ouabcdefghB-2017", 2L );
+        ou_2017_validationruleAB_keyValue.put( "a234567vruB-ouabcdefghA-2017", 3L );
+        ou_2017_validationruleAB_keyValue.put( "a234567vruB-ouabcdefghB-2017", 2L );
         results.put( "de_avg_2017_03", de_avg_2017_03_keyValue );
         results.put( "deC_ouB_2017_03", deC_ouB_2017_03_keyValue );
         results.put( "deA_ouA_2017_Q01", deA_ouA_2017_Q01_keyValue );
