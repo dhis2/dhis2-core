@@ -453,14 +453,19 @@ public abstract class AbstractJdbcEventAnalyticsManager
         {
             return ColumnAndAlias.ofColumnAndAlias(
                 column,
-                Optional.of( queryItem )
-                    .filter( QueryItem::hasProgramStage )
-                    .filter( QueryItem::hasRepeatableStageParams )
-                    .map( QueryItem::getRepeatableStageParams )
-                    .map( RepeatableStageParams::getDimension )
+                getAlias( queryItem )
                     .orElse( aliasIfMissing ) );
         }
         return ColumnAndAlias.ofColumn( column );
+    }
+
+    protected Optional<String> getAlias( QueryItem queryItem )
+    {
+        return Optional.of( queryItem )
+            .filter( QueryItem::hasProgramStage )
+            .filter( QueryItem::hasRepeatableStageParams )
+            .map( QueryItem::getRepeatableStageParams )
+            .map( RepeatableStageParams::getDimension );
     }
 
     public Grid getAggregatedEventData( EventQueryParams params, Grid grid, int maxLimit )
@@ -720,7 +725,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
             .ofColumnAndAlias(
                 "'[' || round(ST_X(" + quote( colName ) + ")::numeric, 6) || ',' || round(ST_Y(" + quote( colName )
                     + ")::numeric, 6) || ']'",
-                colName );
+                getAlias( item ).orElse( colName ) );
     }
 
     /**

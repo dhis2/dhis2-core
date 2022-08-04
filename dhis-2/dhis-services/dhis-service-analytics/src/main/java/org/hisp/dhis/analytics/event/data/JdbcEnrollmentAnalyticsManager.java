@@ -399,13 +399,16 @@ public class JdbcEnrollmentAnalyticsManager
 
             }
 
-            return ColumnAndAlias.ofColumn( "(select '[' || round(ST_X(" + stCentroidFunction + "(" + colName
+            String alias = getAlias( item ).orElse( null );
+
+            return ColumnAndAlias.ofColumnAndAlias( "(select '[' || round(ST_X(" + stCentroidFunction + "(" + colName
                 + "))::numeric, 6) || ',' || round(ST_Y("
                 + stCentroidFunction + "(" + colName + "))::numeric, 6) || ']' as " + colName
                 + " from " + eventTableName
                 + " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi " +
                 "and " + colName + " is not null " + psCondition + ORDER_BY_EXECUTION_DATE +
-                createOrderTypeAndOffset( item.getProgramStageOffset() ) + " " + LIMIT_1 + " )" );
+                createOrderTypeAndOffset( item.getProgramStageOffset() ) + " " + LIMIT_1 + " )",
+                alias );
         }
 
         return ColumnAndAlias.EMPTY;
