@@ -237,6 +237,6 @@ public class DefaultResourceTableService
             .sorted( reverseOrder() )
             .collect( toList() );
         progress.startingStage( "Drop SQL views", nonQueryViews.size() );
-        progress.runStage( nonQueryViews, SqlView::getViewName, sqlViewService::deleteSqlView );
+        progress.runStage( nonQueryViews, SqlView::getViewName, sqlViewService::dropViewTable );
     }
 }
