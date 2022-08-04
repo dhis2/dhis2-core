@@ -96,7 +96,7 @@ public class HibernateEncryptionConfig
     public HibernateEncryptorRegistry hibernateEncryptors()
     {
         HibernateEncryptorRegistry registry = HibernateEncryptorRegistry.getInstance();
-        registry.setEncryptors( ImmutableMap.of( "aes128StringEncryptor", aes128StringEncryptor() ) );
+        registry.setEncryptors( ImmutableMap.of( AES_128_STRING_ENCRYPTOR, aes128StringEncryptor() ) );
         return registry;
     }
 
