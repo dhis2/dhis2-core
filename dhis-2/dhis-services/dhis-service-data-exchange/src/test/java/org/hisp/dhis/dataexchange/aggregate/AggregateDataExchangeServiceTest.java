@@ -179,7 +179,7 @@ class AggregateDataExchangeServiceTest
     void testGetDhis2Client()
     {
         when( encryptor.decrypt( anyString() ) )
-            .thenReturn( "encrypted_password" );
+            .thenReturn( "f0UulAsOUwXxkMlj6+Lzq2XbcLQCeZzuiv4QgQU1Es0=" );
 
         Api api = new Api()
             .setUrl( "https://play.dhis2.org/demo" )
