@@ -150,7 +150,7 @@ public class QueryItemHelper
      *
      * @param grid the Grid instance
      * @param params the EventQueryParams
-     * @return a list of options based on the Grid/EventQueryParams
+     * @return a map of list of options based on the Grid/EventQueryParams
      */
     public static Map<String, List<Option>> getItemOptions( final Grid grid, final EventQueryParams params )
     {

@@ -467,49 +467,12 @@ public abstract class AbstractAnalyticsService
         }
     }
 
-    private void addMetadataItemsV2( final Map<String, MetadataItem> metadataItemMap, final EventQueryParams params,
-        final Map<String, List<Option>> itemOptions )
-    {
-        boolean includeDetails = params.isIncludeMetadataDetails();
-
-        if ( !params.isSkipData() )
-        {
-            // filtering if the rows in grid are there (skipData = false)
-            // itemOptions.forEach( option -> metadataItemMap.put(
-            // option.getUid(),
-            // new MetadataItem(
-            // option.getDisplayProperty( params.getDisplayProperty() ),
-            // includeDetails ? option.getUid() : null,
-            // option.getCode() ) ) );
-        }
-        else
-        {
-            // filtering if the rows in grid are not there (skipData = true
-            // only)
-            // dimension=Zj7UnCAulEk.K6uUAvq500H:IN:A00;A60;A01 -> IN indicates
-            // there is a filter
-            // the stream contains all options if no filter or only options fit
-            // to the filter
-            // options can be divided by separator <<;>>
-            params.getItemOptions().stream()
-                .filter( option -> option != null &&
-                    (params.getItems().stream().noneMatch( QueryItem::hasFilter ) ||
-                        params.getItems().stream().filter( QueryItem::hasFilter )
-                            .anyMatch( qi -> qi.getFilters().stream()
-                                .anyMatch( f -> Arrays.stream( f.getFilter().split( ";" ) )
-                                    .anyMatch( ft -> ft.equalsIgnoreCase( option.getCode() ) ) ) )) )
-                .forEach( option -> metadataItemMap.put( option.getUid(),
-                    new MetadataItem( option.getDisplayProperty( params.getDisplayProperty() ),
-                        includeDetails ? option.getUid() : null,
-                        option.getCode() ) ) );
-        }
-    }
-
     /**
      * Returns a map between dimension identifiers and lists of dimension item
      * identifiers.
      *
      * @param params the data query parameters.
+     * @param itemOptions the data query parameters.
      * @return a map.
      */
     private Map<String, List<String>> getDimensionItems( EventQueryParams params,
