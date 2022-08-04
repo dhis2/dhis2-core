@@ -151,6 +151,12 @@ public class DefaultDataValueAuditService
             }
 
             audits.set( audits.size() - 1, clone );
+
+            if ( audits.size() > 1 )
+            {
+                audits.get( 1 ).setCreated( dataValueAudit.getCreated() );
+                audits.get( 1 ).setModifiedBy( dataValueAudit.getModifiedBy() );
+            }
         }
 
         return audits;
