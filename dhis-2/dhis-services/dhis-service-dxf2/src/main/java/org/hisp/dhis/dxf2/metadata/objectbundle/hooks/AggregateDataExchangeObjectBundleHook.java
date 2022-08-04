@@ -27,23 +27,29 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import lombok.RequiredArgsConstructor;
+import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCRYPTOR;
 
 import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
 import org.hisp.dhis.dataexchange.aggregate.Api;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.jasypt.encryption.pbe.PooledPBEStringEncryptor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Lars Helge Overland
  */
 @Component
-@RequiredArgsConstructor
 public class AggregateDataExchangeObjectBundleHook
     extends AbstractObjectBundleHook<AggregateDataExchange>
 {
     private final PooledPBEStringEncryptor encryptor;
+
+    public AggregateDataExchangeObjectBundleHook(
+        @Qualifier( AES_128_STRING_ENCRYPTOR ) PooledPBEStringEncryptor encryptor )
+    {
+        this.encryptor = encryptor;
+    }
 
     @Override
     public void preCreate( AggregateDataExchange exchange, ObjectBundle bundle )
