@@ -66,6 +66,7 @@ public class DefaultAttributeValidator implements AttributeValidator
         new SimpleImmutableEntry<>( ValueType.INTEGER_ZERO_OR_POSITIVE, NumberCheck.isZeroOrPositiveInteger ),
         new SimpleImmutableEntry<>( ValueType.PERCENTAGE, NumberCheck.isPercentage ),
         new SimpleImmutableEntry<>( ValueType.UNIT_INTERVAL, NumberCheck.isUnitInterval ),
+        new SimpleImmutableEntry<>( ValueType.PHONE_NUMBER, NumberCheck.isPhoneNumber ),
         new SimpleImmutableEntry<>( ValueType.DATE, DateCheck.isDate ),
         new SimpleImmutableEntry<>( ValueType.DATETIME, DateCheck.isDateTime ),
         new SimpleImmutableEntry<>( ValueType.BOOLEAN, TextCheck.isBoolean ),
