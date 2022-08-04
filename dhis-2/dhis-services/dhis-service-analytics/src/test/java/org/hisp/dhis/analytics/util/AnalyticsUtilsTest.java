@@ -196,16 +196,16 @@ class AnalyticsUtilsTest extends DhisConvenienceTest
     @Test
     void testEndsWithZeroDecimal()
     {
-        assertFalse( AnalyticsUtils.endsWithZeroAsDecimalDigit( -20.4 ), "The value -20.4 has non-zero decimals" );
-        assertFalse( AnalyticsUtils.endsWithZeroAsDecimalDigit( 20.000000001 ),
+        assertFalse( AnalyticsUtils.endsWithZeroAsDecimal( -20.4 ), "The value -20.4 has non-zero decimals" );
+        assertFalse( AnalyticsUtils.endsWithZeroAsDecimal( 20.000000001 ),
             "The value 20.000000001 has non-zero decimals" );
-        assertFalse( AnalyticsUtils.endsWithZeroAsDecimalDigit( 1000000.000000001 ),
+        assertFalse( AnalyticsUtils.endsWithZeroAsDecimal( 1000000.000000001 ),
             "The value 1000000.000000001 has non-zero decimals" );
 
-        assertTrue( AnalyticsUtils.endsWithZeroAsDecimalDigit( -20.0 ), "The value -20.0 has zero decimals" );
-        assertTrue( AnalyticsUtils.endsWithZeroAsDecimalDigit( 20.000000000 ),
+        assertTrue( AnalyticsUtils.endsWithZeroAsDecimal( -20.0 ), "The value -20.0 has zero decimals" );
+        assertTrue( AnalyticsUtils.endsWithZeroAsDecimal( 20.000000000 ),
             "The value 20.000000000 has zero decimals" );
-        assertTrue( AnalyticsUtils.endsWithZeroAsDecimalDigit( 1000000.0000 ),
+        assertTrue( AnalyticsUtils.endsWithZeroAsDecimal( 1000000.0000 ),
             "The value 1000000.0000 has zero decimals" );
     }
 
