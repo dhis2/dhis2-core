@@ -71,7 +71,7 @@ public class AggregateDataExchangeObjectBundleHook
      */
     private void encryptSecret( AggregateDataExchange exchange )
     {
-        if ( exchange != null && exchange.getTarget() != null && exchange.getTarget().getApi() != null )
+        if ( exchange != null && exchange.getTarget().getApi() != null )
         {
             Api api = exchange.getTarget().getApi();
 
