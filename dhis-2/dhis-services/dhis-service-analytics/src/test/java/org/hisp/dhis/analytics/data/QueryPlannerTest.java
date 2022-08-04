@@ -1081,11 +1081,11 @@ class QueryPlannerTest extends DhisSpringTest
     private void assertCollectionsMatch( List<DimensionItemObjectValue> collection,
         final List<DimensionItemObjectValue> in )
     {
-        Function<String, Double> findValueByUid = ( String uid ) -> in.stream()
+        Function<String, Number> findValueByUid = ( String uid ) -> in.stream()
             .filter( v -> v.getDimensionalItemObject().getUid().equals( uid ) ).findFirst().get().getValue();
         for ( DimensionItemObjectValue dimensionItemObjectValue : collection )
         {
-            final Double val = findValueByUid.apply( dimensionItemObjectValue.getDimensionalItemObject().getUid() );
+            final Number val = findValueByUid.apply( dimensionItemObjectValue.getDimensionalItemObject().getUid() );
             assertEquals( val, dimensionItemObjectValue.getValue() );
         }
     }
