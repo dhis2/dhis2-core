@@ -31,6 +31,7 @@ import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.commons.collection.CollectionUtils.mapToList;
+import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCRYPTOR;
 
 import java.util.Date;
 import java.util.List;
@@ -72,7 +73,7 @@ public class AggregateDataExchangeService
 
     private final DataValueSetService dataValueSetService;
 
-    @Qualifier( "aes128StringEncryptor" )
+    @Qualifier( AES_128_STRING_ENCRYPTOR )
     private final PBEStringCleanablePasswordEncryptor encryptor;
 
     /**
