@@ -36,6 +36,9 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.jasypt.encryption.pbe.PooledPBEStringEncryptor;
 import org.springframework.stereotype.Component;
 
+/**
+ * @author Lars Helge Overland
+ */
 @Component
 @RequiredArgsConstructor
 public class AggregateDataExchangeObjectBundleHook
