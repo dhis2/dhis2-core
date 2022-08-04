@@ -180,7 +180,7 @@ public class EventAnalyticsServiceTest
             .build();
 
         // The results
-        Map<String, Double> events_2017_keyValue = new HashMap<>();
+        Map<String, Number> events_2017_keyValue = new HashMap<>();
         events_2017_keyValue.put( "ouabcdefghA", 6.0 );
 
         // When
