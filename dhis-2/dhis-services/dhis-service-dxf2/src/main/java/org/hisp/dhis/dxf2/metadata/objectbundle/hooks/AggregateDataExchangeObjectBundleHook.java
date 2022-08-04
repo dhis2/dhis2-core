@@ -25,44 +25,48 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataexchange.aggregate;
+package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import java.io.Serializable;
+import lombok.RequiredArgsConstructor;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.Accessors;
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
+import org.hisp.dhis.dataexchange.aggregate.Api;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.jasypt.encryption.pbe.PooledPBEStringEncryptor;
+import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-@Getter
-@Setter
-@NoArgsConstructor
-@Accessors( chain = true )
-public class Api
-    implements Serializable
+@Component
+@RequiredArgsConstructor
+public class AggregateDataExchangeObjectBundleHook
+    extends AbstractObjectBundleHook<AggregateDataExchange>
 {
-    @JsonProperty
-    private String url;
+    private final PooledPBEStringEncryptor encryptor;
 
-    @JsonProperty
-    private String username;
-
-    /**
-     * The password is encrypted and must be decrypted before used to
-     * authenticate with external systems.
-     */
-    @JsonProperty
-    private String password;
-
-    /**
-     * Do not expose password.
-     */
-    @JsonIgnore
-    public String getPassword()
+    @Override
+    public void preCreate( AggregateDataExchange exchange, ObjectBundle bundle )
     {
-        return password;
+        encryptSecret( exchange );
+    }
+
+    @Override
+    public void preUpdate( AggregateDataExchange exchange, AggregateDataExchange persistedExchange,
+        ObjectBundle bundle )
+    {
+        encryptSecret( exchange );
+    }
+
+    private void encryptSecret( AggregateDataExchange exchange )
+    {
+        if ( exchange != null && exchange.getTarget() != null && exchange.getTarget().getApi() != null )
+        {
+            Api api = exchange.getTarget().getApi();
+
+            if ( api != null && StringUtils.isNotBlank( api.getPassword() ) )
+            {
+                String encryptedPassword = encryptor.encrypt( api.getPassword() );
+                api.setPassword( encryptedPassword );
+            }
+        }
     }
 }

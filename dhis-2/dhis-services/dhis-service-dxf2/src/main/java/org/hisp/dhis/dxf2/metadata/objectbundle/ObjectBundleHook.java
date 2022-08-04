@@ -48,7 +48,6 @@ import org.hisp.dhis.feedback.ErrorReport;
  */
 public interface ObjectBundleHook<T>
 {
-
     /**
      * Is either:
      *
@@ -144,7 +143,7 @@ public interface ObjectBundleHook<T>
      * {@link #getTarget()} type.It is never called for hooks with abstract
      * target type.
      *
-     * @param bundle Current commit phase bundle
+     * @param bundle the current commit phase bundle.
      */
     void postCommit( ObjectBundle bundle );
 
@@ -152,7 +151,9 @@ public interface ObjectBundleHook<T>
      * Run before a type import has started. I.e. run before importing orgUnits,
      * dataElements, etc.
      *
-     * @param bundle Current commit phase bundle
+     * @param klass the class type of the objects.
+     * @param objects the objects.
+     * @param bundle the current commit phase bundle.
      */
     <E extends T> void preTypeImport( Class<E> klass, List<E> objects, ObjectBundle bundle );
 
@@ -160,42 +161,50 @@ public interface ObjectBundleHook<T>
      * Run after a type import has finished. I.e. run before importing orgUnits,
      * dataElements, etc.
      *
-     * @param bundle Current commit phase bundle
+     * @param klass the class type of the objects.
+     * @param objects the objects.
+     * @param bundle the current commit phase bundle.
      */
     <E extends T> void postTypeImport( Class<E> klass, List<E> objects, ObjectBundle bundle );
 
     /**
      * Run before object has been created.
      *
-     * @param bundle Current commit phase bundle
+     * @param object the object to be created.
+     * @param bundle the current commit phase bundle.
      */
     void preCreate( T object, ObjectBundle bundle );
 
     /**
      * Run after object has been created.
      *
-     * @param bundle Current commit phase bundle
+     * @param persistedObject the created object.
+     * @param bundle the current commit phase bundle.
      */
     void postCreate( T persistedObject, ObjectBundle bundle );
 
     /**
      * Run before object has been updated.
      *
-     * @param bundle Current commit phase bundle
+     * @param object the object to be created.
+     * @param persistedObject the created object.
+     * @param bundle the current commit phase bundle.
      */
     void preUpdate( T object, T persistedObject, ObjectBundle bundle );
 
     /**
      * Run after object has been updated.
      *
-     * @param bundle Current commit phase bundle
+     * @param persistedObject the created object.
+     * @param bundle the current commit phase bundle.
      */
     void postUpdate( T persistedObject, ObjectBundle bundle );
 
     /**
      * Run before object has been deleted.
      *
-     * @param bundle Current commit phase bundle
+     * @param persistedObject the created object.
+     * @param bundle the current commit phase bundle.
      */
     void preDelete( T persistedObject, ObjectBundle bundle );
 }
