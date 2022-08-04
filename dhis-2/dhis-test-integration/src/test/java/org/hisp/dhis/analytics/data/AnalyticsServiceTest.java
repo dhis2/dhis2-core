@@ -872,7 +872,7 @@ class AnalyticsServiceTest
     void test_reRate_2017_Q01_ouC()
     {
         assertDataValues(
-            Map.of( "a23dataSetA.REPORTING_RATE-ouabcdefghC-2017Q1", 100.0 ),
+            Map.of( "a23dataSetA.REPORTING_RATE-ouabcdefghC-2017Q1", 100L ),
             DataQueryParams.newBuilder()
                 .withOrganisationUnit( ouC )
                 .withReportingRates( List.of( reportingRateA ) )
@@ -898,8 +898,8 @@ class AnalyticsServiceTest
     void test_ou_2017_validationruleA()
     {
         assertDataValues(
-            Map.of( "a234567vruA-ouabcdefghA-2017", 4.0,
-                "a234567vruA-ouabcdefghB-2017", 2.0 ),
+            Map.of( "a234567vruA-ouabcdefghA-2017", 4L,
+                "a234567vruA-ouabcdefghB-2017", 2L ),
             DataQueryParams.newBuilder()
                 .withValidationRules( List.of( validationRuleA ) )
                 .withOrganisationUnits( organisationUnitService.getAllOrganisationUnits() )
@@ -912,8 +912,8 @@ class AnalyticsServiceTest
     void test_ou_2017_validationruleB()
     {
         assertDataValues(
-            Map.of( "a234567vruB-ouabcdefghA-2017", 3.0,
-                "a234567vruB-ouabcdefghB-2017", 2.0 ),
+            Map.of( "a234567vruB-ouabcdefghA-2017", 3L,
+                "a234567vruB-ouabcdefghB-2017", 2L ),
             DataQueryParams.newBuilder()
                 .withValidationRules( List.of( validationRuleB ) )
                 .withOrganisationUnits( organisationUnitService.getAllOrganisationUnits() )
@@ -926,10 +926,10 @@ class AnalyticsServiceTest
     void test_ou_2017_validationruleAB()
     {
         assertDataValues(
-            Map.of( "a234567vruA-ouabcdefghA-2017", 4.0,
-                "a234567vruA-ouabcdefghB-2017", 2.0,
-                "a234567vruB-ouabcdefghA-2017", 3.0,
-                "a234567vruB-ouabcdefghB-2017", 2.0 ),
+            Map.of( "a234567vruA-ouabcdefghA-2017", 4L,
+                "a234567vruA-ouabcdefghB-2017", 2L,
+                "a234567vruB-ouabcdefghA-2017", 3L,
+                "a234567vruB-ouabcdefghB-2017", 2L ),
             DataQueryParams.newBuilder()
                 .withValidationRules( List.of( validationRuleA, validationRuleB ) )
                 .withOrganisationUnits( organisationUnitService.getAllOrganisationUnits() )
