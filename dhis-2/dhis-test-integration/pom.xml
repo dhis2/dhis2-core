@@ -79,11 +79,6 @@
         </dependency>
         <dependency>
             <groupId>org.hisp.dhis</groupId>
-            <artifactId>dhis-service-data-exchange</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.hisp.dhis</groupId>
             <artifactId>dhis-service-analytics</artifactId>
             <scope>compile</scope>
         </dependency>
