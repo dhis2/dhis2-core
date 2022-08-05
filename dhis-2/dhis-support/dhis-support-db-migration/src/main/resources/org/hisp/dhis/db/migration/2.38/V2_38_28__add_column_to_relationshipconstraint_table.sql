@@ -7,14 +7,17 @@ SET dataview = R.dataview
             json_build_object(
                 'attributes',
                 COALESCE(
-                    json_agg(COALESCE(TEA.uid)) FILTER (
-                        WHERE RC.entity IN ('TRACKED_ENTITY_INSTANCE','PROGRAM_INSTANCE')
+                    json_agg(COALESCE(TETA.uid, PTEA.uid)) FILTER (
+                        WHERE RC.entity IN ('TRACKED_ENTITY_INSTANCE')
+                    ),
+                    json_agg(COALESCE(TETA.uid, PTEA.uid)) FILTER (
+                        WHERE RC.entity IN ('PROGRAM_INSTANCE')
                     ),
                     '[]'
                 )::jsonb,
                 'dataelements',
                 COALESCE(
-                    json_agg(COALESCE(DE.uid)) FILTER (
+                    json_agg(COALESCE(PSDE.uid)) FILTER (
                         WHERE RC.entity = 'PROGRAM_STAGE_INSTANCE'
                     ),
                     '[]'
