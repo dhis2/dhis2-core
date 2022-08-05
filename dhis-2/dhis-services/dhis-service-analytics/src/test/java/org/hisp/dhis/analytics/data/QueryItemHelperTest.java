@@ -31,7 +31,10 @@ import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -166,10 +169,11 @@ class QueryItemHelperTest extends DhisConvenienceTest
         params.getItems().add( queryItem );
 
         // When
-        final List<Option> options = QueryItemHelper.getItemOptions( grid, params );
+        final Map<String, List<Option>> options = QueryItemHelper.getItemOptions( grid, params );
 
         // Then
-        assertTrue( options.contains( option ) );
+        assertTrue(
+            options.values().stream().flatMap( Collection::stream ).collect( Collectors.toList() ).contains( option ) );
     }
 
     @Test
@@ -188,10 +192,11 @@ class QueryItemHelperTest extends DhisConvenienceTest
         params.getItems().add( queryItem );
 
         // When
-        final List<Option> options = QueryItemHelper.getItemOptions( grid, params );
+        final Map<String, List<Option>> options = QueryItemHelper.getItemOptions( grid, params );
 
         // Then
-        assertTrue( options.contains( option ) );
+        assertTrue(
+            options.values().stream().flatMap( Collection::stream ).collect( Collectors.toList() ).contains( option ) );
     }
 
     private Grid stubGridWithRowsAndOptionSet( final OptionSet optionSet )

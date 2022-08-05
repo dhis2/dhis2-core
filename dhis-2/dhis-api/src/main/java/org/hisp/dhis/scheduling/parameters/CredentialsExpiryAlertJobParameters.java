@@ -29,6 +29,8 @@ package org.hisp.dhis.scheduling.parameters;
 
 import java.util.Optional;
 
+import lombok.NoArgsConstructor;
+
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -41,36 +43,13 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 /**
  * @author Jan Bernitt
  */
+@NoArgsConstructor
 @JacksonXmlRootElement( localName = "jobParameters", namespace = DxfNamespaces.DXF_2_0 )
-public class DisableInactiveUsersJobParameters implements JobParameters
+public class CredentialsExpiryAlertJobParameters implements JobParameters
 {
-    private static final long serialVersionUID = -5877578172615705990L;
-
-    private int inactiveMonths;
+    private static final long serialVersionUID = 1474076005450145410L;
 
     private Integer reminderDaysBefore;
-
-    public DisableInactiveUsersJobParameters()
-    {
-
-    }
-
-    public DisableInactiveUsersJobParameters( int inactiveMonths )
-    {
-        this.inactiveMonths = inactiveMonths;
-    }
-
-    @JsonProperty( required = true )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getInactiveMonths()
-    {
-        return inactiveMonths;
-    }
-
-    public void setInactiveMonths( int inactiveMonths )
-    {
-        this.inactiveMonths = inactiveMonths;
-    }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
@@ -87,11 +66,6 @@ public class DisableInactiveUsersJobParameters implements JobParameters
     @Override
     public Optional<ErrorReport> validate()
     {
-        if ( inactiveMonths < 1 || inactiveMonths > 24 )
-        {
-            return Optional.of(
-                new ErrorReport( getClass(), ErrorCode.E4008, "inactiveMonths", 1, 24, inactiveMonths ) );
-        }
         if ( reminderDaysBefore != null && (reminderDaysBefore < 1 || reminderDaysBefore > 28) )
         {
             return Optional.of(
