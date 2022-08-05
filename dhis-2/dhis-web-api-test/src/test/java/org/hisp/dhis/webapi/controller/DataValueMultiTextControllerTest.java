@@ -96,7 +96,7 @@ class DataValueMultiTextControllerTest extends AbstractDataValueControllerTest
     void testAddDataElement_MultiText_OptionSetValueTypeMismatch()
     {
         assertWebMessage( "Conflict", 409, "ERROR",
-            "Data element of value type multi text must have an option set: `null`",
+            "Data element of value type multi-text must have an option set: `null`",
             postNewDataElement( "MultiSelectDE2", "MSDE2", ValueType.MULTI_TEXT, null )
                 .content( HttpStatus.CONFLICT ) );
     }
