@@ -2917,9 +2917,7 @@ public abstract class DhisConvenienceTest
         return user;
     }
 
-    protected RelationshipType createRelTypeConstraint(
-        @SuppressWarnings( "SameParameterValue" ) RelationshipEntity from,
-        @SuppressWarnings( "SameParameterValue" ) RelationshipEntity to )
+    protected RelationshipType createRelTypeConstraint( RelationshipEntity from, RelationshipEntity to )
     {
         RelationshipType relType = new RelationshipType();
         relType.setUid( CodeGenerator.generateUid() );
