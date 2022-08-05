@@ -36,7 +36,6 @@ import java.util.function.Consumer;
 import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
 import org.hisp.dhis.dataexchange.aggregate.Api;
 import org.hisp.dhis.dataexchange.aggregate.SourceRequest;
-import org.hisp.dhis.dataexchange.aggregate.Target;
 import org.hisp.dhis.dataexchange.aggregate.TargetType;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -77,19 +76,17 @@ public class AggregateDataExchangeObjectBundleHook
             }
         }
 
-        Target target = exchange.getTarget();
-
-        if ( target.getType() == null )
+        if ( exchange.getTarget().getType() == null )
         {
             addReports.accept( new ErrorReport( AggregateDataExchange.class, ErrorCode.E4000, "target.type" ) );
         }
 
-        if ( target.getType() == TargetType.EXTERNAL && target.getApi() == null )
+        if ( exchange.getTarget().getType() == TargetType.EXTERNAL && exchange.getTarget().getApi() == null )
         {
             addReports.accept( new ErrorReport( AggregateDataExchange.class, ErrorCode.E6304 ) );
         }
 
-        Api api = target.getApi();
+        Api api = exchange.getTarget().getApi();
 
         if ( api != null && isEmpty( api.getUrl() ) )
         {
