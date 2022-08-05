@@ -111,7 +111,7 @@ public class AggregateDataExchangeObjectBundleHookTest
     }
 
     /**
-     * Returns a valid aggregate date exchange.
+     * Returns a valid aggregate data exchange.
      *
      * @param uniqueChar the unique character.
      * @return an {@link AggregateDataExchange}.
@@ -144,8 +144,7 @@ public class AggregateDataExchangeObjectBundleHookTest
     }
 
     /**
-     * Asserts that the given error code is present in the given list of error
-     * reports.
+     * Asserts that the error code is present in the list of error reports.
      *
      * @param errorCode the {@link ErrorCode}.
      * @param errorReports the list of {@link ErrorReport}.
