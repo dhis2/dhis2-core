@@ -121,7 +121,7 @@ class DataElementServiceTest extends TransactionalIntegrationTest
             () -> dataElementService.addDataElement( de ) );
         assertEquals( ErrorCode.E1117, ex.getErrorCode() );
         assertEquals( format(
-            "Data element `%s` of value type multi text cannot use an option set `%s` that uses the separator character in one of its codes: `C,D`",
+            "Data element `%s` of value type multi-text cannot reference an option set `%s` with the separator character in one of its codes: `C,D`",
             de.getUid(), de.getOptionSet().getUid() ), ex.getMessage() );
     }
 
@@ -175,7 +175,7 @@ class DataElementServiceTest extends TransactionalIntegrationTest
             () -> dataElementService.updateDataElement( de ) );
         assertEquals( ErrorCode.E1117, ex.getErrorCode() );
         assertEquals( format(
-            "Data element `%s` of value type multi text cannot use an option set `%s` that uses the separator character in one of its codes: `C,D`",
+            "Data element `%s` of value type multi-text cannot reference an option set `%s` with the separator character in one of its codes: `C,D`",
             de.getUid(), de.getOptionSet().getUid() ), ex.getMessage() );
     }
 

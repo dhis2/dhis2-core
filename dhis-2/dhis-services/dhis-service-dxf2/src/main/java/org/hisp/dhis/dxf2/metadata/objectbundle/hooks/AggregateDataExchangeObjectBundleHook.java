@@ -27,11 +27,19 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.hisp.dhis.commons.collection.CollectionUtils.isEmpty;
 import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCRYPTOR;
+
+import java.util.function.Consumer;
 
 import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
 import org.hisp.dhis.dataexchange.aggregate.Api;
+import org.hisp.dhis.dataexchange.aggregate.SourceRequest;
+import org.hisp.dhis.dataexchange.aggregate.TargetType;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.jasypt.encryption.pbe.PooledPBEStringEncryptor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -49,6 +57,51 @@ public class AggregateDataExchangeObjectBundleHook
         @Qualifier( AES_128_STRING_ENCRYPTOR ) PooledPBEStringEncryptor encryptor )
     {
         this.encryptor = encryptor;
+    }
+
+    @Override
+    public void validate( AggregateDataExchange exchange, ObjectBundle bundle,
+        Consumer<ErrorReport> addReports )
+    {
+        if ( isEmpty( exchange.getSource().getRequests() ) )
+        {
+            addReports.accept( new ErrorReport( AggregateDataExchange.class, ErrorCode.E6302, exchange.getUid() ) );
+        }
+
+        for ( SourceRequest request : exchange.getSource().getRequests() )
+        {
+            if ( isEmpty( request.getDx() ) || isEmpty( request.getPe() ) || isEmpty( request.getOu() ) )
+            {
+                addReports.accept( new ErrorReport( AggregateDataExchange.class, ErrorCode.E6303 ) );
+            }
+        }
+
+        if ( exchange.getTarget().getType() == null )
+        {
+            addReports.accept( new ErrorReport( AggregateDataExchange.class, ErrorCode.E4000, "target.type" ) );
+        }
+
+        if ( exchange.getTarget().getType() == TargetType.EXTERNAL && exchange.getTarget().getApi() == null )
+        {
+            addReports.accept( new ErrorReport( AggregateDataExchange.class, ErrorCode.E6304 ) );
+        }
+
+        Api api = exchange.getTarget().getApi();
+
+        if ( api != null && isEmpty( api.getUrl() ) )
+        {
+            addReports.accept( new ErrorReport( AggregateDataExchange.class, ErrorCode.E4000, "target.api.url" ) );
+        }
+
+        if ( api != null && isEmpty( api.getUsername() ) )
+        {
+            addReports.accept( new ErrorReport( AggregateDataExchange.class, ErrorCode.E4000, "target.api.username" ) );
+        }
+
+        if ( api != null && isEmpty( api.getPassword() ) )
+        {
+            addReports.accept( new ErrorReport( AggregateDataExchange.class, ErrorCode.E4000, "target.api.password" ) );
+        }
     }
 
     @Override
@@ -71,7 +124,7 @@ public class AggregateDataExchangeObjectBundleHook
      */
     private void encryptSecret( AggregateDataExchange exchange )
     {
-        if ( exchange != null && exchange.getTarget().getApi() != null )
+        if ( exchange.getTarget().getApi() != null )
         {
             Api api = exchange.getTarget().getApi();
 
