@@ -28,6 +28,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 
@@ -40,6 +41,8 @@ import org.hisp.dhis.dataexchange.aggregate.Target;
 import org.hisp.dhis.dataexchange.aggregate.TargetRequest;
 import org.hisp.dhis.dataexchange.aggregate.TargetType;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -63,6 +66,55 @@ public class AggregateDataExchangeObjectBundleHookTest
         assertIsEmpty( objectBundleHook.validate( exchange, objectBundle ) );
     }
 
+    @Test
+    void testMissingSourceRequests()
+    {
+        AggregateDataExchange exchange = getAggregateDataExchange( 'A' );
+        exchange.setSource( new Source() );
+
+        assertErrorCode( ErrorCode.E6302, objectBundleHook.validate( exchange, objectBundle ) );
+    }
+
+    @Test
+    void testMissingTargetType()
+    {
+        AggregateDataExchange exchange = getAggregateDataExchange( 'A' );
+        exchange.setTarget( new Target() );
+
+        assertErrorCode( ErrorCode.E4000, objectBundleHook.validate( exchange, objectBundle ) );
+    }
+
+    @Test
+    void testMissingTargetApi()
+    {
+        Target target = new Target();
+        target.setType( TargetType.EXTERNAL );
+
+        AggregateDataExchange exchange = getAggregateDataExchange( 'A' );
+        exchange.setTarget( target );
+
+        assertErrorCode( ErrorCode.E6304, objectBundleHook.validate( exchange, objectBundle ) );
+    }
+
+    @Test
+    void testMissingTargetApiUrl()
+    {
+        Target target = new Target();
+        target.setType( TargetType.EXTERNAL );
+        target.setApi( new Api() );
+
+        AggregateDataExchange exchange = getAggregateDataExchange( 'A' );
+        exchange.setTarget( target );
+
+        assertErrorCode( ErrorCode.E4000, objectBundleHook.validate( exchange, objectBundle ) );
+    }
+
+    /**
+     * Returns a valid aggregate date exchange.
+     *
+     * @param uniqueChar the unique character.
+     * @return an {@link AggregateDataExchange}.
+     */
     private AggregateDataExchange getAggregateDataExchange( char uniqueChar )
     {
         SourceRequest sourceRequest = new SourceRequest();
@@ -92,5 +144,18 @@ public class AggregateDataExchangeObjectBundleHookTest
         exchange.setSource( source );
         exchange.setTarget( target );
         return exchange;
+    }
+
+    /**
+     * Asserts that the given error code is present in the given list of error
+     * reports.
+     *
+     * @param errorCode the {@link ErrorCode}.
+     * @param errorReports the list of {@link ErrorReport}.
+     */
+    private void assertErrorCode( ErrorCode errorCode, List<ErrorReport> errorReports )
+    {
+        assertTrue( errorReports.stream().anyMatch( r -> errorCode.equals( r.getErrorCode() ) ),
+            String.format( "Error reports expected to contain error code: '%s', [%s]", errorCode, errorReports ) );
     }
 }
