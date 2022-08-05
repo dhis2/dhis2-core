@@ -34,6 +34,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Getter
@@ -49,6 +50,19 @@ public class Api
     @JsonProperty
     private String username;
 
+    /**
+     * The password is encrypted and must be decrypted before used to
+     * authenticate with external systems.
+     */
     @JsonProperty
-    private String password; // TODO Custom encryption
+    private String password;
+
+    /**
+     * Do not expose password.
+     */
+    @JsonIgnore
+    public String getPassword()
+    {
+        return password;
+    }
 }
