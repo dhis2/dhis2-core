@@ -39,6 +39,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import lombok.RequiredArgsConstructor;
@@ -173,9 +174,8 @@ public class CommonQueryRequestMapper
 
         DimensionalObject dimensionalObject = dataQueryService.getDimension( dimensionIdentifier.getDimension(),
             items, request.getRelativePeriodDate(), userOrgUnits, i18nManager.getI18nFormat(), true, UID );
-        boolean isDimensionalObject = dimensionalObject != null;
 
-        if ( isDimensionalObject )
+        if ( Objects.nonNull( dimensionalObject ) )
         {
             DimensionParam dimensionParam = DimensionParam.ofObject( dimensionalObject, dimensionParamType, items );
             return DimensionIdentifier.of(

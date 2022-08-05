@@ -35,14 +35,13 @@ import lombok.Singular;
 @Builder( toBuilder = true )
 public class Order extends BaseRenderable
 {
-
     @Singular
     private final List<Renderable> orders;
 
     @Override
     public String render()
     {
-        return RenderableUtils.join( orders, ", ", "ORDER BY ", "" );
+        return RenderableUtils.join( orders, ", ", "ORDER BY " );
     }
 
     public static Order ofOrder( String order )

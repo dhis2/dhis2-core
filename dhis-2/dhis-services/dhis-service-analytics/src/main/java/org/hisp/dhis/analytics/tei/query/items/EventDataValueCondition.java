@@ -33,15 +33,17 @@ import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ENR_ALIAS;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.EVT_1_ALIAS;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.EVT_ALIAS;
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_TEI_DEFAULT_ALIAS;
+import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
 
 import java.util.Arrays;
-import java.util.List;
+import java.util.Optional;
 
 import lombok.RequiredArgsConstructor;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.dimension.DimensionParamItem;
 import org.hisp.dhis.analytics.tei.query.BaseRenderable;
 import org.hisp.dhis.analytics.tei.query.From;
 import org.hisp.dhis.analytics.tei.query.LimitOffset;
@@ -58,14 +60,9 @@ import org.hisp.dhis.program.ProgramStage;
 @RequiredArgsConstructor( staticName = "of" )
 public class EventDataValueCondition extends BaseRenderable
 {
-
-    private static final Select SELECT_1 = Select.builder()
-        .field( () -> "1" )
-        .build();
+    private static final Select SELECT_1 = Select.of( "1" );
 
     private final DimensionIdentifier<Program, ProgramStage, DimensionParam> dimensionIdentifier;
-
-    private final String item;
 
     private final QueryContext queryContext;
 
@@ -81,19 +78,17 @@ public class EventDataValueCondition extends BaseRenderable
             .select( SELECT_1 )
             .from( ofSingleTableAndAlias( ANALYTICS_TEI_EVT + queryContext.getTeTTableSuffix(), EVT_1_ALIAS ) )
             .where( Where.ofConditions(
-                List.of(
-                    () -> EVT_ALIAS + ".programstageinstanceuid" + "=" + EVT_1_ALIAS + ".programstageinstanceuid",
-                    getItemCondition() ) ) )
+                () -> EVT_ALIAS + ".programstageinstanceuid" + "=" + EVT_1_ALIAS + ".programstageinstanceuid",
+                getItemCondition() ) )
             .build();
 
         Query innerEventSubquery = Query.builder()
             .select( SELECT_1 )
             .from( From.ofSingleTableAndAlias( ANALYTICS_TEI_EVT + queryContext.getTeTTableSuffix(), EVT_ALIAS ) )
             .where( Where.ofConditions(
-                List.of(
-                    () -> EVT_ALIAS + ".programinstanceuid" + "=" + ENR_ALIAS + ".programinstanceuid",
-                    () -> EVT_ALIAS + ".programstageuid = " + "'" + getProgramStageUid() + "'",
-                    ExistsCondition.of( innermostEventSubQuery ) ) ) )
+                () -> EVT_ALIAS + ".programinstanceuid" + "=" + ENR_ALIAS + ".programinstanceuid",
+                () -> EVT_ALIAS + ".programstageuid = " + "'" + getProgramStageUid() + "'",
+                ExistsCondition.of( innermostEventSubQuery ) ) )
             // TODO: negative offset will require ASC instead of DESC
             .order( Order.ofOrder( "executiondate desc" ) )
             .limit( getProgramStageLimitOffset() )
@@ -103,11 +98,10 @@ public class EventDataValueCondition extends BaseRenderable
             .select( SELECT_1 )
             .from( From.ofSingleTableAndAlias( ANALYTICS_TEI_ENR + queryContext.getTeTTableSuffix(), ENR_ALIAS ) )
             .where( Where.ofConditions(
-                List.of(
-                    () -> ENR_ALIAS + ".trackedentityinstanceuid" + "=" + TEI_TEI_DEFAULT_ALIAS
-                        + ".trackedentityinstanceuid",
-                    () -> ENR_ALIAS + ".programuid" + "=" + getProgramUid(),
-                    ExistsCondition.of( innerEventSubquery ) ) ) )
+                () -> ENR_ALIAS + ".trackedentityinstanceuid" + "=" + TEI_ALIAS
+                    + ".trackedentityinstanceuid",
+                () -> ENR_ALIAS + ".programuid" + "=" + getProgramUid(),
+                ExistsCondition.of( innerEventSubquery ) ) )
             // TODO: negative offset will require ASC instead of DESC
             .order( Order.ofOrder( "enrollmentdate desc" ) )
             .limit( getProgramLimitOffset() )
@@ -127,34 +121,43 @@ public class EventDataValueCondition extends BaseRenderable
     private LimitOffset getProgramStageLimitOffset()
     {
         // TODO: at the moment we only support integer index as offset
-        return LimitOffset.ofStrings( "1", dimensionIdentifier.getProgramStage().getOffset() );
+        return LimitOffset.ofStrings( "1", Optional.of( dimensionIdentifier )
+            .map( DimensionIdentifier::getProgramStage )
+            .map( DimensionIdentifier.ElementWithOffset::getOffset )
+            .orElse( "0" ) );
     }
 
     private LimitOffset getProgramLimitOffset()
     {
         // TODO: at the moment we only support integer index as offset
-        return LimitOffset.ofStrings( "1", dimensionIdentifier.getProgram().getOffset() );
+        return LimitOffset.ofStrings( "1", Optional.of( dimensionIdentifier )
+            .map( DimensionIdentifier::getProgram )
+            .map( DimensionIdentifier.ElementWithOffset::getOffset )
+            .orElse( "0" ) );
     }
 
     private Renderable getItemCondition()
     {
         ValueTypeMapping valueTypeMapping = ValueTypeMapping
             .fromValueType( dimensionIdentifier.getDimension().getValueType() );
-
-        int parameterIndex = queryContext.bindParamAndGetIndex( 123 );
-
         return () -> "(" + EVT_1_ALIAS + ".eventdatavalues -> '"
             + dimensionIdentifier.getDimension().getDimensionObjectUid() + "'" +
-            // TODO: we should parse here the "item" we built in this
-            // EventDataValue to properly pass operator and value
-            " ->> 'value')::" + valueTypeMapping.name() + " = " + ":" + parameterIndex;
+            " ->> 'value')::" + valueTypeMapping.name() + renderItem();
+    }
+
+    private String renderItem()
+    {
+        DimensionParamItem item = dimensionIdentifier.getDimension().getItems().get( 0 );
+        int parameterIndex = queryContext.bindParamAndGetIndex( item );
+        return StringUtils.SPACE + item.getOperator().getValue() + " :" + parameterIndex;
     }
 
     private enum ValueTypeMapping
     {
         // TODO: adds mappings here
         NUMERIC( ValueType.INTEGER, ValueType.INTEGER_NEGATIVE, ValueType.INTEGER_POSITIVE,
-            ValueType.INTEGER_ZERO_OR_POSITIVE );
+            ValueType.INTEGER_ZERO_OR_POSITIVE ),
+        STRING();
 
         private final ValueType[] valueTypes;
 
@@ -168,8 +171,7 @@ public class EventDataValueCondition extends BaseRenderable
             return Arrays.stream( values() )
                 .filter( valueTypeMapping -> valueTypeMapping.supports( valueType ) )
                 .findFirst()
-                .orElseThrow(
-                    () -> new IllegalArgumentException( "Unable to resolve mapping from ValueType: " + valueType ) );
+                .orElse( STRING );
         }
 
         private boolean supports( ValueType valueType )

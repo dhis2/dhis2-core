@@ -43,8 +43,6 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueType;
 
-import com.google.common.collect.ImmutableList;
-
 /**
  * A wrapper for DimensionObject|QueryItem to abstract them
  */
@@ -60,7 +58,7 @@ public class DimensionParam
     private final DimensionParamType type;
 
     @Builder.Default
-    private final List<String> items = new ArrayList<>();
+    private final List<DimensionParamItem> items = new ArrayList<>();
 
     /**
      * allows to create an instance of DimensionParam passing the object to wrap
@@ -82,7 +80,7 @@ public class DimensionParam
 
         DimensionParamBuilder builder = DimensionParam.builder()
             .type( dimensionParamType )
-            .items( ImmutableList.copyOf( CollectionUtils.emptyIfNull( items ) ) );
+            .items( DimensionParamItem.ofStrings( items ) );
 
         if ( dimensionalObjectOrQueryItem instanceof DimensionalObject )
         {

@@ -27,28 +27,34 @@
  */
 package org.hisp.dhis.analytics.tei.query;
 
-import java.util.List;
+import java.util.Arrays;
+import java.util.Objects;
 
-import lombok.Builder;
+import lombok.RequiredArgsConstructor;
 import lombok.Singular;
 
-@Builder
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.tei.query.items.AndCondition;
+
+@RequiredArgsConstructor( staticName = "of" )
 public class Where extends BaseRenderable
 {
-
     @Singular
-    private final List<Renderable> conditions;
+    private final AndCondition condition;
+
+    public static Where ofConditions( Renderable... renderables )
+    {
+        return of( AndCondition.of( Arrays.asList( renderables ) ) );
+    }
 
     @Override
     public String render()
     {
-        return RenderableUtils.join( conditions, " AND ", "WHERE ", "" );
+        if ( Objects.nonNull( condition ) )
+        {
+            return "WHERE " + condition.render();
+        }
+        return StringUtils.EMPTY;
     }
 
-    public static Where ofConditions( List<Renderable> conditions )
-    {
-        WhereBuilder builder = Where.builder();
-        conditions.forEach( builder::condition );
-        return builder.build();
-    }
 }

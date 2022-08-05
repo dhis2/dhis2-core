@@ -25,45 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei.query;
+package org.hisp.dhis.analytics.tei.query.items;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
-import org.hisp.dhis.analytics.tei.query.items.Table;
+import org.hisp.dhis.analytics.tei.query.BaseRenderable;
+import org.hisp.dhis.analytics.tei.query.Renderable;
 
 @RequiredArgsConstructor( staticName = "of" )
-public class From implements Renderable
+public class AndCondition extends BaseRenderable
 {
-    private final Renderable mainTable;
-
-    private final List<Pair<Renderable, Renderable>> joinsWithAliases;
+    private final List<Renderable> conditions;
 
     @Override
     public String render()
     {
-        return "FROM " + mainTable.render() + StringUtils.SPACE +
-            joinsWithAliases.stream()
-                .map( this::renderPair )
-                .collect( Collectors.joining( StringUtils.EMPTY ) );
-    }
+        if ( conditions.isEmpty() )
+        {
+            return StringUtils.EMPTY;
+        }
 
-    private String renderPair( Pair<Renderable, Renderable> tableWithJoinCondition )
-    {
-        return "LEFT JOIN " + tableWithJoinCondition.getKey().render() + " ON "
-            + tableWithJoinCondition.getValue().render();
-    }
+        if ( conditions.size() == 1 )
+        {
+            return conditions.get( 0 ).render();
+        }
 
-    public static From ofSingleTableAndAlias( String table, String alias )
-    {
-        return From.of(
-            Table.ofStrings( table, alias ),
-            Collections.emptyList() );
+        return conditions.stream()
+            .map( Renderable::render )
+            .filter( StringUtils::isNotBlank )
+            .collect( Collectors.joining( " AND " ) );
     }
-
 }

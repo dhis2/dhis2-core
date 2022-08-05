@@ -27,21 +27,29 @@
  */
 package org.hisp.dhis.analytics.tei.query;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
-import lombok.Builder;
+import lombok.RequiredArgsConstructor;
 import lombok.Singular;
 
-@Builder
+@RequiredArgsConstructor( staticName = "of" )
 public class Select extends BaseRenderable
 {
-
     @Singular
     private final List<Renderable> fields;
+
+    public static Select of( String... fields )
+    {
+        return of( Arrays.stream( fields )
+            .map( s -> (Renderable) () -> s )
+            .collect( Collectors.toList() ) );
+    }
 
     @Override
     public String render()
     {
-        return RenderableUtils.join( fields, ", ", "SELECT ", "" );
+        return RenderableUtils.join( fields, ", ", "SELECT " );
     }
 }

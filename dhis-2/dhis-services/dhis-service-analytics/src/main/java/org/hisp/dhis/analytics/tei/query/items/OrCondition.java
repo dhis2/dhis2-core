@@ -32,22 +32,28 @@ import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.tei.query.BaseRenderable;
 import org.hisp.dhis.analytics.tei.query.Renderable;
 
 @RequiredArgsConstructor( staticName = "of" )
 public class OrCondition extends BaseRenderable
 {
-
     private final List<Renderable> conditions;
 
     @Override
     public String render()
     {
+        if ( conditions.isEmpty() )
+        {
+            return StringUtils.EMPTY;
+        }
+
         if ( conditions.size() == 1 )
         {
             return conditions.get( 0 ).render();
         }
+
         return conditions.stream()
             .map( Renderable::render )
             .collect( Collectors.joining( " OR ", "(", ")" ) );

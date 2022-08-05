@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.tei.query;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import lombok.AccessLevel;
@@ -40,14 +41,22 @@ import org.apache.commons.lang3.StringUtils;
 @NoArgsConstructor( access = AccessLevel.PRIVATE )
 public class RenderableUtils
 {
+    public static String join( Collection<Renderable> renderables, String delimiter )
+    {
+        return join( renderables, delimiter, StringUtils.EMPTY );
+    }
+
+    public static String join( Collection<Renderable> renderables, String delimiter, String prefix )
+    {
+        return join( renderables, delimiter, prefix, StringUtils.EMPTY );
+    }
 
     public static String join( Collection<Renderable> renderables, String delimiter, String prefix, String suffix )
     {
-
         List<String> renderableList = CollectionUtils.emptyIfNull( renderables )
             .stream()
+            .filter( Objects::nonNull )
             .map( Renderable::render )
-            .filter( StringUtils::isNotBlank )
             .collect( Collectors.toList() );
 
         if ( CollectionUtils.isNotEmpty( renderableList ) )
@@ -55,6 +64,5 @@ public class RenderableUtils
             return renderableList.stream().collect( Collectors.joining( delimiter, prefix, suffix ) );
         }
         return StringUtils.EMPTY;
-
     }
 }

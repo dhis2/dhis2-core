@@ -31,6 +31,10 @@ import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
 
+/**
+ * This class is a Renderable for a field in the select list, with it's prefix
+ * and alias
+ */
 @RequiredArgsConstructor( staticName = "of" )
 public class Field extends BaseRenderable
 {
@@ -43,7 +47,7 @@ public class Field extends BaseRenderable
     @Override
     public String render()
     {
-        String rendered = "";
+        String rendered = StringUtils.EMPTY;
         if ( StringUtils.isNotBlank( tableAlias ) )
         {
             rendered = tableAlias + ".";
@@ -51,7 +55,7 @@ public class Field extends BaseRenderable
         rendered = rendered + name.render();
         if ( StringUtils.isNotBlank( fieldAlias ) )
         {
-            rendered = rendered + " AS " + fieldAlias;
+            rendered = rendered + " as " + fieldAlias;
         }
         return rendered;
     }

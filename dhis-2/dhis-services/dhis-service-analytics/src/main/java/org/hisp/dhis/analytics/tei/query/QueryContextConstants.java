@@ -34,13 +34,13 @@ import lombok.NoArgsConstructor;
 public class QueryContextConstants
 {
 
-    public static final String ANALYTICS_TEI_TEI = "analytics_tei_tei_";
+    public static final String ANALYTICS_TEI = "analytics_tei_tei_";
 
     public static final String ANALYTICS_TEI_EVT = "analytics_tei_events_";
 
     public static final String ANALYTICS_TEI_ENR = "analytics_tei_enrollments_";
 
-    public static final String TEI_TEI_DEFAULT_ALIAS = "T_1";
+    public static final String TEI_ALIAS = "T_1";
 
     public static final String EVT_ALIAS = "EVT";
 

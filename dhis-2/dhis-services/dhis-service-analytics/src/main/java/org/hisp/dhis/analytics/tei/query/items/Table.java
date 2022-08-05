@@ -30,13 +30,13 @@ package org.hisp.dhis.analytics.tei.query.items;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.tei.query.Renderable;
 
 @Getter
 @RequiredArgsConstructor( staticName = "of" )
 public class Table implements Renderable
 {
-
     private final Renderable table;
 
     private final Renderable alias;
@@ -49,6 +49,6 @@ public class Table implements Renderable
     @Override
     public String render()
     {
-        return String.join( " ", table.render(), alias.render() );
+        return String.join( StringUtils.SPACE, table.render(), alias.render() );
     }
 }

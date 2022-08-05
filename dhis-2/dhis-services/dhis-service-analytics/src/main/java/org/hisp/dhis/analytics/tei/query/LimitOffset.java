@@ -37,7 +37,6 @@ import org.apache.commons.lang3.StringUtils;
 @RequiredArgsConstructor( staticName = "of" )
 public class LimitOffset extends BaseRenderable
 {
-
     private final Integer limit;
 
     private final Integer offset;
@@ -45,7 +44,7 @@ public class LimitOffset extends BaseRenderable
     @Override
     public String render()
     {
-        return "LIMIT " + limit + (Objects.isNull( offset ) ? "" : " OFFSET " + offset);
+        return "LIMIT " + limit + (Objects.isNull( offset ) ? StringUtils.EMPTY : " OFFSET " + offset);
     }
 
     public static LimitOffset ofStrings( String limit, String offset )

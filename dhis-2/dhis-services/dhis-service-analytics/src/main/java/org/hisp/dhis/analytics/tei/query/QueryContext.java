@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.analytics.tei.query;
 
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_TEI_TEI;
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_TEI_DEFAULT_ALIAS;
+import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_TEI;
+import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -40,12 +40,16 @@ import java.util.stream.Stream;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Delegate;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.analytics.common.AnalyticsPagingAndSortingParams;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
+import org.hisp.dhis.analytics.tei.query.items.AndCondition;
 import org.hisp.dhis.analytics.tei.query.items.EventDataValueCondition;
 import org.hisp.dhis.analytics.tei.query.items.OrCondition;
 import org.hisp.dhis.analytics.tei.query.items.Table;
@@ -60,11 +64,12 @@ public class QueryContext
     @Getter
     private final TeiQueryParams teiQueryParams;
 
+    @Delegate
     private final ParameterManager parameterManager = new ParameterManager();
 
     public String getMainTableName()
     {
-        return ANALYTICS_TEI_TEI + getTeTTableSuffix();
+        return ANALYTICS_TEI + getTeTTableSuffix();
     }
 
     public String getTeTTableSuffix()
@@ -94,18 +99,19 @@ public class QueryContext
 
     private Order getOrder()
     {
-        return Order.ofOrder( "" );
+        // TODO: derive order depending on params
+        return Order.ofOrder( StringUtils.EMPTY );
     }
 
     private Select getSelect()
     {
-        Select.SelectBuilder builder = Select.builder()
-            // static fields
-            .field( getFieldWithAlias( "trackedentityinstanceid" ) )
-            .field( getFieldWithAlias( "trackedentityinstanceuid" ) );
+        // ** TODO: add more static fields if needed
+        Stream<Renderable> staticFields = Stream.of( getFieldWithAlias( "trackedentityinstanceid" ),
+            getFieldWithAlias( "trackedentityinstanceuid" ),
+            getFieldWithAlias( "enrollments" ) );
 
         // TET and program attribute fields
-        Stream.concat(
+        Stream<Renderable> attributes = Stream.concat(
             // Tracked entity Type attributes
             teiQueryParams.getTrackedEntityType().getTrackedEntityTypeAttributes().stream(),
             // Program attributes
@@ -114,38 +120,28 @@ public class QueryContext
                 .flatMap( Collection::stream )
                 .map( ProgramTrackedEntityAttribute::getAttribute ) )
             .map( BaseIdentifiableObject::getUid )
-            // to normalize overlapping attributes
+            // to remove overlapping attributes
             .distinct()
-            .map( this::getFieldWithAlias )
-            .forEach( builder::field );
+            .map( this::getFieldWithAlias );
 
-        // todo: add sort by field if needed
-        return builder.build();
+        return Select.of(
+            Stream.concat( staticFields, attributes )
+                .collect( Collectors.toList() ) );
     }
 
     private Renderable getFieldWithAlias( String field )
     {
-        return Field.of( TEI_TEI_DEFAULT_ALIAS, () -> field, field );
+        return Field.of( TEI_ALIAS, () -> field, field );
     }
 
     private From getFrom()
     {
-        From.FromBuilder builder = From.builder();
-        builder.tablesOrSubQuery( getMainTable() );
-
-        List<Pair<Renderable, Renderable>> joinTablesAndConditions = getJoinTablesAndConditions();
-
-        joinTablesAndConditions.forEach(
-            renderableRenderablePair -> {
-                builder.tablesOrSubQuery( renderableRenderablePair.getLeft() );
-                builder.joinCondition( renderableRenderablePair.getRight() );
-            } );
-        return builder.build();
+        return From.of( getMainTable(), getJoinTablesAndConditions() );
     }
 
     public Renderable getMainTable()
     {
-        return Table.ofStrings( getMainTableName(), TEI_TEI_DEFAULT_ALIAS );
+        return Table.ofStrings( getMainTableName(), TEI_ALIAS );
     }
 
     private List<Pair<Renderable, Renderable>> getJoinTablesAndConditions()
@@ -157,56 +153,64 @@ public class QueryContext
 
     private Where getWhere()
     {
-        Where.WhereBuilder builder = Where.builder();
         // conditions on programs (is enrolled in program)
-        getTeiQueryParams().getCommonParams().getPrograms()
-            .forEach( program -> builder.condition( () -> TEI_TEI_DEFAULT_ALIAS + "." + program.getUid() ) );
+        Stream<Renderable> programConditions = getTeiQueryParams()
+            .getCommonParams()
+            .getPrograms()
+            .stream()
+            .map( program -> () -> TEI_ALIAS + "." + program.getUid() );
+
         // conditions on filters/dimensions
-        getTeiQueryParams().getCommonParams().getDimensionIdentifiers()
+        Stream<Renderable> dimensionConditions = getTeiQueryParams().getCommonParams().getDimensionIdentifiers()
             .stream()
             .map( this::toConditions )
-            .map( OrCondition::of )
-            .forEach( builder::condition );
+            .map( OrCondition::of );
 
-        return builder.build();
+        return Where.of(
+            AndCondition.of(
+                Stream.concat(
+                    programConditions,
+                    dimensionConditions )
+                    .collect( Collectors.toList() ) ) );
     }
 
     private List<Renderable> toConditions(
         List<DimensionIdentifier<Program, ProgramStage, DimensionParam>> dimensionIdentifiers )
     {
         return dimensionIdentifiers.stream()
-            .filter( dimensionIdentifier -> dimensionIdentifier.getDimension().hasRestrictions() )
-            .map( this::toCondition )
+            .filter( di -> di.getDimension().hasRestrictions() )
+            .collect( Collectors.groupingBy( di -> di.getDimension().getDimensionParamObjectType() ) )
+            .entrySet().stream()
+            .map( entry -> toCondition( entry.getKey(), entry.getValue() ) )
             .collect( Collectors.toList() );
     }
 
-    private Renderable toCondition( DimensionIdentifier<Program, ProgramStage, DimensionParam> dimensionIdentifier )
+    private Renderable toCondition( DimensionParamObjectType type,
+        List<DimensionIdentifier<Program, ProgramStage, DimensionParam>> dimensionIdentifiers )
     {
-        return OrCondition.of(
-            dimensionIdentifier.getDimension().getItems().stream()
-                .map( item -> EventDataValueCondition.of( dimensionIdentifier, item, this ) )
-                .collect( Collectors.toList() ) );
-    }
-
-    public int bindParamAndGetIndex( Object param )
-    {
-        return parameterManager.bindParamAndGetIndex( param );
+        // TODO: depending on the type, we should build a proper condition
+        if ( type == DimensionParamObjectType.DATA_ELEMENT )
+        {
+            return AndCondition.of(
+                dimensionIdentifiers.stream()
+                    .map( dimensionIdentifier -> EventDataValueCondition.of( dimensionIdentifier, this ) )
+                    .collect( Collectors.toList() ) );
+        }
+        return () -> StringUtils.EMPTY;
     }
 
     private static class ParameterManager
     {
-
-        private int parameterIndex = 1;
+        private int parameterIndex = 0;
 
         @Getter
         private final Map<Integer, Object> parametersByPlaceHolder = new HashMap<>();
 
         public int bindParamAndGetIndex( Object param )
         {
-            parametersByPlaceHolder.put( parameterIndex, param );
             parameterIndex++;
+            parametersByPlaceHolder.put( parameterIndex, param );
             return parameterIndex;
         }
     }
-
 }

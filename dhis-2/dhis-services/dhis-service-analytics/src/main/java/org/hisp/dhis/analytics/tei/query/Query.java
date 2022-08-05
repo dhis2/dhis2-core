@@ -27,14 +27,21 @@
  */
 package org.hisp.dhis.analytics.tei.query;
 
-import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import org.apache.commons.lang3.StringUtils;
 
-@Data
+@Getter
+@Setter
+@AllArgsConstructor( access = AccessLevel.PRIVATE )
 @Builder( toBuilder = true )
 public class Query extends BaseRenderable
 {
@@ -52,8 +59,10 @@ public class Query extends BaseRenderable
     public String render()
     {
         return RenderableUtils.join(
-            List.of( select, from, where, order, limit ),
-            " ", StringUtils.EMPTY, StringUtils.EMPTY );
+            Stream.of( select, from, where, order, limit )
+                .filter( Objects::nonNull )
+                .collect( Collectors.toList() ),
+            StringUtils.SPACE );
     }
 
 }
