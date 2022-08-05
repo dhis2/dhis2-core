@@ -25,44 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataexchange.aggregate;
+package org.hisp.dhis.scheduling.parameters.jackson;
 
-import java.io.Serializable;
+import org.hisp.dhis.scheduling.parameters.CredentialsExpiryAlertJobParameters;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.Accessors;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-@Getter
-@Setter
-@NoArgsConstructor
-@Accessors( chain = true )
-public class Api
-    implements Serializable
+/**
+ * @author Jan Bernitt
+ */
+public class CredentialsExpiryAlertJobParametersDeserializer
+    extends AbstractJobParametersDeserializer<CredentialsExpiryAlertJobParameters>
 {
-    @JsonProperty
-    private String url;
-
-    @JsonProperty
-    private String username;
-
-    /**
-     * The password is encrypted and must be decrypted before used to
-     * authenticate with external systems.
-     */
-    @JsonProperty
-    private String password;
-
-    /**
-     * Do not expose password.
-     */
-    @JsonIgnore
-    public String getPassword()
+    public CredentialsExpiryAlertJobParametersDeserializer()
     {
-        return password;
+        super( CredentialsExpiryAlertJobParameters.class, CustomJobParameters.class );
+    }
+
+    @JsonDeserialize
+    public static class CustomJobParameters extends CredentialsExpiryAlertJobParameters
+    {
     }
 }

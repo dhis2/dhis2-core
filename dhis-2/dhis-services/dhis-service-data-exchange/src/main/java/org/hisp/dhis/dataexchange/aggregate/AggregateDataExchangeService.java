@@ -31,11 +31,12 @@ import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.commons.collection.CollectionUtils.mapToList;
+import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCRYPTOR;
 
 import java.util.Date;
 import java.util.List;
 
-import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.analytics.AnalyticsService;
@@ -51,6 +52,8 @@ import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.jasypt.encryption.pbe.PBEStringCleanablePasswordEncryptor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 /**
@@ -58,8 +61,8 @@ import org.springframework.stereotype.Service;
  *
  * @author Lars Helge Overland
  */
+@Slf4j
 @Service
-@RequiredArgsConstructor
 public class AggregateDataExchangeService
 {
     private final AnalyticsService analyticsService;
@@ -69,6 +72,21 @@ public class AggregateDataExchangeService
     private final DataQueryService dataQueryService;
 
     private final DataValueSetService dataValueSetService;
+
+    private final PBEStringCleanablePasswordEncryptor encryptor;
+
+    public AggregateDataExchangeService( AnalyticsService analyticsService,
+        AggregateDataExchangeStore aggregateDataExchangeStore,
+        DataQueryService dataQueryService,
+        DataValueSetService dataValueSetService,
+        @Qualifier( AES_128_STRING_ENCRYPTOR ) PBEStringCleanablePasswordEncryptor encryptor )
+    {
+        this.analyticsService = analyticsService;
+        this.aggregateDataExchangeStore = aggregateDataExchangeStore;
+        this.dataQueryService = dataQueryService;
+        this.dataValueSetService = dataValueSetService;
+        this.encryptor = encryptor;
+    }
 
     /**
      * Runs the analytics data exchange with the given identifier.
@@ -95,6 +113,9 @@ public class AggregateDataExchangeService
 
         exchange.getSource().getRequests()
             .forEach( request -> summaries.addImportSummary( exchangeData( exchange, request ) ) );
+
+        log.info( "Aggregate data exchange completed: '{}', type: '{}'",
+            exchange.getUid(), exchange.getTarget().getType() );
 
         return summaries;
     }
@@ -261,6 +282,8 @@ public class AggregateDataExchangeService
     {
         Api api = exchange.getTarget().getApi();
 
-        return new Dhis2Client( new Dhis2Config( api.getUrl(), api.getUsername(), api.getPassword() ) );
+        String password = api.getPassword() != null ? encryptor.decrypt( api.getPassword() ) : null;
+
+        return new Dhis2Client( new Dhis2Config( api.getUrl(), api.getUsername(), password ) );
     }
 }

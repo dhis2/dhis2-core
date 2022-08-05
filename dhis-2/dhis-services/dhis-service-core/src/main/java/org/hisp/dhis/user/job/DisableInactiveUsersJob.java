@@ -31,6 +31,8 @@ import static java.lang.String.format;
 import static java.time.ZoneId.systemDefault;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_STAGE;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.util.Date;
@@ -43,6 +45,7 @@ import java.util.Set;
 
 import lombok.AllArgsConstructor;
 
+import org.hisp.dhis.email.EmailResponse;
 import org.hisp.dhis.email.EmailService;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
@@ -114,9 +117,10 @@ public class DisableInactiveUsersJob implements Job
 
     private void sendReminderEmail( LocalDate since, int daysUntilDisable, JobProgress progress )
     {
-        LocalDate reference = since.plusDays( daysUntilDisable );
-        ZonedDateTime nDaysPriorToDisabling = reference.atStartOfDay( systemDefault() );
-        ZonedDateTime nDaysPriorToDisablingEod = reference.plusDays( 1 ).atStartOfDay( systemDefault() );
+        LocalDate referenceDay = since.plusDays( daysUntilDisable );
+        ZonedDateTime nDaysPriorToDisabling = referenceDay.atStartOfDay( systemDefault() );
+        ZonedDateTime nDaysPriorToDisablingEod = referenceDay.plusDays( 1 ).atStartOfDay( systemDefault() );
+
         progress.startingStage( format( "Fetching users for reminder, %d days until disable", daysUntilDisable ),
             SKIP_STAGE );
         Map<String, Optional<Locale>> receivers = progress.runStage( Map.of(),
@@ -128,6 +132,7 @@ public class DisableInactiveUsersJob implements Job
         {
             return;
         }
+        // send reminders by language
         Locale fallback = localeManager.getFallbackLocale();
         Map<Locale, Set<String>> receiversByLocale = new HashMap<>();
         for ( Map.Entry<String, Optional<Locale>> e : receivers.entrySet() )
@@ -140,14 +145,24 @@ public class DisableInactiveUsersJob implements Job
         progress.runStage( receiversByLocale.entrySet().stream(),
             e -> format( "Sending email to %d user(s) in %s", e.getValue().size(), e.getKey().getDisplayLanguage() ),
             OutboundMessageResponse::getDescription,
-            e -> {
-                I18n i18n = i18nManager.getI18n( e.getKey() );
-                String subject = i18n.getString( "notification.user_inactive.subject",
-                    "Your DHIS2 account gets disabled soon" );
-                String body = i18n.getString( "notification.user_inactive.body",
-                    "Your DHIS2 user account was inactive for a while. Login during the next {0} days to prevent your account from being disabled." );
-                return emailService.sendEmail( subject, format( body.replace( "{0}", "%d" ), daysUntilDisable ),
-                    receivers.keySet() );
-            }, null );
+            e -> sendReminderEmailInLanguage( e.getKey(), e.getValue(), daysUntilDisable ), null );
+    }
+
+    private OutboundMessageResponse sendReminderEmailInLanguage( Locale language, Set<String> receiverEmails,
+        int daysUntilDisable )
+    {
+        I18n i18n = i18nManager.getI18n( language );
+        String subject = i18n.getString( "notification.user_inactive.subject",
+            "Your DHIS2 account gets disabled soon" );
+        String body = i18n.getString( "notification.user_inactive.body",
+            "Your DHIS2 user account was inactive for a while. Login during the next {0} days to prevent your account from being disabled." );
+        OutboundMessageResponse response = emailService.sendEmail( subject,
+            format( body.replace( "{0}", "%d" ), daysUntilDisable ), receiverEmails );
+
+        if ( response.getResponseObject() != EmailResponse.SENT )
+        {
+            throw new UncheckedIOException( response.getDescription(), new IOException() );
+        }
+        return response;
     }
 }
