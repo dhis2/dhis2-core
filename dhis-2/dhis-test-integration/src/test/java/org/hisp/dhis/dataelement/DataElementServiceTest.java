@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dataelement;
 
+import static java.lang.String.format;
 import static java.util.Arrays.stream;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -107,6 +108,7 @@ class DataElementServiceTest extends TransactionalIntegrationTest
         IllegalQueryException ex = assertThrows( IllegalQueryException.class,
             () -> dataElementService.addDataElement( de ) );
         assertEquals( ErrorCode.E1115, ex.getErrorCode() );
+        assertEquals( "Data element value type must match option set value type: `MULTI_TEXT`", ex.getMessage() );
     }
 
     @Test
@@ -118,6 +120,9 @@ class DataElementServiceTest extends TransactionalIntegrationTest
         IllegalQueryException ex = assertThrows( IllegalQueryException.class,
             () -> dataElementService.addDataElement( de ) );
         assertEquals( ErrorCode.E1117, ex.getErrorCode() );
+        assertEquals( format(
+            "Data element `%s` of value type multi-text cannot reference an option set `%s` with the separator character in one of its codes: `C,D`",
+            de.getUid(), de.getOptionSet().getUid() ), ex.getMessage() );
     }
 
     @Test
@@ -155,6 +160,7 @@ class DataElementServiceTest extends TransactionalIntegrationTest
         IllegalQueryException ex = assertThrows( IllegalQueryException.class,
             () -> dataElementService.updateDataElement( de ) );
         assertEquals( ErrorCode.E1115, ex.getErrorCode() );
+        assertEquals( "Data element value type must match option set value type: `MULTI_TEXT`", ex.getMessage() );
     }
 
     @Test
@@ -168,6 +174,9 @@ class DataElementServiceTest extends TransactionalIntegrationTest
         IllegalQueryException ex = assertThrows( IllegalQueryException.class,
             () -> dataElementService.updateDataElement( de ) );
         assertEquals( ErrorCode.E1117, ex.getErrorCode() );
+        assertEquals( format(
+            "Data element `%s` of value type multi-text cannot reference an option set `%s` with the separator character in one of its codes: `C,D`",
+            de.getUid(), de.getOptionSet().getUid() ), ex.getMessage() );
     }
 
     @Test
