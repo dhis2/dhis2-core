@@ -456,7 +456,7 @@ public abstract class DhisConvenienceTest
     /**
      * @param uniqueCharacter A unique character to identify the object.
      */
-    public static AggregateDataExchange getAggregateDataExchange( char uniqueChar )
+    public static AggregateDataExchange getAggregateDataExchange( char uniqueCharacter )
     {
         SourceRequest sourceRequest = new SourceRequest();
         sourceRequest.getDx().addAll( List.of( "LrDpG50RAU9", "uR5HCiJhQ1w" ) );
@@ -483,7 +483,7 @@ public abstract class DhisConvenienceTest
 
         AggregateDataExchange exchange = new AggregateDataExchange();
         exchange.setAutoFields();
-        exchange.setName( "DataExchange" + uniqueChar );
+        exchange.setName( "DataExchange" + uniqueCharacter );
         exchange.setSource( source );
         exchange.setTarget( target );
         return exchange;
