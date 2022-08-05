@@ -244,9 +244,9 @@ public abstract class DhisConvenienceTest
 
     public static final String ADMIN_USER_UID = "M5zQapPyTZI";
 
-    public static final String DEFAULT_ADMIN_PASSWORD = "district";
-
     public static final String DEFAULT_USERNAME = "admin";
+
+    public static final String DEFAULT_ADMIN_PASSWORD = "district";
 
     private static final String PROGRAM_RULE_VARIABLE = "ProgramRuleVariable";
 
@@ -473,8 +473,8 @@ public abstract class DhisConvenienceTest
 
         Api api = new Api()
             .setUrl( "https://play.dhis2.org/demo" )
-            .setUsername( "admin" )
-            .setPassword( "district" );
+            .setUsername( DEFAULT_USERNAME )
+            .setPassword( DEFAULT_ADMIN_PASSWORD );
 
         Target target = new Target()
             .setApi( api )
