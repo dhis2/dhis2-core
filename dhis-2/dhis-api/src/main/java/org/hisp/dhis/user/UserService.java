@@ -369,13 +369,6 @@ public interface UserService
     List<ErrorReport> validateUser( User user, User currentUser );
 
     /**
-     * Returns list of active users who are expiring with in few days.
-     *
-     * @return list of active users who are expiring with in few days.
-     */
-    List<User> getExpiringUsers();
-
-    /**
      * @param inDays number of days to include
      * @return list of those users that are about to expire in the provided
      *         number of days (or less) and which have an email configured
@@ -421,6 +414,19 @@ public interface UserService
      *         keys and if available their preferred locale as value
      */
     Map<String, Optional<Locale>> findNotifiableUsersWithLastLoginBetween( Date from, Date to );
+
+    /**
+     * Selects all not disabled users where the
+     * {@link User#getPasswordLastUpdated()} ()} is within the given time-frame
+     * and which have an email address.
+     *
+     * @param from start of the selected time-frame (inclusive)
+     * @param to end of the selected time-frame (exclusive)
+     * @return user emails having a password last updated within the given
+     *         time-frame as keys and if available their preferred locale as
+     *         value
+     */
+    Map<String, Optional<Locale>> findNotifiableUsersWithPasswordLastUpdatedBetween( Date from, Date to );
 
     /**
      * Get user display name by concat( firstname,' ', surname ) Return null if
