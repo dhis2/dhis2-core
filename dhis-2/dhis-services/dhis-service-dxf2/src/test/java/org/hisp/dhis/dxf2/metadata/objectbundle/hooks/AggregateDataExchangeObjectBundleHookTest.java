@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
+import static org.hisp.dhis.DhisConvenienceTest.getAggregateDataExchange;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -35,7 +36,6 @@ import java.util.List;
 import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
 import org.hisp.dhis.dataexchange.aggregate.Api;
 import org.hisp.dhis.dataexchange.aggregate.Source;
-import org.hisp.dhis.dataexchange.aggregate.SourceRequest;
 import org.hisp.dhis.dataexchange.aggregate.Target;
 import org.hisp.dhis.dataexchange.aggregate.TargetType;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -108,39 +108,6 @@ public class AggregateDataExchangeObjectBundleHookTest
         exchange.setTarget( target );
 
         assertErrorCode( ErrorCode.E4000, objectBundleHook.validate( exchange, objectBundle ) );
-    }
-
-    /**
-     * Returns a valid aggregate data exchange.
-     *
-     * @param uniqueChar the unique character.
-     * @return an {@link AggregateDataExchange}.
-     */
-    private AggregateDataExchange getAggregateDataExchange( char uniqueChar )
-    {
-        SourceRequest sourceRequest = new SourceRequest();
-        sourceRequest.getDx().addAll( List.of( "LrDpG50RAU9", "uR5HCiJhQ1w" ) );
-        sourceRequest.getPe().addAll( List.of( "202201", "202202" ) );
-        sourceRequest.getOu().addAll( List.of( "G9BuXqtNeeb", "jDgiLmYwPDm" ) );
-
-        Source source = new Source()
-            .setRequests( List.of( sourceRequest ) );
-
-        Api api = new Api()
-            .setUrl( "https://play.dhis2.org/demo" )
-            .setUsername( "admin" )
-            .setPassword( "district" );
-
-        Target target = new Target()
-            .setApi( api )
-            .setType( TargetType.EXTERNAL );
-
-        AggregateDataExchange exchange = new AggregateDataExchange();
-        exchange.setAutoFields();
-        exchange.setName( "DataExchange" + uniqueChar );
-        exchange.setSource( source );
-        exchange.setTarget( target );
-        return exchange;
     }
 
     /**
