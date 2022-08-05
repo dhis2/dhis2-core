@@ -34,11 +34,9 @@ import java.util.List;
 
 import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
 import org.hisp.dhis.dataexchange.aggregate.Api;
-import org.hisp.dhis.dataexchange.aggregate.Filter;
 import org.hisp.dhis.dataexchange.aggregate.Source;
 import org.hisp.dhis.dataexchange.aggregate.SourceRequest;
 import org.hisp.dhis.dataexchange.aggregate.Target;
-import org.hisp.dhis.dataexchange.aggregate.TargetRequest;
 import org.hisp.dhis.dataexchange.aggregate.TargetType;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -49,6 +47,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+/**
+ * @author Lars Helge Overland
+ */
 @ExtendWith( MockitoExtension.class )
 public class AggregateDataExchangeObjectBundleHookTest
 {
@@ -121,9 +122,6 @@ public class AggregateDataExchangeObjectBundleHookTest
         sourceRequest.getDx().addAll( List.of( "LrDpG50RAU9", "uR5HCiJhQ1w" ) );
         sourceRequest.getPe().addAll( List.of( "202201", "202202" ) );
         sourceRequest.getOu().addAll( List.of( "G9BuXqtNeeb", "jDgiLmYwPDm" ) );
-        sourceRequest.getFilters().addAll( List.of(
-            new Filter().setDimension( "MuTwGW0BI4o" ).setItems( List.of( "v9oULMMdmzE", "eJHJ0bfDCEO" ) ),
-            new Filter().setDimension( "dAOgE7mgysJ" ).setItems( List.of( "rbE2mZX86AA", "XjOFfrPwake" ) ) ) );
 
         Source source = new Source()
             .setRequests( List.of( sourceRequest ) );
@@ -135,8 +133,7 @@ public class AggregateDataExchangeObjectBundleHookTest
 
         Target target = new Target()
             .setApi( api )
-            .setType( TargetType.EXTERNAL )
-            .setRequest( new TargetRequest() );
+            .setType( TargetType.EXTERNAL );
 
         AggregateDataExchange exchange = new AggregateDataExchange();
         exchange.setAutoFields();
@@ -156,6 +153,6 @@ public class AggregateDataExchangeObjectBundleHookTest
     private void assertErrorCode( ErrorCode errorCode, List<ErrorReport> errorReports )
     {
         assertTrue( errorReports.stream().anyMatch( r -> errorCode.equals( r.getErrorCode() ) ),
-            String.format( "Error reports expected to contain error code: '%s', [%s]", errorCode, errorReports ) );
+            String.format( "Error reports expected to contain error code: '%s', %s", errorCode, errorReports ) );
     }
 }
