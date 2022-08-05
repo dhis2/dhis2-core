@@ -27,47 +27,59 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
+import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCRYPTOR;
+
+import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
+import org.hisp.dhis.dataexchange.aggregate.Api;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-import org.hisp.dhis.expression.Expression;
-import org.hisp.dhis.predictor.Predictor;
+import org.jasypt.encryption.pbe.PooledPBEStringEncryptor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 /**
- * @author Ken Haase
+ * @author Lars Helge Overland
  */
-
 @Component
-public class PredictorObjectBundleHook extends AbstractObjectBundleHook<Predictor>
+public class AggregateDataExchangeObjectBundleHook
+    extends AbstractObjectBundleHook<AggregateDataExchange>
 {
-    @Override
-    public void preCreate( Predictor predictor, ObjectBundle bundle )
+    private final PooledPBEStringEncryptor encryptor;
+
+    public AggregateDataExchangeObjectBundleHook(
+        @Qualifier( AES_128_STRING_ENCRYPTOR ) PooledPBEStringEncryptor encryptor )
     {
-        saveSkipTest( predictor, bundle );
+        this.encryptor = encryptor;
     }
 
     @Override
-    public void preUpdate( Predictor predictor, Predictor persistedPredictor, ObjectBundle bundle )
+    public void preCreate( AggregateDataExchange exchange, ObjectBundle bundle )
     {
-        saveSkipTest( predictor, bundle );
+        encryptSecret( exchange );
     }
 
-    private void saveSkipTest( Predictor predictor, ObjectBundle bundle )
+    @Override
+    public void preUpdate( AggregateDataExchange exchange, AggregateDataExchange persistedExchange,
+        ObjectBundle bundle )
     {
-        Expression skipTest = predictor.getSampleSkipTest();
+        encryptSecret( exchange );
+    }
 
-        preheatService.connectReferences( predictor.getGenerator(), bundle.getPreheat(),
-            bundle.getPreheatIdentifier() );
-
-        if ( skipTest != null )
+    /**
+     * Encrypts the target API password.
+     *
+     * @param exchange the {@link AggregateDataExchange}.
+     */
+    private void encryptSecret( AggregateDataExchange exchange )
+    {
+        if ( exchange != null && exchange.getTarget().getApi() != null )
         {
-            preheatService.connectReferences( skipTest, bundle.getPreheat(), bundle.getPreheatIdentifier() );
-        }
+            Api api = exchange.getTarget().getApi();
 
-        sessionFactory.getCurrentSession().save( predictor.getGenerator() );
-
-        if ( skipTest != null )
-        {
-            sessionFactory.getCurrentSession().save( skipTest );
+            if ( api != null && api.getPassword() != null )
+            {
+                String encryptedPassword = encryptor.encrypt( api.getPassword() );
+                api.setPassword( encryptedPassword );
+            }
         }
     }
 }

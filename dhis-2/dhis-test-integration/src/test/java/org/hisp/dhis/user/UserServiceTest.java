@@ -483,16 +483,6 @@ class UserServiceTest extends SingleSetupIntegrationTestBase
     }
 
     @Test
-    void testGetExpiringUser()
-    {
-        User userA = addUser( "A" );
-        addUser( "B", User::setDisabled, true );
-        User userC = addUser( "C" );
-        addUser( "D", User::setDisabled, true );
-        assertContainsOnly( userService.getExpiringUsers(), userA, userC );
-    }
-
-    @Test
     void testGetExpiringUserAccounts()
     {
         ZonedDateTime now = ZonedDateTime.now();

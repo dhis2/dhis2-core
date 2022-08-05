@@ -955,6 +955,9 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
         assertNotNull( aeB.getTarget() );
         assertEquals( "PnWccbwCJLQ", aeB.getUid() );
         assertEquals( TargetType.EXTERNAL, aeB.getTarget().getType() );
+        assertEquals( "https://play.dhis2.org/2.38.0", aeB.getTarget().getApi().getUrl() );
+        assertEquals( "admin", aeB.getTarget().getApi().getUsername() );
+        assertNotNull( aeB.getTarget().getApi().getPassword() );
     }
 
     private MetadataImportParams createParams( ImportStrategy importStrategy,
