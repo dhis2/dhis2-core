@@ -25,27 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataexchange.analytics.hibernate;
+package org.hisp.dhis.dataexchange.aggregate;
 
-import org.hibernate.SessionFactory;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.dataexchange.analytics.AnalyticsDataExchange;
-import org.hisp.dhis.dataexchange.analytics.AnalyticsDataExchangeStore;
-import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
-@Repository( "org.hisp.dhis.dataexchange.analytics.AnalyticsDataExchangeStore" )
-public class HibernateAnalyticsDataExchangeStore
-    extends HibernateIdentifiableObjectStore<AnalyticsDataExchange>
-    implements AnalyticsDataExchangeStore
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@Accessors( chain = true )
+public class SourceRequest
+    implements Serializable
 {
-    public HibernateAnalyticsDataExchangeStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher,
-            AnalyticsDataExchange.class, currentUserService, aclService, false );
-    }
+    @JsonProperty
+    private List<String> dx = new ArrayList<>();
+
+    @JsonProperty
+    private List<String> pe = new ArrayList<>();
+
+    @JsonProperty
+    private List<String> ou = new ArrayList<>();
+
+    @JsonProperty
+    private List<Filter> filters = new ArrayList<>();
+
+    @JsonProperty
+    private String inputIdScheme;
+
+    @JsonProperty
+    private String outputIdScheme;
 }

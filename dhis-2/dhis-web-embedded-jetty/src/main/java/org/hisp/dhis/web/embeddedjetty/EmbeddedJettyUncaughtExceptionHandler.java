@@ -81,8 +81,8 @@ public final class EmbeddedJettyUncaughtExceptionHandler
             catch ( Throwable errorInLogging )
             {
                 // If logging fails, e.g. due to low memory conditions, at least
-                // try to log the
-                // message and the cause for the failed logging to system error.
+                // try to log the message and the cause for the failed logging
+                // to system error
                 System.err.println( e.getMessage() );
                 System.err.println( errorInLogging.getMessage() );
             }

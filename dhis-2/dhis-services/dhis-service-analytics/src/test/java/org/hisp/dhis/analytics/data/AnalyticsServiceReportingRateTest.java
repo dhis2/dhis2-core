@@ -116,12 +116,15 @@ class AnalyticsServiceReportingRateTest extends AnalyticsServiceBaseTest
 
         Grid grid = target.getAggregatedDataValueGrid( params );
 
-        assertEquals( expectedReports * timeUnit,
-            getValueFromGrid( grid.getRows(), makeKey( dataSetA, ReportingRateMetric.EXPECTED_REPORTS ) ).get(), 0 );
-        assertEquals( 50D,
-            getValueFromGrid( grid.getRows(), makeKey( dataSetA, ReportingRateMetric.REPORTING_RATE ) ).get(), 0 );
-        assertEquals( 500D,
-            getValueFromGrid( grid.getRows(), makeKey( dataSetA, ReportingRateMetric.ACTUAL_REPORTS ) ).get(), 0 );
+        assertEquals( (expectedReports * timeUnit),
+            (Long) getValueFromGrid( grid.getRows(), makeKey( dataSetA, ReportingRateMetric.EXPECTED_REPORTS ) ).get(),
+            0 );
+        assertEquals( 50L,
+            (Long) getValueFromGrid( grid.getRows(), makeKey( dataSetA, ReportingRateMetric.REPORTING_RATE ) ).get(),
+            0 );
+        assertEquals( 500L,
+            (Long) getValueFromGrid( grid.getRows(), makeKey( dataSetA, ReportingRateMetric.ACTUAL_REPORTS ) ).get(),
+            0 );
     }
 
     @Test
@@ -159,8 +162,9 @@ class AnalyticsServiceReportingRateTest extends AnalyticsServiceBaseTest
 
         Grid grid = target.getAggregatedDataValueGrid( params );
 
-        assertEquals( 0D,
-            getValueFromGrid( grid.getRows(), makeKey( dataSetA, ReportingRateMetric.REPORTING_RATE ) ).get(), 0 );
+        assertEquals( 0,
+            (Long) getValueFromGrid( grid.getRows(), makeKey( dataSetA, ReportingRateMetric.REPORTING_RATE ) ).get(),
+            0L );
     }
 
     @Test
@@ -234,8 +238,7 @@ class AnalyticsServiceReportingRateTest extends AnalyticsServiceBaseTest
         targets.put( dataSetA.getUid() + "-" + "201902", 1D );
 
         // Response for COMPLETENESS - set the completeness value to the same
-        // number of
-        // days of the selected month
+        // number of days of the selected month
         Map<String, Object> actuals = new HashMap<>();
         actuals.put( dataSetA.getUid() + "-" + "201902", 28D );
 
@@ -308,7 +311,7 @@ class AnalyticsServiceReportingRateTest extends AnalyticsServiceBaseTest
         assertThat( grid.getRow( 0 ).get( getDimensionIndex( grid.getHeaders(), "dx" ) ),
             is( dataset.getUid() + ".REPORTING_RATE" ) );
         assertThat( grid.getRow( 0 ).get( getDimensionIndex( grid.getHeaders(), "pe" ) ), is( period ) );
-        assertThat( grid.getRow( 0 ).get( getDimensionIndex( grid.getHeaders(), "value" ) ), is( 100D ) );
+        assertThat( grid.getRow( 0 ).get( getDimensionIndex( grid.getHeaders(), "value" ) ), is( 100L ) );
     }
 
     private int getDimensionIndex( List<GridHeader> headers, String dimension )
@@ -325,13 +328,13 @@ class AnalyticsServiceReportingRateTest extends AnalyticsServiceBaseTest
         return -1;
     }
 
-    private Optional<Double> getValueFromGrid( List<List<Object>> rows, String key )
+    private Optional<Number> getValueFromGrid( List<List<Object>> rows, String key )
     {
         for ( List<Object> row : rows )
         {
             if ( row.get( 0 ).equals( key ) )
             {
-                return Optional.of( (Double) row.get( 2 ) );
+                return Optional.of( (Number) row.get( 2 ) );
             }
         }
         return Optional.empty();

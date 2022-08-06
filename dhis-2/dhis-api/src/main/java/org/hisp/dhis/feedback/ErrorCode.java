@@ -54,11 +54,10 @@ public enum ErrorCode
     E1113( "Object of type `{0}` not found or not accessible: `{1}`" ),
     E1114( "Data set form type must be custom: `{0}`" ),
     E1115( "Data element value type must match option set value type: `{0}`" ),
-    E1116( "Data element of value type multi text must have an option set: `{0}`" ),
-    E1117( "Data element `{0}` of value type multi text cannot use an option set `{1}` "
-        + "that uses the separator character in one of its codes: `{2}`" ),
-    E1118(
-        "Option set `{0}` of value type multi text cannot have options using the separator character in their code: `{1}`" ),
+    E1116( "Data element of value type multi-text must have an option set: `{0}`" ),
+    E1117( "Data element `{0}` of value type multi-text cannot reference an option set `{1}` " +
+        "with the separator character in one of its codes: `{2}`" ),
+    E1118( "Option set `{0}` of value type multi-text cannot have option codes with the separator character: `{1}`" ),
 
     /* Org unit merge */
     E1500( "At least two source orgs unit must be specified" ),
@@ -221,7 +220,7 @@ public enum ErrorCode
     E4049( "Property `{0}` requires a valid username, was given `{1}`." ),
     E4054( "Property `{0}` already exists, was given `{1}`." ),
     E4056( "Property `{0}` can not be changed, was given `{1}`." ),
-    E4055( "An user needs to have at least one user role associated with it." ),
+    E4055( "User needs to have at least one user role associated with it." ),
     E4050( "One of DataElement, TrackedEntityAttribute or ProgramRuleVariable is required for program rule `{0}`" ),
 
     /* ProgramRuleVariable validation */
@@ -282,6 +281,7 @@ public enum ErrorCode
     E6018( "AttributeValue `{0}` is an invalid email value." ),
     E6019( "AttributeValue `{0}` is an invalid `{1}` ID." ),
     E6020( "AttributeValue `{0}` is an invalid Username." ),
+    E6021( "AttributeValue `{0}` is an invalid phone number." ),
 
     /* File resource */
     E6100( "Filename not present" ),
@@ -303,7 +303,10 @@ public enum ErrorCode
 
     /* Data exchange */
     E6300( "DHIS 2 client request failed: {0} {1}" ),
-    E6301( "Analytics data exchange not found or not accessible: `{0}`" ),
+    E6301( "Aggregate data exchange not found or not accessible: `{0}`" ),
+    E6302( "Aggregate data exchange must specify at least one source request: `{0}`" ),
+    E6303( "Aggregate data exchange source request must contain at least one data item, one period and one org unit" ),
+    E6304( "Aggregate data exchange target API must be specified when target type is EXTERNAL" ),
 
     /* Scheduling */
     E7000( "Job of same type already scheduled with cron expression: `{0}`" ),

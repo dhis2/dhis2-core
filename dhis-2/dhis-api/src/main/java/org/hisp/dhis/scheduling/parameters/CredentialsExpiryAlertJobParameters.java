@@ -25,28 +25,52 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataexchange.analytics;
+package org.hisp.dhis.scheduling.parameters;
 
-import java.io.Serializable;
-import java.util.List;
+import java.util.Optional;
 
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.Accessors;
+
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.scheduling.JobParameters;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
-@Getter
-@Setter
+/**
+ * @author Jan Bernitt
+ */
 @NoArgsConstructor
-@Accessors( chain = true )
-public class Filter
-    implements Serializable
+@JacksonXmlRootElement( localName = "jobParameters", namespace = DxfNamespaces.DXF_2_0 )
+public class CredentialsExpiryAlertJobParameters implements JobParameters
 {
-    @JsonProperty
-    private String dimension;
+    private static final long serialVersionUID = 1474076005450145410L;
+
+    private Integer reminderDaysBefore;
 
     @JsonProperty
-    private List<String> items;
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Integer getReminderDaysBefore()
+    {
+        return reminderDaysBefore;
+    }
+
+    public void setReminderDaysBefore( Integer reminderDaysBefore )
+    {
+        this.reminderDaysBefore = reminderDaysBefore;
+    }
+
+    @Override
+    public Optional<ErrorReport> validate()
+    {
+        if ( reminderDaysBefore != null && (reminderDaysBefore < 1 || reminderDaysBefore > 28) )
+        {
+            return Optional.of(
+                new ErrorReport( getClass(), ErrorCode.E4008, "reminderDaysBefore", 1, 28, reminderDaysBefore ) );
+        }
+        return Optional.empty();
+    }
 }

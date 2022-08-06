@@ -25,12 +25,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataexchange.analytics;
+package org.hisp.dhis.dataexchange.aggregate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.when;
@@ -53,6 +54,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.i18n.I18nFormat;
+import org.jasypt.encryption.pbe.PBEStringCleanablePasswordEncryptor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -60,13 +62,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith( MockitoExtension.class )
-class AnalyticsDataExchangeServiceTest
+class AggregateDataExchangeServiceTest
 {
     @Mock
     private AnalyticsService analyticsService;
 
     @Mock
-    private AnalyticsDataExchangeStore analyticsDataExchangeStore;
+    private AggregateDataExchangeStore aggregateDataExchangeStore;
 
     @Mock
     private DataQueryService dataQueryService;
@@ -74,13 +76,16 @@ class AnalyticsDataExchangeServiceTest
     @Mock
     private DataValueSetService dataValueSetService;
 
-    private AnalyticsDataExchangeService service;
+    @Mock
+    private PBEStringCleanablePasswordEncryptor encryptor;
+
+    private AggregateDataExchangeService service;
 
     @BeforeEach
     void beforeEach()
     {
-        service = new AnalyticsDataExchangeService(
-            analyticsService, analyticsDataExchangeStore, dataQueryService, dataValueSetService );
+        service = new AggregateDataExchangeService( analyticsService,
+            aggregateDataExchangeStore, dataQueryService, dataValueSetService, encryptor );
     }
 
     @Test
@@ -118,7 +123,7 @@ class AnalyticsDataExchangeServiceTest
             .setType( TargetType.INTERNAL )
             .setApi( new Api() )
             .setRequest( request );
-        AnalyticsDataExchange exchange = new AnalyticsDataExchange()
+        AggregateDataExchange exchange = new AggregateDataExchange()
             .setSource( source )
             .setTarget( target );
 
@@ -144,7 +149,7 @@ class AnalyticsDataExchangeServiceTest
             .setType( TargetType.EXTERNAL )
             .setApi( new Api() )
             .setRequest( request );
-        AnalyticsDataExchange exchange = new AnalyticsDataExchange()
+        AggregateDataExchange exchange = new AggregateDataExchange()
             .setTarget( target );
 
         ImportOptions options = service.toImportOptions( exchange );
@@ -173,6 +178,9 @@ class AnalyticsDataExchangeServiceTest
     @Test
     void testGetDhis2Client()
     {
+        when( encryptor.decrypt( anyString() ) )
+            .thenReturn( "f0UulAsOUwXxkMlj6+Lzq2XbcLQCeZzuiv4QgQU1Es0=" );
+
         Api api = new Api()
             .setUrl( "https://play.dhis2.org/demo" )
             .setUsername( "admin" )
@@ -182,7 +190,7 @@ class AnalyticsDataExchangeServiceTest
             .setType( TargetType.EXTERNAL )
             .setApi( api );
 
-        AnalyticsDataExchange exchange = new AnalyticsDataExchange()
+        AggregateDataExchange exchange = new AggregateDataExchange()
             .setTarget( target );
 
         Dhis2Client client = service.getDhis2Client( exchange );
