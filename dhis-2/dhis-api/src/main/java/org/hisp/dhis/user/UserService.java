@@ -456,5 +456,5 @@ public interface UserService
 
     boolean canCurrentUserCanModify( User currentUser, User userToModify, Consumer<ErrorReport> errors );
 
-    void generateTwoFactorSecret( User currentUser );
+    void generateTwoFactorSecret( User user );
 }

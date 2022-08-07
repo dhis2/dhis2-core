@@ -916,10 +916,9 @@ public class DefaultUserService
 
     @Override
     @Transactional
-    public void generateTwoFactorSecret( User currentUser )
+    public void generateTwoFactorSecret( User user )
     {
-        String secret = Base32.random();
-        currentUser.setSecret( secret );
-        updateUser( currentUser );
+        user.setSecret( Base32.random() );
+        updateUser( user );
     }
 }
