@@ -35,7 +35,6 @@ import java.net.URI;
 import java.util.List;
 import java.util.Set;
 
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.Validate;
@@ -65,7 +64,6 @@ import org.springframework.web.util.UriComponentsBuilder;
  * @author Lars Helge Overland
  */
 @Slf4j
-@Getter
 public class Dhis2Client
 {
     private static final Set<HttpStatus> ERROR_STATUS_CODES = Set.of( UNAUTHORIZED, FORBIDDEN, NOT_FOUND );

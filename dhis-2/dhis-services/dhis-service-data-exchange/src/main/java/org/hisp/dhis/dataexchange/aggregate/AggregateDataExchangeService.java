@@ -282,7 +282,7 @@ public class AggregateDataExchangeService
     {
         Api api = exchange.getTarget().getApi();
 
-        if ( api.isAccessTokenAuthentication() )
+        if ( api.isAccessTokenAuth() )
         {
             return Dhis2Client.withAccessTokenAuth(
                 api.getUrl(), encryptor.decrypt( api.getAccessToken() ) );

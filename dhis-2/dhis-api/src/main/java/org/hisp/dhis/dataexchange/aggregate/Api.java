@@ -75,7 +75,7 @@ public class Api
      * @return true if API is configured for access token based authentication.
      */
     @JsonIgnore
-    public boolean isAccessTokenAuthentication()
+    public boolean isAccessTokenAuth()
     {
         return StringUtils.isNotBlank( accessToken );
     }
@@ -86,7 +86,7 @@ public class Api
      * @return true if API is configured for basic authentication.
      */
     @JsonIgnore
-    public boolean isBasicAuthentication()
+    public boolean isBasicAuth()
     {
         return StringUtils.isNoneBlank( username, password );
     }
