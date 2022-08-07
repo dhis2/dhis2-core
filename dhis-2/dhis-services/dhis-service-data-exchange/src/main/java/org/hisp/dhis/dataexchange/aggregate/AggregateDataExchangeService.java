@@ -276,13 +276,25 @@ public class AggregateDataExchangeService
      *
      * @param exchange the {@link AggregateDataExchange}.
      * @return a {@link Dhis2Client}.
+     * @throws IllegalStateException
      */
     Dhis2Client getDhis2Client( AggregateDataExchange exchange )
     {
         Api api = exchange.getTarget().getApi();
 
-        String password = api.getPassword() != null ? encryptor.decrypt( api.getPassword() ) : null;
+        if ( api.isAccessTokenAuthentication() )
+        {
+            String accessToken = encryptor.decrypt( api.getAccessToken() );
 
-        return Dhis2Client.withBasicAuth( api.getUrl(), api.getUsername(), password );
+            return Dhis2Client.withAccessTokenAuth( api.getUrl(), accessToken );
+        }
+        else if ( api.isBasicAuthentication() )
+        {
+            String password = encryptor.decrypt( api.getPassword() );
+
+            return Dhis2Client.withBasicAuth( api.getUrl(), api.getUsername(), password );
+        }
+
+        throw new IllegalStateException( "Authentication not configured for Dhis2Client" );
     }
 }
