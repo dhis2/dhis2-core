@@ -110,7 +110,8 @@ public class DefaultDataValueAuditService
         OrganisationUnit organisationUnit, CategoryOptionCombo categoryOptionCombo,
         CategoryOptionCombo attributeOptionCombo )
     {
-        List<DataValueAudit> audits = new ArrayList<>();
+        List<DataValueAudit> persistedAudits = new ArrayList<>();
+        List<DataValueAudit> dataValueAudits = new ArrayList<>();
 
         CategoryOptionCombo defaultCoc = categoryOptionComboStore
             .getByName( CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME );
@@ -118,48 +119,37 @@ public class DefaultDataValueAuditService
         DataValue dataValue = dataValueStore.getDataValue( dataElement, period, organisationUnit,
             categoryOptionCombo, defaultCoc );
 
-        if ( dataValue != null )
+        // if for whatever reason the DV is null, we just return a empty list
+        if ( dataValue == null )
         {
-            DataValueAudit dataValueAudit = new DataValueAudit( dataValue, dataValue.getValue(),
-                dataValue.getStoredBy(), AuditType.UPDATE );
-            dataValueAudit.setCreated( dataValue.getLastUpdated() );
-            dataValueAudit.setModifiedBy( dataValue.getStoredBy() );
-
-            audits.add( dataValueAudit );
+            return dataValueAudits;
         }
 
-        audits.addAll( dataValueAuditStore.getDataValueAudits( List.of( dataElement ), List.of( period ),
+        DataValueAudit currentDataValueAudit = new DataValueAudit( dataValue, dataValue.getValue(),
+            dataValue.getStoredBy(), AuditType.UPDATE );
+        currentDataValueAudit.setCreated( dataValue.getLastUpdated() );
+        currentDataValueAudit.setModifiedBy( dataValue.getStoredBy() );
+
+        persistedAudits.add( currentDataValueAudit );
+
+        persistedAudits.addAll( dataValueAuditStore.getDataValueAudits( List.of( dataElement ), List.of( period ),
             List.of( organisationUnit ), categoryOptionCombo, attributeOptionCombo, null ) );
 
-        if ( !audits.isEmpty() )
+        for ( int i = 0; i < persistedAudits.size(); i++ )
         {
-            DataValueAudit dataValueAudit = audits.get( audits.size() - 1 );
+            DataValueAudit dva = persistedAudits.get( i );
+            DataValueAudit dataValueAudit = DataValueAudit.from( dva );
+            dataValueAudits.add( dataValueAudit );
 
-            DataValueAudit clone = new DataValueAudit();
-            clone.setAuditType( AuditType.CREATE );
-            clone.setValue( dataValueAudit.getValue() );
-            clone.setDataElement( dataValueAudit.getDataElement() );
-            clone.setPeriod( dataValueAudit.getPeriod() );
-            clone.setOrganisationUnit( dataValueAudit.getOrganisationUnit() );
-            clone.setCategoryOptionCombo( dataValueAudit.getCategoryOptionCombo() );
-            clone.setAttributeOptionCombo( dataValueAudit.getAttributeOptionCombo() );
-
-            if ( dataValue != null )
+            if ( i == persistedAudits.size() - 1 )
             {
-                clone.setCreated( dataValue.getCreated() );
-                clone.setModifiedBy( dataValue.getStoredBy() );
-            }
-
-            audits.set( audits.size() - 1, clone );
-
-            if ( audits.size() > 1 )
-            {
-                audits.get( 1 ).setCreated( dataValueAudit.getCreated() );
-                audits.get( 1 ).setModifiedBy( dataValueAudit.getModifiedBy() );
+                dataValueAudit.setAuditType( AuditType.CREATE );
+                dataValueAudit.setCreated( dataValue.getCreated() );
+                dataValueAudit.setModifiedBy( dataValue.getStoredBy() );
             }
         }
 
-        return audits;
+        return dataValueAudits;
     }
 
     @Override
