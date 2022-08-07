@@ -41,6 +41,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
+import org.hisp.dhis.dataexchange.client.auth.AccessTokenAuthentication;
+import org.hisp.dhis.dataexchange.client.auth.Authentication;
+import org.hisp.dhis.dataexchange.client.auth.BasicAuthentication;
+import org.hisp.dhis.dataexchange.client.auth.CookieAuthentication;
 import org.hisp.dhis.dataexchange.client.response.Dhis2Response;
 import org.hisp.dhis.dataexchange.client.response.ImportSummaryResponse;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -66,20 +70,63 @@ public class Dhis2Client
 {
     private static final Set<HttpStatus> ERROR_STATUS_CODES = Set.of( UNAUTHORIZED, FORBIDDEN, NOT_FOUND );
 
-    private final Dhis2Config config;
+    /**
+     * Base URL for the DHIS 2 instance, excluding the <code>/api</code> path.
+     */
+    private final String url;
 
+    /**
+     * Authentication for the DHIS 2 instance.
+     */
+    private final Authentication authentication;
+
+    /**
+     * REST template for DHIS 2 API interaction.
+     */
     private final RestTemplate restTemplate;
 
     /**
      * Main constructor.
      *
-     * @param config the {@link Dhis2Config}.
+     * @param url the URL for the DHIS 2 instance, excluding the
+     *        <code>/api</code> path.
+     * @param authentication the authentication for the DHIS 2 instance.
      */
-    public Dhis2Client( Dhis2Config config )
+    private Dhis2Client( String url, Authentication authentication )
     {
-        this.config = config;
+        this.url = url;
+        this.authentication = authentication;
         this.restTemplate = new RestTemplate();
-        Validate.notNull( config );
+        Validate.notNull( url );
+        Validate.notNull( authentication );
+    }
+
+    public static Dhis2Client withBasicAuth( String url, String username, String password )
+    {
+        return new Dhis2Client( url, new BasicAuthentication( username, password ) );
+    }
+
+    public static Dhis2Client withAccessTokenAuth( String url, String accessToken )
+    {
+        return new Dhis2Client( url, new AccessTokenAuthentication( accessToken ) );
+    }
+
+    public static Dhis2Client withCookieAuth( String url, String sessionId )
+    {
+        return new Dhis2Client( url, new CookieAuthentication( sessionId ) );
+    }
+
+    /**
+     * Returns a {@link UriComponentsBuilder} which is resolved to the base API
+     * URL of the DHIS 2 instance.
+     *
+     * @return a resolved {@link UriComponentsBuilder}.
+     */
+    protected UriComponentsBuilder getResolvedUriBuilder( String path )
+    {
+        return UriComponentsBuilder.fromHttpUrl( url )
+            .pathSegment( "api" )
+            .path( path );
     }
 
     /**
@@ -109,10 +156,9 @@ public class Dhis2Client
      */
     private HttpHeaders getJsonAuthHeaders()
     {
-        HttpHeaders headers = new HttpHeaders();
+        HttpHeaders headers = authentication.withAuthentication( new HttpHeaders() );
         headers.setAccept( List.of( MediaType.APPLICATION_JSON ) );
         headers.setContentType( MediaType.APPLICATION_JSON );
-        headers.setBasicAuth( config.getUsername(), config.getPassword() );
         return headers;
     }
 
@@ -141,7 +187,7 @@ public class Dhis2Client
      */
     public String getUrl()
     {
-        return config.getUrl();
+        return url;
     }
 
     /**
@@ -169,7 +215,7 @@ public class Dhis2Client
      */
     URI getDataValueSetUri( ImportOptions options )
     {
-        UriComponentsBuilder builder = config.getResolvedUriBuilder( "dataValueSets" );
+        UriComponentsBuilder builder = getResolvedUriBuilder( "dataValueSets" );
 
         IdSchemes idSchemes = options.getIdSchemes();
 

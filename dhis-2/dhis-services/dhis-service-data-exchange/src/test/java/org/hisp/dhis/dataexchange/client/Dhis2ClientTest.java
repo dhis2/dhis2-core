@@ -28,6 +28,7 @@
 package org.hisp.dhis.dataexchange.client;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.junit.jupiter.api.Test;
@@ -39,10 +40,8 @@ public class Dhis2ClientTest
     {
         String baseUrl = "https://play.dhis2.org/2.38.0";
 
-        Dhis2Config config = new Dhis2Config(
+        Dhis2Client client = Dhis2Client.withBasicAuth(
             baseUrl, "admin", "district" );
-
-        Dhis2Client client = new Dhis2Client( config );
 
         ImportOptions optionsA = new ImportOptions()
             .setDataElementIdScheme( "code" )
@@ -59,5 +58,26 @@ public class Dhis2ClientTest
 
         assertEquals( baseUrl + "/api/dataValueSets?dataElementIdScheme=code&orgUnitIdScheme=code", uriA );
         assertEquals( baseUrl + "/api/dataValueSets?orgUnitIdScheme=code&idScheme=code", uriB );
+    }
+
+    @Test
+    void testNullConstructorArgument()
+    {
+        assertThrows( NullPointerException.class, () -> Dhis2Client.withBasicAuth(
+            null, "admin", "district" ) );
+        assertThrows( NullPointerException.class, () -> Dhis2Client.withBasicAuth(
+            "https://play.dhis2.org/2.38.0", null, "district" ) );
+    }
+
+    @Test
+    void testGetResolvedUriBuilder()
+    {
+        Dhis2Client client = Dhis2Client.withBasicAuth(
+            "https://play.dhis2.org/2.38.0", "admin", "district" );
+
+        assertEquals( "https://play.dhis2.org/2.38.0/api/dataValueSets",
+            client.getResolvedUriBuilder( "dataValueSets" ).build().toUriString() );
+        assertEquals( "https://play.dhis2.org/2.38.0/api/system/info",
+            client.getResolvedUriBuilder( "system/info" ).build().toUriString() );
     }
 }
