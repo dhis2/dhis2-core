@@ -43,21 +43,19 @@ class AuthenticationTest
 
         auth.withAuthentication( headers );
 
-        assertEquals( "Basic YWRtaW46ZGlzdHJpY3Q=",
-            headers.getFirst( HttpHeaders.AUTHORIZATION ) );
+        assertEquals( "Basic YWRtaW46ZGlzdHJpY3Q=", headers.getFirst( HttpHeaders.AUTHORIZATION ) );
     }
 
     @Test
     void testAccessTokenHeaderValue()
     {
-        Authentication auth = new AccessTokenAuthentication( "d2pat_5xVA12xyUbWNedQxy4ohH77WlxRGVvZZ1151814092" );
+        Authentication auth = new AccessTokenAuthentication( "d2pat_5xVA12xyUbWNedQxy4ohH77WlxR" );
 
         HttpHeaders headers = new HttpHeaders();
 
         auth.withAuthentication( headers );
 
-        assertEquals( "ApiToken d2pat_5xVA12xyUbWNedQxy4ohH77WlxRGVvZZ1151814092",
-            headers.getFirst( HttpHeaders.AUTHORIZATION ) );
+        assertEquals( "ApiToken d2pat_5xVA12xyUbWNedQxy4ohH77WlxR", headers.getFirst( HttpHeaders.AUTHORIZATION ) );
     }
 
     @Test
@@ -69,7 +67,6 @@ class AuthenticationTest
 
         auth.withAuthentication( headers );
 
-        assertEquals( "JSESSIONID=HKIJ7KJHB3JHG2KJ8PRE7T",
-            headers.getFirst( HttpHeaders.COOKIE ) );
+        assertEquals( "JSESSIONID=HKIJ7KJHB3JHG2KJ8PRE7T", headers.getFirst( HttpHeaders.COOKIE ) );
     }
 }
