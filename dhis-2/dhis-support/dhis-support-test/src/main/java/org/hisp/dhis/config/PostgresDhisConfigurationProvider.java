@@ -33,4 +33,16 @@ package org.hisp.dhis.config;
 public class PostgresDhisConfigurationProvider
     extends H2DhisConfigurationProvider
 {
+
+    private static final String DEFAULT_CONFIGURATION_FILE_NAME = "postgresTestConfig.conf";
+
+    public PostgresDhisConfigurationProvider()
+    {
+        this.properties = getPropertiesFromFile( DEFAULT_CONFIGURATION_FILE_NAME );
+    }
+
+    public PostgresDhisConfigurationProvider( String configurationFileName )
+    {
+        this.properties = getPropertiesFromFile( configurationFileName );
+    }
 }

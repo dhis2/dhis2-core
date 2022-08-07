@@ -110,6 +110,8 @@
     <many-to-one name="nextScheduleDate" class="org.hisp.dhis.dataelement.DataElement" column="nextscheduledateid"
       foreign-key="fk_programstage_nextscheduledateid" />
 
+    <property name="referral" column="referral" not-null="true" />
+
   </class>
 
 </hibernate-mapping>

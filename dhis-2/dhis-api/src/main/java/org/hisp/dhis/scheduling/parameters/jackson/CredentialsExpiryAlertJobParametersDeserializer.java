@@ -25,11 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataexchange.analytics;
+package org.hisp.dhis.scheduling.parameters.jackson;
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.scheduling.parameters.CredentialsExpiryAlertJobParameters;
 
-public interface AnalyticsDataExchangeStore
-    extends IdentifiableObjectStore<AnalyticsDataExchange>
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+
+/**
+ * @author Jan Bernitt
+ */
+public class CredentialsExpiryAlertJobParametersDeserializer
+    extends AbstractJobParametersDeserializer<CredentialsExpiryAlertJobParameters>
 {
+    public CredentialsExpiryAlertJobParametersDeserializer()
+    {
+        super( CredentialsExpiryAlertJobParameters.class, CustomJobParameters.class );
+    }
+
+    @JsonDeserialize
+    public static class CustomJobParameters extends CredentialsExpiryAlertJobParameters
+    {
+    }
 }

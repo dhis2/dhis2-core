@@ -591,6 +591,21 @@ public class HibernateUserStore
             "from User u " +
             "left outer join UserSetting s on u.id = s.user and s.name = 'keyUiLocale' " +
             "where u.email is not null and u.disabled = false and u.lastLogin >= :from and u.lastLogin < :to";
+        return toLocaleMap( hql, from, to );
+    }
+
+    @Override
+    public Map<String, Optional<Locale>> findNotifiableUsersWithPasswordLastUpdatedBetween( Date from, Date to )
+    {
+        String hql = "select u.email, s.value " +
+            "from User u " +
+            "left outer join UserSetting s on u.id = s.user and s.name = 'keyUiLocale' " +
+            "where u.email is not null and u.disabled = false and u.passwordLastUpdated >= :from and u.passwordLastUpdated < :to";
+        return toLocaleMap( hql, from, to );
+    }
+
+    private Map<String, Optional<Locale>> toLocaleMap( String hql, Date from, Date to )
+    {
         return getSession().createQuery( hql, Object[].class )
             .setParameter( "from", from )
             .setParameter( "to", to )

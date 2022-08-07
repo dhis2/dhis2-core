@@ -40,6 +40,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -48,12 +50,15 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland
@@ -478,16 +483,6 @@ class UserServiceTest extends SingleSetupIntegrationTestBase
     }
 
     @Test
-    void testGetExpiringUser()
-    {
-        User userA = addUser( "A" );
-        addUser( "B", User::setDisabled, true );
-        User userC = addUser( "C" );
-        addUser( "D", User::setDisabled, true );
-        assertContainsOnly( userService.getExpiringUsers(), userA, userC );
-    }
-
-    @Test
     void testGetExpiringUserAccounts()
     {
         ZonedDateTime now = ZonedDateTime.now();
@@ -572,5 +567,44 @@ class UserServiceTest extends SingleSetupIntegrationTestBase
         assertEquals( Set.of( "emaila", "emailc" ),
             userService.findNotifiableUsersWithLastLoginBetween( fourMonthAgo, Date.from( now.toInstant() ) )
                 .keySet() );
+    }
+
+    @Test
+    void testDisableTwoFAWithAdminUser()
+    {
+        User userToModify = createAndAddUser( "A" );
+        userToModify.setTwoFA( true );
+        userService.updateUser( userToModify );
+
+        User admin = createAndAddAdminUser( "ALL" );
+        List<ErrorReport> errors = new ArrayList<>();
+        userService.disableTwoFA( admin, userToModify.getUid(), error -> errors.add( error ) );
+        assertTrue( errors.isEmpty() );
+    }
+
+    @Test
+    void testDisableTwoFAWithManageUser()
+    {
+        User userToModify = createAndAddUser( "A" );
+        userToModify.setTwoFA( true );
+
+        UserGroup userGroupA = createUserGroup( 'A', Sets.newHashSet( userToModify ) );
+        userGroupService.addUserGroup( userGroupA );
+
+        userToModify.getGroups().add( userGroupA );
+        userService.updateUser( userToModify );
+
+        User currentUser = createAndAddUser( "B", unitA, "F_USER_ADD_WITHIN_MANAGED_GROUP" );
+        UserGroup userGroupB = createUserGroup( 'B', Collections.emptySet() );
+        userGroupB.addManagedGroup( userGroupA );
+        userGroupService.addUserGroup( userGroupB );
+        userGroupService.updateUserGroup( userGroupA );
+
+        currentUser.getGroups().add( userGroupB );
+        userService.updateUser( currentUser );
+
+        List<ErrorReport> errors = new ArrayList<>();
+        userService.disableTwoFA( currentUser, userToModify.getUid(), error -> errors.add( error ) );
+        assertTrue( errors.isEmpty() );
     }
 }

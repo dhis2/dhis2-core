@@ -28,7 +28,7 @@
       "openingDate": "2010-01-01"
     }
   ],
-  "analyticsDataExchanges": [
+  "aggregateDataExchanges": [
     {
       "id": "iFOyIpQciyk",
       "name": "Internal data exchange",

@@ -83,10 +83,11 @@ public interface EventDataQueryService
      * attribute identifier.
      *
      * @param coordinate the coordinate field.
+     * @param program the program uid.
      * @return the coordinate column field.
      * @throws IllegalQueryException if the coordinate field is not valid.
      */
-    String getFallbackCoordinateField( String coordinate );
+    String getFallbackCoordinateField( String coordinate, String program );
 
     /**
      * Returns a QueryItem

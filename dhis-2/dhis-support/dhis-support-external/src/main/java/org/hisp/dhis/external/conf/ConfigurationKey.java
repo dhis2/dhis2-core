@@ -123,6 +123,16 @@ public enum ConfigurationKey
     CONNECTION_PASSWORD( "connection.password", "", true ),
 
     /**
+     * Sets 'hibernate.cache.use_second_level_cache'. (default: true)
+     */
+    USE_SECOND_LEVEL_CACHE( "hibernate.cache.use_second_level_cache", "true", false ),
+
+    /**
+     * Sets 'hibernate.cache.use_query_cache'. (default: true)
+     */
+    USE_QUERY_CACHE( "hibernate.cache.use_query_cache", "true", false ),
+
+    /**
      * Sets 'hibernate.hbm2ddl.auto', used in tests only. (default: none)
      */
     CONNECTION_SCHEMA( "connection.schema", "none", false ),

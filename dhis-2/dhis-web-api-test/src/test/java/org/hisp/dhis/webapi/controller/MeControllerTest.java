@@ -32,6 +32,7 @@ import static org.hisp.dhis.web.WebClientUtils.assertSeries;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -222,5 +223,18 @@ class MeControllerTest extends DhisControllerConvenienceTest
     void testGetApprovalLevels()
     {
         assertTrue( GET( "/me/dataApprovalLevels" ).content( HttpStatus.OK ).isArray() );
+    }
+
+    @Test
+    void testResetSecret()
+    {
+        assertFalse( userA.isTwoFA() );
+        String oldSecret = manager.get( User.class, userA.getUid() ).getSecret();
+
+        assertStatus( HttpStatus.OK,
+            PUT( "/me", "{'userCredentials':{'twoFA':true}}" ) );
+
+        String newSecret = manager.get( User.class, userA.getUid() ).getSecret();
+        assertNotEquals( oldSecret, newSecret );
     }
 }

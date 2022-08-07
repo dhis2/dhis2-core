@@ -66,7 +66,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.google.common.collect.Lists;
 
 @ExtendWith( MockitoExtension.class )
-public class MetadataAttributeCheckTest
+class MetadataAttributeCheckTest
 {
     @Mock
     private IdentifiableObjectManager manager;
@@ -89,7 +89,7 @@ public class MetadataAttributeCheckTest
     private DefaultAttributeValidator attributeValidator;
 
     @BeforeEach
-    public void setUpTest()
+    void setUpTest()
     {
         organisationUnit = new OrganisationUnit();
         organisationUnit.setName( "A" );
@@ -120,7 +120,7 @@ public class MetadataAttributeCheckTest
     }
 
     @Test
-    public void testAttributeAssigned()
+    void testAttributeAssigned()
     {
         organisationUnit.getAttributeValues().add( new AttributeValue( attribute, "10" ) );
 
@@ -136,7 +136,7 @@ public class MetadataAttributeCheckTest
     }
 
     @Test
-    public void testAttributeNotAssigned()
+    void testAttributeNotAssigned()
     {
         attribute.setOrganisationUnitAttribute( false );
 
@@ -158,7 +158,7 @@ public class MetadataAttributeCheckTest
     }
 
     @Test
-    public void testAttributeNotInteger()
+    void testAttributeNotInteger()
     {
         organisationUnit.getAttributeValues().add( new AttributeValue( attribute, "10.1" ) );
 
@@ -175,7 +175,7 @@ public class MetadataAttributeCheckTest
     }
 
     @Test
-    public void testAttributeInteger()
+    void testAttributeInteger()
     {
         organisationUnit.getAttributeValues().add( new AttributeValue( attribute, "11" ) );
 
@@ -191,7 +191,7 @@ public class MetadataAttributeCheckTest
     }
 
     @Test
-    public void testAttributeNotPositiveInteger()
+    void testAttributeNotPositiveInteger()
     {
         attribute.setValueType( ValueType.INTEGER_POSITIVE );
         organisationUnit.getAttributeValues().add( new AttributeValue( attribute, "-10" ) );
@@ -209,7 +209,7 @@ public class MetadataAttributeCheckTest
     }
 
     @Test
-    public void testAttributePositiveInteger()
+    void testAttributePositiveInteger()
     {
         attribute.setValueType( ValueType.INTEGER_POSITIVE );
         organisationUnit.getAttributeValues().add( new AttributeValue( attribute, "10" ) );
@@ -226,7 +226,7 @@ public class MetadataAttributeCheckTest
     }
 
     @Test
-    public void testAttributeNotZeroPositiveInteger()
+    void testAttributeNotZeroPositiveInteger()
     {
         attribute.setValueType( ValueType.INTEGER_ZERO_OR_POSITIVE );
         organisationUnit.getAttributeValues().add( new AttributeValue( attribute, "-10" ) );
@@ -244,7 +244,7 @@ public class MetadataAttributeCheckTest
     }
 
     @Test
-    public void testAttributeZeroPositiveInteger()
+    void testAttributeZeroPositiveInteger()
     {
         attribute.setValueType( ValueType.INTEGER_ZERO_OR_POSITIVE );
         organisationUnit.getAttributeValues().add( new AttributeValue( attribute, "0" ) );
@@ -261,7 +261,7 @@ public class MetadataAttributeCheckTest
     }
 
     @Test
-    public void testAttributeNotNumber()
+    void testAttributeNotNumber()
     {
         attribute.setValueType( ValueType.NUMBER );
         organisationUnit.getAttributeValues().add( new AttributeValue( attribute, "Aaa" ) );
@@ -279,7 +279,7 @@ public class MetadataAttributeCheckTest
     }
 
     @Test
-    public void testAttributeNumber()
+    void testAttributeNumber()
     {
         attribute.setValueType( ValueType.NUMBER );
         organisationUnit.getAttributeValues().add( new AttributeValue( attribute, "123" ) );
@@ -296,7 +296,7 @@ public class MetadataAttributeCheckTest
     }
 
     @Test
-    public void testAttributeNotNegativeInteger()
+    void testAttributeNotNegativeInteger()
     {
         attribute.setValueType( ValueType.INTEGER_NEGATIVE );
         organisationUnit.getAttributeValues().add( new AttributeValue( attribute, "10" ) );
@@ -314,7 +314,7 @@ public class MetadataAttributeCheckTest
     }
 
     @Test
-    public void testAttributeNegativeInteger()
+    void testAttributeNegativeInteger()
     {
         attribute.setValueType( ValueType.INTEGER_NEGATIVE );
         organisationUnit.getAttributeValues().add( new AttributeValue( attribute, "-10" ) );
@@ -331,7 +331,7 @@ public class MetadataAttributeCheckTest
     }
 
     @Test
-    public void testAttributeNotPercentage()
+    void testAttributeNotPercentage()
     {
         attribute.setValueType( ValueType.PERCENTAGE );
         organisationUnit.getAttributeValues().add( new AttributeValue( attribute, "101" ) );
@@ -349,7 +349,7 @@ public class MetadataAttributeCheckTest
     }
 
     @Test
-    public void testAttributePercentage()
+    void testAttributePercentage()
     {
         attribute.setValueType( ValueType.PERCENTAGE );
         organisationUnit.getAttributeValues().add( new AttributeValue( attribute, "100" ) );
@@ -366,7 +366,7 @@ public class MetadataAttributeCheckTest
     }
 
     @Test
-    public void testAttributeNotUnitInterval()
+    void testAttributeNotUnitInterval()
     {
         attribute.setValueType( ValueType.UNIT_INTERVAL );
         organisationUnit.getAttributeValues().add( new AttributeValue( attribute, "2" ) );
@@ -384,7 +384,7 @@ public class MetadataAttributeCheckTest
     }
 
     @Test
-    public void testAttributeUnitInterval()
+    void testAttributeUnitInterval()
     {
         attribute.setValueType( ValueType.UNIT_INTERVAL );
         organisationUnit.getAttributeValues().add( new AttributeValue( attribute, "1" ) );
@@ -401,7 +401,7 @@ public class MetadataAttributeCheckTest
     }
 
     @Test
-    public void testAttributeNotOrganisationUnit()
+    void testAttributeNotOrganisationUnit()
     {
         attribute.setValueType( ValueType.ORGANISATION_UNIT );
         organisationUnit.getAttributeValues().add( new AttributeValue( attribute, "Invalid-OU-ID" ) );
@@ -422,7 +422,7 @@ public class MetadataAttributeCheckTest
     }
 
     @Test
-    public void testAttributeOrganisationUnit()
+    void testAttributeOrganisationUnit()
     {
         attribute.setValueType( ValueType.ORGANISATION_UNIT );
         organisationUnit.getAttributeValues().add( new AttributeValue( attribute, "OU-ID" ) );
@@ -442,7 +442,7 @@ public class MetadataAttributeCheckTest
     }
 
     @Test
-    public void testAttributeNotFileResource()
+    void testAttributeNotFileResource()
     {
         attribute.setValueType( ValueType.FILE_RESOURCE );
         organisationUnit.getAttributeValues().add( new AttributeValue( attribute, "FileResourceID" ) );
@@ -463,7 +463,7 @@ public class MetadataAttributeCheckTest
     }
 
     @Test
-    public void testAttributeUserNameNotExist()
+    void testAttributeUserNameNotExist()
     {
         attribute.setValueType( ValueType.USERNAME );
         organisationUnit.getAttributeValues().add( new AttributeValue( attribute, "userNameA" ) );
@@ -484,7 +484,7 @@ public class MetadataAttributeCheckTest
     }
 
     @Test
-    public void testAttributeUserNameExist()
+    void testAttributeUserNameExist()
     {
         attribute.setValueType( ValueType.USERNAME );
         organisationUnit.getAttributeValues().add( new AttributeValue( attribute, "userNameA" ) );
@@ -501,5 +501,40 @@ public class MetadataAttributeCheckTest
             validationContext, objectReport -> objectReportList.add( objectReport ) );
 
         assertTrue( CollectionUtils.isEmpty( objectReportList ) );
+    }
+
+    @Test
+    void testIsPhoneNumber()
+    {
+        attribute.setValueType( ValueType.PHONE_NUMBER );
+        organisationUnit.getAttributeValues().add( new AttributeValue( attribute, "+84938938928" ) );
+
+        List<ObjectReport> objectReportList = new ArrayList<>();
+
+        metadataAttributeCheck.check( objectBundle, OrganisationUnit.class, Lists.newArrayList( organisationUnit ),
+            Collections
+                .emptyList(),
+            ImportStrategy.CREATE_AND_UPDATE,
+            validationContext, objectReport -> objectReportList.add( objectReport ) );
+
+        assertTrue( CollectionUtils.isEmpty( objectReportList ) );
+    }
+
+    @Test
+    void testNotPhoneNumber()
+    {
+        attribute.setValueType( ValueType.PHONE_NUMBER );
+        organisationUnit.getAttributeValues().add( new AttributeValue( attribute, "VN 84938938928" ) );
+
+        List<ObjectReport> objectReportList = new ArrayList<>();
+
+        metadataAttributeCheck.check( objectBundle, OrganisationUnit.class, Lists.newArrayList( organisationUnit ),
+            Collections
+                .emptyList(),
+            ImportStrategy.CREATE_AND_UPDATE,
+            validationContext, objectReport -> objectReportList.add( objectReport ) );
+
+        assertFalse( CollectionUtils.isEmpty( objectReportList ) );
+        assertEquals( ErrorCode.E6021, objectReportList.get( 0 ).getErrorReports().get( 0 ).getErrorCode() );
     }
 }

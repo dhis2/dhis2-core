@@ -25,40 +25,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.dataexchange.aggregate;
 
-import java.util.List;
+import java.io.Serializable;
 
-import org.hisp.dhis.dataexchange.analytics.AnalyticsDataExchange;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
-import org.hisp.dhis.security.Authority;
-import org.hisp.dhis.security.AuthorityType;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 
-import com.google.common.collect.Lists;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class AnalyticsDataExchangeSchemaDescriptor
-    implements SchemaDescriptor
+@Getter
+@Setter
+@NoArgsConstructor
+@Accessors( chain = true )
+public class Api
+    implements Serializable
 {
-    public static final String SINGULAR = "analyticsDataExchange";
+    @JsonProperty
+    private String url;
 
-    public static final String PLURAL = "analyticsDataExchanges";
+    @JsonProperty
+    private String username;
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+    /**
+     * The password is encrypted and must be decrypted before used to
+     * authenticate with external systems.
+     */
+    @JsonProperty
+    private String password;
 
-    @Override
-    public Schema getSchema()
+    /**
+     * Do not expose password.
+     */
+    @JsonIgnore
+    public String getPassword()
     {
-        Schema schema = new Schema( AnalyticsDataExchange.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 1900 );
-
-        schema.add( new Authority( AuthorityType.CREATE_PUBLIC,
-            Lists.newArrayList( "F_ANALYTICS_DATA_EXCHANGE_PUBLIC_ADD" ) ) );
-        schema.add( new Authority( AuthorityType.CREATE_PRIVATE,
-            Lists.newArrayList( "F_ANALYTICS_DATA_EXCHANGE_PRIVATE_ADD" ) ) );
-        schema.add( new Authority( AuthorityType.DELETE, List.of( "F_ANALYTICS_DATA_EXCHANGE_DELETE" ) ) );
-
-        return schema;
+        return password;
     }
 }

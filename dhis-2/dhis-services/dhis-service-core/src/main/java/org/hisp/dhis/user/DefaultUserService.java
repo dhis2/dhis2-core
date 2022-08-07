@@ -31,6 +31,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static java.time.ZoneId.systemDefault;
 import static java.time.ZonedDateTime.now;
 import static org.hisp.dhis.common.CodeGenerator.isValidUid;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.system.util.ValidationUtils.usernameIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.uuidIsValid;
 
@@ -47,6 +48,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -67,12 +69,12 @@ import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.PasswordManager;
 import org.hisp.dhis.security.SecurityService;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.filter.UserRoleCanIssueFilter;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
-import org.joda.time.DateTime;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
@@ -116,12 +118,14 @@ public class DefaultUserService
 
     private final Cache<String> userDisplayNameCache;
 
+    private final AclService aclService;
+
     public DefaultUserService( UserStore userStore, UserGroupService userGroupService,
         UserRoleStore userRoleStore,
         CurrentUserService currentUserService, SystemSettingManager systemSettingManager,
         CacheProvider cacheProvider,
         @Lazy PasswordManager passwordManager, @Lazy SessionRegistry sessionRegistry,
-        @Lazy SecurityService securityService )
+        @Lazy SecurityService securityService, AclService aclService )
     {
         checkNotNull( userStore );
         checkNotNull( userGroupService );
@@ -130,6 +134,7 @@ public class DefaultUserService
         checkNotNull( passwordManager );
         checkNotNull( sessionRegistry );
         checkNotNull( securityService );
+        checkNotNull( aclService );
 
         this.userStore = userStore;
         this.userGroupService = userGroupService;
@@ -140,6 +145,7 @@ public class DefaultUserService
         this.sessionRegistry = sessionRegistry;
         this.securityService = securityService;
         this.userDisplayNameCache = cacheProvider.createUserDisplayNameCache();
+        this.aclService = aclService;
     }
 
     // -------------------------------------------------------------------------
@@ -732,23 +738,6 @@ public class DefaultUserService
     }
 
     @Override
-    @Transactional( readOnly = true )
-    public List<User> getExpiringUsers()
-    {
-        int daysBeforePasswordChangeRequired = systemSettingManager
-            .getIntSetting( SettingKey.CREDENTIALS_EXPIRES ) * 30;
-
-        Date daysPassed = new DateTime( new Date() ).minusDays( daysBeforePasswordChangeRequired - EXPIRY_THRESHOLD )
-            .toDate();
-
-        UserQueryParams userQueryParams = new UserQueryParams()
-            .setDisabled( false )
-            .setPasswordLastUpdated( daysPassed );
-
-        return userStore.getExpiringUsers( userQueryParams );
-    }
-
-    @Override
     public List<UserAccountExpiryInfo> getExpiringUserAccounts( int inDays )
     {
         return userStore.getExpiringUserAccounts( inDays );
@@ -788,6 +777,13 @@ public class DefaultUserService
     public Map<String, Optional<Locale>> findNotifiableUsersWithLastLoginBetween( Date from, Date to )
     {
         return userStore.findNotifiableUsersWithLastLoginBetween( from, to );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public Map<String, Optional<Locale>> findNotifiableUsersWithPasswordLastUpdatedBetween( Date from, Date to )
+    {
+        return userStore.findNotifiableUsersWithPasswordLastUpdatedBetween( from, to );
     }
 
     @Override
@@ -842,5 +838,46 @@ public class DefaultUserService
             .userGroupIds( currentUserService.getCurrentUserGroupsInfo( user.getUid() ).getUserGroupUIDs() )
             .isSuper( user.isSuper() )
             .build();
+    }
+
+    @Override
+    @Transactional
+    public void disableTwoFA( User currentUser, String userId, Consumer<ErrorReport> errors )
+    {
+        User user = getUser( userId );
+
+        if ( user == null )
+        {
+            throw new IllegalArgumentException( "User not found" );
+        }
+
+        if ( !canCurrentUserCanModify( currentUser, user, errors ) )
+        {
+            return;
+        }
+
+        user.setTwoFA( false );
+        updateUser( user );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public boolean canCurrentUserCanModify( User currentUser, User userToModify, Consumer<ErrorReport> errors )
+    {
+        if ( !aclService.canUpdate( currentUser, userToModify ) )
+        {
+            errors.accept( new ErrorReport( UserRole.class, ErrorCode.E3001, currentUser.getUsername(),
+                userToModify.getName() ) );
+            return false;
+        }
+
+        if ( !canAddOrUpdateUser( getUids( userToModify.getGroups() ), currentUser )
+            || !currentUser.canModifyUser( userToModify ) )
+        {
+            errors.accept( new ErrorReport( UserRole.class, ErrorCode.E3020, userToModify.getName() ) );
+            return false;
+        }
+
+        return true;
     }
 }

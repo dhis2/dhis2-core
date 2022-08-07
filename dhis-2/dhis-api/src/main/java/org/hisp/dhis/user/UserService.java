@@ -34,6 +34,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 import javax.annotation.Nullable;
 
@@ -368,13 +369,6 @@ public interface UserService
     List<ErrorReport> validateUser( User user, User currentUser );
 
     /**
-     * Returns list of active users who are expiring with in few days.
-     *
-     * @return list of active users who are expiring with in few days.
-     */
-    List<User> getExpiringUsers();
-
-    /**
      * @param inDays number of days to include
      * @return list of those users that are about to expire in the provided
      *         number of days (or less) and which have an email configured
@@ -422,6 +416,19 @@ public interface UserService
     Map<String, Optional<Locale>> findNotifiableUsersWithLastLoginBetween( Date from, Date to );
 
     /**
+     * Selects all not disabled users where the
+     * {@link User#getPasswordLastUpdated()} ()} is within the given time-frame
+     * and which have an email address.
+     *
+     * @param from start of the selected time-frame (inclusive)
+     * @param to end of the selected time-frame (exclusive)
+     * @return user emails having a password last updated within the given
+     *         time-frame as keys and if available their preferred locale as
+     *         value
+     */
+    Map<String, Optional<Locale>> findNotifiableUsersWithPasswordLastUpdatedBetween( Date from, Date to );
+
+    /**
      * Get user display name by concat( firstname,' ', surname ) Return null if
      * User doesn't exist
      */
@@ -437,4 +444,8 @@ public interface UserService
 
     CurrentUserDetailsImpl createUserDetails( User user, String password, boolean accountNonLocked,
         boolean credentialsNonExpired );
+
+    void disableTwoFA( User currentUser, String userId, Consumer<ErrorReport> errors );
+
+    boolean canCurrentUserCanModify( User currentUser, User userToModify, Consumer<ErrorReport> errors );
 }
