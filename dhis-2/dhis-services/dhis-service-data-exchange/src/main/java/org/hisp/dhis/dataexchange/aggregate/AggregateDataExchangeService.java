@@ -284,17 +284,15 @@ public class AggregateDataExchangeService
 
         if ( api.isAccessTokenAuthentication() )
         {
-            String accessToken = encryptor.decrypt( api.getAccessToken() );
-
-            return Dhis2Client.withAccessTokenAuth( api.getUrl(), accessToken );
+            return Dhis2Client.withAccessTokenAuth(
+                api.getUrl(), encryptor.decrypt( api.getAccessToken() ) );
         }
         else if ( api.isBasicAuthentication() )
         {
-            String password = encryptor.decrypt( api.getPassword() );
-
-            return Dhis2Client.withBasicAuth( api.getUrl(), api.getUsername(), password );
+            return Dhis2Client.withBasicAuth(
+                api.getUrl(), api.getUsername(), encryptor.decrypt( api.getPassword() ) );
         }
 
-        throw new IllegalStateException( "Authentication not configured for Dhis2Client" );
+        throw new IllegalStateException( "DHIS 2 client authentication not configured " );
     }
 }
