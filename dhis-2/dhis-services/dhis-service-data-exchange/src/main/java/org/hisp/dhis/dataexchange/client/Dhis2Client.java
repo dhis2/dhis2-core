@@ -70,19 +70,10 @@ public class Dhis2Client
 {
     private static final Set<HttpStatus> ERROR_STATUS_CODES = Set.of( UNAUTHORIZED, FORBIDDEN, NOT_FOUND );
 
-    /**
-     * Base URL for the DHIS 2 instance, excluding the <code>/api</code> path.
-     */
     private final String url;
 
-    /**
-     * Authentication for the DHIS 2 instance.
-     */
     private final Authentication authentication;
 
-    /**
-     * REST template for DHIS 2 API interaction.
-     */
     private final RestTemplate restTemplate;
 
     /**
@@ -101,16 +92,42 @@ public class Dhis2Client
         Validate.notNull( authentication );
     }
 
+    /**
+     * Creates a new {@link Dhis2Client} configured with basic authentication.
+     *
+     * @param url url the URL for the DHIS 2 instance, excluding the
+     *        <code>/api</code> path.
+     * @param username the username for the DHIS 2 instance.
+     * @param password the password for the DHIS 2 instance.
+     * @return
+     */
     public static Dhis2Client withBasicAuth( String url, String username, String password )
     {
         return new Dhis2Client( url, new BasicAuthentication( username, password ) );
     }
 
+    /**
+     * Creates a new {@link Dhis2Client} configured with personal access token
+     * authentication.
+     *
+     * @param url url the URL for the DHIS 2 instance, excluding the
+     *        <code>/api</code> path.
+     * @param accessToken the personal access token for the DHIS 2 instance.
+     * @return
+     */
     public static Dhis2Client withAccessTokenAuth( String url, String accessToken )
     {
         return new Dhis2Client( url, new AccessTokenAuthentication( accessToken ) );
     }
 
+    /**
+     * Creates a new {@link Dhis2Client} configured with cookie authentication.
+     *
+     * @param url url the URL for the DHIS 2 instance, excluding the
+     *        <code>/api</code> path.
+     * @param accessToken the cookie session identifier for the DHIS 2 instance.
+     * @return
+     */
     public static Dhis2Client withCookieAuth( String url, String sessionId )
     {
         return new Dhis2Client( url, new CookieAuthentication( sessionId ) );
