@@ -25,51 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataexchange.client;
+package org.hisp.dhis.dataexchange.client.auth;
 
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 
-import org.springframework.web.util.UriComponentsBuilder;
-
-/**
- * DHIS 2 instance configuration.
- *
- * @author Lars Helge Overland
- */
-@Getter
-@RequiredArgsConstructor
-public class Dhis2Config
+public interface Authentication
 {
     /**
-     * Base URL for the DHIS 2 instance, excluding the <code>/api</code> path.
-     */
-    @NonNull
-    private final String url;
-
-    /**
-     * Username for the DHIS 2 instance.
-     */
-    @NonNull
-    private final String username;
-
-    /**
-     * Password for the DHIS 2 instance.
-     */
-    @NonNull
-    private final String password;
-
-    /**
-     * Returns a {@link UriComponentsBuilder} which is resolved to the base API
-     * URL of the DHIS 2 instance.
+     * Sets HTTP authentication headers for the given {@link HttpHeaders}.
      *
-     * @return a resolved {@link UriComponentsBuilder}.
+     * @param headers the {@link HttpHeaders}.
+     * @return the {@link HttpHeaders}.
      */
-    public UriComponentsBuilder getResolvedUriBuilder( String path )
-    {
-        return UriComponentsBuilder.fromHttpUrl( url )
-            .pathSegment( "api" )
-            .path( path );
-    }
+    HttpHeaders withAuthentication( HttpHeaders headers );
 }
