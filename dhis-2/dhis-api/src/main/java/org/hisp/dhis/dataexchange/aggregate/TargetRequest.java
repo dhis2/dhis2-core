@@ -25,11 +25,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataexchange.analytics;
+package org.hisp.dhis.dataexchange.aggregate;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -42,9 +40,18 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Setter
 @NoArgsConstructor
 @Accessors( chain = true )
-public class Source
+public class TargetRequest
     implements Serializable
 {
     @JsonProperty
-    private List<SourceRequest> requests = new ArrayList<>();
+    private String dataElementIdScheme;
+
+    @JsonProperty
+    private String orgUnitIdScheme;
+
+    @JsonProperty
+    private String categoryOptionComboIdScheme;
+
+    @JsonProperty
+    private String idScheme;
 }

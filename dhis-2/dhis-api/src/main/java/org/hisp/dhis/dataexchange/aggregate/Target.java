@@ -25,27 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.dataexchange.aggregate;
 
-/**
- * @author Dusan Bernat
- */
-public enum FallbackCoordinateFieldType
+import java.io.Serializable;
+
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@Accessors( chain = true )
+public class Target
+    implements Serializable
 {
-    OU_GEOMETRY( "ougeometry" ),
-    PSI_GEOMETRY( "psigeometry" ),
-    PI_GEOMETRY( "pigeometry" ),
-    TEI_GEOMETRY( "teigeometry" );
+    @JsonProperty
+    private TargetType type;
 
-    private final String value;
+    /**
+     * Only relevant for {@link TargetType#EXTERNAL}.
+     */
+    @JsonProperty
+    private Api api;
 
-    FallbackCoordinateFieldType( String value )
-    {
-        this.value = value;
-    }
-
-    public String getValue()
-    {
-        return value;
-    }
+    @JsonProperty
+    private TargetRequest request;
 }

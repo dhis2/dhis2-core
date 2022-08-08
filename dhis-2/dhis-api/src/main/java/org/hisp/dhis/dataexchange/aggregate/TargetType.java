@@ -25,27 +25,10 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.dataexchange.aggregate;
 
-/**
- * @author Dusan Bernat
- */
-public enum FallbackCoordinateFieldType
+public enum TargetType
 {
-    OU_GEOMETRY( "ougeometry" ),
-    PSI_GEOMETRY( "psigeometry" ),
-    PI_GEOMETRY( "pigeometry" ),
-    TEI_GEOMETRY( "teigeometry" );
-
-    private final String value;
-
-    FallbackCoordinateFieldType( String value )
-    {
-        this.value = value;
-    }
-
-    public String getValue()
-    {
-        return value;
-    }
+    INTERNAL,
+    EXTERNAL;
 }

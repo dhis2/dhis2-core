@@ -31,6 +31,7 @@ import java.util.Map;
 
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
 import org.hisp.dhis.scheduling.parameters.ContinuousAnalyticsJobParameters;
+import org.hisp.dhis.scheduling.parameters.CredentialsExpiryAlertJobParameters;
 import org.hisp.dhis.scheduling.parameters.DataIntegrityJobParameters;
 import org.hisp.dhis.scheduling.parameters.DataSynchronizationJobParameters;
 import org.hisp.dhis.scheduling.parameters.DisableInactiveUsersJobParameters;
@@ -78,7 +79,7 @@ public enum JobType
     SEND_SCHEDULED_MESSAGE( true ),
     PROGRAM_NOTIFICATIONS( true ),
     VALIDATION_RESULTS_NOTIFICATION( false ),
-    CREDENTIALS_EXPIRY_ALERT( false ),
+    CREDENTIALS_EXPIRY_ALERT( false, SchedulingType.CRON, CredentialsExpiryAlertJobParameters.class, null ),
     MONITORING( true, SchedulingType.CRON, MonitoringJobParameters.class, Map.of(
         "relativePeriods", "/api/periodTypes/relativePeriodTypes",
         "validationRuleGroups", "/api/validationRuleGroups" ) ),

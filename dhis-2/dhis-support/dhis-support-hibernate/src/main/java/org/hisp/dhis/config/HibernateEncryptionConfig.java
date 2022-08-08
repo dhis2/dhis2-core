@@ -49,6 +49,10 @@ import com.google.common.collect.ImmutableMap;
 @Configuration
 public class HibernateEncryptionConfig
 {
+    public static final String TRIPLE_DES_STRING_ENCRYPTOR = "tripleDesStringEncryptor";
+
+    public static final String AES_128_STRING_ENCRYPTOR = "aes128StringEncryptor";
+
     @Autowired
     private HibernateConfigurationProvider hibernateConfigurationProvider;
 
@@ -62,7 +66,7 @@ public class HibernateEncryptionConfig
 
     // Used only for SystemSettings (due to bug with JCE policy restrictions in
     // Jasypt)
-    @Bean( "tripleDesStringEncryptor" )
+    @Bean( TRIPLE_DES_STRING_ENCRYPTOR )
     public PooledPBEStringEncryptor tripleDesStringEncryptor()
     {
         PooledPBEStringEncryptor encryptor = new PooledPBEStringEncryptor();
@@ -75,9 +79,8 @@ public class HibernateEncryptionConfig
     }
 
     // AES string encryptor, requires BouncyCastle and JCE extended policy (due
-    // to
-    // issue mentioned above)
-    @Bean( "aes128StringEncryptor" )
+    // to issue mentioned above)
+    @Bean( AES_128_STRING_ENCRYPTOR )
     public PooledPBEStringEncryptor aes128StringEncryptor()
     {
         PooledPBEStringEncryptor encryptor = new PooledPBEStringEncryptor();
@@ -93,7 +96,7 @@ public class HibernateEncryptionConfig
     public HibernateEncryptorRegistry hibernateEncryptors()
     {
         HibernateEncryptorRegistry registry = HibernateEncryptorRegistry.getInstance();
-        registry.setEncryptors( ImmutableMap.of( "aes128StringEncryptor", aes128StringEncryptor() ) );
+        registry.setEncryptors( ImmutableMap.of( AES_128_STRING_ENCRYPTOR, aes128StringEncryptor() ) );
         return registry;
     }
 
