@@ -33,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.junit.jupiter.api.Test;
 
-public class Dhis2ClientTest
+class Dhis2ClientTest
 {
     @Test
     void testGetDataValueSetUri()
