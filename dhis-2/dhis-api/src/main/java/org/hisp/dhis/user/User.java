@@ -182,6 +182,8 @@ public class User
 
     private boolean isAccountNonLocked;
 
+    private boolean requires2FA;
+
     /**
      * The timestamp representing when the user account expires. If not set the
      * account does never expire.
@@ -525,6 +527,18 @@ public class User
     public void setPassword( String password )
     {
         this.password = password;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isRequires2FA()
+    {
+        return requires2FA;
+    }
+
+    public void setRequires2FA( boolean requires2FA )
+    {
+        this.requires2FA = requires2FA;
     }
 
     @JsonProperty
