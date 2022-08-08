@@ -937,7 +937,8 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
 
         assertNotNull( report.getStats() );
         assertNotNull( typeReport );
-        assertEquals( Status.OK, report.getStatus() );
+        System.out.println( report.toString() );
+        assertEquals( Status.OK, report.getStatus(), report.toString() );
         assertEquals( 0, report.getErrorReportsCount() );
         assertEquals( 5, report.getStats().getCreated() );
         assertEquals( 2, typeReport.getStats().getCreated() );

@@ -33,6 +33,7 @@ import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCR
 
 import java.util.function.Consumer;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
 import org.hisp.dhis.dataexchange.aggregate.Api;
 import org.hisp.dhis.dataexchange.aggregate.SourceRequest;
@@ -88,11 +89,6 @@ public class AggregateDataExchangeObjectBundleHook
 
         Api api = exchange.getTarget().getApi();
 
-        if ( api == null )
-        {
-            addReports.accept( new ErrorReport( AggregateDataExchange.class, ErrorCode.E4000, "target.api" ) );
-        }
-
         if ( api != null && isEmpty( api.getUrl() ) )
         {
             addReports.accept( new ErrorReport( AggregateDataExchange.class, ErrorCode.E4000, "target.api.url" ) );
@@ -107,31 +103,35 @@ public class AggregateDataExchangeObjectBundleHook
     @Override
     public void preCreate( AggregateDataExchange exchange, ObjectBundle bundle )
     {
-        encryptSecret( exchange );
+        encryptApiSecrets( exchange );
     }
 
     @Override
     public void preUpdate( AggregateDataExchange exchange, AggregateDataExchange persistedExchange,
         ObjectBundle bundle )
     {
-        encryptSecret( exchange );
+        encryptApiSecrets( exchange );
     }
 
     /**
-     * Encrypts the target API password.
+     * Encrypts target API secrets.
      *
      * @param exchange the {@link AggregateDataExchange}.
      */
-    private void encryptSecret( AggregateDataExchange exchange )
+    private void encryptApiSecrets( AggregateDataExchange exchange )
     {
         if ( exchange.getTarget().getApi() != null )
         {
             Api api = exchange.getTarget().getApi();
 
-            if ( api != null && api.getPassword() != null )
+            if ( api != null && StringUtils.isNotBlank( api.getPassword() ) )
             {
-                String encryptedPassword = encryptor.encrypt( api.getPassword() );
-                api.setPassword( encryptedPassword );
+                api.setPassword( encryptor.encrypt( api.getPassword() ) );
+            }
+
+            if ( api != null && StringUtils.isNotBlank( api.getAccessToken() ) )
+            {
+                api.setAccessToken( encryptor.encrypt( api.getAccessToken() ) );
             }
         }
     }
