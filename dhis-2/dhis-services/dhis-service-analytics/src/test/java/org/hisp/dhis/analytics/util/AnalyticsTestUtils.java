@@ -27,10 +27,14 @@
  */
 package org.hisp.dhis.analytics.util;
 
+import static java.lang.String.format;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 
+import java.text.NumberFormat;
+import java.text.ParseException;
 import java.util.Map;
 
 import org.hisp.dhis.common.Grid;
@@ -75,7 +79,7 @@ public class AnalyticsTestUtils
      * @param aggregatedResultData aggregated results
      * @param keyValue expected results
      */
-    public static void assertResultGrid( String scenario, Grid aggregatedResultData, Map<String, Double> keyValue )
+    public static void assertResultGrid( String scenario, Grid aggregatedResultData, Map<String, Number> keyValue )
     {
         assertNotNull( "Scenario '" + scenario + "' returned null Grid", aggregatedResultData );
 
@@ -95,8 +99,8 @@ public class AnalyticsTestUtils
                 }
             }
 
-            Double expected = keyValue.get( key.toString() );
-            Double actual = Double.parseDouble( aggregatedResultData.getValue( i, numberOfDimensions ).toString() );
+            Number expected = keyValue.get( key.toString() );
+            Number actual = (Number) aggregatedResultData.getValue( i, numberOfDimensions );
 
             assertNotNull( "Scenario " + scenario + " did not find " + key + " in provided results", expected );
             assertNotNull( aggregatedResultData.getRow( i ) );
@@ -115,7 +119,7 @@ public class AnalyticsTestUtils
      * @param keyValue expected results
      */
     public static void assertResultMapping( String scenario, Map<String, Object> aggregatedResultMapping,
-        Map<String, Double> keyValue )
+        Map<String, Number> keyValue )
     {
         assertNotNull( aggregatedResultMapping );
         assertNull( aggregatedResultMapping.get( "testNull" ) );
@@ -124,8 +128,8 @@ public class AnalyticsTestUtils
         for ( Map.Entry<String, Object> entry : aggregatedResultMapping.entrySet() )
         {
             String key = entry.getKey();
-            Double expected = keyValue.get( key );
-            Double actual = (Double) entry.getValue();
+            Number expected = keyValue.get( key );
+            Number actual = (Number) entry.getValue();
 
             assertNotNull( "Scenario " + scenario + " did not find " + key + " in provided results", expected );
             assertEquals( "Scenario " + scenario + " value for " + key + " was " + actual + ", not expected "
@@ -140,18 +144,24 @@ public class AnalyticsTestUtils
      * @param aggregatedResultSet aggregated values
      * @param keyValue expected results
      */
-    public static void assertResultSet( DataValueSet aggregatedResultSet, Map<String, Double> keyValue )
+    public static void assertResultSet( DataValueSet aggregatedResultSet, Map<String, Number> keyValue )
     {
         for ( org.hisp.dhis.dxf2.datavalue.DataValue dataValue : aggregatedResultSet.getDataValues() )
         {
             String key = dataValue.getDataElement() + "-" + dataValue.getOrgUnit() + "-" + dataValue.getPeriod();
 
             assertNotNull( keyValue.get( key ) );
-            Double actual = Double.parseDouble( dataValue.getValue() );
-            Double expected = keyValue.get( key );
-
-            assertEquals( "Value for key: '" + key + "' not matching expected value: '" + expected + "'", expected,
-                actual );
+            try
+            {
+                Number actual = NumberFormat.getInstance().parse( dataValue.getValue() );
+                Number expected = keyValue.get( key );
+                assertEquals( "Value for key: '" + key + "' not matching expected value: '" + expected + "'", expected,
+                    actual );
+            }
+            catch ( ParseException e )
+            {
+                fail( format( "Failed to parse number: %s. Error: %s", dataValue.getValue(), e.getMessage() ) );
+            }
         }
     }
 }
