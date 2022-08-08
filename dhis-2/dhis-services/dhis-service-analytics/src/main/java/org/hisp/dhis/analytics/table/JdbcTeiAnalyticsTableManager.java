@@ -46,6 +46,7 @@ import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NOT_NULL;
 import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NULL;
 import static org.hisp.dhis.analytics.IndexType.GIN;
 import static org.hisp.dhis.analytics.IndexType.GIST;
+import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.EXPORTABLE_EVENT_STATUSES;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.DisplayNameUtils.getDisplayName;
 import static org.springframework.util.Assert.notNull;
@@ -362,6 +363,8 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager
             .append( " left join organisationunit ou on tei.organisationunitid = ou.organisationunitid" )
             .append( " left join _orgunitstructure ous on ous.organisationunitid = ou.organisationunitid" )
             .append( " where tei.trackedentitytypeid = " + partition.getMasterTable().getTrackedEntityType().getId() )
+            .append( " and psi.status in (" + String.join( ",", EXPORTABLE_EVENT_STATUSES ) + ")" +
+                "and psi.deleted is false " )
             .append( " group by " )
             .append( GROUP_BY_COLS.stream()
                 .map( AnalyticsTableColumn::getAlias )
