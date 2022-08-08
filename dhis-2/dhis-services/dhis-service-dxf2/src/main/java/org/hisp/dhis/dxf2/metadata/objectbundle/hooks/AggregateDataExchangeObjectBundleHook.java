@@ -88,19 +88,19 @@ public class AggregateDataExchangeObjectBundleHook
 
         Api api = exchange.getTarget().getApi();
 
+        if ( api == null )
+        {
+            addReports.accept( new ErrorReport( AggregateDataExchange.class, ErrorCode.E4000, "target.api" ) );
+        }
+
         if ( api != null && isEmpty( api.getUrl() ) )
         {
             addReports.accept( new ErrorReport( AggregateDataExchange.class, ErrorCode.E4000, "target.api.url" ) );
         }
 
-        if ( api != null && isEmpty( api.getUsername() ) )
+        if ( api != null && (!api.isAccessTokenAuth() && !api.isBasicAuth()) )
         {
-            addReports.accept( new ErrorReport( AggregateDataExchange.class, ErrorCode.E4000, "target.api.username" ) );
-        }
-
-        if ( api != null && isEmpty( api.getPassword() ) )
-        {
-            addReports.accept( new ErrorReport( AggregateDataExchange.class, ErrorCode.E4000, "target.api.password" ) );
+            addReports.accept( new ErrorReport( AggregateDataExchange.class, ErrorCode.E6305 ) );
         }
     }
 

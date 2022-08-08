@@ -307,6 +307,7 @@ public enum ErrorCode
     E6302( "Aggregate data exchange must specify at least one source request: `{0}`" ),
     E6303( "Aggregate data exchange source request must contain at least one data item, one period and one org unit" ),
     E6304( "Aggregate data exchange target API must be specified when target type is EXTERNAL" ),
+    E6305( "Aggregate data exchange target API must specify either access token or username and password" ),
 
     /* Scheduling */
     E7000( "Job of same type already scheduled with cron expression: `{0}`" ),

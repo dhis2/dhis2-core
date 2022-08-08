@@ -110,6 +110,23 @@ public class AggregateDataExchangeObjectBundleHookTest
         assertErrorCode( ErrorCode.E4000, objectBundleHook.validate( exchange, objectBundle ) );
     }
 
+    @Test
+    void testMissingTargetApiAuthentication()
+    {
+        Api api = new Api();
+        api.setUrl( "https://play.dhis2.org/demo" );
+        api.setUsername( "admin" );
+
+        Target target = new Target();
+        target.setType( TargetType.EXTERNAL );
+        target.setApi( api );
+
+        AggregateDataExchange exchange = getAggregateDataExchange( 'A' );
+        exchange.setTarget( target );
+
+        assertErrorCode( ErrorCode.E6305, objectBundleHook.validate( exchange, objectBundle ) );
+    }
+
     /**
      * Asserts that the error code is present in the list of error reports.
      *
