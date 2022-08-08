@@ -87,10 +87,10 @@ public interface ObjectBundleHook<T>
     /**
      * Hook to run custom validation code. Run before any other validation.
      *
-     * @param object Object to validate
-     * @param bundle Current validation phase bundle
-     * @param addReports a consumer for all errors identified during the
-     *        validation
+     * @param object the object to validate, not null.
+     * @param bundle the current validation phase bundle, not null.
+     * @param addReports a consumer for errors identified during the validation,
+     *        not null.
      */
     void validate( T object, ObjectBundle bundle, Consumer<ErrorReport> addReports );
 
@@ -103,10 +103,10 @@ public interface ObjectBundleHook<T>
      * collections.
      *
      * @see #validate(Object, ObjectBundle, Consumer)
-     * @param object Object to validate
-     * @param bundle Current validation phase bundle
-     * @return Empty list if not errors, if errors then populated with one or
-     *         more ErrorReports
+     * @param object the object to validate, not null.
+     * @param bundle the current validation phase bundle, not null.
+     * @return a list of potential validation errors, or empty list if
+     *         validation passed.
      */
     default List<ErrorReport> validate( T object, ObjectBundle bundle )
     {
@@ -132,7 +132,7 @@ public interface ObjectBundleHook<T>
      * {@link #getTarget()} type. It is never called for hooks with abstract
      * target type.
      *
-     * @param bundle Current commit phase bundle
+     * @param bundle the current commit phase bundle, not null.
      */
     void preCommit( ObjectBundle bundle );
 
@@ -140,10 +140,10 @@ public interface ObjectBundleHook<T>
      * Run after commit phase has finished.
      *
      * This is only called if the bundle contains objects of this hooks
-     * {@link #getTarget()} type.It is never called for hooks with abstract
+     * {@link #getTarget()} type. It is never called for hooks with abstract
      * target type.
      *
-     * @param bundle the current commit phase bundle.
+     * @param bundle the current commit phase bundle, not null.
      */
     void postCommit( ObjectBundle bundle );
 
@@ -151,9 +151,9 @@ public interface ObjectBundleHook<T>
      * Run before a type import has started. I.e. run before importing orgUnits,
      * dataElements, etc.
      *
-     * @param klass the class type of the objects.
-     * @param objects the objects.
-     * @param bundle the current commit phase bundle.
+     * @param klass the class type of the objects, not null.
+     * @param objects the objects, not null.
+     * @param bundle the current commit phase bundle, not null.
      */
     <E extends T> void preTypeImport( Class<E> klass, List<E> objects, ObjectBundle bundle );
 
@@ -161,50 +161,50 @@ public interface ObjectBundleHook<T>
      * Run after a type import has finished. I.e. run before importing orgUnits,
      * dataElements, etc.
      *
-     * @param klass the class type of the objects.
-     * @param objects the objects.
-     * @param bundle the current commit phase bundle.
+     * @param klass the class type of the objects, not null.
+     * @param objects the objects, not null.
+     * @param bundle the current commit phase bundle, not null.
      */
     <E extends T> void postTypeImport( Class<E> klass, List<E> objects, ObjectBundle bundle );
 
     /**
      * Run before object has been created.
      *
-     * @param object the object to be created.
-     * @param bundle the current commit phase bundle.
+     * @param object the object to be created, not null.
+     * @param bundle the current commit phase bundle, not null.
      */
     void preCreate( T object, ObjectBundle bundle );
 
     /**
      * Run after object has been created.
      *
-     * @param persistedObject the created object.
-     * @param bundle the current commit phase bundle.
+     * @param persistedObject the created object, not null.
+     * @param bundle the current commit phase bundle, not null.
      */
     void postCreate( T persistedObject, ObjectBundle bundle );
 
     /**
      * Run before object has been updated.
      *
-     * @param object the object to be created.
-     * @param persistedObject the created object.
-     * @param bundle the current commit phase bundle.
+     * @param object the object to be created, not null.
+     * @param persistedObject the created object, not null.
+     * @param bundle the current commit phase bundle, not null.
      */
     void preUpdate( T object, T persistedObject, ObjectBundle bundle );
 
     /**
      * Run after object has been updated.
      *
-     * @param persistedObject the created object.
-     * @param bundle the current commit phase bundle.
+     * @param persistedObject the created object, not null.
+     * @param bundle the current commit phase bundle, not null.
      */
     void postUpdate( T persistedObject, ObjectBundle bundle );
 
     /**
      * Run before object has been deleted.
      *
-     * @param persistedObject the created object.
-     * @param bundle the current commit phase bundle.
+     * @param persistedObject the created object, not null.
+     * @param bundle the current commit phase bundle, not null.
      */
     void preDelete( T persistedObject, ObjectBundle bundle );
 }
