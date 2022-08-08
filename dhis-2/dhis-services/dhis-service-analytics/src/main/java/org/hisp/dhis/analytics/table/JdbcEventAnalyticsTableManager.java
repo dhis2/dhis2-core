@@ -101,7 +101,7 @@ public class JdbcEventAnalyticsTableManager
 
     public static final String OU_GEOMETRY_COL_SUFFIX = "_geom";
 
-    public static final String[] EXPORTABLE_EVENT_STATUSES = { "'COMPLETED'", "'ACTIVE'", "'SCHEDULE'" };
+    static final String[] EXPORTABLE_EVENT_STATUSES = { "'COMPLETED'", "'ACTIVE'", "'SCHEDULE'" };
 
     public JdbcEventAnalyticsTableManager( IdentifiableObjectManager idObjectManager,
         OrganisationUnitService organisationUnitService, CategoryService categoryService,
@@ -187,7 +187,7 @@ public class JdbcEventAnalyticsTableManager
      * @return a statement that returns the date column related to the
      *         event(program stage instance) status
      */
-    private static String getDateLinkedToStatus()
+    static String getDateLinkedToStatus()
     {
         return "CASE WHEN 'SCHEDULE' = psi.status THEN psi.duedate ELSE psi.executiondate END";
     }
