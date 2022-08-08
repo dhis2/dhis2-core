@@ -940,7 +940,7 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
         assertEquals( Status.OK, report.getStatus(), report.toString() );
         assertEquals( 0, report.getErrorReportsCount() );
         assertEquals( 5, report.getStats().getCreated() );
-        assertEquals( 2, typeReport.getStats().getCreated() );
+        assertEquals( 3, typeReport.getStats().getCreated() );
 
         AggregateDataExchange aeA = manager.get( AggregateDataExchange.class, "iFOyIpQciyk" );
         assertNotNull( aeA );
@@ -955,9 +955,18 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
         assertNotNull( aeB.getTarget() );
         assertEquals( "PnWccbwCJLQ", aeB.getUid() );
         assertEquals( TargetType.EXTERNAL, aeB.getTarget().getType() );
-        assertEquals( "https://play.dhis2.org/2.38.0", aeB.getTarget().getApi().getUrl() );
+        assertEquals( "https://play.dhis2.org/2.38.1", aeB.getTarget().getApi().getUrl() );
         assertEquals( "admin", aeB.getTarget().getApi().getUsername() );
         assertNotNull( aeB.getTarget().getApi().getPassword() );
+
+        AggregateDataExchange aeC = manager.get( AggregateDataExchange.class, "VpQ4qVEseyM" );
+        assertNotNull( aeC );
+        assertNotNull( aeC.getSource() );
+        assertNotNull( aeC.getTarget() );
+        assertEquals( "VpQ4qVEseyM", aeC.getUid() );
+        assertEquals( TargetType.EXTERNAL, aeC.getTarget().getType() );
+        assertEquals( "https://play.dhis2.org/2.38.1", aeC.getTarget().getApi().getUrl() );
+        assertNotNull( aeC.getTarget().getApi().getAccessToken() );
     }
 
     private MetadataImportParams createParams( ImportStrategy importStrategy,

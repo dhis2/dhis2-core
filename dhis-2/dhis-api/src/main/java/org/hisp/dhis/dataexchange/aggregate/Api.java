@@ -54,6 +54,7 @@ public class Api
      * token is encrypted and must be decrypted before used to authenticate with
      * external systems.
      */
+    @JsonProperty
     private String accessToken;
 
     /**
