@@ -202,13 +202,8 @@ class AggregateDataExchangeServiceTest
     @Test
     void testGetDhis2ClientIllegalState()
     {
-        when( encryptor.decrypt( anyString() ) )
-            .thenReturn( "f0UulAsOUwXxkMlj6+Lzq2XbcLQCeZzuiv4QgQU1Es0=" );
-
         Api api = new Api()
-            .setUrl( "https://play.dhis2.org/demo" )
-            .setUsername( "admin" )
-            .setPassword( "district" );
+            .setUrl( "https://play.dhis2.org/demo" );
 
         Target target = new Target()
             .setType( TargetType.EXTERNAL )
