@@ -939,7 +939,7 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
         assertNotNull( typeReport );
         assertEquals( Status.OK, report.getStatus(), report.toString() );
         assertEquals( 0, report.getErrorReportsCount() );
-        assertEquals( 5, report.getStats().getCreated() );
+        assertEquals( 6, report.getStats().getCreated() );
         assertEquals( 3, typeReport.getStats().getCreated() );
 
         AggregateDataExchange aeA = manager.get( AggregateDataExchange.class, "iFOyIpQciyk" );
