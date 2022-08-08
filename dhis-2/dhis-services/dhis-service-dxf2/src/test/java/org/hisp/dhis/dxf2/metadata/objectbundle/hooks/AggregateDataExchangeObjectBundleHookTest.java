@@ -61,9 +61,20 @@ public class AggregateDataExchangeObjectBundleHookTest
     private AggregateDataExchangeObjectBundleHook objectBundleHook;
 
     @Test
-    void testValidateSuccess()
+    void testValidateSuccessA()
     {
         AggregateDataExchange exchange = getAggregateDataExchange( 'A' );
+
+        assertIsEmpty( objectBundleHook.validate( exchange, objectBundle ) );
+    }
+
+    @Test
+    void testValidateSuccessB()
+    {
+        AggregateDataExchange exchange = getAggregateDataExchange( 'A' );
+        exchange.getTarget().getApi().setAccessToken( "d2pat_fjx18dy0iB6nJybPxGSVsoagGtrXMAVn1162422595" );
+        exchange.getTarget().getApi().setUsername( null );
+        exchange.getTarget().getApi().setPassword( null );
 
         assertIsEmpty( objectBundleHook.validate( exchange, objectBundle ) );
     }
