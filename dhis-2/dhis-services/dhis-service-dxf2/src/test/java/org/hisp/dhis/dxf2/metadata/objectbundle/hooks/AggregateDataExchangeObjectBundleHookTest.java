@@ -31,6 +31,7 @@ import static org.hisp.dhis.DhisConvenienceTest.getAggregateDataExchange;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
@@ -74,6 +75,15 @@ public class AggregateDataExchangeObjectBundleHookTest
         exchange.setSource( new Source() );
 
         assertErrorCode( ErrorCode.E6302, objectBundleHook.validate( exchange, objectBundle ) );
+    }
+
+    @Test
+    void testMissingSourceDxItems()
+    {
+        AggregateDataExchange exchange = getAggregateDataExchange( 'A' );
+        exchange.getSource().getRequests().get( 0 ).setDx( new ArrayList<>() );
+
+        assertErrorCode( ErrorCode.E6303, objectBundleHook.validate( exchange, objectBundle ) );
     }
 
     @Test
