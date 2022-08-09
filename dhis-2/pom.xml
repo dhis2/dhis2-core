@@ -64,12 +64,12 @@
     <!-- *Dependencies* -->
 
     <!-- DHIS2 Rule Engine -->
-    <dhis2-rule-engine.version>2.0.39</dhis2-rule-engine.version>
+    <dhis2-rule-engine.version>2.0.41</dhis2-rule-engine.version>
 
     <!-- HISP Quick and Staxwax -->
     <dhis-hisp-quick.version>1.4.0</dhis-hisp-quick.version>
     <dhis-hisp-staxwax.version>2.0.0</dhis-hisp-staxwax.version>
-    <dhis-json-tree.version>0.3.0</dhis-json-tree.version>
+    <dhis-json-tree.version>0.4.0</dhis-json-tree.version>
 
     <!-- Security -->
     <spring-security.version>5.7.2</spring-security.version>
@@ -80,24 +80,24 @@
     <nimbus.jose.jwt.version>9.23</nimbus.jose.jwt.version>
 
     <!-- Spring -->
-    <spring.version>5.3.21</spring.version>
-    <spring-data-redis.version>2.7.1</spring-data-redis.version>
+    <spring.version>5.3.22</spring.version>
+    <spring-data-redis.version>2.7.2</spring-data-redis.version>
     <spring-session-data-redis.version>2.7.0</spring-session-data-redis.version>
     <spring-mobile-device.version>1.1.5.RELEASE</spring-mobile-device.version>
     <spring-retry.version>1.3.3</spring-retry.version>
     <spring-restdocs.version>2.0.6.RELEASE</spring-restdocs.version>
     <spring-ldap.version>2.4.1</spring-ldap.version>
     <cache2k-api.version>1.6.0.Final</cache2k-api.version>
-    <lettuce.version>6.1.8.RELEASE</lettuce.version>
+    <lettuce.version>6.2.0.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-core.version>8.5.13</flyway-core.version>
-    <hibernate.version>5.6.9.Final</hibernate.version>
-    <hibernate-types.version>2.16.2</hibernate-types.version>
+    <flyway-core.version>9.1.2</flyway-core.version>
+    <hibernate.version>5.6.10.Final</hibernate.version>
+    <hibernate-types.version>2.17.3</hibernate-types.version>
     <!-- Data sources,db pools and db drivers -->
     <c3p0.version>0.9.5.5</c3p0.version>
     <HikariCP.version>5.0.1</HikariCP.version>
-    <postgresql-driver.version>42.4.0</postgresql-driver.version>
+    <postgresql-driver.version>42.4.1</postgresql-driver.version>
     <postgis-jdbc.version>2.5.1</postgis-jdbc.version>
     <datasource-proxy.version>1.8</datasource-proxy.version>
 
@@ -125,7 +125,7 @@
     <jclouds.version>2.5.0</jclouds.version>
 
     <!-- Reporting -->
-    <jasperreports.version>6.19.1</jasperreports.version>
+    <jasperreports.version>6.20.0</jasperreports.version>
     <jfreechart.version>1.5.3</jfreechart.version>
     <htmlparser.version>2.1</htmlparser.version>
     <htmllexer.version>2.1</htmllexer.version>
@@ -137,33 +137,33 @@
     <batik-transcoder.version>1.14</batik-transcoder.version>
     <fop.version>2.7</fop.version>
     <mapstruct.version>1.5.2.Final</mapstruct.version>
-    <geotools.version>27.0</geotools.version>
-    <jts.version>1.18.2</jts.version>
+    <geotools.version>27.1</geotools.version>
+    <jts.version>1.19.0</jts.version>
 
     <!-- Apache Artemis -->
-    <artemis.version>2.23.1</artemis.version>
-    <netty-all.version>4.1.78.Final</netty-all.version>
-    <classgraph.version>4.8.147</classgraph.version>
+    <artemis.version>2.24.0</artemis.version>
+    <netty-all.version>4.1.79.Final</netty-all.version>
+    <classgraph.version>4.8.149</classgraph.version>
 
     <!-- SMS/SMPP -->
     <sms-compression.version>0.2.1.1</sms-compression.version>
     <javacsv.version>2.0</javacsv.version>
     <aerogear-otp-java.version>1.0.0</aerogear-otp-java.version>
-    <jsmpp.version>2.3.11</jsmpp.version>
+    <jsmpp.version>3.0.0</jsmpp.version>
     <json-path.version>2.7.0</json-path.version>
-    <jsoup.version>1.15.1</jsoup.version>
-    <jetty.version>10.0.10</jetty.version>
+    <jsoup.version>1.15.2</jsoup.version>
+    <jetty.version>10.0.11</jetty.version>
 
     <!-- Div. utils -->
-    <version.debezium>1.9.4.Final</version.debezium>
+    <version.debezium>1.9.5.Final</version.debezium>
     <guava.version>31.1-jre</guava.version>
     <jsr305.version>3.0.2</jsr305.version>
     <imgscalr-lib.version>4.2</imgscalr-lib.version>
-    <google-api-client.version>1.35.1</google-api-client.version>
+    <google-api-client.version>2.0.0</google-api-client.version>
     <lombok.version>1.18.24</lombok.version>
     <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
     <joda-time.version>2.10.14</joda-time.version>
-    <cron-utils.version>9.1.6</cron-utils.version>
+    <cron-utils.version>9.2.0</cron-utils.version>
     <validation-api.version>2.0.1.Final</validation-api.version>
     <hibernate-validator.version>6.2.0.Final</hibernate-validator.version>
     <commons-collections4.version>4.4</commons-collections4.version>
@@ -182,20 +182,21 @@
 
     <!-- Monitoring -->
     <micrometer-spring-legacy.version>1.3.20</micrometer-spring-legacy.version>
-    <micrometer-registry-prometheus.version>1.3.5</micrometer-registry-prometheus.version>
+    <micrometer-registry-prometheus.version>1.9.3</micrometer-registry-prometheus.version>
+    <micrometer-core.version>1.9.2</micrometer-core.version>
 
     <!-- Logging -->
-    <log4j.version>2.17.2</log4j.version>
+    <log4j.version>2.18.0</log4j.version>
     <slf4j.version>1.7.36</slf4j.version>
 
     <!-- Test -->
-    <junit.version>5.8.2</junit.version>
+    <junit.version>5.9.0</junit.version>
     <mockito.version>4.6.1</mockito.version>
     <powermock.version>2.0.9</powermock.version>
     <hamcrest.version>2.2</hamcrest.version>
     <hamcrest-date.version>2.0.8</hamcrest-date.version>
-    <testcontainers.version>1.17.2</testcontainers.version>
-    <jsonassert.version>1.5.0</jsonassert.version>
+    <testcontainers.version>1.17.3</testcontainers.version>
+    <jsonassert.version>1.5.1</jsonassert.version>
     <awaitility.version>4.2.0</awaitility.version>
     <easy-random.version>5.0.0</easy-random.version>
     <tree.version>0.2.5</tree.version>
@@ -205,7 +206,7 @@
     <!-- Maven plugin versions -->
     <maven-surefire-plugin.version>3.0.0-M7</maven-surefire-plugin.version>
     <maven-compiler-plugin.version>3.10.1</maven-compiler-plugin.version>
-    <maven-resources-plugin.version>3.2.0</maven-resources-plugin.version>
+    <maven-resources-plugin.version>3.3.0</maven-resources-plugin.version>
     <maven-failsafe-plugin.version>3.0.0-M7</maven-failsafe-plugin.version>
     <maven-javadoc-plugin.version>3.4.0</maven-javadoc-plugin.version>
     <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
@@ -214,7 +215,7 @@
     <restrict-imports-enforcer.version>2.0.0</restrict-imports-enforcer.version>
     <versions-maven-plugin.version>2.11.0</versions-maven-plugin.version>
     <dependency-check-maven.version>7.1.1</dependency-check-maven.version>
-    <spotbugs-maven-plugin.version>4.7.0.0</spotbugs-maven-plugin.version>
+    <spotbugs-maven-plugin.version>4.7.1.1</spotbugs-maven-plugin.version>
     <speedy-spotless-maven-plugin.version>0.1.3</speedy-spotless-maven-plugin.version>
     <jacoco-maven-plugin.version>0.8.8</jacoco-maven-plugin.version>
     <jrebel-x-maven-plugin.version>1.1.10</jrebel-x-maven-plugin.version>
@@ -611,7 +612,7 @@
             <dependency>
               <groupId>com.github.spotbugs</groupId>
               <artifactId>spotbugs</artifactId>
-              <version>4.7.0</version>
+              <version>4.7.1</version>
             </dependency>
           </dependencies>
           <configuration>
@@ -719,6 +720,8 @@
               <ignoredUnusedDeclaredDependency>javax.servlet:javax.servlet-api</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.apache.xmlgraphics:batik-codec</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.apache.jclouds.provider:aws-s3</ignoredUnusedDeclaredDependency>
+              <ignoredUnusedDeclaredDependency>org.testcontainers:postgresql</ignoredUnusedDeclaredDependency>
+              <ignoredUnusedDeclaredDependency>org.testcontainers:jdbc</ignoredUnusedDeclaredDependency>
               <!-- Removing makes some tests fail -->
               <ignoredUnusedDeclaredDependency>io.netty:netty-all</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.hibernate.validator:hibernate-validator</ignoredUnusedDeclaredDependency>
@@ -768,6 +771,7 @@
             <ignoredNonTestScopedDependencies>
               <!-- Setting the scope to test makes the build fail -->
               <ignoredNonTestScopedDependency>org.springframework:spring-beans</ignoredNonTestScopedDependency>
+              <ignoredNonTestScopedDependency>io.debezium:debezium-connector-postgres</ignoredNonTestScopedDependency>
             </ignoredNonTestScopedDependencies>
           </configuration>
         </plugin>
@@ -2253,6 +2257,11 @@
           </exclusion>
         </exclusions>
       </dependency>
+      <dependency>
+        <groupId>io.debezium</groupId>
+        <artifactId>debezium-connector-postgres</artifactId>
+        <version>${version.debezium}</version>
+      </dependency>
 
       <!-- Test -->
       <dependency>
@@ -2320,6 +2329,11 @@
       </dependency>
       <dependency>
         <groupId>org.testcontainers</groupId>
+        <artifactId>junit-jupiter</artifactId>
+        <version>${testcontainers.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.testcontainers</groupId>
         <artifactId>testcontainers</artifactId>
         <version>${testcontainers.version}</version>
         <exclusions>
@@ -2364,6 +2378,11 @@
         <groupId>io.micrometer</groupId>
         <artifactId>micrometer-registry-prometheus</artifactId>
         <version>${micrometer-registry-prometheus.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.micrometer</groupId>
+        <artifactId>micrometer-core</artifactId>
+        <version>${micrometer-core.version}</version>
       </dependency>
 
       <dependency>

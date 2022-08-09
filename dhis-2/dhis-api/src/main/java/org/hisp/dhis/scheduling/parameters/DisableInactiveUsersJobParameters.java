@@ -92,10 +92,10 @@ public class DisableInactiveUsersJobParameters implements JobParameters
             return Optional.of(
                 new ErrorReport( getClass(), ErrorCode.E4008, "inactiveMonths", 1, 24, inactiveMonths ) );
         }
-        if ( reminderDaysBefore != null && (reminderDaysBefore < 1 || reminderDaysBefore > 24) )
+        if ( reminderDaysBefore != null && (reminderDaysBefore < 1 || reminderDaysBefore > 28) )
         {
             return Optional.of(
-                new ErrorReport( getClass(), ErrorCode.E4008, "reminderDaysBefore", 1, 24, reminderDaysBefore ) );
+                new ErrorReport( getClass(), ErrorCode.E4008, "reminderDaysBefore", 1, 28, reminderDaysBefore ) );
         }
         return Optional.empty();
     }

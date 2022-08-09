@@ -136,7 +136,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
         String id = run( SomeUserId::new );
         JsonError error = PATCH( "/users/" + id + "?importReportMode=ERRORS",
             "[{'op': 'add', 'path': '/email', 'value': 'Not-valid'}]" ).error();
-        assertEquals( "Property `email` requires a valid email address, was given `Not-valid`.",
+        assertEquals( "Property `email` requires a valid email address, was given `Not-valid`",
             error.getTypeReport().getErrorReports().get( 0 ).getMessage() );
     }
 
@@ -170,7 +170,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
             "{'translations': [{'locale':'sv', 'property':'name', 'value':'name sv'}]}" )
                 .content( HttpStatus.NO_CONTENT );
 
-        JsonResponse content = GET( "/dataSets/{id}", id ).content();
+        GET( "/dataSets/{id}", id ).content();
 
         translations = GET( "/dataSets/{id}/translations", id ).content().getArray( "translations" );
         assertEquals( 1, translations.size() );
@@ -226,7 +226,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
         JsonErrorReport error = message.find( JsonErrorReport.class,
             report -> report.getErrorCode() == ErrorCode.E4000 );
 
-        assertEquals( "Missing required property `value`.",
+        assertEquals( "Missing required property `value`",
             error.getMessage() );
     }
 
@@ -245,7 +245,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
         JsonErrorReport error = message.find( JsonErrorReport.class,
             report -> report.getErrorCode() == ErrorCode.E4000 );
 
-        assertEquals( "Missing required property `property`.",
+        assertEquals( "Missing required property `property`",
             error.getMessage() );
     }
 
@@ -264,7 +264,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
         JsonErrorReport error = message.find( JsonErrorReport.class,
             report -> report.getErrorCode() == ErrorCode.E4000 );
 
-        assertEquals( "Missing required property `locale`.",
+        assertEquals( "Missing required property `locale`",
             error.getMessage() );
     }
 

@@ -72,6 +72,7 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.EventAnalyticalObject;
 import org.hisp.dhis.common.EventDataQueryRequest;
+import org.hisp.dhis.common.FallbackCoordinateFieldType;
 import org.hisp.dhis.common.GroupableItem;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -229,7 +230,8 @@ public class DefaultEventDataQueryService
             .withTimeField( request.getTimeField() )
             .withOrgUnitField( new OrgUnitField( request.getOrgUnitField() ) )
             .withCoordinateField( getCoordinateField( request.getCoordinateField() ) )
-            .withFallbackCoordinateField( getFallbackCoordinateField( request.getFallbackCoordinateField() ) )
+            .withFallbackCoordinateField(
+                getFallbackCoordinateField( request.getFallbackCoordinateField(), request.getProgram() ) )
             .withHeaders( request.getHeaders() )
             .withPage( request.getPage() )
             .withPageSize( request.getPageSize() )
@@ -436,14 +438,45 @@ public class DefaultEventDataQueryService
     }
 
     @Override
-    public String getFallbackCoordinateField( String fallbackCoordinateField )
+    public String getFallbackCoordinateField( String fallbackCoordinateField, String program )
     {
-        return fallbackCoordinateField == null ? "ougeometry" : fallbackCoordinateField;
+        if ( FallbackCoordinateFieldType.TEI_GEOMETRY.getValue().equals( fallbackCoordinateField )
+            && !programService.getProgram( program ).isRegistration() )
+        {
+            return getDefaultFallbackCoordinateFields( program );
+        }
+
+        return fallbackCoordinateField != null ? fallbackCoordinateField
+            : getDefaultFallbackCoordinateFields( program );
     }
 
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
+
+    private String getDefaultFallbackCoordinateFields( String program )
+    {
+        Program prg = programService.getProgram( program );
+
+        if ( prg != null && prg.isRegistration() )
+        {
+            return String.join( ",", List.of(
+                // fallback priority
+                FallbackCoordinateFieldType.PSI_GEOMETRY.getValue(),
+                FallbackCoordinateFieldType.PI_GEOMETRY.getValue(),
+                // only present for registration programs
+                FallbackCoordinateFieldType.TEI_GEOMETRY.getValue(),
+                FallbackCoordinateFieldType.OU_GEOMETRY.getValue() ) );
+        }
+        else
+        {
+            return String.join( ",", List.of(
+                // fallback priority
+                FallbackCoordinateFieldType.PSI_GEOMETRY.getValue(),
+                FallbackCoordinateFieldType.PI_GEOMETRY.getValue(),
+                FallbackCoordinateFieldType.OU_GEOMETRY.getValue() ) );
+        }
+    }
 
     private String getCoordinateField( String coordinateField, String defaultEventCoordinateField )
     {

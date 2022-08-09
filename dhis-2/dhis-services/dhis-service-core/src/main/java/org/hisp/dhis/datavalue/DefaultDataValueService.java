@@ -166,11 +166,11 @@ public class DefaultDataValueService
         {
             dataValue.setLastUpdated( new Date() );
 
-            DataValueAudit dataValueAudit = new DataValueAudit( dataValue, dataValue.getAuditValue(),
-                dataValue.getStoredBy(), AuditType.UPDATE );
-
             if ( config.isEnabled( CHANGELOG_AGGREGATE ) )
             {
+                DataValueAudit dataValueAudit = new DataValueAudit( dataValue, dataValue.getAuditValue(),
+                    dataValue.getStoredBy(), AuditType.UPDATE );
+
                 dataValueAuditService.addDataValueAudit( dataValueAudit );
             }
 
@@ -195,11 +195,11 @@ public class DefaultDataValueService
     @Transactional
     public void deleteDataValue( DataValue dataValue )
     {
-        DataValueAudit dataValueAudit = new DataValueAudit( dataValue, dataValue.getAuditValue(),
-            currentUserService.getCurrentUsername(), AuditType.DELETE );
-
         if ( config.isEnabled( CHANGELOG_AGGREGATE ) )
         {
+            DataValueAudit dataValueAudit = new DataValueAudit( dataValue, dataValue.getAuditValue(),
+                currentUserService.getCurrentUsername(), AuditType.DELETE );
+
             dataValueAuditService.addDataValueAudit( dataValueAudit );
         }
 

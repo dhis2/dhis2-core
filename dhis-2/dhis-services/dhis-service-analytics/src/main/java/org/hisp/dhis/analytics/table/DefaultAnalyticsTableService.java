@@ -177,7 +177,8 @@ public class DefaultAnalyticsTableService
     {
         Set<String> tables = tableManager.getExistingDatabaseTables();
 
-        tables.forEach( tableManager::dropTableCascade );
+        tables.stream()
+            .forEach( tableManager::dropTableCascade );
 
         log.info( "Analytics tables dropped" );
     }

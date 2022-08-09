@@ -49,6 +49,7 @@ import static org.hisp.dhis.feedback.ErrorCode.E7133;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 import static org.postgresql.util.PSQLState.DIVISION_BY_ZERO;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -65,6 +66,7 @@ import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.ProgramIndicatorSubqueryBuilder;
+import org.hisp.dhis.analytics.util.AnalyticsSqlUtils;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -284,7 +286,9 @@ public class JdbcEventAnalyticsManager
         else
         {
             quotedClusterFieldFraction = "coalesce(" + quoteAlias( params.getCoordinateField() ) + ","
-                + quoteAlias( fallback ) + ")";
+                + Arrays.stream( fallback.split( "," ) ).map( AnalyticsSqlUtils::quoteAlias )
+                    .collect( joining( "," ) )
+                + ")";
         }
 
         String sql = "select count(psi) as " + COL_COUNT +
@@ -531,11 +535,7 @@ public class JdbcEventAnalyticsManager
         {
             if ( params.isCoordinateOuFallback() )
             {
-                sql += hlp.whereAnd() + " (" +
-                    quoteAlias( resolveCoordinateFieldColumnName( params.getCoordinateField(), params ) ) +
-                    " is not null or " +
-                    quoteAlias( resolveCoordinateFieldColumnName( params.getFallbackCoordinateField(), params ) ) +
-                    " is not null )";
+                sql += hlp.whereAnd() + " (" + getSqlSnippetForFallbackCoordinateFields( params ) + ")";
             }
             else
             {
@@ -595,6 +595,26 @@ public class JdbcEventAnalyticsManager
             .stream()
             .map( org -> toInCondition( org, collect.get( org ) ) )
             .collect( joining( " and " ) );
+    }
+
+    /**
+     * The method produces a snippet like this: ax."psigeometry" is not null or
+     * ax."pigeometry" is NOT NULL or ax."ougeometry" is NOT NULL
+     *
+     * @param params
+     * @return
+     */
+    private String getSqlSnippetForFallbackCoordinateFields( EventQueryParams params )
+    {
+        if ( params.getFallbackCoordinateField() == null )
+        {
+            return StringUtils.EMPTY;
+        }
+
+        return Arrays.stream( params.getFallbackCoordinateField().split( "," ) )
+            .map( f -> quoteAlias( resolveCoordinateFieldColumnName( f, params ) ) +
+                " is not null" )
+            .collect( joining( " or " ) );
     }
 
     private String toInCondition( String org, List<OrganisationUnit> organisationUnits )

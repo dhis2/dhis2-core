@@ -311,7 +311,7 @@ public class DbChangeEventHandler
     {
         if ( log.isDebugEnabled() )
         {
-            log.debug( String.format( "Handling external event! "
+            log.debug( String.format( "Evicting entity due to external event! "
                 + "txId=%s, totalTxId=%s, operation=%s, entityClasses=%s, entityId=%s",
                 txId, knownTransactionsService.size(), operation, printEntityTableValue( entityClasses ), entityId ) );
         }
@@ -324,16 +324,23 @@ public class DbChangeEventHandler
             // Make sure queries will re-fetch to capture the new object.
             queryCacheManager.evictQueryCache( sessionFactory.getCache(), firstEntityClass );
             paginationCacheManager.evictCache( firstEntityClass.getName() );
-            evictCollections( entityClasses, entityId );
-
             // Try to fetch the new entity, so it might get cached.
             tryFetchNewEntity( entityId, firstEntityClass );
         }
-        else if ( operation == Envelope.Operation.UPDATE
-            || operation == Envelope.Operation.DELETE
-            || operation == Envelope.Operation.TRUNCATE )
+        else if ( operation == Envelope.Operation.UPDATE )
         {
             sessionFactory.getCache().evict( firstEntityClass, entityId );
+        }
+        else if ( operation == Envelope.Operation.DELETE
+            || operation == Envelope.Operation.TRUNCATE )
+        {
+            queryCacheManager.evictQueryCache( sessionFactory.getCache(), firstEntityClass );
+            paginationCacheManager.evictCache( firstEntityClass.getName() );
+            sessionFactory.getCache().evict( firstEntityClass, entityId );
+        }
+
+        if ( operation != Envelope.Operation.MESSAGE )
+        {
             evictCollections( entityClasses, entityId );
         }
     }

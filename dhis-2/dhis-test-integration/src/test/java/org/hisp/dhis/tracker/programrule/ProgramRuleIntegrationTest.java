@@ -27,10 +27,17 @@
  */
 package org.hisp.dhis.tracker.programrule;
 
-import static org.hisp.dhis.tracker.Assertions.assertNoImportErrors;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasProperty;
+import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 
 import org.hisp.dhis.dataelement.DataElement;
@@ -87,8 +94,13 @@ class ProgramRuleIntegrationTest extends TrackerTest
         ProgramRule programRuleA = createProgramRule( 'A', program );
         programRuleA.setUid( "ProgramRule" );
         programRuleService.addProgramRule( programRuleA );
+        ProgramRule errorProgramRule = createProgramRule( 'E', program );
+        errorProgramRule.setCondition( "ERROR" );
+        errorProgramRule.setUid( "ProgramRulE" );
+        programRuleService.addProgramRule( errorProgramRule );
         ProgramRule programRuleC = createProgramRule( 'C', program );
         programRuleC.setUid( "ProgramRulC" );
+        programRuleC.setCondition( "d2:daysBetween('2019-01-28', d2:lastEventDate('ProgramRuleVariableA')) < 5" );
         programRuleService.addProgramRule( programRuleC );
         ProgramRule programRuleWithoutRegistration = createProgramRule( 'W', programWithoutRegistration );
         programRuleService.addProgramRule( programRuleWithoutRegistration );
@@ -99,6 +111,10 @@ class ProgramRuleIntegrationTest extends TrackerTest
         programRuleActionShowWarning.setProgramRuleActionType( ProgramRuleActionType.SHOWWARNING );
         programRuleActionShowWarning.setContent( "WARNING" );
         programRuleActionService.addProgramRuleAction( programRuleActionShowWarning );
+        ProgramRuleAction programRuleActionError = createProgramRuleAction( 'E', errorProgramRule );
+        programRuleActionError.setProgramRuleActionType( ProgramRuleActionType.SHOWERROR );
+        programRuleActionError.setContent( "ERROR" );
+        programRuleActionService.addProgramRuleAction( programRuleActionError );
         ProgramRuleAction anotherProgramRuleActionShowWarning = createProgramRuleAction( 'D',
             programRuleWithoutRegistration );
         anotherProgramRuleActionShowWarning.setProgramRuleActionType( ProgramRuleActionType.SHOWWARNING );
@@ -115,6 +131,8 @@ class ProgramRuleIntegrationTest extends TrackerTest
         programRuleActionService.addProgramRuleAction( programRuleActionShowWarningForProgramStage );
         programRuleA.getProgramRuleActions().add( programRuleActionShowWarning );
         programRuleService.updateProgramRule( programRuleA );
+        errorProgramRule.getProgramRuleActions().add( programRuleActionError );
+        programRuleService.updateProgramRule( errorProgramRule );
         programRuleC.getProgramRuleActions().add( programRuleActionAssign );
         programRuleService.updateProgramRule( programRuleC );
         programRuleWithoutRegistration.getProgramRuleActions().add( anotherProgramRuleActionShowWarning );
@@ -132,8 +150,30 @@ class ProgramRuleIntegrationTest extends TrackerTest
         TrackerImportReport trackerImportReport = trackerImportService
             .importTracker( fromJson( "tracker/program_event.json" ) );
 
-        assertNoImportErrors( trackerImportReport );
+        assertNoErrors( trackerImportReport );
         assertEquals( 1, trackerImportReport.getValidationReport().getWarnings().size() );
+    }
+
+    @Test
+    void testImportProgramEventWithFutureDate()
+        throws IOException
+    {
+        TrackerImportParams params = fromJson( "tracker/tei_enrollment_event.json" );
+        params.getEvents().clear();
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
+
+        assertNoErrors( trackerImportReport );
+
+        params = fromJson( "tracker/tei_enrollment_event.json" );
+        params.getTrackedEntities().clear();
+        params.getEnrollments().clear();
+
+        Instant oneWeekFromNow = LocalDateTime.now().plusWeeks( 1 ).toInstant( ZoneOffset.UTC );
+        params.getEvents().forEach( e -> e.setOccurredAt( oneWeekFromNow ) );
+        trackerImportReport = trackerImportService.importTracker( params );
+
+        assertNoErrors( trackerImportReport );
+        assertEquals( 3, trackerImportReport.getValidationReport().getWarnings().size() );
     }
 
     @Test
@@ -142,13 +182,13 @@ class ProgramRuleIntegrationTest extends TrackerTest
     {
         TrackerImportReport trackerImportTeiReport = trackerImportService
             .importTracker( fromJson( "tracker/single_tei.json" ) );
-        assertNoImportErrors( trackerImportTeiReport );
+        assertNoErrors( trackerImportTeiReport );
 
         TrackerImportReport trackerImportEnrollmentReport = trackerImportService
             .importTracker( fromJson( "tracker/single_enrollment.json" ) );
 
-        assertNoImportErrors( trackerImportEnrollmentReport );
-        assertEquals( 1, trackerImportEnrollmentReport.getValidationReport().getWarnings().size() );
+        assertNoErrors( trackerImportEnrollmentReport );
+        assertEquals( 2, trackerImportEnrollmentReport.getValidationReport().getWarnings().size() );
     }
 
     @Test
@@ -159,12 +199,12 @@ class ProgramRuleIntegrationTest extends TrackerTest
 
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
 
-        assertNoImportErrors( trackerImportReport );
+        assertNoErrors( trackerImportReport );
         List<TrackerWarningReport> warningReports = trackerImportReport.getValidationReport().getWarnings();
-        assertEquals( 4, warningReports.size() );
-        assertEquals( 3,
+        assertEquals( 6, warningReports.size() );
+        assertEquals( 4,
             warningReports.stream().filter( w -> w.getTrackerType().equals( TrackerType.EVENT ) ).count() );
-        assertEquals( 1,
+        assertEquals( 2,
             warningReports.stream().filter( w -> w.getTrackerType().equals( TrackerType.ENROLLMENT ) ).count() );
 
         params = fromJson( "tracker/event_update_no_datavalue.json" );
@@ -172,25 +212,25 @@ class ProgramRuleIntegrationTest extends TrackerTest
 
         trackerImportReport = trackerImportService.importTracker( params );
 
-        assertNoImportErrors( trackerImportReport );
+        assertNoErrors( trackerImportReport );
         warningReports = trackerImportReport.getValidationReport().getWarnings();
-        assertEquals( 3, warningReports.size() );
-        assertEquals( TrackerErrorCode.E1308, warningReports.get( 0 ).getWarningCode() );
-        assertEquals(
-            "Generated by program rule (`ProgramRulC`) - DataElement `DATAEL00001` is being replaced in event `EVENT123456`",
-            warningReports.get( 0 ).getWarningMessage() );
+        assertEquals( 4, warningReports.size() );
+        assertThat( trackerImportReport.getValidationReport().getWarnings(),
+            hasItem( hasProperty( "warningCode", equalTo( TrackerErrorCode.E1308 ) ) ) );
+        assertThat( trackerImportReport.getValidationReport().getWarnings(), hasItem( hasProperty( "message", equalTo(
+            "Generated by program rule (`ProgramRulC`) - DataElement `DATAEL00001` is being replaced in event `EVENT123456`" ) ) ) );
 
         params = fromJson( "tracker/event_update_datavalue.json" );
         params.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
 
         trackerImportReport = trackerImportService.importTracker( params );
 
-        assertNoImportErrors( trackerImportReport );
+        assertNoErrors( trackerImportReport );
         warningReports = trackerImportReport.getValidationReport().getWarnings();
-        assertEquals( 3, warningReports.size() );
-        assertEquals( TrackerErrorCode.E1308, warningReports.get( 0 ).getWarningCode() );
-        assertEquals(
-            "Generated by program rule (`ProgramRulC`) - DataElement `DATAEL00001` is being replaced in event `EVENT123456`",
-            warningReports.get( 0 ).getWarningMessage() );
+        assertEquals( 4, warningReports.size() );
+        assertThat( trackerImportReport.getValidationReport().getWarnings(),
+            hasItem( hasProperty( "warningCode", equalTo( TrackerErrorCode.E1308 ) ) ) );
+        assertThat( trackerImportReport.getValidationReport().getWarnings(), hasItem( hasProperty( "message", equalTo(
+            "Generated by program rule (`ProgramRulC`) - DataElement `DATAEL00001` is being replaced in event `EVENT123456`" ) ) ) );
     }
 }

@@ -29,9 +29,12 @@ package org.hisp.dhis.datavalue;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionComboStore;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -53,11 +56,20 @@ public class DefaultDataValueAuditService
 
     private final DataValueAuditStore dataValueAuditStore;
 
-    public DefaultDataValueAuditService( DataValueAuditStore dataValueAuditStore )
+    private final DataValueStore dataValueStore;
+
+    private final CategoryOptionComboStore categoryOptionComboStore;
+
+    public DefaultDataValueAuditService( DataValueAuditStore dataValueAuditStore, DataValueStore dataValueStore,
+        CategoryOptionComboStore categoryOptionComboStore )
     {
         checkNotNull( dataValueAuditStore );
+        checkNotNull( dataValueStore );
+        checkNotNull( categoryOptionComboStore );
 
         this.dataValueAuditStore = dataValueAuditStore;
+        this.dataValueStore = dataValueStore;
+        this.categoryOptionComboStore = categoryOptionComboStore;
     }
 
     // -------------------------------------------------------------------------
@@ -98,8 +110,50 @@ public class DefaultDataValueAuditService
         OrganisationUnit organisationUnit, CategoryOptionCombo categoryOptionCombo,
         CategoryOptionCombo attributeOptionCombo )
     {
-        return dataValueAuditStore.getDataValueAudits( List.of( dataElement ), List.of( period ),
-            List.of( organisationUnit ), categoryOptionCombo, attributeOptionCombo, null );
+        List<DataValueAudit> dataValueAudits = new ArrayList<>();
+        List<DataValueAudit> audits = new ArrayList<>();
+
+        CategoryOptionCombo defaultCoc = categoryOptionComboStore
+            .getByName( CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME );
+
+        DataValue dataValue = dataValueStore.getDataValue( dataElement, period, organisationUnit,
+            categoryOptionCombo, defaultCoc );
+
+        // if for whatever reason the DV is null, we just return a empty list
+        if ( dataValue == null )
+        {
+            return audits;
+        }
+
+        DataValueAudit currentDataValueAudit = new DataValueAudit( dataValue, dataValue.getValue(),
+            dataValue.getStoredBy(), AuditType.UPDATE );
+
+        // inject current data value into audit list
+        dataValueAudits.add( currentDataValueAudit );
+
+        dataValueAudits.addAll( dataValueAuditStore.getDataValueAudits( List.of( dataElement ), List.of( period ),
+            List.of( organisationUnit ), categoryOptionCombo, attributeOptionCombo, null ) );
+
+        for ( int i = 0; i < dataValueAudits.size(); i++ )
+        {
+            DataValueAudit dva = dataValueAudits.get( i );
+            DataValueAudit dataValueAudit = DataValueAudit.from( dva );
+            audits.add( dataValueAudit );
+
+            if ( i < dataValueAudits.size() - 1 )
+            {
+                dataValueAudit.setCreated( dataValueAudits.get( i + 1 ).getCreated() );
+                dataValueAudit.setModifiedBy( dataValueAudits.get( i + 1 ).getModifiedBy() );
+            }
+            else if ( i == dataValueAudits.size() - 1 )
+            {
+                dataValueAudit.setAuditType( AuditType.CREATE );
+                dataValueAudit.setCreated( dataValue.getCreated() );
+                dataValueAudit.setModifiedBy( dataValue.getStoredBy() );
+            }
+        }
+
+        return audits;
     }
 
     @Override

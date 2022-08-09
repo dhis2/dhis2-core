@@ -114,7 +114,7 @@ public class HibernateUserStore
     {
         super.save( user, clearSharing );
 
-        currentUserService.invalidateUserGroupCache( user.getUsername() );
+        currentUserService.invalidateUserGroupCache( user.getUid() );
     }
 
     @Override
@@ -535,12 +535,12 @@ public class HibernateUserStore
     }
 
     @Override
-    public CurrentUserGroupInfo getCurrentUserGroupInfo( User user )
+    public CurrentUserGroupInfo getCurrentUserGroupInfo( String userUID )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
         CriteriaQuery<Object[]> query = builder.createQuery( Object[].class );
         Root<User> root = query.from( User.class );
-        query.where( builder.equal( root.get( "id" ), user.getId() ) );
+        query.where( builder.equal( root.get( "uid" ), userUID ) );
         query.select( builder.array( root.get( "uid" ), root.join( "groups", JoinType.LEFT ).get( "uid" ) ) );
 
         Session session = getSession();
@@ -550,7 +550,7 @@ public class HibernateUserStore
 
         if ( CollectionUtils.isEmpty( results ) )
         {
-            currentUserGroupInfo.setUserUID( user.getUid() );
+            currentUserGroupInfo.setUserUID( userUID );
             return currentUserGroupInfo;
         }
 
@@ -591,6 +591,21 @@ public class HibernateUserStore
             "from User u " +
             "left outer join UserSetting s on u.id = s.user and s.name = 'keyUiLocale' " +
             "where u.email is not null and u.disabled = false and u.lastLogin >= :from and u.lastLogin < :to";
+        return toLocaleMap( hql, from, to );
+    }
+
+    @Override
+    public Map<String, Optional<Locale>> findNotifiableUsersWithPasswordLastUpdatedBetween( Date from, Date to )
+    {
+        String hql = "select u.email, s.value " +
+            "from User u " +
+            "left outer join UserSetting s on u.id = s.user and s.name = 'keyUiLocale' " +
+            "where u.email is not null and u.disabled = false and u.passwordLastUpdated >= :from and u.passwordLastUpdated < :to";
+        return toLocaleMap( hql, from, to );
+    }
+
+    private Map<String, Optional<Locale>> toLocaleMap( String hql, Date from, Date to )
+    {
         return getSession().createQuery( hql, Object[].class )
             .setParameter( "from", from )
             .setParameter( "to", to )
@@ -600,6 +615,7 @@ public class HibernateUserStore
     }
 
     @Override
+    @SuppressWarnings( "unchecked" )
     public String getDisplayName( String userUid )
     {
         String sql = "select concat(firstname, ' ', surname) from userinfo where uid =:uid";

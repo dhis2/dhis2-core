@@ -104,6 +104,19 @@ public class DataValueAudit
         this.auditType = auditType;
     }
 
+    public static DataValueAudit from( DataValueAudit dataValueAudit )
+    {
+        return new DataValueAudit(
+            dataValueAudit.getDataElement(),
+            dataValueAudit.getPeriod(),
+            dataValueAudit.getOrganisationUnit(),
+            dataValueAudit.getCategoryOptionCombo(),
+            dataValueAudit.getAttributeOptionCombo(),
+            dataValueAudit.getValue(),
+            dataValueAudit.getModifiedBy(),
+            dataValueAudit.getAuditType() );
+    }
+
     @Override
     public int hashCode()
     {

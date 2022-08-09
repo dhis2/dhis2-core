@@ -301,13 +301,13 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         final JsonPatch patch = jsonMapper.readValue( request.getInputStream(), JsonPatch.class );
         final T patchedObject = jsonPatchManager.apply( patch, persistedObject );
 
-        // we don't allow changing IDs
+        // Do not allow changing IDs
         ((BaseIdentifiableObject) patchedObject).setId( persistedObject.getId() );
 
-        // we don't allow changing UIDs
+        // Do not allow changing UIDs
         ((BaseIdentifiableObject) patchedObject).setUid( persistedObject.getUid() );
 
-        // Only supports new Sharing format
+        // Only support new sharing format
         ((BaseIdentifiableObject) patchedObject).clearLegacySharingCollections();
 
         prePatchEntity( persistedObject, patchedObject );

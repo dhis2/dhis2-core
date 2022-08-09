@@ -31,15 +31,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
-import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.OrgUnitField;
 import org.hisp.dhis.analytics.QueryValidator;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
-import org.hisp.dhis.analytics.event.EventQueryValidator;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueType;
@@ -50,17 +48,17 @@ import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.joda.time.DateTime;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
 
@@ -68,7 +66,7 @@ import com.google.common.collect.Lists;
  * @author Lars Helge Overland
  */
 @ExtendWith( MockitoExtension.class )
-class EventQueryValidatorTest extends DhisSpringTest
+class EventQueryValidatorTest extends DhisConvenienceTest
 {
 
     private Program prA;
@@ -99,30 +97,20 @@ class EventQueryValidatorTest extends DhisSpringTest
 
     private OptionSet osA;
 
-    @Autowired
-    private IdentifiableObjectManager idObjectManager;
-
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
-
     @Mock
     private SystemSettingManager systemSettingManager;
 
     @Mock
-    private QueryValidator aggregateQueryValidator;
+    private QueryValidator queryValidator;
 
-    private EventQueryValidator queryValidator;
+    @InjectMocks
+    private DefaultEventQueryValidator eventQueryValidator;
 
-    @Override
+    @BeforeEach
     public void setUpTest()
     {
-        queryValidator = new DefaultEventQueryValidator( aggregateQueryValidator, systemSettingManager );
-
         prA = createProgram( 'A' );
         prB = createProgram( 'B' );
-
-        idObjectManager.save( prA );
-        idObjectManager.save( prB );
 
         deA = createDataElement( 'A', ValueType.INTEGER, AggregationType.SUM, DataElementDomain.TRACKER );
         deB = createDataElement( 'B', ValueType.INTEGER, AggregationType.SUM, DataElementDomain.TRACKER );
@@ -132,33 +120,16 @@ class EventQueryValidatorTest extends DhisSpringTest
             DataElementDomain.TRACKER );
         deE = createDataElement( 'E', ValueType.COORDINATE, AggregationType.NONE, DataElementDomain.TRACKER );
 
-        idObjectManager.save( deA );
-        idObjectManager.save( deB );
-        idObjectManager.save( deC );
-        idObjectManager.save( deD );
-        idObjectManager.save( deE );
-
         atA = createTrackedEntityAttribute( 'A' );
         atB = createTrackedEntityAttribute( 'B' );
-
-        idObjectManager.save( atA );
-        idObjectManager.save( atB );
 
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B', ouA );
         ouC = createOrganisationUnit( 'C', ouA );
 
-        organisationUnitService.addOrganisationUnit( ouA );
-        organisationUnitService.addOrganisationUnit( ouB );
-        organisationUnitService.addOrganisationUnit( ouC );
-
         lsA = createLegendSet( 'A' );
 
-        idObjectManager.save( lsA );
-
         osA = new OptionSet( "OptionSetA", ValueType.TEXT );
-
-        idObjectManager.save( osA );
     }
 
     @Test
@@ -170,7 +141,7 @@ class EventQueryValidatorTest extends DhisSpringTest
             .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
             .withOrganisationUnits( Lists.newArrayList( ouA ) ).build();
 
-        queryValidator.validate( params );
+        eventQueryValidator.validate( params );
     }
 
     @Test
@@ -183,7 +154,7 @@ class EventQueryValidatorTest extends DhisSpringTest
             .withOrganisationUnits( Lists.newArrayList( ouA ) )
             .withTimeField( TimeField.INCIDENT_DATE.name() ).build();
 
-        queryValidator.validate( params );
+        eventQueryValidator.validate( params );
     }
 
     @Test
@@ -198,7 +169,7 @@ class EventQueryValidatorTest extends DhisSpringTest
             .addItem( new QueryItem( deA, prB, null, ValueType.TEXT, AggregationType.NONE, null ) )
             .build();
 
-        queryValidator.validate( params );
+        eventQueryValidator.validate( params );
     }
 
     @Test
@@ -213,7 +184,7 @@ class EventQueryValidatorTest extends DhisSpringTest
             .addItem( new QueryItem( deA, prA, null, ValueType.TEXT, AggregationType.NONE, null ) )
             .build();
 
-        ErrorMessage error = queryValidator.validateForErrorMessage( params );
+        ErrorMessage error = eventQueryValidator.validateForErrorMessage( params );
 
         assertEquals( ErrorCode.E7202, error.getErrorCode() );
     }
@@ -235,7 +206,7 @@ class EventQueryValidatorTest extends DhisSpringTest
             .withProgram( prA )
             .withOrganisationUnits( Lists.newArrayList( ouB ) ).build();
 
-        ErrorMessage error = queryValidator.validateForErrorMessage( params );
+        ErrorMessage error = eventQueryValidator.validateForErrorMessage( params );
 
         assertEquals( ErrorCode.E7205, error.getErrorCode() );
     }
@@ -289,7 +260,7 @@ class EventQueryValidatorTest extends DhisSpringTest
             .withOrganisationUnits( Lists.newArrayList( ouB ) )
             .withPage( -2 ).build();
 
-        ErrorMessage error = queryValidator.validateForErrorMessage( params );
+        ErrorMessage error = eventQueryValidator.validateForErrorMessage( params );
 
         assertEquals( ErrorCode.E7207, error.getErrorCode() );
     }
@@ -304,7 +275,7 @@ class EventQueryValidatorTest extends DhisSpringTest
             .withOrganisationUnits( Lists.newArrayList( ouB ) )
             .withPageSize( -1 ).build();
 
-        ErrorMessage error = queryValidator.validateForErrorMessage( params );
+        ErrorMessage error = eventQueryValidator.validateForErrorMessage( params );
 
         assertEquals( ErrorCode.E7208, error.getErrorCode() );
     }
@@ -322,7 +293,7 @@ class EventQueryValidatorTest extends DhisSpringTest
             .withOrganisationUnits( Lists.newArrayList( ouB ) )
             .withLimit( 200 ).build();
 
-        ErrorMessage error = queryValidator.validateForErrorMessage( params );
+        ErrorMessage error = eventQueryValidator.validateForErrorMessage( params );
 
         assertEquals( ErrorCode.E7209, error.getErrorCode() );
     }
@@ -339,7 +310,7 @@ class EventQueryValidatorTest extends DhisSpringTest
             .withFallbackCoordinateField( "ougeometryx" )
             .build();
 
-        ErrorMessage error = queryValidator.validateForErrorMessage( params );
+        ErrorMessage error = eventQueryValidator.validateForErrorMessage( params );
 
         assertEquals( ErrorCode.E7228, error.getErrorCode() );
     }
@@ -355,7 +326,7 @@ class EventQueryValidatorTest extends DhisSpringTest
             .withCoordinateField( deE.getUid() )
             .withClusterSize( -3L ).build();
 
-        ErrorMessage error = queryValidator.validateForErrorMessage( params );
+        ErrorMessage error = eventQueryValidator.validateForErrorMessage( params );
 
         assertEquals( ErrorCode.E7212, error.getErrorCode() );
     }
@@ -369,7 +340,8 @@ class EventQueryValidatorTest extends DhisSpringTest
      */
     private void assertValidatonError( final ErrorCode errorCode, final EventQueryParams params )
     {
-        IllegalQueryException ex = assertThrows( IllegalQueryException.class, () -> queryValidator.validate( params ) );
+        IllegalQueryException ex = assertThrows( IllegalQueryException.class,
+            () -> eventQueryValidator.validate( params ) );
         assertEquals( errorCode, ex.getErrorCode() );
     }
 }

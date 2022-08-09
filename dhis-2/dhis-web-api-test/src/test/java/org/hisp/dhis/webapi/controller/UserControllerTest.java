@@ -256,4 +256,76 @@ class UserControllerTest extends DhisControllerConvenienceTest
         assertTrue( messagesByEmail.size() > 0 );
         return messagesByEmail.get( 0 );
     }
+
+    @Test
+    void testDisable2FAIllegalSameUser()
+    {
+        switchContextToUser( this.peter );
+        assertEquals( "You don't have the proper permissions to update this user.",
+            PUT( "/37/users/" + peter.getUid(), "{\"userCredentials\":{\"twoFA\":true}}" ).error( HttpStatus.FORBIDDEN )
+                .getMessage() );
+    }
+
+    @Test
+    void testDisable2FAFailNotAllowedByExecutingUser()
+    {
+        User superUser = getSuperUser();
+        switchContextToUser( superUser );
+
+        JsonObject user = GET( "/users/{uid}", superUser.getUid() ).content();
+        String userJson = user.toString();
+
+        String twoFAOn = userJson.replaceAll( "\"twoFA\":false", "\"twoFA\":true" );
+
+        assertEquals( "You can not enable 2FA with this API endpoint, only disable.",
+            PUT( "/37/users/" + superUser.getUid(), twoFAOn ).error( HttpStatus.FORBIDDEN )
+                .getMessage() );
+    }
+
+    @Test
+    void testDisable2FAFailNotAllowedByExecutingUserB()
+    {
+        // Manually enable 2FA for the new user
+        User newUser = makeUser( "X", List.of( "ALL" ) );
+        newUser.setEmail( "valid@email.com" );
+        newUser.setTwoFA( true );
+        userService.addUser( newUser );
+
+        switchContextToUser( newUser );
+
+        JsonObject user = GET( "/users/{uid}", newUser.getUid() ).content();
+        String userJson = user.toString();
+
+        String twoFAOn = userJson.replaceAll( "\"twoFA\":true", "\"twoFA\":false" );
+
+        assertEquals(
+            "User cannot update their own user's 2FA settings via this API endpoint, must use /2fa/enable or disable API",
+            PUT( "/37/users/" + newUser.getUid(), twoFAOn ).error( HttpStatus.FORBIDDEN )
+                .getMessage() );
+    }
+
+    @Test
+    void testDisable2FAFailNotAllowedByExecutingUserA()
+    {
+        // Manually enable 2FA for the new user
+        User newUser = makeUser( "X", List.of( "TEST" ) );
+        newUser.setEmail( "valid@email.com" );
+        newUser.setTwoFA( true );
+        userService.addUser( newUser );
+
+        User superUser = getSuperUser();
+        switchContextToUser( superUser );
+
+        JsonObject user = GET( "/users/{uid}", newUser.getUid() ).content();
+        String userJson = user.toString();
+
+        String twoFAOn = userJson.replaceAll( "\"twoFA\":true", "\"twoFA\":false" );
+
+        JsonImportSummary summary = PUT( "/37/users/" + newUser.getUid(), twoFAOn ).content( HttpStatus.OK )
+            .as( JsonImportSummary.class );
+        assertEquals( "ImportReport", summary.getResponseType() );
+        assertEquals( "OK", summary.getStatus() );
+        assertEquals( 1, summary.getStats().getUpdated() );
+        assertEquals( newUser.getUid(), summary.getTypeReports().get( 0 ).getObjectReports().get( 0 ).getUid() );
+    }
 }
