@@ -25,33 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataexchange.client;
+package org.hisp.dhis.dataexchange.client.auth;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
-import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpHeaders;
 
-class Dhis2ConfigTest
+@Getter
+@RequiredArgsConstructor
+public class CookieAuthentication
+    implements Authentication
 {
-    @Test
-    void testNullConstructorArgument()
-    {
-        assertThrows( NullPointerException.class, () -> new Dhis2Config(
-            null, "admin", "district" ) );
-        assertThrows( NullPointerException.class, () -> new Dhis2Config(
-            "https://play.dhis2.org/2.38.0", null, "district" ) );
-    }
+    @NonNull
+    private final String sessionId;
 
-    @Test
-    void testGetResolvedUriBuilder()
+    @Override
+    public HttpHeaders withAuthentication( HttpHeaders headers )
     {
-        Dhis2Config config = new Dhis2Config(
-            "https://play.dhis2.org/2.38.0", "admin", "district" );
-
-        assertEquals( "https://play.dhis2.org/2.38.0/api/dataValueSets",
-            config.getResolvedUriBuilder( "dataValueSets" ).build().toUriString() );
-        assertEquals( "https://play.dhis2.org/2.38.0/api/system/info",
-            config.getResolvedUriBuilder( "system/info" ).build().toUriString() );
+        String value = String.format( "JSESSIONID=%s", sessionId );
+        headers.set( HttpHeaders.COOKIE, value );
+        return headers;
     }
 }

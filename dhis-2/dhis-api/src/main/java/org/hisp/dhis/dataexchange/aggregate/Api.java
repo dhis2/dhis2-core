@@ -34,6 +34,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -47,15 +49,57 @@ public class Api
     @JsonProperty
     private String url;
 
+    /**
+     * Access token. For Personal Access Token (PAT) authentication. The access
+     * token is encrypted and must be decrypted before used to authenticate with
+     * external systems.
+     */
+    @JsonProperty
+    private String accessToken;
+
+    /**
+     * Username. For basic authentication.
+     */
     @JsonProperty
     private String username;
 
     /**
-     * The password is encrypted and must be decrypted before used to
-     * authenticate with external systems.
+     * Password. For basic authentication. The password is encrypted and must be
+     * decrypted before used to authenticate with external systems.
      */
     @JsonProperty
     private String password;
+
+    /**
+     * Indicates if API is configured for access token based authentication.
+     *
+     * @return true if API is configured for access token based authentication.
+     */
+    @JsonIgnore
+    public boolean isAccessTokenAuth()
+    {
+        return StringUtils.isNotBlank( accessToken );
+    }
+
+    /**
+     * Indicates if API is configured for basic authentication.
+     *
+     * @return true if API is configured for basic authentication.
+     */
+    @JsonIgnore
+    public boolean isBasicAuth()
+    {
+        return StringUtils.isNoneBlank( username, password );
+    }
+
+    /**
+     * Do not expose access token.
+     */
+    @JsonIgnore
+    public String getAccessToken()
+    {
+        return accessToken;
+    }
 
     /**
      * Do not expose password.

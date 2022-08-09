@@ -46,7 +46,6 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dataexchange.client.Dhis2Client;
-import org.hisp.dhis.dataexchange.client.Dhis2Config;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
@@ -277,13 +276,23 @@ public class AggregateDataExchangeService
      *
      * @param exchange the {@link AggregateDataExchange}.
      * @return a {@link Dhis2Client}.
+     * @throws IllegalStateException
      */
     Dhis2Client getDhis2Client( AggregateDataExchange exchange )
     {
         Api api = exchange.getTarget().getApi();
 
-        String password = api.getPassword() != null ? encryptor.decrypt( api.getPassword() ) : null;
+        if ( api.isAccessTokenAuth() )
+        {
+            return Dhis2Client.withAccessTokenAuth(
+                api.getUrl(), encryptor.decrypt( api.getAccessToken() ) );
+        }
+        else if ( api.isBasicAuth() )
+        {
+            return Dhis2Client.withBasicAuth(
+                api.getUrl(), api.getUsername(), encryptor.decrypt( api.getPassword() ) );
+        }
 
-        return new Dhis2Client( new Dhis2Config( api.getUrl(), api.getUsername(), password ) );
+        throw new IllegalStateException( "DHIS 2 client authentication not configured" );
     }
 }
