@@ -55,6 +55,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.i18n.I18nFormat;
+import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.jasypt.encryption.pbe.PBEStringCleanablePasswordEncryptor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -128,7 +129,7 @@ class AggregateDataExchangeServiceTest
             .setSource( source )
             .setTarget( target );
 
-        ImportSummaries summaries = service.exchangeData( exchange );
+        ImportSummaries summaries = service.exchangeData( exchange, NoopJobProgress.INSTANCE );
 
         assertNotNull( summaries );
         assertEquals( 1, summaries.getImportSummaries().size() );

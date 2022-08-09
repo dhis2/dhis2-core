@@ -64,17 +64,12 @@ public class AggregateDataExchangeJob implements Job
 
         List<String> dataExchangeIds = params.getDataExchangeIds();
         progress.startingProcess( format( "Aggregate data exchange of %d exchange(s)", dataExchangeIds.size() ) );
+        ImportSummaries allSummaries = new ImportSummaries();
         for ( String dataExchangeId : dataExchangeIds )
         {
-            progress.startingStage( "data exchange " + dataExchangeId, JobProgress.FailurePolicy.SKIP_STAGE );
-            progress.runStage( () -> runDataExchange( config, dataExchangeId ) );
+            allSummaries.addImportSummaries( dataExchangeService.exchangeData( dataExchangeId, progress ) );
         }
+        notifier.addJobSummary( config, NotificationLevel.INFO, allSummaries, ImportSummaries.class );
         progress.completedProcess( null );
-    }
-
-    private void runDataExchange( JobConfiguration config, String dataExchangeId )
-    {
-        ImportSummaries summaries = dataExchangeService.exchangeData( dataExchangeId );
-        notifier.addJobSummary( config, NotificationLevel.INFO, summaries, ImportSummaries.class );
     }
 }

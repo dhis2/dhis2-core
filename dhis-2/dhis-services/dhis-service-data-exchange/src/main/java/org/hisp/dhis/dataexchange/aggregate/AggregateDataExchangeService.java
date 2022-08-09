@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.dataexchange.aggregate;
 
+import static java.lang.String.format;
+import static java.lang.String.join;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
@@ -51,6 +53,8 @@ import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.scheduling.JobProgress.FailurePolicy;
 import org.jasypt.encryption.pbe.PBEStringCleanablePasswordEncryptor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -91,30 +95,38 @@ public class AggregateDataExchangeService
      * Runs the analytics data exchange with the given identifier.
      *
      * @param uid the {@link AggregateDataExchange} identifier.
+     * @param progress {@link JobProgress} to track progress when running in a
+     *        job context
      * @return an {@link ImportSummaries}.
      */
-    public ImportSummaries exchangeData( String uid )
+    public ImportSummaries exchangeData( String uid, JobProgress progress )
     {
         AggregateDataExchange exchange = aggregateDataExchangeStore.loadByUid( uid );
 
-        return exchangeData( exchange );
+        return exchangeData( exchange, progress );
     }
 
     /**
      * Runs the given analytics data exchange.
      *
-     * @param uid the {@link AggregateDataExchange}.
+     * @param exchange the {@link AggregateDataExchange}.
+     * @param progress {@link JobProgress} to track progress when running in a
+     *        job context
      * @return an {@link ImportSummaries}.
      */
-    public ImportSummaries exchangeData( AggregateDataExchange exchange )
+    public ImportSummaries exchangeData( AggregateDataExchange exchange, JobProgress progress )
     {
         ImportSummaries summaries = new ImportSummaries();
 
-        exchange.getSource().getRequests()
-            .forEach( request -> summaries.addImportSummary( exchangeData( exchange, request ) ) );
-
-        log.info( "Aggregate data exchange completed: '{}', type: '{}'",
-            exchange.getUid(), exchange.getTarget().getType() );
+        progress.startingStage( format( "exchange aggregate data %s to %s target %s", exchange.getName(),
+            exchange.getTarget().getType().name().toLowerCase(), exchange.getTarget().getApi().getUrl() ),
+            FailurePolicy.SKIP_ITEM );
+        progress.runStage( exchange.getSource().getRequests().stream(),
+            request -> format( "dx: %s; pe: %s; ou: %s", join( ",", request.getDx() ), join( ",", request.getPe() ),
+                join( ",", request.getOu() ) ),
+            request -> summaries.addImportSummary( exchangeData( exchange, request ) ),
+            ( success, failed ) -> format( "Aggregate data exchange completed (%d/%d): '%s', type: '%s'",
+                success, (success + failed), exchange.getUid(), exchange.getTarget().getType() ) );
 
         return summaries;
     }
