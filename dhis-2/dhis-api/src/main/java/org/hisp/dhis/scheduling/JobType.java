@@ -149,6 +149,15 @@ public enum JobType
         this.relativeApiElements = relativeApiElements;
     }
 
+    /**
+     * @return when true, general information on job progress should be logged
+     *         on debug level, otherwise when false it is logged on info level
+     */
+    public boolean isDefaultLogLevelDebug()
+    {
+        return this == LEADER_ELECTION;
+    }
+
     public boolean isUsingNotifications()
     {
         return this == RESOURCE_TABLE
