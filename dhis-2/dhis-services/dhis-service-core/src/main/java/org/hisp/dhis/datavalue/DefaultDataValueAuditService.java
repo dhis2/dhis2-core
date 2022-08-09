@@ -110,8 +110,8 @@ public class DefaultDataValueAuditService
         OrganisationUnit organisationUnit, CategoryOptionCombo categoryOptionCombo,
         CategoryOptionCombo attributeOptionCombo )
     {
-        List<DataValueAudit> persistedAudits = new ArrayList<>();
         List<DataValueAudit> dataValueAudits = new ArrayList<>();
+        List<DataValueAudit> audits = new ArrayList<>();
 
         CategoryOptionCombo defaultCoc = categoryOptionComboStore
             .getByName( CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME );
@@ -122,26 +122,30 @@ public class DefaultDataValueAuditService
         // if for whatever reason the DV is null, we just return a empty list
         if ( dataValue == null )
         {
-            return dataValueAudits;
+            return audits;
         }
 
         DataValueAudit currentDataValueAudit = new DataValueAudit( dataValue, dataValue.getValue(),
             dataValue.getStoredBy(), AuditType.UPDATE );
-        currentDataValueAudit.setCreated( dataValue.getLastUpdated() );
-        currentDataValueAudit.setModifiedBy( dataValue.getStoredBy() );
 
-        persistedAudits.add( currentDataValueAudit );
+        // inject current data value into audit list
+        dataValueAudits.add( currentDataValueAudit );
 
-        persistedAudits.addAll( dataValueAuditStore.getDataValueAudits( List.of( dataElement ), List.of( period ),
+        dataValueAudits.addAll( dataValueAuditStore.getDataValueAudits( List.of( dataElement ), List.of( period ),
             List.of( organisationUnit ), categoryOptionCombo, attributeOptionCombo, null ) );
 
-        for ( int i = 0; i < persistedAudits.size(); i++ )
+        for ( int i = 0; i < dataValueAudits.size(); i++ )
         {
-            DataValueAudit dva = persistedAudits.get( i );
+            DataValueAudit dva = dataValueAudits.get( i );
             DataValueAudit dataValueAudit = DataValueAudit.from( dva );
-            dataValueAudits.add( dataValueAudit );
+            audits.add( dataValueAudit );
 
-            if ( i == persistedAudits.size() - 1 )
+            if ( i < dataValueAudits.size() - 1 )
+            {
+                dataValueAudit.setCreated( dataValueAudits.get( i + 1 ).getCreated() );
+                dataValueAudit.setModifiedBy( dataValueAudits.get( i + 1 ).getModifiedBy() );
+            }
+            else if ( i == dataValueAudits.size() - 1 )
             {
                 dataValueAudit.setAuditType( AuditType.CREATE );
                 dataValueAudit.setCreated( dataValue.getCreated() );
@@ -149,7 +153,7 @@ public class DefaultDataValueAuditService
             }
         }
 
-        return dataValueAudits;
+        return audits;
     }
 
     @Override
