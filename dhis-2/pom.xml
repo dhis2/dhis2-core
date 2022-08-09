@@ -37,7 +37,6 @@
     <module>dhis-web-embedded-jetty</module>
     <module>dhis-test-coverage</module>
     <module>dhis-test-integration</module>
-    <module>dhis-web</module>
   </modules>
 
   <properties>
