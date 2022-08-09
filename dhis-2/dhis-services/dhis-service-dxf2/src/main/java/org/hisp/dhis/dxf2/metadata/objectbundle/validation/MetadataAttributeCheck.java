@@ -33,9 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
@@ -80,11 +78,8 @@ public class MetadataAttributeCheck implements ObjectValidationCheck
             return;
         }
 
-        Set<Attribute> attributes = bundle.getPreheat().getAttributesByClass( klass );
-
-        Map<String, ValueType> valueTypesMap = attributes != null && !attributes.isEmpty()
+        Map<String, Attribute> attributesMap = bundle.getPreheat().getAttributesByClass( klass ) != null
             ? bundle.getPreheat().getAttributesByClass( klass )
-                .stream().collect( Collectors.toMap( Attribute::getUid, Attribute::getValueType ) )
             : Map.of();
 
         for ( T object : objects )
@@ -97,7 +92,7 @@ public class MetadataAttributeCheck implements ObjectValidationCheck
             List<ErrorReport> errorReports = new ArrayList<>();
 
             object.getAttributeValues()
-                .forEach( av -> getValueType( av.getAttribute().getUid(), valueTypesMap, klass.getSimpleName(),
+                .forEach( av -> getValueType( av.getAttribute().getUid(), attributesMap, klass.getSimpleName(),
                     errorReports::add )
                         .ifPresent( type -> attributeValidator.validate( type, av.getValue(),
                             errorReports::add ) ) );
@@ -122,16 +117,16 @@ public class MetadataAttributeCheck implements ObjectValidationCheck
      * @param addError Consumer for {@link ErrorReport} if any.
      * @return {@link ValueType} if exists otherwise {@link Optional#empty()}
      */
-    private Optional<ValueType> getValueType( String attributeId, Map<String, ValueType> valueTypeMap, String klassName,
+    private Optional<ValueType> getValueType( String attributeId, Map<String, Attribute> valueTypeMap, String klassName,
         Consumer<ErrorReport> addError )
     {
-        ValueType type = valueTypeMap.get( attributeId );
-        if ( type == null )
+        Attribute attribute = valueTypeMap.get( attributeId );
+        if ( attribute == null )
         {
             addError.accept( new ErrorReport( Attribute.class, ErrorCode.E6012, attributeId, klassName ) );
             return Optional.empty();
         }
 
-        return Optional.of( type );
+        return Optional.of( attribute.getValueType() );
     }
 }
