@@ -56,6 +56,7 @@ public class Constants
 
     public static Program TRACKER_PROGRAM = new Program()
         .setUid( "f1AyMswryyQ" )
+        .setTrackedEntityType( Constants.TRACKED_ENTITY_TYPE )
         .setProgramStages( Arrays.asList( "PaOOjwLVW23", "nlXNK4b7LVr" ) );
 
     public static String TRACKER_PROGRAM_ID = "f1AyMswryyQ"; // todo: remove and

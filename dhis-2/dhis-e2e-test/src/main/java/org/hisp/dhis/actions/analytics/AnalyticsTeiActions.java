@@ -25,54 +25,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dto;
+package org.hisp.dhis.actions.analytics;
 
-import java.util.List;
+import org.hisp.dhis.actions.RestApiActions;
+import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.QueryParamsBuilder;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class Program
+public class AnalyticsTeiActions
+    extends RestApiActions
 {
-    private String uid;
-
-    private List<String> programStages;
-
-    private String trackedEntityType;
-
-    public String getUid()
+    public AnalyticsTeiActions()
     {
-        return uid;
+        super( "/analytics/trackedEntities" );
     }
 
-    public Program setUid( String uid )
+    public AnalyticsTeiActions( String endpoint )
     {
-        this.uid = uid;
-
-        return this;
+        super( "/analytics/trackedEntities" + endpoint );
     }
 
-    public List<String> getProgramStages()
+    public AnalyticsTeiActions query()
     {
-        return programStages;
+        return new AnalyticsTeiActions( "/query" );
     }
 
-    public Program setProgramStages( List<String> programStages )
+    public ApiResponse getDimensions( String trackedEntityType )
     {
-        this.programStages = programStages;
-
-        return this;
+        return getDimensions( trackedEntityType, null );
     }
 
-    public String getTrackedEntityType()
+    public ApiResponse getDimensions( String trackedEntityType, QueryParamsBuilder queryParams )
     {
-        return trackedEntityType;
-    }
+        if ( queryParams == null )
+        {
+            queryParams = new QueryParamsBuilder();
+        }
 
-    public Program setTrackedEntityType( String trackedEntityType )
-    {
-        this.trackedEntityType = trackedEntityType;
+        queryParams.add( "trackedEntityType", trackedEntityType );
 
-        return this;
+        return this.get( "/dimensions", queryParams );
     }
 }
