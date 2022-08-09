@@ -167,6 +167,31 @@ public class QueryFilter
         return "'" + encodedFilter + "'";
     }
 
+    public String getSqlBindFilter()
+    {
+        if ( LIKE == operator || NLIKE == operator || ILIKE == operator || NILIKE == operator )
+        {
+            return "%" + this.filter + "%";
+        }
+        else if ( EQ == operator || NE == operator || NEQ == operator || IEQ == operator || NIEQ == operator )
+        {
+            if ( this.filter.equals( NV ) )
+            {
+                return "null";
+            }
+        }
+        else if ( SW == operator )
+        {
+            return this.filter + "%";
+        }
+        else if ( EW == operator )
+        {
+            return "%" + this.filter + "";
+        }
+
+        return this.filter;
+    }
+
     public String getSqlFilter( final String encodedFilter, final ValueType valueType )
     {
         final String sqlFilter = getSqlFilter( encodedFilter );

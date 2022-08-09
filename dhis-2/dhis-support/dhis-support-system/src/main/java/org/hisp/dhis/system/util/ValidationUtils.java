@@ -112,6 +112,8 @@ public class ValidationUtils
         "commit", "copy", "create", "createdb", "createrole", "createuser", "close", "delete", "destroy", "drop",
         "escape", "insert", "select", "rename", "replace", "restore", "return", "update", "when", "write" );
 
+    private static final Pattern GENERIC_PHONE_NUMBER = Pattern.compile( "^[0-9+\\(\\)#\\.\\s\\/ext-]{6,50}$" );
+
     /**
      * Validates whether a filter expression contains malicious code such as SQL
      * injection attempts.
@@ -844,5 +846,17 @@ public class ValidationUtils
     public static boolean validateInternationalPhoneNumber( String phoneNumber )
     {
         return INTERNATIONAL_PHONE_PATTERN.matcher( phoneNumber ).matches();
+    }
+
+    /**
+     * Validate a phone number using a generic rule which should be applicable
+     * for any countries.
+     *
+     * @param string phone number for checking.
+     * @return TRUE if given string is a phone number otherwise FALSE
+     */
+    public static boolean isPhoneNumber( String string )
+    {
+        return GENERIC_PHONE_NUMBER.matcher( string ).matches();
     }
 }

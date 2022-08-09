@@ -188,6 +188,94 @@
       "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
+    },
+    {
+      "lastUpdated": "2020-05-31T11:41:22.404",
+      "id": "DATAEL00005",
+      "created": "2020-05-31T08:58:48.406",
+      "name": "with-option-set",
+      "shortName": "with-option-set",
+      "aggregationType": "SUM",
+      "domainType": "TRACKER",
+      "publicAccess": "rw------",
+      "valueType": "TEXT",
+      "zeroIsSignificant": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "optionSet": {
+        "id": "VWzgQENmzPK"
+      },
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": [],
+      "aggregationLevels": []
+    }
+  ],
+  "options": [
+    {
+      "attributeValues": [],
+      "code": "option1",
+      "displayFormName": "option1",
+      "displayName": "option1",
+      "externalAccess": false,
+      "favorite": false,
+      "favorites": [],
+      "id": "IHYwYAtvjCY",
+      "name": "option1",
+      "optionSet": {
+        "id": "VWzgQENmzPK"
+      },
+      "sortOrder": 3,
+      "userAccesses": [],
+      "userGroupAccesses": []
+    },
+    {
+      "attributeValues": [],
+      "code": "option2",
+      "displayFormName": "option2",
+      "displayName": "option2",
+      "externalAccess": false,
+      "favorite": false,
+      "favorites": [],
+      "id": "HxFNfoxk7ac",
+      "name": "option2",
+      "optionSet": {
+        "id": "VWzgQENmzPK"
+      },
+      "sortOrder": 4,
+      "userAccesses": [],
+      "userGroupAccesses": []
+    }
+  ],
+  "optionSets": [
+    {
+      "attributeValues": [],
+      "code": "options",
+      "displayName": "options",
+      "externalAccess": false,
+      "favorite": false,
+      "favorites": [],
+      "id": "VWzgQENmzPK",
+      "name": "options",
+      "options": [
+        {
+          "id": "IHYwYAtvjCY"
+        },
+        {
+          "id": "HxFNfoxk7ac"
+        }
+      ],
+      "publicAccess": "rw------",
+      "userAccesses": [],
+      "userGroupAccesses": [],
+      "valueType": "TEXT",
+      "version": 5
     }
   ],
   "userGroups": [
@@ -223,7 +311,7 @@
       "name": "test-program-stage",
       "allowGenerateNextVisit": false,
       "preGenerateUID": false,
-      "publicAccess": "--------",
+      "publicAccess": "rwrw----",
       "description": "test-program-stage",
       "openAfterEnrollment": false,
       "repeatable": true,
@@ -382,6 +470,39 @@
           },
           "dataElement": {
             "id": "DATAEL00004"
+          },
+          "favorites": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
+        },
+        {
+          "lastUpdated": "2019-01-28T11:23:20.855",
+          "id": "PSDE0000005",
+          "created": "2019-01-28T11:23:20.855",
+          "displayInReports": false,
+          "skipSynchronization": false,
+          "externalAccess": false,
+          "renderOptionsAsRadio": false,
+          "allowFutureDate": false,
+          "compulsory": false,
+          "allowProvidedElsewhere": false,
+          "sortOrder": 1,
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "programStage": {
+            "id": "NpsdDv6kKSO"
+          },
+          "dataElement": {
+            "id": "DATAEL00005"
           },
           "favorites": [],
           "translations": [],

@@ -101,7 +101,7 @@ public class JdbcEventAnalyticsTableManager
 
     public static final String OU_GEOMETRY_COL_SUFFIX = "_geom";
 
-    private static final String[] EXPORTABLE_EVENT_STATUSES = { "'COMPLETED'", "'ACTIVE'", "'SCHEDULE'" };
+    public static final String[] EXPORTABLE_EVENT_STATUSES = { "'COMPLETED'", "'ACTIVE'", "'SCHEDULE'" };
 
     public JdbcEventAnalyticsTableManager( IdentifiableObjectManager idObjectManager,
         OrganisationUnitService organisationUnitService, CategoryService categoryService,

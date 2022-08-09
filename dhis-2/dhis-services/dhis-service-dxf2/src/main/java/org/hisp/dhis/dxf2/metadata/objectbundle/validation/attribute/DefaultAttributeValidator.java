@@ -46,7 +46,7 @@ import org.springframework.stereotype.Component;
 /**
  * Validate {@link AttributeValue} using series of predefined validator function
  * such as {@link NumberCheck}, {@link DateCheck}, {@link TextCheck},
- * {@link EntityCheck}, {@link UserCheck}
+ * {@link EntityCheck}, {@link UserCheck}.
  *
  * @author viet
  */
@@ -66,6 +66,7 @@ public class DefaultAttributeValidator implements AttributeValidator
         new SimpleImmutableEntry<>( ValueType.INTEGER_ZERO_OR_POSITIVE, NumberCheck.isZeroOrPositiveInteger ),
         new SimpleImmutableEntry<>( ValueType.PERCENTAGE, NumberCheck.isPercentage ),
         new SimpleImmutableEntry<>( ValueType.UNIT_INTERVAL, NumberCheck.isUnitInterval ),
+        new SimpleImmutableEntry<>( ValueType.PHONE_NUMBER, NumberCheck.isPhoneNumber ),
         new SimpleImmutableEntry<>( ValueType.DATE, DateCheck.isDate ),
         new SimpleImmutableEntry<>( ValueType.DATETIME, DateCheck.isDateTime ),
         new SimpleImmutableEntry<>( ValueType.BOOLEAN, TextCheck.isBoolean ),
@@ -76,7 +77,7 @@ public class DefaultAttributeValidator implements AttributeValidator
         new SimpleImmutableEntry<>( ValueType.ORGANISATION_UNIT, EntityCheck.isOrganisationUnitExist ),
         new SimpleImmutableEntry<>( ValueType.FILE_RESOURCE, EntityCheck.isFileResourceExist ) );
 
-    private final Map<ValueType, UserCheck> mapUserCheck = Map.ofEntries(
+    private final Map<ValueType, UserCheck.Function> mapUserCheck = Map.ofEntries(
         new SimpleImmutableEntry<>( ValueType.USERNAME, UserCheck.isUserNameExist ) );
 
     /**

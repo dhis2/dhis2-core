@@ -37,6 +37,7 @@ import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.QUERY_MODS_ID_SEPARATOR;
 import static org.hisp.dhis.dataelement.DataElementOperand.TotalType;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
+import static org.hisp.dhis.system.util.MathUtils.getRounded;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 import static org.springframework.util.Assert.isTrue;
 
@@ -93,7 +94,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.grid.ListGrid;
-import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.util.DateUtils;
 import org.joda.time.DateTime;
 import org.springframework.util.Assert;
@@ -240,16 +240,21 @@ public class AnalyticsUtils
         }
         else
         {
-            return MathUtils.getRounded( value );
+            return getRounded( value );
         }
     }
 
     /**
      * Rounds a value. If the given parameters has skip rounding, the value is
-     * returned unchanged. If the given number is null or not of class Double,
+     * returned unchanged. If the given number is null or not of type Double,
      * the value is returned unchanged. If skip rounding is specified in the
      * given data query parameters, 10 decimals is used. Otherwise, default
      * rounding is used.
+     *
+     * If the given value is of type Double and ends with one or more decimal
+     * "0" (ie.: "125.0", "2355.000", etc.) a long value will be returned,
+     * forcing the removal of all decimal "0". The resulting value for the
+     * previous example would be, respectively, "125" and "2355".
      *
      * @param params the query parameters.
      * @param value the value.
@@ -266,7 +271,34 @@ public class AnalyticsUtils
             return Precision.round( (Double) value, DECIMALS_NO_ROUNDING );
         }
 
-        return MathUtils.getRounded( (Double) value );
+        final Double rounded = getRounded( (Double) value );
+
+        if ( endsWithZeroAsDecimal( rounded ) )
+        {
+            return rounded.longValue();
+        }
+
+        return rounded;
+    }
+
+    /**
+     * This method simply checks if the given double value (positive or
+     * negative) has one or more "0" as decimal digits. ie.:
+     *
+     * 25.0 -> true
+     *
+     * -232.0000 -> true
+     *
+     * 133.25 -> false
+     *
+     * -1045.00000001 -> false
+     *
+     * @param value
+     * @return true if the value has "0" as decimal digits, false otherwise
+     */
+    public static boolean endsWithZeroAsDecimal( final double value )
+    {
+        return ((value * 10) % 10 == 0);
     }
 
     /**

@@ -48,8 +48,8 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dashboard.Dashboard;
-import org.hisp.dhis.dataexchange.analytics.AnalyticsDataExchange;
-import org.hisp.dhis.dataexchange.analytics.TargetType;
+import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
+import org.hisp.dhis.dataexchange.aggregate.TargetType;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
@@ -926,35 +926,47 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testImportAnalyticsDataExchange()
+    void testImportAggregateDataExchange()
         throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/analytics_data_exchange.json" ).getInputStream(), RenderFormat.JSON );
+            new ClassPathResource( "dxf2/aggregate_data_exchange.json" ).getInputStream(), RenderFormat.JSON );
         MetadataImportParams params = createParams( ImportStrategy.CREATE_AND_UPDATE, metadata );
         ImportReport report = importService.importMetadata( params );
-        TypeReport typeReport = report.getTypeReport( AnalyticsDataExchange.class );
+        TypeReport typeReport = report.getTypeReport( AggregateDataExchange.class );
 
         assertNotNull( report.getStats() );
         assertNotNull( typeReport );
-        assertEquals( Status.OK, report.getStatus() );
+        assertEquals( Status.OK, report.getStatus(), report.toString() );
         assertEquals( 0, report.getErrorReportsCount() );
-        assertEquals( 5, report.getStats().getCreated() );
-        assertEquals( 2, typeReport.getStats().getCreated() );
+        assertEquals( 6, report.getStats().getCreated() );
+        assertEquals( 3, typeReport.getStats().getCreated() );
 
-        AnalyticsDataExchange aeA = manager.get( AnalyticsDataExchange.class, "iFOyIpQciyk" );
+        AggregateDataExchange aeA = manager.get( AggregateDataExchange.class, "iFOyIpQciyk" );
         assertNotNull( aeA );
         assertNotNull( aeA.getSource() );
         assertNotNull( aeA.getTarget() );
         assertEquals( "iFOyIpQciyk", aeA.getUid() );
         assertEquals( TargetType.INTERNAL, aeA.getTarget().getType() );
 
-        AnalyticsDataExchange aeB = manager.get( AnalyticsDataExchange.class, "PnWccbwCJLQ" );
+        AggregateDataExchange aeB = manager.get( AggregateDataExchange.class, "PnWccbwCJLQ" );
         assertNotNull( aeB );
         assertNotNull( aeB.getSource() );
         assertNotNull( aeB.getTarget() );
         assertEquals( "PnWccbwCJLQ", aeB.getUid() );
         assertEquals( TargetType.EXTERNAL, aeB.getTarget().getType() );
+        assertEquals( "https://play.dhis2.org/2.38.1", aeB.getTarget().getApi().getUrl() );
+        assertEquals( "admin", aeB.getTarget().getApi().getUsername() );
+        assertNotNull( aeB.getTarget().getApi().getPassword() );
+
+        AggregateDataExchange aeC = manager.get( AggregateDataExchange.class, "VpQ4qVEseyM" );
+        assertNotNull( aeC );
+        assertNotNull( aeC.getSource() );
+        assertNotNull( aeC.getTarget() );
+        assertEquals( "VpQ4qVEseyM", aeC.getUid() );
+        assertEquals( TargetType.EXTERNAL, aeC.getTarget().getType() );
+        assertEquals( "https://play.dhis2.org/2.38.1", aeC.getTarget().getApi().getUrl() );
+        assertNotNull( aeC.getTarget().getApi().getAccessToken() );
     }
 
     private MetadataImportParams createParams( ImportStrategy importStrategy,
