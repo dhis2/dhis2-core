@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.analytics.table;
 
+import static com.google.common.collect.Lists.newArrayList;
+import static java.lang.String.join;
 import static java.util.Collections.emptyList;
 import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_EVENTS;
 import static org.hisp.dhis.analytics.ColumnDataType.BOOLEAN;
@@ -43,15 +45,23 @@ import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NOT_NULL;
 import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NULL;
 import static org.hisp.dhis.analytics.IndexType.GIST;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.EXPORTABLE_EVENT_STATUSES;
+import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.getDateLinkedToStatus;
+import static org.hisp.dhis.analytics.table.PartitionUtils.getEndDate;
+import static org.hisp.dhis.analytics.table.PartitionUtils.getStartDate;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.DisplayNameUtils.getDisplayName;
+import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
+import static org.hisp.dhis.resourcetable.ResourceTable.FIRST_YEAR_SUPPORTED;
+import static org.hisp.dhis.resourcetable.ResourceTable.LATEST_YEAR_SUPPORTED;
+import static org.hisp.dhis.util.DateUtils.getLongDateString;
+import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 import static org.springframework.util.Assert.notNull;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
@@ -60,14 +70,15 @@ import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
+import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
-import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -186,17 +197,66 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
     public List<AnalyticsTable> getAnalyticsTables( AnalyticsTableUpdateParams params )
     {
         List<Program> programs = idObjectManager.getAllNoAcl( Program.class );
+        List<TrackedEntityType> trackedEntityTypes = trackedEntityTypeService.getAllTrackedEntityType();
+        Calendar calendar = PeriodType.getCalendar();
 
-        return trackedEntityTypeService.getAllTrackedEntityType()
-            .stream()
-            .map( tet -> new AnalyticsTable( getAnalyticsTableType(), getTableColumns( programs, tet ),
-                emptyList(), tet ) )
-            .collect( Collectors.toList() );
+        List<AnalyticsTable> tables = new ArrayList<>();
+
+        for ( TrackedEntityType tet : trackedEntityTypes )
+        {
+            List<Integer> dataYears = getDataYears( params, tet );
+
+            Collections.sort( dataYears );
+
+            AnalyticsTable table = new AnalyticsTable( getAnalyticsTableType(), getTableColumns( programs, tet ),
+                newArrayList(), tet );
+
+            for ( Integer year : dataYears )
+            {
+                table.addPartitionTable( year, getStartDate( calendar, year ), getEndDate( calendar, year ) );
+            }
+
+            if ( table.hasPartitionTables() )
+            {
+                tables.add( table );
+            }
+        }
+
+        return tables;
+    }
+
+    private List<Integer> getDataYears( AnalyticsTableUpdateParams params, TrackedEntityType tet )
+    {
+        StringBuilder sql = new StringBuilder( "select temp.supportedyear from" )
+            .append( " (select distinct extract(year from " + getDateLinkedToStatus() + ") as supportedyear " )
+            .append( " from trackedentityinstance tei " )
+            .append( " inner join trackedentitytype tet on tet.trackedentitytypeid = tei.trackedentitytypeid " )
+            .append( " inner join programinstance pi on pi.trackedentityinstanceid = tei.trackedentityinstanceid " )
+            .append( " inner join programstageinstance psi on psi.programinstanceid = pi.programinstanceid" )
+            .append( " where psi.lastupdated <= '" + getLongDateString( params.getStartTime() ) + "' " )
+            .append( " and tet.trackedentitytypeid = " + tet.getId() + " " )
+            .append( " and (" + getDateLinkedToStatus() + ") is not null " )
+            .append( " and (" + getDateLinkedToStatus() + ") > '1000-01-01' " )
+            .append( " and psi.deleted is false " )
+            .append( " and tei.deleted is false" );
+
+        if ( params.getFromDate() != null )
+        {
+            sql.append(
+                " and (" + getDateLinkedToStatus() + ") >= '" + getMediumDateString( params.getFromDate() ) + "'" );
+        }
+
+        sql.append( " ) as temp where temp.supportedyear >= " + FIRST_YEAR_SUPPORTED +
+            " and temp.supportedyear <= " + LATEST_YEAR_SUPPORTED );
+
+        return jdbcTemplate.queryForList( sql.toString(), Integer.class );
     }
 
     private List<AnalyticsTableColumn> getTableColumns( List<Program> programs, TrackedEntityType tet )
     {
         List<AnalyticsTableColumn> columns = new ArrayList<>( getFixedColumns() );
+
+        columns.addAll( addPeriodTypeColumns( "dps" ) );
 
         programs.stream()
             .filter( p -> Objects.nonNull( p.getTrackedEntityType() ) )
@@ -207,6 +267,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
             .forEach( de -> columns.add( new AnalyticsTableColumn( "cast(eventdatavalues -> '"
                 + de.getUid() + "' ->> 'value' as "
                 + getDatabaseValueType( de.getValueType() ) + ")", JSONB, true ) ) );
+
         return columns;
     }
 
@@ -277,7 +338,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
     @Override
     protected String getPartitionColumn()
     {
-        return null;
+        return "yearly";
     }
 
     /**
@@ -291,6 +352,12 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
     {
         List<AnalyticsTableColumn> columns = partition.getMasterTable().getDimensionColumns();
         List<AnalyticsTableColumn> values = partition.getMasterTable().getValueColumns();
+
+        final String start = getLongDateString( partition.getStartDate() );
+        final String end = getLongDateString( partition.getEndDate() );
+        final String partitionClause = partition.isLatestPartition() ? "and psi.lastupdated >= '" + start + "' "
+            : "and " + "(" + getDateLinkedToStatus() + ") >= '" + start + "' "
+                + "and " + "(" + getDateLinkedToStatus() + ") < '" + end + "' ";
 
         validateDimensionColumns( columns );
 
@@ -306,7 +373,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
             sql.append( col.getName() + "," );
         }
 
-        TextUtils.removeLastComma( sql ).append( ") select distinct " );
+        removeLastComma( sql ).append( ") select distinct " );
 
         for ( AnalyticsTableColumn col : columns )
         {
@@ -318,7 +385,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
             sql.append( col.getAlias() + "," );
         }
 
-        TextUtils.removeLastComma( sql )
+        removeLastComma( sql )
             .append( " from trackedentityinstance tei " )
             .append( " left join trackedentitytype tet on tet.trackedentitytypeid = tei.trackedentitytypeid" )
             .append( " left join programinstance pi on pi.trackedentityinstanceid = tei.trackedentityinstanceid" )
@@ -328,9 +395,17 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
             .append( " left join programstage ps on ps.programstageid = psi.programstageid" )
             .append( " left join organisationunit ou on psi.organisationunitid = ou.organisationunitid" )
             .append( " left join _orgunitstructure ous on ous.organisationunitid = ou.organisationunitid" )
+            .append(
+                " left join _organisationunitgroupsetstructure ougs on psi.organisationunitid=ougs.organisationunitid " )
+            .append( " and (cast(date_trunc('month', " + getDateLinkedToStatus() + ") as date)" )
+            .append( "=ougs.startdate or ougs.startdate is null) " )
+            .append(
+                " inner join _dateperiodstructure dps on cast(" + getDateLinkedToStatus()
+                    + " as date)=dps.dateperiod " )
             .append( " where tei.trackedentitytypeid = " + partition.getMasterTable().getTrackedEntityType().getId() )
-            .append( " and psi.status in (" + String.join( ",", EXPORTABLE_EVENT_STATUSES ) + ")" +
-                "and psi.deleted is false " );
+            .append( " and psi.lastupdated < '" + getLongDateString( params.getStartTime() ) + "' " + partitionClause )
+            .append( " and psi.status in (" + join( ",", EXPORTABLE_EVENT_STATUSES ) + ")" )
+            .append( " and psi.deleted is false " );
 
         invokeTimeAndLog( sql.toString(), partition.getTempTableName() );
     }
