@@ -29,6 +29,7 @@ package org.hisp.dhis.dataexchange.aggregate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -196,5 +197,21 @@ class AggregateDataExchangeServiceTest
         Dhis2Client client = service.getDhis2Client( exchange );
 
         assertEquals( "https://play.dhis2.org/demo", client.getUrl() );
+    }
+
+    @Test
+    void testGetDhis2ClientIllegalState()
+    {
+        Api api = new Api()
+            .setUrl( "https://play.dhis2.org/demo" );
+
+        Target target = new Target()
+            .setType( TargetType.EXTERNAL )
+            .setApi( api );
+
+        AggregateDataExchange exchange = new AggregateDataExchange()
+            .setTarget( target );
+
+        assertThrows( IllegalStateException.class, () -> service.getDhis2Client( exchange ) );
     }
 }

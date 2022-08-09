@@ -25,51 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.utils;
+package org.hisp.dhis.dataexchange.aggregate;
 
-import java.util.List;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserRole;
+import org.junit.jupiter.api.Test;
 
-import com.google.common.collect.Lists;
-
-public class UserTestUtils
+class AggregateDataExchangeTest
 {
-    protected static final String BASE_USER_UID = "userabcdef";
-
-    public static User makeUser( String uniqueCharacter )
+    @Test
+    void testApiAuth()
     {
-        return makeUser( uniqueCharacter, Lists.newArrayList() );
+        Api api = new Api();
+        api.setAccessToken( "d2pat_5xVA12xyUbWNedQxy4ohH77WlxR" );
+
+        assertTrue( api.isAccessTokenAuth() );
+        assertFalse( api.isBasicAuth() );
+
+        api = new Api();
+        api.setUsername( "admin" );
+        api.setPassword( "district" );
+
+        assertTrue( api.isBasicAuth() );
+        assertFalse( api.isAccessTokenAuth() );
+
+        api = new Api();
+        api.setAccessToken( "d2pat_5xVA12xyUbWNedQxy4ohH77WlxR" );
+        api.setUsername( "admin" );
+        api.setPassword( "district" );
+
+        assertTrue( api.isAccessTokenAuth() );
+
+        api = new Api();
+        api.setUsername( "admin" );
+
+        assertFalse( api.isBasicAuth() );
+        assertFalse( api.isAccessTokenAuth() );
     }
-
-    public static User makeUser( String uniqueCharacter, List<String> auths )
-    {
-        User user = new User();
-        user.setUid( BASE_USER_UID + uniqueCharacter );
-
-        user.setCreatedBy( user );
-
-        user.setUsername( ("username" + uniqueCharacter).toLowerCase() );
-        user.setPassword( "password" + uniqueCharacter );
-
-        if ( auths != null && !auths.isEmpty() )
-        {
-            UserRole role = new UserRole();
-            role.setName( "Role_" + CodeGenerator.generateCode( 5 ) );
-            auths.forEach( auth -> role.getAuthorities().add( auth ) );
-            user.getUserRoles().add( role );
-        }
-
-        user.setFirstName( "FirstName" + uniqueCharacter );
-        user.setSurname( "Surname" + uniqueCharacter );
-        user.setEmail( ("Email" + uniqueCharacter).toLowerCase() );
-        user.setPhoneNumber( "PhoneNumber" + uniqueCharacter );
-        user.setCode( "UserCode" + uniqueCharacter );
-        user.setAutoFields();
-
-        return user;
-    }
-
 }

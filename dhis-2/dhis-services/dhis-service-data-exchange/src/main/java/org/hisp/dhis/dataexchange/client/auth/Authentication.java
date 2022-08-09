@@ -25,45 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.startup;
+package org.hisp.dhis.dataexchange.client.auth;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.springframework.http.HttpHeaders;
 
-import org.hisp.dhis.system.startup.AbstractStartupRoutine;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.UserQueryParams;
-import org.hisp.dhis.user.UserService;
-import org.springframework.transaction.annotation.Transactional;
-
-/**
- * @author Henning Håkonsen
- */
-@Transactional
-public class TwoFAPopulator
-    extends AbstractStartupRoutine
+public interface Authentication
 {
-    private final UserService userService;
-
-    private final CurrentUserService currentUserService;
-
-    public TwoFAPopulator( UserService userService, CurrentUserService currentUserService )
-    {
-        checkNotNull( userService );
-        checkNotNull( currentUserService );
-        this.userService = userService;
-        this.currentUserService = currentUserService;
-    }
-
-    @Override
-    public void execute()
-        throws Exception
-    {
-        UserQueryParams userQueryParams = new UserQueryParams( currentUserService.getCurrentUser() );
-        userQueryParams.setNot2FA( true );
-
-        userService.getUsers( userQueryParams ).forEach( user -> {
-            user.setSecret( null );
-            userService.updateUser( user );
-        } );
-    }
+    /**
+     * Sets HTTP authentication headers for the given {@link HttpHeaders}.
+     *
+     * @param headers the {@link HttpHeaders}.
+     * @return the {@link HttpHeaders}.
+     */
+    HttpHeaders withAuthentication( HttpHeaders headers );
 }

@@ -40,6 +40,7 @@ import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
@@ -385,7 +386,7 @@ public class DefaultPreheatService implements PreheatService
         List<Attribute> attributes = attributeService.getAttributes( klass );
 
         if ( CollectionUtils.isEmpty( attributes )
-            || !CollectionUtils.isEmpty( preheat.getAttributesByClass( klass ) ) )
+            || !MapUtils.isEmpty( preheat.getAttributesByClass( klass ) ) )
         {
             return;
         }

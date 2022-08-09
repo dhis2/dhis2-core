@@ -25,51 +25,48 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataexchange.client;
+package org.hisp.dhis.dataexchange.client.auth;
 
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.springframework.web.util.UriComponentsBuilder;
+import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpHeaders;
 
-/**
- * DHIS 2 instance configuration.
- *
- * @author Lars Helge Overland
- */
-@Getter
-@RequiredArgsConstructor
-public class Dhis2Config
+class AuthenticationTest
 {
-    /**
-     * Base URL for the DHIS 2 instance, excluding the <code>/api</code> path.
-     */
-    @NonNull
-    private final String url;
-
-    /**
-     * Username for the DHIS 2 instance.
-     */
-    @NonNull
-    private final String username;
-
-    /**
-     * Password for the DHIS 2 instance.
-     */
-    @NonNull
-    private final String password;
-
-    /**
-     * Returns a {@link UriComponentsBuilder} which is resolved to the base API
-     * URL of the DHIS 2 instance.
-     *
-     * @return a resolved {@link UriComponentsBuilder}.
-     */
-    public UriComponentsBuilder getResolvedUriBuilder( String path )
+    @Test
+    void testBasicAuthHeaderValue()
     {
-        return UriComponentsBuilder.fromHttpUrl( url )
-            .pathSegment( "api" )
-            .path( path );
+        Authentication auth = new BasicAuthentication( "admin", "district" );
+
+        HttpHeaders headers = new HttpHeaders();
+
+        auth.withAuthentication( headers );
+
+        assertEquals( "Basic YWRtaW46ZGlzdHJpY3Q=", headers.getFirst( HttpHeaders.AUTHORIZATION ) );
+    }
+
+    @Test
+    void testAccessTokenHeaderValue()
+    {
+        Authentication auth = new AccessTokenAuthentication( "d2pat_5xVA12xyUbWNedQxy4ohH77WlxR" );
+
+        HttpHeaders headers = new HttpHeaders();
+
+        auth.withAuthentication( headers );
+
+        assertEquals( "ApiToken d2pat_5xVA12xyUbWNedQxy4ohH77WlxR", headers.getFirst( HttpHeaders.AUTHORIZATION ) );
+    }
+
+    @Test
+    void testCookieValue()
+    {
+        Authentication auth = new CookieAuthentication( "HKIJ7KJHB3JHG2KJ8PRE7T" );
+
+        HttpHeaders headers = new HttpHeaders();
+
+        auth.withAuthentication( headers );
+
+        assertEquals( "JSESSIONID=HKIJ7KJHB3JHG2KJ8PRE7T", headers.getFirst( HttpHeaders.COOKIE ) );
     }
 }

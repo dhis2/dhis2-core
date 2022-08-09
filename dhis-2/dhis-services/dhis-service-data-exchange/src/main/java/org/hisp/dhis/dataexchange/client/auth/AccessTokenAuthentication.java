@@ -25,25 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.dataexchange.client.auth;
 
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.junit.jupiter.api.Test;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
-/**
- * Tests the {@link org.hisp.dhis.webapi.controller.security.SecurityController}
- * sing (mocked) REST requests.
- *
- * @author Jan Bernitt
- */
-class SecurityControllerTest extends DhisControllerConvenienceTest
+import org.springframework.http.HttpHeaders;
+
+@Getter
+@RequiredArgsConstructor
+public class AccessTokenAuthentication
+    implements Authentication
 {
+    @NonNull
+    private final String accessToken;
 
-    @Test
-    void testAuthenticate2FA()
+    @Override
+    public HttpHeaders withAuthentication( HttpHeaders headers )
     {
-        assertWebMessage( "Unauthorized", 401, "ERROR", "2FA code not authenticated",
-            GET( "/2fa/authenticate?code=xyz" ).content( HttpStatus.UNAUTHORIZED ) );
+        String value = String.format( "ApiToken %s", accessToken );
+        headers.set( HttpHeaders.AUTHORIZATION, value );
+        return headers;
     }
 }
