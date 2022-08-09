@@ -27,36 +27,40 @@
  */
 package org.hisp.dhis.analytics.tei.query.items;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import static org.apache.commons.lang3.StringUtils.SPACE;
 
 import lombok.RequiredArgsConstructor;
 
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.tei.query.BaseRenderable;
+import org.hisp.dhis.analytics.tei.query.Field;
 import org.hisp.dhis.analytics.tei.query.Renderable;
+import org.hisp.dhis.common.QueryOperator;
 
 @RequiredArgsConstructor( staticName = "of" )
-public class AndCondition extends BaseRenderable
+public class BinaryCondition extends BaseRenderable
 {
-    private final List<Renderable> conditions;
+
+    private final Renderable left;
+
+    private final QueryOperator queryOperator;
+
+    private final Renderable right;
+
+    public static BinaryCondition fieldsEqual( String leftAlias, String left, String rightAlias, String right )
+    {
+        return BinaryCondition.of(
+            Field.of( leftAlias, () -> left, null ),
+            QueryOperator.EQ,
+            Field.of( rightAlias, () -> right, null ) );
+    }
 
     @Override
     public String render()
     {
-        if ( conditions.isEmpty() )
+        if ( queryOperator.equals( QueryOperator.IN ) )
         {
-            return StringUtils.EMPTY;
+            return left.render() + " in (" + right.render() + ")";
         }
-
-        if ( conditions.size() == 1 )
-        {
-            return conditions.get( 0 ).render();
-        }
-
-        return conditions.stream()
-            .map( Renderable::render )
-            .filter( StringUtils::isNotBlank )
-            .collect( Collectors.joining( " and " ) );
+        return left.render() + SPACE + queryOperator.getValue() + SPACE + right.render();
     }
 }

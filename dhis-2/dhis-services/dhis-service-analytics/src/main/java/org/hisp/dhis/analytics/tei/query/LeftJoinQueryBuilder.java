@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.analytics.tei.query;
 
+import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_TEI_ENR;
+import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_TEI_EVT;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
 
 import lombok.AccessLevel;
@@ -61,14 +63,14 @@ public class LeftJoinQueryBuilder
         String dataValueUid = analyticsSortingParams.getOrderBy().getDimension().getUid();
         return "SELECT EVT.trackedentityinstanceuid, EVT.VALUE" +
             "      FROM (SELECT programinstanceuid" +
-            "            FROM analytics_tei_enrollments_" + queryContext.getTeTTableSuffix() +
+            "            FROM " + ANALYTICS_TEI_ENR + queryContext.getTeTTableSuffix() +
             "            WHERE programuid = " + queryContext.bindParamAndGetIndex( programUid ) +
             "            ORDER BY enrollmentdate DESC" +
             "            LIMIT 1 OFFSET 0) ENR," +
             "           (SELECT trackedentityinstanceuid," +
             "                   programinstanceuid," +
             "                   (eventdatavalues -> '" + dataValueUid + "' ->> 'value')::NUMERIC AS VALUE" +
-            "            FROM analytics_tei_events_" + queryContext.getTeTTableSuffix() +
+            "            FROM " + ANALYTICS_TEI_EVT + queryContext.getTeTTableSuffix() +
             "            WHERE programuid = " + queryContext.bindParamAndGetIndex( programUid ) +
             "              AND programstageuid = " + queryContext.bindParamAndGetIndex( programStageUid ) +
             "            ORDER BY executiondate DESC" +

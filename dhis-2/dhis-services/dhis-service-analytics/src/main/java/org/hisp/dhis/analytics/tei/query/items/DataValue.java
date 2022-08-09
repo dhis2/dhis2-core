@@ -27,36 +27,25 @@
  */
 package org.hisp.dhis.analytics.tei.query.items;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.EVT_1_ALIAS;
 
 import lombok.RequiredArgsConstructor;
 
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.tei.query.BaseRenderable;
-import org.hisp.dhis.analytics.tei.query.Renderable;
+import org.hisp.dhis.analytics.tei.query.Field;
 
 @RequiredArgsConstructor( staticName = "of" )
-public class AndCondition extends BaseRenderable
+public class DataValue extends BaseRenderable
 {
-    private final List<Renderable> conditions;
+
+    private final String dataValue;
+
+    private final ValueTypeMapping valueTypeMapping;
 
     @Override
     public String render()
     {
-        if ( conditions.isEmpty() )
-        {
-            return StringUtils.EMPTY;
-        }
-
-        if ( conditions.size() == 1 )
-        {
-            return conditions.get( 0 ).render();
-        }
-
-        return conditions.stream()
-            .map( Renderable::render )
-            .filter( StringUtils::isNotBlank )
-            .collect( Collectors.joining( " and " ) );
+        return "(" + Field.of( EVT_1_ALIAS, () -> "eventdatavalues", null ).render()
+            + " -> '" + dataValue + "' ->> 'value')::" + valueTypeMapping.name();
     }
 }

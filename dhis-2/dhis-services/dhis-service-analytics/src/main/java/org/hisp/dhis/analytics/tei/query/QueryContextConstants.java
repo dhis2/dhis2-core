@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.analytics.tei.query;
 
+import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE;
+import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_ENROLLMENTS;
+import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_EVENTS;
+
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
@@ -34,11 +38,11 @@ import lombok.NoArgsConstructor;
 public class QueryContextConstants
 {
 
-    public static final String ANALYTICS_TEI = "analytics_tei_tei_";
+    public static final String ANALYTICS_TEI = TRACKED_ENTITY_INSTANCE.getTableName() + "_";
 
-    public static final String ANALYTICS_TEI_EVT = "analytics_tei_events_";
+    public static final String ANALYTICS_TEI_EVT = TRACKED_ENTITY_INSTANCE_EVENTS.getTableName() + "_";
 
-    public static final String ANALYTICS_TEI_ENR = "analytics_tei_enrollments_";
+    public static final String ANALYTICS_TEI_ENR = TRACKED_ENTITY_INSTANCE_ENROLLMENTS.getTableName() + "_";
 
     public static final String TEI_ALIAS = "T_1";
 
@@ -48,4 +52,13 @@ public class QueryContextConstants
 
     public static final String ENR_ALIAS = "ENR";
 
+    public static final String PSI_UID = "programstageinstanceuid";
+
+    public static final String PI_UID = "programinstanceuid";
+
+    public static final String PS_UID = "programstageuid";
+
+    public static final String TEI_UID = "trackedentityinstanceuid";
+
+    public static final String P_UID = "programuid";
 }

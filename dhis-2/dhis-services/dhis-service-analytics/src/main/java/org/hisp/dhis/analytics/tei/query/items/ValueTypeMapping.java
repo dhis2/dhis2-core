@@ -27,36 +27,36 @@
  */
 package org.hisp.dhis.analytics.tei.query.items;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Arrays;
 
-import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.ValueType;
 
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.analytics.tei.query.BaseRenderable;
-import org.hisp.dhis.analytics.tei.query.Renderable;
-
-@RequiredArgsConstructor( staticName = "of" )
-public class AndCondition extends BaseRenderable
+public enum ValueTypeMapping
 {
-    private final List<Renderable> conditions;
+    // TODO: adds mappings here
+    NUMERIC( ValueType.INTEGER, ValueType.INTEGER_NEGATIVE, ValueType.INTEGER_POSITIVE,
+        ValueType.INTEGER_ZERO_OR_POSITIVE ),
+    STRING();
 
-    @Override
-    public String render()
+    private final ValueType[] valueTypes;
+
+    ValueTypeMapping( ValueType... valueTypes )
     {
-        if ( conditions.isEmpty() )
-        {
-            return StringUtils.EMPTY;
-        }
-
-        if ( conditions.size() == 1 )
-        {
-            return conditions.get( 0 ).render();
-        }
-
-        return conditions.stream()
-            .map( Renderable::render )
-            .filter( StringUtils::isNotBlank )
-            .collect( Collectors.joining( " and " ) );
+        this.valueTypes = valueTypes;
     }
+
+    static ValueTypeMapping fromValueType( ValueType valueType )
+    {
+        return Arrays.stream( values() )
+            .filter( valueTypeMapping -> valueTypeMapping.supports( valueType ) )
+            .findFirst()
+            .orElse( STRING );
+    }
+
+    private boolean supports( ValueType valueType )
+    {
+        return Arrays.stream( valueTypes )
+            .anyMatch( vt -> vt == valueType );
+    }
+
 }
