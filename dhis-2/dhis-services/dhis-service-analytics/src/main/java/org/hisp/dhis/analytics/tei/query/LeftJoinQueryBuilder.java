@@ -27,19 +27,20 @@
  */
 package org.hisp.dhis.analytics.tei.query;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-import org.apache.commons.lang3.tuple.Pair;
-import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
-import org.hisp.dhis.analytics.tei.query.items.BinaryCondition;
-import org.hisp.dhis.analytics.tei.query.items.RenderableDataValue;
-import org.hisp.dhis.analytics.tei.query.items.ValueTypeMapping;
-
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_TEI_ENR;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_TEI_EVT;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_UID;
 import static org.hisp.dhis.analytics.tei.query.items.ValueTypeMapping.fromValueType;
+
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
+import org.apache.commons.lang3.tuple.Pair;
+import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
+import org.hisp.dhis.analytics.tei.query.items.BinaryCondition;
+import org.hisp.dhis.analytics.tei.query.items.RenderableDataValue;
+import org.hisp.dhis.analytics.tei.query.items.ValueTypeMapping;
 
 @NoArgsConstructor( access = AccessLevel.PRIVATE )
 public class LeftJoinQueryBuilder
@@ -59,7 +60,7 @@ public class LeftJoinQueryBuilder
 
     private static String getSelect( AnalyticsSortingParams sortingParams, QueryContext queryContext )
     {
-        ValueTypeMapping vtMapping = fromValueType(sortingParams.getOrderBy().getDimension().getValueType());
+        ValueTypeMapping vtMapping = fromValueType( sortingParams.getOrderBy().getDimension().getValueType() );
 
         String programUid = sortingParams.getOrderBy().getProgram().getElement().getUid();
         String programStageUid = sortingParams.getOrderBy().getProgramStage().getElement().getUid();
