@@ -25,22 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.mapper;
+package org.hisp.dhis.analytics.tei.query.items;
 
-import lombok.Builder;
-import lombok.Data;
+import lombok.RequiredArgsConstructor;
 
-/**
- * Order parameter container to use within services.
- *
- * @author Giuseppe Nespolino <g.nespolino@gmail.com>
- */
-@Data
-@Builder
-public class OrderParam
+import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
+import org.hisp.dhis.analytics.common.dimension.DimensionParam;
+import org.hisp.dhis.analytics.tei.query.BaseRenderable;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
+
+@RequiredArgsConstructor( staticName = "of" )
+public class RenderableDimensionIdentifier extends BaseRenderable
 {
-    private final String field;
+    private final DimensionIdentifier<Program, ProgramStage, DimensionParam> dimensionIdentifier;
 
-    private final SortDirection direction;
-
+    @Override
+    public String render()
+    {
+        return dimensionIdentifier.toString();
+    }
 }

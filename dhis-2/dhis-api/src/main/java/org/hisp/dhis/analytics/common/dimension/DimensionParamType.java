@@ -29,10 +29,13 @@ package org.hisp.dhis.analytics.common.dimension;
 
 import java.util.Collection;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
 
 @Getter
@@ -40,7 +43,17 @@ import org.hisp.dhis.analytics.common.CommonQueryRequest;
 public enum DimensionParamType
 {
     DIMENSIONS( CommonQueryRequest::getDimension ),
-    FILTERS( CommonQueryRequest::getFilter );
+    FILTERS( CommonQueryRequest::getFilter ),
+
+    // uidsGetter invoked on this enum, will return a collection made of:
+    // - commonQueryRequest.getAsc(), suffixed by ":asv"
+    // - commonQueryRequest.getDesc(), suffixed by ":desc"
+    SORTING( commonQueryRequest -> Stream.concat(
+        commonQueryRequest.getAsc().stream()
+            .map( s -> s + ":" + SortOrder.ASC.getValue() ),
+        commonQueryRequest.getDesc().stream()
+            .map( s -> s + ":" + SortOrder.DESC.getValue() ) )
+        .collect( Collectors.toList() ) );
 
     // the getter method to invoke to retrieve the dimensions or filters from
     // the CommonQueryRequest

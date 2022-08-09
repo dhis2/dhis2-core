@@ -31,6 +31,8 @@ import static org.hisp.dhis.analytics.shared.GridHeaders.from;
 import static org.springframework.util.Assert.notNull;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import lombok.AllArgsConstructor;
 
@@ -40,7 +42,6 @@ import org.hisp.dhis.analytics.shared.QueryExecutor;
 import org.hisp.dhis.analytics.shared.QueryGenerator;
 import org.hisp.dhis.analytics.shared.SqlQuery;
 import org.hisp.dhis.analytics.shared.SqlQueryResult;
-import org.hisp.dhis.analytics.tei.query.Query;
 import org.hisp.dhis.analytics.tei.query.QueryContext;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
@@ -74,10 +75,15 @@ public class TeiAnalyticsQueryService
      */
     public Grid getGrid( final TeiQueryParams teiQueryParams, final CommonQueryRequest commonQueryRequest )
     {
-        Query queryNg = QueryContext.of( teiQueryParams ).getQuery();
+        QueryContext queryNg = QueryContext.of( teiQueryParams );
         // output should look like: https://pastebin.com/4aK9ZxEQ
-        String q = queryNg.render();
+        String q = queryNg.getQuery().render();
 
+        Set<Map.Entry<Integer, Object>> entries = queryNg.getParametersByPlaceHolder().entrySet();
+        for ( Map.Entry<Integer, Object> entry : entries )
+        {
+            q = q.replace( ":" + entry.getKey(), entry.getValue().toString() );
+        }
         notNull( teiQueryParams, "The 'teiParams' must not be null" );
 
         final SqlQuery query = (SqlQuery) teiJdbcQuery.from( teiQueryParams );

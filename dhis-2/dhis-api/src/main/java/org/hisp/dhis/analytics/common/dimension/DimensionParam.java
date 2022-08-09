@@ -31,29 +31,37 @@ import static lombok.AccessLevel.PRIVATE;
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamType.FILTERS;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import lombok.Builder;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.UidObject;
 import org.hisp.dhis.common.ValueType;
 
 /**
  * A wrapper for DimensionObject|QueryItem to abstract them
  */
 @Data
+@Slf4j
 @Builder( access = PRIVATE )
 @RequiredArgsConstructor( access = PRIVATE )
-public class DimensionParam
+public class DimensionParam implements UidObject
 {
     private final DimensionalObject dimensionalObject;
 
     private final QueryItem queryItem;
+
+    private final StaticDimension staticDimension;
 
     private final DimensionParamType type;
 
@@ -62,8 +70,8 @@ public class DimensionParam
 
     /**
      * allows to create an instance of DimensionParam passing the object to wrap
-     * (a DimensionalObject or a QueryItem), the type and a list of filters (can
-     * be empty)
+     * (a DimensionalObject, a QueryItem or a static dimension), the type and a
+     * list of filters (can be empty)
      *
      * @param dimensionalObjectOrQueryItem either an DimensionalObject or
      *        QueryItem, this instance wraps
@@ -94,8 +102,29 @@ public class DimensionParam
                 .queryItem( (QueryItem) dimensionalObjectOrQueryItem )
                 .build();
         }
-        throw new IllegalArgumentException( "Only DimensionalObject or QueryItem are allowed, received "
-            + dimensionalObjectOrQueryItem.getClass().getName() + " instead" );
+
+        // if it's neither a DimensionalObject nor a QueryItem, we try to see if
+        // it's a static Dimension
+        Optional<StaticDimension> staticDimension = StaticDimension.of( dimensionalObjectOrQueryItem.toString() );
+        if ( staticDimension.isPresent() )
+        {
+            return builder
+                .staticDimension( staticDimension.get() )
+                .build();
+        }
+
+        String receivedIdentifier = dimensionalObjectOrQueryItem.getClass().equals( String.class )
+            ? dimensionalObjectOrQueryItem.toString()
+            : dimensionalObjectOrQueryItem.getClass().getName();
+
+        throw new IllegalArgumentException(
+            "Only DimensionalObject, QueryItem or static dimensions are allowed. Received " +
+                receivedIdentifier + " instead" );
+    }
+
+    public static boolean isStaticDimensionIdentifier( String dimensionIdentifier )
+    {
+        return StaticDimension.of( dimensionIdentifier ).isPresent();
     }
 
     /**
@@ -121,7 +150,12 @@ public class DimensionParam
 
     private boolean isQueryItem()
     {
-        return !isDimensionalObject();
+        return Objects.nonNull( queryItem );
+    }
+
+    private boolean isStaticDimension()
+    {
+        return !isQueryItem() && !isDimensionalObject();
     }
 
     /**
@@ -133,7 +167,12 @@ public class DimensionParam
         {
             return DimensionParamObjectType.byForeignType( dimensionalObject.getDimensionType() );
         }
-        return DimensionParamObjectType.byForeignType( queryItem.getItem().getDimensionItemType() );
+        if ( isQueryItem() )
+        {
+            return DimensionParamObjectType.byForeignType( queryItem.getItem().getDimensionItemType() );
+        }
+
+        return DimensionParamObjectType.STATIC_DIMENSION;
     }
 
     public ValueType getValueType()
@@ -142,7 +181,11 @@ public class DimensionParam
         {
             return dimensionalObject.getValueType();
         }
-        return queryItem.getValueType();
+        if ( isQueryItem() )
+        {
+            return queryItem.getValueType();
+        }
+        return staticDimension.valueType;
     }
 
     public String getDimensionObjectUid()
@@ -151,7 +194,35 @@ public class DimensionParam
         {
             return dimensionalObject.getUid();
         }
-        return queryItem.getItem().getUid();
+        if ( isQueryItem() )
+        {
+            return queryItem.getItem().getUid();
+        }
+        return staticDimension.name();
+    }
+
+    @Override
+    public String getUid()
+    {
+        return getDimensionObjectUid();
+    }
+
+    @RequiredArgsConstructor
+    enum StaticDimension
+    {
+        OU( ValueType.TEXT ),
+        ENROLLMENTDATE( ValueType.DATETIME ),
+        EXECUTIONDATE( ValueType.DATETIME );
+        // TODO: do we need more here ?
+
+        private final ValueType valueType;
+
+        static Optional<StaticDimension> of( String value )
+        {
+            return Arrays.stream( StaticDimension.values() )
+                .filter( sd -> StringUtils.equalsIgnoreCase( sd.name(), value ) )
+                .findFirst();
+        }
     }
 
 }

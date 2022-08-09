@@ -79,9 +79,9 @@ public class CommonQueryRequest
 
     private OrganisationUnitSelectionMode ouMode;
 
-    private Set<String> asc = new HashSet<>();
+    private Set<String> asc = new LinkedHashSet<>();
 
-    private Set<String> desc = new HashSet<>();
+    private Set<String> desc = new LinkedHashSet<>();
 
     private IdScheme dataIdScheme = IdScheme.UID;
 

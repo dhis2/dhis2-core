@@ -31,10 +31,10 @@ import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -44,7 +44,8 @@ import lombok.experimental.Delegate;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.hisp.dhis.analytics.common.AnalyticsPagingAndSortingParams;
+import org.hisp.dhis.analytics.common.AnalyticsPagingParams;
+import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType;
@@ -52,6 +53,7 @@ import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.analytics.tei.query.items.AndCondition;
 import org.hisp.dhis.analytics.tei.query.items.EventDataValueCondition;
 import org.hisp.dhis.analytics.tei.query.items.OrCondition;
+import org.hisp.dhis.analytics.tei.query.items.RenderableDimensionIdentifier;
 import org.hisp.dhis.analytics.tei.query.items.Table;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.program.Program;
@@ -74,7 +76,7 @@ public class QueryContext
 
     public String getTeTTableSuffix()
     {
-        return teiQueryParams.getTrackedEntityType().getUid();
+        return teiQueryParams.getTrackedEntityType().getUid().toLowerCase();
     }
 
     public Query getQuery()
@@ -90,7 +92,7 @@ public class QueryContext
 
     private LimitOffset getLimit()
     {
-        AnalyticsPagingAndSortingParams pagingAndSortingParams = teiQueryParams.getCommonParams()
+        AnalyticsPagingParams pagingAndSortingParams = teiQueryParams.getCommonParams()
             .getPagingAndSortingParams();
         return LimitOffset.of(
             pagingAndSortingParams.getPageSize(),
@@ -99,8 +101,12 @@ public class QueryContext
 
     private Order getOrder()
     {
-        // TODO: derive order depending on params
-        return Order.ofOrder( StringUtils.EMPTY );
+        List<Renderable> collect = teiQueryParams.getCommonParams().getOrderParams().stream()
+            .map( p -> (Renderable) () -> "\"" + p.getOrderBy().toString() + "\" " + p.getSortDirection().name() )
+            .collect( Collectors.toList() );
+        return Order.builder()
+            .orders( collect )
+            .build();
     }
 
     private Select getSelect()
@@ -120,13 +126,27 @@ public class QueryContext
                 .flatMap( Collection::stream )
                 .map( ProgramTrackedEntityAttribute::getAttribute ) )
             .map( BaseIdentifiableObject::getUid )
-            // to remove overlapping attributes
+            // distinct to remove overlapping attributes
             .distinct()
+            .map( attributeUid -> "\"" + attributeUid + "\"" )
             .map( this::getFieldWithAlias );
 
+        Stream<Renderable> orderFields = getExtractedOrderFieldsForSelect();
+
         return Select.of(
-            Stream.concat( staticFields, attributes )
+            Stream.of( staticFields, attributes, orderFields )
+                .flatMap( Function.identity() )
                 .collect( Collectors.toList() ) );
+    }
+
+    private Stream<Renderable> getExtractedOrderFieldsForSelect()
+    {
+        return teiQueryParams.getCommonParams().getOrderParams()
+            .stream()
+            .map( AnalyticsSortingParams::getOrderBy )
+            .map( RenderableDimensionIdentifier::of )
+            .map( RenderableDimensionIdentifier::render )
+            .map( s -> () -> "\"" + s + "\".VALUE" );
     }
 
     private Renderable getFieldWithAlias( String field )
@@ -144,11 +164,33 @@ public class QueryContext
         return Table.ofStrings( getMainTableName(), TEI_ALIAS );
     }
 
-    private List<Pair<Renderable, Renderable>> getJoinTablesAndConditions()
+    private JoinsWithConditions getJoinTablesAndConditions()
     {
-        // TODO: implement logic for join when needed, i.e.
-        // when sorting on a data element is present
-        return Collections.emptyList();
+        JoinsWithConditions.JoinsWithConditionsBuilder builder = JoinsWithConditions.builder();
+
+        getOrdersForSubQuery( teiQueryParams ).stream()
+            .map( this::toOrderSubQueryWithCondition )
+            .forEach( builder::tablesWithJoinCondition );
+
+        return builder.build();
+    }
+
+    private Pair<Renderable, Renderable> toOrderSubQueryWithCondition( AnalyticsSortingParams analyticsSortingParams )
+    {
+        return LeftJoinQueryBuilder.of( analyticsSortingParams, this );
+    }
+
+    private List<AnalyticsSortingParams> getOrdersForSubQuery( TeiQueryParams teiQueryParams )
+    {
+        return teiQueryParams.getCommonParams().getOrderParams().stream()
+            .filter( this::needsSubQuery )
+            .collect( Collectors.toList() );
+    }
+
+    private boolean needsSubQuery( AnalyticsSortingParams analyticsSortingParams )
+    {
+        DimensionIdentifier<Program, ProgramStage, DimensionParam> orderBy = analyticsSortingParams.getOrderBy();
+        return orderBy.hasProgram();
     }
 
     private Where getWhere()
@@ -206,11 +248,11 @@ public class QueryContext
         @Getter
         private final Map<Integer, Object> parametersByPlaceHolder = new HashMap<>();
 
-        public int bindParamAndGetIndex( Object param )
+        public String bindParamAndGetIndex( Object param )
         {
             parameterIndex++;
             parametersByPlaceHolder.put( parameterIndex, param );
-            return parameterIndex;
+            return ":" + parameterIndex;
         }
     }
 }

@@ -27,20 +27,41 @@
  */
 package org.hisp.dhis.webapi.controller.event.mapper;
 
-import lombok.Builder;
-import lombok.Data;
+import java.util.Arrays;
 
-/**
- * Order parameter container to use within services.
- *
- * @author Giuseppe Nespolino <g.nespolino@gmail.com>
- */
-@Data
-@Builder
-public class OrderParam
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@Getter
+@AllArgsConstructor
+public enum SortDirection
 {
-    private final String field;
+    ASC( "asc", false ),
+    DESC( "desc", false ),
+    IASC( "iasc", true ),
+    IDESC( "idesc", true );
 
-    private final SortDirection direction;
+    private static final SortDirection DEFAULT_SORTING_DIRECTION = ASC;
 
+    private final String value;
+
+    private final boolean ignoreCase;
+
+    public static SortDirection of( String value )
+    {
+        return of( value, DEFAULT_SORTING_DIRECTION );
+    }
+
+    public static SortDirection of( String value, SortDirection defaultSortingDirection )
+    {
+        return Arrays.stream( values() )
+            .filter( sortDirection -> sortDirection.getValue().equalsIgnoreCase( value ) )
+            .findFirst()
+            .orElse( defaultSortingDirection );
+    }
+
+    public boolean isAscending()
+    {
+        return this.equals( ASC ) || this.equals( IASC );
+    }
 }

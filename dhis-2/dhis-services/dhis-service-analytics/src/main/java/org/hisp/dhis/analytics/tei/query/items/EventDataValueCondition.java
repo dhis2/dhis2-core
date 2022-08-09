@@ -53,6 +53,7 @@ import org.hisp.dhis.analytics.tei.query.QueryContext;
 import org.hisp.dhis.analytics.tei.query.Renderable;
 import org.hisp.dhis.analytics.tei.query.Select;
 import org.hisp.dhis.analytics.tei.query.Where;
+import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -87,7 +88,7 @@ public class EventDataValueCondition extends BaseRenderable
             .from( From.ofSingleTableAndAlias( ANALYTICS_TEI_EVT + queryContext.getTeTTableSuffix(), EVT_ALIAS ) )
             .where( Where.ofConditions(
                 () -> EVT_ALIAS + ".programinstanceuid" + "=" + ENR_ALIAS + ".programinstanceuid",
-                () -> EVT_ALIAS + ".programstageuid = " + "'" + getProgramStageUid() + "'",
+                () -> EVT_ALIAS + ".programstageuid = " + queryContext.bindParamAndGetIndex( getProgramStageUid() ),
                 ExistsCondition.of( innermostEventSubQuery ) ) )
             // TODO: negative offset will require ASC instead of DESC
             .order( Order.ofOrder( "executiondate desc" ) )
@@ -100,7 +101,7 @@ public class EventDataValueCondition extends BaseRenderable
             .where( Where.ofConditions(
                 () -> ENR_ALIAS + ".trackedentityinstanceuid" + "=" + TEI_ALIAS
                     + ".trackedentityinstanceuid",
-                () -> ENR_ALIAS + ".programuid" + "=" + getProgramUid(),
+                () -> ENR_ALIAS + ".programuid" + "= " + queryContext.bindParamAndGetIndex( getProgramUid() ),
                 ExistsCondition.of( innerEventSubquery ) ) )
             // TODO: negative offset will require ASC instead of DESC
             .order( Order.ofOrder( "enrollmentdate desc" ) )
@@ -142,14 +143,18 @@ public class EventDataValueCondition extends BaseRenderable
             .fromValueType( dimensionIdentifier.getDimension().getValueType() );
         return () -> "(" + EVT_1_ALIAS + ".eventdatavalues -> '"
             + dimensionIdentifier.getDimension().getDimensionObjectUid() + "'" +
-            " ->> 'value')::" + valueTypeMapping.name() + renderItem();
+            " ->> 'value')::" + valueTypeMapping.name() + StringUtils.SPACE + renderItem();
     }
 
     private String renderItem()
     {
         DimensionParamItem item = dimensionIdentifier.getDimension().getItems().get( 0 );
-        int parameterIndex = queryContext.bindParamAndGetIndex( item );
-        return StringUtils.SPACE + item.getOperator().getValue() + " :" + parameterIndex;
+        QueryOperator operator = item.getOperator();
+        if ( operator == QueryOperator.IN )
+        {
+            return "IN (" + queryContext.bindParamAndGetIndex( item.getValues() ) + ")";
+        }
+        return operator.getValue() + queryContext.bindParamAndGetIndex( item.getValues().get( 0 ) );
     }
 
     private enum ValueTypeMapping

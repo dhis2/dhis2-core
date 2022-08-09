@@ -29,8 +29,8 @@ package org.hisp.dhis.analytics.event.data;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_IDENTIFIER_SEP;
 import static org.hisp.dhis.common.DimensionalObject.ITEM_SEP;
-import static org.hisp.dhis.common.DimensionalObject.PROGRAMSTAGE_SEP;
 
 import java.util.Collections;
 import java.util.Date;
@@ -143,7 +143,7 @@ public class DefaultQueryItemLocator
         String dim = StringUtils.substringBefore( RepeatableStageParamsHelper.removeRepeatableStageParams( dimension ),
             ITEM_SEP );
 
-        String[] dimSplit = dim.split( "\\" + PROGRAMSTAGE_SEP );
+        String[] dimSplit = dim.split( "\\" + DIMENSION_IDENTIFIER_SEP );
 
         return dimSplit.length == 1 ? dimSplit[0] : dimSplit[pos];
 
@@ -290,7 +290,7 @@ public class DefaultQueryItemLocator
             () -> relationshipTypeService.getRelationshipType( getFirstElement( dimension ) ),
             () -> programStageService.getProgramStage( getFirstElement( dimension ) ) );
 
-        boolean requiresIdObject = dimension.split( "\\" + PROGRAMSTAGE_SEP ).length > 1;
+        boolean requiresIdObject = dimension.split( "\\" + DIMENSION_IDENTIFIER_SEP ).length > 1;
 
         Optional<BaseIdentifiableObject> found = fetchers.map( Supplier::get ).filter( Objects::nonNull ).findFirst();
 

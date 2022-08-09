@@ -27,14 +27,9 @@
  */
 package org.hisp.dhis.analytics.tei.query;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.analytics.tei.query.items.Table;
 
 @RequiredArgsConstructor( staticName = "of" )
@@ -42,28 +37,19 @@ public class From implements Renderable
 {
     private final Renderable mainTable;
 
-    private final List<Pair<Renderable, Renderable>> joinsWithAliases;
+    private final JoinsWithConditions joinsWithConditions;
 
     @Override
     public String render()
     {
-        return "FROM " + mainTable.render() + StringUtils.SPACE +
-            joinsWithAliases.stream()
-                .map( this::renderPair )
-                .collect( Collectors.joining( StringUtils.EMPTY ) );
-    }
-
-    private String renderPair( Pair<Renderable, Renderable> tableWithJoinCondition )
-    {
-        return "LEFT JOIN " + tableWithJoinCondition.getKey().render() + " ON "
-            + tableWithJoinCondition.getValue().render();
+        return "FROM " + mainTable.render() + StringUtils.SPACE + joinsWithConditions.render();
     }
 
     public static From ofSingleTableAndAlias( String table, String alias )
     {
         return From.of(
             Table.ofStrings( table, alias ),
-            Collections.emptyList() );
+            JoinsWithConditions.builder().build() );
     }
 
 }

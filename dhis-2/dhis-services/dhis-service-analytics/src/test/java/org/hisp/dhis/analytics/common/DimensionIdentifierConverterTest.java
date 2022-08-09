@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
+import org.hisp.dhis.analytics.common.dimension.StringUid;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.junit.jupiter.api.Test;
@@ -61,11 +62,11 @@ class DimensionIdentifierConverterTest
         final String fullDimensionId = "lxAQ7Zs9VYR[1].RaMbOrTys0n[4].jklm";
 
         // When
-        final DimensionIdentifier<Program, ProgramStage, String> dimensionIdentifier = new DimensionIdentifierConverter()
+        final DimensionIdentifier<Program, ProgramStage, StringUid> dimensionIdentifier = new DimensionIdentifierConverter()
             .fromString( programs, fullDimensionId );
 
         // Then
-        assertEquals( "jklm", dimensionIdentifier.getDimension(), "Dimension uid should be jklm" );
+        assertEquals( "jklm", dimensionIdentifier.getDimension().getUid(), "Dimension uid should be jklm" );
         assertEquals( "lxAQ7Zs9VYR", dimensionIdentifier.getProgram().getElement().getUid(),
             "Program uid should be lxAQ7Zs9VYR" );
         assertEquals( "1", dimensionIdentifier.getProgram().getOffset(),
@@ -93,11 +94,11 @@ class DimensionIdentifierConverterTest
         final String fullDimensionId = "lxAQ7Zs9VYR.RaMbOrTys0n.jklm";
 
         // When
-        final DimensionIdentifier<Program, ProgramStage, String> dimensionIdentifier = new DimensionIdentifierConverter()
+        final DimensionIdentifier<Program, ProgramStage, StringUid> dimensionIdentifier = new DimensionIdentifierConverter()
             .fromString( programs, fullDimensionId );
 
         // Then
-        assertEquals( "jklm", dimensionIdentifier.getDimension(), "Dimension uid should be jklm" );
+        assertEquals( "jklm", dimensionIdentifier.getDimension().getUid(), "Dimension uid should be jklm" );
         assertEquals( "lxAQ7Zs9VYR", dimensionIdentifier.getProgram().getElement().getUid(),
             "Program uid should be lxAQ7Zs9VYR" );
         assertEquals( null, dimensionIdentifier.getProgram().getOffset(),
@@ -122,11 +123,11 @@ class DimensionIdentifierConverterTest
         final String fullDimensionId = "lxAQ7Zs9VYR.jklm";
 
         // When
-        final DimensionIdentifier<Program, ProgramStage, String> dimensionIdentifier = new DimensionIdentifierConverter()
+        final DimensionIdentifier<Program, ProgramStage, StringUid> dimensionIdentifier = new DimensionIdentifierConverter()
             .fromString( programs, fullDimensionId );
 
         // Then
-        assertEquals( "jklm", dimensionIdentifier.getDimension(), "Dimension uid should be jklm" );
+        assertEquals( "jklm", dimensionIdentifier.getDimension().getUid(), "Dimension uid should be jklm" );
         assertEquals( "lxAQ7Zs9VYR", dimensionIdentifier.getProgram().getElement().getUid(),
             "Program uid should be lxAQ7Zs9VYR" );
         assertEquals( null, dimensionIdentifier.getProgram().getOffset(),
@@ -148,11 +149,11 @@ class DimensionIdentifierConverterTest
         final String fullDimensionId = "jklm";
 
         // When
-        final DimensionIdentifier<Program, ProgramStage, String> dimensionIdentifier = new DimensionIdentifierConverter()
+        final DimensionIdentifier<Program, ProgramStage, StringUid> dimensionIdentifier = new DimensionIdentifierConverter()
             .fromString( programs, fullDimensionId );
 
         // Then
-        assertEquals( "jklm", dimensionIdentifier.getDimension(), "Dimension uid should be jklm" );
+        assertEquals( "jklm", dimensionIdentifier.getDimension().getUid(), "Dimension uid should be jklm" );
         assertEquals( null, dimensionIdentifier.getProgram(), "Program should be null" );
         assertEquals( null, dimensionIdentifier.getProgramStage(), "Stage should be null" );
     }

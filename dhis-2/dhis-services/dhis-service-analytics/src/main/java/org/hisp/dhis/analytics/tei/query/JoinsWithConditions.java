@@ -25,42 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.common;
+package org.hisp.dhis.analytics.tei.query;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Singular;
 
-import org.hisp.dhis.common.QueryItem;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
-@Getter
-@Builder( toBuilder = true )
-public class AnalyticsPagingAndSortingParams
+@Builder
+public class JoinsWithConditions extends BaseRenderable
 {
-    private final Integer page;
 
-    private final Integer pageSize;
+    @Singular
+    private final List<Pair<Renderable, Renderable>> tablesWithJoinConditions;
 
-    private final Boolean requestPaged;
-
-    private final Boolean countRequested;
-
-    /**
-     * Columns to sort ascending.
-     */
-    @Builder.Default
-    private List<QueryItem> asc = new ArrayList<>();
-
-    /**
-     * Columns to sort descending.
-     */
-    @Builder.Default
-    private List<QueryItem> desc = new ArrayList<>();
-
-    public boolean isEmpty()
+    @Override
+    public String render()
     {
-        return page == null && pageSize == null && requestPaged == null && countRequested == null;
+        return tablesWithJoinConditions.stream()
+            .map( this::renderPair )
+            .collect( Collectors.joining( StringUtils.EMPTY ) );
     }
+
+    private String renderPair( Pair<Renderable, Renderable> tableWithJoinCondition )
+    {
+        return "LEFT JOIN " + tableWithJoinCondition.getKey().render() + " ON "
+            + tableWithJoinCondition.getValue().render();
+    }
+
 }

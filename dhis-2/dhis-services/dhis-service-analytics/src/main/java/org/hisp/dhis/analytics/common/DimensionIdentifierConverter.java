@@ -34,6 +34,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
+import org.hisp.dhis.analytics.common.dimension.StringUid;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.springframework.stereotype.Component;
@@ -55,21 +56,22 @@ public class DimensionIdentifierConverter
      *        abcde[1].fghi[4].jklm
      * @return a DimensionIdentifier
      */
-    public DimensionIdentifier<Program, ProgramStage, String> fromString( List<Program> programs,
+    public DimensionIdentifier<Program, ProgramStage, StringUid> fromString( List<Program> programs,
         String fullDimensionId )
     {
-        DimensionIdentifier<String, String, String> dimensionIdentifier = fromFullDimensionId( fullDimensionId );
+        DimensionIdentifier<StringUid, StringUid, StringUid> dimensionIdentifier = fromFullDimensionId(
+            fullDimensionId );
 
         Optional<Program> programOptional = Optional.of( dimensionIdentifier )
             .map( DimensionIdentifier::getProgram )
             .map( DimensionIdentifier.ElementWithOffset::getElement )
             .flatMap( programUid -> programs.stream()
-                .filter( program -> program.getUid().equals( programUid ) )
+                .filter( program -> program.getUid().equals( programUid.getUid() ) )
                 .findFirst() );
 
-        DimensionIdentifier.ElementWithOffset<String> programWithOffset = dimensionIdentifier.getProgram();
-        DimensionIdentifier.ElementWithOffset<String> programStageWithOffset = dimensionIdentifier.getProgramStage();
-        String dimensionId = dimensionIdentifier.getDimension();
+        DimensionIdentifier.ElementWithOffset<StringUid> programWithOffset = dimensionIdentifier.getProgram();
+        DimensionIdentifier.ElementWithOffset<StringUid> programStageWithOffset = dimensionIdentifier.getProgramStage();
+        StringUid dimensionId = dimensionIdentifier.getDimension();
 
         if ( dimensionIdentifier.hasProgramStage() )
         { // fully qualified DE/PI. ie.: {programUid}.{programStageUid}.DE
@@ -108,9 +110,9 @@ public class DimensionIdentifierConverter
         }
     }
 
-    private DimensionIdentifier<String, String, String> fromFullDimensionId( String fullDimensionId )
+    private DimensionIdentifier<StringUid, StringUid, StringUid> fromFullDimensionId( String fullDimensionId )
     {
-        List<DimensionIdentifier.ElementWithOffset<String>> uidWithOffsets = parseFullDimensionId( fullDimensionId );
+        List<DimensionIdentifier.ElementWithOffset<StringUid>> uidWithOffsets = parseFullDimensionId( fullDimensionId );
 
         if ( uidWithOffsets.size() == 3 ) // ie.: abcde[1].fghi[4].jklm
         {
@@ -135,15 +137,15 @@ public class DimensionIdentifierConverter
         throw new IllegalArgumentException( "Malformed parameter: " + fullDimensionId );
     }
 
-    private List<DimensionIdentifier.ElementWithOffset<String>> parseFullDimensionId( String fullDimensionId )
+    private List<DimensionIdentifier.ElementWithOffset<StringUid>> parseFullDimensionId( String fullDimensionId )
     {
         return Arrays.stream( StringUtils.split( fullDimensionId, DIMENSION_SEPARATOR ) )
-            .map( this::elementWithOffsetBytString )
+            .map( this::elementWithOffsetByString )
             .collect( Collectors.toList() );
     }
 
     private void assertDimensionIdHasNoOffset(
-        DimensionIdentifier.ElementWithOffset<String> dimensionIdWithOffset )
+        DimensionIdentifier.ElementWithOffset<StringUid> dimensionIdWithOffset )
     {
         if ( dimensionIdWithOffset.hasOffset() )
         {
@@ -151,23 +153,23 @@ public class DimensionIdentifierConverter
         }
     }
 
-    private DimensionIdentifier.ElementWithOffset<String> elementWithOffsetBytString( String elementWithOffset )
+    private DimensionIdentifier.ElementWithOffset<StringUid> elementWithOffsetByString( String elementWithOffset )
     {
         String[] split = StringUtils.split( elementWithOffset, "[]" );
         if ( split.length == 2 )
         {
-            return DimensionIdentifier.ElementWithOffset.of( split[0], split[1] );
+            return DimensionIdentifier.ElementWithOffset.of( StringUid.of( split[0] ), split[1] );
         }
         else
         {
-            return DimensionIdentifier.ElementWithOffset.of( elementWithOffset, null );
+            return DimensionIdentifier.ElementWithOffset.of( StringUid.of( elementWithOffset ), null );
         }
     }
 
-    private Optional<ProgramStage> extractProgramStageIfExists( Program program, String programStageUid )
+    private Optional<ProgramStage> extractProgramStageIfExists( Program program, StringUid programStageUid )
     {
         return program.getProgramStages().stream()
-            .filter( programStage -> programStage.getUid().equals( programStageUid ) )
+            .filter( programStage -> programStage.getUid().equals( programStageUid.getUid() ) )
             .findFirst();
     }
 }

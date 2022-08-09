@@ -25,22 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.mapper;
+package org.hisp.dhis.analytics.common;
 
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 
-/**
- * Order parameter container to use within services.
- *
- * @author Giuseppe Nespolino <g.nespolino@gmail.com>
- */
-@Data
-@Builder
-public class OrderParam
+@Getter
+@Builder( toBuilder = true )
+public class AnalyticsPagingParams
 {
-    private final String field;
+    private final Integer page;
 
-    private final SortDirection direction;
+    private final Integer pageSize;
 
+    private final Boolean requestPaged;
+
+    private final Boolean countRequested;
+
+    public boolean isEmpty()
+    {
+        return page == null && pageSize == null && requestPaged == null && countRequested == null;
+    }
 }
