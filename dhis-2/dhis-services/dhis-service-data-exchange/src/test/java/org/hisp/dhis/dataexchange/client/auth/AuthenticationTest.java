@@ -25,51 +25,48 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.utils;
+package org.hisp.dhis.dataexchange.client.auth;
 
-import java.util.List;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserRole;
+import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpHeaders;
 
-import com.google.common.collect.Lists;
-
-public class UserTestUtils
+class AuthenticationTest
 {
-    protected static final String BASE_USER_UID = "userabcdef";
-
-    public static User makeUser( String uniqueCharacter )
+    @Test
+    void testBasicAuthHeaderValue()
     {
-        return makeUser( uniqueCharacter, Lists.newArrayList() );
+        Authentication auth = new BasicAuthentication( "admin", "district" );
+
+        HttpHeaders headers = new HttpHeaders();
+
+        auth.withAuthentication( headers );
+
+        assertEquals( "Basic YWRtaW46ZGlzdHJpY3Q=", headers.getFirst( HttpHeaders.AUTHORIZATION ) );
     }
 
-    public static User makeUser( String uniqueCharacter, List<String> auths )
+    @Test
+    void testAccessTokenHeaderValue()
     {
-        User user = new User();
-        user.setUid( BASE_USER_UID + uniqueCharacter );
+        Authentication auth = new AccessTokenAuthentication( "d2pat_5xVA12xyUbWNedQxy4ohH77WlxR" );
 
-        user.setCreatedBy( user );
+        HttpHeaders headers = new HttpHeaders();
 
-        user.setUsername( ("username" + uniqueCharacter).toLowerCase() );
-        user.setPassword( "password" + uniqueCharacter );
+        auth.withAuthentication( headers );
 
-        if ( auths != null && !auths.isEmpty() )
-        {
-            UserRole role = new UserRole();
-            role.setName( "Role_" + CodeGenerator.generateCode( 5 ) );
-            auths.forEach( auth -> role.getAuthorities().add( auth ) );
-            user.getUserRoles().add( role );
-        }
-
-        user.setFirstName( "FirstName" + uniqueCharacter );
-        user.setSurname( "Surname" + uniqueCharacter );
-        user.setEmail( ("Email" + uniqueCharacter).toLowerCase() );
-        user.setPhoneNumber( "PhoneNumber" + uniqueCharacter );
-        user.setCode( "UserCode" + uniqueCharacter );
-        user.setAutoFields();
-
-        return user;
+        assertEquals( "ApiToken d2pat_5xVA12xyUbWNedQxy4ohH77WlxR", headers.getFirst( HttpHeaders.AUTHORIZATION ) );
     }
 
+    @Test
+    void testCookieValue()
+    {
+        Authentication auth = new CookieAuthentication( "HKIJ7KJHB3JHG2KJ8PRE7T" );
+
+        HttpHeaders headers = new HttpHeaders();
+
+        auth.withAuthentication( headers );
+
+        assertEquals( "JSESSIONID=HKIJ7KJHB3JHG2KJ8PRE7T", headers.getFirst( HttpHeaders.COOKIE ) );
+    }
 }

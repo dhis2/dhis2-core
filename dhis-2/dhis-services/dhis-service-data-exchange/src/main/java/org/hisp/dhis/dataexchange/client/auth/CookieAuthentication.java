@@ -25,45 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.startup;
+package org.hisp.dhis.dataexchange.client.auth;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.system.startup.AbstractStartupRoutine;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.UserQueryParams;
-import org.hisp.dhis.user.UserService;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.http.HttpHeaders;
 
-/**
- * @author Henning Håkonsen
- */
-@Transactional
-public class TwoFAPopulator
-    extends AbstractStartupRoutine
+@Getter
+@RequiredArgsConstructor
+public class CookieAuthentication
+    implements Authentication
 {
-    private final UserService userService;
-
-    private final CurrentUserService currentUserService;
-
-    public TwoFAPopulator( UserService userService, CurrentUserService currentUserService )
-    {
-        checkNotNull( userService );
-        checkNotNull( currentUserService );
-        this.userService = userService;
-        this.currentUserService = currentUserService;
-    }
+    @NonNull
+    private final String sessionId;
 
     @Override
-    public void execute()
-        throws Exception
+    public HttpHeaders withAuthentication( HttpHeaders headers )
     {
-        UserQueryParams userQueryParams = new UserQueryParams( currentUserService.getCurrentUser() );
-        userQueryParams.setNot2FA( true );
-
-        userService.getUsers( userQueryParams ).forEach( user -> {
-            user.setSecret( null );
-            userService.updateUser( user );
-        } );
+        String value = String.format( "JSESSIONID=%s", sessionId );
+        headers.set( HttpHeaders.COOKIE, value );
+        return headers;
     }
 }

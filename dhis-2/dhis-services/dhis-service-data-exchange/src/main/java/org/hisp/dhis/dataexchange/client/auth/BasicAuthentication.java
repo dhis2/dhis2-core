@@ -25,54 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dto;
+package org.hisp.dhis.dataexchange.client.auth;
 
-import java.util.List;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
-/**
- * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
- */
-public class Program
+import org.springframework.http.HttpHeaders;
+
+@Getter
+@RequiredArgsConstructor
+public class BasicAuthentication
+    implements Authentication
 {
-    private String uid;
+    @NonNull
+    private final String username;
 
-    private List<String> programStages;
+    @NonNull
+    private final String password;
 
-    private String trackedEntityType;
-
-    public String getUid()
+    @Override
+    public HttpHeaders withAuthentication( HttpHeaders headers )
     {
-        return uid;
-    }
-
-    public Program setUid( String uid )
-    {
-        this.uid = uid;
-
-        return this;
-    }
-
-    public List<String> getProgramStages()
-    {
-        return programStages;
-    }
-
-    public Program setProgramStages( List<String> programStages )
-    {
-        this.programStages = programStages;
-
-        return this;
-    }
-
-    public String getTrackedEntityType()
-    {
-        return trackedEntityType;
-    }
-
-    public Program setTrackedEntityType( String trackedEntityType )
-    {
-        this.trackedEntityType = trackedEntityType;
-
-        return this;
+        headers.setBasicAuth( username, password );
+        return headers;
     }
 }

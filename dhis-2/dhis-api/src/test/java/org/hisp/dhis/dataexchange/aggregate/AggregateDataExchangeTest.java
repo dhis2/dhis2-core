@@ -25,25 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.dataexchange.aggregate;
 
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests the {@link org.hisp.dhis.webapi.controller.security.SecurityController}
- * sing (mocked) REST requests.
- *
- * @author Jan Bernitt
- */
-class SecurityControllerTest extends DhisControllerConvenienceTest
+class AggregateDataExchangeTest
 {
-
     @Test
-    void testAuthenticate2FA()
+    void testApiAuth()
     {
-        assertWebMessage( "Unauthorized", 401, "ERROR", "2FA code not authenticated",
-            GET( "/2fa/authenticate?code=xyz" ).content( HttpStatus.UNAUTHORIZED ) );
+        Api api = new Api();
+        api.setAccessToken( "d2pat_5xVA12xyUbWNedQxy4ohH77WlxR" );
+
+        assertTrue( api.isAccessTokenAuth() );
+        assertFalse( api.isBasicAuth() );
+
+        api = new Api();
+        api.setUsername( "admin" );
+        api.setPassword( "district" );
+
+        assertTrue( api.isBasicAuth() );
+        assertFalse( api.isAccessTokenAuth() );
+
+        api = new Api();
+        api.setAccessToken( "d2pat_5xVA12xyUbWNedQxy4ohH77WlxR" );
+        api.setUsername( "admin" );
+        api.setPassword( "district" );
+
+        assertTrue( api.isAccessTokenAuth() );
+
+        api = new Api();
+        api.setUsername( "admin" );
+
+        assertFalse( api.isBasicAuth() );
+        assertFalse( api.isAccessTokenAuth() );
     }
 }

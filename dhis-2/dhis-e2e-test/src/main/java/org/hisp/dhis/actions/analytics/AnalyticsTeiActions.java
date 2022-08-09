@@ -25,33 +25,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataexchange.client;
+package org.hisp.dhis.actions.analytics;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.hisp.dhis.actions.RestApiActions;
+import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.QueryParamsBuilder;
 
-import org.junit.jupiter.api.Test;
-
-class Dhis2ConfigTest
+/**
+ * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
+ */
+public class AnalyticsTeiActions
+    extends RestApiActions
 {
-    @Test
-    void testNullConstructorArgument()
+    public AnalyticsTeiActions()
     {
-        assertThrows( NullPointerException.class, () -> new Dhis2Config(
-            null, "admin", "district" ) );
-        assertThrows( NullPointerException.class, () -> new Dhis2Config(
-            "https://play.dhis2.org/2.38.0", null, "district" ) );
+        super( "/analytics/trackedEntities" );
     }
 
-    @Test
-    void testGetResolvedUriBuilder()
+    public AnalyticsTeiActions( String endpoint )
     {
-        Dhis2Config config = new Dhis2Config(
-            "https://play.dhis2.org/2.38.0", "admin", "district" );
+        super( "/analytics/trackedEntities" + endpoint );
+    }
 
-        assertEquals( "https://play.dhis2.org/2.38.0/api/dataValueSets",
-            config.getResolvedUriBuilder( "dataValueSets" ).build().toUriString() );
-        assertEquals( "https://play.dhis2.org/2.38.0/api/system/info",
-            config.getResolvedUriBuilder( "system/info" ).build().toUriString() );
+    public AnalyticsTeiActions query()
+    {
+        return new AnalyticsTeiActions( "/query" );
+    }
+
+    public ApiResponse getDimensions( String trackedEntityType )
+    {
+        return getDimensions( trackedEntityType, null );
+    }
+
+    public ApiResponse getDimensions( String trackedEntityType, QueryParamsBuilder queryParams )
+    {
+        if ( queryParams == null )
+        {
+            queryParams = new QueryParamsBuilder();
+        }
+
+        queryParams.add( "trackedEntityType", trackedEntityType );
+
+        return this.get( "/dimensions", queryParams );
     }
 }

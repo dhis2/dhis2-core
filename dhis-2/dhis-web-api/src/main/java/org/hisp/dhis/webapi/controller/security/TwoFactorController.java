@@ -27,80 +27,93 @@
  */
 package org.hisp.dhis.webapi.controller.security;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
+import static org.hisp.dhis.feedback.ErrorCode.E3023;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import lombok.AllArgsConstructor;
 
+import org.apache.commons.validator.routines.LongValidator;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.hisp.dhis.security.SecurityUtils;
+import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.security.TwoFactoryAuthenticationUtils;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author Henning Håkonsen
+ * @author Morten Svanaes
  */
 @RestController
 @RequestMapping( value = "/2fa" )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+@ApiVersion( { DhisApiVersion.DEFAULT,
+    DhisApiVersion.ALL } )
 @AllArgsConstructor
-public class SecurityController
+public class TwoFactorController
 {
+    private final UserService defaultUserService;
+
     private final SystemSettingManager systemSettingManager;
 
-    private final ObjectMapper jsonMapper;
-
     @GetMapping( value = "/qr", produces = APPLICATION_JSON_VALUE )
-    public void getQrCode( HttpServletRequest request, HttpServletResponse response, @CurrentUser User currentUser )
-        throws IOException
+    @ResponseStatus( HttpStatus.ACCEPTED )
+    @ResponseBody
+    public Map<String, Object> getQrCode( @CurrentUser User currentUser )
+        throws WebMessageException
     {
         if ( currentUser == null )
         {
             throw new BadCredentialsException( "No current user" );
         }
 
-        String appName = systemSettingManager.getStringSetting( SettingKey.APPLICATION_TITLE );
+        if ( currentUser.getTwoFA() )
+        {
+            throw new WebMessageException( conflict( ErrorCode.E3022.getMessage(), ErrorCode.E3022 ) );
+        }
 
-        String url = SecurityUtils.generateQrUrl( appName, currentUser );
+        defaultUserService.generateTwoFactorSecret( currentUser );
+
+        String appName = systemSettingManager.getStringSetting( SettingKey.APPLICATION_TITLE );
+        String url = TwoFactoryAuthenticationUtils.generateQrUrl( appName, currentUser );
 
         Map<String, Object> map = new HashMap<>();
         map.put( "url", url );
 
-        response.setStatus( HttpServletResponse.SC_ACCEPTED );
-        response.setContentType( APPLICATION_JSON_VALUE );
-        jsonMapper.writeValue( response.getOutputStream(), map );
+        return map;
     }
 
     @GetMapping( value = "/authenticate", produces = APPLICATION_JSON_VALUE )
     @ResponseBody
-    public WebMessage authenticate2FA( @RequestParam String code, @CurrentUser User currentUser )
+    public WebMessage authenticate(
+        @RequestParam String code, @CurrentUser User currentUser )
     {
         if ( currentUser == null )
         {
             throw new BadCredentialsException( "No current user" );
         }
 
-        if ( !SecurityUtils.verify( currentUser, code ) )
+        if ( !TwoFactoryAuthenticationUtils.verify( currentUser, code ) )
         {
             return unauthorized( "2FA code not authenticated" );
         }
@@ -109,4 +122,42 @@ public class SecurityController
             return ok( "2FA code authenticated" );
         }
     }
+
+    @PostMapping( value = "/enable", consumes = { "text/*", "application/*" } )
+    @ResponseStatus( HttpStatus.OK )
+    @ResponseBody
+    public void enable(
+        @RequestBody Map<String, String> body, @CurrentUser( required = true ) User currentUser )
+        throws WebMessageException
+    {
+        validateCode( currentUser, body.get( "code" ) );
+        defaultUserService.set2FA( currentUser, true );
+    }
+
+    @PostMapping( value = "/disable", consumes = { "text/*", "application/*" } )
+    @ResponseStatus( HttpStatus.OK )
+    @ResponseBody
+    public void disable(
+        @RequestBody Map<String, String> body, @CurrentUser( required = true ) User currentUser )
+        throws WebMessageException
+    {
+        validateCode( currentUser, body.get( "code" ) );
+        defaultUserService.set2FA( currentUser, false );
+    }
+
+    private static void validateCode( User currentUser, String code )
+        throws WebMessageException
+    {
+        if ( currentUser == null )
+        {
+            throw new BadCredentialsException( "No current user" );
+        }
+
+        if ( code == null || !LongValidator.getInstance().isValid( code )
+            || !TwoFactoryAuthenticationUtils.verify( currentUser, code ) )
+        {
+            throw new WebMessageException( conflict( E3023.getMessage(), E3023 ) );
+        }
+    }
+
 }
