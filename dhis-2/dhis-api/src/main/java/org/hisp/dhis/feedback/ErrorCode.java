@@ -98,7 +98,7 @@ public enum ErrorCode
     E2013( "At least one data set must be specified" ),
     E2014( "Unable to parse filter `{0}`" ),
     E2015( "Unable to parse order param: `{0}`" ),
-    E2016( "Unable to parse element `{0}` on filter `{1}`, the values available are: {2}" ),
+    E2016( "Unable to parse element `{0}` on filter `{1}`, the available values are: {2}" ),
     E2017( "Data set is locked" ),
     E2018( "Category option combo is required but not specified" ),
     E2019( "Organisation unit is closed for the selected period: `{0}`" ),
