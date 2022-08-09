@@ -573,6 +573,7 @@ class UserServiceTest extends SingleSetupIntegrationTestBase
     void testDisableTwoFAWithAdminUser()
     {
         User userToModify = createAndAddUser( "A" );
+        userService.generateTwoFactorSecret( userToModify );
         userToModify.setTwoFA( true );
         userService.updateUser( userToModify );
 
@@ -586,6 +587,7 @@ class UserServiceTest extends SingleSetupIntegrationTestBase
     void testDisableTwoFAWithManageUser()
     {
         User userToModify = createAndAddUser( "A" );
+        userService.generateTwoFactorSecret( userToModify );
         userToModify.setTwoFA( true );
 
         UserGroup userGroupA = createUserGroup( 'A', Sets.newHashSet( userToModify ) );

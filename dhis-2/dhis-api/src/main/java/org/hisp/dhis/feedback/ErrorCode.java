@@ -164,6 +164,10 @@ public enum ErrorCode
     E3018( "Invalid user access string: `{0}`" ),
     E3019( "Sharing is not enabled for this object `{0}`" ),
     E3020( "You must have permissions to create user, or ability to manage at least one user group for the user." ),
+    E3021( "Cannot disable 2FA for yourself with this API endpoint." ),
+    E3022( "User already has two factor authentication enabled, disable 2FA before you create a new QR code." ),
+    E3023( "Invalid 2FA code" ),
+    E3024( "Not allowed to disable 2FA with this endpoint." ),
 
     /* Metadata Validation */
     E4000( "Missing required property `{0}`." ),
