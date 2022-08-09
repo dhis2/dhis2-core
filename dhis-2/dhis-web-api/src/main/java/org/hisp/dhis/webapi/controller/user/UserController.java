@@ -572,6 +572,15 @@ public class UserController
         setExpires( uid, null );
     }
 
+    /**
+     * "Disable two-factor authentication for the user with the given uid."
+     * <p>
+     *
+     * @param uid The uid of the user to disable two-factor authentication for.
+     * @param currentUser This is the user that is currently logged in.
+     *
+     * @return A WebMessage object.
+     */
     @PostMapping( "/{uid}/twoFA/disabled" )
     public WebMessage disableTwoFA( @PathVariable( "uid" ) String uid, @CurrentUser User currentUser )
     {
@@ -590,6 +599,14 @@ public class UserController
     // PATCH
     //
 
+    /**
+     * > This function is used to PATCH a user object
+     *
+     * @param pvUid The user's uid
+     * @param rpParameters The request parameters
+     * @param currentUser The user that is currently logged in.
+     * @param request The request object
+     */
     @PatchMapping( value = "/{uid}" )
     @ResponseStatus( value = HttpStatus.NO_CONTENT )
     @Override
@@ -608,6 +625,8 @@ public class UserController
 
         User persistedObject = entities.get( 0 );
 
+        boolean twoFABefore = persistedObject.getTwoFA();
+
         if ( !aclService.canUpdate( currentUser, persistedObject ) )
         {
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
@@ -619,7 +638,13 @@ public class UserController
 
         prePatchEntity( persistedObject );
         patchService.apply( patch, persistedObject );
+
+        boolean twoFAfter = persistedObject.getTwoFA();
+
+        securityService.validate2FAUpdate( twoFABefore, twoFAfter, persistedObject );
+
         validateAndThrowErrors( () -> schemaValidator.validate( persistedObject ) );
+
         manager.update( persistedObject );
         postPatchEntity( persistedObject );
     }
@@ -785,7 +810,7 @@ public class UserController
     @Override
     protected void postPatchEntity( User user )
     {
-        // Make sure we always expire all of the user's active sessions if we
+        // Make sure we always expire all the user's active sessions if we
         // have disabled the user.
         if ( user != null && user.isDisabled() )
         {

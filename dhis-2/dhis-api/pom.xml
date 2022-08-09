@@ -99,10 +99,6 @@
       <artifactId>rule-engine</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.jboss.aerogear</groupId>
-      <artifactId>aerogear-otp-java</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.springframework.security</groupId>
       <artifactId>spring-security-core</artifactId>
     </dependency>
