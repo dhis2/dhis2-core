@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.table;
 
+import static java.lang.String.join;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
@@ -49,6 +50,8 @@ import static org.hisp.dhis.analytics.IndexType.GIST;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.EXPORTABLE_EVENT_STATUSES;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.DisplayNameUtils.getDisplayName;
+import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
+import static org.hisp.dhis.util.DateUtils.getLongDateString;
 import static org.springframework.util.Assert.notNull;
 
 import java.util.ArrayList;
@@ -71,7 +74,6 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.collection.ListUtils;
-import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -231,6 +233,8 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager
                     + teaUid + "')" ) )
             .collect( toList() ) );
 
+        columns.addAll( addPeriodTypeColumns( "dps" ) );
+
         StringBuilder sql = new StringBuilder();
 
         columns.add(
@@ -248,6 +252,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager
                     .append( " from programinstance pi_0, program p_0" )
                     .append( " where pi_0.trackedentityinstanceid = tei.trackedentityinstanceid" )
                     .append( " and p_0.programid = pi_0.programid)" ).toString() ).withIndexType( GIN ) );
+
         return columns;
     }
 
@@ -340,7 +345,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager
             sql.append( col.getName() + "," );
         }
 
-        TextUtils.removeLastComma( sql ).append( ") select " );
+        removeLastComma( sql ).append( ") select " );
 
         for ( AnalyticsTableColumn col : columns )
         {
@@ -352,7 +357,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager
             sql.append( col.getAlias() + "," );
         }
 
-        TextUtils.removeLastComma( sql )
+        removeLastComma( sql )
             .append( " from trackedentityinstance tei" )
             .append( " left join trackedentitytype tet on tet.trackedentitytypeid = tei.trackedentitytypeid" )
             .append( " left join programinstance pi on pi.trackedentityinstanceid = tei.trackedentityinstanceid" )
@@ -362,10 +367,20 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager
             .append( " left join programstage ps on ps.programstageid = psi.programstageid" )
             .append( " left join organisationunit ou on tei.organisationunitid = ou.organisationunitid" )
             .append( " left join _orgunitstructure ous on ous.organisationunitid = ou.organisationunitid" )
+            .append(
+                " left join _organisationunitgroupsetstructure ougs on pi.organisationunitid=ougs.organisationunitid " )
+            .append(
+                " and (cast(date_trunc('month', tei.created) as date)=ougs.startdate or ougs.startdate is null) " )
+            .append( " inner join _dateperiodstructure dps on cast(tei.created as date)=dps.dateperiod " )
             .append( " where tei.trackedentitytypeid = " + partition.getMasterTable().getTrackedEntityType().getId() )
-            .append( " and psi.status in (" + String.join( ",", EXPORTABLE_EVENT_STATUSES ) + ")" +
-                "and psi.deleted is false " )
+            .append( " and tei.lastupdated < '" + getLongDateString( params.getStartTime() ) + "'" )
+            .append( " and psi.status in (" + join( ",", EXPORTABLE_EVENT_STATUSES ) + ")" )
+            .append( " and psi.deleted is false " )
+            .append( " and tei.created is not null " )
             .append( " group by " )
+            .append(
+                addPeriodTypeColumns( "dps" ).stream().map( AnalyticsTableColumn::getAlias ).collect( joining( "," ) ) )
+            .append( "," )
             .append( GROUP_BY_COLS.stream()
                 .map( AnalyticsTableColumn::getAlias )
                 .filter( alias -> !"enrollments".equals( alias ) )

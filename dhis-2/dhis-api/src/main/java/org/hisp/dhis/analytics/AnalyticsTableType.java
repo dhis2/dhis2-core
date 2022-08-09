@@ -39,7 +39,7 @@ public enum AnalyticsTableType
     EVENT( "analytics_event", false, true ),
     ENROLLMENT( "analytics_enrollment", false, false ),
     VALIDATION_RESULT( "analytics_validationresult", true, false ),
-    TRACKED_ENTITY_INSTANCE_EVENTS( "analytics_tei_events", false, false ),
+    TRACKED_ENTITY_INSTANCE_EVENTS( "analytics_tei_events", false, true ),
     TRACKED_ENTITY_INSTANCE_ENROLLMENTS( "analytics_tei_enrollments", false, false ),
     TRACKED_ENTITY_INSTANCE( "analytics_tei", false, false );
 
