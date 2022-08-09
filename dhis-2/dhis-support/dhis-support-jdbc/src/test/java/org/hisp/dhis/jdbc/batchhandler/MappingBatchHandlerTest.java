@@ -40,7 +40,7 @@ import javax.sql.DataSource;
 
 import org.hisp.quick.JdbcConfiguration;
 import org.hisp.quick.StatementDialect;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -90,7 +90,7 @@ class MappingBatchHandlerTest
 
     private MappingBatchHandler target;
 
-    @BeforeAll
+    @BeforeEach
     public void setUp()
         throws SQLException
     {
