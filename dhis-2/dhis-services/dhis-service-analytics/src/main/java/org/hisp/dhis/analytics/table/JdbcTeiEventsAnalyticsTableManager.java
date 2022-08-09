@@ -400,11 +400,10 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
             .append( " and (cast(date_trunc('month', " + getDateLinkedToStatus() + ") as date)" )
             .append( "=ougs.startdate or ougs.startdate is null) " )
             .append(
-                " left join _dateperiodstructure dps on cast(" + getDateLinkedToStatus() + " as date)=dps.dateperiod " )
+                " inner join _dateperiodstructure dps on cast(" + getDateLinkedToStatus()
+                    + " as date)=dps.dateperiod " )
             .append( " where tei.trackedentitytypeid = " + partition.getMasterTable().getTrackedEntityType().getId() )
             .append( " and psi.lastupdated < '" + getLongDateString( params.getStartTime() ) + "' " + partitionClause )
-            .append( " and dps.year >= " + FIRST_YEAR_SUPPORTED + " " )
-            .append( " and dps.year <= " + LATEST_YEAR_SUPPORTED + " " )
             .append( " and psi.status in (" + join( ",", EXPORTABLE_EVENT_STATUSES ) + ")" )
             .append( " and psi.deleted is false " );
 

@@ -49,8 +49,6 @@ import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.EXPOR
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.DisplayNameUtils.getDisplayName;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
-import static org.hisp.dhis.resourcetable.ResourceTable.FIRST_YEAR_SUPPORTED;
-import static org.hisp.dhis.resourcetable.ResourceTable.LATEST_YEAR_SUPPORTED;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 import static org.springframework.util.Assert.notNull;
 
@@ -305,14 +303,12 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
             .append( " and (cast(date_trunc('month', pi.incidentdate) as date)" )
             .append( "=ougs.startdate or ougs.startdate is null) " )
             .append(
-                " left join _dateperiodstructure dps on cast(pi.incidentdate as date)=dps.dateperiod " )
+                " inner join _dateperiodstructure dps on cast(pi.incidentdate as date)=dps.dateperiod " )
             .append( " where tei.trackedentitytypeid = " + partition.getMasterTable().getTrackedEntityType().getId() )
             .append( " and tei.lastupdated < '" + getLongDateString( params.getStartTime() ) + "'" )
             .append( " and psi.status in (" + join( ",", EXPORTABLE_EVENT_STATUSES ) + ")" )
             .append( " and psi.deleted is false " )
             .append( " and pi.incidentdate is not null " )
-            .append( " and dps.year >= " + FIRST_YEAR_SUPPORTED + " " )
-            .append( " and dps.year <= " + LATEST_YEAR_SUPPORTED + " " )
             .append( " group by " )
             .append(
                 addPeriodTypeColumns( "dps" ).stream().map( AnalyticsTableColumn::getAlias ).collect( joining( "," ) ) )
