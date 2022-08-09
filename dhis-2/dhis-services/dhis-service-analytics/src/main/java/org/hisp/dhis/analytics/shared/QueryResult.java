@@ -33,7 +33,7 @@ package org.hisp.dhis.analytics.shared;
  *
  * @author maikel arabori
  */
-public interface QueryResult<T>
+public interface QueryResult<T, C>
 {
     /**
      * Holds the result object of a query.
@@ -41,6 +41,8 @@ public interface QueryResult<T>
      * @return the result object
      */
     T result();
+
+    C columns();
 
     /**
      * Checks if the query result is empty.

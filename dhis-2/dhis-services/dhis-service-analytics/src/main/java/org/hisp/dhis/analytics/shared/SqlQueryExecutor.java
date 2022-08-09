@@ -32,11 +32,13 @@ import static org.springframework.util.Assert.notNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
-import lombok.AllArgsConstructor;
-
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 
@@ -46,35 +48,38 @@ import org.springframework.stereotype.Component;
  * @author maikel arabori
  */
 @Component
-@AllArgsConstructor
 public class SqlQueryExecutor implements QueryExecutor<SqlQuery, SqlQueryResult>
 {
 
-    private final JdbcTemplate jdbcTemplate;
+    private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+
+    public SqlQueryExecutor( @Qualifier( "readOnlyJdbcTemplate" )
+    final JdbcTemplate jdbcTemplate )
+    {
+        notNull( jdbcTemplate, "jdbcTemplate cannot be null" );
+
+        this.namedParameterJdbcTemplate = new NamedParameterJdbcTemplate( jdbcTemplate );
+    }
 
     /**
      * @see QueryExecutor#execute(Query)
      *
-     * @throws IllegalArgumentException if the query argument is null or the
-     *         query contains an invalid statement (see
-     *         {@link SqlQuery#validate()})
+     * @throws IllegalArgumentException if the query argument is null
      */
     @Override
     public SqlQueryResult execute( final SqlQuery query )
     {
         notNull( query, "The 'query' must not be null" );
 
-        final List<Column> columns = query.getColumns();
-        final Map<Column, List<Object>> resultMap = initializeResultMapWith( columns );
+        final Map<Column, List<Object>> resultMap = initializeResultMapWith( query.params().keySet() );
 
-        final SqlRowSet rowSet = jdbcTemplate.queryForRowSet( query.fullStatement() );
+        final SqlRowSet rowSet = namedParameterJdbcTemplate.queryForRowSet( query.statement(),
+            new MapSqlParameterSource().addValues( query.params() ) );
 
         while ( rowSet.next() )
         {
-            for ( final Column column : columns )
+            for ( final Column column : resultMap.keySet() )
             {
-                // TODO: Check if we always return as object, or the correct
-                // type based on Column.valueType().
                 final Object value = rowSet.getObject( column.getAlias() );
                 resultMap.get( column ).add( value );
             }
@@ -92,13 +97,13 @@ public class SqlQueryExecutor implements QueryExecutor<SqlQuery, SqlQueryResult>
      * @param columns
      * @return the initialized map
      */
-    private Map<Column, List<Object>> initializeResultMapWith( final List<Column> columns )
+    private Map<Column, List<Object>> initializeResultMapWith( final Set<String> columns )
     {
         final Map<Column, List<Object>> resultMap = new TreeMap<>();
 
-        for ( final Column column : columns )
+        for ( final String column : columns )
         {
-            resultMap.put( column, new ArrayList<>() );
+            resultMap.put( Column.builder().value( column ).build(), new ArrayList<>() );
         }
 
         return resultMap;

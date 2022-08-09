@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.analytics.tei;
 
+import static java.lang.String.valueOf;
+import static java.util.stream.Collectors.toMap;
 import static org.hisp.dhis.analytics.shared.GridHeaders.from;
 import static org.springframework.util.Assert.notNull;
 
@@ -39,7 +41,6 @@ import lombok.AllArgsConstructor;
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
 import org.hisp.dhis.analytics.shared.GridAdaptor;
 import org.hisp.dhis.analytics.shared.QueryExecutor;
-import org.hisp.dhis.analytics.shared.QueryGenerator;
 import org.hisp.dhis.analytics.shared.SqlQuery;
 import org.hisp.dhis.analytics.shared.SqlQueryResult;
 import org.hisp.dhis.analytics.tei.query.QueryContext;
@@ -58,8 +59,6 @@ import org.springframework.stereotype.Service;
 public class TeiAnalyticsQueryService
 {
 
-    private final QueryGenerator<TeiQueryParams> teiJdbcQuery;
-
     private final QueryExecutor<SqlQuery, SqlQueryResult> queryExecutor;
 
     private final GridAdaptor gridAdaptor;
@@ -75,21 +74,23 @@ public class TeiAnalyticsQueryService
      */
     public Grid getGrid( final TeiQueryParams teiQueryParams, final CommonQueryRequest commonQueryRequest )
     {
-        QueryContext queryNg = QueryContext.of( teiQueryParams );
+        QueryContext queryContext = QueryContext.of( teiQueryParams );
         // output should look like: https://pastebin.com/4aK9ZxEQ
-        String q = queryNg.getQuery().render();
+        String statement = queryContext.getQuery().render();
 
-        Set<Map.Entry<Integer, Object>> entries = queryNg.getParametersByPlaceHolder().entrySet();
+        Set<Map.Entry<Integer, Object>> entries = queryContext.getParametersByPlaceHolder().entrySet();
         for ( Map.Entry<Integer, Object> entry : entries )
         {
-            q = q.replace( ":" + entry.getKey(), entry.getValue().toString() );
+            statement = statement.replace( ":" + entry.getKey(), entry.getValue().toString() );
         }
+
         notNull( teiQueryParams, "The 'teiParams' must not be null" );
 
-        final SqlQuery query = (SqlQuery) teiJdbcQuery.from( teiQueryParams );
+        final Map<String, Object> params = entries.stream()
+            .collect( toMap( e -> valueOf( e.getKey() ), e -> e.getValue() ) );
 
-        final SqlQueryResult result = queryExecutor.execute( query );
-        final List<GridHeader> headers = from( query.getColumns() );
+        final SqlQueryResult result = queryExecutor.execute( new SqlQuery( statement, params ) );
+        final List<GridHeader> headers = from( result.columns() );
 
         return gridAdaptor.createGrid( headers, result.result(),
             teiQueryParams.getCommonParams(), commonQueryRequest );

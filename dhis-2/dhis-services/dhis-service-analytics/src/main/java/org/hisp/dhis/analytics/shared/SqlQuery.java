@@ -27,108 +27,48 @@
  */
 package org.hisp.dhis.analytics.shared;
 
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.apache.commons.lang3.StringUtils.SPACE;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.apache.commons.lang3.StringUtils.join;
-import static org.apache.commons.lang3.StringUtils.wrap;
 import static org.springframework.util.Assert.hasText;
-import static org.springframework.util.Assert.noNullElements;
 import static org.springframework.util.Assert.notEmpty;
 
-import java.util.List;
+import java.util.Map;
 
-import lombok.Builder;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 
 /**
  * @see Query
  *
  * @author maikel arabori
  */
-@Getter
 @EqualsAndHashCode
-@Builder
 public class SqlQuery implements Query
 {
 
-    /**
-     * The list of columns to be queried.
-     */
-    private final List<Column> columns;
+    private final String statement;
+
+    private final Map<String, Object> params;
+
+    public SqlQuery( final String statement, final Map<String, Object> params )
+    {
+        hasText( statement, "The 'statement' must not be null/empty/blank" );
+        notEmpty( params, "The 'params' must not be null/empty" );
+
+        this.statement = statement;
+        this.params = params;
+    }
 
     /**
-     * Stores the join clause.
+     * @see Query#statement()
      *
-     * Example: from programinstance pi
-     */
-    private final String fromClause;
-
-    /**
-     * Stores the join clause.
-     *
-     * Example: inner join program pr on pi.programid = pr.programid left join
-     * trackedentityinstance tei on pi.trackedentityinstanceid =
-     * tei.trackedentityinstanceid and tei.deleted is false
-     */
-    private final String joinClause;
-
-    /**
-     * Stores the where clause.
-     *
-     * Example: where username = 'adhanom' and donator = 'bill'
-     */
-    private final String whereClause;
-
-    /**
-     * Stores the last clauses in the query.
-     *
-     * Example: order by "name" desc limit 100 offset 0
-     */
-    private final String closingClauses;
-
-    /**
-     * flag for adding the distinct into the query
-     */
-    private final boolean withDistinct;
-
-    /**
-     * @see Query#fullStatement()
-     *
-     * @throws IllegalArgumentException if columns is null/empty or contain at
-     *         least one null element. If the 'from' clause is null/empty/blank.
-     *         If the 'where' is null/empty/blank.
+     * @throws IllegalArgumentException if statement is null/empty/blank
      */
     @Override
-    public String fullStatement()
+    public String statement()
     {
-        validate();
-
-        return "select " + (withDistinct ? "distinct " : "") + join( columns, "," ) + spaced( fromClause )
-            + spaced( joinClause )
-            + spaced( whereClause )
-            + spaced( closingClauses );
+        return statement;
     }
 
-    private void validate()
+    public Map<String, Object> params()
     {
-        notEmpty( columns, "The 'columns' must not be null/empty" );
-        noNullElements( columns, "The 'columns' must not contain null elements" );
-        hasText( fromClause, "Must have a 'from' clause" );
-        hasText( whereClause, "Must have a 'where' clause" );
-    }
-
-    /**
-     * Adds a space character before and after of the given value. ie.: "name"
-     * will become " name "
-     *
-     * @param value
-     * @return return the spaced value, or empty string if the given value is
-     *         null/empty/blank
-     */
-    private String spaced( final String value )
-    {
-        return isNotBlank( value ) ? wrap( value, SPACE ) : EMPTY;
+        return params;
     }
 }

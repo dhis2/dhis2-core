@@ -27,13 +27,12 @@
  */
 package org.hisp.dhis.analytics.shared;
 
-import static java.util.Collections.emptyList;
+import static java.util.Collections.emptySet;
 import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -54,7 +53,7 @@ class GridHeadersTest
     void testFrom()
     {
         // Given
-        final List<Column> columns = List.of( Column.builder().value( "name" ).type( TEXT ).build() );
+        final Set<Column> columns = Set.of( Column.builder().value( "name" ).type( TEXT ).build() );
 
         // When
         final List<GridHeader> headers = GridHeaders.from( columns );
@@ -68,7 +67,7 @@ class GridHeadersTest
     void testFromWhenColumnsIsNull()
     {
         // Given
-        final List<Column> columns = null;
+        final Set<Column> columns = null;
 
         // When
         final IllegalArgumentException thrown = assertThrows( IllegalArgumentException.class,
@@ -83,7 +82,7 @@ class GridHeadersTest
     void testFromWhenColumnsIsEmpty()
     {
         // Given
-        final List<Column> columns = emptyList();
+        final Set<Column> columns = emptySet();
 
         // When
         final IllegalArgumentException thrown = assertThrows( IllegalArgumentException.class,
@@ -98,7 +97,7 @@ class GridHeadersTest
     void testFromWhenColumnsHasNullElement()
     {
         // Given
-        final List<Column> columns = new ArrayList<>();
+        final Set<Column> columns = new LinkedHashSet<>();
         columns.add( Column.builder().value( "name" ).type( TEXT ).build() );
         columns.add( null ); // null element
 
