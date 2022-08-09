@@ -39,8 +39,9 @@ import com.google.common.base.Strings;
 
 /**
  * @author Henning Håkonsen
+ * @author Morten Svanæs
  */
-public class TwoFactorUtils
+public class TwoFactoryAuthenticationUtils
 {
     private static final String APP_NAME_PREFIX = "DHIS 2 ";
 

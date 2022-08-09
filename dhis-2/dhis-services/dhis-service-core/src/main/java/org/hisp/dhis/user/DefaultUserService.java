@@ -859,9 +859,9 @@ public class DefaultUserService
 
     @Override
     @Transactional
-    public void disableTwoFA( User currentUser, String userUID, Consumer<ErrorReport> errors )
+    public void disableTwoFA( User currentUser, String userUid, Consumer<ErrorReport> errors )
     {
-        User user = getUser( userUID );
+        User user = getUser( userUid );
         if ( user == null )
         {
             throw new IllegalArgumentException( "User not found" );

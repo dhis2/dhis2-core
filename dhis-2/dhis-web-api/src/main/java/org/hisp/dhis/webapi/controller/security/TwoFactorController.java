@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.security;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
+import static org.hisp.dhis.feedback.ErrorCode.E3023;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.HashMap;
@@ -41,7 +42,8 @@ import org.apache.commons.validator.routines.LongValidator;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.security.TwoFactorUtils;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.security.TwoFactoryAuthenticationUtils;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUser;
@@ -87,14 +89,13 @@ public class TwoFactorController
 
         if ( currentUser.getTwoFA() )
         {
-            throw new WebMessageException( conflict( "User already has two factor authentication enabled, "
-                + "disable 2FA before you create a new QR code." ) );
+            throw new WebMessageException( conflict( ErrorCode.E3022.getMessage(), ErrorCode.E3022 ) );
         }
 
         defaultUserService.generateTwoFactorSecret( currentUser );
 
         String appName = systemSettingManager.getStringSetting( SettingKey.APPLICATION_TITLE );
-        String url = TwoFactorUtils.generateQrUrl( appName, currentUser );
+        String url = TwoFactoryAuthenticationUtils.generateQrUrl( appName, currentUser );
 
         Map<String, Object> map = new HashMap<>();
         map.put( "url", url );
@@ -112,7 +113,7 @@ public class TwoFactorController
             throw new BadCredentialsException( "No current user" );
         }
 
-        if ( !TwoFactorUtils.verify( currentUser, code ) )
+        if ( !TwoFactoryAuthenticationUtils.verify( currentUser, code ) )
         {
             return unauthorized( "2FA code not authenticated" );
         }
@@ -153,9 +154,9 @@ public class TwoFactorController
         }
 
         if ( code == null || !LongValidator.getInstance().isValid( code )
-            || !TwoFactorUtils.verify( currentUser, code ) )
+            || !TwoFactoryAuthenticationUtils.verify( currentUser, code ) )
         {
-            throw new WebMessageException( conflict( "Invalid code" ) );
+            throw new WebMessageException( conflict( E3023.getMessage(), E3023 ) );
         }
     }
 

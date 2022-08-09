@@ -663,7 +663,7 @@ public class DefaultSecurityService
         {
             // TODO: 13332 When we have 2FA auto provisioning after login, we
             // can change this.
-            throw new UpdateAccessDeniedException( "You can not enable 2FA with this API endpoint, only disable!" );
+            throw new UpdateAccessDeniedException( "You can not enable 2FA with this API endpoint, only disable." );
         }
 
         CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
