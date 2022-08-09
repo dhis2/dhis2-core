@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.user;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.user.User.populateUserCredentialsDtoFields;
@@ -463,7 +464,7 @@ public class MeController
         // backport later
         if ( currentUser.getTwoFA() != user.getTwoFA() )
         {
-            throw new WebMessageException( conflict( ErrorCode.E3024.getMessage(), ErrorCode.E3024 ) );
+            throw new WebMessageException( badRequest( ErrorCode.E3024.getMessage(), ErrorCode.E3024 ) );
         }
     }
 

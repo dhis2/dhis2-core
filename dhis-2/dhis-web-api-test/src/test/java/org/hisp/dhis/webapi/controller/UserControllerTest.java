@@ -277,7 +277,7 @@ class UserControllerTest extends DhisControllerConvenienceTest
 
         String twoFAOn = userJson.replaceAll( "\"twoFA\":false", "\"twoFA\":true" );
 
-        assertEquals( "You can not enable 2FA with this API endpoint, only disable!",
+        assertEquals( "You can not enable 2FA with this API endpoint, only disable.",
             PUT( "/37/users/" + superUser.getUid(), twoFAOn ).error( HttpStatus.FORBIDDEN )
                 .getMessage() );
     }

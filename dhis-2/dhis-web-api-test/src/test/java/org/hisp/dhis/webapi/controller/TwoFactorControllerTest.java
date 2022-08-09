@@ -113,7 +113,7 @@ class TwoFactorControllerTest extends DhisControllerConvenienceTest
     @Test
     void testEnable2FAWrongCode()
     {
-        assertEquals( "Invalid code",
+        assertEquals( "Invalid 2FA code",
             POST( "/2fa/enable", "{'code':'wrong'}" ).error( HttpStatus.Series.CLIENT_ERROR ).getMessage() );
     }
 
@@ -136,7 +136,7 @@ class TwoFactorControllerTest extends DhisControllerConvenienceTest
     @Test
     void testDisable2FAWrongCode()
     {
-        assertEquals( "Invalid code",
+        assertEquals( "Invalid 2FA code",
             POST( "/2fa/disable", "{'code':'wrong'}" ).error( HttpStatus.Series.CLIENT_ERROR ).getMessage() );
     }
 
