@@ -45,7 +45,7 @@ public enum ValueTypeMapping
         this.valueTypes = valueTypes;
     }
 
-    static ValueTypeMapping fromValueType( ValueType valueType )
+    public static ValueTypeMapping fromValueType( ValueType valueType )
     {
         return Arrays.stream( values() )
             .filter( valueTypeMapping -> valueTypeMapping.supports( valueType ) )

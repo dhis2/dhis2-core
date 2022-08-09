@@ -35,7 +35,7 @@ import org.hisp.dhis.analytics.tei.query.BaseRenderable;
 import org.hisp.dhis.analytics.tei.query.Field;
 
 @RequiredArgsConstructor( staticName = "of" )
-public class DataValue extends BaseRenderable
+public class RenderableDataValue extends BaseRenderable
 {
 
     private final String dataValue;

@@ -27,40 +27,44 @@
  */
 package org.hisp.dhis.analytics.tei.query;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.tuple.Pair;
+import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
+import org.hisp.dhis.analytics.tei.query.items.BinaryCondition;
+import org.hisp.dhis.analytics.tei.query.items.RenderableDataValue;
+import org.hisp.dhis.analytics.tei.query.items.ValueTypeMapping;
+
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_TEI_ENR;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_TEI_EVT;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
-
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-
-import org.apache.commons.lang3.tuple.Pair;
-import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
+import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_UID;
+import static org.hisp.dhis.analytics.tei.query.items.ValueTypeMapping.fromValueType;
 
 @NoArgsConstructor( access = AccessLevel.PRIVATE )
 public class LeftJoinQueryBuilder
 {
 
-    public static Pair<Renderable, Renderable> of( AnalyticsSortingParams analyticsSortingParams,
-        QueryContext queryContext )
+    public static Pair<Renderable, Renderable> of( AnalyticsSortingParams orderBy, QueryContext queryContext )
     {
         return Pair.of(
-            () -> "(" + getSelect( analyticsSortingParams, queryContext ) + ") \""
-                + analyticsSortingParams.getOrderBy().toString() + "\"",
-            () -> getCondition( analyticsSortingParams ) );
+            () -> "(" + getSelect( orderBy, queryContext ) + ") \"" + orderBy.getOrderBy().toString() + "\"",
+            getCondition( orderBy ) );
     }
 
-    private static String getCondition( AnalyticsSortingParams analyticsSortingParams )
+    private static Renderable getCondition( AnalyticsSortingParams sortingParams )
     {
-        return TEI_ALIAS + ".trackedentityinstanceuid = \"" + analyticsSortingParams.getOrderBy().toString()
-            + "\".trackedentityinstanceuid";
+        return BinaryCondition.fieldsEqual( TEI_ALIAS, TEI_UID, sortingParams.getOrderBy().toString(), TEI_UID );
     }
 
-    private static String getSelect( AnalyticsSortingParams analyticsSortingParams, QueryContext queryContext )
+    private static String getSelect( AnalyticsSortingParams sortingParams, QueryContext queryContext )
     {
-        String programUid = analyticsSortingParams.getOrderBy().getProgram().getElement().getUid();
-        String programStageUid = analyticsSortingParams.getOrderBy().getProgramStage().getElement().getUid();
-        String dataValueUid = analyticsSortingParams.getOrderBy().getDimension().getUid();
+        ValueTypeMapping vtMapping = fromValueType(sortingParams.getOrderBy().getDimension().getValueType());
+
+        String programUid = sortingParams.getOrderBy().getProgram().getElement().getUid();
+        String programStageUid = sortingParams.getOrderBy().getProgramStage().getElement().getUid();
+        String dataValueUid = sortingParams.getOrderBy().getDimension().getUid();
+
         return "SELECT EVT.trackedentityinstanceuid, EVT.VALUE" +
             "      FROM (SELECT programinstanceuid" +
             "            FROM " + ANALYTICS_TEI_ENR + queryContext.getTeTTableSuffix() +
@@ -68,8 +72,8 @@ public class LeftJoinQueryBuilder
             "            ORDER BY enrollmentdate DESC" +
             "            LIMIT 1 OFFSET 0) ENR," +
             "           (SELECT trackedentityinstanceuid," +
-            "                   programinstanceuid," +
-            "                   (eventdatavalues -> '" + dataValueUid + "' ->> 'value')::NUMERIC AS VALUE" +
+            "                   programinstanceuid," + RenderableDataValue.of( dataValueUid, vtMapping ).render() +
+            " AS VALUE" +
             "            FROM " + ANALYTICS_TEI_EVT + queryContext.getTeTTableSuffix() +
             "            WHERE programuid = " + queryContext.bindParamAndGetIndex( programUid ) +
             "              AND programstageuid = " + queryContext.bindParamAndGetIndex( programStageUid ) +
