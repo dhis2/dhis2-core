@@ -221,7 +221,8 @@ public class MeController
     @PutMapping( value = "", consumes = APPLICATION_JSON_VALUE )
     public void updateCurrentUser( HttpServletRequest request, HttpServletResponse response,
         @CurrentUser( required = true ) User currentUser )
-        throws WebMessageException, IOException
+        throws WebMessageException,
+        IOException
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
