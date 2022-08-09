@@ -79,6 +79,8 @@ public class ControlledJobProgress implements JobProgress
 
     private final boolean usingErrorNotification;
 
+    private final boolean logInfoAsDebug;
+
     public ControlledJobProgress( JobConfiguration configuration )
     {
         this( null, configuration, NoopJobProgress.INSTANCE, true );
@@ -92,6 +94,7 @@ public class ControlledJobProgress implements JobProgress
         this.tracker = tracker;
         this.abortOnFailure = abortOnFailure;
         this.usingErrorNotification = messageService != null && configuration.getJobType().isUsingErrorNotification();
+        this.logInfoAsDebug = configuration.getJobType().isDefaultLogLevelDebug();
     }
 
     public void requestCancellation()
@@ -430,7 +433,14 @@ public class ControlledJobProgress implements JobProgress
 
     private void logInfo( Node source, String action, String message )
     {
-        if ( log.isInfoEnabled() )
+        if ( logInfoAsDebug )
+        {
+            if ( log.isDebugEnabled() )
+            {
+                log.debug( formatLogMessage( source, action, message ) );
+            }
+        }
+        else if ( log.isInfoEnabled() )
         {
             log.info( formatLogMessage( source, action, message ) );
         }
