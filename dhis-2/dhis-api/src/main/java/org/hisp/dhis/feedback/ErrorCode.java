@@ -251,7 +251,7 @@ public enum ErrorCode
     E4312( "Current user is not authorised to read data from SQL view: `{0}`" ),
     E4313( "SQL query contains variable names that are invalid: `{0}`" ),
     E4314( "Provided `{0}`: (`{1}`) are not part of the selected `{2}`" ),
-    E4315( "Provided Program: (`{0}`) is without registration" ),
+    E4315( "Provided program: (`{0}`) is without registration" ),
 
     /* Preheat */
     E5000( "Found matching object for reference, but import mode is CREATE. Identifier was {0}, and object was {1}." ),
