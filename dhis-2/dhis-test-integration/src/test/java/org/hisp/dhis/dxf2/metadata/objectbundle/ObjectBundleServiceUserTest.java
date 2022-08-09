@@ -153,9 +153,7 @@ class ObjectBundleServiceUserTest extends TransactionalIntegrationTest
         bundle = objectBundleService.create( params );
         ObjectBundleValidationReport report = objectBundleValidationService.validate( bundle );
         assertEquals( 1, report.getErrorReportsCountByCode( User.class, ErrorCode.E4003 ) );
-        assertTrue( report.hasErrorReport( error -> "email".equals( error.getErrorProperty() )
-            && "Property `email` requires a valid email address, was given `notAnEmail`."
-                .equals( error.getMessage() ) ) );
+        assertTrue( report.hasErrorReport( error -> "email".equals( error.getErrorProperty() ) ) );
     }
 
     @Test
