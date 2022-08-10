@@ -56,7 +56,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 /**
- * Main service class for analytics data exchange.
+ * Main service class for aggregate data exchange.
  *
  * @author Lars Helge Overland
  */
