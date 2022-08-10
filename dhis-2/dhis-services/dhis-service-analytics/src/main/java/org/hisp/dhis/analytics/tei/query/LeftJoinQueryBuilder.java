@@ -39,6 +39,7 @@ import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.tei.query.items.BinaryCondition;
+import org.hisp.dhis.analytics.tei.query.items.DoubleQuotingRenderable;
 import org.hisp.dhis.analytics.tei.query.items.RenderableDataValue;
 import org.hisp.dhis.analytics.tei.query.items.ValueTypeMapping;
 
@@ -55,7 +56,11 @@ public class LeftJoinQueryBuilder
 
     private static Renderable getCondition( AnalyticsSortingParams sortingParams )
     {
-        return BinaryCondition.fieldsEqual( TEI_ALIAS, TEI_UID, sortingParams.getOrderBy().toString(), TEI_UID );
+        return BinaryCondition.fieldsEqual(
+            TEI_ALIAS,
+            TEI_UID,
+            DoubleQuotingRenderable.of( sortingParams.getOrderBy().toString() ).render(),
+            TEI_UID );
     }
 
     private static String getSelect( AnalyticsSortingParams sortingParams, QueryContext queryContext )
@@ -73,7 +78,8 @@ public class LeftJoinQueryBuilder
             "            ORDER BY enrollmentdate DESC" +
             "            LIMIT 1 OFFSET 0) ENR," +
             "           (SELECT trackedentityinstanceuid," +
-            "                   programinstanceuid," + RenderableDataValue.of( dataValueUid, vtMapping ).render() +
+            "                   programinstanceuid," + RenderableDataValue.of( null, dataValueUid, vtMapping ).render()
+            +
             " AS VALUE" +
             "            FROM " + ANALYTICS_TEI_EVT + queryContext.getTeTTableSuffix() +
             "            WHERE programuid = " + queryContext.bindParamAndGetIndex( programUid ) +

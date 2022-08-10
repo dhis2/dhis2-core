@@ -27,25 +27,20 @@
  */
 package org.hisp.dhis.analytics.tei.query.items;
 
+import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
+
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.tei.query.BaseRenderable;
-import org.hisp.dhis.analytics.tei.query.Field;
 
 @RequiredArgsConstructor( staticName = "of" )
-public class RenderableDataValue extends BaseRenderable
+public class EnrolledInProgramCondition extends BaseRenderable
 {
-
-    private final String alias;
-
-    private final String dataValue;
-
-    private final ValueTypeMapping valueTypeMapping;
+    private final String program;
 
     @Override
     public String render()
     {
-        return "(" + Field.of( alias, () -> "eventdatavalues", null ).render()
-            + " -> '" + dataValue + "' ->> 'value')::" + valueTypeMapping.name();
+        return TEI_ALIAS + "." + DoubleQuotingRenderable.of( program ).render();
     }
 }

@@ -158,7 +158,7 @@ public class EventDataValueCondition extends BaseRenderable
             : () -> queryContext.bindParamAndGetIndex( item.getValues().get( 0 ) );
 
         return BinaryCondition.of(
-            RenderableDataValue.of( doUid, valueTypeMapping ),
+            RenderableDataValue.of( EVT_1_ALIAS, doUid, valueTypeMapping ),
             item.getOperator(),
             value );
     }

@@ -51,6 +51,7 @@ import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.analytics.tei.query.items.AndCondition;
+import org.hisp.dhis.analytics.tei.query.items.EnrolledInProgramCondition;
 import org.hisp.dhis.analytics.tei.query.items.EventDataValueCondition;
 import org.hisp.dhis.analytics.tei.query.items.OrCondition;
 import org.hisp.dhis.analytics.tei.query.items.RenderableDimensionIdentifier;
@@ -200,7 +201,8 @@ public class QueryContext
             .getCommonParams()
             .getPrograms()
             .stream()
-            .map( program -> () -> TEI_ALIAS + "." + program.getUid() );
+            .map( BaseIdentifiableObject::getUid )
+            .map( EnrolledInProgramCondition::of );
 
         // conditions on filters/dimensions
         Stream<Renderable> dimensionConditions = getTeiQueryParams().getCommonParams().getDimensionIdentifiers()
