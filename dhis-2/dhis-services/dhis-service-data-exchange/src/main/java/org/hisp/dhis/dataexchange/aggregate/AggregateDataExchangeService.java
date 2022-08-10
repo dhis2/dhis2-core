@@ -276,7 +276,7 @@ public class AggregateDataExchangeService
      *
      * @param exchange the {@link AggregateDataExchange}.
      * @return a {@link Dhis2Client}.
-     * @throws IllegalStateException
+     * @throws IllegalStateException if authentication is not specified.
      */
     Dhis2Client getDhis2Client( AggregateDataExchange exchange )
     {
@@ -291,7 +291,7 @@ public class AggregateDataExchangeService
             return Dhis2Client.withBasicAuth( api.getUrl(), api.getUsername(), decryptPassword( exchange ) );
         }
 
-        throw new IllegalStateException( "DHIS 2 client authentication not configured" );
+        throw new IllegalStateException( "DHIS 2 client authentication not specified" );
     }
 
     /**
@@ -300,8 +300,8 @@ public class AggregateDataExchangeService
      * persisted, and plain text if the exchange is transient and thus not
      * decrypted.
      *
-     * @param value the value.
-     * @return the decrypted value.
+     * @param exchange the {@link AggregateDataExchange}.
+     * @return the decrypted access token.
      */
     private String decryptAccessToken( AggregateDataExchange exchange )
     {
@@ -315,8 +315,8 @@ public class AggregateDataExchangeService
      * persisted, and plain text if the exchange is transient and thus not
      * decrypted.
      *
-     * @param exchange
-     * @return
+     * @param exchange the {@link AggregateDataExchange}.
+     * @return the decrypted password.
      */
     private String decryptPassword( AggregateDataExchange exchange )
     {
