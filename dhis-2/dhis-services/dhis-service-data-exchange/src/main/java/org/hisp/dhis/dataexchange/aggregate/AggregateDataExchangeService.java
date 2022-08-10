@@ -143,7 +143,7 @@ public class AggregateDataExchangeService
      * @param request the {@link SourceRequest}.
      * @return an {@link ImportSummary} describing the outcome of the exchange.
      */
-    ImportSummary exchangeData( AggregateDataExchange exchange, SourceRequest request )
+    private ImportSummary exchangeData( AggregateDataExchange exchange, SourceRequest request )
     {
         DataValueSet dataValueSet = analyticsService.getAggregatedDataValueSet( toDataQueryParams( request ) );
 
@@ -158,7 +158,7 @@ public class AggregateDataExchangeService
      * @param dataValueSet the {@link DataValueSet}.
      * @return an {@link ImportSummary} describing the outcome of the exchange.
      */
-    ImportSummary pushToInternal( AggregateDataExchange exchange, DataValueSet dataValueSet )
+    private ImportSummary pushToInternal( AggregateDataExchange exchange, DataValueSet dataValueSet )
     {
         return dataValueSetService.importDataValueSet( dataValueSet, toImportOptions( exchange ) );
     }
@@ -173,7 +173,7 @@ public class AggregateDataExchangeService
      * @param dataValueSet the {@link DataValueSet}.
      * @return an {@link ImportSummary} describing the outcome of the exchange.
      */
-    ImportSummary pushToExternal( AggregateDataExchange exchange, DataValueSet dataValueSet )
+    private ImportSummary pushToExternal( AggregateDataExchange exchange, DataValueSet dataValueSet )
     {
         return getDhis2Client( exchange ).saveDataValueSet( dataValueSet, toImportOptions( exchange ) );
     }
@@ -227,7 +227,7 @@ public class AggregateDataExchangeService
      * @param inputIdScheme the {@link IdScheme}.
      * @return a {@link DimensionalObject}.
      */
-    DimensionalObject toDimensionalObject( String dimension, List<String> items, IdScheme inputIdScheme )
+    private DimensionalObject toDimensionalObject( String dimension, List<String> items, IdScheme inputIdScheme )
     {
         return dataQueryService.getDimension(
             dimension, items, new Date(), null, null, false, inputIdScheme );
@@ -240,7 +240,7 @@ public class AggregateDataExchangeService
      * @param inputIdScheme the {@link IdScheme}.
      * @return a {@link DimensionalObject}.
      */
-    DimensionalObject toDimensionalObject( Filter filter, IdScheme inputIdScheme )
+    private DimensionalObject toDimensionalObject( Filter filter, IdScheme inputIdScheme )
     {
         return dataQueryService.getDimension(
             filter.getDimension(), filter.getItems(), new Date(), null, null, false, inputIdScheme );
