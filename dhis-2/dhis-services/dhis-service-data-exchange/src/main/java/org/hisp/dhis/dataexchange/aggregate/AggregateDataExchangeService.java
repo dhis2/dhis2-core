@@ -284,33 +284,54 @@ public class AggregateDataExchangeService
 
         if ( api.isAccessTokenAuth() )
         {
-            return Dhis2Client.withAccessTokenAuth( api.getUrl(), decrypt( api.getAccessToken() ) );
+            return Dhis2Client.withAccessTokenAuth( api.getUrl(), decryptAccessToken( exchange ) );
         }
         else if ( api.isBasicAuth() )
         {
-            return Dhis2Client.withBasicAuth( api.getUrl(), api.getUsername(), decrypt( api.getPassword() ) );
+            return Dhis2Client.withBasicAuth( api.getUrl(), api.getUsername(), decryptPassword( exchange ) );
         }
 
         throw new IllegalStateException( "DHIS 2 client authentication not configured" );
     }
 
     /**
-     * Attempts to decrypt the given value. If the value could not be decrypted,
-     * returns the original value unmodified.
+     * Returns the decrypted access token of the given exchange target API. Note
+     * that the access token is assumed to be encrypted if the exchange is
+     * persisted, and plain text if the exchange is transient and thus not
+     * decrypted.
      *
      * @param value the value.
      * @return the decrypted value.
      */
-    private String decrypt( String value )
+    private String decryptAccessToken( AggregateDataExchange exchange )
     {
-        try
-        {
-            return encryptor.decrypt( value );
-        }
-        catch ( Exception ex )
-        {
-            log.debug( "Decryption failed, using original value" );
-            return value;
-        }
+        String accessToken = exchange.getTarget().getApi().getAccessToken();
+        return isPersisted( exchange ) ? encryptor.decrypt( accessToken ) : accessToken;
+    }
+
+    /**
+     * Returns the decrypted password of the given exchange target API. Note
+     * that the password is assumed to be encrypted if the exchange is
+     * persisted, and plain text if the exchange is transient and thus not
+     * decrypted.
+     *
+     * @param exchange
+     * @return
+     */
+    private String decryptPassword( AggregateDataExchange exchange )
+    {
+        String password = exchange.getTarget().getApi().getPassword();
+        return isPersisted( exchange ) ? encryptor.decrypt( password ) : password;
+    }
+
+    /**
+     * Indicates whether the given {@link AggregateDataExchange} is persisted.
+     *
+     * @param exchange the {@link AggregateDataExchange}.
+     * @return true if persisted.
+     */
+    boolean isPersisted( AggregateDataExchange exchange )
+    {
+        return exchange != null && exchange.getId() > 0;
     }
 }
