@@ -284,15 +284,33 @@ public class AggregateDataExchangeService
 
         if ( api.isAccessTokenAuth() )
         {
-            return Dhis2Client.withAccessTokenAuth(
-                api.getUrl(), encryptor.decrypt( api.getAccessToken() ) );
+            return Dhis2Client.withAccessTokenAuth( api.getUrl(), decrypt( api.getAccessToken() ) );
         }
         else if ( api.isBasicAuth() )
         {
-            return Dhis2Client.withBasicAuth(
-                api.getUrl(), api.getUsername(), encryptor.decrypt( api.getPassword() ) );
+            return Dhis2Client.withBasicAuth( api.getUrl(), api.getUsername(), decrypt( api.getPassword() ) );
         }
 
         throw new IllegalStateException( "DHIS 2 client authentication not configured" );
+    }
+
+    /**
+     * Attempts to decrypt the given value. If the value could not be decrypted,
+     * returns the original value unmodified.
+     *
+     * @param value the value.
+     * @return the decrypted value.
+     */
+    private String decrypt( String value )
+    {
+        try
+        {
+            return encryptor.decrypt( value );
+        }
+        catch ( Exception ex )
+        {
+            log.debug( "Decryption failed, using original value" );
+            return value;
+        }
     }
 }
