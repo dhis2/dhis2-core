@@ -67,7 +67,8 @@ public class AggregateDataExchangeJob implements Job
         ImportSummaries allSummaries = new ImportSummaries();
         for ( String dataExchangeId : dataExchangeIds )
         {
-            allSummaries.addImportSummaries( dataExchangeService.exchangeData( dataExchangeId, progress ) );
+            AggregateDataExchange exchange = dataExchangeService.getById( dataExchangeId );
+            allSummaries.addImportSummaries( dataExchangeService.exchangeData( exchange, progress ) );
         }
         notifier.addJobSummary( config, NotificationLevel.INFO, allSummaries, ImportSummaries.class );
         progress.completedProcess( null );

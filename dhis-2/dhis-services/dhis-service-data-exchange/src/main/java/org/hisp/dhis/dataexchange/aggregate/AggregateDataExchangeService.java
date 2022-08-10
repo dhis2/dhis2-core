@@ -58,6 +58,7 @@ import org.hisp.dhis.scheduling.JobProgress.FailurePolicy;
 import org.jasypt.encryption.pbe.PBEStringCleanablePasswordEncryptor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Main service class for analytics data exchange.
@@ -91,6 +92,12 @@ public class AggregateDataExchangeService
         this.encryptor = encryptor;
     }
 
+    @Transactional(readOnly = true)
+    public AggregateDataExchange getById(String uid)
+    {
+        return aggregateDataExchangeStore.loadByUid( uid );
+    }
+
     /**
      * Runs the analytics data exchange with the given identifier.
      *
@@ -99,6 +106,7 @@ public class AggregateDataExchangeService
      *        job context
      * @return an {@link ImportSummaries}.
      */
+    @Transactional
     public ImportSummaries exchangeData( String uid, JobProgress progress )
     {
         AggregateDataExchange exchange = aggregateDataExchangeStore.loadByUid( uid );
@@ -114,19 +122,22 @@ public class AggregateDataExchangeService
      *        job context
      * @return an {@link ImportSummaries}.
      */
+    @Transactional
     public ImportSummaries exchangeData( AggregateDataExchange exchange, JobProgress progress )
     {
         ImportSummaries summaries = new ImportSummaries();
 
+        Target target = exchange.getTarget();
+        Api api = target.getApi();
         progress.startingStage( format( "exchange aggregate data %s to %s target %s", exchange.getName(),
-            exchange.getTarget().getType().name().toLowerCase(), exchange.getTarget().getApi().getUrl() ),
+            target.getType().name().toLowerCase(), api == null ? "(local)" : api.getUrl() ),
             FailurePolicy.SKIP_ITEM );
         progress.runStage( exchange.getSource().getRequests().stream(),
             request -> format( "dx: %s; pe: %s; ou: %s", join( ",", request.getDx() ), join( ",", request.getPe() ),
                 join( ",", request.getOu() ) ),
             request -> summaries.addImportSummary( exchangeData( exchange, request ) ),
             ( success, failed ) -> format( "Aggregate data exchange completed (%d/%d): '%s', type: '%s'",
-                success, (success + failed), exchange.getUid(), exchange.getTarget().getType() ) );
+                success, (success + failed), exchange.getUid(), target.getType() ) );
 
         return summaries;
     }
@@ -155,7 +166,7 @@ public class AggregateDataExchangeService
      * @param request the {@link SourceRequest}.
      * @return an {@link ImportSummary} describing the outcome of the exchange.
      */
-    ImportSummary exchangeData( AggregateDataExchange exchange, SourceRequest request )
+    private ImportSummary exchangeData( AggregateDataExchange exchange, SourceRequest request )
     {
         DataValueSet dataValueSet = analyticsService.getAggregatedDataValueSet( toDataQueryParams( request ) );
 

@@ -77,7 +77,7 @@ public enum JobType
     IMAGE_PROCESSING( false ),
     META_DATA_SYNC( true, SchedulingType.CRON, MetadataSyncJobParameters.class, null ),
     AGGREGATE_DATA_EXCHANGE( true, SchedulingType.CRON, AggregateDataExchangeJobParameters.class,
-        Map.of( "dataExchangeId", "/api/aggregateDataExchanges" ) ),
+        Map.of( "dataExchangeIds", "/api/aggregateDataExchanges" ) ),
     SMS_SEND( false, SchedulingType.CRON, SmsJobParameters.class, null ),
     SEND_SCHEDULED_MESSAGE( true ),
     PROGRAM_NOTIFICATIONS( true ),
