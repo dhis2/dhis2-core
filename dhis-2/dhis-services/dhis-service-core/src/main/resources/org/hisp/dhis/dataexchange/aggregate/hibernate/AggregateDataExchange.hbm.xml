@@ -15,7 +15,7 @@
     </id>
     &identifiableProperties;
 
-    <property name="name" column="name" not-null="true" unique="false" length="230" />
+    <property name="name" column="name" not-null="true" unique="true" length="230" />
 
     <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid" 
       foreign-key="fk_aggregatedataexchange_userid_userinfoid" />
