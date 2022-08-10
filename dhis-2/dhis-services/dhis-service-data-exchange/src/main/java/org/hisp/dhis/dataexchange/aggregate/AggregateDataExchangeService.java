@@ -92,8 +92,8 @@ public class AggregateDataExchangeService
         this.encryptor = encryptor;
     }
 
-    @Transactional(readOnly = true)
-    public AggregateDataExchange getById(String uid)
+    @Transactional( readOnly = true )
+    public AggregateDataExchange getById( String uid )
     {
         return aggregateDataExchangeStore.loadByUid( uid );
     }

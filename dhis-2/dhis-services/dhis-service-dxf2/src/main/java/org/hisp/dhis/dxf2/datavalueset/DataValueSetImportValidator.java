@@ -352,7 +352,7 @@ public class DataValueSetImportValidator
         User currentUser = context.getCurrentUser();
         boolean inUserHierarchy = currentUser != null
             && context.getOrgUnitInHierarchyMap().get( valueContext.getOrgUnit().getUid(),
-            () -> organisationUnitService.isDescendant( valueContext.getOrgUnit(), context.getCurrentOrgUnits() ) );
+                () -> organisationUnitService.isDescendant( valueContext.getOrgUnit(), context.getCurrentOrgUnits() ) );
 
         if ( !inUserHierarchy )
         {
