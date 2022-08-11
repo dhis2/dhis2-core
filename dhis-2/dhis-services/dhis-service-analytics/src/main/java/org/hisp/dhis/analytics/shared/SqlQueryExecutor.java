@@ -27,21 +27,24 @@
  */
 package org.hisp.dhis.analytics.shared;
 
+import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.toCollection;
+import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
 import static org.springframework.util.Assert.notNull;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
-import java.util.stream.Collectors;
+import java.util.Set;
 
-import org.hisp.dhis.analytics.ColumnDataType;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.jdbc.support.rowset.SqlRowSetMetaData;
 import org.springframework.stereotype.Component;
 
 /**
@@ -76,14 +79,9 @@ public class SqlQueryExecutor implements QueryExecutor<SqlQuery, SqlQueryResult>
         final SqlRowSet rowSet = namedParameterJdbcTemplate.queryForRowSet( query.statement(),
             new MapSqlParameterSource().addValues( query.params() ) );
 
-        List<Column> columns = Arrays.stream( rowSet.getMetaData().getColumnNames() )
-            .map( s -> Column.builder()
-                .value( s )
-                .alias( s )
-                .type( ColumnDataType.TEXT )
-                .build() )
-            .collect( Collectors.toList() );
+        // TODO: How to handle exceptions during the query execution?
 
+        final Set<Column> columns = getColumns( rowSet.getMetaData() );
         final Map<Column, List<Object>> resultMap = initializeResultMapWith( columns );
 
         while ( rowSet.next() )
@@ -99,17 +97,34 @@ public class SqlQueryExecutor implements QueryExecutor<SqlQuery, SqlQueryResult>
     }
 
     /**
+     * Returns a Set of columns from the metadata object. As the columns cannot
+     * contain duplicated elements, and we want to keep the same ordering, we
+     * return them inside a LinkedHashSet.
+     *
+     * @param metaData
+     * @return the Set of columns
+     */
+    private Set<Column> getColumns( final SqlRowSetMetaData metaData )
+    {
+        return stream( metaData.getColumnNames() )
+            .map( s -> Column.builder()
+                .value( s )
+                .alias( s )
+                .type( TEXT )
+                .build() )
+            .collect( toCollection( LinkedHashSet::new ) );
+    }
+
+    /**
      * Simply creates a map initializing it with keys (based on the given
      * columns) and empty lists.
-     *
-     * It returns a TreeMap version to ensure the ordering.
      *
      * @param columns
      * @return the initialized map
      */
-    private Map<Column, List<Object>> initializeResultMapWith( final List<Column> columns )
+    private Map<Column, List<Object>> initializeResultMapWith( final Set<Column> columns )
     {
-        final Map<Column, List<Object>> resultMap = new TreeMap<>();
+        final Map<Column, List<Object>> resultMap = new HashMap<>();
 
         for ( final Column column : columns )
         {
