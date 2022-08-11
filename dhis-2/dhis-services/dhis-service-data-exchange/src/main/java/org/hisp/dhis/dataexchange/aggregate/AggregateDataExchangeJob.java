@@ -33,6 +33,7 @@ import java.util.List;
 
 import lombok.AllArgsConstructor;
 
+import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
@@ -71,6 +72,14 @@ public class AggregateDataExchangeJob implements Job
             allSummaries.addImportSummaries( dataExchangeService.exchangeData( exchange, progress ) );
         }
         notifier.addJobSummary( config, NotificationLevel.INFO, allSummaries, ImportSummaries.class );
-        progress.completedProcess( null );
+        ImportStatus status = allSummaries.getStatus();
+        if ( status == ImportStatus.ERROR )
+        {
+            progress.failedProcess( "Aggregate data exchange completed with errors" );
+        }
+        else
+        {
+            progress.completedProcess( "Aggregate data exchange completed with status " + status );
+        }
     }
 }

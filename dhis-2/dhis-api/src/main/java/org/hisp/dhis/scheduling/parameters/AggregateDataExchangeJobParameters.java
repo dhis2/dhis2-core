@@ -62,7 +62,7 @@ public class AggregateDataExchangeJobParameters implements JobParameters
     {
         if ( dataExchangeIds == null || dataExchangeIds.isEmpty() )
         {
-            return Optional.of( new ErrorReport( getClass(), ErrorCode.E4000, "dataExchangeId" ) );
+            return Optional.of( new ErrorReport( getClass(), ErrorCode.E4000, "dataExchangeIds" ) );
         }
         return Optional.empty();
     }
