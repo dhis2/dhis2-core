@@ -544,12 +544,18 @@ public abstract class AbstractAnalyticsService
         {
             return item.getOptionSetFilterItemsOrAll();
         }
-        else
+        else if ( itemOptions != null )
         {
             return itemOptions.stream()
                 .map( BaseIdentifiableObject::getUid )
                 .collect( toList() );
         }
+
+        // equal to no option set and no legend set, derived from query
+        // validation,
+        // E7215( "Query item cannot specify both legend set and option set:
+        // `{0}`" )
+        return Lists.newArrayList();
     }
 
     /**
