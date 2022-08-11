@@ -170,7 +170,7 @@ public class EventDataValueCondition extends BaseRenderable
     {
         if ( valueTypeMapping.equals( ValueTypeMapping.NUMERIC ) )
         {
-            return new BigDecimal(s);
+            return new BigDecimal( s );
         }
         return s;
     }
@@ -180,7 +180,7 @@ public class EventDataValueCondition extends BaseRenderable
         if ( valueTypeMapping.equals( ValueTypeMapping.NUMERIC ) )
         {
             return values.stream()
-                .map(BigDecimal::new)
+                .map( BigDecimal::new )
                 .collect( Collectors.toList() );
         }
         return values;
