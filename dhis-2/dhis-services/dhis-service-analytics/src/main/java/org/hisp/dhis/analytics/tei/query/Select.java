@@ -25,42 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.common;
+package org.hisp.dhis.analytics.tei.query;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
-import lombok.Builder;
-import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Singular;
 
-import org.hisp.dhis.common.QueryItem;
-
-@Getter
-@Builder( toBuilder = true )
-public class AnalyticsPagingAndSortingParams
+@RequiredArgsConstructor( staticName = "of" )
+public class Select extends BaseRenderable
 {
-    private final Integer page;
+    @Singular
+    private final List<Field> fields;
 
-    private final Integer pageSize;
-
-    private final Boolean requestPaged;
-
-    private final Boolean countRequested;
-
-    /**
-     * Columns to sort ascending.
-     */
-    @Builder.Default
-    private List<QueryItem> asc = new ArrayList<>();
-
-    /**
-     * Columns to sort descending.
-     */
-    @Builder.Default
-    private List<QueryItem> desc = new ArrayList<>();
-
-    public boolean isEmpty()
+    public static Select of( String... fields )
     {
-        return page == null && pageSize == null && requestPaged == null && countRequested == null;
+        return of( Arrays.stream( fields )
+            .map( s -> Field.of( "", () -> s, "" ) )
+            .collect( Collectors.toList() ) );
+    }
+
+    @Override
+    public String render()
+    {
+        return RenderableUtils.join( fields, ", ", "SELECT " );
     }
 }

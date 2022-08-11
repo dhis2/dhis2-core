@@ -51,6 +51,7 @@ import java.util.stream.Stream;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier.ElementWithOffset;
+import org.hisp.dhis.analytics.common.dimension.StringUid;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.common.AnalyticsPagingCriteria;
 import org.hisp.dhis.common.BaseDimensionalObject;
@@ -108,13 +109,13 @@ class CommonQueryRequestMapperTest
             new OrganisationUnit( "org-2" ) );
         final List<Program> programs = List.of( program1, program2 );
 
-        final DimensionIdentifier<Program, ProgramStage, String> deDimensionIdentifier = DimensionIdentifier.of(
+        final DimensionIdentifier<Program, ProgramStage, StringUid> deDimensionIdentifier = DimensionIdentifier.of(
             ElementWithOffset.of( program1, "1" ),
             ElementWithOffset.of( programStage1, "2" ),
-            "yLIPuJHRgey" );
+            StringUid.of( "yLIPuJHRgey" ) );
 
         final BaseDimensionalObject dimensionalObject = new BaseDimensionalObject(
-            (String) deDimensionIdentifier.getDimension(), DATA_X, null, DISPLAY_NAME_DATA_X,
+            deDimensionIdentifier.getDimension().getUid(), DATA_X, null, DISPLAY_NAME_DATA_X,
             emptyList(), new DimensionItemKeywords() );
 
         final CommonQueryRequest aCommonQueryRequest = new CommonQueryRequest()
@@ -127,7 +128,7 @@ class CommonQueryRequestMapperTest
         when( programService.getPrograms( aCommonQueryRequest.getProgram() ) ).thenReturn( programs );
         when( i18nManager.getI18nFormat() ).thenReturn( anyI18nFormat );
         when( dimensionIdentifierConverter.fromString( programs, dimension ) ).thenReturn( deDimensionIdentifier );
-        when( (dataQueryService.getDimension( (String) deDimensionIdentifier.getDimension(),
+        when( (dataQueryService.getDimension( deDimensionIdentifier.getDimension().getUid(),
             List.of( queryItem ), aCommonQueryRequest.getRelativePeriodDate(), organisationUnits,
             i18nManager.getI18nFormat(), true, UID )) ).thenReturn( dimensionalObject );
 
@@ -172,15 +173,15 @@ class CommonQueryRequestMapperTest
             new OrganisationUnit( "org-2" ) );
         final List<Program> programs = List.of( program1, program2 );
 
-        final DimensionIdentifier<Program, Object, Object> deDimensionIdentifier = DimensionIdentifier.of(
-            ElementWithOffset.of( program1, "1" ), null, null );
+        final DimensionIdentifier<Program, StringUid, StringUid> deDimensionIdentifier = DimensionIdentifier.of(
+            ElementWithOffset.of( program1, "1" ), null, StringUid.of( null ) );
 
-        final DimensionIdentifier<Program, ProgramStage, String> ouDimensionIdentifier = DimensionIdentifier.of(
+        final DimensionIdentifier<Program, ProgramStage, StringUid> ouDimensionIdentifier = DimensionIdentifier.of(
             ElementWithOffset.of( program1, "1" ),
-            ElementWithOffset.of( programStage1, "2" ), queryItem );
+            ElementWithOffset.of( programStage1, "2" ), StringUid.of( queryItem ) );
 
         final BaseDimensionalObject dimensionalObject = new BaseDimensionalObject(
-            (String) deDimensionIdentifier.getDimension(), DATA_X, null, DISPLAY_NAME_DATA_X,
+            deDimensionIdentifier.getDimension().getUid(), DATA_X, null, DISPLAY_NAME_DATA_X,
             emptyList(), new DimensionItemKeywords() );
 
         final CommonQueryRequest aCommonQueryRequest = new CommonQueryRequest()
@@ -193,7 +194,7 @@ class CommonQueryRequestMapperTest
         when( programService.getPrograms( aCommonQueryRequest.getProgram() ) ).thenReturn( programs );
         when( i18nManager.getI18nFormat() ).thenReturn( anyI18nFormat );
         when( dimensionIdentifierConverter.fromString( programs, queryItem ) ).thenReturn( ouDimensionIdentifier );
-        when( (dataQueryService.getDimension( (String) ouDimensionIdentifier.getDimension(),
+        when( (dataQueryService.getDimension( ouDimensionIdentifier.getDimension().getUid(),
             List.of( orgUnitUid ), aCommonQueryRequest.getRelativePeriodDate(),
             organisationUnits, i18nManager.getI18nFormat(), true, UID )) ).thenReturn( dimensionalObject );
 
@@ -238,20 +239,20 @@ class CommonQueryRequestMapperTest
             new OrganisationUnit( "org-2" ) );
         final List<Program> programs = List.of( program1, program2 );
 
-        final DimensionIdentifier<Program, ProgramStage, String> deDimensionIdentifier = DimensionIdentifier.of(
+        final DimensionIdentifier<Program, ProgramStage, StringUid> deDimensionIdentifier = DimensionIdentifier.of(
             ElementWithOffset.of( program1, "1" ),
-            ElementWithOffset.of( programStage1, "2" ), queryItemDimension );
+            ElementWithOffset.of( programStage1, "2" ), StringUid.of( queryItemDimension ) );
 
-        final DimensionIdentifier<Program, ProgramStage, String> ouDimensionIdentifier = DimensionIdentifier.of(
+        final DimensionIdentifier<Program, ProgramStage, StringUid> ouDimensionIdentifier = DimensionIdentifier.of(
             ElementWithOffset.of( program1, "1" ),
-            ElementWithOffset.of( programStage1, "2" ), orgUnitDimension );
+            ElementWithOffset.of( programStage1, "2" ), StringUid.of( orgUnitDimension ) );
 
         final BaseDimensionalObject dimensionalObject = new BaseDimensionalObject(
-            (String) deDimensionIdentifier.getDimension(), DATA_X, null, DISPLAY_NAME_DATA_X,
+            deDimensionIdentifier.getDimension().getUid(), DATA_X, null, DISPLAY_NAME_DATA_X,
             emptyList(), new DimensionItemKeywords() );
 
         final BaseDimensionalObject orgUnitObject = new BaseDimensionalObject(
-            (String) ouDimensionIdentifier.getDimension(), ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
+            ouDimensionIdentifier.getDimension().getUid(), ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
             organisationUnits, new DimensionItemKeywords() );
 
         final CommonQueryRequest aCommonQueryRequest = new CommonQueryRequest()
@@ -266,13 +267,13 @@ class CommonQueryRequestMapperTest
         when( i18nManager.getI18nFormat() ).thenReturn( anyI18nFormat );
 
         when( dimensionIdentifierConverter.fromString( programs, dimension ) ).thenReturn( deDimensionIdentifier );
-        when( (dataQueryService.getDimension( (String) deDimensionIdentifier.getDimension(),
+        when( (dataQueryService.getDimension( deDimensionIdentifier.getDimension().getUid(),
             List.of( queryItemDimension ), aCommonQueryRequest.getRelativePeriodDate(), organisationUnits,
             i18nManager.getI18nFormat(), true, UID )) ).thenReturn( dimensionalObject );
 
         when( dimensionIdentifierConverter.fromString( programs, orgUnitDimension ) )
             .thenReturn( ouDimensionIdentifier );
-        when( (dataQueryService.getDimension( (String) ouDimensionIdentifier.getDimension(),
+        when( (dataQueryService.getDimension( ouDimensionIdentifier.getDimension().getUid(),
             List.of( queryItemFilter ), aCommonQueryRequest.getRelativePeriodDate(),
             organisationUnits, i18nManager.getI18nFormat(), true, UID )) ).thenReturn( orgUnitObject );
 
@@ -313,10 +314,10 @@ class CommonQueryRequestMapperTest
         final List<OrganisationUnit> organisationUnits = List.of( new OrganisationUnit( "org-1" ),
             new OrganisationUnit( "org-2" ) );
 
-        final DimensionIdentifier<Program, ProgramStage, String> deDimensionIdentifier = DimensionIdentifier.of(
+        final DimensionIdentifier<Program, ProgramStage, StringUid> deDimensionIdentifier = DimensionIdentifier.of(
             ElementWithOffset.of( program1, "1" ),
             ElementWithOffset.of( programStage1, "2" ),
-            "yLIPuJHRgey" );
+            StringUid.of( "yLIPuJHRgey" ) );
 
         // List has only one Program, but the CommonQueryRequest, below, has
         // two.
@@ -362,10 +363,10 @@ class CommonQueryRequestMapperTest
             new OrganisationUnit( "org-2" ) );
         final List<Program> programs = List.of( program1, program2 );
 
-        final DimensionIdentifier<Program, ProgramStage, String> deDimensionIdentifier = DimensionIdentifier.of(
+        final DimensionIdentifier<Program, ProgramStage, StringUid> deDimensionIdentifier = DimensionIdentifier.of(
             ElementWithOffset.of( program1, "1" ),
             ElementWithOffset.of( programStage1, "2" ),
-            "yLIPuJHRgey" );
+            StringUid.of( "yLIPuJHRgey" ) );
 
         final CommonQueryRequest aCommonQueryRequest = new CommonQueryRequest()
             .withUserOrgUnit( "PEZNsGbZaVJ" )
@@ -377,10 +378,10 @@ class CommonQueryRequestMapperTest
         when( programService.getPrograms( aCommonQueryRequest.getProgram() ) ).thenReturn( programs );
         when( i18nManager.getI18nFormat() ).thenReturn( anyI18nFormat );
         when( dimensionIdentifierConverter.fromString( programs, dimension ) ).thenReturn( deDimensionIdentifier );
-        when( (dataQueryService.getDimension( (String) deDimensionIdentifier.getDimension(),
+        when( (dataQueryService.getDimension( deDimensionIdentifier.getDimension().getUid(),
             List.of( queryItem ), aCommonQueryRequest.getRelativePeriodDate(), organisationUnits,
             i18nManager.getI18nFormat(), true, UID )) ).thenReturn( null );
-        when( eventDataQueryService.getQueryItem( (String) deDimensionIdentifier.getDimension(),
+        when( eventDataQueryService.getQueryItem( deDimensionIdentifier.getDimension().getUid(),
             (Program) deDimensionIdentifier.getProgram().getElement(), TRACKED_ENTITY_INSTANCE ) )
                 .thenReturn( anyQueryItem );
 
@@ -418,10 +419,10 @@ class CommonQueryRequestMapperTest
             new OrganisationUnit( "org-2" ) );
         final List<Program> noPrograms = emptyList();
 
-        final DimensionIdentifier<Program, ProgramStage, String> deDimensionIdentifier = DimensionIdentifier.of(
+        final DimensionIdentifier<Program, ProgramStage, StringUid> deDimensionIdentifier = DimensionIdentifier.of(
             null, // The null program
             null, // The null stage
-            nonFullyQualifiedDimension );
+            StringUid.of( nonFullyQualifiedDimension ) );
 
         final CommonQueryRequest aCommonQueryRequest = new CommonQueryRequest()
             .withUserOrgUnit( "PEZNsGbZaVJ" )
@@ -433,7 +434,7 @@ class CommonQueryRequestMapperTest
         when( i18nManager.getI18nFormat() ).thenReturn( anyI18nFormat );
         when( dimensionIdentifierConverter.fromString( noPrograms, nonFullyQualifiedDimension ) )
             .thenReturn( deDimensionIdentifier );
-        when( (dataQueryService.getDimension( (String) deDimensionIdentifier.getDimension(),
+        when( (dataQueryService.getDimension( deDimensionIdentifier.getDimension().getUid(),
             List.of( queryItem ), aCommonQueryRequest.getRelativePeriodDate(), organisationUnits,
             i18nManager.getI18nFormat(), true, UID )) ).thenReturn( null );
 
@@ -467,13 +468,13 @@ class CommonQueryRequestMapperTest
             new OrganisationUnit( "org-2" ) );
         final List<Program> programs = List.of( program1, program2 );
 
-        final DimensionIdentifier<Program, ProgramStage, String> deDimensionIdentifier = DimensionIdentifier.of(
+        final DimensionIdentifier<Program, ProgramStage, StringUid> deDimensionIdentifier = DimensionIdentifier.of(
             ElementWithOffset.of( program1, "1" ),
             ElementWithOffset.of( programStage1, "2" ),
-            "yLIPuJHRgey" );
+            StringUid.of( "yLIPuJHRgey" ) );
 
         final BaseDimensionalObject dimensionalObject = new BaseDimensionalObject(
-            (String) deDimensionIdentifier.getDimension(), DATA_X, null, DISPLAY_NAME_DATA_X,
+            deDimensionIdentifier.getDimension().getUid(), DATA_X, null, DISPLAY_NAME_DATA_X,
             emptyList(), new DimensionItemKeywords() );
 
         final CommonQueryRequest aCommonQueryRequest = new CommonQueryRequest()
@@ -490,7 +491,7 @@ class CommonQueryRequestMapperTest
 
         Stream.of( queryItem_1, queryItem_2 )
             .forEach( s -> {
-                when( (dataQueryService.getDimension( deDimensionIdentifier.getDimension(),
+                when( (dataQueryService.getDimension( deDimensionIdentifier.getDimension().getUid(),
                     List.of( s ), aCommonQueryRequest.getRelativePeriodDate(), organisationUnits,
                     i18nManager.getI18nFormat(), true, UID )) ).thenReturn( dimensionalObject );
             } );

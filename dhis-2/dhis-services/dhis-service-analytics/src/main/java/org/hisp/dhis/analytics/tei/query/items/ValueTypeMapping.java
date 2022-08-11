@@ -25,22 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.mapper;
+package org.hisp.dhis.analytics.tei.query.items;
 
-import lombok.Builder;
-import lombok.Data;
+import java.util.Arrays;
 
-/**
- * Order parameter container to use within services.
- *
- * @author Giuseppe Nespolino <g.nespolino@gmail.com>
- */
-@Data
-@Builder
-public class OrderParam
+import org.hisp.dhis.common.ValueType;
+
+public enum ValueTypeMapping
 {
-    private final String field;
+    // TODO: adds mappings here
+    NUMERIC( ValueType.INTEGER, ValueType.INTEGER_NEGATIVE, ValueType.INTEGER_POSITIVE,
+        ValueType.INTEGER_ZERO_OR_POSITIVE ),
+    STRING();
 
-    private final SortDirection direction;
+    private final ValueType[] valueTypes;
+
+    ValueTypeMapping( ValueType... valueTypes )
+    {
+        this.valueTypes = valueTypes;
+    }
+
+    public static ValueTypeMapping fromValueType( ValueType valueType )
+    {
+        return Arrays.stream( values() )
+            .filter( valueTypeMapping -> valueTypeMapping.supports( valueType ) )
+            .findFirst()
+            .orElse( STRING );
+    }
+
+    private boolean supports( ValueType valueType )
+    {
+        return Arrays.stream( valueTypes )
+            .anyMatch( vt -> vt == valueType );
+    }
 
 }

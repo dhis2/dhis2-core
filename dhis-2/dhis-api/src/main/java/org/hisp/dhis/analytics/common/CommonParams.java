@@ -66,9 +66,18 @@ public class CommonParams
     private final List<List<DimensionIdentifier<Program, ProgramStage, DimensionParam>>> dimensionIdentifiers = new ArrayList<>();
 
     /**
+     * Data structure containing headers
+     */
+    @Builder.Default
+    private final List<DimensionIdentifier<Program, ProgramStage, DimensionParam>> headers = new ArrayList<>();
+
+    /**
      * The object that groups the paging and sorting parameters.
      */
     @Builder.Default
-    private final AnalyticsPagingAndSortingParams pagingAndSortingParams = AnalyticsPagingAndSortingParams.builder()
-        .build();
+    private final AnalyticsPagingParams pagingAndSortingParams = AnalyticsPagingParams.builder().build();
+
+    @Builder.Default
+    private final List<AnalyticsSortingParams> orderParams = List.of( AnalyticsSortingParams.builder().build() );
+
 }

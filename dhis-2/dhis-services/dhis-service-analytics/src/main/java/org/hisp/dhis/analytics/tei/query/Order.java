@@ -25,22 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.mapper;
+package org.hisp.dhis.analytics.tei.query;
+
+import java.util.List;
 
 import lombok.Builder;
-import lombok.Data;
+import lombok.Singular;
 
-/**
- * Order parameter container to use within services.
- *
- * @author Giuseppe Nespolino <g.nespolino@gmail.com>
- */
-@Data
-@Builder
-public class OrderParam
+@Builder( toBuilder = true )
+public class Order extends BaseRenderable
 {
-    private final String field;
+    @Singular
+    private final List<Renderable> orders;
 
-    private final SortDirection direction;
+    @Override
+    public String render()
+    {
+        return RenderableUtils.join( orders, ", ", "ORDER BY " );
+    }
 
+    public static Order ofOrder( String order )
+    {
+        return Order.builder()
+            .order( () -> order )
+            .build();
+    }
 }

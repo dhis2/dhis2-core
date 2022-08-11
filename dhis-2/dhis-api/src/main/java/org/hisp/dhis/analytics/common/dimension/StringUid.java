@@ -25,22 +25,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.mapper;
+package org.hisp.dhis.analytics.common.dimension;
 
-import lombok.Builder;
-import lombok.Data;
+import lombok.RequiredArgsConstructor;
 
-/**
- * Order parameter container to use within services.
- *
- * @author Giuseppe Nespolino <g.nespolino@gmail.com>
- */
-@Data
-@Builder
-public class OrderParam
+import org.hisp.dhis.common.UidObject;
+
+@RequiredArgsConstructor( staticName = "of" )
+public class StringUid implements UidObject
 {
-    private final String field;
+    private final String value;
 
-    private final SortDirection direction;
-
+    @Override
+    public String getUid()
+    {
+        return value;
+    }
 }

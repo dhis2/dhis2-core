@@ -63,7 +63,7 @@ public class GridHeaders
      * @throws IllegalArgumentException if the provided columns is null/empty or
      *         contain at least one null element
      */
-    public static List<GridHeader> from( final List<Column> columns )
+    public static List<GridHeader> from( final Set<Column> columns )
     {
         notEmpty( columns, "The 'columns' must not be null/empty" );
         noNullElements( columns, "The 'columns' must not contain null elements" );

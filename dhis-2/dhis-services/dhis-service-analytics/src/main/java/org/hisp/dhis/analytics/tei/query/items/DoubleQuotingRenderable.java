@@ -25,22 +25,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.mapper;
+package org.hisp.dhis.analytics.tei.query.items;
 
-import lombok.Builder;
-import lombok.Data;
+import lombok.RequiredArgsConstructor;
 
-/**
- * Order parameter container to use within services.
- *
- * @author Giuseppe Nespolino <g.nespolino@gmail.com>
- */
-@Data
-@Builder
-public class OrderParam
+import org.hisp.dhis.analytics.tei.query.BaseRenderable;
+
+@RequiredArgsConstructor( staticName = "of" )
+public class DoubleQuotingRenderable extends BaseRenderable
 {
-    private final String field;
 
-    private final SortDirection direction;
+    private final String value;
 
+    @Override
+    public String render()
+    {
+        return "\"" + value + "\"";
+    }
 }

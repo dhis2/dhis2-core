@@ -25,22 +25,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.mapper;
+package org.hisp.dhis.analytics.tei.query;
 
-import lombok.Builder;
-import lombok.Data;
+import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE;
+import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_ENROLLMENTS;
+import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_EVENTS;
 
-/**
- * Order parameter container to use within services.
- *
- * @author Giuseppe Nespolino <g.nespolino@gmail.com>
- */
-@Data
-@Builder
-public class OrderParam
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor( access = AccessLevel.PRIVATE )
+public class QueryContextConstants
 {
-    private final String field;
 
-    private final SortDirection direction;
+    public static final String ANALYTICS_TEI = TRACKED_ENTITY_INSTANCE.getTableName() + "_";
 
+    public static final String ANALYTICS_TEI_EVT = TRACKED_ENTITY_INSTANCE_EVENTS.getTableName() + "_";
+
+    public static final String ANALYTICS_TEI_ENR = TRACKED_ENTITY_INSTANCE_ENROLLMENTS.getTableName() + "_";
+
+    public static final String TEI_ALIAS = "T_1";
+
+    public static final String EVT_ALIAS = "EVT";
+
+    public static final String EVT_1_ALIAS = "EVT_1";
+
+    public static final String ENR_ALIAS = "ENR";
+
+    public static final String PSI_UID = "programstageinstanceuid";
+
+    public static final String PI_UID = "programinstanceuid";
+
+    public static final String PS_UID = "programstageuid";
+
+    public static final String TEI_UID = "trackedentityinstanceuid";
+
+    public static final String P_UID = "programuid";
 }

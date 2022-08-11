@@ -27,8 +27,11 @@
  */
 package org.hisp.dhis.analytics.shared;
 
+import static java.util.Collections.emptySet;
+
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import lombok.AllArgsConstructor;
 
@@ -40,7 +43,7 @@ import org.apache.commons.collections4.MapUtils;
  * @author maikel arabori
  */
 @AllArgsConstructor
-public class SqlQueryResult implements QueryResult<Map<Column, List<Object>>>
+public class SqlQueryResult implements QueryResult<Map<Column, List<Object>>, Set<Column>>
 {
 
     /**
@@ -58,6 +61,22 @@ public class SqlQueryResult implements QueryResult<Map<Column, List<Object>>>
     public Map<Column, List<Object>> result()
     {
         return resultMap;
+    }
+
+    /**
+     * @see QueryResult#columns()
+     *
+     * @return a map that contains all rows for each column
+     */
+    @Override
+    public Set<Column> columns()
+    {
+        if ( !isEmpty() )
+        {
+            return resultMap.keySet();
+        }
+
+        return emptySet();
     }
 
     /**

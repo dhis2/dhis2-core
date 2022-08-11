@@ -25,22 +25,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.mapper;
-
-import lombok.Builder;
-import lombok.Data;
+package org.hisp.dhis.common;
 
 /**
- * Order parameter container to use within services.
+ * Common interface for objects that have a unique ID used in RESTful APIs but
+ * that might not have use for a name and other fundamentals that come with
+ * {@link IdentifiableObject}s.
  *
- * @author Giuseppe Nespolino <g.nespolino@gmail.com>
+ * @author Jan Bernitt
  */
-@Data
-@Builder
-public class OrderParam
+public interface UidObject
 {
-    private final String field;
-
-    private final SortDirection direction;
-
+    /**
+     * @return external unique ID of the object as used in the RESTful API
+     */
+    String getUid();
 }

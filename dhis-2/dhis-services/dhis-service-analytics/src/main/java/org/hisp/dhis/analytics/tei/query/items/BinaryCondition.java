@@ -25,22 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.mapper;
+package org.hisp.dhis.analytics.tei.query.items;
 
-import lombok.Builder;
-import lombok.Data;
+import static org.apache.commons.lang3.StringUtils.SPACE;
 
-/**
- * Order parameter container to use within services.
- *
- * @author Giuseppe Nespolino <g.nespolino@gmail.com>
- */
-@Data
-@Builder
-public class OrderParam
+import lombok.RequiredArgsConstructor;
+
+import org.hisp.dhis.analytics.tei.query.BaseRenderable;
+import org.hisp.dhis.analytics.tei.query.Field;
+import org.hisp.dhis.analytics.tei.query.Renderable;
+import org.hisp.dhis.common.QueryOperator;
+
+@RequiredArgsConstructor( staticName = "of" )
+public class BinaryCondition extends BaseRenderable
 {
-    private final String field;
 
-    private final SortDirection direction;
+    private final Renderable left;
 
+    private final QueryOperator queryOperator;
+
+    private final Renderable right;
+
+    public static BinaryCondition fieldsEqual( String leftAlias, String left, String rightAlias, String right )
+    {
+        return BinaryCondition.of(
+            Field.of( leftAlias, () -> left, null ),
+            QueryOperator.EQ,
+            Field.of( rightAlias, () -> right, null ) );
+    }
+
+    @Override
+    public String render()
+    {
+        if ( queryOperator.equals( QueryOperator.IN ) )
+        {
+            return left.render() + " in (" + right.render() + ")";
+        }
+        return left.render() + SPACE + queryOperator.getValue() + SPACE + right.render();
+    }
 }

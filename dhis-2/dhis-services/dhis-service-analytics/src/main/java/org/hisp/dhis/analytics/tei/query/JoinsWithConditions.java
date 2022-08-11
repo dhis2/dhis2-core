@@ -25,22 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.mapper;
+package org.hisp.dhis.analytics.tei.query;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 import lombok.Builder;
-import lombok.Data;
+import lombok.Singular;
 
-/**
- * Order parameter container to use within services.
- *
- * @author Giuseppe Nespolino <g.nespolino@gmail.com>
- */
-@Data
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
+
 @Builder
-public class OrderParam
+public class JoinsWithConditions extends BaseRenderable
 {
-    private final String field;
 
-    private final SortDirection direction;
+    @Singular
+    private final List<Pair<Renderable, Renderable>> tablesWithJoinConditions;
+
+    @Override
+    public String render()
+    {
+        return tablesWithJoinConditions.stream()
+            .map( this::renderPair )
+            .collect( Collectors.joining( StringUtils.EMPTY ) );
+    }
+
+    private String renderPair( Pair<Renderable, Renderable> tableWithJoinCondition )
+    {
+        return "LEFT JOIN " + tableWithJoinCondition.getKey().render() + " ON "
+            + tableWithJoinCondition.getValue().render();
+    }
 
 }

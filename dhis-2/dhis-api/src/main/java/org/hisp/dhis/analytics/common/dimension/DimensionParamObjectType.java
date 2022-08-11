@@ -68,7 +68,9 @@ public enum DimensionParamObjectType
     CATEGORY_OPTION( DimensionItemType.CATEGORY_OPTION ),
     OPTION_GROUP( DimensionItemType.OPTION_GROUP ),
     DATA_ELEMENT_GROUP( DimensionItemType.DATA_ELEMENT_GROUP ),
-    CATEGORY_OPTION_GROUP( DimensionItemType.CATEGORY_OPTION_GROUP );
+    CATEGORY_OPTION_GROUP( DimensionItemType.CATEGORY_OPTION_GROUP ),
+
+    STATIC_DIMENSION( null, null );
 
     private final DimensionType dimensionType;
 

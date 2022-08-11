@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.analytics.shared;
 
+import java.util.Map;
+
 /**
  * Encapsulates the internals of a query, exposing methods that provide
  * executable statements.
@@ -36,11 +38,18 @@ package org.hisp.dhis.analytics.shared;
 public interface Query
 {
     /**
-     * Responsible for encapsulating the logic to unify al query attributes into
-     * a full/final statement that can be executed on the respective data
+     * Responsible for encapsulating the logic to unify all query attributes
+     * into a full/final statement that can be executed on the respective data
      * provider.
      *
      * @return the full query statement
      */
-    String fullStatement();
+    String statement();
+
+    /**
+     * Returns the parameters used by the current statement.
+     *
+     * @return a map of params
+     */
+    Map<String, Object> params();
 }

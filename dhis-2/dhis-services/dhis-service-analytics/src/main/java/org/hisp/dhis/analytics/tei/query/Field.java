@@ -25,22 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.mapper;
+package org.hisp.dhis.analytics.tei.query;
 
-import lombok.Builder;
-import lombok.Data;
+import lombok.RequiredArgsConstructor;
+
+import org.apache.commons.lang3.StringUtils;
 
 /**
- * Order parameter container to use within services.
- *
- * @author Giuseppe Nespolino <g.nespolino@gmail.com>
+ * This class is a Renderable for a field in the select list, with it's prefix
+ * and alias
  */
-@Data
-@Builder
-public class OrderParam
+@RequiredArgsConstructor( staticName = "of" )
+public class Field extends BaseRenderable
 {
-    private final String field;
+    private final String tableAlias;
 
-    private final SortDirection direction;
+    private final Renderable name;
 
+    private final String fieldAlias;
+
+    @Override
+    public String render()
+    {
+        String rendered = StringUtils.EMPTY;
+        if ( StringUtils.isNotBlank( tableAlias ) )
+        {
+            rendered = tableAlias + ".";
+        }
+        rendered = rendered + name.render();
+        if ( StringUtils.isNotBlank( fieldAlias ) )
+        {
+            rendered = rendered + " as " + fieldAlias;
+        }
+        return rendered;
+    }
 }

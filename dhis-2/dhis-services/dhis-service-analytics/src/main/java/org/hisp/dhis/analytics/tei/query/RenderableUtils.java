@@ -25,22 +25,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.mapper;
+package org.hisp.dhis.analytics.tei.query;
 
-import lombok.Builder;
-import lombok.Data;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
-/**
- * Order parameter container to use within services.
- *
- * @author Giuseppe Nespolino <g.nespolino@gmail.com>
- */
-@Data
-@Builder
-public class OrderParam
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+
+@NoArgsConstructor( access = AccessLevel.PRIVATE )
+public class RenderableUtils
 {
-    private final String field;
+    public static String join( Collection<? extends Renderable> renderables, String delimiter )
+    {
+        return join( renderables, delimiter, StringUtils.EMPTY );
+    }
 
-    private final SortDirection direction;
+    public static String join( Collection<? extends Renderable> renderables, String delimiter, String prefix )
+    {
+        return join( renderables, delimiter, prefix, StringUtils.EMPTY );
+    }
 
+    public static String join( Collection<? extends Renderable> renderables, String delimiter, String prefix,
+        String suffix )
+    {
+        List<String> renderableList = CollectionUtils.emptyIfNull( renderables )
+            .stream()
+            .filter( Objects::nonNull )
+            .map( Renderable::render )
+            .collect( Collectors.toList() );
+
+        if ( CollectionUtils.isNotEmpty( renderableList ) )
+        {
+            return renderableList.stream().collect( Collectors.joining( delimiter, prefix, suffix ) );
+        }
+        return StringUtils.EMPTY;
+    }
 }

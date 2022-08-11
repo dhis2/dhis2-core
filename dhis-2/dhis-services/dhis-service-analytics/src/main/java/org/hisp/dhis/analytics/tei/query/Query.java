@@ -25,22 +25,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.mapper;
+package org.hisp.dhis.analytics.tei.query;
 
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-/**
- * Order parameter container to use within services.
- *
- * @author Giuseppe Nespolino <g.nespolino@gmail.com>
- */
-@Data
-@Builder
-public class OrderParam
+import org.apache.commons.lang3.StringUtils;
+
+@Getter
+@Setter
+@AllArgsConstructor( access = AccessLevel.PRIVATE )
+@Builder( toBuilder = true )
+public class Query extends BaseRenderable
 {
-    private final String field;
+    private final Select select;
 
-    private final SortDirection direction;
+    private final From from;
+
+    private final Where where;
+
+    private final Order order;
+
+    private final LimitOffset limit;
+
+    @Override
+    public String render()
+    {
+        return RenderableUtils.join(
+            Stream.of( select, from, where, order, limit )
+                .filter( Objects::nonNull )
+                .collect( Collectors.toList() ),
+            StringUtils.SPACE );
+    }
 
 }

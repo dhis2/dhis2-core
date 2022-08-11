@@ -27,11 +27,15 @@
  */
 package org.hisp.dhis.analytics.common.dimension;
 
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_IDENTIFIER_SEP;
+
 import java.util.Objects;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+
+import org.hisp.dhis.common.UidObject;
 
 /**
  * Class to identify a Dimension in analytics In TEI CPL, a dimension can be
@@ -39,7 +43,7 @@ import lombok.RequiredArgsConstructor;
  */
 @Data
 @AllArgsConstructor( staticName = "of" )
-public class DimensionIdentifier<P, S, D>
+public class DimensionIdentifier<P extends UidObject, S extends UidObject, D extends UidObject>
 {
     private final ElementWithOffset<P> program;
 
@@ -57,9 +61,24 @@ public class DimensionIdentifier<P, S, D>
         return programStage != null && programStage.isPresent();
     }
 
+    @Override
+    public String toString()
+    {
+        String string = "";
+        if ( program.isPresent() )
+        {
+            string += program + DIMENSION_IDENTIFIER_SEP;
+        }
+        if ( programStage.isPresent() )
+        {
+            string += programStage + DIMENSION_IDENTIFIER_SEP;
+        }
+        return string + dimension.getUid();
+    }
+
     @Data
     @RequiredArgsConstructor( staticName = "of" )
-    public static class ElementWithOffset<T>
+    public static class ElementWithOffset<T extends UidObject>
     {
         private final T element;
 
@@ -82,11 +101,11 @@ public class DimensionIdentifier<P, S, D>
             {
                 if ( hasOffset() )
                 {
-                    return element + "[" + offset + "]";
+                    return element.getUid() + "[" + offset + "]";
                 }
-                return element.toString();
+                return element.getUid();
             }
-            return super.toString();
+            return "";
         }
     }
 }

@@ -25,57 +25,51 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei;
+package org.hisp.dhis.analytics.tei.query;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.when;
+import java.util.Objects;
+import java.util.Optional;
 
-import org.hisp.dhis.analytics.shared.Query;
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
+import lombok.RequiredArgsConstructor;
 
-/**
- * // TODO: Improve unit tests and coverage
- *
- * Tests for {@link TeiJdbcQuery}.
- *
- * @author maikel arabori
- */
-class TeiJdbcQueryTest
+import org.apache.commons.lang3.StringUtils;
+
+@RequiredArgsConstructor( staticName = "of" )
+public class LimitOffset extends BaseRenderable
 {
-    private static TeiJdbcQuery teiJdbcQuery;
+    private final Integer limit;
 
-    @BeforeAll
-    static void setUp()
+    private final Integer offset;
+
+    @Override
+    public String render()
     {
-        teiJdbcQuery = new TeiJdbcQuery();
+        return "LIMIT " + limit + (Objects.isNull( offset ) ? StringUtils.EMPTY : " OFFSET " + offset);
     }
 
-    @Test
-    void testFrom()
+    public static LimitOffset ofStrings( String limit, String offset )
     {
-        // Given
-        final TeiQueryParams mockTeiQueryParams = mockTeiParams();
-
-        // When
-        final Query query = teiJdbcQuery.from( mockTeiQueryParams );
-
-        // Then
-        assertNotNull( query, "Should not be null: query" );
+        Integer intLimit = Optional.ofNullable( limit )
+            .filter( StringUtils::isNotBlank )
+            .map( LimitOffset::toIntSafely )
+            .orElse( 1 );
+        Integer intOffset = Optional.ofNullable( offset )
+            .filter( StringUtils::isNotBlank )
+            .map( LimitOffset::toIntSafely )
+            .orElse( 0 );
+        return LimitOffset.of( intLimit, intOffset );
     }
 
-    private TeiQueryParams mockTeiParams()
+    private static Integer toIntSafely( String s )
     {
-        TrackedEntityType trackedEntityType = Mockito.mock( TrackedEntityType.class );
-
-        when( trackedEntityType.getUid() ).thenReturn( CodeGenerator.generateUid() );
-
-        return TeiQueryParams
-            .builder()
-            .trackedEntityType( trackedEntityType )
-            .build();
+        try
+        {
+            return Integer.parseInt( s );
+        }
+        catch ( Exception e )
+        {
+            // safely
+        }
+        return null;
     }
 }

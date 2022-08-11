@@ -25,22 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.mapper;
+package org.hisp.dhis.analytics.tei.query;
 
-import lombok.Builder;
-import lombok.Data;
+import java.util.Arrays;
+import java.util.Objects;
 
-/**
- * Order parameter container to use within services.
- *
- * @author Giuseppe Nespolino <g.nespolino@gmail.com>
- */
-@Data
-@Builder
-public class OrderParam
+import lombok.RequiredArgsConstructor;
+import lombok.Singular;
+
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.tei.query.items.AndCondition;
+
+@RequiredArgsConstructor( staticName = "of" )
+public class Where extends BaseRenderable
 {
-    private final String field;
+    @Singular
+    private final AndCondition condition;
 
-    private final SortDirection direction;
+    public static Where ofConditions( Renderable... renderables )
+    {
+        return of( AndCondition.of( Arrays.asList( renderables ) ) );
+    }
+
+    @Override
+    public String render()
+    {
+        if ( Objects.nonNull( condition ) )
+        {
+            return "WHERE " + condition.render();
+        }
+        return StringUtils.EMPTY;
+    }
 
 }

@@ -25,22 +25,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.mapper;
+package org.hisp.dhis.analytics.tei.query.items;
 
-import lombok.Builder;
-import lombok.Data;
+import java.util.List;
+import java.util.stream.Collectors;
 
-/**
- * Order parameter container to use within services.
- *
- * @author Giuseppe Nespolino <g.nespolino@gmail.com>
- */
-@Data
-@Builder
-public class OrderParam
+import lombok.RequiredArgsConstructor;
+
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.tei.query.BaseRenderable;
+import org.hisp.dhis.analytics.tei.query.Renderable;
+
+@RequiredArgsConstructor( staticName = "of" )
+public class OrCondition extends BaseRenderable
 {
-    private final String field;
+    private final List<Renderable> conditions;
 
-    private final SortDirection direction;
+    @Override
+    public String render()
+    {
+        if ( conditions.isEmpty() )
+        {
+            return StringUtils.EMPTY;
+        }
 
+        if ( conditions.size() == 1 )
+        {
+            return conditions.get( 0 ).render();
+        }
+
+        return conditions.stream()
+            .map( Renderable::render )
+            .collect( Collectors.joining( " OR ", "(", ")" ) );
+    }
 }

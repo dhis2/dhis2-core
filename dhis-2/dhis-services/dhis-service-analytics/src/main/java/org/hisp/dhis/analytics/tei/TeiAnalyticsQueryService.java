@@ -37,9 +37,9 @@ import lombok.AllArgsConstructor;
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
 import org.hisp.dhis.analytics.shared.GridAdaptor;
 import org.hisp.dhis.analytics.shared.QueryExecutor;
-import org.hisp.dhis.analytics.shared.QueryGenerator;
 import org.hisp.dhis.analytics.shared.SqlQuery;
 import org.hisp.dhis.analytics.shared.SqlQueryResult;
+import org.hisp.dhis.analytics.tei.query.QueryContext;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.springframework.stereotype.Service;
@@ -54,8 +54,6 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 public class TeiAnalyticsQueryService
 {
-
-    private final QueryGenerator<TeiQueryParams> teiJdbcQuery;
 
     private final QueryExecutor<SqlQuery, SqlQueryResult> queryExecutor;
 
@@ -72,12 +70,14 @@ public class TeiAnalyticsQueryService
      */
     public Grid getGrid( final TeiQueryParams teiQueryParams, final CommonQueryRequest commonQueryRequest )
     {
+        QueryContext queryContext = QueryContext.of( teiQueryParams );
+        // output should look like: https://pastebin.com/4aK9ZxEQ
+
         notNull( teiQueryParams, "The 'teiParams' must not be null" );
 
-        final SqlQuery query = (SqlQuery) teiJdbcQuery.from( teiQueryParams );
+        final SqlQueryResult result = queryExecutor.execute( queryContext.getSqlQuery() );
 
-        final SqlQueryResult result = queryExecutor.execute( query );
-        final List<GridHeader> headers = from( query.getColumns() );
+        final List<GridHeader> headers = from( result.columns() );
 
         return gridAdaptor.createGrid( headers, result.result(),
             teiQueryParams.getCommonParams(), commonQueryRequest );

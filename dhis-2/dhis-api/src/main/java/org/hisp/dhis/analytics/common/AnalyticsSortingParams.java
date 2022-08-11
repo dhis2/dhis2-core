@@ -25,22 +25,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.mapper;
+package org.hisp.dhis.analytics.common;
 
 import lombok.Builder;
 import lombok.Data;
 
-/**
- * Order parameter container to use within services.
- *
- * @author Giuseppe Nespolino <g.nespolino@gmail.com>
- */
+import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
+import org.hisp.dhis.analytics.common.dimension.DimensionParam;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
+
 @Data
 @Builder
-public class OrderParam
+public class AnalyticsSortingParams
 {
-    private final String field;
+    private final DimensionIdentifier<Program, ProgramStage, DimensionParam> orderBy;
 
-    private final SortDirection direction;
-
+    private final SortDirection sortDirection;
 }
