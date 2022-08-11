@@ -56,7 +56,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 /**
- * Main service class for analytics data exchange.
+ * Main service class for aggregate data exchange.
  *
  * @author Lars Helge Overland
  */
@@ -143,7 +143,7 @@ public class AggregateDataExchangeService
      * @param request the {@link SourceRequest}.
      * @return an {@link ImportSummary} describing the outcome of the exchange.
      */
-    ImportSummary exchangeData( AggregateDataExchange exchange, SourceRequest request )
+    private ImportSummary exchangeData( AggregateDataExchange exchange, SourceRequest request )
     {
         DataValueSet dataValueSet = analyticsService.getAggregatedDataValueSet( toDataQueryParams( request ) );
 
@@ -158,7 +158,7 @@ public class AggregateDataExchangeService
      * @param dataValueSet the {@link DataValueSet}.
      * @return an {@link ImportSummary} describing the outcome of the exchange.
      */
-    ImportSummary pushToInternal( AggregateDataExchange exchange, DataValueSet dataValueSet )
+    private ImportSummary pushToInternal( AggregateDataExchange exchange, DataValueSet dataValueSet )
     {
         return dataValueSetService.importDataValueSet( dataValueSet, toImportOptions( exchange ) );
     }
@@ -173,7 +173,7 @@ public class AggregateDataExchangeService
      * @param dataValueSet the {@link DataValueSet}.
      * @return an {@link ImportSummary} describing the outcome of the exchange.
      */
-    ImportSummary pushToExternal( AggregateDataExchange exchange, DataValueSet dataValueSet )
+    private ImportSummary pushToExternal( AggregateDataExchange exchange, DataValueSet dataValueSet )
     {
         return getDhis2Client( exchange ).saveDataValueSet( dataValueSet, toImportOptions( exchange ) );
     }
@@ -227,7 +227,7 @@ public class AggregateDataExchangeService
      * @param inputIdScheme the {@link IdScheme}.
      * @return a {@link DimensionalObject}.
      */
-    DimensionalObject toDimensionalObject( String dimension, List<String> items, IdScheme inputIdScheme )
+    private DimensionalObject toDimensionalObject( String dimension, List<String> items, IdScheme inputIdScheme )
     {
         return dataQueryService.getDimension(
             dimension, items, new Date(), null, null, false, inputIdScheme );
@@ -240,7 +240,7 @@ public class AggregateDataExchangeService
      * @param inputIdScheme the {@link IdScheme}.
      * @return a {@link DimensionalObject}.
      */
-    DimensionalObject toDimensionalObject( Filter filter, IdScheme inputIdScheme )
+    private DimensionalObject toDimensionalObject( Filter filter, IdScheme inputIdScheme )
     {
         return dataQueryService.getDimension(
             filter.getDimension(), filter.getItems(), new Date(), null, null, false, inputIdScheme );
@@ -284,15 +284,54 @@ public class AggregateDataExchangeService
 
         if ( api.isAccessTokenAuth() )
         {
-            return Dhis2Client.withAccessTokenAuth(
-                api.getUrl(), encryptor.decrypt( api.getAccessToken() ) );
+            return Dhis2Client.withAccessTokenAuth( api.getUrl(), decryptAccessToken( exchange ) );
         }
         else if ( api.isBasicAuth() )
         {
-            return Dhis2Client.withBasicAuth(
-                api.getUrl(), api.getUsername(), encryptor.decrypt( api.getPassword() ) );
+            return Dhis2Client.withBasicAuth( api.getUrl(), api.getUsername(), decryptPassword( exchange ) );
         }
 
         throw new IllegalStateException( "DHIS 2 client authentication not configured" );
+    }
+
+    /**
+     * Returns the decrypted access token of the given exchange target API. Note
+     * that the access token is assumed to be encrypted if the exchange is
+     * persisted, and plain text if the exchange is transient and thus not
+     * decrypted.
+     *
+     * @param value the value.
+     * @return the decrypted value.
+     */
+    private String decryptAccessToken( AggregateDataExchange exchange )
+    {
+        String accessToken = exchange.getTarget().getApi().getAccessToken();
+        return isPersisted( exchange ) ? encryptor.decrypt( accessToken ) : accessToken;
+    }
+
+    /**
+     * Returns the decrypted password of the given exchange target API. Note
+     * that the password is assumed to be encrypted if the exchange is
+     * persisted, and plain text if the exchange is transient and thus not
+     * decrypted.
+     *
+     * @param exchange
+     * @return
+     */
+    private String decryptPassword( AggregateDataExchange exchange )
+    {
+        String password = exchange.getTarget().getApi().getPassword();
+        return isPersisted( exchange ) ? encryptor.decrypt( password ) : password;
+    }
+
+    /**
+     * Indicates whether the given {@link AggregateDataExchange} is persisted.
+     *
+     * @param exchange the {@link AggregateDataExchange}.
+     * @return true if persisted.
+     */
+    boolean isPersisted( AggregateDataExchange exchange )
+    {
+        return exchange != null && exchange.getId() > 0;
     }
 }

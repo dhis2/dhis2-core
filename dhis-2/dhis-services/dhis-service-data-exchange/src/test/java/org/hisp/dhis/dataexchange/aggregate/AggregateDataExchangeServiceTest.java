@@ -28,11 +28,12 @@
 package org.hisp.dhis.dataexchange.aggregate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.when;
@@ -55,10 +56,9 @@ import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.i18n.I18nFormat;
-import org.jasypt.encryption.pbe.PBEStringCleanablePasswordEncryptor;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -77,17 +77,8 @@ class AggregateDataExchangeServiceTest
     @Mock
     private DataValueSetService dataValueSetService;
 
-    @Mock
-    private PBEStringCleanablePasswordEncryptor encryptor;
-
+    @InjectMocks
     private AggregateDataExchangeService service;
-
-    @BeforeEach
-    void beforeEach()
-    {
-        service = new AggregateDataExchangeService( analyticsService,
-            aggregateDataExchangeStore, dataQueryService, dataValueSetService, encryptor );
-    }
 
     @Test
     @SuppressWarnings( "unchecked" )
@@ -179,9 +170,6 @@ class AggregateDataExchangeServiceTest
     @Test
     void testGetDhis2Client()
     {
-        when( encryptor.decrypt( anyString() ) )
-            .thenReturn( "f0UulAsOUwXxkMlj6+Lzq2XbcLQCeZzuiv4QgQU1Es0=" );
-
         Api api = new Api()
             .setUrl( "https://play.dhis2.org/demo" )
             .setUsername( "admin" )
@@ -213,5 +201,21 @@ class AggregateDataExchangeServiceTest
             .setTarget( target );
 
         assertThrows( IllegalStateException.class, () -> service.getDhis2Client( exchange ) );
+    }
+
+    @Test
+    void testIsPersisted()
+    {
+        AggregateDataExchange adeA = new AggregateDataExchange();
+        adeA.setId( 1 );
+        adeA.setAutoFields();
+        adeA.setName( "DataExchangeA" );
+
+        AggregateDataExchange adeB = new AggregateDataExchange();
+        adeB.setAutoFields();
+        adeB.setName( "DataExchangeB" );
+
+        assertTrue( service.isPersisted( adeA ) );
+        assertFalse( service.isPersisted( adeB ) );
     }
 }

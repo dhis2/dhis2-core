@@ -159,6 +159,13 @@ public class FileResourceUtils
         throws WebMessageException,
         IOException
     {
+        return saveFileResource( null, file, domain );
+    }
+
+    public FileResource saveFileResource( String uid, MultipartFile file, FileResourceDomain domain )
+        throws WebMessageException,
+        IOException
+    {
         String filename = StringUtils.defaultIfBlank( FilenameUtils.getName( file.getOriginalFilename() ),
             FileResource.DEFAULT_FILENAME );
 
@@ -181,6 +188,7 @@ public class FileResourceUtils
         String contentMd5 = bytes.hash( Hashing.md5() ).toString();
 
         FileResource fileResource = new FileResource( filename, contentType, contentLength, contentMd5, domain );
+        fileResource.setUid( uid );
 
         File tmpFile = toTempFile( file );
 
