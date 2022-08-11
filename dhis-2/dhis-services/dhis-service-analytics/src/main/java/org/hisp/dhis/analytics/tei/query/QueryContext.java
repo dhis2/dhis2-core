@@ -49,6 +49,7 @@ import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType;
+import org.hisp.dhis.analytics.shared.SqlQuery;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.analytics.tei.query.items.AndCondition;
 import org.hisp.dhis.analytics.tei.query.items.EnrolledInProgramCondition;
@@ -80,7 +81,14 @@ public class QueryContext
         return teiQueryParams.getTrackedEntityType().getUid().toLowerCase();
     }
 
-    public Query getQuery()
+    public SqlQuery getSqlQuery()
+    {
+        return new SqlQuery(
+            getQuery().render(),
+            parameterManager.getParametersByPlaceHolder() );
+    }
+
+    private Query getQuery()
     {
         return Query.builder()
             .select( getSelect() )
@@ -113,12 +121,15 @@ public class QueryContext
     private Select getSelect()
     {
         // ** TODO: add more static fields if needed
-        Stream<Renderable> staticFields = Stream.of( getFieldWithAlias( "trackedentityinstanceid" ),
+        Stream<Field> staticFields = Stream.of( getFieldWithAlias( "trackedentityinstanceid" ),
             getFieldWithAlias( "trackedentityinstanceuid" ),
             getFieldWithAlias( "enrollments" ) );
 
+        // TODO remove next line when attributes match those in the table.
+        List<String> notGeneratedColumns = List.of( "Jdd8hMStmvF", "EGn5VqU7pHv", "JBJ3AWsrg9P" );
+
         // TET and program attribute fields
-        Stream<Renderable> attributes = Stream.concat(
+        Stream<Field> attributes = Stream.concat(
             // Tracked entity Type attributes
             teiQueryParams.getTrackedEntityType().getTrackedEntityTypeAttributes().stream(),
             // Program attributes
@@ -129,10 +140,12 @@ public class QueryContext
             .map( BaseIdentifiableObject::getUid )
             // distinct to remove overlapping attributes
             .distinct()
+            // TODO remove next line when attributes match those in the table.
+            .filter( uid -> !notGeneratedColumns.contains( uid ) )
             .map( attributeUid -> "\"" + attributeUid + "\"" )
             .map( this::getFieldWithAlias );
 
-        Stream<Renderable> orderFields = getExtractedOrderFieldsForSelect();
+        Stream<Field> orderFields = getExtractedOrderFieldsForSelect();
 
         return Select.of(
             Stream.of( staticFields, attributes, orderFields )
@@ -140,17 +153,17 @@ public class QueryContext
                 .collect( Collectors.toList() ) );
     }
 
-    private Stream<Renderable> getExtractedOrderFieldsForSelect()
+    private Stream<Field> getExtractedOrderFieldsForSelect()
     {
         return teiQueryParams.getCommonParams().getOrderParams()
             .stream()
             .map( AnalyticsSortingParams::getOrderBy )
             .map( RenderableDimensionIdentifier::of )
             .map( RenderableDimensionIdentifier::render )
-            .map( s -> () -> "\"" + s + "\".VALUE" );
+            .map( s -> Field.of( "", () -> "\"" + s + "\".VALUE", "VALUE" ) );
     }
 
-    private Renderable getFieldWithAlias( String field )
+    private Field getFieldWithAlias( String field )
     {
         return Field.of( TEI_ALIAS, () -> field, field );
     }
@@ -248,12 +261,12 @@ public class QueryContext
         private int parameterIndex = 0;
 
         @Getter
-        private final Map<Integer, Object> parametersByPlaceHolder = new HashMap<>();
+        private final Map<String, Object> parametersByPlaceHolder = new HashMap<>();
 
         public String bindParamAndGetIndex( Object param )
         {
             parameterIndex++;
-            parametersByPlaceHolder.put( parameterIndex, param );
+            parametersByPlaceHolder.put( String.valueOf( parameterIndex ), param );
             return ":" + parameterIndex;
         }
     }

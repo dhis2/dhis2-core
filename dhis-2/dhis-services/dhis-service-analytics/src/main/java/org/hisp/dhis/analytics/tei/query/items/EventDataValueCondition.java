@@ -39,7 +39,9 @@ import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.PS_UID;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_UID;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
@@ -154,13 +156,33 @@ public class EventDataValueCondition extends BaseRenderable
         String doUid = dimensionIdentifier.getDimension().getDimensionObjectUid();
 
         Renderable value = item.getOperator().equals( QueryOperator.IN )
-            ? () -> queryContext.bindParamAndGetIndex( item.getValues() )
-            : () -> queryContext.bindParamAndGetIndex( item.getValues().get( 0 ) );
+            ? () -> queryContext.bindParamAndGetIndex( convertToType( valueTypeMapping, item.getValues() ) )
+            : () -> queryContext.bindParamAndGetIndex( convertToType( valueTypeMapping, item.getValues().get( 0 ) ) );
 
         return BinaryCondition.of(
             RenderableDataValue.of( EVT_1_ALIAS, doUid, valueTypeMapping ),
             item.getOperator(),
             value );
+    }
+
+    private Object convertToType( ValueTypeMapping valueTypeMapping, String s )
+    {
+        if ( valueTypeMapping.equals( ValueTypeMapping.NUMERIC ) )
+        {
+            return Integer.parseInt( s );
+        }
+        return s;
+    }
+
+    private Object convertToType( ValueTypeMapping valueTypeMapping, List<String> values )
+    {
+        if ( valueTypeMapping.equals( ValueTypeMapping.NUMERIC ) )
+        {
+            return values.stream()
+                .map( Integer::parseInt )
+                .collect( Collectors.toList() );
+        }
+        return values;
     }
 
 }

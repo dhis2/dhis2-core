@@ -38,12 +38,12 @@ import lombok.Singular;
 public class Select extends BaseRenderable
 {
     @Singular
-    private final List<Renderable> fields;
+    private final List<Field> fields;
 
     public static Select of( String... fields )
     {
         return of( Arrays.stream( fields )
-            .map( s -> (Renderable) () -> s )
+            .map( s -> Field.of( "", () -> s, "" ) )
             .collect( Collectors.toList() ) );
     }
 

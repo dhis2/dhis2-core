@@ -45,8 +45,10 @@ public enum DimensionParamType
     DIMENSIONS( CommonQueryRequest::getDimension ),
     FILTERS( CommonQueryRequest::getFilter ),
 
+    HEADERS( CommonQueryRequest::getHeaders ),
+
     // uidsGetter invoked on this enum, will return a collection made of:
-    // - commonQueryRequest.getAsc(), suffixed by ":asv"
+    // - commonQueryRequest.getAsc(), suffixed by ":asc"
     // - commonQueryRequest.getDesc(), suffixed by ":desc"
     SORTING( commonQueryRequest -> Stream.concat(
         commonQueryRequest.getAsc().stream()

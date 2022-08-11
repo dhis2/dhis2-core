@@ -66,6 +66,12 @@ public class CommonParams
     private final List<List<DimensionIdentifier<Program, ProgramStage, DimensionParam>>> dimensionIdentifiers = new ArrayList<>();
 
     /**
+     * Data structure containing headers
+     */
+    @Builder.Default
+    private final List<DimensionIdentifier<Program, ProgramStage, DimensionParam>> headers = new ArrayList<>();
+
+    /**
      * The object that groups the paging and sorting parameters.
      */
     @Builder.Default

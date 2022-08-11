@@ -28,7 +28,7 @@
 package org.hisp.dhis.analytics.shared;
 
 import static org.springframework.util.Assert.hasText;
-import static org.springframework.util.Assert.notEmpty;
+import static org.springframework.util.Assert.notNull;
 
 import java.util.Map;
 
@@ -50,7 +50,7 @@ public class SqlQuery implements Query
     public SqlQuery( final String statement, final Map<String, Object> params )
     {
         hasText( statement, "The 'statement' must not be null/empty/blank" );
-        notEmpty( params, "The 'params' must not be null/empty" );
+        notNull( params, "The 'params' must not be null/empty" );
 
         this.statement = statement;
         this.params = params;

@@ -31,6 +31,8 @@ import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.analytics.EventOutputType.TRACKED_ENTITY_INSTANCE;
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamType.DIMENSIONS;
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamType.FILTERS;
+import static org.hisp.dhis.analytics.common.dimension.DimensionParamType.HEADERS;
+import static org.hisp.dhis.analytics.common.dimension.DimensionParamType.SORTING;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionFromParam;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionItemsFromParam;
 import static org.hisp.dhis.common.EventDataQueryRequest.ExtendedEventDataQueryRequestBuilder.DIMENSION_OR_SEPARATOR;
@@ -100,14 +102,25 @@ public class CommonQueryRequestMapper
                 .pageSize( request.getPageSize() )
                 .build() )
             .orderParams( getSortingParams( request, programs, userOrgUnits ) )
+            .headers( getHeaders( request, programs, userOrgUnits ) )
             .dimensionIdentifiers( retrieveDimensionParams( request, programs, userOrgUnits ) )
             .build();
+    }
+
+    private List<DimensionIdentifier<Program, ProgramStage, DimensionParam>> getHeaders( CommonQueryRequest request,
+        List<Program> programs, List<OrganisationUnit> userOrgUnits )
+    {
+        return HEADERS.getUidsGetter().apply( request )
+            .stream()
+            .map( dimId -> toDimensionIdentifier( dimId, HEADERS, request, programs, userOrgUnits ) )
+            .collect( toList() );
     }
 
     private List<AnalyticsSortingParams> getSortingParams( CommonQueryRequest request, List<Program> programs,
         List<OrganisationUnit> userOrgUnits )
     {
-        return DimensionParamType.SORTING.getUidsGetter().apply( request )
+        // for example: {a}.{b}.{c}:ASC
+        return SORTING.getUidsGetter().apply( request )
             .stream()
             .map( dimId -> toSortParam( dimId, request, programs, userOrgUnits ) )
             .collect( toList() );
@@ -119,7 +132,7 @@ public class CommonQueryRequestMapper
         String[] parts = sortParam.split( ":" );
         return AnalyticsSortingParams.builder()
             .sortDirection( SortDirection.of( parts[1] ) )
-            .orderBy( toDimensionIdentifier( parts[0], DimensionParamType.SORTING, request, programs, userOrgUnits ) )
+            .orderBy( toDimensionIdentifier( parts[0], SORTING, request, programs, userOrgUnits ) )
             .build();
     }
 

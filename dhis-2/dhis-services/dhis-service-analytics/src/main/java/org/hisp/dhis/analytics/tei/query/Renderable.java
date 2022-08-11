@@ -29,6 +29,5 @@ package org.hisp.dhis.analytics.tei.query;
 
 public interface Renderable
 {
-
     String render();
 }

@@ -27,14 +27,10 @@
  */
 package org.hisp.dhis.analytics.tei;
 
-import static java.lang.String.valueOf;
-import static java.util.stream.Collectors.toMap;
 import static org.hisp.dhis.analytics.shared.GridHeaders.from;
 import static org.springframework.util.Assert.notNull;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import lombok.AllArgsConstructor;
 
@@ -76,20 +72,11 @@ public class TeiAnalyticsQueryService
     {
         QueryContext queryContext = QueryContext.of( teiQueryParams );
         // output should look like: https://pastebin.com/4aK9ZxEQ
-        String statement = queryContext.getQuery().render();
-
-        Set<Map.Entry<Integer, Object>> entries = queryContext.getParametersByPlaceHolder().entrySet();
-        for ( Map.Entry<Integer, Object> entry : entries )
-        {
-            statement = statement.replace( ":" + entry.getKey(), entry.getValue().toString() );
-        }
 
         notNull( teiQueryParams, "The 'teiParams' must not be null" );
 
-        final Map<String, Object> params = entries.stream()
-            .collect( toMap( e -> valueOf( e.getKey() ), e -> e.getValue() ) );
+        final SqlQueryResult result = queryExecutor.execute( queryContext.getSqlQuery() );
 
-        final SqlQueryResult result = queryExecutor.execute( new SqlQuery( statement, params ) );
         final List<GridHeader> headers = from( result.columns() );
 
         return gridAdaptor.createGrid( headers, result.result(),
