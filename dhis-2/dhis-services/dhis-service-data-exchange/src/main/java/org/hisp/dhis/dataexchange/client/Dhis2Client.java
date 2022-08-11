@@ -243,7 +243,7 @@ public class Dhis2Client
     }
 
     /**
-     * Adds the given identifier scheme to the URI builder unless it equal the
+     * Adds the given identifier scheme to the URI builder unless it equals the
      * default identifier scheme.
      *
      * @param builder the {@link UriComponentsBuilder}.

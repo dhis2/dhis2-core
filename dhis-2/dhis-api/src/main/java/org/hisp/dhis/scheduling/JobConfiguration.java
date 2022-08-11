@@ -41,7 +41,6 @@ import org.hisp.dhis.common.SecondaryMetadataObject;
 import org.hisp.dhis.scheduling.parameters.AggregateDataExchangeJobParameters;
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
 import org.hisp.dhis.scheduling.parameters.ContinuousAnalyticsJobParameters;
-import org.hisp.dhis.scheduling.parameters.CredentialsExpiryAlertJobParameters;
 import org.hisp.dhis.scheduling.parameters.DataIntegrityJobParameters;
 import org.hisp.dhis.scheduling.parameters.DataSynchronizationJobParameters;
 import org.hisp.dhis.scheduling.parameters.DisableInactiveUsersJobParameters;
@@ -335,7 +334,6 @@ public class JobConfiguration
         @JsonSubTypes.Type( value = TrackerProgramsDataSynchronizationJobParameters.class, name = "TRACKER_PROGRAMS_DATA_SYNC" ),
         @JsonSubTypes.Type( value = DataSynchronizationJobParameters.class, name = "DATA_SYNC" ),
         @JsonSubTypes.Type( value = DisableInactiveUsersJobParameters.class, name = "DISABLE_INACTIVE_USERS" ),
-        @JsonSubTypes.Type( value = CredentialsExpiryAlertJobParameters.class, name = "CREDENTIALS_EXPIRY_ALERT" ),
         @JsonSubTypes.Type( value = TrackerTrigramIndexJobParameters.class, name = "TRACKER_SEARCH_OPTIMIZATION" ),
         @JsonSubTypes.Type( value = DataIntegrityJobParameters.class, name = "DATA_INTEGRITY" ),
         @JsonSubTypes.Type( value = AggregateDataExchangeJobParameters.class, name = "AGGREGATE_DATA_EXCHANGE" )
