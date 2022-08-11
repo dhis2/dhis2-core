@@ -39,6 +39,7 @@ import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.PS_UID;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_UID;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -169,7 +170,7 @@ public class EventDataValueCondition extends BaseRenderable
     {
         if ( valueTypeMapping.equals( ValueTypeMapping.NUMERIC ) )
         {
-            return Integer.parseInt( s );
+            return new BigDecimal(s);
         }
         return s;
     }
@@ -179,7 +180,7 @@ public class EventDataValueCondition extends BaseRenderable
         if ( valueTypeMapping.equals( ValueTypeMapping.NUMERIC ) )
         {
             return values.stream()
-                .map( Integer::parseInt )
+                .map(BigDecimal::new)
                 .collect( Collectors.toList() );
         }
         return values;
