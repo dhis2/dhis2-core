@@ -61,6 +61,7 @@ public class AggregateDataExchangeJob implements Job
     @Override
     public void execute( JobConfiguration config, JobProgress progress )
     {
+        notifier.clear( config );
         AggregateDataExchangeJobParameters params = (AggregateDataExchangeJobParameters) config.getJobParameters();
 
         List<String> dataExchangeIds = params.getDataExchangeIds();

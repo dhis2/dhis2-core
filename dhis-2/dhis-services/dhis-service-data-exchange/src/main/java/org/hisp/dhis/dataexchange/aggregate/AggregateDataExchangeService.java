@@ -37,6 +37,7 @@ import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCR
 
 import java.util.Date;
 import java.util.List;
+import java.util.function.Function;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -51,6 +52,7 @@ import org.hisp.dhis.dataexchange.client.Dhis2Client;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
+import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.scheduling.JobProgress;
@@ -132,10 +134,31 @@ public class AggregateDataExchangeService
         progress.startingStage( format( "exchange aggregate data %s to %s target %s", exchange.getName(),
             target.getType().name().toLowerCase(), api == null ? "(local)" : api.getUrl() ),
             FailurePolicy.SKIP_ITEM );
+        Function<SourceRequest, ImportSummary> runExchange = request -> {
+            try
+            {
+                return exchangeData( exchange, request );
+            }
+            catch ( Exception ex )
+            {
+                ImportSummary summary = new ImportSummary();
+                summary.setStatus( ImportStatus.ERROR );
+                summary.setDescription( ex.getMessage() );
+                return summary;
+            }
+        };
+
         progress.runStage( exchange.getSource().getRequests().stream(),
             request -> format( "dx: %s; pe: %s; ou: %s", join( ",", request.getDx() ), join( ",", request.getPe() ),
                 join( ",", request.getOu() ) ),
-            request -> summaries.addImportSummary( exchangeData( exchange, request ) ),
+            summary -> summary.getStatus() == ImportStatus.ERROR && summary.getConflictCount() == 0
+                ? summary.getDescription()
+                : summary.toCountString(),
+            request -> {
+                ImportSummary summary = runExchange.apply( request );
+                summaries.addImportSummary( summary );
+                return summary;
+            },
             ( success, failed ) -> format( "Aggregate data exchange completed (%d/%d): '%s', type: '%s'",
                 success, (success + failed), exchange.getUid(), target.getType() ) );
 
