@@ -350,15 +350,18 @@ public class DataValueSetImportValidator
         DataSetContext dataSetContext, DataValueContext valueContext )
     {
         User currentUser = context.getCurrentUser();
-        boolean inUserHierarchy = currentUser != null
-            && context.getOrgUnitInHierarchyMap().get( valueContext.getOrgUnit().getUid(),
-                () -> organisationUnitService.isDescendant( valueContext.getOrgUnit(), context.getCurrentOrgUnits() ) );
+        if ( currentUser == null )
+        {
+            return;
+        }
+        boolean inUserHierarchy = context.getOrgUnitInHierarchyMap().get( valueContext.getOrgUnit().getUid(),
+            () -> organisationUnitService.isDescendant( valueContext.getOrgUnit(), context.getCurrentOrgUnits() ) );
 
         if ( !inUserHierarchy )
         {
             context.addConflict( valueContext.getIndex(),
                 DataValueImportConflict.ORG_UNIT_NOT_IN_USER_HIERARCHY,
-                dataValue.getOrgUnit(), currentUser == null ? null : currentUser.getUid() );
+                dataValue.getOrgUnit(), currentUser.getUid() );
         }
     }
 
