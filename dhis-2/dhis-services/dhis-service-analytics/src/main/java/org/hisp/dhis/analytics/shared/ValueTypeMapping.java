@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2004, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,59 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei.query;
+package org.hisp.dhis.analytics.shared;
 
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_TEI;
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
+import static java.util.Arrays.stream;
+import static org.hisp.dhis.common.ValueType.INTEGER;
+import static org.hisp.dhis.common.ValueType.INTEGER_NEGATIVE;
+import static org.hisp.dhis.common.ValueType.INTEGER_POSITIVE;
+import static org.hisp.dhis.common.ValueType.INTEGER_ZERO_OR_POSITIVE;
 
-import java.util.HashMap;
-import java.util.Map;
+import org.hisp.dhis.common.ValueType;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.Delegate;
-
-import org.hisp.dhis.analytics.shared.query.Renderable;
-import org.hisp.dhis.analytics.shared.query.Table;
-import org.hisp.dhis.analytics.tei.TeiQueryParams;
-
-@RequiredArgsConstructor( staticName = "of" )
-public class QueryContext
+public enum ValueTypeMapping
 {
 
-    @Getter
-    private final TeiQueryParams teiQueryParams;
+    // TODO: adds mappings here
+    NUMERIC( INTEGER, INTEGER_NEGATIVE, INTEGER_POSITIVE, INTEGER_ZERO_OR_POSITIVE ),
+    STRING();
 
-    @Delegate
-    private final ParameterManager parameterManager = new ParameterManager();
+    private final ValueType[] valueTypes;
 
-    public String getMainTableName()
+    ValueTypeMapping( ValueType... valueTypes )
     {
-        return ANALYTICS_TEI + getTetTableSuffix();
+        this.valueTypes = valueTypes;
     }
 
-    public String getTetTableSuffix()
+    public static ValueTypeMapping fromValueType( ValueType valueType )
     {
-        return teiQueryParams.getTrackedEntityType().getUid().toLowerCase();
+        return stream( values() )
+            .filter( valueTypeMapping -> valueTypeMapping.supports( valueType ) )
+            .findFirst()
+            .orElse( STRING );
     }
 
-    public Renderable getMainTable()
+    private boolean supports( ValueType valueType )
     {
-        return Table.ofStrings( getMainTableName(), TEI_ALIAS );
-    }
-
-    private static class ParameterManager
-    {
-        private int parameterIndex = 0;
-
-        @Getter
-        private final Map<String, Object> parametersByPlaceHolder = new HashMap<>();
-
-        public String bindParamAndGetIndex( Object param )
-        {
-            parameterIndex++;
-            parametersByPlaceHolder.put( String.valueOf( parameterIndex ), param );
-            return ":" + parameterIndex;
-        }
+        return stream( valueTypes )
+            .anyMatch( vt -> vt == valueType );
     }
 }

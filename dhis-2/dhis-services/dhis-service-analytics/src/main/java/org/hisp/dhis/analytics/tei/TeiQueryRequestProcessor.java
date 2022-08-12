@@ -29,7 +29,7 @@ package org.hisp.dhis.analytics.tei;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.analytics.common.Processor;
+import org.hisp.dhis.analytics.shared.processing.Processor;
 import org.springframework.stereotype.Component;
 
 /**

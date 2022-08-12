@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2004, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,59 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei.query;
+package org.hisp.dhis.analytics.shared.query;
 
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_TEI;
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
+import static org.apache.commons.lang3.StringUtils.SPACE;
+import static org.hisp.dhis.common.QueryOperator.EQ;
+import static org.hisp.dhis.common.QueryOperator.IN;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.Delegate;
 
-import org.hisp.dhis.analytics.shared.query.Renderable;
-import org.hisp.dhis.analytics.shared.query.Table;
-import org.hisp.dhis.analytics.tei.TeiQueryParams;
+import org.hisp.dhis.common.QueryOperator;
 
 @RequiredArgsConstructor( staticName = "of" )
-public class QueryContext
+public class BinaryCondition extends BaseRenderable
 {
 
-    @Getter
-    private final TeiQueryParams teiQueryParams;
+    private final Renderable left;
 
-    @Delegate
-    private final ParameterManager parameterManager = new ParameterManager();
+    private final QueryOperator queryOperator;
 
-    public String getMainTableName()
+    private final Renderable right;
+
+    public static BinaryCondition fieldsEqual( String leftAlias, String left, String rightAlias, String right )
     {
-        return ANALYTICS_TEI + getTetTableSuffix();
+        return BinaryCondition.of(
+            Field.of( leftAlias, () -> left, null ), EQ, Field.of( rightAlias, () -> right, null ) );
     }
 
-    public String getTetTableSuffix()
+    @Override
+    public String render()
     {
-        return teiQueryParams.getTrackedEntityType().getUid().toLowerCase();
-    }
-
-    public Renderable getMainTable()
-    {
-        return Table.ofStrings( getMainTableName(), TEI_ALIAS );
-    }
-
-    private static class ParameterManager
-    {
-        private int parameterIndex = 0;
-
-        @Getter
-        private final Map<String, Object> parametersByPlaceHolder = new HashMap<>();
-
-        public String bindParamAndGetIndex( Object param )
+        if ( queryOperator.equals( IN ) )
         {
-            parameterIndex++;
-            parametersByPlaceHolder.put( String.valueOf( parameterIndex ), param );
-            return ":" + parameterIndex;
+            return left.render() + " in (" + right.render() + ")";
         }
+        return left.render() + SPACE + queryOperator.getValue() + SPACE + right.render();
     }
 }

@@ -27,23 +27,23 @@
  */
 package org.hisp.dhis.analytics.tei.query;
 
+import static lombok.AccessLevel.PRIVATE;
+import static org.hisp.dhis.analytics.shared.ValueTypeMapping.fromValueType;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_TEI_ENR;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_TEI_EVT;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_UID;
-import static org.hisp.dhis.analytics.tei.query.items.ValueTypeMapping.fromValueType;
 
-import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
-import org.hisp.dhis.analytics.tei.query.items.BinaryCondition;
-import org.hisp.dhis.analytics.tei.query.items.DoubleQuotingRenderable;
-import org.hisp.dhis.analytics.tei.query.items.RenderableDataValue;
-import org.hisp.dhis.analytics.tei.query.items.ValueTypeMapping;
+import org.hisp.dhis.analytics.shared.ValueTypeMapping;
+import org.hisp.dhis.analytics.shared.query.BinaryCondition;
+import org.hisp.dhis.analytics.shared.query.DoubleQuotingRenderable;
+import org.hisp.dhis.analytics.shared.query.Renderable;
 
-@NoArgsConstructor( access = AccessLevel.PRIVATE )
+@NoArgsConstructor( access = PRIVATE )
 public class LeftJoinQueryBuilder
 {
 
@@ -71,21 +71,20 @@ public class LeftJoinQueryBuilder
         String programStageUid = sortingParams.getOrderBy().getProgramStage().getElement().getUid();
         String dataValueUid = sortingParams.getOrderBy().getDimension().getUid();
 
-        return "SELECT EVT.trackedentityinstanceuid, EVT.VALUE" +
-            "      FROM (SELECT programinstanceuid" +
-            "            FROM " + ANALYTICS_TEI_ENR + queryContext.getTeTTableSuffix() +
-            "            WHERE programuid = " + queryContext.bindParamAndGetIndex( programUid ) +
-            "            ORDER BY enrollmentdate DESC" +
-            "            LIMIT 1 OFFSET 0) ENR," +
-            "           (SELECT trackedentityinstanceuid," +
-            "                   programinstanceuid," + RenderableDataValue.of( null, dataValueUid, vtMapping ).render()
-            +
-            " AS VALUE" +
-            "            FROM " + ANALYTICS_TEI_EVT + queryContext.getTeTTableSuffix() +
-            "            WHERE programuid = " + queryContext.bindParamAndGetIndex( programUid ) +
-            "              AND programstageuid = " + queryContext.bindParamAndGetIndex( programStageUid ) +
-            "            ORDER BY executiondate DESC" +
-            "            LIMIT 1 OFFSET 0) EVT" +
-            "      WHERE ENR.programinstanceuid = EVT.programinstanceuid";
+        return new StringBuilder( "select evt.trackedentityinstanceuid, evt.value" )
+            .append( " from (select programinstanceuid" )
+            .append( " from " + ANALYTICS_TEI_ENR + queryContext.getTetTableSuffix() )
+            .append( " where programuid = " + queryContext.bindParamAndGetIndex( programUid ) )
+            .append( " order by enrollmentdate desc" )
+            .append( " limit 1 offset 0) enr," )
+            .append( " (select trackedentityinstanceuid," )
+            .append( " programinstanceuid," + RenderableDataValue.of( null, dataValueUid, vtMapping ).render() )
+            .append( " as value" )
+            .append( " from " + ANALYTICS_TEI_EVT + queryContext.getTetTableSuffix() )
+            .append( " where programuid = " + queryContext.bindParamAndGetIndex( programUid ) )
+            .append( " and programstageuid = " + queryContext.bindParamAndGetIndex( programStageUid ) )
+            .append( " order by executiondate desc" )
+            .append( " limit 1 offset 0) evt" )
+            .append( " where enr.programinstanceuid = evt.programinstanceuid" ).toString();
     }
 }

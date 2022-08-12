@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2004, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,59 +25,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei.query;
+package org.hisp.dhis.analytics.shared.query;
 
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_TEI;
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
-
-import java.util.HashMap;
-import java.util.Map;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.Delegate;
 
-import org.hisp.dhis.analytics.shared.query.Renderable;
-import org.hisp.dhis.analytics.shared.query.Table;
-import org.hisp.dhis.analytics.tei.TeiQueryParams;
-
+/**
+ * This class is a Renderable for a field in the select list, with its prefix
+ * and alias.
+ */
 @RequiredArgsConstructor( staticName = "of" )
-public class QueryContext
+public class Field extends BaseRenderable
 {
+    private final String tableAlias;
+
+    private final Renderable name;
 
     @Getter
-    private final TeiQueryParams teiQueryParams;
+    private final String fieldAlias;
 
-    @Delegate
-    private final ParameterManager parameterManager = new ParameterManager();
-
-    public String getMainTableName()
+    @Override
+    public String render()
     {
-        return ANALYTICS_TEI + getTetTableSuffix();
-    }
+        String rendered = EMPTY;
 
-    public String getTetTableSuffix()
-    {
-        return teiQueryParams.getTrackedEntityType().getUid().toLowerCase();
-    }
-
-    public Renderable getMainTable()
-    {
-        return Table.ofStrings( getMainTableName(), TEI_ALIAS );
-    }
-
-    private static class ParameterManager
-    {
-        private int parameterIndex = 0;
-
-        @Getter
-        private final Map<String, Object> parametersByPlaceHolder = new HashMap<>();
-
-        public String bindParamAndGetIndex( Object param )
+        if ( isNotBlank( tableAlias ) )
         {
-            parameterIndex++;
-            parametersByPlaceHolder.put( String.valueOf( parameterIndex ), param );
-            return ":" + parameterIndex;
+            rendered = tableAlias + ".";
         }
+
+        rendered = rendered + name.render();
+
+        if ( isNotBlank( fieldAlias ) )
+        {
+            rendered = rendered + " as " + fieldAlias;
+        }
+
+        return rendered;
     }
 }
