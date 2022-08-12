@@ -30,6 +30,7 @@ package org.hisp.dhis.cacheinvalidation.redis;
 import static org.hisp.dhis.cacheinvalidation.redis.RedisCacheInvalidationConfiguration.EXCLUDE_LIST;
 
 import java.io.Serializable;
+import java.util.Set;
 
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 
@@ -37,9 +38,14 @@ import io.lettuce.core.RedisClient;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.async.RedisAsyncCommands;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.engine.spi.SessionFactoryImplementor;
+import org.hibernate.event.spi.EventSource;
 import org.hibernate.event.spi.PostCommitUpdateEventListener;
 import org.hibernate.event.spi.PostUpdateEvent;
+import org.hibernate.metamodel.spi.MetamodelImplementor;
+import org.hibernate.persister.collection.CollectionPersister;
 import org.hibernate.persister.entity.EntityPersister;
+import org.hibernate.tuple.entity.EntityMetamodel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -61,6 +67,18 @@ public class PostUpdateCacheListener implements PostCommitUpdateEventListener
     private RedisClient redisClient;
 
     @Override
+    public boolean requiresPostCommitHanding( EntityPersister entityPersister )
+    {
+        return true;
+    }
+
+    @Override
+    public void onPostUpdateCommitFailed( PostUpdateEvent event )
+    {
+        log.debug( "onPostUpdateCommitFailed: " + event );
+    }
+
+    @Override
     public void onPostUpdate( PostUpdateEvent postUpdateEvent )
     {
         log.info( "onPostUpdate" );
@@ -75,19 +93,100 @@ public class PostUpdateCacheListener implements PostCommitUpdateEventListener
             RedisAsyncCommands<String, String> async = redisConnection.async();
             async.publish( channelName, message );
             log.info( "onPostUpdate message sent: " + message );
+
+//            evictCache( postUpdateEvent.getEntity(), postUpdateEvent.getPersister(),
+//                postUpdateEvent.getSession(), postUpdateEvent.getOldState() );
+
         }
     }
 
-    @Override
-    public boolean requiresPostCommitHanding( EntityPersister entityPersister )
+    private Serializable getIdentifier( EventSource session, Object obj )
     {
-        return true;
+        Serializable id = null;
+        if ( obj != null )
+        {
+            id = session.getContextEntityIdentifier( obj );
+            if ( id == null )
+            {
+                id = session.getSessionFactory().getMetamodel().entityPersister( obj.getClass() )
+                    .getIdentifier( obj, session );
+            }
+        }
+        return id;
     }
 
-    @Override
-    public void onPostUpdateCommitFailed( PostUpdateEvent event )
+    private void evictCache( Object entity, EntityPersister persister, EventSource session, Object[] oldState )
     {
-        log.debug( "onPostUpdateCommitFailed: " + event );
+        try
+        {
+            SessionFactoryImplementor factory = persister.getFactory();
+
+            final MetamodelImplementor metamodel = factory.getMetamodel();
+            Set<String> collectionRoles = metamodel.getCollectionRolesByEntityParticipant( persister.getEntityName() );
+            if ( collectionRoles == null || collectionRoles.isEmpty() )
+            {
+                return;
+            }
+            final EntityMetamodel entityMetamodel = persister.getEntityMetamodel();
+            for ( String role : collectionRoles )
+            {
+                final CollectionPersister collectionPersister = metamodel.collectionPersister( role );
+                if ( !collectionPersister.hasCache() )
+                {
+                    // ignore collection if no caching is used
+                    continue;
+                }
+                // this is the property this OneToMany relation is mapped by
+                String mappedBy = collectionPersister.getMappedByProperty();
+//                if ( !collectionPersister.isManyToMany() &&
+                if(mappedBy != null && !mappedBy.isEmpty() )
+                {
+                    int i = entityMetamodel.getPropertyIndex( mappedBy );
+                    Serializable oldId = null;
+                    if ( oldState != null )
+                    {
+                        // in case of updating an entity we perhaps have to decache 2 entity collections, this is the
+                        // old one
+                        oldId = getIdentifier( session, oldState[i] );
+                    }
+                    Object ref = persister.getPropertyValue( entity, i );
+                    Serializable id = getIdentifier( session, ref );
+
+                    // only evict if the related entity has changed
+                    if ( (id != null && !id.equals( oldId )) || (oldId != null && !oldId.equals( id )) )
+                    {
+                        if ( id != null )
+                        {
+                            evict( id, collectionPersister, session );
+                        }
+                        if ( oldId != null )
+                        {
+                            evict( oldId, collectionPersister, session );
+                        }
+                    }
+                }
+                else
+                {
+                    //                    if ( debugEnabled ) {
+                    //                        LOG.debug( "Evict CollectionRegion " + role );
+                    //                    }
+                    //                    final CollectionDataAccess cacheAccessStrategy = collectionPersister.getCacheAccessStrategy();
+                    //                    final SoftLock softLock = cacheAccessStrategy.lockRegion();
+                    //                    session.getActionQueue().registerProcess( (success, session1) -> {
+                    //                        cacheAccessStrategy.unlockRegion( softLock );
+                    //                    } );
+                }
+            }
+        }
+        catch ( Exception e )
+        {
+            throw new IllegalStateException( e );
+        }
+    }
+
+    private void evict( Serializable oldId, CollectionPersister collectionPersister, EventSource session )
+    {
+        log.info( "Evict CollectionRegion {}", collectionPersister.getRole() );
     }
 
 }

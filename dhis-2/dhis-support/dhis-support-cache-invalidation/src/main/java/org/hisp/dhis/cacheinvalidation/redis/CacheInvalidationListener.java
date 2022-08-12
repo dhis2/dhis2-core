@@ -1,7 +1,6 @@
 package org.hisp.dhis.cacheinvalidation.redis;
 
 import java.io.Serializable;
-import java.util.List;
 import java.util.Objects;
 
 import org.hisp.dhis.cache.PaginationCacheManager;
@@ -62,7 +61,8 @@ public class CacheInvalidationListener implements RedisPubSubListener<String, St
         READ( "read" ),
         CREATE( "insert" ),
         UPDATE( "update" ),
-        DELETE( "delete" );
+        DELETE( "delete" ),
+        COLLECTION( "collection" );
 
         private final String code;
 
@@ -146,6 +146,15 @@ public class CacheInvalidationListener implements RedisPubSubListener<String, St
         }
 
         Operation type = Operation.forCode( parts[1] );
+
+        if ( Operation.COLLECTION == type )
+        {
+            String role = parts[3];
+            Long entityId = Long.parseLong( parts[4] );
+            sessionFactory.getCache().evictCollectionData( role, entityId );
+            return;
+        }
+
         Long entityId = Long.parseLong( parts[3] );
         Class<?> entityClass = Class.forName( parts[2] );
         Objects.requireNonNull( entityClass, "Entity class can't be null" );
@@ -168,11 +177,6 @@ public class CacheInvalidationListener implements RedisPubSubListener<String, St
             paginationCacheManager.evictCache( entityClass.getName() );
             sessionFactory.getCache().evict( entityClass, entityId );
         }
-
-        //        if ( type != Operation.MESSAGE )
-        //        {
-        //            evictCollections( entityClasses, entityId );
-        //        }
     }
 
     private void tryFetchNewEntity( Serializable entityId, Class<?> entityClass )
@@ -198,24 +202,4 @@ public class CacheInvalidationListener implements RedisPubSubListener<String, St
         }
     }
 
-    private void evictCollections( List<Object[]> entityAndRoles, Serializable id )
-    {
-        Object[] firstEntityAndRole = entityAndRoles.get( 0 );
-        Objects.requireNonNull( firstEntityAndRole, "firstEntityAndRole can't be null!" );
-
-        // It's only a collection if we also have a role mapped
-        if ( firstEntityAndRole.length == 2 )
-        {
-            for ( Object[] entityAndRole : entityAndRoles )
-            {
-                Class<?> eKlass = (Class<?>) entityAndRole[0];
-                sessionFactory.getCache().evict( eKlass, id );
-                queryCacheManager.evictQueryCache( sessionFactory.getCache(), eKlass );
-                paginationCacheManager.evictCache( eKlass.getName() );
-
-                String role = (String) entityAndRole[1];
-                sessionFactory.getCache().evictCollectionData( role, id );
-            }
-        }
-    }
 }
