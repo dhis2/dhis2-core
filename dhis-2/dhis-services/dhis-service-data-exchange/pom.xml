@@ -28,6 +28,7 @@
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-service-core</artifactId>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
@@ -37,11 +38,19 @@
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-service-analytics</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-support-system</artifactId>
+    </dependency>
 
     <!-- Application -->
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-context</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-tx</artifactId>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
