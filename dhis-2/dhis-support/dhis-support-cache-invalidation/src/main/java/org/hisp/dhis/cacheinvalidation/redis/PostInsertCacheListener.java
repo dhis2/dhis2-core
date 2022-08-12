@@ -31,16 +31,17 @@ import static org.hisp.dhis.cacheinvalidation.redis.RedisCacheInvalidationConfig
 
 import java.io.Serializable;
 
-import org.hisp.dhis.hibernate.HibernateProxyUtils;
-
-import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
 import lombok.extern.slf4j.Slf4j;
+
 import org.hibernate.event.spi.PostCommitInsertEventListener;
 import org.hibernate.event.spi.PostInsertEvent;
 import org.hibernate.persister.entity.EntityPersister;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+
+import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
 
 /**
  * @author Luciano Fiandesio
