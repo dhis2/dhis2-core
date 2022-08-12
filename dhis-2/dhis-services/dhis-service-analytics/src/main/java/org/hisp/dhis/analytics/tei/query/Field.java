@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.tei.query;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
@@ -42,6 +43,7 @@ public class Field extends BaseRenderable
 
     private final Renderable name;
 
+    @Getter
     private final String fieldAlias;
 
     @Override

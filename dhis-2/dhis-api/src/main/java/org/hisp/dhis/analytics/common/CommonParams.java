@@ -28,7 +28,9 @@
 package org.hisp.dhis.analytics.common;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -66,10 +68,11 @@ public class CommonParams
     private final List<List<DimensionIdentifier<Program, ProgramStage, DimensionParam>>> dimensionIdentifiers = new ArrayList<>();
 
     /**
-     * Data structure containing headers
+     * Data structure containing headers. If present, they will represent the
+     * columns to be retrieved.
      */
     @Builder.Default
-    private final List<DimensionIdentifier<Program, ProgramStage, DimensionParam>> headers = new ArrayList<>();
+    private final Set<String> headers = new LinkedHashSet<>();
 
     /**
      * The object that groups the paging and sorting parameters.

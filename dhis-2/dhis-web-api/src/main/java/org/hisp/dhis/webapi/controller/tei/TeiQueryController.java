@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller.tei;
 
-import static org.hisp.dhis.analytics.shared.GridHeaders.retainHeadersOnGrid;
 import static org.hisp.dhis.common.cache.CacheStrategy.RESPECT_SYSTEM_SETTING;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
 
@@ -126,9 +125,6 @@ class TeiQueryController
         contextUtils.configureResponse( response, CONTENT_TYPE_JSON, RESPECT_SYSTEM_SETTING );
 
         final TeiQueryParams params = mapper.map( queryRequest );
-        final Grid grid = teiAnalyticsQueryService.getGrid( params, commonQueryRequest );
-
-        retainHeadersOnGrid( grid, queryRequest.getCommonQueryRequest().getHeaders() );
 
         return teiAnalyticsQueryService.getGrid( params, commonQueryRequest );
     }

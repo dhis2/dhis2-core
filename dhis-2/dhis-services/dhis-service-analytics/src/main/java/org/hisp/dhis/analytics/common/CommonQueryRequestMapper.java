@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics.common;
 
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static org.hisp.dhis.analytics.EventOutputType.TRACKED_ENTITY_INSTANCE;
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamType.DIMENSIONS;
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamType.FILTERS;
@@ -45,6 +46,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import lombok.RequiredArgsConstructor;
@@ -102,18 +104,16 @@ public class CommonQueryRequestMapper
                 .pageSize( request.getPageSize() )
                 .build() )
             .orderParams( getSortingParams( request, programs, userOrgUnits ) )
-            .headers( getHeaders( request, programs, userOrgUnits ) )
+            .headers( getHeaders( request ) )
             .dimensionIdentifiers( retrieveDimensionParams( request, programs, userOrgUnits ) )
             .build();
     }
 
-    private List<DimensionIdentifier<Program, ProgramStage, DimensionParam>> getHeaders( CommonQueryRequest request,
-        List<Program> programs, List<OrganisationUnit> userOrgUnits )
+    private Set<String> getHeaders( CommonQueryRequest request )
     {
         return HEADERS.getUidsGetter().apply( request )
             .stream()
-            .map( dimId -> toDimensionIdentifier( dimId, HEADERS, request, programs, userOrgUnits ) )
-            .collect( toList() );
+            .collect( toSet() );
     }
 
     private List<AnalyticsSortingParams> getSortingParams( CommonQueryRequest request, List<Program> programs,

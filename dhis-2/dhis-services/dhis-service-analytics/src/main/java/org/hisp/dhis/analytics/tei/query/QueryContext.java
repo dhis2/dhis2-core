@@ -27,6 +27,11 @@
  */
 package org.hisp.dhis.analytics.tei.query;
 
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toList;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.DATA_ELEMENT;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_TEI;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
 
@@ -34,7 +39,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -42,7 +46,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Delegate;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.analytics.common.AnalyticsPagingParams;
 import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
@@ -112,7 +115,7 @@ public class QueryContext
     {
         List<Renderable> collect = teiQueryParams.getCommonParams().getOrderParams().stream()
             .map( p -> (Renderable) () -> "\"" + p.getOrderBy().toString() + "\" " + p.getSortDirection().name() )
-            .collect( Collectors.toList() );
+            .collect( toList() );
         return Order.builder()
             .orders( collect )
             .build();
@@ -147,10 +150,19 @@ public class QueryContext
 
         Stream<Field> orderFields = getExtractedOrderFieldsForSelect();
 
+        if ( isNotEmpty( teiQueryParams.getCommonParams().getHeaders() ) )
+        {
+            return Select.of(
+                Stream.of( staticFields, attributes, orderFields )
+                    .flatMap( identity() )
+                    .filter( f -> teiQueryParams.getCommonParams().getHeaders().contains( f.getFieldAlias() ) )
+                    .collect( toList() ) );
+        }
+
         return Select.of(
             Stream.of( staticFields, attributes, orderFields )
-                .flatMap( Function.identity() )
-                .collect( Collectors.toList() ) );
+                .flatMap( identity() )
+                .collect( toList() ) );
     }
 
     private Stream<Field> getExtractedOrderFieldsForSelect()
@@ -198,7 +210,7 @@ public class QueryContext
     {
         return teiQueryParams.getCommonParams().getOrderParams().stream()
             .filter( this::needsSubQuery )
-            .collect( Collectors.toList() );
+            .collect( toList() );
     }
 
     private boolean needsSubQuery( AnalyticsSortingParams analyticsSortingParams )
@@ -228,7 +240,7 @@ public class QueryContext
                 Stream.concat(
                     programConditions,
                     dimensionConditions )
-                    .collect( Collectors.toList() ) ) );
+                    .collect( toList() ) ) );
     }
 
     private List<Renderable> toConditions(
@@ -239,21 +251,21 @@ public class QueryContext
             .collect( Collectors.groupingBy( di -> di.getDimension().getDimensionParamObjectType() ) )
             .entrySet().stream()
             .map( entry -> toCondition( entry.getKey(), entry.getValue() ) )
-            .collect( Collectors.toList() );
+            .collect( toList() );
     }
 
     private Renderable toCondition( DimensionParamObjectType type,
         List<DimensionIdentifier<Program, ProgramStage, DimensionParam>> dimensionIdentifiers )
     {
         // TODO: depending on the type, we should build a proper condition
-        if ( type == DimensionParamObjectType.DATA_ELEMENT )
+        if ( type == DATA_ELEMENT )
         {
             return AndCondition.of(
                 dimensionIdentifiers.stream()
                     .map( dimensionIdentifier -> EventDataValueCondition.of( dimensionIdentifier, this ) )
-                    .collect( Collectors.toList() ) );
+                    .collect( toList() ) );
         }
-        return () -> StringUtils.EMPTY;
+        return () -> EMPTY;
     }
 
     private static class ParameterManager
