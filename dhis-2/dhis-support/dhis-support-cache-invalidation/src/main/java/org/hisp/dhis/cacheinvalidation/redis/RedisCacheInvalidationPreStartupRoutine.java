@@ -57,6 +57,9 @@ public class RedisCacheInvalidationPreStartupRoutine extends AbstractStartupRout
     @Autowired
     PostDeleteCacheListener postDeleteCacheListener;
 
+    @Autowired
+    RedisPostCollectionEventListener redisPostCollectionEventListener;
+
     @Override
     public void execute()
         throws Exception
@@ -67,5 +70,9 @@ public class RedisCacheInvalidationPreStartupRoutine extends AbstractStartupRout
         registry.appendListeners( EventType.POST_COMMIT_UPDATE, postUpdateCacheListener );
         registry.appendListeners( EventType.POST_COMMIT_INSERT, postInsertCacheListener );
         registry.appendListeners( EventType.POST_COMMIT_DELETE, postDeleteCacheListener );
+
+//        registry.appendListeners( EventType.PRE_COLLECTION_UPDATE, redisPostCollectionEventListener );
+//        registry.appendListeners( EventType.PRE_COLLECTION_REMOVE, redisPostCollectionEventListener );
+//        registry.appendListeners( EventType.POST_COLLECTION_RECREATE, redisPostCollectionEventListener );
     }
 }
