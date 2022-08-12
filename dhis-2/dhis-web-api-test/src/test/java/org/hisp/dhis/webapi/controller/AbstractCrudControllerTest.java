@@ -40,6 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 
 import java.util.List;
+import java.util.Set;
 
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonArray;
@@ -47,6 +48,7 @@ import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonError;
 import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
@@ -666,6 +668,39 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
         JsonTypeReport response = message.get( "response", JsonTypeReport.class );
         assertEquals( 1, response.getObjectReports().size() );
         assertEquals( ErrorCode.E3015, response.getObjectReports().get( 0 ).getErrorReports().get( 0 ).getErrorCode() );
+    }
+
+    @Test
+    void testSharingDisplayName()
+    {
+        UserGroup userGroup = createUserGroup( 'A', Set.of() );
+        manager.save( userGroup );
+        String userId = getCurrentUser().getUid();
+
+        String sharing = "{'owner':'" + userId + "', 'public':'rwrw----', 'external': true,'userGroups':{\""
+            + userGroup.getUid() + "\":{\"id\":\"" + userGroup.getUid() + "\",\"access\":\"rwrw----\"} } }";
+
+        String programId = assertStatus( HttpStatus.CREATED,
+            POST( "/programs/", "{'name':'test', 'shortName':'test', 'programType':'WITHOUT_REGISTRATION', 'sharing': "
+                + sharing + "}" ) );
+
+        assertStatus( HttpStatus.CREATED,
+            POST( "/programStages/", "{\"id\": \"VlhIwWqEHsI\",\n" + "\"sortOrder\": 1," +
+                "\"name\": \"test\", \"minDaysFromStart\": \"0\", \"displayGenerateEventBox\": true, \"autoGenerateEvent\": true,"
+                +
+                "\"program\":" + "{\"id\": \"" + programId + "\"}, \"sharing\": " + sharing + "}" ) );
+
+        JsonIdentifiableObject program = GET( "/programs/{id}?fields=sharing", programId ).content()
+            .as( JsonIdentifiableObject.class );
+        assertEquals( "UserGroupA",
+            program.getSharing().getUserGroups().get( userGroup.getUid() ).getString( "displayName" ).string() );
+
+        JsonIdentifiableObject programStage = GET( "/programs/{id}?fields=programStages[sharing]", programId ).content()
+            .as( JsonIdentifiableObject.class );
+        assertEquals( "UserGroupA",
+            programStage.getList( "programStages", JsonIdentifiableObject.class ).get( 0 ).getSharing().getUserGroups()
+                .get( userGroup.getUid() ).getString( "displayName" ).string() );
+
     }
 
     @Test
