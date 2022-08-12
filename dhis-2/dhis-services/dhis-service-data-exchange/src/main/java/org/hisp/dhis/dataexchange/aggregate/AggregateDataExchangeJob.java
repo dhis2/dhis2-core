@@ -33,8 +33,10 @@ import java.util.List;
 
 import lombok.AllArgsConstructor;
 
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
+import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
@@ -65,11 +67,23 @@ public class AggregateDataExchangeJob implements Job
         AggregateDataExchangeJobParameters params = (AggregateDataExchangeJobParameters) config.getJobParameters();
 
         List<String> dataExchangeIds = params.getDataExchangeIds();
-        progress.startingProcess( format( "Aggregate data exchange of %d exchange(s)", dataExchangeIds.size() ) );
+        progress
+            .startingProcess( format( "Aggregate data exchange of %d exchange(s) started", dataExchangeIds.size() ) );
         ImportSummaries allSummaries = new ImportSummaries();
         for ( String dataExchangeId : dataExchangeIds )
         {
-            AggregateDataExchange exchange = dataExchangeService.getById( dataExchangeId );
+            AggregateDataExchange exchange;
+            try
+            {
+                exchange = dataExchangeService.getById( dataExchangeId );
+            }
+            catch ( IllegalQueryException ex )
+            {
+                progress.startingStage( "exchange aggregate data for exchange with ID " + dataExchangeId );
+                progress.failedStage( ex );
+                allSummaries.addImportSummary( new ImportSummary( ImportStatus.ERROR, ex.getMessage() ) );
+                continue;
+            }
             allSummaries.addImportSummaries( dataExchangeService.exchangeData( exchange, progress ) );
         }
         notifier.addJobSummary( config, NotificationLevel.INFO, allSummaries, ImportSummaries.class );

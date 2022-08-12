@@ -37,7 +37,6 @@ import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCR
 
 import java.util.Date;
 import java.util.List;
-import java.util.function.Function;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -129,40 +128,45 @@ public class AggregateDataExchangeService
     {
         ImportSummaries summaries = new ImportSummaries();
 
-        Target target = exchange.getTarget();
-        Api api = target.getApi();
-        progress.startingStage( format( "exchange aggregate data %s to %s target %s", exchange.getName(),
-            target.getType().name().toLowerCase(), api == null ? "(local)" : api.getUrl() ),
-            FailurePolicy.SKIP_ITEM );
-        Function<SourceRequest, ImportSummary> runExchange = request -> {
-            try
-            {
-                return exchangeData( exchange, request );
-            }
-            catch ( Exception ex )
-            {
-                ImportSummary summary = new ImportSummary();
-                summary.setStatus( ImportStatus.ERROR );
-                summary.setDescription( ex.getMessage() );
-                return summary;
-            }
-        };
-
+        progress.startingStage( toStageDescription( exchange ), FailurePolicy.SKIP_ITEM );
         progress.runStage( exchange.getSource().getRequests().stream(),
-            request -> format( "dx: %s; pe: %s; ou: %s", join( ",", request.getDx() ), join( ",", request.getPe() ),
-                join( ",", request.getOu() ) ),
-            summary -> summary.getStatus() == ImportStatus.ERROR && summary.getConflictCount() == 0
-                ? summary.getDescription()
-                : summary.toCountString(),
+            AggregateDataExchangeService::toItemDescription,
+            AggregateDataExchangeService::toItemSummary,
             request -> {
-                ImportSummary summary = runExchange.apply( request );
+                ImportSummary summary = exchangeData( exchange, request );
                 summaries.addImportSummary( summary );
                 return summary;
             },
-            ( success, failed ) -> format( "Aggregate data exchange completed (%d/%d): '%s', type: '%s'",
-                success, (success + failed), exchange.getUid(), target.getType() ) );
+            ( success, failed ) -> toStageSummary( success, failed, exchange ) );
 
         return summaries;
+    }
+
+    private static String toStageDescription( AggregateDataExchange exchange )
+    {
+        Target target = exchange.getTarget();
+        Api api = target.getApi();
+        return format( "exchange aggregate data %s to %s target %s", exchange.getName(),
+            target.getType().name().toLowerCase(), api == null ? "(local)" : api.getUrl() );
+    }
+
+    private static String toItemDescription( SourceRequest request )
+    {
+        return format( "dx: %s; pe: %s; ou: %s", join( ",", request.getDx() ),
+            join( ",", request.getPe() ), join( ",", request.getOu() ) );
+    }
+
+    private static String toItemSummary( ImportSummary summary )
+    {
+        return summary.getStatus() == ImportStatus.ERROR && summary.getConflictCount() == 0
+            ? summary.getDescription()
+            : summary.toCountString();
+    }
+
+    private static String toStageSummary( int success, int failed, AggregateDataExchange exchange )
+    {
+        return format( "Aggregate data exchange completed (%d/%d): '%s', type: '%s'",
+            success, (success + failed), exchange.getUid(), exchange.getTarget().getType() );
     }
 
     /**
@@ -191,10 +195,17 @@ public class AggregateDataExchangeService
      */
     private ImportSummary exchangeData( AggregateDataExchange exchange, SourceRequest request )
     {
-        DataValueSet dataValueSet = analyticsService.getAggregatedDataValueSet( toDataQueryParams( request ) );
+        try
+        {
+            DataValueSet dataValueSet = analyticsService.getAggregatedDataValueSet( toDataQueryParams( request ) );
 
-        return exchange.getTarget().getType() == TargetType.INTERNAL ? pushToInternal( exchange, dataValueSet )
-            : pushToExternal( exchange, dataValueSet );
+            return exchange.getTarget().getType() == TargetType.INTERNAL ? pushToInternal( exchange, dataValueSet )
+                : pushToExternal( exchange, dataValueSet );
+        }
+        catch ( Exception ex )
+        {
+            return new ImportSummary( ImportStatus.ERROR, ex.getMessage() );
+        }
     }
 
     /**
