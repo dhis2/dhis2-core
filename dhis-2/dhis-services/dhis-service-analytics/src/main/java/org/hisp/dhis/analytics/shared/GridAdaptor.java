@@ -102,7 +102,7 @@ public class GridAdaptor
 
         if ( !commonQueryRequest.isSkipMeta() )
         {
-            grid.setMetaData( getMetadata( commonParams, commonQueryRequest ) );
+            grid.setMetaData( getMetaData( commonParams, commonQueryRequest ) );
         }
 
         return grid;
@@ -116,24 +116,24 @@ public class GridAdaptor
      * @param commonQueryRequest
      * @return the metadata map
      */
-    private Map<String, Object> getMetadata( final CommonParams commonParams,
+    private Map<String, Object> getMetaData( final CommonParams commonParams,
         final CommonQueryRequest commonQueryRequest )
     {
-        final Map<String, Object> metadata = new HashMap<>();
+        final Map<String, Object> metaData = new HashMap<>();
 
-        metadata.put( PAGER.getKey(),
+        metaData.put( PAGER.getKey(),
             commonQueryRequest.isTotalPages()
                 ? new Pager( commonQueryRequest.getPage(), 1, commonQueryRequest.getPageSize() )
                 : new SlimPager( commonQueryRequest.getPage(), commonQueryRequest.getPageSize(), true ) );
 
         if ( commonParams == null )
         {
-            return metadata;
+            return metaData;
         }
 
         if ( commonParams.getDimensionIdentifiers() != null )
         {
-            final Map<String, MetadataItem> metadataItems = new HashMap<>();
+            final Map<String, MetadataItem> metaDataItems = new HashMap<>();
 
             commonParams.getDimensionIdentifiers()
                 .stream()
@@ -142,23 +142,23 @@ public class GridAdaptor
                 .map( DimensionParam::getDimensionalObject )
                 .map( DimensionalObject::getItems )
                 .flatMap( Collection::stream )
-                .forEach( dio -> metadataItems.put( dio.getUid(),
+                .forEach( dio -> metaDataItems.put( dio.getUid(),
                     commonQueryRequest.isIncludeMetadataDetails()
                         ? new MetadataItem( dio.getDisplayName(), dio )
                         : new MetadataItem( dio.getDisplayName() ) ) );
 
-            metadata.put( ITEMS.getKey(), metadataItems );
+            metaData.put( ITEMS.getKey(), metaDataItems );
 
-            final Map<String, List<String>> metadataDimensions = new HashMap<>();
+            final Map<String, List<String>> metaDataDimensions = new HashMap<>();
 
             commonParams.getDimensionIdentifiers()
                 .stream()
                 .flatMap( Collection::stream )
-                .forEach( di -> metadataDimensions.put( di.getDimension().getDimensionalObject().getUid(),
+                .forEach( di -> metaDataDimensions.put( di.getDimension().getDimensionalObject().getUid(),
                     di.getDimension().getDimensionalObject().getItems().stream()
                         .map( PrimaryKeyObject::getUid ).collect( toList() ) ) );
 
-            metadata.put( DIMENSIONS.getKey(), metadataDimensions );
+            metaData.put( DIMENSIONS.getKey(), metaDataDimensions );
 
             if ( commonQueryRequest.isHierarchyMeta() || commonQueryRequest.isShowHierarchy() )
             {
@@ -176,25 +176,24 @@ public class GridAdaptor
                     .map( OrganisationUnit.class::cast )
                     .collect( toList() );
 
-                final Map<String, Object> orgUnitsMetadata = putOrganisationUnitsHierarchyToMetadata( roots,
+                final Map<String, Object> orgUnitsMetadata = addOrganisationUnitsHierarchyIntoMetaData( roots,
                     organisationUnits, commonQueryRequest.isHierarchyMeta(), commonQueryRequest.isShowHierarchy() );
 
-                metadata.putAll( orgUnitsMetadata );
+                metaData.putAll( orgUnitsMetadata );
             }
         }
 
-        return metadata;
+        return metaData;
     }
 
-    private static Map<String, Object> putOrganisationUnitsHierarchyToMetadata( List<OrganisationUnit> roots,
-        List<OrganisationUnit> organisationUnits,
-        boolean hierarchyMeta, boolean showHierarchy )
+    private static Map<String, Object> addOrganisationUnitsHierarchyIntoMetaData( final List<OrganisationUnit> roots,
+        final List<OrganisationUnit> organisationUnits, final boolean hierarchyMeta, boolean showHierarchy )
     {
-        final Map<String, Object> metadata = new HashMap<>();
+        final Map<String, Object> metaData = new HashMap<>();
 
         if ( hierarchyMeta )
         {
-            metadata.put( ORG_UNIT_HIERARCHY.getKey(), getParentGraphMap( organisationUnits, roots ) );
+            metaData.put( ORG_UNIT_HIERARCHY.getKey(), getParentGraphMap( organisationUnits, roots ) );
         }
 
         if ( showHierarchy )
@@ -202,12 +201,12 @@ public class GridAdaptor
             Map<Object, List<?>> ancestorMap = organisationUnits.stream()
                 .collect( toMap( OrganisationUnit::getUid, ou -> ou.getAncestorNames( roots, true ) ) );
 
-            metadata.put( ORG_UNIT_ANCESTORS.getKey(), ancestorMap );
+            metaData.put( ORG_UNIT_ANCESTORS.getKey(), ancestorMap );
 
-            metadata.put( ORG_UNIT_NAME_HIERARCHY.getKey(),
+            metaData.put( ORG_UNIT_NAME_HIERARCHY.getKey(),
                 getParentNameGraphMap( organisationUnits, roots, true ) );
         }
 
-        return metadata;
+        return metaData;
     }
 }

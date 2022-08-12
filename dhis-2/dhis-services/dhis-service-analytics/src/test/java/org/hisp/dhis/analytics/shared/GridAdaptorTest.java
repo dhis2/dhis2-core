@@ -32,8 +32,14 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
+
+import javax.sql.rowset.RowSetMetaDataImpl;
 
 import org.hisp.dhis.analytics.common.CommonParams;
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
@@ -42,8 +48,10 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.user.CurrentUserService;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
+import org.springframework.jdbc.support.rowset.ResultSetWrappingSqlRowSet;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 /**
  * // TODO: Improve unit tests and coverage
@@ -65,11 +73,22 @@ class GridAdaptorTest
         gridAdaptor = new GridAdaptor( currentUserService );
     }
 
-    @Disabled
+    @Test
     void testCreateGridSuccessfully()
+        throws SQLException
     {
         // Given
-        final SqlQueryResult mockSqlResult = new SqlQueryResult( null );
+        final ResultSet resultSet = mock( ResultSet.class );
+        final RowSetMetaDataImpl metaData = new RowSetMetaDataImpl();
+        metaData.setColumnCount( 2 );
+        metaData.setColumnName( 1, "col-1" );
+        metaData.setColumnName( 2, "col-2" );
+
+        when( resultSet.next() ).thenReturn( true ).thenReturn( true ).thenReturn( true ).thenReturn( false );
+        when( resultSet.getMetaData() ).thenReturn( metaData );
+
+        final SqlRowSet sqlRowSet = new ResultSetWrappingSqlRowSet( resultSet );
+        final SqlQueryResult mockSqlResult = new SqlQueryResult( sqlRowSet );
 
         // When
         final Grid grid = gridAdaptor.createGrid( mockSqlResult, CommonParams.builder().build(),
@@ -83,21 +102,22 @@ class GridAdaptorTest
         assertEquals( 3, grid.getRows().size(), "Should have size of 3: rows" );
     }
 
-    @Disabled
-    void testCreateGridWithEmptyGridHeaders()
+    @Test
+    void testCreateGridWithNullSqlQueryResult()
+        throws SQLException
     {
         // Given
-        final SqlQueryResult mockSqlResult = new SqlQueryResult( null );
+        final SqlQueryResult nullSqlResult = null;
 
         // When
         final IllegalArgumentException ex = assertThrows(
             IllegalArgumentException.class,
-            () -> gridAdaptor.createGrid( mockSqlResult, TeiQueryParams.builder().build().getCommonParams(),
+            () -> gridAdaptor.createGrid( nullSqlResult, TeiQueryParams.builder().build().getCommonParams(),
                 new CommonQueryRequest() ),
             "Expected exception not thrown: createGrid()" );
 
         // Then
-        assertTrue( ex.getMessage().contains( "The 'headers' must not be null/empty" ) );
+        assertTrue( ex.getMessage().contains( "The 'sqlQueryResult' must not be null" ) );
     }
 
     private List<GridHeader> mockGridHeaders()
