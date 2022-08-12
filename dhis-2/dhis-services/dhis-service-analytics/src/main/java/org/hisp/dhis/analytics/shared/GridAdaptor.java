@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.shared;
 
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.DIMENSIONS;
@@ -45,7 +46,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import lombok.AllArgsConstructor;
 
@@ -107,7 +107,10 @@ public class GridAdaptor
 
         for ( final GridHeader header : headers )
         {
-            final List<Object> columnRows = resultMap.get( Column.builder().alias( header.getName() ).build() );
+            final List<Object> columnRows = resultMap.entrySet().stream()
+                .filter( k -> k.getKey().getAlias().equals( header.getColumn() ) )
+                .map( Map.Entry::getValue )
+                .collect( toList() );
 
             if ( !rowsAdded && isNotEmpty( columnRows ) )
             {
@@ -180,14 +183,14 @@ public class GridAdaptor
                 .flatMap( Collection::stream )
                 .forEach( di -> metadataDimensions.put( di.getDimension().getDimensionalObject().getUid(),
                     di.getDimension().getDimensionalObject().getItems().stream()
-                        .map( PrimaryKeyObject::getUid ).collect( Collectors.toList() ) ) );
+                        .map( PrimaryKeyObject::getUid ).collect( toList() ) ) );
 
             metadata.put( DIMENSIONS.getKey(), metadataDimensions );
 
             if ( commonQueryRequest.isHierarchyMeta() || commonQueryRequest.isShowHierarchy() )
             {
                 List<OrganisationUnit> roots = currentUserService.getCurrentUser()
-                    .getOrganisationUnits().stream().sorted().collect( Collectors.toList() );
+                    .getOrganisationUnits().stream().sorted().collect( toList() );
 
                 List<OrganisationUnit> organisationUnits = commonParams.getDimensionIdentifiers()
                     .stream()
@@ -198,7 +201,7 @@ public class GridAdaptor
                     .flatMap( Collection::stream )
                     .filter( i -> i.getDimensionItemType() == DimensionItemType.ORGANISATION_UNIT )
                     .map( OrganisationUnit.class::cast )
-                    .collect( Collectors.toList() );
+                    .collect( toList() );
 
                 final Map<String, Object> orgUnitsMetadata = putOrganisationUnitsHierarchyToMetadata( roots,
                     organisationUnits, commonQueryRequest.isHierarchyMeta(), commonQueryRequest.isShowHierarchy() );
