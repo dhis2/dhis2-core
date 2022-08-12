@@ -22,12 +22,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+/**
+ * Listens to Hibernate events and publishes a message to Redis when a collection is updated.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
 @Slf4j
 @Component
-public class RedisPostCollectionEventListener implements PostCollectionRecreateEventListener,
+public class PostCollectionEventCacheListener implements PostCollectionRecreateEventListener,
     PreCollectionRemoveEventListener, PreCollectionUpdateEventListener
 {
-
     @Autowired
     @Qualifier( "cacheInvalidationUid" )
     private String uid;
@@ -40,21 +44,20 @@ public class RedisPostCollectionEventListener implements PostCollectionRecreateE
     {
         log.info( "onPostUpdateCollection" );
         CollectionEntry collectionEntry = getCollectionEntry( event );
-        onCollectionAction( event, event.getCollection(), collectionEntry.getSnapshot(), collectionEntry );
+        onCollectionAction( event, event.getCollection(), collectionEntry.getSnapshot() );
     }
 
     @Override public void onPreRemoveCollection( PreCollectionRemoveEvent event )
     {
         log.info( "onPostRemoveCollection" );
         CollectionEntry collectionEntry = getCollectionEntry( event );
-        onCollectionAction( event, null, collectionEntry.getSnapshot(), collectionEntry );
+        onCollectionAction( event, null, collectionEntry.getSnapshot() );
     }
 
     @Override public void onPostRecreateCollection( PostCollectionRecreateEvent event )
     {
         log.info( "onPostRecreateCollection" );
-        CollectionEntry collectionEntry = getCollectionEntry( event );
-        onCollectionAction( event, event.getCollection(), null, collectionEntry );
+        onCollectionAction( event, event.getCollection(), null );
     }
 
     protected CollectionEntry getCollectionEntry( AbstractCollectionEvent event )
@@ -63,8 +66,7 @@ public class RedisPostCollectionEventListener implements PostCollectionRecreateE
     }
 
     protected void onCollectionAction( AbstractCollectionEvent event, PersistentCollection newColl,
-        Serializable oldColl,
-        CollectionEntry collectionEntry )
+        Serializable oldColl )
     {
         boolean b1 = newColl instanceof Collection;
         boolean b2 = oldColl instanceof Collection;
@@ -115,7 +117,5 @@ public class RedisPostCollectionEventListener implements PostCollectionRecreateE
                 uid + ":" + "collection:" + affectedOwnerEntityName + ":" + role + ":" + affectedOwnerIdOrNull;
             redisConnection.sync().publish( RedisCacheInvalidationConfiguration.CHANNEL_NAME, message );
         }
-
     }
-
 }

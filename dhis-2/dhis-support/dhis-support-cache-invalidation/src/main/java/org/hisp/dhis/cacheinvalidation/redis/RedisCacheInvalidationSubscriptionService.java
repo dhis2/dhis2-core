@@ -38,6 +38,9 @@ import org.springframework.stereotype.Service;
 import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
 import io.lettuce.core.pubsub.api.async.RedisPubSubAsyncCommands;
 
+/**
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
 @Slf4j
 @Profile( { "!test", "!test-h2" } )
 @Conditional( value = RedisCacheInvalidationEnabledCondition.class )

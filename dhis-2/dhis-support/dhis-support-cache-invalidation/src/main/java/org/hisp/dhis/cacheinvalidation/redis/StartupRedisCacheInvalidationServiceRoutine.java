@@ -32,7 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Profile;
 
-/*
+/**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Profile( { "!test", "!test-h2" } )

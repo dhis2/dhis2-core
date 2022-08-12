@@ -30,11 +30,6 @@ package org.hisp.dhis.cacheinvalidation.redis;
 import java.io.Serializable;
 import java.util.Objects;
 
-import lombok.extern.slf4j.Slf4j;
-
-import org.hibernate.HibernateException;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.PaginationCacheManager;
 import org.hisp.dhis.cache.QueryCacheManager;
 import org.hisp.dhis.cacheinvalidation.KnownTransactionsService;
@@ -43,12 +38,22 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+
+import io.lettuce.core.pubsub.RedisPubSubListener;
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.HibernateException;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import io.lettuce.core.pubsub.RedisPubSubListener;
-
+/**
+ * Listens for messages on a Redis pub/sub channel, and when it receives a message, it invalidates the cache for the
+ * entity that was changed.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
 @Slf4j
 @Component
 public class CacheInvalidationListener implements RedisPubSubListener<String, String>
@@ -215,7 +220,7 @@ public class CacheInvalidationListener implements RedisPubSubListener<String, St
 
     private void tryFetchNewEntity( Serializable entityId, Class<?> entityClass )
     {
-        try ( Session session = sessionFactory.openSession() )
+        try (Session session = sessionFactory.openSession())
         {
             session.get( entityClass, entityId );
         }
@@ -223,7 +228,7 @@ public class CacheInvalidationListener implements RedisPubSubListener<String, St
         {
             log.warn(
                 String.format( "Fetching new entity failed, failed to execute get query. "
-                    + "entityId=%s, entityClass=%s",
+                        + "entityId=%s, entityClass=%s",
                     entityId, entityClass ),
                 e );
             if ( e instanceof HibernateException )

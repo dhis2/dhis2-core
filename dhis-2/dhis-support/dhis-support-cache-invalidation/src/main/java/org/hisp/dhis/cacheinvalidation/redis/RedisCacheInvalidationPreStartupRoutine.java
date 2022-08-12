@@ -49,16 +49,10 @@ public class RedisCacheInvalidationPreStartupRoutine extends AbstractStartupRout
     private EntityManagerFactory emf;
 
     @Autowired
-    PostUpdateCacheListener postUpdateCacheListener;
+    PostEventCacheListener postEventCacheListener;
 
     @Autowired
-    PostInsertCacheListener postInsertCacheListener;
-
-    @Autowired
-    PostDeleteCacheListener postDeleteCacheListener;
-
-    @Autowired
-    RedisPostCollectionEventListener redisPostCollectionEventListener;
+    PostCollectionEventCacheListener postCollectionEventCacheListener;
 
     @Override
     public void execute()
@@ -67,12 +61,12 @@ public class RedisCacheInvalidationPreStartupRoutine extends AbstractStartupRout
         SessionFactoryImpl sessionFactory = emf.unwrap( SessionFactoryImpl.class );
         EventListenerRegistry registry = sessionFactory.getServiceRegistry().getService( EventListenerRegistry.class );
 
-        registry.appendListeners( EventType.POST_COMMIT_UPDATE, postUpdateCacheListener );
-        registry.appendListeners( EventType.POST_COMMIT_INSERT, postInsertCacheListener );
-        registry.appendListeners( EventType.POST_COMMIT_DELETE, postDeleteCacheListener );
+        registry.appendListeners( EventType.POST_COMMIT_UPDATE, postEventCacheListener );
+        registry.appendListeners( EventType.POST_COMMIT_INSERT, postEventCacheListener );
+        registry.appendListeners( EventType.POST_COMMIT_DELETE, postEventCacheListener );
 
-        registry.appendListeners( EventType.PRE_COLLECTION_UPDATE, redisPostCollectionEventListener );
-        registry.appendListeners( EventType.PRE_COLLECTION_REMOVE, redisPostCollectionEventListener );
-        registry.appendListeners( EventType.POST_COLLECTION_RECREATE, redisPostCollectionEventListener );
+        registry.appendListeners( EventType.PRE_COLLECTION_UPDATE, postCollectionEventCacheListener );
+        registry.appendListeners( EventType.PRE_COLLECTION_REMOVE, postCollectionEventCacheListener );
+        registry.appendListeners( EventType.POST_COLLECTION_RECREATE, postCollectionEventCacheListener );
     }
 }
