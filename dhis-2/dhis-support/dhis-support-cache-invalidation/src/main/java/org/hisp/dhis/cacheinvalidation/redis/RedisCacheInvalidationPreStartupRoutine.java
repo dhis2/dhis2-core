@@ -64,11 +64,7 @@ public class RedisCacheInvalidationPreStartupRoutine extends AbstractStartupRout
     {
         SessionFactoryImpl sessionFactory = emf.unwrap( SessionFactoryImpl.class );
         EventListenerRegistry registry = sessionFactory.getServiceRegistry().getService( EventListenerRegistry.class );
-//
-//        registry.appendListeners( EventType.POST_COMMIT_UPDATE, postUpdateCacheListener );
-//        registry.appendListeners( EventType.POST_COMMIT_INSERT, new PostInsertCacheListener() );
-//        registry.appendListeners( EventType.POST_COMMIT_DELETE, new PostDeleteCacheListener() );
-//
+
         registry.appendListeners( EventType.POST_COMMIT_UPDATE, postUpdateCacheListener );
         registry.appendListeners( EventType.POST_COMMIT_INSERT, postInsertCacheListener );
         registry.appendListeners( EventType.POST_COMMIT_DELETE, postDeleteCacheListener );

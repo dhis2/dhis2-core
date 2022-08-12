@@ -46,7 +46,7 @@ public class RedisCacheInvalidationEnabledCondition extends PropertiesAwareConfi
             return false;
         }
 
-        return getConfiguration().isEnabled( ConfigurationKey.DEBEZIUM_ENABLED );
+        return getConfiguration().isEnabled( ConfigurationKey.REDIS_CACHE_INVALIDATION_ENABLED );
     }
 
     @Override

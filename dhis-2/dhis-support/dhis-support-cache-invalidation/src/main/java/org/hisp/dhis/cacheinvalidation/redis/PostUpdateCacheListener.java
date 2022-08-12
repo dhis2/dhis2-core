@@ -36,8 +36,6 @@ import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.async.RedisAsyncCommands;
-import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
-import io.lettuce.core.pubsub.api.async.RedisPubSubAsyncCommands;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.event.spi.PostCommitUpdateEventListener;
 import org.hibernate.event.spi.PostUpdateEvent;
@@ -71,22 +69,13 @@ public class PostUpdateCacheListener implements PostCommitUpdateEventListener
         Serializable id = postUpdateEvent.getId();
         String message = uid + ":" + "update:" + realClass.getName() + ":" + id;
 
-        boolean open = redisConnection.isOpen();
         if ( !EXCLUDE_LIST.contains( realClass ) )
         {
             String channelName = RedisCacheInvalidationConfiguration.CHANNEL_NAME;
-//            RedisPubSubAsyncCommands<String, String> async = pubSubConnection.async();
-
             RedisAsyncCommands<String, String> async = redisConnection.async();
             async.publish( channelName, message );
-
-            //            pubSubConnection.sync().publish( channelName, message );
             log.info( "onPostUpdate message sent: " + message );
         }
-
-//        StatefulRedisPubSubConnection<String, String> connection = redisClient.connectPubSub();
-//        connection.async().publish( RedisCacheInvalidationConfiguration.CHANNEL_NAME, message );
-
     }
 
     @Override

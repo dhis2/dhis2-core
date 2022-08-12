@@ -123,40 +123,32 @@ public class CacheInvalidationListener implements RedisPubSubListener<String, St
     public void message( String channel, String message )
     {
         log.debug( "Got {} on channel {}", message, channel );
+
         try
         {
-            decodeMessage( message );
+            handleMessage( message );
         }
-        catch ( ClassNotFoundException e )
+        catch ( Exception e )
         {
-            throw new RuntimeException( e );
+            log.error( "Error handling message: " + message, e );
         }
     }
 
-    private void decodeMessage( String message )
-        throws ClassNotFoundException
+    private void handleMessage( String message )
+        throws Exception
     {
         String[] parts = message.split( ":" );
         String uid = parts[0];
-        String typeS = parts[1];
-        Operation type = Operation.forCode( typeS );
-
-        String className = parts[2];
-        Long entityId = Long.parseLong( parts[3] );
-
-        log.debug( "uid: {}", uid );
-        log.debug( "type: {}", type );
-        log.debug( "className: {}", className );
-        log.debug( "entityId: {}", entityId );
-
-        Class<?> entityClass = Class.forName( className );
-        Objects.requireNonNull( entityClass, "Entity class can't be null" );
-
         // If the UID is the same, it means the event is coming from this server.
-        if ( uid.equals( cacheInvalidationUid ) )
+        if ( cacheInvalidationUid.equals( uid ) )
         {
             return;
         }
+
+        Operation type = Operation.forCode( parts[1] );
+        Long entityId = Long.parseLong( parts[3] );
+        Class<?> entityClass = Class.forName( parts[2] );
+        Objects.requireNonNull( entityClass, "Entity class can't be null" );
 
         if ( Operation.CREATE == type )
         {
