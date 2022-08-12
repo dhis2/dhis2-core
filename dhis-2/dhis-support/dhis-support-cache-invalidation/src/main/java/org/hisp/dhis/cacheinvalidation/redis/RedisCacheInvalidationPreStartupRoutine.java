@@ -25,43 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.cacheinvalidation;
+package org.hisp.dhis.cacheinvalidation.redis;
 
-import org.hibernate.HibernateException;
-import org.hibernate.action.spi.BeforeTransactionCompletionProcess;
-import org.hibernate.event.spi.FlushEvent;
-import org.hibernate.event.spi.FlushEventListener;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.PersistenceUnit;
+
+import org.hisp.dhis.system.startup.AbstractStartupRoutine;
+
+import org.hibernate.event.service.spi.EventListenerRegistry;
+import org.hibernate.event.spi.EventType;
+import org.hibernate.internal.SessionFactoryImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Component;
 
 /**
- * HibernateFlushListener that is listening for {@link FlushEvent}s and
- * registering it before the transaction completes
- * {@link BeforeTransactionCompletionProcess} to capture the transaction ID. The
- * captured transaction ID is put in to a hash table to enable lookup of
- * incoming replication events to see if the event/ID matches local transactions
- * or if the transactions/replication event comes from another DHIS2 server
- * instance.
- *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Profile( { "!test", "!test-h2" } )
-@Conditional( value = DebeziumCacheInvalidationEnabledCondition.class )
-@Component
-public class HibernateFlushListener implements FlushEventListener
+@Conditional( value = RedisCacheInvalidationEnabledCondition.class )
+public class RedisCacheInvalidationPreStartupRoutine extends AbstractStartupRoutine
 {
+    @PersistenceUnit
+    private EntityManagerFactory emf;
+
     @Autowired
-    private transient KnownTransactionsService knownTransactionsService;
+    PostUpdateCacheListener postUpdateCacheListener;
 
     @Override
-    public void onFlush( FlushEvent event )
-        throws HibernateException
+    public void execute()
+        throws Exception
     {
-        BeforeTransactionCompletionProcess beforeTransactionCompletionProcess = session -> knownTransactionsService
-            .registerEvent( event );
+        SessionFactoryImpl sessionFactory = emf.unwrap( SessionFactoryImpl.class );
+        EventListenerRegistry registry = sessionFactory.getServiceRegistry().getService( EventListenerRegistry.class );
 
-        event.getSession().getActionQueue().registerProcess( beforeTransactionCompletionProcess );
+        registry.appendListeners( EventType.POST_COMMIT_UPDATE, postUpdateCacheListener );
+//        registry.appendListeners( EventType.POST_COMMIT_INSERT, new PostInsertCacheListener() );
+//        registry.appendListeners( EventType.POST_COMMIT_DELETE, new PostDeleteCacheListener() );
     }
 }

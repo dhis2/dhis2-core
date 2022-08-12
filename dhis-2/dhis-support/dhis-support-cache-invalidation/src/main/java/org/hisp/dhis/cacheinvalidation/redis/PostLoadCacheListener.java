@@ -25,43 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.cacheinvalidation;
+package org.hisp.dhis.cacheinvalidation.redis;
 
-import org.hibernate.HibernateException;
-import org.hibernate.action.spi.BeforeTransactionCompletionProcess;
-import org.hibernate.event.spi.FlushEvent;
-import org.hibernate.event.spi.FlushEventListener;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Conditional;
-import org.springframework.context.annotation.Profile;
+import org.hibernate.event.spi.PostLoadEvent;
+import org.hibernate.event.spi.PostLoadEventListener;
 import org.springframework.stereotype.Component;
 
 /**
- * HibernateFlushListener that is listening for {@link FlushEvent}s and
- * registering it before the transaction completes
- * {@link BeforeTransactionCompletionProcess} to capture the transaction ID. The
- * captured transaction ID is put in to a hash table to enable lookup of
- * incoming replication events to see if the event/ID matches local transactions
- * or if the transactions/replication event comes from another DHIS2 server
- * instance.
- *
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * @author Morten Olav Hansen
  */
-@Profile( { "!test", "!test-h2" } )
-@Conditional( value = DebeziumCacheInvalidationEnabledCondition.class )
 @Component
-public class HibernateFlushListener implements FlushEventListener
+public class PostLoadCacheListener implements PostLoadEventListener
 {
-    @Autowired
-    private transient KnownTransactionsService knownTransactionsService;
 
     @Override
-    public void onFlush( FlushEvent event )
-        throws HibernateException
+    public void onPostLoad( PostLoadEvent postLoadEvent )
     {
-        BeforeTransactionCompletionProcess beforeTransactionCompletionProcess = session -> knownTransactionsService
-            .registerEvent( event );
-
-        event.getSession().getActionQueue().registerProcess( beforeTransactionCompletionProcess );
+        //        getAuditable( postLoadEvent.getEntity(), "read" ).ifPresent( auditable -> auditManager.send( Audit.builder()
+        //            .auditType( getAuditType() )
+        //            .auditScope( auditable.scope() )
+        //            .createdAt( LocalDateTime.now() )
+        //            .createdBy( getCreatedBy() )
+        //            .object( postLoadEvent.getEntity() )
+        //            .auditableEntity( new AuditableEntity( postLoadEvent.getEntity().getClass(), postLoadEvent.getEntity() ) )
+        //            .build() ) );
     }
 }

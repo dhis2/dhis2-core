@@ -25,43 +25,49 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.cacheinvalidation;
+package org.hisp.dhis.cacheinvalidation.redis;
 
-import org.hibernate.HibernateException;
-import org.hibernate.action.spi.BeforeTransactionCompletionProcess;
-import org.hibernate.event.spi.FlushEvent;
-import org.hibernate.event.spi.FlushEventListener;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Conditional;
-import org.springframework.context.annotation.Profile;
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.event.spi.PostCommitInsertEventListener;
+import org.hibernate.event.spi.PostInsertEvent;
+import org.hibernate.persister.entity.EntityPersister;
 import org.springframework.stereotype.Component;
 
 /**
- * HibernateFlushListener that is listening for {@link FlushEvent}s and
- * registering it before the transaction completes
- * {@link BeforeTransactionCompletionProcess} to capture the transaction ID. The
- * captured transaction ID is put in to a hash table to enable lookup of
- * incoming replication events to see if the event/ID matches local transactions
- * or if the transactions/replication event comes from another DHIS2 server
- * instance.
- *
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * @author Luciano Fiandesio
  */
-@Profile( { "!test", "!test-h2" } )
-@Conditional( value = DebeziumCacheInvalidationEnabledCondition.class )
+@Slf4j
 @Component
-public class HibernateFlushListener implements FlushEventListener
+public class PostInsertCacheListener implements PostCommitInsertEventListener
 {
-    @Autowired
-    private transient KnownTransactionsService knownTransactionsService;
+    @Override
+    public void onPostInsert( PostInsertEvent postInsertEvent )
+    {
+        log.info( "onPostInsert" );
+        //        getAuditable( postInsertEvent.getEntity(), "create" ).ifPresent( auditable -> auditManager.send( Audit.builder()
+        //            .auditType( getAuditType() )
+        //            .auditScope( auditable.scope() )
+        //            .createdAt( LocalDateTime.now() )
+        //            .createdBy( getCreatedBy() )
+        //            .object( postInsertEvent.getEntity() )
+        //            .attributes( auditManager.collectAuditAttributes( postInsertEvent.getEntity(),
+        //                postInsertEvent.getEntity().getClass() ) )
+        //            .auditableEntity(
+        //                new AuditableEntity( postInsertEvent.getEntity().getClass(), createAuditEntry( postInsertEvent ) ) )
+        //            .build() ) );
+
+    }
 
     @Override
-    public void onFlush( FlushEvent event )
-        throws HibernateException
+    public boolean requiresPostCommitHanding( EntityPersister entityPersister )
     {
-        BeforeTransactionCompletionProcess beforeTransactionCompletionProcess = session -> knownTransactionsService
-            .registerEvent( event );
-
-        event.getSession().getActionQueue().registerProcess( beforeTransactionCompletionProcess );
+        return true;
     }
+
+    @Override
+    public void onPostInsertCommitFailed( PostInsertEvent event )
+    {
+        log.debug( "onPostInsertCommitFailed: " + event );
+    }
+
 }
