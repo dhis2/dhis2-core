@@ -27,7 +27,15 @@
  */
 package org.hisp.dhis.cacheinvalidation.redis;
 
+import static org.hisp.dhis.cacheinvalidation.redis.RedisCacheInvalidationConfiguration.EXCLUDE_LIST;
+
+import java.io.Serializable;
+
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
+
 import io.lettuce.core.RedisClient;
+import io.lettuce.core.api.StatefulRedisConnection;
+import io.lettuce.core.api.async.RedisAsyncCommands;
 import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
 import io.lettuce.core.pubsub.api.async.RedisPubSubAsyncCommands;
 import lombok.extern.slf4j.Slf4j;
@@ -38,47 +46,47 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-/**
- * @author Luciano Fiandesio
- */
 @Slf4j
 @Component
 public class PostUpdateCacheListener implements PostCommitUpdateEventListener
 {
+    @Autowired
+    @Qualifier( "cacheInvalidationUid" )
+    private String uid;
+
+    @Autowired
+    @Qualifier( "redisConnection" )
+    private StatefulRedisConnection<String, String> redisConnection;
 
     @Autowired
     @Qualifier( "redisClient" )
-    RedisClient redisClient;
-
-    @Autowired
-    @Qualifier( "redisCacheInvalidationConnection" )
-    RedisCacheInvalidationConfiguration.RedisCacheInvalidationConnection RedisCacheInvalidationConnection;
+    private RedisClient redisClient;
 
     @Override
     public void onPostUpdate( PostUpdateEvent postUpdateEvent )
     {
         log.info( "onPostUpdate" );
 
-        StatefulRedisPubSubConnection<String, String> connection = redisClient.connectPubSub();
+        Class realClass = HibernateProxyUtils.getRealClass( postUpdateEvent.getEntity() );
+        Serializable id = postUpdateEvent.getId();
+        String message = uid + ":" + "update:" + realClass.getName() + ":" + id;
 
-//        StatefulRedisPubSubConnection<String, String> pubSubConnection = RedisCacheInvalidationConnection.getPubSubConnection();
+        boolean open = redisConnection.isOpen();
+        if ( !EXCLUDE_LIST.contains( realClass ) )
+        {
+            String channelName = RedisCacheInvalidationConfiguration.CHANNEL_NAME;
+//            RedisPubSubAsyncCommands<String, String> async = pubSubConnection.async();
 
-        RedisPubSubAsyncCommands<String, String> async
-            = connection.async();
+            RedisAsyncCommands<String, String> async = redisConnection.async();
+            async.publish( channelName, message );
 
-        async.publish( "DHIS2_update_channel", "Hello, Redis!" );
+            //            pubSubConnection.sync().publish( channelName, message );
+            log.info( "onPostUpdate message sent: " + message );
+        }
 
-        //        getAuditable( postUpdateEvent.getEntity(), "update" ).ifPresent( auditable -> auditManager.send( Audit.builder()
-        //            .auditType( getAuditType() )
-        //            .auditScope( auditable.scope() )
-        //            .createdAt( LocalDateTime.now() )
-        //            .createdBy( getCreatedBy() )
-        //            .object( postUpdateEvent.getEntity() )
-        //            .attributes( auditManager.collectAuditAttributes( postUpdateEvent.getEntity(),
-        //                postUpdateEvent.getEntity().getClass() ) )
-        //            .auditableEntity(
-        //                new AuditableEntity( postUpdateEvent.getEntity().getClass(), createAuditEntry( postUpdateEvent ) ) )
-        //            .build() ) );
+//        StatefulRedisPubSubConnection<String, String> connection = redisClient.connectPubSub();
+//        connection.async().publish( RedisCacheInvalidationConfiguration.CHANNEL_NAME, message );
+
     }
 
     @Override

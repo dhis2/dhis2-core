@@ -1,11 +1,99 @@
 package org.hisp.dhis.cacheinvalidation.redis;
 
+import java.io.Serializable;
+import java.util.List;
+import java.util.Objects;
+
+import org.hisp.dhis.cache.PaginationCacheManager;
+import org.hisp.dhis.cache.QueryCacheManager;
+import org.hisp.dhis.cacheinvalidation.KnownTransactionsService;
+import org.hisp.dhis.cacheinvalidation.TableNameToEntityMapping;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+
 import io.lettuce.core.pubsub.RedisPubSubListener;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.HibernateException;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
 
 @Slf4j
+@Component
 public class CacheInvalidationListener implements RedisPubSubListener<String, String>
 {
+    @Autowired
+    @Qualifier( "cacheInvalidationUid" )
+    private String cacheInvalidationUid;
+
+    @Autowired
+    private SessionFactory sessionFactory;
+
+    @Autowired
+    private KnownTransactionsService knownTransactionsService;
+
+    @Autowired
+    private PaginationCacheManager paginationCacheManager;
+
+    @Autowired
+    private QueryCacheManager queryCacheManager;
+
+    @Autowired
+    private TableNameToEntityMapping tableNameToEntityMapping;
+
+    @Autowired
+    private IdentifiableObjectManager idObjectManager;
+
+    @Autowired
+    private TrackedEntityAttributeService trackedEntityAttributeService;
+
+    @Autowired
+    private TrackedEntityInstanceService trackedEntityInstanceService;
+
+    @Autowired
+    private PeriodService periodService;
+
+    public enum Operation
+    {
+        READ( "read" ),
+        CREATE( "insert" ),
+        UPDATE( "update" ),
+        DELETE( "delete" );
+
+        private final String code;
+
+        Operation( String code )
+        {
+            this.code = code;
+        }
+
+        public static Operation forCode( String code )
+        {
+            Operation[] var1 = values();
+            int var2 = var1.length;
+
+            for ( int var3 = 0; var3 < var2; ++var3 )
+            {
+                Operation op = var1[var3];
+                if ( op.code().equalsIgnoreCase( code ) )
+                {
+                    return op;
+                }
+            }
+
+            return null;
+        }
+
+        public String code()
+        {
+            return this.code;
+        }
+    }
+
     @Override public void message( String pattern, String channel, String message )
     {
         log.debug( "Got {} on channel {}", message, channel );
@@ -35,5 +123,107 @@ public class CacheInvalidationListener implements RedisPubSubListener<String, St
     public void message( String channel, String message )
     {
         log.debug( "Got {} on channel {}", message, channel );
+        try
+        {
+            decodeMessage( message );
+        }
+        catch ( ClassNotFoundException e )
+        {
+            throw new RuntimeException( e );
+        }
+    }
+
+    private void decodeMessage( String message )
+        throws ClassNotFoundException
+    {
+        String[] parts = message.split( ":" );
+        String uid = parts[0];
+        String typeS = parts[1];
+        Operation type = Operation.forCode( typeS );
+
+        String className = parts[2];
+        Long entityId = Long.parseLong( parts[3] );
+
+        log.debug( "uid: {}", uid );
+        log.debug( "type: {}", type );
+        log.debug( "className: {}", className );
+        log.debug( "entityId: {}", entityId );
+
+        Class<?> entityClass = Class.forName( className );
+        Objects.requireNonNull( entityClass, "Entity class can't be null" );
+
+        // If the UID is the same, it means the event is coming from this server.
+        if ( uid.equals( cacheInvalidationUid ) )
+        {
+            return;
+        }
+
+        if ( Operation.CREATE == type )
+        {
+            // Make sure queries will re-fetch to capture the new object.
+            queryCacheManager.evictQueryCache( sessionFactory.getCache(), entityClass );
+            paginationCacheManager.evictCache( entityClass.getName() );
+            // Try to fetch the new entity, so it might get cached.
+            tryFetchNewEntity( entityId, entityClass );
+        }
+        else if ( Operation.UPDATE == type )
+        {
+            sessionFactory.getCache().evict( entityClass, entityId );
+        }
+        else if ( Operation.DELETE == type )
+        {
+            queryCacheManager.evictQueryCache( sessionFactory.getCache(), entityClass );
+            paginationCacheManager.evictCache( entityClass.getName() );
+            sessionFactory.getCache().evict( entityClass, entityId );
+        }
+
+        //        if ( type != Operation.MESSAGE )
+        //        {
+        //            evictCollections( entityClasses, entityId );
+        //        }
+    }
+
+    private void tryFetchNewEntity( Serializable entityId, Class<?> entityClass )
+    {
+        try (Session session = sessionFactory.openSession())
+        {
+            session.get( entityClass, entityId );
+        }
+        catch ( Exception e )
+        {
+            log.warn(
+                String.format( "Fetching new entity failed, failed to execute get query. "
+                        + "entityId=%s, entityClass=%s",
+                    entityId, entityClass ),
+                e );
+            if ( e instanceof HibernateException )
+            {
+                log.info( "tryFetchNewEntity. HibernateException: {}", e.getMessage() );
+                return;
+            }
+
+            throw e;
+        }
+    }
+
+    private void evictCollections( List<Object[]> entityAndRoles, Serializable id )
+    {
+        Object[] firstEntityAndRole = entityAndRoles.get( 0 );
+        Objects.requireNonNull( firstEntityAndRole, "firstEntityAndRole can't be null!" );
+
+        // It's only a collection if we also have a role mapped
+        if ( firstEntityAndRole.length == 2 )
+        {
+            for ( Object[] entityAndRole : entityAndRoles )
+            {
+                Class<?> eKlass = (Class<?>) entityAndRole[0];
+                sessionFactory.getCache().evict( eKlass, id );
+                queryCacheManager.evictQueryCache( sessionFactory.getCache(), eKlass );
+                paginationCacheManager.evictCache( eKlass.getName() );
+
+                String role = (String) entityAndRole[1];
+                sessionFactory.getCache().evictCollectionData( role, id );
+            }
+        }
     }
 }

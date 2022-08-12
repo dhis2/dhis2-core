@@ -27,10 +27,19 @@
  */
 package org.hisp.dhis.cacheinvalidation.redis;
 
+import static org.hisp.dhis.cacheinvalidation.redis.RedisCacheInvalidationConfiguration.EXCLUDE_LIST;
+
+import java.io.Serializable;
+
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
+
+import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.event.spi.PostCommitInsertEventListener;
 import org.hibernate.event.spi.PostInsertEvent;
 import org.hibernate.persister.entity.EntityPersister;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 /**
@@ -40,22 +49,27 @@ import org.springframework.stereotype.Component;
 @Component
 public class PostInsertCacheListener implements PostCommitInsertEventListener
 {
+    @Autowired
+    @Qualifier( "cacheInvalidationUid" )
+    private String uid;
+
+    @Autowired
+    @Qualifier( "pubSubConnection" )
+    private StatefulRedisPubSubConnection<String, String> pubSubConnection;
+
     @Override
     public void onPostInsert( PostInsertEvent postInsertEvent )
     {
         log.info( "onPostInsert" );
-        //        getAuditable( postInsertEvent.getEntity(), "create" ).ifPresent( auditable -> auditManager.send( Audit.builder()
-        //            .auditType( getAuditType() )
-        //            .auditScope( auditable.scope() )
-        //            .createdAt( LocalDateTime.now() )
-        //            .createdBy( getCreatedBy() )
-        //            .object( postInsertEvent.getEntity() )
-        //            .attributes( auditManager.collectAuditAttributes( postInsertEvent.getEntity(),
-        //                postInsertEvent.getEntity().getClass() ) )
-        //            .auditableEntity(
-        //                new AuditableEntity( postInsertEvent.getEntity().getClass(), createAuditEntry( postInsertEvent ) ) )
-        //            .build() ) );
 
+        Class realClass = HibernateProxyUtils.getRealClass( postInsertEvent.getEntity() );
+        Serializable id = postInsertEvent.getId();
+        String message = uid + ":" + "insert:" + realClass.getName() + ":" + id;
+
+        if ( !EXCLUDE_LIST.contains( realClass ) )
+        {
+            pubSubConnection.async().publish( RedisCacheInvalidationConfiguration.CHANNEL_NAME, message );
+        }
     }
 
     @Override
