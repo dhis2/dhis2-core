@@ -29,7 +29,6 @@ package org.hisp.dhis.analytics.shared;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.DIMENSIONS;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_ANCESTORS;
@@ -38,8 +37,6 @@ import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARC
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.PAGER;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentGraphMap;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraphMap;
-import static org.springframework.util.Assert.noNullElements;
-import static org.springframework.util.Assert.notEmpty;
 import static org.springframework.util.Assert.notNull;
 
 import java.util.Collection;
@@ -56,7 +53,6 @@ import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.MetadataItem;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PrimaryKeyObject;
@@ -84,48 +80,25 @@ public class GridAdaptor
      * /** Based on the given headers and result map, this method takes care of
      * the logic needed to create a valid Grid object.
      *
-     * @param headers
-     * @param resultMap
+     * @param sqlQueryResult
+     * @param commonParams
+     * @param commonQueryRequest
      * @return the Grid object
      *
      * @throws IllegalArgumentException if headers is null/empty or contain at
      *         least one null element, or if the queryResult is null
      */
-    public Grid createGrid( final List<GridHeader> headers,
-        final Map<Column, List<Object>> resultMap, final CommonParams commonParams,
+    public Grid createGrid( final SqlQueryResult sqlQueryResult, final CommonParams commonParams,
         final CommonQueryRequest commonQueryRequest )
     {
-        notEmpty( headers, "The 'headers' must not be null/empty" );
-        noNullElements( headers, "The 'headers' must not contain null elements" );
-        notEmpty( resultMap, "The 'resultMap' must not be null/empty" );
-        notNull( resultMap, "The 'queryResult' must not be null" );
+        notNull( sqlQueryResult, "The 'sqlQueryResult' must not be null" );
+        notNull( sqlQueryResult.result(), "The 'sqlQueryResult.result' must not be null" );
         notNull( commonParams, "The 'commonParams' must not be null" );
         notNull( commonQueryRequest, "The 'commonQueryRequest' must not be null" );
 
         final Grid grid = new ListGrid();
-        boolean rowsAdded = false;
-
-        for ( final GridHeader header : headers )
-        {
-            final List<Object> columnRows = resultMap.entrySet().stream()
-                .filter( k -> k.getKey().getAlias().equals( header.getColumn() ) )
-                .map( Map.Entry::getValue )
-                .collect( toList() );
-
-            if ( !rowsAdded && isNotEmpty( columnRows ) )
-            {
-                columnRows.forEach( c -> grid.addRow() );
-                rowsAdded = true;
-            }
-
-            if ( !commonQueryRequest.isSkipHeaders() )
-            {
-                // Note that the header column must match the result map key.
-                grid.addHeader( header );
-            }
-
-            grid.addColumn( columnRows );
-        }
+        grid.addHeaders( sqlQueryResult.result() );
+        grid.addRows( sqlQueryResult.result() );
 
         if ( !commonQueryRequest.isSkipMeta() )
         {
@@ -136,12 +109,12 @@ public class GridAdaptor
     }
 
     /**
-     * returns metadata based on teiQueryParams and rendered by
-     * commonQueryRequest
+     * Returns the metadata map based on the commonParams and
+     * commonQueryRequest.
      *
      * @param commonParams
      * @param commonQueryRequest
-     * @return
+     * @return the metadata map
      */
     private Map<String, Object> getMetadata( final CommonParams commonParams,
         final CommonQueryRequest commonQueryRequest )
@@ -189,10 +162,10 @@ public class GridAdaptor
 
             if ( commonQueryRequest.isHierarchyMeta() || commonQueryRequest.isShowHierarchy() )
             {
-                List<OrganisationUnit> roots = currentUserService.getCurrentUser()
+                final List<OrganisationUnit> roots = currentUserService.getCurrentUser()
                     .getOrganisationUnits().stream().sorted().collect( toList() );
 
-                List<OrganisationUnit> organisationUnits = commonParams.getDimensionIdentifiers()
+                final List<OrganisationUnit> organisationUnits = commonParams.getDimensionIdentifiers()
                     .stream()
                     .flatMap( Collection::stream )
                     .map( DimensionIdentifier::getDimension )

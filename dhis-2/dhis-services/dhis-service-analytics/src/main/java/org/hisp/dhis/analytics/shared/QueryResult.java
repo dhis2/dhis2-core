@@ -33,21 +33,19 @@ package org.hisp.dhis.analytics.shared;
  *
  * @author maikel arabori
  */
-public interface QueryResult<T, C>
+public interface QueryResult<R, M>
 {
     /**
      * Holds the result object of a query.
      *
      * @return the result object
      */
-    T result();
-
-    C columns();
+    R result();
 
     /**
-     * Checks if the query result is empty.
+     * Returns the metaData info related to the result, if any.
      *
-     * @return true if the result is empty, false otherwise
+     * @return
      */
-    boolean isEmpty();
+    M metadata();
 }

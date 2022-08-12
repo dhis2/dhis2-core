@@ -27,15 +27,11 @@
  */
 package org.hisp.dhis.analytics.shared;
 
-import static java.util.Collections.emptySet;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import lombok.AllArgsConstructor;
+import lombok.NonNull;
 
-import org.apache.commons.collections4.MapUtils;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.jdbc.support.rowset.SqlRowSetMetaData;
 
 /**
  * @see org.hisp.dhis.analytics.shared.QueryResult
@@ -43,48 +39,34 @@ import org.apache.commons.collections4.MapUtils;
  * @author maikel arabori
  */
 @AllArgsConstructor
-public class SqlQueryResult implements QueryResult<Map<Column, List<Object>>, Set<Column>>
+public class SqlQueryResult implements QueryResult<SqlRowSet, SqlRowSetMetaData>
 {
 
     /**
-     * Represents the query result. It maps each column to the respective list
-     * of rows.
+     * Represents the query result.
      */
-    private final Map<Column, List<Object>> resultMap;
+    @NonNull
+    private final SqlRowSet result;
 
     /**
      * @see QueryResult#result()
      *
-     * @return a map that contains all rows for each column
+     * @return sql result set
      */
     @Override
-    public Map<Column, List<Object>> result()
+    public SqlRowSet result()
     {
-        return resultMap;
+        return result;
     }
 
     /**
-     * @see QueryResult#columns()
+     * @see QueryResult#metadata()
      *
-     * @return a map that contains all rows for each column
+     * @return the sql result metadata
      */
     @Override
-    public Set<Column> columns()
+    public SqlRowSetMetaData metadata()
     {
-        if ( !isEmpty() )
-        {
-            return resultMap.keySet();
-        }
-
-        return emptySet();
-    }
-
-    /**
-     * @see QueryResult#isEmpty()
-     */
-    @Override
-    public boolean isEmpty()
-    {
-        return MapUtils.isEmpty( resultMap );
+        return result.getMetaData();
     }
 }

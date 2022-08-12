@@ -27,10 +27,7 @@
  */
 package org.hisp.dhis.analytics.tei;
 
-import static org.hisp.dhis.analytics.shared.GridHeaders.from;
 import static org.springframework.util.Assert.notNull;
-
-import java.util.List;
 
 import lombok.AllArgsConstructor;
 
@@ -41,7 +38,6 @@ import org.hisp.dhis.analytics.shared.SqlQuery;
 import org.hisp.dhis.analytics.shared.SqlQueryResult;
 import org.hisp.dhis.analytics.tei.query.QueryContext;
 import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.GridHeader;
 import org.springframework.stereotype.Service;
 
 /**
@@ -74,12 +70,10 @@ public class TeiAnalyticsQueryService
         // output should look like: https://pastebin.com/4aK9ZxEQ
 
         notNull( teiQueryParams, "The 'teiParams' must not be null" );
+        notNull( commonQueryRequest, "The 'commonQueryRequest' must not be null" );
 
         final SqlQueryResult result = queryExecutor.execute( queryContext.getSqlQuery() );
 
-        final List<GridHeader> headers = from( result.columns() );
-
-        return gridAdaptor.createGrid( headers, result.result(),
-            teiQueryParams.getCommonParams(), commonQueryRequest );
+        return gridAdaptor.createGrid( result, teiQueryParams.getCommonParams(), commonQueryRequest );
     }
 }
