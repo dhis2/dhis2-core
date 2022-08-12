@@ -498,6 +498,15 @@ public abstract class AbstractAnalyticsService
 
             if ( item.hasOptionSet() )
             {
+                // if itemOptions.get( item.getItem().getUid() ) returns null,
+                // getDimensionItemUidList
+                // returns Lists.newArrayList() which is
+                // equal to no option set and no legend set.
+                // This should be ok, query item can't have both legends and
+                // options
+                // E7215( "Query item cannot specify both legend set and option
+                // set:
+                // `{0}`" )
                 dimensionItems.put( itemUid,
                     getDimensionItemUidList( params, item, itemOptions.get( item.getItem().getUid() ) ) );
             }
@@ -544,12 +553,14 @@ public abstract class AbstractAnalyticsService
         {
             return item.getOptionSetFilterItemsOrAll();
         }
-        else
+        else if ( itemOptions != null )
         {
             return itemOptions.stream()
                 .map( BaseIdentifiableObject::getUid )
                 .collect( toList() );
         }
+
+        return Lists.newArrayList();
     }
 
     /**

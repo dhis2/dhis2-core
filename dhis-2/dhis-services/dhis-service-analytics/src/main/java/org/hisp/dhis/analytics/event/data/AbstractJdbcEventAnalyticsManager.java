@@ -34,6 +34,7 @@ import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_DENOMINATOR_PROPERTIES_COUNT;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.analytics.QueryKey.NV;
@@ -91,6 +92,7 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.InQueryFilter;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.common.Reference;
 import org.hisp.dhis.common.RepeatableStageParams;
@@ -1119,7 +1121,17 @@ public abstract class AbstractJdbcEventAnalyticsManager
         }
         else
         {
-            return field + " " + filter.getSqlOperator() + " " + getSqlFilter( filter, item ) + " ";
+            final QueryOperator operator = filter.getOperator();
+            switch ( operator )
+            {
+            case NEQ:
+            case NE:
+            case NIEQ:
+                return "(" + field + " is null or " + field + SPACE + filter.getSqlOperator() + SPACE
+                    + getSqlFilter( filter, item ) + ") ";
+            default:
+                return field + SPACE + filter.getSqlOperator() + SPACE + getSqlFilter( filter, item ) + SPACE;
+            }
         }
     }
 
