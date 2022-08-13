@@ -30,11 +30,18 @@ package org.hisp.dhis.cacheinvalidation.redis;
 import static org.hisp.dhis.common.CodeGenerator.generateUid;
 
 import java.util.List;
+
 import javax.annotation.PostConstruct;
 
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.ConfigurationPropertyFactoryBean;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
+import org.springframework.security.core.session.SessionRegistryImpl;
 
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisURI;
@@ -42,12 +49,6 @@ import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
 import io.lettuce.core.resource.ClientResources;
 import io.lettuce.core.resource.DefaultClientResources;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Conditional;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
-import org.springframework.security.core.session.SessionRegistryImpl;
 
 /**
  * It configures the Redis client and the connection to the Redis server

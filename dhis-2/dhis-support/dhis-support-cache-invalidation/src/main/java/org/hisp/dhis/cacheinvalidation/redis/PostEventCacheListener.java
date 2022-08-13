@@ -31,10 +31,8 @@ import static org.hisp.dhis.cacheinvalidation.redis.RedisCacheInvalidationConfig
 
 import java.io.Serializable;
 
-import org.hisp.dhis.hibernate.HibernateProxyUtils;
-
-import io.lettuce.core.api.StatefulRedisConnection;
 import lombok.extern.slf4j.Slf4j;
+
 import org.hibernate.event.spi.PostCommitDeleteEventListener;
 import org.hibernate.event.spi.PostCommitInsertEventListener;
 import org.hibernate.event.spi.PostCommitUpdateEventListener;
@@ -42,12 +40,16 @@ import org.hibernate.event.spi.PostDeleteEvent;
 import org.hibernate.event.spi.PostInsertEvent;
 import org.hibernate.event.spi.PostUpdateEvent;
 import org.hibernate.persister.entity.EntityPersister;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import io.lettuce.core.api.StatefulRedisConnection;
+
 /**
- * It listens for events from Hibernate and publishes a message to Redis when an event occurs
+ * It listens for events from Hibernate and publishes a message to Redis when an
+ * event occurs
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
@@ -70,7 +72,8 @@ public class PostEventCacheListener implements PostCommitUpdateEventListener, Po
         return true;
     }
 
-    @Override public boolean requiresPostCommitHandling( EntityPersister persister )
+    @Override
+    public boolean requiresPostCommitHandling( EntityPersister persister )
     {
         return PostCommitUpdateEventListener.super.requiresPostCommitHandling( persister );
     }
@@ -81,12 +84,14 @@ public class PostEventCacheListener implements PostCommitUpdateEventListener, Po
         log.debug( "onPostUpdateCommitFailed: " + event );
     }
 
-    @Override public void onPostInsertCommitFailed( PostInsertEvent event )
+    @Override
+    public void onPostInsertCommitFailed( PostInsertEvent event )
     {
         log.debug( "onPostInsertCommitFailed: " + event );
     }
 
-    @Override public void onPostDeleteCommitFailed( PostDeleteEvent event )
+    @Override
+    public void onPostDeleteCommitFailed( PostDeleteEvent event )
     {
         log.debug( "onPostDeleteCommitFailed: " + event );
     }
