@@ -32,8 +32,6 @@ import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.cacheinvalidation.BaseCacheEvictionService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
@@ -54,16 +52,11 @@ public class CacheInvalidationListener extends BaseCacheEvictionService implemen
 {
     public enum Operation
     {
-        READ,
-        CREATE,
+        INSERT,
         UPDATE,
         DELETE,
-        COLLECTION;
+        COLLECTION
     }
-
-    @Autowired
-    @Qualifier( "cacheInvalidationServerId" )
-    private String serverInstanceId;
 
     @Override
     public void message( String channel, String message )
@@ -114,7 +107,7 @@ public class CacheInvalidationListener extends BaseCacheEvictionService implemen
         Class<?> entityClass = Class.forName( parts[2] );
         Objects.requireNonNull( entityClass, "Entity class can't be null" );
 
-        if ( Operation.CREATE == operationType )
+        if ( Operation.INSERT == operationType )
         {
             // Make sure queries will re-fetch to capture the new object.
             queryCacheManager.evictQueryCache( sessionFactory.getCache(), entityClass );
