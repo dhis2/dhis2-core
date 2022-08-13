@@ -25,49 +25,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.cacheinvalidation;
+package org.hisp.dhis.cacheinvalidation.debezium;
 
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.PersistenceUnit;
-
-import org.hibernate.event.service.spi.EventListenerRegistry;
-import org.hibernate.event.spi.EventType;
-import org.hibernate.internal.SessionFactoryImpl;
-import org.hisp.dhis.system.startup.AbstractStartupRoutine;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Conditional;
-import org.springframework.context.annotation.Profile;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
+import org.springframework.security.core.session.SessionRegistryImpl;
 
 /**
- * Startup routine responsible for pre-populating the table name to entity
- * lookup table {@link TableNameToEntityMapping} This class is executed before
- * the {@link StartupDebeziumServiceRoutine} which starts the Debezium engine
- * itself.
- *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Profile( { "!test", "!test-h2" } )
+@Order( 101 )
+@ComponentScan( basePackages = { "org.hisp.dhis" } )
 @Conditional( value = DebeziumCacheInvalidationEnabledCondition.class )
-public class DebeziumPreStartupRoutine extends AbstractStartupRoutine
+@Configuration
+public class DebeziumSpringConfiguration
 {
-    @PersistenceUnit
-    private EntityManagerFactory emf;
-
-    @Autowired
-    private HibernateFlushListener hibernateFlushListener;
-
-    @Autowired
-    private TableNameToEntityMapping tableNameToEntityMapping;
-
-    @Override
-
-    public void execute()
-        throws Exception
+    @Bean
+    public static SessionRegistryImpl sessionRegistry()
     {
-        tableNameToEntityMapping.init();
+        return new SessionRegistryImpl();
+    }
 
-        SessionFactoryImpl sessionFactory = emf.unwrap( SessionFactoryImpl.class );
-        EventListenerRegistry registry = sessionFactory.getServiceRegistry().getService( EventListenerRegistry.class );
-        registry.getEventListenerGroup( EventType.FLUSH ).appendListener( hibernateFlushListener );
+    @Bean
+    public DebeziumPreStartupRoutine debeziumPreStartupRoutine()
+    {
+        DebeziumPreStartupRoutine routine = new DebeziumPreStartupRoutine();
+        routine.setName( "debeziumPreStartupRoutine" );
+        routine.setRunlevel( 1 );
+        routine.setSkipInTests( true );
+        return routine;
+    }
+
+    @Bean
+    public StartupDebeziumServiceRoutine startupDebeziumServiceRoutine()
+    {
+        StartupDebeziumServiceRoutine routine = new StartupDebeziumServiceRoutine();
+        routine.setName( "StartupDebeziumServiceRoutine" );
+        routine.setRunlevel( 20 );
+        routine.setSkipInTests( true );
+        return routine;
     }
 }

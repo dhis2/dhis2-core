@@ -43,6 +43,8 @@ import org.hibernate.persister.entity.EntityPersister;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import io.lettuce.core.api.StatefulRedisConnection;
@@ -55,16 +57,68 @@ import io.lettuce.core.api.StatefulRedisConnection;
  */
 @Slf4j
 @Component
+@Profile( { "!test", "!test-h2" } )
+@Conditional( value = RedisCacheInvalidationEnabledCondition.class )
 public class PostEventCacheListener implements PostCommitUpdateEventListener, PostCommitInsertEventListener,
     PostCommitDeleteEventListener
 {
     @Autowired
-    @Qualifier( "cacheInvalidationUid" )
-    private String uid;
+    @Qualifier( "cacheInvalidationServerId" )
+    private String serverInstanceId;
 
     @Autowired
     @Qualifier( "redisConnection" )
     private StatefulRedisConnection<String, String> redisConnection;
+
+    @Override
+    public void onPostUpdate( PostUpdateEvent postUpdateEvent )
+    {
+        log.info( "onPostUpdate" );
+
+        Class realClass = HibernateProxyUtils.getRealClass( postUpdateEvent.getEntity() );
+        Serializable id = postUpdateEvent.getId();
+        String message = serverInstanceId + ":" + "update:" + realClass.getName() + ":" + id;
+
+        sendMessage( realClass, message );
+    }
+
+    @Override
+    public void onPostInsert( PostInsertEvent postInsertEvent )
+    {
+        log.info( "onPostInsert" );
+
+        Class realClass = HibernateProxyUtils.getRealClass( postInsertEvent.getEntity() );
+        Serializable id = postInsertEvent.getId();
+        String message = serverInstanceId + ":" + "insert:" + realClass.getName() + ":" + id;
+
+        sendMessage( realClass, message );
+    }
+
+    @Override
+    public void onPostDelete( PostDeleteEvent postDeleteEvent )
+    {
+        log.info( "onPostDelete" );
+
+        Class realClass = HibernateProxyUtils.getRealClass( postDeleteEvent.getEntity() );
+        Serializable id = postDeleteEvent.getId();
+        String message = serverInstanceId + ":" + "delete:" + realClass.getName() + ":" + id;
+
+        sendMessage( realClass, message );
+    }
+
+    private void sendMessage( Class realClass, String message )
+    {
+        if ( !EXCLUDE_LIST.contains( realClass ) )
+        {
+            redisConnection.async().publish( RedisCacheInvalidationConfiguration.CHANNEL_NAME, message );
+
+            log.debug( "Published message: " + message );
+        }
+        else
+        {
+            log.debug( "Ignoring excluded class: " + realClass.getName() );
+        }
+    }
 
     @Override
     public boolean requiresPostCommitHanding( EntityPersister entityPersister )
@@ -94,50 +148,5 @@ public class PostEventCacheListener implements PostCommitUpdateEventListener, Po
     public void onPostDeleteCommitFailed( PostDeleteEvent event )
     {
         log.debug( "onPostDeleteCommitFailed: " + event );
-    }
-
-    @Override
-    public void onPostUpdate( PostUpdateEvent postUpdateEvent )
-    {
-        log.info( "onPostUpdate" );
-
-        Class realClass = HibernateProxyUtils.getRealClass( postUpdateEvent.getEntity() );
-        Serializable id = postUpdateEvent.getId();
-        String message = uid + ":" + "update:" + realClass.getName() + ":" + id;
-
-        if ( !EXCLUDE_LIST.contains( realClass ) )
-        {
-            redisConnection.async().publish( RedisCacheInvalidationConfiguration.CHANNEL_NAME, message );
-        }
-    }
-
-    @Override
-    public void onPostInsert( PostInsertEvent postInsertEvent )
-    {
-        log.info( "onPostInsert" );
-
-        Class realClass = HibernateProxyUtils.getRealClass( postInsertEvent.getEntity() );
-        Serializable id = postInsertEvent.getId();
-        String message = uid + ":" + "insert:" + realClass.getName() + ":" + id;
-
-        if ( !EXCLUDE_LIST.contains( realClass ) )
-        {
-            redisConnection.async().publish( RedisCacheInvalidationConfiguration.CHANNEL_NAME, message );
-        }
-    }
-
-    @Override
-    public void onPostDelete( PostDeleteEvent postDeleteEvent )
-    {
-        log.info( "onPostDelete" );
-
-        Class realClass = HibernateProxyUtils.getRealClass( postDeleteEvent.getEntity() );
-        Serializable id = postDeleteEvent.getId();
-        String message = uid + ":" + "delete:" + realClass.getName() + ":" + id;
-
-        if ( !EXCLUDE_LIST.contains( realClass ) )
-        {
-            redisConnection.async().publish( RedisCacheInvalidationConfiguration.CHANNEL_NAME, message );
-        }
     }
 }

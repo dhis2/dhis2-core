@@ -47,6 +47,8 @@ import org.hibernate.event.spi.PreCollectionUpdateEvent;
 import org.hibernate.event.spi.PreCollectionUpdateEventListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import io.lettuce.core.api.StatefulRedisConnection;
@@ -59,12 +61,14 @@ import io.lettuce.core.api.StatefulRedisConnection;
  */
 @Slf4j
 @Component
+@Profile( { "!test", "!test-h2" } )
+@Conditional( value = RedisCacheInvalidationEnabledCondition.class )
 public class PostCollectionEventCacheListener implements PostCollectionRecreateEventListener,
     PreCollectionRemoveEventListener, PreCollectionUpdateEventListener
 {
     @Autowired
-    @Qualifier( "cacheInvalidationUid" )
-    private String uid;
+    @Qualifier( "cacheInvalidationServerId" )
+    private String serverInstanceId;
 
     @Autowired
     @Qualifier( "redisConnection" )
@@ -73,7 +77,7 @@ public class PostCollectionEventCacheListener implements PostCollectionRecreateE
     @Override
     public void onPreUpdateCollection( PreCollectionUpdateEvent event )
     {
-        log.info( "onPostUpdateCollection" );
+        log.debug( "onPostUpdateCollection" );
         CollectionEntry collectionEntry = getCollectionEntry( event );
         onCollectionAction( event, event.getCollection(), collectionEntry.getSnapshot() );
     }
@@ -81,7 +85,7 @@ public class PostCollectionEventCacheListener implements PostCollectionRecreateE
     @Override
     public void onPreRemoveCollection( PreCollectionRemoveEvent event )
     {
-        log.info( "onPostRemoveCollection" );
+        log.debug( "onPostRemoveCollection" );
         CollectionEntry collectionEntry = getCollectionEntry( event );
         onCollectionAction( event, null, collectionEntry.getSnapshot() );
     }
@@ -89,66 +93,76 @@ public class PostCollectionEventCacheListener implements PostCollectionRecreateE
     @Override
     public void onPostRecreateCollection( PostCollectionRecreateEvent event )
     {
-        log.info( "onPostRecreateCollection" );
+        log.debug( "onPostRecreateCollection" );
         onCollectionAction( event, event.getCollection(), null );
-    }
-
-    protected CollectionEntry getCollectionEntry( AbstractCollectionEvent event )
-    {
-        return event.getSession().getPersistenceContext().getCollectionEntry( event.getCollection() );
     }
 
     protected void onCollectionAction( AbstractCollectionEvent event, PersistentCollection newColl,
         Serializable oldColl )
     {
-        boolean b1 = newColl instanceof Collection;
-        boolean b2 = oldColl instanceof Collection;
-        boolean b3 = oldColl instanceof List;
-        boolean b4 = oldColl instanceof Map;
-        boolean b5 = oldColl instanceof Set;
+        Integer numberOfAddedElements = null;
+        Integer numberOfRemovedElements = null;
 
-        Integer nradded = null;
-        Integer nrremoved = null;
-
-        Collection<?> added = (b1 ? (Collection<?>) newColl : null);
-        if ( added != null )
+        if ( newColl instanceof Collection )
         {
-            nradded = added.size();
+            Collection<?> newCollection = (Collection<?>) newColl;
+            numberOfAddedElements = newCollection.size();
         }
 
-        if ( b2 )
-        {
-            Collection old = (Collection) oldColl;
-            nrremoved = old.size();
-        }
+        numberOfRemovedElements = getNumberOfRemovedElements( oldColl, numberOfRemovedElements );
 
-        if ( b3 )
-        {
-            List old = (List) oldColl;
-            nrremoved = old.size();
-        }
-
-        if ( b4 )
-        {
-            Map old = (Map) oldColl;
-            nrremoved = old.size();
-        }
-
-        if ( b5 )
-        {
-            Set old = (Set) oldColl;
-            nrremoved = old.size();
-        }
-
-        if ( (nradded != null && nrremoved != null) && !Objects.equals( nradded, nrremoved ) )
+        if ( (numberOfAddedElements != null && numberOfRemovedElements != null)
+            && !Objects.equals( numberOfAddedElements, numberOfRemovedElements ) )
         {
             String affectedOwnerEntityName = event.getAffectedOwnerEntityName();
             String role = event.getCollection().getRole();
-
             Serializable affectedOwnerIdOrNull = event.getAffectedOwnerIdOrNull();
-            String message = uid + ":" + "collection:" + affectedOwnerEntityName + ":" + role + ":"
+
+            String message = serverInstanceId + ":" + "collection:" + affectedOwnerEntityName + ":" + role + ":"
                 + affectedOwnerIdOrNull;
+
             redisConnection.sync().publish( RedisCacheInvalidationConfiguration.CHANNEL_NAME, message );
+
+            log.debug( "Published message: " + message );
         }
+    }
+
+    private static Integer getNumberOfRemovedElements( Serializable oldCollection, Integer removed )
+    {
+        boolean isCollection = oldCollection instanceof Collection;
+        boolean isList = oldCollection instanceof List;
+        boolean isMap = oldCollection instanceof Map;
+        boolean isSet = oldCollection instanceof Set;
+
+        if ( isCollection )
+        {
+            Collection old = (Collection) oldCollection;
+            removed = old.size();
+        }
+
+        if ( isList )
+        {
+            List old = (List) oldCollection;
+            removed = old.size();
+        }
+
+        if ( isMap )
+        {
+            Map old = (Map) oldCollection;
+            removed = old.size();
+        }
+
+        if ( isSet )
+        {
+            Set old = (Set) oldCollection;
+            removed = old.size();
+        }
+
+        return removed;
+    }
+
+    protected CollectionEntry getCollectionEntry( AbstractCollectionEvent event )
+    {
+        return event.getSession().getPersistenceContext().getCollectionEntry( event.getCollection() );
     }
 }

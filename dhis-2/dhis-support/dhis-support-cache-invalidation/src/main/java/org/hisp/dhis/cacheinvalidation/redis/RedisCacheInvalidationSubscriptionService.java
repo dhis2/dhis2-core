@@ -42,9 +42,9 @@ import io.lettuce.core.pubsub.api.async.RedisPubSubAsyncCommands;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Slf4j
+@Service
 @Profile( { "!test", "!test-h2" } )
 @Conditional( value = RedisCacheInvalidationEnabledCondition.class )
-@Service
 public class RedisCacheInvalidationSubscriptionService
 {
     @Autowired
@@ -62,5 +62,7 @@ public class RedisCacheInvalidationSubscriptionService
 
         RedisPubSubAsyncCommands<String, String> async = pubSubConnection.async();
         async.subscribe( RedisCacheInvalidationConfiguration.CHANNEL_NAME );
+
+        log.debug( "Subscribed to channel: " + RedisCacheInvalidationConfiguration.CHANNEL_NAME );
     }
 }

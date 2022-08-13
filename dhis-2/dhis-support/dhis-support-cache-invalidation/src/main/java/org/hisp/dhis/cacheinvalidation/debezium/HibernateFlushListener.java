@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.cacheinvalidation;
+package org.hisp.dhis.cacheinvalidation.debezium;
 
 import org.hibernate.HibernateException;
 import org.hibernate.action.spi.BeforeTransactionCompletionProcess;

@@ -31,8 +31,6 @@ import static org.hisp.dhis.common.CodeGenerator.generateUid;
 
 import java.util.List;
 
-import javax.annotation.PostConstruct;
-
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.ConfigurationPropertyFactoryBean;
 import org.hisp.dhis.scheduling.JobConfiguration;
@@ -40,6 +38,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.core.session.SessionRegistryImpl;
 
@@ -55,23 +54,16 @@ import io.lettuce.core.resource.DefaultClientResources;
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Order( 102 )
-@ComponentScan( basePackages = { "org.hisp.dhis" } )
-@Conditional( value = RedisCacheInvalidationEnabledCondition.class )
+@Order( 10002 )
 @Configuration
+@ComponentScan( basePackages = { "org.hisp.dhis" } )
+@Profile( { "!test", "!test-h2" } )
+@Conditional( value = RedisCacheInvalidationEnabledCondition.class )
 public class RedisCacheInvalidationConfiguration
 {
     public static final List<Class> EXCLUDE_LIST = List.of( JobConfiguration.class );
 
     public static final String CHANNEL_NAME = "dhis2_cache_invalidation";
-
-    private String uid;
-
-    @PostConstruct
-    public void init()
-    {
-        uid = generateUid();
-    }
 
     @Bean
     public static SessionRegistryImpl sessionRegistry()
@@ -79,10 +71,10 @@ public class RedisCacheInvalidationConfiguration
         return new SessionRegistryImpl();
     }
 
-    @Bean( name = "cacheInvalidationUid" )
-    public String getCacheInvalidationUid()
+    @Bean( name = "cacheInvalidationServerId" )
+    public String getCacheInvalidationServerId()
     {
-        return uid;
+        return generateUid();
     }
 
     @Bean

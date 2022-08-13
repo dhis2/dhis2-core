@@ -25,9 +25,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.cacheinvalidation;
+package org.hisp.dhis.cacheinvalidation.debezium;
 
-import static org.hisp.dhis.cacheinvalidation.TableNameToEntityMapping.printEntityTableValue;
+import static org.hisp.dhis.cacheinvalidation.debezium.TableNameToEntityMapping.printEntityTableValue;
 
 import java.io.Serializable;
 import java.util.List;
@@ -39,24 +39,15 @@ import org.apache.kafka.connect.data.Field;
 import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.data.Struct;
 import org.apache.kafka.connect.source.SourceRecord;
-import org.hibernate.HibernateException;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hisp.dhis.cache.PaginationCacheManager;
-import org.hisp.dhis.cache.QueryCacheManager;
+import org.hisp.dhis.cacheinvalidation.BaseCacheEvictionService;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
@@ -80,35 +71,8 @@ import io.debezium.engine.RecordChangeEvent;
 @Profile( { "!test", "!test-h2" } )
 @Conditional( value = DebeziumCacheInvalidationEnabledCondition.class )
 @Component
-public class DbChangeEventHandler
+public class DbChangeEventHandler extends BaseCacheEvictionService
 {
-    @Autowired
-    private SessionFactory sessionFactory;
-
-    @Autowired
-    private KnownTransactionsService knownTransactionsService;
-
-    @Autowired
-    private PaginationCacheManager paginationCacheManager;
-
-    @Autowired
-    private QueryCacheManager queryCacheManager;
-
-    @Autowired
-    private TableNameToEntityMapping tableNameToEntityMapping;
-
-    @Autowired
-    private IdentifiableObjectManager idObjectManager;
-
-    @Autowired
-    private TrackedEntityAttributeService trackedEntityAttributeService;
-
-    @Autowired
-    private TrackedEntityInstanceService trackedEntityInstanceService;
-
-    @Autowired
-    private PeriodService periodService;
-
     /**
      * Called by the {@link io.debezium.embedded.EmbeddedEngine}'s event
      * handler. Configured in {@link DebeziumService#startDebeziumEngine()}
@@ -342,49 +306,6 @@ public class DbChangeEventHandler
         if ( operation != Envelope.Operation.MESSAGE )
         {
             evictCollections( entityClasses, entityId );
-        }
-    }
-
-    private void tryFetchNewEntity( Serializable entityId, Class<?> entityClass )
-    {
-        try ( Session session = sessionFactory.openSession() )
-        {
-            session.get( entityClass, entityId );
-        }
-        catch ( Exception e )
-        {
-            log.warn(
-                String.format( "Fetching new entity failed, failed to execute get query! entityId=%s, entityClass=%s",
-                    entityId, entityClass ),
-                e );
-            if ( e instanceof HibernateException )
-            {
-                // Ignore HibernateExceptions, as they are expected.
-                return;
-            }
-
-            throw e;
-        }
-    }
-
-    private void evictCollections( List<Object[]> entityAndRoles, Serializable id )
-    {
-        Object[] firstEntityAndRole = entityAndRoles.get( 0 );
-        Objects.requireNonNull( firstEntityAndRole, "firstEntityAndRole can't be null!" );
-
-        // It's only a collection if we also have a role mapped
-        if ( firstEntityAndRole.length == 2 )
-        {
-            for ( Object[] entityAndRole : entityAndRoles )
-            {
-                Class<?> eKlass = (Class<?>) entityAndRole[0];
-                sessionFactory.getCache().evict( eKlass, id );
-                queryCacheManager.evictQueryCache( sessionFactory.getCache(), eKlass );
-                paginationCacheManager.evictCache( eKlass.getName() );
-
-                String role = (String) entityAndRole[1];
-                sessionFactory.getCache().evictCollectionData( role, id );
-            }
         }
     }
 }

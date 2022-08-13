@@ -27,24 +27,15 @@
  */
 package org.hisp.dhis.cacheinvalidation.redis;
 
-import java.io.Serializable;
 import java.util.Objects;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.hibernate.HibernateException;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hisp.dhis.cache.PaginationCacheManager;
-import org.hisp.dhis.cache.QueryCacheManager;
-import org.hisp.dhis.cacheinvalidation.KnownTransactionsService;
-import org.hisp.dhis.cacheinvalidation.TableNameToEntityMapping;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.cacheinvalidation.BaseCacheEvictionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import io.lettuce.core.pubsub.RedisPubSubListener;
@@ -57,74 +48,95 @@ import io.lettuce.core.pubsub.RedisPubSubListener;
  */
 @Slf4j
 @Component
-public class CacheInvalidationListener implements RedisPubSubListener<String, String>
+@Profile( { "!test", "!test-h2" } )
+@Conditional( value = RedisCacheInvalidationEnabledCondition.class )
+public class CacheInvalidationListener extends BaseCacheEvictionService implements RedisPubSubListener<String, String>
 {
-    @Autowired
-    @Qualifier( "cacheInvalidationUid" )
-    private String cacheInvalidationUid;
-
-    @Autowired
-    private SessionFactory sessionFactory;
-
-    @Autowired
-    private KnownTransactionsService knownTransactionsService;
-
-    @Autowired
-    private PaginationCacheManager paginationCacheManager;
-
-    @Autowired
-    private QueryCacheManager queryCacheManager;
-
-    @Autowired
-    private TableNameToEntityMapping tableNameToEntityMapping;
-
-    @Autowired
-    private IdentifiableObjectManager idObjectManager;
-
-    @Autowired
-    private TrackedEntityAttributeService trackedEntityAttributeService;
-
-    @Autowired
-    private TrackedEntityInstanceService trackedEntityInstanceService;
-
-    @Autowired
-    private PeriodService periodService;
-
     public enum Operation
     {
-        READ( "read" ),
-        CREATE( "insert" ),
-        UPDATE( "update" ),
-        DELETE( "delete" ),
-        COLLECTION( "collection" );
+        READ,
+        CREATE,
+        UPDATE,
+        DELETE,
+        COLLECTION;
+    }
 
-        private final String code;
+    @Autowired
+    @Qualifier( "cacheInvalidationServerId" )
+    private String serverInstanceId;
 
-        Operation( String code )
+    @Override
+    public void message( String channel, String message )
+    {
+        log.debug( "Got {} on channel {}", message, channel );
+
+        try
         {
-            this.code = code;
+            handleMessage( message );
+        }
+        catch ( Exception e )
+        {
+            log.error( "Error handling message: " + message, e );
+        }
+    }
+
+    private void handleMessage( String message )
+        throws Exception
+    {
+        log.debug( "Handling Redis cache invalidation message: " + message );
+
+        String[] parts = message.split( ":" );
+
+        String uid = parts[0];
+        // If the UID is the same, it means the event is coming from this
+        // server.
+        if ( serverInstanceId.equals( uid ) )
+        {
+            log.debug( "Message came from this server, ignoring." );
+            return;
         }
 
-        public static Operation forCode( String code )
+        log.debug( "Incoming invalidating cache message from other server with UID: " + uid );
+
+        Operation operationType = Operation.valueOf( parts[1].toUpperCase() );
+
+        if ( Operation.COLLECTION == operationType )
         {
-            Operation[] var1 = values();
-            int var2 = var1.length;
+            String role = parts[3];
+            Long ownerEntityId = Long.parseLong( parts[4] );
+            sessionFactory.getCache().evictCollectionData( role, ownerEntityId );
 
-            for ( int var3 = 0; var3 < var2; ++var3 )
-            {
-                Operation op = var1[var3];
-                if ( op.code().equalsIgnoreCase( code ) )
-                {
-                    return op;
-                }
-            }
-
-            return null;
+            log.debug( "Invalidated cache for collection: " + role + " with entity id: " + ownerEntityId );
+            return;
         }
 
-        public String code()
+        Long entityId = Long.parseLong( parts[3] );
+        Class<?> entityClass = Class.forName( parts[2] );
+        Objects.requireNonNull( entityClass, "Entity class can't be null" );
+
+        if ( Operation.CREATE == operationType )
         {
-            return this.code;
+            // Make sure queries will re-fetch to capture the new object.
+            queryCacheManager.evictQueryCache( sessionFactory.getCache(), entityClass );
+            paginationCacheManager.evictCache( entityClass.getName() );
+            // Try to fetch the new entity, so it might get cached.
+            tryFetchNewEntity( entityId, entityClass );
+
+            log.debug( "Invalidated cache for create: " + entityClass.getName() + " with entity id: " + entityId );
+        }
+        else if ( Operation.UPDATE == operationType )
+        {
+            sessionFactory.getCache().evict( entityClass, entityId );
+
+            log.debug( "Invalidated cache for update: " + entityClass.getName() + " with entity id: " + entityId );
+        }
+        else if ( Operation.DELETE == operationType )
+        {
+            queryCacheManager.evictQueryCache( sessionFactory.getCache(), entityClass );
+            paginationCacheManager.evictCache( entityClass.getName() );
+            sessionFactory.getCache().evict( entityClass, entityId );
+
+            log.debug( "Invalidated cache for delete: " + entityClass.getName() + " with entity id: " + entityId );
         }
     }
 
@@ -157,89 +169,4 @@ public class CacheInvalidationListener implements RedisPubSubListener<String, St
     {
         log.debug( "Unsubscribed from pattern {}", pattern );
     }
-
-    @Override
-    public void message( String channel, String message )
-    {
-        log.debug( "Got {} on channel {}", message, channel );
-
-        try
-        {
-            handleMessage( message );
-        }
-        catch ( Exception e )
-        {
-            log.error( "Error handling message: " + message, e );
-        }
-    }
-
-    private void handleMessage( String message )
-        throws Exception
-    {
-        String[] parts = message.split( ":" );
-        String uid = parts[0];
-        // If the UID is the same, it means the event is coming from this
-        // server.
-        if ( cacheInvalidationUid.equals( uid ) )
-        {
-            return;
-        }
-
-        Operation type = Operation.forCode( parts[1] );
-
-        if ( Operation.COLLECTION == type )
-        {
-            String role = parts[3];
-            Long entityId = Long.parseLong( parts[4] );
-            sessionFactory.getCache().evictCollectionData( role, entityId );
-            return;
-        }
-
-        Long entityId = Long.parseLong( parts[3] );
-        Class<?> entityClass = Class.forName( parts[2] );
-        Objects.requireNonNull( entityClass, "Entity class can't be null" );
-
-        if ( Operation.CREATE == type )
-        {
-            // Make sure queries will re-fetch to capture the new object.
-            queryCacheManager.evictQueryCache( sessionFactory.getCache(), entityClass );
-            paginationCacheManager.evictCache( entityClass.getName() );
-            // Try to fetch the new entity, so it might get cached.
-            tryFetchNewEntity( entityId, entityClass );
-        }
-        else if ( Operation.UPDATE == type )
-        {
-            sessionFactory.getCache().evict( entityClass, entityId );
-        }
-        else if ( Operation.DELETE == type )
-        {
-            queryCacheManager.evictQueryCache( sessionFactory.getCache(), entityClass );
-            paginationCacheManager.evictCache( entityClass.getName() );
-            sessionFactory.getCache().evict( entityClass, entityId );
-        }
-    }
-
-    private void tryFetchNewEntity( Serializable entityId, Class<?> entityClass )
-    {
-        try ( Session session = sessionFactory.openSession() )
-        {
-            session.get( entityClass, entityId );
-        }
-        catch ( Exception e )
-        {
-            log.warn(
-                String.format( "Fetching new entity failed, failed to execute get query. "
-                    + "entityId=%s, entityClass=%s",
-                    entityId, entityClass ),
-                e );
-            if ( e instanceof HibernateException )
-            {
-                log.info( "tryFetchNewEntity. HibernateException: {}", e.getMessage() );
-                return;
-            }
-
-            throw e;
-        }
-    }
-
 }
