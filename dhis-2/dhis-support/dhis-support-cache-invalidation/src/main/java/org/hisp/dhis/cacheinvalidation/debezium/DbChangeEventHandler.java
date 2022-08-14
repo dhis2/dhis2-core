@@ -106,7 +106,17 @@ public class DbChangeEventHandler extends BaseCacheEvictionService
             return;
         }
 
-        Envelope.Operation operation = Envelope.Operation.forCode( payload.getString( "op" ) );
+        Envelope.Operation operation;
+        try
+        {
+            operation = Envelope.Operation.forCode( payload.getString( "op" ) );
+        }
+        catch ( Exception e )
+        {
+            log.debug( "Unable to get operation from payload, skipping event..." );
+            return;
+        }
+
         if ( operation == Envelope.Operation.READ )
         {
             log.debug( "Operation is READ, skipping event..." );

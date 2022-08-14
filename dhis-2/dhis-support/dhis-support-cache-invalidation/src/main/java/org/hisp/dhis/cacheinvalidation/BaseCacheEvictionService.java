@@ -51,10 +51,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 public class BaseCacheEvictionService
 {
     @Autowired
-    @Qualifier( "cacheInvalidationServerId" )
-    protected String serverInstanceId;
-
-    @Autowired
     protected SessionFactory sessionFactory;
 
     @Autowired

@@ -32,6 +32,9 @@ import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.cacheinvalidation.BaseCacheEvictionService;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
@@ -57,6 +60,10 @@ public class CacheInvalidationListener extends BaseCacheEvictionService implemen
         DELETE,
         COLLECTION
     }
+
+    @Autowired
+    @Qualifier( "cacheInvalidationServerId" )
+    protected String serverInstanceId;
 
     @Override
     public void message( String channel, String message )
