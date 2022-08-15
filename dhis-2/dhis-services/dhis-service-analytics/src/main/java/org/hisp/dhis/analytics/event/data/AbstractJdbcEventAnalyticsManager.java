@@ -92,7 +92,6 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.InQueryFilter;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
-import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.common.Reference;
 import org.hisp.dhis.common.RepeatableStageParams;
@@ -1121,17 +1120,21 @@ public abstract class AbstractJdbcEventAnalyticsManager
         }
         else
         {
-            final QueryOperator operator = filter.getOperator();
-            switch ( operator )
+            // NV filter has its own specific logic, so we should skip values
+            // comparisons when NV is set as filter.
+            if ( !NV.equals( filter.getFilter() ) )
             {
-            case NEQ:
-            case NE:
-            case NIEQ:
-                return "(" + field + " is null or " + field + SPACE + filter.getSqlOperator() + SPACE
-                    + getSqlFilter( filter, item ) + ") ";
-            default:
-                return field + SPACE + filter.getSqlOperator() + SPACE + getSqlFilter( filter, item ) + SPACE;
+                switch ( filter.getOperator() )
+                {
+                case NEQ:
+                case NE:
+                case NIEQ:
+                    return "(" + field + " is null or " + field + SPACE + filter.getSqlOperator() + SPACE
+                        + getSqlFilter( filter, item ) + ") ";
+                }
             }
+
+            return field + SPACE + filter.getSqlOperator() + SPACE + getSqlFilter( filter, item ) + SPACE;
         }
     }
 
