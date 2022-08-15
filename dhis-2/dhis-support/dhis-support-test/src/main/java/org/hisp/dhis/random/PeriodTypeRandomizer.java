@@ -41,6 +41,8 @@ public class PeriodTypeRandomizer
     implements
     Randomizer<PeriodType>
 {
+    private static final Random RANDOM = new Random();
+
     private List<PeriodType> periodTypes = Arrays.asList(
         PeriodType.getPeriodTypeFromIsoString( "2011" ),
         PeriodType.getPeriodTypeFromIsoString( "201101" ),
@@ -58,6 +60,6 @@ public class PeriodTypeRandomizer
     @Override
     public PeriodType getRandomValue()
     {
-        return periodTypes.get( new Random().nextInt( periodTypes.size() - 1 ) );
+        return periodTypes.get( RANDOM.nextInt( periodTypes.size() - 1 ) );
     }
 }

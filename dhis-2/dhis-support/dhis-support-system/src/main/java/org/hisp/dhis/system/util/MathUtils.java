@@ -71,6 +71,8 @@ public class MathUtils
 
     private static final Pattern ZERO_PATTERN = Pattern.compile( "^0(\\.0*)?$" );
 
+    private static final Random RANDOM = new Random();
+
     /**
      * Indicates whether the given double valid, implying it is not null, not
      * infinite and not NaN.
@@ -478,7 +480,7 @@ public class MathUtils
      */
     public static int getRandom()
     {
-        return new Random().nextInt( 999 );
+        return RANDOM.nextInt( 999 );
     }
 
     /**

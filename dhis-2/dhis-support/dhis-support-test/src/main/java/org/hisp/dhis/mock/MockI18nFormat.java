@@ -45,18 +45,18 @@ public class MockI18nFormat
 {
     private static final DateTimeFormatter FORMAT = DateTimeFormat.forPattern( "yyyy-MM-dd" );
 
+    private static final Random RANDOM = new Random();
+
     @Override
     public String formatPeriod( Period period )
     {
-        Random random = new Random();
-        return "Period_" + FORMAT.print( new DateTime( period.getStartDate() ) ) + "_" + random.nextInt( 1000 );
+        return "Period_" + FORMAT.print( new DateTime( period.getStartDate() ) ) + "_" + RANDOM.nextInt( 1000 );
     }
 
     @Override
     public String formatDate( Date date )
     {
-        Random random = new Random();
-        return "Date_" + FORMAT.print( new DateTime( date ) ) + "_" + random.nextInt( 1000 );
+        return "Date_" + FORMAT.print( new DateTime( date ) ) + "_" + RANDOM.nextInt( 1000 );
     }
 
     @Override
