@@ -33,6 +33,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.springframework.http.CacheControl.noCache;
 
 import java.io.IOException;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -98,6 +99,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.HttpClientErrorException;
 
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.SequenceWriter;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
@@ -340,23 +342,23 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
         CsvMapper csvMapper = new CsvMapper();
         csvMapper.configure( JsonGenerator.Feature.IGNORE_UNKNOWN, true );
 
-        List<Map<String, Object>> csvObjects = entities.stream().map( e -> {
-            Map<String, Object> map = new HashMap<>();
-
-            for ( Map.Entry<String, Function<T, Object>> property : obj2valueByProperty.entrySet() )
-            {
-                map.put( property.getKey(), property.getValue().apply( e ) );
-            }
-
-            return map;
-        } )
-            .collect( toList() );
-
-        String output;
-
-        try
+        try ( StringWriter strW = new StringWriter() )
         {
-            output = csvMapper.writer( schema ).writeValueAsString( csvObjects );
+            SequenceWriter seqW = csvMapper.writer()
+                .writeValues( strW );
+            seqW.write( obj2valueByProperty.keySet().toArray() );
+            Object[] row = new Object[obj2valueByProperty.size()];
+            for ( T e : entities )
+            {
+                int i = 0;
+                for ( Function<T, Object> toValue : obj2valueByProperty.values() )
+                {
+                    row[i++] = toValue.apply( e );
+                }
+                seqW.write( row );
+            }
+            seqW.close();
+            return ResponseEntity.ok( strW.toString() );
         }
         catch ( CsvWriteException ex )
         {
@@ -365,8 +367,6 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
                 "Invalid property selected. Make sure all properties are either simple or collections of refs / simple.",
                 ex.getMessage() ) );
         }
-
-        return ResponseEntity.ok( output );
     }
 
     private static Object getAttributeValue( Object obj, String attrId )
