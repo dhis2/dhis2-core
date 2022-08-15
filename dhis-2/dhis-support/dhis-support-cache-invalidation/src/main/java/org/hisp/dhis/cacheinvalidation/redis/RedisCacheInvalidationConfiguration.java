@@ -110,8 +110,19 @@ public class RedisCacheInvalidationConfiguration
     @Bean( destroyMethod = "shutdown", name = "redisClient" )
     RedisClient redisClient( ClientResources clientResources )
     {
+        Object hostProperty = redisHost().getObject();
+        Object portProperty = redisPort().getObject();
+
+        if ( hostProperty == null || portProperty == null )
+        {
+            throw new IllegalArgumentException( "Redis host/port configuration properties is not set" );
+        }
+
+        String host = (String) hostProperty;
+        int port = Integer.parseInt( (String) portProperty );
+
         return RedisClient.create( clientResources,
-            RedisURI.create( (String) redisHost().getObject(), Integer.parseInt( (String) redisPort().getObject() ) ) );
+            RedisURI.create( host, port ) );
     }
 
     @Bean( destroyMethod = "close", name = "redisConnection" )

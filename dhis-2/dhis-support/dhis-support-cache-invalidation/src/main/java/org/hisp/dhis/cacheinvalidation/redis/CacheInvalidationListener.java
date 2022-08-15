@@ -52,13 +52,6 @@ import io.lettuce.core.pubsub.RedisPubSubListener;
 @Conditional( value = RedisCacheInvalidationEnabledCondition.class )
 public class CacheInvalidationListener extends BaseCacheEvictionService implements RedisPubSubListener<String, String>
 {
-    public enum Operation
-    {
-        INSERT,
-        UPDATE,
-        DELETE,
-        COLLECTION
-    }
 
     @Autowired
     @Qualifier( "cacheInvalidationServerId" )
@@ -97,9 +90,9 @@ public class CacheInvalidationListener extends BaseCacheEvictionService implemen
 
         log.debug( "Incoming invalidating cache message from other server with UID: " + uid );
 
-        Operation operationType = Operation.valueOf( parts[1].toUpperCase() );
+        CacheEventOperation operationType = CacheEventOperation.valueOf( parts[1].toUpperCase() );
 
-        if ( Operation.COLLECTION == operationType )
+        if ( CacheEventOperation.COLLECTION == operationType )
         {
             String role = parts[3];
             Long ownerEntityId = Long.parseLong( parts[4] );
@@ -113,7 +106,7 @@ public class CacheInvalidationListener extends BaseCacheEvictionService implemen
         Class<?> entityClass = Class.forName( parts[2] );
         Objects.requireNonNull( entityClass, "Entity class can't be null" );
 
-        if ( Operation.INSERT == operationType )
+        if ( CacheEventOperation.INSERT == operationType )
         {
             // Make sure queries will re-fetch to capture the new object.
             queryCacheManager.evictQueryCache( sessionFactory.getCache(), entityClass );
@@ -123,13 +116,13 @@ public class CacheInvalidationListener extends BaseCacheEvictionService implemen
 
             log.debug( "Invalidated cache for create: " + entityClass.getName() + " with entity id: " + entityId );
         }
-        else if ( Operation.UPDATE == operationType )
+        else if ( CacheEventOperation.UPDATE == operationType )
         {
             sessionFactory.getCache().evict( entityClass, entityId );
 
             log.debug( "Invalidated cache for update: " + entityClass.getName() + " with entity id: " + entityId );
         }
-        else if ( Operation.DELETE == operationType )
+        else if ( CacheEventOperation.DELETE == operationType )
         {
             queryCacheManager.evictQueryCache( sessionFactory.getCache(), entityClass );
             paginationCacheManager.evictCache( entityClass.getName() );

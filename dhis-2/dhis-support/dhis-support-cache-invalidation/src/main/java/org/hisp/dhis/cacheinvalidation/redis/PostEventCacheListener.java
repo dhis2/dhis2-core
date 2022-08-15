@@ -74,39 +74,33 @@ public class PostEventCacheListener implements PostCommitUpdateEventListener, Po
     public void onPostUpdate( PostUpdateEvent postUpdateEvent )
     {
         log.info( "onPostUpdate" );
-
-        Class realClass = HibernateProxyUtils.getRealClass( postUpdateEvent.getEntity() );
-        Serializable id = postUpdateEvent.getId();
-        String message = serverInstanceId + ":" + "update:" + realClass.getName() + ":" + id;
-
-        sendMessage( realClass, message );
+        handleMessage( CacheEventOperation.UPDATE, postUpdateEvent.getEntity(), postUpdateEvent.getId() );
     }
 
     @Override
     public void onPostInsert( PostInsertEvent postInsertEvent )
     {
         log.info( "onPostInsert" );
-
-        Class realClass = HibernateProxyUtils.getRealClass( postInsertEvent.getEntity() );
-        Serializable id = postInsertEvent.getId();
-        String message = serverInstanceId + ":" + "insert:" + realClass.getName() + ":" + id;
-
-        sendMessage( realClass, message );
+        handleMessage( CacheEventOperation.INSERT, postInsertEvent.getEntity(), postInsertEvent.getId() );
     }
 
     @Override
     public void onPostDelete( PostDeleteEvent postDeleteEvent )
     {
         log.info( "onPostDelete" );
-
-        Class realClass = HibernateProxyUtils.getRealClass( postDeleteEvent.getEntity() );
-        Serializable id = postDeleteEvent.getId();
-        String message = serverInstanceId + ":" + "delete:" + realClass.getName() + ":" + id;
-
-        sendMessage( realClass, message );
+        handleMessage( CacheEventOperation.DELETE, postDeleteEvent.getEntity(), postDeleteEvent.getId() );
     }
 
-    private void sendMessage( Class realClass, String message )
+    private void handleMessage( CacheEventOperation operation, Object entity, Serializable id )
+    {
+        Class realClass = HibernateProxyUtils.getRealClass( entity );
+        String op = operation.name().toLowerCase();
+        String message = serverInstanceId + ":" + op + ":" + realClass.getName() + ":" + id;
+
+        publishMessage( realClass, message );
+    }
+
+    private void publishMessage( Class realClass, String message )
     {
         if ( !EXCLUDE_LIST.contains( realClass ) )
         {

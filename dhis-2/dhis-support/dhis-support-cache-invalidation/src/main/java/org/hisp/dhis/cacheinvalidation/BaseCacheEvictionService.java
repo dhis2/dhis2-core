@@ -99,6 +99,13 @@ public class BaseCacheEvictionService
         }
     }
 
+    /**
+     * It evicts the entity and all its collections from the cache
+     *
+     * @param entityAndRoles A list of Object arrays, each containing the entity
+     *        class and the role name.
+     * @param id The id of the entity to evict
+     */
     protected void evictCollections( List<Object[]> entityAndRoles, Serializable id )
     {
         Object[] firstEntityAndRole = entityAndRoles.get( 0 );

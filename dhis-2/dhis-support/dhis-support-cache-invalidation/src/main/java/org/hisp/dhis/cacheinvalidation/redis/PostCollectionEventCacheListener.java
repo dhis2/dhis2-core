@@ -117,8 +117,9 @@ public class PostCollectionEventCacheListener implements PostCollectionRecreateE
             String affectedOwnerEntityName = event.getAffectedOwnerEntityName();
             String role = event.getCollection().getRole();
             Serializable affectedOwnerIdOrNull = event.getAffectedOwnerIdOrNull();
+            String op = CacheEventOperation.COLLECTION.name().toLowerCase();
 
-            String message = serverInstanceId + ":" + "collection:" + affectedOwnerEntityName + ":" + role + ":"
+            String message = serverInstanceId + ":" + op + ":" + affectedOwnerEntityName + ":" + role + ":"
                 + affectedOwnerIdOrNull;
 
             redisConnection.sync().publish( RedisCacheInvalidationConfiguration.CHANNEL_NAME, message );
