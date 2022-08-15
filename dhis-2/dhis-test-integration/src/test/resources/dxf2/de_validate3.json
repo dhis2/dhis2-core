@@ -1,0 +1,30 @@
+{
+  "dataElements": [
+    {
+      "id": "cNkTt6mJQyO",
+      "userGroupAccesses": [],
+      "user": {
+        "id": "GOLswS44mh8"
+      },
+      "description": "Yebo",
+      "zeroIsSignificant": false,
+      "shortName": "Yebo",
+      "lastUpdated": "2016-01-12T04:53:21.840+0000",
+      "created": "2016-01-12T04:53:21.826+0000",
+      "optionSet": {
+        "id": "pQYCiuosBnZ"
+      },
+      "valueType": "NUMBER",
+      "publicAccess": "rw------",
+      "formName": "Yebo",
+      "categoryCombo": {
+        "id": "p0KPaWEg3cf"
+      },
+      "code": "Yebo",
+      "aggregationType": "SUM",
+      "domainType": "TRACKER",
+      "aggregationLevels": [],
+      "name": "Yebo"
+    }
+  ]
+}

@@ -78,6 +78,11 @@ public class HibernateDbmsManager
     @Override
     public void emptyDatabase()
     {
+        emptyTable( "keyjsonvalue" );
+
+        emptyTable( "maplegend" );
+        emptyTable( "maplegendset" );
+
         emptyTable( "constant" );
         emptyTable( "sqlview" );
 
@@ -245,6 +250,8 @@ public class HibernateDbmsManager
         emptyTable( "periodboundary" );
         emptyTable( "programindicator" );
         emptyTable( "programownershiphistory" );
+        emptyTable( "programtempownershipaudit" );
+        emptyTable( "programtempowner" );
         emptyTable( "program" );
 
         emptyTable( "programstageinstancefilter" );

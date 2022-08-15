@@ -47,8 +47,8 @@ import org.hisp.dhis.analytics.shared.visitor.select.SelectVisitor;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 
 /**
- * SelectComponentBuilder is responsible for building the select section of sql
- * query
+ * SelectComponentBuilder is responsible for building the "select" statement of
+ * the SQL query.
  *
  * @author dusan bernat
  */

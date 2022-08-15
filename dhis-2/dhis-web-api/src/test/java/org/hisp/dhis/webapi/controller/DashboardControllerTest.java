@@ -31,6 +31,8 @@ import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.net.URI;
+
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dashboard.DashboardItemType;
 import org.hisp.dhis.dashboard.DashboardService;
@@ -90,6 +92,15 @@ class DashboardControllerTest
         mockMvc.perform( get( ENDPOINT ) ).andExpect( status().isOk() );
 
         verify( dashboardService ).search( null, null, null );
+    }
+
+    @Test
+    void verifyEndpointWithSearchParameterArgs()
+        throws Exception
+    {
+        mockMvc.perform( get( new URI( "/dashboards/search?q=HIV%2FTB" ) ) ).andExpect( status().isOk() );
+
+        verify( dashboardService ).search( "HIV/TB", null, null, null );
     }
 
     @Test

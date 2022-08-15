@@ -346,34 +346,14 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager, 
     // Private Helper Methods
     // -------------------------------------------------------------------------
 
-    private OrganisationUnit getOwnerExpanded( String entityInstance, OrganisationUnit organisationUnit,
-        Program program )
-    {
-        return ownerCache.get( getOwnershipCacheKeyWithUid( entityInstance, program ), s -> {
-            OrganisationUnit ou;
-            TrackedEntityProgramOwner trackedEntityProgramOwner = trackedEntityProgramOwnerService
-                .getTrackedEntityProgramOwner(
-                    entityInstance, program.getUid() );
-
-            if ( trackedEntityProgramOwner == null )
-            {
-                ou = organisationUnit;
-            }
-            else
-            {
-                ou = trackedEntityProgramOwner.getOrganisationUnit();
-            }
-            return ou;
-        } );
-    }
-
     /**
-     * Get the current owner of this tei-program combination. Fallbacks to the
-     * registered OU if no owner explicitly exists for the program
+     * Get the current owner of this TEI-program combination. Falls back to the
+     * registered organisation unit if no owner explicitly exists for the
+     * program.
      *
-     * @param entityInstanceId The tei
+     * @param entityInstanceId the TEI.
      * @param program The program
-     * @return The owning Organisation unit.
+     * @return The owning organisation unit.
      */
     private OrganisationUnit getOwner( Long entityInstanceId, Program program,
         Supplier<OrganisationUnit> orgUnitIfMissingSupplier )
@@ -395,10 +375,9 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager, 
 
     /**
      * This method initializes the OrganisationUnit passed on in the arguments.
-     * All the parent OrganisationUnits are also recurseively initialized. This
+     * All the parent OrganisationUnits are also recursively initialized. This
      * is done to be able to serialize and deserialize the ownership orgUnit
-     * into redis cache.
-     *
+     * into Redis cache.
      *
      * @param organisationUnit
      * @return
@@ -462,16 +441,16 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager, 
     }
 
     /**
-     * Check if the user has temporary access for a specific tei-program
-     * combination
+     * Check if the user has temporary access for a specific TEI-program
+     * combination.
      *
      * @param trackedEntityOuInfo The tracked entity instance object
      * @param program The program object
      * @param user The user object against which the check has to be performed
      * @return true if the user has temporary access, false otherwise
      */
-    private boolean hasTemporaryAccess( EventContext.TrackedEntityOuInfo trackedEntityOuInfo, Program program,
-        User user )
+    private boolean hasTemporaryAccess( EventContext.TrackedEntityOuInfo trackedEntityOuInfo,
+        Program program, User user )
     {
         if ( canSkipOwnershipCheck( user, program ) || trackedEntityOuInfo == null )
         {
@@ -479,8 +458,8 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager, 
         }
 
         return tempOwnerCache
-            .get(
-                getTempOwnershipCacheKey( trackedEntityOuInfo.getTrackedEntityUid(), program.getUid(), user.getUid() ) )
+            .get( getTempOwnershipCacheKey(
+                trackedEntityOuInfo.getTrackedEntityUid(), program.getUid(), user.getUid() ) )
             .orElse( false );
     }
 
@@ -494,11 +473,6 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager, 
     private String getOwnershipCacheKey( LongSupplier trackedEntityInstanceIdSupplier, Program program )
     {
         return trackedEntityInstanceIdSupplier.getAsLong() + "_" + program.getUid();
-    }
-
-    private String getOwnershipCacheKeyWithUid( String trackedEntityInstance, Program program )
-    {
-        return trackedEntityInstance + "_" + program.getUid();
     }
 
     /**

@@ -27,10 +27,11 @@
  */
 package org.hisp.dhis.dataset;
 
+import java.util.List;
+
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
-public interface SectionStore
-    extends IdentifiableObjectStore<Section>
+public interface SectionStore extends IdentifiableObjectStore<Section>
 {
     String ID = SectionStore.class.getName();
 
@@ -41,4 +42,6 @@ public interface SectionStore
      * @return the Section.
      */
     Section getSectionByName( String name, DataSet dataSet );
+
+    List<Section> getSectionsByDataElement( String dataElementUid );
 }

@@ -140,7 +140,7 @@ public class FileResourceUtils
         throws WebMessageException
     {
         response.setContentType( fileResource.getContentType() );
-        response.setContentLength( new Long( fileResource.getContentLength() ).intValue() );
+        response.setContentLengthLong( fileResource.getContentLength() );
         response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName() );
 
         try
@@ -156,6 +156,13 @@ public class FileResourceUtils
     }
 
     public FileResource saveFileResource( MultipartFile file, FileResourceDomain domain )
+        throws WebMessageException,
+        IOException
+    {
+        return saveFileResource( null, file, domain );
+    }
+
+    public FileResource saveFileResource( String uid, MultipartFile file, FileResourceDomain domain )
         throws WebMessageException,
         IOException
     {
@@ -181,6 +188,7 @@ public class FileResourceUtils
         String contentMd5 = bytes.hash( Hashing.md5() ).toString();
 
         FileResource fileResource = new FileResource( filename, contentType, contentLength, contentMd5, domain );
+        fileResource.setUid( uid );
 
         File tmpFile = toTempFile( file );
 

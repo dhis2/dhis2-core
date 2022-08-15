@@ -32,15 +32,27 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.webapi.controller.tracker.view.DataValue;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webapi.controller.tracker.view.User;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.io.ParseException;
 
 import com.google.common.io.Files;
@@ -48,7 +60,87 @@ import com.google.common.io.Files;
 class TrackerCsvEventServiceTest
 {
 
-    private TrackerCsvEventService serviceToTest = new TrackerCsvEventService();
+    private TrackerCsvEventService service;
+
+    private GeometryFactory geometryFactory;
+
+    @BeforeEach
+    void setUp()
+    {
+        service = new TrackerCsvEventService();
+        geometryFactory = new GeometryFactory();
+    }
+
+    @Test
+    void writeEventsHandlesEventsWithNullEventFields()
+        throws IOException
+    {
+        // this is not to say Events will ever be defined in such a way, just to
+        // prevent any further NPEs from slipping through
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        service.writeEvents( out, Collections.singletonList( new Event() ), false );
+
+        assertEquals( ",ACTIVE,,,,,,,,,,,false,false,,,,,,,,,,,,,,,,,\n", out.toString() );
+    }
+
+    @Test
+    void writeEventsWithoutDataValues()
+        throws IOException
+    {
+        Event event = Event.builder()
+            .event( "BuA2R2Gr4vt" )
+            .followup( true )
+            .deleted( false )
+            .status( EventStatus.ACTIVE )
+            .build();
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        service.writeEvents( out, Collections.singletonList( event ), false );
+
+        assertEquals( "BuA2R2Gr4vt,ACTIVE,,,,,,,,,,,true,false,,,,,,,,,,,,,,,,,\n", out.toString() );
+    }
+
+    @Test
+    void writeEventsWithDataValuesIntoASingleRow()
+        throws IOException
+    {
+
+        DataValue dataValue1 = DataValue.builder()
+            .dataElement( "color" )
+            .value( "purple" )
+            .providedElsewhere( true )
+            .build();
+        DataValue dataValue2 = DataValue.builder()
+            .dataElement( "color" )
+            .value( "yellow" )
+            .providedElsewhere( true )
+            .build();
+        Event event = Event.builder()
+            .event( "BuA2R2Gr4vt" )
+            .followup( true )
+            .deleted( false )
+            .status( EventStatus.ACTIVE )
+            .dataValues( Set.of( dataValue1, dataValue2 ) )
+            .build();
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        service.writeEvents( out, Collections.singletonList( event ), false );
+
+        assertInCSV( out, "BuA2R2Gr4vt,ACTIVE,,,,,,,,,,,true,false,,,,,,,,,,,color,yellow,,true,,,\n" );
+        assertInCSV( out, "BuA2R2Gr4vt,ACTIVE,,,,,,,,,,,true,false,,,,,,,,,,,color,purple,,true,,,\n" );
+    }
+
+    private void assertInCSV( ByteArrayOutputStream out, String expectedLine )
+    {
+        // not using assertEquals as dataValues are in a Set so its order in the
+        // CSV is not guaranteed
+        assertTrue( out.toString().contains( expectedLine ),
+            () -> "expected line is not in CSV:\nexpected line:\n" + expectedLine + "\ngot CSV:\n" + out );
+    }
 
     @Test
     void testReadEventsFromFileWithHeader()
@@ -57,7 +149,9 @@ class TrackerCsvEventServiceTest
     {
         File event = new File( "src/test/resources/controller/tracker/csv/event.csv" );
         InputStream inputStream = Files.asByteSource( event ).openStream();
-        List<Event> events = serviceToTest.readEvents( inputStream, true );
+
+        List<Event> events = service.readEvents( inputStream, true );
+
         assertFalse( events.isEmpty() );
         assertEquals( 1, events.size() );
         assertEquals( "eventId", events.get( 0 ).getEvent() );
@@ -90,7 +184,9 @@ class TrackerCsvEventServiceTest
     {
         File event = new File( "src/test/resources/controller/tracker/csv/completeEvent.csv" );
         InputStream inputStream = Files.asByteSource( event ).openStream();
-        List<Event> events = serviceToTest.readEvents( inputStream, false );
+
+        List<Event> events = service.readEvents( inputStream, false );
+
         assertFalse( events.isEmpty() );
         assertEquals( 1, events.size() );
         assertEquals( "eventId", events.get( 0 ).getEvent() );
@@ -120,7 +216,28 @@ class TrackerCsvEventServiceTest
             assertEquals( "2020-02-26T23:08:00Z", dv.getUpdatedAt().toString() );
             assertEquals( "dataElement", dv.getDataElement() );
             assertEquals( "admin", dv.getStoredBy() );
-            assertEquals( false, dv.isProvidedElsewhere() );
+            assertFalse( dv.isProvidedElsewhere() );
         } );
+    }
+
+    @ValueSource( strings = {
+        ",,,,,,,,,POINT (-11.4283223849698 8.06311527044516)",
+        ",,,,,,,,,\"POINT (-11.4283223849698 8.06311527044516)\"",
+        ",,,,,,,,,'POINT (-11.4283223849698 8.06311527044516)'",
+    } )
+    @ParameterizedTest
+    void testReadEventsParsesGeometryEvenIfQuoted( String csv )
+        throws IOException,
+        ParseException
+    {
+
+        InputStream in = new ByteArrayInputStream( csv.getBytes( StandardCharsets.UTF_8 ) );
+
+        List<Event> events = service.readEvents( in, false );
+
+        assertFalse( events.isEmpty() );
+        assertEquals( 1, events.size() );
+        Point expected = geometryFactory.createPoint( new Coordinate( -11.4283223849698, 8.06311527044516 ) );
+        assertEquals( expected, events.get( 0 ).getGeometry() );
     }
 }

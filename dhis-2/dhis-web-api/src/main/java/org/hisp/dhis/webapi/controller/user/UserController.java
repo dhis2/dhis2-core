@@ -59,6 +59,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.commons.collection.CollectionUtils;
@@ -69,6 +70,9 @@ import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.fieldfilter.Defaults;
@@ -412,10 +416,10 @@ public class UserController
             throw new WebMessageException( conflict( "User account is not an invitation: " + id ) );
         }
 
-        String valid = securityService.validateRestore( user );
-        if ( valid != null )
+        ErrorCode errorCode = securityService.validateRestore( user );
+        if ( errorCode != null )
         {
-            throw new WebMessageException( conflict( valid ) );
+            throw new IllegalQueryException( errorCode );
         }
 
         if ( !securityService
@@ -436,10 +440,10 @@ public class UserController
         {
             throw NotFoundException.notFoundUid( id );
         }
-        String valid = securityService.validateRestore( user );
-        if ( valid != null )
+        ErrorCode errorCode = securityService.validateRestore( user );
+        if ( errorCode != null )
         {
-            throw new WebMessageException( conflict( valid ) );
+            throw new IllegalQueryException( errorCode );
         }
         User currentUser = currentUserService.getCurrentUser();
         if ( !aclService.canUpdate( currentUser, user ) )
@@ -568,10 +572,41 @@ public class UserController
         setExpires( uid, null );
     }
 
+    /**
+     * "Disable two-factor authentication for the user with the given uid."
+     * <p>
+     *
+     * @param uid The uid of the user to disable two-factor authentication for.
+     * @param currentUser This is the user that is currently logged in.
+     *
+     * @return A WebMessage object.
+     */
+    @PostMapping( "/{uid}/twoFA/disabled" )
+    public WebMessage disableTwoFA( @PathVariable( "uid" ) String uid, @CurrentUser User currentUser )
+    {
+        List<ErrorReport> errors = new ArrayList<>();
+        userService.disableTwoFA( currentUser, uid, error -> errors.add( error ) );
+
+        if ( errors.isEmpty() )
+        {
+            return WebMessageUtils.ok();
+        }
+
+        return WebMessageUtils.errorReports( errors );
+    }
+
     // -------------------------------------------------------------------------
     // PATCH
     //
 
+    /**
+     * > This function is used to PATCH a user object
+     *
+     * @param pvUid The user's uid
+     * @param rpParameters The request parameters
+     * @param currentUser The user that is currently logged in.
+     * @param request The request object
+     */
     @PatchMapping( value = "/{uid}" )
     @ResponseStatus( value = HttpStatus.NO_CONTENT )
     @Override
@@ -590,6 +625,8 @@ public class UserController
 
         User persistedObject = entities.get( 0 );
 
+        boolean twoFABefore = persistedObject.getTwoFA();
+
         if ( !aclService.canUpdate( currentUser, persistedObject ) )
         {
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
@@ -601,7 +638,13 @@ public class UserController
 
         prePatchEntity( persistedObject );
         patchService.apply( patch, persistedObject );
+
+        boolean twoFAfter = persistedObject.getTwoFA();
+
+        securityService.validate2FAUpdate( twoFABefore, twoFAfter, persistedObject );
+
         validateAndThrowErrors( () -> schemaValidator.validate( persistedObject ) );
+
         manager.update( persistedObject );
         postPatchEntity( persistedObject );
     }
@@ -767,7 +810,7 @@ public class UserController
     @Override
     protected void postPatchEntity( User user )
     {
-        // Make sure we always expire all of the user's active sessions if we
+        // Make sure we always expire all the user's active sessions if we
         // have disabled the user.
         if ( user != null && user.isDisabled() )
         {
@@ -870,38 +913,12 @@ public class UserController
 
         validateCreateUser( user, currentUser );
 
-        String validateMessage = securityService.validateInvite( user );
+        ErrorCode errorCode = securityService.validateInvite( user );
 
-        if ( validateMessage != null )
+        if ( errorCode != null )
         {
-            throw new WebMessageException( conflict( validateMessage ) );
+            throw new IllegalQueryException( errorCode );
         }
-    }
-
-    /**
-     * Creates a user invitation and invites the user.
-     *
-     * @param user user object parsed from the POST request.
-     */
-    private ObjectReport inviteUser2( User user, User currentUser, HttpServletRequest request )
-    {
-        securityService.prepareUserForInvite( user );
-
-        ImportReport importReport = createUser( user, currentUser );
-        ObjectReport objectReport = getObjectReport( importReport );
-
-        if ( importReport.getStatus() == Status.OK &&
-            importReport.getStats().getCreated() == 1 &&
-            objectReport != null )
-        {
-            securityService
-                .sendRestoreOrInviteMessage( user, ContextUtils.getContextPath( request ),
-                    RestoreOptions.INVITE_WITH_DEFINED_USERNAME );
-
-            log.info( String.format( "An invite email was successfully sent to: %s", user.getEmail() ) );
-        }
-
-        return objectReport;
     }
 
     private ObjectReport inviteUser( User user, User currentUser, HttpServletRequest request )

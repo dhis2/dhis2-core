@@ -34,7 +34,7 @@ import org.hisp.dhis.analytics.shared.component.element.Element;
 import org.hisp.dhis.analytics.shared.visitor.where.WhereVisitor;
 
 /**
- * TeaValueWhereElement is Where part of sql statement representation
+ * TeaValueWhereElement represents the "where" clause of a SQL statement.
  *
  * @author dusan bernat
  */

@@ -64,7 +64,18 @@ public interface IdentifiableObjectManager
 
     void delete( IdentifiableObject object, User user );
 
-    <T extends IdentifiableObject> T get( String uid );
+    /**
+     * Lookup objects of unknown type.
+     *
+     * If the type is known at compile time this method should not be used.
+     * Instead, use
+     * {@link org.hisp.dhis.common.IdentifiableObjectManager#get(Class, String)}.
+     *
+     * @param uid a UID of an object of unknown type
+     * @return The {@link IdentifiableObject} with the given UID or null if no
+     *         such object exists
+     */
+    IdentifiableObject find( String uid );
 
     <T extends IdentifiableObject> T get( Class<T> type, long id );
 
@@ -167,7 +178,17 @@ public interface IdentifiableObjectManager
 
     <T extends IdentifiableObject> List<T> getByUid( Class<T> type, Collection<String> uids );
 
-    <T extends IdentifiableObject> List<T> getAndValidateByUid( Class<T> type, Collection<String> uids )
+    /**
+     * Retrieves the objects of the given type and collection of UIDs, throws
+     * exception is any object does not exist.
+     *
+     * @param <T>
+     * @param type the object class type.
+     * @param uids the collection of UIDs.
+     * @return a list of objects.
+     * @throws IllegalQueryException if any object does not exist.
+     */
+    <T extends IdentifiableObject> List<T> loadByUid( Class<T> type, Collection<String> uids )
         throws IllegalQueryException;
 
     <T extends IdentifiableObject> List<T> getByUid( Collection<Class<? extends IdentifiableObject>> types,

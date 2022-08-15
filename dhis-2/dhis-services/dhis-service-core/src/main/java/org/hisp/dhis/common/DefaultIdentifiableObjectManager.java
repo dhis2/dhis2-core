@@ -245,19 +245,17 @@ public class DefaultIdentifiableObjectManager
 
     @Override
     @Transactional( readOnly = true )
-    @SuppressWarnings( "unchecked" )
-    public <T extends IdentifiableObject> T get( String uid )
+    public IdentifiableObject find( String uid )
     {
         for ( IdentifiableObjectStore<? extends IdentifiableObject> store : identifiableObjectStores )
         {
-            T object = (T) store.getByUid( uid );
+            IdentifiableObject object = store.getByUid( uid );
 
             if ( object != null )
             {
                 return object;
             }
         }
-
         return null;
     }
 
@@ -292,6 +290,7 @@ public class DefaultIdentifiableObjectManager
     }
 
     @Override
+    @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> T load( Class<T> type, String uid )
         throws IllegalQueryException
     {
@@ -652,9 +651,14 @@ public class DefaultIdentifiableObjectManager
 
     @Override
     @Transactional( readOnly = true )
-    public <T extends IdentifiableObject> List<T> getAndValidateByUid( Class<T> type, Collection<String> uids )
+    public <T extends IdentifiableObject> List<T> loadByUid( Class<T> type, Collection<String> uids )
         throws IllegalQueryException
     {
+        if ( uids == null )
+        {
+            return new ArrayList<>();
+        }
+
         List<T> objects = getByUid( type, uids );
 
         List<String> identifiers = IdentifiableObjectUtils.getUids( objects );

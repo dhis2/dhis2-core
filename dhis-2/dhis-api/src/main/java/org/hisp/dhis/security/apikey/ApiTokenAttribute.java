@@ -27,9 +27,8 @@
  */
 package org.hisp.dhis.security.apikey;
 
-import java.io.Serializable;
-
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.EmbeddedObject;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
@@ -45,13 +44,18 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
     @JsonSubTypes.Type( value = RefererAllowedList.class, name = "RefererAllowedList" ),
     @JsonSubTypes.Type( value = MethodAllowedList.class, name = "MethodAllowedList" ) } )
 @JacksonXmlRootElement( localName = "apiTokenAttribute", namespace = DxfNamespaces.DXF_2_0 )
-public abstract class ApiTokenAttribute implements Serializable
+public abstract class ApiTokenAttribute implements EmbeddedObject
 {
-    @JsonProperty
     protected final String type;
 
     protected ApiTokenAttribute( String type )
     {
         this.type = type;
+    }
+
+    @JsonProperty
+    public String getType()
+    {
+        return type;
     }
 }

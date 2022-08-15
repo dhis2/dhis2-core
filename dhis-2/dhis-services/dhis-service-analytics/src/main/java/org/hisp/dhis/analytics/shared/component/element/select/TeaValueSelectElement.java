@@ -34,7 +34,7 @@ import org.hisp.dhis.analytics.shared.component.element.Element;
 import org.hisp.dhis.analytics.shared.visitor.select.SelectVisitor;
 
 /**
- * TeaValueSelectElement is Select part of sql statement representation
+ * TeaValueSelectElement represents the "select" clause of a SQL statement.
  *
  * @author dusan bernat
  */

@@ -306,9 +306,10 @@ public abstract class AbstractAnalyticsService
         {
             final Map<String, Object> metadata = new HashMap<>();
 
-            List<Option> options = getItemOptions( grid, params );
+            Map<String, List<Option>> options = getItemOptions( grid, params );
 
-            metadata.put( ITEMS.getKey(), getMetadataItems( params, periodKeywords, options ) );
+            metadata.put( ITEMS.getKey(), getMetadataItems( params, periodKeywords, options.values().stream()
+                .flatMap( Collection::stream ).distinct().collect( toList() ) ) );
 
             metadata.put( DIMENSIONS.getKey(), getDimensionItems( params, options ) );
 
@@ -471,9 +472,11 @@ public abstract class AbstractAnalyticsService
      * identifiers.
      *
      * @param params the data query parameters.
+     * @param itemOptions the data query parameters.
      * @return a map.
      */
-    private Map<String, List<String>> getDimensionItems( EventQueryParams params, List<Option> itemOptions )
+    private Map<String, List<String>> getDimensionItems( EventQueryParams params,
+        Map<String, List<Option>> itemOptions )
     {
         Calendar calendar = PeriodType.getCalendar();
 
@@ -495,7 +498,17 @@ public abstract class AbstractAnalyticsService
 
             if ( item.hasOptionSet() )
             {
-                dimensionItems.put( itemUid, getDimensionItemUidList( params, item, itemOptions ) );
+                // if itemOptions.get( item.getItem().getUid() ) returns null,
+                // getDimensionItemUidList
+                // returns Lists.newArrayList() which is
+                // equal to no option set and no legend set.
+                // This should be ok, query item can't have both legends and
+                // options
+                // E7215( "Query item cannot specify both legend set and option
+                // set:
+                // `{0}`" )
+                dimensionItems.put( itemUid,
+                    getDimensionItemUidList( params, item, itemOptions.get( item.getItem().getUid() ) ) );
             }
             else if ( item.hasLegendSet() )
             {
@@ -540,12 +553,14 @@ public abstract class AbstractAnalyticsService
         {
             return item.getOptionSetFilterItemsOrAll();
         }
-        else
+        else if ( itemOptions != null )
         {
             return itemOptions.stream()
                 .map( BaseIdentifiableObject::getUid )
                 .collect( toList() );
         }
+
+        return Lists.newArrayList();
     }
 
     /**

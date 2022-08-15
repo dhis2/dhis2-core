@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.webapi.WebClient.Body;
-import static org.hisp.dhis.webapi.WebClient.ContentType;
-import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
+import static org.hisp.dhis.web.WebClient.Body;
+import static org.hisp.dhis.web.WebClient.ContentType;
+import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -42,12 +42,12 @@ import org.hisp.dhis.attribute.Attribute.ObjectType;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonGenerator;
 import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.webapi.json.domain.JsonSchema;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 
 /**
@@ -79,8 +79,10 @@ class SchemaBasedControllerTest extends DhisControllerConvenienceTest
         "programRuleAction", // needs DataElement and TrackedEntityAttribute
         "validationRule", // generator insufficient (embedded fields)
         "programStage", // presumably server errors/bugs
+        "dataElement", // non-postgres SQL in deletion handler
         "trackedEntityInstance", // conflict (no details)
-        "predictor" // NPE in preheat when creating objects
+        "predictor", // NPE in preheat when creating objects
+        "aggregateDataExchange" // required JSONB objects not working
     );
 
     /**

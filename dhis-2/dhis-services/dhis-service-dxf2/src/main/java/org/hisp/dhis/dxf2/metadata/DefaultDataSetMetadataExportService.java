@@ -34,7 +34,9 @@ import static org.hisp.dhis.commons.collection.CollectionUtils.mapToSet;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import lombok.AllArgsConstructor;
 
@@ -52,12 +54,14 @@ import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.schema.descriptors.CategoryComboSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.CategoryOptionSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.CategorySchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.DataElementSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.DataSetSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.IndicatorSchemaDescriptor;
+import org.hisp.dhis.schema.descriptors.OptionSetSchemaDescriptor;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
@@ -76,7 +80,7 @@ public class DefaultDataSetMetadataExportService
     private static final String PROPERTY_ORGANISATION_UNITS = "organisationUnits";
 
     private static final String FIELDS_DATA_SETS = ":simple,categoryCombo[id],formType,dataEntryForm[id]," +
-        "dataSetElements[dataElement[id],categoryCombo[id]]," +
+        "dataSetElements[dataElement[id],categoryCombo[id]],indicators~pluck[id]," +
         "compulsoryDataElementOperands[dataElement[id],categoryOptionCombo[id]]," +
         "dataInputPeriods[period,openingDate,closingDate]," +
         "sections[:simple,dataElements~pluck[id],indicators~pluck[id]," +
@@ -85,7 +89,7 @@ public class DefaultDataSetMetadataExportService
     private static final String FIELDS_DATA_ELEMENTS = ":identifiable,displayName,displayShortName,displayFormName," +
         "zeroIsSignificant,valueType,aggregationType,categoryCombo[id],optionSet[id],commentOptionSet";
 
-    private static final String FIELDS_INDICATORS = ":simple,explodedNumerator,explodedDenominator";
+    private static final String FIELDS_INDICATORS = ":simple,explodedNumerator,explodedDenominator,indicatorType[factor]";
 
     private static final String FIELDS_DATA_ELEMENT_CAT_COMBOS = ":simple,isDefault,categories~pluck[id]," +
         "categoryOptionCombos[id,code,name,displayName,categoryOptions~pluck[id]]";
@@ -93,6 +97,8 @@ public class DefaultDataSetMetadataExportService
     private static final String FIELDS_DATA_SET_CAT_COMBOS = ":simple,isDefault,categories~pluck[id]";
 
     private static final String FIELDS_CATEGORIES = ":simple,categoryOptions~pluck[id]";
+
+    private static final String FIELDS_OPTION_SETS = ":simple,options[id,code,displayName]";
 
     private final FieldFilterService fieldFilterService;
 
@@ -125,6 +131,7 @@ public class DefaultDataSetMetadataExportService
         Set<Category> dataSetCategories = flatMapToSet( dataSetCategoryCombos, CategoryCombo::getCategories );
         Set<Category> categories = union( dataElementCategories, dataSetCategories );
         Set<CategoryOption> categoryOptions = getCategoryOptions( dataElementCategories, dataSetCategories, user );
+        Set<OptionSet> optionSets = getOptionSets( dataElements );
 
         dataSetCategoryCombos.remove( defaultCategoryCombo );
         expressionService.substituteIndicatorExpressions( indicators );
@@ -144,6 +151,8 @@ public class DefaultDataSetMetadataExportService
             .addAll( toObjectNodes( categories, FIELDS_CATEGORIES, Category.class ) );
         rootNode.putArray( CategoryOptionSchemaDescriptor.PLURAL )
             .addAll( toObjectNodes( categoryOptions, FIELDS_CATEGORIES, CategoryOption.class ) );
+        rootNode.putArray( OptionSetSchemaDescriptor.PLURAL )
+            .addAll( toObjectNodes( optionSets, FIELDS_OPTION_SETS, OptionSet.class ) );
 
         return rootNode;
     }
@@ -164,6 +173,20 @@ public class DefaultDataSetMetadataExportService
         Set<CategoryOption> options = flatMapToSet( dataElementCategories, Category::getCategoryOptions );
         dataSetCategories.forEach( c -> options.addAll( categoryService.getDataWriteCategoryOptions( c, user ) ) );
         return options;
+    }
+
+    /**
+     * Returns option sets for the given data elements.
+     *
+     * @param dataElements the set of data elements.
+     * @return a set of option sets.
+     */
+    private Set<OptionSet> getOptionSets( Set<DataElement> dataElements )
+    {
+        return dataElements.stream()
+            .map( DataElement::getOptionSet )
+            .filter( Objects::nonNull )
+            .collect( Collectors.toSet() );
     }
 
     /**

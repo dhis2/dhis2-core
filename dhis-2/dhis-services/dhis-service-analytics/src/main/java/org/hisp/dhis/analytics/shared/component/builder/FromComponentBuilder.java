@@ -34,8 +34,8 @@ import org.hisp.dhis.analytics.shared.component.element.from.SimpleFromElement;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 
 /**
- * FromComponentBuilder is responsible for building the from section of sql
- * query
+ * FromComponentBuilder is responsible for building the "from" clause of the SQL
+ * query.
  *
  * @author dusan bernat
  */

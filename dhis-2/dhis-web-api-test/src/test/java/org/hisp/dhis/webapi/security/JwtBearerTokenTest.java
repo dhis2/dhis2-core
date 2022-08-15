@@ -28,7 +28,7 @@
 package org.hisp.dhis.webapi.security;
 
 import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
-import static org.hisp.dhis.webapi.WebClient.JwtTokenHeader;
+import static org.hisp.dhis.web.WebClient.JwtTokenHeader;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Properties;
@@ -40,6 +40,7 @@ import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
 import org.hisp.dhis.security.oidc.GenericOidcProviderConfigParser;
 import org.hisp.dhis.security.oidc.provider.GoogleProvider;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerWithJwtTokenAuthTest;
 import org.hisp.dhis.webapi.json.domain.JsonError;
 import org.hisp.dhis.webapi.json.domain.JsonUser;
@@ -55,7 +56,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 

@@ -51,13 +51,13 @@ public class DataApprovalLevelDeletionHandler extends JdbcDeletionHandler
 
     public DeletionVeto allowDeleteCategoryOptionGroupSet( CategoryOptionGroupSet categoryOptionGroupSet )
     {
-        String sql = "select count(*) from dataapprovallevel where categoryoptiongroupsetid=:id";
+        String sql = "select 1 from dataapprovallevel where categoryoptiongroupsetid=:id limit 1";
         return vetoIfExists( VETO, sql, Map.of( "id", categoryOptionGroupSet.getId() ) );
     }
 
     public DeletionVeto allowDeleteDataApprovalWorkflow( DataApprovalWorkflow workflow )
     {
-        String sql = "select count(*) from dataapprovalworkflowlevels where workflowid=:id";
+        String sql = "select 1 from dataapprovalworkflowlevels where workflowid=:id limit 1";
         return vetoIfExists( VETO, sql, Map.of( "id", workflow.getId() ) );
     }
 }

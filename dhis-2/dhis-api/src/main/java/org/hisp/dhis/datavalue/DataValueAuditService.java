@@ -75,7 +75,9 @@ public interface DataValueAuditService
     List<DataValueAudit> getDataValueAudits( DataValue dataValue );
 
     /**
-     * Returns data value audits for the given parameters.
+     * Returns data value audits for the given parameters. This is a special
+     * version that also adds current data value, and marks the first audit as
+     * type CREATE.
      *
      * @param dataElement the {@link DataElement}.
      * @param period the {@link Period}.

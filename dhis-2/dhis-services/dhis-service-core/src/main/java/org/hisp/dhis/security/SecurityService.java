@@ -30,6 +30,7 @@ package org.hisp.dhis.security;
 import java.io.IOException;
 
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.user.User;
 
 /**
@@ -85,34 +86,23 @@ public interface SecurityService
     void prepareUserForInvite( User user );
 
     /**
-     * Indicates whether a restore/invite is allowed for the given user. The
-     * requirements are:
-     * <p>
-     * <ul>
-     * <li>email_not_configured_for_system</li>
-     * <li>no_user_credentials</li>
-     * <li>user_does_not_have_valid_email</li>
-     * <li>user_has_critical_authorities</li>
-     * </ul>
+     * Indicates whether a restore/invite is allowed for the given user. Returns
+     * an error code if the restore cannot be performed, null otherwise.
      *
      * @param user the user.
-     * @return a string if restore cannot be performed, null otherwise.
+     * @return an {@link ErrorCode} if restore cannot be performed, null
+     *         otherwise.
      */
-    String validateRestore( User user );
+    ErrorCode validateRestore( User user );
 
     /**
      * Indicates whether an invite is allowed for the given user. Delegates to
-     * validateRestore( User ). The requirements are.
-     * <p>
-     * <ul>
-     * <li>no_user_credentials</li>
-     * <li>username_taken</li>
-     * </ul>
+     * validateRestore( User ).
      *
      * @param user the user.
      * @return a string if invite cannot be performed, null otherwise.
      */
-    String validateInvite( User user );
+    ErrorCode validateInvite( User user );
 
     /**
      * Invokes the initRestore method and dispatches email messages with restore
@@ -191,11 +181,11 @@ public interface SecurityService
      *
      * @param user the user.
      * @param token the token.
-     * @return error message if any of the arguments are null or if the user
+     * @return error code if any of the arguments are null or if the user
      *         identified by the username does not exist, null if the arguments
      *         are valid.
      */
-    String verifyRestoreToken( User user, String token, RestoreType restoreType );
+    ErrorCode validateRestoreToken( User user, String token, RestoreType restoreType );
 
     /**
      * Checks whether current user has read access to object.
@@ -311,4 +301,14 @@ public interface SecurityService
      * @return true of false depending on outcome of DATA_READ check
      */
     boolean canDataRead( IdentifiableObject identifiableObject );
+
+    /**
+     * If the user is not a superuser, and the user is not updating their own
+     * 2FA settings, then the user must have the proper permissions to update
+     * the user
+     *
+     * @param before The user object before the update.
+     * @param after The user object that is being updated.
+     */
+    void validate2FAUpdate( boolean before, boolean after, User user );
 }

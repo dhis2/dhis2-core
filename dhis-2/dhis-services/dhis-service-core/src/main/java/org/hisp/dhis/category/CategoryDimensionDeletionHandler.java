@@ -50,13 +50,13 @@ public class CategoryDimensionDeletionHandler extends JdbcDeletionHandler
 
     private DeletionVeto allowDeleteCategoryOption( CategoryOption categoryOption )
     {
-        String sql = "select count(*) from categorydimension_items where categoryoptionid = :id";
+        String sql = "select 1 from categorydimension_items where categoryoptionid = :id limit 1";
         return vetoIfExists( VETO, sql, Map.of( "id", categoryOption.getId() ) );
     }
 
     private DeletionVeto allowDeleteCategory( Category category )
     {
-        String sql = "select count(*) from categorydimension where categoryid = :id";
+        String sql = "select 1 from categorydimension where categoryid = :id limit 1";
         return vetoIfExists( VETO, sql, Map.of( "id", category.getId() ) );
     }
 }

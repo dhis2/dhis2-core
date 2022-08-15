@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.webapi.WebClient.Body;
-import static org.hisp.dhis.webapi.WebClient.ContentType;
-import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
+import static org.hisp.dhis.web.WebClient.Body;
+import static org.hisp.dhis.web.WebClient.ContentType;
+import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -41,6 +41,7 @@ import org.hisp.dhis.metadata.MetadataProposalStatus;
 import org.hisp.dhis.metadata.MetadataProposalTarget;
 import org.hisp.dhis.metadata.MetadataProposalType;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.controller.json.JsonMetadataProposal;
 import org.hisp.dhis.webapi.controller.metadata.MetadataWorkflowController;
@@ -49,7 +50,6 @@ import org.hisp.dhis.webapi.json.domain.JsonOrganisationUnit;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 
 /**
@@ -132,7 +132,7 @@ class MetadataWorkflowControllerTest extends DhisControllerConvenienceTest
                     .content( HttpStatus.CONFLICT ) );
         JsonErrorReport error = message.find( JsonErrorReport.class,
             report -> report.getErrorCode() == ErrorCode.E4000 );
-        assertEquals( "Missing required property `shortName`.", error.getMessage() );
+        assertEquals( "Missing required property `shortName`", error.getMessage() );
         assertEquals( "shortName", error.getErrorProperties().get( 0 ) );
     }
 
@@ -183,7 +183,7 @@ class MetadataWorkflowControllerTest extends DhisControllerConvenienceTest
                     .content( HttpStatus.CONFLICT ) );
         JsonErrorReport error = message.find( JsonErrorReport.class,
             report -> report.getErrorCode() == ErrorCode.E4031 );
-        assertEquals( "Property `change` requires a valid JSON payload, was given `[{\"op\":\"not-json-patch-op\"}]`.",
+        assertEquals( "Property `change` requires a valid JSON payload, was given `[{\"op\":\"not-json-patch-op\"}]`",
             error.getMessage() );
         assertEquals( "change", error.getErrorProperties().get( 0 ) );
     }
@@ -327,7 +327,7 @@ class MetadataWorkflowControllerTest extends DhisControllerConvenienceTest
 
         String reason = proposal.getReason();
         assertEquals( String.format(
-            "E3001 User `FirstNameguest Surnameguest [%s] (User)` is not allowed to update object `New name [%s] (OrganisationUnit)`.\n",
+            "E3001 User `FirstNameguest Surnameguest [%s] (User)` is not allowed to update object `New name [%s] (OrganisationUnit)`\n",
             guest.getUid(), defaultTargetId ), reason );
         // but the system could accept the proposal
         switchContextToUser( system );

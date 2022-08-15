@@ -73,6 +73,7 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DeliveryChannel;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitDescendants;
@@ -86,11 +87,21 @@ import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataentryform.DataEntryForm;
+import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
+import org.hisp.dhis.dataexchange.aggregate.Api;
+import org.hisp.dhis.dataexchange.aggregate.Filter;
+import org.hisp.dhis.dataexchange.aggregate.Source;
+import org.hisp.dhis.dataexchange.aggregate.SourceRequest;
+import org.hisp.dhis.dataexchange.aggregate.Target;
+import org.hisp.dhis.dataexchange.aggregate.TargetRequest;
+import org.hisp.dhis.dataexchange.aggregate.TargetType;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.notifications.DataSetNotificationRecipient;
 import org.hisp.dhis.dataset.notifications.DataSetNotificationTemplate;
 import org.hisp.dhis.dataset.notifications.DataSetNotificationTrigger;
 import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.eventvisualization.EventVisualizationType;
 import org.hisp.dhis.expression.Expression;
@@ -180,8 +191,6 @@ import org.hisp.dhis.visualization.Visualization;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDateTime;
 import org.locationtech.jts.geom.Geometry;
-import org.springframework.aop.framework.Advised;
-import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -235,9 +244,9 @@ public abstract class DhisConvenienceTest
 
     public static final String ADMIN_USER_UID = "M5zQapPyTZI";
 
-    public static final String DEFAULT_ADMIN_PASSWORD = "district";
-
     public static final String DEFAULT_USERNAME = "admin";
+
+    public static final String DEFAULT_ADMIN_PASSWORD = "district";
 
     private static final String PROGRAM_RULE_VARIABLE = "ProgramRuleVariable";
 
@@ -440,28 +449,45 @@ public abstract class DhisConvenienceTest
         }
     }
 
-    /**
-     * If the given class is advised by Spring AOP it will return the target
-     * class, i.e. the advised class. If not the given class is returned
-     * unchanged.
-     *
-     * @param object the object.
-     */
-    @SuppressWarnings( "unchecked" )
-    private <T> T getRealObject( T object )
-        throws Exception
-    {
-        if ( AopUtils.isAopProxy( object ) )
-        {
-            return (T) ((Advised) object).getTargetSource().getTarget();
-        }
-
-        return object;
-    }
-
     // -------------------------------------------------------------------------
     // Create object methods
     // -------------------------------------------------------------------------
+
+    /**
+     * @param uniqueCharacter A unique character to identify the object.
+     */
+    public static AggregateDataExchange getAggregateDataExchange( char uniqueCharacter )
+    {
+        SourceRequest sourceRequest = new SourceRequest();
+        sourceRequest.getDx().addAll( List.of( "LrDpG50RAU9", "uR5HCiJhQ1w" ) );
+        sourceRequest.getPe().addAll( List.of( "202201", "202202" ) );
+        sourceRequest.getOu().addAll( List.of( "G9BuXqtNeeb", "jDgiLmYwPDm" ) );
+        sourceRequest.getFilters().addAll( List.of(
+            new Filter().setDimension( "MuTwGW0BI4o" ).setItems( List.of( "v9oULMMdmzE", "eJHJ0bfDCEO" ) ),
+            new Filter().setDimension( "dAOgE7mgysJ" ).setItems( List.of( "rbE2mZX86AA", "XjOFfrPwake" ) ) ) );
+        sourceRequest.setInputIdScheme( IdScheme.UID.name() )
+            .setOutputIdScheme( IdScheme.UID.name() );
+
+        Source source = new Source()
+            .setRequests( List.of( sourceRequest ) );
+
+        Api api = new Api()
+            .setUrl( "https://play.dhis2.org/demo" )
+            .setUsername( DEFAULT_USERNAME )
+            .setPassword( DEFAULT_ADMIN_PASSWORD );
+
+        Target target = new Target()
+            .setApi( api )
+            .setType( TargetType.EXTERNAL )
+            .setRequest( new TargetRequest() );
+
+        AggregateDataExchange exchange = new AggregateDataExchange();
+        exchange.setAutoFields();
+        exchange.setName( "DataExchange" + uniqueCharacter );
+        exchange.setSource( source );
+        exchange.setTarget( target );
+        return exchange;
+    }
 
     /**
      * @param uniqueCharacter A unique character to identify the object.
@@ -1653,6 +1679,16 @@ public abstract class DhisConvenienceTest
         psi.setProgramInstance( pi );
         psi.setOrganisationUnit( organisationUnit );
 
+        return psi;
+    }
+
+    public static ProgramStageInstance createProgramStageInstance( ProgramInstance programInstance,
+        ProgramStage programStage, OrganisationUnit organisationUnit, Set<EventDataValue> dataValues )
+    {
+        ProgramStageInstance psi = createProgramStageInstance( programStage, programInstance, organisationUnit );
+        psi.setExecutionDate( new Date() );
+        psi.setStatus( EventStatus.ACTIVE );
+        psi.setEventDataValues( dataValues );
         return psi;
     }
 
@@ -2924,5 +2960,20 @@ public abstract class DhisConvenienceTest
         SecurityContextHolder.setContext( context );
 
         return user;
+    }
+
+    protected RelationshipType createRelTypeConstraint( RelationshipEntity from, RelationshipEntity to )
+    {
+        RelationshipType relType = new RelationshipType();
+        relType.setUid( CodeGenerator.generateUid() );
+        RelationshipConstraint relationshipConstraintFrom = new RelationshipConstraint();
+        relationshipConstraintFrom.setRelationshipEntity( from );
+        RelationshipConstraint relationshipConstraintTo = new RelationshipConstraint();
+        relationshipConstraintTo.setRelationshipEntity( to );
+
+        relType.setFromConstraint( relationshipConstraintFrom );
+        relType.setToConstraint( relationshipConstraintTo );
+
+        return relType;
     }
 }

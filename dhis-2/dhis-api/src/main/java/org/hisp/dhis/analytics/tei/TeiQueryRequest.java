@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.analytics.tei;
 
-import java.util.Collection;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -42,5 +40,4 @@ public class TeiQueryRequest
 {
     private String trackedEntityType;
 
-    private Collection<String> programs;
 }

@@ -102,6 +102,7 @@ public enum SettingKey
     GOOGLE_ANALYTICS_UA( "googleAnalyticsUA" ),
     CREDENTIALS_EXPIRES( "credentialsExpires", 0, Integer.class ),
     CREDENTIALS_EXPIRY_ALERT( "credentialsExpiryAlert", false, Boolean.class ),
+    CREDENTIALS_EXPIRES_REMINDER_IN_DAYS( "credentialsExpiresReminderInDays", 28, Integer.class ),
     ACCOUNT_EXPIRES_IN_DAYS( "accountExpiresInDays", 7, Integer.class ),
     ACCOUNT_EXPIRY_ALERT( "accountExpiryAlert", false, Boolean.class ),
     SELF_REGISTRATION_NO_RECAPTCHA( "keySelfRegistrationNoRecaptcha", Boolean.FALSE, Boolean.class ),

@@ -28,6 +28,7 @@
 package org.hisp.dhis.option;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -127,6 +128,18 @@ public class OptionSet
         return ++version;
     }
 
+    public boolean hasAllOptions( Collection<String> optionCodes )
+    {
+        for ( String code : optionCodes )
+        {
+            if ( getOptionByCode( code ) == null )
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public List<String> getOptionValues()
     {
         return options.stream().filter( Objects::nonNull ).map( Option::getName ).collect( Collectors.toList() );
@@ -218,4 +231,5 @@ public class OptionSet
     {
         this.version = version;
     }
+
 }

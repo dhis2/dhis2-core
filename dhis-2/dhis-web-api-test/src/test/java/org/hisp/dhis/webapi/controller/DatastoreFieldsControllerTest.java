@@ -34,9 +34,9 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.hisp.dhis.web.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpStatus;
 
 /**
  * Tests specifically the {@code fields} parameter aspect of the
@@ -176,7 +176,7 @@ class DatastoreFieldsControllerTest extends AbstractDatastoreControllerTest
     void testGetEntries_IllegalPath()
     {
         assertWebMessage( "Conflict", 409, "ERROR",
-            "Illegal fields expression. Expected `,`, `[` or `]` at position 7 but found `'`",
+            "Illegal fields expression, expected `,`, `[` or `]` at position 7 but found `'`",
             GET( "/dataStore/pets?fields=illegal'&headless=true" ).content( HttpStatus.CONFLICT ) );
     }
 }

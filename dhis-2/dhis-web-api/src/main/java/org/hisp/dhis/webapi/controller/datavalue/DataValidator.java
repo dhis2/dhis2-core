@@ -508,8 +508,14 @@ public class DataValidator
      */
     public void validateOptionSet( String dataValue, OptionSet optionSet, DataElement dataElement )
     {
-        if ( !isNullOrEmpty( dataValue ) && optionSet != null
-            && !optionSet.getOptionCodesAsSet().contains( dataValue ) )
+        if ( isNullOrEmpty( dataValue ) || optionSet == null )
+        {
+            return;
+        }
+        boolean valid = dataElement.getValueType() != ValueType.MULTI_TEXT
+            ? optionSet.getOptionByCode( dataValue ) != null
+            : optionSet.hasAllOptions( ValueType.splitMultiText( dataValue ) );
+        if ( !valid )
         {
             throw new IllegalQueryException( new ErrorMessage( ErrorCode.E2029, dataElement.getUid() ) );
         }
@@ -550,7 +556,7 @@ public class DataValidator
     {
         final String normalizedBoolean = normalizeBoolean( dataValue, dataElement.getValueType() );
 
-        final String valueValid = dataValueIsValid( normalizedBoolean, dataElement );
+        final String valueValid = dataValueIsValid( normalizedBoolean, dataElement, false );
 
         if ( valueValid != null )
         {

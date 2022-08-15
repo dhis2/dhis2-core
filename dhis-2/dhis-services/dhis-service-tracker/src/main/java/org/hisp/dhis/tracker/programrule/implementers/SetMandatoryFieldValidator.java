@@ -36,7 +36,6 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.rules.models.AttributeType;
 import org.hisp.dhis.rules.models.RuleActionSetMandatoryField;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
@@ -80,10 +79,9 @@ public class SetMandatoryFieldValidator
     }
 
     @Override
-    List<ProgramRuleIssue> applyToEvents( Map.Entry<String, List<EventActionRule>> eventClasses, TrackerBundle bundle )
+    List<ProgramRuleIssue> applyToEvents( Event event, List<EventActionRule> eventActions, TrackerBundle bundle )
     {
-        return checkMandatoryDataElement( getEvent( bundle, eventClasses.getKey() ).get(), eventClasses.getValue(),
-            bundle );
+        return checkMandatoryDataElement( event, eventActions, bundle );
     }
 
     private List<ProgramRuleIssue> checkMandatoryDataElement( Event event, List<EventActionRule> actionRules,
@@ -94,7 +92,6 @@ public class SetMandatoryFieldValidator
         TrackerIdSchemeParams idSchemes = preheat.getIdSchemes();
 
         Map<MetadataIdentifier, EventActionRule> mandatoryDataElementsByActionRule = actionRules.stream()
-            .filter( r -> r.getAttributeType() == AttributeType.DATA_ELEMENT )
             .collect( Collectors.toMap( r -> idSchemes.toMetadataIdentifier( preheat.getDataElement( r.getField() ) ),
                 Function.identity() ) );
 
@@ -108,13 +105,12 @@ public class SetMandatoryFieldValidator
     }
 
     @Override
-    List<ProgramRuleIssue> applyToEnrollments( Map.Entry<String, List<EnrollmentActionRule>> enrollmentActionRules,
+    List<ProgramRuleIssue> applyToEnrollments( Enrollment enrollment, List<EnrollmentActionRule> enrollmentActionRules,
         TrackerBundle bundle )
     {
-        return enrollmentActionRules.getValue().stream()
+        return enrollmentActionRules.stream()
             .flatMap( actionRule -> checkMandatoryEnrollmentAttribute(
-                bundle.getEnrollment( actionRule.getEnrollment() ).get(),
-                enrollmentActionRules.getValue(), bundle.getPreheat() ).stream() )
+                enrollment, enrollmentActionRules, bundle.getPreheat() ).stream() )
             .collect( Collectors.toList() );
     }
 
