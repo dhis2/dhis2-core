@@ -25,32 +25,12 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.cacheinvalidation;
+package org.hisp.dhis.cacheinvalidation.redis;
 
-import org.hisp.dhis.condition.PropertiesAwareConfigurationCondition;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.springframework.context.annotation.ConditionContext;
-import org.springframework.core.type.AnnotatedTypeMetadata;
-
-/**
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-public class DebeziumCacheInvalidationEnabledCondition extends PropertiesAwareConfigurationCondition
+public enum CacheEventOperation
 {
-    @Override
-    public boolean matches( ConditionContext context, AnnotatedTypeMetadata metadata )
-    {
-        if ( isTestRun( context ) )
-        {
-            return false;
-        }
-
-        return getConfiguration().isEnabled( ConfigurationKey.DEBEZIUM_ENABLED );
-    }
-
-    @Override
-    public ConfigurationPhase getConfigurationPhase()
-    {
-        return ConfigurationPhase.PARSE_CONFIGURATION;
-    }
+    INSERT,
+    UPDATE,
+    DELETE,
+    COLLECTION
 }
