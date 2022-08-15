@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.dataexchange.aggregate;
 
+import static java.lang.String.format;
+import static java.lang.String.join;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
@@ -49,11 +51,15 @@ import org.hisp.dhis.dataexchange.client.Dhis2Client;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
+import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.scheduling.JobProgress.FailurePolicy;
 import org.jasypt.encryption.pbe.PBEStringCleanablePasswordEncryptor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Main service class for aggregate data exchange.
@@ -87,36 +93,80 @@ public class AggregateDataExchangeService
         this.encryptor = encryptor;
     }
 
+    @Transactional( readOnly = true )
+    public AggregateDataExchange getById( String uid )
+    {
+        return aggregateDataExchangeStore.loadByUid( uid );
+    }
+
     /**
      * Runs the analytics data exchange with the given identifier.
      *
      * @param uid the {@link AggregateDataExchange} identifier.
+     * @param progress {@link JobProgress} to track progress when running in a
+     *        job context
      * @return an {@link ImportSummaries}.
      */
-    public ImportSummaries exchangeData( String uid )
+    @Transactional
+    public ImportSummaries exchangeData( String uid, JobProgress progress )
     {
         AggregateDataExchange exchange = aggregateDataExchangeStore.loadByUid( uid );
 
-        return exchangeData( exchange );
+        return exchangeData( exchange, progress );
     }
 
     /**
      * Runs the given analytics data exchange.
      *
-     * @param uid the {@link AggregateDataExchange}.
+     * @param exchange the {@link AggregateDataExchange}.
+     * @param progress {@link JobProgress} to track progress when running in a
+     *        job context
      * @return an {@link ImportSummaries}.
      */
-    public ImportSummaries exchangeData( AggregateDataExchange exchange )
+    @Transactional
+    public ImportSummaries exchangeData( AggregateDataExchange exchange, JobProgress progress )
     {
         ImportSummaries summaries = new ImportSummaries();
 
-        exchange.getSource().getRequests()
-            .forEach( request -> summaries.addImportSummary( exchangeData( exchange, request ) ) );
-
-        log.info( "Aggregate data exchange completed: '{}', type: '{}'",
-            exchange.getUid(), exchange.getTarget().getType() );
+        progress.startingStage( toStageDescription( exchange ), FailurePolicy.SKIP_ITEM );
+        progress.runStage( exchange.getSource().getRequests().stream(),
+            AggregateDataExchangeService::toItemDescription,
+            AggregateDataExchangeService::toItemSummary,
+            request -> {
+                ImportSummary summary = exchangeData( exchange, request );
+                summaries.addImportSummary( summary );
+                return summary;
+            },
+            ( success, failed ) -> toStageSummary( success, failed, exchange ) );
 
         return summaries;
+    }
+
+    private static String toStageDescription( AggregateDataExchange exchange )
+    {
+        Target target = exchange.getTarget();
+        Api api = target.getApi();
+        return format( "exchange aggregate data %s to %s target %s", exchange.getName(),
+            target.getType().name().toLowerCase(), api == null ? "(local)" : api.getUrl() );
+    }
+
+    private static String toItemDescription( SourceRequest request )
+    {
+        return format( "dx: %s; pe: %s; ou: %s", join( ",", request.getDx() ),
+            join( ",", request.getPe() ), join( ",", request.getOu() ) );
+    }
+
+    private static String toItemSummary( ImportSummary summary )
+    {
+        return summary.getStatus() == ImportStatus.ERROR && summary.getConflictCount() == 0
+            ? summary.getDescription()
+            : summary.toCountString();
+    }
+
+    private static String toStageSummary( int success, int failed, AggregateDataExchange exchange )
+    {
+        return format( "Aggregate data exchange completed (%d/%d): '%s', type: '%s'",
+            success, (success + failed), exchange.getUid(), exchange.getTarget().getType() );
     }
 
     /**
@@ -145,10 +195,17 @@ public class AggregateDataExchangeService
      */
     private ImportSummary exchangeData( AggregateDataExchange exchange, SourceRequest request )
     {
-        DataValueSet dataValueSet = analyticsService.getAggregatedDataValueSet( toDataQueryParams( request ) );
+        try
+        {
+            DataValueSet dataValueSet = analyticsService.getAggregatedDataValueSet( toDataQueryParams( request ) );
 
-        return exchange.getTarget().getType() == TargetType.INTERNAL ? pushToInternal( exchange, dataValueSet )
-            : pushToExternal( exchange, dataValueSet );
+            return exchange.getTarget().getType() == TargetType.INTERNAL ? pushToInternal( exchange, dataValueSet )
+                : pushToExternal( exchange, dataValueSet );
+        }
+        catch ( Exception ex )
+        {
+            return new ImportSummary( ImportStatus.ERROR, ex.getMessage() );
+        }
     }
 
     /**

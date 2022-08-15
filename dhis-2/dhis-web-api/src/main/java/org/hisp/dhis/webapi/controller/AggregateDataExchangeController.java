@@ -36,6 +36,7 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
 import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchangeService;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
+import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.schema.descriptors.AggregateDataExchangeSchemaDescriptor;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
@@ -63,14 +64,14 @@ public class AggregateDataExchangeController
     @ResponseStatus( value = HttpStatus.OK )
     public ImportSummaries runDataExchange( @RequestBody AggregateDataExchange exchange )
     {
-        return service.exchangeData( exchange );
+        return service.exchangeData( exchange, NoopJobProgress.INSTANCE );
     }
 
     @PostMapping( "/{uid}/exchange" )
     @ResponseStatus( value = HttpStatus.OK )
     public ImportSummaries runDataExchangeByUid( @PathVariable String uid )
     {
-        return service.exchangeData( uid );
+        return service.exchangeData( uid, NoopJobProgress.INSTANCE );
     }
 
     @GetMapping( "/{uid}/sourceData" )
