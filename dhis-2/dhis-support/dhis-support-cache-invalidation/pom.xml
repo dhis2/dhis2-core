@@ -50,6 +50,11 @@
             <scope>provided</scope>
         </dependency>
 
+        <!-- Redis Lettuce -->
+        <dependency>
+          <groupId>io.lettuce</groupId>
+          <artifactId>lettuce-core</artifactId>
+        </dependency>
 
         <!-- Test -->
         <dependency>

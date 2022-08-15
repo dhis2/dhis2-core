@@ -59,6 +59,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
 import org.hibernate.annotations.QueryHints;
 import org.hibernate.query.Query;
+import org.hisp.dhis.cache.QueryCacheManager;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.collection.CollectionUtils;
@@ -93,16 +94,19 @@ public class HibernateUserStore
 {
     public static final String DISABLED_COLUMN = "disabled";
 
+    private final QueryCacheManager queryCacheManager;
+
     private final SchemaService schemaService;
 
     public HibernateUserStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService,
-        AclService aclService, SchemaService schemaService )
+        AclService aclService, SchemaService schemaService, QueryCacheManager queryCacheManager )
     {
         super( sessionFactory, jdbcTemplate, publisher, User.class, currentUserService, aclService, true );
 
         checkNotNull( schemaService );
         this.schemaService = schemaService;
+        this.queryCacheManager = queryCacheManager;
     }
 
     @Override
@@ -116,7 +120,9 @@ public class HibernateUserStore
     @Override
     public List<User> getUsers( UserQueryParams params, @Nullable List<String> orders )
     {
-        return extractUserQueryUsers( getUserQuery( params, orders, false ).list() );
+        Query userQuery = getUserQuery( params, orders, false );
+
+        return extractUserQueryUsers( userQuery.list() );
     }
 
     @Override
@@ -496,13 +502,26 @@ public class HibernateUserStore
             }
         }
 
+        setQueryCacheRegionName( query );
+
         return query;
+    }
+
+    private void setQueryCacheRegionName( Query query )
+    {
+        if ( query.isCacheable() )
+        {
+            query.setHint( "org.hibernate.cacheable", true );
+            query.setHint( "org.hibernate.cacheRegion",
+                queryCacheManager.getQueryCacheRegionName( User.class, query ) );
+        }
     }
 
     @Override
     public int getUserCount()
     {
         Query<Long> query = getTypedQuery( "select count(*) from User" );
+        setQueryCacheRegionName( query );
         return query.uniqueResult().intValue();
     }
 
