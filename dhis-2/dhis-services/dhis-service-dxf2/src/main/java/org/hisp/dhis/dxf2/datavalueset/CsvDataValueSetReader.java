@@ -51,11 +51,17 @@ final class CsvDataValueSetReader implements DataValueSetReader, DataValueEntry
     @Override
     public DataValueSet readHeader()
     {
+        DataValueSet set = new DataValueSet();
         if ( importOptions == null || importOptions.isFirstRowIsHeader() )
         {
             readNext(); // Ignore the first row: assume header row
+            String dataSetId = getString( 11 );
+            if ( dataSetId != null && !dataSetId.isEmpty() )
+            {
+                set.setDataSet( dataSetId );
+            }
         }
-        return new DataValueSet();
+        return set;
     }
 
     @Override
