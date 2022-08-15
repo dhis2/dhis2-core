@@ -68,7 +68,7 @@ public class PostEventCacheListener implements PostCommitUpdateEventListener, Po
 
     @Autowired
     @Qualifier( "redisConnection" )
-    private StatefulRedisConnection<String, String> redisConnection;
+    private transient StatefulRedisConnection<String, String> redisConnection;
 
     @Override
     public void onPostUpdate( PostUpdateEvent postUpdateEvent )

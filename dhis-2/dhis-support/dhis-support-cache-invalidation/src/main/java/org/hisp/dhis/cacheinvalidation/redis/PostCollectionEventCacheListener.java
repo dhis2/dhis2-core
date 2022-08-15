@@ -72,7 +72,7 @@ public class PostCollectionEventCacheListener implements PostCollectionRecreateE
 
     @Autowired
     @Qualifier( "redisConnection" )
-    private StatefulRedisConnection<String, String> redisConnection;
+    private transient StatefulRedisConnection<String, String> redisConnection;
 
     @Override
     public void onPreUpdateCollection( PreCollectionUpdateEvent event )

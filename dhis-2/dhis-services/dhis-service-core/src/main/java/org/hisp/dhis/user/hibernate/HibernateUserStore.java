@@ -125,12 +125,7 @@ public class HibernateUserStore
     public List<User> getUsers( UserQueryParams params, @Nullable List<String> orders )
     {
         Query userQuery = getUserQuery( params, orders, false );
-        if ( userQuery.isCacheable() )
-        {
-            userQuery.setHint( "org.hibernate.cacheable", true );
-            userQuery.setHint( "org.hibernate.cacheRegion",
-                queryCacheManager.getQueryCacheRegionName( User.class, userQuery ) );
-        }
+
         return extractUserQueryUsers( userQuery.list() );
     }
 
@@ -511,13 +506,26 @@ public class HibernateUserStore
             }
         }
 
+        setQueryCacheRegionName( query );
+
         return query;
+    }
+
+    private void setQueryCacheRegionName( Query query )
+    {
+        if ( query.isCacheable() )
+        {
+            query.setHint( "org.hibernate.cacheable", true );
+            query.setHint( "org.hibernate.cacheRegion",
+                queryCacheManager.getQueryCacheRegionName( User.class, query ) );
+        }
     }
 
     @Override
     public int getUserCount()
     {
         Query<Long> query = getTypedQuery( "select count(*) from User" );
+        setQueryCacheRegionName( query );
         return query.uniqueResult().intValue();
     }
 
