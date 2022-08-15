@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.dxf2.datavalueset;
 
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+
 import java.io.IOException;
 import java.io.UncheckedIOException;
 
@@ -56,7 +58,7 @@ final class CsvDataValueSetReader implements DataValueSetReader, DataValueEntry
         {
             readNext(); // Ignore the first row: assume header row
             String dataSetId = getString( 11 );
-            if ( dataSetId != null && !dataSetId.isEmpty() )
+            if ( isNotEmpty( dataSetId ) )
             {
                 set.setDataSet( dataSetId );
             }
