@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2004, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,59 +25,48 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei.query;
+package org.hisp.dhis.analytics.shared.query;
 
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_TEI;
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
+import static java.util.stream.Collectors.joining;
+import static lombok.AccessLevel.PRIVATE;
+import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.Delegate;
+import lombok.NoArgsConstructor;
 
-import org.hisp.dhis.analytics.shared.query.Renderable;
-import org.hisp.dhis.analytics.shared.query.Table;
-import org.hisp.dhis.analytics.tei.TeiQueryParams;
-
-@RequiredArgsConstructor( staticName = "of" )
-public class QueryContext
+@NoArgsConstructor( access = PRIVATE )
+public class RenderableUtils
 {
 
-    @Getter
-    private final TeiQueryParams teiQueryParams;
-
-    @Delegate
-    private final ParameterManager parameterManager = new ParameterManager();
-
-    public String getMainTableName()
+    public static String join( Collection<? extends Renderable> renderables, String delimiter )
     {
-        return ANALYTICS_TEI + getTetTableSuffix();
+        return join( renderables, delimiter, EMPTY );
     }
 
-    public String getTetTableSuffix()
+    public static String join( Collection<? extends Renderable> renderables, String delimiter, String prefix )
     {
-        return teiQueryParams.getTrackedEntityType().getUid().toLowerCase();
+        return join( renderables, delimiter, prefix, EMPTY );
     }
 
-    public Renderable getMainTable()
+    public static String join( Collection<? extends Renderable> renderables, String delimiter, String prefix,
+        String suffix )
     {
-        return Table.ofStrings( getMainTableName(), TEI_ALIAS );
-    }
+        List<String> renderableList = emptyIfNull( renderables )
+            .stream()
+            .filter( Objects::nonNull )
+            .map( Renderable::render )
+            .collect( Collectors.toList() );
 
-    private static class ParameterManager
-    {
-        private int parameterIndex = 0;
-
-        @Getter
-        private final Map<String, Object> parametersByPlaceHolder = new HashMap<>();
-
-        public String bindParamAndGetIndex( Object param )
+        if ( isNotEmpty( renderableList ) )
         {
-            parameterIndex++;
-            parametersByPlaceHolder.put( String.valueOf( parameterIndex ), param );
-            return ":" + parameterIndex;
+            return renderableList.stream().collect( joining( delimiter, prefix, suffix ) );
         }
+        return EMPTY;
     }
 }

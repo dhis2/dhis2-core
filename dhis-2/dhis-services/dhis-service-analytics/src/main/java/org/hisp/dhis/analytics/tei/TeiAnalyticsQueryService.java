@@ -37,6 +37,7 @@ import org.hisp.dhis.analytics.shared.QueryExecutor;
 import org.hisp.dhis.analytics.shared.SqlQuery;
 import org.hisp.dhis.analytics.shared.SqlQueryResult;
 import org.hisp.dhis.analytics.tei.query.QueryContext;
+import org.hisp.dhis.analytics.tei.query.TeiFullQuery;
 import org.hisp.dhis.common.Grid;
 import org.springframework.stereotype.Service;
 
@@ -72,7 +73,7 @@ public class TeiAnalyticsQueryService
         notNull( teiQueryParams, "The 'teiParams' must not be null" );
         notNull( commonQueryRequest, "The 'commonQueryRequest' must not be null" );
 
-        final SqlQueryResult result = queryExecutor.execute( queryContext.getSqlQuery() );
+        final SqlQueryResult result = queryExecutor.execute( new TeiFullQuery( queryContext ).statement() );
 
         return gridAdaptor.createGrid( result, teiQueryParams.getCommonParams(), commonQueryRequest );
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2004, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,40 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei.query;
+package org.hisp.dhis.analytics.shared.processing;
 
-import static lombok.AccessLevel.PRIVATE;
-import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE;
-import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_ENROLLMENTS;
-import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_EVENTS;
+import org.hisp.dhis.analytics.common.CommonQueryRequest;
+import org.springframework.stereotype.Component;
 
-import lombok.NoArgsConstructor;
-
-@NoArgsConstructor( access = PRIVATE )
-public class QueryContextConstants
+/**
+ * Component responsible for generic validations on top of a CommonQueryRequest
+ * object.
+ *
+ * @see Validator
+ */
+@Component
+public class CommonQueryRequestValidator implements Validator<CommonQueryRequest>
 {
 
-    public static final String ANALYTICS_TEI = TRACKED_ENTITY_INSTANCE.getTableName() + "_";
-
-    public static final String ANALYTICS_TEI_EVT = TRACKED_ENTITY_INSTANCE_EVENTS.getTableName() + "_";
-
-    public static final String ANALYTICS_TEI_ENR = TRACKED_ENTITY_INSTANCE_ENROLLMENTS.getTableName() + "_";
-
-    public static final String TEI_ALIAS = "t_1";
-
-    public static final String EVT_ALIAS = "evt";
-
-    public static final String EVT_1_ALIAS = "evt_1";
-
-    public static final String ENR_ALIAS = "enr";
-
-    public static final String PSI_UID = "programstageinstanceuid";
-
-    public static final String PI_UID = "programinstanceuid";
-
-    public static final String PS_UID = "programstageuid";
-
-    public static final String TEI_UID = "trackedentityinstanceuid";
-
-    public static final String P_UID = "programuid";
+    @Override
+    public void validate( final CommonQueryRequest commonQueryRequest )
+    {
+        // TODO: validate common request params
+    }
 }

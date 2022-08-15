@@ -25,59 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei.query;
+package org.hisp.dhis.analytics.tei;
 
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_TEI;
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
+import java.util.Optional;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.Delegate;
 
-import org.hisp.dhis.analytics.shared.query.Renderable;
-import org.hisp.dhis.analytics.shared.query.Table;
-import org.hisp.dhis.analytics.tei.TeiQueryParams;
+import org.hisp.dhis.analytics.common.QueryRequest;
+import org.hisp.dhis.analytics.shared.processing.CommonQueryRequestMapper;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.springframework.stereotype.Component;
 
-@RequiredArgsConstructor( staticName = "of" )
-public class QueryContext
+@Component
+@RequiredArgsConstructor
+public class TeiQueryRequestMapper
 {
 
-    @Getter
-    private final TeiQueryParams teiQueryParams;
+    private final CommonQueryRequestMapper commonQueryRequestMapper;
 
-    @Delegate
-    private final ParameterManager parameterManager = new ParameterManager();
+    private final TrackedEntityTypeService trackedEntityTypeService;
 
-    public String getMainTableName()
+    public TeiQueryParams map( QueryRequest<TeiQueryRequest> queryRequest )
     {
-        return ANALYTICS_TEI + getTetTableSuffix();
+        return TeiQueryParams.builder()
+            .trackedEntityType( getTrackedEntityType( queryRequest ) )
+            .commonParams( commonQueryRequestMapper.map(
+                queryRequest.getCommonQueryRequest() ) )
+            .build();
     }
 
-    public String getTetTableSuffix()
+    private TrackedEntityType getTrackedEntityType( QueryRequest<TeiQueryRequest> queryRequest )
     {
-        return teiQueryParams.getTrackedEntityType().getUid().toLowerCase();
-    }
-
-    public Renderable getMainTable()
-    {
-        return Table.ofStrings( getMainTableName(), TEI_ALIAS );
-    }
-
-    private static class ParameterManager
-    {
-        private int parameterIndex = 0;
-
-        @Getter
-        private final Map<String, Object> parametersByPlaceHolder = new HashMap<>();
-
-        public String bindParamAndGetIndex( Object param )
-        {
-            parameterIndex++;
-            parametersByPlaceHolder.put( String.valueOf( parameterIndex ), param );
-            return ":" + parameterIndex;
-        }
+        return Optional.of( queryRequest.getRequest().getTrackedEntityType() )
+            .map( trackedEntityTypeService::getTrackedEntityType )
+            .orElseThrow( () -> new IllegalArgumentException( "Unable to find TrackedEntityType with UID: "
+                + queryRequest.getRequest().getTrackedEntityType() ) );
     }
 }

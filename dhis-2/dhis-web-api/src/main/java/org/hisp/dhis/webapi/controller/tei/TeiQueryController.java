@@ -38,15 +38,15 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
-import org.hisp.dhis.analytics.common.Processor;
 import org.hisp.dhis.analytics.common.QueryRequest;
-import org.hisp.dhis.analytics.common.Validator;
 import org.hisp.dhis.analytics.dimensions.AnalyticsDimensionsPagingWrapper;
+import org.hisp.dhis.analytics.shared.processing.Processor;
+import org.hisp.dhis.analytics.shared.processing.Validator;
 import org.hisp.dhis.analytics.tei.TeiAnalyticsDimensionsService;
 import org.hisp.dhis.analytics.tei.TeiAnalyticsQueryService;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.analytics.tei.TeiQueryRequest;
-import org.hisp.dhis.analytics.tei.TeiRequestMapper;
+import org.hisp.dhis.analytics.tei.TeiQueryRequestMapper;
 import org.hisp.dhis.common.DimensionsCriteria;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.webapi.dimension.DimensionFilteringAndPagingService;
@@ -100,7 +100,7 @@ class TeiQueryController
     private final TeiAnalyticsDimensionsService teiAnalyticsDimensionsService;
 
     @NonNull
-    private final TeiRequestMapper mapper;
+    private final TeiQueryRequestMapper mapper;
 
     @NonNull
     private final ContextUtils contextUtils;

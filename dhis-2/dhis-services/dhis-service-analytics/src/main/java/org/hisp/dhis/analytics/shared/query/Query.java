@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2004, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,59 +25,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei.query;
+package org.hisp.dhis.analytics.shared.query;
 
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_TEI;
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
+import static lombok.AccessLevel.PRIVATE;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.Delegate;
+import lombok.Setter;
 
-import org.hisp.dhis.analytics.shared.query.Renderable;
-import org.hisp.dhis.analytics.shared.query.Table;
-import org.hisp.dhis.analytics.tei.TeiQueryParams;
+import org.apache.commons.lang3.StringUtils;
 
-@RequiredArgsConstructor( staticName = "of" )
-public class QueryContext
+@Getter
+@Setter
+@AllArgsConstructor( access = PRIVATE )
+@Builder( toBuilder = true )
+public class Query extends BaseRenderable
 {
 
-    @Getter
-    private final TeiQueryParams teiQueryParams;
+    private final Select select;
 
-    @Delegate
-    private final ParameterManager parameterManager = new ParameterManager();
+    private final From from;
 
-    public String getMainTableName()
+    private final Where where;
+
+    private final Order order;
+
+    private final LimitOffset limit;
+
+    @Override
+    public String render()
     {
-        return ANALYTICS_TEI + getTetTableSuffix();
-    }
-
-    public String getTetTableSuffix()
-    {
-        return teiQueryParams.getTrackedEntityType().getUid().toLowerCase();
-    }
-
-    public Renderable getMainTable()
-    {
-        return Table.ofStrings( getMainTableName(), TEI_ALIAS );
-    }
-
-    private static class ParameterManager
-    {
-        private int parameterIndex = 0;
-
-        @Getter
-        private final Map<String, Object> parametersByPlaceHolder = new HashMap<>();
-
-        public String bindParamAndGetIndex( Object param )
-        {
-            parameterIndex++;
-            parametersByPlaceHolder.put( String.valueOf( parameterIndex ), param );
-            return ":" + parameterIndex;
-        }
+        return RenderableUtils.join(
+            Stream.of( select, from, where, order, limit )
+                .filter( Objects::nonNull )
+                .collect( Collectors.toList() ),
+            StringUtils.SPACE );
     }
 }

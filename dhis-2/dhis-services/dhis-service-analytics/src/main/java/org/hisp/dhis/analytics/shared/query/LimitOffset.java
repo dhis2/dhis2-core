@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2004, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,59 +25,54 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei.query;
+package org.hisp.dhis.analytics.shared.query;
 
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_TEI;
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.Delegate;
 
-import org.hisp.dhis.analytics.shared.query.Renderable;
-import org.hisp.dhis.analytics.shared.query.Table;
-import org.hisp.dhis.analytics.tei.TeiQueryParams;
+import org.apache.commons.lang3.StringUtils;
 
 @RequiredArgsConstructor( staticName = "of" )
-public class QueryContext
+public class LimitOffset extends BaseRenderable
 {
 
-    @Getter
-    private final TeiQueryParams teiQueryParams;
+    private final Integer limit;
 
-    @Delegate
-    private final ParameterManager parameterManager = new ParameterManager();
+    private final Integer offset;
 
-    public String getMainTableName()
+    @Override
+    public String render()
     {
-        return ANALYTICS_TEI + getTetTableSuffix();
+        return "limit " + limit + (Objects.isNull( offset ) ? EMPTY : " offset " + offset);
     }
 
-    public String getTetTableSuffix()
+    public static LimitOffset ofStrings( String limit, String offset )
     {
-        return teiQueryParams.getTrackedEntityType().getUid().toLowerCase();
+        Integer intLimit = Optional.ofNullable( limit )
+            .filter( StringUtils::isNotBlank )
+            .map( LimitOffset::toIntSafely )
+            .orElse( 1 );
+        Integer intOffset = Optional.ofNullable( offset )
+            .filter( StringUtils::isNotBlank )
+            .map( LimitOffset::toIntSafely )
+            .orElse( 0 );
+        return LimitOffset.of( intLimit, intOffset );
     }
 
-    public Renderable getMainTable()
+    private static Integer toIntSafely( String s )
     {
-        return Table.ofStrings( getMainTableName(), TEI_ALIAS );
-    }
-
-    private static class ParameterManager
-    {
-        private int parameterIndex = 0;
-
-        @Getter
-        private final Map<String, Object> parametersByPlaceHolder = new HashMap<>();
-
-        public String bindParamAndGetIndex( Object param )
+        try
         {
-            parameterIndex++;
-            parametersByPlaceHolder.put( String.valueOf( parameterIndex ), param );
-            return ":" + parameterIndex;
+            return Integer.parseInt( s );
         }
+        catch ( Exception e )
+        {
+            // safely
+        }
+        return null;
     }
 }

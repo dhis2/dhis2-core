@@ -29,9 +29,9 @@ package org.hisp.dhis.analytics.tei;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.analytics.common.CommonQueryRequestValidator;
 import org.hisp.dhis.analytics.common.QueryRequest;
-import org.hisp.dhis.analytics.common.Validator;
+import org.hisp.dhis.analytics.shared.processing.CommonQueryRequestValidator;
+import org.hisp.dhis.analytics.shared.processing.Validator;
 import org.springframework.stereotype.Component;
 
 /**

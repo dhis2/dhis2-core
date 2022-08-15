@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2004, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,59 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei.query;
+package org.hisp.dhis.analytics.shared.query;
 
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_TEI;
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
+import static java.util.stream.Collectors.joining;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.Delegate;
+import lombok.Builder;
+import lombok.Singular;
 
-import org.hisp.dhis.analytics.shared.query.Renderable;
-import org.hisp.dhis.analytics.shared.query.Table;
-import org.hisp.dhis.analytics.tei.TeiQueryParams;
+import org.apache.commons.lang3.tuple.Pair;
 
-@RequiredArgsConstructor( staticName = "of" )
-public class QueryContext
+@Builder
+public class JoinsWithConditions extends BaseRenderable
 {
 
-    @Getter
-    private final TeiQueryParams teiQueryParams;
+    @Singular
+    private final List<Pair<Renderable, Renderable>> tablesWithJoinConditions;
 
-    @Delegate
-    private final ParameterManager parameterManager = new ParameterManager();
-
-    public String getMainTableName()
+    @Override
+    public String render()
     {
-        return ANALYTICS_TEI + getTetTableSuffix();
+        return tablesWithJoinConditions.stream()
+            .map( this::renderPair )
+            .collect( joining( EMPTY ) );
     }
 
-    public String getTetTableSuffix()
+    private String renderPair( Pair<Renderable, Renderable> tableWithJoinCondition )
     {
-        return teiQueryParams.getTrackedEntityType().getUid().toLowerCase();
-    }
-
-    public Renderable getMainTable()
-    {
-        return Table.ofStrings( getMainTableName(), TEI_ALIAS );
-    }
-
-    private static class ParameterManager
-    {
-        private int parameterIndex = 0;
-
-        @Getter
-        private final Map<String, Object> parametersByPlaceHolder = new HashMap<>();
-
-        public String bindParamAndGetIndex( Object param )
-        {
-            parameterIndex++;
-            parametersByPlaceHolder.put( String.valueOf( parameterIndex ), param );
-            return ":" + parameterIndex;
-        }
+        return "left join " + tableWithJoinCondition.getKey().render() + " on "
+            + tableWithJoinCondition.getValue().render();
     }
 }

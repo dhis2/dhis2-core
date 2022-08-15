@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.analytics.tei;
 
-import static org.hisp.dhis.analytics.common.AnalyticsDimensionsTestSupport.allValueTypeDataElements;
-import static org.hisp.dhis.analytics.common.AnalyticsDimensionsTestSupport.allValueTypeTEAs;
-import static org.hisp.dhis.analytics.common.AnalyticsDimensionsTestSupport.trackedEntityType;
 import static org.hisp.dhis.analytics.event.data.DimensionsServiceCommon.QUERY_DISALLOWED_VALUE_TYPES;
+import static org.hisp.dhis.analytics.shared.AnalyticsDimensionsTestSupport.allValueTypeDataElements;
+import static org.hisp.dhis.analytics.shared.AnalyticsDimensionsTestSupport.allValueTypeTEAs;
+import static org.hisp.dhis.analytics.shared.AnalyticsDimensionsTestSupport.trackedEntityType;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -78,7 +78,7 @@ class TeiAnalyticsDimensionsServiceTest
     }
 
     @Test
-    void testQueryDoesntContainDisallowedValueTypes()
+    void testQueryDoesNotContainDisallowedValueTypes()
     {
         Collection<BaseIdentifiableObject> analyticsDimensions = teiAnalyticsDimensionsService
             .getQueryDimensionsByTrackedEntityTypeId( "aTeiId" ).stream()
