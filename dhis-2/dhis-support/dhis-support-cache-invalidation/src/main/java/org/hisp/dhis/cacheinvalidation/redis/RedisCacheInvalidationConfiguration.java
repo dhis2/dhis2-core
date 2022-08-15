@@ -27,27 +27,56 @@
  */
 package org.hisp.dhis.cacheinvalidation.redis;
 
+import static org.hisp.dhis.common.CodeGenerator.generateUid;
+
+import java.util.List;
+
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.ConfigurationPropertyFactoryBean;
-
-import io.lettuce.core.RedisClient;
-import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.core.session.SessionRegistryImpl;
 
+import io.lettuce.core.RedisClient;
+import io.lettuce.core.RedisURI;
+import io.lettuce.core.api.StatefulRedisConnection;
+import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
+import io.lettuce.core.resource.ClientResources;
+import io.lettuce.core.resource.DefaultClientResources;
+
 /**
+ * It configures the Redis client and the connection to the Redis server
+ *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Order( 102 )
-@ComponentScan( basePackages = { "org.hisp.dhis" } )
-@Conditional( value = RedisCacheInvalidationEnabledCondition.class )
+@Order( 10002 )
 @Configuration
+@ComponentScan( basePackages = { "org.hisp.dhis" } )
+@Profile( { "!test", "!test-h2" } )
+@Conditional( value = RedisCacheInvalidationEnabledCondition.class )
 public class RedisCacheInvalidationConfiguration
 {
+    public static final List<Class> EXCLUDE_LIST = List.of( JobConfiguration.class );
+
+    public static final String CHANNEL_NAME = "dhis2_cache_invalidation";
+
+    @Bean
+    public static SessionRegistryImpl sessionRegistry()
+    {
+        return new SessionRegistryImpl();
+    }
+
+    @Bean( name = "cacheInvalidationServerId" )
+    public String getCacheInvalidationServerId()
+    {
+        return generateUid();
+    }
+
     @Bean
     public ConfigurationPropertyFactoryBean redisHost()
     {
@@ -72,54 +101,40 @@ public class RedisCacheInvalidationConfiguration
         return new ConfigurationPropertyFactoryBean( ConfigurationKey.REDIS_USE_SSL );
     }
 
-    @Bean( name = "redisClient" )
-    public RedisClient redisCacheInvalidationClient()
+    @Bean( destroyMethod = "shutdown" )
+    ClientResources clientResources()
     {
-        String password = (String) redisPassword().getObject();
-        String host = (String) redisHost().getObject();
-        String port = (String) redisPort().getObject();
-
-        try
-        {
-            RedisClient redisClient = RedisClient
-                .create( "redis://" + password + "@" + host + ":" + port + "/" );
-
-            return redisClient;
-        }
-        catch ( Exception e )
-        {
-            throw new RuntimeException( e );
-        }
+        return DefaultClientResources.create();
     }
 
-    @Bean( name = "redisCacheInvalidationConnection" )
-    public RedisCacheInvalidationConnection redisPubSubConnection()
+    @Bean( destroyMethod = "shutdown", name = "redisClient" )
+    RedisClient redisClient( ClientResources clientResources )
     {
-        return new RedisCacheInvalidationConnection( redisCacheInvalidationClient() );
-    }
+        Object hostProperty = redisHost().getObject();
+        Object portProperty = redisPort().getObject();
 
-    public static class RedisCacheInvalidationConnection
-    {
-        RedisClient redisClient;
-
-        public RedisCacheInvalidationConnection( RedisClient redisClient )
+        if ( hostProperty == null || portProperty == null )
         {
-            this.redisClient = redisClient;
+            throw new IllegalArgumentException( "Redis host/port configuration properties is not set" );
         }
 
-        public StatefulRedisPubSubConnection<String, String> getPubSubConnection()
-        {
-            try ( RedisClient redisClient = this.redisClient )
-            {
-                return redisClient.connectPubSub();
-            }
-        }
+        String host = (String) hostProperty;
+        int port = Integer.parseInt( (String) portProperty );
+
+        return RedisClient.create( clientResources,
+            RedisURI.create( host, port ) );
     }
 
-    @Bean
-    public static SessionRegistryImpl sessionRegistry()
+    @Bean( destroyMethod = "close", name = "redisConnection" )
+    StatefulRedisConnection<String, String> connection( RedisClient redisClient )
     {
-        return new SessionRegistryImpl();
+        return redisClient.connect();
+    }
+
+    @Bean( destroyMethod = "close", name = "pubSubConnection" )
+    StatefulRedisPubSubConnection<String, String> pubSubConnection( RedisClient redisClient )
+    {
+        return redisClient.connectPubSub();
     }
 
     @Bean
@@ -127,7 +142,7 @@ public class RedisCacheInvalidationConfiguration
     {
         RedisCacheInvalidationPreStartupRoutine routine = new RedisCacheInvalidationPreStartupRoutine();
         routine.setName( "redisPreStartupRoutine" );
-        routine.setRunlevel( 1 );
+        routine.setRunlevel( 20 );
         routine.setSkipInTests( true );
         return routine;
     }
@@ -137,7 +152,7 @@ public class RedisCacheInvalidationConfiguration
     {
         StartupRedisCacheInvalidationServiceRoutine routine = new StartupRedisCacheInvalidationServiceRoutine();
         routine.setName( "redisCacheInvalidationPreStartupRoutine" );
-        routine.setRunlevel( 20 );
+        routine.setRunlevel( 1 );
         routine.setSkipInTests( true );
         return routine;
     }

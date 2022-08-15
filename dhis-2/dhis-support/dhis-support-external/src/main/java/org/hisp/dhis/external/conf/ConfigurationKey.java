@@ -701,7 +701,12 @@ public enum ConfigurationKey
      * for each user. If configured to 1, the user will be logged out from any
      * other session when a new session is started.
      */
-    MAX_SESSIONS_PER_USER( "max.sessions.per_user", "10", false );
+    MAX_SESSIONS_PER_USER( "max.sessions.per_user", "10", false ),
+
+    /**
+     * Redis based cache invalidation feature. Enable or disable.
+     */
+    REDIS_CACHE_INVALIDATION_ENABLED( "redis.cache.invalidation.enabled", Constants.OFF, false );
 
     private final String key;
 

@@ -25,49 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.cacheinvalidation.redis;
+package org.hisp.dhis.cacheinvalidation.debezium;
 
-import lombok.extern.slf4j.Slf4j;
-import org.hibernate.event.spi.PostCommitInsertEventListener;
-import org.hibernate.event.spi.PostInsertEvent;
-import org.hibernate.persister.entity.EntityPersister;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.system.startup.AbstractStartupRoutine;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.context.annotation.Profile;
 
 /**
- * @author Luciano Fiandesio
+ * Startup routine responsible for starting the Debezium engine service. The
+ * {@link DebeziumPreStartupRoutine} is called first so that the
+ * {@link TableNameToEntityMapping} is already been initialized, see
+ * {@link TableNameToEntityMapping#init}
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Slf4j
-@Component
-public class PostInsertCacheListener implements PostCommitInsertEventListener
+@Profile( { "!test", "!test-h2" } )
+@Conditional( value = DebeziumCacheInvalidationEnabledCondition.class )
+public class StartupDebeziumServiceRoutine extends AbstractStartupRoutine
 {
-    @Override
-    public void onPostInsert( PostInsertEvent postInsertEvent )
-    {
-        log.info( "onPostInsert" );
-        //        getAuditable( postInsertEvent.getEntity(), "create" ).ifPresent( auditable -> auditManager.send( Audit.builder()
-        //            .auditType( getAuditType() )
-        //            .auditScope( auditable.scope() )
-        //            .createdAt( LocalDateTime.now() )
-        //            .createdBy( getCreatedBy() )
-        //            .object( postInsertEvent.getEntity() )
-        //            .attributes( auditManager.collectAuditAttributes( postInsertEvent.getEntity(),
-        //                postInsertEvent.getEntity().getClass() ) )
-        //            .auditableEntity(
-        //                new AuditableEntity( postInsertEvent.getEntity().getClass(), createAuditEntry( postInsertEvent ) ) )
-        //            .build() ) );
-
-    }
+    @Autowired
+    private DebeziumService debeziumService;
 
     @Override
-    public boolean requiresPostCommitHanding( EntityPersister entityPersister )
+    public void execute()
+        throws InterruptedException
     {
-        return true;
+        debeziumService.startDebeziumEngine();
     }
-
-    @Override
-    public void onPostInsertCommitFailed( PostInsertEvent event )
-    {
-        log.debug( "onPostInsertCommitFailed: " + event );
-    }
-
 }

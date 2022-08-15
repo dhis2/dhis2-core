@@ -27,44 +27,10 @@
  */
 package org.hisp.dhis.cacheinvalidation.redis;
 
-import lombok.extern.slf4j.Slf4j;
-import org.hibernate.event.spi.PostCommitDeleteEventListener;
-import org.hibernate.event.spi.PostDeleteEvent;
-import org.hibernate.persister.entity.EntityPersister;
-import org.springframework.stereotype.Component;
-
-/**
- * @author Luciano Fiandesio
- */
-@Slf4j
-@Component
-public class PostDeleteCacheListener implements PostCommitDeleteEventListener
+public enum CacheEventOperation
 {
-
-    @Override
-    public void onPostDelete( PostDeleteEvent postDeleteEvent )
-    {
-        log.info( "onPostDelete" );
-        //        getAuditable( postDeleteEvent.getEntity(), "delete" ).ifPresent( auditable -> auditManager.send( Audit.builder()
-        //            .auditType( getAuditType() )
-        //            .auditScope( auditable.scope() )
-        //            .createdAt( LocalDateTime.now() )
-        //            .createdBy( getCreatedBy() )
-        //            .object( postDeleteEvent.getEntity() )
-        //            .auditableEntity(
-        //                new AuditableEntity( postDeleteEvent.getEntity().getClass(), createAuditEntry( postDeleteEvent ) ) )
-        //            .build() ) );
-    }
-
-    @Override
-    public boolean requiresPostCommitHanding( EntityPersister entityPersister )
-    {
-        return true;
-    }
-
-    @Override
-    public void onPostDeleteCommitFailed( PostDeleteEvent event )
-    {
-        log.debug( "onPostDeleteCommitFailed: " + event );
-    }
+    INSERT,
+    UPDATE,
+    DELETE,
+    COLLECTION
 }

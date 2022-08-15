@@ -25,32 +25,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.cacheinvalidation;
+package org.hisp.dhis.cacheinvalidation.debezium;
 
-import org.hisp.dhis.system.startup.AbstractStartupRoutine;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Conditional;
-import org.springframework.context.annotation.Profile;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
+import org.springframework.security.core.session.SessionRegistryImpl;
 
 /**
- * Startup routine responsible for starting the Debezium engine service. The
- * {@link DebeziumPreStartupRoutine} is called first so that the
- * {@link TableNameToEntityMapping} is already been initialized, see
- * {@link TableNameToEntityMapping#init}
- *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Profile( { "!test", "!test-h2" } )
+@Order( 101 )
+@ComponentScan( basePackages = { "org.hisp.dhis" } )
 @Conditional( value = DebeziumCacheInvalidationEnabledCondition.class )
-public class StartupDebeziumServiceRoutine extends AbstractStartupRoutine
+@Configuration
+public class DebeziumSpringConfiguration
 {
-    @Autowired
-    private DebeziumService debeziumService;
-
-    @Override
-    public void execute()
-        throws InterruptedException
+    @Bean
+    public static SessionRegistryImpl sessionRegistry()
     {
-        debeziumService.startDebeziumEngine();
+        return new SessionRegistryImpl();
+    }
+
+    @Bean
+    public DebeziumPreStartupRoutine debeziumPreStartupRoutine()
+    {
+        DebeziumPreStartupRoutine routine = new DebeziumPreStartupRoutine();
+        routine.setName( "debeziumPreStartupRoutine" );
+        routine.setRunlevel( 1 );
+        routine.setSkipInTests( true );
+        return routine;
+    }
+
+    @Bean
+    public StartupDebeziumServiceRoutine startupDebeziumServiceRoutine()
+    {
+        StartupDebeziumServiceRoutine routine = new StartupDebeziumServiceRoutine();
+        routine.setName( "StartupDebeziumServiceRoutine" );
+        routine.setRunlevel( 20 );
+        routine.setSkipInTests( true );
+        return routine;
     }
 }
