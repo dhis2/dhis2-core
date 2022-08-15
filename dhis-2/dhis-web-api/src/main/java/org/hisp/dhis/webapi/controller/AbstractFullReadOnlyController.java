@@ -36,14 +36,19 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.Function;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.attribute.AttributeService;
+import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -60,6 +65,7 @@ import org.hisp.dhis.node.Preset;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Pagination;
 import org.hisp.dhis.query.Query;
+import org.hisp.dhis.query.QueryParser;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.schema.Property;
@@ -127,6 +133,9 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
     @Autowired
     protected QueryService queryService;
+
+    @Autowired
+    private QueryParser queryParser;
 
     @Autowired
     protected FieldFilterService oldFieldFilterService;
@@ -279,7 +288,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
         CsvSchema schema;
         CsvSchema.Builder schemaBuilder = CsvSchema.builder();
-        List<Property> properties = new ArrayList<>();
+        Map<String, Function<T, Object>> obj2valueByProperty = new LinkedHashMap<>();
 
         for ( String field : fields )
         {
@@ -292,19 +301,29 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
                 if ( property == null )
                 {
+                    if ( CodeGenerator.isValidUid( splitField ) )
+                    {
+                        schemaBuilder.addColumn( splitField );
+                        obj2valueByProperty.put( splitField, obj -> getAttributeValue( obj, splitField ) );
+                    }
                     continue;
                 }
 
-                if ( property.isSimple() && !property.isCollection() )
-                {
-                    schemaBuilder.addColumn( property.getName() );
-                    properties.add( property );
-                }
-                else if ( (property.isSimple() || property.itemIs( PropertyType.REFERENCE ))
-                    && property.isCollection() )
+                if ( (property.isCollection() && property.itemIs( PropertyType.REFERENCE )) )
                 {
                     schemaBuilder.addArrayColumn( property.getCollectionName() );
-                    properties.add( property );
+                    obj2valueByProperty.put( property.getCollectionName(), obj -> {
+                        Object value = ReflectionUtils.invokeMethod( obj, property.getGetterMethod() );
+                        @SuppressWarnings( "unchecked" )
+                        Collection<IdentifiableObject> collection = (Collection<IdentifiableObject>) value;
+                        return collection.stream().map( PrimaryKeyObject::getUid ).collect( toList() );
+                    } );
+                }
+                else
+                {
+                    schemaBuilder.addColumn( property.getName() );
+                    obj2valueByProperty.put( property.getName(),
+                        obj -> ReflectionUtils.invokeMethod( obj, property.getGetterMethod() ) );
                 }
             }
         }
@@ -324,21 +343,9 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
         List<Map<String, Object>> csvObjects = entities.stream().map( e -> {
             Map<String, Object> map = new HashMap<>();
 
-            for ( Property property : properties )
+            for ( Map.Entry<String, Function<T, Object>> property : obj2valueByProperty.entrySet() )
             {
-                Object value = ReflectionUtils.invokeMethod( e, property.getGetterMethod() );
-
-                if ( property.isCollection() && property.itemIs( PropertyType.REFERENCE ) )
-                {
-                    @SuppressWarnings( "unchecked" )
-                    Collection<IdentifiableObject> collection = (Collection<IdentifiableObject>) value;
-                    value = collection.stream().map( PrimaryKeyObject::getUid ).collect( toList() );
-                    map.put( property.getCollectionName(), value );
-                }
-                else
-                {
-                    map.put( property.getName(), value );
-                }
+                map.put( property.getKey(), property.getValue().apply( e ) );
             }
 
             return map;
@@ -360,6 +367,16 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
         }
 
         return ResponseEntity.ok( output );
+    }
+
+    private static Object getAttributeValue( Object obj, String attrId )
+    {
+        if ( obj instanceof BaseIdentifiableObject )
+        {
+            AttributeValue attr = ((BaseIdentifiableObject) obj).getAttributeValue( attrId );
+            return attr == null ? null : attr.getValue();
+        }
+        return null;
     }
 
     @GetMapping( "/{uid}" )
