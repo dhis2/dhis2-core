@@ -44,6 +44,12 @@
             <artifactId>debezium-connector-postgres</artifactId>
         </dependency>
 
+        <!-- Redis Lettuce -->
+        <dependency>
+          <groupId>io.lettuce</groupId>
+          <artifactId>lettuce-core</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
