@@ -90,12 +90,12 @@ public interface EventDataQueryService
     String getFallbackCoordinateField( String coordinate, String program );
 
     /**
-     * Returns a QueryItem
+     * Returns a {@link QueryItem}.
      *
-     * @param dimensionString
-     * @param program
-     * @param type
-     * @return
+     * @param dimensionString the dimension string.
+     * @param program the {@link Program}.
+     * @param type the {@link EventOutputType}.
+     * @return a {@link QueryItem}.
      */
     QueryItem getQueryItem( String dimensionString, Program program, EventOutputType type );
 }

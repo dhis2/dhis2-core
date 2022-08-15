@@ -187,7 +187,6 @@ public class MetadataHandler
         {
             if ( params.hasCustomIdSchemaSet() )
             {
-                // Apply all schemas set/mapped to the grid.
                 grid.substituteMetaData( schemaIdResponseMapper.getSchemeIdResponseMap( params ) );
             }
         }
