@@ -634,6 +634,12 @@ public class DataHandler
         }
     }
 
+    /**
+     * Returns the number of filter periods, or 1 if no filter periods exist.
+     *
+     * @param params the {@link DataQueryParams}.
+     * @return the number of filter periods, or 1 if no filter periods exist.
+     */
     private int getTimeUnits( DataQueryParams params )
     {
         return params.hasFilter( PERIOD_DIM_ID ) ? params.getFilterPeriods().size() : 1;
@@ -656,7 +662,7 @@ public class DataHandler
     private void addReportRateToGrid( DataQueryParams params, Grid grid, ReportingRateMetric metric,
         List<String> dataRow, Double target, Double actual )
     {
-        Double value = getReportRate( metric, target, actual );
+        Double value = getReportingRate( metric, target, actual );
 
         String reportingRate = getDimensionItem( dataRow.get( DX_INDEX ), metric );
         dataRow.set( DX_INDEX, reportingRate );
@@ -674,7 +680,7 @@ public class DataHandler
         }
     }
 
-    private Double getReportRate( ReportingRateMetric metric, Double target, Double actual )
+    private Double getReportingRate( ReportingRateMetric metric, Double target, Double actual )
     {
         Double value = 0d;
 
@@ -1035,15 +1041,13 @@ public class DataHandler
     }
 
     /**
-     * Calculate the dimensional item offset and adds to the give result map.
+     * Calculates the dimensional item offset and adds to the give result map.
      *
      * @param result the map where the values will be added to.
      * @param periodIndex the current grid row period index.
      * @param valueIndex the current grid row value index.
      * @param row the current grid row.
-     * @param dimensionalItemObject a dimensional item for the current grid row,
-     *        see
-     *        {@link org.hisp.dhis.analytics.util.AnalyticsUtils#findDimensionalItems(String, List)}
+     * @param dimensionalItemObject a dimensional item for the current grid row.
      * @param basePeriods the periods from the parameters.
      *
      * @return the DimensionalItemObject
@@ -1123,6 +1127,14 @@ public class DataHandler
         return map;
     }
 
+    /**
+     * Executes the given list of queries in parallel.
+     *
+     * @param tableType the {@link AnalyticsTableType}.
+     * @param maxLimit the max limit of records to retrieve.
+     * @param map the map of metadata identifiers to data values.
+     * @param queries the list of {@link DataQueryParams} to execute.
+     */
     private void executeQueries( AnalyticsTableType tableType, int maxLimit, Map<String, Object> map,
         List<DataQueryParams> queries )
     {
