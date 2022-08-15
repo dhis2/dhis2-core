@@ -73,21 +73,21 @@ public class PostEventCacheListener implements PostCommitUpdateEventListener, Po
     @Override
     public void onPostUpdate( PostUpdateEvent postUpdateEvent )
     {
-        log.info( "onPostUpdate" );
+        log.debug( "onPostUpdate" );
         handleMessage( CacheEventOperation.UPDATE, postUpdateEvent.getEntity(), postUpdateEvent.getId() );
     }
 
     @Override
     public void onPostInsert( PostInsertEvent postInsertEvent )
     {
-        log.info( "onPostInsert" );
+        log.debug( "onPostInsert" );
         handleMessage( CacheEventOperation.INSERT, postInsertEvent.getEntity(), postInsertEvent.getId() );
     }
 
     @Override
     public void onPostDelete( PostDeleteEvent postDeleteEvent )
     {
-        log.info( "onPostDelete" );
+        log.debug( "onPostDelete" );
         handleMessage( CacheEventOperation.DELETE, postDeleteEvent.getEntity(), postDeleteEvent.getId() );
     }
 

@@ -684,7 +684,7 @@ public enum ConfigurationKey
     /**
      * Cache invalidation feature. Shutdown server if connector loose connection
      */
-    DEBEZIUM_SHUTDOWN_ON_CONNECTOR_STOP( "debezium.shutdown_on.connector_stop", Constants.OFF, false ),
+    DEBEZIUM_SHUTDOWN_ON_CONNECTOR_STOP( "debezium.shutdown_on.connector_stop", Constants.ON, false ),
 
     /**
      * API authentication feature. Enable or disable personal access tokens.
