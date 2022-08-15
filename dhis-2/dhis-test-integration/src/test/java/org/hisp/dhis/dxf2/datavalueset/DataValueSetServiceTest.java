@@ -536,6 +536,18 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
+    void testImportDataValuesCsvWithDataSetIdHeader()
+        throws Exception
+    {
+        in = new ClassPathResource( "dxf2/datavalueset/dataValueSetWithDataSetHeader.csv" ).getInputStream();
+        ImportSummary summary = dataValueSetService.importDataValueSetCsv( in, null, null );
+        assertEquals( 3, summary.getImportCount().getImported() );
+        assertEquals( 0, summary.getImportCount().getUpdated() );
+        assertEquals( 0, summary.getImportCount().getDeleted() );
+        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+    }
+
+    @Test
     void testImportDataValuesCsvWithoutHeader()
         throws Exception
     {
