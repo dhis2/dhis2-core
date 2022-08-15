@@ -25,39 +25,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.cacheinvalidation.redis;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import lombok.extern.slf4j.Slf4j;
 
-import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.junit.jupiter.api.Test;
-import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Service;
 
-class FileResourceControllerTest extends DhisControllerConvenienceTest
+import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
+import io.lettuce.core.pubsub.api.async.RedisPubSubAsyncCommands;
+
+/**
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
+@Slf4j
+@Service
+@Profile( { "!test", "!test-h2" } )
+@Conditional( value = RedisCacheInvalidationEnabledCondition.class )
+public class RedisCacheInvalidationSubscriptionService
 {
+    @Autowired
+    private CacheInvalidationListener cacheInvalidationListener;
 
-    @Test
-    void testSaveOrgUnitImage()
-    {
-        MockMultipartFile image = new MockMultipartFile( "file", "OU_profile_image.png", "image/png",
-            "<<png data>>".getBytes() );
-        HttpResponse response = POST_MULTIPART( "/fileResources?domain=ORG_UNIT", image );
-        JsonObject savedObject = response.content( HttpStatus.ACCEPTED ).getObject( "response" )
-            .getObject( "fileResource" );
-        assertEquals( "OU_profile_image.png", savedObject.getString( "name" ).string() );
-    }
+    @Autowired
+    @Qualifier( "pubSubConnection" )
+    private StatefulRedisPubSubConnection<String, String> pubSubConnection;
 
-    @Test
-    void testSaveOrgUnitImageWithUid()
+    public void start()
     {
-        MockMultipartFile image = new MockMultipartFile( "file", "OU_profile_image.png", "image/png",
-            "<<png data>>".getBytes() );
-        HttpResponse response = POST_MULTIPART( "/fileResources?domain=ORG_UNIT&uid=0123456789a", image );
-        JsonObject savedObject = response.content( HttpStatus.ACCEPTED ).getObject( "response" )
-            .getObject( "fileResource" );
-        assertEquals( "OU_profile_image.png", savedObject.getString( "name" ).string() );
-        assertEquals( "0123456789a", savedObject.getString( "id" ).string() );
+        log.info( "RedisCacheInvalidationSubscriptionService started" );
+
+        pubSubConnection.addListener( cacheInvalidationListener );
+
+        RedisPubSubAsyncCommands<String, String> async = pubSubConnection.async();
+        async.subscribe( RedisCacheInvalidationConfiguration.CHANNEL_NAME );
+
+        log.debug( "Subscribed to channel: " + RedisCacheInvalidationConfiguration.CHANNEL_NAME );
     }
 }

@@ -25,39 +25,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.scheduling.parameters;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import java.util.List;
+import java.util.Optional;
 
-import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.junit.jupiter.api.Test;
-import org.springframework.mock.web.MockMultipartFile;
+import lombok.Setter;
 
-class FileResourceControllerTest extends DhisControllerConvenienceTest
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.scheduling.JobParameters;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+
+/**
+ * @author Jan Bernitt
+ */
+@Setter
+@JacksonXmlRootElement( localName = "jobParameters", namespace = DxfNamespaces.DXF_2_0 )
+public class AggregateDataExchangeJobParameters implements JobParameters
 {
+    private List<String> dataExchangeIds;
 
-    @Test
-    void testSaveOrgUnitImage()
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public List<String> getDataExchangeIds()
     {
-        MockMultipartFile image = new MockMultipartFile( "file", "OU_profile_image.png", "image/png",
-            "<<png data>>".getBytes() );
-        HttpResponse response = POST_MULTIPART( "/fileResources?domain=ORG_UNIT", image );
-        JsonObject savedObject = response.content( HttpStatus.ACCEPTED ).getObject( "response" )
-            .getObject( "fileResource" );
-        assertEquals( "OU_profile_image.png", savedObject.getString( "name" ).string() );
+        return dataExchangeIds;
     }
 
-    @Test
-    void testSaveOrgUnitImageWithUid()
+    @Override
+    public Optional<ErrorReport> validate()
     {
-        MockMultipartFile image = new MockMultipartFile( "file", "OU_profile_image.png", "image/png",
-            "<<png data>>".getBytes() );
-        HttpResponse response = POST_MULTIPART( "/fileResources?domain=ORG_UNIT&uid=0123456789a", image );
-        JsonObject savedObject = response.content( HttpStatus.ACCEPTED ).getObject( "response" )
-            .getObject( "fileResource" );
-        assertEquals( "OU_profile_image.png", savedObject.getString( "name" ).string() );
-        assertEquals( "0123456789a", savedObject.getString( "id" ).string() );
+        if ( dataExchangeIds == null || dataExchangeIds.isEmpty() )
+        {
+            return Optional.of( new ErrorReport( getClass(), ErrorCode.E4000, "dataExchangeIds" ) );
+        }
+        return Optional.empty();
     }
 }

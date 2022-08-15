@@ -27,37 +27,26 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
 import org.junit.jupiter.api.Test;
-import org.springframework.mock.web.MockMultipartFile;
 
-class FileResourceControllerTest extends DhisControllerConvenienceTest
+/**
+ * @author Jan Bernitt
+ */
+class OptionGroupControllerTest extends DhisControllerConvenienceTest
 {
-
     @Test
-    void testSaveOrgUnitImage()
+    void testPostOptionGroupWithDescription()
     {
-        MockMultipartFile image = new MockMultipartFile( "file", "OU_profile_image.png", "image/png",
-            "<<png data>>".getBytes() );
-        HttpResponse response = POST_MULTIPART( "/fileResources?domain=ORG_UNIT", image );
-        JsonObject savedObject = response.content( HttpStatus.ACCEPTED ).getObject( "response" )
-            .getObject( "fileResource" );
-        assertEquals( "OU_profile_image.png", savedObject.getString( "name" ).string() );
+        String uid = assertStatus( HttpStatus.CREATED,
+            POST( "/optionGroups/", "{'name':'example', 'shortName':'ex', 'description': 'test'}" ) );
+        JsonIdentifiableObject group = GET( "/optionGroups/" + uid ).content().as( JsonIdentifiableObject.class );
+        assertEquals( "test", group.getDescription() );
     }
 
-    @Test
-    void testSaveOrgUnitImageWithUid()
-    {
-        MockMultipartFile image = new MockMultipartFile( "file", "OU_profile_image.png", "image/png",
-            "<<png data>>".getBytes() );
-        HttpResponse response = POST_MULTIPART( "/fileResources?domain=ORG_UNIT&uid=0123456789a", image );
-        JsonObject savedObject = response.content( HttpStatus.ACCEPTED ).getObject( "response" )
-            .getObject( "fileResource" );
-        assertEquals( "OU_profile_image.png", savedObject.getString( "name" ).string() );
-        assertEquals( "0123456789a", savedObject.getString( "id" ).string() );
-    }
 }

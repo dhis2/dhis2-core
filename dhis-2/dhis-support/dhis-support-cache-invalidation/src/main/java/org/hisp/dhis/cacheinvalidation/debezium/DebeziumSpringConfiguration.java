@@ -25,39 +25,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.cacheinvalidation.debezium;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
+import org.springframework.security.core.session.SessionRegistryImpl;
 
-import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.junit.jupiter.api.Test;
-import org.springframework.mock.web.MockMultipartFile;
-
-class FileResourceControllerTest extends DhisControllerConvenienceTest
+/**
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
+@Order( 101 )
+@ComponentScan( basePackages = { "org.hisp.dhis" } )
+@Conditional( value = DebeziumCacheInvalidationEnabledCondition.class )
+@Configuration
+public class DebeziumSpringConfiguration
 {
-
-    @Test
-    void testSaveOrgUnitImage()
+    @Bean
+    public static SessionRegistryImpl sessionRegistry()
     {
-        MockMultipartFile image = new MockMultipartFile( "file", "OU_profile_image.png", "image/png",
-            "<<png data>>".getBytes() );
-        HttpResponse response = POST_MULTIPART( "/fileResources?domain=ORG_UNIT", image );
-        JsonObject savedObject = response.content( HttpStatus.ACCEPTED ).getObject( "response" )
-            .getObject( "fileResource" );
-        assertEquals( "OU_profile_image.png", savedObject.getString( "name" ).string() );
+        return new SessionRegistryImpl();
     }
 
-    @Test
-    void testSaveOrgUnitImageWithUid()
+    @Bean
+    public DebeziumPreStartupRoutine debeziumPreStartupRoutine()
     {
-        MockMultipartFile image = new MockMultipartFile( "file", "OU_profile_image.png", "image/png",
-            "<<png data>>".getBytes() );
-        HttpResponse response = POST_MULTIPART( "/fileResources?domain=ORG_UNIT&uid=0123456789a", image );
-        JsonObject savedObject = response.content( HttpStatus.ACCEPTED ).getObject( "response" )
-            .getObject( "fileResource" );
-        assertEquals( "OU_profile_image.png", savedObject.getString( "name" ).string() );
-        assertEquals( "0123456789a", savedObject.getString( "id" ).string() );
+        DebeziumPreStartupRoutine routine = new DebeziumPreStartupRoutine();
+        routine.setName( "debeziumPreStartupRoutine" );
+        routine.setRunlevel( 1 );
+        routine.setSkipInTests( true );
+        return routine;
+    }
+
+    @Bean
+    public StartupDebeziumServiceRoutine startupDebeziumServiceRoutine()
+    {
+        StartupDebeziumServiceRoutine routine = new StartupDebeziumServiceRoutine();
+        routine.setName( "StartupDebeziumServiceRoutine" );
+        routine.setRunlevel( 20 );
+        routine.setSkipInTests( true );
+        return routine;
     }
 }
