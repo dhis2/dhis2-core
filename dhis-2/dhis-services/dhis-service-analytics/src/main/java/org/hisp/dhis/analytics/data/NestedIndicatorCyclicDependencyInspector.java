@@ -131,7 +131,7 @@ public class NestedIndicatorCyclicDependencyInspector
     {
         for ( Indicator indicator : indicators )
         {
-            // Find the parent node to which we attach the indicators
+            // Find the parent node to attach indicators
             TreeNode<String> parentNode = tree.find( parent );
             if ( parentNode == null )
             {
@@ -141,9 +141,8 @@ public class NestedIndicatorCyclicDependencyInspector
             {
                 TreeNode<String> mNode = parentNode;
 
-                // Navigate backward from the parent node to verify that a
-                // direct ancestor
-                // doesn't have the same UID as the current indicator
+                // Navigate backward from parent node to verify that an ancestor
+                // does not have the same UID as current indicator
                 do
                 {
                     mNode = mNode.parent();
@@ -155,8 +154,7 @@ public class NestedIndicatorCyclicDependencyInspector
                 while ( !mNode.isRoot() );
             }
 
-            // Check that the node to add doesn't have the same value as the
-            // parent
+            // Check that node to add does not have the same value as parent
             if ( parentNode.data().equals( indicator.getUid() ) )
             {
                 throw new CyclicReferenceException( format( ERROR_STRING, indicator.getUid() ) );

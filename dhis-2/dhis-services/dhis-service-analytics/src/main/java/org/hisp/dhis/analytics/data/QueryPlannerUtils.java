@@ -216,8 +216,8 @@ public class QueryPlannerUtils
      * @param aggregationPeriodType the aggregation period type.
      * @param dataPeriodType the data period type.
      */
-    public static boolean isDisaggregation( AnalyticsAggregationType aggregationType, PeriodType aggregationPeriodType,
-        PeriodType dataPeriodType )
+    public static boolean isDisaggregation( AnalyticsAggregationType aggregationType,
+        PeriodType aggregationPeriodType, PeriodType dataPeriodType )
     {
         if ( dataPeriodType == null || aggregationPeriodType == null )
         {
