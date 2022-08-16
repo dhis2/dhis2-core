@@ -32,7 +32,6 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -85,10 +84,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
     protected boolean transientIdentifiableProperties = false;
 
-    private final List<Consumer<T>> savedListeners = new ArrayList<>();
-
-    private final List<Consumer<T>> updatedListeners = new ArrayList<>();
-
     public HibernateIdentifiableObjectStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, Class<T> clazz, CurrentUserService currentUserService,
         AclService aclService, boolean cacheable )
@@ -102,18 +97,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     public void setCurrentUserService( CurrentUserService currentUserService )
     {
         this.currentUserService = currentUserService;
-    }
-
-    @Override
-    public void addSavedListener( Consumer<T> onSave )
-    {
-        savedListeners.add( onSave );
-    }
-
-    @Override
-    public void addUpdatedListener( Consumer<T> onUpdate )
-    {
-        updatedListeners.add( onUpdate );
     }
 
     /**
@@ -204,8 +187,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         AuditLogUtil.infoWrapper( log, username, object, AuditLogUtil.ACTION_CREATE );
         getSession().saveOrUpdate( object );
-
-        savedListeners.forEach( l -> l.accept( object ) );
     }
 
     @Override
@@ -249,7 +230,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         {
             getSession().update( object );
         }
-        updatedListeners.forEach( l -> l.accept( object ) );
     }
 
     @Override

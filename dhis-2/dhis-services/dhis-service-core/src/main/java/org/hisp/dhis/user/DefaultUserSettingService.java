@@ -84,7 +84,7 @@ public class DefaultUserSettingService
 
     public DefaultUserSettingService( CacheProvider cacheProvider,
         CurrentUserService currentUserService,
-        UserSettingStore userSettingStore, UserService userService, UserStore userStore,
+        UserSettingStore userSettingStore, UserService userService,
         SystemSettingManager systemSettingManager )
     {
         checkNotNull( cacheProvider );
@@ -98,8 +98,6 @@ public class DefaultUserSettingService
         this.userService = userService;
         this.systemSettingManager = systemSettingManager;
         this.userSettingCache = cacheProvider.createUserSettingCache();
-        userStore.addSavedListener( user -> saveUserSettings( user.getSettings(), user ) );
-        userStore.addUpdatedListener( user -> saveUserSettings( user.getSettings(), user ) );
     }
 
     // -------------------------------------------------------------------------
