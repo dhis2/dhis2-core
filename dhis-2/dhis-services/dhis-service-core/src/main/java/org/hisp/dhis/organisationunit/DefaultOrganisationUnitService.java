@@ -517,8 +517,7 @@ public class DefaultOrganisationUnitService
                 continue;
             }
 
-            String uid1 = ancestor.getUid();
-            ancestorsUid.add( uid1 );
+            ancestorsUid.add( ancestor.getUid() );
         }
 
         OrganisationUnit unit = getOrganisationUnit( organisationUnit.getUid() );
