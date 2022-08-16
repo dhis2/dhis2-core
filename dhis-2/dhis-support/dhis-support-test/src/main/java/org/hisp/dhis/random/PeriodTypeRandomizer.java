@@ -30,6 +30,7 @@ package org.hisp.dhis.random;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.hisp.dhis.period.PeriodType;
 import org.jeasy.random.api.Randomizer;
@@ -41,7 +42,8 @@ public class PeriodTypeRandomizer
     implements
     Randomizer<PeriodType>
 {
-    private static final Random RANDOM = new Random();
+
+    private static final Random RANDOM = ThreadLocalRandom.current();
 
     private List<PeriodType> periodTypes = Arrays.asList(
         PeriodType.getPeriodTypeFromIsoString( "2011" ),
