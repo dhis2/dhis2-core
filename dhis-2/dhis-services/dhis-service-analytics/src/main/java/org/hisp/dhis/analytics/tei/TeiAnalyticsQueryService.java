@@ -70,7 +70,7 @@ public class TeiAnalyticsQueryService
         QueryContext queryContext = QueryContext.of( teiQueryParams );
         // output should look like: https://pastebin.com/4aK9ZxEQ
 
-        notNull( teiQueryParams, "The 'teiParams' must not be null" );
+        notNull( teiQueryParams, "The 'teiQueryParams' must not be null" );
         notNull( commonQueryRequest, "The 'commonQueryRequest' must not be null" );
 
         final SqlQueryResult result = queryExecutor.execute( new TeiFullQuery( queryContext ).statement() );

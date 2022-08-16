@@ -132,10 +132,7 @@ public class TeiFullQuery extends BaseRenderable
 
     private Select getSelect()
     {
-        // ** TODO: add more static fields if needed
-        Stream<Field> staticFields = Stream.of( getFieldWithAlias( "trackedentityinstanceid" ),
-            getFieldWithAlias( "trackedentityinstanceuid" ),
-            getFieldWithAlias( "enrollments" ) );
+        Stream<Field> staticFields = getStaticFields();
 
         // TODO remove next line when attributes match those in the table.
         List<String> notGeneratedColumns = List.of( "Jdd8hMStmvF", "EGn5VqU7pHv", "JBJ3AWsrg9P" );
@@ -172,6 +169,16 @@ public class TeiFullQuery extends BaseRenderable
             Stream.of( staticFields, attributes, orderFields )
                 .flatMap( identity() )
                 .collect( toList() ) );
+    }
+
+    private Stream<Field> getStaticFields()
+    {
+        return Stream.of( getFieldWithAlias( "trackedentityinstanceuid" ), getFieldWithAlias( "trackedentitytypeuid" ),
+            getFieldWithAlias( "created" ), getFieldWithAlias( "lastupdated" ), getFieldWithAlias( "geometry" ),
+            getFieldWithAlias( "createdbydisplayname" ), getFieldWithAlias( "lastupdatedbydisplayname" ),
+            getFieldWithAlias( "longitude" ), getFieldWithAlias( "latitude" ), getFieldWithAlias( "coordinates" ),
+            getFieldWithAlias( "ou" ), getFieldWithAlias( "ouname" ), getFieldWithAlias( "oucode" ),
+            getFieldWithAlias( "oulevel" ), getFieldWithAlias( "coordinates" ), getFieldWithAlias( "enrollments" ) );
     }
 
     private Stream<Field> getExtractedOrderFieldsForSelect()

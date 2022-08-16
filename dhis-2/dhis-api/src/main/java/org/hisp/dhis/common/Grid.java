@@ -36,6 +36,7 @@ import java.util.Set;
 import net.sf.jasperreports.engine.JRDataSource;
 
 import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.jdbc.support.rowset.SqlRowSetMetaData;
 
 /**
  * Represents a two-dimensional grid of Object-typed values organized in rows
@@ -496,6 +497,16 @@ public interface Grid
      * @param rs the result set.
      */
     Grid addHeaders( SqlRowSet rs );
+
+    /**
+     * Adds a set of headers based on the column names of the given SQL row set.
+     * If 'withTypes' are set to true, the method will dynamically set the
+     * header type based on the row set metadata.
+     *
+     * @param rowSetMetaData the result set.
+     * @param withTypes if true, it will set the respective header type.
+     */
+    Grid addHeaders( SqlRowSetMetaData rowSetMetaData, boolean withTypes );
 
     /**
      * Moves the cursor the next row and adds values for each column of the

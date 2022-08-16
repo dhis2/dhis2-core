@@ -28,6 +28,7 @@
 package org.hisp.dhis.system.grid;
 
 import static java.util.stream.Collectors.toList;
+import static org.hisp.dhis.common.ValueType.getValueTypeFromSqlType;
 import static org.hisp.dhis.commons.collection.CollectionUtils.mapToList;
 import static org.hisp.dhis.feedback.ErrorCode.E7230;
 
@@ -1069,6 +1070,31 @@ public class ListGrid
         for ( int i = 1; i <= columnNo; i++ )
         {
             addHeader( new GridHeader( rsmd.getColumnLabel( i ), false, false ) );
+        }
+
+        return this;
+    }
+
+    @Override
+    public Grid addHeaders( final SqlRowSetMetaData rowSetMetaData, final boolean withTypes )
+    {
+        final int columnNo = rowSetMetaData.getColumnCount();
+
+        for ( int i = 1; i <= columnNo; i++ )
+        {
+            final GridHeader gridHeader;
+
+            if ( withTypes )
+            {
+                gridHeader = new GridHeader( rowSetMetaData.getColumnLabel( i ),
+                    getValueTypeFromSqlType( rowSetMetaData.getColumnType( i ) ) );
+            }
+            else
+            {
+                gridHeader = new GridHeader( rowSetMetaData.getColumnLabel( i ) );
+            }
+
+            addHeader( gridHeader );
         }
 
         return this;

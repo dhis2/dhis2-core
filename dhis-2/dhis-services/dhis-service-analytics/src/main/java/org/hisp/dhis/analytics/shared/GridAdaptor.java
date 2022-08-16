@@ -97,7 +97,7 @@ public class GridAdaptor
         notNull( commonQueryRequest, "The 'commonQueryRequest' must not be null" );
 
         final Grid grid = new ListGrid();
-        grid.addHeaders( sqlQueryResult.result() );
+        grid.addHeaders( sqlQueryResult.result().getMetaData(), true );
         grid.addRows( sqlQueryResult.result() );
 
         if ( !commonQueryRequest.isSkipMeta() )

@@ -62,6 +62,8 @@ import org.springframework.stereotype.Service;
 class DefaultTeiAnalyticsDimensionsService implements TeiAnalyticsDimensionsService
 {
 
+    static final String TRACKED_ENTITY_ATTRIBUTE = "TRACKED_ENTITY_ATTRIBUTE";
+
     @NonNull
     private final TrackedEntityTypeService trackedEntityTypeService;
 
@@ -85,7 +87,7 @@ class DefaultTeiAnalyticsDimensionsService implements TeiAnalyticsDimensionsServ
                     .filter( this::isNotConfidential )
                     .collect( Collectors.toList() ) ).stream()
                         .map( prefixedDimension -> prefixedDimension
-                            .withDimensionType( "TRACKED_ENTITY_ATTRIBUTE" ) )
+                            .withDimensionType( TRACKED_ENTITY_ATTRIBUTE ) )
                         .collect( Collectors.toList() );
 
             List<String> teaUids = trackedEntityAttributes.stream()
