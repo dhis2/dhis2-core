@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.data;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
 import static java.util.Collections.*;
 import static org.hisp.dhis.common.DimensionItemType.INDICATOR;
@@ -37,6 +36,8 @@ import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.expression.ExpressionService;
@@ -59,21 +60,12 @@ import com.scalified.tree.multinode.ArrayMultiTreeNode;
  * @author Luciano Fiandesio
  */
 @Component
+@RequiredArgsConstructor
 public class NestedIndicatorCyclicDependencyInspector
 {
     private final ExpressionService expressionService;
 
     private final DimensionService dimensionService;
-
-    public NestedIndicatorCyclicDependencyInspector( DimensionService dimensionService,
-        ExpressionService expressionService )
-    {
-        checkNotNull( expressionService );
-        checkNotNull( dimensionService );
-
-        this.dimensionService = dimensionService;
-        this.expressionService = expressionService;
-    }
 
     private final static String ERROR_STRING = "An Indicator with identifier '%s' has a cyclic reference to another Indicator in the Nominator or Denominator expression";
 

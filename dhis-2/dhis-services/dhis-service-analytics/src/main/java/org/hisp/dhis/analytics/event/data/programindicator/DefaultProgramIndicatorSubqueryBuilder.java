@@ -27,12 +27,13 @@
  */
 package org.hisp.dhis.analytics.event.data.programindicator;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.analytics.DataType.BOOLEAN;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
 
 import java.util.Date;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.DataType;
@@ -47,6 +48,7 @@ import org.springframework.stereotype.Component;
 import com.google.common.base.Strings;
 
 @Component
+@RequiredArgsConstructor
 public class DefaultProgramIndicatorSubqueryBuilder
     implements ProgramIndicatorSubqueryBuilder
 {
@@ -55,13 +57,6 @@ public class DefaultProgramIndicatorSubqueryBuilder
     private final static String SUBQUERY_TABLE_ALIAS = "subax";
 
     private final ProgramIndicatorService programIndicatorService;
-
-    public DefaultProgramIndicatorSubqueryBuilder( ProgramIndicatorService programIndicatorService )
-    {
-        checkNotNull( programIndicatorService );
-
-        this.programIndicatorService = programIndicatorService;
-    }
 
     /**
      * {@inheritDoc}

@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.data.handler;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.Math.min;
 import static java.util.Collections.singletonList;
@@ -112,6 +111,7 @@ import java.util.concurrent.Future;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.collections4.MultiValuedMap;
@@ -160,6 +160,7 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class DataHandler
 {
     private static final int MAX_QUERIES = 8;
@@ -187,35 +188,6 @@ public class DataHandler
     private DataAggregator dataAggregator;
 
     private final ExecutionPlanStore executionPlanStore;
-
-    public DataHandler( EventAnalyticsService eventAnalyticsService, RawAnalyticsManager rawAnalyticsManager,
-        ExpressionResolvers resolvers, ExpressionService expressionService,
-        QueryPlanner queryPlanner, QueryValidator queryValidator, SystemSettingManager systemSettingManager,
-        AnalyticsManager analyticsManager, OrganisationUnitService organisationUnitService,
-        ExecutionPlanStore executionPlanStore )
-    {
-        checkNotNull( eventAnalyticsService );
-        checkNotNull( rawAnalyticsManager );
-        checkNotNull( resolvers );
-        checkNotNull( expressionService );
-        checkNotNull( queryPlanner );
-        checkNotNull( queryValidator );
-        checkNotNull( systemSettingManager );
-        checkNotNull( analyticsManager );
-        checkNotNull( organisationUnitService );
-        checkNotNull( executionPlanStore );
-
-        this.eventAnalyticsService = eventAnalyticsService;
-        this.rawAnalyticsManager = rawAnalyticsManager;
-        this.resolvers = resolvers;
-        this.expressionService = expressionService;
-        this.queryPlanner = queryPlanner;
-        this.queryValidator = queryValidator;
-        this.systemSettingManager = systemSettingManager;
-        this.analyticsManager = analyticsManager;
-        this.organisationUnitService = organisationUnitService;
-        this.executionPlanStore = executionPlanStore;
-    }
 
     void addPerformanceMetrics( DataQueryParams params, Grid grid )
     {

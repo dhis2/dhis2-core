@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.orgunit.data;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
@@ -37,6 +36,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsManager;
 import org.hisp.dhis.analytics.orgunit.OrgUnitQueryParams;
@@ -52,17 +53,11 @@ import com.google.common.collect.Lists;
  * @author Lars Helge Overland
  */
 @Component( "org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsManager" )
+@RequiredArgsConstructor
 public class JdbcOrgUnitAnalyticsManager
     implements OrgUnitAnalyticsManager
 {
     private final JdbcTemplate jdbcTemplate;
-
-    public JdbcOrgUnitAnalyticsManager( JdbcTemplate jdbcTemplate )
-    {
-        checkNotNull( jdbcTemplate );
-
-        this.jdbcTemplate = jdbcTemplate;
-    }
 
     @Override
     public Map<String, Integer> getOrgUnitData( OrgUnitQueryParams params )

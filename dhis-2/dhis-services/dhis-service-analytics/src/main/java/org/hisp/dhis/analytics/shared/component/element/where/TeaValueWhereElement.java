@@ -46,11 +46,6 @@ public class TeaValueWhereElement implements Element<WhereVisitor>
 
     private String filterValue;
 
-    /**
-     * see Visitor design pattern
-     *
-     * @param v
-     */
     @Override
     public void accept( WhereVisitor v )
     {
