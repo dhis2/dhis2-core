@@ -43,15 +43,10 @@ import org.hisp.dhis.analytics.shared.visitor.select.SelectVisitor;
 @Getter
 public class EnrollmentDateValueSelectElement implements Element<SelectVisitor>
 {
-    private String uid;
+    private final String uid;
 
-    private String alias;
+    private final String alias;
 
-    /**
-     * see Visitor design pattern
-     *
-     * @param v
-     */
     @Override
     public void accept( SelectVisitor v )
     {

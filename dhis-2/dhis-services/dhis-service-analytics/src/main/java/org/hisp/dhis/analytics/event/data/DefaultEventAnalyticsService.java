@@ -185,8 +185,6 @@ public class DefaultEventAnalyticsService
 
     private final AnalyticsCache analyticsCache;
 
-    final SchemaIdResponseMapper schemaIdResponseMapper;
-
     public DefaultEventAnalyticsService( DataElementService dataElementService,
         TrackedEntityAttributeService trackedEntityAttributeService, EventAnalyticsManager eventAnalyticsManager,
         EventDataQueryService eventDataQueryService, AnalyticsSecurityManager securityManager,
@@ -213,7 +211,6 @@ public class DefaultEventAnalyticsService
         this.databaseInfo = databaseInfo;
         this.analyticsCache = analyticsCache;
         this.enrollmentAnalyticsManager = enrollmentAnalyticsManager;
-        this.schemaIdResponseMapper = schemaIdResponseMapper;
     }
 
     // -------------------------------------------------------------------------
