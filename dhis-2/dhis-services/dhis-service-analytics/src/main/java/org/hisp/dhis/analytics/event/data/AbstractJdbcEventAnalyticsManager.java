@@ -237,7 +237,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
             else
             {
                 /*
-                 * query returns UIDs but we want sorting on name or shortName
+                 * Query returns UIDs but we want sorting on name or shortName
                  * (depending on DisplayProperty) for OUGS/COGS
                  */
                 sql += Optional.ofNullable( extract( params.getDimensions(), item.getItem() ) )
@@ -366,8 +366,8 @@ public abstract class AbstractJdbcEventAnalyticsManager
             }
             else
             {
-                throw new IllegalStateException(
-                    "Program indicator with non-default boundary expects queries to have exactly one period, or no periods and a period filter" );
+                throw new IllegalStateException( "Program indicator non-default boundary query must have " +
+                    "exactly one period, or no periods and a period filter" );
             }
         }
 
