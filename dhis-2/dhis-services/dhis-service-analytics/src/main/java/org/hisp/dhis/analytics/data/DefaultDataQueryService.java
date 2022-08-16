@@ -556,7 +556,7 @@ public class DefaultDataQueryService
                 orgUnits.addAll( sort( organisationUnitService.getOrganisationUnitsAtLevels( levels, ousList ) ) );
 
                 dimensionalKeywords.addKeywords( levels.stream()
-                    .map( level -> organisationUnitService.getOrganisationUnitLevelByLevel( level ) )
+                    .map( organisationUnitService::getOrganisationUnitLevelByLevel )
                     .filter( Objects::nonNull )
                     .collect( Collectors.toList() ) );
             }
