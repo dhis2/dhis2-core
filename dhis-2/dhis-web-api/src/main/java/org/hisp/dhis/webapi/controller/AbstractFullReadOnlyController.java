@@ -297,16 +297,16 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
             // We just split on ',' here, we do not try and deep dive into
             // objects using [], if the client provides id,name,group[id]
             // then the group[id] part is simply ignored.
-            for ( String splitField : field.split( "," ) )
+            for ( String fieldName : field.split( "," ) )
             {
-                Property property = getSchema().getProperty( splitField );
+                Property property = getSchema().getProperty( fieldName );
 
                 if ( property == null )
                 {
-                    if ( CodeGenerator.isValidUid( splitField ) )
+                    if ( CodeGenerator.isValidUid( fieldName ) )
                     {
-                        schemaBuilder.addColumn( splitField );
-                        obj2valueByProperty.put( splitField, obj -> getAttributeValue( obj, splitField ) );
+                        schemaBuilder.addColumn( fieldName );
+                        obj2valueByProperty.put( fieldName, obj -> getAttributeValue( obj, fieldName ) );
                     }
                     continue;
                 }
@@ -314,12 +314,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
                 if ( (property.isCollection() && property.itemIs( PropertyType.REFERENCE )) )
                 {
                     schemaBuilder.addArrayColumn( property.getCollectionName() );
-                    obj2valueByProperty.put( property.getCollectionName(), obj -> {
-                        Object value = ReflectionUtils.invokeMethod( obj, property.getGetterMethod() );
-                        @SuppressWarnings( "unchecked" )
-                        Collection<IdentifiableObject> collection = (Collection<IdentifiableObject>) value;
-                        return collection.stream().map( PrimaryKeyObject::getUid ).collect( toList() );
-                    } );
+                    obj2valueByProperty.put( property.getCollectionName(), obj -> getCollectionValue( obj, property ) );
                 }
                 else
                 {
@@ -346,7 +341,10 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
         {
             SequenceWriter seqW = csvMapper.writer()
                 .writeValues( strW );
-            seqW.write( obj2valueByProperty.keySet().toArray() );
+            if ( !skipHeader )
+            {
+                seqW.write( obj2valueByProperty.keySet().toArray() );
+            }
             Object[] row = new Object[obj2valueByProperty.size()];
             for ( T e : entities )
             {
@@ -367,6 +365,14 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
                 "Invalid property selected. Make sure all properties are either simple or collections of refs / simple.",
                 ex.getMessage() ) );
         }
+    }
+
+    private static List<String> getCollectionValue( Object obj, Property property )
+    {
+        Object value = ReflectionUtils.invokeMethod( obj, property.getGetterMethod() );
+        @SuppressWarnings( "unchecked" )
+        Collection<IdentifiableObject> collection = (Collection<IdentifiableObject>) value;
+        return collection.stream().map( PrimaryKeyObject::getUid ).collect( toList() );
     }
 
     private static Object getAttributeValue( Object obj, String attrId )
