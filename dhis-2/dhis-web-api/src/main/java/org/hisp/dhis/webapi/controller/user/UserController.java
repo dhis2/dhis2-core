@@ -220,7 +220,6 @@ public class UserController
 
         // Fetches all users if there are no query, i.e only filters...
         List<User> users = userService.getUsers( params, ordersAsString );
-
         query.setObjects( users );
         query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
         query.setDefaultOrder();

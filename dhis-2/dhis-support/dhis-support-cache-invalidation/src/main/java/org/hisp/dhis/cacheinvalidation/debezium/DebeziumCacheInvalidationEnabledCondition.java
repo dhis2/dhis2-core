@@ -25,47 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.cacheinvalidation;
+package org.hisp.dhis.cacheinvalidation.debezium;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Conditional;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
-import org.springframework.security.core.session.SessionRegistryImpl;
+import org.hisp.dhis.condition.PropertiesAwareConfigurationCondition;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.springframework.context.annotation.ConditionContext;
+import org.springframework.core.type.AnnotatedTypeMetadata;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Order( 101 )
-@ComponentScan( basePackages = { "org.hisp.dhis" } )
-@Conditional( value = DebeziumCacheInvalidationEnabledCondition.class )
-@Configuration
-public class DebeziumSpringConfiguration
+public class DebeziumCacheInvalidationEnabledCondition extends PropertiesAwareConfigurationCondition
 {
-    @Bean
-    public static SessionRegistryImpl sessionRegistry()
+    @Override
+    public boolean matches( ConditionContext context, AnnotatedTypeMetadata metadata )
     {
-        return new SessionRegistryImpl();
+        if ( isTestRun( context ) )
+        {
+            return false;
+        }
+
+        return getConfiguration().isEnabled( ConfigurationKey.DEBEZIUM_ENABLED );
     }
 
-    @Bean
-    public DebeziumPreStartupRoutine debeziumPreStartupRoutine()
+    @Override
+    public ConfigurationPhase getConfigurationPhase()
     {
-        DebeziumPreStartupRoutine routine = new DebeziumPreStartupRoutine();
-        routine.setName( "debeziumPreStartupRoutine" );
-        routine.setRunlevel( 1 );
-        routine.setSkipInTests( true );
-        return routine;
-    }
-
-    @Bean
-    public StartupDebeziumServiceRoutine startupDebeziumServiceRoutine()
-    {
-        StartupDebeziumServiceRoutine routine = new StartupDebeziumServiceRoutine();
-        routine.setName( "StartupDebeziumServiceRoutine" );
-        routine.setRunlevel( 20 );
-        routine.setSkipInTests( true );
-        return routine;
+        return ConfigurationPhase.PARSE_CONFIGURATION;
     }
 }
