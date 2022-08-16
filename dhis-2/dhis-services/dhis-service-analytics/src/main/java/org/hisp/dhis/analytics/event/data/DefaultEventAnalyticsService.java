@@ -615,10 +615,6 @@ public class DefaultEventAnalyticsService
                 grid.sortGrid( 1, params.getSortOrderAsInt() );
             }
 
-            System.out.println( "has limit " + params.hasLimit() );
-            System.out.println( "grid heigt " + grid.getHeight() );
-            System.out.println( "limit " + params.getLimit() );
-
             if ( params.hasLimit() && grid.getHeight() > params.getLimit() )
             {
                 grid.limitGrid( params.getLimit() );
