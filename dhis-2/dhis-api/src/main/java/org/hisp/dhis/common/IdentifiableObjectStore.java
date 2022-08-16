@@ -31,6 +31,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.user.User;
@@ -393,4 +394,16 @@ public interface IdentifiableObjectStore<T>
      * Remove given UserGroup UID from all sharing records in database
      */
     void removeUserGroupFromSharing( String userGroupUID, String tableName );
+
+    /**
+     * @param onSave a callback function to call with a newly created object
+     *        after it has been saved
+     */
+    void addSavedListener( Consumer<T> onSave );
+
+    /**
+     * @param onUpdate a callback function to call with a recently updated
+     *        object just after it has been updated
+     */
+    void addUpdatedListener( Consumer<T> onUpdate );
 }

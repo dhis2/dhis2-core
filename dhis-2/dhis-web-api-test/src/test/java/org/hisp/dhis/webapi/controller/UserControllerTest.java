@@ -170,6 +170,16 @@ class UserControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
+    void testPutJsonObject_WithSettings()
+    {
+        JsonObject user = GET( "/users/{id}", peter.getUid() ).content();
+        assertWebMessage( "OK", 200, "OK", null,
+            PUT( "/38/users/" + peter.getUid(),
+                user.node().addMember( "settings", "{\"uiLocale\":\"en_GB\"}" ).toString() ).content( HttpStatus.OK ) );
+        assertEquals( "en_GB", GET( "/userSettings/keyUiLocale" ).content().string() );
+    }
+
+    @Test
     void testPutJsonObject_Pre38()
     {
         JsonObject user = GET( "/users/{uid}", peter.getUid() ).content();
