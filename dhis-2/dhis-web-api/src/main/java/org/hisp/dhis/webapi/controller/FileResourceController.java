@@ -163,15 +163,15 @@ public class FileResourceController
          * doesn't make sense So we will return false if the fileResource have
          * either of these domains.
          */
-        if ( fileResource.getDomain().equals( FileResourceDomain.DATA_VALUE )
-            || fileResource.getDomain().equals( FileResourceDomain.PUSH_ANALYSIS ) )
+        FileResourceDomain domain = fileResource.getDomain();
+        if ( domain == FileResourceDomain.DATA_VALUE || domain == FileResourceDomain.PUSH_ANALYSIS )
         {
             return false;
         }
 
-        if ( fileResource.getDomain().equals( FileResourceDomain.USER_AVATAR ) )
+        if ( domain == FileResourceDomain.USER_AVATAR )
         {
-            return currentUser.isAuthorized( "F_USER_VIEW" ) || currentUser.getAvatar().equals( fileResource );
+            return currentUser.isAuthorized( "F_USER_VIEW" ) || fileResource.equals( currentUser.getAvatar() );
         }
 
         return true;
