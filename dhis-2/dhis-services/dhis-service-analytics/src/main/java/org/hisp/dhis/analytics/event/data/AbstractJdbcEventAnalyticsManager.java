@@ -171,6 +171,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
      * Returns a SQL paging clause.
      *
      * @param params the {@link EventQueryParams}.
+     * @param maxLimit the configurable max limit of records.
      */
     private String getPagingClause( EventQueryParams params, int maxLimit )
     {
@@ -907,7 +908,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
      * @param runnable a {@link Runnable} containing the code block to execute
      *        and wrap around the exception handling.
      */
-    void withExceptionHandling( Runnable runnable )
+    protected void withExceptionHandling( Runnable runnable )
     {
         try
         {
@@ -1112,7 +1113,11 @@ public abstract class AbstractJdbcEventAnalyticsManager
     }
 
     /**
-     * Produces SQL for a single filter inside a queryItem
+     * Creates a SQL statement for a single filter inside a query item.
+     *
+     * @param item the {@link QueryItem}.
+     * @param filter the {@link QueryFilter}.
+     * @param params the {@link EventQueryParams}.
      */
     private String toSql( QueryItem item, QueryFilter filter, EventQueryParams params )
     {
