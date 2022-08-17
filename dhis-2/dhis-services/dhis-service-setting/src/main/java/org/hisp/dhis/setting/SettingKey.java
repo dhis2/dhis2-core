@@ -109,6 +109,11 @@ public enum SettingKey
     RECAPTCHA_SITE( "recaptchaSite", "6LcVwT0UAAAAAAkO_EGPiYOiymIszZUeHfqWIYX5", String.class, true, false ),
     CAN_GRANT_OWN_USER_ROLES( "keyCanGrantOwnUserAuthorityGroups", Boolean.FALSE, Boolean.class ),
     IGNORE_ANALYTICS_APPROVAL_YEAR_THRESHOLD( "keyIgnoreAnalyticsApprovalYearThreshold", -1, Integer.class ),
+
+    /**
+     * Max records to return in the analytics API. Default is 100'000. The value
+     * 0 represents unlimited records.
+     */
     ANALYTICS_MAX_LIMIT( "keyAnalyticsMaxLimit", 100000, Integer.class ),
     INCLUDE_ZERO_VALUES_IN_ANALYTICS( "keyIncludeZeroValuesInAnalytics", Boolean.FALSE, Boolean.class ),
     SQL_VIEW_MAX_LIMIT( "keySqlViewMaxLimit", -1, Integer.class ),
@@ -205,13 +210,13 @@ public enum SettingKey
     RULE_ENGINE_ASSIGN_OVERWRITE( "ruleEngineAssignOverwrite", Boolean.FALSE, Boolean.class ),
 
     /**
-     * Progressive caching factor definition for Analytics. In order to enable
-     * it, the {@link #ANALYTICS_CACHE_TTL_MODE} has to be set to PROGRESSIVE.
+     * Progressive caching factor for the analytics API. To enable, the
+     * {@link #ANALYTICS_CACHE_TTL_MODE} must be set to PROGRESSIVE.
      */
     ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR( "keyAnalyticsCacheProgressiveTtlFactor", 160, Integer.class ),
 
     /**
-     * The caching strategy enabled.
+     * The cache time to live value for the analytics API.
      */
     ANALYTICS_CACHE_TTL_MODE( "keyAnalyticsCacheTtlMode", AnalyticsCacheTtlMode.FIXED, AnalyticsCacheTtlMode.class );
 

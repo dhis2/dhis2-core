@@ -25,60 +25,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.cacheinvalidation.debezium;
 
-import lombok.Getter;
-import lombok.Setter;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
+import org.springframework.security.core.session.SessionRegistryImpl;
 
 /**
- * This class contains paging criteria that can be used to execute an analytics
- * query.
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Getter
-@Setter
-public class AnalyticsPagingCriteria extends RequestTypeAware
+@Order( 101 )
+@ComponentScan( basePackages = { "org.hisp.dhis" } )
+@Conditional( value = DebeziumCacheInvalidationEnabledCondition.class )
+@Configuration
+public class DebeziumSpringConfiguration
 {
-    /**
-     * The page number. Default page is 1.
-     */
-    private Integer page = 1;
-
-    /**
-     * The page size.
-     */
-    private Integer pageSize = 50;
-
-    /**
-     * The paging parameter. When set to false we should not paginate. The
-     * default is true (paginate).
-     */
-    private boolean paging = true;
-
-    /**
-     * The paging parameter. When set to false we should not count total pages.
-     * The default is true (count total pages).
-     */
-    private boolean totalPages = true;
-
-    /**
-     * Sets the page size, taking the configurable max records limit into
-     * account. Note that a value of 0 represents unlimited records.
-     *
-     * @param maxLimit the max limit as defined in the system setting
-     *        'ANALYTICS_MAX_LIMIT'.
-     */
-    public void definePageSize( int maxLimit )
+    @Bean
+    public static SessionRegistryImpl sessionRegistry()
     {
-        if ( isPaging() )
-        {
-            if ( getPageSize() != null && maxLimit > 0 && getPageSize() > maxLimit )
-            {
-                setPageSize( maxLimit );
-            }
-        }
-        else
-        {
-            setPageSize( maxLimit );
-        }
+        return new SessionRegistryImpl();
+    }
+
+    @Bean
+    public DebeziumPreStartupRoutine debeziumPreStartupRoutine()
+    {
+        DebeziumPreStartupRoutine routine = new DebeziumPreStartupRoutine();
+        routine.setName( "debeziumPreStartupRoutine" );
+        routine.setRunlevel( 1 );
+        routine.setSkipInTests( true );
+        return routine;
+    }
+
+    @Bean
+    public StartupDebeziumServiceRoutine startupDebeziumServiceRoutine()
+    {
+        StartupDebeziumServiceRoutine routine = new StartupDebeziumServiceRoutine();
+        routine.setName( "StartupDebeziumServiceRoutine" );
+        routine.setRunlevel( 20 );
+        routine.setSkipInTests( true );
+        return routine;
     }
 }

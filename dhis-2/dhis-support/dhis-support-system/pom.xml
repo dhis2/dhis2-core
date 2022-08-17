@@ -111,7 +111,6 @@
     </dependency>
 
     <!-- Other -->
-
     <dependency>
       <groupId>com.google.api-client</groupId>
       <artifactId>google-api-client</artifactId>
