@@ -38,7 +38,7 @@ public class ApiTokenSchemaDescriptor implements SchemaDescriptor
 {
     public static final String SINGULAR = "apiToken";
 
-    public static final String PLURAL = "apiTokens";
+    public static final String PLURAL = "apiToken";
 
     public static final String API_ENDPOINT = "/" + PLURAL;
 
