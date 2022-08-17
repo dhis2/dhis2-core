@@ -35,14 +35,11 @@ import org.hisp.dhis.rules.models.RuleActionAssign;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Zubair Asghar
  */
 
-@ExtendWith( MockitoExtension.class )
 public class RuleActionAssignImplementerTest extends DhisConvenienceTest
 {
     public static final String PI_UI = "pi-uid";
