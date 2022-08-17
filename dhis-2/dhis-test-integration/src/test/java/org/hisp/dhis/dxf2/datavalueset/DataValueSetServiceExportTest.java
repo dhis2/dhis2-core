@@ -66,6 +66,7 @@ import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -75,6 +76,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Lars Helge Overland
  */
+@Order( 2 )
 class DataValueSetServiceExportTest extends IntegrationTestBase
 {
     @Autowired

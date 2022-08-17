@@ -56,15 +56,24 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
 import com.google.common.collect.Sets;
 
+// when TransactionalIntegrationTest then it fails to
+// ERROR org.hisp.dhis.dxf2.datavalueset.DefaultDataValueSetService -
+// java.lang.RuntimeException: Failed to flush BatchHandler
+// Caused by: org.postgresql.util.PSQLException: ERROR: insert or update on
+// table "datavalue" violates foreign key constraint
+// "fk_datavalue_dataelementid"
+// Detail: Key (dataelementid)=(103) is not present in table "dataelement".
 /**
  * @author Lars Helge Overland
  */
+@Order( 4 )
 class DataValueSetServiceIntegrationTest extends IntegrationTestBase
 {
     @Autowired

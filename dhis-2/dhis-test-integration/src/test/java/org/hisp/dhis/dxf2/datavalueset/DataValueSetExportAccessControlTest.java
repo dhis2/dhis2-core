@@ -57,6 +57,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -67,6 +68,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Lars Helge Overland
  */
+@Order( 1 )
 class DataValueSetExportAccessControlTest extends TransactionalIntegrationTest
 {
     @Autowired
