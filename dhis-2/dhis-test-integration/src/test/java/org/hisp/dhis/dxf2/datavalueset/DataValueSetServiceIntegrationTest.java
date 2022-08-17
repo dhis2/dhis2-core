@@ -28,6 +28,7 @@
 package org.hisp.dhis.dxf2.datavalueset;
 
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
@@ -436,19 +437,17 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase
 
     private static void assertHasNoConflicts( ImportConflicts summary )
     {
-        if ( summary.hasConflicts() )
-        {
-            assertEquals( 0, summary.getConflictCount(), summary.getConflictsDescription() );
-        }
+        assertEquals( 0, summary.getConflictCount(), summary.getConflictsDescription() );
     }
 
     private static void assertSuccessWithImportedUpdatedDeleted( int imported, int updated, int deleted,
         ImportSummary summary )
     {
-        assertHasNoConflicts( summary );
-        assertEquals( imported, summary.getImportCount().getImported(), "unexpected import count" );
-        assertEquals( updated, summary.getImportCount().getUpdated(), "unexpected update count" );
-        assertEquals( deleted, summary.getImportCount().getDeleted(), "unexpected deleted count" );
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+        assertAll(
+            () -> assertHasNoConflicts( summary ),
+            () -> assertEquals( imported, summary.getImportCount().getImported(), "unexpected import count" ),
+            () -> assertEquals( updated, summary.getImportCount().getUpdated(), "unexpected update count" ),
+            () -> assertEquals( deleted, summary.getImportCount().getDeleted(), "unexpected deleted count" ),
+            () -> assertEquals( ImportStatus.SUCCESS, summary.getStatus(), summary.getDescription() ) );
     }
 }
