@@ -615,7 +615,7 @@ public class HibernateUserStore
         String sql = "select concat(firstname, ' ', surname) from userinfo where uid =:uid";
         Query<String> query = getSession().createNativeQuery( sql );
         query.setParameter( "uid", userUid );
-        return query.getSingleResult();
+        return getSingleResult( query );
     }
 
     @Override
