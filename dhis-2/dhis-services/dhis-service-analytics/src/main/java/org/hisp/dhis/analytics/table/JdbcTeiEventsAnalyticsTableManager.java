@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.String.join;
 import static java.util.Collections.emptyList;
 import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_EVENTS;
@@ -46,8 +45,6 @@ import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NULL;
 import static org.hisp.dhis.analytics.IndexType.GIST;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.EXPORTABLE_EVENT_STATUSES;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.getDateLinkedToStatus;
-import static org.hisp.dhis.analytics.table.PartitionUtils.getEndDate;
-import static org.hisp.dhis.analytics.table.PartitionUtils.getStartDate;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.DisplayNameUtils.getDisplayName;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
@@ -58,10 +55,10 @@ import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 import static org.springframework.util.Assert.notNull;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
@@ -70,7 +67,6 @@ import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
-import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
@@ -78,7 +74,6 @@ import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -197,32 +192,12 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
     public List<AnalyticsTable> getAnalyticsTables( AnalyticsTableUpdateParams params )
     {
         List<Program> programs = idObjectManager.getAllNoAcl( Program.class );
-        List<TrackedEntityType> trackedEntityTypes = trackedEntityTypeService.getAllTrackedEntityType();
-        Calendar calendar = PeriodType.getCalendar();
 
-        List<AnalyticsTable> tables = new ArrayList<>();
-
-        for ( TrackedEntityType tet : trackedEntityTypes )
-        {
-            List<Integer> dataYears = getDataYears( params, tet );
-
-            Collections.sort( dataYears );
-
-            AnalyticsTable table = new AnalyticsTable( getAnalyticsTableType(), getTableColumns( programs, tet ),
-                newArrayList(), tet );
-
-            for ( Integer year : dataYears )
-            {
-                table.addPartitionTable( year, getStartDate( calendar, year ), getEndDate( calendar, year ) );
-            }
-
-            if ( table.hasPartitionTables() )
-            {
-                tables.add( table );
-            }
-        }
-
-        return tables;
+        return trackedEntityTypeService.getAllTrackedEntityType()
+            .stream()
+            .map( tet -> new AnalyticsTable( getAnalyticsTableType(), getTableColumns( programs, tet ), emptyList(),
+                tet ) )
+            .collect( Collectors.toList() );
     }
 
     private List<Integer> getDataYears( AnalyticsTableUpdateParams params, TrackedEntityType tet )
@@ -338,7 +313,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
     @Override
     protected String getPartitionColumn()
     {
-        return "yearly";
+        return null;
     }
 
     /**
@@ -352,12 +327,6 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
     {
         List<AnalyticsTableColumn> columns = partition.getMasterTable().getDimensionColumns();
         List<AnalyticsTableColumn> values = partition.getMasterTable().getValueColumns();
-
-        final String start = getLongDateString( partition.getStartDate() );
-        final String end = getLongDateString( partition.getEndDate() );
-        final String partitionClause = partition.isLatestPartition() ? "and psi.lastupdated >= '" + start + "' "
-            : "and " + "(" + getDateLinkedToStatus() + ") >= '" + start + "' "
-                + "and " + "(" + getDateLinkedToStatus() + ") < '" + end + "' ";
 
         validateDimensionColumns( columns );
 
@@ -403,7 +372,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
                 " inner join _dateperiodstructure dps on cast(" + getDateLinkedToStatus()
                     + " as date)=dps.dateperiod " )
             .append( " where tei.trackedentitytypeid = " + partition.getMasterTable().getTrackedEntityType().getId() )
-            .append( " and psi.lastupdated < '" + getLongDateString( params.getStartTime() ) + "' " + partitionClause )
+            .append( " and psi.lastupdated < '" + getLongDateString( params.getStartTime() ) + "' " )
             .append( " and psi.status in (" + join( ",", EXPORTABLE_EVENT_STATUSES ) + ")" )
             .append( " and psi.deleted is false " );
 
