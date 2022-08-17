@@ -73,7 +73,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Lars Helge Overland
  */
-@Order( 4 )
+@Order( 1 )
 class DataValueSetServiceIntegrationTest extends IntegrationTestBase
 {
     @Autowired
