@@ -123,7 +123,7 @@ class ApiTokenControllerTest extends DhisControllerConvenienceTest
         createNewTokenWithAttributes();
         createNewTokenWithAttributes();
         final JsonList<JsonApiToken> apiTokens = GET( ApiTokenSchemaDescriptor.API_ENDPOINT + "/" ).content()
-            .getList( "apiTokens", JsonApiToken.class );
+            .getList( "apiToken", JsonApiToken.class );
         assertEquals( 3, apiTokens.size() );
     }
 
@@ -136,7 +136,7 @@ class ApiTokenControllerTest extends DhisControllerConvenienceTest
         switchToNewUser( "anonymous" );
         createNewTokenWithAttributes();
         final JsonList<JsonApiToken> apiTokens = GET( ApiTokenSchemaDescriptor.API_ENDPOINT + "/" ).content()
-            .getList( "apiTokens", JsonApiToken.class );
+            .getList( "apiToken", JsonApiToken.class );
         assertEquals( 1, apiTokens.size() );
     }
 
