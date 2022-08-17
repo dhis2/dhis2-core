@@ -28,7 +28,6 @@
 package org.hisp.dhis.mock;
 
 import java.util.Date;
-import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.hisp.dhis.i18n.I18nFormat;
@@ -46,18 +45,17 @@ public class MockI18nFormat
 {
     private static final DateTimeFormatter FORMAT = DateTimeFormat.forPattern( "yyyy-MM-dd" );
 
-    private static final Random RANDOM = ThreadLocalRandom.current();
-
     @Override
     public String formatPeriod( Period period )
     {
-        return "Period_" + FORMAT.print( new DateTime( period.getStartDate() ) ) + "_" + RANDOM.nextInt( 1000 );
+        return "Period_" + FORMAT.print( new DateTime( period.getStartDate() ) ) + "_"
+            + ThreadLocalRandom.current().nextInt( 1000 );
     }
 
     @Override
     public String formatDate( Date date )
     {
-        return "Date_" + FORMAT.print( new DateTime( date ) ) + "_" + RANDOM.nextInt( 1000 );
+        return "Date_" + FORMAT.print( new DateTime( date ) ) + "_" + ThreadLocalRandom.current().nextInt( 1000 );
     }
 
     @Override

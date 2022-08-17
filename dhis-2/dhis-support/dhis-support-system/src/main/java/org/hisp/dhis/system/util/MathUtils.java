@@ -29,7 +29,6 @@ package org.hisp.dhis.system.util;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.regex.Pattern;
 
@@ -71,8 +70,6 @@ public class MathUtils
     private static final Pattern NEGATIVE_INT_PATTERN = Pattern.compile( "^-[1-9]\\d*$" );
 
     private static final Pattern ZERO_PATTERN = Pattern.compile( "^0(\\.0*)?$" );
-
-    private static final Random RANDOM = ThreadLocalRandom.current();
 
     /**
      * Indicates whether the given double valid, implying it is not null, not
@@ -481,7 +478,7 @@ public class MathUtils
      */
     public static int getRandom()
     {
-        return RANDOM.nextInt( 999 );
+        return ThreadLocalRandom.current().nextInt( 999 );
     }
 
     /**
