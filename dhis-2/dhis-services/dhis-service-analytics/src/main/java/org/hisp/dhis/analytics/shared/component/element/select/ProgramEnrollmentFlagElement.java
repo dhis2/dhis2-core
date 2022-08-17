@@ -47,11 +47,6 @@ public class ProgramEnrollmentFlagElement implements Element<SelectVisitor>
 
     private final String alias;
 
-    /**
-     * see Visitor design pattern
-     *
-     * @param v
-     */
     @Override
     public void accept( SelectVisitor v )
     {

@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.data;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.DataQueryParams.LEVEL_PREFIX;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
@@ -40,6 +39,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.analytics.AggregationType;
@@ -79,17 +79,11 @@ import com.google.common.collect.Lists;
  */
 @Slf4j
 @Component( "org.hisp.dhis.analytics.QueryPlanner" )
+@RequiredArgsConstructor
 public class DefaultQueryPlanner
     implements QueryPlanner
 {
     private final PartitionManager partitionManager;
-
-    public DefaultQueryPlanner( PartitionManager partitionManager )
-    {
-        checkNotNull( partitionManager );
-
-        this.partitionManager = partitionManager;
-    }
 
     // -------------------------------------------------------------------------
     // QueryPlanner implementation

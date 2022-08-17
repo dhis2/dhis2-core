@@ -54,7 +54,6 @@ import org.hisp.dhis.common.ValueType;
 
 public interface DimensionsServiceCommon
 {
-
     Collection<ValueType> QUERY_DISALLOWED_VALUE_TYPES = Set.of(
         IMAGE,
         FILE_RESOURCE,
