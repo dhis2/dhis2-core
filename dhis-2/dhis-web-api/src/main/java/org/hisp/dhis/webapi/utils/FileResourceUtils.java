@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.utils;
 
+import static java.lang.String.format;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 
@@ -192,8 +193,11 @@ public class FileResourceUtils
 
         File tmpFile = toTempFile( file );
 
+        if ( uid != null && fileResourceService.fileResourceExists( uid ) )
+        {
+            throw new WebMessageException( conflict( format( "A resource with Id %s already exists", uid ) ) );
+        }
         fileResourceService.saveFileResource( fileResource, tmpFile );
-
         return fileResource;
     }
 

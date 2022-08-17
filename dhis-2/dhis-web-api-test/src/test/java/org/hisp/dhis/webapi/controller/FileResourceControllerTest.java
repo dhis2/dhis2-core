@@ -60,4 +60,24 @@ class FileResourceControllerTest extends DhisControllerConvenienceTest
         assertEquals( "OU_profile_image.png", savedObject.getString( "name" ).string() );
         assertEquals( "0123456789a", savedObject.getString( "id" ).string() );
     }
+
+    @Test
+    void testSaveOrgUnitImageWithUid_Update()
+    {
+        MockMultipartFile image = new MockMultipartFile( "file", "OU_profile_image.png", "image/png",
+            "<<png data>>".getBytes() );
+        HttpResponse response = POST_MULTIPART( "/fileResources?domain=ORG_UNIT&uid=0123456789a", image );
+        JsonObject savedObject = response.content( HttpStatus.ACCEPTED ).getObject( "response" )
+            .getObject( "fileResource" );
+        assertEquals( "OU_profile_image.png", savedObject.getString( "name" ).string() );
+        assertEquals( "0123456789a", savedObject.getString( "id" ).string() );
+
+        // now update the resource with a different image but the same UID
+        MockMultipartFile image2 = new MockMultipartFile( "file", "OU_profile_image2.png", "image/png",
+            "<<png data>>".getBytes() );
+
+        assertWebMessage( "Conflict", 409, "ERROR",
+            "A resource with Id 0123456789a already exists",
+            POST_MULTIPART( "/fileResources?domain=ORG_UNIT&uid=0123456789a", image2 ).content( HttpStatus.CONFLICT ) );
+    }
 }
