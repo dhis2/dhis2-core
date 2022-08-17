@@ -35,6 +35,7 @@ import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_ANCESTORS;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_HIERARCHY;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARCHY;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.PAGER;
+import static org.hisp.dhis.analytics.tei.query.TeiFields.getGridHeaders;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentGraphMap;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraphMap;
 import static org.springframework.util.Assert.notNull;
@@ -50,6 +51,7 @@ import org.hisp.dhis.analytics.common.CommonParams;
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
+import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
@@ -81,28 +83,33 @@ public class GridAdaptor
      * the logic needed to create a valid Grid object.
      *
      * @param sqlQueryResult
-     * @param commonParams
+     * @param teiQueryParams
      * @param commonQueryRequest
      * @return the Grid object
      *
      * @throws IllegalArgumentException if headers is null/empty or contain at
      *         least one null element, or if the queryResult is null
      */
-    public Grid createGrid( final SqlQueryResult sqlQueryResult, final CommonParams commonParams,
+    public Grid createGrid( final SqlQueryResult sqlQueryResult, final TeiQueryParams teiQueryParams,
         final CommonQueryRequest commonQueryRequest )
     {
         notNull( sqlQueryResult, "The 'sqlQueryResult' must not be null" );
         notNull( sqlQueryResult.result(), "The 'sqlQueryResult.result' must not be null" );
-        notNull( commonParams, "The 'commonParams' must not be null" );
+        notNull( teiQueryParams, "The 'teiQueryParams' must not be null" );
         notNull( commonQueryRequest, "The 'commonQueryRequest' must not be null" );
 
         final Grid grid = new ListGrid();
-        grid.addHeaders( sqlQueryResult.result().getMetaData(), true );
+
+        // Adding headers.
+        getGridHeaders( teiQueryParams ).forEach(
+            gridHeader -> grid.addHeader( gridHeader ) );
+
+        // Adding rows.
         grid.addRows( sqlQueryResult.result() );
 
         if ( !commonQueryRequest.isSkipMeta() )
         {
-            grid.setMetaData( getMetaData( commonParams, commonQueryRequest ) );
+            grid.setMetaData( getMetaData( teiQueryParams.getCommonParams(), commonQueryRequest ) );
         }
 
         return grid;

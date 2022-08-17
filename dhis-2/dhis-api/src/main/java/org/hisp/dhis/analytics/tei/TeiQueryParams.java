@@ -50,5 +50,4 @@ public class TeiQueryParams
     private final TrackedEntityType trackedEntityType;
 
     private final CommonParams commonParams;
-
 }

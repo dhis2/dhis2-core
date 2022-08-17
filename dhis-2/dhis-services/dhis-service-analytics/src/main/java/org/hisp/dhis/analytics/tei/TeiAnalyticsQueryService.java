@@ -75,6 +75,6 @@ public class TeiAnalyticsQueryService
 
         final SqlQueryResult result = queryExecutor.execute( new TeiFullQuery( queryContext ).statement() );
 
-        return gridAdaptor.createGrid( result, teiQueryParams.getCommonParams(), commonQueryRequest );
+        return gridAdaptor.createGrid( result, teiQueryParams, commonQueryRequest );
     }
 }
