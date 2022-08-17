@@ -30,17 +30,16 @@ package org.hisp.dhis.analytics.event.data;
 import java.util.Optional;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.util.AnalyticsSqlUtils;
 
 @Getter
-@AllArgsConstructor( access = AccessLevel.PRIVATE )
+@RequiredArgsConstructor( access = AccessLevel.PRIVATE )
 class ColumnAndAlias
 {
-
     public static final ColumnAndAlias EMPTY = ColumnAndAlias.ofColumn( "" );
 
     private final String column;

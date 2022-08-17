@@ -50,7 +50,6 @@ import org.hisp.dhis.analytics.shared.component.element.select.SimpleSelectEleme
 @Getter
 public class SelectElementVisitor implements SelectVisitor
 {
-
     private final List<Column> columns = new ArrayList<>();
 
     /**

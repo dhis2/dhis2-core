@@ -29,7 +29,7 @@ package org.hisp.dhis.analytics.tei;
 
 import static org.springframework.util.Assert.notNull;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
 import org.hisp.dhis.analytics.shared.GridAdaptor;
@@ -48,10 +48,9 @@ import org.springframework.stereotype.Service;
  * @author maikel arabori
  */
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class TeiAnalyticsQueryService
 {
-
     private final QueryExecutor<SqlQuery, SqlQueryResult> queryExecutor;
 
     private final GridAdaptor gridAdaptor;

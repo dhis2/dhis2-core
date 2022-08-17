@@ -41,7 +41,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class TeiQueryRequestMapper
 {
-
     private final CommonQueryRequestMapper commonQueryRequestMapper;
 
     private final TrackedEntityTypeService trackedEntityTypeService;

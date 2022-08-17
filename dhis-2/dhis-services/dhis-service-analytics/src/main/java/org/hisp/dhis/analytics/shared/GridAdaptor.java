@@ -75,7 +75,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class GridAdaptor
 {
-
     private final CurrentUserService currentUserService;
 
     /**
