@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.joinWith;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.DIMENSIONS;
@@ -53,6 +52,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.data.handler.SchemaIdResponseMapper;
@@ -84,25 +85,14 @@ import com.google.common.collect.Lists;
 /**
  * @author Luciano Fiandesio
  */
+@RequiredArgsConstructor
 public abstract class AbstractAnalyticsService
 {
-    final AnalyticsSecurityManager securityManager;
+    protected final AnalyticsSecurityManager securityManager;
 
-    final EventQueryValidator queryValidator;
+    protected final EventQueryValidator queryValidator;
 
-    final SchemaIdResponseMapper schemaIdResponseMapper;
-
-    public AbstractAnalyticsService( AnalyticsSecurityManager securityManager, EventQueryValidator queryValidator,
-        SchemaIdResponseMapper schemaIdResponseMapper )
-    {
-        checkNotNull( securityManager );
-        checkNotNull( queryValidator );
-        checkNotNull( schemaIdResponseMapper );
-
-        this.securityManager = securityManager;
-        this.queryValidator = queryValidator;
-        this.schemaIdResponseMapper = schemaIdResponseMapper;
-    }
+    protected final SchemaIdResponseMapper schemaIdResponseMapper;
 
     protected Grid getGrid( EventQueryParams params )
     {
@@ -168,9 +158,9 @@ public abstract class AbstractAnalyticsService
             }
             else
             {
-                final String uid = getItemUid( item );
+                String uid = getItemUid( item );
 
-                final String column = item.getItem().getDisplayProperty( params.getDisplayProperty() );
+                String column = item.getItem().getDisplayProperty( params.getDisplayProperty() );
 
                 grid.addHeader( new GridHeader( uid, column, item.getValueType(),
                     false, true, item.getOptionSet(), item.getLegendSet() ) );

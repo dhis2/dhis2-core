@@ -50,7 +50,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class GridAdaptor
 {
-
     /**
      * /** Based on the given headers and result map, this method takes care of
      * the logic needed to create a valid Grid object.

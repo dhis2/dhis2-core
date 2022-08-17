@@ -88,8 +88,6 @@ public class DefaultEnrollmentAnalyticsService
 
     private final EventQueryPlanner queryPlanner;
 
-    private final SchemaIdResponseMapper schemaIdResponseMapper;
-
     public DefaultEnrollmentAnalyticsService( EnrollmentAnalyticsManager enrollmentAnalyticsManager,
         AnalyticsSecurityManager securityManager, EventQueryPlanner queryPlanner, EventQueryValidator queryValidator,
         SchemaIdResponseMapper schemaIdResponseMapper )
@@ -102,7 +100,6 @@ public class DefaultEnrollmentAnalyticsService
 
         this.enrollmentAnalyticsManager = enrollmentAnalyticsManager;
         this.queryPlanner = queryPlanner;
-        this.schemaIdResponseMapper = schemaIdResponseMapper;
     }
 
     // -------------------------------------------------------------------------

@@ -44,51 +44,21 @@ import org.hisp.dhis.analytics.shared.component.element.select.TeaValueSelectEle
  */
 public interface SelectVisitor
 {
-    /**
-     * see Visitor design pattern
-     *
-     * @param element
-     */
     void visit( TeaValueSelectElement element );
 
-    /**
-     * see Visitor design pattern
-     *
-     * @param element
-     */
     void visit( ProgramEnrollmentFlagElement element );
 
-    /**
-     * see Visitor design pattern
-     *
-     * @param element
-     */
     void visit( EnrollmentDateValueSelectElement element );
 
-    /**
-     * see Visitor design pattern
-     *
-     * @param element
-     */
     void visit( ExecutionDateValueElement element );
 
-    /**
-     * see Visitor design pattern
-     *
-     * @param element
-     */
     void visit( EventDateValueElement element );
 
-    /**
-     * see Visitor design pattern
-     *
-     * @param element
-     */
     void visit( SimpleSelectElement element );
 
     /**
-     * Visitor produced iteratively all columns for select part of sql statement
-     *
+     * Visitor produced iteratively all columns for select part of SQL
+     * statement.
      */
     List<Column> getColumns();
 }

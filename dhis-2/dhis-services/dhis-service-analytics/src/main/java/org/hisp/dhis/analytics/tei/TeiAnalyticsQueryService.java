@@ -32,7 +32,7 @@ import static org.springframework.util.Assert.notNull;
 
 import java.util.List;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.shared.GridAdaptor;
 import org.hisp.dhis.analytics.shared.QueryExecutor;
@@ -50,10 +50,9 @@ import org.springframework.stereotype.Service;
  * @author maikel arabori
  */
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class TeiAnalyticsQueryService
 {
-
     private final QueryGenerator<TeiQueryParams> teiJdbcQuery;
 
     private final QueryExecutor<SqlQuery, SqlQueryResult> queryExecutor;

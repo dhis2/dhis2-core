@@ -43,7 +43,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class PagingCriteriaProcessor implements Processor<AnalyticsPagingCriteria>
 {
-
     private final SystemSettingManager systemSettingManager;
 
     // TODO: DHIS2-13384 we would really like to have all
@@ -51,11 +50,10 @@ public class PagingCriteriaProcessor implements Processor<AnalyticsPagingCriteri
     // immutable, but PagingCriteria is not
     // returning it for now, should be converted to use builders
     @Override
-    public AnalyticsPagingCriteria process( final AnalyticsPagingCriteria pagingCriteria )
+    public AnalyticsPagingCriteria process( AnalyticsPagingCriteria pagingCriteria )
     {
         int analyticsMaxPageSize = systemSettingManager.getIntSetting( SettingKey.ANALYTICS_MAX_LIMIT );
         pagingCriteria.definePageSize( analyticsMaxPageSize );
         return pagingCriteria;
     }
-
 }

@@ -40,7 +40,6 @@ import org.hisp.dhis.analytics.shared.component.element.Element;
  */
 public abstract class Component<T> implements Element<T>
 {
-
     private final List<Element<T>> elements;
 
     protected Component( final List<Element<T>> elements )
