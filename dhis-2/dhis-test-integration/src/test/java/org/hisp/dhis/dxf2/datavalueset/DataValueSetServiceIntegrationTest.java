@@ -33,7 +33,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
+import java.util.List;
 
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -86,6 +89,9 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase
 
     @Autowired
     private UserService _userService;
+
+    @Autowired
+    private SessionFactory sessionFactory;
 
     private DataElement deA;
 
@@ -156,6 +162,7 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase
     // -------------------------------------------------------------------------
     // Tests
     // -------------------------------------------------------------------------
+
     /**
      * Import 1 data value.
      */
@@ -278,7 +285,7 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase
     /**
      * When updating a data value with a specified created date, the specified
      * created date should be used.
-     *
+     * <p>
      * When updating a data value without a specified created date, the existing
      * created date should remain unchanged.
      */
@@ -429,6 +436,7 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase
 
     private void assertDataValuesCount( int expected )
     {
+        debugDataValuesInDB();
         assertEquals( expected, dataValueService.getAllDataValues().size() );
     }
 
@@ -448,5 +456,23 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase
         assertEquals( updated, summary.getImportCount().getUpdated(), "unexpected update count" );
         assertEquals( deleted, summary.getImportCount().getDeleted(), "unexpected deleted count" );
         assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+    }
+
+    void debugDataValuesInDB()
+    {
+        Session session = sessionFactory.openSession();
+        List<Object[]> dvs = session
+            .createNativeQuery(
+                "SELECT dataelementid, periodid, sourceid, value, created, lastupdated, deleted FROM datavalue" )
+            .getResultList();
+
+        dvs.forEach( dv -> {
+            System.out.printf( "[DataValue] de:%s, pe:%s, ou:%s, v:%s, created:%s, updated:%s, deleted:%s\n", dv[0],
+                dv[1],
+                dv[2], dv[3], dv[4], dv[5], dv[6] );
+        } );
+        System.out.println( "Total: " + dvs.size() );
+
+        session.close();
     }
 }
