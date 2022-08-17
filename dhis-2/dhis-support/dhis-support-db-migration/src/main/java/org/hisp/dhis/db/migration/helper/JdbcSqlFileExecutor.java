@@ -43,7 +43,6 @@ import org.flywaydb.core.api.FlywayException;
  * packaged as classpath resource.
  *
  * @author Ameen Mohamed
- *
  */
 @Slf4j
 public class JdbcSqlFileExecutor
@@ -196,14 +195,33 @@ public class JdbcSqlFileExecutor
     private void execCommand( Connection conn, StringBuilder command, LineNumberReader lineReader )
         throws SQLException
     {
-        Statement statement = conn.createStatement();
-
         log.debug( command.toString() );
 
-        boolean hasResults = false;
-        try
+        try ( Statement statement = conn.createStatement() )
         {
-            hasResults = statement.execute( command.toString() );
+            boolean hasResults = statement.execute( command.toString() );
+
+            ResultSet rs = statement.getResultSet();
+            if ( hasResults && rs != null )
+            {
+                ResultSetMetaData md = rs.getMetaData();
+                int cols = md.getColumnCount();
+                for ( int i = 1; i <= cols; i++ )
+                {
+                    String name = md.getColumnLabel( i );
+                    log.debug( name + "\t" );
+                }
+                log.debug( "" );
+                while ( rs.next() )
+                {
+                    for ( int i = 1; i <= cols; i++ )
+                    {
+                        String value = rs.getString( i );
+                        log.debug( value + "\t" );
+                    }
+                    log.debug( "" );
+                }
+            }
         }
         catch ( SQLException e )
         {
@@ -219,37 +237,6 @@ public class JdbcSqlFileExecutor
         if ( autoCommit && !conn.getAutoCommit() )
         {
             conn.commit();
-        }
-
-        ResultSet rs = statement.getResultSet();
-        if ( hasResults && rs != null )
-        {
-            ResultSetMetaData md = rs.getMetaData();
-            int cols = md.getColumnCount();
-            for ( int i = 1; i <= cols; i++ )
-            {
-                String name = md.getColumnLabel( i );
-                log.debug( name + "\t" );
-            }
-            log.debug( "" );
-            while ( rs.next() )
-            {
-                for ( int i = 1; i <= cols; i++ )
-                {
-                    String value = rs.getString( i );
-                    log.debug( value + "\t" );
-                }
-                log.debug( "" );
-            }
-        }
-
-        try
-        {
-            statement.close();
-        }
-        catch ( Exception e )
-        {
-            // Ignore to workaround a bug in Jakarta DBCP
         }
     }
 
