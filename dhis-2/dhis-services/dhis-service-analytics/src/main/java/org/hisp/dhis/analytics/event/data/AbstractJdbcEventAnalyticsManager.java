@@ -34,7 +34,6 @@ import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
-import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_DENOMINATOR_PROPERTIES_COUNT;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.analytics.QueryKey.NV;
@@ -1132,21 +1131,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
         }
         else
         {
-            // NV filter has its own specific logic, so we should skip values
-            // comparisons when NV is set as filter.
-            if ( !NV.equals( filter.getFilter() ) )
-            {
-                switch ( filter.getOperator() )
-                {
-                case NEQ:
-                case NE:
-                case NIEQ:
-                    return "(" + field + " is null or " + field + SPACE + filter.getSqlOperator() + SPACE
-                        + getSqlFilter( filter, item ) + ") ";
-                }
-            }
-
-            return field + SPACE + filter.getSqlOperator() + SPACE + getSqlFilter( filter, item ) + SPACE;
+            return field + " " + filter.getSqlOperator() + " " + getSqlFilter( filter, item ) + " ";
         }
     }
 
