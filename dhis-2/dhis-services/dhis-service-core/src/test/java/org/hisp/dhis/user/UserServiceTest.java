@@ -623,4 +623,10 @@ public class UserServiceTest
         assertEquals( new HashSet<>( asList( userA.getUid(), userB.getUid() ) ),
             users.stream().map( User::getUid ).collect( toSet() ) );
     }
+
+    @Test
+    void testGetDisplayNameNull()
+    {
+        assertNull( userService.getDisplayName( "notExist" ) );
+    }
 }
