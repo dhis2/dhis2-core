@@ -68,7 +68,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Lars Helge Overland
  */
-@Order( 1 )
+@Order( 6 )
 class DataValueSetExportAccessControlTest extends TransactionalIntegrationTest
 {
     @Autowired

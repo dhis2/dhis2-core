@@ -100,7 +100,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Lars Helge Overland
  */
-@Order( 3 )
+@Order( 5 )
 class DataValueSetServiceTest extends TransactionalIntegrationTest
 {
     private String ATTRIBUTE_UID = "uh6H2ff562G";
