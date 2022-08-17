@@ -38,7 +38,6 @@ import org.hisp.dhis.analytics.shared.visitor.select.SelectVisitor;
  *
  * @author dusan bernat
  */
-
 @Getter
 public class EnrollmentDateValueSelectElement extends SelectElement implements Element<SelectVisitor>
 {
@@ -53,11 +52,6 @@ public class EnrollmentDateValueSelectElement extends SelectElement implements E
         this.alias = alias;
     }
 
-    /**
-     * see Visitor design pattern
-     *
-     * @param v
-     */
     @Override
     public void accept( SelectVisitor v )
     {

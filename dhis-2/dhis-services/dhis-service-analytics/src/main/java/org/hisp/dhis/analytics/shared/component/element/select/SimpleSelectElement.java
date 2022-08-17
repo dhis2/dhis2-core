@@ -52,11 +52,6 @@ public class SimpleSelectElement extends SelectElement implements Element<Select
         this.alias = alias;
     }
 
-    /**
-     * see Visitor design pattern
-     *
-     * @param v
-     */
     @Override
     public void accept( SelectVisitor v )
     {

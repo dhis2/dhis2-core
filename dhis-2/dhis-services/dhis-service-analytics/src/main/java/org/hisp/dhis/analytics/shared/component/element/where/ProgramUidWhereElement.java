@@ -39,13 +39,8 @@ import org.hisp.dhis.analytics.shared.visitor.where.WhereVisitor;
 @Getter
 public class ProgramUidWhereElement implements Element<WhereVisitor>
 {
-    private List<String> programUidList;
+    private final List<String> programUidList;
 
-    /**
-     * see Visitor design pattern
-     *
-     * @param v
-     */
     @Override
     public void accept( WhereVisitor v )
     {

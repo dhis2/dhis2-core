@@ -34,9 +34,7 @@ import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.DATA_ELEMENT;
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -64,7 +62,6 @@ import org.hisp.dhis.analytics.shared.query.LimitOffset;
 import org.hisp.dhis.analytics.shared.query.OrCondition;
 import org.hisp.dhis.analytics.shared.query.Order;
 import org.hisp.dhis.analytics.shared.query.Renderable;
-import org.hisp.dhis.analytics.shared.query.RenderableDimensionIdentifier;
 import org.hisp.dhis.analytics.shared.query.RenderableUtils;
 import org.hisp.dhis.analytics.shared.query.Select;
 import org.hisp.dhis.analytics.shared.query.Where;
@@ -72,7 +69,6 @@ import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 
 @Getter
 @Setter
@@ -80,7 +76,6 @@ import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 @Builder( toBuilder = true )
 public class TeiFullQuery extends BaseRenderable
 {
-
     private final QueryContext queryContext;
 
     private final TeiQueryParams teiQueryParams;
@@ -132,68 +127,23 @@ public class TeiFullQuery extends BaseRenderable
 
     private Select getSelect()
     {
-        Stream<Field> staticFields = getStaticFields();
-
-        // TODO remove next line when attributes match those in the table.
-        List<String> notGeneratedColumns = List.of( "Jdd8hMStmvF", "EGn5VqU7pHv", "JBJ3AWsrg9P" );
-
-        // TET and program attribute fields
-        Stream<Field> attributes = Stream.concat(
-            // Tracked entity Type attributes
-            teiQueryParams.getTrackedEntityType().getTrackedEntityTypeAttributes().stream(),
-            // Program attributes
-            teiQueryParams.getCommonParams().getPrograms().stream()
-                .map( Program::getProgramAttributes )
-                .flatMap( Collection::stream )
-                .map( ProgramTrackedEntityAttribute::getAttribute ) )
-            .map( BaseIdentifiableObject::getUid )
-            // distinct to remove overlapping attributes
-            .distinct()
-            // TODO remove next line when attributes match those in the table.
-            .filter( uid -> !notGeneratedColumns.contains( uid ) )
-            .map( attributeUid -> "\"" + attributeUid + "\"" )
-            .map( this::getFieldWithAlias );
-
-        Stream<Field> orderFields = getExtractedOrderFieldsForSelect();
+        Stream<Field> staticFields = TeiFields.getStaticFields();
+        Stream<Field> dimensionsFields = TeiFields.getDimensionFields( teiQueryParams );
+        Stream<Field> orderingFields = TeiFields.getOrderingFields( teiQueryParams );
 
         if ( isNotEmpty( teiQueryParams.getCommonParams().getHeaders() ) )
         {
             return Select.of(
-                Stream.of( staticFields, attributes, orderFields )
+                Stream.of( staticFields, dimensionsFields, orderingFields )
                     .flatMap( identity() )
                     .filter( f -> teiQueryParams.getCommonParams().getHeaders().contains( f.getFieldAlias() ) )
                     .collect( toList() ) );
         }
 
         return Select.of(
-            Stream.of( staticFields, attributes, orderFields )
+            Stream.of( staticFields, dimensionsFields, orderingFields )
                 .flatMap( identity() )
                 .collect( toList() ) );
-    }
-
-    private Stream<Field> getStaticFields()
-    {
-        return Stream.of( getFieldWithAlias( "trackedentityinstanceuid" ), getFieldWithAlias( "trackedentitytypeuid" ),
-            getFieldWithAlias( "created" ), getFieldWithAlias( "lastupdated" ), getFieldWithAlias( "geometry" ),
-            getFieldWithAlias( "createdbydisplayname" ), getFieldWithAlias( "lastupdatedbydisplayname" ),
-            getFieldWithAlias( "longitude" ), getFieldWithAlias( "latitude" ), getFieldWithAlias( "coordinates" ),
-            getFieldWithAlias( "ou" ), getFieldWithAlias( "ouname" ), getFieldWithAlias( "oucode" ),
-            getFieldWithAlias( "oulevel" ), getFieldWithAlias( "coordinates" ), getFieldWithAlias( "enrollments" ) );
-    }
-
-    private Stream<Field> getExtractedOrderFieldsForSelect()
-    {
-        return teiQueryParams.getCommonParams().getOrderParams()
-            .stream()
-            .map( AnalyticsSortingParams::getOrderBy )
-            .map( RenderableDimensionIdentifier::of )
-            .map( RenderableDimensionIdentifier::render )
-            .map( s -> Field.of( "", () -> "\"" + s + "\".VALUE", "VALUE" ) );
-    }
-
-    private Field getFieldWithAlias( String field )
-    {
-        return Field.of( TEI_ALIAS, () -> field, field );
     }
 
     private From getFrom()

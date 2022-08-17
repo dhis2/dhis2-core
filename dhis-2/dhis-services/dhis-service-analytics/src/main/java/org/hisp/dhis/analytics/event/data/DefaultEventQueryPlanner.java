@@ -27,11 +27,11 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -57,6 +57,7 @@ import com.google.common.collect.Lists;
  * @author Lars Helge Overland
  */
 @Component( "org.hisp.dhis.analytics.event.EventQueryPlanner" )
+@RequiredArgsConstructor
 public class DefaultEventQueryPlanner
     implements EventQueryPlanner
 {
@@ -65,18 +66,6 @@ public class DefaultEventQueryPlanner
     private final QueryValidator queryValidator;
 
     private final PartitionManager partitionManager;
-
-    public DefaultEventQueryPlanner( QueryPlanner queryPlanner, QueryValidator queryValidator,
-        PartitionManager partitionManager )
-    {
-        checkNotNull( queryPlanner );
-        checkNotNull( queryValidator );
-        checkNotNull( partitionManager );
-
-        this.queryPlanner = queryPlanner;
-        this.queryValidator = queryValidator;
-        this.partitionManager = partitionManager;
-    }
 
     // -------------------------------------------------------------------------
     // EventQueryPlanner implementation

@@ -30,12 +30,12 @@ package org.hisp.dhis.analytics.shared.processing;
 import static org.hisp.dhis.common.CustomDateHelper.getCustomDateFilters;
 import static org.hisp.dhis.common.CustomDateHelper.getDimensionsWithRefactoredPeDimension;
 import static org.hisp.dhis.commons.collection.CollectionUtils.emptyIfNull;
+import static org.hisp.dhis.setting.SettingKey.ANALYTICS_MAX_LIMIT;
 
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
 import org.hisp.dhis.common.AnalyticsDateFilter;
-import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.stereotype.Component;
 
@@ -66,16 +66,23 @@ public class CommonQueryRequestProcessor implements Processor<CommonQueryRequest
 
     private Integer computePageSize( CommonQueryRequest commonQueryRequest )
     {
-        int analyticsMaxPageSize = systemSettingManager.getIntSetting( SettingKey.ANALYTICS_MAX_LIMIT );
+        int maxLimit = systemSettingManager.getIntSetting( ANALYTICS_MAX_LIMIT );
+
         if ( commonQueryRequest.isPaging() )
         {
-            return commonQueryRequest.getPageSize() != null &&
-                commonQueryRequest.getPageSize() > analyticsMaxPageSize ? analyticsMaxPageSize
-                    : commonQueryRequest.getPageSize();
+            if ( commonQueryRequest.getPageSize() != null && maxLimit > 0 &&
+                commonQueryRequest.getPageSize() > maxLimit )
+            {
+                return maxLimit;
+            }
+            else
+            {
+                return commonQueryRequest.getPageSize();
+            }
         }
         else
         {
-            return analyticsMaxPageSize;
+            return maxLimit;
         }
     }
 }

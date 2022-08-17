@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
 import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
 import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.createIndexStatement;
@@ -41,6 +40,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
@@ -74,7 +74,6 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.util.DateUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -87,6 +86,7 @@ import com.google.common.collect.ImmutableSet;
  * @author Lars Helge Overland
  */
 @Slf4j
+@RequiredArgsConstructor
 public abstract class AbstractJdbcTableManager
     implements AnalyticsTableManager
 {
@@ -130,38 +130,6 @@ public abstract class AbstractJdbcTableManager
     protected final DatabaseInfo databaseInfo;
 
     protected final JdbcTemplate jdbcTemplate;
-
-    @Autowired
-    public AbstractJdbcTableManager( IdentifiableObjectManager idObjectManager,
-        OrganisationUnitService organisationUnitService, CategoryService categoryService,
-        SystemSettingManager systemSettingManager, DataApprovalLevelService dataApprovalLevelService,
-        ResourceTableService resourceTableService, AnalyticsTableHookService tableHookService,
-        StatementBuilder statementBuilder, PartitionManager partitionManager, DatabaseInfo databaseInfo,
-        JdbcTemplate jdbcTemplate )
-    {
-        checkNotNull( idObjectManager );
-        checkNotNull( organisationUnitService );
-        checkNotNull( categoryService );
-        checkNotNull( systemSettingManager );
-        checkNotNull( dataApprovalLevelService );
-        checkNotNull( resourceTableService );
-        checkNotNull( tableHookService );
-        checkNotNull( statementBuilder );
-        checkNotNull( partitionManager );
-        checkNotNull( databaseInfo );
-
-        this.idObjectManager = idObjectManager;
-        this.organisationUnitService = organisationUnitService;
-        this.categoryService = categoryService;
-        this.systemSettingManager = systemSettingManager;
-        this.dataApprovalLevelService = dataApprovalLevelService;
-        this.resourceTableService = resourceTableService;
-        this.tableHookService = tableHookService;
-        this.statementBuilder = statementBuilder;
-        this.partitionManager = partitionManager;
-        this.databaseInfo = databaseInfo;
-        this.jdbcTemplate = jdbcTemplate;
-    }
 
     // -------------------------------------------------------------------------
     // Implementation

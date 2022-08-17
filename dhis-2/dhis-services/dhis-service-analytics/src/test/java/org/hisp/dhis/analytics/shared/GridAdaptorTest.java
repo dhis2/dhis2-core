@@ -41,7 +41,6 @@ import java.util.List;
 
 import javax.sql.rowset.RowSetMetaDataImpl;
 
-import org.hisp.dhis.analytics.common.CommonParams;
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.common.Grid;
@@ -91,7 +90,7 @@ class GridAdaptorTest
         final SqlQueryResult mockSqlResult = new SqlQueryResult( sqlRowSet );
 
         // When
-        final Grid grid = gridAdaptor.createGrid( mockSqlResult, CommonParams.builder().build(),
+        final Grid grid = gridAdaptor.createGrid( mockSqlResult, TeiQueryParams.builder().build(),
             new CommonQueryRequest() );
 
         // Then
@@ -112,7 +111,7 @@ class GridAdaptorTest
         // When
         final IllegalArgumentException ex = assertThrows(
             IllegalArgumentException.class,
-            () -> gridAdaptor.createGrid( nullSqlResult, TeiQueryParams.builder().build().getCommonParams(),
+            () -> gridAdaptor.createGrid( nullSqlResult, TeiQueryParams.builder().build(),
                 new CommonQueryRequest() ),
             "Expected exception not thrown: createGrid()" );
 

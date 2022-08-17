@@ -444,5 +444,4 @@ public class EventAnalyticsController
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON,
             CacheStrategy.RESPECT_SYSTEM_SETTING );
     }
-
 }

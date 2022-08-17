@@ -43,13 +43,13 @@ public class TeiQueryRequestProcessor implements Processor<TeiQueryRequest>
 {
 
     /**
-     * A hook to transform a QueryRequest before mapping it into Params
+     * A hook to transform a QueryRequest before mapping it into paras.
      *
-     * @param queryRequest
-     * @return a queryRequestHolder where inner components might have changed
+     * @param queryRequest the {@link TeiQueryRequest}.
+     * @return a queryRequestHolder where inner components might have changed.
      */
     @Override
-    public TeiQueryRequest process( final TeiQueryRequest queryRequest )
+    public TeiQueryRequest process( TeiQueryRequest queryRequest )
     {
         return queryRequest;
     }
