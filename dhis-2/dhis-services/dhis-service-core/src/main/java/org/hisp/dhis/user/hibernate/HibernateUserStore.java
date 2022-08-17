@@ -30,7 +30,7 @@ package org.hisp.dhis.user.hibernate;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
 import static java.time.ZoneId.systemDefault;
-import static java.util.stream.Collectors.toSet;
+import static java.util.stream.Collectors.toMap;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -38,7 +38,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -60,6 +63,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.annotations.QueryHints;
 import org.hibernate.query.Query;
+import org.hisp.dhis.cache.QueryCacheManager;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.collection.CollectionUtils;
@@ -94,16 +98,19 @@ public class HibernateUserStore
 {
     public static final String DISABLED_COLUMN = "disabled";
 
+    private final QueryCacheManager queryCacheManager;
+
     private final SchemaService schemaService;
 
     public HibernateUserStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService,
-        AclService aclService, SchemaService schemaService )
+        AclService aclService, SchemaService schemaService, QueryCacheManager queryCacheManager )
     {
         super( sessionFactory, jdbcTemplate, publisher, User.class, currentUserService, aclService, true );
 
         checkNotNull( schemaService );
         this.schemaService = schemaService;
+        this.queryCacheManager = queryCacheManager;
     }
 
     @Override
@@ -111,13 +118,15 @@ public class HibernateUserStore
     {
         super.save( user, clearSharing );
 
-        currentUserService.invalidateUserGroupCache( user.getUsername() );
+        currentUserService.invalidateUserGroupCache( user.getUid() );
     }
 
     @Override
     public List<User> getUsers( UserQueryParams params, @Nullable List<String> orders )
     {
-        return extractUserQueryUsers( getUserQuery( params, orders, false ).list() );
+        Query userQuery = getUserQuery( params, orders, false );
+
+        return extractUserQueryUsers( userQuery.list() );
     }
 
     @Override
@@ -497,13 +506,26 @@ public class HibernateUserStore
             }
         }
 
+        setQueryCacheRegionName( query );
+
         return query;
+    }
+
+    private void setQueryCacheRegionName( Query query )
+    {
+        if ( query.isCacheable() )
+        {
+            query.setHint( "org.hibernate.cacheable", true );
+            query.setHint( "org.hibernate.cacheRegion",
+                queryCacheManager.getQueryCacheRegionName( User.class, query ) );
+        }
     }
 
     @Override
     public int getUserCount()
     {
         Query<Long> query = getTypedQuery( "select count(*) from User" );
+        setQueryCacheRegionName( query );
         return query.uniqueResult().intValue();
     }
 
@@ -532,12 +554,12 @@ public class HibernateUserStore
     }
 
     @Override
-    public CurrentUserGroupInfo getCurrentUserGroupInfo( User user )
+    public CurrentUserGroupInfo getCurrentUserGroupInfo( String userUID )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
         CriteriaQuery<Object[]> query = builder.createQuery( Object[].class );
         Root<User> root = query.from( User.class );
-        query.where( builder.equal( root.get( "id" ), user.getId() ) );
+        query.where( builder.equal( root.get( "uid" ), userUID ) );
         query.select( builder.array( root.get( "uid" ), root.join( "groups", JoinType.LEFT ).get( "uid" ) ) );
 
         Session session = getSession();
@@ -547,7 +569,7 @@ public class HibernateUserStore
 
         if ( CollectionUtils.isEmpty( results ) )
         {
-            currentUserGroupInfo.setUserUID( user.getUid() );
+            currentUserGroupInfo.setUserUID( userUID );
             return currentUserGroupInfo;
         }
 
@@ -582,18 +604,37 @@ public class HibernateUserStore
     }
 
     @Override
-    public Set<String> findNotifiableUsersWithLastLoginBetween( Date from, Date to )
+    public Map<String, Optional<Locale>> findNotifiableUsersWithLastLoginBetween( Date from, Date to )
     {
-        String hql = "select u.email " +
+        String hql = "select u.email, s.value " +
             "from User u " +
+            "left outer join UserSetting s on u.id = s.user and s.name = 'keyUiLocale' " +
             "where u.email is not null and u.disabled = false and u.lastLogin >= :from and u.lastLogin < :to";
-        return getSession().createQuery( hql, String.class )
-            .setParameter( "from", from )
-            .setParameter( "to", to )
-            .stream().collect( toSet() );
+        return toLocaleMap( hql, from, to );
     }
 
     @Override
+    public Map<String, Optional<Locale>> findNotifiableUsersWithPasswordLastUpdatedBetween( Date from, Date to )
+    {
+        String hql = "select u.email, s.value " +
+            "from User u " +
+            "left outer join UserSetting s on u.id = s.user and s.name = 'keyUiLocale' " +
+            "where u.email is not null and u.disabled = false and u.passwordLastUpdated >= :from and u.passwordLastUpdated < :to";
+        return toLocaleMap( hql, from, to );
+    }
+
+    private Map<String, Optional<Locale>> toLocaleMap( String hql, Date from, Date to )
+    {
+        return getSession().createQuery( hql, Object[].class )
+            .setParameter( "from", from )
+            .setParameter( "to", to )
+            .stream().collect( toMap(
+                ( Object[] columns ) -> (String) columns[0],
+                ( Object[] columns ) -> Optional.ofNullable( (Locale) columns[1] ) ) );
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
     public String getDisplayName( String userUid )
     {
         String sql = "select concat(firstname, ' ', surname) from userinfo where uid =:uid";

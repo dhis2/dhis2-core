@@ -89,6 +89,6 @@ public class PostDeleteAuditListener
     @Override
     public void onPostDeleteCommitFailed( PostDeleteEvent event )
     {
-        log.warn( "onPostDeleteCommitFailed: " + event );
+        log.debug( "onPostDeleteCommitFailed: " + event );
     }
 }

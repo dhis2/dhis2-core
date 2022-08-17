@@ -29,15 +29,17 @@ package org.hisp.dhis.webapi.controller;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
-import static org.hisp.dhis.webapi.WebClient.Body;
-import static org.hisp.dhis.webapi.WebClient.ContentType;
-import static org.hisp.dhis.webapi.utils.WebClientUtils.assertSeries;
-import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
+import static org.hisp.dhis.web.HttpStatus.Series.SUCCESSFUL;
+import static org.hisp.dhis.web.WebClient.Body;
+import static org.hisp.dhis.web.WebClient.ContentType;
+import static org.hisp.dhis.web.WebClientUtils.assertSeries;
+import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
+
+import java.util.Set;
 
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonArray;
@@ -45,6 +47,9 @@ import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.web.HttpStatus;
+import org.hisp.dhis.web.snippets.SomeUserId;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonError;
 import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
@@ -55,9 +60,7 @@ import org.hisp.dhis.webapi.json.domain.JsonTranslation;
 import org.hisp.dhis.webapi.json.domain.JsonTypeReport;
 import org.hisp.dhis.webapi.json.domain.JsonUser;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
-import org.hisp.dhis.webapi.snippets.SomeUserId;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 
 /**
@@ -136,7 +139,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
         String id = run( SomeUserId::new );
         JsonError error = PATCH( "/users/" + id + "?importReportMode=ERRORS",
             "[{'op': 'add', 'path': '/email', 'value': 'Not-valid'}]" ).error();
-        assertEquals( "Property `email` requires a valid email address, was given `Not-valid`.",
+        assertEquals( "Property `email` requires a valid email address, was given `Not-valid`",
             error.getTypeReport().getErrorReports().get( 0 ).getMessage() );
     }
 
@@ -170,7 +173,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
             "{'translations': [{'locale':'sv', 'property':'name', 'value':'name sv'}]}" )
                 .content( HttpStatus.NO_CONTENT );
 
-        JsonResponse content = GET( "/dataSets/{id}", id ).content();
+        GET( "/dataSets/{id}", id ).content();
 
         translations = GET( "/dataSets/{id}/translations", id ).content().getArray( "translations" );
         assertEquals( 1, translations.size() );
@@ -226,7 +229,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
         JsonErrorReport error = message.find( JsonErrorReport.class,
             report -> report.getErrorCode() == ErrorCode.E4000 );
 
-        assertEquals( "Missing required property `value`.",
+        assertEquals( "Missing required property `value`",
             error.getMessage() );
     }
 
@@ -245,7 +248,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
         JsonErrorReport error = message.find( JsonErrorReport.class,
             report -> report.getErrorCode() == ErrorCode.E4000 );
 
-        assertEquals( "Missing required property `property`.",
+        assertEquals( "Missing required property `property`",
             error.getMessage() );
     }
 
@@ -264,7 +267,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
         JsonErrorReport error = message.find( JsonErrorReport.class,
             report -> report.getErrorCode() == ErrorCode.E4000 );
 
-        assertEquals( "Missing required property `locale`.",
+        assertEquals( "Missing required property `locale`",
             error.getMessage() );
     }
 
@@ -687,6 +690,39 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
         JsonTypeReport response = message.get( "response", JsonTypeReport.class );
         assertEquals( 1, response.getObjectReports().size() );
         assertEquals( ErrorCode.E3015, response.getObjectReports().get( 0 ).getErrorReports().get( 0 ).getErrorCode() );
+    }
+
+    @Test
+    void testSharingDisplayName()
+    {
+        UserGroup userGroup = createUserGroup( 'A', Set.of() );
+        manager.save( userGroup );
+        String userId = getCurrentUser().getUid();
+
+        String sharing = "{'owner':'" + userId + "', 'public':'rwrw----', 'external': true,'userGroups':{\""
+            + userGroup.getUid() + "\":{\"id\":\"" + userGroup.getUid() + "\",\"access\":\"rwrw----\"} } }";
+
+        String programId = assertStatus( HttpStatus.CREATED,
+            POST( "/programs/", "{'name':'test', 'shortName':'test', 'programType':'WITHOUT_REGISTRATION', 'sharing': "
+                + sharing + "}" ) );
+
+        assertStatus( HttpStatus.CREATED,
+            POST( "/programStages/", "{\"id\": \"VlhIwWqEHsI\",\n" + "\"sortOrder\": 1," +
+                "\"name\": \"test\", \"minDaysFromStart\": \"0\", \"displayGenerateEventBox\": true, \"autoGenerateEvent\": true,"
+                +
+                "\"program\":" + "{\"id\": \"" + programId + "\"}, \"sharing\": " + sharing + "}" ) );
+
+        JsonIdentifiableObject program = GET( "/programs/{id}?fields=sharing", programId ).content()
+            .as( JsonIdentifiableObject.class );
+        assertEquals( "UserGroupA",
+            program.getSharing().getUserGroups().get( userGroup.getUid() ).getString( "displayName" ).string() );
+
+        JsonIdentifiableObject programStage = GET( "/programs/{id}?fields=programStages[sharing]", programId ).content()
+            .as( JsonIdentifiableObject.class );
+        assertEquals( "UserGroupA",
+            programStage.getList( "programStages", JsonIdentifiableObject.class ).get( 0 ).getSharing().getUserGroups()
+                .get( userGroup.getUid() ).getString( "displayName" ).string() );
+
     }
 
     @Test

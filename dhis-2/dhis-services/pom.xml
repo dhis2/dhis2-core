@@ -43,6 +43,7 @@
     <module>dhis-service-tracker</module>
     <!-- Level 9 -->
     <module>dhis-service-reporting</module>
+    <module>dhis-service-data-exchange</module>
   </modules>
 
   <properties>

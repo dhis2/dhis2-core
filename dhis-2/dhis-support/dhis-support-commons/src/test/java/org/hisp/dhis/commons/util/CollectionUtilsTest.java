@@ -27,13 +27,18 @@
  */
 package org.hisp.dhis.commons.util;
 
+import static org.hisp.dhis.commons.collection.CollectionUtils.firstMatch;
 import static org.hisp.dhis.commons.collection.CollectionUtils.flatMapToSet;
 import static org.hisp.dhis.commons.collection.CollectionUtils.mapToList;
+import static org.hisp.dhis.commons.collection.CollectionUtils.mapToSet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Set;
 
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
@@ -68,13 +73,49 @@ class CollectionUtilsTest
         Set<DataElement> dataElements = flatMapToSet( dataSets, DataSet::getDataElements );
 
         assertEquals( 3, dataElements.size() );
+        assertTrue( dataElements.contains( deA ) );
+    }
+
+    @Test
+    public void testMapToSet()
+    {
+        DataElement deA = new DataElement();
+        DataElement deB = new DataElement();
+        DataElement deC = new DataElement();
+
+        CategoryCombo ccA = new CategoryCombo();
+        CategoryCombo ccB = new CategoryCombo();
+
+        ccA.setAutoFields();
+        ccB.setAutoFields();
+
+        deA.setCategoryCombo( ccA );
+        deB.setCategoryCombo( ccA );
+        deC.setCategoryCombo( ccB );
+
+        List<DataElement> dataElements = List.of( deA, deB, deC );
+
+        Set<CategoryCombo> categoryCombos = mapToSet( dataElements, DataElement::getCategoryCombo );
+
+        assertEquals( 2, categoryCombos.size() );
+        assertTrue( categoryCombos.contains( ccA ) );
+    }
+
+    @Test
+    void testFirstMatch()
+    {
+        List<String> collection = List.of( "a", "b", "c" );
+
+        assertEquals( "a", firstMatch( collection, ( v ) -> "a".equals( v ) ) );
+        assertEquals( "b", firstMatch( collection, ( v ) -> "b".equals( v ) ) );
+        assertNull( firstMatch( collection, ( v ) -> "x".equals( v ) ) );
     }
 
     @Test
     void testDifference()
     {
-        List<String> collection1 = Lists.newArrayList( "One", "Two", "Three" );
-        List<String> collection2 = Lists.newArrayList( "One", "Two", "Four" );
+        List<String> collection1 = List.of( "One", "Two", "Three" );
+        List<String> collection2 = List.of( "One", "Two", "Four" );
         List<String> difference = CollectionUtils.difference( collection1, collection2 );
 
         assertEquals( 1, difference.size() );

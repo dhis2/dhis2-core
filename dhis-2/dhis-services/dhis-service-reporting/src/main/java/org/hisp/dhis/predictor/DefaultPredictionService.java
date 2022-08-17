@@ -37,7 +37,9 @@ import static org.hisp.dhis.predictor.PredictionFormatter.formatPrediction;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -135,8 +137,8 @@ public class DefaultPredictionService
     @Override
     public PredictionSummary predictJob( PredictorJobParameters params, JobProgress progress )
     {
-        Date startDate = DateUtils.getDateAfterAddition( new Date(), params.getRelativeStart() );
-        Date endDate = DateUtils.getDateAfterAddition( new Date(), params.getRelativeEnd() );
+        Date startDate = DateUtils.addDays( new Date(), params.getRelativeStart() );
+        Date endDate = DateUtils.addDays( new Date(), params.getRelativeEnd() );
 
         return predictTask( startDate, endDate, params.getPredictors(), params.getPredictorGroups(), progress );
     }
@@ -210,8 +212,12 @@ public class DefaultPredictionService
 
         ExpressionInfo exInfo = new ExpressionInfo();
         ExpressionParams baseExParams = getBaseExParams( predictor, exInfo );
+        CategoryOptionCombo defaultCategoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
+        PredictionDisaggregator preDis = new PredictionDisaggregator( predictor, defaultCategoryOptionCombo,
+            baseExParams.getItemMap().values() );
+        Set<DimensionalItemObject> items = preDis.getDisaggregatedItems();
+        DataElementOperand outputDataElementOperand = preDis.getOutputDataElementOperand();
 
-        Set<DimensionalItemObject> items = new HashSet<>( baseExParams.getItemMap().values() );
         List<Period> outputPeriods = getPeriodsBetweenDates( predictor.getPeriodType(), startDate, endDate );
         Set<Period> existingOutputPeriods = getExistingPeriods( outputPeriods );
         ListMap<Period, Period> samplePeriodsMap = getSamplePeriodsMap( outputPeriods, predictor );
@@ -219,14 +225,10 @@ public class DefaultPredictionService
         Set<Period> analyticsQueryPeriods = getAnalyticsQueryPeriods( exInfo, allSamplePeriods, existingOutputPeriods );
         Set<Period> dataValueQueryPeriods = getDataValueQueryPeriods( analyticsQueryPeriods, existingOutputPeriods );
         outputPeriods = periodService.reloadPeriods( outputPeriods );
-        CategoryOptionCombo defaultCategoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
-        CategoryOptionCombo outputOptionCombo = predictor.getOutputCombo() == null
-            ? defaultCategoryOptionCombo
-            : predictor.getOutputCombo();
-        DataElementOperand outputDataElementOperand = new DataElementOperand( outputDataElement, outputOptionCombo );
 
-        boolean requireData = generator.getMissingValueStrategy() != NEVER_SKIP && (!items.isEmpty());
-        DimensionalItemObject forwardReference = addOutputToItems( outputDataElementOperand, items );
+        boolean forwardReference = isForwardReference( predictor, baseExParams.getItemMap().values() );
+        boolean requireData = generator.getMissingValueStrategy() != NEVER_SKIP &&
+            !baseExParams.getItemMap().values().isEmpty();
 
         Set<OrganisationUnit> currentUserOrgUnits = new HashSet<>();
         User currentUser = currentUserService.getCurrentUser();
@@ -262,16 +264,19 @@ public class DefaultPredictionService
                 List<DataValue> predictions = new ArrayList<>();
 
                 List<PredictionContext> contexts = PredictionContextGenerator.getContexts(
-                    outputPeriods, data.getValues(), defaultCategoryOptionCombo );
+                    outputPeriods, data.getValues(), defaultCategoryOptionCombo, preDis );
 
                 for ( PredictionContext c : contexts )
                 {
+                    Map<DimensionalItemObject, Object> valueMap = firstNonNull(
+                        c.getPeriodValueMap().get( c.getOutputPeriod() ), new HashMap<>() );
+
                     List<Period> samplePeriods = new ArrayList<>( samplePeriodsMap.get( c.getOutputPeriod() ) );
 
                     samplePeriods.removeAll( getSkippedPeriods( allSamplePeriods, baseExParams, c.getPeriodValueMap(),
                         skipTest, data.getOrgUnit() ) );
 
-                    if ( !isEvaluationRequired( requireData, exInfo, samplePeriods, c.getValueMap(),
+                    if ( !isEvaluationRequired( requireData, exInfo, samplePeriods, valueMap,
                         c.getPeriodValueMap(), baseExParams.getItemMap() ) )
                     {
                         continue;
@@ -281,7 +286,7 @@ public class DefaultPredictionService
                         .expression( predictor.getGenerator().getExpression() )
                         .parseType( PREDICTOR_EXPRESSION )
                         .dataType( expressionDataType )
-                        .valueMap( c.getValueMap() )
+                        .valueMap( valueMap )
                         .days( c.getOutputPeriod().getDaysInPeriod() )
                         .missingValueStrategy( generator.getMissingValueStrategy() )
                         .orgUnit( data.getOrgUnit() )
@@ -289,8 +294,7 @@ public class DefaultPredictionService
                         .periodValueMap( c.getPeriodValueMap() )
                         .build() );
 
-                    DataValue prediction = processPrediction( predictor, c, value, currentUser, outputOptionCombo,
-                        data.getOrgUnit() );
+                    DataValue prediction = processPrediction( predictor, c, value, currentUser, data.getOrgUnit() );
 
                     rememberPredictedValue( prediction, predictions, contexts, forwardReference );
                 }
@@ -307,7 +311,7 @@ public class DefaultPredictionService
     // -------------------------------------------------------------------------
 
     private DataValue processPrediction( Predictor predictor, PredictionContext c, Object value, User currentUser,
-        CategoryOptionCombo outputOptionCombo, OrganisationUnit orgUnit )
+        OrganisationUnit orgUnit )
     {
         DataValue prediction = null;
 
@@ -320,7 +324,7 @@ public class DefaultPredictionService
                 String storedBy = currentUser == null ? "system-process" : currentUser.getUsername();
 
                 prediction = new DataValue( predictor.getOutput(),
-                    c.getOutputPeriod(), orgUnit, outputOptionCombo,
+                    c.getOutputPeriod(), orgUnit, c.getCategoryOptionCombo(),
                     c.getAttributeOptionCombo(), valueString, storedBy, new Date(), null );
             }
         }
@@ -529,68 +533,53 @@ public class DefaultPredictionService
     }
 
     /**
-     * Adds the predictor to the list of items. Also, returns the
-     * DimensionalItemObject if any to update with the predicted value.
-     * <p>
-     * Note that we make the simplifying assumption that if the output data
-     * element is sampled in an expression without a catOptionCombo, the
-     * predicted data value will be used. This is usually what the user wants,
-     * but would break if the expression assumes a sum of catOptionCombos
-     * including the predicted value and other catOptionCombos.
+     * Does the expression reference the output data element? If so, the value
+     * predicted in one period will be carried forward in case it is used in a
+     * later period.
      */
-    private DimensionalItemObject addOutputToItems( DataElementOperand outputDataElementOperand,
-        Set<DimensionalItemObject> sampleItems )
+    private boolean isForwardReference( Predictor predictor, Collection<DimensionalItemObject> items )
     {
-        DimensionalItemObject forwardReference = null;
+        DataElement de = predictor.getOutput();
 
-        for ( DimensionalItemObject item : sampleItems )
-        {
-            if ( item.equals( outputDataElementOperand ) )
-            {
-                return item;
-            }
-
-            if ( item.equals( outputDataElementOperand.getDataElement() ) )
-            {
-                forwardReference = item;
-            }
-        }
-
-        sampleItems.add( outputDataElementOperand );
-
-        return forwardReference;
+        return items.stream().anyMatch( i -> i.equals( de ) ||
+            i instanceof DataElementOperand && ((DataElementOperand) i).getDataElement().equals( de ) );
     }
 
     /**
      * Remember the prediction for writing out.
      * <p>
      * If the predicted value might be used in a future period prediction,
-     * insert it into any future context data.
+     * insert it into all contexts. This means inserting an explicit data
+     * element operand with the data element and COC of the data value. If the
+     * context has the same COC we are using for the prediction, we also insert
+     * a data element with the value.
      */
-    private void rememberPredictedValue( DataValue prediction, List<DataValue> predictions,
-        List<PredictionContext> contexts, DimensionalItemObject forwardReference )
+    private void rememberPredictedValue( DataValue dv, List<DataValue> predictions,
+        List<PredictionContext> contexts, boolean forwardReference )
     {
-        if ( prediction == null )
+        if ( dv == null )
         {
             return;
         }
 
-        predictions.add( prediction );
+        predictions.add( dv );
 
-        if ( forwardReference == null )
+        if ( !forwardReference )
         {
             return;
         }
 
-        for ( PredictionContext ctx : contexts )
+        DataElementOperand deo = new DataElementOperand( dv.getDataElement(), dv.getCategoryOptionCombo() );
+
+        for ( PredictionContext c : contexts )
         {
-            if ( ctx.getAttributeOptionCombo().equals( prediction.getAttributeOptionCombo() ) )
+            if ( c.getAttributeOptionCombo().equals( dv.getAttributeOptionCombo() ) )
             {
-                ctx.getPeriodValueMap().putEntry( prediction.getPeriod(), forwardReference, prediction.getValue() );
+                c.getPeriodValueMap().putEntry( dv.getPeriod(), deo, dv.getValue() );
 
-                if ( ctx.getOutputPeriod().equals( prediction.getPeriod() ) )
+                if ( c.getCategoryOptionCombo().equals( dv.getCategoryOptionCombo() ) )
                 {
-                    ctx.getValueMap().put( forwardReference, prediction.getValue() );
+                    c.getPeriodValueMap().putEntry( dv.getPeriod(), dv.getDataElement(), dv.getValue() );
                 }
             }
         }

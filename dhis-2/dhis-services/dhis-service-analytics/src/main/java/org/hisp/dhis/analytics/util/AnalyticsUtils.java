@@ -37,10 +37,13 @@ import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.QUERY_MODS_ID_SEPARATOR;
 import static org.hisp.dhis.dataelement.DataElementOperand.TotalType;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
+import static org.hisp.dhis.system.util.MathUtils.getRounded;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
+import static org.springframework.util.Assert.isTrue;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -90,7 +93,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.system.util.MathUtils;
+import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.util.DateUtils;
 import org.joda.time.DateTime;
 import org.springframework.util.Assert;
@@ -237,16 +240,21 @@ public class AnalyticsUtils
         }
         else
         {
-            return MathUtils.getRounded( value );
+            return getRounded( value );
         }
     }
 
     /**
      * Rounds a value. If the given parameters has skip rounding, the value is
-     * returned unchanged. If the given number is null or not of class Double,
+     * returned unchanged. If the given number is null or not of type Double,
      * the value is returned unchanged. If skip rounding is specified in the
      * given data query parameters, 10 decimals is used. Otherwise, default
      * rounding is used.
+     *
+     * If the given value is of type Double and ends with one or more decimal
+     * "0" (ie.: "125.0", "2355.000", etc.) a long value will be returned,
+     * forcing the removal of all decimal "0". The resulting value for the
+     * previous example would be, respectively, "125" and "2355".
      *
      * @param params the query parameters.
      * @param value the value.
@@ -263,7 +271,34 @@ public class AnalyticsUtils
             return Precision.round( (Double) value, DECIMALS_NO_ROUNDING );
         }
 
-        return MathUtils.getRounded( (Double) value );
+        final Double rounded = getRounded( (Double) value );
+
+        if ( endsWithZeroAsDecimal( rounded ) )
+        {
+            return rounded.longValue();
+        }
+
+        return rounded;
+    }
+
+    /**
+     * This method simply checks if the given double value (positive or
+     * negative) has one or more "0" as decimal digits. ie.:
+     *
+     * 25.0 -> true
+     *
+     * -232.0000 -> true
+     *
+     * 133.25 -> false
+     *
+     * -1045.00000001 -> false
+     *
+     * @param value
+     * @return true if the value has "0" as decimal digits, false otherwise
+     */
+    public static boolean endsWithZeroAsDecimal( final double value )
+    {
+        return ((value * 10) % 10 == 0);
     }
 
     /**
@@ -419,8 +454,10 @@ public class AnalyticsUtils
      * @param grid the grid.
      * @return a data value set.
      */
-    public static DataValueSet getDataValueSetFromGrid( DataQueryParams params, Grid grid )
+    public static DataValueSet getDataValueSet( DataQueryParams params, Grid grid )
     {
+        validateGridForDataValueSet( grid );
+
         int dxInx = grid.getIndexOfHeader( DATA_X_DIM_ID );
         int peInx = grid.getIndexOfHeader( PERIOD_DIM_ID );
         int ouInx = grid.getIndexOfHeader( ORGUNIT_DIM_ID );
@@ -428,18 +465,11 @@ public class AnalyticsUtils
         int aoInx = grid.getIndexOfHeader( ATTRIBUTEOPTIONCOMBO_DIM_ID );
         int vlInx = grid.getHeaderWidth() - 1;
 
-        Assert.isTrue( dxInx >= 0, "Data dimension index must be greater than or equal to zero" );
-        Assert.isTrue( peInx >= 0, "Period dimension index must be greater than or equal to zero" );
-        Assert.isTrue( ouInx >= 0, "Org unit dimension index must be greater than or equal to zero" );
-        Assert.isTrue( coInx >= 0, "Category option combo dimension index must be greater than or equal to zero" );
-        Assert.isTrue( aoInx >= 0, "Attribute option combo dimension index must be greater than or equal to zero" );
-        Assert.isTrue( vlInx >= 0, "Value index must be greater than or equal to zero" );
+        Set<String> primaryKeys = new HashSet<>();
 
         String created = DateUtils.getMediumDateString();
 
         DataValueSet dvs = new DataValueSet();
-
-        Set<String> primaryKeys = Sets.newHashSet();
 
         for ( List<Object> row : grid.getRows() )
         {
@@ -466,6 +496,78 @@ public class AnalyticsUtils
         }
 
         return dvs;
+    }
+
+    /**
+     * Generates a data value set as a grid based on the given grid with
+     * aggregated data. Sets the created and last updated fields to the current
+     * date.
+     *
+     * @param grid the grid.
+     * @return a data value set.
+     */
+    public static Grid getDataValueSetAsGrid( Grid grid )
+    {
+        validateGridForDataValueSet( grid );
+
+        int dxInx = grid.getIndexOfHeader( DATA_X_DIM_ID );
+        int peInx = grid.getIndexOfHeader( PERIOD_DIM_ID );
+        int ouInx = grid.getIndexOfHeader( ORGUNIT_DIM_ID );
+        int coInx = grid.getIndexOfHeader( CATEGORYOPTIONCOMBO_DIM_ID );
+        int aoInx = grid.getIndexOfHeader( ATTRIBUTEOPTIONCOMBO_DIM_ID );
+        int vlInx = grid.getHeaderWidth() - 1;
+
+        String created = DateUtils.getMediumDateString();
+
+        Grid dvs = new ListGrid();
+
+        dvs.addHeader( new GridHeader( "data_element", ValueType.TEXT ) );
+        dvs.addHeader( new GridHeader( "period", ValueType.TEXT ) );
+        dvs.addHeader( new GridHeader( "organisation_unit", ValueType.TEXT ) );
+        dvs.addHeader( new GridHeader( "category_option_combo", ValueType.TEXT ) );
+        dvs.addHeader( new GridHeader( "attribute_option_combo", ValueType.TEXT ) );
+        dvs.addHeader( new GridHeader( "value", ValueType.TEXT ) );
+        dvs.addHeader( new GridHeader( "stored_by", ValueType.TEXT ) );
+        dvs.addHeader( new GridHeader( "created", ValueType.DATETIME ) );
+        dvs.addHeader( new GridHeader( "last_updated", ValueType.DATETIME ) );
+        dvs.addHeader( new GridHeader( "comment", ValueType.TEXT ) );
+        dvs.addHeader( new GridHeader( "follow_up", ValueType.BOOLEAN ) );
+
+        for ( List<Object> row : grid.getRows() )
+        {
+            List<Object> objects = new ArrayList<>();
+
+            objects.add( row.get( dxInx ) );
+            objects.add( row.get( peInx ) );
+            objects.add( row.get( ouInx ) );
+            objects.add( row.get( coInx ) );
+            objects.add( row.get( aoInx ) );
+            objects.add( row.get( vlInx ) );
+            objects.add( KEY_AGG_VALUE );
+            objects.add( created );
+            objects.add( created );
+            objects.add( KEY_AGG_VALUE );
+            objects.add( false );
+
+            dvs.addRow().addValuesAsList( objects );
+        }
+
+        return dvs;
+    }
+
+    /**
+     * Validates that the required headers for a data value set exist.
+     *
+     * @param grid the {@link Grid}.
+     * @throws IllegalArgumentException if validation fails.
+     */
+    private static void validateGridForDataValueSet( Grid grid )
+    {
+        isTrue( grid.headerExists( DATA_X_DIM_ID ), "Data header does not exist" );
+        isTrue( grid.headerExists( PERIOD_DIM_ID ), "Period header does not exist" );
+        isTrue( grid.headerExists( ORGUNIT_DIM_ID ), "Org unit header does not exist" );
+        isTrue( grid.headerExists( CATEGORYOPTIONCOMBO_DIM_ID ), "Category option combo header does not exist" );
+        isTrue( grid.headerExists( ATTRIBUTEOPTIONCOMBO_DIM_ID ), "Attribute option combo header does not exist" );
     }
 
     /**
@@ -766,16 +868,13 @@ public class AnalyticsUtils
 
         List<DimensionalItemObject> des = params.getAllDataElements();
 
-        if ( !des.isEmpty() )
+        for ( DimensionalItemObject de : des )
         {
-            for ( DimensionalItemObject de : des )
-            {
-                DataElement dataElement = (DataElement) de;
+            DataElement dataElement = (DataElement) de;
 
-                for ( CategoryOptionCombo coc : dataElement.getCategoryOptionCombos() )
-                {
-                    metaData.put( coc.getUid(), coc.getName() );
-                }
+            for ( CategoryOptionCombo coc : dataElement.getCategoryOptionCombos() )
+            {
+                metaData.put( coc.getUid(), coc.getName() );
             }
         }
 

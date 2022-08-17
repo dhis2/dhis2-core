@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.webapi.WebClient.Body;
-import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
+import static org.hisp.dhis.web.WebClient.Body;
+import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -45,6 +45,7 @@ import org.hisp.dhis.security.RestoreType;
 import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
+import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
@@ -52,7 +53,6 @@ import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.controller.user.UserController}.
@@ -94,7 +94,7 @@ class UserControllerTest extends DhisControllerConvenienceTest
     {
         assertStatus( HttpStatus.OK, PATCH( "/users/{id}", peter.getUid() + "?importReportMode=ERRORS",
             Body( "[{'op': 'replace', 'path': '/email', 'value': null}]" ) ) );
-        assertEquals( "user_does_not_have_valid_email",
+        assertEquals( "User account does not have a valid email address",
             POST( "/users/" + peter.getUid() + "/reset" ).error( HttpStatus.CONFLICT ).getMessage() );
     }
 
@@ -207,7 +207,7 @@ class UserControllerTest extends DhisControllerConvenienceTest
     {
         JsonWebMessage msg = assertWebMessage( "Conflict", 409, "ERROR",
             "One or more errors occurred, please see full details in import report.",
-            POST( "/users/", "{'surname':'S.','firstName':'Harry','userCredentials':{'username':'Harrys'}}" )
+            POST( "/users/", "{'surname':'S.','firstName':'Harry','userCredentials':{'username':'_Harrys'}}" )
                 .content( HttpStatus.CONFLICT ) );
         JsonErrorReport report = msg.getResponse()
             .find( JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E4049 );
@@ -245,9 +245,9 @@ class UserControllerTest extends DhisControllerConvenienceTest
         String restoreToken = idAndRestoreToken[1];
         User user = userService.getUserByIdToken( idToken );
         assertNotNull( user );
-        String errorMessage = securityService.verifyRestoreToken( user, restoreToken,
+        ErrorCode errorCode = securityService.validateRestoreToken( user, restoreToken,
             RestoreType.RECOVER_PASSWORD );
-        assertNull( errorMessage );
+        assertNull( errorCode );
     }
 
     private OutboundMessage assertMessageSendTo( String email )
@@ -255,5 +255,77 @@ class UserControllerTest extends DhisControllerConvenienceTest
         List<OutboundMessage> messagesByEmail = ((FakeMessageSender) messageSender).getMessagesByEmail( email );
         assertTrue( messagesByEmail.size() > 0 );
         return messagesByEmail.get( 0 );
+    }
+
+    @Test
+    void testDisable2FAIllegalSameUser()
+    {
+        switchContextToUser( this.peter );
+        assertEquals( "You don't have the proper permissions to update this user.",
+            PUT( "/37/users/" + peter.getUid(), "{\"userCredentials\":{\"twoFA\":true}}" ).error( HttpStatus.FORBIDDEN )
+                .getMessage() );
+    }
+
+    @Test
+    void testDisable2FAFailNotAllowedByExecutingUser()
+    {
+        User superUser = getSuperUser();
+        switchContextToUser( superUser );
+
+        JsonObject user = GET( "/users/{uid}", superUser.getUid() ).content();
+        String userJson = user.toString();
+
+        String twoFAOn = userJson.replaceAll( "\"twoFA\":false", "\"twoFA\":true" );
+
+        assertEquals( "You can not enable 2FA with this API endpoint, only disable.",
+            PUT( "/37/users/" + superUser.getUid(), twoFAOn ).error( HttpStatus.FORBIDDEN )
+                .getMessage() );
+    }
+
+    @Test
+    void testDisable2FAFailNotAllowedByExecutingUserB()
+    {
+        // Manually enable 2FA for the new user
+        User newUser = makeUser( "X", List.of( "ALL" ) );
+        newUser.setEmail( "valid@email.com" );
+        newUser.setTwoFA( true );
+        userService.addUser( newUser );
+
+        switchContextToUser( newUser );
+
+        JsonObject user = GET( "/users/{uid}", newUser.getUid() ).content();
+        String userJson = user.toString();
+
+        String twoFAOn = userJson.replaceAll( "\"twoFA\":true", "\"twoFA\":false" );
+
+        assertEquals(
+            "User cannot update their own user's 2FA settings via this API endpoint, must use /2fa/enable or disable API",
+            PUT( "/37/users/" + newUser.getUid(), twoFAOn ).error( HttpStatus.FORBIDDEN )
+                .getMessage() );
+    }
+
+    @Test
+    void testDisable2FAFailNotAllowedByExecutingUserA()
+    {
+        // Manually enable 2FA for the new user
+        User newUser = makeUser( "X", List.of( "TEST" ) );
+        newUser.setEmail( "valid@email.com" );
+        newUser.setTwoFA( true );
+        userService.addUser( newUser );
+
+        User superUser = getSuperUser();
+        switchContextToUser( superUser );
+
+        JsonObject user = GET( "/users/{uid}", newUser.getUid() ).content();
+        String userJson = user.toString();
+
+        String twoFAOn = userJson.replaceAll( "\"twoFA\":true", "\"twoFA\":false" );
+
+        JsonImportSummary summary = PUT( "/37/users/" + newUser.getUid(), twoFAOn ).content( HttpStatus.OK )
+            .as( JsonImportSummary.class );
+        assertEquals( "ImportReport", summary.getResponseType() );
+        assertEquals( "OK", summary.getStatus() );
+        assertEquals( 1, summary.getStats().getUpdated() );
+        assertEquals( newUser.getUid(), summary.getTypeReports().get( 0 ).getObjectReports().get( 0 ).getUid() );
     }
 }

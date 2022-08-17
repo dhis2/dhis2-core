@@ -62,7 +62,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith( MockitoExtension.class )
 class DimensionItemPageHandlerTest
 {
-
     @Mock
     private LinkService linkService;
 

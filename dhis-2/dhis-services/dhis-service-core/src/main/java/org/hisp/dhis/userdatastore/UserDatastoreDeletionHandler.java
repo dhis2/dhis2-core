@@ -27,19 +27,15 @@
  */
 package org.hisp.dhis.userdatastore;
 
-import lombok.AllArgsConstructor;
+import java.util.Map;
 
-import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
 import org.hisp.dhis.user.User;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 @Component
-@AllArgsConstructor
-public class UserDatastoreDeletionHandler extends DeletionHandler
+public class UserDatastoreDeletionHandler extends JdbcDeletionHandler
 {
-    private final JdbcTemplate jdbcTemplate;
-
     @Override
     protected void register()
     {
@@ -48,6 +44,6 @@ public class UserDatastoreDeletionHandler extends DeletionHandler
 
     private void deleteUser( User user )
     {
-        jdbcTemplate.execute( "DELETE FROM userkeyjsonvalue WHERE userid = " + user.getId() );
+        delete( "delete from userkeyjsonvalue where userid = :id", Map.of( "id", user.getId() ) );
     }
 }

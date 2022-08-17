@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.interpretation;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -65,6 +65,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service( "org.hisp.dhis.interpretation.InterpretationService" )
 @Transactional
+@AllArgsConstructor
 public class DefaultInterpretationService
     implements InterpretationService
 {
@@ -89,31 +90,6 @@ public class DefaultInterpretationService
     private final I18nManager i18nManager;
 
     private final DhisConfigurationProvider configurationProvider;
-
-    public DefaultInterpretationService( SchemaService schemaService, InterpretationStore interpretationStore,
-        CurrentUserService currentUserService, UserService userService, PeriodService periodService,
-        MessageService messageService, AclService aclService, I18nManager i18nManager,
-        DhisConfigurationProvider configurationProvider )
-    {
-        checkNotNull( schemaService );
-        checkNotNull( interpretationStore );
-        checkNotNull( currentUserService );
-        checkNotNull( userService );
-        checkNotNull( periodService );
-        checkNotNull( messageService );
-        checkNotNull( aclService );
-        checkNotNull( i18nManager );
-        checkNotNull( configurationProvider );
-        this.schemaService = schemaService;
-        this.interpretationStore = interpretationStore;
-        this.currentUserService = currentUserService;
-        this.userService = userService;
-        this.periodService = periodService;
-        this.messageService = messageService;
-        this.aclService = aclService;
-        this.i18nManager = i18nManager;
-        this.configurationProvider = configurationProvider;
-    }
 
     /**
      * Used only for testing, remove when test is refactored

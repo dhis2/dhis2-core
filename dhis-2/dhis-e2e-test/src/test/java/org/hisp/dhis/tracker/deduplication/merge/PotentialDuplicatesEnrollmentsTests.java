@@ -69,7 +69,7 @@ public class PotentialDuplicatesEnrollmentsTests
             .extractImportedTeis()
             .get( 0 );
 
-        String potentialDuplicate = potentialDuplicatesActions.createPotentialDuplicate( teiA, teiB, "OPEN" )
+        String potentialDuplicate = potentialDuplicatesActions.postPotentialDuplicate( teiA, teiB, "OPEN" )
             .validateStatus( 200 )
             .extractString( "id" );
 
@@ -90,7 +90,7 @@ public class PotentialDuplicatesEnrollmentsTests
         String teiB = teiBResponse.extractImportedTeis().get( 0 );
         String enrollmentToMerge = teiBResponse.extractImportedEnrollments().get( 0 );
 
-        String potentialDuplicate = potentialDuplicatesActions.createPotentialDuplicate( teiA, teiB, "OPEN" )
+        String potentialDuplicate = potentialDuplicatesActions.postPotentialDuplicate( teiA, teiB, "OPEN" )
             .validateStatus( 200 )
             .extractString( "id" );
 

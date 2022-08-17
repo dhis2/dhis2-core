@@ -27,31 +27,20 @@
  */
 package org.hisp.dhis.trackedentity;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
+import java.util.Map;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Chau Thu Tran
  */
-@Component( "org.hisp.dhis.trackedentity.TrackedEntityInstanceDeletionHandler" )
-public class TrackedEntityInstanceDeletionHandler
-    extends DeletionHandler
+@Component
+public class TrackedEntityInstanceDeletionHandler extends JdbcDeletionHandler
 {
     private static final DeletionVeto VETO = new DeletionVeto( TrackedEntityInstance.class );
-
-    private final JdbcTemplate jdbcTemplate;
-
-    public TrackedEntityInstanceDeletionHandler( JdbcTemplate jdbcTemplate )
-    {
-        checkNotNull( jdbcTemplate );
-        this.jdbcTemplate = jdbcTemplate;
-    }
 
     @Override
     protected void register()
@@ -62,16 +51,13 @@ public class TrackedEntityInstanceDeletionHandler
 
     private DeletionVeto allowDeleteOrganisationUnit( OrganisationUnit unit )
     {
-        String sql = "select count(*) from trackedentityinstance where organisationunitid = " + unit.getId();
-
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
+        String sql = "select 1 from trackedentityinstance where organisationunitid = :id limit 1";
+        return vetoIfExists( VETO, sql, Map.of( "id", unit.getId() ) );
     }
 
     private DeletionVeto allowDeleteTrackedEntityType( TrackedEntityType trackedEntityType )
     {
-        String sql = "select count(*) from trackedentityinstance where trackedentitytypeid = "
-            + trackedEntityType.getId();
-
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
+        String sql = "select 1 from trackedentityinstance where trackedentitytypeid = :id limit 1";
+        return vetoIfExists( VETO, sql, Map.of( "id", trackedEntityType.getId() ) );
     }
 }

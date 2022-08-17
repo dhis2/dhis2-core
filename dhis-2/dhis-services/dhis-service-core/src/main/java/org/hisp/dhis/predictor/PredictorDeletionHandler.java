@@ -30,7 +30,7 @@ package org.hisp.dhis.predictor;
 import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import java.util.Iterator;
-import java.util.List;
+import java.util.Map;
 
 import lombok.AllArgsConstructor;
 
@@ -38,9 +38,8 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.expression.Expression;
-import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
 import org.springframework.stereotype.Component;
 
 /**
@@ -48,11 +47,11 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
-public class PredictorDeletionHandler extends DeletionHandler
+public class PredictorDeletionHandler extends JdbcDeletionHandler
 {
-    private final PredictorService predictorService;
+    private static final DeletionVeto VETO = new DeletionVeto( Predictor.class );
 
-    private final JdbcTemplate jdbcTemplate;
+    private final PredictorService predictorService;
 
     @Override
     protected void register()
@@ -95,36 +94,22 @@ public class PredictorDeletionHandler extends DeletionHandler
 
     private DeletionVeto allowDeleteDataElement( DataElement dataElement )
     {
-        List<Predictor> predictors = predictorService.getAllPredictors();
-
-        for ( Predictor predictor : predictors )
-        {
-            if ( dataElement.typedEquals( predictor.getOutput() ) )
-            {
-                return new DeletionVeto( Predictor.class, predictor.getName() );
-            }
-        }
-
-        return ACCEPT;
+        String predictorName = firstMatch( "select p.name from predictor p where p.generatoroutput = :dataElementId",
+            Map.of( "dataElementId", dataElement.getId() ) );
+        return predictorName == null ? ACCEPT : new DeletionVeto( Predictor.class, predictorName );
     }
 
     private DeletionVeto allowDeleteCategoryOptionCombo( CategoryOptionCombo optionCombo )
     {
-        return vetoIfExists( "SELECT COUNT(*) FROM predictor where generatoroutputcombo=" + optionCombo.getId() );
+        return vetoIfExists( VETO, "select 1 from predictor where generatoroutputcombo=:id limit 1",
+            Map.of( "id", optionCombo.getId() ) );
     }
 
     private DeletionVeto allowDeleteCategoryCombo( CategoryCombo categoryCombo )
     {
-        return vetoIfExists( "SELECT COUNT(*) FROM predictor p where exists ("
+        return vetoIfExists( VETO, "select 1 from predictor p where exists ("
             + "select 1 from categorycombos_optioncombos co"
-            + " where co.categorycomboid=" + categoryCombo.getId()
-            + " and co.categoryoptioncomboid=p.generatoroutputcombo"
-            + ")" );
-    }
-
-    private DeletionVeto vetoIfExists( String sql )
-    {
-        Integer count = jdbcTemplate.queryForObject( sql, Integer.class );
-        return count == null || count == 0 ? ACCEPT : new DeletionVeto( Predictor.class );
+            + " where co.categorycomboid=:id and co.categoryoptioncomboid=p.generatoroutputcombo limit 1"
+            + ")", Map.of( "id", categoryCombo.getId() ) );
     }
 }

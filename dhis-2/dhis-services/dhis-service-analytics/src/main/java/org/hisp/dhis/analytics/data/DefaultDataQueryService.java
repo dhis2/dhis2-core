@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.data;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_ATTRIBUTEOPTIONCOMBO;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_CATEGORYOPTIONCOMBO;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_DATA_X;
@@ -74,6 +73,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
@@ -131,6 +132,7 @@ import org.springframework.util.Assert;
  * @author Lars Helge Overland
  */
 @Service( "org.hisp.dhis.analytics.DataQueryService" )
+@RequiredArgsConstructor
 public class DefaultDataQueryService
     implements DataQueryService
 {
@@ -138,45 +140,21 @@ public class DefaultDataQueryService
         .map( DateTimeFormatter::ofPattern )
         .collect( Collectors.toList() );
 
-    private IdentifiableObjectManager idObjectManager;
+    private final IdentifiableObjectManager idObjectManager;
 
-    private OrganisationUnitService organisationUnitService;
+    private final OrganisationUnitService organisationUnitService;
 
-    private DimensionService dimensionService;
+    private final DimensionService dimensionService;
 
-    private AnalyticsSecurityManager securityManager;
+    private final AnalyticsSecurityManager securityManager;
 
-    private SystemSettingManager systemSettingManager;
+    private final SystemSettingManager systemSettingManager;
 
-    private AclService aclService;
+    private final AclService aclService;
 
-    private CurrentUserService currentUserService;
+    private final CurrentUserService currentUserService;
 
-    private I18nManager i18nManager;
-
-    public DefaultDataQueryService( IdentifiableObjectManager idObjectManager,
-        OrganisationUnitService organisationUnitService, DimensionService dimensionService,
-        AnalyticsSecurityManager securityManager, SystemSettingManager systemSettingManager, AclService aclService,
-        CurrentUserService currentUserService, I18nManager i18nManager )
-    {
-        checkNotNull( idObjectManager );
-        checkNotNull( organisationUnitService );
-        checkNotNull( dimensionService );
-        checkNotNull( securityManager );
-        checkNotNull( systemSettingManager );
-        checkNotNull( aclService );
-        checkNotNull( currentUserService );
-        checkNotNull( i18nManager );
-
-        this.idObjectManager = idObjectManager;
-        this.organisationUnitService = organisationUnitService;
-        this.dimensionService = dimensionService;
-        this.securityManager = securityManager;
-        this.systemSettingManager = systemSettingManager;
-        this.aclService = aclService;
-        this.currentUserService = currentUserService;
-        this.i18nManager = i18nManager;
-    }
+    private final I18nManager i18nManager;
 
     // -------------------------------------------------------------------------
     // DataQueryService implementation
@@ -326,8 +304,7 @@ public class DefaultDataQueryService
         List<OrganisationUnit> userOrgUnits, I18nFormat format, boolean allowNull, IdScheme inputIdScheme )
     {
         return getDimension( dimension, items, request.getRelativePeriodDate(), request.getDisplayProperty(),
-            userOrgUnits,
-            format, allowNull, inputIdScheme );
+            userOrgUnits, format, allowNull, inputIdScheme );
     }
 
     @Override
@@ -579,7 +556,7 @@ public class DefaultDataQueryService
                 orgUnits.addAll( sort( organisationUnitService.getOrganisationUnitsAtLevels( levels, ousList ) ) );
 
                 dimensionalKeywords.addKeywords( levels.stream()
-                    .map( level -> organisationUnitService.getOrganisationUnitLevelByLevel( level ) )
+                    .map( organisationUnitService::getOrganisationUnitLevelByLevel )
                     .filter( Objects::nonNull )
                     .collect( Collectors.toList() ) );
             }

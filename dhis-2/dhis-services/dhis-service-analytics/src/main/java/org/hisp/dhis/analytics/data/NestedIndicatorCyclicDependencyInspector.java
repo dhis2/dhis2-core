@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.data;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
 import static java.util.Collections.*;
 import static org.hisp.dhis.common.DimensionItemType.INDICATOR;
@@ -37,6 +36,8 @@ import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.expression.ExpressionService;
@@ -59,21 +60,12 @@ import com.scalified.tree.multinode.ArrayMultiTreeNode;
  * @author Luciano Fiandesio
  */
 @Component
+@RequiredArgsConstructor
 public class NestedIndicatorCyclicDependencyInspector
 {
     private final ExpressionService expressionService;
 
     private final DimensionService dimensionService;
-
-    public NestedIndicatorCyclicDependencyInspector( DimensionService dimensionService,
-        ExpressionService expressionService )
-    {
-        checkNotNull( expressionService );
-        checkNotNull( dimensionService );
-
-        this.dimensionService = dimensionService;
-        this.expressionService = expressionService;
-    }
 
     private final static String ERROR_STRING = "An Indicator with identifier '%s' has a cyclic reference to another Indicator in the Nominator or Denominator expression";
 
@@ -131,7 +123,7 @@ public class NestedIndicatorCyclicDependencyInspector
     {
         for ( Indicator indicator : indicators )
         {
-            // Find the parent node to which we attach the indicators
+            // Find the parent node to attach indicators
             TreeNode<String> parentNode = tree.find( parent );
             if ( parentNode == null )
             {
@@ -141,9 +133,8 @@ public class NestedIndicatorCyclicDependencyInspector
             {
                 TreeNode<String> mNode = parentNode;
 
-                // Navigate backward from the parent node to verify that a
-                // direct ancestor
-                // doesn't have the same UID as the current indicator
+                // Navigate backward from parent node to verify that an ancestor
+                // does not have the same UID as current indicator
                 do
                 {
                     mNode = mNode.parent();
@@ -155,8 +146,7 @@ public class NestedIndicatorCyclicDependencyInspector
                 while ( !mNode.isRoot() );
             }
 
-            // Check that the node to add doesn't have the same value as the
-            // parent
+            // Check that node to add does not have the same value as parent
             if ( parentNode.data().equals( indicator.getUid() ) )
             {
                 throw new CyclicReferenceException( format( ERROR_STRING, indicator.getUid() ) );

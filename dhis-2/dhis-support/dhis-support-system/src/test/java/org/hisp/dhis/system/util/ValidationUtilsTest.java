@@ -35,6 +35,7 @@ import static org.hisp.dhis.system.util.ValidationUtils.emailIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.expressionIsValidSQl;
 import static org.hisp.dhis.system.util.ValidationUtils.getLatitude;
 import static org.hisp.dhis.system.util.ValidationUtils.getLongitude;
+import static org.hisp.dhis.system.util.ValidationUtils.isPhoneNumber;
 import static org.hisp.dhis.system.util.ValidationUtils.isValidHexColor;
 import static org.hisp.dhis.system.util.ValidationUtils.normalizeBoolean;
 import static org.hisp.dhis.system.util.ValidationUtils.passwordIsValid;
@@ -155,23 +156,24 @@ class ValidationUtilsTest
     @Test
     void testUsernameIsValid()
     {
-        assertTrue( usernameIsValid( "johnmichaeldoe" ) );
-        assertTrue( usernameIsValid( "ted@johnson.com" ) );
-        assertTrue( usernameIsValid( "harry@gmail.com" ) );
-        assertTrue( usernameIsValid( "har_ry@gmail.com" ) );
-        assertFalse( usernameIsValid( "Harry@gmail.com" ) );
-        assertFalse( usernameIsValid( "_harry@gmail.com" ) );
-        assertFalse( usernameIsValid( "harry@gmail.com_" ) );
-        assertFalse( usernameIsValid( ".harry@gmail.com" ) );
-        assertFalse( usernameIsValid( "harry@gmail.com." ) );
-        assertFalse( usernameIsValid( "@harry@gmail.com" ) );
-        assertFalse( usernameIsValid( "harry@gmail.com@" ) );
-        assertFalse( usernameIsValid( "harry_@gmail.com" ) );
-        assertFalse( usernameIsValid( "har__ry@gmail.com" ) );
-        assertFalse( usernameIsValid( "harry@@gmail.com" ) );
-        assertFalse( usernameIsValid( "harry..gmail.com" ) );
-        assertFalse( usernameIsValid( null ) );
-        assertFalse( usernameIsValid( CodeGenerator.generateCode( 400 ) ) );
+        assertTrue( usernameIsValid( "johnmichaeldoe", false ) );
+        assertTrue( usernameIsValid( "ted@johnson.com", false ) );
+        assertTrue( usernameIsValid( "harry@gmail.com", false ) );
+        assertTrue( usernameIsValid( "har_ry@gmail.com", false ) );
+        assertTrue( usernameIsValid( "Harry@gmail.com", false ) );
+        assertTrue( usernameIsValid( "TeD@johnSon.com", false ) );
+        assertFalse( usernameIsValid( "_harry@gmail.com", false ) );
+        assertFalse( usernameIsValid( "harry@gmail.com_", false ) );
+        assertFalse( usernameIsValid( ".harry@gmail.com", false ) );
+        assertFalse( usernameIsValid( "harry@gmail.com.", false ) );
+        assertFalse( usernameIsValid( "@harry@gmail.com", false ) );
+        assertFalse( usernameIsValid( "harry@gmail.com@", false ) );
+        assertFalse( usernameIsValid( "harry_@gmail.com", false ) );
+        assertFalse( usernameIsValid( "har__ry@gmail.com", false ) );
+        assertFalse( usernameIsValid( "harry@@gmail.com", false ) );
+        assertFalse( usernameIsValid( "harry..gmail.com", false ) );
+        assertFalse( usernameIsValid( null, false ) );
+        assertFalse( usernameIsValid( CodeGenerator.generateCode( 400 ), false ) );
     }
 
     @Test
@@ -246,6 +248,27 @@ class ValidationUtilsTest
         assertTrue( isValidHexColor( "ffAAb4" ) );
         assertTrue( isValidHexColor( "#4a6" ) );
         assertTrue( isValidHexColor( "abc" ) );
+    }
+
+    @Test
+    void testIsPhoneNumber()
+    {
+        assertTrue( isPhoneNumber( "+ 47 33 987 937" ) );
+        assertTrue( isPhoneNumber( "+4733987937" ) );
+        assertTrue( isPhoneNumber( "123456" ) );
+        assertTrue( isPhoneNumber( "(+47) 3398 7937" ) );
+        assertTrue( isPhoneNumber( "(47) 3398 7937" ) );
+        assertTrue( isPhoneNumber( "(47) 3398 7937 ext 123" ) );
+        assertTrue( isPhoneNumber( "(47) 3398 7937.123" ) );
+        // 50 characters
+        assertTrue( isPhoneNumber( "01234567890123456789012345678901234567890123456789" ) );
+        // 51 characters
+        assertFalse( isPhoneNumber( "012345678901234567890123456789012345678901234567890" ) );
+        assertFalse( isPhoneNumber( "+AA4733987937" ) );
+        assertFalse( isPhoneNumber( "+AA4733987937" ) );
+        assertFalse( isPhoneNumber( "12345" ) );
+        assertFalse( isPhoneNumber( "" ) );
+        assertFalse( isPhoneNumber( " " ) );
     }
 
     @Test

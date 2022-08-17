@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.trackedentityattributevalue;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
 
@@ -36,6 +35,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -53,21 +53,13 @@ import org.springframework.stereotype.Component;
  * @author Ameen
  */
 @Slf4j
+@AllArgsConstructor
 @Component( "trackerTrigramIndexingJob" )
 public class TrackerTrigramIndexingJob implements Job
 {
     private final TrackedEntityAttributeService trackedEntityAttributeService;
 
     private final TrackedEntityAttributeTableManager trackedEntityAttributeTableManager;
-
-    public TrackerTrigramIndexingJob( TrackedEntityAttributeService trackedEntityAttributeService,
-        TrackedEntityAttributeTableManager trackedEntityAttributeTableManager )
-    {
-        checkNotNull( trackedEntityAttributeService );
-        checkNotNull( trackedEntityAttributeTableManager );
-        this.trackedEntityAttributeService = trackedEntityAttributeService;
-        this.trackedEntityAttributeTableManager = trackedEntityAttributeTableManager;
-    }
 
     // -------------------------------------------------------------------------
     // Implementation
@@ -88,15 +80,14 @@ public class TrackerTrigramIndexingJob implements Job
         log.info( "Starting Trigram Indexing Job. Attributes Provided to Index: {}", parameters.getAttributes() );
         progress.startingProcess( "Starting Trigram indexing process" );
 
-        // fetch all indexable attributes only if needed
+        // Fetch all indexable attributes only if needed
         if ( !CollectionUtils.isEmpty( parameters.getAttributes() ) || !parameters.isSkipIndexDeletion() )
         {
             log.debug( "Fetching all indexable attributes from db" );
-            Set<TrackedEntityAttribute> allIndexableAttributes = allIndexableAttributes = trackedEntityAttributeService
+            Set<TrackedEntityAttribute> allIndexableAttributes = trackedEntityAttributeService
                 .getAllTrigramIndexableTrackedEntityAttributes();
 
-            // Trigram index only need to be created if requested in the job
-            // parameters.
+            // Trigram index only need if requested in job parameters
             if ( !CollectionUtils.isEmpty( parameters.getAttributes() ) )
             {
                 createTrigramIndexesOnIndexableAttributes( progress, parameters, allIndexableAttributes );
@@ -119,10 +110,8 @@ public class TrackerTrigramIndexingJob implements Job
 
         log.debug( "Found total {} indexable attributes", allIndexableAttributes.size() );
 
-        // Remove indexableAttributes that have not been requested to be indexed
-        // and
-        // Also remove attributes that are requested to be indexed but are not
-        // indexable
+        // Remove indexableAttributes not requested to be indexed
+        // Remove attributes requested to be indexed but not indexable
         Set<TrackedEntityAttribute> indexableAttributes = allIndexableAttributes.stream().map( itea -> {
             if ( !parameters.getAttributes().contains( itea.getUid() ) )
             {
@@ -135,8 +124,7 @@ public class TrackerTrigramIndexingJob implements Job
         log.debug( "Number of Attributes provided in job parameters that are indexable: {}",
             indexableAttributes.size() );
 
-        // Create indexes for the indexable attributes specified in the job
-        // parameters
+        // Create indexes for indexable attributes specified in job parameters
         if ( !indexableAttributes.isEmpty() )
         {
             createTrigramIndexes( progress, indexableAttributes );
@@ -179,7 +167,7 @@ public class TrackerTrigramIndexingJob implements Job
         /*
          * Remove all tea ids that are indexable. What remains in this set will
          * be attribute ids that have indexes present in the db but the
-         * corresponding tea is not indexable anymore. hence an obsolete index
+         * corresponding tea is not indexable anymore, hence an obsolete index.
          */
         teaIds.removeAll( allIndexableAttributeIds );
 

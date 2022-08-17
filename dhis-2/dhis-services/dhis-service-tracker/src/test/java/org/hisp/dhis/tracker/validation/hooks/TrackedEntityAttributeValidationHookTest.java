@@ -40,12 +40,14 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
@@ -86,13 +88,19 @@ class TrackedEntityAttributeValidationHookTest
 
     private TrackerBundle bundle;
 
+    private ValidationErrorReporter reporter;
+
+    private TrackerIdSchemeParams idSchemes;
+
     @BeforeEach
     public void setUp()
     {
         bundle = TrackerBundle.builder()
             .preheat( preheat )
             .build();
-        when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
+        idSchemes = TrackerIdSchemeParams.builder().build();
+        when( preheat.getIdSchemes() ).thenReturn( idSchemes );
+        reporter = new ValidationErrorReporter( idSchemes );
         when( dhisConfigurationProvider.getEncryptionStatus() ).thenReturn( EncryptionStatus.OK );
     }
 
@@ -113,8 +121,7 @@ class TrackedEntityAttributeValidationHookTest
             .trackedEntityType( MetadataIdentifier.ofUid( "trackedEntityType" ) )
             .build();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter,
+        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter, bundle,
             trackedEntity );
 
         assertFalse( reporter.hasErrors() );
@@ -151,8 +158,7 @@ class TrackedEntityAttributeValidationHookTest
 
         when( preheat.getTrackedEntityAttribute( (MetadataIdentifier) any() ) ).thenReturn( contextAttribute );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter,
+        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter, bundle,
             trackedEntity );
 
         assertTrue( reporter.hasErrors() );
@@ -172,8 +178,7 @@ class TrackedEntityAttributeValidationHookTest
 
         when( preheat.getTrackedEntityType( (MetadataIdentifier) any() ) ).thenReturn( new TrackedEntityType() );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter,
+        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter, bundle,
             trackedEntity );
 
         assertTrue( reporter.hasErrors() );
@@ -208,8 +213,7 @@ class TrackedEntityAttributeValidationHookTest
         when( preheat.getTrackedEntityAttribute( MetadataIdentifier.ofUid( tea ) ) )
             .thenReturn( trackedEntityAttribute );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter,
+        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter, bundle,
             trackedEntity );
 
         assertTrue( reporter.hasErrors() );
@@ -221,7 +225,6 @@ class TrackedEntityAttributeValidationHookTest
     @Test
     void shouldFailValueTooLong()
     {
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         when( trackedEntityAttribute.getValueType() ).thenReturn( ValueType.TEXT );
 
@@ -246,7 +249,6 @@ class TrackedEntityAttributeValidationHookTest
     @Test
     void shouldFailDataValueIsValid()
     {
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         when( trackedEntityAttribute.getValueType() ).thenReturn( ValueType.NUMBER );
 
@@ -274,7 +276,6 @@ class TrackedEntityAttributeValidationHookTest
 
         when( preheat.getTrackedEntityAttribute( (MetadataIdentifier) any() ) ).thenReturn( trackedEntityAttribute );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
         TrackedEntity te = TrackedEntity.builder().trackedEntity( CodeGenerator.generateUid() ).build();
         trackedEntityAttributeValidationHook.validateAttributeValue( reporter, te,
             trackedEntityAttribute, "value" );
@@ -301,8 +302,7 @@ class TrackedEntityAttributeValidationHookTest
             .trackedEntityType( MetadataIdentifier.ofUid( "trackedEntityType" ) )
             .build();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter,
+        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter, bundle,
             trackedEntity );
 
         assertTrue( reporter.hasErrors() );
@@ -326,8 +326,7 @@ class TrackedEntityAttributeValidationHookTest
             .trackedEntityType( MetadataIdentifier.ofUid( "trackedEntityType" ) )
             .build();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter,
+        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter, bundle,
             trackedEntity );
 
         assertFalse( reporter.hasErrors() );
@@ -358,8 +357,7 @@ class TrackedEntityAttributeValidationHookTest
             .trackedEntityType( MetadataIdentifier.ofUid( "trackedEntityType" ) )
             .build();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter,
+        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter, bundle,
             trackedEntity );
 
         assertFalse( reporter.hasErrors() );
@@ -392,13 +390,80 @@ class TrackedEntityAttributeValidationHookTest
 
         when( preheat.getTrackedEntityType( (MetadataIdentifier) any() ) ).thenReturn( trackedEntityType );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter,
+        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter, bundle,
             trackedEntity );
 
         assertTrue( reporter.hasErrors() );
         assertEquals( 1, reporter.getReportList().size() );
         assertEquals( TrackerErrorCode.E1076, reporter.getReportList().get( 0 ).getErrorCode() );
+    }
+
+    @Test
+    void validateFileResourceOwner()
+    {
+        TrackedEntityType trackedEntityType = new TrackedEntityType();
+        trackedEntityType.setUid( "tet" );
+
+        trackedEntityAttribute.setUid( "tea" );
+
+        when( trackedEntityAttribute.getValueType() ).thenReturn( ValueType.FILE_RESOURCE );
+
+        String fileResourceUid = CodeGenerator.generateUid();
+
+        FileResource fileResource = new FileResource();
+        fileResource.setAssigned( true );
+        fileResource.setUid( fileResourceUid );
+
+        when( preheat.get( FileResource.class, fileResourceUid ) ).thenReturn( fileResource );
+        when( preheat.getTrackedEntityAttribute( MetadataIdentifier.ofUid( "tea" ) ) )
+            .thenReturn( trackedEntityAttribute );
+        when( preheat.getTrackedEntityType( MetadataIdentifier.ofUid( "tet" ) ) ).thenReturn( trackedEntityType );
+
+        Attribute attribute = new Attribute();
+        attribute.setAttribute( MetadataIdentifier.ofUid( "tea" ) );
+        attribute.setValueType( ValueType.FILE_RESOURCE );
+        attribute.setValue( fileResourceUid );
+
+        TrackedEntity trackedEntity = TrackedEntity.builder()
+            .attributes( Collections.singletonList( attribute ) )
+            .trackedEntityType( MetadataIdentifier.ofUid( "tet" ) )
+            .build();
+
+        bundle.setStrategy( trackedEntity, TrackerImportStrategy.CREATE );
+
+        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter, bundle,
+            trackedEntity );
+
+        assertTrue( reporter.hasErrors() );
+        assertEquals( 1, reporter.getReportList().size() );
+        assertEquals( TrackerErrorCode.E1009, reporter.getReportList().get( 0 ).getErrorCode() );
+
+        reporter = new ValidationErrorReporter( idSchemes );
+
+        trackedEntity.setTrackedEntity( "XYZ" );
+        fileResource.setFileResourceOwner( "ABC" );
+
+        bundle.setStrategy( trackedEntity, TrackerImportStrategy.UPDATE );
+
+        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter, bundle,
+            trackedEntity );
+
+        assertTrue( reporter.hasErrors() );
+        assertEquals( 1, reporter.getReportList().size() );
+        assertEquals( TrackerErrorCode.E1009, reporter.getReportList().get( 0 ).getErrorCode() );
+
+        reporter = new ValidationErrorReporter( idSchemes );
+
+        trackedEntity.setTrackedEntity( "ABC" );
+        fileResource.setFileResourceOwner( "ABC" );
+
+        bundle.setStrategy( trackedEntity, TrackerImportStrategy.UPDATE );
+
+        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter, bundle,
+            trackedEntity );
+
+        assertFalse( reporter.hasErrors() );
+        assertEquals( 0, reporter.getReportList().size() );
     }
 
     private TrackedEntityAttribute getTrackedEntityAttributeWithOptionSet()

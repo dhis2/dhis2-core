@@ -31,7 +31,6 @@ import static java.lang.String.format;
 import static org.apache.commons.io.IOUtils.toBufferedInputStream;
 import static org.apache.commons.io.IOUtils.toInputStream;
 import static org.hisp.dhis.common.IdentifiableProperty.UID;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 
@@ -52,6 +51,7 @@ import org.hisp.dhis.dxf2.geojson.GeoJsonImportReport;
 import org.hisp.dhis.dxf2.geojson.GeoJsonService;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.security.SecurityContextRunnable;
@@ -59,6 +59,7 @@ import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -84,6 +85,8 @@ public class GeoJsonImportController
     private final TaskExecutor taskExecutor;
 
     private final SessionFactory sessionFactory;
+
+    private final UserService userService;
 
     @PostMapping( value = "/geometry", consumes = { "application/geo+json", "application/json" } )
     public WebMessage postImport(
@@ -163,13 +166,19 @@ public class GeoJsonImportController
 
     private WebMessage toWebMessage( GeoJsonImportReport report )
     {
+        String msg = "Import successful.";
+        Status status = Status.OK;
         if ( report.getStatus() == ImportStatus.ERROR )
         {
-            return conflict( "Import failed." ).setResponse( report );
+            msg = "Import failed.";
+            status = Status.ERROR;
         }
-        return report.getImportCount().getIgnored() > 0
-            ? ok( "Import partially successful." ).setResponse( report )
-            : ok( "Import successful." ).setResponse( report );
+        else if ( report.getImportCount().getIgnored() > 0 )
+        {
+            msg = "Import partially successful.";
+            status = Status.WARNING;
+        }
+        return ok( msg ).setStatus( status ).setResponse( report );
     }
 
     @AllArgsConstructor
@@ -198,8 +207,8 @@ public class GeoJsonImportController
         public void call()
         {
             notifier.clear( config );
-            notifier.notify( config, NotificationLevel.INFO, "GeoJSON import stared", true );
-            GeoJsonImportReport report = geoJsonService.importGeoData( params, data );
+            notifier.notify( config, NotificationLevel.INFO, "GeoJSON import stared", false );
+            GeoJsonImportReport report = geoJsonService.importGeoData( reattachedParams(), data );
             notifier.notify( config, NotificationLevel.INFO, "GeoJSON import complete. " + report.getImportCount(),
                 true );
             notifier.addJobSummary( config, report, GeoJsonImportReport.class );
@@ -209,6 +218,16 @@ public class GeoJsonImportController
         public void handleError( Throwable ex )
         {
             notifier.notify( config, NotificationLevel.ERROR, "GeoJSON import failed: " + ex.getMessage(), true );
+        }
+
+        /**
+         * This is a work-around for the time being because the user otherwise
+         * is not attached to the session. What we should be using here instead
+         * is the CurrentUserDetails
+         */
+        private GeoJsonImportParams reattachedParams()
+        {
+            return params.toBuilder().user( userService.getUser( params.getUser().getUid() ) ).build();
         }
     }
 }

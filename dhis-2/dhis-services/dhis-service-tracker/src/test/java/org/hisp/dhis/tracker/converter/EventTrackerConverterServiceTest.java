@@ -178,9 +178,10 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest
 
         DataElement dataElement = new DataElement();
         dataElement.setUid( CodeGenerator.generateUid() );
-        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElement.getUid() ) ) ).thenReturn( dataElement );
+        MetadataIdentifier metadataIdentifier = MetadataIdentifier.ofUid( dataElement.getUid() );
+        when( preheat.getDataElement( metadataIdentifier ) ).thenReturn( dataElement );
 
-        DataValue dataValue = dataValue( dataElement.getUid(), "900" );
+        DataValue dataValue = dataValue( metadataIdentifier, "900" );
         Event event = event( dataValue );
 
         ProgramStageInstance programStageInstance = converter.fromForRuleEngine( preheat, event );
@@ -213,12 +214,13 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest
 
         DataElement dataElement = new DataElement();
         dataElement.setUid( CodeGenerator.generateUid() );
-        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElement.getUid() ) ) ).thenReturn( dataElement );
+        MetadataIdentifier metadataIdentifier = MetadataIdentifier.ofUid( dataElement.getUid() );
+        when( preheat.getDataElement( metadataIdentifier ) ).thenReturn( dataElement );
 
         // event refers to a different dataElement then currently associated
         // with the event in the DB; thus both
         // dataValues will be merged
-        DataValue newDataValue = dataValue( dataElement.getUid(), "900" );
+        DataValue newDataValue = dataValue( metadataIdentifier, "900" );
         Event event = event( existingPsi.getUid(), newDataValue );
         when( preheat.getEvent( existingPsi.getUid() ) ).thenReturn( existingPsi );
 
@@ -241,14 +243,15 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest
 
         DataElement dataElement = new DataElement();
         dataElement.setUid( CodeGenerator.generateUid() );
-        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElement.getUid() ) ) ).thenReturn( dataElement );
+        MetadataIdentifier metadataIdentifier = MetadataIdentifier.ofUid( dataElement.getUid() );
+        when( preheat.getDataElement( metadataIdentifier ) ).thenReturn( dataElement );
 
         ProgramStageInstance existingPsi = programStageInstance();
         existingPsi.setEventDataValues( Set.of( eventDataValue( dataElement.getUid(), "658" ) ) );
 
         // dataElement is of idScheme UID if the NTI dataElementIdScheme is set
         // to UID
-        DataValue updatedValue = dataValue( dataElement.getUid(), "900" );
+        DataValue updatedValue = dataValue( metadataIdentifier, "900" );
         Event event = event( existingPsi.getUid(), updatedValue );
         when( preheat.getEvent( event.getEvent() ) ).thenReturn( existingPsi );
 
@@ -281,7 +284,7 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest
 
         // dataElement is of idScheme CODE if the NTI dataElementIdScheme is set
         // to CODE
-        DataValue updatedValue = dataValue( dataElement.getCode(), "900" );
+        DataValue updatedValue = dataValue( MetadataIdentifier.ofCode( dataElement.getCode() ), "900" );
         Event event = event( existingPsi.getUid(), updatedValue );
         when( preheat.getEvent( event.getEvent() ) ).thenReturn( existingPsi );
 
@@ -360,12 +363,12 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest
         return eventDataValue;
     }
 
-    private DataValue dataValue( String dataElement, String value )
+    private DataValue dataValue( MetadataIdentifier dataElement, String value )
     {
         User user = User.builder().username( USERNAME ).build();
 
         return DataValue.builder()
-            .dataElement( MetadataIdentifier.ofUid( dataElement ) )
+            .dataElement( dataElement )
             .value( value )
             .providedElsewhere( true )
             .createdBy( user )

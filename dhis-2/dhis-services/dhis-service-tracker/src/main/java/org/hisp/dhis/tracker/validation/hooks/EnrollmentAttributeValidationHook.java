@@ -40,6 +40,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
@@ -68,20 +69,20 @@ import com.google.common.collect.Streams;
 public class EnrollmentAttributeValidationHook extends AttributeValidationHook
 {
 
-    public EnrollmentAttributeValidationHook( TrackedAttributeValidationService teAttrService )
+    public EnrollmentAttributeValidationHook( TrackedAttributeValidationService teAttrService,
+        DhisConfigurationProvider dhisConfigurationProvider )
     {
-        super( teAttrService );
+        super( teAttrService, dhisConfigurationProvider );
     }
 
     @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
+    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
-        TrackerBundle bundle = reporter.getBundle();
         TrackerPreheat preheat = bundle.getPreheat();
         Program program = preheat.getProgram( enrollment.getProgram() );
         checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
 
-        TrackedEntityInstance tei = reporter.getBundle().getTrackedEntityInstance( enrollment.getTrackedEntity() );
+        TrackedEntityInstance tei = bundle.getTrackedEntityInstance( enrollment.getTrackedEntity() );
 
         OrganisationUnit orgUnit = preheat
             .getOrganisationUnit( getOrgUnitUidFromTei( bundle, enrollment.getTrackedEntity() ) );
@@ -90,21 +91,22 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
 
         for ( Attribute attribute : enrollment.getAttributes() )
         {
-            validateRequiredProperties( reporter, enrollment, attribute, program );
+            validateRequiredProperties( reporter, preheat, enrollment, attribute, program );
 
-            TrackedEntityAttribute teAttribute = reporter.getBundle().getPreheat()
+            TrackedEntityAttribute teAttribute = bundle.getPreheat()
                 .getTrackedEntityAttribute( attribute.getAttribute() );
 
             if ( attribute.getAttribute().isNotBlank() && attribute.getValue() != null && teAttribute != null )
             {
 
                 attributeValueMap.put( attribute.getAttribute(), attribute.getValue() );
-
-                validateAttrValueType( reporter, enrollment, attribute, teAttribute );
+                validateAttributeValue( reporter, enrollment, teAttribute, attribute.getValue() );
+                validateAttrValueType( reporter, bundle.getPreheat(), enrollment, attribute, teAttribute );
                 validateOptionSet( reporter, enrollment, teAttribute,
                     attribute.getValue() );
 
                 validateAttributeUniqueness( reporter,
+                    preheat,
                     enrollment,
                     attribute.getValue(),
                     teAttribute,
@@ -113,10 +115,11 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
             }
         }
 
-        validateMandatoryAttributes( reporter, program, attributeValueMap, enrollment );
+        validateMandatoryAttributes( reporter, bundle, program, attributeValueMap, enrollment );
     }
 
-    protected void validateRequiredProperties( ValidationErrorReporter reporter, Enrollment enrollment,
+    protected void validateRequiredProperties( ValidationErrorReporter reporter, TrackerPreheat preheat,
+        Enrollment enrollment,
         Attribute attribute, Program program )
     {
         if ( attribute.getAttribute().isBlank() )
@@ -135,12 +138,11 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
                 TrackedEntityAttribute.class.getSimpleName(), attribute.getAttribute() );
         }
 
-        TrackedEntityAttribute teAttribute = reporter.getBundle().getPreheat()
-            .getTrackedEntityAttribute( attribute.getAttribute() );
+        TrackedEntityAttribute teAttribute = preheat.getTrackedEntityAttribute( attribute.getAttribute() );
         reporter.addErrorIfNull( teAttribute, enrollment, E1006, attribute.getAttribute() );
     }
 
-    private void validateMandatoryAttributes( ValidationErrorReporter reporter,
+    private void validateMandatoryAttributes( ValidationErrorReporter reporter, TrackerBundle bundle,
         Program program, Map<MetadataIdentifier, String> enrollmentNonEmptyAttributes, Enrollment enrollment )
     {
         // Build a data structures of attributes eligible for mandatory
@@ -151,7 +153,7 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
         // 1 - attributes from enrollment whose value is non-empty
 
         // 2 - attributes from existing TEI (if any) from preheat
-        Set<MetadataIdentifier> teiAttributes = buildTeiAttributes( reporter, enrollment.getTrackedEntity() );
+        Set<MetadataIdentifier> teiAttributes = buildTeiAttributes( bundle, enrollment.getTrackedEntity() );
 
         // merged ids of eligible attributes to validate
         Set<MetadataIdentifier> mergedAttributes = Streams
@@ -159,7 +161,7 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
             .collect( Collectors.toSet() );
 
         // Map having as key program attribute and mandatory flag as value
-        TrackerIdSchemeParams idSchemes = reporter.getBundle().getPreheat().getIdSchemes();
+        TrackerIdSchemeParams idSchemes = bundle.getPreheat().getIdSchemes();
         Map<MetadataIdentifier, Boolean> programAttributesMap = program.getProgramAttributes().stream()
             .collect( Collectors.toMap(
                 programTrackedEntityAttribute -> idSchemes
@@ -183,12 +185,11 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
                     enrollment, E1019, attrId.getIdentifierOrAttributeValue() + "=" + attrVal ) );
     }
 
-    private Set<MetadataIdentifier> buildTeiAttributes( ValidationErrorReporter reporter,
+    private Set<MetadataIdentifier> buildTeiAttributes( TrackerBundle bundle,
         String trackedEntityInstanceUid )
     {
-        TrackerIdSchemeParams idSchemes = reporter.getBundle().getPreheat().getIdSchemes();
-        return Optional.of( reporter )
-            .map( ValidationErrorReporter::getBundle )
+        TrackerIdSchemeParams idSchemes = bundle.getPreheat().getIdSchemes();
+        return Optional.of( bundle )
             .map( TrackerBundle::getPreheat )
             .map( trackerPreheat -> trackerPreheat.getTrackedEntity( trackedEntityInstanceUid ) )
             .map( TrackedEntityInstance::getTrackedEntityAttributeValues )

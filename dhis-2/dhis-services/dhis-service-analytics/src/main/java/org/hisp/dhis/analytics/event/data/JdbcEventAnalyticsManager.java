@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.event.data;
 
 import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.time.DateUtils.addYears;
+import static org.hisp.dhis.analytics.DataType.BOOLEAN;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LATITUDE;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LONGITUDE;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_GEOMETRY_COL_SUFFIX;
@@ -48,6 +49,7 @@ import static org.hisp.dhis.feedback.ErrorCode.E7133;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 import static org.postgresql.util.PSQLState.DIVISION_BY_ZERO;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -63,6 +65,7 @@ import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.ProgramIndicatorSubqueryBuilder;
+import org.hisp.dhis.analytics.util.AnalyticsSqlUtils;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -118,8 +121,8 @@ public class JdbcEventAnalyticsManager
         ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder,
         EventTimeFieldSqlRenderer timeFieldSqlRenderer, ExecutionPlanStore executionPlanStore )
     {
-        super( jdbcTemplate, statementBuilder, programIndicatorService, programIndicatorSubqueryBuilder,
-            executionPlanStore );
+        super( jdbcTemplate, statementBuilder, programIndicatorService,
+            programIndicatorSubqueryBuilder, executionPlanStore );
         this.timeFieldSqlRenderer = timeFieldSqlRenderer;
     }
 
@@ -284,7 +287,9 @@ public class JdbcEventAnalyticsManager
         else
         {
             quotedClusterFieldFraction = "coalesce(" + quoteAlias( params.getCoordinateField() ) + ","
-                + quoteAlias( fallback ) + ")";
+                + Arrays.stream( fallback.split( "," ) ).map( AnalyticsSqlUtils::quoteAlias )
+                    .collect( joining( "," ) )
+                + ")";
         }
 
         String sql = "select count(psi) as " + COL_COUNT +
@@ -501,7 +506,7 @@ public class JdbcEventAnalyticsManager
         if ( params.hasProgramIndicatorDimension() && params.getProgramIndicator().hasFilter() )
         {
             String filter = programIndicatorService.getAnalyticsSql( params.getProgramIndicator().getFilter(),
-                params.getProgramIndicator(), params.getEarliestStartDate(), params.getLatestEndDate() );
+                BOOLEAN, params.getProgramIndicator(), params.getEarliestStartDate(), params.getLatestEndDate() );
 
             String sqlFilter = ExpressionUtils.asSql( filter );
 
@@ -538,11 +543,7 @@ public class JdbcEventAnalyticsManager
         {
             if ( params.isCoordinateOuFallback() )
             {
-                sql += hlp.whereAnd() + " (" +
-                    quoteAlias( resolveCoordinateFieldColumnName( params.getCoordinateField(), params ) ) +
-                    " is not null or " +
-                    quoteAlias( resolveCoordinateFieldColumnName( params.getFallbackCoordinateField(), params ) ) +
-                    " is not null )";
+                sql += hlp.whereAnd() + " (" + getSqlSnippetForFallbackCoordinateFields( params ) + ")";
             }
             else
             {
@@ -602,6 +603,26 @@ public class JdbcEventAnalyticsManager
             .stream()
             .map( org -> toInCondition( org, collect.get( org ) ) )
             .collect( joining( " and " ) );
+    }
+
+    /**
+     * The method produces a snippet like this: ax."psigeometry" is not null or
+     * ax."pigeometry" is NOT NULL or ax."ougeometry" is NOT NULL
+     *
+     * @param params
+     * @return
+     */
+    private String getSqlSnippetForFallbackCoordinateFields( EventQueryParams params )
+    {
+        if ( params.getFallbackCoordinateField() == null )
+        {
+            return StringUtils.EMPTY;
+        }
+
+        return Arrays.stream( params.getFallbackCoordinateField().split( "," ) )
+            .map( f -> quoteAlias( resolveCoordinateFieldColumnName( f, params ) ) +
+                " is not null" )
+            .collect( joining( " or " ) );
     }
 
     private String toInCondition( String org, List<OrganisationUnit> organisationUnits )

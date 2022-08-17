@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.tracker.preheat.mappers;
 
+import java.util.Set;
+
 import org.hisp.dhis.attribute.AttributeValue;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
@@ -42,4 +44,6 @@ public interface AttributeValueMapper extends PreheatMapper<AttributeValue>
     @Mapping( target = "attribute" )
     @Mapping( target = "value" )
     AttributeValue map( AttributeValue attributeValue );
+
+    Set<AttributeValue> mapAttributeValues( Set<AttributeValue> attributeValues );
 }

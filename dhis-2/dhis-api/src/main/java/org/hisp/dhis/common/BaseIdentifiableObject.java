@@ -141,7 +141,7 @@ public class BaseIdentifiableObject
     protected transient String publicAccess;
 
     /**
-     * User who created this object This field is immutable and must not be
+     * User who created this object. This field is immutable and must not be
      * updated.
      */
     @Immutable

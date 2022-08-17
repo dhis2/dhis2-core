@@ -27,11 +27,12 @@
  */
 package org.hisp.dhis.maintenance.jdbc;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.artemis.audit.AuditManager;
@@ -48,36 +49,22 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Service;
 
-import com.google.common.collect.ImmutableMap;
-
 /**
  * @author Lars Helge Overland
  */
-@Service( "org.hisp.dhis.maintenance.MaintenanceStore" )
-public class JdbcMaintenanceStore
-    implements MaintenanceStore
+@Service
+@AllArgsConstructor
+public class JdbcMaintenanceStore implements MaintenanceStore
 {
-    private static final ImmutableMap<Class<? extends SoftDeletableObject>, SoftDeletableObject> ENTITY_MAPPER = new ImmutableMap.Builder<Class<? extends SoftDeletableObject>, SoftDeletableObject>()
-        .put( ProgramInstance.class, new ProgramInstance() )
-        .put( ProgramStageInstance.class, new ProgramStageInstance() )
-        .put( TrackedEntityInstance.class, new TrackedEntityInstance() )
-        .build();
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+    private static final Map<Class<? extends SoftDeletableObject>, SoftDeletableObject> ENTITY_MAPPER = Map.of(
+        ProgramInstance.class, new ProgramInstance(),
+        ProgramStageInstance.class, new ProgramStageInstance(),
+        TrackedEntityInstance.class, new TrackedEntityInstance(),
+        Relationship.class, new Relationship() );
 
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
 
-    private AuditManager auditManager;
-
-    public JdbcMaintenanceStore( JdbcTemplate jdbcTemplate, AuditManager auditManager )
-    {
-        checkNotNull( jdbcTemplate );
-        checkNotNull( auditManager );
-
-        this.jdbcTemplate = jdbcTemplate;
-        this.auditManager = auditManager;
-    }
+    private final AuditManager auditManager;
 
     // -------------------------------------------------------------------------
     // MaintenanceStore implementation
@@ -107,6 +94,11 @@ public class JdbcMaintenanceStore
         List<String> deletedEvents = getDeletionEntities(
             "(select uid from programstageinstance where deleted is true)" );
 
+        if ( deletedEvents.isEmpty() )
+        {
+            return 0;
+        }
+
         String psiSelect = "(select programstageinstanceid from programstageinstance where deleted is true)";
 
         String pmSelect = "(select id from programmessage where programstageinstanceid in "
@@ -117,19 +109,23 @@ public class JdbcMaintenanceStore
          *
          */
         String[] sqlStmts = new String[] {
+            // delete objects related to messages that are related to PSIs
             "delete from programmessage_deliverychannels where programmessagedeliverychannelsid in " + pmSelect,
             "delete from programmessage_emailaddresses where programmessageemailaddressid in " + pmSelect,
             "delete from programmessage_phonenumbers where programmessagephonenumberid in " + pmSelect,
-            "delete from programmessage where programstageinstanceid in " + psiSelect,
-            "delete from trackedentitydatavalueaudit where programstageinstanceid in " + psiSelect,
+            // delete related PSIs comments
             "delete from programstageinstancecomments where programstageinstanceid in " + psiSelect,
             "delete from trackedentitycomment where trackedentitycommentid not in (select trackedentitycommentid from programstageinstancecomments union all select trackedentitycommentid from programinstancecomments)",
+            // delete other objects related to PSIs
             "delete from relationshipitem where programstageinstanceid in " + psiSelect,
+            "delete from trackedentitydatavalueaudit where programstageinstanceid in " + psiSelect,
+            "delete from programmessage where programstageinstanceid in " + psiSelect,
+            // finally delete the PSIs
             "delete from programstageinstance where deleted is true" };
 
         int result = jdbcTemplate.batchUpdate( sqlStmts )[sqlStmts.length - 1];
 
-        if ( result > 0 && deletedEvents.size() > 0 )
+        if ( result > 0 && !deletedEvents.isEmpty() )
         {
             auditHardDeletedEntity( deletedEvents, ProgramStageInstance.class );
 
@@ -145,20 +141,22 @@ public class JdbcMaintenanceStore
         List<String> deletedRelationships = getDeletionEntities(
             "(select uid from relationship where deleted is true)" );
 
+        if ( deletedRelationships.isEmpty() )
+        {
+            return 0;
+        }
+
         /*
          * Delete relationship items and relationships. There is a `on cascade
          * delete` constraints between relationship and relationshipitem tables
-         *
          */
-        String[] sqlStmts = new String[] {
-            "delete from relationship where deleted is true" };
+        String[] sqlStmts = { "delete from relationship where deleted is true" };
 
         int result = jdbcTemplate.batchUpdate( sqlStmts )[sqlStmts.length - 1];
 
-        if ( result > 0 && !deletedRelationships.isEmpty() )
+        if ( result > 0 )
         {
             auditHardDeletedEntity( deletedRelationships, Relationship.class );
-
         }
 
         return result;
@@ -172,14 +170,18 @@ public class JdbcMaintenanceStore
         List<String> deletedEnrollments = getDeletionEntities(
             "select uid from programinstance where deleted is true" );
 
+        if ( deletedEnrollments.isEmpty() )
+        {
+            return 0;
+        }
+
         List<String> associatedEvents = getDeletionEntities(
             "select uid from programstageinstance where programinstanceid in " + piSelect );
 
         String psiSelect = "(select programstageinstanceid from programstageinstance where programinstanceid in "
             + piSelect + " )";
 
-        String pmSelect = "(select id from programmessage where programinstanceid in "
-            + piSelect + " )";
+        String pmSelect = "(select id from programmessage where programinstanceid in " + piSelect + " )";
 
         /*
          * Delete event values, event value audits, event comments, events,
@@ -187,31 +189,31 @@ public class JdbcMaintenanceStore
          *
          */
         String[] sqlStmts = new String[] {
-            "delete from trackedentitydatavalueaudit where programstageinstanceid in " + psiSelect,
+            // delete objects linked to messages that are linked to PIs
             "delete from programmessage_deliverychannels where programmessagedeliverychannelsid in " + pmSelect,
             "delete from programmessage_emailaddresses where programmessageemailaddressid in " + pmSelect,
             "delete from programmessage_phonenumbers where programmessagephonenumberid in " + pmSelect,
-            "delete from programmessage where programinstanceid in " + piSelect,
-            "delete from programmessage where programstageinstanceid in " + psiSelect,
-            "delete from trackedentitycomment where trackedentitycommentid in (select trackedentitycommentid from programstageinstancecomments where programstageinstanceid in "
-                + psiSelect + ")",
+            // delete comments linked to both PIs and PSIs
             "delete from programstageinstancecomments where programstageinstanceid in " + psiSelect,
-            "delete from programstageinstance where programinstanceid in " + piSelect,
             "delete from programinstancecomments where programinstanceid in " + piSelect,
             "delete from trackedentitycomment where trackedentitycommentid not in (select trackedentitycommentid from programstageinstancecomments union all select trackedentitycommentid from programinstancecomments)",
+            // delete other entries linked to PSIs
+            "delete from relationshipitem where programstageinstanceid in " + psiSelect,
+            "delete from trackedentitydatavalueaudit where programstageinstanceid in " + psiSelect,
+            "delete from programmessage where programstageinstanceid in " + psiSelect,
+            // delete other entries linked to PIs
             "delete from relationshipitem where programinstanceid in " + piSelect,
+            "delete from programmessage where programinstanceid in " + piSelect,
+            "delete from programstageinstance where programinstanceid in " + piSelect,
+            // finally delete the PIs themselves
             "delete from programinstance where deleted is true" };
 
         int result = jdbcTemplate.batchUpdate( sqlStmts )[sqlStmts.length - 1];
 
-        if ( result > 0 && deletedEnrollments.size() > 0 )
+        if ( result > 0 )
         {
+            auditHardDeletedEntity( associatedEvents, ProgramStageInstance.class );
             auditHardDeletedEntity( deletedEnrollments, ProgramInstance.class );
-
-            if ( associatedEvents.size() > 0 )
-            {
-                auditHardDeletedEntity( associatedEvents, ProgramStageInstance.class );
-            }
         }
 
         return result;
@@ -227,6 +229,10 @@ public class JdbcMaintenanceStore
 
         List<String> deletedTeiUids = getDeletionEntities(
             "select uid from trackedentityinstance where deleted is true" );
+        if ( deletedTeiUids.isEmpty() )
+        {
+            return 0;
+        }
 
         List<String> associatedEnrollments = getDeletionEntities(
             "select uid from programinstance where trackedentityinstanceid in " + teiSelect );
@@ -252,48 +258,47 @@ public class JdbcMaintenanceStore
          *
          */
         String[] sqlStmts = new String[] {
-            "delete from trackedentitydatavalueaudit where programstageinstanceid in " + psiSelect,
-            "delete from programstageinstancecomments where programstageinstanceid in " + psiSelect,
-            "delete from trackedentitycomment where trackedentitycommentid not in (select trackedentitycommentid from programstageinstancecomments union all select trackedentitycommentid from programinstancecomments)",
-            "delete from programstageinstance where programinstanceid in " + piSelect,
+            // delete objects related to any message related to obsolete TEIs
             "delete from programmessage_deliverychannels where programmessagedeliverychannelsid in " + teiPmSelect,
             "delete from programmessage_emailaddresses where programmessageemailaddressid in " + teiPmSelect,
             "delete from programmessage_phonenumbers where programmessagephonenumberid in " + teiPmSelect,
+            // delete objects related to any message related to obsolete PIs
             "delete from programmessage_deliverychannels where programmessagedeliverychannelsid in " + piPmSelect,
             "delete from programmessage_emailaddresses where programmessageemailaddressid in " + piPmSelect,
             "delete from programmessage_phonenumbers where programmessagephonenumberid in " + piPmSelect,
+            // delete objects related to any message related to obsolete PSIs
             "delete from programmessage_deliverychannels where programmessagedeliverychannelsid in " + psiPmSelect,
             "delete from programmessage_emailaddresses where programmessageemailaddressid in " + psiPmSelect,
             "delete from programmessage_phonenumbers where programmessagephonenumberid in " + psiPmSelect,
-            "delete from programmessage where programinstanceid in " + piSelect,
-            "delete from programmessage where trackedentityinstanceid in " + teiSelect,
+            // delete comments related to any obsolete PIs or PSIs
+            "delete from programstageinstancecomments where programstageinstanceid in " + psiSelect,
             "delete from programinstancecomments where programinstanceid in " + piSelect,
             "delete from trackedentitycomment where trackedentitycommentid not in (select trackedentitycommentid from programstageinstancecomments union all select trackedentitycommentid from programinstancecomments)",
+            // delete other objects related to obsolete PSIs
+            "delete from trackedentitydatavalueaudit where programstageinstanceid in " + psiSelect,
+            // delete other objects related to obsolete PIs
+            "delete from programmessage where programinstanceid in " + piSelect,
+            "delete from programstageinstance where programinstanceid in " + piSelect,
+            // delete other objects related to obsolete TEIs
+            "delete from programmessage where trackedentityinstanceid in " + teiSelect,
             "delete from relationshipitem where trackedentityinstanceid in " + teiSelect,
-            "delete from programinstance where programinstanceid in " + piSelect,
             "delete from trackedentityattributevalue where trackedentityinstanceid in " + teiSelect,
             "delete from trackedentityattributevalueaudit where trackedentityinstanceid in " + teiSelect,
             "delete from trackedentityprogramowner where trackedentityinstanceid in " + teiSelect,
             "delete from programtempowner where trackedentityinstanceid in " + teiSelect,
             "delete from programtempownershipaudit where trackedentityinstanceid in " + teiSelect,
             "delete from programownershiphistory where trackedentityinstanceid in " + teiSelect,
+            "delete from programinstance where trackedentityinstanceid in " + teiSelect,
+            // finally delete the TEIs
             "delete from trackedentityinstance where deleted is true" };
 
         int result = jdbcTemplate.batchUpdate( sqlStmts )[sqlStmts.length - 1];
 
-        if ( result > 0 && deletedTeiUids.size() > 0 )
+        if ( result > 0 )
         {
+            auditHardDeletedEntity( associatedEvents, ProgramStageInstance.class );
+            auditHardDeletedEntity( associatedEnrollments, ProgramInstance.class );
             auditHardDeletedEntity( deletedTeiUids, TrackedEntityInstance.class );
-
-            if ( associatedEnrollments.size() > 0 )
-            {
-                auditHardDeletedEntity( associatedEnrollments, ProgramInstance.class );
-            }
-
-            if ( associatedEvents.size() > 0 )
-            {
-                auditHardDeletedEntity( associatedEvents, ProgramStageInstance.class );
-            }
         }
 
         return result;
@@ -319,6 +324,10 @@ public class JdbcMaintenanceStore
 
     private void auditHardDeletedEntity( List<String> deletedEntities, Class<? extends SoftDeletableObject> entity )
     {
+        if ( deletedEntities == null || deletedEntities.isEmpty() )
+        {
+            return;
+        }
         deletedEntities.forEach( deletedEntity -> {
 
             SoftDeletableObject object = ENTITY_MAPPER.getOrDefault( entity, new SoftDeletableObject() );

@@ -158,47 +158,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     @Autowired
     private TranslationsCheck translationsCheck;
 
-    @PutMapping( value = "/{uid}/translations" )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    @ResponseBody
-    public WebMessage replaceTranslations(
-        @PathVariable( "uid" ) String pvUid, @RequestParam Map<String, String> rpParameters,
-        @CurrentUser User currentUser, HttpServletRequest request )
-        throws Exception
-    {
-        WebOptions options = new WebOptions( rpParameters );
-        List<T> entities = getEntity( pvUid, options );
-
-        if ( entities.isEmpty() )
-        {
-            return notFound( getEntityClass(), pvUid );
-        }
-
-        BaseIdentifiableObject persistedObject = (BaseIdentifiableObject) entities.get( 0 );
-
-        if ( !aclService.canUpdate( currentUser, persistedObject ) )
-        {
-            throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
-        }
-
-        T inputObject = renderService.fromJson( request.getInputStream(), getEntityClass() );
-
-        HashSet<Translation> translations = new HashSet<>( inputObject.getTranslations() );
-
-        persistedObject.setTranslations( translations );
-        List<ObjectReport> objectReports = new ArrayList<>();
-        translationsCheck.run( persistedObject, getEntityClass(), objectReport -> objectReports.add( objectReport ),
-            getSchema(), 0 );
-
-        if ( objectReports.size() == 0 )
-        {
-            manager.update( persistedObject, currentUser );
-            return null;
-        }
-
-        return objectReport( objectReports.get( 0 ) );
-    }
-
     // --------------------------------------------------------------------------
     // OLD PATCH
     // --------------------------------------------------------------------------
@@ -342,13 +301,13 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         final JsonPatch patch = jsonMapper.readValue( request.getInputStream(), JsonPatch.class );
         final T patchedObject = jsonPatchManager.apply( patch, persistedObject );
 
-        // we don't allow changing IDs
+        // Do not allow changing IDs
         ((BaseIdentifiableObject) patchedObject).setId( persistedObject.getId() );
 
-        // we don't allow changing UIDs
+        // Do not allow changing UIDs
         ((BaseIdentifiableObject) patchedObject).setUid( persistedObject.getUid() );
 
-        // Only supports new Sharing format
+        // Only support new sharing format
         ((BaseIdentifiableObject) patchedObject).clearLegacySharingCollections();
 
         prePatchEntity( persistedObject, patchedObject );
@@ -635,6 +594,47 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         }
 
         return webMessage;
+    }
+
+    @PutMapping( value = "/{uid}/translations" )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
+    @ResponseBody
+    public WebMessage replaceTranslations(
+        @PathVariable( "uid" ) String pvUid, @RequestParam Map<String, String> rpParameters,
+        @CurrentUser User currentUser, HttpServletRequest request )
+        throws Exception
+    {
+        WebOptions options = new WebOptions( rpParameters );
+        List<T> entities = getEntity( pvUid, options );
+
+        if ( entities.isEmpty() )
+        {
+            return notFound( getEntityClass(), pvUid );
+        }
+
+        BaseIdentifiableObject persistedObject = (BaseIdentifiableObject) entities.get( 0 );
+
+        if ( !aclService.canUpdate( currentUser, persistedObject ) )
+        {
+            throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
+        }
+
+        T inputObject = renderService.fromJson( request.getInputStream(), getEntityClass() );
+
+        HashSet<Translation> translations = new HashSet<>( inputObject.getTranslations() );
+
+        persistedObject.setTranslations( translations );
+        List<ObjectReport> objectReports = new ArrayList<>();
+        translationsCheck.run( persistedObject, getEntityClass(), objectReport -> objectReports.add( objectReport ),
+            getSchema(), 0 );
+
+        if ( objectReports.size() == 0 )
+        {
+            manager.update( persistedObject, currentUser );
+            return null;
+        }
+
+        return objectReport( objectReports.get( 0 ) );
     }
 
     // --------------------------------------------------------------------------

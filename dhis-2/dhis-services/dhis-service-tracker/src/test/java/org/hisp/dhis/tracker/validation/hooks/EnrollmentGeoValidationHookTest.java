@@ -38,6 +38,7 @@ import static org.mockito.Mockito.when;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
@@ -69,6 +70,8 @@ class EnrollmentGeoValidationHookTest
 
     private TrackerBundle bundle;
 
+    private ValidationErrorReporter reporter;
+
     @BeforeEach
     public void setUp()
     {
@@ -81,6 +84,9 @@ class EnrollmentGeoValidationHookTest
         Program program = new Program();
         program.setFeatureType( FeatureType.POINT );
         when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM ) ) ).thenReturn( program );
+
+        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
+        reporter = new ValidationErrorReporter( idSchemes );
     }
 
     @Test
@@ -92,10 +98,8 @@ class EnrollmentGeoValidationHookTest
             .geometry( new GeometryFactory().createPoint() )
             .build();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-
         // when
-        this.hookToTest.validateEnrollment( reporter, enrollment );
+        this.hookToTest.validateEnrollment( reporter, bundle, enrollment );
 
         // then
         assertFalse( reporter.hasErrors() );
@@ -109,9 +113,10 @@ class EnrollmentGeoValidationHookTest
         enrollment.setProgram( null );
         enrollment.setGeometry( new GeometryFactory().createPoint() );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
+        when( preheat.getProgram( (MetadataIdentifier) null ) ).thenReturn( null );
 
-        assertThrows( NullPointerException.class, () -> this.hookToTest.validateEnrollment( reporter, enrollment ) );
+        assertThrows( NullPointerException.class,
+            () -> this.hookToTest.validateEnrollment( reporter, bundle, enrollment ) );
     }
 
     @Test
@@ -124,13 +129,11 @@ class EnrollmentGeoValidationHookTest
             .geometry( new GeometryFactory().createPoint() )
             .build();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-
         // when
         Program program = new Program();
         when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM ) ) ).thenReturn( program );
 
-        this.hookToTest.validateEnrollment( reporter, enrollment );
+        this.hookToTest.validateEnrollment( reporter, bundle, enrollment );
 
         // then
         hasTrackerError( reporter, E1074, ENROLLMENT, enrollment.getUid() );
@@ -146,14 +149,12 @@ class EnrollmentGeoValidationHookTest
             .geometry( new GeometryFactory().createPoint() )
             .build();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-
         // when
         Program program = new Program();
         program.setFeatureType( FeatureType.NONE );
         when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM ) ) ).thenReturn( program );
 
-        this.hookToTest.validateEnrollment( reporter, enrollment );
+        this.hookToTest.validateEnrollment( reporter, bundle, enrollment );
 
         // then
         hasTrackerError( reporter, E1012, ENROLLMENT, enrollment.getUid() );
@@ -169,14 +170,12 @@ class EnrollmentGeoValidationHookTest
             .geometry( new GeometryFactory().createPoint() )
             .build();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-
         // when
         Program program = new Program();
         program.setFeatureType( FeatureType.MULTI_POLYGON );
         when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM ) ) ).thenReturn( program );
 
-        this.hookToTest.validateEnrollment( reporter, enrollment );
+        this.hookToTest.validateEnrollment( reporter, bundle, enrollment );
 
         // then
         hasTrackerError( reporter, E1012, ENROLLMENT, enrollment.getUid() );

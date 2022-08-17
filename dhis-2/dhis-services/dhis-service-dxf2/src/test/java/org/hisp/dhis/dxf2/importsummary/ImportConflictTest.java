@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dxf2.importsummary;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
@@ -36,7 +37,7 @@ class ImportConflictTest
     @Test
     void testImportConflictObjectCanBeNull()
     {
-        new ImportConflict( null, "message" );
+        assertDoesNotThrow( () -> new ImportConflict( null, "message" ) );
     }
 
     @Test

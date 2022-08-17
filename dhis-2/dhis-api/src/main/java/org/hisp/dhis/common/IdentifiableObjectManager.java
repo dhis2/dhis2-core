@@ -64,16 +64,57 @@ public interface IdentifiableObjectManager
 
     void delete( IdentifiableObject object, User user );
 
-    <T extends IdentifiableObject> T get( String uid );
+    /**
+     * Lookup objects of unknown type.
+     *
+     * If the type is known at compile time this method should not be used.
+     * Instead, use
+     * {@link org.hisp.dhis.common.IdentifiableObjectManager#get(Class, String)}.
+     *
+     * @param uid a UID of an object of unknown type
+     * @return The {@link IdentifiableObject} with the given UID or null if no
+     *         such object exists
+     */
+    IdentifiableObject find( String uid );
 
     <T extends IdentifiableObject> T get( Class<T> type, long id );
 
-    <T extends IdentifiableObject> T get( Class<T> type, String uid )
+    /**
+     * Retrieves the object of the given type and UID, or null if no object
+     * exists.
+     *
+     * @param <T>
+     * @param type the object class type.
+     * @param uid the UID.
+     * @return the object with the given UID.
+     */
+    <T extends IdentifiableObject> T get( Class<T> type, String uid );
+
+    /**
+     * Retrieves the object of the given type and UID, throws exception if no
+     * object exists.
+     *
+     * @param <T>
+     * @param type the object class type.
+     * @param uid the UID.
+     * @return the object with the given UID.
+     * @throws IllegalQueryException if no object exists.
+     */
+    <T extends IdentifiableObject> T load( Class<T> type, String uid )
         throws IllegalQueryException;
 
-    <T extends IdentifiableObject> T getAndValidate( Class<T> type, String uid );
-
-    <T extends IdentifiableObject> T getAndValidate( Class<T> type, ErrorCode errorCode, String uid )
+    /**
+     * Retrieves the object of the given type and UID, throws exception using
+     * the given error code if no object exists.
+     *
+     * @param <T>
+     * @param type the object class type.
+     * @param errorCode the {@link ErrorCode} to use for the exception.
+     * @param uid the UID.
+     * @return the object with the given UID.
+     * @throws IllegalQueryException if no object exists.
+     */
+    <T extends IdentifiableObject> T load( Class<T> type, ErrorCode errorCode, String uid )
         throws IllegalQueryException;
 
     <T extends IdentifiableObject> boolean exists( Class<T> type, String uid );
@@ -83,7 +124,29 @@ public interface IdentifiableObjectManager
     <T extends IdentifiableObject> T get( Collection<Class<? extends IdentifiableObject>> types, IdScheme idScheme,
         String value );
 
+    /**
+     * Retrieves the object of the given type and code, or null if no object
+     * exists.
+     *
+     * @param <T>
+     * @param type the object class type.
+     * @param code the code.
+     * @return the object with the given code.
+     */
     <T extends IdentifiableObject> T getByCode( Class<T> type, String code );
+
+    /**
+     * Retrieves the object of the given type and code, throws exception if no
+     * object exists.
+     *
+     * @param <T>
+     * @param type the object class type.
+     * @param code the code.
+     * @return the object with the given code.
+     * @throws IllegalQueryException if no object exists.
+     */
+    <T extends IdentifiableObject> T loadByCode( Class<T> type, String code )
+        throws IllegalQueryException;
 
     <T extends IdentifiableObject> List<T> getByCode( Class<T> type, Collection<String> codes );
 
@@ -115,7 +178,17 @@ public interface IdentifiableObjectManager
 
     <T extends IdentifiableObject> List<T> getByUid( Class<T> type, Collection<String> uids );
 
-    <T extends IdentifiableObject> List<T> getAndValidateByUid( Class<T> type, Collection<String> uids )
+    /**
+     * Retrieves the objects of the given type and collection of UIDs, throws
+     * exception is any object does not exist.
+     *
+     * @param <T>
+     * @param type the object class type.
+     * @param uids the collection of UIDs.
+     * @return a list of objects.
+     * @throws IllegalQueryException if any object does not exist.
+     */
+    <T extends IdentifiableObject> List<T> loadByUid( Class<T> type, Collection<String> uids )
         throws IllegalQueryException;
 
     <T extends IdentifiableObject> List<T> getByUid( Collection<Class<? extends IdentifiableObject>> types,

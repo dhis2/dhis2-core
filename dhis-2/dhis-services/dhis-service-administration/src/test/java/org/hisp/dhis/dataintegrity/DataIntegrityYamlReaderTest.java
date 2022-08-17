@@ -59,6 +59,7 @@ class DataIntegrityYamlReaderTest
         assertEquals( "categories_no_options", check.getName() );
         assertEquals( "Categories with no category options", check.getDescription() );
         assertEquals( "Categories", check.getSection() );
+        assertEquals( "categories", check.getIssuesIdType() );
         assertEquals( DataIntegritySeverity.WARNING, check.getSeverity() );
         assertEquals( "Categories should always have at least a single category options.", check.getIntroduction() );
         assertEquals( "Any categories without category options should either be removed from the"

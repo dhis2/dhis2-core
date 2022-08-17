@@ -35,7 +35,9 @@ import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 import static org.hisp.dhis.common.FallbackCoordinateFieldType.OU_GEOMETRY;
+import static org.hisp.dhis.common.FallbackCoordinateFieldType.PI_GEOMETRY;
 import static org.hisp.dhis.common.FallbackCoordinateFieldType.PSI_GEOMETRY;
+import static org.hisp.dhis.common.FallbackCoordinateFieldType.TEI_GEOMETRY;
 import static org.hisp.dhis.event.EventStatus.ACTIVE;
 import static org.hisp.dhis.event.EventStatus.COMPLETED;
 import static org.hisp.dhis.event.EventStatus.SCHEDULE;
@@ -121,7 +123,7 @@ public class EventQueryParams
     public static final String ENROLLMENT_COORDINATE_FIELD = "ENROLLMENT";
 
     public static final ImmutableSet<FallbackCoordinateFieldType> FALLBACK_COORDINATE_FIELD_TYPES = ImmutableSet.of(
-        OU_GEOMETRY, PSI_GEOMETRY );
+        OU_GEOMETRY, PSI_GEOMETRY, PI_GEOMETRY, TEI_GEOMETRY );
 
     private static final Set<EventStatus> DEFAULT_EVENT_STATUS = new LinkedHashSet<>( asList( ACTIVE, COMPLETED ) );
 
@@ -136,7 +138,7 @@ public class EventQueryParams
     private List<QueryItem> itemFilters = new ArrayList<>();
 
     /**
-     * The headers.
+     * TODO Change to List? TODO Add Javadoc
      */
     protected Set<String> headers = new LinkedHashSet<>();
 
@@ -693,8 +695,11 @@ public class EventQueryParams
      */
     public boolean fallbackCoordinateFieldIsValid()
     {
+        List<String> fcFields = fallbackCoordinateField == null ? new ArrayList<>()
+            : List.of( fallbackCoordinateField.split( "," ) );
+
         return EventQueryParams.FALLBACK_COORDINATE_FIELD_TYPES.stream()
-            .anyMatch( t -> t.getValue().equals( fallbackCoordinateField ) );
+            .anyMatch( t -> fcFields.contains( t.getValue() ) );
     }
 
     private boolean validateProgramHasOrgUnitField( Program program )
@@ -1073,6 +1078,7 @@ public class EventQueryParams
         return outputType;
     }
 
+    @Override
     public IdScheme getOutputIdScheme()
     {
         return outputIdScheme;
@@ -1234,6 +1240,7 @@ public class EventQueryParams
             return this;
         }
 
+        @Override
         public Builder addDimension( DimensionalObject dimension )
         {
             this.params.addDimension( dimension );
@@ -1246,6 +1253,7 @@ public class EventQueryParams
             return this;
         }
 
+        @Override
         public Builder removeDimensionOrFilter( String dimension )
         {
             this.params.dimensions.remove( new BaseDimensionalObject( dimension ) );
@@ -1260,6 +1268,7 @@ public class EventQueryParams
             return this;
         }
 
+        @Override
         public Builder addFilter( DimensionalObject filter )
         {
             this.params.addFilter( filter );

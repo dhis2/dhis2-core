@@ -136,6 +136,15 @@ public interface AnalyticsService
     DataValueSet getAggregatedDataValueSet( DataQueryParams params );
 
     /**
+     * Generates a data value set for the given query. The query must contain a
+     * data, period and organisation unit dimension.
+     *
+     * @param params the data query parameters.
+     * @return a grid containing a data value set representing aggregated data.
+     */
+    Grid getAggregatedDataValueSetAsGrid( DataQueryParams params );
+
+    /**
      * Generates an aggregated value grid for the given query based on the given
      * analytical object.
      *

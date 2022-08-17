@@ -27,37 +27,27 @@
  */
 package org.hisp.dhis.category;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import java.util.Iterator;
+import java.util.Map;
 
-import org.hisp.dhis.system.deletion.DeletionHandler;
+import lombok.AllArgsConstructor;
+
 import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Lars Helge Overland
  */
-@Component( "org.hisp.dhis.category.CategoryOptionComboDeletionHandler" )
-public class CategoryOptionComboDeletionHandler
-    extends DeletionHandler
+@Component
+@AllArgsConstructor
+public class CategoryOptionComboDeletionHandler extends JdbcDeletionHandler
 {
     private static final DeletionVeto VETO = new DeletionVeto( CategoryOptionCombo.class );
 
     private final CategoryService categoryService;
-
-    private final JdbcTemplate jdbcTemplate;
-
-    public CategoryOptionComboDeletionHandler( CategoryService categoryService, JdbcTemplate jdbcTemplate )
-    {
-        checkNotNull( categoryService );
-        checkNotNull( jdbcTemplate );
-
-        this.categoryService = categoryService;
-        this.jdbcTemplate = jdbcTemplate;
-    }
 
     // TODO expressionoptioncombo
 
@@ -72,25 +62,25 @@ public class CategoryOptionComboDeletionHandler
 
     private DeletionVeto allowDeleteCategoryOption( CategoryOption categoryOption )
     {
-        final String dvSql = "select count(*) from datavalue dv " +
+        final String dvSql = "select 1 from datavalue dv " +
             "where dv.categoryoptioncomboid in ( " +
             "select cc.categoryoptioncomboid from categoryoptioncombos_categoryoptions cc " +
-            "where cc.categoryoptionid = " + categoryOption.getId() + " ) " +
+            "where cc.categoryoptionid = :coId ) " +
             "or dv.attributeoptioncomboid in ( " +
             "select cc.categoryoptioncomboid from categoryoptioncombos_categoryoptions cc " +
-            "where cc.categoryoptionid = " + categoryOption.getId() + " );";
+            "where cc.categoryoptionid = :coId ) limit 1;";
 
-        if ( jdbcTemplate.queryForObject( dvSql, Integer.class ) > 0 )
+        if ( exists( dvSql, Map.of( "coId", categoryOption.getId() ) ) )
         {
             return VETO;
         }
 
-        final String crSql = "select count(*) from completedatasetregistration cdr " +
+        final String crSql = "select 1 from completedatasetregistration cdr " +
             "where cdr.attributeoptioncomboid in ( " +
             "select cc.categoryoptioncomboid from categoryoptioncombos_categoryoptions cc " +
-            "where cc.categoryoptionid = " + categoryOption.getId() + " );";
+            "where cc.categoryoptionid = :coId ) limit 1;";
 
-        if ( jdbcTemplate.queryForObject( crSql, Integer.class ) > 0 )
+        if ( exists( crSql, Map.of( "coId", categoryOption.getId() ) ) )
         {
             return VETO;
         }
@@ -100,25 +90,25 @@ public class CategoryOptionComboDeletionHandler
 
     private DeletionVeto allowDeleteCategoryCombo( CategoryCombo categoryCombo )
     {
-        final String dvSql = "select count(*) from datavalue dv " +
+        final String dvSql = "select 1 from datavalue dv " +
             "where dv.categoryoptioncomboid in ( " +
             "select co.categoryoptioncomboid from categorycombos_optioncombos co " +
-            "where co.categorycomboid=" + categoryCombo.getId() + " ) " +
+            "where co.categorycomboid= :coId ) " +
             "or dv.attributeoptioncomboid in ( " +
             "select co.categoryoptioncomboid from categorycombos_optioncombos co " +
-            "where co.categorycomboid=" + categoryCombo.getId() + " );";
+            "where co.categorycomboid= :coId ) limit 1;";
 
-        if ( jdbcTemplate.queryForObject( dvSql, Integer.class ) > 0 )
+        if ( exists( dvSql, Map.of( "coId", categoryCombo.getId() ) ) )
         {
             return VETO;
         }
 
-        final String crSql = "select count(*) from completedatasetregistration cdr " +
+        final String crSql = "select 1 from completedatasetregistration cdr " +
             "where cdr.attributeoptioncomboid in ( " +
             "select co.categoryoptioncomboid from categorycombos_optioncombos co " +
-            "where co.categorycomboid=" + categoryCombo.getId() + " );";
+            "where co.categorycomboid= :coId ) limit 1;";
 
-        if ( jdbcTemplate.queryForObject( crSql, Integer.class ) > 0 )
+        if ( exists( crSql, Map.of( "coId", categoryCombo.getId() ) ) )
         {
             return VETO;
         }

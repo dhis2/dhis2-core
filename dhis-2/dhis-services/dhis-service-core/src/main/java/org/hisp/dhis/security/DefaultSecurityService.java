@@ -28,6 +28,7 @@
 package org.hisp.dhis.security;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -38,7 +39,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -47,6 +47,8 @@ import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.i18n.locale.LocaleManager;
@@ -57,13 +59,14 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.system.velocity.VelocityManager;
+import org.hisp.dhis.user.CurrentUserDetails;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.util.ObjectUtils;
-import org.joda.time.DateTime;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -82,8 +85,6 @@ public class DefaultSecurityService
     implements SecurityService
 {
     private static final String RESTORE_PATH = "/dhis-web-commons/security/";
-
-    private static final Pattern INVITE_USERNAME_PATTERN = Pattern.compile( "^invite\\-(.+?)\\-(\\w{11})$" );
 
     private static final String TBD_NAME = "(TBD)";
 
@@ -104,6 +105,7 @@ public class DefaultSecurityService
     private final Cache<Integer> userFailedLoginAttemptCache;
 
     private final Cache<Integer> userAccountRecoverAttemptCache;
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -134,7 +136,8 @@ public class DefaultSecurityService
         AclService aclService,
         RestTemplate restTemplate,
         CacheProvider cacheProvider,
-        @Lazy PasswordManager passwordManager,
+        @Lazy // Fix circular dependency
+        PasswordManager passwordManager,
         MessageSender emailMessageSender,
         UserService userService,
         SystemSettingManager systemSettingManager,
@@ -170,6 +173,7 @@ public class DefaultSecurityService
     // -------------------------------------------------------------------------
     // SecurityService implementation
     // -------------------------------------------------------------------------
+
     @Override
     public void registerRecoveryAttempt( String username )
     {
@@ -241,6 +245,13 @@ public class DefaultSecurityService
     {
         Objects.requireNonNull( user, "User object can't be null" );
 
+        if ( user.getUsername() == null || user.getUsername().isEmpty() )
+        {
+            String username = "invite" + CodeGenerator.generateUid().toLowerCase();
+
+            user.setUsername( username );
+        }
+
         String rawPassword = CodeGenerator.getRandomSecureToken( INVITED_USER_PASSWORD_LENGTH_BYTES );
 
         user.setSurname( StringUtils.isEmpty( user.getSurname() ) ? TBD_NAME : user.getSurname() );
@@ -251,57 +262,55 @@ public class DefaultSecurityService
     }
 
     @Override
-    public String validateRestore( User user )
+    public ErrorCode validateRestore( User user )
     {
         if ( user == null )
         {
-            log.warn( "Could not send restore/invite message as user is null: " + user );
-            return "no_user_credentials";
+            log.warn( "Could not send restore/invite message as user is null" );
+            return ErrorCode.E6201;
         }
 
-        if ( user.getEmail() == null ||
-            !ValidationUtils.emailIsValid( user.getEmail() ) )
+        if ( user.getEmail() == null || !ValidationUtils.emailIsValid( user.getEmail() ) )
         {
             log.warn( "Could not send restore/invite message as user has no email or email is invalid" );
-            return "user_does_not_have_valid_email";
+            return ErrorCode.E6202;
         }
 
         if ( !emailMessageSender.isConfigured() )
         {
             log.warn( "Could not send restore/invite message as email is not configured" );
-            return "email_not_configured_for_system";
+            return ErrorCode.E6203;
         }
 
         return null;
     }
 
     @Override
-    public String validateInvite( User user )
+    public ErrorCode validateInvite( User user )
     {
         if ( user == null )
         {
-            log.warn( "Could not send invite message as user is null" );
-            return "no_user_credentials";
+            return ErrorCode.E6201;
         }
 
         if ( user.getUsername() != null &&
             userService.getUserByUsername( user.getUsername() ) != null )
         {
             log.warn( "Could not send invite message as username is already taken: " + user );
-            return "username_taken";
+            return ErrorCode.E6204;
         }
 
         if ( user.getEmail() == null ||
             !ValidationUtils.emailIsValid( user.getEmail() ) )
         {
             log.warn( "Could not send restore/invite message as user has no email or email is invalid" );
-            return "user_does_not_have_valid_email";
+            return ErrorCode.E6202;
         }
 
         if ( !emailMessageSender.isConfigured() )
         {
             log.warn( "Could not send restore/invite message as email is not configured" );
-            return "email_not_configured_for_system";
+            return ErrorCode.E6203;
         }
 
         return null;
@@ -352,7 +361,6 @@ public class DefaultSecurityService
         // -------------------------------------------------------------------------
         // Send emails
         // -------------------------------------------------------------------------
-
         emailMessageSender
             .sendMessage( messageSubject, messageBody, null, null, Set.of( persistedUser ), true );
 
@@ -384,9 +392,11 @@ public class DefaultSecurityService
         return Base64.getUrlEncoder().withoutPadding().encodeToString( (idToken + ":" + restoreToken).getBytes() );
     }
 
+    @Override
     public String[] decodeEncodedTokens( String encodedTokens )
     {
-        String decodedEmailToken = new String( Base64.getUrlDecoder().decode( encodedTokens ), StandardCharsets.UTF_8 );
+        String decodedEmailToken = new String( Base64.getUrlDecoder()
+            .decode( encodedTokens ), StandardCharsets.UTF_8 );
 
         return decodedEmailToken.split( ":" );
     }
@@ -420,18 +430,11 @@ public class DefaultSecurityService
     @Override
     public boolean canRestore( User user, String token, RestoreType restoreType )
     {
-        String logPrefix = "Restore user: " + user.getUid() + ", username: " + user.getUsername() + " ";
+        ErrorCode code = validateRestore( user, token, restoreType );
 
-        String errorMessage = verifyRestore( user, token, restoreType );
+        log.info( "User account restore outcome: {}", code );
 
-        if ( errorMessage != null )
-        {
-            log.warn( logPrefix + "Failed to verify restore: " + errorMessage );
-            return false;
-        }
-
-        log.info( logPrefix + " success" );
-        return true;
+        return code == null;
     }
 
     /**
@@ -444,122 +447,83 @@ public class DefaultSecurityService
      * @param restoreType the restore type.
      * @return null if restore is valid, a descriptive error string otherwise.
      */
-    private String verifyRestore( User user, String token, RestoreType restoreType )
+    private ErrorCode validateRestore( User user, String token, RestoreType restoreType )
     {
-        String errorMessage = user.isRestorable();
-
-        if ( errorMessage != null )
+        if ( user.getRestoreToken() == null )
         {
-            return errorMessage;
+            return ErrorCode.E6209;
         }
 
-        errorMessage = verifyRestoreToken( user, token, restoreType );
-
-        if ( errorMessage != null )
+        if ( user.getRestoreExpiry() == null )
         {
-            return errorMessage;
+            return ErrorCode.E6210;
         }
 
-        Date currentTime = new DateTime().toDate();
-        Date restoreExpiry = user.getRestoreExpiry();
-
-        if ( currentTime.after( restoreExpiry ) )
+        if ( new Date().after( user.getRestoreExpiry() ) )
         {
-            return "date_is_after_expiry";
+            return ErrorCode.E6211;
         }
 
-        return null; // Success;
+        return validateRestoreToken( user, token, restoreType );
     }
 
-    /**
-     * Verify the token given for a user invite or password restore operation.
-     * <p/>
-     * If error, returns one of the following strings:
-     * <p/>
-     * <ul>
-     * <li>credentials_parameter_is_null</li>
-     * <li>token_parameter_is_null</li>
-     * <li>restore_type_parameter_is_null</li>
-     * <li>cannot_parse_restore_options</li>
-     * <li>wrong_prefix_for_restore_type</li>
-     * <li>could_not_verify_token</li>
-     * <li>restore_token_does_not_match_supplied_token</li>
-     * </ul>
-     *
-     * @param user the user.
-     * @param restoreToken the token.
-     * @param restoreType type of restore operation.
-     * @return null if success, otherwise error string.
-     */
     @Override
-    public String verifyRestoreToken( User user, String restoreToken, RestoreType restoreType )
+    public ErrorCode validateRestoreToken( User user, String restoreToken, RestoreType restoreType )
     {
         if ( user == null )
         {
-            log.warn( "Could not send verify restore token, credentials_parameter_is_null" );
-            return "credentials_parameter_is_null";
+            return ErrorCode.E6201;
         }
 
         if ( restoreToken == null )
         {
-            log.warn( "Could not send verify restore token; error=token_parameter_is_null; username:" +
+            log.warn( "Could not send verify restore token; error=token_parameter_is_null; username: {}",
                 user.getUsername() );
-            return "token_parameter_is_null";
+            return ErrorCode.E6205;
         }
 
         if ( restoreType == null )
         {
-            log.warn( "Could not send verify restore token; error=restore_type_parameter_is_null; username:" +
+            log.warn( "Could not send verify restore token; error=restore_type_parameter_is_null; username: {}",
                 user.getUsername() );
-            return "restore_type_parameter_is_null";
+            return ErrorCode.E6206;
         }
 
         RestoreOptions restoreOptions = RestoreOptions.getRestoreOptions( restoreToken );
 
         if ( restoreOptions == null )
         {
-            log.warn( "Could not send verify restore token; error=cannot_parse_restore_options; username:" +
+            log.warn( "Could not send verify restore token; error=cannot_parse_restore_options; username: {}",
                 user.getUsername() );
-            return "cannot_parse_restore_options";
+            return ErrorCode.E6207;
         }
 
         if ( restoreType != restoreOptions.getRestoreType() )
         {
-            log.warn( "Could not send verify restore token; error=wrong_prefix_for_restore_type; username:" +
+            log.warn( "Could not send verify restore token; error=wrong_prefix_for_restore_type; username: {}",
                 user.getUsername() );
-            return "wrong_prefix_for_restore_type";
+            return ErrorCode.E6207;
         }
 
         String hashedRestoreToken = user.getRestoreToken();
 
         if ( hashedRestoreToken == null )
         {
-            log.warn( "Could not send verify restore token; error=could_not_verify_token; username:" +
+            log.warn( "Could not send verify restore token; error=could_not_verify_token; username: {}",
                 user.getUsername() );
-            return "could_not_verify_token";
+            return ErrorCode.E6208;
         }
 
         boolean validToken = passwordManager.matches( restoreToken, hashedRestoreToken );
 
         if ( !validToken )
         {
-            log.warn(
-                "Could not send verify restore token; error=restore_token_does_not_match_supplied_token; username:" +
-                    user.getUsername() );
+            log.warn( "Could not verify restore token; error=restore_token_does_not_match_supplied_token; username: {}",
+                user.getUsername() );
+            return ErrorCode.E6208;
         }
 
-        return validToken ? null : "restore_token_does_not_match_supplied_token";
-    }
-
-    @Override
-    public boolean isInviteUsername( String username )
-    {
-        if ( username == null || username.isEmpty() )
-        {
-            return true;
-        }
-
-        return INVITE_USERNAME_PATTERN.matcher( username ).matches();
+        return null;
     }
 
     @Override
@@ -685,5 +649,55 @@ public class DefaultSecurityService
     {
         return !aclService.isSupported( identifiableObject )
             || aclService.canDataRead( currentUserService.getCurrentUser(), identifiableObject );
+    }
+
+    @Override
+    public void validate2FAUpdate( boolean before, boolean after, User userToModify )
+    {
+        if ( before == after )
+        {
+            return;
+        }
+
+        if ( !before )
+        {
+            // TODO: 13332 When we have 2FA auto provisioning after login, we
+            // can change this.
+            throw new UpdateAccessDeniedException( "You can not enable 2FA with this API endpoint, only disable." );
+        }
+
+        CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+        if ( currentUserDetails == null )
+        {
+            throw new UpdateAccessDeniedException( "No current user in session, can not update user." );
+        }
+
+        // Current user can not update their own 2FA settings, must use
+        // /2fa/enable or disable API, even if they are admin.
+        if ( currentUserDetails.getUid().equals( userToModify.getUid() ) )
+        {
+            throw new UpdateAccessDeniedException(
+                "User cannot update their own user's 2FA settings via this API endpoint, must use /2fa/enable or disable API" );
+        }
+
+        // As long current is not super, admin can disable any other users 2FA.
+        if ( currentUserDetails.isSuper() )
+        {
+            return;
+        }
+
+        // If current user has access to manage this user, they can disable 2FA.
+        User currentUser = userService.getUser( currentUserDetails.getUid() );
+        if ( !aclService.canUpdate( currentUser, userToModify ) )
+        {
+            throw new UpdateAccessDeniedException(
+                String.format( "User `%s` is not allowed to update object `%s`.", currentUser.getUsername(),
+                    userToModify ) );
+        }
+        if ( !userService.canAddOrUpdateUser( getUids( userToModify.getGroups() ), currentUser )
+            || !currentUser.canModifyUser( userToModify ) )
+        {
+            throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this user." );
+        }
     }
 }

@@ -214,7 +214,7 @@ public class OrganisationUnitController
 
         IdentifiableObject member;
 
-        if ( memberObject != null && memberCollection != null && (member = manager.get( memberObject )) != null )
+        if ( memberObject != null && memberCollection != null && (member = manager.find( memberObject )) != null )
         {
             for ( OrganisationUnit unit : list )
             {
@@ -332,22 +332,21 @@ public class OrganisationUnitController
 
         response.setContentType( APPLICATION_JSON_VALUE );
 
-        JsonFactory jsonFactory = new JsonFactory();
-        JsonGenerator generator = jsonFactory.createGenerator( response.getOutputStream() );
-
-        generator.writeStartObject();
-        generator.writeStringField( "type", "FeatureCollection" );
-        generator.writeArrayFieldStart( "features" );
-
-        for ( OrganisationUnit organisationUnit : organisationUnits )
+        try ( JsonGenerator generator = new JsonFactory().createGenerator( response.getOutputStream() ) )
         {
-            writeFeature( generator, organisationUnit, rpProperties, currentUser );
+
+            generator.writeStartObject();
+            generator.writeStringField( "type", "FeatureCollection" );
+            generator.writeArrayFieldStart( "features" );
+
+            for ( OrganisationUnit organisationUnit : organisationUnits )
+            {
+                writeFeature( generator, organisationUnit, rpProperties, currentUser );
+            }
+
+            generator.writeEndArray();
+            generator.writeEndObject();
         }
-
-        generator.writeEndArray();
-        generator.writeEndObject();
-
-        generator.close();
     }
 
     private void writeFeature( JsonGenerator generator, OrganisationUnit organisationUnit,

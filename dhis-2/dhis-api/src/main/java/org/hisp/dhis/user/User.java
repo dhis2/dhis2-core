@@ -54,7 +54,6 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.security.Authorities;
-import org.jboss.aerogear.security.otp.api.Base32;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -271,7 +270,6 @@ public class User
         {
             uuid = UUID.randomUUID();
         }
-        this.setSecret();
     }
 
     /**
@@ -443,28 +441,6 @@ public class User
     }
 
     /**
-     * Tests whether the user contain all needed parameters to perform an
-     * account restore. If a parameter is missing a descriptive error string is
-     * returned.
-     *
-     * @return null on success, a descriptive error string on failure.
-     */
-    public String isRestorable()
-    {
-        if ( restoreToken == null )
-        {
-            return "account_restoreToken_is_null";
-        }
-
-        if ( restoreExpiry == null )
-        {
-            return "account_restoreExpiry_is_null";
-        }
-
-        return null; // Success.
-    }
-
-    /**
      * Returns the dimensions to use as constrains (filters) in data analytics
      * aggregation.
      */
@@ -566,6 +542,11 @@ public class User
         this.twoFA = twoFA;
     }
 
+    public boolean getTwoFA()
+    {
+        return twoFA;
+    }
+
     @JsonIgnore
     public String getSecret()
     {
@@ -574,22 +555,7 @@ public class User
 
     public void setSecret( String secret )
     {
-        if ( secret == null )
-        {
-            setSecret();
-        }
-        else
-        {
-            this.secret = secret;
-        }
-    }
-
-    private void setSecret()
-    {
-        if ( this.secret == null )
-        {
-            this.secret = Base32.random();
-        }
+        this.secret = secret;
     }
 
     @JsonProperty
@@ -672,6 +638,7 @@ public class User
     @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( value = PropertyType.TEXT, required = Property.Value.FALSE )
     public String getUsername()
     {
         return username;

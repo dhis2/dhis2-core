@@ -27,12 +27,16 @@
  */
 package org.hisp.dhis.analytics.event.data.programindicator;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.hisp.dhis.analytics.DataType.BOOLEAN;
+import static org.hisp.dhis.analytics.DataType.NUMERIC;
 
 import java.util.Date;
 
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.analytics.event.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.program.AnalyticsType;
@@ -44,6 +48,7 @@ import org.springframework.stereotype.Component;
 import com.google.common.base.Strings;
 
 @Component
+@RequiredArgsConstructor
 public class DefaultProgramIndicatorSubqueryBuilder
     implements ProgramIndicatorSubqueryBuilder
 {
@@ -52,13 +57,6 @@ public class DefaultProgramIndicatorSubqueryBuilder
     private final static String SUBQUERY_TABLE_ALIAS = "subax";
 
     private final ProgramIndicatorService programIndicatorService;
-
-    public DefaultProgramIndicatorSubqueryBuilder( ProgramIndicatorService programIndicatorService )
-    {
-        checkNotNull( programIndicatorService );
-
-        this.programIndicatorService = programIndicatorService;
-    }
 
     /**
      * {@inheritDoc}
@@ -103,8 +101,8 @@ public class DefaultProgramIndicatorSubqueryBuilder
             AggregationType.CUSTOM.getValue() );
 
         // Get sql construct from Program indicator expression //
-        String aggregateSql = getPrgIndSql( programIndicator.getExpression(), programIndicator, earliestStartDate,
-            latestDate );
+        String aggregateSql = getPrgIndSql( programIndicator.getExpression(), NUMERIC, programIndicator,
+            earliestStartDate, latestDate );
 
         // closes the function parenthesis ( avg( ... ) )
         aggregateSql += ")";
@@ -121,7 +119,8 @@ public class DefaultProgramIndicatorSubqueryBuilder
         if ( !Strings.isNullOrEmpty( programIndicator.getFilter() ) )
         {
             aggregateSql += (where.isBlank() ? " WHERE " : " AND ")
-                + getPrgIndSql( programIndicator.getFilter(), programIndicator, earliestStartDate, latestDate );
+                + getPrgIndSql( programIndicator.getFilter(), BOOLEAN, programIndicator, earliestStartDate,
+                    latestDate );
         }
 
         return "(SELECT " + function + " (" + aggregateSql + ")";
@@ -186,9 +185,10 @@ public class DefaultProgramIndicatorSubqueryBuilder
         return outerSqlEntity.equals( AnalyticsType.EVENT );
     }
 
-    private String getPrgIndSql( String expression, ProgramIndicator pi, Date earliestStartDate, Date latestDate )
+    private String getPrgIndSql( String expression, DataType dataType, ProgramIndicator pi, Date earliestStartDate,
+        Date latestDate )
     {
-        return this.programIndicatorService.getAnalyticsSql( expression, pi, earliestStartDate, latestDate,
+        return this.programIndicatorService.getAnalyticsSql( expression, dataType, pi, earliestStartDate, latestDate,
             SUBQUERY_TABLE_ALIAS );
     }
 }

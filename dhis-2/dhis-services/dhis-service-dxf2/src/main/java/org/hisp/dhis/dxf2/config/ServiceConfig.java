@@ -98,6 +98,7 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.validation.DeletionCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.DuplicateIdsCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.GeoJsonAttributesCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.MandatoryAttributesCheck;
+import org.hisp.dhis.dxf2.metadata.objectbundle.validation.MetadataAttributeCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.NotOwnerReferencesCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.ReferencesCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.SchemaCheck;
@@ -220,7 +221,8 @@ public class ServiceConfig
                 getValidationCheckByClass( ReferencesCheck.class ),
                 getValidationCheckByClass( NotOwnerReferencesCheck.class ),
                 getValidationCheckByClass( TranslationsCheck.class ),
-                getValidationCheckByClass( GeoJsonAttributesCheck.class ) ),
+                getValidationCheckByClass( GeoJsonAttributesCheck.class ),
+                getValidationCheckByClass( MetadataAttributeCheck.class ) ),
             CREATE, newArrayList(
                 getValidationCheckByClass( DuplicateIdsCheck.class ),
                 getValidationCheckByClass( ValidationHooksCheck.class ),
@@ -234,7 +236,8 @@ public class ServiceConfig
                 getValidationCheckByClass( ReferencesCheck.class ),
                 getValidationCheckByClass( NotOwnerReferencesCheck.class ),
                 getValidationCheckByClass( TranslationsCheck.class ),
-                getValidationCheckByClass( GeoJsonAttributesCheck.class ) ),
+                getValidationCheckByClass( GeoJsonAttributesCheck.class ),
+                getValidationCheckByClass( MetadataAttributeCheck.class ) ),
             UPDATE, newArrayList(
                 getValidationCheckByClass( DuplicateIdsCheck.class ),
                 getValidationCheckByClass( ValidationHooksCheck.class ),
@@ -248,7 +251,8 @@ public class ServiceConfig
                 getValidationCheckByClass( ReferencesCheck.class ),
                 getValidationCheckByClass( NotOwnerReferencesCheck.class ),
                 getValidationCheckByClass( TranslationsCheck.class ),
-                getValidationCheckByClass( GeoJsonAttributesCheck.class ) ),
+                getValidationCheckByClass( GeoJsonAttributesCheck.class ),
+                getValidationCheckByClass( MetadataAttributeCheck.class ) ),
             DELETE, newArrayList(
                 getValidationCheckByClass( SecurityCheck.class ),
                 getValidationCheckByClass( DeletionCheck.class ) ) );

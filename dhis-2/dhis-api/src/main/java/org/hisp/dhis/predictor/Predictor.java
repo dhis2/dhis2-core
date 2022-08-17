@@ -56,7 +56,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 /**
  * @author Ken Haase
  */
-@JacksonXmlRootElement( localName = "Predictor", namespace = DxfNamespaces.DXF_2_0 )
+@JacksonXmlRootElement( localName = "predictor", namespace = DxfNamespaces.DXF_2_0 )
 public class Predictor
     extends BaseNameableObject implements MetadataObject
 {

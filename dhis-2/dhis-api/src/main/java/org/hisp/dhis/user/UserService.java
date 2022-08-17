@@ -30,8 +30,11 @@ package org.hisp.dhis.user;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 import javax.annotation.Nullable;
 
@@ -366,20 +369,13 @@ public interface UserService
     List<ErrorReport> validateUser( User user, User currentUser );
 
     /**
-     * Returns list of active users who are expiring with in few days.
-     *
-     * @return list of active users who are expiring with in few days.
-     */
-    List<User> getExpiringUsers();
-
-    /**
      * @param inDays number of days to include
      * @return list of those users that are about to expire in the provided
      *         number of days (or less) and which have an email configured
      */
     List<UserAccountExpiryInfo> getExpiringUserAccounts( int inDays );
 
-    void set2FA( User user, Boolean twoFA );
+    void set2FA( User user, boolean twoFA );
 
     /**
      * Expire a user's active sessions retrieved from the Spring security's
@@ -414,9 +410,23 @@ public interface UserService
      *
      * @param from start of the selected time-frame (inclusive)
      * @param to end of the selected time-frame (exclusive)
-     * @return user emails having a last login within the given time-frame.
+     * @return user emails having a last login within the given time-frame as
+     *         keys and if available their preferred locale as value
      */
-    Set<String> findNotifiableUsersWithLastLoginBetween( Date from, Date to );
+    Map<String, Optional<Locale>> findNotifiableUsersWithLastLoginBetween( Date from, Date to );
+
+    /**
+     * Selects all not disabled users where the
+     * {@link User#getPasswordLastUpdated()} ()} is within the given time-frame
+     * and which have an email address.
+     *
+     * @param from start of the selected time-frame (inclusive)
+     * @param to end of the selected time-frame (exclusive)
+     * @return user emails having a password last updated within the given
+     *         time-frame as keys and if available their preferred locale as
+     *         value
+     */
+    Map<String, Optional<Locale>> findNotifiableUsersWithPasswordLastUpdatedBetween( Date from, Date to );
 
     /**
      * Get user display name by concat( firstname,' ', surname ) Return null if
@@ -434,4 +444,23 @@ public interface UserService
 
     CurrentUserDetailsImpl createUserDetails( User user, String password, boolean accountNonLocked,
         boolean credentialsNonExpired );
+
+    /**
+     * "If the current user is not the user being modified, and the current user
+     * has the authority to modify the user, then disable two-factor
+     * authentication for the user."
+     * <p>
+     * The first thing we do is get the user object from the database. If the
+     * user doesn't exist, we throw an exception
+     *
+     * @param currentUser The user who is making the request.
+     * @param userUid The user UID of the user to disable 2FA for.
+     * @param errors A Consumer<ErrorReport> object that will be called if there
+     *        is an error.
+     */
+    void disableTwoFA( User currentUser, String userUid, Consumer<ErrorReport> errors );
+
+    boolean canCurrentUserCanModify( User currentUser, User userToModify, Consumer<ErrorReport> errors );
+
+    void generateTwoFactorSecret( User user );
 }

@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.validation;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.system.deletion.DeletionHandler;
@@ -36,18 +36,11 @@ import org.springframework.stereotype.Component;
 /**
  * @author Lars Helge Overland
  */
-@Component( "org.hisp.dhis.validation.ValidationRuleGroupDeletionHandler" )
-public class ValidationRuleGroupDeletionHandler
-    extends DeletionHandler
+@Component
+@AllArgsConstructor
+public class ValidationRuleGroupDeletionHandler extends DeletionHandler
 {
     private final IdentifiableObjectManager idObjectManager;
-
-    public ValidationRuleGroupDeletionHandler( IdentifiableObjectManager idObjectManager )
-    {
-        checkNotNull( idObjectManager );
-
-        this.idObjectManager = idObjectManager;
-    }
 
     @Override
     protected void register()

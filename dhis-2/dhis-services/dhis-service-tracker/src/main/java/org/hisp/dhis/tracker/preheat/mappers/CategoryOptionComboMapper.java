@@ -37,7 +37,12 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
-@Mapper( uses = { DebugMapper.class, CategoryOptionMapper.class, CategoryComboMapper.class } )
+@Mapper( uses = {
+    DebugMapper.class,
+    CategoryOptionMapper.class,
+    CategoryComboMapper.class,
+    AttributeValueMapper.class
+} )
 public interface CategoryOptionComboMapper
     extends PreheatMapper<CategoryOptionCombo>
 {
@@ -48,6 +53,7 @@ public interface CategoryOptionComboMapper
     @Mapping( target = "uid" )
     @Mapping( target = "name" )
     @Mapping( target = "code" )
+    @Mapping( target = "attributeValues" )
     @Mapping( target = "categoryOptions", qualifiedByName = "categoryOptions" )
     @Mapping( target = "categoryCombo" )
     CategoryOptionCombo map( CategoryOptionCombo categoryOptionCombo );

@@ -43,7 +43,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 /**
  * @author Henning Håkonsen
  */
-@JacksonXmlRootElement( localName = "jobParametesr", namespace = DxfNamespaces.DXF_2_0 )
+@JacksonXmlRootElement( localName = "predictorJobParameters", namespace = DxfNamespaces.DXF_2_0 )
 public class PredictorJobParameters
     implements JobParameters
 {

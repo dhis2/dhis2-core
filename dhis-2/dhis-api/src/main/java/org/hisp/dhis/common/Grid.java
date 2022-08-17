@@ -101,6 +101,9 @@ public interface Grid
      */
     Map<String, Object> getInternalMetaData();
 
+    /**
+     * Returns performance metrics.
+     */
     PerformanceMetrics getPerformanceMetrics();
 
     /**
@@ -119,11 +122,22 @@ public interface Grid
     List<GridHeader> getMetadataHeaders();
 
     /**
-     * Returns the index of the header with the given name.
+     * Returns the index of the header with the given name, or -1 if no matching
+     * header exists.
      *
      * @param name the name of the grid header.
      */
     int getIndexOfHeader( String name );
+
+    /**
+     * Indicates whether a header with the given name exists.
+     *
+     * @param name the name of the grid header.
+     */
+    default boolean headerExists( String name )
+    {
+        return getIndexOfHeader( name ) != -1;
+    }
 
     /**
      * Adds a header.
@@ -256,6 +270,9 @@ public interface Grid
      */
     List<List<Object>> getRows();
 
+    /**
+     * Returns references.
+     */
     List<Reference> getRefs();
 
     /**
@@ -506,36 +523,43 @@ public interface Grid
      */
     Grid addRows( SqlRowSet rs, int maxLimit );
 
-    Grid maybeAddPerformanceMetrics( List<ExecutionPlan> plans );
+    /**
+     * Adds performance metrics.
+     *
+     * @param plans the list of execution plans.
+     */
+    Grid addPerformanceMetrics( List<ExecutionPlan> plans );
 
+    /**
+     * Adds a reference.
+     *
+     * @param reference the reference.
+     */
     Grid addReference( Reference reference );
 
     /**
-     * This method will keep, in the Grid, only the given list of headers. All
-     * other GridHeaders and respective columns will be removed from the Grid.
+     * This method will take a Grid and retain only the columns and headers with
+     * the corresponding the list of headers.
      *
-     * @param headers
+     * @param headers the set of headers for which to retain columns.
      */
-    void keepOnlyThese( final Set<String> headers );
+    void retainColumns( Set<String> headers );
 
     /**
-     * Re-order the GridHeaders of current Grid based on the List headers. The
-     * final Grid will have the all its headers defined in the same order as the
-     * given List of headers.
+     * Reorders the headers of the grid based on the given list of header names.
      *
-     * @param headers
-     * @return a Set of indexes that holds the holds the new order
+     * @param headers the list of header names.
+     * @return a set of indexes which holds the holds the new header order.
      */
-    Set<Integer> repositionHeaders( final Set<String> headers );
+    List<Integer> repositionHeaders( List<String> headers );
 
     /**
-     * Based on the given column indexes, this method will order the current
-     * columns in the Grid. The new positions of the columns will respect the
-     * new indexes.
+     * Reorders the headers and columns of the grid based on the given column
+     * indexes. The given column indexes refer to the current column indexes.
      *
-     * @param newColumnsIndexes
+     * @param columnIndexes the new column indexes.
      */
-    void repositionColumns( final Set<Integer> newColumnsIndexes );
+    void repositionColumns( List<Integer> columnIndexes );
 
     boolean hasLastDataRow();
 

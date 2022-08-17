@@ -154,6 +154,11 @@ public final class WebMessageUtils
         return createWebMessage( message, devMessage, Status.ERROR, HttpStatus.BAD_REQUEST );
     }
 
+    public static WebMessage badRequest( String message, ErrorCode errorCode )
+    {
+        return createWebMessage( message, Status.ERROR, HttpStatus.BAD_REQUEST, errorCode );
+    }
+
     public static WebMessage forbidden( String message )
     {
         return createWebMessage( message, Status.ERROR, HttpStatus.FORBIDDEN );

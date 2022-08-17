@@ -28,7 +28,7 @@
 package org.hisp.dhis.webapi;
 
 import static org.hisp.dhis.utils.JavaToJson.singleToDoubleQuotes;
-import static org.hisp.dhis.webapi.utils.WebClientUtils.failOnException;
+import static org.hisp.dhis.web.WebClientUtils.failOnException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 
@@ -36,8 +36,10 @@ import java.util.Collections;
 
 import org.hisp.dhis.IntegrationH2Test;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.config.ConfigProviderConfiguration;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.jsontree.JsonResponse;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -153,6 +155,13 @@ public abstract class DhisControllerConvenienceTest extends DhisMockMvcControlle
         return currentUser;
     }
 
+    protected final User switchToNewUser( User user )
+    {
+        currentUser = user;
+        switchContextToUser( currentUser );
+        return currentUser;
+    }
+
     protected void switchContextToUser( User user )
     {
         injectSecurityContext( user );
@@ -187,7 +196,7 @@ public abstract class DhisControllerConvenienceTest extends DhisMockMvcControlle
     protected void switchToUserWithOrgUnitDataView( String userName, String orgUnitId )
     {
         User user = makeUser( userName, Collections.singletonList( "ALL" ) );
-        user.getDataViewOrganisationUnits().add( manager.get( orgUnitId ) );
+        user.getDataViewOrganisationUnits().add( manager.get( OrganisationUnit.class, orgUnitId ) );
         userService.addUser( user );
         switchContextToUser( user );
     }

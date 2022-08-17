@@ -138,11 +138,12 @@ public class FileResourceController
 
     @PostMapping
     public WebMessage saveFileResource( @RequestParam MultipartFile file,
-        @RequestParam( defaultValue = "DATA_VALUE" ) FileResourceDomain domain )
+        @RequestParam( defaultValue = "DATA_VALUE" ) FileResourceDomain domain,
+        @RequestParam( required = false ) String uid )
         throws WebMessageException,
         IOException
     {
-        FileResource fileResource = fileResourceUtils.saveFileResource( file, domain );
+        FileResource fileResource = fileResourceUtils.saveFileResource( uid, file, domain );
 
         WebMessage webMessage = new WebMessage( Status.OK, HttpStatus.ACCEPTED );
         webMessage.setResponse( new FileResourceWebMessageResponse( fileResource ) );

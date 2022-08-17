@@ -34,7 +34,9 @@ import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
@@ -109,6 +111,7 @@ public class QueryItemHelper
      *
      * @param item the {@link QueryItem}.
      * @param itemValue the item value.
+     * @return an item value for the given query.
      */
     public static String getCollapsedDataItemValue( QueryItem item, String itemValue )
     {
@@ -146,13 +149,13 @@ public class QueryItemHelper
      * When the Grid has rows, this method will return only the options that are
      * part of the row object.
      *
-     * @param grid the Grid instance
-     * @param params the EventQueryParams
-     * @return a list of options based on the Grid/EventQueryParams
+     * @param grid the {@link Grid}.
+     * @param params the {@link EventQueryParams}.
+     * @return a map of list of options.
      */
-    public static List<Option> getItemOptions( final Grid grid, final EventQueryParams params )
+    public static Map<String, List<Option>> getItemOptions( Grid grid, EventQueryParams params )
     {
-        final List<Option> options = new ArrayList<>();
+        final Map<String, List<Option>> options = new HashMap<>();
 
         for ( int i = 0; i < grid.getHeaders().size(); ++i )
         {
@@ -160,27 +163,27 @@ public class QueryItemHelper
 
             if ( gridHeader.hasOptionSet() && isNotEmpty( grid.getRows() ) )
             {
-                options.addAll( getItemOptionsThatMatchesRows( grid, i ) );
+                options.put( gridHeader.getName(), getItemOptionsThatMatchesRows( grid, i ) );
             }
             else if ( gridHeader.hasOptionSet() && isEmpty( grid.getRows() ) )
             {
-                options.addAll( getItemOptionsForEmptyRows( params ) );
+                options.put( gridHeader.getName(), getItemOptionsForEmptyRows( params ) );
             }
         }
 
-        return options.stream().distinct().collect( toList() );
+        return options;
     }
 
     /**
      * This method will extract the options (based on their codes) from the
      * element filter.
      *
-     * @param params the EventQueryParams
-     * @return the options for empty rows
+     * @param params the {@link EventQueryParams}.
+     * @return the options for empty rows.
      */
-    private static List<Option> getItemOptionsForEmptyRows( final EventQueryParams params )
+    private static List<Option> getItemOptionsForEmptyRows( EventQueryParams params )
     {
-        final List<Option> options = new ArrayList<>();
+        List<Option> options = new ArrayList<>();
 
         if ( isNotEmpty( params.getItems() ) )
         {
@@ -206,14 +209,14 @@ public class QueryItemHelper
      * are part of each row object. It picks each option, from the list of all
      * options available, that matches the current header.
      *
-     * @param grid the Grid
-     * @param columnIndex
-     * @return the list of matching options
+     * @param grid the {@link Grid}.
+     * @param columnIndex the column index.
+     * @return a list of matching options.
      */
-    private static List<Option> getItemOptionsThatMatchesRows( final Grid grid, final int columnIndex )
+    private static List<Option> getItemOptionsThatMatchesRows( Grid grid, int columnIndex )
     {
-        final List<Option> options = new ArrayList<>();
-        final GridHeader gridHeader = grid.getHeaders().get( columnIndex );
+        List<Option> options = new ArrayList<>();
+        GridHeader gridHeader = grid.getHeaders().get( columnIndex );
 
         options.addAll( gridHeader
             .getOptionSetObject()
@@ -240,12 +243,12 @@ public class QueryItemHelper
      * The codes are split by the token ";" and the respective Option objects
      * are returned.
      *
-     * @param item the QueryItem
-     * @return the list of options found in the filter
+     * @param item the {@link QueryItem}.
+     * @return a list of options found in the filter.
      */
-    private static List<Option> getItemOptionsForFilter( final QueryItem item )
+    private static List<Option> getItemOptionsForFilter( QueryItem item )
     {
-        final List<Option> options = new ArrayList<>();
+        List<Option> options = new ArrayList<>();
 
         for ( final Option option : item.getOptionSet().getOptions() )
         {

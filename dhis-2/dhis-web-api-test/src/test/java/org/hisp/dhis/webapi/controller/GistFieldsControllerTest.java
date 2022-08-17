@@ -30,7 +30,7 @@ package org.hisp.dhis.webapi.controller;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
+import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -38,8 +38,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonString;
+import org.hisp.dhis.web.HttpStatus;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpStatus;
 
 /**
  * Tests the {@link org.hisp.dhis.gist.GistQuery.Field} related features of the

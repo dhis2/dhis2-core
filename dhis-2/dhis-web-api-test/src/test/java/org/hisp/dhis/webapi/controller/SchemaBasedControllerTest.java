@@ -27,15 +27,13 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static java.util.Arrays.asList;
-import static org.hisp.dhis.webapi.WebClient.Body;
-import static org.hisp.dhis.webapi.WebClient.ContentType;
-import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
+import static org.hisp.dhis.web.WebClient.Body;
+import static org.hisp.dhis.web.WebClient.ContentType;
+import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -44,12 +42,12 @@ import org.hisp.dhis.attribute.Attribute.ObjectType;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonGenerator;
 import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.webapi.json.domain.JsonSchema;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 
 /**
@@ -63,41 +61,37 @@ import org.springframework.http.MediaType;
  */
 class SchemaBasedControllerTest extends DhisControllerConvenienceTest
 {
-
-    private static final Set<String> IGNORED_SCHEMAS = new HashSet<>(
-        asList(
-            "externalFileResource", // can't POST files
-            "identifiableObject", // depends on files
-            "dashboard", // uses JSONB functions (improve test setup)
-            "pushanalysis", // uses dashboards (see above)
-            "programInstance", // no POST endpoint
-            "metadataVersion", // no POST endpoint
-            "softDeletableObject", // depends on programInstance (see above)
-            "relationship", // generator insufficient for embedded fields
-            "relationshipType", // generator insufficient for embedded fields
-            "programStageInstanceFilter", // generator insufficient
-            "interpretation", // required ObjectReport not required in schema
-            "user", // generator insufficient to understand user
-            "jobConfiguration", // API requires configurable=true
-            "messageConversation", // needs recipients (not a required field)
-            "programRuleAction", // needs DataElement and TrackedEntityAttribute
-                                 // (not a required field)
-            "validationRule", // generator insufficient (embedded fields)
-            "programStage", // presumably server errors/bugs
-            // presumably server errors/bugs
-            "trackedEntityInstance", // conflict (no details)
-            "Predictor" // NPE in preheat when creating objects
-        ) );
+    private static final Set<String> IGNORED_SCHEMAS = Set.of(
+        "externalFileResource", // can't POST files
+        "identifiableObject", // depends on files
+        "dashboard", // uses JSONB functions (improve test setup)
+        "pushanalysis", // uses dashboards (see above)
+        "programInstance", // no POST endpoint
+        "metadataVersion", // no POST endpoint
+        "softDeletableObject", // depends on programInstance (see above)
+        "relationship", // generator insufficient for embedded fields
+        "relationshipType", // generator insufficient for embedded fields
+        "programStageInstanceFilter", // generator insufficient
+        "interpretation", // required ObjectReport not required in schema
+        "user", // generator insufficient to understand user
+        "jobConfiguration", // API requires configurable=true
+        "messageConversation", // needs recipients (not a required field)
+        "programRuleAction", // needs DataElement and TrackedEntityAttribute
+        "validationRule", // generator insufficient (embedded fields)
+        "programStage", // presumably server errors/bugs
+        "dataElement", // non-postgres SQL in deletion handler
+        "trackedEntityInstance", // conflict (no details)
+        "predictor", // NPE in preheat when creating objects
+        "aggregateDataExchange" // required JSONB objects not working
+    );
 
     /**
      * A list of endpoints that do not support the {@code /gist} API because
      * their controller does not extend the base class that implements it.
      */
-    private static final Set<String> IGNORED_GIST_ENDPOINTS = new HashSet<>( asList( // no
-                                                                                     // /gist
-                                                                                     // API
-        "reportTable", // no /gist API
-        "chart" ) );
+    private static final Set<String> IGNORED_GIST_ENDPOINTS = Set.of(
+        "reportTable",
+        "chart" );
 
     @Test
     void testCreateAndDeleteSchemaObjects()
@@ -175,7 +169,6 @@ class SchemaBasedControllerTest extends DhisControllerConvenienceTest
         {
             return;
         }
-        System.out.println( schema.getRelativeApiEndpoint() );
         String attrId = assertStatus( HttpStatus.CREATED, POST( "/attributes",
             "{'name':'" + type + "', 'valueType':'INTEGER','" + type.getPropertyName() + "':true}" ) );
         String endpoint = schema.getRelativeApiEndpoint();

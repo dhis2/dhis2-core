@@ -356,7 +356,8 @@ public class PredictionDataValueFetcher
 
             if ( ddv.getSourcePath().equals( dv.getSource().getPath() )
                 && ddv.getDataElementId() == outputDataElementOperand.getDataElement().getId()
-                && ddv.getCategoryOptionComboId() == (outputDataElementOperand.getCategoryOptionCombo().getId())
+                && (outputDataElementOperand.getCategoryOptionCombo() == null ||
+                    ddv.getCategoryOptionComboId() == outputDataElementOperand.getCategoryOptionCombo().getId())
                 && outputPeriods.contains( dv.getPeriod() ) )
             {
                 oldPredictions.add( dv );

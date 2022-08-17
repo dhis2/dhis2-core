@@ -43,8 +43,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
@@ -75,7 +73,6 @@ import com.google.common.collect.Sets;
  * @author Torgeir Lorange Ostby
  */
 @Service( "org.hisp.dhis.organisationunit.OrganisationUnitService" )
-@Slf4j
 public class DefaultOrganisationUnitService
     implements OrganisationUnitService, CurrentUserServiceTarget
 {
@@ -520,8 +517,7 @@ public class DefaultOrganisationUnitService
                 continue;
             }
 
-            String uid1 = ancestor.getUid();
-            ancestorsUid.add( uid1 );
+            ancestorsUid.add( ancestor.getUid() );
         }
 
         OrganisationUnit unit = getOrganisationUnit( organisationUnit.getUid() );

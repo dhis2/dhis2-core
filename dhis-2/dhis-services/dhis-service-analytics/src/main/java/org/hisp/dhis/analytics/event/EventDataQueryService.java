@@ -27,9 +27,12 @@
  */
 package org.hisp.dhis.analytics.event;
 
+import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.common.EventAnalyticalObject;
 import org.hisp.dhis.common.EventDataQueryRequest;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.program.Program;
 
 /**
  * @author Lars Helge Overland
@@ -80,8 +83,19 @@ public interface EventDataQueryService
      * attribute identifier.
      *
      * @param coordinate the coordinate field.
+     * @param program the program uid.
      * @return the coordinate column field.
      * @throws IllegalQueryException if the coordinate field is not valid.
      */
-    String getFallbackCoordinateField( String coordinate );
+    String getFallbackCoordinateField( String coordinate, String program );
+
+    /**
+     * Returns a {@link QueryItem}.
+     *
+     * @param dimensionString the dimension string.
+     * @param program the {@link Program}.
+     * @param type the {@link EventOutputType}.
+     * @return a {@link QueryItem}.
+     */
+    QueryItem getQueryItem( String dimensionString, Program program, EventOutputType type );
 }

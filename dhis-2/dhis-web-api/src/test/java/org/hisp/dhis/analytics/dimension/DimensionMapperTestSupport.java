@@ -39,6 +39,8 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.webapi.dimension.DimensionMapper;
+import org.hisp.dhis.webapi.dimension.DimensionResponse;
 
 public class DimensionMapperTestSupport
 {

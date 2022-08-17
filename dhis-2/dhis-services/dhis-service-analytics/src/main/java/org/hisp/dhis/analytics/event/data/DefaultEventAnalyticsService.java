@@ -73,6 +73,7 @@ import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryPlanner;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
+import org.hisp.dhis.analytics.shared.LabelMapper;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -184,8 +185,6 @@ public class DefaultEventAnalyticsService
 
     private final AnalyticsCache analyticsCache;
 
-    final SchemaIdResponseMapper schemaIdResponseMapper;
-
     public DefaultEventAnalyticsService( DataElementService dataElementService,
         TrackedEntityAttributeService trackedEntityAttributeService, EventAnalyticsManager eventAnalyticsManager,
         EventDataQueryService eventDataQueryService, AnalyticsSecurityManager securityManager,
@@ -212,7 +211,6 @@ public class DefaultEventAnalyticsService
         this.databaseInfo = databaseInfo;
         this.analyticsCache = analyticsCache;
         this.enrollmentAnalyticsManager = enrollmentAnalyticsManager;
-        this.schemaIdResponseMapper = schemaIdResponseMapper;
     }
 
     // -------------------------------------------------------------------------
@@ -739,11 +737,11 @@ public class DefaultEventAnalyticsService
             grid
                 .addHeader( new GridHeader(
                     ITEM_ENROLLMENT_DATE,
-                    LabelMapper.getEnrollmentDateLabel( params.getProgramStage(), NAME_ENROLLMENT_DATE ), DATE, false,
+                    LabelMapper.getEnrollmentDateLabel( params.getProgram(), NAME_ENROLLMENT_DATE ), DATE, false,
                     true ) )
                 .addHeader( new GridHeader(
                     ITEM_INCIDENT_DATE,
-                    LabelMapper.getIncidentDateLabel( params.getProgramStage(), NAME_INCIDENT_DATE ), DATE, false,
+                    LabelMapper.getIncidentDateLabel( params.getProgram(), NAME_INCIDENT_DATE ), DATE, false,
                     true ) )
                 .addHeader( new GridHeader(
                     ITEM_TRACKED_ENTITY_INSTANCE, NAME_TRACKED_ENTITY_INSTANCE, TEXT, false, true ) )

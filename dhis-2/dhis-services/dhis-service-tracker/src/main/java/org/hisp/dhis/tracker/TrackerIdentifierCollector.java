@@ -73,23 +73,15 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class TrackerIdentifierCollector
 {
-    public static final String ID_WILDCARD = "*";
-
     private final ProgramRuleService programRuleService;
 
     public Map<Class<?>, Set<String>> collect( TrackerImportParams params )
     {
         final Map<Class<?>, Set<String>> identifiers = new HashMap<>();
-
         collectTrackedEntities( identifiers, params.getTrackedEntities() );
         collectEnrollments( identifiers, params.getEnrollments() );
         collectEvents( identifiers, params.getEvents() );
         collectRelationships( identifiers, params.getRelationships() );
-        // Using "*" signals that all the entities of the given type have to be
-        // preloaded in the Preheat
-        identifiers.put( TrackedEntityType.class, Set.of( ID_WILDCARD ) );
-        identifiers.put( RelationshipType.class, Set.of( ID_WILDCARD ) );
-
         collectProgramRulesFields( identifiers );
         return identifiers;
     }
@@ -122,6 +114,7 @@ public class TrackerIdentifierCollector
     {
         trackedEntities.forEach( trackedEntity -> {
             addIdentifier( identifiers, TrackedEntity.class, trackedEntity.getTrackedEntity() );
+            addIdentifier( identifiers, TrackedEntityType.class, trackedEntity.getTrackedEntityType() );
             addIdentifier( identifiers, OrganisationUnit.class, trackedEntity.getOrgUnit() );
 
             collectEnrollments( identifiers, trackedEntity.getEnrollments() );
@@ -185,6 +178,7 @@ public class TrackerIdentifierCollector
         relationships.forEach( relationship -> {
 
             addIdentifier( identifiers, Relationship.class, relationship.getRelationship() );
+            addIdentifier( identifiers, RelationshipType.class, relationship.getRelationshipType() );
 
             if ( Objects.nonNull( relationship.getFrom() ) )
             {

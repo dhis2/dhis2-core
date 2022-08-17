@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.analytics.data;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.DataQueryParams.newBuilder;
 import static org.hisp.dhis.analytics.OutputFormat.DATA_VALUE_SET;
-import static org.hisp.dhis.analytics.util.AnalyticsUtils.getDataValueSetFromGrid;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.getDataValueSet;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.getDataValueSetAsGrid;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.isTableLayout;
 import static org.hisp.dhis.commons.collection.ListUtils.removeEmptys;
 import static org.hisp.dhis.visualization.Visualization.addListIfEmpty;
@@ -38,6 +38,8 @@ import static org.hisp.dhis.visualization.Visualization.addListIfEmpty;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.AnalyticsService;
@@ -55,13 +57,13 @@ import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.visualization.Visualization;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
  * @author Lars Helge Overland
  */
 @Service( "org.hisp.dhis.analytics.AnalyticsService" )
+@RequiredArgsConstructor
 public class DefaultAnalyticsService
     implements AnalyticsService
 {
@@ -78,23 +80,6 @@ public class DefaultAnalyticsService
     // -------------------------------------------------------------------------
     // AnalyticsService implementation
     // -------------------------------------------------------------------------
-
-    @Autowired
-    public DefaultAnalyticsService( AnalyticsSecurityManager securityManager, QueryValidator queryValidator,
-        DataQueryService dataQueryService, AnalyticsCache analyticsCache, DataAggregator dataAggregator )
-    {
-        checkNotNull( securityManager );
-        checkNotNull( queryValidator );
-        checkNotNull( dataQueryService );
-        checkNotNull( analyticsCache );
-        checkNotNull( dataAggregator );
-
-        this.securityManager = securityManager;
-        this.queryValidator = queryValidator;
-        this.dataQueryService = dataQueryService;
-        this.analyticsCache = analyticsCache;
-        this.dataAggregator = dataAggregator;
-    }
 
     @Override
     public Grid getAggregatedDataValues( DataQueryParams params )
@@ -134,16 +119,17 @@ public class DefaultAnalyticsService
     @Override
     public DataValueSet getAggregatedDataValueSet( DataQueryParams params )
     {
-        DataQueryParams query = newBuilder( params )
-            .withSkipMeta( false )
-            .withSkipData( false )
-            .withIncludeNumDen( false )
-            .withOutputFormat( DATA_VALUE_SET )
-            .build();
+        Grid grid = getAggregatedDataValueSetGrid( params );
 
-        Grid grid = dataAggregator.getAggregatedDataValueGrid( query );
+        return getDataValueSet( params, grid );
+    }
 
-        return getDataValueSetFromGrid( params, grid );
+    @Override
+    public Grid getAggregatedDataValueSetAsGrid( DataQueryParams params )
+    {
+        Grid grid = getAggregatedDataValueSetGrid( params );
+
+        return getDataValueSetAsGrid( grid );
     }
 
     @Override
@@ -174,6 +160,24 @@ public class DefaultAnalyticsService
     // -------------------------------------------------------------------------
     // Private business logic methods
     // -------------------------------------------------------------------------
+
+    /**
+     * Returns a grid with aggregated data in data value set format.
+     *
+     * @param params the {@link DataQueryParams}.
+     * @return a grid with aggregated data in data value set format.
+     */
+    private Grid getAggregatedDataValueSetGrid( DataQueryParams params )
+    {
+        DataQueryParams query = newBuilder( params )
+            .withSkipMeta( false )
+            .withSkipData( false )
+            .withIncludeNumDen( false )
+            .withOutputFormat( DATA_VALUE_SET )
+            .build();
+
+        return dataAggregator.getAggregatedDataValueGrid( query );
+    }
 
     /**
      * Check the common security constraints that should be applied to the given

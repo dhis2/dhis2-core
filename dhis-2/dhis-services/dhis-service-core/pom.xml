@@ -130,10 +130,6 @@
       <artifactId>hibernate-core</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.fasterxml.jackson.dataformat</groupId>
-      <artifactId>jackson-dataformat-xml</artifactId>
-    </dependency>
-    <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-core</artifactId>
     </dependency>
@@ -185,7 +181,6 @@
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-slf4j-impl</artifactId>
     </dependency>
-
     <dependency>
       <groupId>com.google.code.findbugs</groupId>
       <artifactId>jsr305</artifactId>
@@ -219,7 +214,7 @@
       <artifactId>gson</artifactId>
     </dependency>
 
-    <!-- JClouds -->
+    <!-- Apache JClouds -->
 
     <dependency>
       <groupId>org.apache.jclouds</groupId>
@@ -236,6 +231,10 @@
     <dependency>
       <groupId>org.apache.jclouds.api</groupId>
       <artifactId>s3</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.jclouds.provider</groupId>
+      <artifactId>aws-s3</artifactId>
     </dependency>
 
     <!-- Image Processing -->
@@ -344,6 +343,7 @@
     </dependency>
 
     <!-- Test -->
+
     <dependency>
       <groupId>org.hamcrest</groupId>
       <artifactId>hamcrest</artifactId>
@@ -370,36 +370,10 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.awaitility</groupId>
-      <artifactId>awaitility</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.testcontainers</groupId>
-      <artifactId>testcontainers</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-test</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-math3</artifactId>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>org.jfree</groupId>
-      <artifactId>jfreechart</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>de.grundid.opendatalab</groupId>
-      <artifactId>geojson-jackson</artifactId>
-      <scope>test</scope>
-    </dependency>
-
   </dependencies>
   <properties>
     <rootDir>../../</rootDir>

@@ -39,9 +39,9 @@ import org.hisp.dhis.common.CodeGenerator;
  */
 public abstract class ResourceTable<T>
 {
-    public static final int OLDEST_YEAR_PERIOD_SUPPORTED = 1975;
+    public static final int FIRST_YEAR_SUPPORTED = 1975;
 
-    public static final int NEWEST_YEAR_PERIOD_SUPPORTED = now().plusYears( 2 ).getYear();
+    public static final int LATEST_YEAR_SUPPORTED = now().plusYears( 25 ).getYear();
 
     protected static final String TEMP_TABLE_SUFFIX = "_temp";
 

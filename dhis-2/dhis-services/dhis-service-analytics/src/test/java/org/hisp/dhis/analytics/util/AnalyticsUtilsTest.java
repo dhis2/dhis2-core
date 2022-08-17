@@ -35,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
@@ -180,11 +181,32 @@ class AnalyticsUtilsTest extends DhisConvenienceTest
     {
         DataQueryParams paramsA = DataQueryParams.newBuilder().build();
         DataQueryParams paramsB = DataQueryParams.newBuilder().withSkipRounding( true ).build();
-        assertEquals( null, AnalyticsUtils.getRoundedValueObject( paramsA, null ) );
-        assertEquals( "Car", AnalyticsUtils.getRoundedValueObject( paramsA, "Car" ) );
-        assertEquals( 3d, AnalyticsUtils.getRoundedValueObject( paramsA, 3d ) );
-        assertEquals( (Double) AnalyticsUtils.getRoundedValueObject( paramsA, 3.123 ), 0.01, 3.1 );
-        assertEquals( (Double) AnalyticsUtils.getRoundedValueObject( paramsB, 3.123 ), 0.01, 3.123 );
+        assertEquals( null, AnalyticsUtils.getRoundedValueObject( paramsA, null ), "Should be null" );
+        assertEquals( "Car", AnalyticsUtils.getRoundedValueObject( paramsA, "Car" ), "Should be a String: Car" );
+        assertEquals( 3L, AnalyticsUtils.getRoundedValueObject( paramsA, 3d ), "Should be a long value: 3" );
+        assertEquals( 1000L, AnalyticsUtils.getRoundedValueObject( paramsA, 1000.00000000 ),
+            "Should be a long value: 1000" );
+        assertEquals( 67L, AnalyticsUtils.getRoundedValueObject( paramsA, 67.0 ), "Should be a long value: 67" );
+        assertEquals( 3.1, (Double) AnalyticsUtils.getRoundedValueObject( paramsA, 3.123 ), 0.01,
+            "Should be a double value: 3.1" );
+        assertEquals( 3.123, (Double) AnalyticsUtils.getRoundedValueObject( paramsB, 3.123 ), 0.01,
+            "Should be a double value: 3.123" );
+    }
+
+    @Test
+    void testEndsWithZeroDecimal()
+    {
+        assertFalse( AnalyticsUtils.endsWithZeroAsDecimal( -20.4 ), "The value -20.4 has non-zero decimals" );
+        assertFalse( AnalyticsUtils.endsWithZeroAsDecimal( 20.000000001 ),
+            "The value 20.000000001 has non-zero decimals" );
+        assertFalse( AnalyticsUtils.endsWithZeroAsDecimal( 1000000.000000001 ),
+            "The value 1000000.000000001 has non-zero decimals" );
+
+        assertTrue( AnalyticsUtils.endsWithZeroAsDecimal( -20.0 ), "The value -20.0 has zero decimals" );
+        assertTrue( AnalyticsUtils.endsWithZeroAsDecimal( 20.000000000 ),
+            "The value 20.000000000 has zero decimals" );
+        assertTrue( AnalyticsUtils.endsWithZeroAsDecimal( 1000000.0000 ),
+            "The value 1000000.0000 has zero decimals" );
     }
 
     @Test
@@ -193,11 +215,11 @@ class AnalyticsUtilsTest extends DhisConvenienceTest
         DataQueryParams paramsA = DataQueryParams.newBuilder().build();
         DataQueryParams paramsB = DataQueryParams.newBuilder().withSkipRounding( true ).build();
         assertEquals( null, AnalyticsUtils.getRoundedValue( paramsA, null, null ) );
-        assertEquals( AnalyticsUtils.getRoundedValue( paramsA, null, 3d ).doubleValue(), 0.01, 3d );
-        assertEquals( AnalyticsUtils.getRoundedValue( paramsA, null, 3.123 ).doubleValue(), 0.01, 3.1 );
-        assertEquals( AnalyticsUtils.getRoundedValue( paramsA, 1, 3.123 ).doubleValue(), 0.01, 3.1 );
-        assertEquals( AnalyticsUtils.getRoundedValue( paramsA, 2, 3.123 ).doubleValue(), 0.01, 3.12 );
-        assertEquals( AnalyticsUtils.getRoundedValue( paramsB, 3, 3.123 ).doubleValue(), 0.01, 3.123 );
+        assertEquals( 3d, AnalyticsUtils.getRoundedValue( paramsA, null, 3d ).doubleValue(), 0.01 );
+        assertEquals( 3.1, AnalyticsUtils.getRoundedValue( paramsA, null, 3.123 ).doubleValue(), 0.01 );
+        assertEquals( 3.1, AnalyticsUtils.getRoundedValue( paramsA, 1, 3.123 ).doubleValue(), 0.01 );
+        assertEquals( 3.12, AnalyticsUtils.getRoundedValue( paramsA, 2, 3.123 ).doubleValue(), 0.01 );
+        assertEquals( 3.123, AnalyticsUtils.getRoundedValue( paramsB, 3, 3.123 ).doubleValue(), 0.01 );
         assertEquals( 3l, AnalyticsUtils.getRoundedValue( paramsB, 0, 3.123 ).longValue() );
         assertEquals( 12l, AnalyticsUtils.getRoundedValue( paramsB, 0, 12.34 ).longValue() );
         assertEquals( 13l, AnalyticsUtils.getRoundedValue( paramsB, 0, 13.999 ).longValue() );
@@ -386,7 +408,7 @@ class AnalyticsUtilsTest extends DhisConvenienceTest
         grid.addHeader( new GridHeader( DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID ) );
         grid.addHeader( new GridHeader( DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID ) );
         grid.addHeader( new GridHeader( VALUE_ID, VALUE_HEADER_NAME, ValueType.NUMBER, false, false ) );
-        DataValueSet dvs = AnalyticsUtils.getDataValueSetFromGrid( DataQueryParams.newBuilder().build(), grid );
+        DataValueSet dvs = AnalyticsUtils.getDataValueSet( DataQueryParams.newBuilder().build(), grid );
         assertNotNull( dvs );
         assertNotNull( dvs.getDataValues() );
         assertEquals( 0, dvs.getDataValues().size() );
@@ -412,34 +434,40 @@ class AnalyticsUtilsTest extends DhisConvenienceTest
         grid.addRow().addValuesAsList( Lists.newArrayList( "dxC", "ouA", "peB", null, null, 8d ) );
         grid.addRow().addValuesAsList( Lists.newArrayList( "dxD", "ouA", "peA", "coB", null, 9d ) );
         grid.addRow().addValuesAsList( Lists.newArrayList( "dxE", "ouA", "peB", null, null, 10 ) );
-        DataValueSet dvs = AnalyticsUtils.getDataValueSetFromGrid( DataQueryParams.newBuilder().build(), grid );
+
+        DataValueSet dvs = AnalyticsUtils.getDataValueSet( DataQueryParams.newBuilder().build(), grid );
         assertNotNull( dvs );
         assertNotNull( dvs.getDataValues() );
         assertEquals( 10, dvs.getDataValues().size() );
+
         assertEquals( "dxA", dvs.getDataValues().get( 1 ).getDataElement() );
         assertEquals( "ouA", dvs.getDataValues().get( 1 ).getOrgUnit() );
         assertEquals( "peB", dvs.getDataValues().get( 1 ).getPeriod() );
         assertNull( dvs.getDataValues().get( 1 ).getCategoryOptionCombo() );
         assertNull( dvs.getDataValues().get( 1 ).getAttributeOptionCombo() );
         assertEquals( "2.0", dvs.getDataValues().get( 1 ).getValue() );
+
         assertEquals( "dxB", dvs.getDataValues().get( 4 ).getDataElement() );
         assertEquals( "ouA", dvs.getDataValues().get( 4 ).getOrgUnit() );
         assertEquals( "peA", dvs.getDataValues().get( 4 ).getPeriod() );
         assertEquals( "coA", dvs.getDataValues().get( 4 ).getCategoryOptionCombo() );
         assertNull( dvs.getDataValues().get( 4 ).getAttributeOptionCombo() );
         assertEquals( "5.0", dvs.getDataValues().get( 4 ).getValue() );
+
         assertEquals( "dxC", dvs.getDataValues().get( 6 ).getDataElement() );
         assertEquals( "ouA", dvs.getDataValues().get( 6 ).getOrgUnit() );
         assertEquals( "peA", dvs.getDataValues().get( 6 ).getPeriod() );
         assertNull( dvs.getDataValues().get( 6 ).getCategoryOptionCombo() );
         assertEquals( "aoA", dvs.getDataValues().get( 6 ).getAttributeOptionCombo() );
         assertEquals( "7", dvs.getDataValues().get( 6 ).getValue() );
+
         assertEquals( "dxD", dvs.getDataValues().get( 8 ).getDataElement() );
         assertEquals( "ouA", dvs.getDataValues().get( 8 ).getOrgUnit() );
         assertEquals( "peA", dvs.getDataValues().get( 8 ).getPeriod() );
         assertEquals( "coB", dvs.getDataValues().get( 8 ).getCategoryOptionCombo() );
         assertNull( dvs.getDataValues().get( 8 ).getAttributeOptionCombo() );
         assertEquals( "9.0", dvs.getDataValues().get( 8 ).getValue() );
+
         assertEquals( "dxE", dvs.getDataValues().get( 9 ).getDataElement() );
         assertEquals( "ouA", dvs.getDataValues().get( 9 ).getOrgUnit() );
         assertEquals( "peB", dvs.getDataValues().get( 9 ).getPeriod() );
@@ -473,10 +501,80 @@ class AnalyticsUtilsTest extends DhisConvenienceTest
         grid.addRow().addValuesAsList( Lists.newArrayList( "dxC", "ouA", "peA", null, null, 7d ) );
         grid.addRow().addValuesAsList( Lists.newArrayList( "dxC", "ouA", "peB", null, null, 8d ) );
         DataValueSet dvs = AnalyticsUtils
-            .getDataValueSetFromGrid( DataQueryParams.newBuilder().withDuplicatesOnly( true ).build(), grid );
+            .getDataValueSet( DataQueryParams.newBuilder().withDuplicatesOnly( true ).build(), grid );
         assertNotNull( dvs );
         assertNotNull( dvs.getDataValues() );
         assertEquals( 3, dvs.getDataValues().size() );
+    }
+
+    @Test
+    void testGetDataValueSetAsGridFromGrid()
+    {
+        Grid grid = new ListGrid();
+        grid.addHeader( new GridHeader( DimensionalObject.DATA_X_DIM_ID ) );
+        grid.addHeader( new GridHeader( DimensionalObject.ORGUNIT_DIM_ID ) );
+        grid.addHeader( new GridHeader( DimensionalObject.PERIOD_DIM_ID ) );
+        grid.addHeader( new GridHeader( DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID ) );
+        grid.addHeader( new GridHeader( DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID ) );
+        grid.addHeader( new GridHeader( VALUE_ID, VALUE_HEADER_NAME, ValueType.NUMBER, false, false ) );
+        grid.addRow().addValuesAsList( Lists.newArrayList( "dxA", "ouA", "peA", "coA", "aoA", 1d ) );
+        grid.addRow().addValuesAsList( Lists.newArrayList( "dxA", "ouA", "peB", "coB", "aoB", 2d ) );
+        grid.addRow().addValuesAsList( Lists.newArrayList( "dxA", "ouB", "peA", null, null, 3d ) );
+        grid.addRow().addValuesAsList( Lists.newArrayList( "dxA", "ouB", "peB", "coA", null, 4d ) );
+        grid.addRow().addValuesAsList( Lists.newArrayList( "dxB", "ouA", "peA", "coA", null, 5d ) );
+        grid.addRow().addValuesAsList( Lists.newArrayList( "dxB", "ouA", "peB", "coA", "aoB", 6d ) );
+        grid.addRow().addValuesAsList( Lists.newArrayList( "dxC", "ouA", "peA", null, "aoA", 7 ) );
+        grid.addRow().addValuesAsList( Lists.newArrayList( "dxC", "ouA", "peB", null, null, 8d ) );
+        grid.addRow().addValuesAsList( Lists.newArrayList( "dxD", "ouA", "peA", "coB", null, 9d ) );
+        grid.addRow().addValuesAsList( Lists.newArrayList( "dxE", "ouA", "peB", null, null, 10 ) );
+
+        Grid dvs = AnalyticsUtils.getDataValueSetAsGrid( grid );
+        assertNotNull( dvs );
+        assertEquals( 10, dvs.getHeight() );
+        assertEquals( 11, dvs.getWidth() );
+
+        assertEquals( "data_element", dvs.getHeaders().get( 0 ).getName() );
+        assertEquals( "organisation_unit", dvs.getHeaders().get( 2 ).getName() );
+        assertEquals( "value", dvs.getHeaders().get( 5 ).getName() );
+        assertEquals( "comment", dvs.getHeaders().get( 9 ).getName() );
+
+        assertEquals( "dxA", dvs.getRow( 1 ).get( 0 ) );
+        assertEquals( "peB", dvs.getRow( 1 ).get( 1 ) );
+        assertEquals( "ouA", dvs.getRow( 1 ).get( 2 ) );
+        assertEquals( "coB", dvs.getRow( 1 ).get( 3 ) );
+        assertEquals( "aoB", dvs.getRow( 1 ).get( 4 ) );
+        assertEquals( 2d, dvs.getRow( 1 ).get( 5 ) );
+        assertEquals( "[aggregated]", dvs.getRow( 1 ).get( 6 ) );
+
+        assertEquals( "dxA", dvs.getRow( 3 ).get( 0 ) );
+        assertEquals( "peB", dvs.getRow( 3 ).get( 1 ) );
+        assertEquals( "ouB", dvs.getRow( 3 ).get( 2 ) );
+        assertEquals( "coA", dvs.getRow( 3 ).get( 3 ) );
+        assertNull( dvs.getRow( 3 ).get( 4 ) );
+        assertEquals( 4d, dvs.getRow( 3 ).get( 5 ) );
+        assertEquals( "[aggregated]", dvs.getRow( 3 ).get( 6 ) );
+
+        assertEquals( "dxC", dvs.getRow( 6 ).get( 0 ) );
+        assertEquals( "peA", dvs.getRow( 6 ).get( 1 ) );
+        assertEquals( "ouA", dvs.getRow( 6 ).get( 2 ) );
+        assertNull( dvs.getRow( 6 ).get( 3 ) );
+        assertEquals( "aoA", dvs.getRow( 6 ).get( 4 ) );
+        assertEquals( 7, dvs.getRow( 6 ).get( 5 ) );
+        assertEquals( "[aggregated]", dvs.getRow( 6 ).get( 6 ) );
+    }
+
+    @Test
+    void testGetDataValueSetAsGridFromGridMissingOrgUnitColumn()
+    {
+        Grid grid = new ListGrid();
+        grid.addHeader( new GridHeader( DimensionalObject.DATA_X_DIM_ID ) );
+        grid.addHeader( new GridHeader( DimensionalObject.PERIOD_DIM_ID ) );
+        grid.addHeader( new GridHeader( DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID ) );
+        grid.addHeader( new GridHeader( DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID ) );
+        grid.addHeader( new GridHeader( VALUE_ID, VALUE_HEADER_NAME, ValueType.NUMBER, false, false ) );
+        grid.addRow().addValuesAsList( Lists.newArrayList( "dxA", "peA", "coA", "aoA", 1d ) );
+
+        assertThrows( IllegalArgumentException.class, () -> AnalyticsUtils.getDataValueSetAsGrid( grid ) );
     }
 
     @Test

@@ -37,7 +37,9 @@ import lombok.Getter;
 import lombok.Setter;
 
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.antlr.AntlrExpressionVisitor;
+import org.hisp.dhis.antlr.AntlrParserUtils;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.QueryModifiers;
@@ -190,5 +192,36 @@ public class CommonExpressionVisitor
         state.setQueryMods( savedQueryMods );
 
         return result;
+    }
+
+    /**
+     * Visit a parse subtree to generate SQL with a request that boolean items
+     * should generate a boolean value.
+     */
+    public String sqlBooleanVisit( ExprContext ctx )
+    {
+        return AntlrParserUtils.castString( visitWithDataType( ctx, DataType.BOOLEAN ) );
+    }
+
+    /**
+     * Visit a parse subtree to generate SQL with a request that boolean items
+     * should generate a numeric value.
+     */
+    public String sqlNumericVisit( ExprContext ctx )
+    {
+        return AntlrParserUtils.castString( visitWithDataType( ctx, DataType.NUMERIC ) );
+    }
+
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
+
+    private Object visitWithDataType( ExprContext ctx, DataType dataType )
+    {
+        ExpressionParams visitParams = params.toBuilder().dataType( dataType ).build();
+        CommonExpressionVisitor visitor = this.toBuilder().params( visitParams ).build();
+        visitor.setExpressionLiteral( this.expressionLiteral );
+
+        return visitor.visitExpr( ctx );
     }
 }

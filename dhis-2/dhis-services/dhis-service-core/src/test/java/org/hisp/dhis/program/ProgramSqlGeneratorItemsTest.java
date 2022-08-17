@@ -29,6 +29,7 @@ package org.hisp.dhis.program;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.antlr.AntlrParserUtils.castString;
 import static org.hisp.dhis.parser.expression.ExpressionItem.ITEM_GET_DESCRIPTIONS;
 import static org.hisp.dhis.parser.expression.ExpressionItem.ITEM_GET_SQL;
@@ -52,6 +53,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
+import org.hisp.dhis.expression.ExpressionParams;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
@@ -166,7 +168,6 @@ class ProgramSqlGeneratorItemsTest extends DhisConvenienceTest
     @Test
     void testDataElementNotFound()
     {
-        when( idObjectManager.get( TrackedEntityAttribute.class, attributeA.getUid() ) ).thenReturn( attributeA );
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
 
         assertThrows( org.hisp.dhis.antlr.ParserException.class, () -> test( "#{ProgrmStagA.NotElementA}" ) );
@@ -234,7 +235,11 @@ class ProgramSqlGeneratorItemsTest extends DhisConvenienceTest
         dataElementsAndAttributesIdentifiers.add( BASE_UID + "b" );
         dataElementsAndAttributesIdentifiers.add( BASE_UID + "c" );
 
-        ProgramExpressionParams params = ProgramExpressionParams.builder()
+        ExpressionParams params = ExpressionParams.builder()
+            .dataType( NUMERIC )
+            .build();
+
+        ProgramExpressionParams progParams = ProgramExpressionParams.builder()
             .programIndicator( programIndicator )
             .reportingStartDate( startDate )
             .reportingEndDate( endDate )
@@ -251,7 +256,8 @@ class ProgramSqlGeneratorItemsTest extends DhisConvenienceTest
             .constantMap( constantMap )
             .itemMap( PROGRAM_INDICATOR_ITEMS )
             .itemMethod( itemMethod )
-            .progParams( params )
+            .params( params )
+            .progParams( progParams )
             .build();
 
         visitor.setExpressionLiteral( exprLiteral );
