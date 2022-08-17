@@ -49,7 +49,7 @@ import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.JobService;
 import org.hisp.dhis.scheduling.SchedulingManager;
-import org.springframework.scheduling.support.CronSequenceGenerator;
+import org.springframework.scheduling.support.CronExpression;
 import org.springframework.stereotype.Component;
 
 /**
@@ -232,7 +232,7 @@ public class JobConfigurationObjectBundleHook
                 addReports
                     .accept( new ErrorReport( JobConfiguration.class, ErrorCode.E7004, jobConfiguration.getUid() ) );
             }
-            else if ( !CronSequenceGenerator.isValidExpression( jobConfiguration.getCronExpression() ) )
+            else if ( !CronExpression.isValidExpression( jobConfiguration.getCronExpression() ) )
             {
                 addReports.accept( new ErrorReport( JobConfiguration.class, ErrorCode.E7005 ) );
             }
