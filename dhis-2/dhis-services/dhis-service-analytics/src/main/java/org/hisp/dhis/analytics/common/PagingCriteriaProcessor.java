@@ -25,60 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.analytics.common;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.RequiredArgsConstructor;
+
+import org.hisp.dhis.common.AnalyticsPagingCriteria;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
+import org.springframework.stereotype.Component;
 
 /**
- * This class contains paging criteria that can be used to execute an analytics
- * query.
+ * Processor class for AnalyticsPagingCriteria objects.
+ *
+ * @see Processor
  */
-@Getter
-@Setter
-public class AnalyticsPagingCriteria extends RequestTypeAware
+@Component
+@RequiredArgsConstructor
+public class PagingCriteriaProcessor implements Processor<AnalyticsPagingCriteria>
 {
-    /**
-     * The page number. Default page is 1.
-     */
-    private Integer page = 1;
+    private final SystemSettingManager systemSettingManager;
 
-    /**
-     * The page size.
-     */
-    private Integer pageSize = 50;
-
-    /**
-     * The paging parameter. When set to false we should not paginate. The
-     * default is true (paginate).
-     */
-    private boolean paging = true;
-
-    /**
-     * The paging parameter. When set to false we should not count total pages.
-     * The default is true (count total pages).
-     */
-    private boolean totalPages = true;
-
-    /**
-     * Sets the page size, taking the configurable max records limit into
-     * account. Note that a value of 0 represents unlimited records.
-     *
-     * @param maxLimit the max limit as defined in the system setting
-     *        'ANALYTICS_MAX_LIMIT'.
-     */
-    public void definePageSize( int maxLimit )
+    // TODO: DHIS2-13384 we would really like to have all
+    // criteria/request/params to be
+    // immutable, but PagingCriteria is not
+    // returning it for now, should be converted to use builders
+    @Override
+    public AnalyticsPagingCriteria process( AnalyticsPagingCriteria pagingCriteria )
     {
-        if ( isPaging() )
-        {
-            if ( getPageSize() != null && maxLimit > 0 && getPageSize() > maxLimit )
-            {
-                setPageSize( maxLimit );
-            }
-        }
-        else
-        {
-            setPageSize( maxLimit );
-        }
+        int analyticsMaxPageSize = systemSettingManager.getIntSetting( SettingKey.ANALYTICS_MAX_LIMIT );
+        pagingCriteria.definePageSize( analyticsMaxPageSize );
+        return pagingCriteria;
     }
 }
