@@ -39,7 +39,6 @@ import org.hisp.dhis.analytics.shared.visitor.where.WhereVisitor;
  */
 public class WhereComponent extends Component<WhereVisitor>
 {
-
     public WhereComponent( final List<Element<WhereVisitor>> elements )
     {
         super( elements );

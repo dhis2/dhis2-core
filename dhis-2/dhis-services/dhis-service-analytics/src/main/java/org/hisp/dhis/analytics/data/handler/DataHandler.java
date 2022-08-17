@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.data.handler;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.Math.min;
 import static java.util.Collections.singletonList;
@@ -112,6 +111,7 @@ import java.util.concurrent.Future;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.collections4.MultiValuedMap;
@@ -160,6 +160,7 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class DataHandler
 {
     private static final int MAX_QUERIES = 8;
@@ -187,35 +188,6 @@ public class DataHandler
     private DataAggregator dataAggregator;
 
     private final ExecutionPlanStore executionPlanStore;
-
-    public DataHandler( EventAnalyticsService eventAnalyticsService, RawAnalyticsManager rawAnalyticsManager,
-        ExpressionResolvers resolvers, ExpressionService expressionService,
-        QueryPlanner queryPlanner, QueryValidator queryValidator, SystemSettingManager systemSettingManager,
-        AnalyticsManager analyticsManager, OrganisationUnitService organisationUnitService,
-        ExecutionPlanStore executionPlanStore )
-    {
-        checkNotNull( eventAnalyticsService );
-        checkNotNull( rawAnalyticsManager );
-        checkNotNull( resolvers );
-        checkNotNull( expressionService );
-        checkNotNull( queryPlanner );
-        checkNotNull( queryValidator );
-        checkNotNull( systemSettingManager );
-        checkNotNull( analyticsManager );
-        checkNotNull( organisationUnitService );
-        checkNotNull( executionPlanStore );
-
-        this.eventAnalyticsService = eventAnalyticsService;
-        this.rawAnalyticsManager = rawAnalyticsManager;
-        this.resolvers = resolvers;
-        this.expressionService = expressionService;
-        this.queryPlanner = queryPlanner;
-        this.queryValidator = queryValidator;
-        this.systemSettingManager = systemSettingManager;
-        this.analyticsManager = analyticsManager;
-        this.organisationUnitService = organisationUnitService;
-        this.executionPlanStore = executionPlanStore;
-    }
 
     void addPerformanceMetrics( DataQueryParams params, Grid grid )
     {
@@ -634,6 +606,12 @@ public class DataHandler
         }
     }
 
+    /**
+     * Returns the number of filter periods, or 1 if no filter periods exist.
+     *
+     * @param params the {@link DataQueryParams}.
+     * @return the number of filter periods, or 1 if no filter periods exist.
+     */
     private int getTimeUnits( DataQueryParams params )
     {
         return params.hasFilter( PERIOD_DIM_ID ) ? params.getFilterPeriods().size() : 1;
@@ -656,7 +634,7 @@ public class DataHandler
     private void addReportRateToGrid( DataQueryParams params, Grid grid, ReportingRateMetric metric,
         List<String> dataRow, Double target, Double actual )
     {
-        Double value = getReportRate( metric, target, actual );
+        Double value = getReportingRate( metric, target, actual );
 
         String reportingRate = getDimensionItem( dataRow.get( DX_INDEX ), metric );
         dataRow.set( DX_INDEX, reportingRate );
@@ -674,7 +652,7 @@ public class DataHandler
         }
     }
 
-    private Double getReportRate( ReportingRateMetric metric, Double target, Double actual )
+    private Double getReportingRate( ReportingRateMetric metric, Double target, Double actual )
     {
         Double value = 0d;
 
@@ -1035,15 +1013,13 @@ public class DataHandler
     }
 
     /**
-     * Calculate the dimensional item offset and adds to the give result map.
+     * Calculates the dimensional item offset and adds to the give result map.
      *
      * @param result the map where the values will be added to.
      * @param periodIndex the current grid row period index.
      * @param valueIndex the current grid row value index.
      * @param row the current grid row.
-     * @param dimensionalItemObject a dimensional item for the current grid row,
-     *        see
-     *        {@link org.hisp.dhis.analytics.util.AnalyticsUtils#findDimensionalItems(String, List)}
+     * @param dimensionalItemObject a dimensional item for the current grid row.
      * @param basePeriods the periods from the parameters.
      *
      * @return the DimensionalItemObject
@@ -1123,6 +1099,14 @@ public class DataHandler
         return map;
     }
 
+    /**
+     * Executes the given list of queries in parallel.
+     *
+     * @param tableType the {@link AnalyticsTableType}.
+     * @param maxLimit the max limit of records to retrieve.
+     * @param map the map of metadata identifiers to data values.
+     * @param queries the list of {@link DataQueryParams} to execute.
+     */
     private void executeQueries( AnalyticsTableType tableType, int maxLimit, Map<String, Object> map,
         List<DataQueryParams> queries )
     {

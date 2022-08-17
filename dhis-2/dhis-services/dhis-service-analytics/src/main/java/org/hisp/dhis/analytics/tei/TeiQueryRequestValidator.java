@@ -37,8 +37,6 @@ import org.springframework.stereotype.Component;
 /**
  * Component responsible for validation rules on top of analytics tracker entity
  * request queries.
- *
- * @see Validator
  */
 @Component
 @RequiredArgsConstructor
@@ -48,7 +46,7 @@ public class TeiQueryRequestValidator implements Validator<QueryRequest<TeiQuery
     private final CommonQueryRequestValidator commonQueryRequestValidator;
 
     @Override
-    public void validate( final QueryRequest<TeiQueryRequest> queryRequest )
+    public void validate( QueryRequest<TeiQueryRequest> queryRequest )
     {
         commonQueryRequestValidator.validate( queryRequest.getCommonQueryRequest() );
         // TODO: DHIS2-13382 validate the TEI part of the request

@@ -72,7 +72,7 @@
     <dhis-json-tree.version>0.4.0</dhis-json-tree.version>
 
     <!-- Security -->
-    <spring-security.version>5.7.2</spring-security.version>
+    <spring-security.version>5.7.3</spring-security.version>
     <spring-security-oauth2.version>2.5.2.RELEASE</spring-security-oauth2.version>
     <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
@@ -91,9 +91,9 @@
     <lettuce.version>6.2.0.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-core.version>9.1.3</flyway-core.version>
+    <flyway-core.version>9.1.4</flyway-core.version>
     <hibernate.version>5.6.10.Final</hibernate.version>
-    <hibernate-types.version>2.17.3</hibernate-types.version>
+    <hibernate-types.version>2.18.0</hibernate-types.version>
     <!-- Data sources,db pools and db drivers -->
     <c3p0.version>0.9.5.5</c3p0.version>
     <HikariCP.version>5.0.1</HikariCP.version>
@@ -182,8 +182,7 @@
 
     <!-- Monitoring -->
     <micrometer-spring-legacy.version>1.3.20</micrometer-spring-legacy.version>
-    <micrometer-registry-prometheus.version>1.9.3</micrometer-registry-prometheus.version>
-    <micrometer-core.version>1.9.2</micrometer-core.version>
+    <micrometer.version>1.9.3</micrometer.version>
 
     <!-- Logging -->
     <log4j.version>2.18.0</log4j.version>
@@ -2377,12 +2376,12 @@
       <dependency>
         <groupId>io.micrometer</groupId>
         <artifactId>micrometer-registry-prometheus</artifactId>
-        <version>${micrometer-registry-prometheus.version}</version>
+        <version>${micrometer.version}</version>
       </dependency>
       <dependency>
         <groupId>io.micrometer</groupId>
         <artifactId>micrometer-core</artifactId>
-        <version>${micrometer-core.version}</version>
+        <version>${micrometer.version}</version>
       </dependency>
 
       <dependency>

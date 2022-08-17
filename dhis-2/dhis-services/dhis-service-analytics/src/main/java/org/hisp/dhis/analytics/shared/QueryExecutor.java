@@ -36,7 +36,7 @@ package org.hisp.dhis.analytics.shared;
  *
  * @author maikel arabori
  */
-public interface QueryExecutor<T extends Query, E extends QueryResult>
+public interface QueryExecutor<T extends Query, E extends QueryResult<?>>
 {
     /**
      * Executes a read/retrieve operation based on the given query.
