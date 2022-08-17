@@ -680,4 +680,10 @@ public class UserServiceTest
         assertEquals( new HashSet<>( asList( "EmailA", "EmailC" ) ),
             userService.findNotifiableUsersWithLastLoginBetween( fourMonthAgo, Date.from( now.toInstant() ) ) );
     }
+
+    @Test
+    void testGetDisplayNameNull()
+    {
+        assertNull( userService.getDisplayName( "notExist" ) );
+    }
 }
