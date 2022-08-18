@@ -53,6 +53,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.UserSettingService;
 import org.springframework.stereotype.Component;
 
 /**
@@ -73,6 +74,8 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
     private final AclService aclService;
 
     private final SecurityService securityService;
+
+    private final UserSettingService userSettingService;
 
     @Override
     public void validate( User user, ObjectBundle bundle,
@@ -155,6 +158,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
 
         preheatService.connectReferences( user, bundle.getPreheat(), bundle.getPreheatIdentifier() );
         sessionFactory.getCurrentSession().update( user );
+        userSettingService.saveUserSettings( user.getSettings(), user );
     }
 
     @Override
@@ -194,6 +198,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
         }
 
         bundle.removeExtras( persistedUser, "preUpdateUser" );
+        userSettingService.saveUserSettings( persistedUser.getSettings(), persistedUser );
     }
 
     @Override
