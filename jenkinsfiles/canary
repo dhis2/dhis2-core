@@ -38,6 +38,15 @@ pipeline {
                 sh './copy-war-s3.sh canary ${GIT_BRANCH}'
             }
         }
+
+        stage ('Delete old WARs') {
+            steps {
+                echo 'Deleting old WARs ...'
+                sh 'curl "https://raw.githubusercontent.com/dhis2/dhis2-server-setup/master/ci/scripts/delete-old-wars.sh" -O'
+                sh 'chmod +x delete-old-wars.sh'
+                sh './delete-old-wars.sh ${GIT_BRANCH}'
+            }
+        }
     }
 
     post {
