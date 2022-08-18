@@ -45,7 +45,7 @@ public interface QueryValidator
      * is not valid with a descriptive message. Returns normally if the query is
      * valid.
      *
-     * @param params the data query parameters.
+     * @param params the {@link DataQueryParams}.
      * @throws IllegalQueryException if the query is invalid.
      */
     void validate( DataQueryParams params )
@@ -56,7 +56,7 @@ public interface QueryValidator
      * {@link ErrorMessage} describing the validation violation if the query is
      * invalid.
      *
-     * @param params the data query parameters.
+     * @param params the {@link DataQueryParams}.
      * @return null if valid or {@link ErrorMessage} if invalid.
      */
     ErrorMessage validateForErrorMessage( DataQueryParams params );
@@ -66,7 +66,7 @@ public interface QueryValidator
      * Throws an IllegalQueryException if the query is not valid with a
      * descriptive message. Returns normally if the query is valid.
      *
-     * @param params the data query parameters.
+     * @param params the {@link DataQueryParams}.
      * @param columns the column dimension identifiers.
      * @param rows the row dimension identifiers.
      * @throws IllegalQueryException if the query is invalid.

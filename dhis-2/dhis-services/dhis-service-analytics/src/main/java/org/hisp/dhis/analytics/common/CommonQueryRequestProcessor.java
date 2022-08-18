@@ -33,8 +33,6 @@ import org.springframework.stereotype.Component;
 
 /**
  * Processor class for CommonQueryRequest objects.
- *
- * @see Processor
  */
 @Component
 @RequiredArgsConstructor
@@ -42,7 +40,7 @@ public class CommonQueryRequestProcessor implements Processor<CommonQueryRequest
 {
 
     @Override
-    public CommonQueryRequest process( final CommonQueryRequest commonQueryRequest )
+    public CommonQueryRequest process( CommonQueryRequest commonQueryRequest )
     {
         // here we should refactor/preprocess dimensions and filters for 2
         // specific purposes:
