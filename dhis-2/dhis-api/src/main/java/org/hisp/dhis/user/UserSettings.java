@@ -25,29 +25,60 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei;
+package org.hisp.dhis.user;
 
-import lombok.RequiredArgsConstructor;
+import java.util.Locale;
 
-import org.hisp.dhis.analytics.common.Processor;
-import org.springframework.stereotype.Component;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+
+import org.hisp.dhis.common.DisplayProperty;
+import org.hisp.dhis.common.DxfNamespaces;
+
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
- * Processor class for TeiQueryRequest objects.
+ * User Settings transfer object for settings as defined by
+ * {@link UserSettingKey}.
+ *
+ * @author Jan Bernitt
  */
-@Component
-@RequiredArgsConstructor
-public class TeiQueryRequestProcessor implements Processor<TeiQueryRequest>
+@Getter
+@Setter
+@NoArgsConstructor
+@ToString
+@JacksonXmlRootElement( localName = "settings", namespace = DxfNamespaces.DXF_2_0 )
+public class UserSettings
 {
-    /**
-     * A hook to transform a QueryRequest before mapping it into parameters.
-     *
-     * @param queryRequest the {@link TeiQueryRequest}.
-     * @return a queryRequestHolder where inner components might have changed.
-     */
-    @Override
-    public TeiQueryRequest process( TeiQueryRequest queryRequest )
-    {
-        return queryRequest;
-    }
+    @JsonAlias( "keyStyle" )
+    @JsonProperty
+    private String style;
+
+    @JsonAlias( "keyMessageEmailNotification" )
+    @JsonProperty
+    private Boolean messageEmailNotification;
+
+    @JsonAlias( "keyMessageSmsNotification" )
+    @JsonProperty
+    private Boolean messageSmsNotification;
+
+    @JsonAlias( "keyUiLocale" )
+    @JsonProperty
+    private Locale uiLocale;
+
+    @JsonAlias( "keyDbLocale" )
+    @JsonProperty
+    private Locale dbLocale;
+
+    @JsonAlias( "keyAnalysisDisplayProperty" )
+    @JsonProperty
+    private DisplayProperty analysisDisplayProperty;
+
+    @JsonAlias( "keyTrackerDashboardLayout" )
+    @JsonProperty
+    private String trackerDashboardLayout;
 }

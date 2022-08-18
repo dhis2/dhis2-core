@@ -33,8 +33,6 @@ import org.hisp.dhis.analytics.shared.component.element.Element;
 import org.hisp.dhis.analytics.shared.visitor.select.SelectVisitor;
 
 /**
- * @see Component
- *
  * @author dusan bernat
  */
 public class SelectComponent extends Component<SelectVisitor>

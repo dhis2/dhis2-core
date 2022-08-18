@@ -33,8 +33,6 @@ import org.hisp.dhis.analytics.shared.component.element.Element;
 import org.hisp.dhis.analytics.shared.visitor.from.FromVisitor;
 
 /**
- * @see Component
- *
  * @author dusan bernat
  */
 public class FromComponent extends Component<FromVisitor>
