@@ -159,12 +159,7 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
      * empty list if given Period does not exist in database.
      *
      * @param builder the {@link CriteriaBuilder}.
-     * @param dataElements the list of data elements.
-     * @param periods the list of periods.
-     * @param organisationUnits the list of organisation units.
-     * @param categoryOptionCombo the category option combo.
-     * @param attributeOptionCombo the attribute option combo.
-     * @param auditType the audit type.
+     * @param params the {@link DataValueAuditQueryParams}.
      */
     private List<Function<Root<DataValueAudit>, Predicate>> getDataValueAuditPredicates( CriteriaBuilder builder,
         DataValueAuditQueryParams params )
