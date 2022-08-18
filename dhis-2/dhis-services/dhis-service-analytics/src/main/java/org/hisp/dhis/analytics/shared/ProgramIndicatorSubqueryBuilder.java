@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.event;
+package org.hisp.dhis.analytics.shared;
 
 import java.util.Date;
 
@@ -73,7 +73,7 @@ public interface ProgramIndicatorSubqueryBuilder
      * column within an enrollment/event list query.
      *
      * @param programIndicator a {@link ProgramIndicator} object
-     * @param outerSqlEntity a {@lin AnalyticsType} object, representing the
+     * @param outerSqlEntity a {@link AnalyticsType} object, representing the
      *        outer SQL context.
      * @param earliestStartDate the earliest reporting start date.
      * @param latestDate the latest reporting end date.

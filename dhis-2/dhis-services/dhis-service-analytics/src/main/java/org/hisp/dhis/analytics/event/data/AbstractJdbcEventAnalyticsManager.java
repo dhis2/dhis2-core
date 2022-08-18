@@ -79,7 +79,7 @@ import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.EventQueryParams;
-import org.hisp.dhis.analytics.event.ProgramIndicatorSubqueryBuilder;
+import org.hisp.dhis.analytics.shared.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionType;

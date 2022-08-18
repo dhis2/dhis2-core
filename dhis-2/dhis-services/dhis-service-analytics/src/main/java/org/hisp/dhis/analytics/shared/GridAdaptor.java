@@ -89,8 +89,8 @@ public class GridAdaptor
      * @throws IllegalArgumentException if headers is null/empty or contain at
      *         least one null element, or if the queryResult is null
      */
-    public Grid createGrid( final SqlQueryResult sqlQueryResult, final TeiQueryParams teiQueryParams,
-        final CommonQueryRequest commonQueryRequest )
+    public Grid createGrid( final org.hisp.dhis.analytics.shared.SqlQueryResult sqlQueryResult,
+        final TeiQueryParams teiQueryParams, final CommonQueryRequest commonQueryRequest )
     {
         notNull( sqlQueryResult, "The 'sqlQueryResult' must not be null" );
         notNull( sqlQueryResult.result(), "The 'sqlQueryResult.result' must not be null" );

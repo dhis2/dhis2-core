@@ -37,7 +37,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.DataType;
-import org.hisp.dhis.analytics.event.ProgramIndicatorSubqueryBuilder;
+import org.hisp.dhis.analytics.shared.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -135,7 +135,7 @@ public class DefaultProgramIndicatorSubqueryBuilder
      * enrollment -> pi = ax.pi (enrollment operates on the same enrollment as
      * outer) 5) if RelationshipType, call the RelationshipTypeJoinGenerator
      *
-     * @param outerSqlEntity the outer SQL type (enrollment or event).
+     * @param outerSqlEntity the outer {@link AnayticsType}.
      * @param programIndicator the {@link ProgramIndicator}.
      * @param relationshipType the optional {@link RelationshipType}.
      * @return a SQL where clause.
