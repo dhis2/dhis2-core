@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.datavalue;
 
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -51,7 +52,6 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 class DataValueAuditServiceTest extends SingleSetupIntegrationTestBase
 {
-
     @Autowired
     private DataValueAuditService dataValueAuditService;
 
@@ -70,9 +70,6 @@ class DataValueAuditServiceTest extends SingleSetupIntegrationTestBase
     @Autowired
     private OrganisationUnitService organisationUnitService;
 
-    // -------------------------------------------------------------------------
-    // Supporting data
-    // -------------------------------------------------------------------------
     private DataElement dataElementA;
 
     private DataElement dataElementB;
@@ -109,16 +106,10 @@ class DataValueAuditServiceTest extends SingleSetupIntegrationTestBase
 
     private DataValue dataValueD;
 
-    // -------------------------------------------------------------------------
-    // Set up/tear down
-    // -------------------------------------------------------------------------
     @Override
     public void setUpTest()
         throws Exception
     {
-        // ---------------------------------------------------------------------
-        // Add supporting data
-        // ---------------------------------------------------------------------
         dataElementA = createDataElement( 'A' );
         dataElementB = createDataElement( 'B' );
         dataElementC = createDataElement( 'C' );
@@ -157,9 +148,6 @@ class DataValueAuditServiceTest extends SingleSetupIntegrationTestBase
         dataValueService.addDataValue( dataValueD );
     }
 
-    // -------------------------------------------------------------------------
-    // Basic DataValueAudit
-    // -------------------------------------------------------------------------
     @Test
     void testAddDataValueAudit()
     {
@@ -169,20 +157,28 @@ class DataValueAuditServiceTest extends SingleSetupIntegrationTestBase
             dataValueB.getStoredBy(), AuditType.UPDATE );
         dataValueAuditService.addDataValueAudit( dataValueAuditA );
         dataValueAuditService.addDataValueAudit( dataValueAuditB );
+
         List<DataValueAudit> audits = dataValueAuditService.getDataValueAudits( dataValueA );
         assertNotNull( audits );
+
         assertTrue( audits.contains( dataValueAuditA ) );
     }
 
     @Test
     void testGetDataValueAudit()
     {
-        DataValueAudit dataValueAuditA = new DataValueAudit( dataValueA, dataValueA.getValue(),
+        DataValueAudit dvaA = new DataValueAudit( dataValueA, dataValueA.getValue(),
             dataValueA.getStoredBy(), AuditType.UPDATE );
-        DataValueAudit dataValueAuditB = new DataValueAudit( dataValueB, dataValueB.getValue(),
+        DataValueAudit dvaB = new DataValueAudit( dataValueB, dataValueB.getValue(),
             dataValueB.getStoredBy(), AuditType.UPDATE );
-        dataValueAuditService.addDataValueAudit( dataValueAuditA );
-        dataValueAuditService.addDataValueAudit( dataValueAuditB );
+        DataValueAudit dvaC = new DataValueAudit( dataValueC, dataValueC.getValue(),
+            dataValueC.getStoredBy(), AuditType.UPDATE );
+        DataValueAudit dvaD = new DataValueAudit( dataValueD, dataValueD.getValue(),
+            dataValueD.getStoredBy(), AuditType.UPDATE );
+        dataValueAuditService.addDataValueAudit( dvaA );
+        dataValueAuditService.addDataValueAudit( dvaB );
+        dataValueAuditService.addDataValueAudit( dvaC );
+        dataValueAuditService.addDataValueAudit( dvaD );
 
         DataValueAuditQueryParams params = new DataValueAuditQueryParams()
             .setDataElements( List.of( dataElementA ) )
@@ -191,7 +187,7 @@ class DataValueAuditServiceTest extends SingleSetupIntegrationTestBase
             .setCategoryOptionCombo( optionCombo )
             .setAuditType( AuditType.UPDATE );
 
-        assertEquals( 1, dataValueAuditService.getDataValueAudits( params ).size() );
+        assertContainsOnly( dataValueAuditService.getDataValueAudits( params ), dvaA );
 
         params = new DataValueAuditQueryParams()
             .setDataElements( List.of( dataElementA, dataElementB ) )
@@ -200,18 +196,24 @@ class DataValueAuditServiceTest extends SingleSetupIntegrationTestBase
             .setCategoryOptionCombo( optionCombo )
             .setAuditType( AuditType.UPDATE );
 
-        assertEquals( 2, dataValueAuditService.getDataValueAudits( params ).size() );
+        assertContainsOnly( dataValueAuditService.getDataValueAudits( params ), dvaA, dvaB );
     }
 
     @Test
     void testGetDataValueAuditNoResult()
     {
-        DataValueAudit dataValueAuditA = new DataValueAudit( dataValueA, dataValueA.getValue(),
+        DataValueAudit dvaA = new DataValueAudit( dataValueA, dataValueA.getValue(),
             dataValueA.getStoredBy(), AuditType.UPDATE );
-        DataValueAudit dataValueAuditB = new DataValueAudit( dataValueB, dataValueB.getValue(),
+        DataValueAudit dvaB = new DataValueAudit( dataValueB, dataValueB.getValue(),
             dataValueB.getStoredBy(), AuditType.UPDATE );
-        dataValueAuditService.addDataValueAudit( dataValueAuditA );
-        dataValueAuditService.addDataValueAudit( dataValueAuditB );
+        DataValueAudit dvaC = new DataValueAudit( dataValueC, dataValueC.getValue(),
+            dataValueC.getStoredBy(), AuditType.UPDATE );
+        DataValueAudit dvaD = new DataValueAudit( dataValueD, dataValueD.getValue(),
+            dataValueD.getStoredBy(), AuditType.UPDATE );
+        dataValueAuditService.addDataValueAudit( dvaA );
+        dataValueAuditService.addDataValueAudit( dvaB );
+        dataValueAuditService.addDataValueAudit( dvaC );
+        dataValueAuditService.addDataValueAudit( dvaD );
 
         DataValueAuditQueryParams params = new DataValueAuditQueryParams()
             .setDataElements( List.of( dataElementA ) )
