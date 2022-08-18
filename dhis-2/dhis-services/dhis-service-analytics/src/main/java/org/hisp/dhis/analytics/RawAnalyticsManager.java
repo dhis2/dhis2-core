@@ -39,7 +39,7 @@ public interface RawAnalyticsManager
     /**
      * Adds raw analytics data to the given grid based on the given query.
      *
-     * @param params the query.
+     * @param params the {@link DataQueryParams}.
      * @param grid the grid.
      * @return a grid with data.
      */

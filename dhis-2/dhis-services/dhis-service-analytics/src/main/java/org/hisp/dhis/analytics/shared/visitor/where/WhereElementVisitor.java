@@ -36,8 +36,6 @@ import org.hisp.dhis.analytics.shared.component.element.where.EnrollmentDateValu
 import org.hisp.dhis.analytics.shared.component.element.where.TeaValueWhereElement;
 
 /**
- * @see WhereVisitor
- *
  * @author dusan bernat
  */
 @Getter

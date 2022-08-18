@@ -77,7 +77,7 @@
     <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
     <jasypt.version>1.9.3</jasypt.version>
-    <nimbus.jose.jwt.version>9.23</nimbus.jose.jwt.version>
+    <nimbus.jose.jwt.version>9.24.1</nimbus.jose.jwt.version>
 
     <!-- Spring -->
     <spring.version>5.3.22</spring.version>
@@ -91,7 +91,7 @@
     <lettuce.version>6.2.0.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-core.version>9.1.4</flyway-core.version>
+    <flyway-core.version>9.1.5</flyway-core.version>
     <hibernate.version>5.6.10.Final</hibernate.version>
     <hibernate-types.version>2.18.0</hibernate-types.version>
     <!-- Data sources,db pools and db drivers -->
