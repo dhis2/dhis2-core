@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.cacheinvalidation;
+package org.hisp.dhis.cacheinvalidation.redis;
 
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceUnit;
@@ -39,35 +39,34 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Profile;
 
 /**
- * Startup routine responsible for pre-populating the table name to entity
- * lookup table {@link TableNameToEntityMapping} This class is executed before
- * the {@link StartupDebeziumServiceRoutine} which starts the Debezium engine
- * itself.
- *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Profile( { "!test", "!test-h2" } )
-@Conditional( value = DebeziumCacheInvalidationEnabledCondition.class )
-public class DebeziumPreStartupRoutine extends AbstractStartupRoutine
+@Conditional( value = RedisCacheInvalidationEnabledCondition.class )
+public class RedisCacheInvalidationPreStartupRoutine extends AbstractStartupRoutine
 {
     @PersistenceUnit
     private EntityManagerFactory emf;
 
     @Autowired
-    private HibernateFlushListener hibernateFlushListener;
+    PostEventCacheListener postEventCacheListener;
 
     @Autowired
-    private TableNameToEntityMapping tableNameToEntityMapping;
+    PostCollectionEventCacheListener postCollectionEventCacheListener;
 
     @Override
-
     public void execute()
         throws Exception
     {
-        tableNameToEntityMapping.init();
-
         SessionFactoryImpl sessionFactory = emf.unwrap( SessionFactoryImpl.class );
         EventListenerRegistry registry = sessionFactory.getServiceRegistry().getService( EventListenerRegistry.class );
-        registry.getEventListenerGroup( EventType.FLUSH ).appendListener( hibernateFlushListener );
+
+        registry.appendListeners( EventType.POST_COMMIT_UPDATE, postEventCacheListener );
+        registry.appendListeners( EventType.POST_COMMIT_INSERT, postEventCacheListener );
+        registry.appendListeners( EventType.POST_COMMIT_DELETE, postEventCacheListener );
+
+        registry.appendListeners( EventType.PRE_COLLECTION_UPDATE, postCollectionEventCacheListener );
+        registry.appendListeners( EventType.PRE_COLLECTION_REMOVE, postCollectionEventCacheListener );
+        registry.appendListeners( EventType.POST_COLLECTION_RECREATE, postCollectionEventCacheListener );
     }
 }

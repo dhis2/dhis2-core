@@ -31,6 +31,7 @@ import static org.hisp.dhis.DhisConvenienceTest.getAggregateDataExchange;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
@@ -60,9 +61,20 @@ public class AggregateDataExchangeObjectBundleHookTest
     private AggregateDataExchangeObjectBundleHook objectBundleHook;
 
     @Test
-    void testValidateSuccess()
+    void testValidateSuccessA()
     {
         AggregateDataExchange exchange = getAggregateDataExchange( 'A' );
+
+        assertIsEmpty( objectBundleHook.validate( exchange, objectBundle ) );
+    }
+
+    @Test
+    void testValidateSuccessB()
+    {
+        AggregateDataExchange exchange = getAggregateDataExchange( 'A' );
+        exchange.getTarget().getApi().setAccessToken( "d2pat_fjx18dy0iB6nJybPxGSVsoagGtrXMAVn1162422595" );
+        exchange.getTarget().getApi().setUsername( null );
+        exchange.getTarget().getApi().setPassword( null );
 
         assertIsEmpty( objectBundleHook.validate( exchange, objectBundle ) );
     }
@@ -74,6 +86,15 @@ public class AggregateDataExchangeObjectBundleHookTest
         exchange.setSource( new Source() );
 
         assertErrorCode( ErrorCode.E6302, objectBundleHook.validate( exchange, objectBundle ) );
+    }
+
+    @Test
+    void testMissingSourceDxItems()
+    {
+        AggregateDataExchange exchange = getAggregateDataExchange( 'A' );
+        exchange.getSource().getRequests().get( 0 ).setDx( new ArrayList<>() );
+
+        assertErrorCode( ErrorCode.E6303, objectBundleHook.validate( exchange, objectBundle ) );
     }
 
     @Test
@@ -108,6 +129,23 @@ public class AggregateDataExchangeObjectBundleHookTest
         exchange.setTarget( target );
 
         assertErrorCode( ErrorCode.E4000, objectBundleHook.validate( exchange, objectBundle ) );
+    }
+
+    @Test
+    void testMissingTargetApiAuthentication()
+    {
+        Api api = new Api();
+        api.setUrl( "https://play.dhis2.org/demo" );
+        api.setUsername( "admin" );
+
+        Target target = new Target();
+        target.setType( TargetType.EXTERNAL );
+        target.setApi( api );
+
+        AggregateDataExchange exchange = getAggregateDataExchange( 'A' );
+        exchange.setTarget( target );
+
+        assertErrorCode( ErrorCode.E6305, objectBundleHook.validate( exchange, objectBundle ) );
     }
 
     /**

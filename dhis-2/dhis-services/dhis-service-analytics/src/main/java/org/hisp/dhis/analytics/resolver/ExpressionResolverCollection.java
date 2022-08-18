@@ -30,8 +30,8 @@ package org.hisp.dhis.analytics.resolver;
 import java.util.List;
 
 /**
- * A collections of components that can analyze analytics expressions so that
- * each expression can be resolved to its final "shape".
+ * A collection of components that can analyze analytics expressions so that
+ * each expression can be resolved to its final state.
  *
  * @author Dusan Bernat
  */

@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.orgunit.data;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 
 import java.util.Collection;
@@ -35,6 +34,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsManager;
@@ -55,6 +55,7 @@ import org.springframework.stereotype.Service;
  */
 @Slf4j
 @Service( "org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsService" )
+@RequiredArgsConstructor
 public class DefaultOrgUnitAnalyticsService
     implements OrgUnitAnalyticsService
 {
@@ -63,18 +64,6 @@ public class DefaultOrgUnitAnalyticsService
     private final OrgUnitAnalyticsManager analyticsManager;
 
     private final OrgUnitQueryPlanner queryPlanner;
-
-    public DefaultOrgUnitAnalyticsService( IdentifiableObjectManager idObjectManager,
-        OrgUnitAnalyticsManager analyticsManager, OrgUnitQueryPlanner queryPlanner )
-    {
-        checkNotNull( idObjectManager );
-        checkNotNull( analyticsManager );
-        checkNotNull( queryPlanner );
-
-        this.idObjectManager = idObjectManager;
-        this.analyticsManager = analyticsManager;
-        this.queryPlanner = queryPlanner;
-    }
 
     @Override
     public OrgUnitQueryParams getParams( String orgUnits, String orgUnitGroupSets, String columns )

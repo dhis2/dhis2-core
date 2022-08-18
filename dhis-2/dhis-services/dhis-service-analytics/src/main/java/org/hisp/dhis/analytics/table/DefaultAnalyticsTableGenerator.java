@@ -38,7 +38,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
@@ -58,7 +58,7 @@ import org.springframework.stereotype.Service;
  */
 @Slf4j
 @Service( "org.hisp.dhis.analytics.AnalyticsTableGenerator" )
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DefaultAnalyticsTableGenerator
     implements AnalyticsTableGenerator
 {

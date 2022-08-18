@@ -463,7 +463,8 @@ public class FieldFilterService
                     ((BaseIdentifiableObject) root).getSharing().getUsers().values()
                         .forEach( ua -> ua.setDisplayName( userService.getDisplayName( ua.getId() ) ) );
                 }
-                else if ( o instanceof BaseIdentifiableObject )
+
+                if ( o instanceof BaseIdentifiableObject )
                 {
                     ((BaseIdentifiableObject) o).getSharing().getUserGroups().values()
                         .forEach( uga -> uga.setDisplayName( userGroupService.getDisplayName( uga.getId() ) ) );

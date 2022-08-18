@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.cacheinvalidation;
+package org.hisp.dhis.cacheinvalidation.debezium;
 
 import java.io.IOException;
 import java.util.Properties;
@@ -141,7 +141,6 @@ public class DebeziumService
 
         this.shutdownOnConnectorStopOrError = dhisConfig
             .isEnabled( ConfigurationKey.DEBEZIUM_SHUTDOWN_ON_CONNECTOR_STOP );
-
         // Build replication slot name as:
         // "dhis2_[EPOCH_SECONDS]_[OPTIONAL_CONFIG_ID]_[UUID4]
         long timeNow = System.currentTimeMillis() / 1000L;
@@ -165,6 +164,8 @@ public class DebeziumService
         props.setProperty( "database.dbname", dbName );
         props.setProperty( "snapshot.mode", "never" );
         props.setProperty( "slot.drop.on.stop", "true" );
+        props.setProperty( "heartbeat.interval.ms", "10000" );
+        props.setProperty( "event.processing.failure.handling.mode", "warn" );
         props.setProperty( "table.exclude.list",
             "public.spatial_ref_sys,"
                 + "postgis.spatial_ref_sys,"

@@ -25,25 +25,48 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.dataexchange.client.auth;
 
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpHeaders;
 
-/**
- * Tests the {@link org.hisp.dhis.webapi.controller.security.SecurityController}
- * sing (mocked) REST requests.
- *
- * @author Jan Bernitt
- */
-class SecurityControllerTest extends DhisControllerConvenienceTest
+class AuthenticationTest
 {
+    @Test
+    void testBasicAuthHeaderValue()
+    {
+        Authentication auth = new BasicAuthentication( "admin", "district" );
+
+        HttpHeaders headers = new HttpHeaders();
+
+        auth.withAuthentication( headers );
+
+        assertEquals( "Basic YWRtaW46ZGlzdHJpY3Q=", headers.getFirst( HttpHeaders.AUTHORIZATION ) );
+    }
 
     @Test
-    void testAuthenticate2FA()
+    void testAccessTokenHeaderValue()
     {
-        assertWebMessage( "Unauthorized", 401, "ERROR", "2FA code not authenticated",
-            GET( "/2fa/authenticate?code=xyz" ).content( HttpStatus.UNAUTHORIZED ) );
+        Authentication auth = new AccessTokenAuthentication( "d2pat_5xVA12xyUbWNedQxy4ohH77WlxR" );
+
+        HttpHeaders headers = new HttpHeaders();
+
+        auth.withAuthentication( headers );
+
+        assertEquals( "ApiToken d2pat_5xVA12xyUbWNedQxy4ohH77WlxR", headers.getFirst( HttpHeaders.AUTHORIZATION ) );
+    }
+
+    @Test
+    void testCookieValue()
+    {
+        Authentication auth = new CookieAuthentication( "HKIJ7KJHB3JHG2KJ8PRE7T" );
+
+        HttpHeaders headers = new HttpHeaders();
+
+        auth.withAuthentication( headers );
+
+        assertEquals( "JSESSIONID=HKIJ7KJHB3JHG2KJ8PRE7T", headers.getFirst( HttpHeaders.COOKIE ) );
     }
 }

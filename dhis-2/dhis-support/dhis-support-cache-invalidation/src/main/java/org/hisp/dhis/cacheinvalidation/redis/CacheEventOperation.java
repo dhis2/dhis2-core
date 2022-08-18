@@ -25,33 +25,12 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataexchange.client;
+package org.hisp.dhis.cacheinvalidation.redis;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
-import org.junit.jupiter.api.Test;
-
-class Dhis2ConfigTest
+public enum CacheEventOperation
 {
-    @Test
-    void testNullConstructorArgument()
-    {
-        assertThrows( NullPointerException.class, () -> new Dhis2Config(
-            null, "admin", "district" ) );
-        assertThrows( NullPointerException.class, () -> new Dhis2Config(
-            "https://play.dhis2.org/2.38.0", null, "district" ) );
-    }
-
-    @Test
-    void testGetResolvedUriBuilder()
-    {
-        Dhis2Config config = new Dhis2Config(
-            "https://play.dhis2.org/2.38.0", "admin", "district" );
-
-        assertEquals( "https://play.dhis2.org/2.38.0/api/dataValueSets",
-            config.getResolvedUriBuilder( "dataValueSets" ).build().toUriString() );
-        assertEquals( "https://play.dhis2.org/2.38.0/api/system/info",
-            config.getResolvedUriBuilder( "system/info" ).build().toUriString() );
-    }
+    INSERT,
+    UPDATE,
+    DELETE,
+    COLLECTION
 }

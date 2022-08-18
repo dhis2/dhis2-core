@@ -48,4 +48,16 @@ class FileResourceControllerTest extends DhisControllerConvenienceTest
             .getObject( "fileResource" );
         assertEquals( "OU_profile_image.png", savedObject.getString( "name" ).string() );
     }
+
+    @Test
+    void testSaveOrgUnitImageWithUid()
+    {
+        MockMultipartFile image = new MockMultipartFile( "file", "OU_profile_image.png", "image/png",
+            "<<png data>>".getBytes() );
+        HttpResponse response = POST_MULTIPART( "/fileResources?domain=ORG_UNIT&uid=0123456789a", image );
+        JsonObject savedObject = response.content( HttpStatus.ACCEPTED ).getObject( "response" )
+            .getObject( "fileResource" );
+        assertEquals( "OU_profile_image.png", savedObject.getString( "name" ).string() );
+        assertEquals( "0123456789a", savedObject.getString( "id" ).string() );
+    }
 }

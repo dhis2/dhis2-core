@@ -25,51 +25,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataexchange.client;
+package org.hisp.dhis.scheduling.parameters.jackson;
 
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.scheduling.parameters.AggregateDataExchangeJobParameters;
 
-import org.springframework.web.util.UriComponentsBuilder;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
-/**
- * DHIS 2 instance configuration.
- *
- * @author Lars Helge Overland
- */
-@Getter
-@RequiredArgsConstructor
-public class Dhis2Config
+public class AggregateDataExchangeJobParametersDeserializer
+    extends AbstractJobParametersDeserializer<AggregateDataExchangeJobParameters>
 {
-    /**
-     * Base URL for the DHIS 2 instance, excluding the <code>/api</code> path.
-     */
-    @NonNull
-    private final String url;
-
-    /**
-     * Username for the DHIS 2 instance.
-     */
-    @NonNull
-    private final String username;
-
-    /**
-     * Password for the DHIS 2 instance.
-     */
-    @NonNull
-    private final String password;
-
-    /**
-     * Returns a {@link UriComponentsBuilder} which is resolved to the base API
-     * URL of the DHIS 2 instance.
-     *
-     * @return a resolved {@link UriComponentsBuilder}.
-     */
-    public UriComponentsBuilder getResolvedUriBuilder( String path )
+    public AggregateDataExchangeJobParametersDeserializer()
     {
-        return UriComponentsBuilder.fromHttpUrl( url )
-            .pathSegment( "api" )
-            .path( path );
+        super( AggregateDataExchangeJobParameters.class, CustomJobParameters.class );
+    }
+
+    @JsonDeserialize
+    public static class CustomJobParameters extends AggregateDataExchangeJobParameters
+    {
     }
 }

@@ -25,45 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.startup;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+package org.hisp.dhis.cacheinvalidation.debezium;
 
 import org.hisp.dhis.system.startup.AbstractStartupRoutine;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.UserQueryParams;
-import org.hisp.dhis.user.UserService;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.context.annotation.Profile;
 
 /**
- * @author Henning Håkonsen
+ * Startup routine responsible for starting the Debezium engine service. The
+ * {@link DebeziumPreStartupRoutine} is called first so that the
+ * {@link TableNameToEntityMapping} is already been initialized, see
+ * {@link TableNameToEntityMapping#init}
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Transactional
-public class TwoFAPopulator
-    extends AbstractStartupRoutine
+@Profile( { "!test", "!test-h2" } )
+@Conditional( value = DebeziumCacheInvalidationEnabledCondition.class )
+public class StartupDebeziumServiceRoutine extends AbstractStartupRoutine
 {
-    private final UserService userService;
-
-    private final CurrentUserService currentUserService;
-
-    public TwoFAPopulator( UserService userService, CurrentUserService currentUserService )
-    {
-        checkNotNull( userService );
-        checkNotNull( currentUserService );
-        this.userService = userService;
-        this.currentUserService = currentUserService;
-    }
+    @Autowired
+    private DebeziumService debeziumService;
 
     @Override
     public void execute()
-        throws Exception
+        throws InterruptedException
     {
-        UserQueryParams userQueryParams = new UserQueryParams( currentUserService.getCurrentUser() );
-        userQueryParams.setNot2FA( true );
-
-        userService.getUsers( userQueryParams ).forEach( user -> {
-            user.setSecret( null );
-            userService.updateUser( user );
-        } );
+        debeziumService.startDebeziumEngine();
     }
 }

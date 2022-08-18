@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.dataexchange.aggregate;
 
+import static java.lang.String.format;
+import static java.lang.String.join;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
@@ -46,18 +48,21 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dataexchange.client.Dhis2Client;
-import org.hisp.dhis.dataexchange.client.Dhis2Config;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
+import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.scheduling.JobProgress.FailurePolicy;
 import org.jasypt.encryption.pbe.PBEStringCleanablePasswordEncryptor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Main service class for analytics data exchange.
+ * Main service class for aggregate data exchange.
  *
  * @author Lars Helge Overland
  */
@@ -88,36 +93,80 @@ public class AggregateDataExchangeService
         this.encryptor = encryptor;
     }
 
+    @Transactional( readOnly = true )
+    public AggregateDataExchange getById( String uid )
+    {
+        return aggregateDataExchangeStore.loadByUid( uid );
+    }
+
     /**
      * Runs the analytics data exchange with the given identifier.
      *
      * @param uid the {@link AggregateDataExchange} identifier.
+     * @param progress {@link JobProgress} to track progress when running in a
+     *        job context
      * @return an {@link ImportSummaries}.
      */
-    public ImportSummaries exchangeData( String uid )
+    @Transactional
+    public ImportSummaries exchangeData( String uid, JobProgress progress )
     {
         AggregateDataExchange exchange = aggregateDataExchangeStore.loadByUid( uid );
 
-        return exchangeData( exchange );
+        return exchangeData( exchange, progress );
     }
 
     /**
      * Runs the given analytics data exchange.
      *
-     * @param uid the {@link AggregateDataExchange}.
+     * @param exchange the {@link AggregateDataExchange}.
+     * @param progress {@link JobProgress} to track progress when running in a
+     *        job context
      * @return an {@link ImportSummaries}.
      */
-    public ImportSummaries exchangeData( AggregateDataExchange exchange )
+    @Transactional
+    public ImportSummaries exchangeData( AggregateDataExchange exchange, JobProgress progress )
     {
         ImportSummaries summaries = new ImportSummaries();
 
-        exchange.getSource().getRequests()
-            .forEach( request -> summaries.addImportSummary( exchangeData( exchange, request ) ) );
-
-        log.info( "Aggregate data exchange completed: '{}', type: '{}'",
-            exchange.getUid(), exchange.getTarget().getType() );
+        progress.startingStage( toStageDescription( exchange ), FailurePolicy.SKIP_ITEM );
+        progress.runStage( exchange.getSource().getRequests().stream(),
+            AggregateDataExchangeService::toItemDescription,
+            AggregateDataExchangeService::toItemSummary,
+            request -> {
+                ImportSummary summary = exchangeData( exchange, request );
+                summaries.addImportSummary( summary );
+                return summary;
+            },
+            ( success, failed ) -> toStageSummary( success, failed, exchange ) );
 
         return summaries;
+    }
+
+    private static String toStageDescription( AggregateDataExchange exchange )
+    {
+        Target target = exchange.getTarget();
+        Api api = target.getApi();
+        return format( "exchange aggregate data %s to %s target %s", exchange.getName(),
+            target.getType().name().toLowerCase(), api == null ? "(local)" : api.getUrl() );
+    }
+
+    private static String toItemDescription( SourceRequest request )
+    {
+        return format( "dx: %s; pe: %s; ou: %s", join( ",", request.getDx() ),
+            join( ",", request.getPe() ), join( ",", request.getOu() ) );
+    }
+
+    private static String toItemSummary( ImportSummary summary )
+    {
+        return summary.getStatus() == ImportStatus.ERROR && summary.getConflictCount() == 0
+            ? summary.getDescription()
+            : summary.toCountString();
+    }
+
+    private static String toStageSummary( int success, int failed, AggregateDataExchange exchange )
+    {
+        return format( "Aggregate data exchange completed (%d/%d): '%s', type: '%s'",
+            success, (success + failed), exchange.getUid(), exchange.getTarget().getType() );
     }
 
     /**
@@ -144,12 +193,19 @@ public class AggregateDataExchangeService
      * @param request the {@link SourceRequest}.
      * @return an {@link ImportSummary} describing the outcome of the exchange.
      */
-    ImportSummary exchangeData( AggregateDataExchange exchange, SourceRequest request )
+    private ImportSummary exchangeData( AggregateDataExchange exchange, SourceRequest request )
     {
-        DataValueSet dataValueSet = analyticsService.getAggregatedDataValueSet( toDataQueryParams( request ) );
+        try
+        {
+            DataValueSet dataValueSet = analyticsService.getAggregatedDataValueSet( toDataQueryParams( request ) );
 
-        return exchange.getTarget().getType() == TargetType.INTERNAL ? pushToInternal( exchange, dataValueSet )
-            : pushToExternal( exchange, dataValueSet );
+            return exchange.getTarget().getType() == TargetType.INTERNAL ? pushToInternal( exchange, dataValueSet )
+                : pushToExternal( exchange, dataValueSet );
+        }
+        catch ( Exception ex )
+        {
+            return new ImportSummary( ImportStatus.ERROR, ex.getMessage() );
+        }
     }
 
     /**
@@ -159,7 +215,7 @@ public class AggregateDataExchangeService
      * @param dataValueSet the {@link DataValueSet}.
      * @return an {@link ImportSummary} describing the outcome of the exchange.
      */
-    ImportSummary pushToInternal( AggregateDataExchange exchange, DataValueSet dataValueSet )
+    private ImportSummary pushToInternal( AggregateDataExchange exchange, DataValueSet dataValueSet )
     {
         return dataValueSetService.importDataValueSet( dataValueSet, toImportOptions( exchange ) );
     }
@@ -174,7 +230,7 @@ public class AggregateDataExchangeService
      * @param dataValueSet the {@link DataValueSet}.
      * @return an {@link ImportSummary} describing the outcome of the exchange.
      */
-    ImportSummary pushToExternal( AggregateDataExchange exchange, DataValueSet dataValueSet )
+    private ImportSummary pushToExternal( AggregateDataExchange exchange, DataValueSet dataValueSet )
     {
         return getDhis2Client( exchange ).saveDataValueSet( dataValueSet, toImportOptions( exchange ) );
     }
@@ -228,7 +284,7 @@ public class AggregateDataExchangeService
      * @param inputIdScheme the {@link IdScheme}.
      * @return a {@link DimensionalObject}.
      */
-    DimensionalObject toDimensionalObject( String dimension, List<String> items, IdScheme inputIdScheme )
+    private DimensionalObject toDimensionalObject( String dimension, List<String> items, IdScheme inputIdScheme )
     {
         return dataQueryService.getDimension(
             dimension, items, new Date(), null, null, false, inputIdScheme );
@@ -241,7 +297,7 @@ public class AggregateDataExchangeService
      * @param inputIdScheme the {@link IdScheme}.
      * @return a {@link DimensionalObject}.
      */
-    DimensionalObject toDimensionalObject( Filter filter, IdScheme inputIdScheme )
+    private DimensionalObject toDimensionalObject( Filter filter, IdScheme inputIdScheme )
     {
         return dataQueryService.getDimension(
             filter.getDimension(), filter.getItems(), new Date(), null, null, false, inputIdScheme );
@@ -277,13 +333,62 @@ public class AggregateDataExchangeService
      *
      * @param exchange the {@link AggregateDataExchange}.
      * @return a {@link Dhis2Client}.
+     * @throws IllegalStateException if authentication is not specified.
      */
     Dhis2Client getDhis2Client( AggregateDataExchange exchange )
     {
         Api api = exchange.getTarget().getApi();
 
-        String password = api.getPassword() != null ? encryptor.decrypt( api.getPassword() ) : null;
+        if ( api.isAccessTokenAuth() )
+        {
+            return Dhis2Client.withAccessTokenAuth( api.getUrl(), decryptAccessToken( exchange ) );
+        }
+        else if ( api.isBasicAuth() )
+        {
+            return Dhis2Client.withBasicAuth( api.getUrl(), api.getUsername(), decryptPassword( exchange ) );
+        }
 
-        return new Dhis2Client( new Dhis2Config( api.getUrl(), api.getUsername(), password ) );
+        throw new IllegalStateException( "DHIS 2 client authentication not specified" );
+    }
+
+    /**
+     * Returns the decrypted access token of the given exchange target API. Note
+     * that the access token is assumed to be encrypted if the exchange is
+     * persisted, and plain text if the exchange is transient and thus not
+     * decrypted.
+     *
+     * @param exchange the {@link AggregateDataExchange}.
+     * @return the decrypted access token.
+     */
+    private String decryptAccessToken( AggregateDataExchange exchange )
+    {
+        String accessToken = exchange.getTarget().getApi().getAccessToken();
+        return isPersisted( exchange ) ? encryptor.decrypt( accessToken ) : accessToken;
+    }
+
+    /**
+     * Returns the decrypted password of the given exchange target API. Note
+     * that the password is assumed to be encrypted if the exchange is
+     * persisted, and plain text if the exchange is transient and thus not
+     * decrypted.
+     *
+     * @param exchange the {@link AggregateDataExchange}.
+     * @return the decrypted password.
+     */
+    private String decryptPassword( AggregateDataExchange exchange )
+    {
+        String password = exchange.getTarget().getApi().getPassword();
+        return isPersisted( exchange ) ? encryptor.decrypt( password ) : password;
+    }
+
+    /**
+     * Indicates whether the given {@link AggregateDataExchange} is persisted.
+     *
+     * @param exchange the {@link AggregateDataExchange}.
+     * @return true if persisted.
+     */
+    boolean isPersisted( AggregateDataExchange exchange )
+    {
+        return exchange != null && exchange.getId() > 0;
     }
 }

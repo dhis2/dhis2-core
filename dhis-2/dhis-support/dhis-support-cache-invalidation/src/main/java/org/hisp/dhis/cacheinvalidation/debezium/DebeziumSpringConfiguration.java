@@ -25,51 +25,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.utils;
+package org.hisp.dhis.cacheinvalidation.debezium;
 
-import java.util.List;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
+import org.springframework.security.core.session.SessionRegistryImpl;
 
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserRole;
-
-import com.google.common.collect.Lists;
-
-public class UserTestUtils
+/**
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
+@Order( 101 )
+@ComponentScan( basePackages = { "org.hisp.dhis" } )
+@Conditional( value = DebeziumCacheInvalidationEnabledCondition.class )
+@Configuration
+public class DebeziumSpringConfiguration
 {
-    protected static final String BASE_USER_UID = "userabcdef";
-
-    public static User makeUser( String uniqueCharacter )
+    @Bean
+    public static SessionRegistryImpl sessionRegistry()
     {
-        return makeUser( uniqueCharacter, Lists.newArrayList() );
+        return new SessionRegistryImpl();
     }
 
-    public static User makeUser( String uniqueCharacter, List<String> auths )
+    @Bean
+    public DebeziumPreStartupRoutine debeziumPreStartupRoutine()
     {
-        User user = new User();
-        user.setUid( BASE_USER_UID + uniqueCharacter );
-
-        user.setCreatedBy( user );
-
-        user.setUsername( ("username" + uniqueCharacter).toLowerCase() );
-        user.setPassword( "password" + uniqueCharacter );
-
-        if ( auths != null && !auths.isEmpty() )
-        {
-            UserRole role = new UserRole();
-            role.setName( "Role_" + CodeGenerator.generateCode( 5 ) );
-            auths.forEach( auth -> role.getAuthorities().add( auth ) );
-            user.getUserRoles().add( role );
-        }
-
-        user.setFirstName( "FirstName" + uniqueCharacter );
-        user.setSurname( "Surname" + uniqueCharacter );
-        user.setEmail( ("Email" + uniqueCharacter).toLowerCase() );
-        user.setPhoneNumber( "PhoneNumber" + uniqueCharacter );
-        user.setCode( "UserCode" + uniqueCharacter );
-        user.setAutoFields();
-
-        return user;
+        DebeziumPreStartupRoutine routine = new DebeziumPreStartupRoutine();
+        routine.setName( "debeziumPreStartupRoutine" );
+        routine.setRunlevel( 1 );
+        routine.setSkipInTests( true );
+        return routine;
     }
 
+    @Bean
+    public StartupDebeziumServiceRoutine startupDebeziumServiceRoutine()
+    {
+        StartupDebeziumServiceRoutine routine = new StartupDebeziumServiceRoutine();
+        routine.setName( "StartupDebeziumServiceRoutine" );
+        routine.setRunlevel( 20 );
+        routine.setSkipInTests( true );
+        return routine;
+    }
 }

@@ -33,7 +33,7 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.attribute.Attribute;
@@ -110,7 +110,8 @@ class MetadataAttributeCheckTest
         when( validationContext.getSchemaService() ).thenReturn( schemaService );
 
         preheat = Mockito.mock( Preheat.class );
-        when( preheat.getAttributesByClass( OrganisationUnit.class ) ).thenReturn( Set.of( attribute ) );
+        when( preheat.getAttributesByClass( OrganisationUnit.class ) )
+            .thenReturn( Map.of( attribute.getUid(), attribute ) );
 
         objectBundle = Mockito.mock( ObjectBundle.class );
         when( objectBundle.getPreheat() ).thenReturn( preheat );
@@ -141,7 +142,7 @@ class MetadataAttributeCheckTest
         attribute.setOrganisationUnitAttribute( false );
 
         // OrganisationUnit doesn't have any attribute assigned
-        when( preheat.getAttributesByClass( OrganisationUnit.class ) ).thenReturn( Set.of() );
+        when( preheat.getAttributesByClass( OrganisationUnit.class ) ).thenReturn( Map.of() );
 
         // Import OrganisationUnit with an AttributeValue
         organisationUnit.getAttributeValues().add( new AttributeValue( attribute, "10" ) );

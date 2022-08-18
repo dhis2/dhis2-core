@@ -25,25 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.scheduling.parameters.jackson;
+package org.hisp.dhis.dataexchange.client.auth;
 
-import org.hisp.dhis.scheduling.parameters.CredentialsExpiryAlertJobParameters;
+import org.springframework.http.HttpHeaders;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-
-/**
- * @author Jan Bernitt
- */
-public class CredentialsExpiryAlertJobParametersDeserializer
-    extends AbstractJobParametersDeserializer<CredentialsExpiryAlertJobParameters>
+public interface Authentication
 {
-    public CredentialsExpiryAlertJobParametersDeserializer()
-    {
-        super( CredentialsExpiryAlertJobParameters.class, CustomJobParameters.class );
-    }
-
-    @JsonDeserialize
-    public static class CustomJobParameters extends CredentialsExpiryAlertJobParameters
-    {
-    }
+    /**
+     * Sets HTTP authentication headers for the given {@link HttpHeaders}.
+     *
+     * @param headers the {@link HttpHeaders}.
+     * @return the {@link HttpHeaders}.
+     */
+    HttpHeaders withAuthentication( HttpHeaders headers );
 }

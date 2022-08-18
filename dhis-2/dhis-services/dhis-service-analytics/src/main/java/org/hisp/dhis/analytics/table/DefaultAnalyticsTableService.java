@@ -36,7 +36,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.analytics.AnalyticsIndex;
@@ -60,7 +60,7 @@ import org.hisp.dhis.system.util.Clock;
  * @author Lars Helge Overland
  */
 @Slf4j
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DefaultAnalyticsTableService
     implements AnalyticsTableService
 {

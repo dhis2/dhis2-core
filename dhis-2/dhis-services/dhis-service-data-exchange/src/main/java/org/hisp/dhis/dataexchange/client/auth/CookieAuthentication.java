@@ -25,52 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.scheduling.parameters;
+package org.hisp.dhis.dataexchange.client.auth;
 
-import java.util.Optional;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
-import lombok.NoArgsConstructor;
+import org.springframework.http.HttpHeaders;
 
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.scheduling.JobParameters;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
-/**
- * @author Jan Bernitt
- */
-@NoArgsConstructor
-@JacksonXmlRootElement( localName = "jobParameters", namespace = DxfNamespaces.DXF_2_0 )
-public class CredentialsExpiryAlertJobParameters implements JobParameters
+@Getter
+@RequiredArgsConstructor
+public class CookieAuthentication
+    implements Authentication
 {
-    private static final long serialVersionUID = 1474076005450145410L;
-
-    private Integer reminderDaysBefore;
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Integer getReminderDaysBefore()
-    {
-        return reminderDaysBefore;
-    }
-
-    public void setReminderDaysBefore( Integer reminderDaysBefore )
-    {
-        this.reminderDaysBefore = reminderDaysBefore;
-    }
+    @NonNull
+    private final String sessionId;
 
     @Override
-    public Optional<ErrorReport> validate()
+    public HttpHeaders withAuthentication( HttpHeaders headers )
     {
-        if ( reminderDaysBefore != null && (reminderDaysBefore < 1 || reminderDaysBefore > 28) )
-        {
-            return Optional.of(
-                new ErrorReport( getClass(), ErrorCode.E4008, "reminderDaysBefore", 1, 28, reminderDaysBefore ) );
-        }
-        return Optional.empty();
+        String value = String.format( "JSESSIONID=%s", sessionId );
+        headers.set( HttpHeaders.COOKIE, value );
+        return headers;
     }
 }

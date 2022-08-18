@@ -25,32 +25,60 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.cacheinvalidation;
+package org.hisp.dhis.user;
 
-import org.hisp.dhis.condition.PropertiesAwareConfigurationCondition;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.springframework.context.annotation.ConditionContext;
-import org.springframework.core.type.AnnotatedTypeMetadata;
+import java.util.Locale;
+
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+
+import org.hisp.dhis.common.DisplayProperty;
+import org.hisp.dhis.common.DxfNamespaces;
+
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * User Settings transfer object for settings as defined by
+ * {@link UserSettingKey}.
+ *
+ * @author Jan Bernitt
  */
-public class DebeziumCacheInvalidationEnabledCondition extends PropertiesAwareConfigurationCondition
+@Getter
+@Setter
+@NoArgsConstructor
+@ToString
+@JacksonXmlRootElement( localName = "settings", namespace = DxfNamespaces.DXF_2_0 )
+public class UserSettings
 {
-    @Override
-    public boolean matches( ConditionContext context, AnnotatedTypeMetadata metadata )
-    {
-        if ( isTestRun( context ) )
-        {
-            return false;
-        }
+    @JsonAlias( "keyStyle" )
+    @JsonProperty
+    private String style;
 
-        return getConfiguration().isEnabled( ConfigurationKey.DEBEZIUM_ENABLED );
-    }
+    @JsonAlias( "keyMessageEmailNotification" )
+    @JsonProperty
+    private Boolean messageEmailNotification;
 
-    @Override
-    public ConfigurationPhase getConfigurationPhase()
-    {
-        return ConfigurationPhase.PARSE_CONFIGURATION;
-    }
+    @JsonAlias( "keyMessageSmsNotification" )
+    @JsonProperty
+    private Boolean messageSmsNotification;
+
+    @JsonAlias( "keyUiLocale" )
+    @JsonProperty
+    private Locale uiLocale;
+
+    @JsonAlias( "keyDbLocale" )
+    @JsonProperty
+    private Locale dbLocale;
+
+    @JsonAlias( "keyAnalysisDisplayProperty" )
+    @JsonProperty
+    private DisplayProperty analysisDisplayProperty;
+
+    @JsonAlias( "keyTrackerDashboardLayout" )
+    @JsonProperty
+    private String trackerDashboardLayout;
 }
