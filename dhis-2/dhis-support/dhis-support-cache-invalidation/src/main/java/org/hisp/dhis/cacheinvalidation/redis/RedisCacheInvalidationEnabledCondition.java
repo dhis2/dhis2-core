@@ -25,60 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.cacheinvalidation.redis;
 
-import lombok.Getter;
-import lombok.Setter;
+import org.hisp.dhis.condition.PropertiesAwareConfigurationCondition;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.springframework.context.annotation.ConditionContext;
+import org.springframework.core.type.AnnotatedTypeMetadata;
 
 /**
- * This class contains paging criteria that can be used to execute an analytics
- * query.
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Getter
-@Setter
-public class AnalyticsPagingCriteria extends RequestTypeAware
+public class RedisCacheInvalidationEnabledCondition extends PropertiesAwareConfigurationCondition
 {
-    /**
-     * The page number. Default page is 1.
-     */
-    private Integer page = 1;
-
-    /**
-     * The page size.
-     */
-    private Integer pageSize = 50;
-
-    /**
-     * The paging parameter. When set to false we should not paginate. The
-     * default is true (paginate).
-     */
-    private boolean paging = true;
-
-    /**
-     * The paging parameter. When set to false we should not count total pages.
-     * The default is true (count total pages).
-     */
-    private boolean totalPages = true;
-
-    /**
-     * Sets the page size, taking the configurable max records limit into
-     * account. Note that a value of 0 represents unlimited records.
-     *
-     * @param maxLimit the max limit as defined in the system setting
-     *        'ANALYTICS_MAX_LIMIT'.
-     */
-    public void definePageSize( int maxLimit )
+    @Override
+    public boolean matches( ConditionContext context, AnnotatedTypeMetadata metadata )
     {
-        if ( isPaging() )
+        if ( isTestRun( context ) )
         {
-            if ( getPageSize() != null && maxLimit > 0 && getPageSize() > maxLimit )
-            {
-                setPageSize( maxLimit );
-            }
+            return false;
         }
-        else
-        {
-            setPageSize( maxLimit );
-        }
+
+        return getConfiguration().isEnabled( ConfigurationKey.REDIS_CACHE_INVALIDATION_ENABLED );
+    }
+
+    @Override
+    public ConfigurationPhase getConfigurationPhase()
+    {
+        return ConfigurationPhase.PARSE_CONFIGURATION;
     }
 }

@@ -34,6 +34,7 @@ import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_DENOMINATOR_PROPERTIES_COUNT;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.analytics.QueryKey.NV;
@@ -44,6 +45,7 @@ import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_NA
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.DATE_PERIOD_STRUCT_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ORG_UNIT_STRUCT_ALIAS;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.encode;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
@@ -62,6 +64,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collector;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import lombok.Builder;
@@ -80,7 +83,9 @@ import org.hisp.dhis.analytics.event.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdScheme;
@@ -166,6 +171,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
      * Returns an SQL paging clause.
      *
      * @param params the {@link EventQueryParams}.
+     * @param maxLimit the configurable max limit of records.
      */
     private String getPagingClause( EventQueryParams params, int maxLimit )
     {
@@ -231,13 +237,63 @@ public abstract class AbstractJdbcEventAnalyticsManager
             }
             else
             {
-                sql += quoteAlias( item.getItem().getUid() );
+                /*
+                 * query returns UIDs but we want sorting on name or shortName
+                 * (depending on DisplayProperty) for OUGS/COGS
+                 */
+                sql += Optional.ofNullable( extract( params.getDimensions(), item.getItem() ) )
+                    .filter( this::isSupported )
+                    .filter( this::hasItems )
+                    .map( dim -> toCase( dim, quoteAlias( item.getItem().getUid() ), params.getDisplayProperty() ) )
+                    .orElse( quoteAlias( item.getItem().getUid() ) );
             }
 
             sql += order == ASC ? " asc," : " desc,";
         }
 
         return sql;
+    }
+
+    /**
+     * builds a CASE statement to use in sorting, mapping each OUGS/COGS uid
+     * into its name/shortName
+     */
+    private String toCase( DimensionalObject dimension, String quotedAlias, DisplayProperty displayProperty )
+    {
+        return dimension.getItems().stream()
+            .map( dio -> toWhenEntry( dio, quotedAlias, displayProperty ) )
+            .collect( Collectors.joining( " ", "(CASE ", " ELSE '' END)" ) );
+    }
+
+    /**
+     * given an DimensionalItemObject, builds a WHEN statement
+     */
+    private String toWhenEntry( DimensionalItemObject dio, String quotedAlias, DisplayProperty dp )
+    {
+        return "WHEN " +
+            quotedAlias + "=" + encode( dio.getUid(), true ) +
+            " THEN " + (dp == DisplayProperty.NAME
+                ? encode( dio.getName(), true )
+                : encode( dio.getShortName(), true ));
+    }
+
+    private boolean hasItems( DimensionalObject dimensionalObject )
+    {
+        return !dimensionalObject.getItems().isEmpty();
+    }
+
+    private boolean isSupported( DimensionalObject dimension )
+    {
+        return dimension.getDimensionType() == DimensionType.ORGANISATION_UNIT_GROUP_SET
+            || dimension.getDimensionType() == DimensionType.CATEGORY_OPTION_GROUP_SET;
+    }
+
+    private DimensionalObject extract( List<DimensionalObject> dimensions, DimensionalItemObject item )
+    {
+        return dimensions.stream()
+            .filter( dimensionalObject -> dimensionalObject.getUid().equals( item.getUid() ) )
+            .findFirst()
+            .orElse( null );
     }
 
     /**
@@ -399,14 +455,19 @@ public abstract class AbstractJdbcEventAnalyticsManager
         {
             return ColumnAndAlias.ofColumnAndAlias(
                 column,
-                Optional.of( queryItem )
-                    .filter( QueryItem::hasProgramStage )
-                    .filter( QueryItem::hasRepeatableStageParams )
-                    .map( QueryItem::getRepeatableStageParams )
-                    .map( RepeatableStageParams::getDimension )
+                getAlias( queryItem )
                     .orElse( aliasIfMissing ) );
         }
         return ColumnAndAlias.ofColumn( column );
+    }
+
+    protected Optional<String> getAlias( QueryItem queryItem )
+    {
+        return Optional.of( queryItem )
+            .filter( QueryItem::hasProgramStage )
+            .filter( QueryItem::hasRepeatableStageParams )
+            .map( QueryItem::getRepeatableStageParams )
+            .map( RepeatableStageParams::getDimension );
     }
 
     public Grid getAggregatedEventData( EventQueryParams params, Grid grid, int maxLimit )
@@ -666,7 +727,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
             .ofColumnAndAlias(
                 "'[' || round(ST_X(" + quote( colName ) + ")::numeric, 6) || ',' || round(ST_Y(" + quote( colName )
                     + ")::numeric, 6) || ']'",
-                colName );
+                getAlias( item ).orElse( colName ) );
     }
 
     /**
@@ -1017,7 +1078,11 @@ public abstract class AbstractJdbcEventAnalyticsManager
     }
 
     /**
-     * Produces SQL for a single filter inside a queryItem
+     * Creates a SQL statement for a single filter inside a query item.
+     *
+     * @param item the {@link QueryItem}.
+     * @param filter the {@link QueryFilter}.
+     * @param params the {@link EventQueryParams}.
      */
     private String toSql( QueryItem item, QueryFilter filter, EventQueryParams params )
     {
@@ -1032,7 +1097,21 @@ public abstract class AbstractJdbcEventAnalyticsManager
         }
         else
         {
-            return field + " " + filter.getSqlOperator() + " " + getSqlFilter( filter, item ) + " ";
+            // NV filter has its own specific logic, so we should skip values
+            // comparisons when NV is set as filter.
+            if ( !NV.equals( filter.getFilter() ) )
+            {
+                switch ( filter.getOperator() )
+                {
+                case NEQ:
+                case NE:
+                case NIEQ:
+                    return "(" + field + " is null or " + field + SPACE + filter.getSqlOperator() + SPACE
+                        + getSqlFilter( filter, item ) + ") ";
+                }
+            }
+
+            return field + SPACE + filter.getSqlOperator() + SPACE + getSqlFilter( filter, item ) + SPACE;
         }
     }
 

@@ -25,63 +25,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.cache;
-
-import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
-import javax.persistence.Query;
+package org.hisp.dhis.cacheinvalidation.redis;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.hibernate.Cache;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
-import com.google.common.hash.HashFunction;
-import com.google.common.hash.Hashing;
+import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
+import io.lettuce.core.pubsub.api.async.RedisPubSubAsyncCommands;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Service
 @Slf4j
-public class QueryCacheManager
+@Service
+@Profile( { "!test", "!test-h2" } )
+@Conditional( value = RedisCacheInvalidationEnabledCondition.class )
+public class RedisCacheInvalidationSubscriptionService
 {
-    private final Map<String, Set<String>> regionNameMap = new ConcurrentHashMap<>();
+    @Autowired
+    private CacheInvalidationListener cacheInvalidationListener;
 
-    private final HashFunction sessionIdHasher = Hashing.sha256();
+    @Autowired
+    @Qualifier( "pubSubConnection" )
+    private StatefulRedisPubSubConnection<String, String> pubSubConnection;
 
-    public String getQueryCacheRegionName( Class klass, Query query )
+    public void start()
     {
-        String queryString = query.unwrap( org.hibernate.query.Query.class ).getQueryString();
-        return generateRegionName( klass, queryString );
-    }
+        log.info( "RedisCacheInvalidationSubscriptionService started" );
 
-    public String generateRegionName( Class<?> klass, String queryString )
-    {
-        String queryStringHash = sessionIdHasher.newHasher().putString( queryString, StandardCharsets.UTF_8 ).hash()
-            .toString();
-        String regionName = klass.getName() + "_" + queryStringHash;
+        pubSubConnection.addListener( cacheInvalidationListener );
 
-        Set<String> allQueriesOnKlass = regionNameMap.computeIfAbsent( klass.getName(), s -> new HashSet<>() );
-        allQueriesOnKlass.add( queryStringHash );
+        RedisPubSubAsyncCommands<String, String> async = pubSubConnection.async();
+        async.subscribe( RedisCacheInvalidationConfiguration.CHANNEL_NAME );
 
-        return regionName;
-    }
-
-    public void evictQueryCache( Cache cache, Class<?> klass )
-    {
-        Set<String> hashes = regionNameMap.getOrDefault( klass.getName(), Collections.emptySet() );
-
-        for ( String regionNameHash : hashes )
-        {
-            String key = klass.getName() + "_" + regionNameHash;
-
-            cache.evictQueryRegion( key );
-        }
+        log.debug( "Subscribed to channel: " + RedisCacheInvalidationConfiguration.CHANNEL_NAME );
     }
 }

@@ -35,7 +35,7 @@ import org.hibernate.StatelessSession;
 import org.hibernate.event.spi.PostCommitDeleteEventListener;
 import org.hibernate.event.spi.PostDeleteEvent;
 import org.hibernate.persister.entity.EntityPersister;
-import org.hisp.dhis.cacheinvalidation.KnownTransactionsService;
+import org.hisp.dhis.cacheinvalidation.debezium.KnownTransactionsService;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
