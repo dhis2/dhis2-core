@@ -63,6 +63,7 @@ public class HeaderHandler
      * Adds headers to the given grid based on the given data query parameters.
      *
      * @param params the {@link DataQueryParams}.
+     * @param grid the {@link Grid}.
      */
     void addHeaders( DataQueryParams params, Grid grid )
     {
