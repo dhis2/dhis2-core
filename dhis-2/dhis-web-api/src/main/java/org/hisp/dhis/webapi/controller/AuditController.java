@@ -59,6 +59,7 @@ import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataValueAudit;
+import org.hisp.dhis.datavalue.DataValueAuditQueryParams;
 import org.hisp.dhis.datavalue.DataValueAuditService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
@@ -192,25 +193,35 @@ public class AuditController
         CategoryOptionCombo categoryOptionCombo = manager.load( CategoryOptionCombo.class, co );
         CategoryOptionCombo attributeOptionCombo = manager.load( CategoryOptionCombo.class, cc );
 
+        DataValueAuditQueryParams params = new DataValueAuditQueryParams()
+            .setDataElements( dataElements )
+            .setPeriods( periods )
+            .setOrgUnits( organisationUnits )
+            .setCategoryOptionCombo( categoryOptionCombo )
+            .setAttributeOptionCombo( attributeOptionCombo )
+            .setAuditType( AuditType.UPDATE );
+
         List<DataValueAudit> dataValueAudits;
         Pager pager = null;
 
         if ( PagerUtils.isSkipPaging( skipPaging, paging ) )
         {
-            dataValueAudits = dataValueAuditService.getDataValueAudits( dataElements, periods,
-                organisationUnits, categoryOptionCombo, attributeOptionCombo, auditType );
+            dataValueAudits = dataValueAuditService.getDataValueAudits( params );
         }
         else
         {
-            int total = dataValueAuditService.countDataValueAudits( dataElements, periods, organisationUnits,
-                categoryOptionCombo,
-                attributeOptionCombo, auditType );
+            int total = dataValueAuditService.countDataValueAudits( params );
 
             pager = new Pager( page, total, pageSize );
 
-            dataValueAudits = dataValueAuditService.getDataValueAudits( dataElements, periods,
-                organisationUnits, categoryOptionCombo, attributeOptionCombo, auditType, pager.getOffset(),
-                pager.getPageSize() );
+            dataValueAudits = dataValueAuditService.getDataValueAudits( new DataValueAuditQueryParams()
+                .setDataElements( dataElements )
+                .setPeriods( periods )
+                .setOrgUnits( organisationUnits )
+                .setCategoryOptionCombo( categoryOptionCombo )
+                .setAttributeOptionCombo( attributeOptionCombo )
+                .setAuditType( AuditType.UPDATE )
+                .setPager( pager ) );
         }
 
         RootNode rootNode = NodeUtils.createMetadata();
