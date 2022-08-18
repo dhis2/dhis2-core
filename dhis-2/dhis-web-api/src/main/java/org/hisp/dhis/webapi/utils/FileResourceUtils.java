@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.webapi.utils;
 
-import static java.lang.String.format;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 
@@ -44,6 +43,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.input.NullInputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
@@ -195,7 +195,7 @@ public class FileResourceUtils
 
         if ( uid != null && fileResourceService.fileResourceExists( uid ) )
         {
-            throw new WebMessageException( conflict( format( "A resource with Id %s already exists", uid ) ) );
+            throw new WebMessageException( conflict( ErrorCode.E1119, FileResource.class.getSimpleName(), uid ) );
         }
         fileResourceService.saveFileResource( fileResource, tmpFile );
         return fileResource;

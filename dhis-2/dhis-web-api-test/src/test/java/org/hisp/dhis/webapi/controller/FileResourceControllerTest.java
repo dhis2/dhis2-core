@@ -29,9 +29,11 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockMultipartFile;
 
@@ -76,8 +78,9 @@ class FileResourceControllerTest extends DhisControllerConvenienceTest
         MockMultipartFile image2 = new MockMultipartFile( "file", "OU_profile_image2.png", "image/png",
             "<<png data>>".getBytes() );
 
-        assertWebMessage( "Conflict", 409, "ERROR",
-            "A resource with Id 0123456789a already exists",
+        JsonWebMessage message = assertWebMessage( "Conflict", 409, "ERROR",
+            "FileResource with provided id `0123456789a` already exists",
             POST_MULTIPART( "/fileResources?domain=ORG_UNIT&uid=0123456789a", image2 ).content( HttpStatus.CONFLICT ) );
+        assertEquals( ErrorCode.E1119, message.getErrorCode() );
     }
 }
