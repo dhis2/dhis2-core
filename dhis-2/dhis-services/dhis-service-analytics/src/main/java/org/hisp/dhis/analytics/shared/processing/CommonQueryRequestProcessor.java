@@ -41,8 +41,6 @@ import org.springframework.stereotype.Component;
 
 /**
  * Processor class for CommonQueryRequest objects.
- *
- * @see Processor
  */
 @Component
 @RequiredArgsConstructor

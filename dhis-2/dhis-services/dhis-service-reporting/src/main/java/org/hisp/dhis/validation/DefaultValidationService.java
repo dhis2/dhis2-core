@@ -85,7 +85,7 @@ import com.google.common.collect.Sets;
  * @author Jim Grace
  * @author Stian Sandvold
  */
-@Service
+@Service( "org.hisp.dhis.validation.ValidationService" )
 @Transactional
 @Slf4j
 @RequiredArgsConstructor

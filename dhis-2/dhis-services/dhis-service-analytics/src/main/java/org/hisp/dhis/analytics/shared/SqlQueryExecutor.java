@@ -37,8 +37,6 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 
 /**
- * @see QueryExecutor
- *
  * @author maikel arabori
  */
 @Component
@@ -55,8 +53,6 @@ public class SqlQueryExecutor implements QueryExecutor<SqlQuery, SqlQueryResult>
     }
 
     /**
-     * @see QueryExecutor#execute(Query)
-     *
      * @throws IllegalArgumentException if the query argument is null
      */
     @Override

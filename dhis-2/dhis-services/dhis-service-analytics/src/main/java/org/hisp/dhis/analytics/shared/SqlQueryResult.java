@@ -33,8 +33,6 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.jdbc.support.rowset.SqlRowSetMetaData;
 
 /**
- * @see org.hisp.dhis.analytics.shared.QueryResult
- *
  * @author maikel arabori
  */
 @RequiredArgsConstructor
@@ -46,8 +44,6 @@ public class SqlQueryResult implements QueryResult<SqlRowSet, SqlRowSetMetaData>
     private final SqlRowSet result;
 
     /**
-     * @see QueryResult#result()
-     *
      * @return sql result set
      */
     @Override
@@ -57,8 +53,6 @@ public class SqlQueryResult implements QueryResult<SqlRowSet, SqlRowSetMetaData>
     }
 
     /**
-     * @see QueryResult#metadata()
-     *
      * @return the sql result metadata
      */
     @Override

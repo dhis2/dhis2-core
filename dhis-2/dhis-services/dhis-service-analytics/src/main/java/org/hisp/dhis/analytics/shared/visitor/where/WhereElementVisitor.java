@@ -37,8 +37,6 @@ import org.hisp.dhis.analytics.shared.component.element.where.ProgramUidWhereEle
 import org.hisp.dhis.analytics.shared.component.element.where.TeaValueWhereElement;
 
 /**
- * @see WhereVisitor
- *
  * @author dusan bernat
  */
 @Getter

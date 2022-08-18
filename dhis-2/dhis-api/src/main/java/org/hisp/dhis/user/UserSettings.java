@@ -25,45 +25,60 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.shared;
+package org.hisp.dhis.user;
 
-import static org.springframework.util.Assert.hasText;
-import static org.springframework.util.Assert.notNull;
+import java.util.Locale;
 
-import java.util.Map;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
-import lombok.EqualsAndHashCode;
+import org.hisp.dhis.common.DisplayProperty;
+import org.hisp.dhis.common.DxfNamespaces;
+
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
- * @author maikel arabori
+ * User Settings transfer object for settings as defined by
+ * {@link UserSettingKey}.
+ *
+ * @author Jan Bernitt
  */
-@EqualsAndHashCode
-public class SqlQuery implements Query
+@Getter
+@Setter
+@NoArgsConstructor
+@ToString
+@JacksonXmlRootElement( localName = "settings", namespace = DxfNamespaces.DXF_2_0 )
+public class UserSettings
 {
-    private final String statement;
+    @JsonAlias( "keyStyle" )
+    @JsonProperty
+    private String style;
 
-    private final Map<String, Object> params;
+    @JsonAlias( "keyMessageEmailNotification" )
+    @JsonProperty
+    private Boolean messageEmailNotification;
 
-    public SqlQuery( final String statement, final Map<String, Object> params )
-    {
-        hasText( statement, "The 'statement' must not be null/empty/blank" );
-        notNull( params, "The 'params' must not be null/empty" );
+    @JsonAlias( "keyMessageSmsNotification" )
+    @JsonProperty
+    private Boolean messageSmsNotification;
 
-        this.statement = statement;
-        this.params = params;
-    }
+    @JsonAlias( "keyUiLocale" )
+    @JsonProperty
+    private Locale uiLocale;
 
-    /**
-     * @throws IllegalArgumentException if statement is null/empty/blank
-     */
-    @Override
-    public String statement()
-    {
-        return statement;
-    }
+    @JsonAlias( "keyDbLocale" )
+    @JsonProperty
+    private Locale dbLocale;
 
-    public Map<String, Object> params()
-    {
-        return params;
-    }
+    @JsonAlias( "keyAnalysisDisplayProperty" )
+    @JsonProperty
+    private DisplayProperty analysisDisplayProperty;
+
+    @JsonAlias( "keyTrackerDashboardLayout" )
+    @JsonProperty
+    private String trackerDashboardLayout;
 }

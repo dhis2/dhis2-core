@@ -54,12 +54,12 @@ public interface QueryItemLocator
      * Type + Program Indicator [{rt uid}.{pi uid}]
      * <p>
      * If the provided dimension String is not matching any of the above
-     * elements, then a {@see IllegalQueryException} is thrown
+     * elements, then a {@link IllegalQueryException} is thrown
      *
      * @param dimension the dimension string.
      * @param program the {@link Program}.
      * @param type the {@link EventOutputType}.
-     * @return a {@see QueryItem}.
+     * @return a {@link QueryItem}.
      */
     QueryItem getQueryItemFromDimension( String dimension, Program program, EventOutputType type );
 }
