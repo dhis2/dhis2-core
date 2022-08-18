@@ -169,7 +169,9 @@ public class QueryItem
     {
         QueryKey key = new QueryKey();
 
-        key.add( "item", getItemId() ).addIgnoreNull( "filter", getFiltersAsString() );
+        key.add( "item", getItemId() )
+            .addIgnoreNull( "filter", getFiltersAsString() )
+            .addIgnoreNull( "program", getProgramUid() );
 
         if ( legendSet != null )
         {
@@ -273,6 +275,16 @@ public class QueryItem
         }
 
         return hasFilter() ? getOptionSetQueryFilterItems() : IdentifiableObjectUtils.getUids( optionSet.getOptions() );
+    }
+
+    /**
+     * Returns programUid if exists
+     *
+     * @return
+     */
+    private String getProgramUid()
+    {
+        return program != null ? program.getUid() : null;
     }
 
     /**
