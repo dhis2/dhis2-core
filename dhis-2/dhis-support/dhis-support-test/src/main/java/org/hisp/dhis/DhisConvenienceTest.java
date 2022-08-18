@@ -173,6 +173,7 @@ import org.hisp.dhis.sqlview.SqlViewType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityfilter.EntityQueryCriteria;
 import org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilter;
@@ -2179,6 +2180,12 @@ public abstract class DhisConvenienceTest
         TrackedEntityAttribute attribute = createTrackedEntityAttribute( uniqueChar );
         attribute.setValueType( valueType );
         return attribute;
+    }
+
+    public static TrackedEntityTypeAttribute createTrackedEntityTypeAttribute( char uniqueChar, ValueType valueType )
+    {
+        return new TrackedEntityTypeAttribute( createTrackedEntityType( uniqueChar ),
+            createTrackedEntityAttribute( uniqueChar, valueType ) );
     }
 
     public static ProgramTrackedEntityAttribute createProgramTrackedEntityAttribute( Program program,

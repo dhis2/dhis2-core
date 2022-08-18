@@ -27,10 +27,7 @@
  */
 package org.hisp.dhis.analytics.shared;
 
-import static java.util.Collections.emptySet;
-import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.LinkedHashSet;
@@ -49,67 +46,6 @@ import org.junit.jupiter.api.Test;
  */
 class GridHeadersTest
 {
-    @Test
-    void testFrom()
-    {
-        // Given
-        final Set<Column> columns = Set.of( Column.builder().value( "name" ).type( TEXT ).build() );
-
-        // When
-        final List<GridHeader> headers = GridHeaders.from( columns );
-
-        // Then
-        assertNotNull( headers, "Should not be null: headers" );
-        assertEquals( 1, headers.size(), "Should have size of 1: headers" );
-    }
-
-    @Test
-    void testFromWhenColumnsIsNull()
-    {
-        // Given
-        final Set<Column> columns = null;
-
-        // When
-        final IllegalArgumentException thrown = assertThrows( IllegalArgumentException.class,
-            () -> GridHeaders.from( columns ) );
-
-        // Then
-        assertEquals( "The 'columns' must not be null/empty", thrown.getMessage(),
-            "Exception message does not match." );
-    }
-
-    @Test
-    void testFromWhenColumnsIsEmpty()
-    {
-        // Given
-        final Set<Column> columns = emptySet();
-
-        // When
-        final IllegalArgumentException thrown = assertThrows( IllegalArgumentException.class,
-            () -> GridHeaders.from( columns ) );
-
-        // Then
-        assertEquals( "The 'columns' must not be null/empty", thrown.getMessage(),
-            "Exception message does not match." );
-    }
-
-    @Test
-    void testFromWhenColumnsHasNullElement()
-    {
-        // Given
-        final Set<Column> columns = new LinkedHashSet<>();
-        columns.add( Column.builder().value( "name" ).type( TEXT ).build() );
-        columns.add( null ); // null element
-
-        // When
-        final IllegalArgumentException thrown = assertThrows( IllegalArgumentException.class,
-            () -> GridHeaders.from( columns ) );
-
-        // Then
-        assertEquals( "The 'columns' must not contain null elements", thrown.getMessage(),
-            "Exception message does not match." );
-    }
-
     @Test
     void testRetainHeadersOnGrid()
     {

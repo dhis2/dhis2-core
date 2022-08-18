@@ -28,17 +28,12 @@
 package org.hisp.dhis.analytics.shared;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.hisp.dhis.analytics.shared.LabelMapper.getLabelOf;
-import static org.springframework.util.Assert.noNullElements;
-import static org.springframework.util.Assert.notEmpty;
 import static org.springframework.util.Assert.notNull;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 
 import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.GridHeader;
 
 /**
  * This class is responsible for encapsulating the grid header creation and
@@ -51,32 +46,6 @@ public class GridHeaders
 
     private GridHeaders()
     {
-    }
-
-    /**
-     * Simple create a list of GridHeader objects based on the list of columns
-     * provided as argument.
-     *
-     * @param columns
-     * @return the list of grid headers or empty if the provided columns are
-     *         empty/null
-     * @throws IllegalArgumentException if the provided columns is null/empty or
-     *         contain at least one null element
-     */
-    public static List<GridHeader> from( final Set<Column> columns )
-    {
-        notEmpty( columns, "The 'columns' must not be null/empty" );
-        noNullElements( columns, "The 'columns' must not contain null elements" );
-
-        final List<GridHeader> headers = new ArrayList<>();
-
-        if ( isNotEmpty( columns ) )
-        {
-            columns.forEach( column -> headers.add( new GridHeader(
-                column.getAlias(), getLabelOf( column ), column.valueType(), column.isHidden(), column.isMeta() ) ) );
-        }
-
-        return headers;
     }
 
     /**

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.shared;
 
+import static org.hisp.dhis.common.ValueType.TEXT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -37,14 +38,18 @@ import static org.mockito.Mockito.when;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.sql.rowset.RowSetMetaDataImpl;
 
+import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.analytics.common.CommonParams;
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.CurrentUserService;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -59,7 +64,7 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
  *
  * @author maikel arabori
  */
-class GridAdaptorTest
+class GridAdaptorTest extends DhisConvenienceTest
 {
     private static GridAdaptor gridAdaptor;
 
@@ -79,6 +84,8 @@ class GridAdaptorTest
         // Given
         final ResultSet resultSet = mock( ResultSet.class );
         final RowSetMetaDataImpl metaData = new RowSetMetaDataImpl();
+        final TeiQueryParams teiQueryParams = TeiQueryParams.builder().trackedEntityType( stubTrackedEntityType() )
+            .commonParams( stubCommonParams() ).build();
         metaData.setColumnCount( 2 );
         metaData.setColumnName( 1, "col-1" );
         metaData.setColumnName( 2, "col-2" );
@@ -90,14 +97,13 @@ class GridAdaptorTest
         final SqlQueryResult mockSqlResult = new SqlQueryResult( sqlRowSet );
 
         // When
-        final Grid grid = gridAdaptor.createGrid( mockSqlResult, TeiQueryParams.builder().build(),
-            new CommonQueryRequest() );
+        final Grid grid = gridAdaptor.createGrid( mockSqlResult, teiQueryParams, new CommonQueryRequest() );
 
         // Then
         assertNotNull( grid, "Should not be null: grid" );
         assertFalse( grid.getHeaders().isEmpty(), "Should not be empty: headers" );
         assertFalse( grid.getRows().isEmpty(), "Should not be empty: rows" );
-        assertEquals( 2, grid.getHeaders().size(), "Should have size of 2: headers" );
+        assertEquals( 13, grid.getHeaders().size(), "Should have size of 13: headers" );
         assertEquals( 3, grid.getRows().size(), "Should have size of 3: rows" );
     }
 
@@ -119,8 +125,21 @@ class GridAdaptorTest
         assertTrue( ex.getMessage().contains( "The 'sqlQueryResult' must not be null" ) );
     }
 
-    private List<GridHeader> mockGridHeaders()
+    private TrackedEntityType stubTrackedEntityType()
     {
-        return List.of( new GridHeader( "alias1" ), new GridHeader( "alias2" ) );
+        List<TrackedEntityAttribute> entityAttributes = new ArrayList<>();
+        entityAttributes.add( createTrackedEntityAttribute( 'A', TEXT ) );
+
+        TrackedEntityType trackedEntityType = new TrackedEntityType();
+        trackedEntityType.setTrackedEntityTypeAttributes( List.of(
+            createTrackedEntityTypeAttribute( 'A', TEXT ),
+            createTrackedEntityTypeAttribute( 'B', TEXT ) ) );
+
+        return trackedEntityType;
+    }
+
+    private CommonParams stubCommonParams()
+    {
+        return CommonParams.builder().programs( List.of( createProgram( 'A' ) ) ).build();
     }
 }
