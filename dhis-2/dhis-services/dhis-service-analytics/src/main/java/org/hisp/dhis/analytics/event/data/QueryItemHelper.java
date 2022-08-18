@@ -179,11 +179,11 @@ public class QueryItemHelper
     }
 
     /**
-     * Based on the given options, it returns a set of Option objects which are
-     * referenced as filter by any one of the query items provided.
+     * Based on the given options, it returns a set of {@link Option} objects
+     * which are referenced as filter by any one of the query items provided.
      *
      * @param options the set of {@link Option}.
-     * @param queryItems the list of {@link QueryFilter}.
+     * @param queryItems the list of {@link QueryItem}.
      * @return the set of {@link Option} found.
      */
     public static Set<Option> getItemOptions( Set<Option> options, List<QueryItem> queryItems )
@@ -207,10 +207,13 @@ public class QueryItemHelper
     }
 
     /**
-     * This method will check each filter in the given list of QueryFilter
-     * objects. For each filter, it will try to match the given option with any
-     * filter that contain an option or multiple options (split by ";"). If a
-     * match is found, it will return true.
+     * This method will check each filter in the given list of
+     * {@link QueryFilter} objects. For each filter, it will try to match the
+     * given option with any filter that contain an option or multiple options
+     * (split by ";"). If a match is found, it will return true.
+     *
+     * Example of a possible filter: Zj7UnCAulEk.K6uUAvq500H:IN:A03;B01, where
+     * "A03;B01" are the options codes.
      *
      * @param option the {@link Option}.
      * @param queryFilters the list of {@link QueryFilter}.
@@ -220,11 +223,11 @@ public class QueryItemHelper
     {
         for ( QueryFilter queryFilter : queryFilters )
         {
-            String[] filterOptionsValues = defaultString( queryFilter.getFilter() ).split( ";" );
+            String[] filterValues = defaultString( queryFilter.getFilter() ).split( ";" );
 
-            for ( String optionValue : filterOptionsValues )
+            for ( String filterValue : filterValues )
             {
-                if ( optionValue.equalsIgnoreCase( option.getCode() ) )
+                if ( filterValue.equalsIgnoreCase( option.getCode() ) )
                 {
                     return true;
                 }
@@ -300,8 +303,8 @@ public class QueryItemHelper
      * Zj7UnCAulEk.K6uUAvq500H:IN:A03;B01, where "A03;B01" are the options
      * codes.
      *
-     * The codes are split by the token ";" and the respective Option objects
-     * are returned.
+     * The codes are split by the token ";" and the respective {@link Option}
+     * objects are returned.
      *
      * @param item the {@link QueryItem}.
      * @return a list of options found in the filter.
