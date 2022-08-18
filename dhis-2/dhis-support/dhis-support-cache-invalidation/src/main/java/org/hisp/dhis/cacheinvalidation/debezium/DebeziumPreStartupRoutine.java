@@ -25,43 +25,49 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.cacheinvalidation;
+package org.hisp.dhis.cacheinvalidation.debezium;
 
-import org.hibernate.HibernateException;
-import org.hibernate.action.spi.BeforeTransactionCompletionProcess;
-import org.hibernate.event.spi.FlushEvent;
-import org.hibernate.event.spi.FlushEventListener;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.PersistenceUnit;
+
+import org.hibernate.event.service.spi.EventListenerRegistry;
+import org.hibernate.event.spi.EventType;
+import org.hibernate.internal.SessionFactoryImpl;
+import org.hisp.dhis.system.startup.AbstractStartupRoutine;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Component;
 
 /**
- * HibernateFlushListener that is listening for {@link FlushEvent}s and
- * registering a before the transaction completes
- * {@link BeforeTransactionCompletionProcess} to capture the transaction ID. The
- * captured transaction ID is put in to a hash table to enable lookup of
- * incoming replication events to see if the event/ID matches local transactions
- * or if the transactions/replication event comes from another DHIS2 server
- * instance.
+ * Startup routine responsible for pre-populating the table name to entity
+ * lookup table {@link TableNameToEntityMapping} This class is executed before
+ * the {@link StartupDebeziumServiceRoutine} which starts the Debezium engine
+ * itself.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Profile( { "!test", "!test-h2" } )
 @Conditional( value = DebeziumCacheInvalidationEnabledCondition.class )
-@Component
-public class HibernateFlushListener implements FlushEventListener
+public class DebeziumPreStartupRoutine extends AbstractStartupRoutine
 {
+    @PersistenceUnit
+    private EntityManagerFactory emf;
+
     @Autowired
-    private transient KnownTransactionsService knownTransactionsService;
+    private HibernateFlushListener hibernateFlushListener;
+
+    @Autowired
+    private TableNameToEntityMapping tableNameToEntityMapping;
 
     @Override
-    public void onFlush( FlushEvent event )
-        throws HibernateException
-    {
-        BeforeTransactionCompletionProcess beforeTransactionCompletionProcess = session -> knownTransactionsService
-            .registerEvent( event );
 
-        event.getSession().getActionQueue().registerProcess( beforeTransactionCompletionProcess );
+    public void execute()
+        throws Exception
+    {
+        tableNameToEntityMapping.init();
+
+        SessionFactoryImpl sessionFactory = emf.unwrap( SessionFactoryImpl.class );
+        EventListenerRegistry registry = sessionFactory.getServiceRegistry().getService( EventListenerRegistry.class );
+        registry.getEventListenerGroup( EventType.FLUSH ).appendListener( hibernateFlushListener );
     }
 }

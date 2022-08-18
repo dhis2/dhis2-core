@@ -74,11 +74,11 @@ public class SchemaIdResponseMapper
         if ( params.isGeneralOutputIdSchemeSet() )
         {
             // Apply a schema to all data element operands using the general
-            // output schema defined.
+            // output schema defined
             applyGeneralIdSchemaMapping( params, responseMap );
         }
 
-        // This section overrides the general schema, so it can be fine-grained.
+        // This section overrides the general schema, so it can be fine-grained
         if ( params.isOutputFormat( DATA_VALUE_SET ) )
         {
             if ( params.isOutputDataElementIdSchemeSet() )
@@ -86,21 +86,20 @@ public class SchemaIdResponseMapper
                 if ( !params.getDataElementOperands().isEmpty() )
                 {
                     // Replace all data elements operands respecting it's
-                    // schema definition.
+                    // schema definition
                     applyDataElementOperandsIdSchemaMapping( params, responseMap );
                 }
                 else if ( !params.getDataElements().isEmpty() )
                 {
                     // Replace all data elements respecting it's schema
-                    // definition.
+                    // definition
                     applyDataElementsIdSchemaMapping( params, responseMap );
                 }
             }
         }
 
         // If "outputOrgUnitIdScheme" is set, we replace all org units
-        // values respecting
-        // it's definition.
+        // values respecting it's definition
         if ( params.isOutputOrgUnitIdSchemeSet() )
         {
             applyOrgUnitIdSchemaMapping( params, responseMap );

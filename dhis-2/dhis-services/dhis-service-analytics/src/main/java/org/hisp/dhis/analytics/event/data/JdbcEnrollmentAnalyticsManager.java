@@ -106,8 +106,8 @@ public class JdbcEnrollmentAnalyticsManager
         ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder,
         EnrollmentTimeFieldSqlRenderer timeFieldSqlRenderer, ExecutionPlanStore executionPlanStore )
     {
-        super( jdbcTemplate, statementBuilder, programIndicatorService, programIndicatorSubqueryBuilder,
-            executionPlanStore );
+        super( jdbcTemplate, statementBuilder, programIndicatorService,
+            programIndicatorSubqueryBuilder, executionPlanStore );
         this.timeFieldSqlRenderer = timeFieldSqlRenderer;
     }
 

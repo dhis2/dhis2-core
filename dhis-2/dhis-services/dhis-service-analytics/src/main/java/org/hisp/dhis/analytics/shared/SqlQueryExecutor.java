@@ -34,7 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -46,10 +46,9 @@ import org.springframework.stereotype.Component;
  * @author maikel arabori
  */
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class SqlQueryExecutor implements QueryExecutor<SqlQuery, SqlQueryResult>
 {
-
     private final JdbcTemplate jdbcTemplate;
 
     /**

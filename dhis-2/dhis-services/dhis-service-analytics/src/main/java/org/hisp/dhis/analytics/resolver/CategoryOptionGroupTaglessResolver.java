@@ -34,7 +34,7 @@ import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.category.CategoryOptionComboStore;
 import org.hisp.dhis.category.CategoryOptionGroup;
@@ -51,7 +51,7 @@ import com.google.common.base.Joiner;
  * @author Luciano Fiandesio
  */
 @Service( "org.hisp.dhis.analytics.resolver.CategoryOptionGroupTaglessResolver" )
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class CategoryOptionGroupTaglessResolver
     implements
     ExpressionResolver
@@ -106,8 +106,7 @@ public class CategoryOptionGroupTaglessResolver
     public String resolve( String expression )
     {
         // Get a DimensionalItemId from the expression. The expression is parsed
-        // and
-        // each element placed in the DimensionalItemId
+        // and each element placed in the DimensionalItemId.
         Set<DimensionalItemId> dimItemIds = expressionService.getExpressionDimensionalItemIds( expression,
             INDICATOR_EXPRESSION );
         List<String> resolvedOperands = new ArrayList<>();
@@ -129,7 +128,7 @@ public class CategoryOptionGroupTaglessResolver
         }
         if ( resolvedOperands.isEmpty() )
         {
-            // nothing to resolve, add the expression as it is
+            // Nothing to resolve, add the expression as it is
             resolvedOperands.add( expression );
         }
         return Joiner.on( "+" ).join( resolvedOperands );

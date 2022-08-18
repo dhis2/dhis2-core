@@ -25,47 +25,12 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.cacheinvalidation;
+package org.hisp.dhis.cacheinvalidation.redis;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Conditional;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
-import org.springframework.security.core.session.SessionRegistryImpl;
-
-/**
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-@Order( 101 )
-@ComponentScan( basePackages = { "org.hisp.dhis" } )
-@Conditional( value = DebeziumCacheInvalidationEnabledCondition.class )
-@Configuration
-public class DebeziumSpringConfiguration
+public enum CacheEventOperation
 {
-    @Bean
-    public static SessionRegistryImpl sessionRegistry()
-    {
-        return new SessionRegistryImpl();
-    }
-
-    @Bean
-    public DebeziumPreStartupRoutine debeziumPreStartupRoutine()
-    {
-        DebeziumPreStartupRoutine routine = new DebeziumPreStartupRoutine();
-        routine.setName( "debeziumPreStartupRoutine" );
-        routine.setRunlevel( 1 );
-        routine.setSkipInTests( true );
-        return routine;
-    }
-
-    @Bean
-    public StartupDebeziumServiceRoutine startupDebeziumServiceRoutine()
-    {
-        StartupDebeziumServiceRoutine routine = new StartupDebeziumServiceRoutine();
-        routine.setName( "StartupDebeziumServiceRoutine" );
-        routine.setRunlevel( 20 );
-        routine.setSkipInTests( true );
-        return routine;
-    }
+    INSERT,
+    UPDATE,
+    DELETE,
+    COLLECTION
 }

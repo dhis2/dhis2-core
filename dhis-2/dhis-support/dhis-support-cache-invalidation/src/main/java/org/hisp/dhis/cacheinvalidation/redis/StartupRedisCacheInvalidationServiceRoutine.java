@@ -25,49 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.cacheinvalidation;
+package org.hisp.dhis.cacheinvalidation.redis;
 
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.PersistenceUnit;
-
-import org.hibernate.event.service.spi.EventListenerRegistry;
-import org.hibernate.event.spi.EventType;
-import org.hibernate.internal.SessionFactoryImpl;
 import org.hisp.dhis.system.startup.AbstractStartupRoutine;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Profile;
 
 /**
- * Startup routine responsible for pre-populating the table name to entity
- * lookup table {@link TableNameToEntityMapping} This class is executed before
- * the {@link StartupDebeziumServiceRoutine} which starts the Debezium engine
- * itself.
- *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Profile( { "!test", "!test-h2" } )
-@Conditional( value = DebeziumCacheInvalidationEnabledCondition.class )
-public class DebeziumPreStartupRoutine extends AbstractStartupRoutine
+@Conditional( value = RedisCacheInvalidationEnabledCondition.class )
+public class StartupRedisCacheInvalidationServiceRoutine extends AbstractStartupRoutine
 {
-    @PersistenceUnit
-    private EntityManagerFactory emf;
-
     @Autowired
-    private HibernateFlushListener hibernateFlushListener;
-
-    @Autowired
-    private TableNameToEntityMapping tableNameToEntityMapping;
+    private RedisCacheInvalidationSubscriptionService subscriptionService;
 
     @Override
-
     public void execute()
-        throws Exception
+        throws InterruptedException
     {
-        tableNameToEntityMapping.init();
-
-        SessionFactoryImpl sessionFactory = emf.unwrap( SessionFactoryImpl.class );
-        EventListenerRegistry registry = sessionFactory.getServiceRegistry().getService( EventListenerRegistry.class );
-        registry.getEventListenerGroup( EventType.FLUSH ).appendListener( hibernateFlushListener );
+        subscriptionService.start();
     }
 }
