@@ -46,23 +46,6 @@ public class LabelMapper
     }
 
     /**
-     * This method maps the given column to its respective label representation.
-     * The label is mainly needed to expose a more "user-friendly" name to the
-     * client.
-     *
-     * @param column
-     * @return the column's label
-     */
-    public static String getLabelOf( final Column column )
-    {
-        // TODO: Implement the logic to get the correct label of the respective
-        // column. See:
-        // org.hisp.dhis.analytics.event.data.DefaultEventAnalyticsService#createGridWithHeaders
-
-        return column.getAlias();
-    }
-
-    /**
      * Finds for a custom label for event date if one exists.
      *
      * @param programStage
