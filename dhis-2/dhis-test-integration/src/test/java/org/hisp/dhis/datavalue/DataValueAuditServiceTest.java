@@ -172,9 +172,9 @@ class DataValueAuditServiceTest extends SingleSetupIntegrationTestBase
         DataValueAudit dvaB = new DataValueAudit( dataValueB, dataValueB.getValue(),
             dataValueB.getStoredBy(), AuditType.UPDATE );
         DataValueAudit dvaC = new DataValueAudit( dataValueC, dataValueC.getValue(),
-            dataValueC.getStoredBy(), AuditType.UPDATE );
+            dataValueC.getStoredBy(), AuditType.CREATE );
         DataValueAudit dvaD = new DataValueAudit( dataValueD, dataValueD.getValue(),
-            dataValueD.getStoredBy(), AuditType.UPDATE );
+            dataValueD.getStoredBy(), AuditType.DELETE );
         dataValueAuditService.addDataValueAudit( dvaA );
         dataValueAuditService.addDataValueAudit( dvaB );
         dataValueAuditService.addDataValueAudit( dvaC );
@@ -197,6 +197,11 @@ class DataValueAuditServiceTest extends SingleSetupIntegrationTestBase
             .setAuditType( AuditType.UPDATE );
 
         assertContainsOnly( dataValueAuditService.getDataValueAudits( params ), dvaA, dvaB );
+
+        params = new DataValueAuditQueryParams()
+            .setAuditType( AuditType.CREATE );
+
+        assertContainsOnly( dataValueAuditService.getDataValueAudits( params ), dvaC );
     }
 
     @Test
@@ -207,9 +212,9 @@ class DataValueAuditServiceTest extends SingleSetupIntegrationTestBase
         DataValueAudit dvaB = new DataValueAudit( dataValueB, dataValueB.getValue(),
             dataValueB.getStoredBy(), AuditType.UPDATE );
         DataValueAudit dvaC = new DataValueAudit( dataValueC, dataValueC.getValue(),
-            dataValueC.getStoredBy(), AuditType.UPDATE );
+            dataValueC.getStoredBy(), AuditType.CREATE );
         DataValueAudit dvaD = new DataValueAudit( dataValueD, dataValueD.getValue(),
-            dataValueD.getStoredBy(), AuditType.UPDATE );
+            dataValueD.getStoredBy(), AuditType.DELETE );
         dataValueAuditService.addDataValueAudit( dvaA );
         dataValueAuditService.addDataValueAudit( dvaB );
         dataValueAuditService.addDataValueAudit( dvaC );

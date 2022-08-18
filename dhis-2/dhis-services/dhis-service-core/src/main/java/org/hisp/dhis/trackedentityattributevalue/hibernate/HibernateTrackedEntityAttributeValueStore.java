@@ -127,18 +127,6 @@ public class HibernateTrackedEntityAttributeValueStore
     }
 
     @Override
-    public List<TrackedEntityAttributeValue> searchByValue( TrackedEntityAttribute attribute, String searchText )
-    {
-        String query = " from TrackedEntityAttributeValue v where v.attribute =:attribute and lower(v.plainValue) like :searchText";
-
-        Query<TrackedEntityAttributeValue> typedQuery = getQuery( query )
-            .setParameter( "attribute", attribute )
-            .setParameter( "searchText", "%" + StringUtils.lowerCase( searchText ) + "%" );
-
-        return getList( typedQuery );
-    }
-
-    @Override
     public List<TrackedEntityAttributeValue> get( TrackedEntityAttribute attribute, Collection<String> values )
     {
         String query = " from TrackedEntityAttributeValue v where v.attribute =:attribute and lower(v.plainValue) in :values";
@@ -177,7 +165,7 @@ public class HibernateTrackedEntityAttributeValueStore
     @Override
     public int getCountOfAssignedTEAValues( TrackedEntityAttribute attribute )
     {
-        Query query = getQuery(
+        Query<?> query = getQuery(
             "select count(distinct c) from TrackedEntityAttributeValue c where c.attribute = :attribute" );
         query.setParameter( "attribute", attribute );
 

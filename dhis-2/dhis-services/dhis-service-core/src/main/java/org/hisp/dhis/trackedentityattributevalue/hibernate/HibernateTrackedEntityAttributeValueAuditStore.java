@@ -122,8 +122,8 @@ public class HibernateTrackedEntityAttributeValueAuditStore
     public void deleteTrackedEntityAttributeValueAudits( TrackedEntityInstance entityInstance )
     {
         Session session = sessionFactory.getCurrentSession();
-        Query query = session
-            .createQuery( "delete TrackedEntityAttributeValueAudit where entityInstance = :entityInstance" );
+        Query<?> query = session.createQuery(
+            "delete TrackedEntityAttributeValueAudit where entityInstance = :entityInstance" );
         query.setParameter( "entityInstance", entityInstance );
         query.executeUpdate();
     }

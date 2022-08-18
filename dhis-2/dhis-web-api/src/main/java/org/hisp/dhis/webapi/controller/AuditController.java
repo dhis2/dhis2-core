@@ -521,10 +521,8 @@ public class AuditController
             {
                 throw new WebMessageException( conflict( "Illegal period identifier: " + pe ) );
             }
-            else
-            {
-                periods.add( period );
-            }
+
+            periods.add( period );
         }
 
         return periods;
