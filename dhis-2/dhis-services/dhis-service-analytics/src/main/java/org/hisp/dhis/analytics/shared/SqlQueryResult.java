@@ -35,8 +35,6 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.MapUtils;
 
 /**
- * @see org.hisp.dhis.analytics.shared.QueryResult
- *
  * @author maikel arabori
  */
 @RequiredArgsConstructor
@@ -49,8 +47,6 @@ public class SqlQueryResult implements QueryResult<Map<Column, List<Object>>>
     private final Map<Column, List<Object>> resultMap;
 
     /**
-     * @see QueryResult#result()
-     *
      * @return a map that contains all rows for each column
      */
     @Override
@@ -59,9 +55,6 @@ public class SqlQueryResult implements QueryResult<Map<Column, List<Object>>>
         return resultMap;
     }
 
-    /**
-     * @see QueryResult#isEmpty()
-     */
     @Override
     public boolean isEmpty()
     {

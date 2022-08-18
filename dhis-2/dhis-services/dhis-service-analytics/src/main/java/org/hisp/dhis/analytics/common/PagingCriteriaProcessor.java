@@ -36,8 +36,6 @@ import org.springframework.stereotype.Component;
 
 /**
  * Processor class for AnalyticsPagingCriteria objects.
- *
- * @see Processor
  */
 @Component
 @RequiredArgsConstructor

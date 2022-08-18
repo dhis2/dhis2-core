@@ -35,8 +35,6 @@ import lombok.Getter;
 import org.hisp.dhis.analytics.shared.component.element.from.SimpleFromElement;
 
 /**
- * @see FromVisitor
- *
  * @author dusan bernat
  */
 @Getter

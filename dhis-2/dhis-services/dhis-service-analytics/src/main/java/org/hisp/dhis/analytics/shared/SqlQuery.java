@@ -43,8 +43,6 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 /**
- * @see Query
- *
  * @author maikel arabori
  */
 @Getter
@@ -88,8 +86,6 @@ public class SqlQuery implements Query
     private final String closingClauses;
 
     /**
-     * @see Query#fullStatement()
-     *
      * @throws IllegalArgumentException if columns is null/empty or contain at
      *         least one null element. If the 'from' clause is null/empty/blank.
      *         If the 'where' is null/empty/blank.

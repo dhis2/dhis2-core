@@ -49,8 +49,6 @@ import org.hisp.dhis.analytics.shared.visitor.where.WhereVisitor;
 import org.springframework.stereotype.Component;
 
 /**
- * @see QueryGenerator
- *
  * @author maikel arabori
  */
 @Component
