@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_CREATED_BY_DISPLAY_NAME;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_ENROLLMENT_DATE;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_EVENT_DATE;
@@ -87,11 +86,9 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.legend.LegendSetService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
@@ -106,6 +103,7 @@ import com.google.common.base.MoreObjects;
  * @author Lars Helge Overland
  */
 @Service( "org.hisp.dhis.analytics.event.EventDataQueryService" )
+@RequiredArgsConstructor
 public class DefaultEventDataQueryService
     implements EventDataQueryService
 {
@@ -134,30 +132,6 @@ public class DefaultEventDataQueryService
     private final DataQueryService dataQueryService;
 
     private final I18nManager i18nManager;
-
-    public DefaultEventDataQueryService( ProgramService programService, ProgramStageService programStageService,
-        DataElementService dataElementService, QueryItemLocator queryItemLocator,
-        TrackedEntityAttributeService attributeService, ProgramIndicatorService programIndicatorService,
-        LegendSetService legendSetService, DataQueryService dataQueryService, I18nManager i18nManager )
-    {
-        checkNotNull( programService );
-        checkNotNull( programStageService );
-        checkNotNull( dataElementService );
-        checkNotNull( attributeService );
-        checkNotNull( programIndicatorService );
-        checkNotNull( queryItemLocator );
-        checkNotNull( legendSetService );
-        checkNotNull( dataQueryService );
-        checkNotNull( i18nManager );
-
-        this.programService = programService;
-        this.programStageService = programStageService;
-        this.dataElementService = dataElementService;
-        this.attributeService = attributeService;
-        this.queryItemLocator = queryItemLocator;
-        this.dataQueryService = dataQueryService;
-        this.i18nManager = i18nManager;
-    }
 
     @Override
     public EventQueryParams getFromRequest( EventDataQueryRequest request )

@@ -121,8 +121,8 @@ public class JdbcEventAnalyticsManager
         ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder,
         EventTimeFieldSqlRenderer timeFieldSqlRenderer, ExecutionPlanStore executionPlanStore )
     {
-        super( jdbcTemplate, statementBuilder, programIndicatorService, programIndicatorSubqueryBuilder,
-            executionPlanStore );
+        super( jdbcTemplate, statementBuilder, programIndicatorService,
+            programIndicatorSubqueryBuilder, executionPlanStore );
         this.timeFieldSqlRenderer = timeFieldSqlRenderer;
     }
 

@@ -38,18 +38,11 @@ import org.hisp.dhis.analytics.shared.component.element.from.SimpleFromElement;
  */
 public interface FromVisitor
 {
-    /**
-     * see Visitor design pattern
-     *
-     * @param element
-     */
     void visit( SimpleFromElement element );
 
     /**
-     * Visitor produced iteratively all tables refs for from part of sql
-     * statement
-     *
+     * Visitor produced iteratively all table references for from part of SQL
+     * statement.
      */
     List<String> getTables();
-
 }

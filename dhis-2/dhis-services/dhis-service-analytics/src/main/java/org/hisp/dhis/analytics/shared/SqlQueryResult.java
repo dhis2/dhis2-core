@@ -30,7 +30,7 @@ package org.hisp.dhis.analytics.shared;
 import java.util.List;
 import java.util.Map;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.collections4.MapUtils;
 
@@ -39,10 +39,9 @@ import org.apache.commons.collections4.MapUtils;
  *
  * @author maikel arabori
  */
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class SqlQueryResult implements QueryResult<Map<Column, List<Object>>>
 {
-
     /**
      * Represents the query result. It maps each column to the respective list
      * of rows.
