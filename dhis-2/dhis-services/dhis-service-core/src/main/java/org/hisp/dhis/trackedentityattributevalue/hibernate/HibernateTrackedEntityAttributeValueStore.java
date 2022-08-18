@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.trackedentityattributevalue.hibernate;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -106,22 +105,6 @@ public class HibernateTrackedEntityAttributeValueStore
         String query = " from TrackedEntityAttributeValue v where v.attribute =:attribute";
 
         Query<TrackedEntityAttributeValue> typedQuery = getQuery( query ).setParameter( "attribute", attribute );
-
-        return getList( typedQuery );
-    }
-
-    @Override
-    public List<TrackedEntityAttributeValue> get( Collection<TrackedEntityInstance> entityInstances )
-    {
-        if ( entityInstances == null || entityInstances.isEmpty() )
-        {
-            return new ArrayList<>();
-        }
-
-        String query = " from TrackedEntityAttributeValue v where v.entityInstance  in :entityInstances";
-
-        Query<TrackedEntityAttributeValue> typedQuery = getQuery( query ).setParameter( "entityInstances",
-            entityInstances );
 
         return getList( typedQuery );
     }

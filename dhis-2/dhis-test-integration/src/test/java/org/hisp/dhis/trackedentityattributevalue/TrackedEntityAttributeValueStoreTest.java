@@ -31,9 +31,7 @@ import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.hisp.dhis.common.AuditType;
@@ -120,7 +118,11 @@ class TrackedEntityAttributeValueStoreTest extends SingleSetupIntegrationTestBas
         avA = new TrackedEntityAttributeValue( atA, teiA, "A" );
         avB = new TrackedEntityAttributeValue( atB, teiA, "B" );
         avC = new TrackedEntityAttributeValue( atC, teiB, "C" );
-        avD = new TrackedEntityAttributeValue( atC, teiB, "D" );
+        avD = new TrackedEntityAttributeValue( atD, teiB, "D" );
+        avA.setAutoFields();
+        avB.setAutoFields();
+        avC.setAutoFields();
+        avD.setAutoFields();
     }
 
     @Test
@@ -140,15 +142,15 @@ class TrackedEntityAttributeValueStoreTest extends SingleSetupIntegrationTestBas
         attributeValueStore.saveVoid( avC );
         assertNotNull( attributeValueStore.get( teiA, atA ) );
         assertNotNull( attributeValueStore.get( teiA, atB ) );
-        assertNotNull( attributeValueStore.get( teiB, atA ) );
+        assertNotNull( attributeValueStore.get( teiB, atC ) );
         attributeValueStore.deleteByTrackedEntityInstance( teiA );
         assertNull( attributeValueStore.get( teiA, atA ) );
         assertNull( attributeValueStore.get( teiA, atB ) );
-        assertNotNull( attributeValueStore.get( teiB, atA ) );
+        assertNotNull( attributeValueStore.get( teiB, atC ) );
         attributeValueStore.deleteByTrackedEntityInstance( teiB );
         assertNull( attributeValueStore.get( teiA, atA ) );
         assertNull( attributeValueStore.get( teiA, atB ) );
-        assertNull( attributeValueStore.get( teiB, atA ) );
+        assertNull( attributeValueStore.get( teiB, atC ) );
     }
 
     @Test
@@ -157,7 +159,7 @@ class TrackedEntityAttributeValueStoreTest extends SingleSetupIntegrationTestBas
         attributeValueStore.saveVoid( avA );
         attributeValueStore.saveVoid( avC );
         assertEquals( avA, attributeValueStore.get( teiA, atA ) );
-        assertEquals( avC, attributeValueStore.get( teiB, atA ) );
+        assertEquals( avC, attributeValueStore.get( teiB, atC ) );
     }
 
     @Test
@@ -167,25 +169,9 @@ class TrackedEntityAttributeValueStoreTest extends SingleSetupIntegrationTestBas
         attributeValueStore.saveVoid( avB );
         attributeValueStore.saveVoid( avC );
         List<TrackedEntityAttributeValue> attributeValues = attributeValueStore.get( teiA );
-        assertEquals( 2, attributeValues.size() );
-        assertTrue( equals( attributeValues, avA, avB ) );
+        assertContainsOnly( attributeValues, avA, avB );
         attributeValues = attributeValueStore.get( teiB );
-        assertEquals( 1, attributeValues.size() );
-        assertTrue( equals( attributeValues, avC ) );
-    }
-
-    @Test
-    void testGetTrackedEntityAttributeValuesbyEntityInstanceList()
-    {
-        attributeValueStore.saveVoid( avA );
-        attributeValueStore.saveVoid( avB );
-        attributeValueStore.saveVoid( avC );
-        List<TrackedEntityInstance> entityInstances = new ArrayList<>();
-        entityInstances.add( teiA );
-        entityInstances.add( teiB );
-        List<TrackedEntityAttributeValue> attributeValues = attributeValueStore.get( entityInstances );
-        assertEquals( 3, attributeValues.size() );
-        assertTrue( equals( attributeValues, avA, avB, avC ) );
+        assertContainsOnly( attributeValues, avC, avD );
     }
 
     @Test
