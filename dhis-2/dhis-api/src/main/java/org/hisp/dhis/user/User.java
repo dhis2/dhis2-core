@@ -261,6 +261,14 @@ public class User
      */
     private List<String> apps = new ArrayList<>();
 
+    /**
+     * OBS! This field will only be set when de-serialising a user with settings
+     * so the settings can be updated/stored.
+     *
+     * It is not initialised when loading a user from the database.
+     */
+    private transient UserSettings settings;
+
     public User()
     {
         this.twoFA = false;
@@ -761,6 +769,19 @@ public class User
     public void setAccountExpiry( Date accountExpiry )
     {
         this.accountExpiry = accountExpiry;
+    }
+
+    @JsonProperty( access = JsonProperty.Access.WRITE_ONLY )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( access = Property.Access.WRITE_ONLY )
+    public UserSettings getSettings()
+    {
+        return settings;
+    }
+
+    public void setSettings( UserSettings settings )
+    {
+        this.settings = settings;
     }
 
     // -------------------------------------------------------------------------
