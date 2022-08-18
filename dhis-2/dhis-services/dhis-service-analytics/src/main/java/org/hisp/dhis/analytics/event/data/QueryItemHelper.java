@@ -179,12 +179,12 @@ public class QueryItemHelper
     }
 
     /**
-     * Based on the given options, it returns a list of Option objects which are
+     * Based on the given options, it returns a set of Option objects which are
      * referenced as filter by any one of the query items provided.
      *
-     * @param options
-     * @param queryItems
-     * @return the list of Option found
+     * @param options the set of {@link Option}.
+     * @param queryItems the list of {@link QueryFilter}.
+     * @return the set of {@link Option} found.
      */
     public static Set<Option> getItemOptions( Set<Option> options, List<QueryItem> queryItems )
     {
@@ -208,13 +208,13 @@ public class QueryItemHelper
 
     /**
      * This method will check each filter in the given list of QueryFilter
-     * objects. For each filter, it will try to match the given Option with any
-     * filter that might contain an Option or multiple Options (split by ";").
-     * If a match is found, it will return true.
+     * objects. For each filter, it will try to match the given option with any
+     * filter that contain an option or multiple options (split by ";"). If a
+     * match is found, it will return true.
      *
-     * @param option
-     * @param queryFilters
-     * @return true if a match is found, false otherwise
+     * @param option the {@link Option}.
+     * @param queryFilters the list of {@link QueryFilter}.
+     * @return true if a match is found, false otherwise.
      */
     private static boolean filtersContainOption( Option option, List<QueryFilter> queryFilters )
     {

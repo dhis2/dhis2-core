@@ -219,7 +219,7 @@ public abstract class AbstractAnalyticsService
     {
         if ( !params.isSkipMeta() && params.hasCustomIdSchemaSet() )
         {
-            // Apply ID schemes mapped to the grid
+            // Apply ID schemes mapped to the grid.
             grid.substituteMetaData( schemaIdResponseMapper.getSchemeIdResponseMap( params ) );
         }
     }
@@ -309,7 +309,7 @@ public abstract class AbstractAnalyticsService
 
             metadata.put( DIMENSIONS.getKey(), getDimensionItems( params, dimensionOptions ) );
 
-            addOrgUnitHierarchyInfo( params, metadata );
+            maybeAddOrgUnitHierarchyInfo( params, metadata );
 
             grid.setMetaData( metadata );
         }
@@ -319,10 +319,10 @@ public abstract class AbstractAnalyticsService
      * Depending on the params "hierarchy" metadata boolean flags, this method
      * may append (or not) Org. Unit data into the given metadata map.
      *
-     * @param params
-     * @param metadata
+     * @param params the {@link EventQueryParams}.
+     * @param metadata map.
      */
-    private void addOrgUnitHierarchyInfo( EventQueryParams params, Map<String, Object> metadata )
+    private void maybeAddOrgUnitHierarchyInfo( EventQueryParams params, Map<String, Object> metadata )
     {
         if ( params.isHierarchyMeta() || params.isShowHierarchy() )
         {
