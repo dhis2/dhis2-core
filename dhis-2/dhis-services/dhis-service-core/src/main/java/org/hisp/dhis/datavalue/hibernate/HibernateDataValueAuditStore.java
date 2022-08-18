@@ -32,7 +32,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
@@ -151,8 +150,7 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
         List<Function<Root<DataValueAudit>, Predicate>> predicates = getDataValueAuditPredicates( builder, params );
 
         return getCount( builder, newJpaParameters()
-            .addPredicate( root -> builder.and( predicates.stream().map( p -> p.apply( root ) ).collect(
-                Collectors.toList() ).toArray( new Predicate[predicates.size()] ) ) )
+            .addPredicates( predicates )
             .count( root -> builder.countDistinct( root.get( "id" ) ) ) ).intValue();
     }
 
