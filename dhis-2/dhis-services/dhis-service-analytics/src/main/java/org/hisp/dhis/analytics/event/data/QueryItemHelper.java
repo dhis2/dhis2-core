@@ -34,7 +34,9 @@ import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
@@ -150,9 +152,9 @@ public class QueryItemHelper
      * @param params the EventQueryParams
      * @return a list of options based on the Grid/EventQueryParams
      */
-    public static List<Option> getItemOptions( final Grid grid, final EventQueryParams params )
+    public static Map<String, List<Option>> getItemOptions( final Grid grid, final EventQueryParams params )
     {
-        final List<Option> options = new ArrayList<>();
+        final Map<String, List<Option>> options = new HashMap<>();
 
         for ( int i = 0; i < grid.getHeaders().size(); ++i )
         {
@@ -160,15 +162,15 @@ public class QueryItemHelper
 
             if ( gridHeader.hasOptionSet() && isNotEmpty( grid.getRows() ) )
             {
-                options.addAll( getItemOptionsThatMatchesRows( grid, i ) );
+                options.put( gridHeader.getName(), getItemOptionsThatMatchesRows( grid, i ) );
             }
             else if ( gridHeader.hasOptionSet() && isEmpty( grid.getRows() ) )
             {
-                options.addAll( getItemOptionsForEmptyRows( params ) );
+                options.put( gridHeader.getName(), getItemOptionsForEmptyRows( params ) );
             }
         }
 
-        return options.stream().distinct().collect( toList() );
+        return options;
     }
 
     /**

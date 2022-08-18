@@ -305,9 +305,10 @@ public abstract class AbstractAnalyticsService
         {
             final Map<String, Object> metadata = new HashMap<>();
 
-            List<Option> options = getItemOptions( grid, params );
+            Map<String, List<Option>> options = getItemOptions( grid, params );
 
-            metadata.put( ITEMS.getKey(), getMetadataItems( params, periodKeywords, options ) );
+            metadata.put( ITEMS.getKey(), getMetadataItems( params, periodKeywords, options.values().stream()
+                .flatMap( Collection::stream ).distinct().collect( toList() ) ) );
 
             metadata.put( DIMENSIONS.getKey(), getDimensionItems( params, options ) );
 
@@ -469,7 +470,8 @@ public abstract class AbstractAnalyticsService
      * @param params the data query parameters.
      * @return a map.
      */
-    private Map<String, List<String>> getDimensionItems( EventQueryParams params, List<Option> itemOptions )
+    private Map<String, List<String>> getDimensionItems( EventQueryParams params,
+        Map<String, List<Option>> itemOptions )
     {
         Calendar calendar = PeriodType.getCalendar();
 
@@ -491,7 +493,8 @@ public abstract class AbstractAnalyticsService
 
             if ( item.hasOptionSet() )
             {
-                dimensionItems.put( itemUid, getDimensionItemUidList( params, item, itemOptions ) );
+                dimensionItems.put( itemUid,
+                    getDimensionItemUidList( params, item, itemOptions.get( item.getItem().getUid() ) ) );
             }
             else if ( item.hasLegendSet() )
             {
