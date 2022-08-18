@@ -30,14 +30,18 @@ package org.hisp.dhis.analytics.event.data;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.defaultString;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -172,6 +176,62 @@ public class QueryItemHelper
         }
 
         return options;
+    }
+
+    /**
+     * Based on the given options, it returns a list of Option objects which are
+     * referenced as filter by any one of the query items provided.
+     *
+     * @param options
+     * @param queryItems
+     * @return the list of Option found
+     */
+    public static Set<Option> getItemOptions( Set<Option> options, List<QueryItem> queryItems )
+    {
+        Set<Option> matchedOptions = new LinkedHashSet<>();
+
+        options.stream().filter( Objects::nonNull ).forEach(
+            option -> {
+                boolean hasNoQueryItemFilters = queryItems.stream().noneMatch( QueryItem::hasFilter );
+
+                boolean hasQueryItemFiltersWithOption = queryItems.stream().anyMatch(
+                    queryItem -> queryItem.hasFilter() && filtersContainOption( option, queryItem.getFilters() ) );
+
+                if ( hasNoQueryItemFilters || hasQueryItemFiltersWithOption )
+                {
+                    matchedOptions.add( option );
+                }
+            } );
+
+        return matchedOptions;
+    }
+
+    /**
+     * This method will check each filter in the given list of QueryFilter
+     * objects. For each filter, it will try to match the given Option with any
+     * filter that might contain an Option or multiple Options (split by ";").
+     * If a match is found, it will return true.
+     *
+     * @param option
+     * @param queryFilters
+     * @return true if a match is found, false otherwise
+     */
+    private static boolean filtersContainOption( Option option, List<QueryFilter> queryFilters )
+    {
+        for ( QueryFilter queryFilter : queryFilters )
+        {
+            String[] filterOptionsValues = defaultString( queryFilter.getFilter() ).split( ";" );
+
+            for ( String optionValue : filterOptionsValues )
+            {
+                if ( optionValue.equalsIgnoreCase( option.getCode() ) )
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     /**

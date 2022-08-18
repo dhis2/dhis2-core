@@ -46,12 +46,13 @@ import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentGraphMap;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraphMap;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 import lombok.RequiredArgsConstructor;
 
@@ -216,14 +217,10 @@ public abstract class AbstractAnalyticsService
      */
     void maybeApplyIdScheme( EventQueryParams params, Grid grid )
     {
-        if ( !params.isSkipMeta() )
+        if ( !params.isSkipMeta() && params.hasCustomIdSchemaSet() )
         {
-            if ( params.hasCustomIdSchemaSet() )
-            {
-                // Apply ID schemes mapped to the grid
-
-                grid.substituteMetaData( schemaIdResponseMapper.getSchemeIdResponseMap( params ) );
-            }
+            // Apply ID schemes mapped to the grid
+            grid.substituteMetaData( schemaIdResponseMapper.getSchemeIdResponseMap( params ) );
         }
     }
 
@@ -294,35 +291,56 @@ public abstract class AbstractAnalyticsService
     {
         if ( !params.isSkipMeta() )
         {
-            final Map<String, Object> metadata = new HashMap<>();
+            Map<String, Object> metadata = new HashMap<>();
+            Map<String, List<Option>> dimensionOptions = getItemOptions( grid, params );
+            Set<Option> responseOptions = new LinkedHashSet<>();
 
-            Map<String, List<Option>> options = getItemOptions( grid, params );
-
-            metadata.put( ITEMS.getKey(), getMetadataItems( params, periodKeywords, options.values().stream()
-                .flatMap( Collection::stream ).distinct().collect( toList() ) ) );
-
-            metadata.put( DIMENSIONS.getKey(), getDimensionItems( params, options ) );
-
-            if ( params.isHierarchyMeta() || params.isShowHierarchy() )
+            if ( !params.isSkipData() )
             {
-                User user = securityManager.getCurrentUser( params );
-                List<OrganisationUnit> organisationUnits = asTypedList(
-                    params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) );
-                Collection<OrganisationUnit> roots = user != null ? user.getOrganisationUnits() : null;
-
-                if ( params.isHierarchyMeta() )
-                {
-                    metadata.put( ORG_UNIT_HIERARCHY.getKey(), getParentGraphMap( organisationUnits, roots ) );
-                }
-
-                if ( params.isShowHierarchy() )
-                {
-                    metadata.put( ORG_UNIT_NAME_HIERARCHY.getKey(),
-                        getParentNameGraphMap( organisationUnits, roots, true ) );
-                }
+                responseOptions.addAll( dimensionOptions.values().stream()
+                    .flatMap( Collection::stream ).distinct().collect( toList() ) );
+            }
+            else
+            {
+                responseOptions.addAll( getItemOptions( params.getItemOptions(), params.getItems() ) );
             }
 
+            metadata.put( ITEMS.getKey(), getMetadataItems( params, periodKeywords, responseOptions ) );
+
+            metadata.put( DIMENSIONS.getKey(), getDimensionItems( params, dimensionOptions ) );
+
+            addOrgUnitHierarchyInfo( params, metadata );
+
             grid.setMetaData( metadata );
+        }
+    }
+
+    /**
+     * Depending on the params "hierarchy" metadata boolean flags, this method
+     * may append (or not) Org. Unit data into the given metadata map.
+     *
+     * @param params
+     * @param metadata
+     */
+    private void addOrgUnitHierarchyInfo( EventQueryParams params, Map<String, Object> metadata )
+    {
+        if ( params.isHierarchyMeta() || params.isShowHierarchy() )
+        {
+            User user = securityManager.getCurrentUser( params );
+            List<OrganisationUnit> organisationUnits = asTypedList(
+                params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) );
+            Collection<OrganisationUnit> roots = user != null ? user.getOrganisationUnits() : null;
+
+            if ( params.isHierarchyMeta() )
+            {
+                metadata.put( ORG_UNIT_HIERARCHY.getKey(), getParentGraphMap( organisationUnits, roots ) );
+            }
+
+            if ( params.isShowHierarchy() )
+            {
+                metadata.put( ORG_UNIT_NAME_HIERARCHY.getKey(),
+                    getParentNameGraphMap( organisationUnits, roots, true ) );
+            }
         }
     }
 
@@ -333,7 +351,7 @@ public abstract class AbstractAnalyticsService
      * @return a map.
      */
     private Map<String, MetadataItem> getMetadataItems( EventQueryParams params,
-        List<DimensionItemKeywords.Keyword> periodKeywords, List<Option> itemOptions )
+        List<DimensionItemKeywords.Keyword> periodKeywords, Set<Option> itemOptions )
     {
         Map<String, MetadataItem> metadataItemMap = AnalyticsUtils.getDimensionMetadataItemMap( params );
 
@@ -380,7 +398,7 @@ public abstract class AbstractAnalyticsService
         MetadataItem metadataItem = new MetadataItem( item.getItem().getDisplayProperty( displayProperty ),
             includeDetails ? item.getItem() : null );
 
-        metadataItemMap.put( getItemIdMaybeWithProgramStageIdPrefix( item ), metadataItem );
+        metadataItemMap.put( getItemIdWithProgramStageIdPrefix( item ), metadataItem );
 
         // Done for backwards compatibility
 
@@ -392,7 +410,7 @@ public abstract class AbstractAnalyticsService
      *
      * @param item {@link QueryItem}.
      */
-    private String getItemIdMaybeWithProgramStageIdPrefix( QueryItem item )
+    private String getItemIdWithProgramStageIdPrefix( QueryItem item )
     {
         if ( item.hasProgramStage() )
         {
@@ -420,40 +438,15 @@ public abstract class AbstractAnalyticsService
      * @param itemOptions the list of {@link Option}.
      */
     private void addMetadataItems( Map<String, MetadataItem> metadataItemMap,
-        EventQueryParams params, List<Option> itemOptions )
+        EventQueryParams params, Set<Option> itemOptions )
     {
         boolean includeDetails = params.isIncludeMetadataDetails();
 
-        if ( !params.isSkipData() )
-        {
-            // Filtering if the rows in grid are there (skipData = false)
-            itemOptions.forEach( option -> metadataItemMap.put( option.getUid(),
-                new MetadataItem(
-                    option.getDisplayProperty( params.getDisplayProperty() ),
-                    includeDetails ? option.getUid() : null,
-                    option.getCode() ) ) );
-        }
-        else
-        {
-            // Filtering if the rows in grid are not there (skipData = true
-            // only)
-            // dimension=Zj7UnCAulEk.K6uUAvq500H:IN:A00;A60;A01 -> IN indicates
-            // there is a filter
-            // the stream contains all options if no filter or only options fit
-            // to the filter
-            // options can be divided by separator <<;>>
-            params.getItemOptions().stream()
-                .filter( option -> option != null &&
-                    (params.getItems().stream().noneMatch( QueryItem::hasFilter ) ||
-                        params.getItems().stream().filter( QueryItem::hasFilter )
-                            .anyMatch( qi -> qi.getFilters().stream()
-                                .anyMatch( f -> Arrays.stream( f.getFilter().split( ";" ) )
-                                    .anyMatch( ft -> ft.equalsIgnoreCase( option.getCode() ) ) ) )) )
-                .forEach( option -> metadataItemMap.put( option.getUid(),
-                    new MetadataItem( option.getDisplayProperty( params.getDisplayProperty() ),
-                        includeDetails ? option.getUid() : null,
-                        option.getCode() ) ) );
-        }
+        itemOptions.forEach( option -> metadataItemMap.put( option.getUid(),
+            new MetadataItem(
+                option.getDisplayProperty( params.getDisplayProperty() ),
+                includeDetails ? option.getUid() : null,
+                option.getCode() ) ) );
     }
 
     /**
