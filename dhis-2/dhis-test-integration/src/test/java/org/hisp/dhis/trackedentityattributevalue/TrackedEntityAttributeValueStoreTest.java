@@ -171,7 +171,7 @@ class TrackedEntityAttributeValueStoreTest extends SingleSetupIntegrationTestBas
         List<TrackedEntityAttributeValue> attributeValues = attributeValueStore.get( teiA );
         assertContainsOnly( attributeValues, avA, avB );
         attributeValues = attributeValueStore.get( teiB );
-        assertContainsOnly( attributeValues, avC, avD );
+        assertContainsOnly( attributeValues, avC );
     }
 
     @Test
