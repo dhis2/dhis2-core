@@ -77,6 +77,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -661,7 +662,7 @@ public class JdbcEventStore implements EventStore
 
                 ProgramType programType = ProgramType.fromValue( rowSet.getString( "p_type" ) );
 
-                if ( programType == ProgramType.WITHOUT_REGISTRATION )
+                if ( programType == ProgramType.WITH_REGISTRATION )
                 {
                     eventRow.setEnrollment( rowSet.getString( "pi_uid" ) );
                     eventRow.setFollowup( rowSet.getBoolean( "pi_followup" ) );
@@ -989,13 +990,28 @@ public class JdbcEventStore implements EventStore
             + "inner join programstage ps on ps.programstageid=psi.programstageid "
             + "inner join categoryoptioncombo coc on coc.categoryoptioncomboid=psi.attributeoptioncomboid "
             + "inner join categoryoptioncombos_categoryoptions cocco on psi.attributeoptioncomboid=cocco.categoryoptioncomboid "
-            + "inner join dataelementcategoryoption deco on cocco.categoryoptionid=deco.categoryoptionid "
-            + "left join trackedentityprogramowner po on (pi.trackedentityinstanceid=po.trackedentityinstanceid) "
-            + "inner join organisationunit ou on (coalesce(po.organisationunitid, psi.organisationunitid)=ou.organisationunitid) "
-            + "left join trackedentityinstance tei on tei.trackedentityinstanceid=pi.trackedentityinstanceid "
-            + "left join organisationunit teiou on (tei.organisationunitid=teiou.organisationunitid) "
-            + "left join users auc on (psi.assigneduserid=auc.userid) "
-            + "left join userinfo au on (auc.userid=au.userinfoid) " );
+            + "inner join dataelementcategoryoption deco on cocco.categoryoptionid=deco.categoryoptionid " );
+
+        if ( Optional.ofNullable( params.getProgram() )
+            .filter( p -> Objects.nonNull( p.getProgramType() ) && p.getProgramType() == ProgramType.WITH_REGISTRATION )
+            .isPresent() )
+        {
+            sqlBuilder.append(
+                "left join trackedentityprogramowner po on (pi.trackedentityinstanceid=po.trackedentityinstanceid) " )
+                .append(
+                    "inner join organisationunit ou on (coalesce(po.organisationunitid, psi.organisationunitid)=ou.organisationunitid) " );
+        }
+        else
+        {
+            sqlBuilder.append(
+                "inner join organisationunit ou on psi.organisationunitid=ou.organisationunitid " );
+        }
+
+        sqlBuilder
+            .append( "left join trackedentityinstance tei on tei.trackedentityinstanceid=pi.trackedentityinstanceid "
+                + "left join organisationunit teiou on (tei.organisationunitid=teiou.organisationunitid) "
+                + "left join users auc on (psi.assigneduserid=auc.userid) "
+                + "left join userinfo au on (auc.userid=au.userinfoid) " );
 
         Set<String> joinedColumns = new HashSet<>();
 
@@ -1464,11 +1480,21 @@ public class JdbcEventStore implements EventStore
 
     private String getEventPagingQuery( EventSearchParams params )
     {
-        StringBuilder sqlBuilder = new StringBuilder().append( " " );
+        final StringBuilder sqlBuilder = new StringBuilder().append( " " );
+        int pageSize = params.getPageSizeWithDefault();
+
+        // When the clients choose to not show the total of pages.
+        if ( !params.isTotalPages() )
+        {
+            // Get pageSize + 1, so we are able to know if there is another
+            // page available. It adds one additional element into the list,
+            // as consequence. The caller needs to remove the last element.
+            pageSize++;
+        }
 
         if ( !params.isSkipPaging() )
         {
-            sqlBuilder.append( "limit " ).append( params.getPageSizeWithDefault() ).append( " offset " )
+            sqlBuilder.append( "limit " ).append( pageSize ).append( " offset " )
                 .append( params.getOffset() ).append( " " );
         }
 

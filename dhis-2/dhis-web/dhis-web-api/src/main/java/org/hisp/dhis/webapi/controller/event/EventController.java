@@ -57,6 +57,7 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.PagerUtils;
+import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -562,10 +563,7 @@ public class EventController
 
         RootNode rootNode = NodeUtils.createMetadata();
 
-        if ( events.getPager() != null )
-        {
-            rootNode.addChild( NodeUtils.createPager( events.getPager() ) );
-        }
+        addPager( params, events, rootNode );
 
         if ( !StringUtils.isEmpty( eventCriteria.getAttachment() ) )
         {
@@ -615,10 +613,7 @@ public class EventController
 
         RootNode rootNode = NodeUtils.createEvents();
 
-        if ( events.getPager() != null )
-        {
-            rootNode.addChild( NodeUtils.createPager( events.getPager() ) );
-        }
+        addPager( params, events, rootNode );
 
         if ( !StringUtils.isEmpty( eventCriteria.getAttachment() ) )
         {
@@ -711,7 +706,8 @@ public class EventController
         Model model, HttpServletRequest request )
         throws Exception
     {
-        Event event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( uid ) );
+        Event event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( uid ),
+            true );
 
         if ( event == null )
         {
@@ -729,7 +725,8 @@ public class EventController
         HttpServletResponse response, HttpServletRequest request )
         throws Exception
     {
-        Event event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( eventUid ) );
+        Event event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( eventUid ),
+            true );
 
         if ( event == null )
         {
@@ -1035,6 +1032,28 @@ public class EventController
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
+
+    /**
+     * Adds a pager object to the root node respecting the given params.
+     *
+     * @param params
+     * @param events
+     * @param rootNode
+     */
+    private void addPager( final EventSearchParams params, final Events events, final RootNode rootNode )
+    {
+        if ( events.getPager() != null )
+        {
+            if ( params.isTotalPages() )
+            {
+                rootNode.addChild( NodeUtils.createPager( events.getPager() ) );
+            }
+            else
+            {
+                rootNode.addChild( NodeUtils.createSlimPager( (SlimPager) events.getPager() ) );
+            }
+        }
+    }
 
     /**
      * Starts an asynchronous import task.

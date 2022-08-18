@@ -74,6 +74,7 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Async;
@@ -263,6 +264,12 @@ public abstract class AbstractJdbcTableManager
     }
 
     @Override
+    public void dropTempTablePartition( AnalyticsTablePartition tablePartition )
+    {
+        dropTableCascade( tablePartition.getTempTableName() );
+    }
+
+    @Override
     public void dropTable( String tableName )
     {
         executeSilently( "drop table if exists " + tableName );
@@ -385,9 +392,9 @@ public abstract class AbstractJdbcTableManager
         {
             jdbcTemplate.execute( sql );
         }
-        catch ( BadSqlGrammarException ex )
+        catch ( DataAccessException ex )
         {
-            log.debug( ex.getMessage() );
+            log.error( ex.getMessage() );
         }
     }
 
@@ -678,4 +685,5 @@ public abstract class AbstractJdbcTableManager
 
         executeSilently( sql );
     }
+
 }

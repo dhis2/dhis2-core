@@ -46,6 +46,8 @@ public class SqlUtils
 {
     public static final String QUOTE = "\"";
 
+    public static final String SINGLE_QUOTE = "'";
+
     public static final String SEPARATOR = ".";
 
     public static final String OPTION_SEP = ".";
@@ -78,6 +80,21 @@ public class SqlUtils
         Assert.notNull( alias, "Alias must be specified" );
 
         return alias + SEPARATOR + quote( relation );
+    }
+
+    /**
+     * Single-quotes the given relation (typically a value). Single-quotes part
+     * of the given relation are encoded (replaced by double single-quotes that
+     * is).
+     *
+     * @param relation the relation (typically a column).
+     * @return the single-quoted relation.
+     */
+    public static String singleQuote( String relation )
+    {
+        String rel = relation.replace( SINGLE_QUOTE, (SINGLE_QUOTE + SINGLE_QUOTE) );
+
+        return SINGLE_QUOTE + rel + SINGLE_QUOTE;
     }
 
     /**

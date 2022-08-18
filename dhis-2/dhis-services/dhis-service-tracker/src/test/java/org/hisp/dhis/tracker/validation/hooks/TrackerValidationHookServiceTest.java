@@ -77,7 +77,8 @@ public class TrackerValidationHookServiceTest
             .sortValidationHooks(
                 Arrays.asList( new EventDataValuesValidationHook(),
                     new TrackedEntityAttributeValidationHook( null, mock( DhisConfigurationProvider.class ) ),
-                    new EnrollmentAttributeValidationHook( null ), new PreCheckValidateAndGenerateUidHook() ) );
+                    new EnrollmentAttributeValidationHook( null, mock( DhisConfigurationProvider.class ) ),
+                    new PreCheckValidateAndGenerateUidHook() ) );
 
         assertEquals( 4, validationHooks.size() );
         assertThat( validationHooks.get( 0 ), instanceOf( PreCheckValidateAndGenerateUidHook.class ) );
@@ -96,7 +97,8 @@ public class TrackerValidationHookServiceTest
             .getRuleEngineValidationHooks(
                 Arrays.asList( new EventDataValuesValidationHook(),
                     new EnrollmentRuleValidationHook(),
-                    new EnrollmentAttributeValidationHook( null ), new EventRuleValidationHook() ) );
+                    new EnrollmentAttributeValidationHook( null, mock( DhisConfigurationProvider.class ) ),
+                    new EventRuleValidationHook() ) );
 
         assertEquals( 2, ruleEngineValidationHooks.size() );
         assertTrue( ruleEngineValidationHooks.stream().anyMatch( h -> h instanceof EnrollmentRuleValidationHook ) );

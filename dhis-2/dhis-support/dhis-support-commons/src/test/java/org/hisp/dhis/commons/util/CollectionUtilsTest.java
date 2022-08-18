@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,60 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.webrequest;
+package org.hisp.dhis.commons.util;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
-import java.util.Optional;
 
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import org.hisp.dhis.commons.collection.CollectionUtils;
+import org.junit.jupiter.api.Test;
 
-/**
- * simplest implementation of PagingCriteria and SortingCriteria
- *
- * @author Giuseppe Nespolino <g.nespolino@gmail.com>
- */
-@Data
-@NoArgsConstructor( access = AccessLevel.PROTECTED )
-public abstract class PagingAndSortingCriteriaAdapter implements PagingCriteria, SortingCriteria
+import com.google.common.collect.Lists;
+
+class CollectionUtilsTest
 {
 
-    /**
-     * Page number to return.
-     */
-    private Integer page;
-
-    /**
-     * Page size.
-     */
-    private Integer pageSize;
-
-    /**
-     * Indicates whether to include the total number of pages in the paging
-     * response.
-     */
-    private boolean totalPages;
-
-    /**
-     * Indicates whether paging should be skipped.
-     */
-    private Boolean skipPaging;
-
-    /**
-     * order params
-     */
-    private List<OrderCriteria> order;
-
-    public boolean isPagingRequest()
+    @Test
+    public void testDifference()
     {
-        return !isSkipPaging();
-    }
+        List<String> collection1 = Lists.newArrayList( "One", "Two", "Three" );
+        List<String> collection2 = Lists.newArrayList( "One", "Two", "Four" );
+        List<String> difference = CollectionUtils.difference( collection1, collection2 );
 
-    public boolean isSkipPaging()
-    {
-        return Optional.ofNullable( skipPaging )
-            .orElse( false );
+        assertEquals( 1, difference.size() );
+        assertEquals( "Three", difference.get( 0 ) );
     }
-
 }

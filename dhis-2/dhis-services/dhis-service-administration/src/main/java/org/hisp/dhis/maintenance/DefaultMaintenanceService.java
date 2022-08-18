@@ -46,6 +46,7 @@ import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
 import org.hisp.dhis.user.*;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -81,13 +82,16 @@ public class DefaultMaintenanceService
 
     private DataApprovalAuditService dataApprovalAuditService;
 
+    private TrackedEntityDataValueAuditService trackedEntityDataValueAuditService;
+
     private ApplicationEventPublisher eventPublisher;
 
     public DefaultMaintenanceService( MaintenanceStore maintenanceStore, PeriodService periodService,
         UserService userService, CurrentUserService currentUserService, DataValueService dataValueService,
         DataValueAuditService dataValueAuditService, CompleteDataSetRegistrationService completeRegistrationService,
         DataApprovalService dataApprovalService, DataApprovalAuditService dataApprovalAuditService,
-        ApplicationEventPublisher eventPublisher )
+        ApplicationEventPublisher eventPublisher,
+        TrackedEntityDataValueAuditService trackedEntityDataValueAuditService )
     {
 
         checkNotNull( maintenanceStore );
@@ -99,6 +103,7 @@ public class DefaultMaintenanceService
         checkNotNull( completeRegistrationService );
         checkNotNull( dataApprovalService );
         checkNotNull( dataApprovalAuditService );
+        checkNotNull( trackedEntityDataValueAuditService );
 
         this.maintenanceStore = maintenanceStore;
         this.periodService = periodService;
@@ -110,6 +115,7 @@ public class DefaultMaintenanceService
         this.dataApprovalService = dataApprovalService;
         this.dataApprovalAuditService = dataApprovalAuditService;
         this.eventPublisher = eventPublisher;
+        this.trackedEntityDataValueAuditService = trackedEntityDataValueAuditService;
     }
 
     // -------------------------------------------------------------------------
@@ -221,6 +227,7 @@ public class DefaultMaintenanceService
 
         dataValueAuditService.deleteDataValueAudits( dataElement );
         dataValueService.deleteDataValues( dataElement );
+        trackedEntityDataValueAuditService.deleteTrackedEntityDataValueAudit( dataElement );
 
         log.info( "Pruned data for data element: " + dataElement );
 

@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.event.data;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 
 /**
@@ -39,6 +40,7 @@ import org.hisp.dhis.program.ProgramStage;
  */
 public class LabelMapper
 {
+
     private LabelMapper()
     {
     }
@@ -51,9 +53,9 @@ public class LabelMapper
      */
     static String getEventDateLabel( final ProgramStage programStage, final String defaultLabel )
     {
-        if ( programStage != null && isNotBlank( programStage.getExecutionDateLabel() ) )
+        if ( programStage != null && isNotBlank( programStage.getDisplayExecutionDateLabel() ) )
         {
-            return programStage.getExecutionDateLabel();
+            return programStage.getDisplayExecutionDateLabel();
         }
 
         return defaultLabel;
@@ -62,15 +64,14 @@ public class LabelMapper
     /**
      * Finds for a custom label for enrollment date if one exists.
      *
-     * @param programStage
+     * @param program
      * @return the custom label, otherwise the default one
      */
-    static String getEnrollmentDateLabel( final ProgramStage programStage, final String defaultLabel )
+    static String getEnrollmentDateLabel( final Program program, final String defaultLabel )
     {
-        if ( programStage != null && programStage.getProgram() != null
-            && isNotBlank( programStage.getProgram().getEnrollmentDateLabel() ) )
+        if ( program != null && isNotBlank( program.getDisplayEnrollmentDateLabel() ) )
         {
-            return programStage.getProgram().getEnrollmentDateLabel();
+            return program.getDisplayEnrollmentDateLabel();
         }
 
         return defaultLabel;
@@ -79,15 +80,14 @@ public class LabelMapper
     /**
      * Finds for a custom label for incident date if one exists.
      *
-     * @param programStage
+     * @param program
      * @return the custom label, otherwise the default one
      */
-    static String getIncidentDateLabel( final ProgramStage programStage, final String defaultLabel )
+    static String getIncidentDateLabel( final Program program, final String defaultLabel )
     {
-        if ( programStage != null && programStage.getProgram() != null
-            && isNotBlank( programStage.getProgram().getIncidentDateLabel() ) )
+        if ( program != null && isNotBlank( program.getDisplayIncidentDateLabel() ) )
         {
-            return programStage.getProgram().getIncidentDateLabel();
+            return program.getDisplayIncidentDateLabel();
         }
 
         return defaultLabel;

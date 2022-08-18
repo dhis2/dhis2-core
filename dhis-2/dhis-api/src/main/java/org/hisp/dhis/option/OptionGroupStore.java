@@ -41,5 +41,7 @@ public interface OptionGroupStore
 {
     List<OptionGroup> getOptionGroups( OptionGroupSet groupSet );
 
+    List<OptionGroup> getOptionGroupsByOptionId( String optionId );
+
     List<OptionGroup> getOptionGroupsNoAcl( DataDimensionType dataDimensionType, boolean dataDimension );
 }

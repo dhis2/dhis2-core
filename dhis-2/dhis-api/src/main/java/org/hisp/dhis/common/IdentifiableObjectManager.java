@@ -109,6 +109,9 @@ public interface IdentifiableObjectManager
 
     <T extends IdentifiableObject> List<T> getByUid( Class<T> clazz, Collection<String> uids );
 
+    <T extends IdentifiableObject> List<T> getAndValidateByUid( Class<T> type, Collection<String> uids )
+        throws IllegalQueryException;
+
     <T extends IdentifiableObject> List<T> getById( Class<T> clazz, Collection<Long> ids );
 
     <T extends IdentifiableObject> List<T> getOrdered( Class<T> clazz, IdScheme idScheme, Collection<String> values );

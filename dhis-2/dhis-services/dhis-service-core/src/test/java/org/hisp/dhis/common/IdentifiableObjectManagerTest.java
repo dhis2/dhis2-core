@@ -33,6 +33,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,10 +43,15 @@ import java.util.Set;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.TransactionalIntegrationTest;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
@@ -446,6 +452,32 @@ public class IdentifiableObjectManagerTest
     }
 
     @Test
+    public void getAndValidateByUidTest()
+    {
+        DataElement dataElementA = createDataElement( 'A' );
+        DataElement dataElementB = createDataElement( 'B' );
+        DataElement dataElementC = createDataElement( 'C' );
+        identifiableObjectManager.save( dataElementA );
+        identifiableObjectManager.save( dataElementB );
+        identifiableObjectManager.save( dataElementC );
+        List<DataElement> ab = identifiableObjectManager.getAndValidateByUid( DataElement.class,
+            Arrays.asList( dataElementA.getUid(), dataElementB.getUid() ) );
+        assertTrue( ab.contains( dataElementA ) );
+        assertTrue( ab.contains( dataElementB ) );
+        assertFalse( ab.contains( dataElementC ) );
+    }
+
+    @Test
+    public void getAndValidateByUidExceptionTest()
+    {
+        DataElement dataElementA = createDataElement( 'A' );
+        identifiableObjectManager.save( dataElementA );
+        IllegalQueryException ex = assertThrows( IllegalQueryException.class, () -> identifiableObjectManager
+            .getAndValidateByUid( DataElement.class, Arrays.asList( dataElementA.getUid(), "xhjG82jHaky" ) ) );
+        assertEquals( ErrorCode.E1112, ex.getErrorCode() );
+    }
+
+    @Test
     public void getOrderedUidIdSchemeTest()
     {
         DataElement dataElementA = createDataElement( 'A' );
@@ -646,5 +678,16 @@ public class IdentifiableObjectManagerTest
 
         de = identifiableObjectManager.get( de.getUid() );
         assertEquals( 0, de.getSharing().getUserGroups().size() );
+    }
+
+    @Test
+    public void testGetDefaults()
+    {
+        Map<Class<? extends IdentifiableObject>, IdentifiableObject> objects = identifiableObjectManager.getDefaults();
+        assertEquals( 4, objects.size() );
+        assertNotNull( objects.get( Category.class ) );
+        assertNotNull( objects.get( CategoryCombo.class ) );
+        assertNotNull( objects.get( CategoryOptionCombo.class ) );
+        assertNotNull( objects.get( CategoryOption.class ) );
     }
 }

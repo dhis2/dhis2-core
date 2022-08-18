@@ -94,6 +94,59 @@ public class OptionObjectBundleHook
         }
     }
 
+    @Override
+    public <T extends IdentifiableObject> void preUpdate( T object, T persistedObject, ObjectBundle bundle )
+    {
+        if ( !(object instanceof Option) )
+        {
+            return;
+        }
+
+        Option option = (Option) object;
+
+        if ( option.getOptionSet() == null )
+        {
+            return;
+        }
+
+        OptionSet optionSet = bundle.getPreheat().get( bundle.getPreheatIdentifier(), OptionSet.class,
+            option.getOptionSet().getUid() );
+
+        if ( optionSet != null )
+        {
+            // Remove the existed option from OptionSet, will add the updating
+            // one
+            // in postUpdate()
+            optionSet.getOptions().remove( persistedObject );
+        }
+    }
+
+    @Override
+    public <T extends IdentifiableObject> void postUpdate( T object, ObjectBundle bundle )
+    {
+        if ( !(object instanceof Option) )
+        {
+            return;
+        }
+
+        Option option = (Option) object;
+
+        if ( option.getOptionSet() == null )
+        {
+            return;
+        }
+
+        OptionSet optionSet = bundle.getPreheat().get( bundle.getPreheatIdentifier(), OptionSet.class,
+            option.getOptionSet().getUid() );
+
+        if ( optionSet != null )
+        {
+            // Add the updated Option to OptionSet, this will allow Hibernate to
+            // re-organize sortOrder gaps if any.
+            optionSet.addOption( option );
+        }
+    }
+
     /**
      * Check for duplication of Option's name OR code within given OptionSet
      *

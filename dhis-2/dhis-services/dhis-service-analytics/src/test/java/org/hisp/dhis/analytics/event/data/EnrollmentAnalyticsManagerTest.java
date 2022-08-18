@@ -31,6 +31,7 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.DhisConvenienceTest.*;
+import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -223,7 +224,7 @@ public class EnrollmentAnalyticsManagerTest
             createRequestParams( programIndicatorA, relationshipTypeA ) ).withStartDate( startDate )
                 .withEndDate( endDate );
 
-        when( programIndicatorService.getAnalyticsSql( "", programIndicatorA, getDate( 2000, 1, 1 ),
+        when( programIndicatorService.getAnalyticsSql( "", NUMERIC, programIndicatorA, getDate( 2000, 1, 1 ),
             getDate( 2017, 4, 8 ), "subax" ) ).thenReturn( piSubquery );
 
         subject.getEnrollments( params.build(), new ListGrid(), 100 );
@@ -263,7 +264,7 @@ public class EnrollmentAnalyticsManagerTest
             createRequestParams( programIndicatorA, relationshipTypeA ) ).withStartDate( startDate )
                 .withEndDate( endDate );
 
-        when( programIndicatorService.getAnalyticsSql( "", programIndicatorA, getDate( 2000, 1, 1 ),
+        when( programIndicatorService.getAnalyticsSql( "", NUMERIC, programIndicatorA, getDate( 2000, 1, 1 ),
             getDate( 2017, 4, 8 ), "subax" ) ).thenReturn( piSubquery );
 
         subject.getEnrollments( params.build(), new ListGrid(), 100 );
@@ -334,7 +335,7 @@ public class EnrollmentAnalyticsManagerTest
             createRequestParams( programIndicatorA, relationshipTypeA ) ).withStartDate( startDate )
                 .withEndDate( endDate );
 
-        when( programIndicatorService.getAnalyticsSql( "", programIndicatorA, getDate( 2000, 1, 1 ),
+        when( programIndicatorService.getAnalyticsSql( "", NUMERIC, programIndicatorA, getDate( 2000, 1, 1 ),
             getDate( 2017, 4, 8 ), "subax" ) ).thenReturn( piSubquery );
 
         subject.getEnrollments( params.build(), new ListGrid(), 100 );

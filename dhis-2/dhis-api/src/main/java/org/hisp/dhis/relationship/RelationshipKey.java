@@ -108,7 +108,7 @@ public class RelationshipKey
             }
             else if ( isEvent() )
             {
-                return enrollment;
+                return event;
             }
 
             return "ERROR";

@@ -90,7 +90,7 @@ public class Log4JLogConfigInitializer
 
     private static final String AUDIT_LOGGER_FILENAME = "dhis-audit.log";
 
-    private static final String LOG4J_CONF_PROP = "log4j.configuration";
+    private static final String LOG4J_CONF_PROP = "log4j2.configurationFile";
 
     private final LocationManager locationManager;
 
@@ -108,16 +108,16 @@ public class Log4JLogConfigInitializer
     @Override
     public void initConfig()
     {
-        if ( !locationManager.externalDirectorySet() )
-        {
-            log.warn( "Could not initialize additional log configuration, external home directory not set" );
-            return;
-        }
-
         if ( isNotBlank( System.getProperty( LOG4J_CONF_PROP ) ) )
         {
             log.info( "Aborting default log config, external config set through system prop " + LOG4J_CONF_PROP + ": "
                 + System.getProperty( LOG4J_CONF_PROP ) );
+            return;
+        }
+
+        if ( !locationManager.externalDirectorySet() )
+        {
+            log.warn( "Could not initialize additional log configuration, external home directory not set" );
             return;
         }
 
@@ -161,7 +161,7 @@ public class Log4JLogConfigInitializer
             .setName( "appender_" + file )
             .withFilePattern( file + ".%i" )
             .setLayout( PATTERN_LAYOUT )
-            .withPolicy( CronTriggeringPolicy.createPolicy( getLogConfiguration(), "true", "0 0 * * *" ) )
+            .withPolicy( CronTriggeringPolicy.createPolicy( getLogConfiguration(), "true", "0 0 * * * ?" ) )
             .withStrategy( DefaultRolloverStrategy.newBuilder()
                 .withCompressionLevelStr( String.valueOf( Deflater.BEST_COMPRESSION ) )
                 .withFileIndex( "nomax" )

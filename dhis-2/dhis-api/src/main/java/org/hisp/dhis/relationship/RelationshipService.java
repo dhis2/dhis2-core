@@ -33,6 +33,7 @@ import java.util.Optional;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 
 /**
  * @author Abyot Asalefew
@@ -86,12 +87,32 @@ public interface RelationshipService
 
     Relationship getRelationship( String uid );
 
+    default List<Relationship> getRelationshipsByTrackedEntityInstance( TrackedEntityInstance tei,
+        boolean skipAccessValidation )
+    {
+        return getRelationshipsByTrackedEntityInstance( tei, null, skipAccessValidation );
+    }
+
     List<Relationship> getRelationshipsByTrackedEntityInstance( TrackedEntityInstance tei,
+        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
         boolean skipAccessValidation );
 
-    List<Relationship> getRelationshipsByProgramInstance( ProgramInstance pi, boolean skipAccessValidation );
+    default List<Relationship> getRelationshipsByProgramInstance( ProgramInstance pi, boolean skipAccessValidation )
+    {
+        return getRelationshipsByProgramInstance( pi, null, skipAccessValidation );
+    }
 
-    List<Relationship> getRelationshipsByProgramStageInstance( ProgramStageInstance psi, boolean skipAccessValidation );
+    List<Relationship> getRelationshipsByProgramInstance( ProgramInstance pi,
+        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter, boolean skipAccessValidation );
+
+    default List<Relationship> getRelationshipsByProgramStageInstance( ProgramStageInstance psi,
+        boolean skipAccessValidation )
+    {
+        return getRelationshipsByProgramStageInstance( psi, null, skipAccessValidation );
+    }
+
+    List<Relationship> getRelationshipsByProgramStageInstance( ProgramStageInstance psi,
+        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter, boolean skipAccessValidation );
 
     List<Relationship> getRelationshipsByRelationshipType( RelationshipType relationshipType );
 }

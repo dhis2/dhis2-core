@@ -30,7 +30,6 @@ package org.hisp.dhis.webapi;
 import javax.transaction.Transactional;
 
 import org.hisp.dhis.config.DataSourceConfig;
-import org.hisp.dhis.config.H2DhisConfigurationProvider;
 import org.hisp.dhis.config.HibernateConfig;
 import org.hisp.dhis.config.HibernateEncryptionConfig;
 import org.hisp.dhis.config.ServiceConfig;
@@ -38,7 +37,6 @@ import org.hisp.dhis.config.StartupConfig;
 import org.hisp.dhis.config.StoreConfig;
 import org.hisp.dhis.configuration.NotifierConfiguration;
 import org.hisp.dhis.db.migration.config.FlywayConfig;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.jdbc.config.JdbcConfig;
 import org.hisp.dhis.leader.election.LeaderElectionConfiguration;
 import org.hisp.dhis.security.config.DhisWebCommonsWebSecurityConfig;
@@ -100,12 +98,6 @@ import com.google.common.collect.ImmutableMap;
 @Transactional
 public class WebTestConfiguration
 {
-    @Bean( name = "dhisConfigurationProvider" )
-    public DhisConfigurationProvider dhisConfigurationProvider()
-    {
-        return new H2DhisConfigurationProvider();
-    }
-
     @Bean
     public BCryptPasswordEncoder bCryptPasswordEncoder()
     {

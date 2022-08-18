@@ -41,7 +41,9 @@ import java.util.stream.Collectors;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.apache.commons.lang3.Validate;
+import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.antlr.AntlrExpressionVisitor;
+import org.hisp.dhis.antlr.AntlrParserUtils;
 import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalItemId;
@@ -52,6 +54,7 @@ import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.expression.MissingValueStrategy;
+import org.hisp.dhis.expression.ParseType;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
@@ -181,6 +184,16 @@ public class CommonExpressionVisitor
      * Strategy for handling missing values.
      */
     private MissingValueStrategy missingValueStrategy = NEVER_SKIP;
+
+    /**
+     * Type of expression being parsed.
+     */
+    private ParseType parseType;
+
+    /**
+     * Expected data type of expression being parsed.
+     */
+    private DataType dataType;
 
     /**
      * Current program indicator.
@@ -612,6 +625,55 @@ public class CommonExpressionVisitor
         return missingValueStrategy;
     }
 
+    public ParseType getParseType()
+    {
+        return parseType;
+    }
+
+    public DataType getDataType()
+    {
+        return dataType;
+    }
+
+    public void setDataType( DataType dataType )
+    {
+        this.dataType = dataType;
+    }
+
+    /**
+     * Visit a parse subtree to generate SQL with a request that boolean items
+     * should generate a boolean value.
+     */
+    public String sqlBooleanVisit( ExprContext ctx )
+    {
+        return AntlrParserUtils.castString( visitWithDataType( ctx, DataType.BOOLEAN ) );
+    }
+
+    /**
+     * Visit a parse subtree to generate SQL with a request that boolean items
+     * should generate a numeric value.
+     */
+    public String sqlNumericVisit( ExprContext ctx )
+    {
+        return AntlrParserUtils.castString( visitWithDataType( ctx, DataType.NUMERIC ) );
+    }
+
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
+
+    private Object visitWithDataType( ExprContext ctx, DataType dt )
+    {
+        DataType savedDataType = dataType;
+        dataType = dt;
+
+        Object object = visitExpr( ctx );
+
+        dataType = savedDataType;
+
+        return object;
+    }
+
     // -------------------------------------------------------------------------
     // Builder
     // -------------------------------------------------------------------------
@@ -709,6 +771,18 @@ public class CommonExpressionVisitor
         public Builder withMissingValueStrategy( MissingValueStrategy missingValueStrategy )
         {
             this.visitor.missingValueStrategy = missingValueStrategy;
+            return this;
+        }
+
+        public Builder withParseType( ParseType parseType )
+        {
+            this.visitor.parseType = parseType;
+            return this;
+        }
+
+        public Builder withDataType( DataType dataType )
+        {
+            this.visitor.dataType = dataType;
             return this;
         }
 
