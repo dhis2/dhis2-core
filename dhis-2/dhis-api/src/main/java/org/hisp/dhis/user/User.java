@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.user;
 
-import static java.util.Collections.emptySet;
-import static java.util.Collections.unmodifiableSet;
 import static org.springframework.beans.BeanUtils.copyProperties;
 
 import java.util.ArrayList;
@@ -289,20 +287,16 @@ public class User
      */
     public Set<String> getAllAuthorities()
     {
-        if ( userRoles.isEmpty() )
-        {
-            return emptySet();
-        }
-        if ( userRoles.size() == 1 )
-        {
-            return unmodifiableSet( userRoles.iterator().next().getAuthorities() );
-        }
         Set<String> authorities = new HashSet<>();
+
         for ( UserRole group : userRoles )
         {
             authorities.addAll( group.getAuthorities() );
         }
-        return Collections.unmodifiableSet( authorities );
+
+        authorities = Collections.unmodifiableSet( authorities );
+
+        return authorities;
     }
 
     /**
