@@ -84,6 +84,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAudit;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditQueryParams;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
@@ -338,20 +339,29 @@ public class AuditController
         List<TrackedEntityAttributeValueAudit> attributeValueAudits;
         Pager pager = null;
 
+        TrackedEntityAttributeValueAuditQueryParams params = new TrackedEntityAttributeValueAuditQueryParams()
+            .setTrackedEntityAttributes( trackedEntityAttributes )
+            .setTrackedEntityInstances( trackedEntityInstances )
+            .setAuditType( auditType );
+
         if ( PagerUtils.isSkipPaging( skipPaging, paging ) )
         {
-            attributeValueAudits = trackedEntityAttributeValueAuditService.getTrackedEntityAttributeValueAudits(
-                trackedEntityAttributes, trackedEntityInstances, auditType );
+            attributeValueAudits = trackedEntityAttributeValueAuditService
+                .getTrackedEntityAttributeValueAudits( params );
         }
         else
         {
             int total = trackedEntityAttributeValueAuditService.countTrackedEntityAttributeValueAudits(
-                trackedEntityAttributes, trackedEntityInstances, auditType );
+                params );
 
             pager = new Pager( page, total, pageSize );
 
             attributeValueAudits = trackedEntityAttributeValueAuditService.getTrackedEntityAttributeValueAudits(
-                trackedEntityAttributes, trackedEntityInstances, auditType, pager.getOffset(), pager.getPageSize() );
+                new TrackedEntityAttributeValueAuditQueryParams()
+                    .setTrackedEntityAttributes( trackedEntityAttributes )
+                    .setTrackedEntityInstances( trackedEntityInstances )
+                    .setAuditType( auditType )
+                    .setPager( pager ) );
         }
 
         RootNode rootNode = NodeUtils.createMetadata();

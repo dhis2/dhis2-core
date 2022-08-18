@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.trackedentityattributevalue;
 
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -46,8 +47,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import com.google.common.collect.Lists;
 
 /**
  * @author Chau Thu Tran
@@ -196,7 +195,7 @@ class TrackedEntityAttributeValueStoreTest extends SingleSetupIntegrationTestBas
     }
 
     @Test
-    void testAudit()
+    void testGetTrackedEntityAttributeValueAudits()
     {
         attributeValueStore.saveVoid( attributeValueA );
         attributeValueStore.saveVoid( attributeValueB );
@@ -204,16 +203,24 @@ class TrackedEntityAttributeValueStoreTest extends SingleSetupIntegrationTestBas
             renderService.toJsonAsString( attributeValueA ), "userA", AuditType.UPDATE );
         TrackedEntityAttributeValueAudit auditB = new TrackedEntityAttributeValueAudit( attributeValueB,
             renderService.toJsonAsString( attributeValueB ), "userA", AuditType.UPDATE );
+        TrackedEntityAttributeValueAudit auditC = new TrackedEntityAttributeValueAudit( attributeValueC,
+            renderService.toJsonAsString( attributeValueC ), "userA", AuditType.UPDATE );
         attributeValueAuditStore.addTrackedEntityAttributeValueAudit( auditA );
         attributeValueAuditStore.addTrackedEntityAttributeValueAudit( auditB );
-        assertEquals( 1,
-            attributeValueAuditStore
-                .getTrackedEntityAttributeValueAudits( Lists.newArrayList( attributeValueA.getAttribute() ),
-                    Lists.newArrayList( attributeValueA.getEntityInstance() ), AuditType.UPDATE )
-                .size() );
-        assertEquals( 2,
-            attributeValueAuditStore
-                .getTrackedEntityAttributeValueAudits( null, Lists.newArrayList( entityInstanceA ), AuditType.UPDATE )
-                .size() );
+        attributeValueAuditStore.addTrackedEntityAttributeValueAudit( auditC );
+
+        TrackedEntityAttributeValueAuditQueryParams params = new TrackedEntityAttributeValueAuditQueryParams()
+            .setTrackedEntityAttributes( List.of( attributeA ) )
+            .setTrackedEntityInstances( List.of( entityInstanceA ) )
+            .setAuditType( AuditType.UPDATE );
+
+        assertContainsOnly( attributeValueAuditStore.getTrackedEntityAttributeValueAudits( params ), auditA );
+
+        params = new TrackedEntityAttributeValueAuditQueryParams()
+            .setTrackedEntityInstances( List.of( entityInstanceA ) )
+            .setAuditType( AuditType.UPDATE );
+
+        assertContainsOnly( attributeValueAuditStore.getTrackedEntityAttributeValueAudits( params ), auditA, auditB );
+
     }
 }
