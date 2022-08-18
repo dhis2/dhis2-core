@@ -81,7 +81,7 @@ public class MetadataHandler
      * parameters.
      *
      * @param params the {@link DataQueryParams}.
-     * @param grid the grid.
+     * @param the {@link Grid}.
      */
     void addMetaData( DataQueryParams params, Grid grid )
     {
@@ -157,7 +157,7 @@ public class MetadataHandler
      * the output format is of type DATA_VALUE_SET.
      *
      * @param params the {@link DataQueryParams}.
-     * @param grid the grid.
+     * @param the {@link Grid}.
      */
     void handleDataValueSet( DataQueryParams params, Grid grid )
     {
@@ -172,7 +172,7 @@ public class MetadataHandler
      * data property indicated in the query.
      *
      * @param params the {@link DataQueryParams}.
-     * @param grid the grid.
+     * @param the {@link Grid}.
      */
     void applyIdScheme( DataQueryParams params, Grid grid )
     {

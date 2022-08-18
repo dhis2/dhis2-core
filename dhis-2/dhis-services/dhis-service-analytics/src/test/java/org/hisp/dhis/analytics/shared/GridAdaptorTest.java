@@ -65,11 +65,11 @@ class GridAdaptorTest
     void testCreateGridSuccessfully()
     {
         // Given
-        final List<GridHeader> mockGridHeaders = mockGridHeaders();
-        final Map<Column, List<Object>> mockResultMap = mockResultMap();
+        List<GridHeader> mockGridHeaders = mockGridHeaders();
+        Map<Column, List<Object>> mockResultMap = mockResultMap();
 
         // When
-        final Grid grid = gridAdaptor.createGrid( mockGridHeaders, mockResultMap );
+        Grid grid = gridAdaptor.createGrid( mockGridHeaders, mockResultMap );
 
         // Then
         assertNotNull( grid, "Should not be null: grid" );
@@ -83,11 +83,11 @@ class GridAdaptorTest
     void testCreateGridWithEmptyGridHeaders()
     {
         // Given
-        final List<GridHeader> emptyGridHeaders = new ArrayList<>();
-        final Map<Column, List<Object>> anyResultMap = new HashMap<>();
+        List<GridHeader> emptyGridHeaders = new ArrayList<>();
+        Map<Column, List<Object>> anyResultMap = new HashMap<>();
 
         // When
-        final IllegalArgumentException ex = assertThrows(
+        IllegalArgumentException ex = assertThrows(
             IllegalArgumentException.class,
             () -> gridAdaptor.createGrid( emptyGridHeaders, anyResultMap ),
             "Expected exception not thrown: createGrid()" );
@@ -104,7 +104,7 @@ class GridAdaptorTest
 
     private Map<Column, List<Object>> mockResultMap()
     {
-        final Map<Column, List<Object>> map = new TreeMap();
+        Map<Column, List<Object>> map = new TreeMap<>();
         map.put( Column.builder().alias( "alias1" ).value( "name" ).build(), List.of( 1, 2, 3 ) );
         map.put( Column.builder().alias( "alias2" ).value( "name" ).build(), List.of( "a", "b", "c" ) );
 

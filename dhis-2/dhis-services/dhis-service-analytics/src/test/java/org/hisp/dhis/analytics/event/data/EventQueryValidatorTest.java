@@ -90,8 +90,6 @@ class EventQueryValidatorTest extends DhisConvenienceTest
 
     private OrganisationUnit ouB;
 
-    private OrganisationUnit ouC;
-
     private LegendSet lsA;
 
     private OptionSet osA;
@@ -124,7 +122,6 @@ class EventQueryValidatorTest extends DhisConvenienceTest
 
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B', ouA );
-        ouC = createOrganisationUnit( 'C', ouA );
 
         lsA = createLegendSet( 'A' );
 

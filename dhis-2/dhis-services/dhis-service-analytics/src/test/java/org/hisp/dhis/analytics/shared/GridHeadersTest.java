@@ -49,10 +49,10 @@ class GridHeadersTest
     void testFrom()
     {
         // Given
-        final List<Column> columns = List.of( Column.builder().value( "name" ).type( TEXT ).build() );
+        List<Column> columns = List.of( Column.builder().value( "name" ).type( TEXT ).build() );
 
         // When
-        final List<GridHeader> headers = GridHeaders.from( columns );
+        List<GridHeader> headers = GridHeaders.from( columns );
 
         // Then
         assertNotNull( headers, "Should not be null: headers" );

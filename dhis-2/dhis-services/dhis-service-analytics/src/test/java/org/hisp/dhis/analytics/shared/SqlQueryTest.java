@@ -47,17 +47,17 @@ class SqlQueryTest
     void testFullStatementSuccessfully()
     {
         // Given
-        final List<Column> columns = List.of( mockColumn( "a" ), mockColumn( "b" ) );
-        final String from = "from table programstageinstance psi";
-        final String join = "inner join programinstance pi on psi.programinstanceid = pi.programinstanceid";
-        final String where = "where psi.status in ('COMPLETED', 'ACTIVE', 'SCHEDULE')";
-        final String closing = "order by a_alias desc limit 101 offset 0";
+        List<Column> columns = List.of( mockColumn( "a" ), mockColumn( "b" ) );
+        String from = "from table programstageinstance psi";
+        String join = "inner join programinstance pi on psi.programinstanceid = pi.programinstanceid";
+        String where = "where psi.status in ('COMPLETED', 'ACTIVE', 'SCHEDULE')";
+        String closing = "order by a_alias desc limit 101 offset 0";
 
-        final SqlQuery sqlQuery = SqlQuery.builder().columns( columns ).fromClause( from ).joinClause( join )
+        SqlQuery sqlQuery = SqlQuery.builder().columns( columns ).fromClause( from ).joinClause( join )
             .whereClause( where ).closingClauses( closing ).build();
 
         // When
-        final String fullStatement = sqlQuery.fullStatement();
+        String fullStatement = sqlQuery.fullStatement();
 
         // Then
         assertEquals(

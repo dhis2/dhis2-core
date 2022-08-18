@@ -182,8 +182,8 @@ class TeiJdbcQueryTest
             "     AND p.uid IN ('ur1Edk5Oe2n', 'IpHINAT79UW')\n" +
             "     AND pi.enrollmentdate > '2022-01-01' )";
         // When
-        final Query query = teiJdbcQuery.from( TeiQueryParams.builder().build() );
-        final String fullStatement = query.fullStatement();
+        Query query = teiJdbcQuery.from( TeiQueryParams.builder().build() );
+        String fullStatement = query.fullStatement();
 
         // Then
         assertEquals( sql.replaceAll( "[\\n\\t ]", "" ).toLowerCase(),
