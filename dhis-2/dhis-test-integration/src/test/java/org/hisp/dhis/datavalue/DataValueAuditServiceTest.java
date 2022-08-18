@@ -88,8 +88,6 @@ class DataValueAuditServiceTest extends SingleSetupIntegrationTestBase
 
     private Period periodD;
 
-    private Period periodE;
-
     private OrganisationUnit orgUnitA;
 
     private OrganisationUnit orgUnitB;
@@ -122,12 +120,10 @@ class DataValueAuditServiceTest extends SingleSetupIntegrationTestBase
         periodB = createPeriod( getDay( 6 ), getDay( 7 ) );
         periodC = createPeriod( getDay( 7 ), getDay( 8 ) );
         periodD = createPeriod( getDay( 8 ), getDay( 9 ) );
-        periodE = createPeriod( getDay( 8 ), getDay( 9 ) );
         periodService.addPeriod( periodA );
         periodService.addPeriod( periodB );
         periodService.addPeriod( periodC );
         periodService.addPeriod( periodD );
-        periodService.addPeriod( periodE );
         orgUnitA = createOrganisationUnit( 'A' );
         orgUnitB = createOrganisationUnit( 'B' );
         orgUnitC = createOrganisationUnit( 'C' );
@@ -223,15 +219,6 @@ class DataValueAuditServiceTest extends SingleSetupIntegrationTestBase
         DataValueAuditQueryParams params = new DataValueAuditQueryParams()
             .setDataElements( List.of( dataElementA ) )
             .setPeriods( List.of( periodD ) )
-            .setOrgUnits( List.of( orgUnitA ) )
-            .setCategoryOptionCombo( optionCombo )
-            .setAuditType( AuditType.UPDATE );
-
-        assertEquals( 0, dataValueAuditService.getDataValueAudits( params ).size() );
-
-        params = new DataValueAuditQueryParams()
-            .setDataElements( List.of( dataElementA ) )
-            .setPeriods( List.of( periodD, periodE ) )
             .setOrgUnits( List.of( orgUnitA ) )
             .setCategoryOptionCombo( optionCombo )
             .setAuditType( AuditType.UPDATE );
