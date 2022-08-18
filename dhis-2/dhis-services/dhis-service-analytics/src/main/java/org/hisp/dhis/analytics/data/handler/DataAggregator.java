@@ -169,7 +169,7 @@ public class DataAggregator
      * value column based on the sorting specified.
      *
      * @param params the {@link DataQueryParams}.
-     * @param grid the grid.
+     * @param the {@link Grid}.
      */
     private void postHandleGrid( DataQueryParams params, Grid grid )
     {
