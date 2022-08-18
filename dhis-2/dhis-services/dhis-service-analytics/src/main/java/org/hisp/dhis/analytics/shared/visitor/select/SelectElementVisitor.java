@@ -51,7 +51,6 @@ import org.hisp.dhis.analytics.shared.component.element.select.TeaValueSelectEle
 @Getter
 public class SelectElementVisitor implements SelectVisitor
 {
-
     private final List<Column> columns = new ArrayList<>();
 
     /**

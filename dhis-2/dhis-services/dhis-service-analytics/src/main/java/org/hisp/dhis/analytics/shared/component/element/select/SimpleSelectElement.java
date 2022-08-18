@@ -42,15 +42,10 @@ import org.hisp.dhis.analytics.shared.visitor.select.SelectVisitor;
 @Getter
 public class SimpleSelectElement implements Element<SelectVisitor>
 {
-    private String value;
+    private final String value;
 
-    private String alias;
+    private final String alias;
 
-    /**
-     * see Visitor design pattern
-     *
-     * @param v
-     */
     @Override
     public void accept( SelectVisitor v )
     {
