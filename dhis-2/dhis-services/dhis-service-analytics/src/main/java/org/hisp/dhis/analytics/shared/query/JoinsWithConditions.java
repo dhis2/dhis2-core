@@ -40,7 +40,6 @@ import org.apache.commons.lang3.tuple.Pair;
 @Builder
 public class JoinsWithConditions extends BaseRenderable
 {
-
     @Singular
     private final List<Pair<Renderable, Renderable>> tablesWithJoinConditions;
 

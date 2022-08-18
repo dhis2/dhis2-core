@@ -29,7 +29,6 @@ package org.hisp.dhis.analytics.shared.query;
 
 public abstract class BaseRenderable implements Renderable
 {
-
     @Override
     public String toString()
     {

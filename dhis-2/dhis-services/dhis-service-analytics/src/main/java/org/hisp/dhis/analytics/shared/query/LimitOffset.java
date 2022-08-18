@@ -39,7 +39,6 @@ import org.apache.commons.lang3.StringUtils;
 @RequiredArgsConstructor( staticName = "of" )
 public class LimitOffset extends BaseRenderable
 {
-
     private final Integer limit;
 
     private final Integer offset;

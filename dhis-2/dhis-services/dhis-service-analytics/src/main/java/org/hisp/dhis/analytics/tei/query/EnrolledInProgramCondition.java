@@ -37,7 +37,6 @@ import org.hisp.dhis.analytics.shared.query.DoubleQuotingRenderable;
 @RequiredArgsConstructor( staticName = "of" )
 public class EnrolledInProgramCondition extends BaseRenderable
 {
-
     private final String program;
 
     @Override

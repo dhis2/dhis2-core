@@ -34,6 +34,5 @@ package org.hisp.dhis.analytics.shared.processing;
  */
 public interface Validator<T>
 {
-
     void validate( T object );
 }

@@ -32,7 +32,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor( staticName = "of" )
 public class ExistsCondition extends BaseRenderable
 {
-
     private final Renderable subQuery;
 
     @Override

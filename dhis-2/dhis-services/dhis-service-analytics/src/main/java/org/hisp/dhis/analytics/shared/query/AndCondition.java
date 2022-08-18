@@ -39,7 +39,6 @@ import org.apache.commons.lang3.StringUtils;
 @RequiredArgsConstructor( staticName = "of" )
 public class AndCondition extends BaseRenderable
 {
-
     private final List<Renderable> conditions;
 
     @Override

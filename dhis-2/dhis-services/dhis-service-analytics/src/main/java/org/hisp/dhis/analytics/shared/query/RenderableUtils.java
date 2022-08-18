@@ -43,7 +43,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor( access = PRIVATE )
 public class RenderableUtils
 {
-
     public static String join( Collection<? extends Renderable> renderables, String delimiter )
     {
         return join( renderables, delimiter, EMPTY );

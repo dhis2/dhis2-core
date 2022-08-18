@@ -37,7 +37,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor( access = PRIVATE )
 public class QueryContextConstants
 {
-
     public static final String ANALYTICS_TEI = TRACKED_ENTITY_INSTANCE.getTableName() + "_";
 
     public static final String ANALYTICS_TEI_EVT = TRACKED_ENTITY_INSTANCE_EVENTS.getTableName() + "_";

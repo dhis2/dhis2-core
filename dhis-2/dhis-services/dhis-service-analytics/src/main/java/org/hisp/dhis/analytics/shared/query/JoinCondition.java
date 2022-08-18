@@ -32,7 +32,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor( staticName = "of" )
 public class JoinCondition implements Renderable
 {
-
     private final Renderable firstTable;
 
     private final Renderable secondTable;

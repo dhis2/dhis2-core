@@ -37,7 +37,6 @@ import org.hisp.dhis.common.ValueType;
 
 public enum ValueTypeMapping
 {
-
     // TODO: adds mappings here
     NUMERIC( INTEGER, INTEGER_NEGATIVE, INTEGER_POSITIVE, INTEGER_ZERO_OR_POSITIVE ),
     STRING();

@@ -38,7 +38,6 @@ import org.hisp.dhis.common.QueryOperator;
 @RequiredArgsConstructor( staticName = "of" )
 public class BinaryCondition extends BaseRenderable
 {
-
     private final Renderable left;
 
     private final QueryOperator queryOperator;

@@ -42,7 +42,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 
 public class AnalyticsDimensionsTestSupport
 {
-
     public static TrackedEntityType trackedEntityType()
     {
         TrackedEntityType trackedEntityType = new TrackedEntityType();

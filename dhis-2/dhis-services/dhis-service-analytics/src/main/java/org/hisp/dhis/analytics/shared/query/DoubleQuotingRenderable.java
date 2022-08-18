@@ -32,7 +32,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor( staticName = "of" )
 public class DoubleQuotingRenderable extends BaseRenderable
 {
-
     private final String value;
 
     @Override

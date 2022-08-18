@@ -38,7 +38,6 @@ import lombok.Singular;
 @RequiredArgsConstructor( staticName = "of" )
 public class Select extends BaseRenderable
 {
-
     @Singular
     private final List<Field> fields;
 

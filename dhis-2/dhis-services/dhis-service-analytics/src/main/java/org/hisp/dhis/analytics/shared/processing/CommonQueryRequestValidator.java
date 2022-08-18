@@ -37,7 +37,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class CommonQueryRequestValidator implements Validator<CommonQueryRequest>
 {
-
     @Override
     public void validate( CommonQueryRequest commonQueryRequest )
     {

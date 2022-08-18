@@ -42,7 +42,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class TeiQueryRequestValidator implements Validator<QueryRequest<TeiQueryRequest>>
 {
-
     private final CommonQueryRequestValidator commonQueryRequestValidator;
 
     @Override

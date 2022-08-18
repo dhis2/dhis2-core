@@ -34,7 +34,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor( staticName = "of" )
 public class From implements Renderable
 {
-
     private final Renderable mainTable;
 
     private final JoinsWithConditions joinsWithConditions;

@@ -61,7 +61,6 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 class DefaultTeiAnalyticsDimensionsService implements TeiAnalyticsDimensionsService
 {
-
     static final String TRACKED_ENTITY_ATTRIBUTE = "TRACKED_ENTITY_ATTRIBUTE";
 
     @NonNull

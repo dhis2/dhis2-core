@@ -44,7 +44,6 @@ import org.hisp.dhis.analytics.tei.TeiQueryParams;
 @RequiredArgsConstructor( staticName = "of" )
 public class QueryContext
 {
-
     @Getter
     private final TeiQueryParams teiQueryParams;
 

@@ -37,7 +37,6 @@ import org.hisp.dhis.program.ProgramStage;
 @RequiredArgsConstructor( staticName = "of" )
 public class RenderableDimensionIdentifier extends BaseRenderable
 {
-
     private final DimensionIdentifier<Program, ProgramStage, DimensionParam> dimensionIdentifier;
 
     @Override

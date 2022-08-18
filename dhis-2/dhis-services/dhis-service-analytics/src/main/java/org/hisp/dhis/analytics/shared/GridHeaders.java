@@ -43,7 +43,6 @@ import org.hisp.dhis.common.Grid;
  */
 public class GridHeaders
 {
-
     private GridHeaders()
     {
     }

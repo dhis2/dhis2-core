@@ -70,7 +70,6 @@ import org.hisp.dhis.program.ProgramStage;
 @RequiredArgsConstructor( staticName = "of" )
 public class EventDataValueCondition extends BaseRenderable
 {
-
     private static final Select SELECT_1 = Select.of( "1" );
 
     private final DimensionIdentifier<Program, ProgramStage, DimensionParam> dimensionIdentifier;

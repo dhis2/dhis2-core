@@ -29,6 +29,5 @@ package org.hisp.dhis.analytics.shared.query;
 
 public interface Renderable
 {
-
     String render();
 }

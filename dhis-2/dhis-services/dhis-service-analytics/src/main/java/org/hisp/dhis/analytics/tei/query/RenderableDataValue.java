@@ -36,7 +36,6 @@ import org.hisp.dhis.analytics.shared.query.Field;
 @RequiredArgsConstructor( staticName = "of" )
 public class RenderableDataValue extends BaseRenderable
 {
-
     private final String alias;
 
     private final String dataValue;

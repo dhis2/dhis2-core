@@ -77,7 +77,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith( MockitoExtension.class )
 class CommonQueryRequestMapperTest
 {
-
     @Mock
     private I18nManager i18nManager;
 

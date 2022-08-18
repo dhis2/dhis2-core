@@ -44,7 +44,6 @@ import org.junit.jupiter.api.Test;
  */
 class DimensionIdentifierConverterTest
 {
-
     @Test
     void fromStringWithSuccessUsingOffset()
     {

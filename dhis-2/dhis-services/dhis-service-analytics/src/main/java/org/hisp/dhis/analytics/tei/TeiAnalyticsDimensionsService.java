@@ -33,7 +33,6 @@ import org.hisp.dhis.common.PrefixedDimension;
 
 public interface TeiAnalyticsDimensionsService
 {
-
     /**
      * Retrieve all Dimensions that can be used on a given Tracked Entity Type.
      *

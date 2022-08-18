@@ -46,7 +46,6 @@ import org.apache.commons.lang3.StringUtils;
 @Builder( toBuilder = true )
 public class Query extends BaseRenderable
 {
-
     private final Select select;
 
     private final From from;

@@ -35,7 +35,6 @@ import lombok.Singular;
 @Builder( toBuilder = true )
 public class Order extends BaseRenderable
 {
-
     @Singular
     private final List<Renderable> orders;
 

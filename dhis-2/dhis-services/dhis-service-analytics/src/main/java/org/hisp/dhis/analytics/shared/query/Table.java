@@ -37,7 +37,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor( staticName = "of" )
 public class Table implements Renderable
 {
-
     private final Renderable table;
 
     private final Renderable alias;

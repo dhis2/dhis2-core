@@ -48,7 +48,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class DimensionIdentifierConverter
 {
-
     private static final Character DIMENSION_SEPARATOR = '.';
 
     /**

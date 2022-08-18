@@ -38,7 +38,6 @@ import lombok.Singular;
 @RequiredArgsConstructor( staticName = "of" )
 public class Where extends BaseRenderable
 {
-
     @Singular
     private final AndCondition condition;
 

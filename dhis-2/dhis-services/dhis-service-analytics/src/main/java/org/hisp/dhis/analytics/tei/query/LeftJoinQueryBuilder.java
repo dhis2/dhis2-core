@@ -46,7 +46,6 @@ import org.hisp.dhis.analytics.shared.query.Renderable;
 @NoArgsConstructor( access = PRIVATE )
 public class LeftJoinQueryBuilder
 {
-
     public static Pair<Renderable, Renderable> of( AnalyticsSortingParams orderBy, QueryContext queryContext )
     {
         return Pair.of(

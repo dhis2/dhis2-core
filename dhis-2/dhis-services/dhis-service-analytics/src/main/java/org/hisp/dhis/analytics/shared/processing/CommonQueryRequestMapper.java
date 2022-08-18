@@ -82,7 +82,6 @@ import com.google.common.collect.ImmutableList;
 @RequiredArgsConstructor
 public class CommonQueryRequestMapper
 {
-
     private final I18nManager i18nManager;
 
     private final DataQueryService dataQueryService;
