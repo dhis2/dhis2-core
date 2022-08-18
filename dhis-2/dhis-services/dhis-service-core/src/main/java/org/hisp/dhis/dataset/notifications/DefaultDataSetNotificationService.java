@@ -352,6 +352,8 @@ public class DefaultDataSetNotificationService implements DataSetNotificationSer
     private ProgramMessage createProgramMessage( DataSetNotificationTemplate template,
         CompleteDataSetRegistration registration )
     {
+        registration.setPeriodName( getPeriodString( registration.getPeriod() ) );
+
         NotificationMessage message = renderer.render( registration, template );
 
         ProgramMessageRecipients recipients;
@@ -378,6 +380,8 @@ public class DefaultDataSetNotificationService implements DataSetNotificationSer
     private DhisMessage createDhisMessage( DataSetNotificationTemplate template,
         CompleteDataSetRegistration registration )
     {
+        registration.setPeriodName( getPeriodString( registration.getPeriod() ) );
+
         return new DhisMessage( renderer.render( registration, template ),
             resolveInternalRecipients( template, registration ) );
     }
