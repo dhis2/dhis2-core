@@ -109,7 +109,6 @@ class GridAdaptorTest extends DhisConvenienceTest
 
     @Test
     void testCreateGridWithNullSqlQueryResult()
-        throws SQLException
     {
         // Given
         final SqlQueryResult nullSqlResult = null;
