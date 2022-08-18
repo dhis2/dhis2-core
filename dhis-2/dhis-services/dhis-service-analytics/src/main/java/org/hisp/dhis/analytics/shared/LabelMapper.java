@@ -40,18 +40,19 @@ import org.hisp.dhis.program.ProgramStage;
  */
 public class LabelMapper
 {
-
     private LabelMapper()
     {
     }
 
     /**
-     * Finds for a custom label for event date if one exists.
+     * Returns a custom label for the event date if it exists, otherwise the
+     * given default label.
      *
-     * @param programStage
-     * @return the custom label, otherwise the default one
+     * @param programStage the {@link ProgramStage}.
+     * @param defaultLabel the default label.
+     * @return the custom label, otherwise the default label.
      */
-    public static String getEventDateLabel( final ProgramStage programStage, final String defaultLabel )
+    public static String getEventDateLabel( ProgramStage programStage, String defaultLabel )
     {
         if ( programStage != null && isNotBlank( programStage.getDisplayExecutionDateLabel() ) )
         {
@@ -62,12 +63,13 @@ public class LabelMapper
     }
 
     /**
-     * Finds for a custom label for enrollment date if one exists.
+     * Returns a custom label for enrollment date if one exists, otherwise the
+     * given default label.
      *
-     * @param program
-     * @return the custom label, otherwise the default one
+     * @param program the {@link Program}.
+     * @return the custom label, otherwise the default label.
      */
-    public static String getEnrollmentDateLabel( final Program program, final String defaultLabel )
+    public static String getEnrollmentDateLabel( Program program, String defaultLabel )
     {
         if ( program != null && isNotBlank( program.getDisplayEnrollmentDateLabel() ) )
         {
@@ -78,12 +80,13 @@ public class LabelMapper
     }
 
     /**
-     * Finds for a custom label for incident date if one exists.
+     * Returns a custom label for incident date if one exists, otherwise the
+     * given default label.
      *
-     * @param program
-     * @return the custom label, otherwise the default one
+     * @param program the {@link Program}.
+     * @return the custom label, otherwise the default label.
      */
-    public static String getIncidentDateLabel( final Program program, final String defaultLabel )
+    public static String getIncidentDateLabel( Program program, String defaultLabel )
     {
         if ( program != null && isNotBlank( program.getDisplayIncidentDateLabel() ) )
         {
