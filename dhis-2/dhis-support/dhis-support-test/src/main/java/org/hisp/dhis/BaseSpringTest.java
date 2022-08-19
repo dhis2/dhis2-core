@@ -38,7 +38,6 @@ import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.utils.TestUtils;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,13 +68,6 @@ public abstract class BaseSpringTest extends DhisConvenienceTest implements Appl
 
     protected static JdbcTemplate jdbcTemplate;
 
-    /*
-     * Flag that determines if the IntegrationTestData annotation has been
-     * running the database init script. We only want to run the init script
-     * once per unit test
-     */
-    public static boolean dataInit = false;
-
     protected abstract boolean emptyDatabaseAfterTest();
 
     /*
@@ -103,23 +95,6 @@ public abstract class BaseSpringTest extends DhisConvenienceTest implements Appl
         // We usually don't want all the create db/tables statements in the
         // query logger
         Configurator.setLevel( ORG_HISP_DHIS_DATASOURCE_QUERY, Level.WARN );
-    }
-
-    @AfterAll
-    static void afterClass()
-    {
-        if ( // only truncate tables if IntegrationTestData is used
-        dataInit )
-        {
-            // truncate all tables
-            String truncateAll = "DO $$ DECLARE\n" + "  r RECORD;\n" + "BEGIN\n"
-                + "  FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = current_schema()) LOOP\n"
-                + "    EXECUTE 'TRUNCATE TABLE ' || quote_ident(r.tablename) || ' CASCADE';\n" + "  END LOOP;\n"
-                + "END $$;";
-            jdbcTemplate.execute( truncateAll );
-        }
-        // reset data init state
-        dataInit = false;
     }
 
     /**
@@ -168,10 +143,6 @@ public abstract class BaseSpringTest extends DhisConvenienceTest implements Appl
         throws Exception
     {
         TestUtils.executeStartupRoutines( applicationContext );
-        if ( !dataInit )
-        {
-            TestUtils.executeIntegrationTestDataScript( this.getClass(), jdbcTemplate );
-        }
         boolean enableQueryLogging = dhisConfigurationProvider.isEnabled( ConfigurationKey.ENABLE_QUERY_LOGGING );
         // Enable to query logger to log only what's happening inside the test
         // method
