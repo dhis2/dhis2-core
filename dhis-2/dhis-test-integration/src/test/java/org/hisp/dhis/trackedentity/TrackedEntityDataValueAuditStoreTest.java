@@ -202,14 +202,14 @@ class TrackedEntityDataValueAuditStoreTest extends SingleSetupIntegrationTestBas
         TrackedEntityDataValueAuditQueryParams params = new TrackedEntityDataValueAuditQueryParams()
             .setDataElements( List.of( deA, deB ) )
             .setProgramStageInstances( List.of( psiA ) )
-            .setAuditType( List.of( AuditType.UPDATE ) );
+            .setAuditTypes( List.of( AuditType.UPDATE ) );
         assertContainsOnly( auditStore.getTrackedEntityDataValueAudits( params ), dvaA, dvaB );
         assertEquals( 2, auditStore.countTrackedEntityDataValueAudits( params ) );
 
         params = new TrackedEntityDataValueAuditQueryParams()
             .setDataElements( List.of( deA ) )
             .setProgramStageInstances( List.of( psiA ) )
-            .setAuditType( List.of( AuditType.UPDATE ) );
+            .setAuditTypes( List.of( AuditType.UPDATE ) );
         assertContainsOnly( auditStore.getTrackedEntityDataValueAudits( params ), dvaA );
         assertEquals( 1, auditStore.countTrackedEntityDataValueAudits( params ) );
     }
@@ -229,13 +229,13 @@ class TrackedEntityDataValueAuditStoreTest extends SingleSetupIntegrationTestBas
 
         TrackedEntityDataValueAuditQueryParams params = new TrackedEntityDataValueAuditQueryParams()
             .setOrgUnits( List.of( ouA ) )
-            .setAuditType( List.of( AuditType.UPDATE ) );
+            .setAuditTypes( List.of( AuditType.UPDATE ) );
         assertContainsOnly( auditStore.getTrackedEntityDataValueAudits( params ), dvaA, dvaB );
         assertEquals( 2, auditStore.countTrackedEntityDataValueAudits( params ) );
 
         params = new TrackedEntityDataValueAuditQueryParams()
             .setOrgUnits( List.of( ouB ) )
-            .setAuditType( List.of( AuditType.UPDATE ) );
+            .setAuditTypes( List.of( AuditType.UPDATE ) );
         assertContainsOnly( auditStore.getTrackedEntityDataValueAudits( params ), dvaC );
         assertEquals( 1, auditStore.countTrackedEntityDataValueAudits( params ) );
     }
@@ -262,14 +262,14 @@ class TrackedEntityDataValueAuditStoreTest extends SingleSetupIntegrationTestBas
         TrackedEntityDataValueAuditQueryParams params = new TrackedEntityDataValueAuditQueryParams()
             .setOrgUnits( List.of( ouB ) )
             .setOuMode( OrganisationUnitSelectionMode.DESCENDANTS )
-            .setAuditType( List.of( AuditType.UPDATE ) );
+            .setAuditTypes( List.of( AuditType.UPDATE ) );
         assertContainsOnly( auditStore.getTrackedEntityDataValueAudits( params ), dvaB, dvaD, dvaE );
         assertEquals( 3, auditStore.countTrackedEntityDataValueAudits( params ) );
 
         params = new TrackedEntityDataValueAuditQueryParams()
             .setOrgUnits( List.of( ouA ) )
             .setOuMode( OrganisationUnitSelectionMode.DESCENDANTS )
-            .setAuditType( List.of( AuditType.UPDATE ) );
+            .setAuditTypes( List.of( AuditType.UPDATE ) );
         assertContainsOnly( auditStore.getTrackedEntityDataValueAudits( params ), dvaA, dvaB, dvaC, dvaD, dvaE );
         assertEquals( 5, auditStore.countTrackedEntityDataValueAudits( params ) );
     }
@@ -289,13 +289,13 @@ class TrackedEntityDataValueAuditStoreTest extends SingleSetupIntegrationTestBas
 
         TrackedEntityDataValueAuditQueryParams params = new TrackedEntityDataValueAuditQueryParams()
             .setProgramStages( List.of( psA ) )
-            .setAuditType( List.of( AuditType.UPDATE ) );
+            .setAuditTypes( List.of( AuditType.UPDATE ) );
         assertContainsOnly( auditStore.getTrackedEntityDataValueAudits( params ), dvaA, dvaB );
         assertEquals( 2, auditStore.countTrackedEntityDataValueAudits( params ) );
 
         params = new TrackedEntityDataValueAuditQueryParams()
             .setProgramStages( List.of( psB ) )
-            .setAuditType( List.of( AuditType.UPDATE ) );
+            .setAuditTypes( List.of( AuditType.UPDATE ) );
         assertContainsOnly( auditStore.getTrackedEntityDataValueAudits( params ), dvaC );
         assertEquals( 1, auditStore.countTrackedEntityDataValueAudits( params ) );
     }
@@ -345,7 +345,7 @@ class TrackedEntityDataValueAuditStoreTest extends SingleSetupIntegrationTestBas
         auditStore.addTrackedEntityDataValueAudit( dvaC );
 
         TrackedEntityDataValueAuditQueryParams params = new TrackedEntityDataValueAuditQueryParams()
-            .setAuditType( List.of( AuditType.UPDATE, AuditType.DELETE ) );
+            .setAuditTypes( List.of( AuditType.UPDATE, AuditType.DELETE ) );
         assertContainsOnly( auditStore.getTrackedEntityDataValueAudits( params ), dvaB, dvaC );
         assertEquals( 2, auditStore.countTrackedEntityDataValueAudits( params ) );
     }

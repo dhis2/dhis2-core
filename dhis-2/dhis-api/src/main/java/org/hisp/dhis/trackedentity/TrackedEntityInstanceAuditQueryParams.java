@@ -48,7 +48,7 @@ public class TrackedEntityInstanceAuditQueryParams
 
     private List<String> users = new ArrayList<>();
 
-    private List<AuditType> auditType = new ArrayList<>();
+    private List<AuditType> auditTypes = new ArrayList<>();
 
     private Date startDate = null;
 
@@ -70,9 +70,9 @@ public class TrackedEntityInstanceAuditQueryParams
         return users != null && !users.isEmpty();
     }
 
-    public boolean hasAuditType()
+    public boolean hasAuditTypes()
     {
-        return auditType != null;
+        return auditTypes != null && !auditTypes.isEmpty();
     }
 
     public boolean hasStartDate()

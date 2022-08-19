@@ -76,12 +76,12 @@ class TrackedEntityInstanceAuditStoreTest extends SingleSetupIntegrationTestBase
         assertContainsOnly( store.getTrackedEntityInstanceAudits( params ), teiaA, teiaC );
 
         params = new TrackedEntityInstanceAuditQueryParams()
-            .setAuditType( List.of( AuditType.UPDATE ) );
+            .setAuditTypes( List.of( AuditType.UPDATE ) );
 
         assertContainsOnly( store.getTrackedEntityInstanceAudits( params ), teiaB, teiaC );
 
         params = new TrackedEntityInstanceAuditQueryParams()
-            .setAuditType( List.of( AuditType.CREATE, AuditType.DELETE ) );
+            .setAuditTypes( List.of( AuditType.CREATE, AuditType.DELETE ) );
 
         assertContainsOnly( store.getTrackedEntityInstanceAudits( params ), teiaA, teiaD );
 

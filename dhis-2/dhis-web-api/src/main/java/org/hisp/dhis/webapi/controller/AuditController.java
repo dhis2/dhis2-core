@@ -200,7 +200,7 @@ public class AuditController
             .setOrgUnits( organisationUnits )
             .setCategoryOptionCombo( categoryOptionCombo )
             .setAttributeOptionCombo( attributeOptionCombo )
-            .setAuditType( auditType );
+            .setAuditTypes( auditType );
 
         List<DataValueAudit> dataValueAudits;
         Pager pager = null;
@@ -221,7 +221,7 @@ public class AuditController
                 .setOrgUnits( organisationUnits )
                 .setCategoryOptionCombo( categoryOptionCombo )
                 .setAttributeOptionCombo( attributeOptionCombo )
-                .setAuditType( auditType )
+                .setAuditTypes( auditType )
                 .setPager( pager ) );
         }
 
@@ -279,7 +279,7 @@ public class AuditController
             .setStartDate( startDate )
             .setEndDate( endDate )
             .setOuMode( ouMode )
-            .setAuditType( auditType );
+            .setAuditTypes( auditType );
 
         if ( PagerUtils.isSkipPaging( skipPaging, paging ) )
         {
@@ -300,7 +300,7 @@ public class AuditController
                     .setStartDate( startDate )
                     .setEndDate( endDate )
                     .setOuMode( ouMode )
-                    .setAuditType( auditType )
+                    .setAuditTypes( auditType )
                     .setPager( pager ) );
         }
 
@@ -342,7 +342,7 @@ public class AuditController
         TrackedEntityAttributeValueAuditQueryParams params = new TrackedEntityAttributeValueAuditQueryParams()
             .setTrackedEntityAttributes( trackedEntityAttributes )
             .setTrackedEntityInstances( trackedEntityInstances )
-            .setAuditType( auditType );
+            .setAuditTypes( auditType );
 
         if ( PagerUtils.isSkipPaging( skipPaging, paging ) )
         {
@@ -359,7 +359,7 @@ public class AuditController
                 new TrackedEntityAttributeValueAuditQueryParams()
                     .setTrackedEntityAttributes( trackedEntityAttributes )
                     .setTrackedEntityInstances( trackedEntityInstances )
-                    .setAuditType( auditType )
+                    .setAuditTypes( auditType )
                     .setPager( pager ) );
         }
 
@@ -451,7 +451,7 @@ public class AuditController
         TrackedEntityInstanceAuditQueryParams params = new TrackedEntityInstanceAuditQueryParams()
             .setTrackedEntityInstances( tei )
             .setUsers( user )
-            .setAuditType( auditType )
+            .setAuditTypes( auditType )
             .setStartDate( startDate )
             .setEndDate( endDate );
 
@@ -472,7 +472,7 @@ public class AuditController
                 new TrackedEntityInstanceAuditQueryParams()
                     .setTrackedEntityInstances( tei )
                     .setUsers( user )
-                    .setAuditType( auditType )
+                    .setAuditTypes( auditType )
                     .setStartDate( startDate )
                     .setEndDate( endDate )
                     .setPager( pager ) );

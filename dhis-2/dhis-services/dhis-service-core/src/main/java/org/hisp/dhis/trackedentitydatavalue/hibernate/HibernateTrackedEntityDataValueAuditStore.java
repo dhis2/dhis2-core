@@ -197,9 +197,9 @@ public class HibernateTrackedEntityDataValueAuditStore
             predicates.add( builder.lessThanOrEqualTo( tedva.get( PROP_CREATED ), params.getEndDate() ) );
         }
 
-        if ( params.getAuditType() != null )
+        if ( !params.getAuditTypes().isEmpty() )
         {
-            predicates.add( tedva.get( "auditType" ).in( params.getAuditType() ) );
+            predicates.add( tedva.get( "auditType" ).in( params.getAuditTypes() ) );
         }
 
         return predicates;

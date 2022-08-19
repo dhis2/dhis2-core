@@ -162,9 +162,9 @@ public class HibernateTrackedEntityInstanceAuditStore
             predicates.add( root -> root.get( "accessedBy" ).in( params.getUsers() ) );
         }
 
-        if ( params.hasAuditType() )
+        if ( params.hasAuditTypes() )
         {
-            predicates.add( root -> root.get( "auditType" ).in( params.getAuditType() ) );
+            predicates.add( root -> root.get( "auditType" ).in( params.getAuditTypes() ) );
         }
 
         if ( params.hasStartDate() )
