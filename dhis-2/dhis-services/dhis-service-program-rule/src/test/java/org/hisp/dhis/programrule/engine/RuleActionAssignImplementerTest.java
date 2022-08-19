@@ -40,7 +40,7 @@ import org.junit.jupiter.api.Test;
  * @author Zubair Asghar
  */
 
-public class RuleActionAssignImplementerTest extends DhisConvenienceTest
+class RuleActionAssignImplementerTest extends DhisConvenienceTest
 {
     public static final String PI_UI = "pi-uid";
 
