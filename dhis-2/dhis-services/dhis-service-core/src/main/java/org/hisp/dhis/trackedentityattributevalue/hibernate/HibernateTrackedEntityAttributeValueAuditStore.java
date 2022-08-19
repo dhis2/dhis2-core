@@ -107,8 +107,7 @@ public class HibernateTrackedEntityAttributeValueAuditStore
 
         Root<TrackedEntityAttributeValueAudit> root = query.from( TrackedEntityAttributeValueAudit.class );
 
-        List<Predicate> predicates = getTrackedEntityAttributeValueAuditCriteria( builder, root,
-            params );
+        List<Predicate> predicates = getTrackedEntityAttributeValueAuditCriteria( root, params );
 
         query.select( builder.countDistinct( root.get( "id" ) ) )
             .where( predicates.toArray( new Predicate[0] ) );
@@ -128,7 +127,7 @@ public class HibernateTrackedEntityAttributeValueAuditStore
         query.executeUpdate();
     }
 
-    private List<Predicate> getTrackedEntityAttributeValueAuditCriteria( CriteriaBuilder builder,
+    private List<Predicate> getTrackedEntityAttributeValueAuditCriteria(
         Root<TrackedEntityAttributeValueAudit> root, TrackedEntityAttributeValueAuditQueryParams params )
     {
         List<Predicate> predicates = new ArrayList<>();
