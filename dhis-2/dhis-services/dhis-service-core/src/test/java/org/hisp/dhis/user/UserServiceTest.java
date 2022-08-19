@@ -625,7 +625,7 @@ public class UserServiceTest
     }
 
     @Test
-    void testGetDisplayNameNull()
+    public void testGetDisplayNameNull()
     {
         assertNull( userService.getDisplayName( "notExist" ) );
     }
