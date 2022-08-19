@@ -31,7 +31,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -143,19 +142,6 @@ public class DefaultTrackedEntityAttributeValueService
     public int getCountOfAssignedTrackedEntityAttributeValues( TrackedEntityAttribute attribute )
     {
         return attributeValueStore.getCountOfAssignedTEAValues( attribute );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<TrackedEntityAttributeValue> getTrackedEntityAttributeValues(
-        Collection<TrackedEntityInstance> instances )
-    {
-        if ( instances != null && instances.size() > 0 )
-        {
-            return attributeValueStore.get( instances );
-        }
-
-        return null;
     }
 
     @Override
