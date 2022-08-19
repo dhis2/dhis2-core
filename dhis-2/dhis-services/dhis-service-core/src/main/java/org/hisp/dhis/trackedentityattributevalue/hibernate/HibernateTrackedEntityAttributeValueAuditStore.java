@@ -80,7 +80,7 @@ public class HibernateTrackedEntityAttributeValueAuditStore
 
         Root<TrackedEntityAttributeValueAudit> root = criteria.from( TrackedEntityAttributeValueAudit.class );
 
-        List<Predicate> predicates = getTrackedEntityAttributeValueAuditCriteria( builder, root, params );
+        List<Predicate> predicates = getTrackedEntityAttributeValueAuditCriteria( root, params );
 
         criteria.where( predicates.toArray( new Predicate[0] ) )
             .orderBy( builder.desc( root.get( "created" ) ) );
