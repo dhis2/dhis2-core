@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.commons.collection.CollectionUtils.emptyIfNull;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
@@ -193,6 +194,7 @@ public class AuditController
         List<OrganisationUnit> organisationUnits = manager.loadByUid( OrganisationUnit.class, ou );
         CategoryOptionCombo categoryOptionCombo = manager.get( CategoryOptionCombo.class, co );
         CategoryOptionCombo attributeOptionCombo = manager.get( CategoryOptionCombo.class, cc );
+        List<AuditType> auditTypes = emptyIfNull( auditType );
 
         DataValueAuditQueryParams params = new DataValueAuditQueryParams()
             .setDataElements( dataElements )
@@ -200,7 +202,7 @@ public class AuditController
             .setOrgUnits( organisationUnits )
             .setCategoryOptionCombo( categoryOptionCombo )
             .setAttributeOptionCombo( attributeOptionCombo )
-            .setAuditTypes( auditType );
+            .setAuditTypes( auditTypes );
 
         List<DataValueAudit> dataValueAudits;
         Pager pager = null;
@@ -221,7 +223,7 @@ public class AuditController
                 .setOrgUnits( organisationUnits )
                 .setCategoryOptionCombo( categoryOptionCombo )
                 .setAttributeOptionCombo( attributeOptionCombo )
-                .setAuditTypes( auditType )
+                .setAuditTypes( auditTypes )
                 .setPager( pager ) );
         }
 
@@ -267,6 +269,7 @@ public class AuditController
         List<OrganisationUnit> orgUnits = manager.loadByUid( OrganisationUnit.class, ou );
         List<ProgramStage> programStages = manager.loadByUid( ProgramStage.class, ps );
         List<ProgramStageInstance> programStageInstances = manager.loadByUid( ProgramStageInstance.class, psi );
+        List<AuditType> auditTypes = emptyIfNull( auditType );
 
         List<TrackedEntityDataValueAudit> dataValueAudits;
         Pager pager = null;
@@ -279,7 +282,7 @@ public class AuditController
             .setStartDate( startDate )
             .setEndDate( endDate )
             .setOuMode( ouMode )
-            .setAuditTypes( auditType );
+            .setAuditTypes( auditTypes );
 
         if ( PagerUtils.isSkipPaging( skipPaging, paging ) )
         {
@@ -300,7 +303,7 @@ public class AuditController
                     .setStartDate( startDate )
                     .setEndDate( endDate )
                     .setOuMode( ouMode )
-                    .setAuditTypes( auditType )
+                    .setAuditTypes( auditTypes )
                     .setPager( pager ) );
         }
 
@@ -335,6 +338,7 @@ public class AuditController
 
         List<TrackedEntityAttribute> trackedEntityAttributes = manager.loadByUid( TrackedEntityAttribute.class, tea );
         List<TrackedEntityInstance> trackedEntityInstances = manager.loadByUid( TrackedEntityInstance.class, tei );
+        List<AuditType> auditTypes = emptyIfNull( auditType );
 
         List<TrackedEntityAttributeValueAudit> attributeValueAudits;
         Pager pager = null;
@@ -342,7 +346,7 @@ public class AuditController
         TrackedEntityAttributeValueAuditQueryParams params = new TrackedEntityAttributeValueAuditQueryParams()
             .setTrackedEntityAttributes( trackedEntityAttributes )
             .setTrackedEntityInstances( trackedEntityInstances )
-            .setAuditTypes( auditType );
+            .setAuditTypes( auditTypes );
 
         if ( PagerUtils.isSkipPaging( skipPaging, paging ) )
         {
@@ -359,7 +363,7 @@ public class AuditController
                 new TrackedEntityAttributeValueAuditQueryParams()
                     .setTrackedEntityAttributes( trackedEntityAttributes )
                     .setTrackedEntityInstances( trackedEntityInstances )
-                    .setAuditTypes( auditType )
+                    .setAuditTypes( auditTypes )
                     .setPager( pager ) );
         }
 
@@ -448,10 +452,12 @@ public class AuditController
             fields.addAll( Preset.ALL.getFields() );
         }
 
+        List<AuditType> auditTypes = emptyIfNull( auditType );
+
         TrackedEntityInstanceAuditQueryParams params = new TrackedEntityInstanceAuditQueryParams()
             .setTrackedEntityInstances( tei )
             .setUsers( user )
-            .setAuditTypes( auditType )
+            .setAuditTypes( auditTypes )
             .setStartDate( startDate )
             .setEndDate( endDate );
 
@@ -472,7 +478,7 @@ public class AuditController
                 new TrackedEntityInstanceAuditQueryParams()
                     .setTrackedEntityInstances( tei )
                     .setUsers( user )
-                    .setAuditTypes( auditType )
+                    .setAuditTypes( auditTypes )
                     .setStartDate( startDate )
                     .setEndDate( endDate )
                     .setPager( pager ) );
