@@ -561,4 +561,10 @@ class UserServiceTest extends DhisSpringTest
         assertEquals( new HashSet<>( asList( "emaila", "emailc" ) ),
             userService.findNotifiableUsersWithLastLoginBetween( fourMonthAgo, Date.from( now.toInstant() ) ) );
     }
+
+    @Test
+    void testGetDisplayNameNull()
+    {
+        assertNull( userService.getDisplayName( "notExist" ) );
+    }
 }
