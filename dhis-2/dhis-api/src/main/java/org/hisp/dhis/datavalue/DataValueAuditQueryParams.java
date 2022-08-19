@@ -27,62 +27,44 @@
  */
 package org.hisp.dhis.datavalue;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import lombok.Data;
+import lombok.experimental.Accessors;
+
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
 
 /**
- * @author Quang Nguyen
- * @author Halvdan Hoem Grelland
+ * Encapsulation of a web API request for data value audit records.
+ *
+ * @author Lars Helge Overland
  */
-public interface DataValueAuditService
+@Data
+@Accessors( chain = true )
+public class DataValueAuditQueryParams
 {
-    String ID = DataValueAuditService.class.getName();
+    private List<DataElement> dataElements = new ArrayList<>();
 
-    /**
-     * Adds a DataValueAudit.
-     *
-     * @param dataValueAudit the DataValueAudit to add.
-     */
-    void addDataValueAudit( DataValueAudit dataValueAudit );
+    private List<Period> periods = new ArrayList<>();
 
-    /**
-     * Deletes all data value audits for the given organisation unit.
-     *
-     * @param organisationUnit the organisation unit.
-     */
-    void deleteDataValueAudits( OrganisationUnit organisationUnit );
+    private List<OrganisationUnit> orgUnits = new ArrayList<>();
 
-    /**
-     * Deletes all data value audits for the given data element.
-     *
-     * @param dataElement the data element.
-     */
-    void deleteDataValueAudits( DataElement dataElement );
+    private CategoryOptionCombo categoryOptionCombo;
 
-    /**
-     * Returns all DataValueAudits for the given DataValue.
-     *
-     * @param dataValue the DataValue to get DataValueAudits for.
-     * @return a list of DataValueAudits which match the given DataValue, or an
-     *         empty collection if there are no matches.
-     */
-    List<DataValueAudit> getDataValueAudits( DataValue dataValue );
+    private CategoryOptionCombo attributeOptionCombo;
 
-    /**
-     * Returns data value audits for the given parameters.
-     *
-     * @param params the {@link DataValueAuditQueryParams}.
-     * @return a list of {@link DataValueAudit}.
-     */
-    List<DataValueAudit> getDataValueAudits( DataValueAuditQueryParams params );
+    private AuditType auditType;
 
-    /**
-     * Returns the count of data value audits for the given parameters.
-     *
-     * @param params the {@link DataValueAuditQueryParams}.
-     * @return a count of {@link DataValueAudit}.
-     */
-    int countDataValueAudits( DataValueAuditQueryParams params );
+    private Pager pager;
+
+    public boolean hasPaging()
+    {
+        return pager != null;
+    }
 }

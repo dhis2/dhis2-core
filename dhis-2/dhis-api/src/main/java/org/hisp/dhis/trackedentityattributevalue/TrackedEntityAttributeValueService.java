@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.trackedentityattributevalue;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -108,15 +107,6 @@ public interface TrackedEntityAttributeValueService
      * @return Number of assigned TrackedEntityAttributeValues
      */
     int getCountOfAssignedTrackedEntityAttributeValues( TrackedEntityAttribute attribute );
-
-    /**
-     * Retrieve {@link TrackedEntityAttributeValue} of a instance list
-     *
-     * @param instances TrackedEntityAttributeValue list
-     * @return TrackedEntityAttributeValue list
-     */
-    // TODO: This method is never used except of the Unit Test
-    List<TrackedEntityAttributeValue> getTrackedEntityAttributeValues( Collection<TrackedEntityInstance> instances );
 
     /**
      * Retrieve a list of {@link TrackedEntityAttributeValue} that matches the
