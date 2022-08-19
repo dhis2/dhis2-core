@@ -89,6 +89,12 @@ public class JdbcOrgUnitAnalyticsManager
         return dataMap;
     }
 
+    /**
+     * Returns metadata column names for the given query.
+     *
+     * @param params the {@link OrgUnitQueryParams}.
+     * @return a list of column names.
+     */
     private List<String> getMetadataColumns( OrgUnitQueryParams params )
     {
         List<String> columns = Lists.newArrayList( "orgunit" );
@@ -96,6 +102,12 @@ public class JdbcOrgUnitAnalyticsManager
         return columns;
     }
 
+    /**
+     * Returns a SQL query based on the given query.
+     *
+     * @param params the {@link OrgUnitQueryParams}.
+     * @return a SQL query.
+     */
     private String getQuerySql( OrgUnitQueryParams params )
     {
         String levelCol = String.format( "ous.uidlevel%d", params.getOrgUnitLevel() );

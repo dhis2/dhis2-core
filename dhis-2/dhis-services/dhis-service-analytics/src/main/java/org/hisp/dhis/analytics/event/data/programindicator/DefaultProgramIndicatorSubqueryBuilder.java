@@ -135,7 +135,7 @@ public class DefaultProgramIndicatorSubqueryBuilder
      * enrollment -> pi = ax.pi (enrollment operates on the same enrollment as
      * outer) 5) if RelationshipType, call the RelationshipTypeJoinGenerator
      *
-     * @param outerSqlEntity the outer SQL type (enrollment or event).
+     * @param outerSqlEntity the outer {@link AnayticsType}.
      * @param programIndicator the {@link ProgramIndicator}.
      * @param relationshipType the optional {@link RelationshipType}.
      * @return a SQL where clause.

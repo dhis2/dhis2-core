@@ -43,7 +43,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * This component is responsible for encapsulating the id schema mapping for the
- * response elements based on the given URL id schema params.
+ * response elements based on the given URL ID schemes.
  *
  * @author maikel arabori
  */
@@ -52,48 +52,50 @@ public class SchemaIdResponseMapper
 {
     /**
      * This method will map the respective element UID's with their respective
-     * id schema set. The 'outputIdScheme' is considered the most general id
-     * schema parameter. If set, it will map the schema id set to all dimension
+     * ID scheme set. The 'outputIdScheme' is considered the most general ID
+     * scheme parameter. If set, it will map the scheme id set to all dimension
      * items.
      *
-     * The other two id schema parameters supported ('outputDataElementIdScheme'
-     * and 'outputOrgUnitIdScheme') will allow fine-grained id schema
+     * The other two ID scheme parameters supported ('outputDataElementIdScheme'
+     * and 'outputOrgUnitIdScheme') will allow fine-grained id scheme
      * definitions on top of the general 'outputIdScheme'. If they are set, they
      * will override the 'outputIdScheme' definition.
      *
-     * @param params the params where the id schema options are defined. The
-     *        current URL params supported are: outputIdScheme,
-     *        outputDataElementIdScheme and outputOrgUnitIdScheme.
-     * @return a Map of <uid, mapping value>
+     * @param params the {@link DataQueryParams} where the identifier scheme
+     *        options are defined. The supported URL parameters are
+     *        outputIdScheme, outputDataElementIdScheme and
+     *        outputOrgUnitIdScheme.
+     * @return a map of UID and mapping value.
      */
-    public Map<String, String> getSchemeIdResponseMap( final DataQueryParams params )
+    public Map<String, String> getSchemeIdResponseMap( DataQueryParams params )
     {
         final Map<String, String> responseMap = getDimensionItemIdSchemeMap( params.getAllDimensionItems(),
             params.getOutputIdScheme() );
 
         if ( params.isGeneralOutputIdSchemeSet() )
         {
-            // Apply a schema to all data element operands using the general
-            // output schema defined
-            applyGeneralIdSchemaMapping( params, responseMap );
+            // Apply an ID scheme to all data element operands using the general
+            // output ID scheme defined
+            applyIdSchemeMapping( params, responseMap );
         }
 
-        // This section overrides the general schema, so it can be fine-grained
+        // This section overrides the general ID scheme, so it can be
+        // fine-grained
         if ( params.isOutputFormat( DATA_VALUE_SET ) )
         {
             if ( params.isOutputDataElementIdSchemeSet() )
             {
                 if ( !params.getDataElementOperands().isEmpty() )
                 {
-                    // Replace all data elements operands respecting it's
-                    // schema definition
-                    applyDataElementOperandsIdSchemaMapping( params, responseMap );
+                    // Replace all data elements operands respecting their ID
+                    // scheme definition
+                    applyDataElementOperandIdSchemeMapping( params, responseMap );
                 }
                 else if ( !params.getDataElements().isEmpty() )
                 {
-                    // Replace all data elements respecting it's schema
+                    // Replace all data elements respecting their ID scheme
                     // definition
-                    applyDataElementsIdSchemaMapping( params, responseMap );
+                    applyDataElementsIdSchemeMapping( params, responseMap );
                 }
             }
         }
@@ -102,24 +104,24 @@ public class SchemaIdResponseMapper
         // values respecting it's definition
         if ( params.isOutputOrgUnitIdSchemeSet() )
         {
-            applyOrgUnitIdSchemaMapping( params, responseMap );
+            applyOrgUnitIdSchemeMapping( params, responseMap );
         }
 
         return responseMap;
     }
 
-    private void applyGeneralIdSchemaMapping( final DataQueryParams params, final Map<String, String> map )
+    private void applyIdSchemeMapping( DataQueryParams params, Map<String, String> map )
     {
         map.putAll( getDataElementOperandIdSchemeMap(
             asTypedList( params.getDataElementOperands() ), params.getOutputIdScheme() ) );
 
-        if ( params.getProgramStage() != null )
+        if ( params.hasProgramStage() )
         {
             map.put( params.getProgramStage().getUid(),
                 params.getProgramStage().getPropertyValue( params.getOutputIdScheme() ) );
         }
 
-        if ( params.getProgram() != null )
+        if ( params.hasProgram() )
         {
             map.put( params.getProgram().getUid(), params.getProgram().getPropertyValue( params.getOutputIdScheme() ) );
         }
@@ -127,7 +129,7 @@ public class SchemaIdResponseMapper
         if ( params instanceof EventQueryParams
             && CollectionUtils.isNotEmpty( ((EventQueryParams) params).getItemOptions() ) )
         {
-            final Set<Option> options = ((EventQueryParams) params).getItemOptions();
+            Set<Option> options = ((EventQueryParams) params).getItemOptions();
 
             for ( final Option option : options )
             {
@@ -136,19 +138,19 @@ public class SchemaIdResponseMapper
         }
     }
 
-    private void applyDataElementOperandsIdSchemaMapping( final DataQueryParams params, final Map<String, String> map )
+    private void applyDataElementOperandIdSchemeMapping( DataQueryParams params, Map<String, String> map )
     {
         map.putAll( getDataElementOperandIdSchemeMap( asTypedList( params.getDataElementOperands() ),
             params.getOutputDataElementIdScheme() ) );
     }
 
-    private void applyDataElementsIdSchemaMapping( final DataQueryParams params, final Map<String, String> map )
+    private void applyDataElementsIdSchemeMapping( DataQueryParams params, Map<String, String> map )
     {
         map.putAll( getDimensionItemIdSchemeMap( asTypedList( params.getDataElements() ),
             params.getOutputDataElementIdScheme() ) );
     }
 
-    private void applyOrgUnitIdSchemaMapping( final DataQueryParams params, final Map<String, String> map )
+    private void applyOrgUnitIdSchemeMapping( DataQueryParams params, Map<String, String> map )
     {
         map.putAll( getDimensionItemIdSchemeMap( asTypedList( params.getOrganisationUnits() ),
             params.getOutputOrgUnitIdScheme() ) );
