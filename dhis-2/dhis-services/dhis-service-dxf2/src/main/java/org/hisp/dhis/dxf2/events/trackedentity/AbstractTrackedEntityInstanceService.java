@@ -1262,7 +1262,8 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
                 trackedEntityAttributeValueService.addTrackedEntityAttributeValue( newAttributeValue );
             }
 
-            assignFileResource( dtoAttribute, daoEntityInstance.getUid() );
+            assignFileResource( trackedEntityAttributeService.getTrackedEntityAttribute( dtoAttribute.getAttribute() ),
+                dtoAttribute, daoEntityInstance.getUid() );
         }
 
         if ( program != null )
@@ -1302,15 +1303,16 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
                 trackedEntityAttributeValueService.addTrackedEntityAttributeValue( daoAttributeValue );
 
-                assignFileResource( dtoAttribute, daoEntityInstance.getUid() );
+                assignFileResource( daoEntityAttribute, dtoAttribute, daoEntityInstance.getUid() );
 
             }
         }
     }
 
-    private void assignFileResource( Attribute attribute, String fileResourceOwner )
+    private void assignFileResource( TrackedEntityAttribute trackedEntityAttribute, Attribute attribute,
+        String fileResourceOwner )
     {
-        if ( attribute.getValueType().isFile() )
+        if ( trackedEntityAttribute.getValueType().isFile() )
         {
             FileResource fileResource = fileResourceService.getFileResource( attribute.getValue() );
 
