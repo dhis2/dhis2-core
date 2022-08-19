@@ -127,7 +127,7 @@ public class HibernateTrackedEntityInstanceAuditStore
             .addPredicates( getTrackedEntityInstanceAuditPredicates( params, builder ) )
             .addOrder( root -> builder.desc( root.get( "created" ) ) );
 
-        if ( !params.hasPaging() )
+        if ( params.hasPaging() )
         {
             jpaParameters
                 .setFirstResult( params.getPager().getOffset() )
