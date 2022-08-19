@@ -156,6 +156,17 @@ public class CollectionUtils
     }
 
     /**
+     * Returns an empty list if the given list is null, if not returns the list.
+     *
+     * @param list the list
+     * @return a non-null list.
+     */
+    public static <T> List<T> emptyIfNull( List<T> list )
+    {
+        return list != null ? list : new ArrayList<>();
+    }
+
+    /**
      * Returns an empty set if the given set is null, if not returns the set.
      *
      * @param set the set.
