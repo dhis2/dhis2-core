@@ -155,9 +155,6 @@ class DataValueAuditServiceTest extends SingleSetupIntegrationTestBase
 
         List<DataValueAudit> audits = dataValueAuditService.getDataValueAudits( dataValueA );
         assertNotNull( audits );
-        System.out.println( "SIZE AUDITS A " + audits.size() );
-        System.out.println( audits );
-
         assertContainsOnly( audits, dataValueAuditA );
     }
 
@@ -171,25 +168,15 @@ class DataValueAuditServiceTest extends SingleSetupIntegrationTestBase
         dataValueAuditService.addDataValueAudit( dataValueAuditA );
         dataValueAuditService.addDataValueAudit( dataValueAuditB );
 
-        /*
-         * DataValueAuditQueryParams params = new DataValueAuditQueryParams()
-         * .setDataElements( List.of( dataElementA ) ) .setPeriods( List.of(
-         * periodA ) ) .setOrgUnits( List.of( orgUnitA ) )
-         * .setCategoryOptionCombo( optionCombo ) .setAttributeOptionCombo(
-         * optionCombo );
-         */
         DataValueAuditQueryParams params = new DataValueAuditQueryParams()
-            .setDataElements( List.of( dataValueA.getDataElement() ) )
-            .setPeriods( List.of( dataValueA.getPeriod() ) )
-            .setOrgUnits( List.of( dataValueA.getSource() ) )
-            .setCategoryOptionCombo( dataValueA.getCategoryOptionCombo() )
-            .setAttributeOptionCombo( dataValueA.getAttributeOptionCombo() );
+            .setDataElements( List.of( dataElementA ) )
+            .setPeriods( List.of( periodA ) )
+            .setOrgUnits( List.of( orgUnitA ) )
+            .setCategoryOptionCombo( optionCombo )
+            .setAttributeOptionCombo( optionCombo );
 
         List<DataValueAudit> audits = dataValueAuditService.getDataValueAudits( params );
         assertNotNull( audits );
-        System.out.println( "SIZE AUDITS B " + audits.size() );
-        System.out.println( audits );
-
         assertContainsOnly( audits, dataValueAuditA );
     }
 
