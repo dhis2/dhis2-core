@@ -198,6 +198,11 @@ class DataValueAuditServiceTest extends SingleSetupIntegrationTestBase
             .setAuditType( List.of( AuditType.CREATE ) );
 
         assertContainsOnly( dataValueAuditService.getDataValueAudits( params ), dvaC );
+
+        params = new DataValueAuditQueryParams()
+            .setAuditType( List.of( AuditType.CREATE, AuditType.DELETE ) );
+
+        assertContainsOnly( dataValueAuditService.getDataValueAudits( params ), dvaC, dvaD );
     }
 
     @Test
