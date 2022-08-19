@@ -74,7 +74,6 @@ public class HibernateEncryptionConfig
         encryptor.setPassword( password );
         encryptor.setPoolSize( 4 );
         encryptor.setSaltGenerator( new StringFixedSaltGenerator( "H7g0oLkEw3wf52fs52g3hbG" ) );
-
         return encryptor;
     }
 
@@ -88,7 +87,6 @@ public class HibernateEncryptionConfig
         encryptor.setPassword( password );
         encryptor.setPoolSize( 4 );
         encryptor.setSaltGenerator( new RandomSaltGenerator() );
-
         return encryptor;
     }
 

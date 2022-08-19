@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.resolver;
 
+import static org.hisp.dhis.commons.collection.CollectionUtils.isEmpty;
 import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 
 import java.util.Arrays;
@@ -73,8 +74,8 @@ public class CategoryOptionGroupResolver implements ExpressionResolver
     @Override
     public String resolve( String expression )
     {
-        Set<DimensionalItemId> dimItemIds = expressionService.getExpressionDimensionalItemIds( expression,
-            INDICATOR_EXPRESSION );
+        Set<DimensionalItemId> dimItemIds = expressionService.getExpressionDimensionalItemIds(
+            expression, INDICATOR_EXPRESSION );
 
         for ( DimensionalItemId id : dimItemIds )
         {
@@ -96,13 +97,12 @@ public class CategoryOptionGroupResolver implements ExpressionResolver
     {
         List<String> cocUidIntersection = getCategoryOptionCombosIntersection( cogUidList, dataElementId );
 
-        if ( cocUidIntersection == null || cocUidIntersection.isEmpty() )
+        if ( isEmpty( cocUidIntersection ) )
         {
             return expression;
         }
 
-        List<String> resolved = cocUidIntersection
-            .stream()
+        List<String> resolved = cocUidIntersection.stream()
             .map( cocUid -> id.getItem().replace( id.getId1(), cocUid ) )
             .collect( Collectors.toList() );
 
@@ -122,8 +122,7 @@ public class CategoryOptionGroupResolver implements ExpressionResolver
                 .getByUid( cogUid );
 
             List<String> cocUids = categoryOptionComboStore
-                .getCategoryOptionCombosByGroupUid( cog.getUid(), dataElementId )
-                .stream()
+                .getCategoryOptionCombosByGroupUid( cog.getUid(), dataElementId ).stream()
                 .map( BaseIdentifiableObject::getUid )
                 .collect( Collectors.toList() );
 

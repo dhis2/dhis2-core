@@ -46,12 +46,14 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.preheat.PreheatIdentifier;
+import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.UserSettingService;
 import org.springframework.stereotype.Component;
 
 /**
@@ -70,6 +72,10 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
     private final CurrentUserService currentUserService;
 
     private final AclService aclService;
+
+    private final SecurityService securityService;
+
+    private final UserSettingService userSettingService;
 
     @Override
     public void validate( User user, ObjectBundle bundle,
@@ -152,6 +158,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
 
         preheatService.connectReferences( user, bundle.getPreheat(), bundle.getPreheatIdentifier() );
         sessionFactory.getCurrentSession().update( user );
+        userSettingService.saveUserSettings( user.getSettings(), user );
     }
 
     @Override
@@ -175,6 +182,8 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
                 fileResourceService.updateFileResource( fileResource );
             }
         }
+
+        securityService.validate2FAUpdate( persisted.getTwoFA(), user.getTwoFA(), persisted );
     }
 
     @Override
@@ -189,6 +198,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
         }
 
         bundle.removeExtras( persistedUser, "preUpdateUser" );
+        userSettingService.saveUserSettings( persistedUser.getSettings(), persistedUser );
     }
 
     @Override
@@ -249,7 +259,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
     }
 
     /**
-     * If currentUser doesn't have read access to a UserRole and it is included
+     * If currentUser doesn't have read access to a UserRole, and it is included
      * in the payload, then that UserRole should not be removed from updating
      * User.
      *

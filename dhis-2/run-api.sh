@@ -49,7 +49,7 @@ fi
 
 mvn clean install \
     -f "$(dirname "$0")/pom.xml" \
-    --batch-mode --no-transfer-progress \
+    --batch-mode \
     -Pdev -T 100C \
     -DskipTests -Dmaven.test.skip=true -Dmaven.site.skip=true -Dmaven.javadoc.skip=true
 java \

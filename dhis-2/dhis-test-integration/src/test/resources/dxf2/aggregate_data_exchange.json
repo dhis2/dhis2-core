@@ -63,7 +63,7 @@
     },
     {
       "id": "PnWccbwCJLQ",
-      "name": "External data exchange",
+      "name": "External basic auth data exchange",
       "source":{
         "requests": [
           {
@@ -86,9 +86,45 @@
       "target":{
         "type": "EXTERNAL",
         "api": {
-          "url": "https://play.dhis2.org/2.38.0",
+          "url": "https://play.dhis2.org/2.38.1",
           "username": "admin",
           "password": "district"
+        },
+        "request": {
+          "dataElementIdScheme": "UID",
+          "orgUnitIdScheme": "UID",
+          "categoryOptionComboIdScheme": "UID",
+          "idScheme": "UID"
+        }
+      }
+    },
+    {
+      "id": "VpQ4qVEseyM",
+      "name": "External access token data exchange",
+      "source":{
+        "requests": [
+          {
+            "dx": [
+              "fbfJHSPpUQD",
+              "cYeuwXTCPkU"
+            ],
+            "pe": [
+              "LAST_3_MONTHS",
+              "202202"
+            ],
+            "ou": [
+              "ImspTQPwCqd"
+            ],
+            "inputIdScheme": "UID",
+            "outputIdscheme": "UID"
+          }
+        ]
+      },
+      "target":{
+        "type": "EXTERNAL",
+        "api": {
+          "url": "https://play.dhis2.org/2.38.1",
+          "accessToken": "d2pat_fjx18dy0iB6nJybPxGSVsoagGtrXMAVn1162422598"
         },
         "request": {
           "dataElementIdScheme": "UID",
