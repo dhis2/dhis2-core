@@ -1261,6 +1261,8 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
                 daoEntityInstance.getTrackedEntityAttributeValues().add( newAttributeValue );
                 trackedEntityAttributeValueService.addTrackedEntityAttributeValue( newAttributeValue );
             }
+
+            assignFileResource( dtoAttribute, daoEntityInstance.getUid() );
         }
 
         if ( program != null )
@@ -1299,6 +1301,24 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
                 daoAttributeValue.setStoredBy( storedBy );
 
                 trackedEntityAttributeValueService.addTrackedEntityAttributeValue( daoAttributeValue );
+
+                assignFileResource( dtoAttribute, daoEntityInstance.getUid() );
+
+            }
+        }
+    }
+
+    private void assignFileResource( Attribute attribute, String fileResourceOwner )
+    {
+        if ( attribute.getValueType().isFile() )
+        {
+            FileResource fileResource = fileResourceService.getFileResource( attribute.getValue() );
+
+            if ( !fileResource.isAssigned() || fileResource.getFileResourceOwner() == null )
+            {
+                fileResource.setAssigned( true );
+                fileResource.setFileResourceOwner( fileResourceOwner );
+                fileResourceService.updateFileResource( fileResource );
             }
         }
     }
@@ -1384,7 +1404,6 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
             return;
         }
 
-        List<String> fileValues = new ArrayList<>();
         org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance = null;
 
         if ( teiExistsInDatabase )
@@ -1396,10 +1415,6 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
             {
                 return;
             }
-
-            daoEntityInstance.getTrackedEntityAttributeValues().stream()
-                .filter( attrVal -> attrVal.getAttribute().getValueType().isFile() )
-                .forEach( attrVal -> fileValues.add( attrVal.getValue() ) );
         }
 
         for ( Attribute attribute : dtoEntityInstance.getAttributes() )
@@ -1439,11 +1454,25 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
                 validateAttributeType( attribute, importOptions, importConflicts );
 
-                if ( daoEntityAttribute.getValueType().isFile() && checkAssigned( attribute, fileValues ) )
+                if ( daoEntityAttribute.getValueType().isFile() )
                 {
-                    importConflicts.addConflict( "Attribute.value",
-                        String.format( "File resource with uid '%s' has already been assigned to a different object",
-                            attribute.getValue() ) );
+                    FileResource fileResource = fileResourceService.getFileResource( attribute.getValue() );
+
+                    if ( fileResource == null )
+                    {
+                        importConflicts.addConflict( "Attribute.value",
+                            String.format(
+                                "File resource with uid '%s' does not exist",
+                                attribute.getValue() ) );
+                    }
+
+                    if ( fileResource != null && checkAssigned( dtoEntityInstance, fileResource, teiExistsInDatabase ) )
+                    {
+                        importConflicts.addConflict( "Attribute.value",
+                            String.format(
+                                "File resource with uid '%s' has already been assigned to a different object",
+                                attribute.getValue() ) );
+                    }
                 }
             }
         }
@@ -1520,10 +1549,16 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
         return storedBy;
     }
 
-    private boolean checkAssigned( Attribute attribute, List<String> oldFileValues )
+    private boolean checkAssigned( TrackedEntityInstance dtoEntityInstance, FileResource fileResource,
+        boolean teiExistsInDatabase )
     {
-        FileResource fileResource = fileResourceService.getFileResource( attribute.getValue() );
-        return fileResource != null && fileResource.isAssigned() && !oldFileValues.contains( attribute.getValue() );
+        if ( teiExistsInDatabase && fileResource.getFileResourceOwner() != null
+            && !fileResource.getFileResourceOwner().equals( dtoEntityInstance.getTrackedEntityInstance() ) )
+        {
+            return true;
+        }
+
+        return fileResource.isAssigned() && !teiExistsInDatabase;
     }
 
     protected ImportOptions updateImportOptions( ImportOptions importOptions )
