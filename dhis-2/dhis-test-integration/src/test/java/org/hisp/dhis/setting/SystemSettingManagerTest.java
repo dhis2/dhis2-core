@@ -142,4 +142,11 @@ class SystemSettingManagerTest extends SingleSetupIntegrationTestBase
         assertFalse( EMAIL_HOST_NAME.isConfidential() );
         assertFalse( systemSettingManager.isConfidential( EMAIL_HOST_NAME.getName() ) );
     }
+
+    @Test
+    void testGetBoolean()
+    {
+        systemSettingManager.saveSystemSetting( SettingKey.CAN_GRANT_OWN_USER_ROLES, Boolean.valueOf( "true" ) );
+        assertTrue( systemSettingManager.getBoolSetting( SettingKey.CAN_GRANT_OWN_USER_ROLES ) );
+    }
 }
