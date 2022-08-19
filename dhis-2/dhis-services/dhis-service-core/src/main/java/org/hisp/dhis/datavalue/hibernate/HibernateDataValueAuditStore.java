@@ -39,7 +39,6 @@ import javax.persistence.criteria.Root;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueAuditQueryParams;
 import org.hisp.dhis.datavalue.DataValueAuditStore;
@@ -108,19 +107,6 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
         String hql = "delete from DataValueAudit d where d.dataElement = :dataElement";
 
         getSession().createQuery( hql ).setParameter( "dataElement", dataElement ).executeUpdate();
-    }
-
-    @Override
-    public List<DataValueAudit> getDataValueAudits( DataValue dataValue )
-    {
-        DataValueAuditQueryParams params = new DataValueAuditQueryParams()
-            .setDataElements( List.of( dataValue.getDataElement() ) )
-            .setPeriods( List.of( dataValue.getPeriod() ) )
-            .setOrgUnits( List.of( dataValue.getSource() ) )
-            .setCategoryOptionCombo( dataValue.getCategoryOptionCombo() )
-            .setAttributeOptionCombo( dataValue.getAttributeOptionCombo() );
-
-        return getDataValueAudits( params );
     }
 
     @Override
@@ -212,9 +198,9 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
                 .add( root -> builder.equal( root.get( "attributeOptionCombo" ), params.getAttributeOptionCombo() ) );
         }
 
-        if ( params.getAuditType() != null )
+        if ( !params.getAuditTypes().isEmpty() )
         {
-            predicates.add( root -> builder.equal( root.get( "auditType" ), params.getAuditType() ) );
+            predicates.add( root -> root.get( "auditType" ).in( params.getAuditTypes() ) );
         }
 
         return predicates;

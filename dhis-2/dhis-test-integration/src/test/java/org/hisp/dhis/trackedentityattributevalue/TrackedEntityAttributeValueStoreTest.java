@@ -197,19 +197,24 @@ class TrackedEntityAttributeValueStoreTest extends SingleSetupIntegrationTestBas
         TrackedEntityAttributeValueAuditQueryParams params = new TrackedEntityAttributeValueAuditQueryParams()
             .setTrackedEntityAttributes( List.of( atA ) )
             .setTrackedEntityInstances( List.of( teiA ) )
-            .setAuditType( AuditType.UPDATE );
+            .setAuditTypes( List.of( AuditType.UPDATE ) );
 
         assertContainsOnly( attributeValueAuditStore.getTrackedEntityAttributeValueAudits( params ), auditA );
 
         params = new TrackedEntityAttributeValueAuditQueryParams()
             .setTrackedEntityInstances( List.of( teiA ) )
-            .setAuditType( AuditType.UPDATE );
+            .setAuditTypes( List.of( AuditType.UPDATE ) );
 
         assertContainsOnly( attributeValueAuditStore.getTrackedEntityAttributeValueAudits( params ), auditA, auditB );
 
         params = new TrackedEntityAttributeValueAuditQueryParams()
-            .setAuditType( AuditType.CREATE );
+            .setAuditTypes( List.of( AuditType.CREATE ) );
 
         assertContainsOnly( attributeValueAuditStore.getTrackedEntityAttributeValueAudits( params ), auditC );
+
+        params = new TrackedEntityAttributeValueAuditQueryParams()
+            .setAuditTypes( List.of( AuditType.CREATE, AuditType.DELETE ) );
+
+        assertContainsOnly( attributeValueAuditStore.getTrackedEntityAttributeValueAudits( params ), auditC, auditD );
     }
 }
