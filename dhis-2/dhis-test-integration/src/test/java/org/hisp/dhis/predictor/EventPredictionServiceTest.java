@@ -79,8 +79,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
@@ -140,9 +138,6 @@ class EventPredictionServiceTest extends IntegrationTestBase
 
     @Autowired
     private AnalyticsService analyticsService;
-
-    @Autowired
-    private CurrentUserService currentUserService;
 
     @Autowired
     private CategoryManager categoryManager;
@@ -337,8 +332,6 @@ class EventPredictionServiceTest extends IntegrationTestBase
     {
         setDependency( AnalyticsServiceTarget.class, AnalyticsServiceTarget::setAnalyticsService, analyticsService,
             predictionService );
-        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
-            currentUserService, predictionService );
     }
 
     // -------------------------------------------------------------------------
