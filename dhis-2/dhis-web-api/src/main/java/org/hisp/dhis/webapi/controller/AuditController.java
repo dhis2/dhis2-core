@@ -202,14 +202,6 @@ public class AuditController
             .setAttributeOptionCombo( attributeOptionCombo )
             .setAuditType( AuditType.UPDATE );
 
-        DataValueAuditQueryParams params = new DataValueAuditQueryParams()
-            .setDataElements( dataElements )
-            .setPeriods( periods )
-            .setOrgUnits( organisationUnits )
-            .setCategoryOptionCombo( categoryOptionCombo )
-            .setAttributeOptionCombo( attributeOptionCombo )
-            .setAuditType( AuditType.UPDATE );
-
         List<DataValueAudit> dataValueAudits;
         Pager pager = null;
 
