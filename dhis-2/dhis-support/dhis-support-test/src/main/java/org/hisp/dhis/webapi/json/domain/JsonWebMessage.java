@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.json.domain;
 
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonObject;
 
 /**
@@ -59,6 +60,11 @@ public interface JsonWebMessage extends JsonObject
     default String getDescription()
     {
         return getString( "description" ).string();
+    }
+
+    default ErrorCode getErrorCode()
+    {
+        return getString( "errorCode" ).parsed( ErrorCode::valueOf );
     }
 
     default JsonObject getResponse()

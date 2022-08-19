@@ -25,33 +25,46 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.shared.component.element.from;
+package org.hisp.dhis.datavalue;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import java.util.ArrayList;
+import java.util.List;
 
-import org.hisp.dhis.analytics.shared.component.element.Element;
-import org.hisp.dhis.analytics.shared.visitor.from.FromVisitor;
+import lombok.Data;
+import lombok.experimental.Accessors;
+
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
 
 /**
- * SimpleFromElement represents the "from" clause of a SQL statement.
+ * Encapsulation of a web API request for data value audit records.
  *
- * @author dusan bernat
+ * @author Lars Helge Overland
  */
-@AllArgsConstructor
-@Getter
-public class SimpleFromElement implements Element<FromVisitor>
+@Data
+@Accessors( chain = true )
+public class DataValueAuditQueryParams
 {
-    private String value;
+    private List<DataElement> dataElements = new ArrayList<>();
 
-    /**
-     * see Visitor design pattern
-     *
-     * @param v
-     */
-    @Override
-    public void accept( FromVisitor v )
+    private List<Period> periods = new ArrayList<>();
+
+    private List<OrganisationUnit> orgUnits = new ArrayList<>();
+
+    private CategoryOptionCombo categoryOptionCombo;
+
+    private CategoryOptionCombo attributeOptionCombo;
+
+    private AuditType auditType;
+
+    private Pager pager;
+
+    public boolean hasPaging()
     {
-        v.visit( this );
+        return pager != null;
     }
 }

@@ -25,23 +25,60 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.common;
+package org.hisp.dhis.user;
 
-import org.springframework.stereotype.Component;
+import java.util.Locale;
+
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+
+import org.hisp.dhis.common.DisplayProperty;
+import org.hisp.dhis.common.DxfNamespaces;
+
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
- * Component responsible for generic validations on top of a CommonQueryRequest
- * object.
+ * User Settings transfer object for settings as defined by
+ * {@link UserSettingKey}.
  *
- * @see Validator
+ * @author Jan Bernitt
  */
-@Component
-public class CommonQueryRequestValidator implements Validator<CommonQueryRequest>
+@Getter
+@Setter
+@NoArgsConstructor
+@ToString
+@JacksonXmlRootElement( localName = "settings", namespace = DxfNamespaces.DXF_2_0 )
+public class UserSettings
 {
+    @JsonAlias( "keyStyle" )
+    @JsonProperty
+    private String style;
 
-    @Override
-    public void validate( final CommonQueryRequest commonQueryRequest )
-    {
-        // TODO: validate common request params
-    }
+    @JsonAlias( "keyMessageEmailNotification" )
+    @JsonProperty
+    private Boolean messageEmailNotification;
+
+    @JsonAlias( "keyMessageSmsNotification" )
+    @JsonProperty
+    private Boolean messageSmsNotification;
+
+    @JsonAlias( "keyUiLocale" )
+    @JsonProperty
+    private Locale uiLocale;
+
+    @JsonAlias( "keyDbLocale" )
+    @JsonProperty
+    private Locale dbLocale;
+
+    @JsonAlias( "keyAnalysisDisplayProperty" )
+    @JsonProperty
+    private DisplayProperty analysisDisplayProperty;
+
+    @JsonAlias( "keyTrackerDashboardLayout" )
+    @JsonProperty
+    private String trackerDashboardLayout;
 }

@@ -609,4 +609,10 @@ class UserServiceTest extends SingleSetupIntegrationTestBase
         userService.disableTwoFA( currentUser, userToModify.getUid(), error -> errors.add( error ) );
         assertTrue( errors.isEmpty() );
     }
+
+    @Test
+    void testGetDisplayNameNull()
+    {
+        assertNull( userService.getDisplayName( "notExist" ) );
+    }
 }

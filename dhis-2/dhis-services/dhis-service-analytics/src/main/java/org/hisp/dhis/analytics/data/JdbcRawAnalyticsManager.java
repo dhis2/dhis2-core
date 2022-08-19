@@ -126,7 +126,7 @@ public class JdbcRawAnalyticsManager
     /**
      * Returns a SQL select statement.
      *
-     * @param params the data query parameters.
+     * @param params the {@link DataQueryParams}.
      * @param dimensions the list of dimensions.
      * @return a SQL select statement.
      */

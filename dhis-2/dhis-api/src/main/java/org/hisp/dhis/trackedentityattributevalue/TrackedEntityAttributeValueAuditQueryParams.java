@@ -25,35 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.common;
+package org.hisp.dhis.trackedentityattributevalue;
 
-import lombok.RequiredArgsConstructor;
+import java.util.ArrayList;
+import java.util.List;
 
-import org.hisp.dhis.common.AnalyticsPagingCriteria;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
-import org.springframework.stereotype.Component;
+import lombok.Data;
+import lombok.experimental.Accessors;
+
+import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
 /**
- * Processor class for AnalyticsPagingCriteria objects.
+ * Encapsulation of a web API request for tracked entity data value audit
+ * records.
  *
- * @see Processor
+ * @author Lars Helge Overland
  */
-@Component
-@RequiredArgsConstructor
-public class PagingCriteriaProcessor implements Processor<AnalyticsPagingCriteria>
+@Data
+@Accessors( chain = true )
+public class TrackedEntityAttributeValueAuditQueryParams
 {
-    private final SystemSettingManager systemSettingManager;
+    private List<TrackedEntityAttribute> trackedEntityAttributes = new ArrayList<>();
 
-    // TODO: DHIS2-13384 we would really like to have all
-    // criteria/request/params to be
-    // immutable, but PagingCriteria is not
-    // returning it for now, should be converted to use builders
-    @Override
-    public AnalyticsPagingCriteria process( AnalyticsPagingCriteria pagingCriteria )
+    private List<TrackedEntityInstance> trackedEntityInstances = new ArrayList<>();
+
+    private AuditType auditType;
+
+    private Pager pager;
+
+    public boolean hasPager()
     {
-        int analyticsMaxPageSize = systemSettingManager.getIntSetting( SettingKey.ANALYTICS_MAX_LIMIT );
-        pagingCriteria.definePageSize( analyticsMaxPageSize );
-        return pagingCriteria;
+        return pager != null;
     }
 }

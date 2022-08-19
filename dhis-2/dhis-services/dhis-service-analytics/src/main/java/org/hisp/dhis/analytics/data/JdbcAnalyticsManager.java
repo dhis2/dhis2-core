@@ -281,6 +281,9 @@ public class JdbcAnalyticsManager
 
     /**
      * Generates the select clause of the query SQL.
+     *
+     * @param params the {@link DataQueryParams}.
+     * @return a SQL select clause.
      */
     private String getSelectClause( DataQueryParams params )
     {
@@ -302,6 +305,9 @@ public class JdbcAnalyticsManager
 
     /**
      * Returns a aggregate clause for the numeric value column.
+     *
+     * @param params the {@link DataQueryParams}.
+     * @return a SQL numeric value column.
      */
     private String getNumericValueColumn( DataQueryParams params )
     {
@@ -358,6 +364,9 @@ public class JdbcAnalyticsManager
 
     /**
      * Generates the from clause of the query SQL.
+     *
+     * @param params the {@link DataQueryParams}.
+     * @return a SQL from clause.
      */
     private String getFromClause( DataQueryParams params )
     {
@@ -387,6 +396,9 @@ public class JdbcAnalyticsManager
     /**
      * Returns the query from source clause. Can be any of table name, partition
      * name or inner select union all query.
+     *
+     * @param params the {@link DataQueryParams}.
+     * @return a SQL from source clause.
      */
     private String getFromSourceClause( DataQueryParams params )
     {
@@ -417,6 +429,9 @@ public class JdbcAnalyticsManager
 
     /**
      * Generates the where clause of the query SQL.
+     *
+     * @param params the {@link DataQueryParams}.
+     * @return a SQL where clause.
      */
     private String getWhereClause( DataQueryParams params, AnalyticsTableType tableType )
     {
@@ -550,6 +565,9 @@ public class JdbcAnalyticsManager
 
     /**
      * Generates the group by clause of the query SQL.
+     *
+     * @param params the {@link DataQueryParams}.
+     * @return a SQL group by clause.
      */
     private String getGroupByClause( DataQueryParams params )
     {
@@ -570,8 +588,12 @@ public class JdbcAnalyticsManager
      * combo and attribute option combo. A column {@code pe_rank} defines the
      * rank. Only data for the last 10 years relative to the period end date is
      * included.
+     *
+     * @param params the {@link DataQueryParams}.
+     * @param earliestDate the earliest date for which data is considered.
+     * @return a SQL first or last value sub query.
      */
-    private String getFirstOrLastValueSubquerySql( DataQueryParams params, Date earliest )
+    private String getFirstOrLastValueSubquerySql( DataQueryParams params, Date earliestDate )
     {
         Date latest = params.getLatestEndDate();
         List<String> columns = getFirstOrLastValueSubqueryQuotedColumns( params );
@@ -590,7 +612,7 @@ public class JdbcAnalyticsManager
             "partition by dx, ou, co, ao " +
             "order by peenddate " + order + ", pestartdate " + order + ") as pe_rank " +
             "from " + fromSourceClause + " " +
-            "where pestartdate >= '" + getMediumDateString( earliest ) + "' " +
+            "where pestartdate >= '" + getMediumDateString( earliestDate ) + "' " +
             "and pestartdate <= '" + getMediumDateString( latest ) + "' " +
             "and (value is not null or textvalue is not null))";
 
@@ -602,6 +624,9 @@ public class JdbcAnalyticsManager
      * query. It is assumed that {@link AggregationType#LAST} type only applies
      * to aggregate data analytics. The period dimension is replaced by the name
      * of the single period in the given query.
+     *
+     * @param params the {@link DataQueryParams}.
+     * @return a SQL clause with quoted columns for a first or last value query.
      */
     private List<String> getFirstOrLastValueSubqueryQuotedColumns( DataQueryParams params )
     {
@@ -643,6 +668,9 @@ public class JdbcAnalyticsManager
      * Generates a sub query which provides a filtered view of the data
      * according to the criteria. If not, returns the full view of the
      * partition.
+     *
+     * @param params the {@link DataQueryParams}.
+     * @return a SQL measure sub query.
      */
     private String getPreMeasureCriteriaSubquerySql( DataQueryParams params )
     {
@@ -667,6 +695,9 @@ public class JdbcAnalyticsManager
     /**
      * Returns a having clause restricting the result based on the measure
      * criteria.
+     *
+     * @param params the {@link DataQueryParams}.
+     * @return a SQL measure having clause.
      */
     private String getMeasureCriteriaSql( DataQueryParams params )
     {
@@ -688,6 +719,11 @@ public class JdbcAnalyticsManager
     /**
      * Retrieves data from the database based on the given query and SQL and
      * puts into a value key and value mapping.
+     *
+     * @param params the {@link DataQueryParams}.
+     * @param sql the SQL query.
+     * @param maxLimit the max limit of records to return, 0 indicates
+     *        unlimited.
      */
     private Map<String, Object> getKeyValueMap( DataQueryParams params, String sql, int maxLimit )
     {
@@ -739,8 +775,11 @@ public class JdbcAnalyticsManager
     }
 
     /**
-     * Generates a comma-delimited string based on the dimension names of the
-     * given dimensions where each dimension name is quoted.
+     * Generates a comma-delimited string with the dimension names of the given
+     * dimensions where each dimension name is quoted.
+     *
+     * @param dimensions the collection of {@link Dimension}.
+     * @return a comma-delimited string of quoted dimension names.
      */
     private String getCommaDelimitedQuotedColumns( Collection<DimensionalObject> dimensions )
     {
