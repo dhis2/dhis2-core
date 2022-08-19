@@ -191,8 +191,16 @@ public class AuditController
 
         List<Period> periods = getPeriods( pe );
         List<OrganisationUnit> organisationUnits = manager.loadByUid( OrganisationUnit.class, ou );
-        CategoryOptionCombo categoryOptionCombo = manager.load( CategoryOptionCombo.class, co );
-        CategoryOptionCombo attributeOptionCombo = manager.load( CategoryOptionCombo.class, cc );
+        CategoryOptionCombo categoryOptionCombo = manager.get( CategoryOptionCombo.class, co );
+        CategoryOptionCombo attributeOptionCombo = manager.get( CategoryOptionCombo.class, cc );
+
+        DataValueAuditQueryParams params = new DataValueAuditQueryParams()
+            .setDataElements( dataElements )
+            .setPeriods( periods )
+            .setOrgUnits( organisationUnits )
+            .setCategoryOptionCombo( categoryOptionCombo )
+            .setAttributeOptionCombo( attributeOptionCombo )
+            .setAuditType( AuditType.UPDATE );
 
         DataValueAuditQueryParams params = new DataValueAuditQueryParams()
             .setDataElements( dataElements )
