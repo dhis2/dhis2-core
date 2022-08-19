@@ -39,7 +39,6 @@ import java.util.Set;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsService;
-import org.hisp.dhis.analytics.AnalyticsServiceTarget;
 import org.hisp.dhis.analytics.MockAnalyticsService;
 import org.hisp.dhis.category.CategoryManager;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -83,6 +82,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import com.google.common.collect.Sets;
 
@@ -313,8 +313,7 @@ class EventPredictionServiceTest extends IntegrationTestBase
         itemGridMap.put( PROGRAM_INDICATOR_B_UID, newGrid( PROGRAM_INDICATOR_B_UID, 10.0, 11.0 ) );
         MockAnalyticsService mockAnalyticsSerivce = new MockAnalyticsService();
         mockAnalyticsSerivce.setItemGridMap( itemGridMap );
-        setDependency( AnalyticsServiceTarget.class, AnalyticsServiceTarget::setAnalyticsService, mockAnalyticsSerivce,
-            predictionService );
+        ReflectionTestUtils.setField( predictionService, "analyticsService", mockAnalyticsSerivce );
 
         User user = createAndAddUser( true, "mockUser", orgUnitASet, orgUnitASet );
         injectSecurityContext( user );
@@ -330,8 +329,7 @@ class EventPredictionServiceTest extends IntegrationTestBase
     @Override
     public void tearDownTest()
     {
-        setDependency( AnalyticsServiceTarget.class, AnalyticsServiceTarget::setAnalyticsService, analyticsService,
-            predictionService );
+        ReflectionTestUtils.setField( predictionService, "analyticsService", analyticsService );
     }
 
     // -------------------------------------------------------------------------
