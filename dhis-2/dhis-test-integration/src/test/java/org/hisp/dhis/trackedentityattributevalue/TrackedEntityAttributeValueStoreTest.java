@@ -211,5 +211,10 @@ class TrackedEntityAttributeValueStoreTest extends SingleSetupIntegrationTestBas
             .setAuditType( List.of( AuditType.CREATE ) );
 
         assertContainsOnly( attributeValueAuditStore.getTrackedEntityAttributeValueAudits( params ), auditC );
+
+        params = new TrackedEntityAttributeValueAuditQueryParams()
+            .setAuditType( List.of( AuditType.CREATE, AuditType.DELETE ) );
+
+        assertContainsOnly( attributeValueAuditStore.getTrackedEntityAttributeValueAudits( params ), auditC, auditD );
     }
 }
