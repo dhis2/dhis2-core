@@ -74,8 +74,8 @@ public interface EventQueryValidator
         throws IllegalQueryException;
 
     /**
-     * Returns the max number of records to return. A value of 0 indicates no
-     * limit.
+     * Returns the max number of records to return. A value of 0 indicates
+     * unlimited records.
      *
      * @return the max number of records to return.
      */
