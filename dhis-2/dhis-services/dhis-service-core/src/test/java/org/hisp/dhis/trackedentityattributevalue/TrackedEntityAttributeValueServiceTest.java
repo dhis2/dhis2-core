@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.hisp.dhis.DhisSpringTest;
@@ -188,21 +187,6 @@ class TrackedEntityAttributeValueServiceTest extends DhisSpringTest
         attributeValues = attributeValueService.getTrackedEntityAttributeValues( attributeB );
         assertEquals( 1, attributeValues.size() );
         assertTrue( attributeValues.contains( attributeValueB ) );
-    }
-
-    @Test
-    void testGetTrackedEntityAttributeValuesbyEntityInstanceList()
-    {
-        attributeValueService.addTrackedEntityAttributeValue( attributeValueA );
-        attributeValueService.addTrackedEntityAttributeValue( attributeValueB );
-        attributeValueService.addTrackedEntityAttributeValue( attributeValueC );
-        List<TrackedEntityInstance> entityInstances = new ArrayList<>();
-        entityInstances.add( entityInstanceA );
-        entityInstances.add( entityInstanceB );
-        List<TrackedEntityAttributeValue> attributeValues = attributeValueService
-            .getTrackedEntityAttributeValues( entityInstances );
-        assertEquals( 3, attributeValues.size() );
-        assertTrue( equals( attributeValues, attributeValueA, attributeValueB, attributeValueC ) );
     }
 
     @Test
