@@ -85,7 +85,6 @@ import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.hisp.quick.BatchHandlerFactory;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -136,9 +135,6 @@ class DataValueSetServiceTest extends IntegrationTestBase
 
     @Autowired
     private UserService _userService;
-
-    @Autowired
-    private BatchHandlerFactory batchHandlerFactory;
 
     private Attribute attribute;
 
