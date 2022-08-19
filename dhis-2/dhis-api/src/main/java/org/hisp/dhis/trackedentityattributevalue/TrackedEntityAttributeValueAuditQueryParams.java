@@ -52,7 +52,7 @@ public class TrackedEntityAttributeValueAuditQueryParams
 
     private List<TrackedEntityInstance> trackedEntityInstances = new ArrayList<>();
 
-    private AuditType auditType;
+    private List<AuditType> auditType = new ArrayList<>();
 
     private Pager pager;
 

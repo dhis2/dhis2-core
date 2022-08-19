@@ -102,17 +102,17 @@ public class TrackedEntityDataValueAuditTest extends TrackerTest
             new TrackedEntityDataValueAuditQueryParams()
                 .setDataElements( List.of( dataElement ) )
                 .setProgramStageInstances( List.of( psi ) )
-                .setAuditType( AuditType.CREATE ) );
+                .setAuditType( List.of( AuditType.CREATE ) ) );
         List<TrackedEntityDataValueAudit> updatedAudit = dataValueAuditService.getTrackedEntityDataValueAudits(
             new TrackedEntityDataValueAuditQueryParams()
                 .setDataElements( List.of( dataElement ) )
                 .setProgramStageInstances( List.of( psi ) )
-                .setAuditType( AuditType.UPDATE ) );
+                .setAuditType( List.of( AuditType.UPDATE ) ) );
         List<TrackedEntityDataValueAudit> deletedAudit = dataValueAuditService.getTrackedEntityDataValueAudits(
             new TrackedEntityDataValueAuditQueryParams()
                 .setDataElements( List.of( dataElement ) )
                 .setProgramStageInstances( List.of( psi ) )
-                .setAuditType( AuditType.DELETE ) );
+                .setAuditType( List.of( AuditType.DELETE ) ) );
 
         assertAll( () -> assertNotNull( createdAudit ), () -> assertNotNull( updatedAudit ),
             () -> assertNotNull( deletedAudit ) );

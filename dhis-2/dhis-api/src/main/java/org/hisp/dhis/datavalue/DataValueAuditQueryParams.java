@@ -59,7 +59,7 @@ public class DataValueAuditQueryParams
 
     private CategoryOptionCombo attributeOptionCombo;
 
-    private AuditType auditType;
+    private List<AuditType> auditType;
 
     private Pager pager;
 

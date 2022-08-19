@@ -199,7 +199,7 @@ public class HibernateTrackedEntityDataValueAuditStore
 
         if ( params.getAuditType() != null )
         {
-            predicates.add( builder.equal( tedva.get( "auditType" ), params.getAuditType() ) );
+            predicates.add( tedva.get( "auditType" ).in( params.getAuditType() ) );
         }
 
         return predicates;

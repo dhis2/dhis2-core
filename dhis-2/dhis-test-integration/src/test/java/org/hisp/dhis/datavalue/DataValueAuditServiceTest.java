@@ -181,7 +181,7 @@ class DataValueAuditServiceTest extends SingleSetupIntegrationTestBase
             .setPeriods( List.of( periodA ) )
             .setOrgUnits( List.of( orgUnitA ) )
             .setCategoryOptionCombo( optionCombo )
-            .setAuditType( AuditType.UPDATE );
+            .setAuditType( List.of( AuditType.UPDATE ) );
 
         assertContainsOnly( dataValueAuditService.getDataValueAudits( params ), dvaA );
 
@@ -190,12 +190,12 @@ class DataValueAuditServiceTest extends SingleSetupIntegrationTestBase
             .setPeriods( List.of( periodA, periodB ) )
             .setOrgUnits( List.of( orgUnitA, orgUnitB ) )
             .setCategoryOptionCombo( optionCombo )
-            .setAuditType( AuditType.UPDATE );
+            .setAuditType( List.of( AuditType.UPDATE ) );
 
         assertContainsOnly( dataValueAuditService.getDataValueAudits( params ), dvaA, dvaB );
 
         params = new DataValueAuditQueryParams()
-            .setAuditType( AuditType.CREATE );
+            .setAuditType( List.of( AuditType.CREATE ) );
 
         assertContainsOnly( dataValueAuditService.getDataValueAudits( params ), dvaC );
     }
@@ -221,7 +221,7 @@ class DataValueAuditServiceTest extends SingleSetupIntegrationTestBase
             .setPeriods( List.of( periodD ) )
             .setOrgUnits( List.of( orgUnitA ) )
             .setCategoryOptionCombo( optionCombo )
-            .setAuditType( AuditType.UPDATE );
+            .setAuditType( List.of( AuditType.UPDATE ) );
 
         assertEquals( 0, dataValueAuditService.getDataValueAudits( params ).size() );
     }

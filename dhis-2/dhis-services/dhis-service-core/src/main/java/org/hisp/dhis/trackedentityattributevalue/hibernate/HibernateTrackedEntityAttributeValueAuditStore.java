@@ -145,7 +145,7 @@ public class HibernateTrackedEntityAttributeValueAuditStore
 
         if ( params.getAuditType() != null )
         {
-            predicates.add( builder.equal( root.get( "auditType" ), params.getAuditType() ) );
+            predicates.add( root.get( "auditType" ).in( params.getAuditType() ) );
         }
 
         return predicates;

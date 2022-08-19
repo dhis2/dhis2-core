@@ -66,7 +66,7 @@ public class TrackedEntityDataValueAuditQueryParams
 
     private OrganisationUnitSelectionMode ouMode;
 
-    private AuditType auditType;
+    private List<AuditType> auditType = new ArrayList<>();
 
     private Pager pager;
 

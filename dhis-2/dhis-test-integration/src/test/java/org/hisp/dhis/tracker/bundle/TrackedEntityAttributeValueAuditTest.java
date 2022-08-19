@@ -96,7 +96,7 @@ class TrackedEntityAttributeValueAuditTest extends TrackerTest
             .getTrackedEntityAttributeValueAudits( new TrackedEntityAttributeValueAuditQueryParams()
                 .setTrackedEntityAttributes( attributes )
                 .setTrackedEntityInstances( trackedEntityInstances )
-                .setAuditType( AuditType.CREATE ) );
+                .setAuditType( List.of( AuditType.CREATE ) ) );
         assertEquals( 5, attributeValueAudits.size() );
     }
 
@@ -121,14 +121,14 @@ class TrackedEntityAttributeValueAuditTest extends TrackerTest
             .getTrackedEntityAttributeValueAudits( new TrackedEntityAttributeValueAuditQueryParams()
                 .setTrackedEntityAttributes( attributes1 )
                 .setTrackedEntityInstances( trackedEntityInstances )
-                .setAuditType( AuditType.DELETE ) );
+                .setAuditType( List.of( AuditType.DELETE ) ) );
         assertEquals( 1, attributeValueAudits.size() );
 
         attributeValueAudits = attributeValueAuditService.getTrackedEntityAttributeValueAudits(
             new TrackedEntityAttributeValueAuditQueryParams()
                 .setTrackedEntityAttributes( attributes1 )
                 .setTrackedEntityInstances( trackedEntityInstances )
-                .setAuditType( AuditType.UPDATE ) );
+                .setAuditType( List.of( AuditType.UPDATE ) ) );
         assertEquals( 1, attributeValueAudits.size() );
     }
 }

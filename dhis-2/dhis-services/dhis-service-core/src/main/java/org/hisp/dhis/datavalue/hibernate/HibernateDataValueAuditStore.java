@@ -214,7 +214,7 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
 
         if ( params.getAuditType() != null )
         {
-            predicates.add( root -> builder.equal( root.get( "auditType" ), params.getAuditType() ) );
+            predicates.add( root -> root.get( "auditType" ).in( params.getAuditType() ) );
         }
 
         return predicates;

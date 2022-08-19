@@ -35,6 +35,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 
 import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.common.Pager;
 
 /**
  * @author Abyot Asalefew Gizaw abyota@gmail.com
@@ -43,45 +44,17 @@ import org.hisp.dhis.common.AuditType;
 @Accessors( chain = true )
 public class TrackedEntityInstanceAuditQueryParams
 {
-    /**
-     * Tracked entity instances.
-     */
     private List<String> trackedEntityInstances = new ArrayList<>();
 
-    /**
-     * Users.
-     */
     private List<String> users = new ArrayList<>();
 
-    /**
-     * AuditType to fetch for
-     */
-    private AuditType auditType;
+    private List<AuditType> auditType = new ArrayList<>();
 
-    /**
-     * Starting date.
-     */
     private Date startDate = null;
 
-    /**
-     * Ending date.
-     */
     private Date endDate = null;
 
-    /**
-     * Tracked entity instance audit count start
-     */
-    private int first;
-
-    /**
-     * Tracked entity instance audit count end
-     */
-    private int max;
-
-    /**
-     * Traked entity instance audit skip paging or not
-     */
-    private boolean skipPaging;
+    private Pager pager;
 
     // -------------------------------------------------------------------------
     // Logic
@@ -110,5 +83,10 @@ public class TrackedEntityInstanceAuditQueryParams
     public boolean hasEndDate()
     {
         return endDate != null;
+    }
+
+    public boolean hasPaging()
+    {
+        return pager != null;
     }
 }
