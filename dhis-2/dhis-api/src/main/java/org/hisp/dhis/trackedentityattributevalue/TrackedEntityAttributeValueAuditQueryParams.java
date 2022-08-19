@@ -25,50 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.json.domain;
+package org.hisp.dhis.trackedentityattributevalue;
 
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.jsontree.JsonObject;
+import java.util.ArrayList;
+import java.util.List;
+
+import lombok.Data;
+import lombok.experimental.Accessors;
+
+import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
 /**
- * Web API equivalent of a {@code WebMessage} or {@code DescriptiveWebMessage}
+ * Encapsulation of a web API request for tracked entity data value audit
+ * records.
  *
- * @author Jan Bernitt
+ * @author Lars Helge Overland
  */
-public interface JsonWebMessage extends JsonObject
+@Data
+@Accessors( chain = true )
+public class TrackedEntityAttributeValueAuditQueryParams
 {
-    default String getHttpStatus()
-    {
-        return getString( "httpStatus" ).string();
-    }
+    private List<TrackedEntityAttribute> trackedEntityAttributes = new ArrayList<>();
 
-    default int getHttpStatusCode()
-    {
-        return getNumber( "httpStatusCode" ).intValue();
-    }
+    private List<TrackedEntityInstance> trackedEntityInstances = new ArrayList<>();
 
-    default String getStatus()
-    {
-        return getString( "status" ).string();
-    }
+    private List<AuditType> auditTypes = new ArrayList<>();
 
-    default String getMessage()
-    {
-        return getString( "message" ).string();
-    }
+    private Pager pager;
 
-    default String getDescription()
+    public boolean hasPager()
     {
-        return getString( "description" ).string();
-    }
-
-    default ErrorCode getErrorCode()
-    {
-        return getString( "errorCode" ).parsed( ErrorCode::valueOf );
-    }
-
-    default JsonObject getResponse()
-    {
-        return getObject( "response" );
+        return pager != null;
     }
 }

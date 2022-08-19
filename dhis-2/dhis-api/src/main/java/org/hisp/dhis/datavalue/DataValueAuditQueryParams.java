@@ -25,41 +25,46 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.utils;
+package org.hisp.dhis.datavalue;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.util.ArrayList;
+import java.util.List;
+
+import lombok.Data;
+import lombok.experimental.Accessors;
+
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
 
 /**
- * This annotation is used within a Docker-based integration test to inject data
- * into the Dockerized Postgresql database. The annotation expects a "path"
- * property to point to the actual SQL file containing the INSERT/UPDATE/DELETE
- * statements to run prior to each test. The file must be present in the
- * classpath (e.g. src/main/resources/) The data file is going to be injected
- * only once per each test class.
+ * Encapsulation of a web API request for data value audit records.
  *
- * <pre>
- * {@code
- *
- * &#64;org.junit.experimental.categories.Category( IntegrationTest.class )
- * &#64;IntegrationTestData(path = "sql/mydata.sql")
- * public class DefaultTrackedEntityInstanceStoreTest
- *     extends
- *     IntegrationTestBase
- * {
- *   ...
- * }
- * }
- * </pre>
- *
- *
- * @author Luciano Fiandesio
+ * @author Lars Helge Overland
  */
-@Retention( RetentionPolicy.RUNTIME )
-@Target( ElementType.TYPE )
-public @interface IntegrationTestData
+@Data
+@Accessors( chain = true )
+public class DataValueAuditQueryParams
 {
-    String path();
+    private List<DataElement> dataElements = new ArrayList<>();
+
+    private List<Period> periods = new ArrayList<>();
+
+    private List<OrganisationUnit> orgUnits = new ArrayList<>();
+
+    private CategoryOptionCombo categoryOptionCombo;
+
+    private CategoryOptionCombo attributeOptionCombo;
+
+    private List<AuditType> auditTypes = new ArrayList<>();
+
+    private Pager pager;
+
+    public boolean hasPaging()
+    {
+        return pager != null;
+    }
 }

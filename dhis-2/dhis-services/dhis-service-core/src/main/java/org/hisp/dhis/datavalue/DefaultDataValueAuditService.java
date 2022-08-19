@@ -101,7 +101,14 @@ public class DefaultDataValueAuditService
     @Transactional( readOnly = true )
     public List<DataValueAudit> getDataValueAudits( DataValue dataValue )
     {
-        return dataValueAuditStore.getDataValueAudits( dataValue );
+        DataValueAuditQueryParams params = new DataValueAuditQueryParams()
+            .setDataElements( List.of( dataValue.getDataElement() ) )
+            .setPeriods( List.of( dataValue.getPeriod() ) )
+            .setOrgUnits( List.of( dataValue.getSource() ) )
+            .setCategoryOptionCombo( dataValue.getCategoryOptionCombo() )
+            .setAttributeOptionCombo( dataValue.getAttributeOptionCombo() );
+
+        return dataValueAuditStore.getDataValueAudits( params );
     }
 
     @Override
@@ -131,8 +138,14 @@ public class DefaultDataValueAuditService
         // inject current data value into audit list
         dataValueAudits.add( currentDataValueAudit );
 
-        dataValueAudits.addAll( dataValueAuditStore.getDataValueAudits( List.of( dataElement ), List.of( period ),
-            List.of( organisationUnit ), categoryOptionCombo, attributeOptionCombo, null ) );
+        DataValueAuditQueryParams params = new DataValueAuditQueryParams()
+            .setDataElements( List.of( dataElement ) )
+            .setPeriods( List.of( period ) )
+            .setOrgUnits( List.of( organisationUnit ) )
+            .setCategoryOptionCombo( categoryOptionCombo )
+            .setAttributeOptionCombo( attributeOptionCombo );
+
+        dataValueAudits.addAll( dataValueAuditStore.getDataValueAudits( params ) );
 
         for ( int i = 0; i < dataValueAudits.size(); i++ )
         {
@@ -158,31 +171,15 @@ public class DefaultDataValueAuditService
 
     @Override
     @Transactional( readOnly = true )
-    public List<DataValueAudit> getDataValueAudits( List<DataElement> dataElements, List<Period> periods,
-        List<OrganisationUnit> organisationUnits, CategoryOptionCombo categoryOptionCombo,
-        CategoryOptionCombo attributeOptionCombo, AuditType auditType )
+    public List<DataValueAudit> getDataValueAudits( DataValueAuditQueryParams params )
     {
-        return dataValueAuditStore.getDataValueAudits( dataElements, periods, organisationUnits, categoryOptionCombo,
-            attributeOptionCombo, auditType );
+        return dataValueAuditStore.getDataValueAudits( params );
     }
 
     @Override
     @Transactional( readOnly = true )
-    public List<DataValueAudit> getDataValueAudits( List<DataElement> dataElements, List<Period> periods,
-        List<OrganisationUnit> organisationUnits, CategoryOptionCombo categoryOptionCombo,
-        CategoryOptionCombo attributeOptionCombo, AuditType auditType, int first, int max )
+    public int countDataValueAudits( DataValueAuditQueryParams params )
     {
-        return dataValueAuditStore.getDataValueAudits( dataElements, periods, organisationUnits, categoryOptionCombo,
-            attributeOptionCombo, auditType, first, max );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public int countDataValueAudits( List<DataElement> dataElements, List<Period> periods,
-        List<OrganisationUnit> organisationUnits,
-        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, AuditType auditType )
-    {
-        return dataValueAuditStore.countDataValueAudits( dataElements, periods, organisationUnits, categoryOptionCombo,
-            attributeOptionCombo, auditType );
+        return dataValueAuditStore.countDataValueAudits( params );
     }
 }

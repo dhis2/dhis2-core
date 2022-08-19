@@ -11,6 +11,9 @@
 
     <artifactId>dhis-test-integration</artifactId>
     <name>DHIS Test Integration</name>
+    <description>
+    	DHIS integration test project. Tests can be run with profiles 'integration' and 'integrationH2'.
+    </description>
 
     <build>
         <plugins>
