@@ -43,6 +43,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.time.DateUtils;
 import org.hisp.dhis.attribute.Attribute;
@@ -53,6 +54,7 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -64,6 +66,8 @@ import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.datavalue.DataValueAudit;
+import org.hisp.dhis.datavalue.DataValueAuditService;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
@@ -85,8 +89,8 @@ import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
@@ -117,6 +121,9 @@ class DataValueSetServiceTest extends IntegrationTestBase
 
     @Autowired
     private DataValueService dataValueService;
+
+    @Autowired
+    private DataValueAuditService dataValueAuditService;
 
     @Autowired
     private DataValueSetService dataValueSetService;
@@ -327,7 +334,6 @@ class DataValueSetServiceTest extends IntegrationTestBase
             .importDataValueSetXml( readFile( "dxf2/datavalueset/dataValueSetA.xml" ) );
 
         assertSuccessWithImportedUpdatedDeleted( 3, 0, 0, summary );
-        // TODO can I come up with a nicer assertion than this?
         List<DataValue> dataValues = dataValueService.getAllDataValues();
         assertNotNull( dataValues );
         assertEquals( 3, dataValues.size() );
@@ -335,10 +341,10 @@ class DataValueSetServiceTest extends IntegrationTestBase
         assertEquals( "10002", dataValues.get( 1 ).getValue() );
         assertEquals( "10003", dataValues.get( 2 ).getValue() );
 
-        // TODO whats up with the auditValues?
-        // Collection<DataValueAudit> auditValues =
-        // mockDataValueAuditBatchHandler.getInserts();
-        // assertEquals( 0, auditValues.size() );
+        List<Executable> audits = dataValues.stream()
+            .map( dv -> ((Executable) () -> assertEquals( List.of(), dataValueAuditService.getDataValueAudits( dv ) )) )
+            .collect( Collectors.toList() );
+        assertAll( "no audit expected", audits );
 
         // TODO This throw an error : "org.postgresql.util.PSQLException: ERROR:
         // cannot execute UPDATE in a read-only transaction"
@@ -368,10 +374,10 @@ class DataValueSetServiceTest extends IntegrationTestBase
         assertEquals( "10002", dataValues.get( 1 ).getValue() );
         assertEquals( "10003", dataValues.get( 2 ).getValue() );
 
-        // TODO
-        // Collection<DataValueAudit> auditValues =
-        // mockDataValueAuditBatchHandler.getInserts();
-        // assertEquals( 0, auditValues.size() );
+        List<Executable> audits = dataValues.stream()
+            .map( dv -> ((Executable) () -> assertEquals( List.of(), dataValueAuditService.getDataValueAudits( dv ) )) )
+            .collect( Collectors.toList() );
+        assertAll( "no audit expected", audits );
 
         CompleteDataSetRegistration registration = registrationService.getCompleteDataSetRegistration( dsA, peA, ouA,
             ocDef );
@@ -397,10 +403,10 @@ class DataValueSetServiceTest extends IntegrationTestBase
         assertTrue( dataValues.contains( new DataValue( deB, peA, ouA, ocDef, ocDef ) ) );
         assertTrue( dataValues.contains( new DataValue( deC, peA, ouA, ocDef, ocDef ) ) );
 
-        // TODO
-        // Collection<DataValueAudit> auditValues =
-        // mockDataValueAuditBatchHandler.getInserts();
-        // assertEquals( 0, auditValues.size() );
+        List<Executable> audits = dataValues.stream()
+            .map( dv -> ((Executable) () -> assertEquals( List.of(), dataValueAuditService.getDataValueAudits( dv ) )) )
+            .collect( Collectors.toList() );
+        assertAll( "no audit expected", audits );
 
         CompleteDataSetRegistration registration = registrationService.getCompleteDataSetRegistration( dsA, peA, ouA,
             ocDef );
@@ -838,11 +844,14 @@ class DataValueSetServiceTest extends IntegrationTestBase
             .importDataValueSetXml( readFile( "dxf2/datavalueset/dataValueSetAUpdate.xml" ), new ImportOptions() );
 
         assertSuccessWithImportedUpdatedDeleted( 0, 3, 0, summary );
-        assertDataValuesCount( 3 );
-        // TODO
-        // Collection<DataValueAudit> auditValues =
-        // mockDataValueAuditBatchHandler.getInserts();
-        // assertEquals( 3, auditValues.size() );
+        List<DataValue> dataValues = assertDataValuesCount( 3 );
+        assertAll( "expected data value update(s) to be audited", dataValues.stream().map( dv -> (Executable) () -> {
+            List<DataValueAudit> audits = dataValueAuditService.getDataValueAudits( dv );
+            assertNotNull( audits );
+            assertEquals( 1, audits.size(),
+                () -> String.format( "expected change to dataValue %s to be audited once", dv ) );
+            assertEquals( AuditType.UPDATE, audits.get( 0 ).getAuditType() );
+        } ).collect( Collectors.toList() ) );
     }
 
     @Test
@@ -861,39 +870,12 @@ class DataValueSetServiceTest extends IntegrationTestBase
             .importDataValueSetXml( readFile( "dxf2/datavalueset/dataValueSetAUpdate.xml" ), importOptions );
 
         assertSuccessWithImportedUpdatedDeleted( 0, 3, 0, summary );
-        assertDataValuesCount( 3 );
-        // TODO
-        // Collection<DataValueAudit> auditValues =
-        // mockDataValueAuditBatchHandler.getInserts();
-        // assertNotNull( dataValues );
-        // assertEquals( 0, auditValues.size() );
-    }
-
-    @Disabled( "should be a unit test" )
-    @Test
-    void testImportDataValuesUpdatedSkipNoChange()
-    {
-        // TODO we are trying to test that if value/comment are the same we do
-        // not hit the DB
-        // best asserted with a mock I think
-        assertDataValuesCount( 0 );
-        ImportSummary summary = dataValueSetService
-            .importDataValueSetXml( readFile( "dxf2/datavalueset/dataValueSetA.xml" ), new ImportOptions() );
-        assertSuccessWithImportedUpdatedDeleted( 3, 0, 0, summary );
-        assertDataValuesCount( 3 );
-
-        summary = dataValueSetService
-            .importDataValueSetXml( readFile( "dxf2/datavalueset/dataValueSetA.xml" ) );
-
-        assertSuccessWithImportedUpdatedDeleted( 0, 3, 0, summary );
-        List<DataValue> dataValues = dataValueService.getAllDataValues();
-        assertNotNull( dataValues );
-        assertEquals( 0, dataValues.size(), "Updates to unchanged data values were not skipped" );
-        // TODO audit
-        // Collection<DataValueAudit> auditValues =
-        // mockDataValueAuditBatchHandler.getInserts();
-        // assertEquals( 0, auditValues.size(), "Updates to unchanged data value
-        // did not skip audit" );
+        List<DataValue> dataValues = assertDataValuesCount( 3 );
+        assertAll( "expected data value update(s) NOT to be audited",
+            dataValues.stream()
+                .map(
+                    dv -> (Executable) () -> assertEquals( List.of(), dataValueAuditService.getDataValueAudits( dv ) ) )
+                .collect( Collectors.toList() ) );
     }
 
     @Test
@@ -1129,9 +1111,12 @@ class DataValueSetServiceTest extends IntegrationTestBase
         }
     }
 
-    private void assertDataValuesCount( int expected )
+    private List<DataValue> assertDataValuesCount( int expected )
     {
-        assertEquals( expected, dataValueService.getAllDataValues().size() );
+        List<DataValue> dataValues = dataValueService.getAllDataValues();
+        assertEquals( expected, dataValues.size(),
+            () -> String.format( "mismatch in number of expected dataValue(s), got %s", dataValues ) );
+        return dataValues;
     }
 
     private static void assertHasNoConflicts( ImportConflicts summary )
