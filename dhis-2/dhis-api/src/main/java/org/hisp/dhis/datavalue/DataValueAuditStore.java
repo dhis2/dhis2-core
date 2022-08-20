@@ -71,17 +71,6 @@ public interface DataValueAuditStore
     void deleteDataValueAudits( DataElement dataElement );
 
     /**
-     * Returns all DataValueAudits which match the DataElement, Period,
-     * OrganisationUnit and CategoryOptionCombo of the given DataValue.
-     *
-     * @param dataValue the DataValue to get DataValueAudits for.
-     * @return a list of DataValueAudits which match the DataElement Period,
-     *         OrganisationUnit and CategoryOptionCombo of the given DataValue,
-     *         or an empty list if no DataValueAudits match.
-     */
-    List<DataValueAudit> getDataValueAudits( DataValue dataValue );
-
-    /**
      * Returns data value audits for the given query.
      *
      * @param params the {@link DataValueAuditQueryParams}.

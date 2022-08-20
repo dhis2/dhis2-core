@@ -30,7 +30,6 @@ package org.hisp.dhis.datavalue;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 
@@ -134,10 +133,10 @@ class DataValueAuditServiceTest extends DhisSpringTest
         organisationUnitService.addOrganisationUnit( orgUnitD );
         optionCombo = categoryService.getDefaultCategoryOptionCombo();
         categoryService.addCategoryOptionCombo( optionCombo );
-        dataValueA = createDataValue( dataElementA, periodA, orgUnitA, "1", optionCombo );
-        dataValueB = createDataValue( dataElementB, periodB, orgUnitB, "2", optionCombo );
-        dataValueC = createDataValue( dataElementC, periodC, orgUnitC, "3", optionCombo );
-        dataValueD = createDataValue( dataElementD, periodD, orgUnitD, "4", optionCombo );
+        dataValueA = createDataValue( dataElementA, periodA, orgUnitA, optionCombo, optionCombo, "1" );
+        dataValueB = createDataValue( dataElementB, periodB, orgUnitB, optionCombo, optionCombo, "2" );
+        dataValueC = createDataValue( dataElementC, periodC, orgUnitC, optionCombo, optionCombo, "3" );
+        dataValueD = createDataValue( dataElementD, periodD, orgUnitD, optionCombo, optionCombo, "4" );
         dataValueService.addDataValue( dataValueA );
         dataValueService.addDataValue( dataValueB );
         dataValueService.addDataValue( dataValueC );
@@ -145,7 +144,7 @@ class DataValueAuditServiceTest extends DhisSpringTest
     }
 
     @Test
-    void testAddDataValueAudit()
+    void testAddGetDataValueAuditFromDataValue()
     {
         DataValueAudit dataValueAuditA = new DataValueAudit( dataValueA, dataValueA.getValue(),
             dataValueA.getStoredBy(), AuditType.UPDATE );
@@ -156,8 +155,29 @@ class DataValueAuditServiceTest extends DhisSpringTest
 
         List<DataValueAudit> audits = dataValueAuditService.getDataValueAudits( dataValueA );
         assertNotNull( audits );
+        assertContainsOnly( audits, dataValueAuditA );
+    }
 
-        assertTrue( audits.contains( dataValueAuditA ) );
+    @Test
+    void testAddGetDataValueAuditSingleRecord()
+    {
+        DataValueAudit dataValueAuditA = new DataValueAudit( dataValueA, dataValueA.getValue(),
+            dataValueA.getStoredBy(), AuditType.UPDATE );
+        DataValueAudit dataValueAuditB = new DataValueAudit( dataValueB, dataValueB.getValue(),
+            dataValueB.getStoredBy(), AuditType.UPDATE );
+        dataValueAuditService.addDataValueAudit( dataValueAuditA );
+        dataValueAuditService.addDataValueAudit( dataValueAuditB );
+
+        DataValueAuditQueryParams params = new DataValueAuditQueryParams()
+            .setDataElements( List.of( dataElementA ) )
+            .setPeriods( List.of( periodA ) )
+            .setOrgUnits( List.of( orgUnitA ) )
+            .setCategoryOptionCombo( optionCombo )
+            .setAttributeOptionCombo( optionCombo );
+
+        List<DataValueAudit> audits = dataValueAuditService.getDataValueAudits( params );
+        assertNotNull( audits );
+        assertContainsOnly( audits, dataValueAuditA );
     }
 
     @Test
@@ -181,7 +201,7 @@ class DataValueAuditServiceTest extends DhisSpringTest
             .setPeriods( List.of( periodA ) )
             .setOrgUnits( List.of( orgUnitA ) )
             .setCategoryOptionCombo( optionCombo )
-            .setAuditType( AuditType.UPDATE );
+            .setAuditTypes( List.of( AuditType.UPDATE ) );
 
         assertContainsOnly( dataValueAuditService.getDataValueAudits( params ), dvaA );
 
@@ -190,14 +210,19 @@ class DataValueAuditServiceTest extends DhisSpringTest
             .setPeriods( List.of( periodA, periodB ) )
             .setOrgUnits( List.of( orgUnitA, orgUnitB ) )
             .setCategoryOptionCombo( optionCombo )
-            .setAuditType( AuditType.UPDATE );
+            .setAuditTypes( List.of( AuditType.UPDATE ) );
 
         assertContainsOnly( dataValueAuditService.getDataValueAudits( params ), dvaA, dvaB );
 
         params = new DataValueAuditQueryParams()
-            .setAuditType( AuditType.CREATE );
+            .setAuditTypes( List.of( AuditType.CREATE ) );
 
         assertContainsOnly( dataValueAuditService.getDataValueAudits( params ), dvaC );
+
+        params = new DataValueAuditQueryParams()
+            .setAuditTypes( List.of( AuditType.CREATE, AuditType.DELETE ) );
+
+        assertContainsOnly( dataValueAuditService.getDataValueAudits( params ), dvaC, dvaD );
     }
 
     @Test
@@ -221,7 +246,7 @@ class DataValueAuditServiceTest extends DhisSpringTest
             .setPeriods( List.of( periodD ) )
             .setOrgUnits( List.of( orgUnitA ) )
             .setCategoryOptionCombo( optionCombo )
-            .setAuditType( AuditType.UPDATE );
+            .setAuditTypes( List.of( AuditType.UPDATE ) );
 
         assertEquals( 0, dataValueAuditService.getDataValueAudits( params ).size() );
     }

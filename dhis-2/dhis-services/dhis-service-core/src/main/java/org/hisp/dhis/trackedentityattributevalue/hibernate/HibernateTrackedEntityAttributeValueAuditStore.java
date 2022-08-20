@@ -80,7 +80,7 @@ public class HibernateTrackedEntityAttributeValueAuditStore
 
         Root<TrackedEntityAttributeValueAudit> root = criteria.from( TrackedEntityAttributeValueAudit.class );
 
-        List<Predicate> predicates = getTrackedEntityAttributeValueAuditCriteria( builder, root, params );
+        List<Predicate> predicates = getTrackedEntityAttributeValueAuditCriteria( root, params );
 
         criteria.where( predicates.toArray( new Predicate[0] ) )
             .orderBy( builder.desc( root.get( "created" ) ) );
@@ -107,8 +107,7 @@ public class HibernateTrackedEntityAttributeValueAuditStore
 
         Root<TrackedEntityAttributeValueAudit> root = query.from( TrackedEntityAttributeValueAudit.class );
 
-        List<Predicate> predicates = getTrackedEntityAttributeValueAuditCriteria( builder, root,
-            params );
+        List<Predicate> predicates = getTrackedEntityAttributeValueAuditCriteria( root, params );
 
         query.select( builder.countDistinct( root.get( "id" ) ) )
             .where( predicates.toArray( new Predicate[0] ) );
@@ -128,7 +127,7 @@ public class HibernateTrackedEntityAttributeValueAuditStore
         query.executeUpdate();
     }
 
-    private List<Predicate> getTrackedEntityAttributeValueAuditCriteria( CriteriaBuilder builder,
+    private List<Predicate> getTrackedEntityAttributeValueAuditCriteria(
         Root<TrackedEntityAttributeValueAudit> root, TrackedEntityAttributeValueAuditQueryParams params )
     {
         List<Predicate> predicates = new ArrayList<>();
@@ -143,9 +142,9 @@ public class HibernateTrackedEntityAttributeValueAuditStore
             predicates.add( root.get( "entityInstance" ).in( params.getTrackedEntityInstances() ) );
         }
 
-        if ( params.getAuditType() != null )
+        if ( !params.getAuditTypes().isEmpty() )
         {
-            predicates.add( builder.equal( root.get( "auditType" ), params.getAuditType() ) );
+            predicates.add( root.get( "auditType" ).in( params.getAuditTypes() ) );
         }
 
         return predicates;
