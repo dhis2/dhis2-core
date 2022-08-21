@@ -41,6 +41,8 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.node.NodeService;
+import org.hisp.dhis.node.NodeUtils;
+import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.schema.descriptors.SqlViewSchemaDescriptor;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewQuery;
@@ -81,7 +83,7 @@ public class SqlViewController
     // -------------------------------------------------------------------------
 
     @GetMapping( value = "/{uid}/data", produces = ContextUtils.CONTENT_TYPE_JSON )
-    public @ResponseBody Grid getViewJson( @PathVariable( "uid" ) String uid,
+    public @ResponseBody RootNode getViewJson( @PathVariable( "uid" ) String uid,
         SqlViewQuery query, HttpServletResponse response )
         throws WebMessageException
     {
@@ -89,7 +91,18 @@ public class SqlViewController
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, sqlView.getCacheStrategy() );
 
-        return getViewGrid( sqlView, query );
+        Grid grid = getViewGrid( sqlView, query );
+
+        RootNode rootNode = NodeUtils.createMetadata();
+
+        if ( !query.isSkipPaging() )
+        {
+            rootNode.addChild( NodeUtils.createPager( query.getPager() ) );
+        }
+
+        rootNode.addChild( nodeService.toNode( grid ) );
+
+        return rootNode;
     }
 
     @GetMapping( "/{uid}/data.xml" )
