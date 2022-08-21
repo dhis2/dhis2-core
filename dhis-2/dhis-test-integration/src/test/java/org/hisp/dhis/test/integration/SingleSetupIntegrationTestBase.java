@@ -68,10 +68,4 @@ public abstract class SingleSetupIntegrationTestBase
     {
         nonTransactionalAfter();
     }
-
-    @Override
-    protected final boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
 }
