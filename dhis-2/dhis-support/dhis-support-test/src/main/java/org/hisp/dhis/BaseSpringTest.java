@@ -44,7 +44,6 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.orm.hibernate5.SessionFactoryUtils;
 import org.springframework.orm.hibernate5.SessionHolder;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -69,18 +68,7 @@ public abstract class BaseSpringTest extends DhisConvenienceTest implements Appl
     @Autowired
     protected TransactionTemplate transactionTemplate;
 
-    protected static JdbcTemplate jdbcTemplate;
-
     protected abstract boolean emptyDatabaseAfterTest();
-
-    /*
-     * "Special" setter to allow setting JdbcTemplate as static field
-     */
-    @Autowired
-    public static void setJdbcTemplate( JdbcTemplate jdbcTemplate )
-    {
-        BaseSpringTest.jdbcTemplate = jdbcTemplate;
-    }
 
     @Override
     public void setApplicationContext( ApplicationContext applicationContext )
