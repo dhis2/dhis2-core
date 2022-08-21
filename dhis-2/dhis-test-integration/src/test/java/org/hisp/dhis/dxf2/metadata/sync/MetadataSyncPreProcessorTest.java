@@ -54,7 +54,7 @@ import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.junit.jupiter.api.Disabled;
@@ -65,7 +65,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author aamerm
  */
 @Disabled
-class MetadataSyncPreProcessorTest extends IntegrationTestBase
+class MetadataSyncPreProcessorTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

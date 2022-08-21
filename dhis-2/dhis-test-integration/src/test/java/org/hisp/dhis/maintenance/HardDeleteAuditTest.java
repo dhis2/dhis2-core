@@ -40,7 +40,7 @@ import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.maintenance.jdbc.JdbcMaintenanceStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
@@ -53,7 +53,7 @@ import com.google.common.collect.Sets;
 
 @ActiveProfiles( profiles = { "test-audit" } )
 @Disabled( "until we can inject dhis.conf property overrides" )
-class HardDeleteAuditTest extends IntegrationTestBase
+class HardDeleteAuditTest extends NonTransactionalIntegrationTest
 {
 
     private static final int TIMEOUT = 5;

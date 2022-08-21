@@ -64,7 +64,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.system.util.CsvUtils;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -79,7 +79,7 @@ import com.google.common.collect.Sets;
  *
  * @author Henning Haakonsen
  */
-class EventAnalyticsServiceTest extends IntegrationTestBase
+class EventAnalyticsServiceTest extends NonTransactionalIntegrationTest
 {
 
     private OrganisationUnit ouA;

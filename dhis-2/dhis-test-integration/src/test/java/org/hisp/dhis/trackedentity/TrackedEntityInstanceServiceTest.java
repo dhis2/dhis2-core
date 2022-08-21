@@ -48,7 +48,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
@@ -63,7 +63,7 @@ import com.google.common.collect.Sets;
  * @author Chau Thu Tran
  */
 class TrackedEntityInstanceServiceTest
-    extends IntegrationTestBase
+    extends NonTransactionalIntegrationTest
 {
     @Autowired
     private TrackedEntityInstanceService entityInstanceService;

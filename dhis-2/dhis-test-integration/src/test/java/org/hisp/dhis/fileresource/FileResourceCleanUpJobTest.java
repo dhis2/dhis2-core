@@ -53,7 +53,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.joda.time.DateTime;
@@ -73,7 +73,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-class FileResourceCleanUpJobTest extends IntegrationTestBase
+class FileResourceCleanUpJobTest extends NonTransactionalIntegrationTest
 {
 
     private FileResourceCleanUpJob cleanUpJob;

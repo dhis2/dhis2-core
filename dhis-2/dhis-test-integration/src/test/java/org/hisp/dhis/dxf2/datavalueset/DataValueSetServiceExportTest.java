@@ -63,7 +63,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
@@ -75,7 +75,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Lars Helge Overland
  */
-class DataValueSetServiceExportTest extends IntegrationTestBase
+class DataValueSetServiceExportTest extends NonTransactionalIntegrationTest
 {
     @Autowired
     private CategoryService categoryService;

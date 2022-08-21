@@ -68,7 +68,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.NoopJobProgress;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.quick.BatchHandler;
@@ -84,7 +84,7 @@ import com.google.common.collect.Sets;
  * @author Lars Helge Overland
  * @author Jim Grace
  */
-class PredictionServiceTest extends IntegrationTestBase
+class PredictionServiceTest extends NonTransactionalIntegrationTest
 {
 
     private final JobProgress progress = NoopJobProgress.INSTANCE;

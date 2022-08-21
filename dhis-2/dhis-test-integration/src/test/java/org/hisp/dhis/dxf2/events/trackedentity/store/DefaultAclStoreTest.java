@@ -37,7 +37,7 @@ import java.util.Set;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserService;
@@ -47,7 +47,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class DefaultAclStoreTest extends IntegrationTestBase
+class DefaultAclStoreTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

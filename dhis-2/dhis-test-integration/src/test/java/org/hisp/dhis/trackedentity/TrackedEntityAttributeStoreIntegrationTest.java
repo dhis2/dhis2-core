@@ -42,7 +42,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeTableManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,7 +53,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
  */
 class TrackedEntityAttributeStoreIntegrationTest
     extends
-    IntegrationTestBase
+    NonTransactionalIntegrationTest
 {
     @Autowired
     private TrackedEntityAttributeService attributeService;

@@ -48,7 +48,7 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
 import org.junit.jupiter.api.Disabled;
@@ -60,7 +60,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Lars Helge Overland
  */
-class DataValueBatchHandlerTest extends IntegrationTestBase
+class DataValueBatchHandlerTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

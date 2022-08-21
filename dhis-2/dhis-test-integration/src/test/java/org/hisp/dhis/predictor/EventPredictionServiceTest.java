@@ -71,7 +71,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.system.grid.ListGrid;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -91,7 +91,7 @@ import com.google.common.collect.Sets;
  *
  * @author Jim Grace
  */
-class EventPredictionServiceTest extends IntegrationTestBase
+class EventPredictionServiceTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

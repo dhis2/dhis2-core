@@ -47,7 +47,7 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
 import org.junit.jupiter.api.Disabled;
@@ -57,7 +57,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Lars Helge Overland
  */
-class CompleteDataSetRegistrationBatchHandlerTest extends IntegrationTestBase
+class CompleteDataSetRegistrationBatchHandlerTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

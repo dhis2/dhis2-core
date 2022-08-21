@@ -37,13 +37,13 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class DeduplicationServiceIntegrationTest extends IntegrationTestBase
+class DeduplicationServiceIntegrationTest extends NonTransactionalIntegrationTest
 {
     @Autowired
     private DeduplicationService deduplicationService;

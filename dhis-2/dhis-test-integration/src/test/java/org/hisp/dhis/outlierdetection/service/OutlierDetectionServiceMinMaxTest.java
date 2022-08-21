@@ -52,7 +52,7 @@ import org.hisp.dhis.outlierdetection.OutlierValue;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -61,7 +61,7 @@ import com.google.common.collect.Lists;
 /**
  * @author Lars Helge Overland
  */
-class OutlierDetectionServiceMinMaxTest extends IntegrationTestBase
+class OutlierDetectionServiceMinMaxTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

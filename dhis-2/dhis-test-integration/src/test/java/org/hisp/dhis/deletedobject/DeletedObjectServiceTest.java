@@ -39,14 +39,14 @@ import org.awaitility.Awaitility;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class DeletedObjectServiceTest extends IntegrationTestBase
+class DeletedObjectServiceTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

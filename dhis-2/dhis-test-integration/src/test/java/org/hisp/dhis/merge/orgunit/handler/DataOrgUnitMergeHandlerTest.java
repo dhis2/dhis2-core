@@ -48,7 +48,7 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
@@ -61,7 +61,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Lars Helge Overland
  */
-class DataOrgUnitMergeHandlerTest extends IntegrationTestBase
+class DataOrgUnitMergeHandlerTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

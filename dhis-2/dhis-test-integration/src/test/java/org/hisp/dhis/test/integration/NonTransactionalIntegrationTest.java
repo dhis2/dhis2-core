@@ -40,7 +40,7 @@ import org.springframework.test.context.ContextConfiguration;
 @ContextConfiguration( classes = { IntegrationTestConfig.class } )
 @IntegrationTest
 @ActiveProfiles( profiles = { "test-postgres" } )
-public abstract class IntegrationTestBase extends BaseSpringTest
+public abstract class NonTransactionalIntegrationTest extends BaseSpringTest
 {
     @BeforeEach
     public final void before()

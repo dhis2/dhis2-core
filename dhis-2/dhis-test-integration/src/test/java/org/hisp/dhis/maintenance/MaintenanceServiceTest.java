@@ -67,7 +67,7 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -84,7 +84,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Enrico Colasante
  */
-class MaintenanceServiceTest extends IntegrationTestBase
+class MaintenanceServiceTest extends NonTransactionalIntegrationTest
 {
     @Autowired
     private ProgramInstanceService programInstanceService;

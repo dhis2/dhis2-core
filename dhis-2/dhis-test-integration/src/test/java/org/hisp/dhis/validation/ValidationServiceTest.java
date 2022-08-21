@@ -85,7 +85,7 @@ import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.scheduling.NoopJobProgress;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
@@ -101,7 +101,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Jim Grace
  */
-class ValidationServiceTest extends IntegrationTestBase
+class ValidationServiceTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

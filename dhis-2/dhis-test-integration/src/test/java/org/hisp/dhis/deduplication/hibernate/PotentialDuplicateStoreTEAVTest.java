@@ -35,7 +35,7 @@ import java.util.List;
 import org.hisp.dhis.deduplication.PotentialDuplicateStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -49,7 +49,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.google.common.collect.Lists;
 
 @Disabled( "moveAttributes method do not really belong to a store now. We should a better place for it" )
-class PotentialDuplicateStoreTEAVTest extends IntegrationTestBase
+class PotentialDuplicateStoreTEAVTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

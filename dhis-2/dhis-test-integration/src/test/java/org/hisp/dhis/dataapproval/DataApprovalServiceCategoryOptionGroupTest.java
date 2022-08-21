@@ -65,7 +65,7 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupAccessService;
@@ -80,7 +80,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Jim Grace
  */
-class DataApprovalServiceCategoryOptionGroupTest extends IntegrationTestBase
+class DataApprovalServiceCategoryOptionGroupTest extends NonTransactionalIntegrationTest
 {
     private static final String ACCESS_NONE = "--------";
 

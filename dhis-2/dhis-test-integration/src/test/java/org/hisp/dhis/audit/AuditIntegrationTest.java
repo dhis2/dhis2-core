@@ -50,7 +50,7 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
@@ -67,7 +67,7 @@ import com.google.common.collect.Sets;
 
 @ActiveProfiles( profiles = { "test-audit" } )
 @Disabled( "until we can inject dhis.conf property overrides" )
-class AuditIntegrationTest extends IntegrationTestBase
+class AuditIntegrationTest extends NonTransactionalIntegrationTest
 {
 
     private static final int TIMEOUT = 5;

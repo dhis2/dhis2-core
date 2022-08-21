@@ -75,7 +75,7 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -93,7 +93,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Luciano Fiandesio
  */
-public abstract class TrackerTest extends IntegrationTestBase
+public abstract class TrackerTest extends NonTransactionalIntegrationTest
 {
     @Autowired
     protected IdentifiableObjectManager manager;

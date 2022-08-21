@@ -57,7 +57,7 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.system.util.MathUtils;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -67,7 +67,7 @@ import com.google.common.math.StatsAccumulator;
 /**
  * @author Lars Helge Overland
  */
-class OutlierDetectionServiceZScoreTest extends IntegrationTestBase
+class OutlierDetectionServiceZScoreTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired
