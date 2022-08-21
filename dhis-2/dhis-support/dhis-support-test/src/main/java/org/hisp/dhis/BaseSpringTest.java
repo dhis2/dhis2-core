@@ -137,16 +137,6 @@ public abstract class BaseSpringTest extends DhisConvenienceTest implements Appl
         setUpTest();
     }
 
-    /**
-     * Retrieves a bean from the application context.
-     *
-     * @param beanId the identifier of the bean.
-     */
-    protected final Object getBean( String beanId )
-    {
-        return applicationContext.getBean( beanId );
-    }
-
     protected void bindSession()
     {
         SessionFactory sessionFactory = (SessionFactory) applicationContext.getBean( "sessionFactory" );
