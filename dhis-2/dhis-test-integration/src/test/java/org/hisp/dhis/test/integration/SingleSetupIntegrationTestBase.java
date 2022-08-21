@@ -54,8 +54,6 @@ public abstract class SingleSetupIntegrationTestBase
     public final void before()
         throws Exception
     {
-        bindSession();
-
         integrationTestBefore();
     }
 

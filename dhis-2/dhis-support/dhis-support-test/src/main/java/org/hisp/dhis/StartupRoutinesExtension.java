@@ -25,34 +25,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.test.integration;
+package org.hisp.dhis;
 
-import org.hisp.dhis.BaseSpringTest;
-import org.hisp.dhis.config.IntegrationTestConfig;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
+import org.hisp.dhis.utils.TestUtils;
+import org.junit.jupiter.api.extension.BeforeAllCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
+import org.springframework.context.ApplicationContext;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-/**
- * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
- */
-@ContextConfiguration( classes = { IntegrationTestConfig.class } )
-@IntegrationTest
-@ActiveProfiles( profiles = { "test-postgres" } )
-public abstract class IntegrationTestBase extends BaseSpringTest
+public class StartupRoutinesExtension implements BeforeAllCallback
 {
-    @BeforeEach
-    public final void before()
-        throws Exception
-    {
-        integrationTestBefore();
-    }
 
-    @AfterEach
-    public final void after()
+    @Override
+    public void beforeAll( ExtensionContext context )
         throws Exception
     {
-        nonTransactionalAfter();
+
+        ApplicationContext applicationContext = SpringExtension.getApplicationContext( context );
+        TestUtils.executeStartupRoutines( applicationContext );
     }
 }

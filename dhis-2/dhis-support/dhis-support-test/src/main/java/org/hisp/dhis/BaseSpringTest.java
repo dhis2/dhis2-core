@@ -31,29 +31,26 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.config.Configurator;
-import org.hibernate.FlushMode;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.utils.TestUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.orm.hibernate5.SessionFactoryUtils;
-import org.springframework.orm.hibernate5.SessionHolder;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@ExtendWith( SpringExtension.class )
+@ExtendWith( {
+    SpringExtension.class,
+    StartupRoutinesExtension.class,
+    SessionExtension.class,
+} )
 @Slf4j
 public abstract class BaseSpringTest extends DhisConvenienceTest implements ApplicationContextAware
 {
@@ -115,7 +112,6 @@ public abstract class BaseSpringTest extends DhisConvenienceTest implements Appl
         {
             log.info( "Failed to clear hibernate session, reason:" + e.getMessage() );
         }
-        unbindSession();
         // We normally don't want all the delete/empty db statements in the
         // query logger
         Configurator.setLevel( ORG_HISP_DHIS_DATASOURCE_QUERY, Level.WARN );
@@ -128,7 +124,6 @@ public abstract class BaseSpringTest extends DhisConvenienceTest implements Appl
     protected void integrationTestBefore()
         throws Exception
     {
-        TestUtils.executeStartupRoutines( applicationContext );
         boolean enableQueryLogging = dhisConfigurationProvider.isEnabled( ConfigurationKey.ENABLE_QUERY_LOGGING );
         // Enable to query logger to log only what's happening inside the test
         // method
@@ -139,21 +134,4 @@ public abstract class BaseSpringTest extends DhisConvenienceTest implements Appl
         }
         setUpTest();
     }
-
-    protected void bindSession()
-    {
-        SessionFactory sessionFactory = (SessionFactory) applicationContext.getBean( "sessionFactory" );
-        Session session = sessionFactory.openSession();
-        session.setHibernateFlushMode( FlushMode.AUTO );
-        TransactionSynchronizationManager.bindResource( sessionFactory, new SessionHolder( session ) );
-    }
-
-    protected void unbindSession()
-    {
-        SessionFactory sessionFactory = (SessionFactory) applicationContext.getBean( "sessionFactory" );
-        SessionHolder sessionHolder = (SessionHolder) TransactionSynchronizationManager
-            .unbindResource( sessionFactory );
-        SessionFactoryUtils.closeSession( sessionHolder.getSession() );
-    }
-
 }
