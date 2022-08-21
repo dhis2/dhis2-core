@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.test.integration;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.BaseSpringTest;
 import org.hisp.dhis.config.IntegrationTestConfig;
 import org.junit.jupiter.api.AfterAll;
@@ -47,6 +49,7 @@ import org.springframework.transaction.annotation.Transactional;
 @ActiveProfiles( profiles = { "test-postgres" } )
 @TestInstance( TestInstance.Lifecycle.PER_CLASS )
 @Transactional
+@Slf4j
 public abstract class SingleSetupIntegrationTestBase
     extends BaseSpringTest
 {
@@ -63,6 +66,18 @@ public abstract class SingleSetupIntegrationTestBase
     public final void after()
         throws Exception
     {
-        nonTransactionalAfter();
+        clearSecurityContext();
+
+        tearDownTest();
+
+        try
+        {
+            dbmsManager.clearSession();
+        }
+        catch ( Exception e )
+        {
+            log.info( "Failed to clear hibernate session, reason:" + e.getMessage() );
+        }
+        unbindSession();
     }
 }
