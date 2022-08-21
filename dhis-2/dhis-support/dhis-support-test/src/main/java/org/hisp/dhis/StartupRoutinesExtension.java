@@ -28,16 +28,16 @@
 package org.hisp.dhis;
 
 import org.hisp.dhis.utils.TestUtils;
-import org.junit.jupiter.api.extension.BeforeAllCallback;
+import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-public class StartupRoutinesExtension implements BeforeAllCallback
+public class StartupRoutinesExtension implements BeforeEachCallback
 {
 
     @Override
-    public void beforeAll( ExtensionContext context )
+    public void beforeEach( ExtensionContext context )
         throws Exception
     {
 
