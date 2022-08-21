@@ -68,8 +68,6 @@ public abstract class BaseSpringTest extends DhisConvenienceTest implements Appl
     @Autowired
     protected TransactionTemplate transactionTemplate;
 
-    protected abstract boolean emptyDatabaseAfterTest();
-
     @Override
     public void setApplicationContext( ApplicationContext applicationContext )
         throws BeansException
@@ -118,16 +116,13 @@ public abstract class BaseSpringTest extends DhisConvenienceTest implements Appl
             log.info( "Failed to clear hibernate session, reason:" + e.getMessage() );
         }
         unbindSession();
-        if ( emptyDatabaseAfterTest() )
-        {
-            // We normally don't want all the delete/empty db statements in the
-            // query logger
-            Configurator.setLevel( ORG_HISP_DHIS_DATASOURCE_QUERY, Level.WARN );
-            transactionTemplate.execute( status -> {
-                dbmsManager.emptyDatabase();
-                return null;
-            } );
-        }
+        // We normally don't want all the delete/empty db statements in the
+        // query logger
+        Configurator.setLevel( ORG_HISP_DHIS_DATASOURCE_QUERY, Level.WARN );
+        transactionTemplate.execute( status -> {
+            dbmsManager.emptyDatabase();
+            return null;
+        } );
     }
 
     protected void integrationTestBefore()
