@@ -30,14 +30,18 @@ package org.hisp.dhis.analytics.event.data;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.defaultString;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -175,6 +179,65 @@ public class QueryItemHelper
     }
 
     /**
+     * Based on the given options, it returns a set of {@link Option} objects
+     * which are referenced as filter by any one of the query items provided.
+     *
+     * @param options the set of {@link Option}.
+     * @param queryItems the list of {@link QueryItem}.
+     * @return the set of {@link Option} found.
+     */
+    public static Set<Option> getItemOptions( Set<Option> options, List<QueryItem> queryItems )
+    {
+        Set<Option> matchedOptions = new LinkedHashSet<>();
+
+        options.stream().filter( Objects::nonNull ).forEach(
+            option -> {
+                boolean queryItemsHaveNoFilter = queryItems.stream().noneMatch( QueryItem::hasFilter );
+
+                boolean queryItemsFilterMatchOptionCode = queryItems.stream().anyMatch(
+                    queryItem -> queryItem.hasFilter() && filtersContainOption( option, queryItem.getFilters() ) );
+
+                if ( queryItemsHaveNoFilter || queryItemsFilterMatchOptionCode )
+                {
+                    matchedOptions.add( option );
+                }
+            } );
+
+        return matchedOptions;
+    }
+
+    /**
+     * This method will check each filter in the given list of
+     * {@link QueryFilter} objects. For each filter, it will try to match the
+     * given option with any filter that contain an option or multiple options
+     * (split by ";"). If a match is found, it will return true.
+     *
+     * Example of a possible filter: Zj7UnCAulEk.K6uUAvq500H:IN:A03;B01, where
+     * "A03;B01" are the options codes.
+     *
+     * @param option the {@link Option}.
+     * @param queryFilters the list of {@link QueryFilter}.
+     * @return true if a match is found, false otherwise.
+     */
+    private static boolean filtersContainOption( Option option, List<QueryFilter> queryFilters )
+    {
+        for ( QueryFilter queryFilter : queryFilters )
+        {
+            String[] filterValues = defaultString( queryFilter.getFilter() ).split( ";" );
+
+            for ( String filterValue : filterValues )
+            {
+                if ( filterValue.equalsIgnoreCase( option.getCode() ) )
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * This method will extract the options (based on their codes) from the
      * element filter.
      *
@@ -240,8 +303,8 @@ public class QueryItemHelper
      * Zj7UnCAulEk.K6uUAvq500H:IN:A03;B01, where "A03;B01" are the options
      * codes.
      *
-     * The codes are split by the token ";" and the respective Option objects
-     * are returned.
+     * The codes are split by the token ";" and the respective {@link Option}
+     * objects are returned.
      *
      * @param item the {@link QueryItem}.
      * @return a list of options found in the filter.

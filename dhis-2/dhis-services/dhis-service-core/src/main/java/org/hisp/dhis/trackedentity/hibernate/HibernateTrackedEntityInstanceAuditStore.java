@@ -127,9 +127,11 @@ public class HibernateTrackedEntityInstanceAuditStore
             .addPredicates( getTrackedEntityInstanceAuditPredicates( params, builder ) )
             .addOrder( root -> builder.desc( root.get( "created" ) ) );
 
-        if ( !params.isSkipPaging() )
+        if ( params.hasPaging() )
         {
-            jpaParameters.setFirstResult( params.getFirst() ).setMaxResults( params.getMax() );
+            jpaParameters
+                .setFirstResult( params.getPager().getOffset() )
+                .setMaxResults( params.getPager().getPageSize() );
         }
 
         return getList( builder, jpaParameters );
@@ -160,9 +162,9 @@ public class HibernateTrackedEntityInstanceAuditStore
             predicates.add( root -> root.get( "accessedBy" ).in( params.getUsers() ) );
         }
 
-        if ( params.hasAuditType() )
+        if ( params.hasAuditTypes() )
         {
-            predicates.add( root -> builder.equal( root.get( "auditType" ), params.getAuditType() ) );
+            predicates.add( root -> root.get( "auditType" ).in( params.getAuditTypes() ) );
         }
 
         if ( params.hasStartDate() )
