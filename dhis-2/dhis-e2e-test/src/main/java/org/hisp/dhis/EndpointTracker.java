@@ -27,31 +27,88 @@
  */
 package org.hisp.dhis;
 
-import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.helpers.TestCleanUp;
-import org.hisp.dhis.helpers.extensions.ConfigurationExtension;
-import org.hisp.dhis.helpers.extensions.CoverageLoggerExtension;
-import org.hisp.dhis.helpers.extensions.MetadataSetupExtension;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.extension.ExtendWith;
-
-import com.epam.reportportal.junit5.ReportPortalExtension;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-@TestInstance( TestInstance.Lifecycle.PER_CLASS )
-@ExtendWith( ConfigurationExtension.class )
-@ExtendWith( MetadataSetupExtension.class )
-@ExtendWith( CoverageLoggerExtension.class )
-@ExtendWith( ReportPortalExtension.class )
-public abstract class ApiTest
+public class EndpointTracker
 {
-    @AfterAll
-    public void afterAll()
+    private static List<Coverage> coverageList;
+
+    public static List<Coverage> getCoverageList()
     {
-        new LoginActions().loginAsDefaultUser();
-        new TestCleanUp().deleteCreatedEntities();
+        return coverageList;
+    }
+
+    public static void add( String method, String url )
+    {
+        if ( coverageList == null )
+        {
+            coverageList = new ArrayList<>();
+        }
+
+        Coverage existing = coverageList.stream()
+            .filter( p -> p.method.equalsIgnoreCase( method ) && p.url.equalsIgnoreCase( url ) )
+            .findFirst()
+            .orElse( null );
+
+        if ( existing != null )
+
+        {
+            existing.occurrences += 1;
+        }
+
+        else
+        {
+            coverageList.add( new Coverage( method, url ) );
+        }
+    }
+
+    public static class Coverage
+    {
+        private String method;
+
+        private String url;
+
+        private Integer occurrences;
+
+        public Coverage( String method, String url )
+        {
+            this.method = method;
+            this.url = url;
+            this.occurrences = 1;
+        }
+
+        public String getMethod()
+        {
+            return method;
+        }
+
+        public void setMethod( String method )
+        {
+            this.method = method;
+        }
+
+        public String getUrl()
+        {
+            return this.url;
+        }
+
+        public void setUrl( String url )
+        {
+            this.url = url;
+        }
+
+        public Integer getOccurrences()
+        {
+            return occurrences;
+        }
+
+        public void setOccurrences( int occurrences )
+        {
+            this.occurrences = occurrences;
+        }
     }
 }
