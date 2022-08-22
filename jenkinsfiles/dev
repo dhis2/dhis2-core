@@ -29,7 +29,8 @@ pipeline {
                 echo 'Building DHIS2 ...'
                 script {
                     withMaven(options: [artifactsPublisher(disabled: true)]) {
-                        sh 'mvn -X -T 4 --batch-mode --no-transfer-progress clean install -f dhis-2/pom-full.xml --update-snapshots -DskipTests=false'
+                        sh 'mvn -X -T 4 --batch-mode --no-transfer-progress clean install -f dhis-2/pom.xml -P -default --update-snapshots -pl -dhis-web-embedded-jetty,-dhis-test-coverage'
+                        sh 'mvn -X -T 4 --batch-mode --no-transfer-progress package -f dhis-2/dhis-web/pom.xml -P -default --update-snapshots'
                     }
                 }
             }
