@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.table;
 
+import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
 import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
 import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.createIndexStatement;
@@ -130,6 +131,8 @@ public abstract class AbstractJdbcTableManager
     protected final DatabaseInfo databaseInfo;
 
     protected final JdbcTemplate jdbcTemplate;
+
+    private static final String WITH_AUTOVACUUM_ENABLED_FALSE = "with(autovacuum_enabled = false)";
 
     // -------------------------------------------------------------------------
     // Implementation
@@ -344,22 +347,26 @@ public abstract class AbstractJdbcTableManager
 
         String tableName = table.getTempTableName();
 
-        String sqlCreate = "create table " + tableName + " (";
+        StringBuilder sqlCreate = new StringBuilder( "create table " + tableName + " (" );
 
         for ( AnalyticsTableColumn col : ListUtils.union( table.getDimensionColumns(), table.getValueColumns() ) )
         {
             String notNull = col.getNotNull().isNotNull() ? " not null" : "";
 
-            sqlCreate += col.getName() + " " + col.getDataType().getValue() + notNull + ",";
+            sqlCreate.append( col.getName() )
+                .append( SPACE )
+                .append( col.getDataType().getValue() )
+                .append( notNull )
+                .append( "," );
         }
 
-        sqlCreate = TextUtils.removeLastComma( sqlCreate ) + ") " + getTableOptions();
+        TextUtils.removeLastComma( sqlCreate ).append( ") " ).append( getTableOptions() );
 
         log.info( "Creating table: '{}', columns: '{}'", tableName, table.getDimensionColumns().size() );
 
         log.debug( "Create SQL: {}", sqlCreate );
 
-        jdbcTemplate.execute( sqlCreate );
+        jdbcTemplate.execute( sqlCreate.toString() );
     }
 
     /**
@@ -398,7 +405,7 @@ public abstract class AbstractJdbcTableManager
      */
     private String getTableOptions()
     {
-        return "with(autovacuum_enabled = false)";
+        return WITH_AUTOVACUUM_ENABLED_FALSE;
     }
 
     /**

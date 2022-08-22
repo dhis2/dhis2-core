@@ -56,8 +56,7 @@ import com.google.common.collect.Lists;
  */
 public class AnalyticsIndexHelper
 {
-
-    private static String PREFIX_INDEX = "in_";
+    private static final String PREFIX_INDEX = "in_";
 
     private AnalyticsIndexHelper()
     {
