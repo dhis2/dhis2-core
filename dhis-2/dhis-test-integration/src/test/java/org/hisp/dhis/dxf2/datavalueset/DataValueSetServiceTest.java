@@ -89,6 +89,7 @@ import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.hisp.quick.BatchHandlerFactory;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -135,6 +136,9 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
 
     @Autowired
     private UserService _userService;
+
+    @Autowired
+    private BatchHandlerFactory batchHandlerFactory;
 
     private Attribute attribute;
 
@@ -329,6 +333,13 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
         CompleteDataSetRegistration completeDataSetRegistration = new CompleteDataSetRegistration( dsA, peA, ouA,
             categoryOptionCombo, getDate( 2012, 1, 9 ), "userA", new Date(), "userA", true );
         registrationService.saveCompleteDataSetRegistration( completeDataSetRegistration );
+    }
+
+    @Override
+    public void tearDownTest()
+    {
+        setDependency( BatchHandlerFactoryTarget.class, BatchHandlerFactoryTarget::setBatchHandlerFactory,
+            batchHandlerFactory, dataValueSetService );
     }
 
     // -------------------------------------------------------------------------
