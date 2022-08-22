@@ -59,6 +59,15 @@ pipeline {
             }
         }
 
+        stage ('Delete old WARs') {
+            steps {
+                echo 'Deleting old WARs ...'
+                sh 'curl "https://raw.githubusercontent.com/dhis2/dhis2-server-setup/master/ci/scripts/delete-old-wars.sh" -O'
+                sh 'chmod +x delete-old-wars.sh'
+                sh './delete-old-wars.sh ${GIT_BRANCH}'
+            }
+        }
+
         stage ('Generate Javadocs') {
             steps {
                 echo 'Generating Javadocs ...'
