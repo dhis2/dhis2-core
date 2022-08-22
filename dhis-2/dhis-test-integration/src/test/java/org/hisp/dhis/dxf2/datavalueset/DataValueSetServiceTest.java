@@ -1143,6 +1143,7 @@ class DataValueSetServiceTest extends IntegrationTestBase
             () -> assertEquals( imported, summary.getImportCount().getImported(), "unexpected import count" ),
             () -> assertEquals( updated, summary.getImportCount().getUpdated(), "unexpected update count" ),
             () -> assertEquals( deleted, summary.getImportCount().getDeleted(), "unexpected deleted count" ),
+            () -> assertEquals( ignored, summary.getImportCount().getIgnored(), "unexpected ignored count" ),
             () -> assertEquals( ImportStatus.SUCCESS, summary.getStatus(), summary.getDescription() ) );
     }
 }
