@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dxf2.datavalueset;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -36,12 +37,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.time.DateUtils;
 import org.hisp.dhis.attribute.Attribute;
@@ -52,7 +54,7 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.BatchHandlerFactoryTarget;
+import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -65,6 +67,8 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueAudit;
+import org.hisp.dhis.datavalue.DataValueAuditService;
+import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportConflicts;
@@ -72,10 +76,6 @@ import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.importexport.ImportStrategy;
-import org.hisp.dhis.jdbc.batchhandler.DataValueAuditBatchHandler;
-import org.hisp.dhis.jdbc.batchhandler.DataValueBatchHandler;
-import org.hisp.dhis.mock.batchhandler.MockBatchHandler;
-import org.hisp.dhis.mock.batchhandler.MockBatchHandlerFactory;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -86,11 +86,11 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.hisp.quick.BatchHandlerFactory;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
@@ -100,9 +100,9 @@ import com.google.common.collect.Sets;
 /**
  * @author Lars Helge Overland
  */
-class DataValueSetServiceTest extends TransactionalIntegrationTest
+class DataValueSetServiceTest extends IntegrationTestBase
 {
-    private String ATTRIBUTE_UID = "uh6H2ff562G";
+    private final String ATTRIBUTE_UID = "uh6H2ff562G";
 
     @Autowired
     private DataElementService dataElementService;
@@ -118,6 +118,12 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
 
     @Autowired
     private PeriodService periodService;
+
+    @Autowired
+    private DataValueService dataValueService;
+
+    @Autowired
+    private DataValueAuditService dataValueAuditService;
 
     @Autowired
     private DataValueSetService dataValueSetService;
@@ -136,9 +142,6 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
 
     @Autowired
     private UserService _userService;
-
-    @Autowired
-    private BatchHandlerFactory batchHandlerFactory;
 
     private Attribute attribute;
 
@@ -194,14 +197,6 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
 
     private User superUser;
 
-    private InputStream in;
-
-    private MockBatchHandler<DataValue> mockDataValueBatchHandler = null;
-
-    private MockBatchHandler<DataValueAudit> mockDataValueAuditBatchHandler = null;
-
-    private MockBatchHandlerFactory mockBatchHandlerFactory = null;
-
     @Override
     public void setUpTest()
     {
@@ -210,14 +205,6 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
         injectSecurityContext( superUser );
 
         CategoryOptionCombo categoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
-        mockDataValueBatchHandler = new MockBatchHandler<>();
-        mockDataValueAuditBatchHandler = new MockBatchHandler<>();
-        mockBatchHandlerFactory = new MockBatchHandlerFactory();
-        mockBatchHandlerFactory.registerBatchHandler( DataValueBatchHandler.class, mockDataValueBatchHandler );
-        mockBatchHandlerFactory.registerBatchHandler( DataValueAuditBatchHandler.class,
-            mockDataValueAuditBatchHandler );
-        setDependency( BatchHandlerFactoryTarget.class, BatchHandlerFactoryTarget::setBatchHandlerFactory,
-            mockBatchHandlerFactory, dataValueSetService );
         attribute = new Attribute( "CUSTOM_ID", ValueType.TEXT );
         attribute.setUid( ATTRIBUTE_UID );
         attribute.setUnique( true );
@@ -335,34 +322,30 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
         registrationService.saveCompleteDataSetRegistration( completeDataSetRegistration );
     }
 
-    @Override
-    public void tearDownTest()
-    {
-        setDependency( BatchHandlerFactoryTarget.class, BatchHandlerFactoryTarget::setBatchHandlerFactory,
-            batchHandlerFactory, dataValueSetService );
-    }
-
     // -------------------------------------------------------------------------
     // Tests
     // -------------------------------------------------------------------------
     @Test
     void testImportDataValueSetXml()
-        throws Exception
     {
-        in = new ClassPathResource( "dxf2/datavalueset/dataValueSetA.xml" ).getInputStream();
-        ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
-        assertNotNull( summary );
-        assertNotNull( summary.getImportCount() );
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
-        assertHasNoConflicts( summary );
-        Collection<DataValue> dataValues = mockDataValueBatchHandler.getInserts();
-        Collection<DataValueAudit> auditValues = mockDataValueAuditBatchHandler.getInserts();
+        assertDataValuesCount( 0 );
+
+        ImportSummary summary = dataValueSetService
+            .importDataValueSetXml( readFile( "dxf2/datavalueset/dataValueSetA.xml" ) );
+
+        assertSuccessWithImportedUpdatedDeleted( 3, 0, 0, summary );
+        List<DataValue> dataValues = dataValueService.getAllDataValues();
         assertNotNull( dataValues );
         assertEquals( 3, dataValues.size() );
         assertTrue( dataValues.contains( new DataValue( deA, peA, ouA, ocDef, ocDef ) ) );
-        assertEquals( "10002", ((List<DataValue>) dataValues).get( 1 ).getValue() );
-        assertEquals( "10003", ((List<DataValue>) dataValues).get( 2 ).getValue() );
-        assertEquals( 0, auditValues.size() );
+        assertEquals( "10002", dataValues.get( 1 ).getValue() );
+        assertEquals( "10003", dataValues.get( 2 ).getValue() );
+
+        List<Executable> audits = dataValues.stream()
+            .map( dv -> ((Executable) () -> assertEquals( List.of(), dataValueAuditService.getDataValueAudits( dv ) )) )
+            .collect( Collectors.toList() );
+        assertAll( "no audit expected", audits );
+
         // TODO This throw an error : "org.postgresql.util.PSQLException: ERROR:
         // cannot execute UPDATE in a read-only transaction"
         // Need to investigate
@@ -377,22 +360,25 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
 
     @Test
     void testImportDataValueSetXmlPreheatCache()
-        throws Exception
     {
-        in = new ClassPathResource( "dxf2/datavalueset/dataValueSetA.xml" ).getInputStream();
         ImportOptions importOptions = new ImportOptions().setPreheatCache( true );
-        ImportSummary summary = dataValueSetService.importDataValueSetXml( in, importOptions );
-        assertNotNull( summary );
-        assertNotNull( summary.getImportCount() );
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
-        assertHasNoConflicts( summary );
-        Collection<DataValue> dataValues = mockDataValueBatchHandler.getInserts();
-        Collection<DataValueAudit> auditValues = mockDataValueAuditBatchHandler.getInserts();
+
+        ImportSummary summary = dataValueSetService
+            .importDataValueSetXml( readFile( "dxf2/datavalueset/dataValueSetA.xml" ), importOptions );
+
+        assertSuccessWithImportedUpdatedDeleted( 3, 0, 0, summary );
+        List<DataValue> dataValues = dataValueService.getAllDataValues();
         assertNotNull( dataValues );
         assertEquals( 3, dataValues.size() );
         assertTrue( dataValues.contains( new DataValue( deA, peA, ouA, ocDef, ocDef ) ) );
-        assertEquals( "10002", ((List<DataValue>) dataValues).get( 1 ).getValue() );
-        assertEquals( "10003", ((List<DataValue>) dataValues).get( 2 ).getValue() );
+        assertEquals( "10002", dataValues.get( 1 ).getValue() );
+        assertEquals( "10003", dataValues.get( 2 ).getValue() );
+
+        List<Executable> audits = dataValues.stream()
+            .map( dv -> ((Executable) () -> assertEquals( List.of(), dataValueAuditService.getDataValueAudits( dv ) )) )
+            .collect( Collectors.toList() );
+        assertAll( "no audit expected", audits );
+
         CompleteDataSetRegistration registration = registrationService.getCompleteDataSetRegistration( dsA, peA, ouA,
             ocDef );
         assertNotNull( registration );
@@ -400,26 +386,28 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
         assertEquals( peA, registration.getPeriod() );
         assertEquals( ouA, registration.getSource() );
         assertEquals( getDate( 2012, 1, 9 ), registration.getDate() );
-        assertEquals( 0, auditValues.size() );
     }
 
     @Test
     void testImportDataValuesXmlWithCodeA()
-        throws Exception
     {
-        in = new ClassPathResource( "dxf2/datavalueset/dataValueSetACode.xml" ).getInputStream();
-        ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
-        assertNotNull( summary );
-        assertNotNull( summary.getImportCount() );
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
-        assertHasNoConflicts( summary );
-        Collection<DataValue> dataValues = mockDataValueBatchHandler.getInserts();
-        Collection<DataValueAudit> auditValues = mockDataValueAuditBatchHandler.getInserts();
+
+        ImportSummary summary = dataValueSetService
+            .importDataValueSetXml( readFile( "dxf2/datavalueset/dataValueSetACode.xml" ) );
+
+        assertSuccessWithImportedUpdatedDeleted( 3, 0, 0, summary );
+        List<DataValue> dataValues = dataValueService.getAllDataValues();
         assertNotNull( dataValues );
         assertEquals( 3, dataValues.size() );
         assertTrue( dataValues.contains( new DataValue( deA, peA, ouA, ocDef, ocDef ) ) );
         assertTrue( dataValues.contains( new DataValue( deB, peA, ouA, ocDef, ocDef ) ) );
         assertTrue( dataValues.contains( new DataValue( deC, peA, ouA, ocDef, ocDef ) ) );
+
+        List<Executable> audits = dataValues.stream()
+            .map( dv -> ((Executable) () -> assertEquals( List.of(), dataValueAuditService.getDataValueAudits( dv ) )) )
+            .collect( Collectors.toList() );
+        assertAll( "no audit expected", audits );
+
         CompleteDataSetRegistration registration = registrationService.getCompleteDataSetRegistration( dsA, peA, ouA,
             ocDef );
         assertNotNull( registration );
@@ -427,157 +415,125 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
         assertEquals( peA, registration.getPeriod() );
         assertEquals( ouA, registration.getSource() );
         assertEquals( getDate( 2012, 1, 9 ), registration.getDate() );
-        assertEquals( 0, auditValues.size() );
     }
 
     @Test
     void testImportDataValuesXml()
-        throws Exception
     {
-        in = new ClassPathResource( "dxf2/datavalueset/dataValueSetB.xml" ).getInputStream();
-        ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
-        assertHasNoConflicts( summary );
-        assertEquals( 12, summary.getImportCount().getImported() );
-        assertEquals( 0, summary.getImportCount().getUpdated() );
-        assertEquals( 0, summary.getImportCount().getDeleted() );
-        assertEquals( 0, summary.getImportCount().getIgnored() );
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+
+        ImportSummary summary = dataValueSetService
+            .importDataValueSetXml( readFile( "dxf2/datavalueset/dataValueSetB.xml" ) );
+
+        assertSuccessWithImportedUpdatedDeleted( 12, 0, 0, summary );
         assertImportDataValues( summary );
     }
 
     @Test
     void testImportDataValuesXmlWithCodeB()
-        throws Exception
     {
-        in = new ClassPathResource( "dxf2/datavalueset/dataValueSetBCode.xml" ).getInputStream();
         ImportOptions importOptions = new ImportOptions().setIdScheme( "CODE" ).setDataElementIdScheme( "CODE" )
             .setOrgUnitIdScheme( "CODE" );
-        ImportSummary summary = dataValueSetService.importDataValueSetXml( in, importOptions );
-        assertHasNoConflicts( summary );
-        assertEquals( 12, summary.getImportCount().getImported() );
-        assertEquals( 0, summary.getImportCount().getUpdated() );
-        assertEquals( 0, summary.getImportCount().getDeleted() );
-        assertEquals( 0, summary.getImportCount().getIgnored() );
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+
+        ImportSummary summary = dataValueSetService
+            .importDataValueSetXml( readFile( "dxf2/datavalueset/dataValueSetBCode.xml" ), importOptions );
+
+        assertSuccessWithImportedUpdatedDeleted( 12, 0, 0, summary );
         assertImportDataValues( summary );
     }
 
     @Test
     void testImportDataValuesXmlWithAttribute()
-        throws Exception
     {
-        in = new ClassPathResource( "dxf2/datavalueset/dataValueSetBAttribute.xml" ).getInputStream();
         ImportOptions importOptions = new ImportOptions().setIdScheme( IdScheme.ATTR_ID_SCHEME_PREFIX + ATTRIBUTE_UID )
             .setDataElementIdScheme( IdScheme.ATTR_ID_SCHEME_PREFIX + ATTRIBUTE_UID )
             .setOrgUnitIdScheme( IdScheme.ATTR_ID_SCHEME_PREFIX + ATTRIBUTE_UID );
-        ImportSummary summary = dataValueSetService.importDataValueSetXml( in, importOptions );
-        assertHasNoConflicts( summary );
-        assertEquals( 12, summary.getImportCount().getImported() );
-        assertEquals( 0, summary.getImportCount().getUpdated() );
-        assertEquals( 0, summary.getImportCount().getDeleted() );
-        assertEquals( 0, summary.getImportCount().getIgnored() );
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+
+        ImportSummary summary = dataValueSetService
+            .importDataValueSetXml( readFile( "dxf2/datavalueset/dataValueSetBAttribute.xml" ), importOptions );
+
+        assertSuccessWithImportedUpdatedDeleted( 12, 0, 0, summary );
         assertImportDataValues( summary );
     }
 
     @Test
     void testImportDataValuesXmlWithAttributeIdSchemeInPayload()
-        throws Exception
     {
-        in = new ClassPathResource( "dxf2/datavalueset/dataValueSetBAttributeIdScheme.xml" ).getInputStream();
         // Identifier schemes specified in XML message
-        ImportOptions importOptions = new ImportOptions();
-        ImportSummary summary = dataValueSetService.importDataValueSetXml( in, importOptions );
-        assertHasNoConflicts( summary );
-        assertEquals( 12, summary.getImportCount().getImported() );
-        assertEquals( 0, summary.getImportCount().getUpdated() );
-        assertEquals( 0, summary.getImportCount().getDeleted() );
-        assertEquals( 0, summary.getImportCount().getIgnored() );
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+        ImportSummary summary = dataValueSetService.importDataValueSetXml(
+            readFile( "dxf2/datavalueset/dataValueSetBAttributeIdScheme.xml" ), new ImportOptions() );
+
+        assertSuccessWithImportedUpdatedDeleted( 12, 0, 0, summary );
         assertImportDataValues( summary );
     }
 
     @Test
     void testImportDataValuesXmlWithAttributePreheatCacheTrue()
-        throws Exception
     {
-        in = new ClassPathResource( "dxf2/datavalueset/dataValueSetBAttribute.xml" ).getInputStream();
         ImportOptions importOptions = new ImportOptions().setPreheatCache( true )
             .setIdScheme( IdScheme.ATTR_ID_SCHEME_PREFIX + ATTRIBUTE_UID )
             .setDataElementIdScheme( IdScheme.ATTR_ID_SCHEME_PREFIX + ATTRIBUTE_UID )
             .setOrgUnitIdScheme( IdScheme.ATTR_ID_SCHEME_PREFIX + ATTRIBUTE_UID );
-        ImportSummary summary = dataValueSetService.importDataValueSetXml( in, importOptions );
-        assertHasNoConflicts( summary );
-        assertEquals( 12, summary.getImportCount().getImported() );
-        assertEquals( 0, summary.getImportCount().getUpdated() );
-        assertEquals( 0, summary.getImportCount().getDeleted() );
-        assertEquals( 0, summary.getImportCount().getIgnored() );
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+
+        ImportSummary summary = dataValueSetService
+            .importDataValueSetXml( readFile( "dxf2/datavalueset/dataValueSetBAttribute.xml" ), importOptions );
+
+        assertSuccessWithImportedUpdatedDeleted( 12, 0, 0, summary );
         assertImportDataValues( summary );
     }
 
     @Test
     void testImportDataValuesXmlWithCodePreheatCacheTrue()
-        throws Exception
     {
-        in = new ClassPathResource( "dxf2/datavalueset/dataValueSetBCode.xml" ).getInputStream();
         ImportOptions importOptions = new ImportOptions().setPreheatCache( true ).setIdScheme( "CODE" )
             .setDataElementIdScheme( "CODE" ).setOrgUnitIdScheme( "CODE" );
-        ImportSummary summary = dataValueSetService.importDataValueSetXml( in, importOptions );
-        assertHasNoConflicts( summary );
-        assertEquals( 12, summary.getImportCount().getImported() );
-        assertEquals( 0, summary.getImportCount().getUpdated() );
-        assertEquals( 0, summary.getImportCount().getDeleted() );
-        assertEquals( 0, summary.getImportCount().getIgnored() );
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+
+        ImportSummary summary = dataValueSetService
+            .importDataValueSetXml( readFile( "dxf2/datavalueset/dataValueSetBCode.xml" ), importOptions );
+
+        assertSuccessWithImportedUpdatedDeleted( 12, 0, 0, summary );
         assertImportDataValues( summary );
     }
 
     @Test
     void testImportDataValuesCsv()
-        throws Exception
     {
-        in = new ClassPathResource( "dxf2/datavalueset/dataValueSetB.csv" ).getInputStream();
-        ImportSummary summary = dataValueSetService.importDataValueSetCsv( in, null, null );
-        assertEquals( 12, summary.getImportCount().getImported() );
-        assertEquals( 0, summary.getImportCount().getUpdated() );
-        assertEquals( 0, summary.getImportCount().getDeleted() );
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
-        assertImportDataValues( summary );
+        ImportSummary summary = dataValueSetService
+            .importDataValueSetCsv( readFile( "dxf2/datavalueset/dataValueSetB.csv" ), null, null );
+
+        assertSuccessWithImportedUpdatedDeleted( 12, 0, 0, summary );
     }
 
     @Test
     void testImportDataValuesCsvWithDataSetIdHeader()
-        throws Exception
     {
-        in = new ClassPathResource( "dxf2/datavalueset/dataValueSetWithDataSetHeader.csv" ).getInputStream();
-        ImportSummary summary = dataValueSetService.importDataValueSetCsv( in, null, null );
-        assertEquals( 3, summary.getImportCount().getImported() );
-        assertEquals( 0, summary.getImportCount().getUpdated() );
-        assertEquals( 0, summary.getImportCount().getDeleted() );
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+        assertDataValuesCount( 0 );
+
+        ImportSummary summary = dataValueSetService
+            .importDataValueSetCsv( readFile( "dxf2/datavalueset/dataValueSetWithDataSetHeader.csv" ), null, null );
+
+        assertSuccessWithImportedUpdatedDeleted( 3, 0, 0, summary );
+        assertDataValuesCount( 3 );
     }
 
     @Test
     void testImportDataValuesCsvWithoutHeader()
-        throws Exception
     {
-        in = new ClassPathResource( "dxf2/datavalueset/dataValueSetBNoHeader.csv" ).getInputStream();
-        ImportSummary summary = dataValueSetService.importDataValueSetCsv( in,
+        assertDataValuesCount( 0 );
+
+        ImportSummary summary = dataValueSetService.importDataValueSetCsv(
+            readFile( "dxf2/datavalueset/dataValueSetBNoHeader.csv" ),
             new ImportOptions().setFirstRowIsHeader( false ), null );
-        assertEquals( 12, summary.getImportCount().getImported() );
-        assertEquals( 0, summary.getImportCount().getUpdated() );
-        assertEquals( 0, summary.getImportCount().getDeleted() );
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
-        assertImportDataValues( summary );
+
+        assertSuccessWithImportedUpdatedDeleted( 12, 0, 0, summary );
+        assertDataValuesCount( 12 );
     }
 
     @Test
     void testImportDataValuesBooleanCsv()
-        throws Exception
     {
-        in = new ClassPathResource( "dxf2/datavalueset/dataValueSetBooleanTest.csv" ).getInputStream();
-        ImportConflicts summary = dataValueSetService.importDataValueSetCsv( in, null, null );
+        ImportConflicts summary = dataValueSetService
+            .importDataValueSetCsv( readFile( "dxf2/datavalueset/dataValueSetBooleanTest.csv" ), null, null );
+
         String description = summary.getConflictsDescription();
         assertEquals( 4, summary.getTotalConflictOccurrenceCount(), description );
         assertEquals( 4, summary.getConflictOccurrenceCount( ErrorCode.E7619 ), description );
@@ -586,7 +542,7 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
         assertArrayEquals( new int[] { 10, 11 }, conflicts.next().getIndexes() );
         assertArrayEquals( new int[] { 16, 17 }, conflicts.next().getIndexes() );
         List<String> expectedBools = Lists.newArrayList( "true", "false" );
-        List<DataValue> resultBools = mockDataValueBatchHandler.getInserts();
+        List<DataValue> resultBools = dataValueService.getAllDataValues();
         for ( DataValue dataValue : resultBools )
         {
             assertTrue( expectedBools.contains( dataValue.getValue() ) );
@@ -595,86 +551,73 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
 
     @Test
     void testImportDataValuesXmlDryRun()
-        throws Exception
     {
-        in = new ClassPathResource( "dxf2/datavalueset/dataValueSetB.xml" ).getInputStream();
+        assertDataValuesCount( 0 );
+
         ImportOptions importOptions = new ImportOptions().setDryRun( true ).setIdScheme( "UID" )
             .setDataElementIdScheme( "UID" ).setOrgUnitIdScheme( "UID" );
-        ImportSummary summary = dataValueSetService.importDataValueSetXml( in, importOptions );
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
-        assertHasNoConflicts( summary );
-        Collection<DataValue> dataValues = mockDataValueBatchHandler.getInserts();
-        assertNotNull( dataValues );
-        assertEquals( 0, dataValues.size() );
+
+        ImportSummary summary = dataValueSetService
+            .importDataValueSetXml( readFile( "dxf2/datavalueset/dataValueSetB.xml" ), importOptions );
+
+        assertSuccessWithImportedUpdatedDeleted( 12, 0, 0, summary );
+        assertDataValuesCount( 0 );
     }
 
     @Test
     void testImportDataValuesXmlUpdatesOnly()
-        throws Exception
     {
-        in = new ClassPathResource( "dxf2/datavalueset/dataValueSetB.xml" ).getInputStream();
+        assertDataValuesCount( 0 );
+
         ImportOptions importOptions = new ImportOptions().setImportStrategy( ImportStrategy.UPDATES );
         IdSchemes idSchemes = new IdSchemes();
         idSchemes.setIdScheme( "UID" );
         idSchemes.setDataElementIdScheme( "UID" );
         idSchemes.setOrgUnitIdScheme( "UID" );
         importOptions.setIdSchemes( idSchemes );
-        ImportSummary summary = dataValueSetService.importDataValueSetXml( in, importOptions );
-        assertHasNoConflicts( summary );
-        assertEquals( 0, summary.getImportCount().getImported() );
-        assertEquals( 0, summary.getImportCount().getUpdated() );
-        assertEquals( 0, summary.getImportCount().getDeleted() );
-        assertEquals( 12, summary.getImportCount().getIgnored() );
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
-        Collection<DataValue> dataValues = mockDataValueBatchHandler.getInserts();
-        assertNotNull( dataValues );
-        assertEquals( 0, dataValues.size() );
+
+        ImportSummary summary = dataValueSetService
+            .importDataValueSetXml( readFile( "dxf2/datavalueset/dataValueSetB.xml" ), importOptions );
+
+        assertSuccessWithImportedUpdatedDeleted( 0, 0, 0, 12, summary );
+        assertDataValuesCount( 0 );
     }
 
     @Test
     void testImportDataValuesWithNewPeriod()
-        throws Exception
     {
+        assertDataValuesCount( 0 );
+
         ImportSummary summary = dataValueSetService
-            .importDataValueSetXml( new ClassPathResource( "dxf2/datavalueset/dataValueSetC.xml" ).getInputStream() );
-        assertHasNoConflicts( summary );
-        assertEquals( 3, summary.getImportCount().getImported() );
-        assertEquals( 0, summary.getImportCount().getUpdated() );
-        assertEquals( 0, summary.getImportCount().getDeleted() );
-        assertEquals( 0, summary.getImportCount().getIgnored() );
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
-        Collection<DataValue> dataValues = mockDataValueBatchHandler.getInserts();
-        assertNotNull( dataValues );
-        assertEquals( 3, dataValues.size() );
+            .importDataValueSetXml( readFile( "dxf2/datavalueset/dataValueSetC.xml" ) );
+
+        assertSuccessWithImportedUpdatedDeleted( 3, 0, 0, summary );
+        assertDataValuesCount( 3 );
     }
 
     @Test
     void testImportDataValuesWithCategoryOptionComboIdScheme()
-        throws Exception
     {
-        in = new ClassPathResource( "dxf2/datavalueset/dataValueSetCCode.xml" ).getInputStream();
+        assertDataValuesCount( 0 );
         ImportOptions options = new ImportOptions().setCategoryOptionComboIdScheme( "CODE" );
-        ImportSummary summary = dataValueSetService.importDataValueSetXml( in, options );
-        assertHasNoConflicts( summary );
-        assertEquals( 3, summary.getImportCount().getImported() );
-        assertEquals( 0, summary.getImportCount().getUpdated() );
-        assertEquals( 0, summary.getImportCount().getDeleted() );
-        assertEquals( 0, summary.getImportCount().getIgnored() );
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
-        Collection<DataValue> dataValues = mockDataValueBatchHandler.getInserts();
-        assertNotNull( dataValues );
-        assertEquals( 3, dataValues.size() );
+
+        ImportSummary summary = dataValueSetService
+            .importDataValueSetXml( readFile( "dxf2/datavalueset/dataValueSetCCode.xml" ), options );
+
+        assertSuccessWithImportedUpdatedDeleted( 3, 0, 0, summary );
+        assertDataValuesCount( 3 );
     }
 
     @Test
     void testImportDataValuesWithAttributeOptionCombo()
-        throws Exception
     {
-        in = new ClassPathResource( "dxf2/datavalueset/dataValueSetD.xml" ).getInputStream();
-        ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
-        assertHasNoConflicts( summary );
-        Collection<DataValue> dataValues = mockDataValueBatchHandler.getInserts();
+        assertDataValuesCount( 0 );
+
+        ImportSummary summary = dataValueSetService
+            .importDataValueSetXml( readFile( "dxf2/datavalueset/dataValueSetD.xml" ) );
+
+        assertSuccessWithImportedUpdatedDeleted( 3, 0, 0, summary );
+        List<DataValue> dataValues = dataValueService.getAllDataValues();
         assertNotNull( dataValues );
         assertEquals( 3, dataValues.size() );
         assertTrue( dataValues.contains( new DataValue( deA, peA, ouA, ocDef, ocA ) ) );
@@ -684,13 +627,15 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
 
     @Test
     void testImportDataValuesWithOrgUnitOutsideHierarchy()
-        throws Exception
     {
-        in = new ClassPathResource( "dxf2/datavalueset/dataValueSetE.xml" ).getInputStream();
-        ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
+        assertDataValuesCount( 0 );
+
+        ImportSummary summary = dataValueSetService
+            .importDataValueSetXml( readFile( "dxf2/datavalueset/dataValueSetE.xml" ) );
+
         assertEquals( ImportStatus.WARNING, summary.getStatus() );
         assertEquals( 2, summary.getConflictCount(), summary.getConflictsDescription() );
-        Collection<DataValue> dataValues = mockDataValueBatchHandler.getInserts();
+        List<DataValue> dataValues = dataValueService.getAllDataValues();
         assertNotNull( dataValues );
         assertEquals( 1, dataValues.size() );
         assertTrue( dataValues.contains( new DataValue( deA, peA, ouA, ocDef, ocA ) ) );
@@ -698,41 +643,42 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
 
     @Test
     void testImportDataValuesWithInvalidAttributeOptionCombo()
-        throws Exception
     {
-        in = new ClassPathResource( "dxf2/datavalueset/dataValueSetF.xml" ).getInputStream();
-        ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
+        assertDataValuesCount( 0 );
+
+        ImportSummary summary = dataValueSetService
+            .importDataValueSetXml( readFile( "dxf2/datavalueset/dataValueSetF.xml" ) );
+
         assertEquals( 0, summary.getImportCount().getImported() );
         assertEquals( ImportStatus.ERROR, summary.getStatus() );
-        Collection<DataValue> dataValues = mockDataValueBatchHandler.getInserts();
-        assertNotNull( dataValues );
-        assertEquals( 0, dataValues.size() );
+        assertDataValuesCount( 0 );
     }
 
     @Test
     void testImportDataValuesWithNonExistingDataElementOrgUnit()
-        throws Exception
     {
-        in = new ClassPathResource( "dxf2/datavalueset/dataValueSetG.xml" ).getInputStream();
-        ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
+        assertDataValuesCount( 0 );
+
+        ImportSummary summary = dataValueSetService
+            .importDataValueSetXml( readFile( "dxf2/datavalueset/dataValueSetG.xml" ) );
+
         assertEquals( 2, summary.getConflictCount(), summary.getConflictsDescription() );
         assertEquals( 1, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
         assertEquals( 0, summary.getImportCount().getDeleted() );
         assertEquals( 3, summary.getImportCount().getIgnored() );
         assertEquals( ImportStatus.WARNING, summary.getStatus() );
-        Collection<DataValue> dataValues = mockDataValueBatchHandler.getInserts();
-        assertNotNull( dataValues );
-        assertEquals( 1, dataValues.size() );
+        assertDataValuesCount( 1 );
     }
 
     @Test
     void testImportDataValuesWithStrictPeriods()
-        throws Exception
     {
-        in = new ClassPathResource( "dxf2/datavalueset/dataValueSetNonStrict.xml" ).getInputStream();
         ImportOptions options = new ImportOptions().setStrictPeriods( true );
-        ImportSummary summary = dataValueSetService.importDataValueSetXml( in, options );
+
+        ImportSummary summary = dataValueSetService
+            .importDataValueSetXml( readFile( "dxf2/datavalueset/dataValueSetNonStrict.xml" ), options );
+
         assertEquals( 2, summary.getConflictCount(), summary.getConflictsDescription() );
         assertEquals( 1, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
@@ -743,11 +689,12 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
 
     @Test
     void testImportDataValuesWithStrictCategoryOptionCombos()
-        throws Exception
     {
-        in = new ClassPathResource( "dxf2/datavalueset/dataValueSetNonStrict.xml" ).getInputStream();
         ImportOptions options = new ImportOptions().setStrictCategoryOptionCombos( true );
-        ImportSummary summary = dataValueSetService.importDataValueSetXml( in, options );
+
+        ImportSummary summary = dataValueSetService
+            .importDataValueSetXml( readFile( "dxf2/datavalueset/dataValueSetNonStrict.xml" ), options );
+
         assertEquals( 1, summary.getConflictCount(), summary.getConflictsDescription() );
         assertEquals( 2, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
@@ -758,11 +705,11 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
 
     @Test
     void testImportDataValuesWithStrictAttributeOptionCombos()
-        throws Exception
     {
-        in = new ClassPathResource( "dxf2/datavalueset/dataValueSetNonStrict.xml" ).getInputStream();
         ImportOptions options = new ImportOptions().setStrictAttributeOptionCombos( true );
-        ImportSummary summary = dataValueSetService.importDataValueSetXml( in, options );
+
+        ImportSummary summary = dataValueSetService
+            .importDataValueSetXml( readFile( "dxf2/datavalueset/dataValueSetNonStrict.xml" ), options );
         assertEquals( 1, summary.getConflictCount(), summary.getConflictsDescription() );
         assertEquals( 2, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
@@ -773,11 +720,12 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
 
     @Test
     void testImportDataValuesWithRequiredCategoryOptionCombo()
-        throws Exception
     {
-        in = new ClassPathResource( "dxf2/datavalueset/dataValueSetNonStrict.xml" ).getInputStream();
         ImportOptions options = new ImportOptions().setRequireCategoryOptionCombo( true );
-        ImportSummary summary = dataValueSetService.importDataValueSetXml( in, options );
+
+        ImportSummary summary = dataValueSetService
+            .importDataValueSetXml( readFile( "dxf2/datavalueset/dataValueSetNonStrict.xml" ), options );
+
         String description = summary.getConflictsDescription();
         assertEquals( 2, summary.getTotalConflictOccurrenceCount(), description );
         assertEquals( 1, summary.getConflictCount(), description );
@@ -791,11 +739,12 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
 
     @Test
     void testImportDataValuesWithRequiredAttributeOptionCombo()
-        throws Exception
     {
-        in = new ClassPathResource( "dxf2/datavalueset/dataValueSetNonStrict.xml" ).getInputStream();
         ImportOptions options = new ImportOptions().setRequireAttributeOptionCombo( true );
-        ImportSummary summary = dataValueSetService.importDataValueSetXml( in, options );
+
+        ImportSummary summary = dataValueSetService
+            .importDataValueSetXml( readFile( "dxf2/datavalueset/dataValueSetNonStrict.xml" ), options );
+
         String description = summary.getConflictsDescription();
         assertEquals( 2, summary.getTotalConflictOccurrenceCount(), description );
         assertEquals( 1, summary.getConflictCount(), description );
@@ -809,11 +758,12 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
 
     @Test
     void testImportDataValuesWithStrictOrganisationUnits()
-        throws Exception
     {
-        in = new ClassPathResource( "dxf2/datavalueset/dataValueSetNonStrict.xml" ).getInputStream();
         ImportOptions options = new ImportOptions().setStrictOrganisationUnits( true );
-        ImportSummary summary = dataValueSetService.importDataValueSetXml( in, options );
+
+        ImportSummary summary = dataValueSetService
+            .importDataValueSetXml( readFile( "dxf2/datavalueset/dataValueSetNonStrict.xml" ), options );
+
         assertEquals( 1, summary.getConflictCount(), summary.getConflictsDescription() );
         assertEquals( 2, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
@@ -824,10 +774,10 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
 
     @Test
     void testImportDataValuesInvalidOptionCode()
-        throws Exception
     {
-        in = new ClassPathResource( "dxf2/datavalueset/dataValueSetInvalid.xml" ).getInputStream();
-        ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
+        ImportSummary summary = dataValueSetService
+            .importDataValueSetXml( readFile( "dxf2/datavalueset/dataValueSetInvalid.xml" ) );
+
         assertEquals( 1, summary.getConflictCount(), summary.getConflictsDescription() );
         assertEquals( 2, summary.getImportCount().getImported() );
         assertEquals( ImportStatus.WARNING, summary.getStatus() );
@@ -835,24 +785,23 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
 
     @Test
     void testImportDataValuesInvalidAttributeOptionComboDates()
-        throws Exception
     {
         injectSecurityContext( superUser );
         categoryOptionA.setStartDate( peB.getStartDate() );
         categoryOptionA.setEndDate( peB.getEndDate() );
         categoryService.updateCategoryOption( categoryOptionA );
-
         injectSecurityContext( user );
 
-        in = new ClassPathResource( "dxf2/datavalueset/dataValueSetH.xml" ).getInputStream();
-        ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
+        ImportSummary summary = dataValueSetService
+            .importDataValueSetXml( readFile( "dxf2/datavalueset/dataValueSetH.xml" ) );
+
         assertEquals( 2, summary.getConflictCount(), summary.getConflictsDescription() );
         assertEquals( 1, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
         assertEquals( 0, summary.getImportCount().getDeleted() );
         assertEquals( 2, summary.getImportCount().getIgnored() );
         assertEquals( ImportStatus.WARNING, summary.getStatus() );
-        Collection<DataValue> dataValues = mockDataValueBatchHandler.getInserts();
+        List<DataValue> dataValues = dataValueService.getAllDataValues();
         assertNotNull( dataValues );
         assertEquals( 1, dataValues.size() );
         assertTrue( dataValues.contains( new DataValue( deB, peB, ouB, ocDef, ocA ) ) );
@@ -860,23 +809,22 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
 
     @Test
     void testImportDataValuesInvalidAttributeOptionComboOrgUnit()
-        throws Exception
     {
         injectSecurityContext( superUser );
         categoryOptionA.setOrganisationUnits( Sets.newHashSet( ouA, ouB ) );
         categoryService.updateCategoryOption( categoryOptionA );
-
         injectSecurityContext( user );
 
-        in = new ClassPathResource( "dxf2/datavalueset/dataValueSetH.xml" ).getInputStream();
-        ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
+        ImportSummary summary = dataValueSetService
+            .importDataValueSetXml( readFile( "dxf2/datavalueset/dataValueSetH.xml" ) );
+
         assertEquals( 1, summary.getConflictCount(), summary.getConflictsDescription() );
         assertEquals( 2, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
         assertEquals( 0, summary.getImportCount().getDeleted() );
         assertEquals( 1, summary.getImportCount().getIgnored() );
         assertEquals( ImportStatus.WARNING, summary.getStatus() );
-        Collection<DataValue> dataValues = mockDataValueBatchHandler.getInserts();
+        List<DataValue> dataValues = dataValueService.getAllDataValues();
         assertNotNull( dataValues );
         assertEquals( 2, dataValues.size() );
         assertTrue( dataValues.contains( new DataValue( deA, peA, ouA, ocDef, ocA ) ) );
@@ -885,83 +833,62 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
 
     @Test
     void testImportDataValuesUpdatedAudit()
-        throws Exception
     {
-        // as existing we return the imported DataValue with changed value
-        // to prevent the update from being skipped
-        mockDataValueBatchHandler
-            .withFindObject( dataValue -> dataValue.toBuilder().value( dataValue.getValue() + "42" ).build() );
-        in = new ClassPathResource( "dxf2/datavalueset/dataValueSetA.xml" ).getInputStream();
-        ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
-        assertNotNull( summary );
-        assertNotNull( summary.getImportCount() );
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
-        assertHasNoConflicts( summary );
-        Collection<DataValue> dataValues = mockDataValueBatchHandler.getUpdates();
-        Collection<DataValueAudit> auditValues = mockDataValueAuditBatchHandler.getInserts();
-        assertNotNull( dataValues );
-        assertEquals( 3, dataValues.size() );
-        assertTrue( dataValues.contains( new DataValue( deA, peA, ouA, ocDef, ocDef ) ) );
-        assertEquals( "10002", ((List<DataValue>) dataValues).get( 1 ).getValue() );
-        assertEquals( "10003", ((List<DataValue>) dataValues).get( 2 ).getValue() );
-        assertEquals( 3, auditValues.size() );
+        assertDataValuesCount( 0 );
+        ImportSummary summary = dataValueSetService
+            .importDataValueSetXml( readFile( "dxf2/datavalueset/dataValueSetA.xml" ), new ImportOptions() );
+        assertSuccessWithImportedUpdatedDeleted( 3, 0, 0, summary );
+        assertDataValuesCount( 3 );
+
+        summary = dataValueSetService
+            .importDataValueSetXml( readFile( "dxf2/datavalueset/dataValueSetAUpdate.xml" ), new ImportOptions() );
+
+        assertSuccessWithImportedUpdatedDeleted( 0, 3, 0, summary );
+        List<DataValue> dataValues = assertDataValuesCount( 3 );
+        assertAll( "expected data value update(s) to be audited", dataValues.stream().map( dv -> (Executable) () -> {
+            List<DataValueAudit> audits = dataValueAuditService.getDataValueAudits( dv );
+            assertNotNull( audits );
+            assertEquals( 1, audits.size(),
+                () -> String.format( "expected change to dataValue %s to be audited once", dv ) );
+            assertEquals( AuditType.UPDATE, audits.get( 0 ).getAuditType() );
+        } ).collect( Collectors.toList() ) );
     }
 
     @Test
     void testImportDataValuesUpdatedSkipAudit()
-        throws Exception
     {
-        // as existing we return the imported DataValue with changed comment
-        // to prevent the update from being skipped
-        mockDataValueBatchHandler
-            .withFindObject( dataValue -> dataValue.toBuilder().comment( dataValue.getComment() + "42" ).build() );
-        in = new ClassPathResource( "dxf2/datavalueset/dataValueSetA.xml" ).getInputStream();
+        assertDataValuesCount( 0 );
+        ImportSummary summary = dataValueSetService
+            .importDataValueSetXml( readFile( "dxf2/datavalueset/dataValueSetA.xml" ), new ImportOptions() );
+        assertSuccessWithImportedUpdatedDeleted( 3, 0, 0, summary );
+        assertDataValuesCount( 3 );
+
         ImportOptions importOptions = new ImportOptions();
         importOptions.setSkipAudit( true );
-        ImportSummary summary = dataValueSetService.importDataValueSetXml( in, importOptions );
-        assertNotNull( summary );
-        assertNotNull( summary.getImportCount() );
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
-        assertHasNoConflicts( summary );
-        Collection<DataValue> dataValues = mockDataValueBatchHandler.getUpdates();
-        Collection<DataValueAudit> auditValues = mockDataValueAuditBatchHandler.getInserts();
-        assertNotNull( dataValues );
-        assertEquals( 3, dataValues.size() );
-        assertEquals( 0, auditValues.size() );
-    }
 
-    @Test
-    void testImportDataValuesUpdatedSkipNoChange()
-        throws Exception
-    {
-        mockDataValueBatchHandler.withFindSelf( true );
-        in = new ClassPathResource( "dxf2/datavalueset/dataValueSetA.xml" ).getInputStream();
-        ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
-        assertNotNull( summary );
-        assertNotNull( summary.getImportCount() );
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
-        assertHasNoConflicts( summary );
-        Collection<DataValue> dataValues = mockDataValueBatchHandler.getUpdates();
-        Collection<DataValueAudit> auditValues = mockDataValueAuditBatchHandler.getInserts();
-        assertNotNull( dataValues );
-        assertEquals( 3, summary.getImportCount().getUpdated() );
-        assertEquals( 0, dataValues.size(), "Updates to unchanged data values were not skipped" );
-        assertEquals( 0, auditValues.size(), "Updates to unchanged data value did not skip audit" );
+        summary = dataValueSetService
+            .importDataValueSetXml( readFile( "dxf2/datavalueset/dataValueSetAUpdate.xml" ), importOptions );
+
+        assertSuccessWithImportedUpdatedDeleted( 0, 3, 0, summary );
+        List<DataValue> dataValues = assertDataValuesCount( 3 );
+        assertAll( "expected data value update(s) NOT to be audited",
+            dataValues.stream()
+                .map(
+                    dv -> (Executable) () -> assertEquals( List.of(), dataValueAuditService.getDataValueAudits( dv ) ) )
+                .collect( Collectors.toList() ) );
     }
 
     @Test
     void testImportNullDataValues()
-        throws Exception
     {
-        in = new ClassPathResource( "dxf2/datavalueset/dataValueSetANull.xml" ).getInputStream();
-        ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
+        ImportSummary summary = dataValueSetService
+            .importDataValueSetXml( readFile( "dxf2/datavalueset/dataValueSetANull.xml" ) );
+
         assertEquals( ImportStatus.WARNING, summary.getStatus() );
         assertEquals( 2, summary.getImportCount().getIgnored() );
         assertEquals( 1, summary.getImportCount().getImported() );
         assertEquals( 2, summary.getConflictCount(), summary.getConflictsDescription() );
-        Collection<DataValue> dataValues = mockDataValueBatchHandler.getInserts();
-        assertNotNull( dataValues );
-        assertEquals( 1, dataValues.size() );
+        assertDataValuesCount( 1 );
     }
 
     @Test
@@ -988,17 +915,18 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
             + "  <dataValue dataElement=\"DE_D\" period=\"" + tooLate.getIsoDate() + "\" value=\"10004\" />\n"
             + "  <dataValue dataElement=\"DE_D\" period=\"" + outOfRange.getIsoDate() + "\" value=\"10005\" />\n"
             + "</dataValueSet>\n";
-
         injectSecurityContext( user );
-        in = new ByteArrayInputStream( importData.getBytes( StandardCharsets.UTF_8 ) );
-        ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
+
+        ImportSummary summary = dataValueSetService
+            .importDataValueSetXml( new ByteArrayInputStream( importData.getBytes( StandardCharsets.UTF_8 ) ) );
+
         assertEquals( 3, summary.getConflictCount(), summary.getConflictsDescription() );
         assertEquals( 2, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
         assertEquals( 0, summary.getImportCount().getDeleted() );
         assertEquals( 3, summary.getImportCount().getIgnored() );
         assertEquals( ImportStatus.WARNING, summary.getStatus() );
-        Collection<DataValue> dataValues = mockDataValueBatchHandler.getInserts();
+        List<DataValue> dataValues = dataValueService.getAllDataValues();
         assertNotNull( dataValues );
         assertEquals( 2, dataValues.size() );
         assertTrue( dataValues.contains( new DataValue( deB, okBefore, ouA, ocDef, ocDef ) ) );
@@ -1009,18 +937,18 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
      * User does not have data write access for DataSet Expect fail on data
      * sharing check
      *
-     * @throws IOException
      */
     @Test
     void testImportValueDataSetWriteFail()
-        throws IOException
     {
         clearSecurityContext();
         enableDataSharing( user, dsA, AccessStringHelper.DATA_READ );
         dataSetService.updateDataSet( dsA );
         injectSecurityContext( user );
-        in = new ClassPathResource( "dxf2/datavalueset/dataValueSetA.xml" ).getInputStream();
-        ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
+
+        ImportSummary summary = dataValueSetService
+            .importDataValueSetXml( readFile( "dxf2/datavalueset/dataValueSetA.xml" ) );
+
         assertNotNull( summary );
         assertNotNull( summary.getImportCount() );
         assertEquals( ImportStatus.ERROR, summary.getStatus() );
@@ -1030,40 +958,36 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
      * User has data write access for DataSet DataValue use default category
      * combo Expect success
      *
-     * @throws IOException
      */
     @Test
     void testImportValueDefaultCatComboOk()
-        throws IOException
     {
         injectSecurityContext( superUser );
         enableDataSharing( user, dsA, AccessStringHelper.DATA_READ_WRITE );
         dataSetService.updateDataSet( dsA );
-
         injectSecurityContext( user );
 
-        in = new ClassPathResource( "dxf2/datavalueset/dataValueSetA.xml" ).getInputStream();
-        ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
-        assertNotNull( summary );
-        assertNotNull( summary.getImportCount() );
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+        ImportSummary summary = dataValueSetService
+            .importDataValueSetXml( readFile( "dxf2/datavalueset/dataValueSetA.xml" ) );
+
+        assertSuccessWithImportedUpdatedDeleted( 3, 0, 0, summary );
     }
 
     /**
      * User has data write access for DataSet and data read access for
      * categoryOptions Expect fail
      *
-     * @throws IOException
      */
     @Test
     void testImportValueCatComboFail()
-        throws IOException
     {
         enableDataSharing( user, dsA, AccessStringHelper.DATA_READ_WRITE );
         enableDataSharing( user, categoryOptionA, AccessStringHelper.READ );
         enableDataSharing( user, categoryOptionB, AccessStringHelper.READ );
-        in = new ClassPathResource( "dxf2/datavalueset/dataValueSetACatCombo.xml" ).getInputStream();
-        ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
+
+        ImportSummary summary = dataValueSetService
+            .importDataValueSetXml( readFile( "dxf2/datavalueset/dataValueSetACatCombo.xml" ) );
+
         assertNotNull( summary );
         assertNotNull( summary.getImportCount() );
         assertEquals( ImportStatus.WARNING, summary.getStatus() );
@@ -1073,36 +997,34 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
      * User has data write access for DataSet and also categoryOptions Expect
      * success
      *
-     * @throws IOException
      */
     @Test
     void testImportValueCatComboOk()
-        throws IOException
     {
         enableDataSharing( user, dsA, AccessStringHelper.DATA_READ_WRITE );
         enableDataSharing( user, categoryOptionA, AccessStringHelper.DATA_WRITE );
         enableDataSharing( user, categoryOptionB, AccessStringHelper.DATA_WRITE );
-        in = new ClassPathResource( "dxf2/datavalueset/dataValueSetACatCombo.xml" ).getInputStream();
-        ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
-        assertNotNull( summary );
-        assertNotNull( summary.getImportCount() );
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+
+        ImportSummary summary = dataValueSetService
+            .importDataValueSetXml( readFile( "dxf2/datavalueset/dataValueSetACatCombo.xml" ) );
+
+        assertSuccessWithImportedUpdatedDeleted( 3, 0, 0, summary );
     }
 
     /**
      * User does not have data write access for DataSet Expect fail
      *
-     * @throws IOException
      */
     @Test
     void testImportValueCatComboFailDS()
-        throws IOException
     {
         enableDataSharing( user, dsA, AccessStringHelper.DATA_READ );
         enableDataSharing( user, categoryOptionA, AccessStringHelper.DATA_WRITE );
         enableDataSharing( user, categoryOptionB, AccessStringHelper.DATA_WRITE );
-        in = new ClassPathResource( "dxf2/datavalueset/dataValueSetACatCombo.xml" ).getInputStream();
-        ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
+
+        ImportSummary summary = dataValueSetService
+            .importDataValueSetXml( readFile( "dxf2/datavalueset/dataValueSetACatCombo.xml" ) );
+
         assertNotNull( summary );
         assertNotNull( summary.getImportCount() );
         assertEquals( ImportStatus.ERROR, summary.getStatus() );
@@ -1111,20 +1033,18 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
     /**
      * User has data write access for DataSet and CategoryOption
      *
-     * @throws IOException
      */
     @Test
     void testImportValueCategoryOptionWriteOk()
-        throws IOException
     {
         enableDataSharing( user, dsA, AccessStringHelper.DATA_READ_WRITE );
         enableDataSharing( user, categoryOptionA, AccessStringHelper.DATA_READ_WRITE );
         enableDataSharing( user, categoryOptionB, AccessStringHelper.DATA_READ_WRITE );
-        in = new ClassPathResource( "dxf2/datavalueset/dataValueSetA.xml" ).getInputStream();
-        ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
-        assertNotNull( summary );
-        assertNotNull( summary.getImportCount() );
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+
+        ImportSummary summary = dataValueSetService
+            .importDataValueSetXml( readFile( "dxf2/datavalueset/dataValueSetA.xml" ) );
+
+        assertSuccessWithImportedUpdatedDeleted( 3, 0, 0, summary );
     }
 
     @Test
@@ -1142,10 +1062,11 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
             + "  <dataValue dataElement=\"DE_C\" period=\"200007\" value=\"10003\" />\n"
             + "  <dataValue dataElement=\"DE_D\" period=\"200007\" value=\"10004\" />\n"
             + "  <dataValue dataElement=\"DE_D\" period=\"200008\" value=\"10005\" />\n" + "</dataValueSet>\n";
-        in = new ByteArrayInputStream( importData.getBytes( StandardCharsets.UTF_8 ) );
-        ImportSummary summary = dataValueSetServiceNoMocks.importDataValueSetXml( in );
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
-        assertEquals( 5, summary.getImportCount().getImported() );
+
+        ImportSummary summary = dataValueSetServiceNoMocks
+            .importDataValueSetXml( new ByteArrayInputStream( importData.getBytes( StandardCharsets.UTF_8 ) ) );
+
+        assertSuccessWithImportedUpdatedDeleted( 5, 0, 0, summary );
     }
 
     // -------------------------------------------------------------------------
@@ -1155,7 +1076,7 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
     {
         assertNotNull( summary );
         assertNotNull( summary.getImportCount() );
-        Collection<DataValue> dataValues = mockDataValueBatchHandler.getInserts();
+        List<DataValue> dataValues = dataValueService.getAllDataValues();
         assertNotNull( dataValues );
         assertEquals( 12, dataValues.size() );
         assertTrue( dataValues.contains( new DataValue( deA, peA, ouA, ocDef, ocDef ) ) );
@@ -1178,11 +1099,51 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
         return createPeriod( PeriodType.getByNameIgnoreCase( MonthlyPeriodType.NAME ), monthStart, monthEnd );
     }
 
+    private InputStream readFile( String filename )
+    {
+        try
+        {
+            return new ClassPathResource( filename ).getInputStream();
+        }
+        catch ( IOException ex )
+        {
+            throw new UncheckedIOException( ex );
+        }
+    }
+
+    private List<DataValue> assertDataValuesCount( int expected )
+    {
+        List<DataValue> dataValues = dataValueService.getAllDataValues();
+        assertEquals( expected, dataValues.size(),
+            () -> String.format( "mismatch in number of expected dataValue(s), got %s", dataValues ) );
+        return dataValues;
+    }
+
     private static void assertHasNoConflicts( ImportConflicts summary )
     {
-        if ( summary.hasConflicts() )
-        {
-            assertEquals( 0, summary.getConflictCount(), summary.getConflictsDescription() );
-        }
+        assertEquals( 0, summary.getConflictCount(), summary.getConflictsDescription() );
+    }
+
+    private static void assertSuccessWithImportedUpdatedDeleted( int imported, int updated, int deleted,
+        ImportSummary summary )
+    {
+        assertAll(
+            () -> assertHasNoConflicts( summary ),
+            () -> assertEquals( imported, summary.getImportCount().getImported(), "unexpected import count" ),
+            () -> assertEquals( updated, summary.getImportCount().getUpdated(), "unexpected update count" ),
+            () -> assertEquals( deleted, summary.getImportCount().getDeleted(), "unexpected deleted count" ),
+            () -> assertEquals( ImportStatus.SUCCESS, summary.getStatus(), summary.getDescription() ) );
+    }
+
+    private static void assertSuccessWithImportedUpdatedDeleted( int imported, int updated, int deleted, int ignored,
+        ImportSummary summary )
+    {
+        assertAll(
+            () -> assertHasNoConflicts( summary ),
+            () -> assertEquals( imported, summary.getImportCount().getImported(), "unexpected import count" ),
+            () -> assertEquals( updated, summary.getImportCount().getUpdated(), "unexpected update count" ),
+            () -> assertEquals( deleted, summary.getImportCount().getDeleted(), "unexpected deleted count" ),
+            () -> assertEquals( ignored, summary.getImportCount().getIgnored(), "unexpected ignored count" ),
+            () -> assertEquals( ImportStatus.SUCCESS, summary.getStatus(), summary.getDescription() ) );
     }
 }
