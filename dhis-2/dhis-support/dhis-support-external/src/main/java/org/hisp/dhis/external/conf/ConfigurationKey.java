@@ -708,6 +708,7 @@ public enum ConfigurationKey
      * retrieved from database
      */
     TRACKER_TRACKED_ENTITY_QUERY_LIMIT( "tracker.trackedentity.query.limit", "50000", false );
+    /**
      * Redis based cache invalidation feature. Enable or disable.
      */
     REDIS_CACHE_INVALIDATION_ENABLED( "redis.cache.invalidation.enabled", Constants.OFF, false );
