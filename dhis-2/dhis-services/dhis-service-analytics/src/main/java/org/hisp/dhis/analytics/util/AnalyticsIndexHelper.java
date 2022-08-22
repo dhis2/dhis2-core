@@ -57,7 +57,7 @@ import com.google.common.collect.Lists;
 public class AnalyticsIndexHelper
 {
 
-    private static final String PREFIX_INDEX = "in_";
+    private static String PREFIX_INDEX = "in_";
 
     private AnalyticsIndexHelper()
     {
@@ -69,19 +69,19 @@ public class AnalyticsIndexHelper
      * @param partitions the list of {@link AnalyticsTablePartition}.
      * @return a {@link java.util.concurrent.ConcurrentLinkedQueue} of indexes.
      */
-    public static List<AnalyticsIndex> getIndexes( final List<AnalyticsTablePartition> partitions )
+    public static List<AnalyticsIndex> getIndexes( List<AnalyticsTablePartition> partitions )
     {
-        final List<AnalyticsIndex> indexes = new ArrayList<>();
+        List<AnalyticsIndex> indexes = new ArrayList<>();
 
-        for ( final AnalyticsTablePartition partition : partitions )
+        for ( AnalyticsTablePartition partition : partitions )
         {
-            final List<AnalyticsTableColumn> columns = partition.getMasterTable().getDimensionColumns();
+            List<AnalyticsTableColumn> columns = partition.getMasterTable().getDimensionColumns();
 
-            for ( final AnalyticsTableColumn col : columns )
+            for ( AnalyticsTableColumn col : columns )
             {
                 if ( !col.isSkipIndex() )
                 {
-                    final List<String> indexColumns = col.hasIndexColumns() ? col.getIndexColumns()
+                    List<String> indexColumns = col.hasIndexColumns() ? col.getIndexColumns()
                         : Lists.newArrayList( col.getName() );
 
                     indexes.add( new AnalyticsIndex( partition.getTempTableName(), indexColumns, col.getIndexType() ) );
@@ -102,10 +102,10 @@ public class AnalyticsIndexHelper
      * @param tableType the {@link AnalyticsTableType}
      * @return the SQL index statement
      */
-    public static String createIndexStatement( final AnalyticsIndex index, final AnalyticsTableType tableType )
+    public static String createIndexStatement( AnalyticsIndex index, AnalyticsTableType tableType )
     {
-        final String indexName = getIndexName( index, tableType );
-        final String indexColumns = maybeApplyFunctionToIndex( index, join( index.getColumns(), "," ) );
+        String indexName = getIndexName( index, tableType );
+        String indexColumns = maybeApplyFunctionToIndex( index, join( index.getColumns(), "," ) );
 
         return "create index " + indexName + " " +
             "on " + index.getTable() + " " +
@@ -119,9 +119,9 @@ public class AnalyticsIndexHelper
      * @param index the {@link AnalyticsIndex}
      * @param tableType the {@link AnalyticsTableType}
      */
-    public static String getIndexName( final AnalyticsIndex index, final AnalyticsTableType tableType )
+    public static String getIndexName( AnalyticsIndex index, AnalyticsTableType tableType )
     {
-        final String columnName = join( index.getColumns(), "_" );
+        String columnName = join( index.getColumns(), "_" );
 
         return quote( maybeSuffixIndexName( index,
             PREFIX_INDEX + removeQuote( columnName ) + "_" + shortenTableName( index.getTable(), tableType )
@@ -136,7 +136,7 @@ public class AnalyticsIndexHelper
      * @param indexColumns the columns to be used in the function
      * @return the columns inside the respective function
      */
-    private static String maybeApplyFunctionToIndex( final AnalyticsIndex index, final String indexColumns )
+    private static String maybeApplyFunctionToIndex( AnalyticsIndex index, String indexColumns )
     {
         if ( index.hasFunction() )
         {
@@ -147,9 +147,9 @@ public class AnalyticsIndexHelper
     }
 
     /**
-     * If the conditions are met, this method adds an additional index, that
-     * uses the "lower" function, into the given list of "indexes". A new index
-     * will be added in the following rules are matched:
+     * If the conditions are met, this method adds an index, that uses the
+     * "lower" function, into the given list of "indexes". A new index will be
+     * added in the following rules are matched:
      *
      * Column data type is TEXT AND "indexColumns" has ONLY one element AND the
      * column name is a valid UID.
@@ -159,14 +159,13 @@ public class AnalyticsIndexHelper
      * @param column the {@link AnalyticsTableColumn}
      * @param indexColumns the columns to be used in the function
      */
-    private static void maybeAddTextLowerIndex( final List<AnalyticsIndex> indexes, final String tableName,
-        final AnalyticsTableColumn column, final List<String> indexColumns )
+    private static void maybeAddTextLowerIndex( List<AnalyticsIndex> indexes, String tableName,
+        AnalyticsTableColumn column, List<String> indexColumns )
     {
-        final String columnName = RegExUtils.removeAll( column.getName(), "\"" );
+        String columnName = RegExUtils.removeAll( column.getName(), "\"" );
+        boolean isSingleColumn = indexColumns.size() == 1;
 
-        // The "lower" function can only be applied into a single column, hence
-        // the size == 1 comparison.
-        if ( column.getDataType() == TEXT && isValidUid( columnName ) && indexColumns.size() == 1 )
+        if ( column.getDataType() == TEXT && isValidUid( columnName ) && isSingleColumn )
         {
             indexes.add( new AnalyticsIndex( tableName, indexColumns, column.getIndexType(),
                 LOWER ) );
@@ -179,7 +178,7 @@ public class AnalyticsIndexHelper
      * @param table the table name
      * @param tableType
      */
-    private static String shortenTableName( String table, final AnalyticsTableType tableType )
+    private static String shortenTableName( String table, AnalyticsTableType tableType )
     {
         table = table.replaceAll( tableType.getTableName(), "ax" );
         table = table.replaceAll( TABLE_TEMP_SUFFIX, EMPTY );
@@ -195,7 +194,7 @@ public class AnalyticsIndexHelper
      * @param indexName
      * @return the index name plus the function suffix if any
      */
-    private static String maybeSuffixIndexName( final AnalyticsIndex index, final String indexName )
+    private static String maybeSuffixIndexName( AnalyticsIndex index, String indexName )
     {
         if ( index.hasFunction() )
         {
