@@ -82,7 +82,6 @@ public class DataValueAudit
         this.organisationUnit = dataValue.getSource();
         this.categoryOptionCombo = dataValue.getCategoryOptionCombo();
         this.attributeOptionCombo = dataValue.getAttributeOptionCombo();
-
         this.value = value;
         this.modifiedBy = modifiedBy;
         this.created = new Date();
