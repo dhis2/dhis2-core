@@ -29,16 +29,8 @@ package org.hisp.dhis.utils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.nio.charset.StandardCharsets;
-import java.sql.SQLException;
-import java.util.Objects;
 
-import org.hisp.dhis.BaseSpringTest;
 import org.springframework.context.ApplicationContext;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.support.EncodedResource;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.datasource.init.ScriptUtils;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -57,22 +49,6 @@ public class TestUtils
             Object object = applicationContext.getBean( id );
             Method method = object.getClass().getMethod( "executeForTesting" );
             method.invoke( object );
-        }
-    }
-
-    public static void executeIntegrationTestDataScript( Class<? extends BaseSpringTest> currentClass,
-        JdbcTemplate jdbcTemplate )
-        throws SQLException
-    {
-        IntegrationTestData annotation = currentClass.getAnnotation( IntegrationTestData.class );
-
-        if ( annotation != null )
-        {
-            ScriptUtils.executeSqlScript( Objects.requireNonNull( jdbcTemplate.getDataSource() ).getConnection(),
-                new EncodedResource( new ClassPathResource( annotation.path() ), StandardCharsets.UTF_8 ) );
-
-            // Not very thread safe?!
-            BaseSpringTest.dataInit = true;
         }
     }
 }

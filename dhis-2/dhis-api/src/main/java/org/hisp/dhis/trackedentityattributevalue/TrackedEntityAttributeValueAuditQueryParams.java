@@ -25,50 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.test.integration;
+package org.hisp.dhis.trackedentityattributevalue;
 
-import org.hisp.dhis.BaseSpringTest;
-import org.hisp.dhis.config.IntegrationTestConfig;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.TestInstance;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.transaction.annotation.Transactional;
+import java.util.ArrayList;
+import java.util.List;
+
+import lombok.Data;
+import lombok.experimental.Accessors;
+
+import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
 /**
- * Base for integration tests that use a single setup for the class instead of a
- * setup for each individual test. Run with profile <code>integration</code>.
+ * Encapsulation of a web API request for tracked entity data value audit
+ * records.
  *
- * @author Jim Grace
+ * @author Lars Helge Overland
  */
-@ContextConfiguration( classes = { IntegrationTestConfig.class } )
-@IntegrationTest
-@ActiveProfiles( profiles = { "test-postgres" } )
-@TestInstance( TestInstance.Lifecycle.PER_CLASS )
-@Transactional
-public abstract class SingleSetupIntegrationTestBase
-    extends BaseSpringTest
+@Data
+@Accessors( chain = true )
+public class TrackedEntityAttributeValueAuditQueryParams
 {
-    @BeforeAll
-    public final void before()
-        throws Exception
-    {
-        bindSession();
+    private List<TrackedEntityAttribute> trackedEntityAttributes = new ArrayList<>();
 
-        integrationTestBefore();
-    }
+    private List<TrackedEntityInstance> trackedEntityInstances = new ArrayList<>();
 
-    @AfterAll
-    public final void after()
-        throws Exception
-    {
-        nonTransactionalAfter();
-    }
+    private List<AuditType> auditTypes = new ArrayList<>();
 
-    @Override
-    protected final boolean emptyDatabaseAfterTest()
+    private Pager pager;
+
+    public boolean hasPager()
     {
-        return true;
+        return pager != null;
     }
 }
