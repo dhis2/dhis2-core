@@ -41,6 +41,20 @@ public class EnrollmentControllerTest extends DhisControllerConvenienceTest
 {
 
     @Test
+    void testGetEnrollmentJsonWrongTei_ValidationError()
+    {
+        assertWebMessage( "Conflict", 409, "ERROR", "Tracked entity instance does not exist: nonexisting",
+            GET( "/enrollments?trackedEntityInstance=nonexisting", "{}" ).content( HttpStatus.CONFLICT ) );
+    }
+
+    @Test
+    void testGetEnrollmentJsonWrongTet_ValidationError()
+    {
+        assertWebMessage( "Conflict", 409, "ERROR", "Tracked entity does not exist: nonexisting",
+            GET( "/enrollments?trackedEntityType=nonexisting", "{}" ).content( HttpStatus.CONFLICT ) );
+    }
+
+    @Test
     public void testPostEnrollmentJson_ValidationError()
     {
         assertWebMessage( "Conflict", 409, "ERROR", "TrackedEntityInstance does not exist.",
