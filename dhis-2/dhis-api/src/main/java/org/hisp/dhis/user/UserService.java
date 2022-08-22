@@ -375,7 +375,7 @@ public interface UserService
      */
     List<UserAccountExpiryInfo> getExpiringUserAccounts( int inDays );
 
-    void set2FA( User user, Boolean twoFA );
+    void set2FA( User user, boolean twoFA );
 
     /**
      * Expire a user's active sessions retrieved from the Spring security's
@@ -445,7 +445,22 @@ public interface UserService
     CurrentUserDetailsImpl createUserDetails( User user, String password, boolean accountNonLocked,
         boolean credentialsNonExpired );
 
-    void disableTwoFA( User currentUser, String userId, Consumer<ErrorReport> errors );
+    /**
+     * "If the current user is not the user being modified, and the current user
+     * has the authority to modify the user, then disable two-factor
+     * authentication for the user."
+     * <p>
+     * The first thing we do is get the user object from the database. If the
+     * user doesn't exist, we throw an exception
+     *
+     * @param currentUser The user who is making the request.
+     * @param userUid The user UID of the user to disable 2FA for.
+     * @param errors A Consumer<ErrorReport> object that will be called if there
+     *        is an error.
+     */
+    void disableTwoFA( User currentUser, String userUid, Consumer<ErrorReport> errors );
 
     boolean canCurrentUserCanModify( User currentUser, User userToModify, Consumer<ErrorReport> errors );
+
+    void generateTwoFactorSecret( User user );
 }

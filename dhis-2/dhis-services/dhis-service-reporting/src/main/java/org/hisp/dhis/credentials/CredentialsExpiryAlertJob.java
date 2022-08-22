@@ -58,7 +58,6 @@ import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.scheduling.parameters.CredentialsExpiryAlertJobParameters;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.UserService;
@@ -112,10 +111,7 @@ public class CredentialsExpiryAlertJob implements Job
             return;
         }
         progress.startingProcess( "User password expiry alerts" );
-        CredentialsExpiryAlertJobParameters parameters = (CredentialsExpiryAlertJobParameters) jobConfiguration
-            .getJobParameters();
-        Integer reminderDaysBefore = parameters == null ? null : parameters.getReminderDaysBefore();
-        int daysUntilDisable = reminderDaysBefore == null ? 28 : reminderDaysBefore;
+        int daysUntilDisable = systemSettingManager.getIntSetting( SettingKey.CREDENTIALS_EXPIRES_REMINDER_IN_DAYS );
         int daysBeforePasswordChangeRequired = systemSettingManager
             .getIntSetting( SettingKey.CREDENTIALS_EXPIRES ) * 30;
         if ( daysBeforePasswordChangeRequired <= 0 )

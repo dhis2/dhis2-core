@@ -39,6 +39,7 @@ public interface OrgUnitAnalyticsManager
      * value for the given parameters.
      *
      * @param params the {@link OrgUnitQueryParams}.
+     * @return a map of metadata key and org unit count.
      */
     Map<String, Integer> getOrgUnitData( OrgUnitQueryParams params );
 }

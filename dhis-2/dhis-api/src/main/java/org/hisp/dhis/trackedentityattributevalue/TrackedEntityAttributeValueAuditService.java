@@ -29,8 +29,6 @@ package org.hisp.dhis.trackedentityattributevalue;
 
 import java.util.List;
 
-import org.hisp.dhis.common.AuditType;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
 /**
@@ -41,15 +39,9 @@ public interface TrackedEntityAttributeValueAuditService
     void addTrackedEntityAttributeValueAudit( TrackedEntityAttributeValueAudit trackedEntityAttributeValueAudit );
 
     List<TrackedEntityAttributeValueAudit> getTrackedEntityAttributeValueAudits(
-        List<TrackedEntityAttribute> trackedEntityAttributes,
-        List<TrackedEntityInstance> trackedEntityInstances, AuditType auditType );
+        TrackedEntityAttributeValueAuditQueryParams params );
 
-    List<TrackedEntityAttributeValueAudit> getTrackedEntityAttributeValueAudits(
-        List<TrackedEntityAttribute> trackedEntityAttributes,
-        List<TrackedEntityInstance> trackedEntityInstances, AuditType auditType, int first, int max );
-
-    int countTrackedEntityAttributeValueAudits( List<TrackedEntityAttribute> trackedEntityAttributes,
-        List<TrackedEntityInstance> trackedEntityInstances, AuditType auditType );
+    int countTrackedEntityAttributeValueAudits( TrackedEntityAttributeValueAuditQueryParams params );
 
     void deleteTrackedEntityAttributeValueAudits( TrackedEntityInstance trackedEntityInstance );
 }

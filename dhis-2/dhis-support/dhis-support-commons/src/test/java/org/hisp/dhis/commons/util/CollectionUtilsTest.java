@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.commons.util;
 
+import static org.hisp.dhis.commons.collection.CollectionUtils.emptyIfNull;
 import static org.hisp.dhis.commons.collection.CollectionUtils.firstMatch;
 import static org.hisp.dhis.commons.collection.CollectionUtils.flatMapToSet;
 import static org.hisp.dhis.commons.collection.CollectionUtils.mapToList;
@@ -35,6 +36,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -129,5 +132,25 @@ class CollectionUtilsTest
 
         assertEquals( 3, mapToList( collection, Integer::parseInt ).size() );
         assertEquals( 1, mapToList( collection, Integer::parseInt ).get( 0 ) );
+    }
+
+    @Test
+    void testEmptyIfNullSet()
+    {
+        Set<String> setA = Set.of( "One", "Two", "Three" );
+        Set<String> setB = null;
+
+        assertEquals( setA, emptyIfNull( setA ) );
+        assertEquals( new HashSet<>(), emptyIfNull( setB ) );
+    }
+
+    @Test
+    void testEmptyIfNullList()
+    {
+        List<String> listA = List.of( "One", "Two", "Three" );
+        List<String> listB = null;
+
+        assertEquals( listA, emptyIfNull( listA ) );
+        assertEquals( new ArrayList<>(), emptyIfNull( listB ) );
     }
 }

@@ -155,6 +155,13 @@ public abstract class DhisControllerConvenienceTest extends DhisMockMvcControlle
         return currentUser;
     }
 
+    protected final User switchToNewUser( User user )
+    {
+        currentUser = user;
+        switchContextToUser( currentUser );
+        return currentUser;
+    }
+
     protected void switchContextToUser( User user )
     {
         injectSecurityContext( user );

@@ -138,11 +138,12 @@ public class FileResourceController
 
     @PostMapping
     public WebMessage saveFileResource( @RequestParam MultipartFile file,
-        @RequestParam( defaultValue = "DATA_VALUE" ) FileResourceDomain domain )
+        @RequestParam( defaultValue = "DATA_VALUE" ) FileResourceDomain domain,
+        @RequestParam( required = false ) String uid )
         throws WebMessageException,
         IOException
     {
-        FileResource fileResource = fileResourceUtils.saveFileResource( file, domain );
+        FileResource fileResource = fileResourceUtils.saveFileResource( uid, file, domain );
 
         WebMessage webMessage = new WebMessage( Status.OK, HttpStatus.ACCEPTED );
         webMessage.setResponse( new FileResourceWebMessageResponse( fileResource ) );
@@ -162,15 +163,15 @@ public class FileResourceController
          * doesn't make sense So we will return false if the fileResource have
          * either of these domains.
          */
-        if ( fileResource.getDomain().equals( FileResourceDomain.DATA_VALUE )
-            || fileResource.getDomain().equals( FileResourceDomain.PUSH_ANALYSIS ) )
+        FileResourceDomain domain = fileResource.getDomain();
+        if ( domain == FileResourceDomain.DATA_VALUE || domain == FileResourceDomain.PUSH_ANALYSIS )
         {
             return false;
         }
 
-        if ( fileResource.getDomain().equals( FileResourceDomain.USER_AVATAR ) )
+        if ( domain == FileResourceDomain.USER_AVATAR )
         {
-            return currentUser.isAuthorized( "F_USER_VIEW" ) || currentUser.getAvatar().equals( fileResource );
+            return currentUser.isAuthorized( "F_USER_VIEW" ) || fileResource.equals( currentUser.getAvatar() );
         }
 
         return true;

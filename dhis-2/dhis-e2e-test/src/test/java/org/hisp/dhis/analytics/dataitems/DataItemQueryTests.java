@@ -155,7 +155,7 @@ public class DataItemQueryTests
         response.validate().body( "errorCode", is( "E2016" ) );
         response.validate().body( "message", containsString(
             "Unable to parse element `" + anyInvalidDimensionType
-                + "` on filter `dimensionItemType`. The values available are:" ) );
+                + "` on filter `dimensionItemType`, the available values are:" ) );
     }
 
     @Test

@@ -38,8 +38,8 @@ import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.utils.TestUtils;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -47,12 +47,14 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.orm.hibernate5.SessionFactoryUtils;
 import org.springframework.orm.hibernate5.SessionHolder;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
+@ExtendWith( SpringExtension.class )
 @Slf4j
 public abstract class BaseSpringTest extends DhisConvenienceTest implements ApplicationContextAware
 {
@@ -68,13 +70,6 @@ public abstract class BaseSpringTest extends DhisConvenienceTest implements Appl
     protected TransactionTemplate transactionTemplate;
 
     protected static JdbcTemplate jdbcTemplate;
-
-    /*
-     * Flag that determines if the IntegrationTestData annotation has been
-     * running the database init script. We only want to run the init script
-     * once per unit test
-     */
-    public static boolean dataInit = false;
 
     protected abstract boolean emptyDatabaseAfterTest();
 
@@ -103,23 +98,6 @@ public abstract class BaseSpringTest extends DhisConvenienceTest implements Appl
         // We usually don't want all the create db/tables statements in the
         // query logger
         Configurator.setLevel( ORG_HISP_DHIS_DATASOURCE_QUERY, Level.WARN );
-    }
-
-    @AfterAll
-    static void afterClass()
-    {
-        if ( // only truncate tables if IntegrationTestData is used
-        dataInit )
-        {
-            // truncate all tables
-            String truncateAll = "DO $$ DECLARE\n" + "  r RECORD;\n" + "BEGIN\n"
-                + "  FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = current_schema()) LOOP\n"
-                + "    EXECUTE 'TRUNCATE TABLE ' || quote_ident(r.tablename) || ' CASCADE';\n" + "  END LOOP;\n"
-                + "END $$;";
-            jdbcTemplate.execute( truncateAll );
-        }
-        // reset data init state
-        dataInit = false;
     }
 
     /**
@@ -168,10 +146,6 @@ public abstract class BaseSpringTest extends DhisConvenienceTest implements Appl
         throws Exception
     {
         TestUtils.executeStartupRoutines( applicationContext );
-        if ( !dataInit )
-        {
-            TestUtils.executeIntegrationTestDataScript( this.getClass(), jdbcTemplate );
-        }
         boolean enableQueryLogging = dhisConfigurationProvider.isEnabled( ConfigurationKey.ENABLE_QUERY_LOGGING );
         // Enable to query logger to log only what's happening inside the test
         // method
