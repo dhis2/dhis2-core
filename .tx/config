@@ -1,31 +1,26 @@
 [main]
-host = https://www.transifex.com
+host     = https://www.transifex.com
 lang_map = fa_AF: prs, uz@Cyrl: uz, uz@Latn: uz_Latn
 
-[app-server-side-resources.dataentry-i18n-module-properties]
-file_filter = dhis-2/dhis-web/dhis-web-dataentry/src/main/resources/org/hisp/dhis/de/i18n_module_<lang>.properties
+[o:hisp-uio:p:app-server-side-resources:r:dataentry-i18n-module-properties]
+file_filter  = dhis-2/dhis-web/dhis-web-dataentry/src/main/resources/org/hisp/dhis/de/i18n_module_<lang>.properties
+source_file  = dhis-2/dhis-web/dhis-web-dataentry/src/main/resources/org/hisp/dhis/de/i18n_module.properties
+source_lang  = en
+type         = PROPERTIES
 minimum_perc = 0
-source_file = dhis-2/dhis-web/dhis-web-dataentry/src/main/resources/org/hisp/dhis/de/i18n_module.properties
-source_lang = en
-type = PROPERTIES
 
-[app-server-side-resources.i18n-global-properties]
-file_filter = dhis-2/dhis-services/dhis-service-core/src/main/resources/i18n_global_<lang>.properties
+[o:hisp-uio:p:app-server-side-resources:r:i18n-global-properties]
+file_filter  = dhis-2/dhis-services/dhis-service-core/src/main/resources/i18n_global_<lang>.properties
+source_file  = dhis-2/dhis-services/dhis-service-core/src/main/resources/i18n_global.properties
+source_lang  = en
+type         = PROPERTIES
 minimum_perc = 0
-source_file = dhis-2/dhis-services/dhis-service-core/src/main/resources/i18n_global.properties
-source_lang = en
-type = PROPERTIES
 
-[app-server-side-resources.maintenance-mobile-i18n-module-properties]
-file_filter = dhis-2/dhis-web/dhis-web-maintenance/dhis-web-maintenance-mobile/src/main/resources/org/hisp/dhis/mobile/i18n_module_<lang>.properties
+[o:hisp-uio:p:app-server-side-resources:r:maintenance-mobile-i18n-module-properties]
+file_filter  = dhis-2/dhis-web/dhis-web-maintenance/dhis-web-maintenance-mobile/src/main/resources/org/hisp/dhis/mobile/i18n_module_<lang>.properties
+source_file  = dhis-2/dhis-web/dhis-web-maintenance/dhis-web-maintenance-mobile/src/main/resources/org/hisp/dhis/mobile/i18n_module.properties
+source_lang  = en
+type         = PROPERTIES
 minimum_perc = 0
-source_file = dhis-2/dhis-web/dhis-web-maintenance/dhis-web-maintenance-mobile/src/main/resources/org/hisp/dhis/mobile/i18n_module.properties
-source_lang = en
-type = PROPERTIES
 
-[app-server-side-resources.reporting-i18n-module-properties]
-file_filter = dhis-2/dhis-web/dhis-web-reporting/src/main/resources/org/hisp/dhis/reporting/i18n_module_<lang>.properties
-minimum_perc = 0
-source_file = dhis-2/dhis-web/dhis-web-reporting/src/main/resources/org/hisp/dhis/reporting/i18n_module.properties
-source_lang = en
-type = PROPERTIES
+
