@@ -81,7 +81,7 @@ import org.springframework.core.io.ClassPathResource;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @ExtendWith( MockitoExtension.class )
-class DataValueSetServiceUnitTest extends DhisConvenienceTest
+class DataValueSetServiceTest extends DhisConvenienceTest
 {
 
     @Mock
