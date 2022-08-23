@@ -423,34 +423,6 @@ public abstract class DhisConvenienceTest
     }
 
     // -------------------------------------------------------------------------
-    // Dependency injection methods
-    // -------------------------------------------------------------------------
-
-    protected final <T, D> void setDependency( Class<T> role, BiConsumer<T, D> setter, D dependency,
-        Object... targetServices )
-    {
-        for ( Object targetService : targetServices )
-        {
-            setDependency( role, setter, dependency, targetService );
-        }
-    }
-
-    @SuppressWarnings( "unchecked" )
-    private final <T, D> void setDependency( Class<T> role, BiConsumer<T, D> setter, D dependency,
-        Object targetService )
-    {
-        if ( role.isInstance( targetService ) )
-        {
-            setter.accept( (T) targetService, dependency );
-        }
-        else
-        {
-            throw new IllegalArgumentException( "Failed to set dependency " + role + " on service "
-                + targetService.getClass().getSimpleName() );
-        }
-    }
-
-    // -------------------------------------------------------------------------
     // Create object methods
     // -------------------------------------------------------------------------
 

@@ -25,24 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.user;
+package org.hisp.dhis.trackedentityattributevalue;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import lombok.Data;
+import lombok.experimental.Accessors;
+
+import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
 /**
- * OBS! This should not become a part of the dhis-api module!
- * <p>
- * Added to managed bean implementation classes (not their interface) which are
- * provided with a {@link CurrentUserService} during testing.
+ * Encapsulation of a web API request for tracked entity data value audit
+ * records.
  *
- * @author Jan Bernitt
+ * @author Lars Helge Overland
  */
-public interface CurrentUserServiceTarget
+@Data
+@Accessors( chain = true )
+public class TrackedEntityAttributeValueAuditQueryParams
 {
+    private List<TrackedEntityAttribute> trackedEntityAttributes = new ArrayList<>();
 
-    /**
-     * This is only a workaround until a better solution is found.
-     *
-     * @param currentUserService dynamically update {@link CurrentUserService}
-     *        during testing
-     */
-    void setCurrentUserService( CurrentUserService currentUserService );
+    private List<TrackedEntityInstance> trackedEntityInstances = new ArrayList<>();
+
+    private List<AuditType> auditTypes = new ArrayList<>();
+
+    private Pager pager;
+
+    public boolean hasPager()
+    {
+        return pager != null;
+    }
 }

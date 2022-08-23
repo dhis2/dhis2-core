@@ -85,7 +85,7 @@ public class DataValueCheck implements Checker
 
         for ( DataValue dataValue : dataValues )
         {
-            if ( !checkHasValidDataElement( importSummary, ctx, dataValue )
+            if ( !checkHasValidDataElement( importSummary, ctx, dataValue, event )
                 || !checkSerializeToJson( importSummary, ctx, dataValue ) )
             {
                 importSummary.setStatus( ImportStatus.ERROR );
@@ -186,7 +186,8 @@ public class DataValueCheck implements Checker
      * existing Data Element
      *
      */
-    private boolean checkHasValidDataElement( ImportConflicts importConflicts, WorkContext ctx, DataValue dataValue )
+    private boolean checkHasValidDataElement( ImportConflicts importConflicts, WorkContext ctx, DataValue dataValue,
+        ImmutableEvent event )
     {
         DataElement dataElement = ctx.getDataElementMap().get( dataValue.getDataElement() );
 
@@ -205,11 +206,11 @@ public class DataValueCheck implements Checker
             }
             else if ( ValueType.FILE_RESOURCE == dataElement.getValueType() )
             {
-                status = validateFileResourceDataValue( dataValue, ctx );
+                status = validateFileResourceDataValue( dataValue, ctx, event );
             }
             else if ( ValueType.IMAGE == dataElement.getValueType() )
             {
-                status = validateImageDataValue( dataValue, ctx );
+                status = validateImageDataValue( dataValue, ctx, event );
             }
             else if ( ValueType.ORGANISATION_UNIT == dataElement.getValueType() )
             {
@@ -245,7 +246,7 @@ public class DataValueCheck implements Checker
             : null;
     }
 
-    private String validateFileResourceDataValue( DataValue dataValue, WorkContext ctx )
+    private String validateFileResourceDataValue( DataValue dataValue, WorkContext ctx, ImmutableEvent event )
     {
         String value = dataValue.getValue();
 
@@ -254,12 +255,17 @@ public class DataValueCheck implements Checker
             return null;
         }
 
-        return ctx.getServiceDelegator().getFileResourceService().getFileResource( value ) == null
-            ? "Value is not a valid file resource: " + value
-            : null;
+        FileResource fileResource = ctx.getServiceDelegator().getFileResourceService().getFileResource( value );
+
+        if ( fileResource == null )
+        {
+            return "Value is not a valid file resource: " + value;
+        }
+
+        return validateFileResourceOwnership( fileResource, event, ctx );
     }
 
-    private String validateImageDataValue( DataValue dataValue, WorkContext ctx )
+    private String validateImageDataValue( DataValue dataValue, WorkContext ctx, ImmutableEvent event )
     {
         String value = dataValue.getValue();
 
@@ -275,8 +281,25 @@ public class DataValueCheck implements Checker
             return "Value is not a valid image file resource: " + value;
         }
 
-        return null;
+        return validateFileResourceOwnership( fileResource, event, ctx );
 
+    }
+
+    private String validateFileResourceOwnership( FileResource fileResource, ImmutableEvent event, WorkContext ctx )
+    {
+        if ( fileResource.getFileResourceOwner() != null
+            && !fileResource.getFileResourceOwner().equals( event.getEvent() ) )
+        {
+            return "File resource is assigned to another item";
+        }
+
+        if ( fileResource.getFileResourceOwner() == null && ctx.getImportOptions().getImportStrategy().isCreate()
+            && fileResource.isAssigned() )
+        {
+            return "File resource is assigned to another item";
+        }
+
+        return null;
     }
 
     private String validateOrgUnitDataValue( DataValue dataValue, WorkContext ctx )
