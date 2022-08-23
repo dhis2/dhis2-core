@@ -92,7 +92,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Component( "org.hisp.dhis.analytics.TeiEventsAnalyticsTableManager" )
 public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
 {
-
     private final TrackedEntityTypeService trackedEntityTypeService;
 
     public JdbcTeiEventsAnalyticsTableManager( IdentifiableObjectManager idObjectManager,
@@ -121,9 +120,9 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
         new AnalyticsTableColumn( quote( "lastsynchronized" ), TIMESTAMP, "tei.lastsynchronized" ),
         new AnalyticsTableColumn( quote( "geometry" ), GEOMETRY, "tei.geometry" ).withIndexType( GIST ),
         new AnalyticsTableColumn( quote( "longitude" ), DOUBLE,
-            "CASE WHEN 'POINT' = GeometryType(tei.geometry) THEN ST_X(tei.geometry) ELSE null END" ),
+            "case when 'POINT' = GeometryType(tei.geometry) then ST_X(tei.geometry) else null end" ),
         new AnalyticsTableColumn( quote( "latitude" ), DOUBLE,
-            "CASE WHEN 'POINT' = GeometryType(tei.geometry) THEN ST_Y(tei.geometry) ELSE null END" ),
+            "case when 'POINT' = GeometryType(tei.geometry) then ST_Y(tei.geometry) else null end" ),
         new AnalyticsTableColumn( quote( "featuretype" ), VARCHAR_255, NULL, "tei.featuretype" ),
         new AnalyticsTableColumn( quote( "coordinates" ), TEXT, NULL, "tei.coordinates" ),
         new AnalyticsTableColumn( quote( "storedby" ), VARCHAR_255, "tei.storedby" ),
@@ -136,18 +135,18 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
         new AnalyticsTableColumn( quote( "enrollmentstatus" ), VARCHAR_50, "pi.status" ),
         new AnalyticsTableColumn( quote( "pigeometry" ), GEOMETRY, "pi.geometry" ).withIndexType( GIST ),
         new AnalyticsTableColumn( quote( "pilongitude" ), DOUBLE,
-            "CASE WHEN 'POINT' = GeometryType(pi.geometry) THEN ST_X(pi.geometry) ELSE null END" ),
+            "case when 'POINT' = GeometryType(pi.geometry) then ST_X(pi.geometry) else null end" ),
         new AnalyticsTableColumn( quote( "pilatitude" ), DOUBLE,
-            "CASE WHEN 'POINT' = GeometryType(pi.geometry) THEN ST_Y(pi.geometry) ELSE null END" ),
+            "case when 'POINT' = GeometryType(pi.geometry) then ST_Y(pi.geometry) else null end" ),
         new AnalyticsTableColumn( quote( "programstageinstanceuid" ), CHARACTER_11, NULL, "psi.uid" ),
         new AnalyticsTableColumn( quote( "executiondate" ), TIMESTAMP, "psi.executiondate" ),
         new AnalyticsTableColumn( quote( "duedate" ), TIMESTAMP, "psi.duedate" ),
         new AnalyticsTableColumn( quote( "status" ), VARCHAR_50, "psi.status" ),
         new AnalyticsTableColumn( quote( "eventdatavalues" ), JSONB, "psi.eventdatavalues" ),
         new AnalyticsTableColumn( quote( "psilongitude" ), DOUBLE,
-            "CASE WHEN 'POINT' = GeometryType(psi.geometry) THEN ST_X(psi.geometry) ELSE null END" ),
+            "case when 'POINT' = GeometryType(psi.geometry) then ST_X(psi.geometry) else null end" ),
         new AnalyticsTableColumn( quote( "psilatitude" ), DOUBLE,
-            "CASE WHEN 'POINT' = GeometryType(psi.geometry) THEN ST_Y(psi.geometry) ELSE null END" ),
+            "case when 'POINT' = GeometryType(psi.geometry) then ST_Y(psi.geometry) else null end" ),
         new AnalyticsTableColumn( quote( "uidlevel1" ), CHARACTER_11, NULL, "ous.uidlevel1" ),
         new AnalyticsTableColumn( quote( "uidlevel2" ), CHARACTER_11, NULL, "ous.uidlevel2" ),
         new AnalyticsTableColumn( quote( "uidlevel3" ), CHARACTER_11, NULL, "ous.uidlevel3" ),
@@ -329,16 +328,6 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
     protected List<String> getPartitionChecks( AnalyticsTablePartition partition )
     {
         return emptyList();
-    }
-
-    /**
-     * Returns the partition column name for the analytics table type, or null
-     * if the table type is not partitioned.
-     */
-    @Override
-    protected String getPartitionColumn()
-    {
-        return "yearly";
     }
 
     /**

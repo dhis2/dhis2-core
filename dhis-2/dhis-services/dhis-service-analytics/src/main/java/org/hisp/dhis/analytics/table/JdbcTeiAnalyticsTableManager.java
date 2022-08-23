@@ -92,7 +92,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Component( "org.hisp.dhis.analytics.TeiAnalyticsTableManager" )
 public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager
 {
-
     private final TrackedEntityTypeService trackedEntityTypeService;
 
     private final TrackedEntityAttributeService trackedEntityAttributeService;
@@ -129,9 +128,9 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager
         new AnalyticsTableColumn( quote( "lastsynchronized" ), TIMESTAMP, "tei.lastsynchronized" ),
         new AnalyticsTableColumn( quote( "geometry" ), GEOMETRY, "tei.geometry" ).withIndexType( GIST ),
         new AnalyticsTableColumn( quote( "longitude" ), DOUBLE,
-            "CASE WHEN 'POINT' = GeometryType(tei.geometry) THEN ST_X(tei.geometry) ELSE null END" ),
+            "case when 'POINT' = GeometryType(tei.geometry) then ST_X(tei.geometry) else null end" ),
         new AnalyticsTableColumn( quote( "latitude" ), DOUBLE,
-            "CASE WHEN 'POINT' = GeometryType(tei.geometry) THEN ST_Y(tei.geometry) ELSE null END" ),
+            "case when 'POINT' = GeometryType(tei.geometry) then ST_Y(tei.geometry) else null end" ),
         new AnalyticsTableColumn( quote( "featuretype" ), VARCHAR_255, NULL, "tei.featuretype" ),
         new AnalyticsTableColumn( quote( "coordinates" ), TEXT, NULL, "tei.coordinates" ),
         new AnalyticsTableColumn( quote( "storedby" ), VARCHAR_255, "tei.storedby" ),
@@ -307,16 +306,6 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager
     protected List<String> getPartitionChecks( AnalyticsTablePartition partition )
     {
         return emptyList();
-    }
-
-    /**
-     * Returns the partition column name for the analytics table type, or null
-     * if the table type is not partitioned.
-     */
-    @Override
-    protected String getPartitionColumn()
-    {
-        return null;
     }
 
     /**
