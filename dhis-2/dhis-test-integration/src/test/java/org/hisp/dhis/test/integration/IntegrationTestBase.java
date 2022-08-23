@@ -57,10 +57,4 @@ public abstract class IntegrationTestBase extends BaseSpringTest
     {
         nonTransactionalAfter();
     }
-
-    @Override
-    protected final boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
 }

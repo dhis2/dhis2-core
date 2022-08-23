@@ -53,7 +53,7 @@ public class JdbcSqlFileExecutor
      * regex to detect delimiter. ignores spaces, allows delimiter in comment,
      * allows an equals-sign
      */
-    public static final Pattern delimP = Pattern.compile( "^\\s*(--)?\\s*delimiter\\s*=?\\s*([^\\s]+)+\\s*.*$",
+    public static final Pattern delimP = Pattern.compile( "^\\s*+(--)?\\s*+delimiter\\s*+=?\\s*+([^\\s]+)+\\s*+.*+$",
         Pattern.CASE_INSENSITIVE );
 
     private final Connection connection;

@@ -34,12 +34,14 @@ import java.io.File;
 import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.hisp.dhis.EndpointTracker;
 import org.hisp.dhis.TestRunStorage;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.ImportSummary;
 import org.hisp.dhis.dto.ObjectReport;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
+import org.hisp.dhis.helpers.config.TestConfiguration;
 
 import com.google.gson.JsonArray;
 
@@ -111,6 +113,7 @@ public class RestApiActions
     public ApiResponse post( String resource, String contentType, Object object, QueryParamsBuilder queryParams )
     {
         String path = queryParams == null ? "" : queryParams.build();
+        addCoverage( "POST", resource + path );
 
         ApiResponse response = new ApiResponse( this.given()
             .body( object )
@@ -171,6 +174,8 @@ public class RestApiActions
     {
         String path = queryParamsBuilder == null ? "" : queryParamsBuilder.build();
 
+        addCoverage( "GET", resourceId + path );
+
         Response response = this.given().contentType( ContentType.TEXT ).when().get( resourceId + path );
 
         return new ApiResponse( response );
@@ -194,6 +199,8 @@ public class RestApiActions
         QueryParamsBuilder queryParamsBuilder )
     {
         String path = queryParamsBuilder == null ? "" : queryParamsBuilder.build();
+
+        addCoverage( "GET", resourceId + path );
 
         Response response = this.given()
             .contentType( contentType )
@@ -230,6 +237,8 @@ public class RestApiActions
             .when()
             .delete( path );
 
+        addCoverage( "DELETE", path );
+
         if ( response.statusCode() == 200 )
         {
             TestRunStorage.removeEntity( endpoint, path );
@@ -250,6 +259,7 @@ public class RestApiActions
             .when()
             .put( resourceId );
 
+        addCoverage( "PUT", resourceId );
         return new ApiResponse( response );
     }
 
@@ -268,6 +278,7 @@ public class RestApiActions
             .contentType( "application/json-patch+json" )
             .patch( resourceId + paramsBuilder.build() );
 
+        addCoverage( "PATCH", resourceId + paramsBuilder.build() );
         return new ApiResponse( response );
     }
 
@@ -307,6 +318,8 @@ public class RestApiActions
             .body( file )
             .when()
             .post( url ) );
+
+        addCoverage( "POST", url );
 
         saveCreatedObjects( response );
 
@@ -356,6 +369,16 @@ public class RestApiActions
         {
             this.addCreatedEntity( endpoint, response.extractUid() );
         }
+    }
+
+    private void addCoverage( String method, String ep )
+    {
+        if ( Boolean.FALSE.equals( TestConfiguration.get().shouldTrackEndpoints() ) )
+        {
+            return;
+        }
+
+        EndpointTracker.add( method, this.endpoint + "/" + ep );
     }
 
     protected void addCreatedEntity( String ep, String id )
