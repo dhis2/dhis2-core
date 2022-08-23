@@ -130,13 +130,13 @@ public class RedisCacheInvalidationConfiguration
         {
             builder = RedisURI.builder().withHost( host ).withPort( port )
                 .withPassword( ((String) passwordProperty).toCharArray() );
-            useSsl( sslEnabledProperty, builder );
         }
         else
         {
             builder = RedisURI.builder().withHost( host ).withPort( port );
-            useSsl( sslEnabledProperty, builder );
         }
+
+        useSsl( sslEnabledProperty, builder );
 
         return RedisClient.create( clientResources, builder.build() );
     }
