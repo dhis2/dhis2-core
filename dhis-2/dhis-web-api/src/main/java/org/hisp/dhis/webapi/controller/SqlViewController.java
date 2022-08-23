@@ -32,12 +32,14 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridResponse;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.node.NodeService;
@@ -81,7 +83,7 @@ public class SqlViewController
     // -------------------------------------------------------------------------
 
     @GetMapping( value = "/{uid}/data", produces = ContextUtils.CONTENT_TYPE_JSON )
-    public @ResponseBody Grid getViewJson( @PathVariable( "uid" ) String uid,
+    public @ResponseBody GridResponse getViewJson( @PathVariable( "uid" ) String uid,
         SqlViewQuery query, HttpServletResponse response )
         throws WebMessageException
     {
@@ -89,20 +91,20 @@ public class SqlViewController
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, sqlView.getCacheStrategy() );
 
-        return getViewGrid( sqlView, query );
+        return buildResponse( sqlView, query );
     }
 
     @GetMapping( "/{uid}/data.xml" )
     public void getViewXml( @PathVariable( "uid" ) String uid,
         SqlViewQuery query, HttpServletResponse response )
-        throws Exception
+        throws WebMessageException,
+        IOException
     {
         SqlView sqlView = validateView( uid );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_XML, sqlView.getCacheStrategy() );
 
-        Grid grid = getViewGrid( sqlView, query );
-        GridUtils.toXml( grid, response.getOutputStream() );
+        GridUtils.toXml( buildResponse( sqlView, query ), response.getOutputStream() );
     }
 
     @GetMapping( "/{uid}/data.csv" )
@@ -267,7 +269,7 @@ public class SqlViewController
         return sqlView;
     }
 
-    private Grid getViewGrid( SqlView sqlView, SqlViewQuery query )
+    private GridResponse buildResponse( SqlView sqlView, SqlViewQuery query )
     {
         List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
@@ -281,6 +283,6 @@ public class SqlViewController
             grid.limitGrid( (query.getPage() - 1) * query.getPageSize(),
                 Integer.min( query.getPage() * query.getPageSize(), grid.getHeight() ) );
         }
-        return grid;
+        return new GridResponse( query.isSkipPaging() ? null : query.getPager(), grid );
     }
 }
