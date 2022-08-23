@@ -29,7 +29,7 @@ package org.hisp.dhis.system.util;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.regex.Pattern;
 
 import org.apache.commons.math3.util.Precision;
@@ -478,7 +478,7 @@ public class MathUtils
      */
     public static int getRandom()
     {
-        return new Random().nextInt( 999 );
+        return ThreadLocalRandom.current().nextInt( 999 );
     }
 
     /**
