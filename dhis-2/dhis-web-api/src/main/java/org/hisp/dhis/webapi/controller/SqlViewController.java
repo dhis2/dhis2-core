@@ -79,7 +79,7 @@ public class SqlViewController
     // -------------------------------------------------------------------------
 
     @GetMapping( value = "/{uid}/data", produces = ContextUtils.CONTENT_TYPE_JSON )
-    public @ResponseBody Object getViewJson( @PathVariable( "uid" ) String uid,
+    public @ResponseBody GridResponse getViewJson( @PathVariable( "uid" ) String uid,
         SqlViewQuery query, HttpServletResponse response )
         throws WebMessageException
     {
