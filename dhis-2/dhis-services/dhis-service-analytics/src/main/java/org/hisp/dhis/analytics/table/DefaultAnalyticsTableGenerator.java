@@ -75,11 +75,11 @@ public class DefaultAnalyticsTableGenerator
     @Override
     public void generateTables( AnalyticsTableUpdateParams params0, JobProgress progress )
     {
-        final Clock clock = new Clock( log ).startClock();
-        final Date lastSuccessfulUpdate = systemSettingManager
+        Clock clock = new Clock( log ).startClock();
+        Date lastSuccessfulUpdate = systemSettingManager
             .getDateSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE );
 
-        final Set<AnalyticsTableType> availableTypes = analyticsTableServices.stream()
+        Set<AnalyticsTableType> availableTypes = analyticsTableServices.stream()
             .map( AnalyticsTableService::getAnalyticsTableType )
             .collect( Collectors.toSet() );
 
@@ -100,7 +100,7 @@ public class DefaultAnalyticsTableGenerator
             generateResourceTablesInternal( progress );
         }
 
-        final Set<AnalyticsTableType> skipTypes = emptyIfNull( params.getSkipTableTypes() );
+        Set<AnalyticsTableType> skipTypes = emptyIfNull( params.getSkipTableTypes() );
 
         for ( AnalyticsTableService service : analyticsTableServices )
         {
@@ -141,7 +141,7 @@ public class DefaultAnalyticsTableGenerator
     @Override
     public void generateResourceTables( JobProgress progress )
     {
-        final Clock clock = new Clock().startClock();
+        Clock clock = new Clock().startClock();
 
         progress.startingProcess( "Generating resource tables" );
 

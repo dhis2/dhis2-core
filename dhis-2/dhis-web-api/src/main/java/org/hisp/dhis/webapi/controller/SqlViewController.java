@@ -40,7 +40,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.schema.descriptors.SqlViewSchemaDescriptor;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewQuery;
@@ -72,9 +71,6 @@ public class SqlViewController
 
     @Autowired
     private ContextUtils contextUtils;
-
-    @Autowired
-    private NodeService nodeService;
 
     // -------------------------------------------------------------------------
     // Get

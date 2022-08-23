@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.table;
 
+import static java.util.Collections.emptyList;
 import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
 import static org.hisp.dhis.analytics.ColumnDataType.DOUBLE;
 import static org.hisp.dhis.analytics.ColumnDataType.GEOMETRY;
@@ -162,19 +163,13 @@ public class JdbcEnrollmentAnalyticsTableManager
     @Override
     protected List<String> getPartitionChecks( AnalyticsTablePartition partition )
     {
-        return Lists.newArrayList();
-    }
-
-    @Override
-    protected String getPartitionColumn()
-    {
-        return null;
+        return emptyList();
     }
 
     @Override
     protected void populateTable( AnalyticsTableUpdateParams params, AnalyticsTablePartition partition )
     {
-        final Program program = partition.getMasterTable().getProgram();
+        Program program = partition.getMasterTable().getProgram();
 
         String fromClause = "from programinstance pi " +
             "inner join program pr on pi.programid=pr.programid " +

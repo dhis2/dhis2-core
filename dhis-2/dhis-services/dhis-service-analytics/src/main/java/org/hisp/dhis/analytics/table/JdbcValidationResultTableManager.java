@@ -144,15 +144,9 @@ public class JdbcValidationResultTableManager
     }
 
     @Override
-    protected String getPartitionColumn()
-    {
-        return "year";
-    }
-
-    @Override
     protected void populateTable( AnalyticsTableUpdateParams params, AnalyticsTablePartition partition )
     {
-        final String tableName = partition.getTempTableName();
+        String tableName = partition.getTempTableName();
 
         String insert = "insert into " + partition.getTempTableName() + " (";
 
@@ -192,7 +186,7 @@ public class JdbcValidationResultTableManager
             "and vrs.created < '" + getLongDateString( params.getStartTime() ) + "' " +
             "and vrs.created is not null";
 
-        final String sql = insert + select;
+        String sql = insert + select;
 
         invokeTimeAndLog( sql, String.format( "Populate %s", tableName ) );
     }

@@ -56,7 +56,7 @@ public class RedisCacheInvalidationSubscriptionService
 
     public void start()
     {
-        log.info( "RedisCacheInvalidationSubscriptionService started" );
+        log.info( "RedisCacheInvalidationSubscriptionService starting" );
 
         pubSubConnection.addListener( cacheInvalidationListener );
 

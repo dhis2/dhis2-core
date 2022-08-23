@@ -64,7 +64,6 @@ import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.SharingUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,7 +76,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 @Slf4j
 public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     extends SharingHibernateGenericStoreImpl<T>
-    implements GenericDimensionalObjectStore<T>, CurrentUserServiceTarget
+    implements GenericDimensionalObjectStore<T>
 {
     @Autowired
     protected DbmsManager dbmsManager;
@@ -91,12 +90,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         super( sessionFactory, jdbcTemplate, publisher, clazz, aclService, currentUserService, cacheable );
 
         this.cacheable = cacheable;
-    }
-
-    @Override
-    public void setCurrentUserService( CurrentUserService currentUserService )
-    {
-        this.currentUserService = currentUserService;
     }
 
     /**
