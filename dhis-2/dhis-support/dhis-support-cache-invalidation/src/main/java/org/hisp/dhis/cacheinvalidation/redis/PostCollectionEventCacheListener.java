@@ -137,25 +137,25 @@ public class PostCollectionEventCacheListener implements PostCollectionRecreateE
 
         if ( isCollection )
         {
-            Collection old = (Collection) oldCollection;
+            Collection<?> old = (Collection<?>) oldCollection;
             removed = old.size();
         }
 
         if ( isList )
         {
-            List old = (List) oldCollection;
+            List<?> old = (List<?>) oldCollection;
             removed = old.size();
         }
 
         if ( isMap )
         {
-            Map old = (Map) oldCollection;
+            Map<?, ?> old = (Map<?, ?>) oldCollection;
             removed = old.size();
         }
 
         if ( isSet )
         {
-            Set old = (Set) oldCollection;
+            Set<?> old = (Set<?>) oldCollection;
             removed = old.size();
         }
 

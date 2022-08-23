@@ -34,8 +34,8 @@ import static org.hamcrest.text.MatchesPattern.matchesPattern;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
@@ -72,7 +72,7 @@ public class TrackedEntityAttributeValueGenerationTests
                 .add( "filter", "pattern:!like:()" )
                 .add( "fields", "id,pattern" ) );
 
-        List<HashMap> attributes = response.extractList( "trackedEntityAttributes" );
+        List<Map<?, ?>> attributes = response.extractList( "trackedEntityAttributes" );
 
         List<Arguments> arguments = new ArrayList<>();
 

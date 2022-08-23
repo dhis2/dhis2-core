@@ -75,7 +75,7 @@ public class EventDataValueRowCallbackHandler implements
 
         for ( String dataElementUid : eventDataValuesJson.keySet() )
         {
-            Map jsonValues = (Map) eventDataValuesJson.get( dataElementUid );
+            Map<?, ?> jsonValues = (Map<?, ?>) eventDataValuesJson.get( dataElementUid );
             DataValue value = new DataValue( dataElementUid,
                 (String) jsonValues.get( "value" ) );
 
@@ -83,8 +83,9 @@ public class EventDataValueRowCallbackHandler implements
             value.setLastUpdated( (String) jsonValues.get( "lastUpdated" ) );
             value.setStoredBy( (String) jsonValues.get( "storedBy" ) );
             value.setProvidedElsewhere( (Boolean) jsonValues.get( "providedElsewhere" ) );
-            value.setCreatedByUserInfo( buildUserInfoSnapshot( (Map) jsonValues.get( "createdByUserInfo" ) ) );
-            value.setLastUpdatedByUserInfo( buildUserInfoSnapshot( (Map) jsonValues.get( "lastUpdatedByUserInfo" ) ) );
+            value.setCreatedByUserInfo( buildUserInfoSnapshot( (Map<?, ?>) jsonValues.get( "createdByUserInfo" ) ) );
+            value.setLastUpdatedByUserInfo(
+                buildUserInfoSnapshot( (Map<?, ?>) jsonValues.get( "lastUpdatedByUserInfo" ) ) );
 
             dataValues.add( value );
         }
@@ -92,7 +93,7 @@ public class EventDataValueRowCallbackHandler implements
         return dataValues;
     }
 
-    private UserInfoSnapshot buildUserInfoSnapshot( Map createdByUserInfo )
+    private UserInfoSnapshot buildUserInfoSnapshot( Map<?, ?> createdByUserInfo )
     {
         if ( createdByUserInfo == null )
         {

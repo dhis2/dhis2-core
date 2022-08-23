@@ -55,7 +55,7 @@ public class QueryCacheManager
 
     private final HashFunction sessionIdHasher = Hashing.sha256();
 
-    public String getQueryCacheRegionName( Class klass, Query query )
+    public String getQueryCacheRegionName( Class<?> klass, Query query )
     {
         String queryString = query.unwrap( org.hibernate.query.Query.class ).getQueryString();
         return generateRegionName( klass, queryString );
