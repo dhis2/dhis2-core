@@ -448,19 +448,20 @@ public class DataValidator
      * @throws WebMessageException if any validation fails.
      */
     public FileResource validateAndSetAssigned( String fileResourceUid, ValueType valueType,
-        ValueTypeOptions valueTypeOptions )
+        ValueTypeOptions valueTypeOptions, String fileResourceOwner )
         throws WebMessageException
     {
         Preconditions.checkNotNull( fileResourceUid );
 
-        final FileResource fileResource = fileResourceService.getFileResource( fileResourceUid );
+        FileResource fileResource = fileResourceService.getFileResource( fileResourceUid );
 
         if ( fileResource == null || fileResource.getDomain() != DATA_VALUE )
         {
             throw new WebMessageException( notFound( FileResource.class, fileResourceUid ) );
         }
 
-        if ( fileResource.isAssigned() )
+        if ( fileResource.getFileResourceOwner() != null
+            && !fileResource.getFileResourceOwner().equals( fileResourceOwner ) )
         {
             throw new IllegalQueryException( ErrorCode.E2026 );
         }
@@ -477,7 +478,11 @@ public class DataValidator
             }
         }
 
-        fileResource.setAssigned( true );
+        if ( !fileResource.isAssigned() || fileResource.getFileResourceOwner() == null )
+        {
+            fileResource.setAssigned( true );
+            fileResource.setFileResourceOwner( fileResourceOwner );
+        }
 
         return fileResource;
     }
