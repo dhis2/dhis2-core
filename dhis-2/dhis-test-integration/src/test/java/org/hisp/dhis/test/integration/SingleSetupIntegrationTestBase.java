@@ -66,18 +66,6 @@ public abstract class SingleSetupIntegrationTestBase
     public final void after()
         throws Exception
     {
-        clearSecurityContext();
-
-        tearDownTest();
-
-        try
-        {
-            dbmsManager.clearSession();
-        }
-        catch ( Exception e )
-        {
-            log.info( "Failed to clear hibernate session, reason:" + e.getMessage() );
-        }
-        unbindSession();
+        nonTransactionalAfter();
     }
 }
