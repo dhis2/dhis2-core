@@ -93,14 +93,14 @@ public class PostEventCacheListener implements PostCommitUpdateEventListener, Po
 
     private void handleMessage( CacheEventOperation operation, Object entity, Serializable id )
     {
-        Class realClass = HibernateProxyUtils.getRealClass( entity );
+        Class<?> realClass = HibernateProxyUtils.getRealClass( entity );
         String op = operation.name().toLowerCase();
         String message = serverInstanceId + ":" + op + ":" + realClass.getName() + ":" + id;
 
         publishMessage( realClass, message );
     }
 
-    private void publishMessage( Class realClass, String message )
+    private void publishMessage( Class<?> realClass, String message )
     {
         if ( !EXCLUDE_LIST.contains( realClass ) )
         {
