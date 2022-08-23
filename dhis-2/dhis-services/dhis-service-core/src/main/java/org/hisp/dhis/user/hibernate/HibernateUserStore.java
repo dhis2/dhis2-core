@@ -124,7 +124,7 @@ public class HibernateUserStore
     @Override
     public List<User> getUsers( UserQueryParams params, @Nullable List<String> orders )
     {
-        Query userQuery = getUserQuery( params, orders, false );
+        Query<?> userQuery = getUserQuery( params, orders, false );
 
         return extractUserQueryUsers( userQuery.list() );
     }
@@ -184,7 +184,7 @@ public class HibernateUserStore
         return users;
     }
 
-    private Query getUserQuery( UserQueryParams params, List<String> orders, boolean count )
+    private Query<?> getUserQuery( UserQueryParams params, List<String> orders, boolean count )
     {
         SqlHelper hlp = new SqlHelper();
 
@@ -378,7 +378,7 @@ public class HibernateUserStore
 
         log.debug( "User query HQL: '{}'", hql );
 
-        Query query = getQuery( hql );
+        Query<?> query = getQuery( hql );
 
         if ( params.getQuery() != null )
         {
@@ -511,7 +511,7 @@ public class HibernateUserStore
         return query;
     }
 
-    private void setQueryCacheRegionName( Query query )
+    private void setQueryCacheRegionName( Query<?> query )
     {
         if ( query.isCacheable() )
         {
