@@ -69,7 +69,7 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
 {
     protected AclService aclService;
 
-    protected CurrentUserService currentUserService;
+    protected final CurrentUserService currentUserService;
 
     public InternalHibernateGenericStoreImpl( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, Class<T> clazz, AclService aclService,

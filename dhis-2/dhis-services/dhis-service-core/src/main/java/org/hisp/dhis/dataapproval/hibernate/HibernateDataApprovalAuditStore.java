@@ -45,7 +45,6 @@ import org.hisp.dhis.dataapproval.DataApprovalAuditStore;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -56,13 +55,13 @@ import org.springframework.stereotype.Repository;
 @Repository( "org.hisp.dhis.dataapproval.DataApprovalAuditStore" )
 public class HibernateDataApprovalAuditStore
     extends HibernateGenericStore<DataApprovalAudit>
-    implements DataApprovalAuditStore, CurrentUserServiceTarget
+    implements DataApprovalAuditStore
 {
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private CurrentUserService currentUserService;
+    private final CurrentUserService currentUserService;
 
     public HibernateDataApprovalAuditStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService )
@@ -71,12 +70,6 @@ public class HibernateDataApprovalAuditStore
 
         checkNotNull( currentUserService );
 
-        this.currentUserService = currentUserService;
-    }
-
-    @Override
-    public void setCurrentUserService( CurrentUserService currentUserService )
-    {
         this.currentUserService = currentUserService;
     }
 
