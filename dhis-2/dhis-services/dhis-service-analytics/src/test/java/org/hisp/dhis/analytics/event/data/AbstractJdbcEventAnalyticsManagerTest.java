@@ -550,7 +550,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
         subject.addGridValue( grid, header, index, sqlRowSet, queryParams );
 
         // Then
-        grid.getColumn( 0 ).contains( doubleObject );
+        assertTrue( grid.getColumn( 0 ).contains( doubleObject ), "Should contain value " + doubleObject );
     }
 
     @Test
@@ -584,7 +584,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
         subject.addGridValue( grid, header, index, sqlRowSet, queryParams );
 
         // Then
-        grid.getColumn( 0 ).contains( EMPTY );
+        assertTrue( grid.getColumn( 0 ).contains( EMPTY ), "Should contain empty value" );
     }
 
     private QueryFilter buildEqQueryFilter( String filter )
