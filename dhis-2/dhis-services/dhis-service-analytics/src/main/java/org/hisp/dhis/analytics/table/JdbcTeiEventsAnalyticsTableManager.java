@@ -61,7 +61,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
@@ -142,7 +141,6 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
         new AnalyticsTableColumn( quote( "executiondate" ), TIMESTAMP, "psi.executiondate" ),
         new AnalyticsTableColumn( quote( "duedate" ), TIMESTAMP, "psi.duedate" ),
         new AnalyticsTableColumn( quote( "status" ), VARCHAR_50, "psi.status" ),
-        new AnalyticsTableColumn( quote( "eventdatavalues" ), JSONB, "psi.eventdatavalues" ),
         new AnalyticsTableColumn( quote( "psilongitude" ), DOUBLE,
             "case when 'POINT' = GeometryType(psi.geometry) then ST_X(psi.geometry) else null end" ),
         new AnalyticsTableColumn( quote( "psilatitude" ), DOUBLE,
@@ -170,7 +168,8 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
         new AnalyticsTableColumn( quote( "lastupdatedbylastname" ), VARCHAR_255,
             "tei.lastupdatedbyuserinfo ->> 'surname' as lastupdatedbylastname" ),
         new AnalyticsTableColumn( quote( "lastupdatedbydisplayname" ), VARCHAR_255,
-            getDisplayName( "lastupdatedbyuserinfo", "tei", "lastupdatedbydisplayname" ) ) );
+            getDisplayName( "lastupdatedbyuserinfo", "tei", "lastupdatedbydisplayname" ) ),
+        new AnalyticsTableColumn( quote( "eventdatavalues" ), JSONB, "psi.eventdatavalues" ) );
 
     /**
      * Returns the {@link AnalyticsTableType} of analytics table which this
@@ -257,15 +256,17 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
 
         columns.addAll( addPeriodTypeColumns( "dps" ) );
 
-        programs.stream()
-            .filter( p -> Objects.nonNull( p.getTrackedEntityType() ) )
-            .filter( p -> p.getTrackedEntityType().getUid().equals( tet.getUid() ) )
-            .flatMap( p -> p.getProgramStages().stream() )
-            .flatMap( ps -> ps.getDataElements().stream() )
-            .distinct()
-            .forEach( de -> columns.add( new AnalyticsTableColumn( "cast(eventdatavalues -> '"
-                + de.getUid() + "' ->> 'value' as "
-                + getDatabaseValueType( de.getValueType() ) + ")", JSONB, true ) ) );
+        // programs.stream()
+        // .filter( p -> Objects.nonNull( p.getTrackedEntityType() ) )
+        // .filter( p -> p.getTrackedEntityType().getUid().equals( tet.getUid()
+        // ) )
+        // .flatMap( p -> p.getProgramStages().stream() )
+        // .flatMap( ps -> ps.getDataElements().stream() )
+        // .distinct()
+        // .forEach( de -> columns.add( new AnalyticsTableColumn(
+        // "cast(eventdatavalues -> '"
+        // + de.getUid() + "' ->> 'value' as "
+        // + getDatabaseValueType( de.getValueType() ) + ")", JSONB, true ) ) );
 
         return columns;
     }
@@ -342,9 +343,9 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
         List<AnalyticsTableColumn> columns = partition.getMasterTable().getDimensionColumns();
         List<AnalyticsTableColumn> values = partition.getMasterTable().getValueColumns();
 
-        final String start = getLongDateString( partition.getStartDate() );
-        final String end = getLongDateString( partition.getEndDate() );
-        final String partitionClause = partition.isLatestPartition() ? "and psi.lastupdated >= '" + start + "' "
+        String start = getLongDateString( partition.getStartDate() );
+        String end = getLongDateString( partition.getEndDate() );
+        String partitionClause = partition.isLatestPartition() ? "and psi.lastupdated >= '" + start + "' "
             : "and " + "(" + getDateLinkedToStatus() + ") >= '" + start + "' "
                 + "and " + "(" + getDateLinkedToStatus() + ") < '" + end + "' ";
 
