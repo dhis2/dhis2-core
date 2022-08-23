@@ -59,7 +59,7 @@ import io.lettuce.core.api.StatefulRedisConnection;
 @Component
 @Profile( { "!test", "!test-h2" } )
 @Conditional( value = RedisCacheInvalidationEnabledCondition.class )
-public class PostEventCacheListener implements PostCommitUpdateEventListener, PostCommitInsertEventListener,
+public class PostCacheEventPublisher implements PostCommitUpdateEventListener, PostCommitInsertEventListener,
     PostCommitDeleteEventListener
 {
     @Autowired
@@ -93,14 +93,14 @@ public class PostEventCacheListener implements PostCommitUpdateEventListener, Po
 
     private void handleMessage( CacheEventOperation operation, Object entity, Serializable id )
     {
-        Class realClass = HibernateProxyUtils.getRealClass( entity );
+        Class<?> realClass = HibernateProxyUtils.getRealClass( entity );
         String op = operation.name().toLowerCase();
         String message = serverInstanceId + ":" + op + ":" + realClass.getName() + ":" + id;
 
         publishMessage( realClass, message );
     }
 
-    private void publishMessage( Class realClass, String message )
+    private void publishMessage( Class<?> realClass, String message )
     {
         if ( !EXCLUDE_LIST.contains( realClass ) )
         {

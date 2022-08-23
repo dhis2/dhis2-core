@@ -197,8 +197,8 @@ class TrackerNotificationWebHookServiceTest extends DhisConvenienceTest
 
         ArgumentCaptor<URI> urlCaptor = ArgumentCaptor.forClass( URI.class );
         ArgumentCaptor<HttpMethod> httpMethodCaptor = ArgumentCaptor.forClass( HttpMethod.class );
-        ArgumentCaptor<HttpEntity> httpEntityCaptor = ArgumentCaptor.forClass( HttpEntity.class );
-        ArgumentCaptor<Map> bodyCaptor = ArgumentCaptor.forClass( Map.class );
+        ArgumentCaptor<HttpEntity<?>> httpEntityCaptor = ArgumentCaptor.forClass( HttpEntity.class );
+        ArgumentCaptor<Map<?, ?>> bodyCaptor = ArgumentCaptor.forClass( Map.class );
 
         subject.handleEnrollment( programInstance.getUid() );
 
@@ -229,8 +229,8 @@ class TrackerNotificationWebHookServiceTest extends DhisConvenienceTest
 
         ArgumentCaptor<URI> urlCaptor = ArgumentCaptor.forClass( URI.class );
         ArgumentCaptor<HttpMethod> httpMethodCaptor = ArgumentCaptor.forClass( HttpMethod.class );
-        ArgumentCaptor<HttpEntity> httpEntityCaptor = ArgumentCaptor.forClass( HttpEntity.class );
-        ArgumentCaptor<Map> bodyCaptor = ArgumentCaptor.forClass( Map.class );
+        ArgumentCaptor<HttpEntity<?>> httpEntityCaptor = ArgumentCaptor.forClass( HttpEntity.class );
+        ArgumentCaptor<Map<?, ?>> bodyCaptor = ArgumentCaptor.forClass( Map.class );
 
         subject.handleEvent( programStageInstance.getUid() );
 

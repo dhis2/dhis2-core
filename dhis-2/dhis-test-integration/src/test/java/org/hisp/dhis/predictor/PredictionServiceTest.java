@@ -69,8 +69,6 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.quick.BatchHandler;
@@ -120,9 +118,6 @@ class PredictionServiceTest extends IntegrationTestBase
 
     @Autowired
     private ProgramService programService;
-
-    @Autowired
-    private CurrentUserService currentUserService;
 
     @Autowired
     private BatchHandlerFactory batchHandlerFactory;
@@ -318,13 +313,6 @@ class PredictionServiceTest extends IntegrationTestBase
 
         User user = createAndAddUser( true, "mockUser", units, units );
         injectSecurityContext( user );
-    }
-
-    @Override
-    public void tearDownTest()
-    {
-        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
-            currentUserService, predictionService );
     }
 
     // -------------------------------------------------------------------------

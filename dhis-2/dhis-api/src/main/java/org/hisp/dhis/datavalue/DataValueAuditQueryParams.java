@@ -25,25 +25,46 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.datavalue;
 
-import org.hisp.quick.BatchHandlerFactory;
+import java.util.ArrayList;
+import java.util.List;
+
+import lombok.Data;
+import lombok.experimental.Accessors;
+
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
 
 /**
- * OBS! This should not become a part of the dhis-api module!
- * <p>
- * Added to managed bean implementation classes (not their interface) which are
- * provided with a {@link BatchHandlerFactory} during testing.
+ * Encapsulation of a web API request for data value audit records.
  *
- * @author Jan Bernitt
+ * @author Lars Helge Overland
  */
-public interface BatchHandlerFactoryTarget
+@Data
+@Accessors( chain = true )
+public class DataValueAuditQueryParams
 {
-    /**
-     * This is only a workaround until a better solution is found.
-     *
-     * @param batchHandlerFactory dynamically update {@link BatchHandlerFactory}
-     *        during testing
-     */
-    void setBatchHandlerFactory( BatchHandlerFactory batchHandlerFactory );
+    private List<DataElement> dataElements = new ArrayList<>();
+
+    private List<Period> periods = new ArrayList<>();
+
+    private List<OrganisationUnit> orgUnits = new ArrayList<>();
+
+    private CategoryOptionCombo categoryOptionCombo;
+
+    private CategoryOptionCombo attributeOptionCombo;
+
+    private List<AuditType> auditTypes = new ArrayList<>();
+
+    private Pager pager;
+
+    public boolean hasPaging()
+    {
+        return pager != null;
+    }
 }

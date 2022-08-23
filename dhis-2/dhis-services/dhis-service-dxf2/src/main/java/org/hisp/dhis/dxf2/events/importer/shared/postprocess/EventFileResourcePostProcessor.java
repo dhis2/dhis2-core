@@ -25,33 +25,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.mock.batchhandler;
+package org.hisp.dhis.dxf2.events.importer.shared.postprocess;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.hisp.quick.BatchHandler;
-import org.hisp.quick.BatchHandlerFactory;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dxf2.events.event.DataValue;
+import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.importer.Processor;
+import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceService;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Lars Helge Overland
+ * @author Abyot Asalefew Gizaw <abyota@gmail.com>
+ *
  */
-public class MockBatchHandlerFactory
-    implements BatchHandlerFactory
+@Component
+public class EventFileResourcePostProcessor implements Processor
 {
-    private Map<String, BatchHandler<?>> batchHandlers = new HashMap<>();
-
-    public <T> BatchHandlerFactory registerBatchHandler( Class<? extends BatchHandler<T>> clazz,
-        BatchHandler<T> batchHandler )
-    {
-        batchHandlers.put( clazz.getName(), batchHandler );
-        return this;
-    }
-
     @Override
-    @SuppressWarnings( "unchecked" )
-    public <T> BatchHandler<T> createBatchHandler( Class<? extends BatchHandler<T>> clazz )
+    public void process( Event event, WorkContext ctx )
     {
-        return (BatchHandler<T>) batchHandlers.get( clazz.getName() );
+        FileResourceService fileResourceService = ctx.getServiceDelegator().getFileResourceService();
+
+        for ( DataValue dataValue : event.getDataValues() )
+        {
+            DataElement dataElement = ctx.getDataElementMap().get( dataValue.getDataElement() );
+
+            if ( dataElement.isFileType() )
+            {
+                FileResource fileResource = fileResourceService.getFileResource( dataValue.getValue() );
+
+                if ( !fileResource.isAssigned() || fileResource.getFileResourceOwner() == null )
+                {
+                    fileResource.setAssigned( true );
+                    fileResource.setFileResourceOwner( event.getEvent() );
+                    fileResourceService.updateFileResource( fileResource );
+                }
+            }
+        }
     }
 }

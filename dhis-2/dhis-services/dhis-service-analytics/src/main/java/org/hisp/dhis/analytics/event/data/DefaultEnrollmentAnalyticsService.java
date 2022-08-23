@@ -39,7 +39,7 @@ import org.hisp.dhis.analytics.event.EnrollmentAnalyticsService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryPlanner;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
-import org.hisp.dhis.analytics.shared.LabelMapper;
+import org.hisp.dhis.analytics.event.LabelMapper;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.system.grid.ListGrid;

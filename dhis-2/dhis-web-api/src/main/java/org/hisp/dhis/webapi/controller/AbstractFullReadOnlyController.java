@@ -66,7 +66,6 @@ import org.hisp.dhis.node.Preset;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Pagination;
 import org.hisp.dhis.query.Query;
-import org.hisp.dhis.query.QueryParser;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.schema.Property;
@@ -135,9 +134,6 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
     @Autowired
     protected QueryService queryService;
-
-    @Autowired
-    private QueryParser queryParser;
 
     @Autowired
     protected FieldFilterService oldFieldFilterService;

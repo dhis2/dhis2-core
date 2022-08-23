@@ -296,7 +296,7 @@ public class HibernateProgramInstanceStore
             return false;
         }
 
-        Query query = getSession().createNativeQuery(
+        Query<?> query = getSession().createNativeQuery(
             "select exists(select 1 from programinstance where uid=:uid and deleted is false)" );
         query.setParameter( "uid", uid );
 
@@ -311,7 +311,7 @@ public class HibernateProgramInstanceStore
             return false;
         }
 
-        Query query = getSession().createNativeQuery(
+        Query<?> query = getSession().createNativeQuery(
             "select exists(select 1 from programinstance where uid=:uid)" );
         query.setParameter( "uid", uid );
 

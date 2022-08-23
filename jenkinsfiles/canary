@@ -44,7 +44,8 @@ pipeline {
                 echo 'Building DHIS2 ...'
                 script {
                     withMaven(options: [artifactsPublisher(disabled: true)]) {
-                        sh 'mvn -X -T 4 --batch-mode --no-transfer-progress clean install -f dhis-2/pom-full.xml --update-snapshots'
+                        sh 'mvn -X -T 4 --batch-mode --no-transfer-progress clean install -f dhis-2/pom.xml -P -default --update-snapshots -pl -dhis-web-embedded-jetty,-dhis-test-coverage'
+                        sh 'mvn -X -T 4 --batch-mode --no-transfer-progress package -f dhis-2/dhis-web/pom.xml -P -default --update-snapshots'
                     }
                 }
             }
@@ -56,6 +57,15 @@ pipeline {
                 sh 'curl "https://raw.githubusercontent.com/dhis2/dhis2-server-setup/master/ci/scripts/copy-war-s3.sh" -O'
                 sh 'chmod +x copy-war-s3.sh'
                 sh './copy-war-s3.sh canary ${GIT_BRANCH}'
+            }
+        }
+
+        stage ('Delete old WARs') {
+            steps {
+                echo 'Deleting old WARs ...'
+                sh 'curl "https://raw.githubusercontent.com/dhis2/dhis2-server-setup/master/ci/scripts/delete-old-wars.sh" -O'
+                sh 'chmod +x delete-old-wars.sh'
+                sh './delete-old-wars.sh ${GIT_BRANCH}'
             }
         }
 

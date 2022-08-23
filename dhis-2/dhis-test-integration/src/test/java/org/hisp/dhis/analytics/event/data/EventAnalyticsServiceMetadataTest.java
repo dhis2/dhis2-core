@@ -76,6 +76,9 @@ import com.google.common.collect.Sets;
 class EventAnalyticsServiceMetadataTest extends SingleSetupIntegrationTestBase
 {
 
+    @Autowired
+    private UserService _userService;
+
     private LegendSet lsA;
 
     private Legend leA;
@@ -120,7 +123,7 @@ class EventAnalyticsServiceMetadataTest extends SingleSetupIntegrationTestBase
     @Override
     public void setUpTest()
     {
-        userService = (UserService) getBean( UserService.ID );
+        userService = _userService;
         leA = createLegend( 'A', 0d, 10d );
         leB = createLegend( 'B', 11d, 20d );
         leC = createLegend( 'C', 21d, 30d );
