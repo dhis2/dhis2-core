@@ -142,7 +142,7 @@ public class EnrollmentCriteriaMapper
 
         if ( trackedEntityType != null && te == null )
         {
-            throw new IllegalQueryException( "Tracked entity does not exist: " + program );
+            throw new IllegalQueryException( "Tracked entity does not exist: " + trackedEntityType );
         }
 
         TrackedEntityInstance tei = trackedEntityInstance != null
@@ -151,7 +151,7 @@ public class EnrollmentCriteriaMapper
 
         if ( trackedEntityInstance != null && tei == null )
         {
-            throw new IllegalQueryException( "Tracked entity instance does not exist: " + program );
+            throw new IllegalQueryException( "Tracked entity instance does not exist: " + trackedEntityInstance );
         }
 
         params.setProgram( pr );
