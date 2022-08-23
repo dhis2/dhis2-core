@@ -47,6 +47,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataValue;
@@ -329,8 +330,12 @@ public class DataValueController
 
             if ( dataElement.getValueType().isFile() )
             {
-                fileResource = dataValidator.validateAndSetAssigned( value, dataElement.getValueType(),
-                    dataElement.getValueTypeOptions() );
+                String fileResourceOwner = getFileResourceOwner( dataElement.getUid(), categoryOptionCombo.getUid(),
+                    attributeOptionCombo.getUid(), period.getUid(), organisationUnit.getUid() );
+
+                fileResource = dataValidator.validateAndSetAssigned( value,
+                    dataElement.getValueType(),
+                    dataElement.getValueTypeOptions(), fileResourceOwner );
             }
 
             DataValue newValue = new DataValue( dataElement, period, organisationUnit, categoryOptionCombo,
@@ -355,11 +360,15 @@ public class DataValueController
 
             if ( dataElement.getValueType().isFile() )
             {
-                fileResource = dataValidator.validateAndSetAssigned( value, dataElement.getValueType(),
-                    dataElement.getValueTypeOptions() );
+                String fileResourceOwner = getFileResourceOwner( dataElement.getUid(), categoryOptionCombo.getUid(),
+                    attributeOptionCombo.getUid(), period.getUid(), organisationUnit.getUid() );
+
+                fileResource = dataValidator.validateAndSetAssigned( value,
+                    dataElement.getValueType(),
+                    dataElement.getValueTypeOptions(), fileResourceOwner );
             }
 
-            if ( dataElement.isFileType() && retentionStrategy == FileResourceRetentionStrategy.NONE )
+            if ( dataElement.isFileType() && retentionStrategy == FileResourceRetentionStrategy.NONE && value == null )
             {
                 try
                 {
@@ -405,6 +414,18 @@ public class DataValueController
         {
             fileResourceService.updateFileResource( fileResource );
         }
+    }
+
+    private String getFileResourceOwner( String de, String co, String ao, String pe, String ou )
+    {
+        List<String> fileResourceOwnerIds = new ArrayList<>();
+        fileResourceOwnerIds.add( de );
+        fileResourceOwnerIds.add( co );
+        fileResourceOwnerIds.add( ao );
+        fileResourceOwnerIds.add( pe );
+        fileResourceOwnerIds.add( ou );
+
+        return String.join( TextUtils.SEP, fileResourceOwnerIds );
     }
 
     // ---------------------------------------------------------------------
