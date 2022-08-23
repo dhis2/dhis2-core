@@ -1,0 +1,1 @@
+ALTER TABLE fileresource ALTER COLUMN fileresourceowner type character varying(255);
