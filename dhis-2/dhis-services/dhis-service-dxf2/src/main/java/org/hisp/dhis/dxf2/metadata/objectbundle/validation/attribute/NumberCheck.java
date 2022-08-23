@@ -35,6 +35,7 @@ import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.system.util.MathUtils;
+import org.hisp.dhis.system.util.ValidationUtils;
 
 /**
  * Contains validators for Number types of {@link AttributeValue}
@@ -59,6 +60,8 @@ public interface NumberCheck extends Function<String, List<ErrorReport>>
     NumberCheck isPercentage = check( MathUtils::isPercentage, ErrorCode.E6010 );
 
     NumberCheck isUnitInterval = check( MathUtils::isUnitInterval, ErrorCode.E6011 );
+
+    NumberCheck isPhoneNumber = check( ValidationUtils::isPhoneNumber, ErrorCode.E6021 );
 
     static NumberCheck check( final Predicate<String> predicate, ErrorCode errorCode )
     {

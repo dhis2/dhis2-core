@@ -75,7 +75,7 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.filter.UserRoleCanIssueFilter;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
-import org.joda.time.DateTime;
+import org.jboss.aerogear.security.otp.api.Base32;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
@@ -739,23 +739,6 @@ public class DefaultUserService
     }
 
     @Override
-    @Transactional( readOnly = true )
-    public List<User> getExpiringUsers()
-    {
-        int daysBeforePasswordChangeRequired = systemSettingManager
-            .getIntSetting( SettingKey.CREDENTIALS_EXPIRES ) * 30;
-
-        Date daysPassed = new DateTime( new Date() ).minusDays( daysBeforePasswordChangeRequired - EXPIRY_THRESHOLD )
-            .toDate();
-
-        UserQueryParams userQueryParams = new UserQueryParams()
-            .setDisabled( false )
-            .setPasswordLastUpdated( daysPassed );
-
-        return userStore.getExpiringUsers( userQueryParams );
-    }
-
-    @Override
     public List<UserAccountExpiryInfo> getExpiringUserAccounts( int inDays )
     {
         return userStore.getExpiringUserAccounts( inDays );
@@ -763,9 +746,25 @@ public class DefaultUserService
 
     @Override
     @Transactional
-    public void set2FA( User user, Boolean twoFa )
+    public void set2FA( User user, boolean enable )
     {
-        user.setTwoFA( twoFa );
+        // Do nothing if current state is the same as the requested state
+        if ( user.getTwoFA() == enable )
+        {
+            return;
+        }
+
+        if ( user.getSecret() == null )
+        {
+            throw new IllegalStateException( "User secret not set!" );
+        }
+
+        if ( !enable )
+        {
+            user.setSecret( null );
+        }
+
+        user.setTwoFA( enable );
 
         updateUser( user );
     }
@@ -795,6 +794,13 @@ public class DefaultUserService
     public Map<String, Optional<Locale>> findNotifiableUsersWithLastLoginBetween( Date from, Date to )
     {
         return userStore.findNotifiableUsersWithLastLoginBetween( from, to );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public Map<String, Optional<Locale>> findNotifiableUsersWithPasswordLastUpdatedBetween( Date from, Date to )
+    {
+        return userStore.findNotifiableUsersWithPasswordLastUpdatedBetween( from, to );
     }
 
     @Override
@@ -853,13 +859,19 @@ public class DefaultUserService
 
     @Override
     @Transactional
-    public void disableTwoFA( User currentUser, String userId, Consumer<ErrorReport> errors )
+    public void disableTwoFA( User currentUser, String userUid, Consumer<ErrorReport> errors )
     {
-        User user = getUser( userId );
-
+        User user = getUser( userUid );
         if ( user == null )
         {
             throw new IllegalArgumentException( "User not found" );
+        }
+
+        if ( currentUser.getUid().equals( user.getUid() ) )
+        {
+            // Cannot disable 2FA for yourself with this API endpoint.
+            errors.accept( new ErrorReport( UserRole.class, ErrorCode.E3021, currentUser.getUsername(),
+                user.getName() ) );
         }
 
         if ( !canCurrentUserCanModify( currentUser, user, errors ) )
@@ -867,8 +879,7 @@ public class DefaultUserService
             return;
         }
 
-        user.setTwoFA( false );
-        updateUser( user );
+        set2FA( user, false );
     }
 
     @Override
@@ -890,5 +901,13 @@ public class DefaultUserService
         }
 
         return true;
+    }
+
+    @Override
+    @Transactional
+    public void generateTwoFactorSecret( User user )
+    {
+        user.setSecret( Base32.random() );
+        updateUser( user );
     }
 }

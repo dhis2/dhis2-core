@@ -36,7 +36,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.analytics.AnalyticsIndex;
@@ -60,7 +60,7 @@ import org.hisp.dhis.system.util.Clock;
  * @author Lars Helge Overland
  */
 @Slf4j
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DefaultAnalyticsTableService
     implements AnalyticsTableService
 {
@@ -83,7 +83,7 @@ public class DefaultAnalyticsTableService
     @Override
     public void update( AnalyticsTableUpdateParams params, JobProgress progress )
     {
-        final int processNo = getProcessNo();
+        int processNo = getProcessNo();
 
         int tableUpdates = 0;
 
@@ -105,7 +105,7 @@ public class DefaultAnalyticsTableService
             return;
         }
 
-        final List<AnalyticsTable> tables = tableManager.getAnalyticsTables( params );
+        List<AnalyticsTable> tables = tableManager.getAnalyticsTables( params );
 
         if ( tables.isEmpty() )
         {
@@ -117,12 +117,11 @@ public class DefaultAnalyticsTableService
         }
 
         clock.logTime( String.format( "Table update start: %s, earliest: %s, parameters: %s",
-            tableType.getTableName(), getLongDateString( params.getFromDate() ), params.toString() ) );
+            tableType.getTableName(), getLongDateString( params.getFromDate() ), params ) );
         progress.startingStage( "Performing pre-create table work" );
         progress.runStage( () -> tableManager.preCreateTables( params ) );
         clock.logTime( "Performed pre-create table work " + tableType );
 
-        dropTempTablesPartitions( tables, progress );
         progress.startingStage( "Dropping temp tables (if any) " + tableType, tables.size() );
         dropTempTables( tables, progress );
         clock.logTime( "Dropped temp tables" );
@@ -177,11 +176,7 @@ public class DefaultAnalyticsTableService
     {
         Set<String> tables = tableManager.getExistingDatabaseTables();
 
-        // The filter is a quick fix to not drop `analyticsdataexchange`
-        // that is not part of the analytics table.
-        // It was getting drop only because of the name.
         tables.stream()
-            .filter( tableName -> !"analyticsdataexchange".equals( tableName ) )
             .forEach( tableManager::dropTableCascade );
 
         log.info( "Analytics tables dropped" );
@@ -204,24 +199,10 @@ public class DefaultAnalyticsTableService
     /**
      * Drops the given temporary analytics tables.
      */
-    private void dropTempTables( final List<AnalyticsTable> tables, final JobProgress progress )
+    private void dropTempTables( List<AnalyticsTable> tables, JobProgress progress )
     {
 
         progress.runStage( tables, AnalyticsTable::getTableName, tableManager::dropTempTable );
-    }
-
-    /**
-     * Drops the given temporary analytics tables.
-     */
-    private void dropTempTablesPartitions( final List<AnalyticsTable> tables, final JobProgress progress )
-    {
-        for ( final AnalyticsTable table : tables )
-        {
-            progress.startingStage( "Dropping table partitions of table " + table.getTableName(),
-                table.getTablePartitions().size() );
-            progress.runStage( table.getTablePartitions(), AnalyticsTablePartition::getTableName,
-                tableManager::dropTempTablePartition );
-        }
     }
 
     /**

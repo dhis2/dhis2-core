@@ -63,6 +63,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.annotations.QueryHints;
 import org.hibernate.query.Query;
+import org.hisp.dhis.cache.QueryCacheManager;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.collection.CollectionUtils;
@@ -97,16 +98,19 @@ public class HibernateUserStore
 {
     public static final String DISABLED_COLUMN = "disabled";
 
+    private final QueryCacheManager queryCacheManager;
+
     private final SchemaService schemaService;
 
     public HibernateUserStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService,
-        AclService aclService, SchemaService schemaService )
+        AclService aclService, SchemaService schemaService, QueryCacheManager queryCacheManager )
     {
         super( sessionFactory, jdbcTemplate, publisher, User.class, currentUserService, aclService, true );
 
         checkNotNull( schemaService );
         this.schemaService = schemaService;
+        this.queryCacheManager = queryCacheManager;
     }
 
     @Override
@@ -120,7 +124,9 @@ public class HibernateUserStore
     @Override
     public List<User> getUsers( UserQueryParams params, @Nullable List<String> orders )
     {
-        return extractUserQueryUsers( getUserQuery( params, orders, false ).list() );
+        Query<?> userQuery = getUserQuery( params, orders, false );
+
+        return extractUserQueryUsers( userQuery.list() );
     }
 
     @Override
@@ -178,7 +184,7 @@ public class HibernateUserStore
         return users;
     }
 
-    private Query getUserQuery( UserQueryParams params, List<String> orders, boolean count )
+    private Query<?> getUserQuery( UserQueryParams params, List<String> orders, boolean count )
     {
         SqlHelper hlp = new SqlHelper();
 
@@ -372,7 +378,7 @@ public class HibernateUserStore
 
         log.debug( "User query HQL: '{}'", hql );
 
-        Query query = getQuery( hql );
+        Query<?> query = getQuery( hql );
 
         if ( params.getQuery() != null )
         {
@@ -500,13 +506,26 @@ public class HibernateUserStore
             }
         }
 
+        setQueryCacheRegionName( query );
+
         return query;
+    }
+
+    private void setQueryCacheRegionName( Query<?> query )
+    {
+        if ( query.isCacheable() )
+        {
+            query.setHint( "org.hibernate.cacheable", true );
+            query.setHint( "org.hibernate.cacheRegion",
+                queryCacheManager.getQueryCacheRegionName( User.class, query ) );
+        }
     }
 
     @Override
     public int getUserCount()
     {
         Query<Long> query = getTypedQuery( "select count(*) from User" );
+        setQueryCacheRegionName( query );
         return query.uniqueResult().intValue();
     }
 
@@ -591,6 +610,21 @@ public class HibernateUserStore
             "from User u " +
             "left outer join UserSetting s on u.id = s.user and s.name = 'keyUiLocale' " +
             "where u.email is not null and u.disabled = false and u.lastLogin >= :from and u.lastLogin < :to";
+        return toLocaleMap( hql, from, to );
+    }
+
+    @Override
+    public Map<String, Optional<Locale>> findNotifiableUsersWithPasswordLastUpdatedBetween( Date from, Date to )
+    {
+        String hql = "select u.email, s.value " +
+            "from User u " +
+            "left outer join UserSetting s on u.id = s.user and s.name = 'keyUiLocale' " +
+            "where u.email is not null and u.disabled = false and u.passwordLastUpdated >= :from and u.passwordLastUpdated < :to";
+        return toLocaleMap( hql, from, to );
+    }
+
+    private Map<String, Optional<Locale>> toLocaleMap( String hql, Date from, Date to )
+    {
         return getSession().createQuery( hql, Object[].class )
             .setParameter( "from", from )
             .setParameter( "to", to )
@@ -606,7 +640,7 @@ public class HibernateUserStore
         String sql = "select concat(firstname, ' ', surname) from userinfo where uid =:uid";
         Query<String> query = getSession().createNativeQuery( sql );
         query.setParameter( "uid", userUid );
-        return query.getSingleResult();
+        return getSingleResult( query );
     }
 
     @Override

@@ -112,6 +112,8 @@ public class ValidationUtils
         "commit", "copy", "create", "createdb", "createrole", "createuser", "close", "delete", "destroy", "drop",
         "escape", "insert", "select", "rename", "replace", "restore", "return", "update", "when", "write" );
 
+    private static final Pattern GENERIC_PHONE_NUMBER = Pattern.compile( "^[0-9+\\(\\)#\\.\\s\\/ext-]{6,50}$" );
+
     /**
      * Validates whether a filter expression contains malicious code such as SQL
      * injection attempts.
@@ -496,6 +498,7 @@ public class ValidationUtils
      * <li>value_not_bool</li>
      * <li>value_not_true_only</li>
      * <li>value_not_valid_date</li>
+     * <li>value_not_valid_letter</li>
      * </ul>
      *
      * @param value the data value.
@@ -561,65 +564,47 @@ public class ValidationUtils
         }
 
         // Value type checks
+        switch ( valueType )
+        {
+        case LETTER:
+            return !isValidLetter( value ) ? "value_not_valid_letter" : null;
+        case NUMBER:
+            return !MathUtils.isNumeric( value ) ? "value_not_numeric" : null;
+        case UNIT_INTERVAL:
+            return !MathUtils.isUnitInterval( value ) ? "value_not_unit_interval" : null;
+        case PERCENTAGE:
+            return !MathUtils.isPercentage( value ) ? "value_not_percentage" : null;
+        case INTEGER:
+            return !MathUtils.isInteger( value ) ? "value_not_integer" : null;
+        case INTEGER_POSITIVE:
+            return !MathUtils.isPositiveInteger( value ) ? "value_not_positive_integer" : null;
+        case INTEGER_NEGATIVE:
+            return !MathUtils.isNegativeInteger( value ) ? "value_not_negative_integer" : null;
+        case INTEGER_ZERO_OR_POSITIVE:
+            return !MathUtils.isZeroOrPositiveInteger( value ) ? "value_not_zero_or_positive_integer" : null;
+        case BOOLEAN:
+            return !MathUtils.isBool( trimToEmpty( value ).toLowerCase() ) ? "value_not_bool" : null;
+        case TRUE_ONLY:
+            return !DataValue.TRUE.equalsIgnoreCase( trimToEmpty( value ) ) ? "value_not_true_only" : null;
+        case DATE:
+            return !DateUtils.dateIsValid( value ) ? "value_not_valid_date" : null;
+        case DATETIME:
+            return !DateUtils.dateTimeIsValid( value ) ? "value_not_valid_datetime" : null;
+        case COORDINATE:
+            return !MathUtils.isCoordinate( value ) ? "value_not_coordinate" : null;
+        case URL:
+            return !urlIsValid( value ) ? "value_not_url" : null;
+        case FILE_RESOURCE:
+        case IMAGE:
+            return !CodeGenerator.isValidUid( value ) ? "value_not_valid_file_resource_uid" : null;
+        default:
+            return null;
+        }
+    }
 
-        if ( ValueType.NUMBER == valueType && !MathUtils.isNumeric( value ) )
-        {
-            return "value_not_numeric";
-        }
-        else if ( ValueType.UNIT_INTERVAL == valueType && !MathUtils.isUnitInterval( value ) )
-        {
-            return "value_not_unit_interval";
-        }
-        else if ( ValueType.PERCENTAGE == valueType && !MathUtils.isPercentage( value ) )
-        {
-            return "value_not_percentage";
-        }
-        else if ( ValueType.INTEGER == valueType && !MathUtils.isInteger( value ) )
-        {
-            return "value_not_integer";
-        }
-        else if ( ValueType.INTEGER_POSITIVE == valueType && !MathUtils.isPositiveInteger( value ) )
-        {
-            return "value_not_positive_integer";
-        }
-        else if ( ValueType.INTEGER_NEGATIVE == valueType && !MathUtils.isNegativeInteger( value ) )
-        {
-            return "value_not_negative_integer";
-        }
-        else if ( ValueType.INTEGER_ZERO_OR_POSITIVE == valueType && !MathUtils.isZeroOrPositiveInteger( value ) )
-        {
-            return "value_not_zero_or_positive_integer";
-        }
-        else if ( ValueType.BOOLEAN == valueType && !MathUtils.isBool( trimToEmpty( value ).toLowerCase() ) )
-        {
-            return "value_not_bool";
-        }
-        else if ( ValueType.TRUE_ONLY == valueType && !DataValue.TRUE.equals( trimToEmpty( value ).toLowerCase() ) )
-        {
-            return "value_not_true_only";
-        }
-        else if ( ValueType.DATE == valueType && !DateUtils.dateIsValid( value ) )
-        {
-            return "value_not_valid_date";
-        }
-        else if ( ValueType.DATETIME == valueType && !DateUtils.dateTimeIsValid( value ) )
-        {
-            return "value_not_valid_datetime";
-        }
-        else if ( ValueType.COORDINATE == valueType && !MathUtils.isCoordinate( value ) )
-        {
-            return "value_not_coordinate";
-        }
-        else if ( ValueType.URL == valueType && !urlIsValid( value ) )
-        {
-            return "value_not_url";
-        }
-        else if ( valueType.isFile() && !CodeGenerator.isValidUid( value ) )
-        {
-            return "value_not_valid_file_resource_uid";
-        }
-
-        return null;
+    public static boolean isValidLetter( String value )
+    {
+        return value.length() == 1 && Character.isLetter( value.charAt( 0 ) );
     }
 
     /**
@@ -844,5 +829,17 @@ public class ValidationUtils
     public static boolean validateInternationalPhoneNumber( String phoneNumber )
     {
         return INTERNATIONAL_PHONE_PATTERN.matcher( phoneNumber ).matches();
+    }
+
+    /**
+     * Validate a phone number using a generic rule which should be applicable
+     * for any countries.
+     *
+     * @param string phone number for checking.
+     * @return TRUE if given string is a phone number otherwise FALSE
+     */
+    public static boolean isPhoneNumber( String string )
+    {
+        return GENERIC_PHONE_NUMBER.matcher( string ).matches();
     }
 }

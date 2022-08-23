@@ -54,7 +54,7 @@ import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataentryform.DataEntryForm;
-import org.hisp.dhis.dataexchange.analytics.AnalyticsDataExchange;
+import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.document.Document;
@@ -221,16 +221,16 @@ public class Metadata
     }
 
     @JsonProperty
-    @JacksonXmlElementWrapper( localName = "analyticsDataExchanges", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "analyticsDataExchange", namespace = DxfNamespaces.DXF_2_0 )
-    public List<AnalyticsDataExchange> getAnalyticsDataExchanges()
+    @JacksonXmlElementWrapper( localName = "aggregateDataExchanges", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "aggregateDataExchange", namespace = DxfNamespaces.DXF_2_0 )
+    public List<AggregateDataExchange> getAggregateDataExchanges()
     {
-        return getValues( AnalyticsDataExchange.class );
+        return getValues( AggregateDataExchange.class );
     }
 
-    public void setAnalyticsDataExchanges( List<AnalyticsDataExchange> analyticsDataExchanges )
+    public void setAggregateDataExchanges( List<AggregateDataExchange> aggregateDataExchanges )
     {
-        setValues( AnalyticsDataExchange.class, analyticsDataExchanges );
+        setValues( AggregateDataExchange.class, aggregateDataExchanges );
     }
 
     @JsonProperty

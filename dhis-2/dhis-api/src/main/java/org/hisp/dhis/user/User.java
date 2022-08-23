@@ -54,7 +54,6 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.security.Authorities;
-import org.jboss.aerogear.security.otp.api.Base32;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -262,6 +261,14 @@ public class User
      */
     private List<String> apps = new ArrayList<>();
 
+    /**
+     * OBS! This field will only be set when de-serialising a user with settings
+     * so the settings can be updated/stored.
+     *
+     * It is not initialised when loading a user from the database.
+     */
+    private transient UserSettings settings;
+
     public User()
     {
         this.twoFA = false;
@@ -271,7 +278,6 @@ public class User
         {
             uuid = UUID.randomUUID();
         }
-        this.setSecret();
     }
 
     /**
@@ -544,6 +550,11 @@ public class User
         this.twoFA = twoFA;
     }
 
+    public boolean getTwoFA()
+    {
+        return twoFA;
+    }
+
     @JsonIgnore
     public String getSecret()
     {
@@ -552,22 +563,7 @@ public class User
 
     public void setSecret( String secret )
     {
-        if ( secret == null )
-        {
-            setSecret();
-        }
-        else
-        {
-            this.secret = secret;
-        }
-    }
-
-    private void setSecret()
-    {
-        if ( this.secret == null )
-        {
-            this.secret = Base32.random();
-        }
+        this.secret = secret;
     }
 
     @JsonProperty
@@ -773,6 +769,19 @@ public class User
     public void setAccountExpiry( Date accountExpiry )
     {
         this.accountExpiry = accountExpiry;
+    }
+
+    @JsonProperty( access = JsonProperty.Access.WRITE_ONLY )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( access = Property.Access.WRITE_ONLY )
+    public UserSettings getSettings()
+    {
+        return settings;
+    }
+
+    public void setSettings( UserSettings settings )
+    {
+        this.settings = settings;
     }
 
     // -------------------------------------------------------------------------

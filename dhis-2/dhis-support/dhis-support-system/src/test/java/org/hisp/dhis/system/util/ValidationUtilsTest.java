@@ -35,7 +35,9 @@ import static org.hisp.dhis.system.util.ValidationUtils.emailIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.expressionIsValidSQl;
 import static org.hisp.dhis.system.util.ValidationUtils.getLatitude;
 import static org.hisp.dhis.system.util.ValidationUtils.getLongitude;
+import static org.hisp.dhis.system.util.ValidationUtils.isPhoneNumber;
 import static org.hisp.dhis.system.util.ValidationUtils.isValidHexColor;
+import static org.hisp.dhis.system.util.ValidationUtils.isValidLetter;
 import static org.hisp.dhis.system.util.ValidationUtils.normalizeBoolean;
 import static org.hisp.dhis.system.util.ValidationUtils.passwordIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.usernameIsValid;
@@ -47,6 +49,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.CodeGenerator;
@@ -250,6 +253,27 @@ class ValidationUtilsTest
     }
 
     @Test
+    void testIsPhoneNumber()
+    {
+        assertTrue( isPhoneNumber( "+ 47 33 987 937" ) );
+        assertTrue( isPhoneNumber( "+4733987937" ) );
+        assertTrue( isPhoneNumber( "123456" ) );
+        assertTrue( isPhoneNumber( "(+47) 3398 7937" ) );
+        assertTrue( isPhoneNumber( "(47) 3398 7937" ) );
+        assertTrue( isPhoneNumber( "(47) 3398 7937 ext 123" ) );
+        assertTrue( isPhoneNumber( "(47) 3398 7937.123" ) );
+        // 50 characters
+        assertTrue( isPhoneNumber( "01234567890123456789012345678901234567890123456789" ) );
+        // 51 characters
+        assertFalse( isPhoneNumber( "012345678901234567890123456789012345678901234567890" ) );
+        assertFalse( isPhoneNumber( "+AA4733987937" ) );
+        assertFalse( isPhoneNumber( "+AA4733987937" ) );
+        assertFalse( isPhoneNumber( "12345" ) );
+        assertFalse( isPhoneNumber( "" ) );
+        assertFalse( isPhoneNumber( " " ) );
+    }
+
+    @Test
     void testExpressionIsValidSQl()
     {
         assertFalse( expressionIsValidSQl( "10 == 10; delete from table" ) );
@@ -293,5 +317,15 @@ class ValidationUtilsTest
         assertEquals( "not_valid_file_size_too_big", dataValueIsValid( fileResource, valueType, options ) );
         fileResource = new FileResource( "name", "exe", oneHundredMegaBytes, "md5sum", FileResourceDomain.DOCUMENT );
         assertEquals( "not_valid_file_content_type", dataValueIsValid( fileResource, valueType, options ) );
+    }
+
+    @Test
+    void testIsValidLetter()
+    {
+        List<String> valid = List.of( "a", "A", "é", "â", "ß", "ä" );
+        valid.forEach( letter -> assertTrue( isValidLetter( letter ) ) );
+
+        List<String> invalid = List.of( "1", "", "aa", "=", "," );
+        invalid.forEach( value -> assertFalse( isValidLetter( value ) ) );
     }
 }

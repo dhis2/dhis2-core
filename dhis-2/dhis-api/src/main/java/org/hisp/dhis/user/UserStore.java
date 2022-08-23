@@ -110,9 +110,6 @@ public interface UserStore
     /**
      * Return CurrentUserGroupInfo used for ACL check in
      * {@link IdentifiableObjectStore}
-     *
-     * @param user
-     * @return
      */
     CurrentUserGroupInfo getCurrentUserGroupInfo( String userUID );
 
@@ -137,6 +134,19 @@ public interface UserStore
      *         keys and if available their preferred locale as value
      */
     Map<String, Optional<Locale>> findNotifiableUsersWithLastLoginBetween( Date from, Date to );
+
+    /**
+     * Selects all not disabled users where the
+     * {@link User#getPasswordLastUpdated()} ()} is within the given time-frame
+     * and which have an email address.
+     *
+     * @param from start of the selected time-frame (inclusive)
+     * @param to end of the selected time-frame (exclusive)
+     * @return user emails having a password last updated within the given
+     *         time-frame as keys and if available their preferred locale as
+     *         value
+     */
+    Map<String, Optional<Locale>> findNotifiableUsersWithPasswordLastUpdatedBetween( Date from, Date to );
 
     String getDisplayName( String userUid );
 

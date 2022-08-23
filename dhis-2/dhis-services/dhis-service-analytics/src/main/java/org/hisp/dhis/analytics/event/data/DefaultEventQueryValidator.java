@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.QueryKey.NV;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
 import java.util.List;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.analytics.QueryValidator;
@@ -51,21 +51,13 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component( "org.hisp.dhis.analytics.event.EventQueryValidator" )
+@RequiredArgsConstructor
 public class DefaultEventQueryValidator
     implements EventQueryValidator
 {
     private final QueryValidator queryValidator;
 
     private final SystemSettingManager systemSettingManager;
-
-    public DefaultEventQueryValidator( QueryValidator queryValidator, SystemSettingManager systemSettingManager )
-    {
-        checkNotNull( queryValidator );
-        checkNotNull( systemSettingManager );
-
-        this.queryValidator = queryValidator;
-        this.systemSettingManager = systemSettingManager;
-    }
 
     // -------------------------------------------------------------------------
     // EventQueryValidator implementation

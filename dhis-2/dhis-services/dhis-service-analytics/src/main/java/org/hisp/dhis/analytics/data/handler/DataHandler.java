@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.data.handler;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.Math.min;
 import static java.util.Collections.singletonList;
@@ -99,7 +98,6 @@ import static org.hisp.dhis.period.PeriodType.getPeriodTypeFromIsoString;
 import static org.hisp.dhis.setting.SettingKey.ANALYTICS_MAX_LIMIT;
 import static org.hisp.dhis.setting.SettingKey.DATABASE_SERVER_CPUS;
 import static org.hisp.dhis.system.grid.GridUtils.getGridIndexByDimensionItem;
-import static org.hisp.dhis.system.util.MathUtils.getRounded;
 import static org.hisp.dhis.system.util.MathUtils.getWithin;
 import static org.hisp.dhis.system.util.MathUtils.isZero;
 import static org.hisp.dhis.util.ObjectUtils.firstNonNull;
@@ -113,6 +111,7 @@ import java.util.concurrent.Future;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.collections4.MultiValuedMap;
@@ -161,6 +160,7 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class DataHandler
 {
     private static final int MAX_QUERIES = 8;
@@ -189,35 +189,12 @@ public class DataHandler
 
     private final ExecutionPlanStore executionPlanStore;
 
-    public DataHandler( EventAnalyticsService eventAnalyticsService, RawAnalyticsManager rawAnalyticsManager,
-        ExpressionResolvers resolvers, ExpressionService expressionService,
-        QueryPlanner queryPlanner, QueryValidator queryValidator, SystemSettingManager systemSettingManager,
-        AnalyticsManager analyticsManager, OrganisationUnitService organisationUnitService,
-        ExecutionPlanStore executionPlanStore )
-    {
-        checkNotNull( eventAnalyticsService );
-        checkNotNull( rawAnalyticsManager );
-        checkNotNull( resolvers );
-        checkNotNull( expressionService );
-        checkNotNull( queryPlanner );
-        checkNotNull( queryValidator );
-        checkNotNull( systemSettingManager );
-        checkNotNull( analyticsManager );
-        checkNotNull( organisationUnitService );
-        checkNotNull( executionPlanStore );
-
-        this.eventAnalyticsService = eventAnalyticsService;
-        this.rawAnalyticsManager = rawAnalyticsManager;
-        this.resolvers = resolvers;
-        this.expressionService = expressionService;
-        this.queryPlanner = queryPlanner;
-        this.queryValidator = queryValidator;
-        this.systemSettingManager = systemSettingManager;
-        this.analyticsManager = analyticsManager;
-        this.organisationUnitService = organisationUnitService;
-        this.executionPlanStore = executionPlanStore;
-    }
-
+    /**
+     * Adds performance metrics.
+     *
+     * @param params the {@link DataQueryParams}.
+     * @param the {@link Grid} to add performance metrics to.
+     */
     void addPerformanceMetrics( DataQueryParams params, Grid grid )
     {
         if ( params.analyzeOnly() )
@@ -237,7 +214,7 @@ public class DataHandler
      * parameters.
      *
      * @param params the {@link DataQueryParams}.
-     * @param grid the grid.
+     * @param grid the {@link Grid}.
      */
     void addIndicatorValues( DataQueryParams params, Grid grid )
     {
@@ -287,11 +264,11 @@ public class DataHandler
     }
 
     /**
-     * Based on the given Indicator plus additional parameters, this method will
+     * Based on the given indicator plus additional parameters, this method will
      * find the respective IndicatorValue.
      *
-     * @param filterPeriods the filter periods.
-     *        See @{{@link ConstantService#getConstantMap()}}.
+     * @param filterPeriods the filter periods. See
+     *        {@link ConstantService#getConstantMap()}.
      * @param permutationOrgUnitTargetMap the org unit permutation map. See
      *        {@link #getOrgUnitTargetMap(DataQueryParams, Collection)}.
      * @param itemMap Every dimensional item to process.
@@ -558,7 +535,8 @@ public class DataHandler
     {
         for ( Map.Entry<String, Double> entry : aggregatedDataMap.entrySet() )
         {
-            Double value = params.isSkipRounding() ? entry.getValue() : getRounded( entry.getValue() );
+            Number value = params.isSkipRounding() ? entry.getValue()
+                : (Number) getRoundedValueObject( params, entry.getValue() );
 
             grid.addRow()
                 .addValues( entry.getKey().split( DIMENSION_SEP ) )
@@ -576,7 +554,7 @@ public class DataHandler
      * parameters and reporting rate metric.
      *
      * @param params the {@link DataQueryParams}.
-     * @param grid the grid.
+     * @param grid the {@link Grid}.
      * @param metric the reporting rate metric.
      */
     private void addReportingRates( DataQueryParams params, Grid grid, ReportingRateMetric metric )
@@ -634,36 +612,42 @@ public class DataHandler
         }
     }
 
+    /**
+     * Returns the number of filter periods, or 1 if no filter periods exist.
+     *
+     * @param params the {@link DataQueryParams}.
+     * @return the number of filter periods, or 1 if no filter periods exist.
+     */
     private int getTimeUnits( DataQueryParams params )
     {
         return params.hasFilter( PERIOD_DIM_ID ) ? params.getFilterPeriods().size() : 1;
     }
 
     /**
-     * Calculate reporting rate and replace data set with rate and add the rate
+     * Calculates reporting rate and replace data set with rate and add the rate
      * to the Grid.
      *
      * @param params the {@link DataQueryParams}.
-     * @param grid the current Grid to be manipulated.
+     * @param grid the {@link Grid} to be manipulated.
      * @param metric the object to assist with the report rate calculation.
      * @param dataRow the current dataRow, based on the key map built by
      *        {@link #getAggregatedCompletenessTargetMap(DataQueryParams)).
      * @param target the current value of the respective key ("dataRow"). See
      * @param actual the current actual value from
      *        {@link #getAggregatedCompletenessValueMap(DataQueryParams)} or
-     *        zero (default)
+     *        zero (default).
      */
     private void addReportRateToGrid( DataQueryParams params, Grid grid, ReportingRateMetric metric,
         List<String> dataRow, Double target, Double actual )
     {
-        Double value = getReportRate( metric, target, actual );
+        Double value = getReportingRate( metric, target, actual );
 
         String reportingRate = getDimensionItem( dataRow.get( DX_INDEX ), metric );
         dataRow.set( DX_INDEX, reportingRate );
 
         grid.addRow()
             .addValues( dataRow.toArray() )
-            .addValue( params.isSkipRounding() ? value : getRounded( value ) );
+            .addValue( params.isSkipRounding() ? value : getRoundedValueObject( params, value ) );
 
         if ( params.isIncludeNumDen() )
         {
@@ -674,7 +658,15 @@ public class DataHandler
         }
     }
 
-    private Double getReportRate( ReportingRateMetric metric, Double target, Double actual )
+    /**
+     * Calculates the reporting rate based on the given parameters.
+     *
+     * @param metric the {@link ReportingRateMetric}.
+     * @param target the target value.
+     * @param actual the actual value.
+     * @return the reporting rate.
+     */
+    private Double getReportingRate( ReportingRateMetric metric, Double target, Double actual )
     {
         Double value = 0d;
 
@@ -728,7 +720,7 @@ public class DataHandler
      * Adds data element operand values to the given grid.
      *
      * @param params the {@link DataQueryParams}.
-     * @param grid the grid.
+     * @param grid the {@link Grid}.
      * @param totalType the operand {@link TotalType}.
      */
     private void addDataElementOperandValues( DataQueryParams params, Grid grid, TotalType totalType )
@@ -815,9 +807,9 @@ public class DataHandler
      * Checks whether the measure criteria in query parameters is satisfied for
      * the given indicator value.
      *
-     * @param params the query parameters.
-     * @param value the indicator value.
-     * @param indicator the indicator.
+     * @param params the {@link DataQueryParams}.
+     * @param value the {@link IndicatorValue}.
+     * @param indicator the {@link Indicator}.
      * @return true if all the measure criteria are satisfied for this indicator
      *         value, false otherwise.
      */
@@ -841,7 +833,8 @@ public class DataHandler
      * an empty dimension item list to the permutations list. This state occurs
      * where there are only data or category option combo dimensions specified.
      *
-     * @param dimensionItemPermutations list of dimension item permutations.
+     * @param dimensionItemPermutations list of {@link DimensionItem}
+     *        permutations.
      */
     private void handleEmptyDimensionItemPermutations( List<List<DimensionItem>> dimensionItemPermutations )
     {
@@ -852,8 +845,8 @@ public class DataHandler
     }
 
     /**
-     * Generates a mapping of permutations keys (organisation unit id or null)
-     * and mappings of organisation unit group and counts.
+     * Generates a mapping of permutations keys and mappings of organisation
+     * unit group and counts.
      *
      * @param params the {@link DataQueryParams}.
      * @param indicators the indicators for which formulas to scan for
@@ -932,8 +925,8 @@ public class DataHandler
      * @param items the list of {@link DimensionalItemObject}.
      * @return a dimensional items to aggregate values map.
      */
-    private MultiValuedMap<String, DimensionItemObjectValue> getAggregatedDataValueMap( DataQueryParams params,
-        List<DimensionalItemObject> items )
+    private MultiValuedMap<String, DimensionItemObjectValue> getAggregatedDataValueMap(
+        DataQueryParams params, List<DimensionalItemObject> items )
     {
         if ( items.isEmpty() )
         {
@@ -995,15 +988,15 @@ public class DataHandler
     }
 
     /**
-     * Add the given Indicator values to the Grid.
+     * Add the given Indicator values to the given grid.
      *
      * @param params the current DataQueryParams.
      * @param grid the current Grid.
      * @param dataSourceParams the DataQueryParams built for Indicators.
      * @param indicator the Indicator which the values will be extracted from,
      *        and added to be added to the Grid.
-     * @param dimensionItems the dimensional items permutation. See @{link
-     *        {@link DataQueryParams#getDimensionItemPermutations()}}.
+     * @param dimensionItems the dimensional items permutation. See
+     *        {@link DataQueryParams#getDimensionItemPermutations()}.
      * @param value the IndicatorValue which the values will be extracted from.
      */
     private void addIndicatorValuesToGrid( DataQueryParams params, Grid grid, DataQueryParams dataSourceParams,
@@ -1035,18 +1028,15 @@ public class DataHandler
     }
 
     /**
-     * Calculate the dimensional item offset and adds to the give result map.
+     * Calculates the dimensional item offset and adds to the give result map.
      *
      * @param result the map where the values will be added to.
      * @param periodIndex the current grid row period index.
      * @param valueIndex the current grid row value index.
      * @param row the current grid row.
-     * @param dimensionalItemObject a dimensional item for the current grid row,
-     *        see
-     *        {@link org.hisp.dhis.analytics.util.AnalyticsUtils#findDimensionalItems(String, List)}
-     * @param basePeriods the periods from the parameters.
-     *
-     * @return the DimensionalItemObject
+     * @param dimensionalItemObject the {@link DimensionalItemObject} for the
+     *        current grid row.
+     * @param basePeriods the list of base periods from the parameters.
      */
     private void addItemBasedOnPeriodOffset( MultiValuedMap<String, DimensionItemObjectValue> result,
         int periodIndex, int valueIndex, List<Object> row, DimensionalItemObject dimensionalItemObject,
@@ -1123,6 +1113,14 @@ public class DataHandler
         return map;
     }
 
+    /**
+     * Executes the given list of queries in parallel.
+     *
+     * @param tableType the {@link AnalyticsTableType}.
+     * @param maxLimit the max limit of records to retrieve.
+     * @param map the map of metadata identifiers to data values.
+     * @param queries the list of {@link DataQueryParams} to execute.
+     */
     private void executeQueries( AnalyticsTableType tableType, int maxLimit, Map<String, Object> map,
         List<DataQueryParams> queries )
     {
