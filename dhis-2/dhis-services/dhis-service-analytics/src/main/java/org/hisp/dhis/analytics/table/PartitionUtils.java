@@ -98,7 +98,7 @@ public class PartitionUtils
     /**
      * Returns partitions for the given list of periods.
      *
-     * @param period the period.
+     * @param periods the period.
      * @return partitions for the given list of periods.
      */
     public static Partitions getPartitions( List<DimensionalItemObject> periods )
@@ -252,7 +252,7 @@ public class PartitionUtils
      * Returns partition name. Aggregate only for now!
      *
      * @param tableName the table name.
-     * @param partitiont the partition.
+     * @param partition the partition.
      * @return the partition name.
      */
     public static String getPartitionName( String tableName, Integer partition )

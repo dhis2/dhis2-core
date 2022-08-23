@@ -25,25 +25,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.dxf2.events.importer.shared.postprocess;
 
-import org.hisp.quick.BatchHandlerFactory;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dxf2.events.event.DataValue;
+import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.importer.Processor;
+import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceService;
+import org.springframework.stereotype.Component;
 
 /**
- * OBS! This should not become a part of the dhis-api module!
- * <p>
- * Added to managed bean implementation classes (not their interface) which are
- * provided with a {@link BatchHandlerFactory} during testing.
+ * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  *
- * @author Jan Bernitt
  */
-public interface BatchHandlerFactoryTarget
+@Component
+public class EventFileResourcePostProcessor implements Processor
 {
-    /**
-     * This is only a workaround until a better solution is found.
-     *
-     * @param batchHandlerFactory dynamically update {@link BatchHandlerFactory}
-     *        during testing
-     */
-    void setBatchHandlerFactory( BatchHandlerFactory batchHandlerFactory );
+    @Override
+    public void process( Event event, WorkContext ctx )
+    {
+        FileResourceService fileResourceService = ctx.getServiceDelegator().getFileResourceService();
+
+        for ( DataValue dataValue : event.getDataValues() )
+        {
+            DataElement dataElement = ctx.getDataElementMap().get( dataValue.getDataElement() );
+
+            if ( dataElement.isFileType() )
+            {
+                FileResource fileResource = fileResourceService.getFileResource( dataValue.getValue() );
+
+                if ( !fileResource.isAssigned() || fileResource.getFileResourceOwner() == null )
+                {
+                    fileResource.setAssigned( true );
+                    fileResource.setFileResourceOwner( event.getEvent() );
+                    fileResourceService.updateFileResource( fileResource );
+                }
+            }
+        }
+    }
 }

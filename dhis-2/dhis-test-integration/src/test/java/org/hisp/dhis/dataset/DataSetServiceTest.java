@@ -58,7 +58,6 @@ import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
@@ -167,13 +166,6 @@ class DataSetServiceTest extends TransactionalIntegrationTest
             UserRole.AUTHORITY_ALL );
         injectSecurityContext( superUser );
 
-    }
-
-    @Override
-    public void tearDownTest()
-    {
-        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
-            currentUserService, approvalService, approvalStore, levelService );
     }
 
     // -------------------------------------------------------------------------
