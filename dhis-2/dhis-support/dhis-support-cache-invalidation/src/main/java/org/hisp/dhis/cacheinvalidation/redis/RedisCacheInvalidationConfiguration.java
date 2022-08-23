@@ -124,30 +124,19 @@ public class RedisCacheInvalidationConfiguration
         String host = (String) hostProperty;
         int port = Integer.parseInt( (String) portProperty );
 
-        RedisURI.Builder builder;
+        RedisURI.Builder builder = RedisURI.builder().withHost( host ).withPort( port );
 
         if ( passwordProperty != null )
         {
-            builder = RedisURI.builder().withHost( host ).withPort( port )
-                .withPassword( ((String) passwordProperty).toCharArray() );
-        }
-        else
-        {
-            builder = RedisURI.builder().withHost( host ).withPort( port );
+            builder.withPassword( ((String) passwordProperty).toCharArray() );
         }
 
-        useSsl( sslEnabledProperty, builder );
-
-        return RedisClient.create( clientResources, builder.build() );
-    }
-
-    private static void useSsl( Object sslEnabledProperty, RedisURI.Builder builder )
-    {
         if ( sslEnabledProperty != null )
         {
-            boolean sslEnabled = Boolean.parseBoolean( (String) sslEnabledProperty );
-            builder.withSsl( sslEnabled );
+            builder.withSsl( Boolean.parseBoolean( (String) sslEnabledProperty ) );
         }
+
+        return RedisClient.create( clientResources, builder.build() );
     }
 
     @Bean( destroyMethod = "close", name = "redisConnection" )
