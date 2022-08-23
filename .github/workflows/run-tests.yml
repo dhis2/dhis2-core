@@ -1,4 +1,7 @@
 name: Test
+env:
+  # This is to make sure Maven don't timeout fetching dependencies. See: https://github.com/actions/virtual-environments/issues/1499
+  MAVEN_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=125
 
 on: [ pull_request ]
 concurrency:
@@ -13,23 +16,29 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 11
-
       - name: Cache maven artifacts
         uses: actions/cache@v2
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('pom.xml') }}
           restore-keys: ${{ runner.os }}-maven-
-
       - name: Test core
-        env:
-          MAVEN_BUILD_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=125
-        run: mvn clean install -Pdefault -Pjdk11 --update-snapshots -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty $MAVEN_BUILD_OPTS
-
+        run: mvn --threads 2C clean install -Pdefault -Pjdk11 --update-snapshots -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty
       - name: Test dhis-web
-        env:
-          MAVEN_BUILD_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=125
-        run: mvn clean install -Pdefault -Pjdk11 --update-snapshots -f ./dhis-2/dhis-web/pom.xml $MAVEN_BUILD_OPTS
+        run: mvn --threads 2C clean install -Pdefault -Pjdk11 --update-snapshots -f ./dhis-2/dhis-web/pom.xml
+      - name: Generate surefire aggregate report
+        run: mvn surefire-report:report-only -Daggregate=true --batch-mode --no-transfer-progress -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty
+      # tar due to https://github.com/actions/upload-artifact/blob/3cea5372237819ed00197afe530f5a7ea3e805c8/README.md?plain=1#L254
+      - name: Tar surefire individual reports
+        run: find . -name "surefire-reports" -type d -exec find {} -type f -name "*.xml" -printf '%p\0' \; | tar --null --files-from=- -cvf surefire_reports.tar
+      - name: Archive surefire reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: unit-test-surefire-reports
+          path: |
+            dhis-2/target/site/surefire-report.html
+            surefire_reports.tar
+          retention-days: 5
 
   integration-test:
     runs-on: ubuntu-latest
@@ -39,15 +48,24 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 11
-
       - name: Cache maven artifacts
         uses: actions/cache@v2
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('pom.xml') }}
           restore-keys: ${{ runner.os }}-maven-
-
       - name: Run integration tests
-        env:
-          MAVEN_BUILD_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=125
-        run: mvn clean install -Pintegration -Pjdk11 -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty $MAVEN_BUILD_OPTS
+        run: mvn --threads 2C clean install -Pintegration -Pjdk11 -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty
+      - name: Generate surefire aggregate report
+        run: mvn surefire-report:report-only -Daggregate=true --batch-mode --no-transfer-progress -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty
+      # tar due to https://github.com/actions/upload-artifact/blob/3cea5372237819ed00197afe530f5a7ea3e805c8/README.md?plain=1#L254
+      - name: Tar surefire individual reports
+        run: find . -name "surefire-reports" -type d -exec find {} -type f -name "*.xml" -printf '%p\0' \; | tar --null --files-from=- -cvf surefire_reports.tar
+      - name: Archive surefire reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: integration-test-surefire-reports
+          path: |
+            dhis-2/target/site/surefire-report.html
+            surefire_reports.tar
+          retention-days: 5
