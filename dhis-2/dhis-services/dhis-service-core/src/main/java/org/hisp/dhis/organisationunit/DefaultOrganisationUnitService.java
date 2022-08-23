@@ -60,7 +60,6 @@ import org.hisp.dhis.system.filter.OrganisationUnitPolygonCoveringCoordinateFilt
 import org.hisp.dhis.system.util.GeoUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
@@ -74,7 +73,7 @@ import com.google.common.collect.Sets;
  */
 @Service( "org.hisp.dhis.organisationunit.OrganisationUnitService" )
 public class DefaultOrganisationUnitService
-    implements OrganisationUnitService, CurrentUserServiceTarget
+    implements OrganisationUnitService
 {
     private static final String LEVEL_PREFIX = "Level ";
 
@@ -96,7 +95,7 @@ public class DefaultOrganisationUnitService
 
     private final OrganisationUnitLevelStore organisationUnitLevelStore;
 
-    private CurrentUserService currentUserService;
+    private final CurrentUserService currentUserService;
 
     private final ConfigurationService configurationService;
 
@@ -125,12 +124,6 @@ public class DefaultOrganisationUnitService
         this.inUserOrgUnitSearchHierarchyCache = cacheProvider.createInUserSearchOrgUnitHierarchyCache();
         this.userCaptureOrgCountThresholdCache = cacheProvider.createUserCaptureOrgUnitThresholdCache();
         this.inUserOrgUnitViewHierarchyCache = cacheProvider.createInUserViewOrgUnitHierarchyCache();
-    }
-
-    @Override
-    public void setCurrentUserService( CurrentUserService currentUserService )
-    {
-        this.currentUserService = currentUserService;
     }
 
     // -------------------------------------------------------------------------

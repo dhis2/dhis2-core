@@ -74,7 +74,6 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.context.ApplicationEventPublisher;
@@ -89,7 +88,7 @@ import org.springframework.stereotype.Repository;
 @Repository( "org.hisp.dhis.dataapproval.DataApprovalStore" )
 public class HibernateDataApprovalStore
     extends HibernateGenericStore<DataApproval>
-    implements DataApprovalStore, CurrentUserServiceTarget
+    implements DataApprovalStore
 {
     private static final int MAX_APPROVAL_LEVEL = 100000000;
 
@@ -107,7 +106,7 @@ public class HibernateDataApprovalStore
 
     private final PeriodStore periodStore;
 
-    private CurrentUserService currentUserService;
+    private final CurrentUserService currentUserService;
 
     private final CategoryService categoryService;
 
@@ -142,12 +141,6 @@ public class HibernateDataApprovalStore
         this.statementBuilder = statementBuilder;
         this.isApprovedCache = cacheProvider.createIsDataApprovedCache();
         this.organisationUnitService = organisationUnitService;
-    }
-
-    @Override
-    public void setCurrentUserService( CurrentUserService currentUserService )
-    {
-        this.currentUserService = currentUserService;
     }
 
     // -------------------------------------------------------------------------
