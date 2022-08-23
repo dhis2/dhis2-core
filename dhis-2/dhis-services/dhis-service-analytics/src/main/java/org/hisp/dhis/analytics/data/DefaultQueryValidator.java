@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.data;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.DataQueryParams.COMPLETENESS_DIMENSION_TYPES;
 import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
@@ -39,6 +38,7 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 
 import java.util.List;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.analytics.DataQueryParams;
@@ -65,17 +65,11 @@ import com.google.common.collect.Lists;
  */
 @Slf4j
 @Component( "org.hisp.dhis.analytics.QueryValidator" )
+@RequiredArgsConstructor
 public class DefaultQueryValidator
     implements QueryValidator
 {
     private final SystemSettingManager systemSettingManager;
-
-    public DefaultQueryValidator( SystemSettingManager systemSettingManager )
-    {
-        checkNotNull( systemSettingManager );
-
-        this.systemSettingManager = systemSettingManager;
-    }
 
     // -------------------------------------------------------------------------
     // QueryValidator implementation

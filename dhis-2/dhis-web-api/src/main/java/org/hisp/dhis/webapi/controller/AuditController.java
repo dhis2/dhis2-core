@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.commons.collection.CollectionUtils.emptyIfNull;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
@@ -59,6 +60,7 @@ import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataValueAudit;
+import org.hisp.dhis.datavalue.DataValueAuditQueryParams;
 import org.hisp.dhis.datavalue.DataValueAuditService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
@@ -83,6 +85,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAudit;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditQueryParams;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
@@ -169,7 +172,7 @@ public class AuditController
         @RequestParam( required = false ) List<String> ou,
         @RequestParam( required = false ) String co,
         @RequestParam( required = false ) String cc,
-        @RequestParam( required = false ) AuditType auditType,
+        @RequestParam( required = false ) List<AuditType> auditType,
         @RequestParam( required = false ) Boolean skipPaging,
         @RequestParam( required = false ) Boolean paging,
         @RequestParam( required = false, defaultValue = "50" ) int pageSize,
@@ -189,28 +192,39 @@ public class AuditController
 
         List<Period> periods = getPeriods( pe );
         List<OrganisationUnit> organisationUnits = manager.loadByUid( OrganisationUnit.class, ou );
-        CategoryOptionCombo categoryOptionCombo = manager.load( CategoryOptionCombo.class, co );
-        CategoryOptionCombo attributeOptionCombo = manager.load( CategoryOptionCombo.class, cc );
+        CategoryOptionCombo categoryOptionCombo = manager.get( CategoryOptionCombo.class, co );
+        CategoryOptionCombo attributeOptionCombo = manager.get( CategoryOptionCombo.class, cc );
+        List<AuditType> auditTypes = emptyIfNull( auditType );
+
+        DataValueAuditQueryParams params = new DataValueAuditQueryParams()
+            .setDataElements( dataElements )
+            .setPeriods( periods )
+            .setOrgUnits( organisationUnits )
+            .setCategoryOptionCombo( categoryOptionCombo )
+            .setAttributeOptionCombo( attributeOptionCombo )
+            .setAuditTypes( auditTypes );
 
         List<DataValueAudit> dataValueAudits;
         Pager pager = null;
 
         if ( PagerUtils.isSkipPaging( skipPaging, paging ) )
         {
-            dataValueAudits = dataValueAuditService.getDataValueAudits( dataElements, periods,
-                organisationUnits, categoryOptionCombo, attributeOptionCombo, auditType );
+            dataValueAudits = dataValueAuditService.getDataValueAudits( params );
         }
         else
         {
-            int total = dataValueAuditService.countDataValueAudits( dataElements, periods, organisationUnits,
-                categoryOptionCombo,
-                attributeOptionCombo, auditType );
+            int total = dataValueAuditService.countDataValueAudits( params );
 
             pager = new Pager( page, total, pageSize );
 
-            dataValueAudits = dataValueAuditService.getDataValueAudits( dataElements, periods,
-                organisationUnits, categoryOptionCombo, attributeOptionCombo, auditType, pager.getOffset(),
-                pager.getPageSize() );
+            dataValueAudits = dataValueAuditService.getDataValueAudits( new DataValueAuditQueryParams()
+                .setDataElements( dataElements )
+                .setPeriods( periods )
+                .setOrgUnits( organisationUnits )
+                .setCategoryOptionCombo( categoryOptionCombo )
+                .setAttributeOptionCombo( attributeOptionCombo )
+                .setAuditTypes( auditTypes )
+                .setPager( pager ) );
         }
 
         RootNode rootNode = NodeUtils.createMetadata();
@@ -237,7 +251,7 @@ public class AuditController
         @RequestParam( required = false ) Date startDate,
         @RequestParam( required = false ) Date endDate,
         @RequestParam( required = false ) OrganisationUnitSelectionMode ouMode,
-        @RequestParam( required = false ) AuditType auditType,
+        @RequestParam( required = false ) List<AuditType> auditType,
         @RequestParam( required = false ) Boolean skipPaging,
         @RequestParam( required = false ) Boolean paging,
         @RequestParam( required = false, defaultValue = "50" ) int pageSize,
@@ -255,6 +269,7 @@ public class AuditController
         List<OrganisationUnit> orgUnits = manager.loadByUid( OrganisationUnit.class, ou );
         List<ProgramStage> programStages = manager.loadByUid( ProgramStage.class, ps );
         List<ProgramStageInstance> programStageInstances = manager.loadByUid( ProgramStageInstance.class, psi );
+        List<AuditType> auditTypes = emptyIfNull( auditType );
 
         List<TrackedEntityDataValueAudit> dataValueAudits;
         Pager pager = null;
@@ -267,7 +282,7 @@ public class AuditController
             .setStartDate( startDate )
             .setEndDate( endDate )
             .setOuMode( ouMode )
-            .setAuditType( auditType );
+            .setAuditTypes( auditTypes );
 
         if ( PagerUtils.isSkipPaging( skipPaging, paging ) )
         {
@@ -288,7 +303,7 @@ public class AuditController
                     .setStartDate( startDate )
                     .setEndDate( endDate )
                     .setOuMode( ouMode )
-                    .setAuditType( auditType )
+                    .setAuditTypes( auditTypes )
                     .setPager( pager ) );
         }
 
@@ -312,7 +327,7 @@ public class AuditController
     public RootNode getTrackedEntityAttributeValueAudit(
         @RequestParam( required = false ) List<String> tea,
         @RequestParam( required = false ) List<String> tei,
-        @RequestParam( required = false ) AuditType auditType,
+        @RequestParam( required = false ) List<AuditType> auditType,
         @RequestParam( required = false ) Boolean skipPaging,
         @RequestParam( required = false ) Boolean paging,
         @RequestParam( required = false, defaultValue = "50" ) int pageSize,
@@ -323,24 +338,33 @@ public class AuditController
 
         List<TrackedEntityAttribute> trackedEntityAttributes = manager.loadByUid( TrackedEntityAttribute.class, tea );
         List<TrackedEntityInstance> trackedEntityInstances = manager.loadByUid( TrackedEntityInstance.class, tei );
+        List<AuditType> auditTypes = emptyIfNull( auditType );
 
         List<TrackedEntityAttributeValueAudit> attributeValueAudits;
         Pager pager = null;
 
+        TrackedEntityAttributeValueAuditQueryParams params = new TrackedEntityAttributeValueAuditQueryParams()
+            .setTrackedEntityAttributes( trackedEntityAttributes )
+            .setTrackedEntityInstances( trackedEntityInstances )
+            .setAuditTypes( auditTypes );
+
         if ( PagerUtils.isSkipPaging( skipPaging, paging ) )
         {
-            attributeValueAudits = trackedEntityAttributeValueAuditService.getTrackedEntityAttributeValueAudits(
-                trackedEntityAttributes, trackedEntityInstances, auditType );
+            attributeValueAudits = trackedEntityAttributeValueAuditService
+                .getTrackedEntityAttributeValueAudits( params );
         }
         else
         {
-            int total = trackedEntityAttributeValueAuditService.countTrackedEntityAttributeValueAudits(
-                trackedEntityAttributes, trackedEntityInstances, auditType );
+            int total = trackedEntityAttributeValueAuditService.countTrackedEntityAttributeValueAudits( params );
 
             pager = new Pager( page, total, pageSize );
 
             attributeValueAudits = trackedEntityAttributeValueAuditService.getTrackedEntityAttributeValueAudits(
-                trackedEntityAttributes, trackedEntityInstances, auditType, pager.getOffset(), pager.getPageSize() );
+                new TrackedEntityAttributeValueAuditQueryParams()
+                    .setTrackedEntityAttributes( trackedEntityAttributes )
+                    .setTrackedEntityInstances( trackedEntityInstances )
+                    .setAuditTypes( auditTypes )
+                    .setPager( pager ) );
         }
 
         RootNode rootNode = NodeUtils.createMetadata();
@@ -413,7 +437,7 @@ public class AuditController
     public RootNode getTrackedEnityInstanceAudit(
         @RequestParam( required = false ) List<String> tei,
         @RequestParam( required = false ) List<String> user,
-        @RequestParam( required = false ) AuditType auditType,
+        @RequestParam( required = false ) List<AuditType> auditType,
         @RequestParam( required = false ) Date startDate,
         @RequestParam( required = false ) Date endDate,
         @RequestParam( required = false ) Boolean skipPaging,
@@ -428,28 +452,37 @@ public class AuditController
             fields.addAll( Preset.ALL.getFields() );
         }
 
+        List<AuditType> auditTypes = emptyIfNull( auditType );
+
         TrackedEntityInstanceAuditQueryParams params = new TrackedEntityInstanceAuditQueryParams()
             .setTrackedEntityInstances( tei )
             .setUsers( user )
-            .setAuditType( auditType )
+            .setAuditTypes( auditTypes )
             .setStartDate( startDate )
-            .setEndDate( endDate )
-            .setSkipPaging( PagerUtils.isSkipPaging( skipPaging, paging ) );
+            .setEndDate( endDate );
 
         List<TrackedEntityInstanceAudit> teiAudits;
         Pager pager = null;
 
-        if ( !params.isSkipPaging() )
+        if ( PagerUtils.isSkipPaging( skipPaging, paging ) )
         {
             int total = trackedEntityInstanceAuditService.getTrackedEntityInstanceAuditsCount( params );
 
             pager = new Pager( page, total, pageSize );
 
-            params.setFirst( pager.getOffset() );
-            params.setMax( pager.getPageSize() );
+            teiAudits = trackedEntityInstanceAuditService.getTrackedEntityInstanceAudits( params );
         }
-
-        teiAudits = trackedEntityInstanceAuditService.getTrackedEntityInstanceAudits( params );
+        else
+        {
+            teiAudits = trackedEntityInstanceAuditService.getTrackedEntityInstanceAudits(
+                new TrackedEntityInstanceAuditQueryParams()
+                    .setTrackedEntityInstances( tei )
+                    .setUsers( user )
+                    .setAuditTypes( auditTypes )
+                    .setStartDate( startDate )
+                    .setEndDate( endDate )
+                    .setPager( pager ) );
+        }
 
         RootNode rootNode = NodeUtils.createMetadata();
 
@@ -500,10 +533,8 @@ public class AuditController
             {
                 throw new WebMessageException( conflict( "Illegal period identifier: " + pe ) );
             }
-            else
-            {
-                periods.add( period );
-            }
+
+            periods.add( period );
         }
 
         return periods;

@@ -74,6 +74,14 @@ import com.google.common.collect.Sets;
 public class JdbcCompletenessTargetTableManager
     extends AbstractJdbcTableManager
 {
+    private static final List<AnalyticsTableColumn> FIXED_COLS = ImmutableList.of(
+        new AnalyticsTableColumn( quote( "ouopeningdate" ), DATE, "ou.openingdate" ),
+        new AnalyticsTableColumn( quote( "oucloseddate" ), DATE, "ou.closeddate" ),
+        new AnalyticsTableColumn( quote( "costartdate" ), DATE, "doc.costartdate" ),
+        new AnalyticsTableColumn( quote( "coenddate" ), DATE, "doc.coenddate" ),
+        new AnalyticsTableColumn( quote( "dx" ), CHARACTER_11, NOT_NULL, "ds.uid" ),
+        new AnalyticsTableColumn( quote( "ao" ), CHARACTER_11, NOT_NULL, "ao.uid" ) );
+
     public JdbcCompletenessTargetTableManager( IdentifiableObjectManager idObjectManager,
         OrganisationUnitService organisationUnitService, CategoryService categoryService,
         SystemSettingManager systemSettingManager, DataApprovalLevelService dataApprovalLevelService,
@@ -85,14 +93,6 @@ public class JdbcCompletenessTargetTableManager
             dataApprovalLevelService, resourceTableService, tableHookService, statementBuilder, partitionManager,
             databaseInfo, jdbcTemplate );
     }
-
-    private static final List<AnalyticsTableColumn> FIXED_COLS = ImmutableList.of(
-        new AnalyticsTableColumn( quote( "ouopeningdate" ), DATE, "ou.openingdate" ),
-        new AnalyticsTableColumn( quote( "oucloseddate" ), DATE, "ou.closeddate" ),
-        new AnalyticsTableColumn( quote( "costartdate" ), DATE, "doc.costartdate" ),
-        new AnalyticsTableColumn( quote( "coenddate" ), DATE, "doc.coenddate" ),
-        new AnalyticsTableColumn( quote( "dx" ), CHARACTER_11, NOT_NULL, "ds.uid" ),
-        new AnalyticsTableColumn( quote( "ao" ), CHARACTER_11, NOT_NULL, "ao.uid" ) );
 
     @Override
     public AnalyticsTableType getAnalyticsTableType()

@@ -34,6 +34,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.persistence.Query;
+
 import lombok.extern.slf4j.Slf4j;
 
 import org.hibernate.Cache;
@@ -52,6 +54,12 @@ public class QueryCacheManager
     private final Map<String, Set<String>> regionNameMap = new ConcurrentHashMap<>();
 
     private final HashFunction sessionIdHasher = Hashing.sha256();
+
+    public String getQueryCacheRegionName( Class klass, Query query )
+    {
+        String queryString = query.unwrap( org.hibernate.query.Query.class ).getQueryString();
+        return generateRegionName( klass, queryString );
+    }
 
     public String generateRegionName( Class<?> klass, String queryString )
     {

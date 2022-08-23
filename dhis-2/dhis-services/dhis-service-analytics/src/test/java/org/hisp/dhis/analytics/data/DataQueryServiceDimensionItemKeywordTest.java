@@ -117,11 +117,11 @@ class DataQueryServiceDimensionItemKeywordTest
 
     private DefaultDataQueryService target;
 
-    private final static DataElement DATA_ELEMENT_1 = buildDataElement( "fbfJHSPpUQD", "D1" );
+    private final static DataElement DATA_ELEMENT_1 = getDataElement( "fbfJHSPpUQD", "D1" );
 
-    private final static DataElement DATA_ELEMENT_2 = buildDataElement( "cYeuwXTCPkU", "D2" );
+    private final static DataElement DATA_ELEMENT_2 = getDataElement( "cYeuwXTCPkU", "D2" );
 
-    private final static DataElement DATA_ELEMENT_3 = buildDataElement( "Jtf34kNZhzP", "D3" );
+    private final static DataElement DATA_ELEMENT_3 = getDataElement( "Jtf34kNZhzP", "D3" );
 
     private final static String PERIOD_DIMENSION = "LAST_12_MONTHS;LAST_YEAR";
 
@@ -165,7 +165,7 @@ class DataQueryServiceDimensionItemKeywordTest
         mockDimensionService();
 
         when( organisationUnitService.getOrganisationUnitLevelByLevel( 2 ) )
-            .thenReturn( buildOrgUnitLevel( 2, "level2UID", "District", null ) );
+            .thenReturn( getOrgUnitLevel( 2, "level2UID", "District", null ) );
         when( organisationUnitService.getOrganisationUnitLevelByLevelOrUid( "2" ) ).thenReturn( 2 );
         when( organisationUnitService.getOrganisationUnitsAtLevels( Mockito.anyList(), Mockito.anyList() ) )
             .thenReturn( Lists.newArrayList( new OrganisationUnit(), new OrganisationUnit() ) );
@@ -195,9 +195,9 @@ class DataQueryServiceDimensionItemKeywordTest
         mockDimensionService();
 
         when( organisationUnitService.getOrganisationUnitLevelByLevel( 2 ) )
-            .thenReturn( buildOrgUnitLevel( 2, "level2UID", "District", null ) );
+            .thenReturn( getOrgUnitLevel( 2, "level2UID", "District", null ) );
         when( organisationUnitService.getOrganisationUnitLevelByLevel( 3 ) )
-            .thenReturn( buildOrgUnitLevel( 3, "level3UID", "Chiefdom", null ) );
+            .thenReturn( getOrgUnitLevel( 3, "level3UID", "Chiefdom", null ) );
         when( organisationUnitService.getOrganisationUnitLevelByLevelOrUid( "3" ) )
             .thenReturn( 3 );
         when( organisationUnitService.getOrganisationUnitLevelByLevelOrUid( "2" ) )
@@ -320,7 +320,7 @@ class DataQueryServiceDimensionItemKeywordTest
             Mockito.anyList() ) ).thenReturn( Lists.newArrayList( level2OuA, level2OuB ) );
 
         when( organisationUnitService.getOrganisationUnitLevelByLevel( 2 ) )
-            .thenReturn( buildOrgUnitLevel( 2, "level2UID", "District", null ) );
+            .thenReturn( getOrgUnitLevel( 2, "level2UID", "District", null ) );
 
         rb.addOuFilter( "LEVEL-wjP19dkFeIk;ImspTQPwCqd" );
         rb.addDimension( concatenateUuid( DATA_ELEMENT_1, DATA_ELEMENT_2, DATA_ELEMENT_3 ) );
@@ -366,7 +366,7 @@ class DataQueryServiceDimensionItemKeywordTest
             Mockito.anyList() ) ).thenReturn( Lists.newArrayList( level2OuA, level2OuB ) );
 
         when( organisationUnitService.getOrganisationUnitLevelByLevel( 2 ) )
-            .thenReturn( buildOrgUnitLevel( 2, "level2UID", "District", null ) );
+            .thenReturn( getOrgUnitLevel( 2, "level2UID", "District", null ) );
 
         when( organisationUnitService.getOrganisationUnits( Lists.newArrayList( groupOu ),
             Lists.newArrayList( rootOu ) ) )
@@ -585,7 +585,7 @@ class DataQueryServiceDimensionItemKeywordTest
     private void initOrgUnitGroup( String ouGroupUID )
     {
         when( idObjectManager.getObject( OrganisationUnitGroup.class, UID, ouGroupUID ) )
-            .thenReturn( buildOrganizationalUnitGroup( ouGroupUID, "Chiefdom", "CODE_001" ) );
+            .thenReturn( getOrgUnitGroup( ouGroupUID, "Chiefdom", "CODE_001" ) );
         when( idObjectManager.getObject( OrganisationUnit.class, UID, this.rootOu.getUid() ) )
             .thenReturn( rootOu );
         when( organisationUnitService.getOrganisationUnits( Mockito.anyList(), Mockito.anyList() ) )
@@ -606,7 +606,7 @@ class DataQueryServiceDimensionItemKeywordTest
         assertEquals( rootOu.getCode(), keywords.getKeyword( rootOu.getUid() ).getMetadataItem().getCode() );
     }
 
-    private OrganisationUnitLevel buildOrgUnitLevel( int level, String uid, String name, String code )
+    private OrganisationUnitLevel getOrgUnitLevel( int level, String uid, String name, String code )
     {
 
         OrganisationUnitLevel oul = new OrganisationUnitLevel( level, name );
@@ -615,15 +615,14 @@ class DataQueryServiceDimensionItemKeywordTest
         return oul;
     }
 
-    private static DataElement buildDataElement( String uid, String name )
+    private static DataElement getDataElement( String uid, String name )
     {
-
         DataElement d = new DataElement( name );
         d.setUid( uid );
         return d;
     }
 
-    private OrganisationUnitGroup buildOrganizationalUnitGroup( String uid, String name, String code )
+    private OrganisationUnitGroup getOrgUnitGroup( String uid, String name, String code )
     {
         OrganisationUnitGroup oug = new OrganisationUnitGroup( name );
         oug.setUid( uid );

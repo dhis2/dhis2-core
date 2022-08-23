@@ -54,7 +54,7 @@ public class SupplementaryDataProvider
     private static final String USER = "USER";
 
     private static final String REGEX = "d2:inOrgUnitGroup\\( *(([\\d/\\*\\+\\-%\\. ]+)|" +
-        "( *'[^']*'))*( *, *(([\\d/\\*\\+\\-%\\. ]+)|'[^']*'))* *\\)";
+        "( *'[^']*'))*+( *, *(([\\d/\\*\\+\\-%\\. ]+)|'[^']*'))*+ *\\)";
 
     private static final Pattern PATTERN = Pattern.compile( REGEX );
 

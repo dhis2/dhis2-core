@@ -36,7 +36,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.analytics.AnalyticsIndex;
@@ -60,7 +60,7 @@ import org.hisp.dhis.system.util.Clock;
  * @author Lars Helge Overland
  */
 @Slf4j
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DefaultAnalyticsTableService
     implements AnalyticsTableService
 {
@@ -177,11 +177,7 @@ public class DefaultAnalyticsTableService
     {
         Set<String> tables = tableManager.getExistingDatabaseTables();
 
-        // The filter is a quick fix to not drop `analyticsdataexchange`
-        // that is not part of the analytics table.
-        // It was getting drop only because of the name.
         tables.stream()
-            .filter( tableName -> !"analyticsdataexchange".equals( tableName ) )
             .forEach( tableManager::dropTableCascade );
 
         log.info( "Analytics tables dropped" );

@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.data.handler;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.ImmutableMap.copyOf;
 import static java.util.stream.Collectors.toMap;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.DIMENSIONS;
@@ -53,6 +52,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.calendar.Calendar;
@@ -68,27 +69,19 @@ import com.google.common.collect.Sets;
  * Component that populates the Grid metadata.
  */
 @Component
+@RequiredArgsConstructor
 public class MetadataHandler
 {
-    final DataQueryService dataQueryService;
+    private final DataQueryService dataQueryService;
 
-    final SchemaIdResponseMapper schemaIdResponseMapper;
-
-    public MetadataHandler( DataQueryService dataQueryService, SchemaIdResponseMapper schemaIdResponseMapper )
-    {
-        checkNotNull( dataQueryService );
-        checkNotNull( schemaIdResponseMapper );
-
-        this.dataQueryService = dataQueryService;
-        this.schemaIdResponseMapper = schemaIdResponseMapper;
-    }
+    private final SchemaIdResponseMapper schemaIdResponseMapper;
 
     /**
      * Adds meta data values to the given grid based on the given data query
      * parameters.
      *
      * @param params the {@link DataQueryParams}.
-     * @param grid the grid.
+     * @param the {@link Grid}.
      */
     void addMetaData( DataQueryParams params, Grid grid )
     {
@@ -164,7 +157,7 @@ public class MetadataHandler
      * the output format is of type DATA_VALUE_SET.
      *
      * @param params the {@link DataQueryParams}.
-     * @param grid the grid.
+     * @param the {@link Grid}.
      */
     void handleDataValueSet( DataQueryParams params, Grid grid )
     {
@@ -179,7 +172,7 @@ public class MetadataHandler
      * data property indicated in the query.
      *
      * @param params the {@link DataQueryParams}.
-     * @param grid the grid.
+     * @param the {@link Grid}.
      */
     void applyIdScheme( DataQueryParams params, Grid grid )
     {
@@ -187,7 +180,6 @@ public class MetadataHandler
         {
             if ( params.hasCustomIdSchemaSet() )
             {
-                // Apply all schemas set/mapped to the grid.
                 grid.substituteMetaData( schemaIdResponseMapper.getSchemeIdResponseMap( params ) );
             }
         }

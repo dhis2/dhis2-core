@@ -64,7 +64,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 class EventTimeFieldSqlRenderer extends TimeFieldSqlRenderer
 {
-
     private final StatementBuilder statementBuilder;
 
     @Getter

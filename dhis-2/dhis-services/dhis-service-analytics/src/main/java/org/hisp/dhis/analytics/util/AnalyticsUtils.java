@@ -37,6 +37,7 @@ import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.QUERY_MODS_ID_SEPARATOR;
 import static org.hisp.dhis.dataelement.DataElementOperand.TotalType;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
+import static org.hisp.dhis.system.util.MathUtils.getRounded;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 import static org.springframework.util.Assert.isTrue;
 
@@ -93,7 +94,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.grid.ListGrid;
-import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.util.DateUtils;
 import org.joda.time.DateTime;
 import org.springframework.util.Assert;
@@ -119,8 +119,8 @@ public class AnalyticsUtils
      * Returns an SQL statement for retrieving raw data values for an aggregate
      * query.
      *
-     * @param params the data query parameters.
-     * @return an SQL statement.
+     * @param params the {@link DataQueryParams}.
+     * @return a SQL statement.
      */
     public static String getDebugDataSql( DataQueryParams params )
     {
@@ -240,16 +240,21 @@ public class AnalyticsUtils
         }
         else
         {
-            return MathUtils.getRounded( value );
+            return getRounded( value );
         }
     }
 
     /**
      * Rounds a value. If the given parameters has skip rounding, the value is
-     * returned unchanged. If the given number is null or not of class Double,
+     * returned unchanged. If the given number is null or not of type Double,
      * the value is returned unchanged. If skip rounding is specified in the
-     * given data query parameters, 10 decimals is used. Otherwise, default
+     * given {@link DataQueryParams}, 10 decimals is used. Otherwise, default
      * rounding is used.
+     *
+     * If the given value is of type Double and ends with one or more decimal
+     * "0" (ie.: "125.0", "2355.000", etc.) a long value will be returned,
+     * forcing the removal of all decimal "0". The resulting value for the
+     * previous example would be, respectively, "125" and "2355".
      *
      * @param params the query parameters.
      * @param value the value.
@@ -266,7 +271,34 @@ public class AnalyticsUtils
             return Precision.round( (Double) value, DECIMALS_NO_ROUNDING );
         }
 
-        return MathUtils.getRounded( (Double) value );
+        final Double rounded = getRounded( (Double) value );
+
+        if ( endsWithZeroAsDecimal( rounded ) )
+        {
+            return rounded.longValue();
+        }
+
+        return rounded;
+    }
+
+    /**
+     * This method simply checks if the given double value (positive or
+     * negative) has one or more "0" as decimal digits. ie.:
+     *
+     * <pre>
+     * {@code
+     * 25.0 -> true
+     * -232.0000 -> true
+     * 133.25 -> false
+     * -1045.00000001 -> false
+     * }</code>
+     *
+     * @param value
+     * @return true if the value has "0" as decimal digits, false otherwise
+     */
+    public static boolean endsWithZeroAsDecimal( final double value )
+    {
+        return ((value * 10) % 10 == 0);
     }
 
     /**
@@ -275,6 +307,7 @@ public class AnalyticsUtils
      *
      * @param valueType the value type to represent as database column type.
      * @param spatialSupport indicates whether spatial data types are enabled.
+     * @return the {@link ColumnDataType}.
      */
     public static ColumnDataType getColumnType( ValueType valueType, boolean spatialSupport )
     {
@@ -385,7 +418,7 @@ public class AnalyticsUtils
      * the value is the corresponding aggregated data value based on the given
      * grid. Assumes that the value column is the last column in the grid.
      *
-     * @param grid the grid.
+     * @param grid the {@link Grid}.
      * @return a mapping between item identifiers and aggregated values.
      */
     public static Map<String, Object> getAggregatedDataValueMapping( Grid grid )
@@ -418,9 +451,9 @@ public class AnalyticsUtils
      * Generates a data value set based on the given grid with aggregated data.
      * Sets the created and last updated fields to the current date.
      *
-     * @param params the data query parameters.
-     * @param grid the grid.
-     * @return a data value set.
+     * @param params the {@link DataQueryParams}.
+     * @param grid the {@link Grid}.
+     * @return a {@link DataValueSet}.
      */
     public static DataValueSet getDataValueSet( DataQueryParams params, Grid grid )
     {
@@ -471,7 +504,7 @@ public class AnalyticsUtils
      * aggregated data. Sets the created and last updated fields to the current
      * date.
      *
-     * @param grid the grid.
+     * @param grid the {@link Grid}.
      * @return a data value set.
      */
     public static Grid getDataValueSetAsGrid( Grid grid )
@@ -553,7 +586,7 @@ public class AnalyticsUtils
      * combo column.</li>
      * </ul>
      *
-     * @param params the data query parameters.
+     * @param params the {@link DataQueryParams}.
      * @param grid the grid.
      */
     public static void handleGridForDataValueSet( DataQueryParams params, Grid grid )
@@ -617,7 +650,7 @@ public class AnalyticsUtils
      *
      * @param value the value.
      * @param item the dimensional item object.
-     * @return an object, double or integer depending on the given arguments.
+     * @return an double or integer depending on the given arguments.
      */
     public static Object getIntegerOrValue( Object value, DimensionalItemObject item )
     {
@@ -654,7 +687,7 @@ public class AnalyticsUtils
      * Returns a mapping between dimension item identifiers and dimensional item
      * object for the given query.
      *
-     * @param params the data query parameters.
+     * @param params the {@link DataQueryParams}.
      * @return a mapping between identifiers and names.
      */
     public static Map<String, DimensionalItemObject> getDimensionalItemObjectMap( DataQueryParams params )
@@ -674,7 +707,7 @@ public class AnalyticsUtils
     /**
      * Returns a mapping between identifiers and names for the given query.
      *
-     * @param params the data query parameters.
+     * @param params the {@link DataQueryParams}.
      * @return a mapping between identifiers and names.
      */
     public static Map<String, String> getDimensionItemNameMap( DataQueryParams params )
@@ -721,7 +754,7 @@ public class AnalyticsUtils
      * Returns a mapping between identifiers and meta data items for the given
      * query.
      *
-     * @param params the data query parameters.
+     * @param params the {@link DataQueryParams}.
      * @return a mapping between identifiers and meta data items.
      */
     public static Map<String, MetadataItem> getDimensionMetadataItemMap( DataQueryParams params )
@@ -827,7 +860,7 @@ public class AnalyticsUtils
      * Returns a mapping between the category option combo identifiers and names
      * for the given query.
      *
-     * @param params the data query parameters.
+     * @param params the {@link DataQueryParams}.
      * @return a mapping between identifiers and names.
      */
     public static Map<String, String> getCocNameMap( DataQueryParams params )
@@ -853,8 +886,8 @@ public class AnalyticsUtils
      * Returns a mapping between identifiers and display properties for the
      * given list of query items.
      *
-     * @param queryItems the list of query items.
-     * @param displayProperty the display property to use.
+     * @param queryItems the list of {@link QueryItem}.
+     * @param displayProperty the {@link DisplayProperty} to use.
      * @return a mapping between identifiers and display properties.
      */
     public static Map<String, String> getUidDisplayPropertyMap( List<QueryItem> queryItems,
@@ -874,7 +907,7 @@ public class AnalyticsUtils
      * Returns a mapping between identifiers and display properties for the
      * given list of dimensions.
      *
-     * @param dimensions the dimensions.
+     * @param dimensions the list of {@link DimensionalObject}.
      * @param hierarchyMeta indicates whether to include meta data about the
      *        organisation unit hierarchy.
      * @return a mapping between identifiers and display properties.
@@ -990,8 +1023,8 @@ public class AnalyticsUtils
      * Throws an {@link IllegalQueryException} using the given
      * {@link ErrorCode}.
      *
-     * @param errorCode the error code.
-     * @param args the arguments to provide to the error message.
+     * @param errorCode the {@link ErrorCode}.
+     * @param args the arguments to provide to the error code message.
      */
     public static void throwIllegalQueryEx( ErrorCode errorCode, Object... args )
     {
@@ -999,12 +1032,12 @@ public class AnalyticsUtils
     }
 
     /**
-     * Checks of the given Period string (iso) matches at least one Periods in
-     * the given list
+     * Checks of the given ISO period string matches at least one period in the
+     * given list.
      *
-     * @param period a Period as iso date String (e.g. 202001 for Jan 2020)
-     * @param periods a List of DimensionalItemObject of type Period
-     * @return true, if the Period is found in the list
+     * @param period the ISO period string.
+     * @param periods a list of {@link DimensionalItemObject} of type period.
+     * @return true if the period exists in the given list.
      */
     public static boolean isPeriodInPeriods( String period, List<DimensionalItemObject> periods )
     {
@@ -1013,13 +1046,13 @@ public class AnalyticsUtils
     }
 
     /**
-     * Filters a List by Dimensional Item Object identifier and returns one ore
-     * more {@see DimensionalItemObject} matching the given identifier
+     * Filters a list of {@link DimensionalItemObject} and returns one ore more
+     * {@link DimensionalItemObject} matching the given identifier.
      *
-     * @param dimensionIdentifier uid to filter {@see DimensionalItemObject} on
-     * @param items the filtered List
-     * @return a List only containing the {@see DimensionalItemObject} matching
-     *         the uid
+     * @param dimensionIdentifier the identifier to match.
+     * @param items the list of {@link DimensionalItemObject} to filter.
+     * @return a list containing the {@link DimensionalItemObject} matching the
+     *         given identifier.
      */
     public static List<DimensionalItemObject> findDimensionalItems( String dimensionIdentifier,
         List<DimensionalItemObject> items )
@@ -1031,12 +1064,12 @@ public class AnalyticsUtils
     }
 
     /**
-     * Check if the given Grid's row contains a valid period iso string
+     * Check if the given grid row contains a valid period ISO string.
      *
-     * @param row the row as List of Object
-     * @param periodIndex the index in which the period is located
-     * @return true, if the rows contains a valid period iso string at the given
-     *         index
+     * @param row the grid row represented as a list of objects.
+     * @param periodIndex the index at which the period is located.
+     * @return true if the rows contains a valid period ISO string at the given
+     *         index.
      */
     public static boolean hasPeriod( List<Object> row, int periodIndex )
     {

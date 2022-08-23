@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.data.handler;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.DataQueryParams.DX_INDEX;
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
 import static org.hisp.dhis.analytics.DataQueryParams.newBuilder;
@@ -37,6 +36,8 @@ import static org.hisp.dhis.analytics.SortOrder.ASC;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 
 import javax.annotation.PostConstruct;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.common.DimensionalObject;
@@ -49,6 +50,7 @@ import org.springframework.stereotype.Component;
  * handlers, into the Grid object
  */
 @Component
+@RequiredArgsConstructor
 public class DataAggregator
 {
     private final HeaderHandler headerHandler;
@@ -56,17 +58,6 @@ public class DataAggregator
     private final MetadataHandler metaDataHandler;
 
     private final DataHandler dataHandler;
-
-    public DataAggregator( HeaderHandler headerHandler, MetadataHandler metadataHandler, DataHandler dataHandler )
-    {
-        checkNotNull( headerHandler );
-        checkNotNull( metadataHandler );
-        checkNotNull( dataHandler );
-
-        this.headerHandler = headerHandler;
-        this.metaDataHandler = metadataHandler;
-        this.dataHandler = dataHandler;
-    }
 
     /**
      * Returns a grid with aggregated data.
@@ -178,7 +169,7 @@ public class DataAggregator
      * value column based on the sorting specified.
      *
      * @param params the {@link DataQueryParams}.
-     * @param grid the grid.
+     * @param the {@link Grid}.
      */
     private void postHandleGrid( DataQueryParams params, Grid grid )
     {

@@ -43,6 +43,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.input.NullInputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
@@ -159,6 +160,13 @@ public class FileResourceUtils
         throws WebMessageException,
         IOException
     {
+        return saveFileResource( null, file, domain );
+    }
+
+    public FileResource saveFileResource( String uid, MultipartFile file, FileResourceDomain domain )
+        throws WebMessageException,
+        IOException
+    {
         String filename = StringUtils.defaultIfBlank( FilenameUtils.getName( file.getOriginalFilename() ),
             FileResource.DEFAULT_FILENAME );
 
@@ -181,11 +189,15 @@ public class FileResourceUtils
         String contentMd5 = bytes.hash( Hashing.md5() ).toString();
 
         FileResource fileResource = new FileResource( filename, contentType, contentLength, contentMd5, domain );
+        fileResource.setUid( uid );
 
         File tmpFile = toTempFile( file );
 
+        if ( uid != null && fileResourceService.fileResourceExists( uid ) )
+        {
+            throw new WebMessageException( conflict( ErrorCode.E1119, FileResource.class.getSimpleName(), uid ) );
+        }
         fileResourceService.saveFileResource( fileResource, tmpFile );
-
         return fileResource;
     }
 

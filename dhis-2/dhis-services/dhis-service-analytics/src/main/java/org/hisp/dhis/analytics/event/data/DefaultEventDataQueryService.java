@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_CREATED_BY_DISPLAY_NAME;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_ENROLLMENT_DATE;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_EVENT_DATE;
@@ -71,6 +70,7 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.EventAnalyticalObject;
 import org.hisp.dhis.common.EventDataQueryRequest;
+import org.hisp.dhis.common.FallbackCoordinateFieldType;
 import org.hisp.dhis.common.GroupableItem;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -86,11 +86,9 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.legend.LegendSetService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
@@ -105,6 +103,7 @@ import com.google.common.base.MoreObjects;
  * @author Lars Helge Overland
  */
 @Service( "org.hisp.dhis.analytics.event.EventDataQueryService" )
+@RequiredArgsConstructor
 public class DefaultEventDataQueryService
     implements EventDataQueryService
 {
@@ -133,30 +132,6 @@ public class DefaultEventDataQueryService
     private final DataQueryService dataQueryService;
 
     private final I18nManager i18nManager;
-
-    public DefaultEventDataQueryService( ProgramService programService, ProgramStageService programStageService,
-        DataElementService dataElementService, QueryItemLocator queryItemLocator,
-        TrackedEntityAttributeService attributeService, ProgramIndicatorService programIndicatorService,
-        LegendSetService legendSetService, DataQueryService dataQueryService, I18nManager i18nManager )
-    {
-        checkNotNull( programService );
-        checkNotNull( programStageService );
-        checkNotNull( dataElementService );
-        checkNotNull( attributeService );
-        checkNotNull( programIndicatorService );
-        checkNotNull( queryItemLocator );
-        checkNotNull( legendSetService );
-        checkNotNull( dataQueryService );
-        checkNotNull( i18nManager );
-
-        this.programService = programService;
-        this.programStageService = programStageService;
-        this.dataElementService = dataElementService;
-        this.attributeService = attributeService;
-        this.queryItemLocator = queryItemLocator;
-        this.dataQueryService = dataQueryService;
-        this.i18nManager = i18nManager;
-    }
 
     @Override
     public EventQueryParams getFromRequest( EventDataQueryRequest request )
@@ -228,7 +203,8 @@ public class DefaultEventDataQueryService
             .withTimeField( request.getTimeField() )
             .withOrgUnitField( request.getOrgUnitField() )
             .withCoordinateField( getCoordinateField( request.getCoordinateField() ) )
-            .withFallbackCoordinateField( getFallbackCoordinateField( request.getFallbackCoordinateField() ) )
+            .withFallbackCoordinateField(
+                getFallbackCoordinateField( request.getFallbackCoordinateField(), request.getProgram() ) )
             .withHeaders( request.getHeaders() )
             .withPage( request.getPage() )
             .withPageSize( request.getPageSize() )
@@ -435,14 +411,45 @@ public class DefaultEventDataQueryService
     }
 
     @Override
-    public String getFallbackCoordinateField( String fallbackCoordinateField )
+    public String getFallbackCoordinateField( String fallbackCoordinateField, String program )
     {
-        return fallbackCoordinateField == null ? "ougeometry" : fallbackCoordinateField;
+        if ( FallbackCoordinateFieldType.TEI_GEOMETRY.getValue().equals( fallbackCoordinateField )
+            && !programService.getProgram( program ).isRegistration() )
+        {
+            return getDefaultFallbackCoordinateFields( program );
+        }
+
+        return fallbackCoordinateField != null ? fallbackCoordinateField
+            : getDefaultFallbackCoordinateFields( program );
     }
 
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
+
+    private String getDefaultFallbackCoordinateFields( String program )
+    {
+        Program prg = programService.getProgram( program );
+
+        if ( prg != null && prg.isRegistration() )
+        {
+            return String.join( ",", List.of(
+                // fallback priority
+                FallbackCoordinateFieldType.PSI_GEOMETRY.getValue(),
+                FallbackCoordinateFieldType.PI_GEOMETRY.getValue(),
+                // only present for registration programs
+                FallbackCoordinateFieldType.TEI_GEOMETRY.getValue(),
+                FallbackCoordinateFieldType.OU_GEOMETRY.getValue() ) );
+        }
+        else
+        {
+            return String.join( ",", List.of(
+                // fallback priority
+                FallbackCoordinateFieldType.PSI_GEOMETRY.getValue(),
+                FallbackCoordinateFieldType.PI_GEOMETRY.getValue(),
+                FallbackCoordinateFieldType.OU_GEOMETRY.getValue() ) );
+        }
+    }
 
     private String getCoordinateField( String coordinateField, String defaultEventCoordinateField )
     {
