@@ -38,6 +38,7 @@ import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.SimpleCacheBuilder;
@@ -170,6 +171,19 @@ public abstract class PeriodType
     public static List<PeriodType> getAvailablePeriodTypes()
     {
         return new ArrayList<>( PERIOD_TYPES );
+    }
+
+    /**
+     * Returns an immutable list of the names of all period types in their
+     * natural order.
+     *
+     * @return an immutable list of the names of all period types.
+     */
+    public static List<String> getAvailablePeriodTypeNames()
+    {
+        return List.copyOf( PERIOD_TYPES.stream()
+            .map( PeriodType::getName )
+            .collect( Collectors.toList() ) );
     }
 
     /**
