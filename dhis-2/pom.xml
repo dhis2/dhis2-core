@@ -151,7 +151,7 @@
     <aerogear-otp-java.version>1.0.0</aerogear-otp-java.version>
     <jsmpp.version>3.0.0</jsmpp.version>
     <json-path.version>2.7.0</json-path.version>
-    <jsoup.version>1.15.2</jsoup.version>
+    <jsoup.version>1.15.3</jsoup.version>
     <jetty.version>10.0.11</jetty.version>
 
     <!-- Div. utils -->
