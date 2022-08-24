@@ -118,11 +118,25 @@ public class RedisCacheInvalidationConfiguration
             throw new IllegalArgumentException( "Redis host/port configuration properties is not set" );
         }
 
+        Object passwordProperty = redisPassword().getObject();
+        Object sslEnabledProperty = redisSslEnabled().getObject();
+
         String host = (String) hostProperty;
         int port = Integer.parseInt( (String) portProperty );
 
-        return RedisClient.create( clientResources,
-            RedisURI.create( host, port ) );
+        RedisURI.Builder builder = RedisURI.builder().withHost( host ).withPort( port );
+
+        if ( passwordProperty != null )
+        {
+            builder.withPassword( ((String) passwordProperty).toCharArray() );
+        }
+
+        if ( sslEnabledProperty != null )
+        {
+            builder.withSsl( Boolean.parseBoolean( (String) sslEnabledProperty ) );
+        }
+
+        return RedisClient.create( clientResources, builder.build() );
     }
 
     @Bean( destroyMethod = "close", name = "redisConnection" )

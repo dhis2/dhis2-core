@@ -25,46 +25,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation.hooks;
+package org.hisp.dhis.common;
 
-import java.util.Optional;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.domain.RelationshipItem;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * @author Enrico Colasante
+ * @author Jan Bernitt
  */
-public class RelationshipValidationUtils
+@Getter
+@AllArgsConstructor
+public final class GridResponse
 {
+    @JsonProperty
+    private final Pager pager;
 
-    private RelationshipValidationUtils()
-    {
-        throw new IllegalStateException( "Utility class" );
-    }
-
-    public static TrackerType relationshipItemValueType( RelationshipItem item )
-    {
-        if ( StringUtils.isNotEmpty( item.getTrackedEntity() ) )
-        {
-            return TrackerType.TRACKED_ENTITY;
-        }
-        else if ( StringUtils.isNotEmpty( item.getEnrollment() ) )
-        {
-            return TrackerType.ENROLLMENT;
-        }
-        else if ( StringUtils.isNotEmpty( item.getEvent() ) )
-        {
-            return TrackerType.EVENT;
-        }
-        return null;
-    }
-
-    public static Optional<String> getUidFromRelationshipItem( RelationshipItem item )
-    {
-        return Optional
-            .ofNullable( ObjectUtils.firstNonNull( item.getTrackedEntity(), item.getEnrollment(), item.getEvent() ) );
-    }
+    @JsonProperty
+    private final Grid listGrid;
 }

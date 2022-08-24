@@ -71,9 +71,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class MetadataIdentifier
 {
 
-    public static MetadataIdentifier EMPTY_UID = MetadataIdentifier.ofUid( (String) null );
+    public static final MetadataIdentifier EMPTY_UID = MetadataIdentifier.ofUid( (String) null );
 
-    public static MetadataIdentifier EMPTY_CODE = MetadataIdentifier.ofCode( (String) null );
+    public static final MetadataIdentifier EMPTY_CODE = MetadataIdentifier.ofCode( (String) null );
 
     public static final MetadataIdentifier EMPTY_NAME = MetadataIdentifier.ofName( (String) null );
 
@@ -85,9 +85,9 @@ public class MetadataIdentifier
 
     /**
      * Represents the actual identifier of the metadata. UID for idScheme
-     * {@code UID} and {@code ATTRIBUTE} in which case its the UID of the
+     * {@code UID} and {@code ATTRIBUTE} in which case it's the UID of the
      * metadata attribute, code and name respectively.
-     *
+     * <p>
      * <strong>CAUTION:</strong> when using the {@code identifier} directly. You
      * loose the context of which idScheme it is in, which was the source of
      * many bugs. If you are doing equality comparisons use
