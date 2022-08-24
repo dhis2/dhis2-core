@@ -51,7 +51,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -83,15 +82,9 @@ class EventQueryValidatorTest extends DhisConvenienceTest
 
     private DataElement deE;
 
-    private TrackedEntityAttribute atA;
-
-    private TrackedEntityAttribute atB;
-
     private OrganisationUnit ouA;
 
     private OrganisationUnit ouB;
-
-    private OrganisationUnit ouC;
 
     private LegendSet lsA;
 
@@ -120,12 +113,8 @@ class EventQueryValidatorTest extends DhisConvenienceTest
             DataElementDomain.TRACKER );
         deE = createDataElement( 'E', ValueType.COORDINATE, AggregationType.NONE, DataElementDomain.TRACKER );
 
-        atA = createTrackedEntityAttribute( 'A' );
-        atB = createTrackedEntityAttribute( 'B' );
-
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B', ouA );
-        ouC = createOrganisationUnit( 'C', ouA );
 
         lsA = createLegendSet( 'A' );
 

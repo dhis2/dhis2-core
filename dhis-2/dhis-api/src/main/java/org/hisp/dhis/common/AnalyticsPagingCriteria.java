@@ -31,10 +31,9 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * This class contains all the paging criteria that can be used to execute a
- * DHIS2 analytics query using the AnalyticsController
+ * This class contains paging criteria that can be used to execute an analytics
+ * query.
  */
-
 @Getter
 @Setter
 public class AnalyticsPagingCriteria extends RequestTypeAware
@@ -51,26 +50,35 @@ public class AnalyticsPagingCriteria extends RequestTypeAware
 
     /**
      * The paging parameter. When set to false we should not paginate. The
-     * default is true (always paginate).
+     * default is true (paginate).
      */
     private boolean paging = true;
 
     /**
      * The paging parameter. When set to false we should not count total pages.
-     * The default is true (always total pages flag activated).
+     * The default is true (count total pages).
      */
     private boolean totalPages = true;
 
-    public void definePageSize( int analyticsMaxLimit )
+    /**
+     * Sets the page size, taking the configurable max records limit into
+     * account. Note that a value of 0 represents unlimited records.
+     *
+     * @param maxLimit the max limit as defined in the system setting
+     *        'ANALYTICS_MAX_LIMIT'.
+     */
+    public void definePageSize( int maxLimit )
     {
         if ( isPaging() )
         {
-            setPageSize(
-                getPageSize() != null && getPageSize() > analyticsMaxLimit ? analyticsMaxLimit : getPageSize() );
+            if ( getPageSize() != null && maxLimit > 0 && getPageSize() > maxLimit )
+            {
+                setPageSize( maxLimit );
+            }
         }
         else
         {
-            setPageSize( analyticsMaxLimit );
+            setPageSize( maxLimit );
         }
     }
 }

@@ -43,8 +43,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
@@ -75,9 +73,6 @@ class DataApprovalStoreUserTest extends IntegrationTestBase
 
     @Autowired
     protected DataSetService dataSetService;
-
-    @Autowired
-    protected CurrentUserService currentUserService;
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
@@ -148,13 +143,6 @@ class DataApprovalStoreUserTest extends IntegrationTestBase
 
         currentUser = createAndAddUser( true, "username", newHashSet( orgUnitA ), newHashSet( orgUnitA ) );
         injectSecurityContext( currentUser );
-    }
-
-    @Override
-    public void tearDownTest()
-    {
-        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
-            currentUserService, dataApprovalStore, dataApprovalLevelService );
     }
 
     // -------------------------------------------------------------------------

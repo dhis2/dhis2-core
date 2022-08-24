@@ -229,7 +229,7 @@ public class DataQueryParams
     protected Map<MeasureFilter, Double> preAggregateMeasureCriteria = new HashMap<>();
 
     /**
-     * Indicates if the meta data part of the query response should be omitted.
+     * Indicates if the metadata part of the query response should be omitted.
      */
     protected boolean skipMeta;
 

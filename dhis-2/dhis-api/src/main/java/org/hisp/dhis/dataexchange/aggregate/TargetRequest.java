@@ -43,15 +43,27 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class TargetRequest
     implements Serializable
 {
+    /**
+     * Data element identifier scheme.
+     */
     @JsonProperty
     private String dataElementIdScheme;
 
+    /**
+     * Org unit identifier scheme.
+     */
     @JsonProperty
     private String orgUnitIdScheme;
 
+    /**
+     * Category option combination identifier scheme.
+     */
     @JsonProperty
     private String categoryOptionComboIdScheme;
 
+    /**
+     * General identifier scheme.
+     */
     @JsonProperty
     private String idScheme;
 }

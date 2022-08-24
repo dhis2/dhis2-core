@@ -42,7 +42,7 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
 import static org.hisp.dhis.common.QueryOperator.EQ;
 import static org.hisp.dhis.common.QueryOperator.IN;
-import static org.hisp.dhis.common.QueryOperator.NE;
+import static org.hisp.dhis.common.QueryOperator.NEQ;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -95,7 +95,6 @@ import com.google.common.collect.ImmutableList;
 class EnrollmentAnalyticsManagerTest extends
     EventAnalyticsTest
 {
-
     private JdbcEnrollmentAnalyticsManager subject;
 
     @Mock
@@ -284,7 +283,7 @@ class EnrollmentAnalyticsManagerTest extends
     }
 
     @Test
-    void verifyGetEnrollmentsWithMissingValueNeFilter()
+    void verifyGetEnrollmentsWithMissingValueNeqFilter()
     {
         String subSelect = "(select \"fWIAEtYVEGk\" from analytics_event_" + programA.getUid()
             + " where analytics_event_"
@@ -292,7 +291,7 @@ class EnrollmentAnalyticsManagerTest extends
             + programStage.getUid() + "' order by executiondate desc limit 1 )";
 
         String expected = subSelect + " is not null";
-        testIt( NE, NV, Collections.singleton(
+        testIt( NEQ, NV, Collections.singleton(
             ( capturedSql ) -> assertThat( capturedSql, containsString( expected ) ) ) );
     }
 

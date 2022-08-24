@@ -33,8 +33,8 @@ import org.hisp.dhis.program.Program;
 
 /**
  * This class is responsible for parsing a String containing a dimension
- * definition and returning a {@see QueryItem} containing the element matching
- * the dimension
+ * definition and returning a {@link QueryItem} containing the element matching
+ * the dimension.
  *
  * @author Luciano Fiandesio
  */
@@ -42,24 +42,24 @@ public interface QueryItemLocator
 {
     /**
      * This method accepts a dimension definition and transforms it into a
-     * {@see QueryItem}
-     *
+     * {@link QueryItem}.
+     * <p>
      * The dimension definition String can be composed of the following
      * elements:
-     *
+     * <p>
      * - Data Element [{de uid}] - Data Element + Legendset [{de uid}-{legendset
      * uid}] - Program Stage + Data Element [{ps uid}.{de uid}] - Program Stage
      * + Data Element + Legendset [{ps uid}.{de uid}-{legendset uid}] - Tracked
      * Entity Instance [{tei uid}] - Program Indicator [{pi uid}] - Relationship
      * Type + Program Indicator [{rt uid}.{pi uid}]
-     *
+     * <p>
      * If the provided dimension String is not matching any of the above
-     * elements, then a {@see IllegalQueryException} is thrown
+     * elements, then a {@link IllegalQueryException} is thrown
      *
-     * @param dimension a valid dimension
-     * @param program a Program
-     * @param type an {@see EventOutputType}
-     * @return a {@see QueryItem}
+     * @param dimension the dimension string.
+     * @param program the {@link Program}.
+     * @param type the {@link EventOutputType}.
+     * @return a {@link QueryItem}.
      */
     QueryItem getQueryItemFromDimension( String dimension, Program program, EventOutputType type );
 }

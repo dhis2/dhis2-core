@@ -56,13 +56,13 @@ public abstract class TimeFieldSqlRenderer
         {
             sql.append( getSqlConditionForNonDefaultBoundaries( params ) );
         }
-        // when multiple periods are set
-        else if ( params.useStartEndDates() )
+        // When multiple periods are set
+        else if ( params.useStartEndDates() || !params.getDateRangeByDateFilter().isEmpty() )
         {
             sql.append( getSqlConditionHasStartEndDate( params ) );
         }
-        else // Periods -- should never go here when linelist, only Pivot
-             // table
+        // Periods should not go here when line list, only pivot table
+        else
         {
             sql.append( getSqlConditionForPeriods( params ) );
         }

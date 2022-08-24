@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.web.WebClient.Accept;
 import static org.hisp.dhis.web.WebClient.Body;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -49,6 +50,7 @@ import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
+import org.hisp.dhis.webapi.json.domain.JsonUser;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -167,6 +169,17 @@ class UserControllerTest extends DhisControllerConvenienceTest
         JsonObject user = GET( "/users/{id}", peter.getUid() ).content();
         assertWebMessage( "OK", 200, "OK", null,
             PUT( "/38/users/" + peter.getUid(), user.toString() ).content( HttpStatus.OK ) );
+    }
+
+    @Test
+    void testPutJsonObject_WithSettings()
+    {
+        JsonUser user = GET( "/users/{id}", peter.getUid() ).content().as( JsonUser.class );
+        assertWebMessage( "OK", 200, "OK", null,
+            PUT( "/38/users/" + peter.getUid(),
+                user.node().addMember( "settings", "{\"uiLocale\":\"de\"}" ).toString() ).content( HttpStatus.OK ) );
+        assertEquals( "de", GET( "/userSettings/keyUiLocale?userId=" + user.getId(), Accept( "text/plain" ) )
+            .content( "text/plain" ) );
     }
 
     @Test
