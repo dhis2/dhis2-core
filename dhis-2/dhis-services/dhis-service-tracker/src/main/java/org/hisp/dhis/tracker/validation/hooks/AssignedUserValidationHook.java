@@ -58,7 +58,7 @@ public class AssignedUserValidationHook
         }
     }
 
-    private Boolean isNotEnabledUserAssignment( TrackerPreheat preheat, Event event )
+    private boolean isNotEnabledUserAssignment( TrackerPreheat preheat, Event event )
     {
         Boolean userAssignmentEnabled = preheat.getProgramStage( event.getProgramStage() ).isEnableUserAssignment();
 
