@@ -78,7 +78,7 @@ public class AggregateDataExchangeObjectBundleHook
                 addReports.accept( new ErrorReport( AggregateDataExchange.class, ErrorCode.E4000, "source.name" ) );
             }
 
-            if ( request != null && request.getName().length() > SOURCE_REQUEST_NAME_MAX_LENGTH )
+            if ( request.getName() != null && request.getName().length() > SOURCE_REQUEST_NAME_MAX_LENGTH )
             {
                 addReports.accept( new ErrorReport( AggregateDataExchange.class, ErrorCode.E4001,
                     "source.name", SOURCE_REQUEST_NAME_MAX_LENGTH, request.getName().length() ) );
