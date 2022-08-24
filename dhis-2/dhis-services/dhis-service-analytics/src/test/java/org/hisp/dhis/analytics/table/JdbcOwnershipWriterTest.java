@@ -91,11 +91,11 @@ class JdbcOwnershipWriterTest
 
     private static final String ouB = "ouBbbbbbbbb";
 
-    private static final Date dateA = new GregorianCalendar( 2022, JANUARY, 1 ).getTime();
+    private static final Date date_2022_01 = new GregorianCalendar( 2022, JANUARY, 1 ).getTime();
 
-    private static final Date dateB = new GregorianCalendar( 2022, FEBRUARY, 1 ).getTime();
+    private static final Date date_2022_02 = new GregorianCalendar( 2022, FEBRUARY, 1 ).getTime();
 
-    private static final Date dateC = new GregorianCalendar( 2022, MARCH, 1 ).getTime();
+    private static final Date date_2022_03 = new GregorianCalendar( 2022, MARCH, 1 ).getTime();
 
     private static final List<String> columns = List.of( TEIUID, OU, STARTDATE, ENDDATE );
 
@@ -115,21 +115,19 @@ class JdbcOwnershipWriterTest
 
         batchHandler.init();
 
-        writer = new JdbcOwnershipWriter();
-
-        writer.setBatchHandler( batchHandler );
+        writer = JdbcOwnershipWriter.getInstance( batchHandler );
     }
 
     @Test
     void testWriteNoOwnershipChanges()
         throws SQLException
     {
-        writer.write( Map.of( TEIUID, teiA, OU, ouA, STARTDATE, dateA ) );
-        writer.write( Map.of( TEIUID, teiA, OU, ouA, STARTDATE, dateB ) );
-        writer.write( Map.of( TEIUID, teiA, OU, ouA, STARTDATE, dateC ) );
-        writer.write( Map.of( TEIUID, teiB, OU, ouB, STARTDATE, dateA ) );
-        writer.write( Map.of( TEIUID, teiB, OU, ouB, STARTDATE, dateB ) );
-        writer.write( Map.of( TEIUID, teiB, OU, ouB, STARTDATE, dateC ) );
+        writer.write( Map.of( TEIUID, teiA, OU, ouA, STARTDATE, date_2022_01 ) );
+        writer.write( Map.of( TEIUID, teiA, OU, ouA, STARTDATE, date_2022_02 ) );
+        writer.write( Map.of( TEIUID, teiA, OU, ouA, STARTDATE, date_2022_03 ) );
+        writer.write( Map.of( TEIUID, teiB, OU, ouB, STARTDATE, date_2022_01 ) );
+        writer.write( Map.of( TEIUID, teiB, OU, ouB, STARTDATE, date_2022_02 ) );
+        writer.write( Map.of( TEIUID, teiB, OU, ouB, STARTDATE, date_2022_03 ) );
         writer.flush();
 
         batchHandler.flush();
@@ -141,12 +139,12 @@ class JdbcOwnershipWriterTest
     void testWriteOneOwnershipChange()
         throws SQLException
     {
-        writer.write( Map.of( TEIUID, teiA, OU, ouA, STARTDATE, dateA ) );
-        writer.write( Map.of( TEIUID, teiA, OU, ouA, STARTDATE, dateB ) );
-        writer.write( Map.of( TEIUID, teiA, OU, ouB, STARTDATE, dateC ) );
-        writer.write( Map.of( TEIUID, teiB, OU, ouA, STARTDATE, dateA ) );
-        writer.write( Map.of( TEIUID, teiB, OU, ouA, STARTDATE, dateB ) );
-        writer.write( Map.of( TEIUID, teiB, OU, ouA, STARTDATE, dateC ) );
+        writer.write( Map.of( TEIUID, teiA, OU, ouA, STARTDATE, date_2022_01 ) );
+        writer.write( Map.of( TEIUID, teiA, OU, ouA, STARTDATE, date_2022_02 ) );
+        writer.write( Map.of( TEIUID, teiA, OU, ouB, STARTDATE, date_2022_03 ) );
+        writer.write( Map.of( TEIUID, teiB, OU, ouA, STARTDATE, date_2022_01 ) );
+        writer.write( Map.of( TEIUID, teiB, OU, ouA, STARTDATE, date_2022_02 ) );
+        writer.write( Map.of( TEIUID, teiB, OU, ouA, STARTDATE, date_2022_03 ) );
         writer.flush();
 
         assertEquals(
@@ -160,12 +158,12 @@ class JdbcOwnershipWriterTest
     void testWriteTwoOwnershipChanges()
         throws SQLException
     {
-        writer.write( Map.of( TEIUID, teiA, OU, ouA, STARTDATE, dateA ) );
-        writer.write( Map.of( TEIUID, teiA, OU, ouB, STARTDATE, dateB ) );
-        writer.write( Map.of( TEIUID, teiA, OU, ouA, STARTDATE, dateC ) );
-        writer.write( Map.of( TEIUID, teiB, OU, ouA, STARTDATE, dateA ) );
-        writer.write( Map.of( TEIUID, teiB, OU, ouA, STARTDATE, dateB ) );
-        writer.write( Map.of( TEIUID, teiB, OU, ouA, STARTDATE, dateC ) );
+        writer.write( Map.of( TEIUID, teiA, OU, ouA, STARTDATE, date_2022_01 ) );
+        writer.write( Map.of( TEIUID, teiA, OU, ouB, STARTDATE, date_2022_02 ) );
+        writer.write( Map.of( TEIUID, teiA, OU, ouA, STARTDATE, date_2022_03 ) );
+        writer.write( Map.of( TEIUID, teiB, OU, ouA, STARTDATE, date_2022_01 ) );
+        writer.write( Map.of( TEIUID, teiB, OU, ouA, STARTDATE, date_2022_02 ) );
+        writer.write( Map.of( TEIUID, teiB, OU, ouA, STARTDATE, date_2022_03 ) );
         writer.flush();
 
         assertEquals(
@@ -180,12 +178,12 @@ class JdbcOwnershipWriterTest
     void testWriteThreeOwnershipChanges()
         throws SQLException
     {
-        writer.write( Map.of( TEIUID, teiA, OU, ouA, STARTDATE, dateA ) );
-        writer.write( Map.of( TEIUID, teiA, OU, ouB, STARTDATE, dateB ) );
-        writer.write( Map.of( TEIUID, teiA, OU, ouA, STARTDATE, dateC ) );
-        writer.write( Map.of( TEIUID, teiB, OU, ouA, STARTDATE, dateA ) );
-        writer.write( Map.of( TEIUID, teiB, OU, ouA, STARTDATE, dateB ) );
-        writer.write( Map.of( TEIUID, teiB, OU, ouB, STARTDATE, dateC ) );
+        writer.write( Map.of( TEIUID, teiA, OU, ouA, STARTDATE, date_2022_01 ) );
+        writer.write( Map.of( TEIUID, teiA, OU, ouB, STARTDATE, date_2022_02 ) );
+        writer.write( Map.of( TEIUID, teiA, OU, ouA, STARTDATE, date_2022_03 ) );
+        writer.write( Map.of( TEIUID, teiB, OU, ouA, STARTDATE, date_2022_01 ) );
+        writer.write( Map.of( TEIUID, teiB, OU, ouA, STARTDATE, date_2022_02 ) );
+        writer.write( Map.of( TEIUID, teiB, OU, ouB, STARTDATE, date_2022_03 ) );
         writer.flush();
 
         assertEquals(

@@ -41,7 +41,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.analytics.AnalyticsTable;
@@ -83,9 +82,6 @@ public class JdbcOwnershipAnalyticsTableManager
 {
     private final JdbcConfiguration jdbcConfiguration;
 
-    @Setter // Needed for mocking JdbcOwnershipWriter
-    private JdbcOwnershipWriter writer;
-
     public JdbcOwnershipAnalyticsTableManager( IdentifiableObjectManager idObjectManager,
         OrganisationUnitService organisationUnitService, CategoryService categoryService,
         SystemSettingManager systemSettingManager, DataApprovalLevelService dataApprovalLevelService,
@@ -97,8 +93,6 @@ public class JdbcOwnershipAnalyticsTableManager
             dataApprovalLevelService, resourceTableService, tableHookService, statementBuilder, partitionManager,
             databaseInfo, jdbcTemplate );
         this.jdbcConfiguration = jdbcConfiguration;
-
-        writer = new JdbcOwnershipWriter();
     }
 
     private static final List<AnalyticsTableColumn> FIXED_COLS = List.of(
@@ -178,16 +172,22 @@ public class JdbcOwnershipAnalyticsTableManager
 
         batchHandler.init();
 
-        writer.setBatchHandler( batchHandler );
+        JdbcOwnershipWriter writer = JdbcOwnershipWriter.getInstance( batchHandler );
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
+
+        int queryRowCount = 0;
 
         while ( rowSet.next() )
         {
             Map<String, Object> row = getRowMap( columnNames, rowSet );
 
             writer.write( row );
+
+            queryRowCount++;
         }
+
+        log.info( "OwnershipAnalytics query row count was {} for {}", queryRowCount, partition.getTempTableName() );
 
         writer.flush();
     }

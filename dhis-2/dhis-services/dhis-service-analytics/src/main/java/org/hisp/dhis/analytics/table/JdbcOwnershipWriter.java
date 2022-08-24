@@ -37,7 +37,8 @@ import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Map;
 
-import lombok.Setter;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.jdbc.batchhandler.MappingBatchHandler;
 
@@ -46,13 +47,19 @@ import org.hisp.dhis.jdbc.batchhandler.MappingBatchHandler;
  *
  * @author Jim Grace
  */
+@RequiredArgsConstructor( access = AccessLevel.PRIVATE )
 public class JdbcOwnershipWriter
 {
-    @Setter // Needed for mocking JdbcOwnershipWriter
-    private MappingBatchHandler batchHandler;
+    private final MappingBatchHandler batchHandler;
 
+    /**
+     * Row of the previous write if any, possibly modified.
+     */
     private Map<String, Object> prevRow = null;
 
+    /**
+     * Row of the current write, possibly modified.
+     */
     private Map<String, Object> newRow;
 
     public static final String TEIUID = quote( "teiuid" );
@@ -66,6 +73,14 @@ public class JdbcOwnershipWriter
     private static final Date FAR_PAST_DATE = new GregorianCalendar( 1000, JANUARY, 1 ).getTime();
 
     private static final Date FAR_FUTURE_DATE = new GregorianCalendar( 9999, DECEMBER, 31 ).getTime();
+
+    /**
+     * Gets instance by a factory method (so it can be mocked).
+     */
+    public static JdbcOwnershipWriter getInstance( MappingBatchHandler batchHandler )
+    {
+        return new JdbcOwnershipWriter( batchHandler );
+    }
 
     /**
      * Write a row to an analytics_ownership temp table. Work on a copy of the

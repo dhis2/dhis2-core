@@ -41,7 +41,9 @@ import static org.hisp.dhis.analytics.table.JdbcOwnershipWriter.TEIUID;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.mockingDetails;
 import static org.mockito.Mockito.when;
 
@@ -79,6 +81,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.invocation.Invocation;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -211,11 +214,6 @@ class JdbcOwnershipAnalyticsTableManagerTest
     void testPopulateTable()
         throws SQLException
     {
-        String tei = "\"tei\"";
-        String startdate = "\"startdate\"";
-        String enddate = "\"enddate\"";
-        String ou = "\"ou\"";
-
         String tei1 = "teiUid00001";
         String tei2 = "teiUid00002";
 
@@ -228,8 +226,6 @@ class JdbcOwnershipAnalyticsTableManagerTest
         Date end2 = new GregorianCalendar( 2022, FEBRUARY, 28 ).getTime();
         Date start3 = new GregorianCalendar( 2022, MARCH, 1 ).getTime();
         Date end3 = new GregorianCalendar( 2022, MARCH, 31 ).getTime();
-
-        target.setWriter( writer );
 
         when( jdbcConfiguration.getDialect() ).thenReturn( StatementDialect.POSTGRESQL );
         when( jdbcConfiguration.getDataSource() ).thenReturn( dataSource );
@@ -256,7 +252,13 @@ class JdbcOwnershipAnalyticsTableManagerTest
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder()
             .build();
 
-        target.populateTable( params, partitionA );
+        try ( MockedStatic<JdbcOwnershipWriter> mocked = mockStatic( JdbcOwnershipWriter.class ) )
+        {
+            mocked.when( () -> JdbcOwnershipWriter.getInstance( any() ) )
+                .thenReturn( writer );
+
+            target.populateTable( params, partitionA );
+        }
 
         List<Invocation> jdbcInvocations = getInvocations( jdbcTemplate );
         assertEquals( 1, jdbcInvocations.size() );
@@ -288,27 +290,26 @@ class JdbcOwnershipAnalyticsTableManagerTest
             sqlMasked );
 
         List<Invocation> writerInvocations = getInvocations( writer );
-        assertEquals( 7, writerInvocations.size() );
+        assertEquals( 6, writerInvocations.size() );
 
-        assertEquals( "setBatchHandler", writerInvocations.get( 0 ).getMethod().getName() );
+        assertEquals( "write", writerInvocations.get( 0 ).getMethod().getName() );
         assertEquals( "write", writerInvocations.get( 1 ).getMethod().getName() );
         assertEquals( "write", writerInvocations.get( 2 ).getMethod().getName() );
         assertEquals( "write", writerInvocations.get( 3 ).getMethod().getName() );
         assertEquals( "write", writerInvocations.get( 4 ).getMethod().getName() );
-        assertEquals( "write", writerInvocations.get( 5 ).getMethod().getName() );
-        assertEquals( "flush", writerInvocations.get( 6 ).getMethod().getName() );
+        assertEquals( "flush", writerInvocations.get( 5 ).getMethod().getName() );
 
+        Map<String, Object> map0 = writerInvocations.get( 0 ).getArgument( 0 );
         Map<String, Object> map1 = writerInvocations.get( 1 ).getArgument( 0 );
         Map<String, Object> map2 = writerInvocations.get( 2 ).getArgument( 0 );
         Map<String, Object> map3 = writerInvocations.get( 3 ).getArgument( 0 );
         Map<String, Object> map4 = writerInvocations.get( 4 ).getArgument( 0 );
-        Map<String, Object> map5 = writerInvocations.get( 5 ).getArgument( 0 );
 
-        assertEquals( Map.of( TEIUID, tei1, STARTDATE, start1, ENDDATE, end1, OU, ou1 ), map1 );
-        assertEquals( Map.of( TEIUID, tei1, STARTDATE, start2, ENDDATE, end2, OU, ou2 ), map2 );
-        assertEquals( Map.of( TEIUID, tei1, STARTDATE, start3, ENDDATE, end3, OU, ou1 ), map3 );
-        assertEquals( Map.of( TEIUID, tei2, STARTDATE, start1, ENDDATE, end1, OU, ou1 ), map4 );
-        assertEquals( Map.of( TEIUID, tei2, STARTDATE, start2, ENDDATE, end2, OU, ou2 ), map5 );
+        assertEquals( Map.of( TEIUID, tei1, STARTDATE, start1, ENDDATE, end1, OU, ou1 ), map0 );
+        assertEquals( Map.of( TEIUID, tei1, STARTDATE, start2, ENDDATE, end2, OU, ou2 ), map1 );
+        assertEquals( Map.of( TEIUID, tei1, STARTDATE, start3, ENDDATE, end3, OU, ou1 ), map2 );
+        assertEquals( Map.of( TEIUID, tei2, STARTDATE, start1, ENDDATE, end1, OU, ou1 ), map3 );
+        assertEquals( Map.of( TEIUID, tei2, STARTDATE, start2, ENDDATE, end2, OU, ou2 ), map4 );
     }
 
     @Test

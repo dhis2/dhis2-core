@@ -107,6 +107,7 @@ import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -115,7 +116,7 @@ import com.google.common.collect.Sets;
  * Tests event and enrollment analytics services.
  *
  * @author Henning Haakonsen
- * @author Jim Grace (major rewrite)
+ * @author Jim Grace (nearly complete rewrite)
  */
 class EventAnalyticsServiceTest
     extends SingleSetupIntegrationTestBase
@@ -233,6 +234,10 @@ class EventAnalyticsServiceTest
         userService = _userService;
 
         // Organisation Units
+        //
+        // A -> B -> D,E,F,G
+        // A -> C -> H,I,J,K,L,M,N
+        //
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B', ouA );
         ouC = createOrganisationUnit( 'C', ouA );
@@ -337,6 +342,11 @@ class EventAnalyticsServiceTest
         psA.addDataElement( deU, 2 );
         idObjectManager.save( psA );
 
+        ProgramStage psB = createProgramStage( 'B', 0 );
+        psB.setUid( "progrStageB" );
+        psB.addDataElement( deU, 2 );
+        idObjectManager.save( psB );
+
         // Programs
         programA = createProgram( 'A' );
         programA.getProgramStages().add( psA );
@@ -344,8 +354,8 @@ class EventAnalyticsServiceTest
         programA.setUid( "programA123" );
         idObjectManager.save( programA );
 
-        // Programs
         programB = createProgram( 'B' );
+        programB.getProgramStages().add( psB );
         programB.getOrganisationUnits().addAll( level3Ous );
         programB.setUid( "programB123" );
         programB.setCategoryCombo( ccA );
@@ -381,6 +391,11 @@ class EventAnalyticsServiceTest
         piA.setIncidentDate( jan1 );
         programInstanceService.addProgramInstance( piA );
 
+        ProgramInstance piB = programInstanceService.enrollTrackedEntityInstance( teiA, programB, jan1, jan1, ouE );
+        piB.setEnrollmentDate( jan1 );
+        piB.setIncidentDate( jan1 );
+        programInstanceService.addProgramInstance( piB );
+
         // Change Enrollment Ownership through time
         addProgramOwnershipHistory( programA, teiA, ouF, jan15, feb14 );
         addProgramOwnershipHistory( programA, teiA, ouG, feb15, mar14 );
@@ -394,26 +409,34 @@ class EventAnalyticsServiceTest
         psiA.setEventDataValues( Set.of( new EventDataValue( deU.getUid(), ouL.getUid() ) ) );
         psiA.setAttributeOptionCombo( cocDefault );
 
-        ProgramStageInstance psiB = createProgramStageInstance( psA, piA, ouJ );
-        psiB.setDueDate( feb15 );
-        psiB.setExecutionDate( feb15 );
+        ProgramStageInstance psiB = createProgramStageInstance( psB, piB, ouI );
+        psiB.setDueDate( jan15 );
+        psiB.setExecutionDate( jan15 );
         psiB.setUid( "progStagInB" );
-        psiB.setEventDataValues( Set.of( new EventDataValue( deU.getUid(), ouM.getUid() ) ) );
+        psiB.setEventDataValues( Set.of( new EventDataValue( deU.getUid(), ouL.getUid() ) ) );
         psiB.setAttributeOptionCombo( cocDefault );
 
-        ProgramStageInstance psiC = createProgramStageInstance( psA, piA, ouK );
-        psiC.setDueDate( mar15 );
-        psiC.setExecutionDate( mar15 );
+        ProgramStageInstance psiC = createProgramStageInstance( psA, piA, ouJ );
+        psiC.setDueDate( feb15 );
+        psiC.setExecutionDate( feb15 );
         psiC.setUid( "progStagInC" );
-        psiC.setEventDataValues( Set.of( new EventDataValue( deU.getUid(), ouN.getUid() ) ) );
+        psiC.setEventDataValues( Set.of( new EventDataValue( deU.getUid(), ouM.getUid() ) ) );
         psiC.setAttributeOptionCombo( cocDefault );
 
-        eventStore.saveEvents( List.of( psiA, psiB, psiC ) );
+        ProgramStageInstance psiD = createProgramStageInstance( psA, piA, ouK );
+        psiD.setDueDate( mar15 );
+        psiD.setExecutionDate( mar15 );
+        psiD.setUid( "progStagInD" );
+        psiD.setEventDataValues( Set.of( new EventDataValue( deU.getUid(), ouN.getUid() ) ) );
+        psiD.setAttributeOptionCombo( cocDefault );
+
+        saveEvents( List.of( psiA, psiB, psiC, psiD ) );
 
         userA = createUserWithAuth( "A", "F_VIEW_EVENT_ANALYTICS" );
         userA.setCatDimensionConstraints( Sets.newHashSet( caA, caB ) );
         userService.addUser( userA );
         enableDataSharing( userA, programA, AccessStringHelper.DATA_READ_WRITE );
+        enableDataSharing( userA, programB, AccessStringHelper.DATA_READ_WRITE );
         idObjectManager.update( userA );
 
         // Sleep for one second. This is needed because last updated time for
@@ -426,11 +449,20 @@ class EventAnalyticsServiceTest
         // be in the past.
         TimeUnit.SECONDS.sleep( 1 );
 
-        analyticsTableGenerator.generateResourceTables( NoopJobProgress.INSTANCE );
-
-        // Generate analytics tables
+        // Generate resource tables and analytics tables
         analyticsTableGenerator.generateTables( AnalyticsTableUpdateParams.newBuilder().build(),
             NoopJobProgress.INSTANCE );
+    }
+
+    /**
+     * Saves events. Since the store is called directly, wraps the call in a
+     * transaction. Since transactional methods must be overridable, the method
+     * is protected.
+     */
+    @Transactional
+    protected void saveEvents( List<ProgramStageInstance> events )
+    {
+        eventStore.saveEvents( events );
     }
 
     /**
