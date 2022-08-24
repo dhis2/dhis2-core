@@ -133,12 +133,6 @@ public class JdbcOwnershipAnalyticsTableManager
     }
 
     @Override
-    protected String getPartitionColumn()
-    {
-        return null;
-    }
-
-    @Override
     protected void populateTable( AnalyticsTableUpdateParams params, AnalyticsTablePartition partition )
     {
         Program program = partition.getMasterTable().getProgram();

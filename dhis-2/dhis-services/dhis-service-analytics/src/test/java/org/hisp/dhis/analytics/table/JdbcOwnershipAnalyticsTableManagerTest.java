@@ -40,7 +40,6 @@ import static org.hisp.dhis.analytics.table.JdbcOwnershipWriter.STARTDATE;
 import static org.hisp.dhis.analytics.table.JdbcOwnershipWriter.TEIUID;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mockStatic;
@@ -202,12 +201,6 @@ class JdbcOwnershipAnalyticsTableManagerTest
     void testGetPartitionChecks()
     {
         assertEquals( emptyList(), target.getPartitionChecks( partitionA ) );
-    }
-
-    @Test
-    void testGetPartitionColumn()
-    {
-        assertNull( target.getPartitionColumn() );
     }
 
     @Test
