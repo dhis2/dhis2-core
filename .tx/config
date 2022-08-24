@@ -1,7 +1,3 @@
-21:source_file  = dhis-2/dhis-web/dhis-web-maintenance/dhis-web-maintenance-mobile/src/main/resources/org/hisp/dhis/mobile/i18n_module.properties
-[main]
-host     = https://www.transifex.com
-lang_map = fa_AF: prs, uz@Cyrl: uz, uz@Latn: uz_Latn
 
 [o:hisp-uio:p:app-server-side-resources:r:dataentry-i18n-module-properties]
 file_filter  = dhis-2/dhis-web/dhis-web-dataentry/src/main/resources/org/hisp/dhis/de/i18n_module_<lang>.properties
