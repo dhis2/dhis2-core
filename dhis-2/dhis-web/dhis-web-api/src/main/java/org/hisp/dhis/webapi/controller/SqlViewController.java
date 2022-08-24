@@ -34,6 +34,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridResponse;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.node.NodeService;
@@ -76,7 +77,7 @@ public class SqlViewController
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/{uid}/data", method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_JSON )
-    public @ResponseBody Grid getViewJson( @PathVariable( "uid" ) String uid,
+    public @ResponseBody GridResponse getViewJson( @PathVariable( "uid" ) String uid,
         SqlViewQuery query, HttpServletResponse response )
         throws WebMessageException
     {
@@ -84,7 +85,7 @@ public class SqlViewController
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, sqlView.getCacheStrategy() );
 
-        return getViewGrid( sqlView, query );
+        return buildResponse( sqlView, query );
     }
 
     @RequestMapping( value = "/{uid}/data.xml", method = RequestMethod.GET )
@@ -96,8 +97,7 @@ public class SqlViewController
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_XML, sqlView.getCacheStrategy() );
 
-        Grid grid = getViewGrid( sqlView, query );
-        GridUtils.toXml( grid, response.getOutputStream() );
+        GridUtils.toXml( buildResponse( sqlView, query ), response.getOutputStream() );
     }
 
     @RequestMapping( value = "/{uid}/data.csv", method = RequestMethod.GET )
@@ -272,7 +272,7 @@ public class SqlViewController
         return sqlView;
     }
 
-    private Grid getViewGrid( SqlView sqlView, SqlViewQuery query )
+    private GridResponse buildResponse( SqlView sqlView, SqlViewQuery query )
     {
         List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
@@ -286,7 +286,6 @@ public class SqlViewController
             grid.limitGrid( (query.getPage() - 1) * query.getPageSize(),
                 Integer.min( query.getPage() * query.getPageSize(), grid.getHeight() ) );
         }
-
-        return grid;
+        return new GridResponse( query.isSkipPaging() ? null : query.getPager(), grid );
     }
 }

@@ -71,8 +71,11 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.velocity.VelocityContext;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObjectUtils;
+import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.GridResponse;
+import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.Encoder;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -132,7 +135,7 @@ public class GridUtils
 
     private static final String HTML_INLINE_CSS_TEMPLATE = "grid-html-inline-css.vm";
 
-    private static final String ATTR_GRID = "grid";
+    private static final String TAG_GRID = "grid";
 
     private static final String ATTR_TITLE = "title";
 
@@ -461,15 +464,58 @@ public class GridUtils
         render( grid, null, writer, HTML_INLINE_CSS_TEMPLATE );
     }
 
+    public static void toXml( GridResponse response, OutputStream out )
+    {
+        XMLWriter writer = XMLFactory.getXMLWriter( out );
+        writer.openDocument();
+
+        writer.openElement( "metadata", "xmlns", DxfNamespaces.DXF_2_0 );
+        Pager pager = response.getPager();
+        if ( pager != null )
+        {
+            writer.openElement( "pager" );
+            writer.writeElement( "page", "" + pager.getPage() );
+            writer.writeElement( "pageCount", "" + pager.getPageCount() );
+            writer.writeElement( "total", "" + pager.getTotal() );
+            writer.writeElement( "pageSize", "" + pager.getPageSize() );
+            String nextPage = pager.getNextPage();
+            if ( nextPage != null )
+            {
+                writer.writeElement( "nextPage", nextPage );
+            }
+            String prevPage = pager.getPrevPage();
+            if ( prevPage != null )
+            {
+                writer.writeElement( "prevPage", prevPage );
+            }
+            writer.closeElement(); // pager
+        }
+        toXml( response.getListGrid(), writer, "listGrid" );
+
+        writer.closeElement(); // metadata
+        writer.closeDocument();
+
+    }
+
     /**
      * Writes an XML representation of the given Grid to the given OutputStream.
      */
     public static void toXml( Grid grid, OutputStream out )
     {
         XMLWriter writer = XMLFactory.getXMLWriter( out );
-
         writer.openDocument();
-        writer.openElement( ATTR_GRID, ATTR_TITLE, grid.getTitle(), ATTR_SUBTITLE, grid.getSubtitle(),
+
+        toXml( grid, writer, TAG_GRID );
+
+        writer.closeDocument();
+    }
+
+    /**
+     * Writes an XML representation of the given Grid to the given OutputStream.
+     */
+    private static void toXml( Grid grid, XMLWriter writer, String gridRootTag )
+    {
+        writer.openElement( gridRootTag, ATTR_TITLE, grid.getTitle(), ATTR_SUBTITLE, grid.getSubtitle(),
             ATTR_WIDTH, String.valueOf( grid.getWidth() ), ATTR_HEIGHT, String.valueOf( grid.getHeight() ) );
 
         writer.openElement( ATTR_HEADERS );
@@ -498,8 +544,6 @@ public class GridUtils
 
         writer.closeElement();
         writer.closeElement();
-
-        writer.closeDocument();
     }
 
     /**
