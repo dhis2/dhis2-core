@@ -1,3 +1,4 @@
+21:source_file  = dhis-2/dhis-web/dhis-web-maintenance/dhis-web-maintenance-mobile/src/main/resources/org/hisp/dhis/mobile/i18n_module.properties
 [main]
 host     = https://www.transifex.com
 lang_map = fa_AF: prs, uz@Cyrl: uz, uz@Latn: uz_Latn
@@ -16,11 +17,5 @@ source_lang  = en
 type         = PROPERTIES
 minimum_perc = 0
 
-[o:hisp-uio:p:app-server-side-resources:r:maintenance-mobile-i18n-module-properties]
-file_filter  = dhis-2/dhis-web/dhis-web-maintenance/dhis-web-maintenance-mobile/src/main/resources/org/hisp/dhis/mobile/i18n_module_<lang>.properties
-source_file  = dhis-2/dhis-web/dhis-web-maintenance/dhis-web-maintenance-mobile/src/main/resources/org/hisp/dhis/mobile/i18n_module.properties
-source_lang  = en
-type         = PROPERTIES
-minimum_perc = 0
 
 
