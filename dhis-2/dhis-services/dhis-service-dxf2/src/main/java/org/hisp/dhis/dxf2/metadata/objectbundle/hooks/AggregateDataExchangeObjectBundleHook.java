@@ -88,11 +88,9 @@ public class AggregateDataExchangeObjectBundleHook
      * Validates the data exchange source.
      *
      * @param exchange the {@link AggregateDataExchange}.
-     * @param bundle the {@link ObjectBundle}.
      * @param addReports the list of {@link ErrorReport}.
      */
-    private void validateSource( AggregateDataExchange exchange, ObjectBundle bundle,
-        Consumer<ErrorReport> addReports )
+    private void validateSource( AggregateDataExchange exchange, Consumer<ErrorReport> addReports )
     {
         if ( isEmpty( exchange.getSource().getRequests() ) )
         {
@@ -129,11 +127,9 @@ public class AggregateDataExchangeObjectBundleHook
      * Validates the data exchange target.
      *
      * @param exchange the {@link AggregateDataExchange}.
-     * @param bundle the {@link ObjectBundle}.
      * @param addReports the list of {@link ErrorReport}.
      */
-    private void validateTarget( AggregateDataExchange exchange, ObjectBundle bundle,
-        Consumer<ErrorReport> addReports )
+    private void validateTarget( AggregateDataExchange exchange, Consumer<ErrorReport> addReports )
     {
         if ( exchange.getTarget().getType() == null )
         {
