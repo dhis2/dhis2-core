@@ -287,6 +287,5 @@ public class SqlViewController
                 Integer.min( query.getPage() * query.getPageSize(), grid.getHeight() ) );
         }
         return new GridResponse( query.isSkipPaging() ? null : query.getPager(), grid );
-        ;
     }
 }
