@@ -43,6 +43,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class Target
     implements Serializable
 {
+    /**
+     * Type of target.
+     */
     @JsonProperty
     private TargetType type;
 
@@ -52,6 +55,9 @@ public class Target
     @JsonProperty
     private Api api;
 
+    /**
+     * Target request.
+     */
     @JsonProperty
     private TargetRequest request;
 }

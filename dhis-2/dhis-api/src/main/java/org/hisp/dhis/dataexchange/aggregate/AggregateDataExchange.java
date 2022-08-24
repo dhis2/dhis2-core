@@ -47,10 +47,16 @@ public class AggregateDataExchange
     extends BaseIdentifiableObject
     implements MetadataObject
 {
+    /**
+     * Data exchange source.
+     */
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     private Source source;
 
+    /**
+     * Data exchange target.
+     */
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     private Target target;
