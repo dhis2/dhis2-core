@@ -710,6 +710,13 @@ public class DateUtils
         return safeParseDateTime( dateString, DATE_FORMATTER );
     }
 
+    /**
+     * Create a TimeStamp with Time Zone from an input Date. This can be used as
+     * SQL value {@link java.sql.Types#TIMESTAMP_WITH_TIMEZONE}
+     *
+     * @param date
+     * @return TimeStamp with Time Zone
+     */
     public static OffsetDateTime offSetDateTimeFrom( final Date date )
     {
         return OffsetDateTime.of( date.toInstant()
