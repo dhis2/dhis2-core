@@ -753,12 +753,13 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase
     }
 
     @Test
-    void testImportDataValuesCsvWithDataSetIdHeader()
+    void testImportDataValuesCsvWithDataSetIdParameter()
     {
         assertDataValuesCount( 0 );
 
         ImportSummary summary = dataValueSetService
-            .importDataValueSetCsv( readFile( "dxf2/datavalueset/dataValueSetWithDataSetHeader.csv" ), null, null );
+            .importDataValueSetCsv( readFile( "dxf2/datavalueset/dataValueSetWithDataSetHeader.csv" ),
+                new ImportOptions().setDataSet( "pBOMPrpg1QX" ), null );
 
         assertSuccessWithImportedUpdatedDeleted( 3, 0, 0, summary );
         assertDataValuesCount( 3 );
