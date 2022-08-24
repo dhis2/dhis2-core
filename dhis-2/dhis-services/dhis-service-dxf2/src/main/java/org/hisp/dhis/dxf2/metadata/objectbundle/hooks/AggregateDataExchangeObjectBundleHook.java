@@ -67,6 +67,33 @@ public class AggregateDataExchangeObjectBundleHook
     public void validate( AggregateDataExchange exchange, ObjectBundle bundle,
         Consumer<ErrorReport> addReports )
     {
+        validateSource( exchange, bundle, addReports );
+        validateTarget( exchange, bundle, addReports );
+    }
+
+    @Override
+    public void preCreate( AggregateDataExchange exchange, ObjectBundle bundle )
+    {
+        encryptApiSecrets( exchange );
+    }
+
+    @Override
+    public void preUpdate( AggregateDataExchange exchange,
+        AggregateDataExchange persistedExchange, ObjectBundle bundle )
+    {
+        encryptApiSecrets( exchange );
+    }
+
+    /**
+     * Validates the data exchange source.
+     *
+     * @param exchange the {@link AggregateDataExchange}.
+     * @param bundle the {@link ObjectBundle}.
+     * @param addReports the list of {@link ErrorReport}.
+     */
+    private void validateSource( AggregateDataExchange exchange, ObjectBundle bundle,
+        Consumer<ErrorReport> addReports )
+    {
         if ( isEmpty( exchange.getSource().getRequests() ) )
         {
             addReports.accept( new ErrorReport( AggregateDataExchange.class, ErrorCode.E6302, exchange.getUid() ) );
@@ -96,7 +123,18 @@ public class AggregateDataExchangeObjectBundleHook
                 addReports.accept( new ErrorReport( AggregateDataExchange.class, ErrorCode.E6303 ) );
             }
         }
+    }
 
+    /**
+     * Validates the data exchange target.
+     *
+     * @param exchange the {@link AggregateDataExchange}.
+     * @param bundle the {@link ObjectBundle}.
+     * @param addReports the list of {@link ErrorReport}.
+     */
+    private void validateTarget( AggregateDataExchange exchange, ObjectBundle bundle,
+        Consumer<ErrorReport> addReports )
+    {
         if ( exchange.getTarget().getType() == null )
         {
             addReports.accept( new ErrorReport( AggregateDataExchange.class, ErrorCode.E4000, "target.type" ) );
@@ -118,19 +156,6 @@ public class AggregateDataExchangeObjectBundleHook
         {
             addReports.accept( new ErrorReport( AggregateDataExchange.class, ErrorCode.E6305 ) );
         }
-    }
-
-    @Override
-    public void preCreate( AggregateDataExchange exchange, ObjectBundle bundle )
-    {
-        encryptApiSecrets( exchange );
-    }
-
-    @Override
-    public void preUpdate( AggregateDataExchange exchange, AggregateDataExchange persistedExchange,
-        ObjectBundle bundle )
-    {
-        encryptApiSecrets( exchange );
     }
 
     /**
