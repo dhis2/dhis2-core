@@ -70,6 +70,7 @@ import org.hisp.dhis.dxf2.events.importer.insert.validation.ProgramInstanceRepea
 import org.hisp.dhis.dxf2.events.importer.insert.validation.ProgramOrgUnitCheck;
 import org.hisp.dhis.dxf2.events.importer.insert.validation.ProgramStageCheck;
 import org.hisp.dhis.dxf2.events.importer.insert.validation.TrackedEntityInstanceCheck;
+import org.hisp.dhis.dxf2.events.importer.shared.postprocess.EventFileResourcePostProcessor;
 import org.hisp.dhis.dxf2.events.importer.shared.postprocess.ProgramNotificationPostProcessor;
 import org.hisp.dhis.dxf2.events.importer.shared.preprocess.EventStoredByPreProcessor;
 import org.hisp.dhis.dxf2.events.importer.shared.preprocess.FilteringOutUndeclaredDataElementsProcessor;
@@ -379,7 +380,8 @@ public class ServiceConfig
                 getProcessorByClass( ProgramNotificationPostProcessor.class ),
                 getProcessorByClass( PublishEventPostProcessor.class ),
                 getProcessorByClass( EventInsertAuditPostProcessor.class ),
-                getProcessorByClass( FilteringOutUndeclaredDataElementsProcessor.class ) ) )
+                getProcessorByClass( FilteringOutUndeclaredDataElementsProcessor.class ),
+                getProcessorByClass( EventFileResourcePostProcessor.class ) ) )
             .put( UPDATE_PRE, newArrayList(
                 getProcessorByClass( ImportOptionsPreProcessor.class ),
                 getProcessorByClass( EventStoredByPreProcessor.class ),
@@ -390,7 +392,8 @@ public class ServiceConfig
             .put( UPDATE_POST, newArrayList(
                 getProcessorByClass( PublishEventPostProcessor.class ),
                 getProcessorByClass( ProgramNotificationPostProcessor.class ),
-                getProcessorByClass( EventUpdateAuditPostProcessor.class ) ) )
+                getProcessorByClass( EventUpdateAuditPostProcessor.class ),
+                getProcessorByClass( EventFileResourcePostProcessor.class ) ) )
             .put( DELETE_PRE, Collections.emptyList() )
             .put( DELETE_POST, newArrayList(
                 getProcessorByClass( EventDeleteAuditPostProcessor.class ) ) )

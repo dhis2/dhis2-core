@@ -53,7 +53,6 @@ import org.hisp.dhis.program.ProgramTempOwnershipAudit;
 import org.hisp.dhis.program.ProgramTempOwnershipAuditService;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.springframework.core.env.Environment;
 import org.springframework.security.access.AccessDeniedException;
@@ -65,7 +64,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Slf4j
 @Service( "org.hisp.dhis.trackedentity.TrackerOwnershipManager" )
-public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager, CurrentUserServiceTarget
+public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
 {
     private static final int TEMPORARY_OWNERSHIP_VALIDITY_IN_HOURS = 3;
 
@@ -73,7 +72,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager, 
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private CurrentUserService currentUserService;
+    private final CurrentUserService currentUserService;
 
     private final TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
@@ -117,12 +116,6 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager, 
         this.config = config;
         this.ownerCache = cacheProvider.createProgramOwnerCache();
         this.tempOwnerCache = cacheProvider.createProgramTempOwnerCache();
-    }
-
-    @Override
-    public void setCurrentUserService( CurrentUserService currentUserService )
-    {
-        this.currentUserService = currentUserService;
     }
 
     /**

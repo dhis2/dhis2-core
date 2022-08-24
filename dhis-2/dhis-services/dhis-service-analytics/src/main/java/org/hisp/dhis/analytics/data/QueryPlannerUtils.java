@@ -57,7 +57,8 @@ public class QueryPlannerUtils
      * Creates a mapping between level and organisation units for the given
      * organisation units.
      *
-     * @param orgUnits list of organisation units.
+     * @param orgUnits the list of organisation units.
+     * @return a {@link ListMap} of level and organisation units.
      */
     public static ListMap<Integer, DimensionalItemObject> getLevelOrgUnitMap( List<DimensionalItemObject> orgUnits )
     {
@@ -77,7 +78,8 @@ public class QueryPlannerUtils
      * Creates a mapping between level and organisation units for the given
      * organisation units.
      *
-     * @param orgUnits list of organisation units.
+     * @param orgUnits the list of organisation units.
+     * @return a {@link ListMap} of level and typed organisation units.
      */
     public static ListMap<Integer, OrganisationUnit> getLevelOrgUnitTypedMap( List<OrganisationUnit> orgUnits )
     {
@@ -90,7 +92,8 @@ public class QueryPlannerUtils
      * Creates a mapping between data type and data elements for the given data
      * elements.
      *
-     * @param dataElements list of data elements.
+     * @param dataElements the list of data elements.
+     * @return a {@link ListMap} of data type and data elements.
      */
     public static ListMap<DataType, DimensionalItemObject> getDataTypeDataElementMap(
         List<DimensionalItemObject> dataElements )
@@ -117,7 +120,8 @@ public class QueryPlannerUtils
      * Creates a mapping between query modifiers and data elements for the given
      * data elements.
      *
-     * @param dataElements list of data elements.
+     * @param dataElements the list of data elements.
+     * @return a {@link ListMap} of query modifiers and data elements.
      */
     public static ListMap<QueryModifiers, DimensionalItemObject> getQueryModsElementMap(
         List<DimensionalItemObject> dataElements )
@@ -140,9 +144,10 @@ public class QueryPlannerUtils
      * Creates a mapping between the aggregation type and data elements for the
      * given data elements and period type.
      *
-     * @param dataElements a List of {@see DimensionalItemObject}
-     * @param aggregationType an {@see AnalyticsAggregationType}
-     * @param periodType a String representing a Period Type (e.g. 201901)
+     * @param dataElements the list of {@link DimensionalItemObject}.
+     * @param aggregationType the {@link AnalyticsAggregationType}
+     * @param periodType the string representing a periodtType (e.g. 201901).
+     * @return a {@link ListMap} of aggregation type and data elements.
      */
     public static ListMap<AnalyticsAggregationType, DimensionalItemObject> getAggregationTypeDataElementMap(
         List<DimensionalItemObject> dataElements, AnalyticsAggregationType aggregationType, String periodType )
@@ -171,7 +176,8 @@ public class QueryPlannerUtils
      * Creates a mapping between the number of days in the period interval and
      * periods for the given periods.
      *
-     * @param periods
+     * @param periods the list of periods.
+     * @return a {@link ListMap} of number of days and periods.
      */
     public static ListMap<Integer, DimensionalItemObject> getDaysPeriodMap( List<DimensionalItemObject> periods )
     {
@@ -188,18 +194,18 @@ public class QueryPlannerUtils
     }
 
     /**
-     * Returns the {@link AnalyticsAggregationType} according to the given value
-     * type, aggregation type, value type aggregation period type and data
-     * period type.
+     * Returns the {@link AnalyticsAggregationType} for the given value type,
+     * aggregation type, value type aggregation period type and data period
+     * type.
      *
      * @param aggregationType the aggregation type.
-     * @param valueType the value type.
+     * @param valueType the {@link ValueType}.
      * @param aggregationPeriodType the aggregation period type.
      * @param dataPeriodType the data period type.
+     * @return an {@link AnalyticsAggregationType}.
      */
     public static AnalyticsAggregationType getAggregationType( AnalyticsAggregationType aggregationType,
-        ValueType valueType,
-        PeriodType aggregationPeriodType, PeriodType dataPeriodType )
+        ValueType valueType, PeriodType aggregationPeriodType, PeriodType dataPeriodType )
     {
         DataType dataType = DataType.fromValueType( valueType );
         boolean disaggregation = isDisaggregation( aggregationType, aggregationPeriodType, dataPeriodType );
@@ -213,8 +219,10 @@ public class QueryPlannerUtils
      * Disaggregation implies that the frequency order of the aggregation period
      * type is lower than the data period type.
      *
-     * @param aggregationPeriodType the aggregation period type.
+     * @param aggregationPeriodType the {@link AnalyticsAggregationType}.
+     * @param aggregationType the aggregation period type.
      * @param dataPeriodType the data period type.
+     * @return true if disaggregation is allowed.
      */
     public static boolean isDisaggregation( AnalyticsAggregationType aggregationType,
         PeriodType aggregationPeriodType, PeriodType dataPeriodType )
@@ -248,6 +256,7 @@ public class QueryPlannerUtils
      * list of data elements.
      *
      * @param dataElements the list of data elements.
+     * @return a {@link ListMap} of period type and data elements.
      */
     public static ListMap<PeriodType, DimensionalItemObject> getPeriodTypeDataElementMap(
         Collection<DimensionalItemObject> dataElements )
@@ -261,7 +270,8 @@ public class QueryPlannerUtils
      * Converts a list of data query parameters to a list of event query
      * parameters.
      *
-     * @param params the list of data query parameters.
+     * @param params the list of {@link DataQueryParams}.
+     * @return a list of {@link EventQueryParams}.
      */
     public static List<EventQueryParams> convert( List<DataQueryParams> params )
     {
