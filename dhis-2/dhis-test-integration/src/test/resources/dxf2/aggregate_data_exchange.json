@@ -36,6 +36,7 @@
         "requests": [
           {
             "name": "HIV",
+            "visualization": "kV2trY4bu9p",
             "dx": [
               "fbfJHSPpUQD",
               "cYeuwXTCPkU"
@@ -69,6 +70,7 @@
         "requests": [
           {
             "name": "TB",
+            "visualization": "BjQYD1mOQLb",
             "dx": [
               "fbfJHSPpUQD",
               "cYeuwXTCPkU"
@@ -107,6 +109,7 @@
         "requests": [
           {
             "name": "Malaria",
+            "visualization": "DOL6ai1VCsL",
             "dx": [
               "fbfJHSPpUQD",
               "cYeuwXTCPkU"
