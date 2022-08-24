@@ -58,13 +58,13 @@ public class SourceRequest
     private String visualization;
 
     /**
-     * Data UIDs.
+     * Data dimension item identifiers.
      */
     @JsonProperty
     private List<String> dx = new ArrayList<>();
 
     /**
-     * ISO periods.
+     * ISO period identifiers.
      */
     @JsonProperty
     private List<String> pe = new ArrayList<>();
