@@ -680,7 +680,7 @@ public class EventQueryParams
      */
     public boolean orgUnitFieldIsValid()
     {
-        if ( !(orgUnitField.getType() == ATTRIBUTE) )
+        if ( orgUnitField.getType() != ATTRIBUTE )
         {
             return true;
         }
