@@ -181,9 +181,9 @@ public abstract class PeriodType
      */
     public static List<String> getAvailablePeriodTypeNames()
     {
-        return List.copyOf( PERIOD_TYPES.stream()
+        return PERIOD_TYPES.stream()
             .map( PeriodType::getName )
-            .collect( Collectors.toList() ) );
+            .collect( Collectors.toUnmodifiableList() );
     }
 
     /**
