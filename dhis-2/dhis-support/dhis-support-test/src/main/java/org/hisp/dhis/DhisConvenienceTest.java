@@ -432,6 +432,7 @@ public abstract class DhisConvenienceTest
     {
         SourceRequest sourceRequest = new SourceRequest();
         sourceRequest.setName( "RequestA" );
+        sourceRequest.setVisualization( "JHKuBWP20RO" );
         sourceRequest.getDx().addAll( List.of( "LrDpG50RAU9", "uR5HCiJhQ1w" ) );
         sourceRequest.getPe().addAll( List.of( "202201", "202202" ) );
         sourceRequest.getOu().addAll( List.of( "G9BuXqtNeeb", "jDgiLmYwPDm" ) );
