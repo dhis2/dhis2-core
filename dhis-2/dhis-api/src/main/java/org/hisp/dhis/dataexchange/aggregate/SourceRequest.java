@@ -46,6 +46,9 @@ public class SourceRequest
     implements Serializable
 {
     @JsonProperty
+    private String name;
+
+    @JsonProperty
     private List<String> dx = new ArrayList<>();
 
     @JsonProperty

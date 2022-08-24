@@ -431,6 +431,7 @@ public abstract class DhisConvenienceTest
     public static AggregateDataExchange getAggregateDataExchange( char uniqueCharacter )
     {
         SourceRequest sourceRequest = new SourceRequest();
+        sourceRequest.setName( "RequestA" );
         sourceRequest.getDx().addAll( List.of( "LrDpG50RAU9", "uR5HCiJhQ1w" ) );
         sourceRequest.getPe().addAll( List.of( "202201", "202202" ) );
         sourceRequest.getOu().addAll( List.of( "G9BuXqtNeeb", "jDgiLmYwPDm" ) );

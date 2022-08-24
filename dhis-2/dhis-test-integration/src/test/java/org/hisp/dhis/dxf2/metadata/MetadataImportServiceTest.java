@@ -945,6 +945,8 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
         AggregateDataExchange aeA = manager.get( AggregateDataExchange.class, "iFOyIpQciyk" );
         assertNotNull( aeA );
         assertNotNull( aeA.getSource() );
+        assertNotNull( aeA.getSource().getRequests() );
+        assertEquals( 1, aeA.getSource().getRequests().size() );
         assertNotNull( aeA.getTarget() );
         assertEquals( "iFOyIpQciyk", aeA.getUid() );
         assertEquals( TargetType.INTERNAL, aeA.getTarget().getType() );
@@ -952,6 +954,8 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
         AggregateDataExchange aeB = manager.get( AggregateDataExchange.class, "PnWccbwCJLQ" );
         assertNotNull( aeB );
         assertNotNull( aeB.getSource() );
+        assertNotNull( aeB.getSource().getRequests() );
+        assertEquals( 1, aeB.getSource().getRequests().size() );
         assertNotNull( aeB.getTarget() );
         assertEquals( "PnWccbwCJLQ", aeB.getUid() );
         assertEquals( TargetType.EXTERNAL, aeB.getTarget().getType() );
@@ -962,6 +966,8 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
         AggregateDataExchange aeC = manager.get( AggregateDataExchange.class, "VpQ4qVEseyM" );
         assertNotNull( aeC );
         assertNotNull( aeC.getSource() );
+        assertNotNull( aeC.getSource().getRequests() );
+        assertEquals( 1, aeC.getSource().getRequests().size() );
         assertNotNull( aeC.getTarget() );
         assertEquals( "VpQ4qVEseyM", aeC.getUid() );
         assertEquals( TargetType.EXTERNAL, aeC.getTarget().getType() );

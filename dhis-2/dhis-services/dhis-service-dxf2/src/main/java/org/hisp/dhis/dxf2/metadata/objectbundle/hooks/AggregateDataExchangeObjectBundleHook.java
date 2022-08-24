@@ -52,6 +52,8 @@ import org.springframework.stereotype.Component;
 public class AggregateDataExchangeObjectBundleHook
     extends AbstractObjectBundleHook<AggregateDataExchange>
 {
+    private static final int SOURCE_REQUEST_NAME_MAX_LENGTH = 50;
+
     private final PooledPBEStringEncryptor encryptor;
 
     public AggregateDataExchangeObjectBundleHook(
@@ -71,6 +73,17 @@ public class AggregateDataExchangeObjectBundleHook
 
         for ( SourceRequest request : exchange.getSource().getRequests() )
         {
+            if ( isEmpty( request.getName() ) )
+            {
+                addReports.accept( new ErrorReport( AggregateDataExchange.class, ErrorCode.E4000, "source.name" ) );
+            }
+
+            if ( request.getName().length() > SOURCE_REQUEST_NAME_MAX_LENGTH )
+            {
+                addReports.accept( new ErrorReport( AggregateDataExchange.class, ErrorCode.E4001,
+                    "source.name", SOURCE_REQUEST_NAME_MAX_LENGTH, request.getName().length() ) );
+            }
+
             if ( isEmpty( request.getDx() ) || isEmpty( request.getPe() ) || isEmpty( request.getOu() ) )
             {
                 addReports.accept( new ErrorReport( AggregateDataExchange.class, ErrorCode.E6303 ) );
