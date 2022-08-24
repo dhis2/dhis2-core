@@ -45,7 +45,7 @@
 
         var deleteFileDataValue = function() {
 
-          var params = 'de=' + formData.de + '&ou=' + formData.ou + '&pe=' + formData.pe;
+          var params = 'de=' + formData.de + '&co=' + formData.co + '&ou=' + formData.ou + '&pe=' + formData.pe;
 
           if ( cc )
             {
@@ -151,6 +151,7 @@
                     href: '../api/dataValues/files?' + $.param( formData )
                 } ).appendTo( $fileinfoName );
 
+				$input.val( fileResource.id );
                 $displayField.css( 'background-color', dhis2.de.cst.colorGreen );
 
                 setButtonDelete();
