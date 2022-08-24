@@ -109,6 +109,6 @@ public final class Assertions
     public static <E> void assertIsEmpty( Collection<E> actual )
     {
         assertNotNull( actual );
-        assertTrue( actual.isEmpty() );
+        assertTrue( actual.isEmpty(), actual.toString() );
     }
 }

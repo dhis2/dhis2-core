@@ -114,6 +114,12 @@ public class ImportOptions
      */
     private boolean skipCache = false;
 
+    /**
+     * Optional field to set the data set ID of the imported values using
+     * request parameters
+     */
+    private String dataSet;
+
     // --------------------------------------------------------------------------
     // Constructors
     // --------------------------------------------------------------------------
@@ -157,6 +163,7 @@ public class ImportOptions
         options.skipLastUpdated = this.skipLastUpdated;
         options.skipCache = this.skipCache;
         options.mergeDataValues = this.mergeDataValues;
+        options.dataSet = this.dataSet;
 
         return options;
     }
@@ -415,6 +422,13 @@ public class ImportOptions
         return mergeDataValues;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDataSet()
+    {
+        return dataSet;
+    }
+
     // --------------------------------------------------------------------------
     // Set methods
     // --------------------------------------------------------------------------
@@ -648,6 +662,12 @@ public class ImportOptions
     public void setMergeDataValues( boolean mergeDataValues )
     {
         this.mergeDataValues = mergeDataValues;
+    }
+
+    public ImportOptions setDataSet( String dataSet )
+    {
+        this.dataSet = dataSet;
+        return this;
     }
 
     @Override

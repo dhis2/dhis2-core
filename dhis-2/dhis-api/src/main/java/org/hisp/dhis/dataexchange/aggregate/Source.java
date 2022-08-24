@@ -45,6 +45,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class Source
     implements Serializable
 {
+    /**
+     * Source requests.
+     */
     @JsonProperty
     private List<SourceRequest> requests = new ArrayList<>();
 }
