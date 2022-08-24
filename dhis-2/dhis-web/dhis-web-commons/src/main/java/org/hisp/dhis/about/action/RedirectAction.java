@@ -77,10 +77,6 @@ public class RedirectAction
                     if ( app.getShortName().equals( startModule.substring( "app:".length() ) ) )
                     {
                         redirectUrl = app.getLaunchUrl();
-                        if ( redirectUrl.endsWith( "dhis-web-dataentry/" ) )
-                        {
-                            redirectUrl += "index.action";
-                        }
                         return SUCCESS;
                     }
                 }
