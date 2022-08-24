@@ -84,6 +84,10 @@ public class RedirectAction
             else
             {
                 redirectUrl = "../" + startModule + "/";
+                if ( redirectUrl.endsWith( "dhis-web-dataentry/" ) )
+                {
+                    redirectUrl += "index.action";
+                }
                 return SUCCESS;
             }
         }
