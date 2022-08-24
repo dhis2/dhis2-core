@@ -70,7 +70,6 @@ import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EventQuery.COL
 import static org.hisp.dhis.system.util.SqlUtils.castToNumber;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
 import static org.hisp.dhis.util.DateUtils.addDays;
-import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
 import java.io.IOException;
@@ -78,6 +77,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -1606,8 +1606,8 @@ public class JdbcEventStore implements EventStore
 
         if ( params.hasLastUpdatedDuration() )
         {
-            mapSqlParameterSource.addValue( "lastUpdated",
-                "'" + getLongGmtDateString( DateUtils.nowMinusDuration( params.getLastUpdatedDuration() ) ) + "'" );
+            mapSqlParameterSource.addValue( "lastUpdated", DateUtils.offSetDateTimeFrom(
+                DateUtils.nowMinusDuration( params.getLastUpdatedDuration() ) ), Types.TIMESTAMP_WITH_TIMEZONE );
 
             sqlBuilder.append( hlp.whereAnd() )
                 .append( PSI_LASTUPDATED_GT )
@@ -1618,8 +1618,7 @@ public class JdbcEventStore implements EventStore
         {
             if ( params.hasLastUpdatedStartDate() )
             {
-                mapSqlParameterSource.addValue( "lastUpdatedStart",
-                    "'" + DateUtils.getLongDateString( params.getLastUpdatedStartDate() ) + "'" );
+                mapSqlParameterSource.addValue( "lastUpdatedStart", params.getLastUpdatedStartDate(), Types.TIMESTAMP );
 
                 sqlBuilder.append( hlp.whereAnd() )
                     .append( PSI_LASTUPDATED_GT )
@@ -1631,8 +1630,8 @@ public class JdbcEventStore implements EventStore
             {
                 if ( useDateAfterEndDate )
                 {
-                    mapSqlParameterSource.addValue( "lastUpdatedEnd",
-                        "'" + DateUtils.getLongDateString( addDays( params.getLastUpdatedEndDate(), 1 ) ) + "'" );
+                    mapSqlParameterSource.addValue( "lastUpdatedEnd", addDays( params.getLastUpdatedEndDate(), 1 ),
+                        Types.TIMESTAMP );
 
                     sqlBuilder.append( hlp.whereAnd() )
                         .append( " psi.lastupdated < " )
@@ -1642,7 +1641,7 @@ public class JdbcEventStore implements EventStore
                 else
                 {
                     mapSqlParameterSource.addValue( "lastUpdatedEnd",
-                        "'" + DateUtils.getLongDateString( params.getLastUpdatedEndDate() ) + "'" );
+                        DateUtils.getLongDateString( params.getLastUpdatedEndDate() ), Types.TIMESTAMP );
 
                     sqlBuilder.append( hlp.whereAnd() )
                         .append( " psi.lastupdated <= " )

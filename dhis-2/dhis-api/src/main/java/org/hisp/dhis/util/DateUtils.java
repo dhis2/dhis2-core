@@ -31,6 +31,7 @@ import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
@@ -707,6 +708,13 @@ public class DateUtils
     public static Date parseDate( final String dateString )
     {
         return safeParseDateTime( dateString, DATE_FORMATTER );
+    }
+
+    public static OffsetDateTime offSetDateTimeFrom( final Date date )
+    {
+        return OffsetDateTime.of( date.toInstant()
+            .atZone( ZoneOffset.UTC ).toLocalDateTime(),
+            ZoneOffset.UTC );
     }
 
     /**
