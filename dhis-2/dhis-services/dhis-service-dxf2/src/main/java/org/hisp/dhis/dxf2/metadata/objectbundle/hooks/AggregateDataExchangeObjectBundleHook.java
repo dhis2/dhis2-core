@@ -67,8 +67,8 @@ public class AggregateDataExchangeObjectBundleHook
     public void validate( AggregateDataExchange exchange, ObjectBundle bundle,
         Consumer<ErrorReport> addReports )
     {
-        validateSource( exchange, bundle, addReports );
-        validateTarget( exchange, bundle, addReports );
+        validateSource( exchange, addReports );
+        validateTarget( exchange, addReports );
     }
 
     @Override
