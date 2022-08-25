@@ -78,7 +78,6 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
 import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.quick.BatchHandlerFactory;
@@ -96,7 +95,7 @@ import com.google.common.collect.Sets;
 @Transactional
 @AllArgsConstructor
 public class DefaultPredictionService
-    implements PredictionService, AnalyticsServiceTarget, CurrentUserServiceTarget
+    implements PredictionService, AnalyticsServiceTarget
 {
     private final PredictorService predictorService;
 
@@ -116,18 +115,12 @@ public class DefaultPredictionService
 
     private AnalyticsService analyticsService;
 
-    private CurrentUserService currentUserService;
+    private final CurrentUserService currentUserService;
 
     @Override
     public void setAnalyticsService( AnalyticsService analyticsService )
     {
         this.analyticsService = analyticsService;
-    }
-
-    @Override
-    public void setCurrentUserService( CurrentUserService currentUserService )
-    {
-        this.currentUserService = currentUserService;
     }
 
     // -------------------------------------------------------------------------

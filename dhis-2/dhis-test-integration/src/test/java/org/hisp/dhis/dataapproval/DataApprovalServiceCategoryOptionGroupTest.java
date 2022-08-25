@@ -66,8 +66,6 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupAccessService;
@@ -123,9 +121,6 @@ class DataApprovalServiceCategoryOptionGroupTest extends IntegrationTestBase
 
     @Autowired
     protected UserService _userService;
-
-    @Autowired
-    protected CurrentUserService currentUserService;
 
     @Autowired
     protected DataSetService dataSetService;
@@ -532,9 +527,6 @@ class DataApprovalServiceCategoryOptionGroupTest extends IntegrationTestBase
     @Override
     public void tearDownTest()
     {
-        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
-            currentUserService, dataApprovalService, dataApprovalStore, dataApprovalLevelService,
-            organisationUnitService, hibernateCategoryOptionGroupStore );
         systemSettingManager.saveSystemSetting( SettingKey.IGNORE_ANALYTICS_APPROVAL_YEAR_THRESHOLD, -1 );
         systemSettingManager.saveSystemSetting( SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL, false );
         DataApprovalPermissionsEvaluator.invalidateCache();

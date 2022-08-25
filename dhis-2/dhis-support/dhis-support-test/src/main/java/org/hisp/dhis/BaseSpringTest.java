@@ -44,7 +44,6 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.orm.hibernate5.SessionFactoryUtils;
 import org.springframework.orm.hibernate5.SessionHolder;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -68,19 +67,6 @@ public abstract class BaseSpringTest extends DhisConvenienceTest implements Appl
 
     @Autowired
     protected TransactionTemplate transactionTemplate;
-
-    protected static JdbcTemplate jdbcTemplate;
-
-    protected abstract boolean emptyDatabaseAfterTest();
-
-    /*
-     * "Special" setter to allow setting JdbcTemplate as static field
-     */
-    @Autowired
-    public static void setJdbcTemplate( JdbcTemplate jdbcTemplate )
-    {
-        BaseSpringTest.jdbcTemplate = jdbcTemplate;
-    }
 
     @Override
     public void setApplicationContext( ApplicationContext applicationContext )
@@ -130,16 +116,13 @@ public abstract class BaseSpringTest extends DhisConvenienceTest implements Appl
             log.info( "Failed to clear hibernate session, reason:" + e.getMessage() );
         }
         unbindSession();
-        if ( emptyDatabaseAfterTest() )
-        {
-            // We normally don't want all the delete/empty db statements in the
-            // query logger
-            Configurator.setLevel( ORG_HISP_DHIS_DATASOURCE_QUERY, Level.WARN );
-            transactionTemplate.execute( status -> {
-                dbmsManager.emptyDatabase();
-                return null;
-            } );
-        }
+        // We normally don't want all the delete/empty db statements in the
+        // query logger
+        Configurator.setLevel( ORG_HISP_DHIS_DATASOURCE_QUERY, Level.WARN );
+        transactionTemplate.execute( status -> {
+            dbmsManager.emptyDatabase();
+            return null;
+        } );
     }
 
     protected void integrationTestBefore()
@@ -155,16 +138,6 @@ public abstract class BaseSpringTest extends DhisConvenienceTest implements Appl
             Configurator.setRootLevel( Level.INFO );
         }
         setUpTest();
-    }
-
-    /**
-     * Retrieves a bean from the application context.
-     *
-     * @param beanId the identifier of the bean.
-     */
-    protected final Object getBean( String beanId )
-    {
-        return applicationContext.getBean( beanId );
     }
 
     protected void bindSession()

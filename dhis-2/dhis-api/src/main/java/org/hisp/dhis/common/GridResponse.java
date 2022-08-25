@@ -27,23 +27,21 @@
  */
 package org.hisp.dhis.common;
 
-import org.hisp.quick.BatchHandlerFactory;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * OBS! This should not become a part of the dhis-api module!
- * <p>
- * Added to managed bean implementation classes (not their interface) which are
- * provided with a {@link BatchHandlerFactory} during testing.
- *
  * @author Jan Bernitt
  */
-public interface BatchHandlerFactoryTarget
+@Getter
+@AllArgsConstructor
+public final class GridResponse
 {
-    /**
-     * This is only a workaround until a better solution is found.
-     *
-     * @param batchHandlerFactory dynamically update {@link BatchHandlerFactory}
-     *        during testing
-     */
-    void setBatchHandlerFactory( BatchHandlerFactory batchHandlerFactory );
+    @JsonProperty
+    private final Pager pager;
+
+    @JsonProperty
+    private final Grid listGrid;
 }

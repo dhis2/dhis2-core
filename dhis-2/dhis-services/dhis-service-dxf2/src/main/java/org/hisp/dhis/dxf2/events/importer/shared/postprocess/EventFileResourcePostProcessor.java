@@ -25,24 +25,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.user;
+package org.hisp.dhis.dxf2.events.importer.shared.postprocess;
+
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dxf2.events.event.DataValue;
+import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.importer.Processor;
+import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceService;
+import org.springframework.stereotype.Component;
 
 /**
- * OBS! This should not become a part of the dhis-api module!
- * <p>
- * Added to managed bean implementation classes (not their interface) which are
- * provided with a {@link CurrentUserService} during testing.
+ * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  *
- * @author Jan Bernitt
  */
-public interface CurrentUserServiceTarget
+@Component
+public class EventFileResourcePostProcessor implements Processor
 {
+    @Override
+    public void process( Event event, WorkContext ctx )
+    {
+        FileResourceService fileResourceService = ctx.getServiceDelegator().getFileResourceService();
 
-    /**
-     * This is only a workaround until a better solution is found.
-     *
-     * @param currentUserService dynamically update {@link CurrentUserService}
-     *        during testing
-     */
-    void setCurrentUserService( CurrentUserService currentUserService );
+        for ( DataValue dataValue : event.getDataValues() )
+        {
+            DataElement dataElement = ctx.getDataElementMap().get( dataValue.getDataElement() );
+
+            if ( dataElement.isFileType() )
+            {
+                FileResource fileResource = fileResourceService.getFileResource( dataValue.getValue() );
+
+                if ( !fileResource.isAssigned() || fileResource.getFileResourceOwner() == null )
+                {
+                    fileResource.setAssigned( true );
+                    fileResource.setFileResourceOwner( event.getEvent() );
+                    fileResourceService.updateFileResource( fileResource );
+                }
+            }
+        }
+    }
 }

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.table;
 
+import static java.util.Collections.emptyList;
 import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
 import static org.hisp.dhis.analytics.ColumnDataType.DATE;
 import static org.hisp.dhis.analytics.ColumnDataType.DOUBLE;
@@ -130,19 +131,13 @@ public class JdbcCompletenessTargetTableManager
     @Override
     protected List<String> getPartitionChecks( AnalyticsTablePartition partition )
     {
-        return Lists.newArrayList();
-    }
-
-    @Override
-    protected String getPartitionColumn()
-    {
-        return null;
+        return emptyList();
     }
 
     @Override
     protected void populateTable( AnalyticsTableUpdateParams params, AnalyticsTablePartition partition )
     {
-        final String tableName = partition.getTempTableName();
+        String tableName = partition.getTempTableName();
 
         String sql = "insert into " + tableName + " (";
 

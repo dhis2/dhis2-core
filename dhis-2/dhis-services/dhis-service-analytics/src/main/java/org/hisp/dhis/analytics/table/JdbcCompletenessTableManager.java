@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static com.google.common.collect.Lists.newArrayList;
+import static java.util.Collections.emptyList;
 import static org.hisp.dhis.analytics.ColumnDataType.BOOLEAN;
 import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
 import static org.hisp.dhis.analytics.ColumnDataType.DATE;
@@ -166,21 +166,14 @@ public class JdbcCompletenessTableManager
     @Override
     protected List<String> getPartitionChecks( AnalyticsTablePartition partition )
     {
-        return partition.isLatestPartition() ? newArrayList()
-            : Lists.newArrayList( "year = " + partition.getYear() + "" );
-    }
-
-    @Override
-    protected String getPartitionColumn()
-    {
-        return "year";
+        return partition.isLatestPartition() ? emptyList() : List.of( "year = " + partition.getYear() + "" );
     }
 
     @Override
     protected void populateTable( AnalyticsTableUpdateParams params, AnalyticsTablePartition partition )
     {
-        final String tableName = partition.getTempTableName();
-        final String partitionClause = partition.isLatestPartition()
+        String tableName = partition.getTempTableName();
+        String partitionClause = partition.isLatestPartition()
             ? "and cdr.lastupdated >= '" + getLongDateString( partition.getStartDate() ) + "' "
             : "and ps.year = " + partition.getYear() + " ";
 
@@ -225,7 +218,7 @@ public class JdbcCompletenessTableManager
             "and cdr.lastupdated < '" + getLongDateString( params.getStartTime() ) + "' " +
             "and cdr.completed = true";
 
-        final String sql = insert + select;
+        String sql = insert + select;
 
         invokeTimeAndLog( sql, String.format( "Populate %s", tableName ) );
     }
