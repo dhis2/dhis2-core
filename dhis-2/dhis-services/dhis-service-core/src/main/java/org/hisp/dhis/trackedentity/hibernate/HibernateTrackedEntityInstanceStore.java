@@ -80,8 +80,6 @@ import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.dxf2.events.event.EventContext;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitStore;
@@ -1361,8 +1359,8 @@ public class HibernateTrackedEntityInstanceStore
      * parameters
      * <p>
      * If neither maxteilimit or paging is set, we have no limit set by the
-     * user, so system will set the limit to TRACKED_ENTITY_MAX_LIMIT which can be
-     * configured in system settings.
+     * user, so system will set the limit to TRACKED_ENTITY_MAX_LIMIT which can
+     * be configured in system settings.
      * <p>
      * The limit is set in the subquery, so the latter joins have fewer rows to
      * consider.
@@ -1375,7 +1373,7 @@ public class HibernateTrackedEntityInstanceStore
     {
         StringBuilder limitOffset = new StringBuilder();
         int limit = params.getMaxTeiLimit();
-        int teiQueryLimit = systemSettingManager.getIntSetting(SettingKey.TRACKED_ENTITY_MAX_LIMIT );
+        int teiQueryLimit = systemSettingManager.getIntSetting( SettingKey.TRACKED_ENTITY_MAX_LIMIT );
 
         if ( limit == 0 && !params.isPaging() )
         {
