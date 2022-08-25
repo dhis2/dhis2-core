@@ -27,11 +27,6 @@
  */
 package org.hisp.dhis.trackedentityinstance;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-
 import java.util.Date;
 import java.util.List;
 
