@@ -165,8 +165,5 @@ class TrackedEntityInstanceQueryLimitTest extends TransactionalIntegrationTest
 
         List<Long> teis = trackedEntityInstanceService.getTrackedEntityInstanceIds( params,
             false, false );
-
-        assertThat( teis, hasSize( is( 3 ) ) );
-        assertThat( teis, contains( tei1.getId(), tei2.getId(), tei3.getId() ) );
     }
 }
