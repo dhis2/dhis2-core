@@ -72,7 +72,7 @@ public class DefaultQueryPlanner implements QueryPlanner
         Junction.Type junctionType = query.getCriterions().size() <= 1 ? Junction.Type.AND
             : query.getRootJunctionType();
 
-        if ( (!isFilterOnPersistedFieldOnly( query ) || Junction.Type.OR == junctionType) && !persistedOnly )
+        if ( (Junction.Type.OR == junctionType) && !persistedOnly )
         {
             return QueryPlan.builder()
                 .persistedQuery( Query.from( query.getSchema() ).setPlannedQuery( true ) )
