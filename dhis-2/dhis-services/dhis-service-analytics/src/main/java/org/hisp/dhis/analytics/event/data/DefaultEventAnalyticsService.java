@@ -790,8 +790,7 @@ public class DefaultEventAnalyticsService
 
         if ( params.getPartitions().hasAny() || params.isSkipPartitioning() )
         {
-            if ( params.isPaging() )
-                eventAnalyticsManager.getEvents( params, grid, queryValidator.getMaxLimit() );
+            eventAnalyticsManager.getEvents( params, grid, queryValidator.getMaxLimit() );
 
             if ( params.isPaging() && params.isTotalPages() )
             {
