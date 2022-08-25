@@ -36,6 +36,7 @@ import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.security.MappedRedirectStrategy;
+import org.hisp.dhis.security.authtentication.CustomAuthHandler;
 import org.hisp.dhis.security.ldap.authentication.CustomLdapAuthenticationProvider;
 import org.hisp.dhis.security.oidc.DhisOidcLogoutSuccessHandler;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
@@ -155,7 +156,10 @@ public class DhisWebCommonsWebSecurityConfig
 
         @Autowired
         @Qualifier( "customLdapAuthenticationProvider" )
-        CustomLdapAuthenticationProvider customLdapAuthenticationProvider;
+        private CustomLdapAuthenticationProvider customLdapAuthenticationProvider;
+
+        @Autowired
+        private CustomAuthHandler customAuthHandler;
 
         @Autowired
         private DefaultAuthenticationEventPublisher authenticationEventPublisher;
@@ -244,7 +248,7 @@ public class DhisWebCommonsWebSecurityConfig
                 .loginPage( "/dhis-web-commons/security/login.action" )
                 .usernameParameter( "j_username" ).passwordParameter( "j_password" )
                 .loginProcessingUrl( "/dhis-web-commons-security/login.action" )
-                .failureHandler( authenticationFailureHandler() )
+                .failureHandler( customAuthHandler )
                 .successHandler( authenticationSuccessHandler() )
                 .permitAll()
                 .and()
@@ -303,23 +307,44 @@ public class DhisWebCommonsWebSecurityConfig
             return mappedRedirectStrategy;
         }
 
-        @Bean
-        public CustomExceptionMappingAuthenticationFailureHandler authenticationFailureHandler()
-        {
-            CustomExceptionMappingAuthenticationFailureHandler handler = new CustomExceptionMappingAuthenticationFailureHandler(
-                i18nManager );
+//        @Bean
+//        public CustomExceptionMappingAuthenticationFailureHandler authenticationFailureHandler()
+//        {
+//            CustomExceptionMappingAuthenticationFailureHandler handler = new CustomExceptionMappingAuthenticationFailureHandler(
+//                i18nManager );
+//
+//            // Handles the special case when a user failed to login because it
+//            // has expired...
+//            handler.setExceptionMappings(
+//                ImmutableMap.of(
+//                    "org.springframework.security.authentication.CredentialsExpiredException",
+//                    "/dhis-web-commons/security/expired.action" ) );
+//
+//            handler.setDefaultFailureUrl( "/dhis-web-commons/security/login.action?failed=true" );
+//
+//            return handler;
+//        }
 
-            // Handles the special case when a user failed to login because it
-            // has expired...
-            handler.setExceptionMappings(
-                ImmutableMap.of(
-                    "org.springframework.security.authentication.CredentialsExpiredException",
-                    "/dhis-web-commons/security/expired.action" ) );
 
-            handler.setDefaultFailureUrl( "/dhis-web-commons/security/login.action?failed=true" );
 
-            return handler;
-        }
+
+//        @Bean
+//        public CustomExceptionMappingAuthenticationFailureHandler authenticationFailureHandler()
+//        {
+//            CustomExceptionMappingAuthenticationFailureHandler handler = new CustomExceptionMappingAuthenticationFailureHandler(
+//                i18nManager );
+//
+//            // Handles the special case when a user failed to login because it
+//            // has expired...
+//            handler.setExceptionMappings(
+//                ImmutableMap.of(
+//                    "org.springframework.security.authentication.CredentialsExpiredException",
+//                    "/dhis-web-commons/security/expired.action" ) );
+//
+//            handler.setDefaultFailureUrl( "/dhis-web-commons/security/login.action?failed=true" );
+//
+//            return handler;
+//        }
 
         @Bean
         public DeviceResolver deviceResolver()

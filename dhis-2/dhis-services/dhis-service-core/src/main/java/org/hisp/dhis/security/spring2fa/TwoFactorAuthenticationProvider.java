@@ -27,15 +27,15 @@
  */
 package org.hisp.dhis.security.spring2fa;
 
-import lombok.extern.slf4j.Slf4j;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.validator.routines.LongValidator;
 import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.security.TwoFactoryAuthenticationUtils;
 import org.hisp.dhis.user.CurrentUserDetails;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.validator.routines.LongValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -89,7 +89,11 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider
         // -------------------------------------------------------------------------
         if ( user.isTwoFA() && auth.getDetails() instanceof TwoFactorWebAuthenticationDetails )
         {
-            performTwoFAAuthentication( auth, username, user );
+            performTwoFactorAuthentication( auth, username, user );
+        }
+        else if ( user.isTwoFA() && user.getSecret().equals( "ENROL" ) )
+        {
+            throw new TwoFactorAuthenticationEnrolException(   "Invalid verification code" );
         }
         else if ( user.isTwoFA() && !(auth.getDetails() instanceof TwoFactorWebAuthenticationDetails) )
         {
@@ -109,7 +113,7 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider
             result.getAuthorities() );
     }
 
-    private void performTwoFAAuthentication( Authentication auth, String username, User user )
+    private void performTwoFactorAuthentication( Authentication auth, String username, User user )
     {
         TwoFactorWebAuthenticationDetails authDetails = (TwoFactorWebAuthenticationDetails) auth.getDetails();
 
@@ -135,7 +139,7 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider
             log.debug(
                 String.format( "Two-factor authentication failure for user: %s", user.getUsername() ) );
 
-            throw new BadCredentialsException( "Invalid verification code" );
+                throw new TwoFactorAuthenticationException( "Invalid verification code" );
         }
     }
 
