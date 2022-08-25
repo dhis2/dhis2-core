@@ -80,6 +80,7 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.RootNode;
+import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.schema.descriptors.TrackedEntityInstanceSchemaDescriptor;
 import org.hisp.dhis.system.grid.GridUtils;
@@ -159,6 +160,7 @@ public class TrackedEntityInstanceController
         ContextUtils.CONTENT_TYPE_CSV } )
     public @ResponseBody RootNode getTrackedEntityInstances( TrackedEntityInstanceCriteria criteria,
         HttpServletResponse response )
+        throws WebMessageException
     {
         List<String> fields = contextService.getFieldsFromRequestOrAll();
 
@@ -186,6 +188,25 @@ public class TrackedEntityInstanceController
 
         rootNode.addChild( fieldFilterService.toCollectionNode( TrackedEntityInstance.class,
             new FieldFilterParams( trackedEntityInstances, fields ) ) );
+
+        if ( contextService.getRequest().getRequestURI().endsWith( RenderFormat.CSV.name().toLowerCase() )
+            || contextService.getParameterValues( "format" ).contains( RenderFormat.CSV.name().toLowerCase() ) )
+        {
+            long simpleNodesCount = rootNode.getChildren().stream()
+                .filter( c -> c.isCollection() && !c.getChildren().isEmpty()
+                    && !c.getChildren().get( 0 ).getChildren().isEmpty() )
+                .flatMap( c -> c.getChildren().get( 0 ).getChildren().stream() )
+                .filter( c -> c.isSimple() )
+                .count();
+
+            if ( simpleNodesCount == 0 )
+            {
+                throw new WebMessageException(
+                    conflict(
+                        "Field(s) " + String.join( ",", fields ) + " not supported for CSV for this resource",
+                        "Field(s) not supported, request simple fields only." ) );
+            }
+        }
 
         return rootNode;
     }

@@ -64,6 +64,22 @@ class TrackedEntityInstanceControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
+    void testGetTrackedEntityInstanceCsv()
+    {
+        assertWebMessage( "OK", 200, "OK", "",
+                GET( "/trackedEntityInstances?fields=created,inactive&ou="+ouId+"&program=IpHINAT79UW&paging=false" )
+                        .content( HttpStatus.OK ) );
+    }
+
+    @Test
+    void testGetTrackedEntityInstanceCsvWithWrongParameters()
+    {
+        assertWebMessage( "Conflict", 409, "ERROR", "Field(s) enrollments not supported for CSV for this resource",
+                GET( "/trackedEntityInstances?fields=enrollments&ou="+ouId+"&program=IpHINAT79UW&paging=false" )
+                        .content( HttpStatus.CONFLICT ) );
+    }
+
+    @Test
     void testPostTrackedEntityInstanceJson()
     {
         assertWebMessage( "OK", 200, "OK", "Import was successful.",
