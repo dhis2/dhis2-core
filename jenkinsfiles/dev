@@ -28,7 +28,7 @@ pipeline {
                 implementIoBuildStarted(buildJob: true, buildName: "${STAGE_NAME}")
                 echo 'Building DHIS2 ...'
                 script {
-                    withMaven(options: [artifactsPublisher(disabled: true)]) {
+                    withMaven(options: [artifactsPublisher(disabled: true), junitPublisher(disabled: true)]) {
                         sh 'mvn -X -T 4 --batch-mode --no-transfer-progress clean install -f dhis-2/pom.xml -P -default --update-snapshots -pl -dhis-web-embedded-jetty,-dhis-test-coverage'
                         sh 'mvn -X -T 4 --batch-mode --no-transfer-progress package -f dhis-2/dhis-web/pom.xml -P -default --update-snapshots'
                     }
@@ -37,16 +37,22 @@ pipeline {
 
             post {
                 always {
+                    script {
+                        testsSummary = junit testResults: '**/target/surefire-reports/TEST-*.xml'
+                    }
+
                     implementIoBuildEnded(buildName: "${STAGE_NAME}")
                 }
 
                 failure {
                     script {
-                        slack.sendMessage(
-                            '#ff0000',
-                            slack.buildUrl() + "\nLatest test run on ${GIT_BRANCH} failed and needs investigation. :detective-duck:\nCommit: <${GIT_URL}/commit/${GIT_COMMIT}|${GIT_COMMIT}>",
-                            'team-backend'
-                        )
+                        if (testsSummary.failCount > 0) {
+                            slack.sendMessage(
+                                '#ff0000',
+                                slack.buildUrl() + "\nLatest test run on ${GIT_BRANCH} failed and needs investigation. :detective-duck:\nCommit: <${GIT_URL}/commit/${GIT_COMMIT}|${GIT_COMMIT}>",
+                                'team-backend'
+                            )
+                        }
                     }
                 }
             }
@@ -88,7 +94,7 @@ pipeline {
     }
 
     post {
-        success {
+        always {
             archiveArtifacts artifacts: '**/target/surefire-reports/TEST-*.xml'
         }
 
