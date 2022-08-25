@@ -45,21 +45,51 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class SourceRequest
     implements Serializable
 {
+    /**
+     * Name of source request, max 50 characters.
+     */
+    @JsonProperty
+    private String name;
+
+    /**
+     * Optional UID reference to a visualization.
+     */
+    @JsonProperty
+    private String visualization;
+
+    /**
+     * Data dimension item identifiers.
+     */
     @JsonProperty
     private List<String> dx = new ArrayList<>();
 
+    /**
+     * ISO period identifiers.
+     */
     @JsonProperty
     private List<String> pe = new ArrayList<>();
 
+    /**
+     * Org unit identifiers.
+     */
     @JsonProperty
     private List<String> ou = new ArrayList<>();
 
+    /**
+     * Request filters.
+     */
     @JsonProperty
     private List<Filter> filters = new ArrayList<>();
 
+    /**
+     * Input identifier scheme.
+     */
     @JsonProperty
     private String inputIdScheme;
 
+    /**
+     * Output identifier scheme.
+     */
     @JsonProperty
     private String outputIdScheme;
 }
