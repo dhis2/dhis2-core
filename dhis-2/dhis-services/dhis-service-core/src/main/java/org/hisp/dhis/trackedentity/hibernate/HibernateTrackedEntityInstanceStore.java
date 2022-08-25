@@ -86,6 +86,8 @@ import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitStore;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
@@ -147,28 +149,28 @@ public class HibernateTrackedEntityInstanceStore
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private OrganisationUnitStore organisationUnitStore;
+    private final OrganisationUnitStore organisationUnitStore;
 
-    private StatementBuilder statementBuilder;
+    private final StatementBuilder statementBuilder;
 
-    private DhisConfigurationProvider configurationProvider;
+    private final SystemSettingManager systemSettingManager;
 
     // TODO too many arguments in constructor. This needs to be refactored.
     public HibernateTrackedEntityInstanceStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService,
         AclService aclService, StatementBuilder statementBuilder,
-        OrganisationUnitStore organisationUnitStore, DhisConfigurationProvider configurationProvider )
+        OrganisationUnitStore organisationUnitStore, SystemSettingManager systemSettingManager )
     {
         super( sessionFactory, jdbcTemplate, publisher, TrackedEntityInstance.class, currentUserService, aclService,
             false );
 
         checkNotNull( statementBuilder );
         checkNotNull( organisationUnitStore );
-        checkNotNull( configurationProvider );
+        checkNotNull( systemSettingManager );
 
         this.statementBuilder = statementBuilder;
         this.organisationUnitStore = organisationUnitStore;
-        this.configurationProvider = configurationProvider;
+        this.systemSettingManager = systemSettingManager;
     }
 
     // -------------------------------------------------------------------------
@@ -1359,8 +1361,8 @@ public class HibernateTrackedEntityInstanceStore
      * parameters
      * <p>
      * If neither maxteilimit or paging is set, we have no limit set by the
-     * user, so we use {@link ConfigurationKey}
-     * TRACKER_TRACKED_ENTITY_QUERY_LIMIT. This is configurable in dhis.conf.
+     * user, so system will set the limit to TRACKED_ENTITY_MAX_LIMIT which can be
+     * configured in system settings.
      * <p>
      * The limit is set in the subquery, so the latter joins have fewer rows to
      * consider.
@@ -1373,9 +1375,7 @@ public class HibernateTrackedEntityInstanceStore
     {
         StringBuilder limitOffset = new StringBuilder();
         int limit = params.getMaxTeiLimit();
-        int teiQueryLimit = Integer
-            .parseInt( configurationProvider
-                .getProperty( ConfigurationKey.TRACKER_TRACKED_ENTITY_QUERY_LIMIT ) );
+        int teiQueryLimit = systemSettingManager.getIntSetting(SettingKey.TRACKED_ENTITY_MAX_LIMIT );
 
         if ( limit == 0 && !params.isPaging() )
         {

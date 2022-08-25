@@ -215,7 +215,13 @@ public enum SettingKey
     /**
      * The cache time to live value for the analytics API.
      */
-    ANALYTICS_CACHE_TTL_MODE( "keyAnalyticsCacheTtlMode", AnalyticsCacheTtlMode.FIXED, AnalyticsCacheTtlMode.class );
+    ANALYTICS_CACHE_TTL_MODE( "keyAnalyticsCacheTtlMode", AnalyticsCacheTtlMode.FIXED, AnalyticsCacheTtlMode.class ),
+
+    /**
+     * Max records to return in the analytics API. Default is 100'000. The value
+     * 0 represents unlimited records.
+     */
+    TRACKED_ENTITY_MAX_LIMIT( "KeyTrackedEntityInstanceMaxLimit", 50000, Integer.class );
 
     private final String name;
 

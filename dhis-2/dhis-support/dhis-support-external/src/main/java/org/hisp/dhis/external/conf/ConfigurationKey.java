@@ -702,12 +702,6 @@ public enum ConfigurationKey
      * other session when a new session is started.
      */
     MAX_SESSIONS_PER_USER( "max.sessions.per_user", "10", false ),
-
-    /**
-     * Limits the number of trackedentityinstance records that should be
-     * retrieved from database
-     */
-    TRACKER_TRACKED_ENTITY_QUERY_LIMIT( "tracker.trackedentity.query.limit", "50000", false );
     /**
      * Redis based cache invalidation feature. Enable or disable.
      */
