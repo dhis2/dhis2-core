@@ -345,13 +345,8 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
         try ( StringWriter strW = new StringWriter() )
         {
-            SequenceWriter seqW = csvMapper.writer()
+            SequenceWriter seqW = csvMapper.writer( schema )
                 .writeValues( strW );
-
-            if ( !skipHeader )
-            {
-                seqW.write( obj2valueByProperty.keySet().toArray() );
-            }
 
             Object[] row = new Object[obj2valueByProperty.size()];
 
