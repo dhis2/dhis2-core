@@ -584,7 +584,7 @@ public class UserController
     public WebMessage disableTwoFA( @PathVariable( "uid" ) String uid, @CurrentUser User currentUser )
     {
         List<ErrorReport> errors = new ArrayList<>();
-        userService.disableTwoFA( currentUser, uid, error -> errors.add( error ) );
+        userService.privilegedTwoFADisable( currentUser, uid, error -> errors.add( error ) );
 
         if ( errors.isEmpty() )
         {
@@ -624,7 +624,7 @@ public class UserController
 
         User persistedObject = entities.get( 0 );
 
-        boolean twoFABefore = persistedObject.getTwoFA();
+        boolean twoFABefore = persistedObject.hasTwoFAEnabled();
 
         if ( !aclService.canUpdate( currentUser, persistedObject ) )
         {
@@ -638,9 +638,9 @@ public class UserController
         prePatchEntity( persistedObject );
         patchService.apply( patch, persistedObject );
 
-        boolean twoFAfter = persistedObject.getTwoFA();
+        boolean twoFAfter = persistedObject.hasTwoFAEnabled();
 
-        securityService.validate2FAUpdate( twoFABefore, twoFAfter, persistedObject );
+        userService.validate2FAUpdate( twoFABefore, twoFAfter, persistedObject );
 
         validateAndThrowErrors( () -> schemaValidator.validate( persistedObject ) );
 

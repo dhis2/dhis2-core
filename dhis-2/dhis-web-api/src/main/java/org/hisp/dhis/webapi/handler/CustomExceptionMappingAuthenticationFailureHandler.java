@@ -43,6 +43,7 @@ import org.springframework.security.web.authentication.ExceptionMappingAuthentic
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+
 public class CustomExceptionMappingAuthenticationFailureHandler
     extends ExceptionMappingAuthenticationFailureHandler
 {

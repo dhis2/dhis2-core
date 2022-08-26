@@ -119,9 +119,8 @@
 
     <property name="secret" type="text" not-null="false" />
 
-    <property name="twoFA" not-null="false" />
-
-    <property name="requires2FA" not-null="true"/>
+<!--    <property name="twoFA" not-null="false" />-->
+<!--    <property name="requires2FA" not-null="true"/>-->
 
     <property name="externalAuth" column="externalauth" />
 

@@ -30,15 +30,11 @@ package org.hisp.dhis.webapi.controller.security;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
-import static org.hisp.dhis.feedback.ErrorCode.E3023;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import lombok.AllArgsConstructor;
-
-import org.apache.commons.validator.routines.LongValidator;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -50,6 +46,8 @@ import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+
+import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -87,12 +85,13 @@ public class TwoFactorController
             throw new BadCredentialsException( "No current user" );
         }
 
-        if ( currentUser.getTwoFA() )
+        // User already has a secret, throw exception. User need to disable 2FA before enabling again!
+        if ( currentUser.hasTwoFAEnabled() )
         {
             throw new WebMessageException( conflict( ErrorCode.E3022.getMessage(), ErrorCode.E3022 ) );
         }
 
-        defaultUserService.generateTwoFactorSecret( currentUser );
+        defaultUserService.generateTwoFactorSecretForApproval( currentUser );
 
         String appName = systemSettingManager.getStringSetting( SettingKey.APPLICATION_TITLE );
         String url = TwoFactoryAuthenticationUtils.generateQrUrl( appName, currentUser );
@@ -130,8 +129,7 @@ public class TwoFactorController
         @RequestBody Map<String, String> body, @CurrentUser( required = true ) User currentUser )
         throws WebMessageException
     {
-        validateCode( currentUser, body.get( "code" ) );
-        defaultUserService.set2FA( currentUser, true );
+        defaultUserService.enableTwoFA( currentUser, body.get( "code" ) );
     }
 
     @PostMapping( value = "/disable", consumes = { "text/*", "application/*" } )
@@ -141,23 +139,6 @@ public class TwoFactorController
         @RequestBody Map<String, String> body, @CurrentUser( required = true ) User currentUser )
         throws WebMessageException
     {
-        validateCode( currentUser, body.get( "code" ) );
-        defaultUserService.set2FA( currentUser, false );
+        defaultUserService.disableTwoFA( currentUser, body.get( "code" ) );
     }
-
-    private static void validateCode( User currentUser, String code )
-        throws WebMessageException
-    {
-        if ( currentUser == null )
-        {
-            throw new BadCredentialsException( "No current user" );
-        }
-
-        if ( code == null || !LongValidator.getInstance().isValid( code )
-            || !TwoFactoryAuthenticationUtils.verify( currentUser, code ) )
-        {
-            throw new WebMessageException( conflict( E3023.getMessage(), E3023 ) );
-        }
-    }
-
 }

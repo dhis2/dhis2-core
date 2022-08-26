@@ -84,27 +84,28 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider
             throw new BadCredentialsException( "Invalid username or password" );
         }
 
+        if ( userService.shouldHaveTwoFactorSecret( user ) && !user.hasTwoFAEnabled() )
+        {
+            throw new TwoFactorAuthenticationEnrolException( "User must enrol two factor authentication" );
+        }
+
+        if ( user.hasTwoFAEnabled() && !(auth.getDetails() instanceof TwoFactorWebAuthenticationDetails) )
+        {
+            throw new BadCredentialsException( "Can't authenticate non form based login with 2FA enabled" );
+        }
+
         // -------------------------------------------------------------------------
         // Check two-factor authentication
         // -------------------------------------------------------------------------
-        if ( user.isTwoFA() && auth.getDetails() instanceof TwoFactorWebAuthenticationDetails )
+        if ( user.hasTwoFAEnabled() && auth.getDetails() instanceof TwoFactorWebAuthenticationDetails )
         {
             performTwoFactorAuthentication( auth, username, user );
-        }
-        else if ( user.isTwoFA() && user.getSecret().equals( "ENROL" ) )
-        {
-            throw new TwoFactorAuthenticationEnrolException(   "Invalid verification code" );
-        }
-        else if ( user.isTwoFA() && !(auth.getDetails() instanceof TwoFactorWebAuthenticationDetails) )
-        {
-            throw new BadCredentialsException( "Can't authenticate non form based login with 2FA enabled" );
         }
 
         // -------------------------------------------------------------------------
         // Delegate authentication downstream, using User as
         // principal
         // -------------------------------------------------------------------------
-
         Authentication result = super.authenticate( auth );
 
         CurrentUserDetails currentUserDetails = userService.validateAndCreateUserDetails( user, user.getPassword() );
@@ -139,7 +140,7 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider
             log.debug(
                 String.format( "Two-factor authentication failure for user: %s", user.getUsername() ) );
 
-                throw new TwoFactorAuthenticationException( "Invalid verification code" );
+            throw new TwoFactorAuthenticationException( "Invalid verification code" );
         }
     }
 

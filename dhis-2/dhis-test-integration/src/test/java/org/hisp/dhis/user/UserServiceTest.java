@@ -573,13 +573,13 @@ class UserServiceTest extends SingleSetupIntegrationTestBase
     void testDisableTwoFAWithAdminUser()
     {
         User userToModify = createAndAddUser( "A" );
-        userService.generateTwoFactorSecret( userToModify );
+        userService.generateTwoFactorSecretForApproval( userToModify );
         userToModify.setTwoFA( true );
         userService.updateUser( userToModify );
 
         User admin = createAndAddAdminUser( "ALL" );
         List<ErrorReport> errors = new ArrayList<>();
-        userService.disableTwoFA( admin, userToModify.getUid(), error -> errors.add( error ) );
+        userService.privilegedTwoFADisable( admin, userToModify.getUid(), error -> errors.add( error ) );
         assertTrue( errors.isEmpty() );
     }
 
@@ -587,7 +587,7 @@ class UserServiceTest extends SingleSetupIntegrationTestBase
     void testDisableTwoFAWithManageUser()
     {
         User userToModify = createAndAddUser( "A" );
-        userService.generateTwoFactorSecret( userToModify );
+        userService.generateTwoFactorSecretForApproval( userToModify );
         userToModify.setTwoFA( true );
 
         UserGroup userGroupA = createUserGroup( 'A', Sets.newHashSet( userToModify ) );
@@ -606,7 +606,7 @@ class UserServiceTest extends SingleSetupIntegrationTestBase
         userService.updateUser( currentUser );
 
         List<ErrorReport> errors = new ArrayList<>();
-        userService.disableTwoFA( currentUser, userToModify.getUid(), error -> errors.add( error ) );
+        userService.privilegedTwoFADisable( currentUser, userToModify.getUid(), error -> errors.add( error ) );
         assertTrue( errors.isEmpty() );
     }
 

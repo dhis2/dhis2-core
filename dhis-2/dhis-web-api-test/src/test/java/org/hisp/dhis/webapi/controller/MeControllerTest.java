@@ -227,7 +227,7 @@ class MeControllerTest extends DhisControllerConvenienceTest
     @Test
     void testEnable2FAOnMeControllerNotAllowed()
     {
-        assertFalse( userA.isTwoFA() );
+        assertFalse( userA.hasTwoFAEnabled() );
 
         assertStatus( HttpStatus.BAD_REQUEST,
             PUT( "/me", "{'userCredentials':{'twoFA':true}}" ) );

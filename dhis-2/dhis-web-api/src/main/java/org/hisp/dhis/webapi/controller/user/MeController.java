@@ -462,10 +462,10 @@ public class MeController
 
         // TODO: NOT ALLOWED AFTER 13332, breaks current API/UI (2.39) 2.38
         // backport later
-        if ( currentUser.getTwoFA() != user.getTwoFA() )
-        {
-            throw new WebMessageException( badRequest( ErrorCode.E3024.getMessage(), ErrorCode.E3024 ) );
-        }
+//        if ( currentUser.getTwoFA() != user.getTwoFA() )
+//        {
+//            throw new WebMessageException( badRequest( ErrorCode.E3024.getMessage(), ErrorCode.E3024 ) );
+//        }
     }
 
     private void updatePassword( User currentUser, String password )

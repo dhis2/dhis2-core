@@ -92,6 +92,12 @@ public class TwoFactoryAuthenticationUtils
             throw new IllegalArgumentException( "User must have a secret" );
         }
 
+        if ( secret.startsWith( "APPROVAL_" ) )
+        {
+            secret = secret.substring( 9 );
+        }
+
+
         Totp totp = new Totp( secret );
         try
         {

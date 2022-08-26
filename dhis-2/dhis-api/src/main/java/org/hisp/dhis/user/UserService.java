@@ -375,7 +375,7 @@ public interface UserService
      */
     List<UserAccountExpiryInfo> getExpiringUserAccounts( int inDays );
 
-    void set2FA( User user, boolean twoFA );
+
 
     /**
      * Expire a user's active sessions retrieved from the Spring security's
@@ -458,9 +458,18 @@ public interface UserService
      * @param errors A Consumer<ErrorReport> object that will be called if there
      *        is an error.
      */
-    void disableTwoFA( User currentUser, String userUid, Consumer<ErrorReport> errors );
+    void privilegedTwoFADisable( User currentUser, String userUid, Consumer<ErrorReport> errors );
 
     boolean canCurrentUserCanModify( User currentUser, User userToModify, Consumer<ErrorReport> errors );
 
-    void generateTwoFactorSecret( User user );
+    void generateTwoFactorSecretForApproval( User user );
+
+    void approveTwoFactorCode( User user );
+
+    void enableTwoFA( User user, String code );
+    void disableTwoFA( User user, String code );
+
+    boolean shouldHaveTwoFactorSecret( User user );
+
+    void validate2FAUpdate( boolean before, boolean after, User userToModify );
 }

@@ -151,7 +151,7 @@
       <result name="error" type="redirect">login.action</result>
     </action>
 
-    <action name="enrolTwoFa" class="org.hisp.dhis.useraccount.action.EnrolTwoFa">
+    <action name="enrolTwoFa" class="org.hisp.dhis.useraccount.action.EnrolTwoFaAction">
       <result name="success" type="velocity">/dhis-web-commons/useraccount/enrolTwoFa.vm</result>
       <result name="error" type="redirect">login.action</result>
     </action>

@@ -34,5 +34,4 @@ public class Constants
     public static final long RESERVED_VALUE_GENERATION_TIMEOUT = (1000 * 30);
 
     public static final int RANDOM_GENERATION_CHUNK = 10;
-
 }

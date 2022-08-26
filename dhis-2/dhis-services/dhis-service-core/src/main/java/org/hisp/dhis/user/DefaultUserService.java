@@ -52,12 +52,8 @@ import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
 import javax.annotation.Nullable;
 
-import lombok.extern.slf4j.Slf4j;
-
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.AuditLogUtil;
@@ -66,23 +62,28 @@ import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.PasswordManager;
 import org.hisp.dhis.security.SecurityService;
+import org.hisp.dhis.security.TwoFactoryAuthenticationUtils;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.filter.UserRoleCanIssueFilter;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
+
+import com.google.common.collect.Lists;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.jboss.aerogear.security.otp.api.Base32;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.google.common.collect.Lists;
 
 /**
  * @author Chau Thu Tran
@@ -93,6 +94,9 @@ import com.google.common.collect.Lists;
 public class DefaultUserService
     implements UserService
 {
+
+    public static final String TWO_FACTOR_CODE_APPROVAL_PREFIX = "APPROVAL_";
+
     private Pattern BCRYPT_PATTERN = Pattern.compile( "\\A\\$2(a|y|b)?\\$(\\d\\d)\\$[./0-9A-Za-z]{53}" );
 
     private static final int EXPIRY_THRESHOLD = 14;
@@ -744,29 +748,86 @@ public class DefaultUserService
         return userStore.getExpiringUserAccounts( inDays );
     }
 
+    private void resetTwoFA( User user )
+    {
+        user.setSecret( null );
+        updateUser( user );
+    }
+
+    @Transactional
+    @Override public void enableTwoFA( User user, String code )
+    {
+        if ( user.getSecret() == null )
+        {
+            throw new IllegalStateException( "User has not asked for a QR code yet, call the /qr endpoint first" );
+        }
+
+        if ( !user.getSecret().startsWith( TWO_FACTOR_CODE_APPROVAL_PREFIX ) )
+        {
+            throw new IllegalStateException(
+                "QR already approved, you must call /disable and then call /qr before you can enable" );
+
+        }
+
+        validateCode( user, code );
+        approveTwoFactorCode( user );
+    }
+
+    @Transactional
+    @Override public void disableTwoFA( User user, String code )
+    {
+        if ( user.getSecret() == null )
+        {
+            throw new IllegalStateException( "Two factor is not enabled, enable first" );
+        }
+
+        validateCode( user, code );
+        resetTwoFA( user );
+    }
+
     @Override
     @Transactional
-    public void set2FA( User user, boolean enable )
+    public void privilegedTwoFADisable( User currentUser, String userUid, Consumer<ErrorReport> errors )
     {
-        // Do nothing if current state is the same as the requested state
-        if ( user.getTwoFA() == enable )
+        User user = getUser( userUid );
+        if ( user == null )
+        {
+            throw new IllegalArgumentException( "User not found" );
+        }
+
+        if ( currentUser.getUid().equals( user.getUid() ) )
+        {
+            // Cannot disable 2FA for yourself with this API endpoint.
+            errors.accept( new ErrorReport( UserRole.class, ErrorCode.E3021, currentUser.getUsername(),
+                user.getName() ) );
+        }
+
+        if ( !canCurrentUserCanModify( currentUser, user, errors ) )
         {
             return;
         }
 
-        if ( user.getSecret() == null )
+        resetTwoFA( user );
+    }
+
+    private static void validateCode( User currentUser, String code )
+    {
+        if ( currentUser == null )
         {
-            throw new IllegalStateException( "User secret not set!" );
+            throw new BadCredentialsException( "No current user" );
         }
 
-        if ( !enable )
+        if ( code == null || code.isEmpty() )
         {
-            user.setSecret( null );
+            throw new BadCredentialsException( "No code provided" );
         }
 
-        user.setTwoFA( enable );
+        if ( TwoFactoryAuthenticationUtils.verify( currentUser, code ) )
+        {
+            throw new BadCredentialsException( "Invalid OTP code" );
+            //throw new WebMessageException( conflict( E3023.getMessage(), E3023 ) );
+        }
 
-        updateUser( user );
     }
 
     @Override
@@ -858,31 +919,6 @@ public class DefaultUserService
     }
 
     @Override
-    @Transactional
-    public void disableTwoFA( User currentUser, String userUid, Consumer<ErrorReport> errors )
-    {
-        User user = getUser( userUid );
-        if ( user == null )
-        {
-            throw new IllegalArgumentException( "User not found" );
-        }
-
-        if ( currentUser.getUid().equals( user.getUid() ) )
-        {
-            // Cannot disable 2FA for yourself with this API endpoint.
-            errors.accept( new ErrorReport( UserRole.class, ErrorCode.E3021, currentUser.getUsername(),
-                user.getName() ) );
-        }
-
-        if ( !canCurrentUserCanModify( currentUser, user, errors ) )
-        {
-            return;
-        }
-
-        set2FA( user, false );
-    }
-
-    @Override
     @Transactional( readOnly = true )
     public boolean canCurrentUserCanModify( User currentUser, User userToModify, Consumer<ErrorReport> errors )
     {
@@ -905,9 +941,77 @@ public class DefaultUserService
 
     @Override
     @Transactional
-    public void generateTwoFactorSecret( User user )
+    public void generateTwoFactorSecretForApproval( User user )
     {
-        user.setSecret( Base32.random() );
+        user.setSecret( TWO_FACTOR_CODE_APPROVAL_PREFIX + Base32.random() );
         updateUser( user );
+    }
+
+    @Override
+    @Transactional
+    public void approveTwoFactorCode( User user )
+    {
+        if ( user.getSecret() != null && user.getSecret().startsWith( TWO_FACTOR_CODE_APPROVAL_PREFIX ) )
+        {
+            user.setSecret( user.getSecret().replace( TWO_FACTOR_CODE_APPROVAL_PREFIX, "" ) );
+            updateUser( user );
+        }
+    }
+
+    @Override public boolean shouldHaveTwoFactorSecret( User user )
+    {
+        return user.hasAnyAuthority( Set.of( "MUST_HAVE_2FA_ENABLED" ) );
+    }
+
+
+    @Override
+    @Transactional
+    public void validate2FAUpdate( boolean before, boolean after, User userToModify )
+    {
+        if ( before == after )
+        {
+            return;
+        }
+
+        if ( !before )
+        {
+            // TODO: 13332 When we have 2FA auto provisioning after login, we
+            // can change this.
+            throw new UpdateAccessDeniedException( "You can not enable 2FA with this API endpoint, only disable." );
+        }
+
+        CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+        if ( currentUserDetails == null )
+        {
+            throw new UpdateAccessDeniedException( "No current user in session, can not update user." );
+        }
+
+        // Current user can not update their own 2FA settings, must use
+        // /2fa/enable or disable API, even if they are admin.
+        if ( currentUserDetails.getUid().equals( userToModify.getUid() ) )
+        {
+            throw new UpdateAccessDeniedException(
+                "User cannot update their own user's 2FA settings via this API endpoint, must use /2fa/enable or disable API" );
+        }
+
+        // As long current is not super, admin can disable any other users 2FA.
+        if ( currentUserDetails.isSuper() )
+        {
+            return;
+        }
+
+        // If current user has access to manage this user, they can disable 2FA.
+        User currentUser = getUser( currentUserDetails.getUid() );
+        if ( !aclService.canUpdate( currentUser, userToModify ) )
+        {
+            throw new UpdateAccessDeniedException(
+                String.format( "User `%s` is not allowed to update object `%s`.", currentUser.getUsername(),
+                    userToModify ) );
+        }
+        if ( !canAddOrUpdateUser( getUids( userToModify.getGroups() ), currentUser )
+            || !currentUser.canModifyUser( userToModify ) )
+        {
+            throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this user." );
+        }
     }
 }

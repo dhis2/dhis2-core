@@ -101,7 +101,7 @@ class TwoFactorControllerTest extends DhisControllerConvenienceTest
         newUser.setEmail( "valid.x@email.com" );
         newUser.setTwoFA( true );
         userService.addUser( newUser );
-        userService.generateTwoFactorSecret( newUser );
+        userService.generateTwoFactorSecretForApproval( newUser );
 
         switchToNewUser( newUser );
 
@@ -124,7 +124,7 @@ class TwoFactorControllerTest extends DhisControllerConvenienceTest
         newUser.setEmail( "valid.y@email.com" );
         newUser.setTwoFA( true );
         userService.addUser( newUser );
-        userService.generateTwoFactorSecret( newUser );
+        userService.generateTwoFactorSecretForApproval( newUser );
 
         switchToNewUser( newUser );
 

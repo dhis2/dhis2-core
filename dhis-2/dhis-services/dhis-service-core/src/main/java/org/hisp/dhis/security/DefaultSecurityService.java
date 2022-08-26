@@ -651,53 +651,5 @@ public class DefaultSecurityService
             || aclService.canDataRead( currentUserService.getCurrentUser(), identifiableObject );
     }
 
-    @Override
-    public void validate2FAUpdate( boolean before, boolean after, User userToModify )
-    {
-        if ( before == after )
-        {
-            return;
-        }
 
-        if ( !before )
-        {
-            // TODO: 13332 When we have 2FA auto provisioning after login, we
-            // can change this.
-            throw new UpdateAccessDeniedException( "You can not enable 2FA with this API endpoint, only disable." );
-        }
-
-        CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
-        if ( currentUserDetails == null )
-        {
-            throw new UpdateAccessDeniedException( "No current user in session, can not update user." );
-        }
-
-        // Current user can not update their own 2FA settings, must use
-        // /2fa/enable or disable API, even if they are admin.
-        if ( currentUserDetails.getUid().equals( userToModify.getUid() ) )
-        {
-            throw new UpdateAccessDeniedException(
-                "User cannot update their own user's 2FA settings via this API endpoint, must use /2fa/enable or disable API" );
-        }
-
-        // As long current is not super, admin can disable any other users 2FA.
-        if ( currentUserDetails.isSuper() )
-        {
-            return;
-        }
-
-        // If current user has access to manage this user, they can disable 2FA.
-        User currentUser = userService.getUser( currentUserDetails.getUid() );
-        if ( !aclService.canUpdate( currentUser, userToModify ) )
-        {
-            throw new UpdateAccessDeniedException(
-                String.format( "User `%s` is not allowed to update object `%s`.", currentUser.getUsername(),
-                    userToModify ) );
-        }
-        if ( !userService.canAddOrUpdateUser( getUids( userToModify.getGroups() ), currentUser )
-            || !currentUser.canModifyUser( userToModify ) )
-        {
-            throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this user." );
-        }
-    }
 }
