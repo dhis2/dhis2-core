@@ -34,8 +34,10 @@ import static org.springframework.http.CacheControl.noCache;
 
 import java.io.IOException;
 import java.io.StringWriter;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -55,6 +57,8 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PrimaryKeyObject;
+import org.hisp.dhis.commons.jackson.config.WriteDateStdSerializer;
+import org.hisp.dhis.commons.jackson.config.WriteInstantStdSerializer;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -99,10 +103,12 @@ import org.springframework.web.client.HttpClientErrorException;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SequenceWriter;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import com.fasterxml.jackson.dataformat.csv.CsvWriteException;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 
@@ -332,31 +338,43 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
         CsvMapper csvMapper = new CsvMapper();
         csvMapper.configure( JsonGenerator.Feature.IGNORE_UNKNOWN, true );
+        csvMapper.registerModule( new SimpleModule()
+            .addSerializer( Date.class, new WriteDateStdSerializer() )
+            .addSerializer( Instant.class, new WriteInstantStdSerializer() ) );
+        csvMapper.registerModule( new Jdk8Module() );
 
         try ( StringWriter strW = new StringWriter() )
         {
             SequenceWriter seqW = csvMapper.writer()
                 .writeValues( strW );
+
             if ( !skipHeader )
             {
                 seqW.write( obj2valueByProperty.keySet().toArray() );
             }
+
             Object[] row = new Object[obj2valueByProperty.size()];
+
             for ( T e : entities )
             {
                 int i = 0;
+
                 for ( Function<T, Object> toValue : obj2valueByProperty.values() )
                 {
                     row[i++] = toValue.apply( e );
                 }
+
                 seqW.write( row );
             }
+
             seqW.close();
+
             return ResponseEntity.ok( strW.toString() );
         }
         catch ( CsvWriteException ex )
         {
             response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+
             throw new WebMessageException( conflict(
                 "Invalid property selected. Make sure all properties are either simple or collections of refs / simple.",
                 ex.getMessage() ) );
