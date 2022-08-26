@@ -36,6 +36,7 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 
+import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
@@ -63,81 +64,81 @@ public class ImportOptions
 {
     private User user;
 
-    @JsonProperty
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private IdSchemes idSchemes = new IdSchemes();
 
-    @JsonProperty
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private boolean dryRun;
 
-    @JsonProperty
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private Boolean preheatCache;
 
-    @JsonProperty
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private boolean async;
 
     private ImportStrategy importStrategy = ImportStrategy.CREATE_AND_UPDATE;
 
-    @JsonProperty
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private MergeMode mergeMode = MergeMode.REPLACE;
 
-    @JsonProperty
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private ImportReportMode reportMode = ImportReportMode.FULL;
 
-    @JsonProperty
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private boolean skipExistingCheck;
 
-    @JsonProperty
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private boolean sharing;
 
-    @JsonProperty
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private boolean skipNotifications;
 
-    @JsonProperty
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private boolean skipAudit;
 
-    @JsonProperty
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private boolean datasetAllowsPeriods;
 
-    @JsonProperty
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private boolean strictPeriods;
 
-    @JsonProperty
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private boolean strictDataElements;
 
-    @JsonProperty
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private boolean strictCategoryOptionCombos;
 
-    @JsonProperty
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private boolean strictAttributeOptionCombos;
 
-    @JsonProperty
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private boolean strictOrganisationUnits;
 
-    @JsonProperty
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private boolean requireCategoryOptionCombo;
 
-    @JsonProperty
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private boolean requireAttributeOptionCombo;
 
-    @JsonProperty
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private boolean skipPatternValidation;
 
-    @JsonProperty
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private boolean ignoreEmptyCollection;
 
-    @JsonProperty
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private boolean force;
 
-    @JsonProperty
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private boolean firstRowIsHeader = true;
 
-    @JsonProperty
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private String filename;
 
-    @JsonProperty
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private NotificationLevel notificationLevel;
 
-    @JsonProperty
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private boolean skipLastUpdated;
 
     /**
@@ -145,20 +146,20 @@ public class ImportOptions
      * that have to be merged with the existing Data Values (as opposed to a
      * full replacement)
      */
-    @JsonProperty
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private boolean mergeDataValues;
 
     /**
      * if true, caches for import are not used. Should only be used for testing
      */
-    @JsonProperty
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private boolean skipCache = false;
 
     /**
      * Optional field to set the data set ID of the imported values using
      * request parameters
      */
-    @JsonProperty
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private String dataSet;
 
     // --------------------------------------------------------------------------
@@ -207,7 +208,7 @@ public class ImportOptions
     // Get methods
     // --------------------------------------------------------------------------
 
-    @JsonProperty
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     public ImportStrategy getImportStrategy()
     {
         return importStrategy != null ? importStrategy : ImportStrategy.NEW_AND_UPDATES;
