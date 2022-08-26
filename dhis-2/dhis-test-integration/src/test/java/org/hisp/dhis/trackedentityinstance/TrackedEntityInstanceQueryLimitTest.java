@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.trackedentityinstance;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 import java.util.Date;
 import java.util.List;
 
@@ -37,6 +40,8 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
@@ -45,6 +50,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.utils.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -70,6 +76,9 @@ class TrackedEntityInstanceQueryLimitTest extends TransactionalIntegrationTest
 
     @Autowired
     private ProgramInstanceService programInstanceService;
+
+    @Autowired
+    private SystemSettingManager systemSettingManager;
 
     @Autowired
     private UserService _userService;
@@ -149,7 +158,25 @@ class TrackedEntityInstanceQueryLimitTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testTeiQueryLimitConfiguredValue()
+    void testConfiguredMaxTeiLimit()
+    {
+        systemSettingManager.saveSystemSetting( SettingKey.TRACKED_ENTITY_MAX_LIMIT, 3 );
+        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+        params.setProgram( program );
+        params.setOrganisationUnits( Sets.newHashSet( orgUnitA ) );
+        params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
+        params.setUser( user );
+        params.setSkipPaging( true );
+
+        List<Long> teis = trackedEntityInstanceService.getTrackedEntityInstanceIds( params,
+            false, false );
+
+        assertNotNull( teis );
+        assertEquals( 3, teis.size(), "Size cannot be more than configured Tei max limit" );
+    }
+
+    @Test
+    void testDefaultMaxTeiLimit()
     {
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
         params.setProgram( program );
@@ -160,5 +187,29 @@ class TrackedEntityInstanceQueryLimitTest extends TransactionalIntegrationTest
 
         List<Long> teis = trackedEntityInstanceService.getTrackedEntityInstanceIds( params,
             false, false );
+
+        assertNotNull( teis );
+        assertEquals( 4, teis.size() );
+        Assertions.assertContainsOnly( teis, tei1.getId(), tei2.getId(), tei3.getId(), tei4.getId() );
+    }
+
+    @Test
+    void testDisabledMaxTeiLimit()
+    {
+        systemSettingManager.saveSystemSetting( SettingKey.TRACKED_ENTITY_MAX_LIMIT, 0 );
+
+        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+        params.setProgram( program );
+        params.setOrganisationUnits( Sets.newHashSet( orgUnitA ) );
+        params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
+        params.setUser( user );
+        params.setSkipPaging( true );
+
+        List<Long> teis = trackedEntityInstanceService.getTrackedEntityInstanceIds( params,
+            false, false );
+
+        assertNotNull( teis );
+        assertEquals( 4, teis.size() );
+        Assertions.assertContainsOnly( teis, tei1.getId(), tei2.getId(), tei3.getId(), tei4.getId() );
     }
 }

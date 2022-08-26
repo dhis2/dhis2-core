@@ -218,8 +218,7 @@ public enum SettingKey
     ANALYTICS_CACHE_TTL_MODE( "keyAnalyticsCacheTtlMode", AnalyticsCacheTtlMode.FIXED, AnalyticsCacheTtlMode.class ),
 
     /**
-     * Max records to return in the analytics API. Default is 100'000. The value
-     * 0 represents unlimited records.
+     * Max trackedentityinstance records that can be retrieved from database.
      */
     TRACKED_ENTITY_MAX_LIMIT( "KeyTrackedEntityInstanceMaxLimit", 50000, Integer.class );
 
