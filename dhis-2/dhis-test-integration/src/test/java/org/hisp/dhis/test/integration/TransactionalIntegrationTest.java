@@ -29,8 +29,13 @@ package org.hisp.dhis.test.integration;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.core.config.Configurator;
 import org.hisp.dhis.BaseSpringTest;
 import org.hisp.dhis.config.IntegrationTestConfig;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.utils.TestUtils;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.test.context.ActiveProfiles;
@@ -45,23 +50,37 @@ import org.springframework.transaction.annotation.Transactional;
 @ActiveProfiles( profiles = { "test-postgres" } )
 @Transactional
 @Slf4j
+// TODO lets not catch exceptions if we fail to clean up. lets fail and fix
+// these issues when they occur
+// TODO reduce visibility of methods
+// TODO add javadoc explaining when this class should be used and refer to other
+// class in case it should not be used
 public abstract class TransactionalIntegrationTest extends BaseSpringTest
 {
     @BeforeEach
     public final void before()
         throws Exception
     {
-        integrationTestBefore();
+        // TODO can we run startup routines only on BeforeEach/BeforeAll for all
+        // tests? This would simplify test setup
+        TestUtils.executeStartupRoutines( applicationContext );
+
+        // TODO dislike messing with logging in code; can we move this into the
+        // log4j2-test.xml?
+        boolean enableQueryLogging = dhisConfigurationProvider.isEnabled( ConfigurationKey.ENABLE_QUERY_LOGGING );
+        // Enable to query logger to log only what's happening inside the test
+        // method
+        if ( enableQueryLogging )
+        {
+            Configurator.setLevel( ORG_HISP_DHIS_DATASOURCE_QUERY, Level.INFO );
+            Configurator.setRootLevel( Level.INFO );
+        }
     }
 
     @AfterEach
     public final void after()
-        throws Exception
     {
         clearSecurityContext();
-
-        tearDownTest();
-
         try
         {
             dbmsManager.clearSession();
@@ -70,7 +89,16 @@ public abstract class TransactionalIntegrationTest extends BaseSpringTest
         {
             log.info( "Failed to clear hibernate session, reason:" + e.getMessage() );
         }
+    }
 
+    // TODO add docs to why this is necessary. In case a TransactionalTest uses
+    // @BeforeAll on a method this method
+    // will not run in a transaction so we need to make sure to clean that up.
+    // As devs will likely forget I think it
+    // would be good to do that for them.
+    @AfterAll
+    public final void afterAll()
+    {
         try
         {
             dbmsManager.emptyDatabase();
