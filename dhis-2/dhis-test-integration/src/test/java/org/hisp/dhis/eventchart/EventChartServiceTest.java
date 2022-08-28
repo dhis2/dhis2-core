@@ -34,14 +34,14 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import org.hisp.dhis.eventvisualization.EventVisualizationType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Jan Henrik Overland
  */
-class EventChartServiceTest extends SingleSetupIntegrationTestBase
+class EventChartServiceTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

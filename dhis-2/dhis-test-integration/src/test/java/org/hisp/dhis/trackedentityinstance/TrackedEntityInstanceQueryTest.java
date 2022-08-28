@@ -37,7 +37,7 @@ import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
@@ -48,7 +48,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Lars Helge Overland
  */
-class TrackedEntityInstanceQueryTest extends SingleSetupIntegrationTestBase
+class TrackedEntityInstanceQueryTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

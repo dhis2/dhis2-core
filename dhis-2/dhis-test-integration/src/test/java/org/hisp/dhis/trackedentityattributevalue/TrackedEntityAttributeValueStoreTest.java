@@ -38,7 +38,7 @@ import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -49,7 +49,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Chau Thu Tran
  */
-class TrackedEntityAttributeValueStoreTest extends SingleSetupIntegrationTestBase
+class TrackedEntityAttributeValueStoreTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

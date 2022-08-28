@@ -36,7 +36,7 @@ import java.util.Set;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +46,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author Jan Bernitt
  */
-class SectionStoreTest extends SingleSetupIntegrationTestBase
+class SectionStoreTest extends NonTransactionalIntegrationTest
 {
     @Autowired
     private SectionStore sectionStore;

@@ -29,7 +29,7 @@ package org.hisp.dhis.program;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeStore;
 import org.junit.jupiter.api.Test;
@@ -37,7 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
 
-class ProgramTrackedEntityAttributeStoreTest extends SingleSetupIntegrationTestBase
+class ProgramTrackedEntityAttributeStoreTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

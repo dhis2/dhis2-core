@@ -36,11 +36,11 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class ProgramRuleActionStoreTest extends SingleSetupIntegrationTestBase
+class ProgramRuleActionStoreTest extends NonTransactionalIntegrationTest
 {
 
     private ProgramRule programRuleA;

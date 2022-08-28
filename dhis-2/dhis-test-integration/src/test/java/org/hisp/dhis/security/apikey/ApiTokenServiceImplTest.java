@@ -36,7 +36,7 @@ import java.util.List;
 
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -50,7 +50,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-class ApiTokenServiceImplTest extends SingleSetupIntegrationTestBase
+class ApiTokenServiceImplTest extends NonTransactionalIntegrationTest
 {
     @Autowired
     private ApiTokenStore apiTokenStore;

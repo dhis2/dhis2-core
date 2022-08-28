@@ -34,7 +34,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.split.orgunit.OrgUnitSplitRequest;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.hisp.dhis.visualization.Visualization;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Lars Helge Overland
  */
-class AnalyticalObjectOrgUnitSplitHandlerTest extends SingleSetupIntegrationTestBase
+class AnalyticalObjectOrgUnitSplitHandlerTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

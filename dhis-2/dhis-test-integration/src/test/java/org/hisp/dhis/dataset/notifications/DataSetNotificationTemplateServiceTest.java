@@ -44,7 +44,7 @@ import org.hisp.dhis.notification.SendStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
@@ -55,7 +55,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * Created by zubair@dhis2.org on 28.07.17.
  */
-class DataSetNotificationTemplateServiceTest extends SingleSetupIntegrationTestBase
+class DataSetNotificationTemplateServiceTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

@@ -40,13 +40,13 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class ProgramRuleVariableServiceTest extends SingleSetupIntegrationTestBase
+class ProgramRuleVariableServiceTest extends NonTransactionalIntegrationTest
 {
 
     private Program programA;

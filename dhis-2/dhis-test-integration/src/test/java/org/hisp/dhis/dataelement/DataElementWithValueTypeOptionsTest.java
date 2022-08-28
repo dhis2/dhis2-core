@@ -37,7 +37,7 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.FileTypeValueOptions;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.ValueTypeOptions;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -46,7 +46,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Slf4j
-class DataElementWithValueTypeOptionsTest extends SingleSetupIntegrationTestBase
+class DataElementWithValueTypeOptionsTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

@@ -43,14 +43,14 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Jim Grace
  */
-class ProgramIndicatorServiceD2FunctionTest extends SingleSetupIntegrationTestBase
+class ProgramIndicatorServiceD2FunctionTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

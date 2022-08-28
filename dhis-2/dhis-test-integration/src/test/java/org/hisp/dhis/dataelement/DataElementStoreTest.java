@@ -47,14 +47,14 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Torgeir Lorange Ostby
  */
-class DataElementStoreTest extends SingleSetupIntegrationTestBase
+class DataElementStoreTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

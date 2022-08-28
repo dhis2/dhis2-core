@@ -34,14 +34,14 @@ import java.util.List;
 
 import org.hisp.dhis.audit.payloads.TrackedEntityInstanceAudit;
 import org.hisp.dhis.common.AuditType;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Lars Helge Overland
  */
-class TrackedEntityInstanceAuditStoreTest extends SingleSetupIntegrationTestBase
+class TrackedEntityInstanceAuditStoreTest extends NonTransactionalIntegrationTest
 {
     private final Date CREATED = getDate( 2022, 3, 1 );
 

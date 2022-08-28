@@ -30,14 +30,14 @@ package org.hisp.dhis.security;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Halvdan Hoem Grelland
  */
-class PasswordManagerTest extends SingleSetupIntegrationTestBase
+class PasswordManagerTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

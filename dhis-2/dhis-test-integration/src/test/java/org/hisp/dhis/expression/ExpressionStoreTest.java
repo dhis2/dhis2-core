@@ -37,7 +37,7 @@ import java.util.List;
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -46,7 +46,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
  * @author Lars Helge Overland
  * @version $Id$
  */
-class ExpressionStoreTest extends SingleSetupIntegrationTestBase
+class ExpressionStoreTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

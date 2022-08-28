@@ -51,7 +51,7 @@ import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -62,7 +62,7 @@ import org.springframework.core.io.ClassPathResource;
 /**
  * @author Lars Helge Overland
  */
-class CsvMetadataImportTest extends SingleSetupIntegrationTestBase
+class CsvMetadataImportTest extends NonTransactionalIntegrationTest
 {
     @Autowired
     private DataElementService dataElementService;

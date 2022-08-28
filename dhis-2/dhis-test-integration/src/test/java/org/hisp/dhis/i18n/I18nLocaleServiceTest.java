@@ -33,11 +33,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import java.util.Locale;
 import java.util.Map;
 
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class I18nLocaleServiceTest extends SingleSetupIntegrationTestBase
+class I18nLocaleServiceTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

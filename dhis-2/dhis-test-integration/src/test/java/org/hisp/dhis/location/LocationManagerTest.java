@@ -40,7 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.external.location.LocationManagerException;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -49,7 +49,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @version $Id$
  */
 @Slf4j
-class LocationManagerTest extends SingleSetupIntegrationTestBase
+class LocationManagerTest extends NonTransactionalIntegrationTest
 {
 
     private InputStream in;

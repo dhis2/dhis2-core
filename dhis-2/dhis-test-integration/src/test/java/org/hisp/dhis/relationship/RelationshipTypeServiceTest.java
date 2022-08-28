@@ -29,11 +29,11 @@ package org.hisp.dhis.relationship;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class RelationshipTypeServiceTest extends SingleSetupIntegrationTestBase
+class RelationshipTypeServiceTest extends NonTransactionalIntegrationTest
 {
     @Autowired
     private RelationshipTypeService relationshipTypeService;

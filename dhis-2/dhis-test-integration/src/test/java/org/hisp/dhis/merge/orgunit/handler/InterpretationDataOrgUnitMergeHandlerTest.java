@@ -35,7 +35,7 @@ import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.interpretation.InterpretationService;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.visualization.VisualizationService;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,7 +45,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Lars Helge Overland
  */
-class InterpretationDataOrgUnitMergeHandlerTest extends SingleSetupIntegrationTestBase
+class InterpretationDataOrgUnitMergeHandlerTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

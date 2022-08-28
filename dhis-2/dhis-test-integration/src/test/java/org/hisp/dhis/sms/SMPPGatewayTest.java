@@ -41,7 +41,7 @@ import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.sms.config.SMPPGateway;
 import org.hisp.dhis.sms.config.SMPPGatewayConfig;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -60,7 +60,7 @@ import com.google.common.collect.Sets;
  * @Author Zubair Asghar.
  */
 @Disabled( "Test to run manually" )
-class SMPPGatewayTest extends SingleSetupIntegrationTestBase
+class SMPPGatewayTest extends NonTransactionalIntegrationTest
 {
 
     private static final String SYSTEM_ID = "smppclient1";

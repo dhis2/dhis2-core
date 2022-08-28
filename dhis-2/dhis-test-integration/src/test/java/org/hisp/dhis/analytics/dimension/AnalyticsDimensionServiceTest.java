@@ -39,7 +39,7 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -48,7 +48,7 @@ import com.google.common.collect.Lists;
 /**
  * @author Lars Helge Overland
  */
-class AnalyticsDimensionServiceTest extends SingleSetupIntegrationTestBase
+class AnalyticsDimensionServiceTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

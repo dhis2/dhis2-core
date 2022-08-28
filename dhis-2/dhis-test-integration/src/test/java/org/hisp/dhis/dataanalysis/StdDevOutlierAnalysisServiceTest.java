@@ -49,14 +49,14 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 import com.google.common.collect.Lists;
 
-class StdDevOutlierAnalysisServiceTest extends SingleSetupIntegrationTestBase
+class StdDevOutlierAnalysisServiceTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

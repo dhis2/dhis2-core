@@ -52,7 +52,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.UserInfoSnapshot;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditStore;
 import org.junit.jupiter.api.Test;
@@ -61,7 +61,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-class TrackedEntityDataValueAuditStoreTest extends SingleSetupIntegrationTestBase
+class TrackedEntityDataValueAuditStoreTest extends NonTransactionalIntegrationTest
 {
     private static final String USER_A = "userA";
 

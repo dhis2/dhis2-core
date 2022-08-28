@@ -40,7 +40,7 @@ import java.util.UUID;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -49,7 +49,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Nguyen Hong Duc
  */
-class UserStoreTest extends SingleSetupIntegrationTestBase
+class UserStoreTest extends NonTransactionalIntegrationTest
 {
     public static final String AUTH_A = "AuthA";
 

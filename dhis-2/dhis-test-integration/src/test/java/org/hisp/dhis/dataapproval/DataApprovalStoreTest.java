@@ -41,7 +41,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
@@ -50,7 +50,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Jim Grace
  */
-class DataApprovalStoreTest extends SingleSetupIntegrationTestBase
+class DataApprovalStoreTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

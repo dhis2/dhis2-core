@@ -100,7 +100,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -111,7 +111,7 @@ import com.google.common.collect.Lists;
 /**
  * @author Jim Grace
  */
-class ExpressionServiceTest extends SingleSetupIntegrationTestBase
+class ExpressionServiceTest extends NonTransactionalIntegrationTest
 {
     @Autowired
     private ExpressionService expressionService;

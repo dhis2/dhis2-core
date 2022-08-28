@@ -47,7 +47,7 @@ import org.springframework.transaction.annotation.Transactional;
 @ActiveProfiles( profiles = { "test-postgres" } )
 @TestInstance( TestInstance.Lifecycle.PER_CLASS )
 @Transactional
-public abstract class SingleSetupIntegrationTestBase
+public abstract class NonTransactionalIntegrationTest
     extends BaseSpringTest
 {
     @BeforeAll

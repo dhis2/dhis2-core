@@ -36,7 +36,7 @@ import java.util.List;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -45,7 +45,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
  * @author Lars Helge Overland
  * @version $Id: IndicatorStoreTest.java 3286 2007-05-07 18:05:21Z larshelg $
  */
-class IndicatorStoreTest extends SingleSetupIntegrationTestBase
+class IndicatorStoreTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

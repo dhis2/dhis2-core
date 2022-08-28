@@ -38,7 +38,7 @@ import java.util.Set;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -47,7 +47,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Lars Helge Overland
  */
-class CategoryOptionComboStoreTest extends SingleSetupIntegrationTestBase
+class CategoryOptionComboStoreTest extends NonTransactionalIntegrationTest
 {
     @Autowired
     private CategoryOptionComboStore categoryOptionComboStore;

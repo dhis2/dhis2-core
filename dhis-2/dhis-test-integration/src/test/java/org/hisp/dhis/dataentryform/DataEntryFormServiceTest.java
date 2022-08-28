@@ -40,14 +40,14 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Bharath
  */
-class DataEntryFormServiceTest extends SingleSetupIntegrationTestBase
+class DataEntryFormServiceTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

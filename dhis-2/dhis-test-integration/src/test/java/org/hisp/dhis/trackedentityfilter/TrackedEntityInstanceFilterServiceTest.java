@@ -44,7 +44,7 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.programstagefilter.DateFilterPeriod;
 import org.hisp.dhis.programstagefilter.DatePeriodType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.user.UserService;
@@ -55,7 +55,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  */
-class TrackedEntityInstanceFilterServiceTest extends SingleSetupIntegrationTestBase
+class TrackedEntityInstanceFilterServiceTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

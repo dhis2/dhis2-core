@@ -51,7 +51,7 @@ import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.schema.validation.SchemaValidator;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -59,7 +59,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
 
-public class ReferencesCheckTest extends SingleSetupIntegrationTestBase
+public class ReferencesCheckTest extends NonTransactionalIntegrationTest
 {
     @Autowired
     private SchemaValidator schemaValidator;

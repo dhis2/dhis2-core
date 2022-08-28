@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.hisp.dhis.dxf2.metadata.systemsettings.DefaultMetadataSystemSettingService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +40,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author anilkumk
  */
-class MetadataSystemSettingServiceTest extends SingleSetupIntegrationTestBase
+class MetadataSystemSettingServiceTest extends NonTransactionalIntegrationTest
 {
     @Autowired
     SystemSettingManager systemSettingManager;

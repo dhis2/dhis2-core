@@ -89,7 +89,7 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.system.util.CsvUtils;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.hisp.dhis.validation.ValidationResult;
 import org.hisp.dhis.validation.ValidationResultService;
 import org.hisp.dhis.validation.ValidationRule;
@@ -109,7 +109,7 @@ import com.google.common.collect.Lists;
  * @author Jim Grace (break cases into indidual tests)
  */
 class AnalyticsServiceTest
-    extends SingleSetupIntegrationTestBase
+    extends NonTransactionalIntegrationTest
 {
     private CategoryOptionCombo ocDef;
 

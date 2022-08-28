@@ -41,7 +41,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitStore;
 import org.hisp.dhis.reservedvalue.ReservedValue;
 import org.hisp.dhis.reservedvalue.ReservedValueStore;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.hisp.dhis.textpattern.TextPattern;
 import org.hisp.dhis.textpattern.TextPatternParser;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -55,7 +55,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
 
-class HibernateReservedValueStoreTest extends SingleSetupIntegrationTestBase
+class HibernateReservedValueStoreTest extends NonTransactionalIntegrationTest
 {
 
     private static int counter = 1;

@@ -54,7 +54,7 @@ import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -63,7 +63,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Lars Helge Overland
  */
-class UserServiceTest extends SingleSetupIntegrationTestBase
+class UserServiceTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

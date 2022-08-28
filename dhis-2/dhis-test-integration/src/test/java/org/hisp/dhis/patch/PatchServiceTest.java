@@ -40,7 +40,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementGroup;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserService;
@@ -58,7 +58,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class PatchServiceTest extends SingleSetupIntegrationTestBase
+class PatchServiceTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

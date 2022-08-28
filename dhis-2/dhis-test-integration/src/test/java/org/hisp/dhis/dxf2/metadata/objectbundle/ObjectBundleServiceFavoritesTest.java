@@ -46,7 +46,7 @@ import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.visualization.Visualization;
 import org.junit.jupiter.api.Test;
@@ -56,7 +56,7 @@ import org.springframework.core.io.ClassPathResource;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class ObjectBundleServiceFavoritesTest extends SingleSetupIntegrationTestBase
+class ObjectBundleServiceFavoritesTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

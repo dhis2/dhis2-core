@@ -39,7 +39,7 @@ import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.junit.jupiter.api.Test;
@@ -50,7 +50,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Lars Helge Overland
  */
-class TrackerOrgUnitMergeHandlerTest extends SingleSetupIntegrationTestBase
+class TrackerOrgUnitMergeHandlerTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

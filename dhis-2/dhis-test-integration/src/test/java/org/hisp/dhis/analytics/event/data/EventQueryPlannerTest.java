@@ -58,7 +58,7 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
@@ -70,7 +70,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Lars Helge Overland
  */
-class EventQueryPlannerTest extends SingleSetupIntegrationTestBase
+class EventQueryPlannerTest extends NonTransactionalIntegrationTest
 {
 
     private Program prA;

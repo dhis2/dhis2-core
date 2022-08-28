@@ -38,14 +38,14 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Chau Thu Tran
  */
-class ProgramStageSectionStoreTest extends SingleSetupIntegrationTestBase
+class ProgramStageSectionStoreTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

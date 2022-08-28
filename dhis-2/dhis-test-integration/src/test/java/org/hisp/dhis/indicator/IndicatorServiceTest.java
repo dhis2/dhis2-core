@@ -38,7 +38,7 @@ import java.util.Locale;
 import java.util.Set;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
@@ -51,7 +51,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Lars Helge Overland
  * @version $Id$
  */
-class IndicatorServiceTest extends SingleSetupIntegrationTestBase
+class IndicatorServiceTest extends NonTransactionalIntegrationTest
 {
     @Autowired
     private IndicatorService indicatorService;

@@ -35,7 +35,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
@@ -51,7 +51,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author David Katuscak (katuscak.d@gmail.com)
  */
-class TrackerSynchronizationTest extends SingleSetupIntegrationTestBase
+class TrackerSynchronizationTest extends NonTransactionalIntegrationTest
 {
     @Autowired
     private UserService _userService;

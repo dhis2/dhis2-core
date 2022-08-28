@@ -48,7 +48,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.query.operators.MatchMode;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.jfree.data.time.Year;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -60,7 +60,7 @@ import com.google.common.collect.Lists;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class QueryServiceTest extends SingleSetupIntegrationTestBase
+class QueryServiceTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

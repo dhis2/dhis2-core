@@ -33,14 +33,14 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Lars Helge Overland
  */
-class OrgUnitSplitValidatorTest extends SingleSetupIntegrationTestBase
+class OrgUnitSplitValidatorTest extends NonTransactionalIntegrationTest
 {
     @Autowired
     private OrganisationUnitService organisationUnitService;

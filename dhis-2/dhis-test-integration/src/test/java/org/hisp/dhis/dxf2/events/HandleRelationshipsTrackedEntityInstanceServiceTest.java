@@ -45,7 +45,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.*;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.junit.jupiter.api.Test;
@@ -56,7 +56,7 @@ import com.google.common.collect.Lists;
 /**
  * @author Enrico Colasante
  */
-class HandleRelationshipsTrackedEntityInstanceServiceTest extends SingleSetupIntegrationTestBase
+class HandleRelationshipsTrackedEntityInstanceServiceTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

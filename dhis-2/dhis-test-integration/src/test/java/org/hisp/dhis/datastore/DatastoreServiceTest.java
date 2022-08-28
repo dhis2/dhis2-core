@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.UncheckedIOException;
 
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -42,7 +42,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * @author Lars Helge Overland
  */
-class DatastoreServiceTest extends SingleSetupIntegrationTestBase
+class DatastoreServiceTest extends NonTransactionalIntegrationTest
 {
 
     private final String namespace = "DOGS";

@@ -35,14 +35,14 @@ import org.hisp.dhis.analytics.EventDataType;
 import org.hisp.dhis.eventvisualization.EventVisualizationType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Lars Helge Overland
  */
-class EventReportServiceTest extends SingleSetupIntegrationTestBase
+class EventReportServiceTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

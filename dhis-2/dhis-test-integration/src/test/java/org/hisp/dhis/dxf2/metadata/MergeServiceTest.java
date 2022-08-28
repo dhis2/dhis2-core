@@ -41,7 +41,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.schema.MergeParams;
 import org.hisp.dhis.schema.MergeService;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,7 +49,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class MergeServiceTest extends SingleSetupIntegrationTestBase
+class MergeServiceTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

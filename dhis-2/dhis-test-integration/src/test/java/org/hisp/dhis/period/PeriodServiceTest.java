@@ -38,14 +38,14 @@ import java.util.List;
 
 import org.hibernate.SessionFactory;
 import org.hibernate.StatelessSession;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Kristian Nordal
  */
-class PeriodServiceTest extends SingleSetupIntegrationTestBase
+class PeriodServiceTest extends NonTransactionalIntegrationTest
 {
     @Autowired
     private PeriodService periodService;

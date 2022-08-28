@@ -33,14 +33,14 @@ import java.util.Locale;
 
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Kiran Prakash
  */
-class UserSettingServiceTest extends SingleSetupIntegrationTestBase
+class UserSettingServiceTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.hibernate.SessionFactory;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
@@ -45,7 +45,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Stian Sandvold
  */
-class MessageConversationStoreTest extends SingleSetupIntegrationTestBase
+class MessageConversationStoreTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

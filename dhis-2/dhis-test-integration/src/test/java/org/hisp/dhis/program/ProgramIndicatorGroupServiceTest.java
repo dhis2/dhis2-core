@@ -30,14 +30,14 @@ package org.hisp.dhis.program;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-class ProgramIndicatorGroupServiceTest extends SingleSetupIntegrationTestBase
+class ProgramIndicatorGroupServiceTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

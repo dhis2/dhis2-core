@@ -36,14 +36,14 @@ import java.util.List;
 import java.util.Map;
 
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Lars Helge Overland
  */
-class FieldPathHelperTest extends SingleSetupIntegrationTestBase
+class FieldPathHelperTest extends NonTransactionalIntegrationTest
 {
     @Autowired
     private FieldPathHelper helper;

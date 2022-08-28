@@ -38,7 +38,7 @@ import java.util.Set;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
@@ -49,7 +49,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Lars Helge Overland
  */
-class ConfigurationServiceTest extends SingleSetupIntegrationTestBase
+class ConfigurationServiceTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

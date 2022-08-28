@@ -29,10 +29,10 @@ package org.hisp.dhis.organisationunit;
 
 import static java.util.Arrays.asList;
 
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.springframework.beans.factory.annotation.Autowired;
 
-abstract class OrganisationUnitBaseSpringTest extends SingleSetupIntegrationTestBase
+abstract class OrganisationUnitBaseSpringTest extends NonTransactionalIntegrationTest
 {
     @Autowired
     protected OrganisationUnitStore unitStore;

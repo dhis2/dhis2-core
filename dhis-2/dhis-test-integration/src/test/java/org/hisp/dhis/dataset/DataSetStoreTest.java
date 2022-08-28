@@ -41,7 +41,7 @@ import org.hisp.dhis.dataentryform.DataEntryFormService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitStore;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -49,7 +49,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Kristian Nordal
  * @version $Id: DataSetStoreTest.java 3451 2007-07-09 12:28:19Z torgeilo $
  */
-class DataSetStoreTest extends SingleSetupIntegrationTestBase
+class DataSetStoreTest extends NonTransactionalIntegrationTest
 {
 
     private static final PeriodType PERIOD_TYPE = PeriodType.getAvailablePeriodTypes().iterator().next();

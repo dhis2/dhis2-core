@@ -36,7 +36,7 @@ import java.util.Collection;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +44,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-class OptionGroupStoreTest extends SingleSetupIntegrationTestBase
+class OptionGroupStoreTest extends NonTransactionalIntegrationTest
 {
     @Autowired
     private OptionGroupStore store;

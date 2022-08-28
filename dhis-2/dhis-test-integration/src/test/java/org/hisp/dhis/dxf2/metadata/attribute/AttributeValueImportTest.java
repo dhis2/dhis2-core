@@ -46,12 +46,12 @@ import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
-class AttributeValueImportTest extends SingleSetupIntegrationTestBase
+class AttributeValueImportTest extends NonTransactionalIntegrationTest
 {
     @Autowired
     private RenderService renderService;

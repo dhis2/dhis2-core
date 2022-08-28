@@ -43,14 +43,14 @@ import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.system.util.ReflectionUtils;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class SchemaServiceTest extends SingleSetupIntegrationTestBase
+class SchemaServiceTest extends NonTransactionalIntegrationTest
 {
     @Autowired
     private SchemaService schemaService;

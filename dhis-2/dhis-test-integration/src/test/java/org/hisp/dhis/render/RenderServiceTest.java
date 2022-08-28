@@ -43,7 +43,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.VersionType;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +52,7 @@ import org.springframework.core.io.ClassPathResource;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class RenderServiceTest extends SingleSetupIntegrationTestBase
+class RenderServiceTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

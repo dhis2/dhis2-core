@@ -29,13 +29,13 @@ package org.hisp.dhis.trackedentity;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
 
-class TrackedEntityTypeAttributeStoreTest extends SingleSetupIntegrationTestBase
+class TrackedEntityTypeAttributeStoreTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

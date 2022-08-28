@@ -54,7 +54,7 @@ import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
@@ -67,7 +67,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Kristian Nordal
  */
-class OrganisationUnitServiceTest extends SingleSetupIntegrationTestBase
+class OrganisationUnitServiceTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

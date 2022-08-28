@@ -46,7 +46,7 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
@@ -57,7 +57,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Jim Grace
  */
-class DataApprovalAuditStoreTest extends SingleSetupIntegrationTestBase
+class DataApprovalAuditStoreTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

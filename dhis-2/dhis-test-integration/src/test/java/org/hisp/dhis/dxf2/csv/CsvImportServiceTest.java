@@ -42,12 +42,12 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
-class CsvImportServiceTest extends SingleSetupIntegrationTestBase
+class CsvImportServiceTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

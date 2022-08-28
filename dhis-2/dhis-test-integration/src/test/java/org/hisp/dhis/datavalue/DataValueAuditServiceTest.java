@@ -42,14 +42,14 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Created by Halvdan Hoem Grelland
  */
-class DataValueAuditServiceTest extends SingleSetupIntegrationTestBase
+class DataValueAuditServiceTest extends NonTransactionalIntegrationTest
 {
     @Autowired
     private DataValueAuditService dataValueAuditService;

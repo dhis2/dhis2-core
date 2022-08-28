@@ -62,7 +62,7 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,7 +73,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Lars Helge Overland
  */
-class EventAnalyticsServiceMetadataTest extends SingleSetupIntegrationTestBase
+class EventAnalyticsServiceMetadataTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

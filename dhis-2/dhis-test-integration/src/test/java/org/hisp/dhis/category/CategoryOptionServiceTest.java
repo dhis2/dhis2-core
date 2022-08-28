@@ -37,7 +37,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -47,7 +47,7 @@ import com.google.common.collect.Sets;
  * @author Lars Helge Overland
  * @version $Id$
  */
-class CategoryOptionServiceTest extends SingleSetupIntegrationTestBase
+class CategoryOptionServiceTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

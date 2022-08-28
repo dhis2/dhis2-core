@@ -46,7 +46,7 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationR
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -57,7 +57,7 @@ import org.springframework.core.io.ClassPathResource;
  * @author Luciano Fiandesio
  */
 @Slf4j
-public abstract class TrackerTest extends SingleSetupIntegrationTestBase
+public abstract class TrackerTest extends NonTransactionalIntegrationTest
 {
     @Autowired
     protected IdentifiableObjectManager manager;

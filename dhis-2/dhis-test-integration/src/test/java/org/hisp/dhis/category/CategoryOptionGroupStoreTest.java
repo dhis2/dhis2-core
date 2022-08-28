@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -42,7 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author Lars Helge Overland
  */
-class CategoryOptionGroupStoreTest extends SingleSetupIntegrationTestBase
+class CategoryOptionGroupStoreTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

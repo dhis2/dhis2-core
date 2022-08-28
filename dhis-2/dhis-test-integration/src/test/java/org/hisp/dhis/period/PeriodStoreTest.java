@@ -36,7 +36,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -44,7 +44,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Torgeir Lorange Ostby
  * @version $Id: PeriodStoreTest.java 5983 2008-10-17 17:42:44Z larshelg $
  */
-class PeriodStoreTest extends SingleSetupIntegrationTestBase
+class PeriodStoreTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

@@ -41,7 +41,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -50,7 +50,7 @@ import com.google.common.collect.Lists;
 /**
  * @author Lars Helge Overland
  */
-class MappingServiceTest extends SingleSetupIntegrationTestBase
+class MappingServiceTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

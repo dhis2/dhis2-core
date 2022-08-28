@@ -37,7 +37,7 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.schema.validation.SchemaValidator;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -46,7 +46,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class SchemaValidatorTest extends SingleSetupIntegrationTestBase
+class SchemaValidatorTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

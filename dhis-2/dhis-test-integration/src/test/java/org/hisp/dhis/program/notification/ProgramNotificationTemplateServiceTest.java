@@ -39,14 +39,14 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Zubair Asghar
  */
-class ProgramNotificationTemplateServiceTest extends SingleSetupIntegrationTestBase
+class ProgramNotificationTemplateServiceTest extends NonTransactionalIntegrationTest
 {
 
     private Program program;

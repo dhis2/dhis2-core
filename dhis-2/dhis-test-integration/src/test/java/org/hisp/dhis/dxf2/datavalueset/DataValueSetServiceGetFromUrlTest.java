@@ -39,14 +39,14 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.datavalue.DataExportParams;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Lars Helge Overland
  */
-class DataValueSetServiceGetFromUrlTest extends SingleSetupIntegrationTestBase
+class DataValueSetServiceGetFromUrlTest extends NonTransactionalIntegrationTest
 {
     @Autowired
     private CategoryService categoryService;

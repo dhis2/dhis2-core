@@ -42,7 +42,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -51,7 +51,7 @@ import com.google.common.collect.Lists;
 /**
  * @author Kristian Nordal
  */
-class MinMaxDataElementStoreTest extends SingleSetupIntegrationTestBase
+class MinMaxDataElementStoreTest extends NonTransactionalIntegrationTest
 {
     @Autowired
     private DataElementService dataElementService;

@@ -38,7 +38,7 @@ import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.sms.outbound.OutboundSms;
 import org.hisp.dhis.sms.outbound.OutboundSmsStatus;
 import org.hisp.dhis.sms.outbound.OutboundSmsStore;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
@@ -49,7 +49,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-class IncomingSmsStoreTest extends SingleSetupIntegrationTestBase
+class IncomingSmsStoreTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

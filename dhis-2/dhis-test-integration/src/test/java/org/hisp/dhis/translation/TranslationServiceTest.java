@@ -60,7 +60,7 @@ import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -74,7 +74,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-class TranslationServiceTest extends SingleSetupIntegrationTestBase
+class TranslationServiceTest extends NonTransactionalIntegrationTest
 {
     @Autowired
     private UserService injectUserService;

@@ -37,7 +37,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -47,7 +47,7 @@ import com.google.common.collect.Sets;
  * @author Dang Duy Hieu
  * @version $Id$
  */
-class UserGroupServiceTest extends SingleSetupIntegrationTestBase
+class UserGroupServiceTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

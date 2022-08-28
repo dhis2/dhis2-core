@@ -37,11 +37,11 @@ import java.util.List;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class ProgramStageInstanceFilterTest extends SingleSetupIntegrationTestBase
+class ProgramStageInstanceFilterTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

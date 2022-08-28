@@ -37,7 +37,7 @@ import java.util.List;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.MetadataVersionStore;
 import org.hisp.dhis.metadata.version.VersionType;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.junit.jupiter.api.Test;
@@ -46,7 +46,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author sultanm.
  */
-class HibernateMetadataVersionStoreTest extends SingleSetupIntegrationTestBase
+class HibernateMetadataVersionStoreTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

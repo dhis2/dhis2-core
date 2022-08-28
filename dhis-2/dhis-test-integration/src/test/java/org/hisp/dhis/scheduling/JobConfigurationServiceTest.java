@@ -35,14 +35,14 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import java.util.List;
 
 import org.hisp.dhis.scheduling.parameters.MockJobParameters;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Henning Håkonsen
  */
-class JobConfigurationServiceTest extends SingleSetupIntegrationTestBase
+class JobConfigurationServiceTest extends NonTransactionalIntegrationTest
 {
 
     private static final String CRON_EVERY_MIN = "0 * * ? * *";

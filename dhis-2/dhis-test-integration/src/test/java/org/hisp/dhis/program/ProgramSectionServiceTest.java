@@ -34,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
@@ -44,7 +44,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author viet@dhis2.org
  */
 class ProgramSectionServiceTest
-    extends SingleSetupIntegrationTestBase
+    extends NonTransactionalIntegrationTest
 {
     @Autowired
     private IdentifiableObjectManager manager;

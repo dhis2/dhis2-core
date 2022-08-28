@@ -32,12 +32,12 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
-class UserRoleTest extends SingleSetupIntegrationTestBase
+class UserRoleTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

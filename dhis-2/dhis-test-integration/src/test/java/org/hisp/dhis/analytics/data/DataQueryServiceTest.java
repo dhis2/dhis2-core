@@ -87,7 +87,7 @@ import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
@@ -103,7 +103,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Lars Helge Overland
  */
-class DataQueryServiceTest extends SingleSetupIntegrationTestBase
+class DataQueryServiceTest extends NonTransactionalIntegrationTest
 {
 
     private Program prA;

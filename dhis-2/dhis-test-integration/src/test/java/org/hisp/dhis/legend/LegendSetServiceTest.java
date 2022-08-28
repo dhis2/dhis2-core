@@ -30,14 +30,14 @@ package org.hisp.dhis.legend;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Lars Helge Overland
  */
-class LegendSetServiceTest extends SingleSetupIntegrationTestBase
+class LegendSetServiceTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired

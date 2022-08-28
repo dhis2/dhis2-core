@@ -54,7 +54,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.orgunitprofile.impl.DefaultOrgUnitProfileService;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.NonTransactionalIntegrationTest;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -69,7 +69,7 @@ import com.google.common.collect.Lists;
 
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-class OrgUnitProfileServiceTest extends SingleSetupIntegrationTestBase
+class OrgUnitProfileServiceTest extends NonTransactionalIntegrationTest
 {
 
     @Autowired
