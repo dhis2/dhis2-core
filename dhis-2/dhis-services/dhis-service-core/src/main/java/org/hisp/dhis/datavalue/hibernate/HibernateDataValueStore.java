@@ -51,6 +51,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.dataelement.DataElement;
@@ -555,6 +556,20 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
             .addPredicates( predicateList )
             .count( root -> builder.countDistinct( root ) ) )
                 .intValue();
+    }
+
+    @Override
+    public boolean existsAnyValue( CategoryCombo combo )
+    {
+        String cocIdsSql = "select distinct categoryoptioncomboid from categorycombos_optioncombos where categorycomboid = :cc";
+        List<?> cocIds = getSession().createNativeQuery( cocIdsSql )
+            .setParameter( "cc", combo.getId() )
+            .list();
+        String anyDataValueSql = "select 1 from datavalue dv "
+            + "where dv.categoryoptioncomboid in :cocIds or dv.attributeoptioncomboid in :cocIds limit 1";
+        return !getSession().createNativeQuery( anyDataValueSql )
+            .setParameter( "cocIds", cocIds )
+            .list().isEmpty();
     }
 
     // -------------------------------------------------------------------------

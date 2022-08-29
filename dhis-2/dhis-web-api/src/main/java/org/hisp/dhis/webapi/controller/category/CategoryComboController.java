@@ -27,17 +27,21 @@
  */
 package org.hisp.dhis.webapi.controller.category;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
-import java.io.IOException;
+import java.util.Objects;
+
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.schema.descriptors.CategoryComboSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.controller.metadata.MetadataExportControllerUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -52,17 +56,18 @@ import com.fasterxml.jackson.databind.JsonNode;
  */
 @Controller
 @RequestMapping( value = CategoryComboSchemaDescriptor.API_ENDPOINT )
+@AllArgsConstructor
 public class CategoryComboController
     extends AbstractCrudController<CategoryCombo>
 {
-    @Autowired
-    private CategoryService categoryService;
+    private final CategoryService categoryService;
+
+    private final DataValueService dataValueService;
 
     @GetMapping( "/{uid}/metadata" )
     public ResponseEntity<JsonNode> getDataSetWithDependencies( @PathVariable( "uid" ) String pvUid,
         @RequestParam( required = false, defaultValue = "false" ) boolean download )
-        throws WebMessageException,
-        IOException
+        throws WebMessageException
     {
         CategoryCombo categoryCombo = categoryService.getCategoryCombo( pvUid );
 
@@ -73,6 +78,30 @@ public class CategoryComboController
 
         return MetadataExportControllerUtils.getWithDependencies( contextService, exportService, categoryCombo,
             download );
+    }
+
+    @Override
+    protected void preUpdateEntity( CategoryCombo entity, CategoryCombo newEntity )
+        throws Exception
+    {
+        checkNoDataValueBecomesInaccessible( entity, newEntity );
+    }
+
+    @Override
+    protected void prePatchEntity( CategoryCombo entity, CategoryCombo newEntity )
+        throws Exception
+    {
+        checkNoDataValueBecomesInaccessible( entity, newEntity );
+    }
+
+    private void checkNoDataValueBecomesInaccessible( CategoryCombo entity, CategoryCombo newEntity )
+        throws WebMessageException
+    {
+        if ( !Objects.equals( entity.getCategories(), newEntity.getCategories() )
+            && dataValueService.existsAnyValue( entity ) )
+        {
+            throw new WebMessageException( conflict( ErrorCode.E1120 ) );
+        }
     }
 
     @Override

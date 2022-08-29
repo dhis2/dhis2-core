@@ -30,6 +30,7 @@ package org.hisp.dhis.datavalue;
 import java.util.Date;
 import java.util.List;
 
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElement;
@@ -205,4 +206,6 @@ public interface DataValueService
      * @return the number of DataValues.
      */
     int getDataValueCountLastUpdatedBetween( Date startDate, Date endDate, boolean includeDeleted );
+
+    boolean existsAnyValue( CategoryCombo combo );
 }

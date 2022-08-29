@@ -38,6 +38,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.AuditType;
@@ -355,5 +356,12 @@ public class DefaultDataValueService
     public int getDataValueCountLastUpdatedBetween( Date startDate, Date endDate, boolean includeDeleted )
     {
         return dataValueStore.getDataValueCountLastUpdatedBetween( startDate, endDate, includeDeleted );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public boolean existsAnyValue( CategoryCombo combo )
+    {
+        return dataValueStore.existsAnyValue( combo );
     }
 }
