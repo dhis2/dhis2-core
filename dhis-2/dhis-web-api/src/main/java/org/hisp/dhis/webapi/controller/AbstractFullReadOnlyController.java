@@ -34,10 +34,8 @@ import static org.springframework.http.CacheControl.noCache;
 
 import java.io.IOException;
 import java.io.StringWriter;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -58,8 +56,6 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PrimaryKeyObject;
-import org.hisp.dhis.commons.jackson.config.WriteDateStdSerializer;
-import org.hisp.dhis.commons.jackson.config.WriteInstantStdSerializer;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -102,14 +98,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.HttpClientErrorException;
 
-import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SequenceWriter;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import com.fasterxml.jackson.dataformat.csv.CsvWriteException;
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 
@@ -157,21 +150,8 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     @Autowired
     protected AttributeService attributeService;
 
-    // --------------------------------------------------------------------------
-    // Custom CSV mapper for field filtering
-    // --------------------------------------------------------------------------
-
-    protected static final CsvMapper CSV_MAPPER = new CsvMapper();
-
-    static
-    {
-        CsvMapper csvMapper = new CsvMapper();
-        csvMapper.configure( JsonGenerator.Feature.IGNORE_UNKNOWN, true );
-        csvMapper.registerModule( new SimpleModule()
-            .addSerializer( Date.class, new WriteDateStdSerializer() )
-            .addSerializer( Instant.class, new WriteInstantStdSerializer() ) );
-        csvMapper.registerModule( new Jdk8Module() );
-    }
+    @Autowired
+    protected CsvMapper csvMapper;
 
     // --------------------------------------------------------------------------
     // Hooks
@@ -355,7 +335,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
         try ( StringWriter strW = new StringWriter() )
         {
-            SequenceWriter seqW = CSV_MAPPER.writer( schema )
+            SequenceWriter seqW = csvMapper.writer( schema )
                 .writeValues( strW );
 
             Object[] row = new Object[obj2valueByProperty.size()];
