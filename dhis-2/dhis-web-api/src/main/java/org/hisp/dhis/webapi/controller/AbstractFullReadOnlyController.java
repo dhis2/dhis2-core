@@ -161,7 +161,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     // Custom CSV mapper for field filtering
     // --------------------------------------------------------------------------
 
-    protected final static CsvMapper CSV_MAPPER = new CsvMapper();
+    protected static final CsvMapper CSV_MAPPER = new CsvMapper();
 
     static
     {
