@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -155,6 +156,22 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
     @Autowired
     protected AttributeService attributeService;
+
+    // --------------------------------------------------------------------------
+    // Custom CSV mapper for field filtering
+    // --------------------------------------------------------------------------
+
+    protected final static CsvMapper CSV_MAPPER = new CsvMapper();
+
+    static
+    {
+        CsvMapper csvMapper = new CsvMapper();
+        csvMapper.configure( JsonGenerator.Feature.IGNORE_UNKNOWN, true );
+        csvMapper.registerModule( new SimpleModule()
+            .addSerializer( Date.class, new WriteDateStdSerializer() )
+            .addSerializer( Instant.class, new WriteInstantStdSerializer() ) );
+        csvMapper.registerModule( new Jdk8Module() );
+    }
 
     // --------------------------------------------------------------------------
     // Hooks
@@ -336,16 +353,9 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
             schema = schema.withHeader();
         }
 
-        CsvMapper csvMapper = new CsvMapper();
-        csvMapper.configure( JsonGenerator.Feature.IGNORE_UNKNOWN, true );
-        csvMapper.registerModule( new SimpleModule()
-            .addSerializer( Date.class, new WriteDateStdSerializer() )
-            .addSerializer( Instant.class, new WriteInstantStdSerializer() ) );
-        csvMapper.registerModule( new Jdk8Module() );
-
         try ( StringWriter strW = new StringWriter() )
         {
-            SequenceWriter seqW = csvMapper.writer( schema )
+            SequenceWriter seqW = CSV_MAPPER.writer( schema )
                 .writeValues( strW );
 
             Object[] row = new Object[obj2valueByProperty.size()];
@@ -356,7 +366,18 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
                 for ( Function<T, Object> toValue : obj2valueByProperty.values() )
                 {
-                    row[i++] = toValue.apply( e );
+                    Object o = toValue.apply( e );
+
+                    if ( o instanceof Collection )
+                    {
+                        row[i++] = ((Collection<?>) o).stream()
+                            .map( String::valueOf )
+                            .collect( Collectors.joining( arraySeparator ) );
+                    }
+                    else
+                    {
+                        row[i++] = o;
+                    }
                 }
 
                 seqW.write( row );
@@ -379,8 +400,10 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     private static List<String> getCollectionValue( Object obj, Property property )
     {
         Object value = ReflectionUtils.invokeMethod( obj, property.getGetterMethod() );
+
         @SuppressWarnings( "unchecked" )
         Collection<IdentifiableObject> collection = (Collection<IdentifiableObject>) value;
+
         return collection.stream().map( PrimaryKeyObject::getUid ).collect( toList() );
     }
 
