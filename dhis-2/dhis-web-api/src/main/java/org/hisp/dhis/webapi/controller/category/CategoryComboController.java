@@ -32,8 +32,6 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
 import java.util.Objects;
 
-import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.datavalue.DataValueService;
@@ -42,6 +40,7 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.schema.descriptors.CategoryComboSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.controller.metadata.MetadataExportControllerUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -56,13 +55,14 @@ import com.fasterxml.jackson.databind.JsonNode;
  */
 @Controller
 @RequestMapping( value = CategoryComboSchemaDescriptor.API_ENDPOINT )
-@AllArgsConstructor
 public class CategoryComboController
     extends AbstractCrudController<CategoryCombo>
 {
-    private final CategoryService categoryService;
+    @Autowired
+    private CategoryService categoryService;
 
-    private final DataValueService dataValueService;
+    @Autowired
+    private DataValueService dataValueService;
 
     @GetMapping( "/{uid}/metadata" )
     public ResponseEntity<JsonNode> getDataSetWithDependencies( @PathVariable( "uid" ) String pvUid,
