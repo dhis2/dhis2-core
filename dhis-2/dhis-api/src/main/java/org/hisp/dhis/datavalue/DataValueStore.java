@@ -159,5 +159,11 @@ public interface DataValueStore
      */
     int getDataValueCountLastUpdatedBetween( Date startDate, Date endDate, boolean includeDeleted );
 
+    /**
+     * Checks if any data values exist for the provided {@link CategoryCombo}
+     *
+     * @param combo the combo to check
+     * @return true, if any value exist, otherwise false
+     */
     boolean existsAnyValue( CategoryCombo combo );
 }
