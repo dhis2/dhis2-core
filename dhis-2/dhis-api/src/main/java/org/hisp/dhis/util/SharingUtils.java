@@ -46,6 +46,9 @@ public class SharingUtils
     private static final ImmutableList<String> LEGACY_SHARING_PROPERTIES = ImmutableList.<String> builder().add(
         "userAccesses", "userGroupAccess", "publicAccess", "externalAccess" ).build();
 
+    private static final ImmutableList<String> SHARING_PROPERTIES = ImmutableList.<String> builder().add(
+        "userGroups", "users" ).build();
+
     private static final ObjectMapper FROM_AND_TO_JSON = createMapper();
 
     private SharingUtils()
@@ -136,6 +139,18 @@ public class SharingUtils
     public static boolean isLegacySharingProperty( Property property )
     {
         return LEGACY_SHARING_PROPERTIES.contains( property.getFieldName() );
+    }
+
+    /**
+     * Check if given property is {@link Sharing#userGroups} or
+     * {@link Sharing#users} property.
+     *
+     * @param property {@link Property} for checking.
+     * @return TRUE if given property is {@link Sharing}'s property.
+     */
+    public static boolean isSharingProperty( Property property )
+    {
+        return SHARING_PROPERTIES.contains( property.getFieldName() );
     }
 
     private static ObjectMapper createMapper()
