@@ -186,7 +186,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
         Patch patch = diff( request );
 
-        prePatchEntity( persistedObject );
+        prePatchEntity( persistedObject, persistedObject );
         patchService.apply( patch, persistedObject );
         validateAndThrowErrors( () -> schemaValidator.validate( persistedObject ) );
         manager.update( persistedObject );
@@ -237,7 +237,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
             throw new WebMessageException( badRequest( "Unknown payload format." ) );
         }
 
-        prePatchEntity( persistedObject );
+        prePatchEntity( persistedObject, persistedObject );
         Object value = property.getGetterMethod().invoke( object );
         property.getSetterMethod().invoke( persistedObject, value );
 
@@ -296,10 +296,10 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
         manager.resetNonOwnerProperties( persistedObject );
 
-        prePatchEntity( persistedObject );
-
         final JsonPatch patch = jsonMapper.readValue( request.getInputStream(), JsonPatch.class );
         final T patchedObject = jsonPatchManager.apply( patch, persistedObject );
+
+        prePatchEntity( patchedObject, patchedObject );
 
         // Do not allow changing IDs
         ((BaseIdentifiableObject) patchedObject).setId( persistedObject.getId() );
@@ -961,11 +961,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     }
 
     protected void prePatchEntity( T entity, T newEntity )
-        throws Exception
-    {
-    }
-
-    protected void prePatchEntity( T newEntity )
         throws Exception
     {
     }
