@@ -27,12 +27,11 @@
  */
 package org.hisp.dhis.predictor;
 
-import static java.util.AbstractMap.SimpleImmutableEntry;
-import static org.hisp.dhis.category.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
-import static org.hisp.dhis.category.CategoryOption.DEFAULT_NAME;
-import static org.hisp.dhis.common.DataDimensionType.DISAGGREGATION;
+import static com.google.common.collect.Maps.immutableEntry;
+import static java.util.stream.Collectors.joining;
+import static org.hisp.dhis.commons.collection.CollectionUtils.mapOf;
 import static org.hisp.dhis.period.PeriodType.getPeriodFromIsoString;
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.predictor.PredictionDisaggregatorUtils.createPredictionDisaggregator;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -41,132 +40,131 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.hisp.dhis.DhisConvenienceTest;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
-import org.hisp.dhis.expression.Expression;
-import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
-import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests {@see PredictionDisaggregator}.
+ * Tests {@link PredictionDisaggregator}.
  *
  * @author Jim Grace
  */
 class PredictionDisaggregatorTest
-    extends DhisConvenienceTest
+    extends PredictionDisaggregatorAbstractTest
 {
-    private final CategoryOption coA = createCategoryOption( "coA", "coAaaaaaaaa" );
+    // Periods
 
-    private final CategoryOption coB = createCategoryOption( "coB", "coBbbbbbbbb" );
+    private final Period per1 = getPeriodFromIsoString( "202201" );
 
-    private final CategoryOption coDefault = createCategoryOption( DEFAULT_NAME, "coIsDefault" );
+    private final Period per2 = getPeriodFromIsoString( "202202" );
 
-    private final Category catA = createCategory( "catA", "catAaaaaaaa", coA, coB );
+    // Context values before disaggregating (powers of 2 are used so if a test
+    // fails you can tell the difference between the wrong value and adding two
+    // values)
 
-    private final Category catDefault = createCategory( DEFAULT_NAME, "cataDefault", coDefault );
+    // Period 1 values found in data:
+    private final MapMap<Period, DimensionalItemObject, Object> pvMap1 = MapMap.ofEntries(
+        immutableEntry( per1, Map.of(
+            deoAa, 1.0,
+            deoAb, 2.0,
+            deoBa, 4.0,
+            deoBb, 8.0,
+            deoCa, 16.0,
+            deoCb, 32.0,
+            deoDa, 64.0,
+            deoDc, 128.0 ) ) );
 
-    private final CategoryCombo ccA = createCategoryCombo( "ccA", "ccAaaaaaaaa", catA );
+    // Period 2 values found in data:
+    private final MapMap<Period, DimensionalItemObject, Object> pvMap2 = MapMap.ofEntries(
+        immutableEntry( per2, Map.of(
+            deoAa, 256.0 ) ) );
 
-    private final CategoryCombo ccDefault = new CategoryCombo( DEFAULT_CATEGORY_COMBO_NAME, DISAGGREGATION,
-        List.of( catDefault ) );
+    // Context values after disaggregating
 
-    private final CategoryOptionCombo cocA = newCategoryOptionCombo( "cocA", "cocAaaaaaaa", ccA, coA );
+    // Period 1 where Data Elements A, B, and C have option A:
+    private final MapMap<Period, DimensionalItemObject, Object> pvMap1a = MapMap.ofEntries(
+        immutableEntry( per1, mapOf(
+            deoAa, 1.0,
+            deoAb, 2.0,
+            deoBa, 4.0,
+            deoBb, 8.0,
+            deoCa, 16.0,
+            deoCb, 32.0,
+            deoDa, 64.0,
+            deoDc, 128.0,
+            deA, 1.0,
+            deB, 4.0,
+            deC, 16.0 ) ) );
 
-    private final CategoryOptionCombo cocB = newCategoryOptionCombo( "cocB", "cocBbbbbbbb", ccA, coB );
+    // Period 1 where Data Elements A, B, and C have option B:
+    private final MapMap<Period, DimensionalItemObject, Object> pvMap1b = MapMap.ofEntries(
+        immutableEntry( per1, mapOf(
+            deoAa, 1.0,
+            deoAb, 2.0,
+            deoBa, 4.0,
+            deoBb, 8.0,
+            deoCa, 16.0,
+            deoCb, 32.0,
+            deoDa, 64.0,
+            deoDc, 128.0,
+            deA, 2.0,
+            deB, 8.0,
+            deC, 32.0 ) ) );
 
-    private final CategoryOptionCombo cocDefault = newCategoryOptionCombo( DEFAULT_NAME, "cocDefault", ccDefault,
-        coDefault );
+    // Period 2 where Data Element A has option A:
+    private final MapMap<Period, DimensionalItemObject, Object> pvMap2a = MapMap.ofEntries(
+        immutableEntry( per1, Map.of(
+            deoAa, 256.0,
+            deA, 256.0 ) ) );
 
-    private final DataElement deA = createDataElement( 'A', ccA );
+    // Period 2 where Data Element A is missing option B:
+    private final MapMap<Period, DimensionalItemObject, Object> pvMap2b = MapMap.ofEntries(
+        immutableEntry( per2, Map.of(
+            deoAa, 256.0 ) ) );
 
-    private final DataElement deB = createDataElement( 'B', ccA );
+    // Prediction contexts without disaggregating
 
-    private final DataElement deC = createDataElement( 'C', ccDefault );
+    private final PredictionContext ctx1 = new PredictionContext( cocAa, cocDefault, per1, pvMap1 );
 
-    private final List<DimensionalItemObject> expressionItems = List.of( deA, deB, deC );
+    private final PredictionContext ctx2 = new PredictionContext( cocAa, cocDefault, per2, pvMap2 );
 
-    private final DataElementOperand deoA = new DataElementOperand( deA, cocA );
+    // Prediction contexts after disaggregating
 
-    private final DataElementOperand deoB = new DataElementOperand( deA, cocB );
+    private final PredictionContext ctx1a = new PredictionContext( cocAa, cocDefault, per1, pvMap1a );
 
-    private final DataElementOperand deoC = new DataElementOperand( deB, cocA );
+    private final PredictionContext ctx1b = new PredictionContext( cocAa, cocDefault, per1, pvMap1b );
 
-    private final DataElementOperand deoD = new DataElementOperand( deB, cocB );
+    private final PredictionContext ctx2a = new PredictionContext( cocAa, cocDefault, per2, pvMap2a );
 
-    private final DataElementOperand deoX = new DataElementOperand( deA, null );
+    private final PredictionContext ctx2b = new PredictionContext( cocAa, cocDefault, per2, pvMap2b );
 
-    private final OrganisationUnitLevel ouLevelA = new OrganisationUnitLevel( 1, "Top" );
+    // List of starting (undisaggregated) prediction contexts
 
-    private final Expression expA = new Expression( "1", "Description" );
+    private final List<PredictionContext> startingContexts = List.of( ctx1, ctx2 );
 
-    private final Predictor pWithoutDisag = createPredictor( deA, cocA, "A", expA, null,
-        new MonthlyPeriodType(), ouLevelA, 0, 0, 0 );
-
-    private final Predictor pWithDisag = createPredictor( deA, null, "A", expA, null,
-        new MonthlyPeriodType(), ouLevelA, 0, 0, 0 );
-
-    private final Period perA = getPeriodFromIsoString( "202201" );
-
-    private final Period perB = getPeriodFromIsoString( "202202" );
-
-    // Period A values found:
-    private final MapMap<Period, DimensionalItemObject, Object> pvMapA = MapMap.ofEntries(
-        new SimpleImmutableEntry<>( perA, Map.of( deoA, 1.0, deoB, 2.0 ) ) );
-
-    // Period A with disaggregated values where deA -> deoA:
-    private final MapMap<Period, DimensionalItemObject, Object> pvMapAA = MapMap.ofEntries(
-        new SimpleImmutableEntry<>( perA, Map.of( deoA, 1.0, deoB, 2.0, deA, 1.0 ) ) );
-
-    // Period A with disaggregated values where deA -> deoB:
-    private final MapMap<Period, DimensionalItemObject, Object> pvMapAB = MapMap.ofEntries(
-        new SimpleImmutableEntry<>( perA, Map.of( deoA, 1.0, deoB, 2.0, deA, 2.0 ) ) );
-
-    // Period B values found:
-    private final MapMap<Period, DimensionalItemObject, Object> pvMapB = MapMap.ofEntries(
-        new SimpleImmutableEntry<>( perB, Map.of( deoA, 4.0 ) ) );
-
-    // Period B disaggregated values where deA -> deoA:
-    private final MapMap<Period, DimensionalItemObject, Object> pvMapBA = MapMap.ofEntries(
-        new SimpleImmutableEntry<>( perB, Map.of( deoA, 4.0, deA, 4.0 ) ) );
-
-    // Period B disaggregated values where deA -> deoB (which is missing):
-    private final MapMap<Period, DimensionalItemObject, Object> pvMapBB = MapMap.ofEntries(
-        new SimpleImmutableEntry<>( perB, Map.of( deoA, 4.0 ) ) );
-
-    // Undisaggregated prediction contexts:
-    private final PredictionContext ctxA = new PredictionContext( cocA, cocA, perA, pvMapA );
-
-    private final PredictionContext ctxB = new PredictionContext( cocA, cocA, perB, pvMapB );
-
-    // Disaggregated prediction contexts:
-    private final PredictionContext ctxAA = new PredictionContext( cocA, cocA, perA, pvMapAA );
-
-    private final PredictionContext ctxAB = new PredictionContext( cocB, cocA, perA, pvMapAB );
-
-    private final PredictionContext ctxBA = new PredictionContext( cocA, cocA, perB, pvMapBA );
-
-    private final PredictionContext ctxBB = new PredictionContext( cocB, cocA, perB, pvMapBB );
-
-    // List of starting (undisaggregated) prediction contexts:
-    private final List<PredictionContext> startingContexts = List.of( ctxA, ctxB );
+    // Target for tests
 
     private PredictionDisaggregator target;
+
+    @Test
+    void testCcAOptionCombos()
+    {
+        // Double-check to be sure that Cat Combo C does not contain cocCb
+        assertEquals( Set.of( cocCa ), ccC.getOptionCombos() );
+    }
 
     @Test
     void testGetDisaggregatedItemsWithoutDisaggregation()
     {
         setUpWithoutDisag();
 
-        assertEquals( Set.of( deA, deB, deC, deoA ), target.getDisaggregatedItems() );
+        assertEquals(
+            Set.of( deA, deB, deC, deD, deoAa, deoAb, deoBa, deoBb, deoCa, deoCb, deoDa, deoDc ),
+            target.getDisaggregatedItems() );
     }
 
     @Test
@@ -174,7 +172,9 @@ class PredictionDisaggregatorTest
     {
         setUpWithDisag();
 
-        assertEquals( Set.of( deC, deoA, deoB, deoC, deoD ), target.getDisaggregatedItems() );
+        assertEquals(
+            Set.of( deoAX, deoBX, deoCX, deD, deoAa, deoAb, deoBa, deoBb, deoCa, deoCb, deoDa, deoDc ),
+            target.getDisaggregatedItems() );
     }
 
     @Test
@@ -182,7 +182,7 @@ class PredictionDisaggregatorTest
     {
         setUpWithoutDisag();
 
-        assertEquals( cocA, target.getOutputCoc() );
+        assertEquals( cocAa, target.getOutputCoc() );
     }
 
     @Test
@@ -198,7 +198,7 @@ class PredictionDisaggregatorTest
     {
         setUpWithoutDisag();
 
-        assertEquals( deoA, target.getOutputDataElementOperand() );
+        assertEquals( deoAa, target.getOutputDataElementOperand() );
     }
 
     @Test
@@ -206,7 +206,7 @@ class PredictionDisaggregatorTest
     {
         setUpWithDisag();
 
-        assertEquals( deoX, target.getOutputDataElementOperand() );
+        assertEquals( deoAX, target.getOutputDataElementOperand() );
     }
 
     @Test
@@ -224,7 +224,12 @@ class PredictionDisaggregatorTest
 
         List<PredictionContext> actual = target.getDisaggregateContexts( startingContexts );
 
-        assertContainsOnly( actual, ctxAA, ctxAB, ctxBA, ctxBB );
+        assertContextInList( ctx1a, actual );
+        assertContextInList( ctx1b, actual );
+        assertContextInList( ctx2a, actual );
+        assertContextInList( ctx2b, actual );
+
+        assertEquals( 4, actual.size() );
 
         assertPeriodsInOrder( actual );
     }
@@ -233,23 +238,56 @@ class PredictionDisaggregatorTest
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private CategoryOptionCombo newCategoryOptionCombo( String name, String uid, CategoryCombo categoryCombo,
-        CategoryOption... categoryOptions )
+    private DataElementOperand deo( DataElement dataElement, CategoryOptionCombo coc )
     {
-        CategoryOptionCombo coc = createCategoryOptionCombo( name, uid, categoryCombo, categoryOptions );
-        categoryCombo.getOptionCombos().add( coc );
-
-        return coc;
+        return new DataElementOperand( dataElement, coc );
     }
 
     private void setUpWithoutDisag()
     {
-        target = new PredictionDisaggregator( pWithoutDisag, cocDefault, expressionItems );
+        target = createPredictionDisaggregator( pWithoutDisag, cocDefault, expressionItems );
     }
 
     private void setUpWithDisag()
     {
-        target = new PredictionDisaggregator( pWithDisag, cocDefault, expressionItems );
+        target = createPredictionDisaggregator( pWithDisag, cocDefault, expressionItems );
+    }
+
+    private void assertContextInList( PredictionContext ctx, List<PredictionContext> list )
+    {
+        assertTrue( list.contains( ctx1a ), String.format( "\n %s not found in [\n %s ]",
+            formatPredictionContext( ctx1a ), formatPredictionContextList( list ) ) );
+    }
+
+    private String formatPredictionContextList( List<PredictionContext> list )
+    {
+        return list.stream()
+            .map( this::formatPredictionContext )
+            .collect( joining( ",\n " ) );
+    }
+
+    private String formatPredictionContext( PredictionContext ctx )
+    {
+        return "OutputPeriod: " + ctx.getOutputPeriod().getName()
+            + ", OutputCOC: " + ctx.getCategoryOptionCombo().getName()
+            + ", AOC: " + ctx.getAttributeOptionCombo().getName()
+            + ", PVM: {" + formatPeriodValueMap( ctx.getPeriodValueMap() ) + "}";
+    }
+
+    private String formatPeriodValueMap( MapMap<Period, DimensionalItemObject, Object> pvm )
+    {
+        return pvm.entrySet().stream()
+            .map( e -> e.getKey().getName() + ": {" + formatValueMap( e.getValue() ) + "}" )
+            .sorted()
+            .collect( joining( ", " ) );
+    }
+
+    private String formatValueMap( Map<DimensionalItemObject, Object> vm )
+    {
+        return vm.entrySet().stream()
+            .map( e -> e.getKey().getName() + ": " + e.getValue() )
+            .sorted()
+            .collect( joining( ", " ) );
     }
 
     /**
