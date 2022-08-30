@@ -265,6 +265,7 @@ public class JdbcEnrollmentAnalyticsManager
         // ---------------------------------------------------------------------
 
         List<DimensionalObject> dynamicDimensions = params.getDimensionsAndFilters(
+            Sets.newHashSet( DimensionType.CATEGORY ),
             Sets.newHashSet( DimensionType.ORGANISATION_UNIT_GROUP_SET, DimensionType.CATEGORY ) );
 
         for ( DimensionalObject dim : dynamicDimensions )

@@ -90,6 +90,7 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.InQueryFilter;
+import org.hisp.dhis.common.PrimaryKeyObject;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryRuntimeException;
@@ -348,7 +349,17 @@ public abstract class AbstractJdbcEventAnalyticsManager
             {
                 String alias = getAlias( params, dimension.getDimensionType() );
 
-                columns.add( quote( alias, dimension.getDimensionName() ) );
+                String columnName = quote( alias, dimension.getDimensionName() );
+
+                columns.add( dimension.getDimensionType() == DimensionType.ORGANISATION_UNIT_GROUP_SET
+                    ? " case when " + columnName + " in ('" +
+                        dimension.getItems()
+                            .stream()
+                            .map( PrimaryKeyObject::getUid )
+                            .collect( joining( "','" ) )
+                        + "')" +
+                        " then " + columnName + " else null end as " + quote( dimension.getDimensionName() )
+                    : columnName );
             }
             else if ( params.hasSinglePeriod() )
             {

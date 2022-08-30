@@ -410,7 +410,8 @@ class DataQueryParamsTest extends DhisConvenienceTest
             .withPeriods( Lists.newArrayList( peA, peB ) ).withOrganisationUnits( Lists.newArrayList( ouA, ouB ) )
             .build();
         List<DimensionalObject> dimensions = params
-            .getDimensionsAndFilters( Sets.newHashSet( DimensionType.PERIOD, DimensionType.ORGANISATION_UNIT ) );
+            .getDimensionsAndFilters( Sets.newHashSet( DimensionType.PERIOD, DimensionType.ORGANISATION_UNIT ),
+                Sets.newHashSet( DimensionType.PERIOD, DimensionType.ORGANISATION_UNIT ) );
         assertEquals( 2, dimensions.size() );
         assertTrue( dimensions.contains( new BaseDimensionalObject( PERIOD_DIM_ID ) ) );
         assertTrue( dimensions.contains( new BaseDimensionalObject( ORGUNIT_DIM_ID ) ) );

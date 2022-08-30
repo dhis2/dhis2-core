@@ -1144,11 +1144,18 @@ public class DataQueryParams
      * Returns a list of dimensions and filters of the given set of dimension
      * types.
      */
-    public List<DimensionalObject> getDimensionsAndFilters( Set<DimensionType> dimensionTypes )
+    public List<DimensionalObject> getDimensionsAndFilters( Set<DimensionType> dimensionTypes,
+        Set<DimensionType> filterTypes )
     {
-        return getDimensionsAndFilters().stream()
+        List<DimensionalObject> dimensionsAndFilters = getDimensions().stream()
             .filter( d -> dimensionTypes.contains( d.getDimensionType() ) )
             .collect( Collectors.toList() );
+
+        dimensionsAndFilters.addAll( getFilters().stream()
+            .filter( d -> filterTypes.contains( d.getDimensionType() ) )
+            .collect( Collectors.toList() ) );
+
+        return dimensionsAndFilters;
     }
 
     /**
