@@ -98,7 +98,7 @@ public class CategoryComboController
         throws WebMessageException
     {
         if ( !Objects.equals( entity.getCategories(), newEntity.getCategories() )
-            && dataValueService.existsAnyValue( entity ) )
+            && dataValueService.dataValueExists( entity ) )
         {
             throw new WebMessageException( conflict( ErrorCode.E1120 ) );
         }

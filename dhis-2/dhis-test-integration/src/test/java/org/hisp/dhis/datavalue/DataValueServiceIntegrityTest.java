@@ -135,7 +135,7 @@ class DataValueServiceIntegrityTest extends SingleSetupIntegrationTestBase
     @Test
     void testExistsAnyValue()
     {
-        assertTrue( dataValueService.existsAnyValue( categoryComboAB ) );
-        assertFalse( dataValueService.existsAnyValue( categoryComboAC ) );
+        assertTrue( dataValueService.dataValueExists( categoryComboAB ) );
+        assertFalse( dataValueService.dataValueExists( categoryComboAC ) );
     }
 }

@@ -559,7 +559,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
     }
 
     @Override
-    public boolean existsAnyValue( CategoryCombo combo )
+    public boolean dataValueExists( CategoryCombo combo )
     {
         String cocIdsSql = "select distinct categoryoptioncomboid from categorycombos_optioncombos where categorycomboid = :cc";
         List<?> cocIds = getSession().createNativeQuery( cocIdsSql )

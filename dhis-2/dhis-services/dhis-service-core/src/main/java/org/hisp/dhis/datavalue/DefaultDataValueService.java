@@ -360,8 +360,8 @@ public class DefaultDataValueService
 
     @Override
     @Transactional( readOnly = true )
-    public boolean existsAnyValue( CategoryCombo combo )
+    public boolean dataValueExists( CategoryCombo combo )
     {
-        return dataValueStore.existsAnyValue( combo );
+        return dataValueStore.dataValueExists( combo );
     }
 }
