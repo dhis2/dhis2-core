@@ -157,7 +157,7 @@ class TrackedEntityInstanceQueryLimitTest extends SingleSetupIntegrationTestBase
     }
 
     @Test
-    void testConfiguredMaxTeiLimit()
+    void testConfiguredPositiveMaxTeiLimit()
     {
         systemSettingManager.saveSystemSetting( SettingKey.TRACKED_ENTITY_MAX_LIMIT, 3 );
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
@@ -172,6 +172,25 @@ class TrackedEntityInstanceQueryLimitTest extends SingleSetupIntegrationTestBase
 
         assertNotNull( teis );
         assertEquals( 3, teis.size(), "Size cannot be more than configured Tei max limit" );
+    }
+
+    @Test
+    void testConfiguredNegativeMaxTeiLimit()
+    {
+        systemSettingManager.saveSystemSetting( SettingKey.TRACKED_ENTITY_MAX_LIMIT, -1 );
+
+        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+        params.setProgram( program );
+        params.setOrganisationUnits( Set.of( orgUnitA ) );
+        params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
+        params.setUser( user );
+        params.setSkipPaging( true );
+
+        List<Long> teis = trackedEntityInstanceService.getTrackedEntityInstanceIds( params,
+            false, false );
+
+        assertNotNull( teis );
+        Assertions.assertContainsOnly( teis, tei1.getId(), tei2.getId(), tei3.getId(), tei4.getId() );
     }
 
     @Test
