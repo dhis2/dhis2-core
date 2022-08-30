@@ -37,6 +37,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -84,6 +85,8 @@ import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserGroupAccess;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.sharing.Sharing;
+import org.hisp.dhis.util.SharingUtils;
 import org.hisp.dhis.visualization.Visualization;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -552,7 +555,8 @@ public class DefaultFieldFilterService implements FieldFilterService
                 }
                 else
                 {
-                    if ( property.getKlass().isAssignableFrom( Map.class ) )
+                    if ( property.getKlass().isAssignableFrom( Map.class )
+                        && SharingUtils.isSharingProperty( property ) )
                     {
                         child = handleMapProperty( returnValue, property );
                     }
@@ -631,9 +635,10 @@ public class DefaultFieldFilterService implements FieldFilterService
 
     /**
      * Generate ComplexNode from Map structure based on given inputMapObject.
+     * Only accept {@link Sharing#getUserGroups()} or
+     * {@link Sharing#getUsers()}. Example in xml:
      *
      * <pre>
-     * Example in xml:
      * {@code
      * <userGroups>
      *  <B6JNeAQ6akX>
@@ -650,11 +655,13 @@ public class DefaultFieldFilterService implements FieldFilterService
      *
      * @param inputMapObject Map to be used for generating ComplexNode
      * @param property {@link Property} type of the given map object.
-     * @return {@link ComplexNode}
+     * @return Return {@code null} if given property is not {@link Sharing}'s
+     *         property. Otherwise, return the {@link ComplexNode} of given
+     *         inputMapObject.
      */
     private ComplexNode handleMapProperty( Object inputMapObject, Property property )
     {
-        if ( inputMapObject == null )
+        if ( inputMapObject == null || !SharingUtils.isSharingProperty( property ) )
         {
             return null;
         }
@@ -670,7 +677,7 @@ public class DefaultFieldFilterService implements FieldFilterService
 
         FieldMap fieldMap = null;
 
-        for ( Entry<Object, Object> item : mapObject.entrySet() )
+        for ( Map.Entry<Object, Object> item : mapObject.entrySet() )
         {
             if ( fieldMap == null )
             {

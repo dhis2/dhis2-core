@@ -33,6 +33,7 @@ import java.util.stream.*;
 
 import org.apache.commons.collections4.*;
 import org.hisp.dhis.common.*;
+import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.user.UserGroupAccess;
 import org.hisp.dhis.user.sharing.*;
 
@@ -42,6 +43,12 @@ import com.google.common.collect.*;
 
 public class SharingUtils
 {
+    private static final ImmutableList<String> LEGACY_SHARING_PROPERTIES = ImmutableList.<String> builder().add(
+        "userAccesses", "userGroupAccess", "publicAccess", "externalAccess" ).build();
+
+    private static final ImmutableList<String> SHARING_PROPERTIES = ImmutableList.<String> builder().add(
+        "userGroups", "users" ).build();
+
     private static final ObjectMapper FROM_AND_TO_JSON = createMapper();
 
     private SharingUtils()
@@ -133,6 +140,18 @@ public class SharingUtils
     {
         return !CollectionUtils.isEmpty( object.getUserAccesses() )
             || !CollectionUtils.isEmpty( object.getUserGroupAccesses() );
+    }
+
+    /**
+     * Check if given property is {@link Sharing#userGroups} or
+     * {@link Sharing#users} property.
+     *
+     * @param property {@link Property} for checking.
+     * @return TRUE if given property is {@link Sharing}'s property.
+     */
+    public static boolean isSharingProperty( Property property )
+    {
+        return SHARING_PROPERTIES.contains( property.getFieldName() );
     }
 
     private static ObjectMapper createMapper()
