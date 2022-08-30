@@ -32,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -42,7 +43,7 @@ import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
@@ -54,12 +55,10 @@ import org.hisp.dhis.utils.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Sets;
-
 /**
  * @author Zubair Asghar
  */
-class TrackedEntityInstanceQueryLimitTest extends TransactionalIntegrationTest
+class TrackedEntityInstanceQueryLimitTest extends SingleSetupIntegrationTestBase
 {
 
     @Autowired
@@ -163,7 +162,7 @@ class TrackedEntityInstanceQueryLimitTest extends TransactionalIntegrationTest
         systemSettingManager.saveSystemSetting( SettingKey.TRACKED_ENTITY_MAX_LIMIT, 3 );
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
         params.setProgram( program );
-        params.setOrganisationUnits( Sets.newHashSet( orgUnitA ) );
+        params.setOrganisationUnits( Set.of( orgUnitA ) );
         params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
         params.setUser( user );
         params.setSkipPaging( true );
@@ -180,7 +179,7 @@ class TrackedEntityInstanceQueryLimitTest extends TransactionalIntegrationTest
     {
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
         params.setProgram( program );
-        params.setOrganisationUnits( Sets.newHashSet( orgUnitA ) );
+        params.setOrganisationUnits( Set.of( orgUnitA ) );
         params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
         params.setUser( user );
         params.setSkipPaging( true );
@@ -199,7 +198,7 @@ class TrackedEntityInstanceQueryLimitTest extends TransactionalIntegrationTest
 
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
         params.setProgram( program );
-        params.setOrganisationUnits( Sets.newHashSet( orgUnitA ) );
+        params.setOrganisationUnits( Set.of( orgUnitA ) );
         params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
         params.setUser( user );
         params.setSkipPaging( true );
