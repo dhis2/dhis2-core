@@ -133,7 +133,6 @@ class AbstractJdbcEventAnalyticsManagerTest extends
     {
         ProgramIndicator programIndicator = createProgramIndicator( 'A', programA, "9.0", null );
         QueryItem item = new QueryItem( programIndicator );
-
         subject.getSelectSql( new QueryFilter(), item, from, to );
 
         verify( programIndicatorService ).getAnalyticsSql( programIndicator.getExpression(), NUMERIC, programIndicator,
