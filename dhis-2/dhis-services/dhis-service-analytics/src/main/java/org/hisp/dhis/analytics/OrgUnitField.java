@@ -95,27 +95,8 @@ public class OrgUnitField
         }
         else
         {
-            if ( "REGISTRATIO".equals( field ) )
-            {
-                this.type = REGISTRATION;
-            }
-            else if ( "ENROLLMENTT".equals( field ) )
-            {
-                this.type = OrgUnitFieldType.ENROLLMENT;
-            }
-            else if ( "OWNERATSTAR".equals( field ) )
-            {
-                this.type = OrgUnitFieldType.OWNER_AT_START;
-            }
-            else if ( "OWNERATENDD".equals( field ) )
-            {
-                this.type = OrgUnitFieldType.OWNER_AT_END;
-            }
-            else
-            {
-                this.type = getIfPresent( OrgUnitFieldType.class, field )
-                    .or( OrgUnitFieldType.ATTRIBUTE );
-            }
+            this.type = getIfPresent( OrgUnitFieldType.class, field )
+                .or( OrgUnitFieldType.ATTRIBUTE );
         }
     }
 
