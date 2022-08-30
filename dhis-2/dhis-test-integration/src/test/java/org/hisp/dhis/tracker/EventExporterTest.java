@@ -49,6 +49,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,6 +79,8 @@ class EventExporterTest extends TrackerTest
 
     private Program program;
 
+    private TrackedEntityInstance trackedEntityInstance;
+
     @Autowired
     private DataElementService dataElementService;
 
@@ -92,6 +95,7 @@ class EventExporterTest extends TrackerTest
         orgUnit = manager.get( OrganisationUnit.class, "h4w96yEMlzO" );
         programStage = manager.get( ProgramStage.class, "NpsdDv6kKSO" );
         program = programStage.getProgram();
+        trackedEntityInstance = manager.get( TrackedEntityInstance.class, "IOR1AXXl24G" );
         manager.flush();
     }
 
@@ -106,11 +110,39 @@ class EventExporterTest extends TrackerTest
     }
 
     @Test
+    void testExportEventsWithTotalPages()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setTotalPages( true );
+        Events events = eventService.getEvents( params );
+        assertNotNull( events );
+        assertEquals( 2, events.getEvents().size() );
+    }
+
+    @Test
     void testExportEventsWhenFilteringByEnrollment()
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
         params.setProgramInstances( Sets.newHashSet( "TvctPPhpD8z" ) );
+        params.setTrackedEntityInstance( trackedEntityInstance );
+        Events events = eventService.getEvents( params );
+        assertNotNull( events );
+        assertEquals( 1, events.getEvents().size() );
+    }
+
+    @Test
+    void testExportEventsWithExecutionAndUpdateDates()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setProgramInstances( Sets.newHashSet( "TvctPPhpD8z" ) );
+
+        params.setStartDate( getDate( 2018, 1, 1 ) );
+        params.setEndDate( getDate( 2020, 1, 1 ) );
+        params.setSkipChangedBefore( getDate( 2018, 1, 1 ) );
+
         Events events = eventService.getEvents( params );
         assertNotNull( events );
         assertEquals( 1, events.getEvents().size() );
