@@ -40,7 +40,6 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.scheduling.JobConfiguration;
@@ -86,7 +85,6 @@ public class ValidationController
         @RequestParam( required = false ) String cc,
         @RequestParam( required = false ) String cp,
         HttpServletResponse response, Model model )
-        throws WebMessageException
     {
         DataSet dataSet = dataValidator.getAndValidateDataSet( ds );
         Period period = dataValidator.getAndValidatePeriod( pe );
