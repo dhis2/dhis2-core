@@ -189,7 +189,6 @@ class TrackedEntityInstanceQueryLimitTest extends TransactionalIntegrationTest
             false, false );
 
         assertNotNull( teis );
-        assertEquals( 4, teis.size() );
         Assertions.assertContainsOnly( teis, tei1.getId(), tei2.getId(), tei3.getId(), tei4.getId() );
     }
 
@@ -209,7 +208,6 @@ class TrackedEntityInstanceQueryLimitTest extends TransactionalIntegrationTest
             false, false );
 
         assertNotNull( teis );
-        assertEquals( 4, teis.size() );
         Assertions.assertContainsOnly( teis, tei1.getId(), tei2.getId(), tei3.getId(), tei4.getId() );
     }
 }
