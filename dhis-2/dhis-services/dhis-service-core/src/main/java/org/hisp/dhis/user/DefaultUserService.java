@@ -95,8 +95,6 @@ public class DefaultUserService
 {
     private Pattern BCRYPT_PATTERN = Pattern.compile( "\\A\\$2(a|y|b)?\\$(\\d\\d)\\$[./0-9A-Za-z]{53}" );
 
-    private static final int EXPIRY_THRESHOLD = 14;
-
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
