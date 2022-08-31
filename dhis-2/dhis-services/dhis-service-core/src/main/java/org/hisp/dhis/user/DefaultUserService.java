@@ -337,14 +337,15 @@ public class DefaultUserService
             if ( params.isUserOrgUnits() || orgUnitBoundary == UserOrgUnitType.DATA_CAPTURE )
             {
                 params.setOrganisationUnits( params.getUser().getOrganisationUnits() );
+                params.setOrgUnitBoundary( UserOrgUnitType.DATA_CAPTURE );
             }
             else if ( orgUnitBoundary == UserOrgUnitType.DATA_OUTPUT )
             {
-                params.setDataViewOrganisationUnits( params.getUser().getDataViewOrganisationUnits() );
+                params.setOrganisationUnits( params.getUser().getDataViewOrganisationUnits() );
             }
             else if ( orgUnitBoundary == UserOrgUnitType.TEI_SEARCH )
             {
-                params.setTeiSearchOrganisationUnits( params.getUser().getTeiSearchOrganisationUnits() );
+                params.setOrganisationUnits( params.getUser().getTeiSearchOrganisationUnits() );
             }
         }
     }

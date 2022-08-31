@@ -96,10 +96,6 @@ public class UserQueryParams
 
     private Set<OrganisationUnit> organisationUnits = new HashSet<>();
 
-    private Set<OrganisationUnit> dataViewOrganisationUnits = new HashSet<>();
-
-    private Set<OrganisationUnit> teiSearchOrganisationUnits = new HashSet<>();
-
     private Set<UserGroup> userGroups = new HashSet<>();
 
     @ToString.Include
@@ -148,34 +144,62 @@ public class UserQueryParams
     public UserQueryParams addOrganisationUnit( OrganisationUnit unit )
     {
         this.organisationUnits.add( unit );
+        setOrgUnitBoundary( UserOrgUnitType.DATA_CAPTURE );
         return this;
     }
 
     public UserQueryParams addDataViewOrganisationUnit( OrganisationUnit unit )
     {
-        this.dataViewOrganisationUnits.add( unit );
+
+        this.organisationUnits.add( unit );
+        setOrgUnitBoundary( UserOrgUnitType.DATA_OUTPUT );
         return this;
     }
 
     public UserQueryParams addTeiSearchOrganisationUnit( OrganisationUnit unit )
     {
-        this.teiSearchOrganisationUnits.add( unit );
+        this.organisationUnits.add( unit );
+        setOrgUnitBoundary( UserOrgUnitType.TEI_SEARCH );
         return this;
     }
 
     public boolean hasOrganisationUnits()
     {
-        return !organisationUnits.isEmpty();
+        return !organisationUnits.isEmpty() && orgUnitBoundary == UserOrgUnitType.DATA_CAPTURE;
     }
 
     public boolean hasDataViewOrganisationUnits()
     {
-        return !dataViewOrganisationUnits.isEmpty();
+        return !organisationUnits.isEmpty() && orgUnitBoundary == UserOrgUnitType.DATA_OUTPUT;
     }
 
     public boolean hasTeiSearchOrganisationUnits()
     {
-        return !teiSearchOrganisationUnits.isEmpty();
+        return !organisationUnits.isEmpty() && orgUnitBoundary == UserOrgUnitType.TEI_SEARCH;
+    }
+
+    public UserQueryParams setOrganisationUnits( Set<OrganisationUnit> units )
+    {
+        this.organisationUnits = units;
+        if ( orgUnitBoundary == null )
+        {
+            this.orgUnitBoundary = UserOrgUnitType.DATA_CAPTURE;
+        }
+        return this;
+    }
+
+    public UserQueryParams setDataViewOrganisationUnits( Set<OrganisationUnit> units )
+    {
+        this.organisationUnits = units;
+        this.orgUnitBoundary = UserOrgUnitType.DATA_OUTPUT;
+        return this;
+    }
+
+    public UserQueryParams setTeiSearchOrganisationUnits( Set<OrganisationUnit> units )
+    {
+        this.organisationUnits = units;
+        this.orgUnitBoundary = UserOrgUnitType.TEI_SEARCH;
+        return this;
     }
 
     public boolean hasUserGroups()

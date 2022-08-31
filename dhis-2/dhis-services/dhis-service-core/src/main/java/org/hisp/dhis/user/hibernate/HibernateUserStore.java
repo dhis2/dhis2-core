@@ -245,7 +245,7 @@ public class HibernateUserStore
             {
                 hql += hlp.whereAnd() + " (";
 
-                for ( OrganisationUnit ou : params.getDataViewOrganisationUnits() )
+                for ( OrganisationUnit ou : params.getOrganisationUnits() )
                 {
                     hql += format( "dwou.path like :dwOu%s or ", ou.getUid() );
                 }
@@ -266,7 +266,7 @@ public class HibernateUserStore
             {
                 hql += hlp.whereAnd() + " (";
 
-                for ( OrganisationUnit ou : params.getTeiSearchOrganisationUnits() )
+                for ( OrganisationUnit ou : params.getOrganisationUnits() )
                 {
                     hql += format( "tsou.path like :tsOu%s or ", ou.getUid() );
                 }
@@ -454,7 +454,7 @@ public class HibernateUserStore
         {
             if ( params.isIncludeOrgUnitChildren() )
             {
-                for ( OrganisationUnit ou : params.getDataViewOrganisationUnits() )
+                for ( OrganisationUnit ou : params.getOrganisationUnits() )
                 {
                     query.setParameter( format( "dwOu%s", ou.getUid() ), "%/" + ou.getUid() + "%" );
                 }
@@ -462,7 +462,7 @@ public class HibernateUserStore
             else
             {
                 Collection<Long> ouIds = IdentifiableObjectUtils
-                    .getIdentifiers( params.getDataViewOrganisationUnits() );
+                    .getIdentifiers( params.getOrganisationUnits() );
 
                 query.setParameterList( "dwOuIds", ouIds );
             }
@@ -472,7 +472,7 @@ public class HibernateUserStore
         {
             if ( params.isIncludeOrgUnitChildren() )
             {
-                for ( OrganisationUnit ou : params.getTeiSearchOrganisationUnits() )
+                for ( OrganisationUnit ou : params.getOrganisationUnits() )
                 {
                     query.setParameter( format( "tsOu%s", ou.getUid() ), "%/" + ou.getUid() + "%" );
                 }
@@ -480,7 +480,7 @@ public class HibernateUserStore
             else
             {
                 Collection<Long> ouIds = IdentifiableObjectUtils
-                    .getIdentifiers( params.getTeiSearchOrganisationUnits() );
+                    .getIdentifiers( params.getOrganisationUnits() );
 
                 query.setParameterList( "tsOuIds", ouIds );
             }
