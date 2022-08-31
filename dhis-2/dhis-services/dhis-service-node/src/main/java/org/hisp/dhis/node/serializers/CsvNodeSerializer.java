@@ -115,33 +115,38 @@ public class CsvNodeSerializer extends AbstractNodeSerializer
     protected void startWriteRootNode( RootNode rootNode )
         throws Exception
     {
-        boolean hasAttributes = false;
-
         for ( Node child : rootNode.getChildren() )
         {
             if ( child.isCollection() )
             {
                 for ( Node node : child.getChildren() )
                 {
-                    List<SimpleNode> simpleNodeList = new ArrayList<>();
-
-                    for ( Node property : node.getChildren() )
-                    {
-                        if ( property.isSimple() )
-                        {
-                            simpleNodeList.add( (SimpleNode) property );
-                        }
-
-                        if ( property.getName().equalsIgnoreCase( "attributes" ) )
-                        {
-                            hasAttributes = true;
-                            writeComplexNode( property.getChildren(), simpleNodeList, csvGenerator );
-                        }
-                    }
-                    writeSimpleNode( hasAttributes, simpleNodeList, csvGenerator );
+                    writeNode( node );
                 }
             }
         }
+    }
+
+    private void writeNode( Node node )
+        throws Exception
+    {
+        List<SimpleNode> simpleNodeList = new ArrayList<>();
+        boolean hasAttributes = false;
+
+        for ( Node property : node.getChildren() )
+        {
+            if ( property.isSimple() )
+            {
+                simpleNodeList.add( (SimpleNode) property );
+            }
+
+            if ( property.getName().equalsIgnoreCase( "attributes" ) )
+            {
+                hasAttributes = true;
+                writeComplexNode( property.getChildren(), simpleNodeList, csvGenerator );
+            }
+        }
+        writeSimpleNode( hasAttributes, simpleNodeList, csvGenerator );
     }
 
     private void writeComplexNode( List<Node> rootNodeList, List<SimpleNode> simpleNodeList, CsvGenerator csvGenerator )
