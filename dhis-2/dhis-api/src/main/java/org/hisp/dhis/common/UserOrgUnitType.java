@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.common;
 
+import static java.util.Arrays.stream;
+
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
@@ -37,5 +39,10 @@ public enum UserOrgUnitType
 {
     DATA_CAPTURE,
     DATA_OUTPUT,
-    TEI_SEARCH
+    TEI_SEARCH;
+
+    public static UserOrgUnitType fromValue( String name )
+    {
+        return stream( values() ).filter( t -> t.name().equalsIgnoreCase( name ) ).findFirst().orElse( null );
+    }
 }

@@ -62,6 +62,7 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.TranslateParams;
@@ -250,6 +251,7 @@ public class UserController
         params.setInvitationStatus( UserInvitationStatus.fromValue( options.get( "invitationStatus" ) ) );
         params.setUserOrgUnits( options.isTrue( "userOrgUnits" ) );
         params.setIncludeOrgUnitChildren( options.isTrue( "includeChildren" ) );
+        params.setOrgUnitBoundary( UserOrgUnitType.fromValue( options.get( "orgUnitBoundary" ) ) );
 
         return params;
     }
