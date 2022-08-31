@@ -28,6 +28,7 @@
 package org.hisp.dhis.node.serializers;
 
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -87,9 +88,12 @@ public class CsvNodeSerializer extends AbstractNodeSerializer
 
                 for ( Node property : node.getChildren() )
                 {
-                    if ( property.isSimple() )
+                    if ( property.isSimple())
                     {
                         schemaBuilder.addColumn( property.getName() );
+                    }
+                    if (property.getName().equalsIgnoreCase("attributes")) {
+                        property.getChildren().stream().findFirst().ifPresent(fc -> fc.getChildren().forEach(p -> schemaBuilder.addColumn(p.getName())));
                     }
                 }
             }
@@ -109,23 +113,49 @@ public class CsvNodeSerializer extends AbstractNodeSerializer
     protected void startWriteRootNode( RootNode rootNode )
         throws Exception
     {
+        boolean hasAttributes = false;
+
         for ( Node child : rootNode.getChildren() )
         {
             if ( child.isCollection() )
             {
                 for ( Node node : child.getChildren() )
                 {
-                    csvGenerator.writeStartObject();
+                    List<SimpleNode> nodeList = new ArrayList<>();
 
                     for ( Node property : node.getChildren() )
                     {
                         if ( property.isSimple() )
                         {
-                            writeSimpleNode( (SimpleNode) property );
+                            nodeList.add((SimpleNode)property);
+                        }
+
+                        if (property.getName().equalsIgnoreCase("attributes")) {
+                            hasAttributes = true;
+                            for (Node attributeRootNode : property.getChildren()) {
+                                csvGenerator.writeStartObject();
+
+                                for (SimpleNode simplePropertyNode : nodeList) {
+                                    writeSimpleNode( simplePropertyNode );
+                                }
+
+                                for (Node attribute : attributeRootNode.getChildren()) {
+                                    writeSimpleNode( (SimpleNode) attribute );
+                                }
+
+                                csvGenerator.writeEndObject();
+                            }
                         }
                     }
 
-                    csvGenerator.writeEndObject();
+                    if (!hasAttributes)
+                    {
+                        csvGenerator.writeStartObject();
+                        for (SimpleNode simplePropertyNode : nodeList) {
+                            writeSimpleNode( simplePropertyNode );
+                        }
+                        csvGenerator.writeEndObject();
+                    }
                 }
             }
         }
