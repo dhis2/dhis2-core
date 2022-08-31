@@ -88,12 +88,14 @@ public class CsvNodeSerializer extends AbstractNodeSerializer
 
                 for ( Node property : node.getChildren() )
                 {
-                    if ( property.isSimple())
+                    if ( property.isSimple() )
                     {
                         schemaBuilder.addColumn( property.getName() );
                     }
-                    if (property.getName().equalsIgnoreCase("attributes")) {
-                        property.getChildren().stream().findFirst().ifPresent(fc -> fc.getChildren().forEach(p -> schemaBuilder.addColumn(p.getName())));
+                    if ( property.getName().equalsIgnoreCase( "attributes" ) )
+                    {
+                        property.getChildren().stream().findFirst()
+                            .ifPresent( fc -> fc.getChildren().forEach( p -> schemaBuilder.addColumn( p.getName() ) ) );
                     }
                 }
             }
@@ -121,43 +123,59 @@ public class CsvNodeSerializer extends AbstractNodeSerializer
             {
                 for ( Node node : child.getChildren() )
                 {
-                    List<SimpleNode> nodeList = new ArrayList<>();
+                    List<SimpleNode> simpleNodeList = new ArrayList<>();
 
                     for ( Node property : node.getChildren() )
                     {
                         if ( property.isSimple() )
                         {
-                            nodeList.add((SimpleNode)property);
+                            simpleNodeList.add( (SimpleNode) property );
                         }
 
-                        if (property.getName().equalsIgnoreCase("attributes")) {
+                        if ( property.getName().equalsIgnoreCase( "attributes" ) )
+                        {
                             hasAttributes = true;
-                            for (Node attributeRootNode : property.getChildren()) {
-                                csvGenerator.writeStartObject();
-
-                                for (SimpleNode simplePropertyNode : nodeList) {
-                                    writeSimpleNode( simplePropertyNode );
-                                }
-
-                                for (Node attribute : attributeRootNode.getChildren()) {
-                                    writeSimpleNode( (SimpleNode) attribute );
-                                }
-
-                                csvGenerator.writeEndObject();
-                            }
+                            writeComplexNode( property.getChildren(), simpleNodeList, csvGenerator );
                         }
                     }
-
-                    if (!hasAttributes)
-                    {
-                        csvGenerator.writeStartObject();
-                        for (SimpleNode simplePropertyNode : nodeList) {
-                            writeSimpleNode( simplePropertyNode );
-                        }
-                        csvGenerator.writeEndObject();
-                    }
+                    writeSimpleNode( hasAttributes, simpleNodeList, csvGenerator );
                 }
             }
+        }
+    }
+
+    private void writeComplexNode( List<Node> rootNodeList, List<SimpleNode> simpleNodeList, CsvGenerator csvGenerator )
+        throws Exception
+    {
+        for ( Node attributeRootNode : rootNodeList )
+        {
+            csvGenerator.writeStartObject();
+
+            for ( SimpleNode simplePropertyNode : simpleNodeList )
+            {
+                writeSimpleNode( simplePropertyNode );
+            }
+
+            for ( Node attribute : attributeRootNode.getChildren() )
+            {
+                writeSimpleNode( (SimpleNode) attribute );
+            }
+
+            csvGenerator.writeEndObject();
+        }
+    }
+
+    private void writeSimpleNode( boolean hasAttributes, List<SimpleNode> nodeList, CsvGenerator csvGenerator )
+        throws Exception
+    {
+        if ( !hasAttributes )
+        {
+            csvGenerator.writeStartObject();
+            for ( SimpleNode simplePropertyNode : nodeList )
+            {
+                writeSimpleNode( simplePropertyNode );
+            }
+            csvGenerator.writeEndObject();
         }
     }
 
