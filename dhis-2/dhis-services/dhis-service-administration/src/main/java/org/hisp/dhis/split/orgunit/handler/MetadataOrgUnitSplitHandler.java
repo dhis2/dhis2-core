@@ -97,7 +97,7 @@ public class MetadataOrgUnitSplitHandler
         Set<OrganisationUnit> source = Sets.newHashSet( request.getSource() );
 
         List<User> dataCaptureUsers = userService.getUsers( new UserQueryParams()
-            .setCanSeeOwnUserRoles( true )
+            .setCanSeeOwnRoles( true )
             .setOrganisationUnits( source ) );
 
         dataCaptureUsers.forEach( u -> {
@@ -106,7 +106,7 @@ public class MetadataOrgUnitSplitHandler
         } );
 
         List<User> dataViewUsers = userService.getUsers( new UserQueryParams()
-            .setCanSeeOwnUserRoles( true )
+            .setCanSeeOwnRoles( true )
             .setDataViewOrganisationUnits( source ) );
 
         dataViewUsers.forEach( u -> {
@@ -115,7 +115,7 @@ public class MetadataOrgUnitSplitHandler
         } );
 
         List<User> teiSearchOrgUnits = userService.getUsers( new UserQueryParams()
-            .setCanSeeOwnUserRoles( true )
+            .setCanSeeOwnRoles( true )
             .setTeiSearchOrganisationUnits( source ) );
 
         teiSearchOrgUnits.forEach( u -> {

@@ -121,7 +121,7 @@ class UserLookupControllerTest extends DhisControllerConvenienceTest
 
         // test
         switchContextToUser( john );
-        JsonList<JsonUser> matches = GET( "/userLookup?query=FirstName&captureUnitsOnly=true" ).content()
+        JsonList<JsonUser> matches = GET( "/userLookup?query=FirstName&orgUnitBoundary=DATA_CAPTURE" ).content()
             .getArray( "users" ).asList( JsonUser.class );
         // all 4 users have "FirstName" in their first name but john can see
         // paul and himself
@@ -130,7 +130,7 @@ class UserLookupControllerTest extends DhisControllerConvenienceTest
 
         // similar
         switchContextToUser( george );
-        matches = GET( "/userLookup?query=FirstName&captureUnitsOnly=true" ).content()
+        matches = GET( "/userLookup?query=FirstName&orgUnitBoundary=DATA_CAPTURE" ).content()
             .getArray( "users" ).asList( JsonUser.class );
         // all 4 users have "FirstName" in their first name but george can see
         // ringo and himself

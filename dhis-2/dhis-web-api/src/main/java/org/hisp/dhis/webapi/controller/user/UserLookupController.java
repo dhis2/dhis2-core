@@ -32,10 +32,10 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
-import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserQueryParams;
@@ -83,14 +83,13 @@ public class UserLookupController
 
     @GetMapping
     public UserLookups lookUpUsers( @RequestParam String query,
-        @RequestParam( defaultValue = "false" ) boolean captureUnitsOnly)
+        @RequestParam( required = false ) UserOrgUnitType orgUnitBoundary )
     {
         UserQueryParams params = new UserQueryParams()
             .setQuery( query )
-            .setCanSeeOwnUserRoles( true )
+            .setCanSeeOwnRoles( true )
+            .setOrgUnitBoundary( orgUnitBoundary )
             .setMax( 25 );
-
-        params.setUserOrgUnits( captureUnitsOnly );
 
         List<UserLookup> users = userService.getUsers( params ).stream()
             .map( UserLookup::fromUser )
@@ -112,7 +111,7 @@ public class UserLookupController
         UserQueryParams params = new UserQueryParams()
             .setQuery( query )
             .setUserGroups( Sets.newHashSet( feedbackRecipients ) )
-            .setCanSeeOwnUserRoles( true )
+            .setCanSeeOwnRoles( true )
             .setMax( 25 );
 
         List<UserLookup> users = userService.getUsers( params ).stream()

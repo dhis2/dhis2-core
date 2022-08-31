@@ -32,11 +32,12 @@ import java.util.HashSet;
 import java.util.Set;
 
 import lombok.Getter;
-
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
+
+import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
@@ -44,8 +45,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
  */
 @Getter
 @Setter
-@Accessors(chain = true)
-@ToString(onlyExplicitlyIncluded = true)
+@Accessors( chain = true )
+@ToString( onlyExplicitlyIncluded = true )
 @NoArgsConstructor
 public class UserQueryParams
 {
@@ -109,6 +110,9 @@ public class UserQueryParams
 
     @ToString.Include
     private boolean userOrgUnits;
+
+    @ToString.Include
+    private UserOrgUnitType orgUnitBoundary;
 
     @ToString.Include
     private boolean includeOrgUnitChildren;
