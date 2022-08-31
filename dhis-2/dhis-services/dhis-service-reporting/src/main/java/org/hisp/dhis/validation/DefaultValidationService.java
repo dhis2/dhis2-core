@@ -213,7 +213,7 @@ public class DefaultValidationService implements ValidationService
     {
         Collection<ValidationRule> validationRules = validationRuleGroup != null ? validationRuleGroup.getMembers()
             : validationRuleService.getAllValidationRules();
-        Collection<Period> periods = periodService.getPeriodsBetweenDates( startDate, endDate );
+        List<Period> periods = periodService.getPeriodsBetweenDates( startDate, endDate );
 
         return new ValidationAnalysisParams.Builder( validationRules, organisationUnit, periods );
     }
@@ -223,8 +223,8 @@ public class DefaultValidationService implements ValidationService
     public ValidationAnalysisParams.Builder newParamsBuilder( DataSet dataSet, OrganisationUnit organisationUnit,
         Period period )
     {
-        Collection<ValidationRule> validationRules = validationRuleService.getValidationRulesForDataSet( dataSet );
-        Collection<Period> periods = Sets.newHashSet( period );
+        Set<ValidationRule> validationRules = validationRuleService.getValidationRulesForDataSet( dataSet );
+        Set<Period> periods = Sets.newHashSet( period );
 
         return new ValidationAnalysisParams.Builder( validationRules, organisationUnit, periods );
     }

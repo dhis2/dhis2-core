@@ -77,7 +77,7 @@
     <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
     <jasypt.version>1.9.3</jasypt.version>
-    <nimbus.jose.jwt.version>9.24.2</nimbus.jose.jwt.version>
+    <nimbus.jose.jwt.version>9.24.3</nimbus.jose.jwt.version>
 
     <!-- Spring -->
     <spring.version>5.3.22</spring.version>
@@ -91,7 +91,7 @@
     <lettuce.version>6.2.0.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-core.version>9.1.6</flyway-core.version>
+    <flyway-core.version>9.2.0</flyway-core.version>
     <hibernate.version>5.6.10.Final</hibernate.version>
     <hibernate-types.version>2.18.0</hibernate-types.version>
     <!-- Data sources,db pools and db drivers -->
@@ -142,7 +142,7 @@
 
     <!-- Apache Artemis -->
     <artemis.version>2.24.0</artemis.version>
-    <netty-all.version>4.1.79.Final</netty-all.version>
+    <netty-all.version>4.1.80.Final</netty-all.version>
     <classgraph.version>4.8.149</classgraph.version>
 
     <!-- SMS/SMPP -->
@@ -162,7 +162,7 @@
     <google-api-client.version>2.0.0</google-api-client.version>
     <lombok.version>1.18.24</lombok.version>
     <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
-    <joda-time.version>2.11.0</joda-time.version>
+    <joda-time.version>2.11.1</joda-time.version>
     <cron-utils.version>9.2.0</cron-utils.version>
     <validation-api.version>2.0.1.Final</validation-api.version>
     <hibernate-validator.version>6.2.0.Final</hibernate-validator.version>
