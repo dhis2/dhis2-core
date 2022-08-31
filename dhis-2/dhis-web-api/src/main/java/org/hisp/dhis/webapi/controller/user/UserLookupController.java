@@ -83,12 +83,12 @@ public class UserLookupController
 
     @GetMapping
     public UserLookups lookUpUsers( @RequestParam String query,
-        @RequestParam( required = false ) UserOrgUnitType orgUnitBoundary )
+        @RequestParam( required = false ) String orgUnitBoundary )
     {
         UserQueryParams params = new UserQueryParams()
             .setQuery( query )
             .setCanSeeOwnRoles( true )
-            .setOrgUnitBoundary( orgUnitBoundary )
+            .setOrgUnitBoundary( UserOrgUnitType.fromValue( orgUnitBoundary ) )
             .setMax( 25 );
 
         List<UserLookup> users = userService.getUsers( params ).stream()
