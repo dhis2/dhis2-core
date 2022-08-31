@@ -122,14 +122,6 @@ public class JobConfigurationController
     }
 
     @Override
-    protected void prePatchEntity( JobConfiguration jobConfiguration )
-        throws WebMessageException
-    {
-        checkConfigurable( jobConfiguration, HttpStatus.UNPROCESSABLE_ENTITY,
-            "Job %s is a system job that cannot be modified." );
-    }
-
-    @Override
     protected void preUpdateEntity( JobConfiguration before, JobConfiguration after )
         throws WebMessageException
     {
