@@ -635,7 +635,7 @@ public class UserController
 
         mergeUserCredentialsMutations( patch );
 
-        prePatchEntity( persistedObject );
+        prePatchEntity( persistedObject, persistedObject );
         patchService.apply( patch, persistedObject );
 
         boolean twoFAfter = persistedObject.getTwoFA();
@@ -791,20 +791,6 @@ public class UserController
     // -------------------------------------------------------------------------
     // PATCH
     // -------------------------------------------------------------------------
-
-    @Override
-    protected void prePatchEntity( User entity )
-        throws Exception
-    {
-        User currentUser = currentUserService.getCurrentUser();
-
-        if ( !userService.canAddOrUpdateUser( getUids( entity.getGroups() ), currentUser )
-            || !currentUser.canModifyUser( entity ) )
-        {
-            throw new WebMessageException( conflict(
-                "You must have permissions to create user, or ability to manage at least one user group for the user." ) );
-        }
-    }
 
     @Override
     protected void postPatchEntity( User user )
