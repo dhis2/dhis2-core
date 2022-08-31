@@ -83,18 +83,14 @@ public class UserLookupController
 
     @GetMapping
     public UserLookups lookUpUsers( @RequestParam String query,
-        @RequestParam( defaultValue = "false" ) boolean captureUnitsOnly,
-        @CurrentUser User currentUser )
+        @RequestParam( defaultValue = "false" ) boolean captureUnitsOnly)
     {
         UserQueryParams params = new UserQueryParams()
             .setQuery( query )
             .setCanSeeOwnUserRoles( true )
             .setMax( 25 );
 
-        if ( captureUnitsOnly )
-        {
-            params.setOrganisationUnits( currentUser.getOrganisationUnits() );
-        }
+        params.setUserOrgUnits( captureUnitsOnly );
 
         List<UserLookup> users = userService.getUsers( params ).stream()
             .map( UserLookup::fromUser )
