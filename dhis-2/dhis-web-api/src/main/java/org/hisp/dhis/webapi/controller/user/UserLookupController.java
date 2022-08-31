@@ -35,6 +35,7 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
+import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserQueryParams;
@@ -81,12 +82,19 @@ public class UserLookupController
     }
 
     @GetMapping
-    public UserLookups lookUpUsers( @RequestParam String query )
+    public UserLookups lookUpUsers( @RequestParam String query,
+        @RequestParam( defaultValue = "false" ) boolean captureUnitsOnly,
+        @CurrentUser User currentUser )
     {
         UserQueryParams params = new UserQueryParams()
             .setQuery( query )
             .setCanSeeOwnUserRoles( true )
             .setMax( 25 );
+
+        if ( captureUnitsOnly )
+        {
+            params.setOrganisationUnits( currentUser.getOrganisationUnits() );
+        }
 
         List<UserLookup> users = userService.getUsers( params ).stream()
             .map( UserLookup::fromUser )
