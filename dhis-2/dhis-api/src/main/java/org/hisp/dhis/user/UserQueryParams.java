@@ -163,21 +163,6 @@ public class UserQueryParams
         return this;
     }
 
-    public boolean hasOrganisationUnits()
-    {
-        return !organisationUnits.isEmpty() && orgUnitBoundary == UserOrgUnitType.DATA_CAPTURE;
-    }
-
-    public boolean hasDataViewOrganisationUnits()
-    {
-        return !organisationUnits.isEmpty() && orgUnitBoundary == UserOrgUnitType.DATA_OUTPUT;
-    }
-
-    public boolean hasTeiSearchOrganisationUnits()
-    {
-        return !organisationUnits.isEmpty() && orgUnitBoundary == UserOrgUnitType.TEI_SEARCH;
-    }
-
     public UserQueryParams setOrganisationUnits( Set<OrganisationUnit> units )
     {
         this.organisationUnits = units;
