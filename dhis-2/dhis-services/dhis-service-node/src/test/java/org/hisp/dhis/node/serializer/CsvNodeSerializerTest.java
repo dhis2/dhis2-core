@@ -41,8 +41,8 @@ import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.dataformat.csv.CsvWriteException;
 
@@ -116,7 +116,7 @@ public class CsvNodeSerializerTest
         assertTrue( actualMessage.contains( expectedMessage ) );
     }
 
-    @After
+    @AfterEach
     public void cleanUp()
     {
         File f = new File( "output.csv" );
