@@ -32,7 +32,6 @@ import static org.hamcrest.Matchers.is;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.SortOrder;
-import org.hisp.dhis.analytics.UserOrgUnitType;
 import org.joda.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
 
