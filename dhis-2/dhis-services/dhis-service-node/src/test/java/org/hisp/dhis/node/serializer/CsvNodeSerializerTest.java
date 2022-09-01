@@ -30,25 +30,16 @@ package org.hisp.dhis.node.serializer;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.node.serializers.CsvNodeSerializer;
 import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.dataformat.csv.CsvMappingException;
 
-@Slf4j
 class CsvNodeSerializerTest
 {
 
@@ -58,61 +49,57 @@ class CsvNodeSerializerTest
     void CsvFileIsWrittenWhenOnlySimpleNodesAreProvided()
         throws Exception
     {
-        csvNodeSerializer.serialize( createCollectionWithSimpleNodes(),
-            Files.newOutputStream( Paths.get( "output.csv" ) ) );
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        csvNodeSerializer.serialize( createCollectionWithSimpleNodes(), outputStream );
 
-        List<List<String>> values = readTestFile();
+        String[] resultArray = outputStream.toString().split( "\n" );
 
-        assertEquals( 2, values.size() );
-        assertEquals( 3, values.get( 0 ).size() );
-        assertEquals( 3, values.get( 1 ).size() );
-        assertEquals( "\"First simple node\"", values.get( 0 ).get( 0 ) );
-        assertEquals( "\"Second value simple child\"", values.get( 1 ).get( 1 ) );
-        assertEquals( "\"Third simple node\"", values.get( 0 ).get( 2 ) );
+        assertEquals( 2, resultArray.length );
+        assertEquals( "\"First simple node\",\"Second simple node\",\"Third simple node\"", resultArray[0] );
+        assertEquals( "\"First value simple child\",\"Second value simple child\",\"Third value simple child\"",
+            resultArray[1] );
     }
 
     @Test
     void CsvFileIsWrittenWhenAttributesAreProvided()
         throws Exception
     {
-        csvNodeSerializer.serialize( createComplexCollection( "attributes", true ),
-            Files.newOutputStream( Paths.get( "output.csv" ) ) );
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        csvNodeSerializer.serialize( createCollectionWithComplexNodes( "attributes", true ),
+            outputStream );
 
-        List<List<String>> values = readTestFile();
+        String[] resultArray = outputStream.toString().split( "\n" );
 
-        assertEquals( 2, values.size() );
-        assertEquals( 6, values.get( 0 ).size() );
-        assertEquals( 6, values.get( 1 ).size() );
-        assertEquals( "\"First simple node\"", values.get( 0 ).get( 0 ) );
-        assertEquals( "\"Second attr\"", values.get( 0 ).get( 3 ) );
-        assertEquals( "\"Fourth attr\"", values.get( 0 ).get( 5 ) );
-        assertEquals( "\"First attr value\"", values.get( 1 ).get( 2 ) );
-        assertEquals( "\"Third attr value\"", values.get( 1 ).get( 4 ) );
+        assertEquals( 2, resultArray.length );
+        assertEquals(
+            "\"First simple node\",\"Second simple node\",\"First attr\",\"Second attr\",\"Third attr\",\"Fourth attr\"",
+            resultArray[0] );
+        assertEquals(
+            "\"First value simple child\",\"Second value simple child\",\"First attr value\",\"Second attr value\",\"Third attr value\",\"Fourth attr value\"",
+            resultArray[1] );
     }
 
     @Test
     void CsvFileIsWrittenWhenSimpleNodesAreProvidedButAttributeComplexNodeIsNot()
         throws Exception
     {
-        csvNodeSerializer.serialize( createComplexCollection( "enrollments", true ),
-            Files.newOutputStream( Paths.get( "output.csv" ) ) );
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        csvNodeSerializer.serialize( createCollectionWithComplexNodes( "enrollments", true ),
+            outputStream );
 
-        List<List<String>> values = readTestFile();
+        String[] resultArray = outputStream.toString().split( "\n" );
 
-        assertEquals( 2, values.size() );
-        assertEquals( 2, values.get( 0 ).size() );
-        assertEquals( 2, values.get( 1 ).size() );
-        assertEquals( "\"First simple node\"", values.get( 0 ).get( 0 ) );
-        assertEquals( "\"Second value simple child\"", values.get( 1 ).get( 1 ) );
+        assertEquals( 2, resultArray.length );
+        assertEquals( "\"First simple node\",\"Second simple node\"", resultArray[0] );
+        assertEquals( "\"First value simple child\",\"Second value simple child\"", resultArray[1] );
     }
 
     @Test
     void CsvFileIsNotWrittenWhenNoSimpleNodesNorAttributeComplexNodeAreProvided()
-        throws Exception
     {
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         Exception exception = assertThrows( CsvMappingException.class, () -> csvNodeSerializer
-            .serialize( createComplexCollection( "enrollments", false ),
-                Files.newOutputStream( Paths.get( "output.csv" ) ) ) );
+            .serialize( createCollectionWithComplexNodes( "enrollments", false ), outputStream ) );
 
         String expectedMessage = "Schema specified that header line is to be written; but contains no column names";
         String actualMessage = exception.getMessage();
@@ -120,36 +107,22 @@ class CsvNodeSerializerTest
         assertTrue( actualMessage.contains( expectedMessage ) );
     }
 
-    @AfterEach
-    public void cleanUp()
-    {
-        File f = new File( "output.csv" );
-        if ( !f.delete() )
-        {
-            log.warn( "Not possible to delete file {}", f.getName() );
-        }
-    }
-
     private RootNode createCollectionWithSimpleNodes()
     {
         CollectionNode collectionRootNode = new CollectionNode( "Complex node" );
         CollectionNode firstCollectionNode = new CollectionNode( "First collection child" );
         CollectionNode secondCollectionNode = new CollectionNode( "Second collection child" );
+        secondCollectionNode.addChild( new SimpleNode( "First simple node", "First value simple child" ) );
+        secondCollectionNode.addChild( new SimpleNode( "Second simple node", "Second value simple child" ) );
+        secondCollectionNode.addChild( new SimpleNode( "Third simple node", "Third value simple child" ) );
 
-        SimpleNode firstSimpleNode = new SimpleNode( "First simple node", "First value simple child" );
-        SimpleNode secondSimpleNode = new SimpleNode( "Second simple node", "Second value simple child" );
-        SimpleNode thirdSimpleNode = new SimpleNode( "Third simple node", "Third value simple child" );
-
-        secondCollectionNode.addChild( firstSimpleNode );
-        secondCollectionNode.addChild( secondSimpleNode );
-        secondCollectionNode.addChild( thirdSimpleNode );
         firstCollectionNode.addChild( secondCollectionNode );
         collectionRootNode.addChild( firstCollectionNode );
 
         return new RootNode( collectionRootNode );
     }
 
-    private RootNode createComplexCollection( String complexNodeName, boolean includeSimpleNodes )
+    private RootNode createCollectionWithComplexNodes( String complexNodeName, boolean includeSimpleNodes )
     {
         CollectionNode collectionRootNode = new CollectionNode( "Complex node" );
         CollectionNode firstCollectionNode = new CollectionNode( "First collection child" );
@@ -166,10 +139,8 @@ class CsvNodeSerializerTest
 
         if ( includeSimpleNodes )
         {
-            SimpleNode firstSimpleNode = new SimpleNode( "First simple node", "First value simple child" );
-            SimpleNode secondSimpleNode = new SimpleNode( "Second simple node", "Second value simple child" );
-            secondCollectionNode.addChild( firstSimpleNode );
-            secondCollectionNode.addChild( secondSimpleNode );
+            secondCollectionNode.addChild( new SimpleNode( "First simple node", "First value simple child" ) );
+            secondCollectionNode.addChild( new SimpleNode( "Second simple node", "Second value simple child" ) );
         }
 
         secondCollectionNode.addChild( attributesComplexNode );
@@ -177,21 +148,5 @@ class CsvNodeSerializerTest
         collectionRootNode.addChild( firstCollectionNode );
 
         return new RootNode( collectionRootNode );
-    }
-
-    private List<List<String>> readTestFile()
-        throws IOException
-    {
-        List<List<String>> values = new ArrayList<>();
-        try ( BufferedReader br = new BufferedReader( new FileReader( "output.csv" ) ) )
-        {
-            String line;
-            while ( (line = br.readLine()) != null )
-            {
-                values.add( Arrays.asList( line.split( "," ) ) );
-            }
-        }
-
-        return values;
     }
 }
