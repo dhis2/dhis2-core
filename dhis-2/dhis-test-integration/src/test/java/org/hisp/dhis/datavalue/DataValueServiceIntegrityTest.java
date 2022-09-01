@@ -27,24 +27,13 @@
  */
 package org.hisp.dhis.datavalue;
 
+import static org.hisp.dhis.test.setup.MetadataSetup.withDefaultSetup;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.List;
-import java.util.Set;
-
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.DataDimensionType;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.setup.MetadataSetup;
+import org.hisp.dhis.test.setup.MetadataSetupServiceExecutor;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -55,87 +44,37 @@ import org.springframework.beans.factory.annotation.Autowired;
 class DataValueServiceIntegrityTest extends SingleSetupIntegrationTestBase
 {
     @Autowired
-    private CategoryService categoryService;
-
-    @Autowired
     private DataValueService dataValueService;
 
     @Autowired
-    private OrganisationUnitService organisationUnitService;
+    private MetadataSetupServiceExecutor setupExecutor;
 
-    @Autowired
-    private DataElementService dataElementService;
-
-    private DataElement deA;
-
-    private Period peA;
-
-    private OrganisationUnit ouA;
-
-    private CategoryCombo categoryComboAB;
-
-    private CategoryCombo categoryComboAC;
-
-    private Category categoryA;
-
-    private Category categoryB;
-
-    private CategoryOptionCombo categoryOptionComboAB;
-
-    private CategoryOptionCombo categoryOptionComboAC;
+    private final MetadataSetup setup = new MetadataSetup();
 
     @Override
     protected void setUpTest()
     {
-        deA = createDataElement( 'A' );
-        dataElementService.addDataElement( deA );
+        setup.addOrganisationUnit( "A", withDefaultSetup );
+        setup.addPeriod( "2022-07", withDefaultSetup );
+        setup.addCategory( "Vertical", vert -> vert.addOption( "Up" ).addOption( "Down" ) );
+        setup.addCategory( "Horizontal", hor -> hor.addOption( "Left" ).addOption( "Right" ) );
+        setup.addCategory( "Age", age -> age.addOption( "0-39" ).addOption( "40+" ) );
+        setup.addDataElement( "A", de -> de.addCombo( "L-R-U-D",
+            combo -> combo.useCategory( "Vertical" ).useCategory( "Horizontal" ) ) );
+        setup.addCategoryCombo( "VAge", combo -> combo.useCategory( "Vertical" ).useCategory( "Age" ) );
+        setup.addCategoryOptionCombo( "UpLeft", a -> a.useCombo( "L-R-U-D" ).useOption( "Up" ).useOption( "Left" ) );
+        setup.addCategoryOptionCombo( "DownRight",
+            a -> a.useCombo( "L-R-U-D" ).useOption( "Down" ).useOption( "Right" ) );
 
-        peA = createPeriod( "2022-07" );
+        setupExecutor.create( setup );
 
-        ouA = createOrganisationUnit( 'A' );
-        organisationUnitService.addOrganisationUnit( ouA );
-
-        CategoryOption categoryOptionAB1 = new CategoryOption( "OptionA1" );
-        categoryService.addCategoryOption( categoryOptionAB1 );
-        CategoryOption categoryOptionAB2 = new CategoryOption( "OptionA2" );
-        categoryService.addCategoryOption( categoryOptionAB2 );
-
-        CategoryOption categoryOptionAC1 = new CategoryOption( "OptionB1" );
-        categoryService.addCategoryOption( categoryOptionAC1 );
-        CategoryOption categoryOptionAC2 = new CategoryOption( "OptionB2" );
-        categoryService.addCategoryOption( categoryOptionAC2 );
-
-        categoryA = createCategory( 'A', categoryOptionAB1, categoryOptionAB2 );
-        categoryB = createCategory( 'B', categoryOptionAC1, categoryOptionAC2 );
-        categoryService.addCategory( categoryA );
-        categoryService.addCategory( categoryB );
-
-        categoryComboAB = new CategoryCombo( "CategoryComboAB", DataDimensionType.DISAGGREGATION,
-            List.of( categoryA, categoryB ) );
-        categoryService.addCategoryCombo( categoryComboAB );
-
-        categoryOptionComboAB = createCategoryOptionCombo( 'A' );
-        categoryOptionComboAB.setCategoryCombo( categoryComboAB );
-        categoryOptionComboAB.setCategoryOptions( Set.of( categoryOptionAB1, categoryOptionAB2 ) );
-        categoryService.addCategoryOptionCombo( categoryOptionComboAB );
-
-        categoryComboAC = new CategoryCombo( "CategoryComboAC", DataDimensionType.DISAGGREGATION,
-            List.of( categoryA, categoryB ) );
-        categoryService.addCategoryCombo( categoryComboAC );
-
-        categoryOptionComboAC = createCategoryOptionCombo( 'B' );
-        categoryOptionComboAC.setCategoryCombo( categoryComboAC );
-        categoryOptionComboAC.setCategoryOptions( Set.of( categoryOptionAC1, categoryOptionAC2 ) );
-        categoryService.addCategoryOptionCombo( categoryOptionComboAC );
-
-        DataValue dataValueA = new DataValue( deA, peA, ouA, categoryOptionComboAB, null, "1" );
-        dataValueService.addDataValue( dataValueA );
+        dataValueService.addDataValue( setup.newDateValue( "A", "2022-07", "A", "UpLeft", "1" ) );
     }
 
     @Test
     void testExistsAnyValue()
     {
-        assertTrue( dataValueService.dataValueExists( categoryComboAB ) );
-        assertFalse( dataValueService.dataValueExists( categoryComboAC ) );
+        assertTrue( dataValueService.dataValueExists( setup.getCategoryCombos().get( "L-R-U-D" ).getObject() ) );
+        assertFalse( dataValueService.dataValueExists( setup.getCategoryCombos().get( "VAge" ).getObject() ) );
     }
 }
