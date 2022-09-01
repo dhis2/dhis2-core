@@ -54,7 +54,7 @@ public class DataSetLockExceptionController
 {
     private final DataSetService dataSetService;
 
-    @GetMapping( "/metadata" )
+    @GetMapping( "/lockExceptions" )
     public LockExceptionsDto getLockExceptions()
     {
         List<LockException> lockExceptions = dataSetService.getDataWriteLockExceptions();
