@@ -42,7 +42,6 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.tracker.TrackerType;
 import org.locationtech.jts.geom.Geometry;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -142,12 +141,6 @@ public class Event
     @JsonProperty
     @Builder.Default
     private List<Note> notes = new ArrayList<>();
-
-    @JsonIgnore
-    public boolean isCreatableInSearchScope()
-    {
-        return this.getStatus() == EventStatus.SCHEDULE && this.getDataValues().isEmpty() && this.occurredAt == null;
-    }
 
     @Override
     public String getUid()
