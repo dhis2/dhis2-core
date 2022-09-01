@@ -27,7 +27,16 @@
  */
 package org.hisp.dhis.test.setup;
 
+/**
+ * Applies a {@link MetadataSetup} to the test environment.
+ */
 public interface MetadataSetupExecutor
 {
+    /**
+     * Creates the {@link org.hisp.dhis.test.setup.MetadataSetup.Objects}
+     * described in the {@link MetadataSetup} in the test environment.
+     *
+     * @param setup the setup to establish
+     */
     void create( MetadataSetup setup );
 }

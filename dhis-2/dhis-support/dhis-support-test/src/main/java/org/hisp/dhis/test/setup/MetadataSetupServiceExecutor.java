@@ -33,6 +33,9 @@ import static java.util.stream.Collectors.toSet;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -53,27 +56,24 @@ import org.hisp.dhis.test.setup.MetadataSetup.CategorySetup;
 import org.hisp.dhis.test.setup.MetadataSetup.DataElementSetup;
 import org.hisp.dhis.test.setup.MetadataSetup.Objects;
 import org.hisp.dhis.test.setup.MetadataSetup.OrganisationUnitSetup;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
  * A {@link MetadataSetupExecutor} that uses services directly to create the
  * target {@link MetadataSetup}.
  */
+@Slf4j
 @Component
+@AllArgsConstructor
 public class MetadataSetupServiceExecutor implements MetadataSetupExecutor
 {
-    @Autowired
-    private PeriodService periodService;
+    private final PeriodService periodService;
 
-    @Autowired
-    private CategoryService categoryService;
+    private final CategoryService categoryService;
 
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
+    private final OrganisationUnitService organisationUnitService;
 
-    @Autowired
-    private DataElementService dataElementService;
+    private final DataElementService dataElementService;
 
     @Override
     public void create( MetadataSetup setup )
@@ -81,11 +81,12 @@ public class MetadataSetupServiceExecutor implements MetadataSetupExecutor
         // OBS! order matters! objects are created in such an order that
         // referenced objects are already created
         createEach( setup.getPeriods(), this::createPeriod );
+
         createEach( setup.getCategoryOptions(), this::createCategoryOptions );
         createEach( setup.getCategories(), this::createCategory );
         createEach( setup.getCategoryCombos(), this::createCategoryCombo );
-
         createEach( setup.getCategoryOptionCombos(), this::createCategoryOptionCombo );
+
         createEach( setup.getOrganisationUnits(), this::createOrganisationUnit );
         createEach( setup.getDataElements(), this::createDataElement );
     }
@@ -102,9 +103,8 @@ public class MetadataSetupServiceExecutor implements MetadataSetupExecutor
             }
             catch ( Exception ex )
             {
-                System.out
-                    .println( "Failed to create " + setup.getClass().getSimpleName() + " " + setup.getShortName() );
-                ex.printStackTrace();
+                log.error( "Failed to create " + setup.getClass().getSimpleName() + " " + setup.getName(), ex );
+                throw ex;
             }
         } );
     }

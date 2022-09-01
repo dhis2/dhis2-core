@@ -34,7 +34,13 @@ import org.hisp.dhis.test.setup.MetadataSetup.Objects;
 import org.hisp.dhis.test.setup.MetadataSetup.OrganisationUnitSetup;
 import org.hisp.dhis.test.setup.MetadataSetup.PeriodSetup;
 
-public interface DataValueGenerator
+/**
+ * Given the required collections of existing {@link Objects} the helper allows
+ * to create {@link DataValue}s using the names of the referenced objects.
+ *
+ * @author Jan Bernitt
+ */
+public interface TestDataValueGenerator
 {
     Objects<DataElementSetup> getDataElements();
 

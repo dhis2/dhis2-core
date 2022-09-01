@@ -64,9 +64,11 @@ import org.hisp.dhis.period.Period;
 
 /**
  * A description of the metadata model that should be created.
+ *
+ * @author Jan Bernitt
  */
 @Getter
-public class MetadataSetup implements DataValueGenerator
+public class MetadataSetup implements TestObjectRegistry, TestDataValueGenerator
 {
     public static final Consumer<Object> withDefaultSetup = x -> {
     };
@@ -120,7 +122,8 @@ public class MetadataSetup implements DataValueGenerator
 
         public String nextUnique( T setup, Function<T, String> getter )
         {
-            return toName.apply( setup );
+            String value = getter.apply( setup );
+            return value != null ? value : toName.apply( setup );
         }
 
         @Override
@@ -206,6 +209,8 @@ public class MetadataSetup implements DataValueGenerator
         private String code;
 
         private String shortName;
+
+        public abstract String getName();
     }
 
     @ToString
@@ -389,5 +394,11 @@ public class MetadataSetup implements DataValueGenerator
         private final MetadataSetup context;
 
         private final String isoPeriod;
+
+        @Override
+        public String getName()
+        {
+            return getIsoPeriod();
+        }
     }
 }

@@ -74,7 +74,7 @@ class DataValueServiceIntegrityTest extends SingleSetupIntegrationTestBase
     @Test
     void testExistsAnyValue()
     {
-        assertTrue( dataValueService.dataValueExists( setup.getCategoryCombos().get( "L-R-U-D" ).getObject() ) );
-        assertFalse( dataValueService.dataValueExists( setup.getCategoryCombos().get( "VAge" ).getObject() ) );
+        assertTrue( dataValueService.dataValueExists( setup.getCategoryCombo( "L-R-U-D" ) ) );
+        assertFalse( dataValueService.dataValueExists( setup.getCategoryCombo( "VAge" ) ) );
     }
 }
