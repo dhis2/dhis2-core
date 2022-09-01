@@ -92,7 +92,7 @@ public class CsvNodeSerializer extends AbstractNodeSerializer
                     {
                         schemaBuilder.addColumn( property.getName() );
                     }
-                    if ( property.getName().equalsIgnoreCase( "attributes" ) )
+                    if ( property.getName().equals( "attributes" ) )
                     {
                         property.getChildren().stream().findFirst()
                             .ifPresent( fc -> fc.getChildren().forEach( p -> schemaBuilder.addColumn( p.getName() ) ) );
@@ -140,7 +140,7 @@ public class CsvNodeSerializer extends AbstractNodeSerializer
                 simpleNodeList.add( (SimpleNode) property );
             }
 
-            if ( property.getName().equalsIgnoreCase( "attributes" ) )
+            if ( property.getName().equals( "attributes" ) )
             {
                 hasAttributes = true;
                 writeComplexNode( property.getChildren(), simpleNodeList, csvGenerator );
