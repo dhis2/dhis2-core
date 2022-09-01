@@ -35,6 +35,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * DTO which represents lock exceptions.
  *
@@ -46,5 +48,6 @@ import lombok.experimental.Accessors;
 @NoArgsConstructor
 public class LockExceptionsDto
 {
+    @JsonProperty
     private List<LockExceptionDto> lockExceptions = new ArrayList<>();
 }
