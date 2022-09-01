@@ -31,6 +31,10 @@ import org.hisp.dhis.dataset.LockException;
 
 public class DataEntryDtoMapper
 {
+    DataEntryDtoMapper()
+    {
+    }
+
     /**
      * Converts a {@link LockException} object to a {@link LockException}
      * object.
