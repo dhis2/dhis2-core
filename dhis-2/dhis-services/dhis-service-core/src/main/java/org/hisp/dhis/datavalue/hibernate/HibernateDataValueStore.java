@@ -586,7 +586,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
     private Set<Period> reloadAndFilterPeriods( Collection<Period> periods )
     {
         return periods != null ? periods.stream()
-            .map( p -> periodStore.reloadPeriod( p ) )
+            .map( periodStore::reloadPeriod )
             .filter( Objects::nonNull )
             .collect( Collectors.toSet() ) : new HashSet<>();
     }
