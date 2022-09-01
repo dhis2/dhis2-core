@@ -29,9 +29,7 @@ package org.hisp.dhis.node.serializer;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.io.*;
-
-import lombok.extern.slf4j.Slf4j;
+import java.io.ByteArrayOutputStream;
 
 import org.hisp.dhis.node.serializers.CsvNodeSerializer;
 import org.hisp.dhis.node.types.CollectionNode;
@@ -42,7 +40,6 @@ import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.dataformat.csv.CsvWriteException;
 
-@Slf4j
 class CsvNodeSerializerTest
 {
 
@@ -99,7 +96,6 @@ class CsvNodeSerializerTest
 
     @Test
     void CsvFileIsNotWrittenWhenNoSimpleNodesNorAttributeComplexNodeAreProvided()
-        throws Exception
     {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         Exception exception = assertThrows( CsvWriteException.class, () -> csvNodeSerializer
