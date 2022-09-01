@@ -185,10 +185,19 @@ public class DefaultDataSetMetadataExportService
      */
     private Set<OptionSet> getOptionSets( Set<DataElement> dataElements )
     {
-        return dataElements.stream()
+        Set<OptionSet> dataElementOptionSets = dataElements.stream()
             .map( DataElement::getOptionSet )
             .filter( Objects::nonNull )
             .collect( Collectors.toSet() );
+
+        Set<OptionSet> commentOptionSets = dataElements.stream()
+            .map( DataElement::getCommentOptionSet )
+            .filter( Objects::nonNull )
+            .collect( Collectors.toSet() );
+
+        dataElementOptionSets.addAll(commentOptionSets);
+
+        return dataElementOptionSets;
     }
 
     /**
