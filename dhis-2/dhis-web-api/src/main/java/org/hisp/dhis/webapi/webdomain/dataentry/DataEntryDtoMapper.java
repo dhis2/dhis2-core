@@ -25,34 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.dataentry;
+package org.hisp.dhis.webapi.webdomain.dataentry;
 
-import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.dataset.LockException;
 
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.dxf2.metadata.DataSetMetadataExportService;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.fasterxml.jackson.databind.JsonNode;
-
-/**
- * @author Lars Helge Overland
- */
-@RestController
-@RequiredArgsConstructor
-@RequestMapping( "/dataEntry" )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class DataSetMetadataExportController
+public class DataEntryDtoMapper
 {
-    private final DataSetMetadataExportService exportService;
-
-    @GetMapping( "/metadata" )
-    public ResponseEntity<JsonNode> getMetadata()
+    /**
+     * Converts a {@link LockException} object to a {@link LockException}
+     * object.
+     *
+     * @param audit the {@link LockException}.
+     * @return a {@link LockExceptionDto}.
+     */
+    public static LockExceptionDto toDto( LockException lockException )
     {
-        return ResponseEntity.ok( exportService.getDataSetMetadata() );
+        return new LockExceptionDto()
+            .setPeriod( lockException.getPeriod().getIsoDate() )
+            .setOrgUnit( lockException.getOrganisationUnit().getUid() )
+            .setDataSet( lockException.getDataSet().getUid() );
     }
 }

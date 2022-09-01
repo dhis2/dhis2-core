@@ -25,34 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataset;
+package org.hisp.dhis.webapi.webdomain.dataentry;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import org.hisp.dhis.common.GenericStore;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * DTO which represents lock exceptions.
+ *
+ * @author Lars Helge Overland
  */
-public interface LockExceptionStore
-    extends GenericStore<LockException>
+@Getter
+@Setter
+@Accessors( chain = true )
+@NoArgsConstructor
+public class LockExceptionsDto
 {
-    List<LockException> getLockExceptions( List<DataSet> dataSets );
-
-    List<LockException> getLockExceptionCombinations();
-
-    void deleteLockExceptions( DataSet dataSet, Period period );
-
-    void deleteLockExceptions( DataSet dataSet, Period period, OrganisationUnit organisationUnit );
-
-    void deleteLockExceptions( OrganisationUnit organisationUnit );
-
-    long getCount( DataElement dataElement, Period period, OrganisationUnit organisationUnit );
-
-    long getCount( DataSet dataSet, Period period, OrganisationUnit organisationUnit );
-
-    boolean anyExists();
+    private List<LockExceptionDto> lockExceptions = new ArrayList<>();
 }

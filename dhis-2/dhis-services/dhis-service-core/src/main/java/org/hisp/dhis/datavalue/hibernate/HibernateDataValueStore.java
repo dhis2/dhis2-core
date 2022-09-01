@@ -83,9 +83,9 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private PeriodStore periodStore;
+    private final PeriodStore periodStore;
 
-    private StatementBuilder statementBuilder;
+    private final StatementBuilder statementBuilder;
 
     public HibernateDataValueStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, PeriodStore periodStore, StatementBuilder statementBuilder )

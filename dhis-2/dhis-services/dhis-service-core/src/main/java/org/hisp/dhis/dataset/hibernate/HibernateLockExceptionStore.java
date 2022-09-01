@@ -63,9 +63,9 @@ public class HibernateLockExceptionStore
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private DataSetStore dataSetStore;
+    private final DataSetStore dataSetStore;
 
-    private PeriodService periodService;
+    private final PeriodService periodService;
 
     public HibernateLockExceptionStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, DataSetStore dataSetStore, PeriodService periodService )
@@ -100,7 +100,14 @@ public class HibernateLockExceptionStore
     }
 
     @Override
-    public List<LockException> getCombinations()
+    public List<LockException> getLockExceptions( List<DataSet> dataSets )
+    {
+        return getList( getCriteriaBuilder(), newJpaParameters()
+            .addPredicate( root -> root.get( "dataSet" ).in( dataSets ) ) );
+    }
+
+    @Override
+    public List<LockException> getLockExceptionCombinations()
     {
         final String sql = "select distinct datasetid, periodid from lockexception";
 
@@ -130,7 +137,7 @@ public class HibernateLockExceptionStore
     }
 
     @Override
-    public void deleteCombination( DataSet dataSet, Period period )
+    public void deleteLockExceptions( DataSet dataSet, Period period )
     {
         final String hql = "delete from LockException where dataSet=:dataSet and period=:period";
 
@@ -141,7 +148,7 @@ public class HibernateLockExceptionStore
     }
 
     @Override
-    public void deleteCombination( DataSet dataSet, Period period, OrganisationUnit organisationUnit )
+    public void deleteLockExceptions( DataSet dataSet, Period period, OrganisationUnit organisationUnit )
     {
         final String hql = "delete from LockException where dataSet=:dataSet and period=:period and organisationUnit=:organisationUnit";
 
@@ -153,21 +160,13 @@ public class HibernateLockExceptionStore
     }
 
     @Override
-    public void delete( OrganisationUnit organisationUnit )
+    public void deleteLockExceptions( OrganisationUnit organisationUnit )
     {
         final String hql = "delete from LockException where organisationUnit=:organisationUnit";
 
         getQuery( hql )
             .setParameter( "organisationUnit", organisationUnit )
             .executeUpdate();
-    }
-
-    @Override
-    public List<LockException> getAllOrderedName( int first, int max )
-    {
-        return getList( getCriteriaBuilder(), newJpaParameters()
-            .setFirstResult( first )
-            .setMaxResults( max ) );
     }
 
     @Override

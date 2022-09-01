@@ -228,16 +228,16 @@ public class DefaultDataSetService
 
     @Override
     @Transactional( readOnly = true )
-    public List<LockException> getLockExceptionsBetween( int first, int max )
+    public List<LockException> getDataWriteLockExceptions()
     {
-        return lockExceptionStore.getAllOrderedName( first, max );
+        return lockExceptionStore.getLockExceptions( dataSetStore.getDataWriteAll() );
     }
 
     @Override
     @Transactional( readOnly = true )
     public List<LockException> getLockExceptionCombinations()
     {
-        return lockExceptionStore.getCombinations();
+        return lockExceptionStore.getLockExceptionCombinations();
     }
 
     @Override
@@ -322,21 +322,21 @@ public class DefaultDataSetService
     @Transactional
     public void deleteLockExceptionCombination( DataSet dataSet, Period period )
     {
-        lockExceptionStore.deleteCombination( dataSet, period );
+        lockExceptionStore.deleteLockExceptions( dataSet, period );
     }
 
     @Override
     @Transactional
     public void deleteLockExceptionCombination( DataSet dataSet, Period period, OrganisationUnit organisationUnit )
     {
-        lockExceptionStore.deleteCombination( dataSet, period, organisationUnit );
+        lockExceptionStore.deleteLockExceptions( dataSet, period, organisationUnit );
     }
 
     @Override
     @Transactional
     public void deleteLockExceptions( OrganisationUnit organisationUnit )
     {
-        lockExceptionStore.delete( organisationUnit );
+        lockExceptionStore.deleteLockExceptions( organisationUnit );
     }
 
     @Override
