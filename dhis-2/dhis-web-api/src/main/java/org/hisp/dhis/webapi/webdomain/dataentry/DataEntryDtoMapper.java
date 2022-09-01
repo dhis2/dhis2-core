@@ -35,7 +35,7 @@ public class DataEntryDtoMapper
      * Converts a {@link LockException} object to a {@link LockException}
      * object.
      *
-     * @param audit the {@link LockException}.
+     * @param lockException the {@link LockException}.
      * @return a {@link LockExceptionDto}.
      */
     public static LockExceptionDto toDto( LockException lockException )
