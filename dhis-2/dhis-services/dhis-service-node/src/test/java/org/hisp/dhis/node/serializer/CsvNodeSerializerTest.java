@@ -47,13 +47,13 @@ import org.junit.jupiter.api.Test;
 import com.fasterxml.jackson.dataformat.csv.CsvWriteException;
 
 @Slf4j
-public class CsvNodeSerializerTest
+class CsvNodeSerializerTest
 {
 
-    private CsvNodeSerializer csvNodeSerializer = new CsvNodeSerializer();
+    private final CsvNodeSerializer csvNodeSerializer = new CsvNodeSerializer();
 
     @Test
-    public void CsvFileIsWrittenWhenOnlySimpleNodesAreProvided()
+    void CsvFileIsWrittenWhenOnlySimpleNodesAreProvided()
         throws Exception
     {
         csvNodeSerializer.serialize( createCollectionWithSimpleNodes(), new FileOutputStream( "output.csv" ) );
@@ -69,7 +69,7 @@ public class CsvNodeSerializerTest
     }
 
     @Test
-    public void CsvFileIsWrittenWhenAttributesAreProvided()
+    void CsvFileIsWrittenWhenAttributesAreProvided()
         throws Exception
     {
         csvNodeSerializer.serialize( createComplexCollection( "attributes", true ),
@@ -88,7 +88,7 @@ public class CsvNodeSerializerTest
     }
 
     @Test
-    public void CsvFileIsWrittenWhenSimpleNodesAreProvidedButAttributeComplexNodeIsNot()
+    void CsvFileIsWrittenWhenSimpleNodesAreProvidedButAttributeComplexNodeIsNot()
         throws Exception
     {
         csvNodeSerializer.serialize( createComplexCollection( "enrollments", true ),
@@ -104,7 +104,7 @@ public class CsvNodeSerializerTest
     }
 
     @Test
-    public void CsvFileIsNotWrittenWhenNoSimpleNodesNorAttributeComplexNodeAreProvided()
+    void CsvFileIsNotWrittenWhenNoSimpleNodesNorAttributeComplexNodeAreProvided()
         throws Exception
     {
         Exception exception = assertThrows( CsvWriteException.class, () -> csvNodeSerializer
