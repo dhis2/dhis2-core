@@ -30,6 +30,8 @@ package org.hisp.dhis.node.serializer;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -44,6 +46,8 @@ import org.hisp.dhis.node.types.SimpleNode;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
+import com.fasterxml.jackson.dataformat.csv.CsvWriteException;
+
 @Slf4j
 class CsvNodeSerializerTest
 {
@@ -54,7 +58,8 @@ class CsvNodeSerializerTest
     void CsvFileIsWrittenWhenOnlySimpleNodesAreProvided()
         throws Exception
     {
-        csvNodeSerializer.serialize( createCollectionWithSimpleNodes(), new FileOutputStream( "output.csv" ) );
+        csvNodeSerializer.serialize( createCollectionWithSimpleNodes(),
+            Files.newOutputStream( Paths.get( "output.csv" ) ) );
 
         List<List<String>> values = readTestFile();
 
@@ -71,7 +76,7 @@ class CsvNodeSerializerTest
         throws Exception
     {
         csvNodeSerializer.serialize( createComplexCollection( "attributes", true ),
-            new FileOutputStream( "output.csv" ) );
+            Files.newOutputStream( Paths.get( "output.csv" ) ) );
 
         List<List<String>> values = readTestFile();
 
@@ -90,7 +95,7 @@ class CsvNodeSerializerTest
         throws Exception
     {
         csvNodeSerializer.serialize( createComplexCollection( "enrollments", true ),
-            new FileOutputStream( "output.csv" ) );
+            Files.newOutputStream( Paths.get( "output.csv" ) ) );
 
         List<List<String>> values = readTestFile();
 
@@ -105,8 +110,9 @@ class CsvNodeSerializerTest
     void CsvFileIsNotWrittenWhenNoSimpleNodesNorAttributeComplexNodeAreProvided()
         throws Exception
     {
-        Exception exception = assertThrows( Exception.class, () -> csvNodeSerializer
-            .serialize( createComplexCollection( "enrollments", false ), new FileOutputStream( "output.csv" ) ) );
+        Exception exception = assertThrows( CsvWriteException.class, () -> csvNodeSerializer
+            .serialize( createComplexCollection( "enrollments", false ),
+                Files.newOutputStream( Paths.get( "output.csv" ) ) ) );
 
         String expectedMessage = "Schema specified that header line is to be written; but contains no column names";
         String actualMessage = exception.getMessage();
