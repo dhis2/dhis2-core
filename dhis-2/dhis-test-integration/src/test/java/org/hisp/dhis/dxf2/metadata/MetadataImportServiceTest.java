@@ -836,6 +836,25 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
+    void testImportUserLegacyFormatWithPersistedReferences()
+        throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> userRoles = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/userrole.json" ).getInputStream(),
+            RenderFormat.JSON );
+        MetadataImportParams params = createParams( ImportStrategy.CREATE_AND_UPDATE, userRoles );
+        ImportReport report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/user.json" ).getInputStream(),
+            RenderFormat.JSON );
+        params = createParams( ImportStrategy.CREATE_AND_UPDATE, metadata );
+        report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+    }
+
+    @Test
     void testImportMapCreateAndUpdate()
         throws IOException
     {
