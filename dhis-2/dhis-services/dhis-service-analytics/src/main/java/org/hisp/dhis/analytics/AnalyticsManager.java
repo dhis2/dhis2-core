@@ -48,7 +48,8 @@ public interface AnalyticsManager
      * value. This method is invoked asynchronously. The value class can be
      * Double or String.
      *
-     * @param params the query to retrieve aggregated data for.
+     * @param params the {@link DataQueryParams} to retrieve aggregated data
+     *        for.
      * @param tableType the {@link AnalyticsTableType}.
      * @param maxLimit the max number of records to retrieve.
      * @return a map.
@@ -61,12 +62,12 @@ public interface AnalyticsManager
      * Inserts entries for the aggregation periods mapped to each data period in
      * the given data value map. Removes the original entry for the data period.
      *
-     * @param dataValueMap map with entries for all data values produced for the
+     * @param dataValueMap map with entries for data values produced for the
      *        query.
-     * @param params the query.
+     * @param params the {@link DataQueryParams}.
      * @param dataPeriodAggregationPeriodMap the mapping between data periods
-     *        and aggregation periods for this query.
+     *        and aggregation periods for the query.
      */
-    void replaceDataPeriodsWithAggregationPeriods( Map<String, Object> dataValueMap,
-        DataQueryParams params, ListMap<DimensionalItemObject, DimensionalItemObject> dataPeriodAggregationPeriodMap );
+    void replaceDataPeriodsWithAggregationPeriods( Map<String, Object> dataValueMap, DataQueryParams params,
+        ListMap<DimensionalItemObject, DimensionalItemObject> dataPeriodAggregationPeriodMap );
 }

@@ -80,7 +80,7 @@ public class DefaultDataSetMetadataExportService
     private static final String PROPERTY_ORGANISATION_UNITS = "organisationUnits";
 
     private static final String FIELDS_DATA_SETS = ":simple,categoryCombo[id],formType,dataEntryForm[id]," +
-        "dataSetElements[dataElement[id],categoryCombo[id]]," +
+        "dataSetElements[dataElement[id],categoryCombo[id]],indicators~pluck[id]," +
         "compulsoryDataElementOperands[dataElement[id],categoryOptionCombo[id]]," +
         "dataInputPeriods[period,openingDate,closingDate]," +
         "sections[:simple,dataElements~pluck[id],indicators~pluck[id]," +
@@ -89,7 +89,7 @@ public class DefaultDataSetMetadataExportService
     private static final String FIELDS_DATA_ELEMENTS = ":identifiable,displayName,displayShortName,displayFormName," +
         "zeroIsSignificant,valueType,aggregationType,categoryCombo[id],optionSet[id],commentOptionSet";
 
-    private static final String FIELDS_INDICATORS = ":simple,explodedNumerator,explodedDenominator";
+    private static final String FIELDS_INDICATORS = ":simple,explodedNumerator,explodedDenominator,indicatorType[factor]";
 
     private static final String FIELDS_DATA_ELEMENT_CAT_COMBOS = ":simple,isDefault,categories~pluck[id]," +
         "categoryOptionCombos[id,code,name,displayName,categoryOptions~pluck[id]]";
@@ -97,6 +97,8 @@ public class DefaultDataSetMetadataExportService
     private static final String FIELDS_DATA_SET_CAT_COMBOS = ":simple,isDefault,categories~pluck[id]";
 
     private static final String FIELDS_CATEGORIES = ":simple,categoryOptions~pluck[id]";
+
+    private static final String FIELDS_CATEGORY_OPTIONS = ":simple,organisationUnits~pluck[id]";
 
     private static final String FIELDS_OPTION_SETS = ":simple,options[id,code,displayName]";
 
@@ -150,7 +152,7 @@ public class DefaultDataSetMetadataExportService
         rootNode.putArray( CategorySchemaDescriptor.PLURAL )
             .addAll( toObjectNodes( categories, FIELDS_CATEGORIES, Category.class ) );
         rootNode.putArray( CategoryOptionSchemaDescriptor.PLURAL )
-            .addAll( toObjectNodes( categoryOptions, FIELDS_CATEGORIES, CategoryOption.class ) );
+            .addAll( toObjectNodes( categoryOptions, FIELDS_CATEGORY_OPTIONS, CategoryOption.class ) );
         rootNode.putArray( OptionSetSchemaDescriptor.PLURAL )
             .addAll( toObjectNodes( optionSets, FIELDS_OPTION_SETS, OptionSet.class ) );
 
@@ -206,7 +208,7 @@ public class DefaultDataSetMetadataExportService
         for ( DataSet dataSet : dataSets )
         {
             ObjectNode objectNode = fieldFilterService.toObjectNode( dataSet, List.of( FIELDS_DATA_SETS ) );
-            objectNode.putArray( PROPERTY_ORGANISATION_UNITS ).add( toOrgUnitsArrayNode( dataSet, dataSetOrgUnits ) );
+            objectNode.set( PROPERTY_ORGANISATION_UNITS, toOrgUnitsArrayNode( dataSet, dataSetOrgUnits ) );
             objectNodes.add( objectNode );
         }
 

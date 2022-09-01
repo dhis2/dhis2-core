@@ -55,8 +55,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupAccessService;
@@ -110,9 +108,6 @@ class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
 
     @Autowired
     protected IdentifiableObjectManager identifiableObjectManager;
-
-    @Autowired
-    private CurrentUserService currentUserService;
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
@@ -221,12 +216,6 @@ class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
     // -------------------------------------------------------------------------
     // Set up/tear down
     // -------------------------------------------------------------------------
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
     @Override
     public void setUpTest()
         throws Exception
@@ -344,13 +333,6 @@ class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
         userService.updateUser( userC );
         userService.updateUser( userD );
         userService.updateUser( userZ );
-    }
-
-    @Override
-    public void tearDownTest()
-    {
-        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
-            currentUserService, dataApprovalLevelService, dataApprovalAuditService, dataApprovalAuditStore );
     }
 
     @Test

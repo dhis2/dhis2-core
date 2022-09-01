@@ -36,7 +36,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsDimensionsService;
@@ -52,7 +51,6 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 class DefaultEnrollmentAnalyticsDimensionsService implements EnrollmentAnalyticsDimensionsService
 {
-    @NonNull
     private final ProgramService programService;
 
     @Override

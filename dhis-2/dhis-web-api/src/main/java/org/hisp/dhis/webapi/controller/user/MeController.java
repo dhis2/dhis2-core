@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.user;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.user.User.populateUserCredentialsDtoFields;
@@ -55,6 +56,7 @@ import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.interpretation.InterpretationService;
 import org.hisp.dhis.message.MessageService;
@@ -220,7 +222,8 @@ public class MeController
     @PutMapping( value = "", consumes = APPLICATION_JSON_VALUE )
     public void updateCurrentUser( HttpServletRequest request, HttpServletResponse response,
         @CurrentUser( required = true ) User currentUser )
-        throws Exception
+        throws WebMessageException,
+        IOException
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
@@ -427,6 +430,7 @@ public class MeController
     }
 
     private void merge( User currentUser, User user )
+        throws WebMessageException
     {
         currentUser.setFirstName( stringWithDefault( user.getFirstName(), currentUser.getFirstName() ) );
         currentUser.setSurname( stringWithDefault( user.getSurname(), currentUser.getSurname() ) );
@@ -455,7 +459,13 @@ public class MeController
         currentUser.setEducation( stringWithDefault( user.getEducation(), currentUser.getEducation() ) );
         currentUser.setInterests( stringWithDefault( user.getInterests(), currentUser.getInterests() ) );
         currentUser.setLanguages( stringWithDefault( user.getLanguages(), currentUser.getLanguages() ) );
-        currentUser.setTwoFA( user.isTwoFA() );
+
+        // TODO: NOT ALLOWED AFTER 13332, breaks current API/UI (2.39) 2.38
+        // backport later
+        if ( currentUser.getTwoFA() != user.getTwoFA() )
+        {
+            throw new WebMessageException( badRequest( ErrorCode.E3024.getMessage(), ErrorCode.E3024 ) );
+        }
     }
 
     private void updatePassword( User currentUser, String password )

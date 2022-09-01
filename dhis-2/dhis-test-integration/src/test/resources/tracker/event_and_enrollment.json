@@ -155,7 +155,30 @@
       ],
       "completedBy": "admin",
       "completedAt": "2019-01-28T00:00:00.000",
-      "dataValues": [],
+      "dataValues": [
+        {
+          "dataElement": {
+            "idScheme": "UID",
+            "identifier": "DATAEL00001"
+          },
+          "value": "value00001",
+          "created": "2021-07-01T12:05:00",
+          "storedBy": null,
+          "lastUpdated": "2022-07-01T12:05:00",
+          "providedElsewhere": false
+        },
+        {
+          "dataElement": {
+            "idScheme": "UID",
+            "identifier": "DATAEL00005"
+          },
+          "value": "option1",
+          "created": "2021-07-01T12:05:00",
+          "storedBy": null,
+          "lastUpdated": "2022-07-01T12:05:00",
+          "providedElsewhere": false
+        }
+      ],
       "notes": []
     },
     {
@@ -176,6 +199,8 @@
       },
       "relationships": [],
       "occurredAt": "2019-01-28T00:00:00.000",
+      "executionDate": "2019-01-28T00:00:00.000",
+      "lastUpdated": "2019-01-28T00:00:00.000",
       "scheduledAt": "2019-01-28T12:10:38.100",
       "storedBy": "admin",
       "followup": false,
@@ -194,7 +219,41 @@
       ],
       "completedBy": "admin",
       "completedAt": "2019-01-28T00:00:00.000",
-      "dataValues": [],
+      "dataValues": [
+        {
+          "dataElement": {
+            "idScheme": "UID",
+            "identifier": "DATAEL00001"
+          },
+          "value": "value00002",
+          "created": "2021-07-01T12:05:00",
+          "storedBy": null,
+          "lastUpdated": "2022-07-01T12:05:00",
+          "providedElsewhere": false
+        },
+        {
+          "dataElement": {
+            "idScheme": "UID",
+            "identifier": "DATAEL00002"
+          },
+          "value": "value00002",
+          "created": "2021-07-01T12:05:00",
+          "storedBy": null,
+          "lastUpdated": "2022-07-01T12:05:00",
+          "providedElsewhere": false
+        },
+        {
+          "dataElement": {
+            "idScheme": "UID",
+            "identifier": "DATAEL00005"
+          },
+          "value": "option2",
+          "created": "2021-07-01T12:05:00",
+          "storedBy": null,
+          "lastUpdated": "2022-07-01T12:05:00",
+          "providedElsewhere": false
+        }
+      ],
       "notes": []
     }
   ],

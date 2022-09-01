@@ -59,8 +59,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupAccessService;
@@ -110,9 +108,6 @@ class ValidationResultStoreTest extends TransactionalIntegrationTest
 
     @Autowired
     private UserService _userService;
-
-    @Autowired
-    private CurrentUserService currentUserService;
 
     // -------------------------------------------------------------------------
     // Supporting data
@@ -199,12 +194,6 @@ class ValidationResultStoreTest extends TransactionalIntegrationTest
     // Set up/tear down
     // -------------------------------------------------------------------------
     @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
-    @Override
     public void setUpTest()
         throws Exception
     {
@@ -285,13 +274,6 @@ class ValidationResultStoreTest extends TransactionalIntegrationTest
         validationResultBC = new ValidationResult( validationRuleB, periodB, sourceB, optionComboC, 1.0, 2.0, 3 );
         validationResultCA = new ValidationResult( validationRuleB, periodB, sourceC, optionComboA, 1.0, 2.0, 3 );
         validationResultAB.setNotificationSent( true );
-    }
-
-    @Override
-    public void tearDownTest()
-    {
-        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
-            currentUserService, validationResultStore );
     }
 
     // -------------------------------------------------------------------------

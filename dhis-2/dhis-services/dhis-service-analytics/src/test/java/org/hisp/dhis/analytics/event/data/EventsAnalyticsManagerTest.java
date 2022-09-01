@@ -44,7 +44,7 @@ import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 import static org.hisp.dhis.common.QueryOperator.EQ;
 import static org.hisp.dhis.common.QueryOperator.IN;
-import static org.hisp.dhis.common.QueryOperator.NE;
+import static org.hisp.dhis.common.QueryOperator.NEQ;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -306,10 +306,10 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
     }
 
     @Test
-    void verifyGetEventsWithMissingValueNeFilter()
+    void verifyGetEventsWithMissingValueNeqFilter()
     {
         String expected = "ax.\"fWIAEtYVEGk\" is not null";
-        testIt( NE, NV, Collections.singleton(
+        testIt( NEQ, NV, Collections.singleton(
             ( capturedSql ) -> assertThat( capturedSql, containsString( expected ) ) ) );
     }
 

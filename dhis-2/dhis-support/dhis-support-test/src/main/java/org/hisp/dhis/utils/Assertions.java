@@ -49,6 +49,13 @@ public final class Assertions
         throw new UnsupportedOperationException( "util" );
     }
 
+    /**
+     * Asserts that the given collection contains exactly the given items.
+     *
+     * @param <E> the type.
+     * @param actual the actual collection.
+     * @param expected the expected items.
+     */
     @SafeVarargs
     public static <E> void assertContainsOnly( Collection<E> actual, E... expected )
     {
@@ -102,6 +109,6 @@ public final class Assertions
     public static <E> void assertIsEmpty( Collection<E> actual )
     {
         assertNotNull( actual );
-        assertTrue( actual.isEmpty() );
+        assertTrue( actual.isEmpty(), actual.toString() );
     }
 }

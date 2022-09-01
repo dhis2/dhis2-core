@@ -1,0 +1,144 @@
+{
+  "dataElements": [
+    {
+      "id": "fbfJHSPpUQD",
+      "code": "DEA",
+      "name": "DEA",
+      "shortName": "DEA",
+      "aggregationType": "SUM",
+      "domainType": "AGGREGATE",
+      "valueType": "INTEGER"
+    },
+    {
+      "id": "cYeuwXTCPkU",
+      "code": "DEB",
+      "name": "DEB",
+      "shortName": "DEB",
+      "aggregationType": "SUM",
+      "domainType": "AGGREGATE",
+      "valueType": "INTEGER"
+    }
+  ],
+  "organisationUnits": [
+    {
+      "id": "ImspTQPwCqd",
+      "code": "OUA",
+      "name": "OUA",
+      "shortName": "OUA",
+      "openingDate": "2010-01-01"
+    }
+  ],
+  "aggregateDataExchanges": [
+    {
+      "id": "iFOyIpQciyk",
+      "name": "Internal data exchange",
+      "source": {
+        "requests": [
+          {
+            "name": "HIV",
+            "visualization": "kV2trY4bu9p",
+            "dx": [
+              "fbfJHSPpUQD",
+              "cYeuwXTCPkU"
+            ],
+            "pe": [
+              "LAST_12_MONTHS",
+              "202201"
+            ],
+            "ou": [
+              "ImspTQPwCqd"
+            ],
+            "inputIdScheme": null,
+            "outputIdscheme": null
+          }
+        ]
+      },
+      "target": {
+        "type": "INTERNAL",
+        "request": {
+          "dataElementIdScheme": null,
+          "orgUnitIdScheme": null,
+          "categoryOptionComboIdScheme": null,
+          "idScheme": null
+        }
+      }
+    },
+    {
+      "id": "PnWccbwCJLQ",
+      "name": "External basic auth data exchange",
+      "source":{
+        "requests": [
+          {
+            "name": "TB",
+            "visualization": "BjQYD1mOQLb",
+            "dx": [
+              "fbfJHSPpUQD",
+              "cYeuwXTCPkU"
+            ],
+            "pe": [
+              "LAST_3_MONTHS",
+              "202202"
+            ],
+            "ou": [
+              "ImspTQPwCqd"
+            ],
+            "inputIdScheme": "UID",
+            "outputIdscheme": "UID"
+          }
+        ]
+      },
+      "target":{
+        "type": "EXTERNAL",
+        "api": {
+          "url": "https://play.dhis2.org/2.38.1",
+          "username": "admin",
+          "password": "district"
+        },
+        "request": {
+          "dataElementIdScheme": "UID",
+          "orgUnitIdScheme": "UID",
+          "categoryOptionComboIdScheme": "UID",
+          "idScheme": "UID"
+        }
+      }
+    },
+    {
+      "id": "VpQ4qVEseyM",
+      "name": "External access token data exchange",
+      "source":{
+        "requests": [
+          {
+            "name": "Malaria",
+            "visualization": "DOL6ai1VCsL",
+            "dx": [
+              "fbfJHSPpUQD",
+              "cYeuwXTCPkU"
+            ],
+            "pe": [
+              "LAST_3_MONTHS",
+              "202202"
+            ],
+            "ou": [
+              "ImspTQPwCqd"
+            ],
+            "inputIdScheme": "UID",
+            "outputIdscheme": "UID"
+          }
+        ]
+      },
+      "target":{
+        "type": "EXTERNAL",
+        "api": {
+          "url": "https://play.dhis2.org/2.38.1",
+          "accessToken": "d2pat_fjx18dy0iB6nJybPxGSVsoagGtrXMAVn1162422598"
+        },
+        "request": {
+          "dataElementIdScheme": "UID",
+          "orgUnitIdScheme": "UID",
+          "categoryOptionComboIdScheme": "UID",
+          "idScheme": "UID"
+        }
+      }
+    }
+  ]
+}

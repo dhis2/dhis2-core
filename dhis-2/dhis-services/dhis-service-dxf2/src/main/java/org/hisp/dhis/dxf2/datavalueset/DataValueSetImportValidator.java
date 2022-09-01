@@ -349,6 +349,11 @@ public class DataValueSetImportValidator
     private void validateDataValueOrgUnitInUserHierarchy( DataValueEntry dataValue, ImportContext context,
         DataSetContext dataSetContext, DataValueContext valueContext )
     {
+        User currentUser = context.getCurrentUser();
+        if ( currentUser == null )
+        {
+            return;
+        }
         boolean inUserHierarchy = context.getOrgUnitInHierarchyMap().get( valueContext.getOrgUnit().getUid(),
             () -> organisationUnitService.isDescendant( valueContext.getOrgUnit(), context.getCurrentOrgUnits() ) );
 
@@ -356,7 +361,7 @@ public class DataValueSetImportValidator
         {
             context.addConflict( valueContext.getIndex(),
                 DataValueImportConflict.ORG_UNIT_NOT_IN_USER_HIERARCHY,
-                dataValue.getOrgUnit(), context.getCurrentUser().getUid() );
+                dataValue.getOrgUnit(), currentUser.getUid() );
         }
     }
 

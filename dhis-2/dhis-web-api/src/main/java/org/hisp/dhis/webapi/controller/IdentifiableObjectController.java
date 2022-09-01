@@ -59,7 +59,7 @@ public class IdentifiableObjectController
     public List<IdentifiableObject> getEntity( String uid, WebOptions options )
     {
         List<IdentifiableObject> identifiableObjects = Lists.newArrayList();
-        Optional<IdentifiableObject> optional = Optional.ofNullable( manager.get( uid ) );
+        Optional<IdentifiableObject> optional = Optional.ofNullable( manager.find( uid ) );
         optional.ifPresent( identifiableObjects::add );
 
         return identifiableObjects;

@@ -48,6 +48,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.notification.NotificationMessage;
@@ -68,6 +69,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.collect.Sets;
@@ -240,6 +242,9 @@ class DataSetNotificationServiceTest extends DhisConvenienceTest
             .thenReturn( notificationMessage );
         when( externalMessageService.sendMessages( anyList() ) ).thenReturn( successStatus );
         when( dsntService.getCompleteNotifications( any( DataSet.class ) ) ).thenReturn( templates );
+        I18nFormat format = Mockito.mock( I18nFormat.class );
+        when( i18nManager.getI18nFormat() ).thenReturn( format );
+        when( format.formatPeriod( any() ) ).thenReturn( "2000-1-1" );
 
         subject.sendCompleteDataSetNotifications( registrationA );
 

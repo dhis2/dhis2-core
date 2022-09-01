@@ -65,7 +65,6 @@ import org.springframework.util.Assert;
 @RequiredArgsConstructor
 class EnrollmentTimeFieldSqlRenderer extends TimeFieldSqlRenderer
 {
-
     private final StatementBuilder statementBuilder;
 
     @Getter

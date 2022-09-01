@@ -121,7 +121,7 @@ public interface ValidationRuleService extends ValidationRuleDataIntegrityProvid
      * @param dataSet the data set to validate.
      * @return all validation rules which apply to that data set.
      */
-    Collection<ValidationRule> getValidationRulesForDataSet( DataSet dataSet );
+    Set<ValidationRule> getValidationRulesForDataSet( DataSet dataSet );
 
     /**
      * Returns all ValidationRules which have associated

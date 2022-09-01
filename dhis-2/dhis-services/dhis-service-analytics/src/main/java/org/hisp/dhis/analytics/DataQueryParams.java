@@ -84,6 +84,7 @@ import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.common.ReportingRateMetric;
+import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataelement.DataElement;
@@ -224,7 +225,7 @@ public class DataQueryParams
     protected Map<MeasureFilter, Double> preAggregateMeasureCriteria = new HashMap<>();
 
     /**
-     * Indicates if the meta data part of the query response should be omitted.
+     * Indicates if the metadata part of the query response should be omitted.
      */
     protected boolean skipMeta;
 

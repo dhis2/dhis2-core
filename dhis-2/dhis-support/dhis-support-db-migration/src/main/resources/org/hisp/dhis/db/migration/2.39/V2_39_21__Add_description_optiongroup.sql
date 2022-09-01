@@ -1,0 +1,1 @@
+alter table optiongroup add column if not exists "description" text;

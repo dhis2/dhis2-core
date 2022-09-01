@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -62,7 +63,6 @@ import com.google.common.collect.Sets;
 
 class HibernateIdentifiableObjectStoreTest extends TransactionalIntegrationTest
 {
-
     @Autowired
     private DataElementStore dataElementStore;
 
@@ -84,12 +84,6 @@ class HibernateIdentifiableObjectStoreTest extends TransactionalIntegrationTest
         userService = _userService;
     }
 
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
     /**
      * Test Metadata Read access User and UserGroups mapping User1 | User2 |
      * User3 | User 4 Group1 x | | | Group2 X | | | X
@@ -101,21 +95,21 @@ class HibernateIdentifiableObjectStoreTest extends TransactionalIntegrationTest
     void testMetadataRead()
     {
         User admin = createAndInjectAdminUser();
-        User user1 = new User();
-        user1.setAutoFields();
-        User user2 = new User();
-        user2.setAutoFields();
-        User user3 = new User();
-        user3.setAutoFields();
-        User user4 = new User();
-        user4.setAutoFields();
-        UserGroup userGroup1 = new UserGroup();
-        userGroup1.setAutoFields();
-        UserGroup userGroup2 = new UserGroup();
-        userGroup2.setAutoFields();
-        user1.getGroups().add( userGroup1 );
-        user1.getGroups().add( userGroup2 );
-        user4.getGroups().add( userGroup2 );
+        User user1 = createAndAddUser( "A" );
+        User user2 = createAndAddUser( "B" );
+        User user3 = createAndAddUser( "C" );
+        User user4 = createAndAddUser( "D" );
+        manager.save( user1 );
+        manager.save( user2 );
+        manager.save( user3 );
+        manager.save( user4 );
+
+        UserGroup userGroup1 = createUserGroup( 'A', Set.of( user1 ) );
+        UserGroup userGroup2 = createUserGroup( 'B', Set.of( user1, user4 ) );
+        manager.save( userGroup1 );
+        manager.save( userGroup2 );
+
+        // Create sharing settings
         Map<String, UserAccess> userSharing = new HashMap<>();
         userSharing.put( user1.getUid(), new UserAccess( user1, AccessStringHelper.DEFAULT ) );
         userSharing.put( user2.getUid(), new UserAccess( user2, AccessStringHelper.READ ) );
@@ -124,18 +118,21 @@ class HibernateIdentifiableObjectStoreTest extends TransactionalIntegrationTest
         Map<String, UserGroupAccess> userGroupSharing = new HashMap<>();
         userGroupSharing.put( userGroup1.getUid(), new UserGroupAccess( userGroup1, AccessStringHelper.READ_WRITE ) );
         userGroupSharing.put( userGroup2.getUid(), new UserGroupAccess( userGroup2, AccessStringHelper.DEFAULT ) );
+
+        // Create DataElement with given sharing settings
         DataElement dataElement = createDataElement( 'A' );
         String dataElementUid = "deabcdefghA";
         dataElement.setUid( dataElementUid );
         dataElement.setCreatedBy( admin );
-        Sharing sharing = Sharing.builder().external( false ).publicAccess( AccessStringHelper.DEFAULT )
-            .owner( "testOwner" ).userGroups( userGroupSharing ).users( userSharing ).build();
-        dataElement.setSharing( sharing );
+        dataElement.setSharing( Sharing.builder().external( false ).publicAccess( AccessStringHelper.DEFAULT )
+            .owner( "testOwner" ).userGroups( userGroupSharing ).users( userSharing ).build() );
         dataElementStore.save( dataElement, false );
+
         dataElement = dataElementStore.getByUidNoAcl( dataElementUid );
         assertNotNull( dataElement.getSharing() );
         assertEquals( 2, dataElement.getSharing().getUserGroups().size() );
         assertEquals( 4, dataElement.getSharing().getUsers().size() );
+
         // User1 can't access but it belong to UserGroup1 which has access
         assertNotNull( dataElementStore.getDataElement( dataElement.getUid(), user1 ) );
         // User2 has access to DEA

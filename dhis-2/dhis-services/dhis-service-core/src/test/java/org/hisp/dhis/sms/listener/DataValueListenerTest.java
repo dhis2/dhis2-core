@@ -351,7 +351,7 @@ class DataValueListenerTest extends DhisConvenienceTest
 
         subject.receive( incomingSms );
 
-        assertEquals( message, SMSCommand.NO_USER_MESSAGE );
+        assertEquals( SMSCommand.NO_USER_MESSAGE, message );
         assertNull( updatedIncomingSms );
         verify( dataSetService, never() ).getLockStatus( any(), any( DataSet.class ), any(), any(), any(), any() );
     }
@@ -375,7 +375,7 @@ class DataValueListenerTest extends DhisConvenienceTest
 
         subject.receive( incomingSms );
 
-        assertEquals( message, SMSCommand.MORE_THAN_ONE_ORGUNIT_MESSAGE );
+        assertEquals( SMSCommand.MORE_THAN_ONE_ORGUNIT_MESSAGE, message );
         assertNull( updatedIncomingSms );
         verify( dataSetService, never() ).getLockStatus( any(), any( DataSet.class ), any(), any(), any(), any() );
 
@@ -384,7 +384,7 @@ class DataValueListenerTest extends DhisConvenienceTest
         subject.receive( incomingSms );
 
         // system will use custom message
-        assertEquals( message, MORE_THAN_ONE_OU );
+        assertEquals( MORE_THAN_ONE_OU, message );
     }
 
     @Test
@@ -399,7 +399,7 @@ class DataValueListenerTest extends DhisConvenienceTest
 
         subject.receive( incomingSms );
 
-        assertEquals( message, SUCCESS_MESSAGE );
+        assertEquals( SUCCESS_MESSAGE, message );
 
         when( userService.getUsersByPhoneNumber( anyString() ) ).thenReturn( Arrays.asList( user, userC ) );
 
@@ -407,7 +407,7 @@ class DataValueListenerTest extends DhisConvenienceTest
         subject.receive( incomingSms );
 
         // system will use custom message
-        assertEquals( message, MORE_THAN_ONE_OU );
+        assertEquals( MORE_THAN_ONE_OU, message );
     }
 
     @Test
@@ -516,7 +516,7 @@ class DataValueListenerTest extends DhisConvenienceTest
         keyValueCommand.setCodeValueSeparator( " " );
         subject.receive( incomingSmsForCustomSeparator );
 
-        assertEquals( message, SMSCommand.WRONG_FORMAT_MESSAGE );
+        assertEquals( SMSCommand.WRONG_FORMAT_MESSAGE, message );
     }
 
     private void setUpInstances()
