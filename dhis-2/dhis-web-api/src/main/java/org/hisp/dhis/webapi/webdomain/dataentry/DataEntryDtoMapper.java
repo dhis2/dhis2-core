@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.webdomain.dataentry;
 
+import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.LockException;
 
 public class DataEntryDtoMapper
@@ -36,8 +37,7 @@ public class DataEntryDtoMapper
     }
 
     /**
-     * Converts a {@link LockException} object to a {@link LockExceptionDto}
-     * object.
+     * Converts a {@link LockException} object to a {@link LockExceptionDto}.
      *
      * @param lockException the {@link LockException}.
      * @return a {@link LockExceptionDto}.
@@ -48,5 +48,21 @@ public class DataEntryDtoMapper
             .setPeriod( lockException.getPeriod().getIsoDate() )
             .setOrgUnit( lockException.getOrganisationUnit().getUid() )
             .setDataSet( lockException.getDataSet().getUid() );
+    }
+
+    /**
+     * Converts a {@link CompleteDataSetRegistration} to a
+     * {@link CompleteStatusDto}.
+     *
+     * @param registration the {@link CompleteDataSetRegistration}.
+     * @return a {@link CompleteStatusDto}.
+     */
+    public static CompleteStatusDto toDto( CompleteDataSetRegistration registration )
+    {
+        return new CompleteStatusDto()
+            .setComplete( registration.getCompleted() )
+            .setDate( registration.getDate() )
+            .setCompletedBy( registration.getStoredBy() )
+            .setLastUpdatedBy( registration.getLastUpdatedBy() );
     }
 }
