@@ -36,7 +36,7 @@ public class DataEntryDtoMapper
     }
 
     /**
-     * Converts a {@link LockException} object to a {@link LockException}
+     * Converts a {@link LockException} object to a {@link LockExceptionDto}
      * object.
      *
      * @param lockException the {@link LockException}.
