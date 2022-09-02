@@ -73,7 +73,7 @@ public class DataSetValueController
 
     private final DataSetService dataSetService;
 
-    private CompleteDataSetRegistrationService registrationService;
+    private final CompleteDataSetRegistrationService registrationService;
 
     private final DataValidator dataValidator;
 
