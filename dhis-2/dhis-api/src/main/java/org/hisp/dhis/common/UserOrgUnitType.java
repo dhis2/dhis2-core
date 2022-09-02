@@ -25,16 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.view;
+package org.hisp.dhis.common;
 
-import org.hisp.dhis.tracker.TrackerType;
+import static java.util.Arrays.stream;
+
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * @author Luciano Fiandesio
  */
-public interface TrackerDto
+@JacksonXmlRootElement( localName = "userOrgUnitType", namespace = DxfNamespaces.DXF_2_0 )
+public enum UserOrgUnitType
 {
-    String getUid();
+    DATA_CAPTURE,
+    DATA_OUTPUT,
+    TEI_SEARCH;
 
-    TrackerType getTrackerType();
+    public static UserOrgUnitType fromValue( String name )
+    {
+        return stream( values() ).filter( t -> t.name().equalsIgnoreCase( name ) ).findFirst().orElse( null );
+    }
 }

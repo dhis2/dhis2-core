@@ -177,20 +177,22 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
             throw new WebMessageException( notFound( getEntityClass(), pvUid ) );
         }
 
-        T persistedObject = entities.get( 0 );
+        T patchedObject = entities.get( 0 );
+        T persistedObject = jsonPatchManager.apply( new JsonPatch( List.of() ), patchedObject );
 
-        if ( !aclService.canUpdate( currentUser, persistedObject ) )
+        if ( !aclService.canUpdate( currentUser, patchedObject ) )
         {
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
         }
 
         Patch patch = diff( request );
 
-        prePatchEntity( persistedObject );
-        patchService.apply( patch, persistedObject );
-        validateAndThrowErrors( () -> schemaValidator.validate( persistedObject ) );
-        manager.update( persistedObject );
-        postPatchEntity( persistedObject );
+        patchService.apply( patch, patchedObject );
+        prePatchEntity( persistedObject, patchedObject );
+
+        validateAndThrowErrors( () -> schemaValidator.validate( patchedObject ) );
+        manager.update( patchedObject );
+        postPatchEntity( patchedObject );
     }
 
     @PatchMapping( "/{uid}/{property}" )
@@ -218,9 +220,10 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         }
 
         Property property = getSchema().getProperty( pvProperty );
-        T persistedObject = entities.get( 0 );
+        T patchedObject = entities.get( 0 );
+        T persistedObject = jsonPatchManager.apply( new JsonPatch( List.of() ), patchedObject );
 
-        if ( !aclService.canUpdate( currentUser, persistedObject ) )
+        if ( !aclService.canUpdate( currentUser, patchedObject ) )
         {
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
         }
@@ -237,15 +240,15 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
             throw new WebMessageException( badRequest( "Unknown payload format." ) );
         }
 
-        prePatchEntity( persistedObject );
         Object value = property.getGetterMethod().invoke( object );
-        property.getSetterMethod().invoke( persistedObject, value );
+        property.getSetterMethod().invoke( patchedObject, value );
+        prePatchEntity( persistedObject, patchedObject );
 
         Map<String, List<String>> parameterValuesMap = contextService.getParameterValuesMap();
         MetadataImportParams params = importService.getParamsFromMap( parameterValuesMap );
         params.setUser( currentUser )
             .setImportStrategy( ImportStrategy.UPDATE )
-            .addObject( persistedObject );
+            .addObject( patchedObject );
 
         ImportReport importReport = importService.importMetadata( params );
         if ( importReport.getStatus() != Status.OK )
@@ -253,7 +256,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
             throw new WebMessageException( objectReport( importReport ) );
         }
 
-        postPatchEntity( persistedObject );
+        postPatchEntity( patchedObject );
     }
 
     // --------------------------------------------------------------------------
@@ -296,10 +299,10 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
         manager.resetNonOwnerProperties( persistedObject );
 
-        prePatchEntity( persistedObject );
-
         final JsonPatch patch = jsonMapper.readValue( request.getInputStream(), JsonPatch.class );
         final T patchedObject = jsonPatchManager.apply( patch, persistedObject );
+
+        prePatchEntity( patchedObject, patchedObject );
 
         // Do not allow changing IDs
         ((BaseIdentifiableObject) patchedObject).setId( persistedObject.getId() );
@@ -961,11 +964,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     }
 
     protected void prePatchEntity( T entity, T newEntity )
-        throws Exception
-    {
-    }
-
-    protected void prePatchEntity( T newEntity )
         throws Exception
     {
     }

@@ -44,11 +44,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Kristian Nordal
- * @version $Id: PeriodServiceTest.java 5983 2008-10-17 17:42:44Z larshelg $
  */
 class PeriodServiceTest extends SingleSetupIntegrationTestBase
 {
-
     @Autowired
     private PeriodService periodService;
 
@@ -61,7 +59,7 @@ class PeriodServiceTest extends SingleSetupIntegrationTestBase
     @Test
     void testAddPeriod()
     {
-        List<PeriodType> periodTypes = periodService.getAllPeriodTypes();
+        List<PeriodType> periodTypes = PeriodType.getAvailablePeriodTypes();
         Iterator<PeriodType> it = periodTypes.iterator();
         PeriodType periodTypeA = it.next();
         PeriodType periodTypeB = it.next();
@@ -94,7 +92,7 @@ class PeriodServiceTest extends SingleSetupIntegrationTestBase
     @Test
     void testDeleteAndGetPeriod()
     {
-        List<PeriodType> periodTypes = periodService.getAllPeriodTypes();
+        List<PeriodType> periodTypes = PeriodType.getAvailablePeriodTypes();
         Iterator<PeriodType> it = periodTypes.iterator();
         PeriodType periodTypeA = it.next();
         PeriodType periodTypeB = it.next();
@@ -135,7 +133,7 @@ class PeriodServiceTest extends SingleSetupIntegrationTestBase
     @Test
     void testGetPeriod()
     {
-        List<PeriodType> periodTypes = periodService.getAllPeriodTypes();
+        List<PeriodType> periodTypes = PeriodType.getAvailablePeriodTypes();
         Iterator<PeriodType> it = periodTypes.iterator();
         PeriodType periodTypeA = it.next();
         PeriodType periodTypeB = it.next();
@@ -189,7 +187,7 @@ class PeriodServiceTest extends SingleSetupIntegrationTestBase
     @Test
     void testGetAllPeriods()
     {
-        PeriodType periodType = periodService.getAllPeriodTypes().iterator().next();
+        PeriodType periodType = PeriodType.getAvailablePeriodTypes().iterator().next();
         Period periodA = new Period( periodType, getDay( 1 ), getDay( 2 ) );
         Period periodB = new Period( periodType, getDay( 2 ), getDay( 3 ) );
         Period periodC = new Period( periodType, getDay( 3 ), getDay( 4 ) );
@@ -207,7 +205,7 @@ class PeriodServiceTest extends SingleSetupIntegrationTestBase
     @Test
     void testGetPeriodsBetweenDates()
     {
-        List<PeriodType> periodTypes = periodService.getAllPeriodTypes();
+        List<PeriodType> periodTypes = PeriodType.getAvailablePeriodTypes();
         Iterator<PeriodType> it = periodTypes.iterator();
         PeriodType periodTypeA = it.next();
         PeriodType periodTypeB = it.next();
@@ -244,7 +242,7 @@ class PeriodServiceTest extends SingleSetupIntegrationTestBase
     @Test
     void testGetIntersectingPeriods()
     {
-        PeriodType type = periodService.getAllPeriodTypes().iterator().next();
+        PeriodType type = PeriodType.getAvailablePeriodTypes().iterator().next();
         Period periodA = new Period( type, getDay( 1 ), getDay( 2 ) );
         Period periodB = new Period( type, getDay( 2 ), getDay( 4 ) );
         Period periodC = new Period( type, getDay( 4 ), getDay( 6 ) );
@@ -280,7 +278,7 @@ class PeriodServiceTest extends SingleSetupIntegrationTestBase
     @Test
     void testGetPeriodsByPeriodType()
     {
-        List<PeriodType> periodTypes = periodService.getAllPeriodTypes();
+        List<PeriodType> periodTypes = PeriodType.getAvailablePeriodTypes();
         Iterator<PeriodType> it = periodTypes.iterator();
         PeriodType periodTypeA = it.next();
         PeriodType periodTypeB = it.next();
@@ -313,7 +311,7 @@ class PeriodServiceTest extends SingleSetupIntegrationTestBase
     @Test
     void testGetInclusivePeriods()
     {
-        PeriodType periodType = periodService.getAllPeriodTypes().iterator().next();
+        PeriodType periodType = PeriodType.getAvailablePeriodTypes().iterator().next();
         Period periodA = new Period( periodType, getDay( 5 ), getDay( 8 ) );
         Period periodB = new Period( periodType, getDay( 8 ), getDay( 11 ) );
         Period periodC = new Period( periodType, getDay( 11 ), getDay( 14 ) );
@@ -350,7 +348,7 @@ class PeriodServiceTest extends SingleSetupIntegrationTestBase
     @Test
     void testGetAndGetAllPeriodTypes()
     {
-        List<PeriodType> periodTypes = periodService.getAllPeriodTypes();
+        List<PeriodType> periodTypes = PeriodType.getAvailablePeriodTypes();
         Iterator<PeriodType> it = periodTypes.iterator();
         PeriodType periodTypeA = it.next();
         PeriodType periodTypeB = it.next();
@@ -365,7 +363,7 @@ class PeriodServiceTest extends SingleSetupIntegrationTestBase
     @Test
     void testGetPeriodTypeByName()
     {
-        List<PeriodType> periodTypes = periodService.getAllPeriodTypes();
+        List<PeriodType> periodTypes = PeriodType.getAvailablePeriodTypes();
         Iterator<PeriodType> it = periodTypes.iterator();
         PeriodType refA = it.next();
         PeriodType refB = it.next();
@@ -380,7 +378,7 @@ class PeriodServiceTest extends SingleSetupIntegrationTestBase
     @Test
     void testDeleteAndGetPeriodType()
     {
-        List<PeriodType> periodTypes = periodService.getAllPeriodTypes();
+        List<PeriodType> periodTypes = PeriodType.getAvailablePeriodTypes();
         Iterator<PeriodType> it = periodTypes.iterator();
         PeriodType periodTypeA = it.next();
         PeriodType periodTypeB = it.next();

@@ -31,6 +31,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -157,4 +158,12 @@ public interface DataValueStore
      * @return the number of DataValues.
      */
     int getDataValueCountLastUpdatedBetween( Date startDate, Date endDate, boolean includeDeleted );
+
+    /**
+     * Checks if any data values exist for the provided {@link CategoryCombo}.
+     *
+     * @param combo the combo to check
+     * @return true, if any value exist, otherwise false
+     */
+    boolean dataValueExists( CategoryCombo combo );
 }

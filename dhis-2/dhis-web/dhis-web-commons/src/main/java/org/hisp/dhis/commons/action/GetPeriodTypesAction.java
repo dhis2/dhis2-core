@@ -31,7 +31,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.hisp.dhis.paging.ActionPagingSupport;
-import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 
 /**
@@ -40,17 +39,6 @@ import org.hisp.dhis.period.PeriodType;
 public class GetPeriodTypesAction
     extends ActionPagingSupport<PeriodType>
 {
-    // -------------------------------------------------------------------------
-    // Dependency
-    // -------------------------------------------------------------------------
-
-    private PeriodService periodService;
-
-    public void setPeriodService( PeriodService periodService )
-    {
-        this.periodService = periodService;
-    }
-
     // -------------------------------------------------------------------------
     // Output
     // -------------------------------------------------------------------------
@@ -70,7 +58,7 @@ public class GetPeriodTypesAction
     public String execute()
         throws Exception
     {
-        periodTypes = new ArrayList<>( periodService.getAllPeriodTypes() );
+        periodTypes = new ArrayList<>( PeriodType.getAvailablePeriodTypes() );
 
         if ( usePaging )
         {

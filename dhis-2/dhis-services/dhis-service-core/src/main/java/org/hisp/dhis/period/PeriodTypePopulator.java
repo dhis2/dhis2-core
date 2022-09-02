@@ -29,6 +29,7 @@ package org.hisp.dhis.period;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -70,7 +71,7 @@ public class PeriodTypePopulator
     @Override
     public void executeInTransaction()
     {
-        List<PeriodType> types = PeriodType.getAvailablePeriodTypes();
+        List<PeriodType> types = new ArrayList<>( PeriodType.getAvailablePeriodTypes() );
 
         Collection<PeriodType> storedTypes = periodStore.getAllPeriodTypes();
 

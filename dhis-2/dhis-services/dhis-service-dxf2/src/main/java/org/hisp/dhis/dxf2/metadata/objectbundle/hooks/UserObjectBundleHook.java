@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
+import static org.hisp.dhis.user.User.populateUserCredentialsDtoFields;
+
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
@@ -81,6 +83,8 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
     public void validate( User user, ObjectBundle bundle,
         Consumer<ErrorReport> addReports )
     {
+        populateUserCredentialsDtoFields( user );
+
         if ( bundle.getImportMode().isCreate() && !ValidationUtils.usernameIsValid( user.getUsername(),
             user.isInvitation() ) )
         {
