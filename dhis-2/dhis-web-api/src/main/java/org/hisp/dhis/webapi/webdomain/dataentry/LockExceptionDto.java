@@ -25,34 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataset;
+package org.hisp.dhis.webapi.webdomain.dataentry;
 
-import java.util.List;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 
-import org.hisp.dhis.common.GenericStore;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * DTO which represents a lock exception.
+ *
+ * @author Lars Helge Overland
  */
-public interface LockExceptionStore
-    extends GenericStore<LockException>
+@Getter
+@Setter
+@Accessors( chain = true )
+@NoArgsConstructor
+public class LockExceptionDto
 {
-    List<LockException> getLockExceptions( List<DataSet> dataSets );
+    @JsonProperty
+    private String period;
 
-    List<LockException> getLockExceptionCombinations();
+    @JsonProperty
+    private String orgUnit;
 
-    void deleteLockExceptions( DataSet dataSet, Period period );
-
-    void deleteLockExceptions( DataSet dataSet, Period period, OrganisationUnit organisationUnit );
-
-    void deleteLockExceptions( OrganisationUnit organisationUnit );
-
-    long getCount( DataElement dataElement, Period period, OrganisationUnit organisationUnit );
-
-    long getCount( DataSet dataSet, Period period, OrganisationUnit organisationUnit );
-
-    boolean anyExists();
+    @JsonProperty
+    private String dataSet;
 }

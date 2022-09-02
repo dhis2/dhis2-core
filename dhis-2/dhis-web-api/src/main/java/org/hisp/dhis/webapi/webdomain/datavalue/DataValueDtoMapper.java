@@ -42,6 +42,10 @@ import org.hisp.dhis.minmax.MinMaxDataElement;
  */
 public class DataValueDtoMapper
 {
+    DataValueDtoMapper()
+    {
+    }
+
     /**
      * Converts a {@link DataValueAudit} object to a {@link DataValueAuditDto}
      * object.

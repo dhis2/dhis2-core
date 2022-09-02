@@ -43,7 +43,6 @@ import org.hisp.dhis.dataapproval.DataApproval;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataapproval.DataApprovalService;
-import org.hisp.dhis.dataapproval.DataApprovalStore;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -73,7 +72,6 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 class DataSetServiceTest extends TransactionalIntegrationTest
 {
-
     private PeriodType periodType;
 
     private Period period;
@@ -118,9 +116,6 @@ class DataSetServiceTest extends TransactionalIntegrationTest
 
     @Autowired
     private CurrentUserService currentUserService;
-
-    @Autowired
-    private DataApprovalStore approvalStore;
 
     @Autowired
     private DataApprovalService dataApprovalService;
