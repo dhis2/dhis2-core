@@ -129,7 +129,7 @@ class EventRequestToParamsMapperTest
 
         EventSearchParams eventSearchParams = requestToSearchParamsMapper.map( "programuid",
             null, null, null, "orgunituid", OrganisationUnitSelectionMode.ACCESSIBLE, "teiUid",
-            null, null, null, null, null,
+            null, null, null, null, null, null,
             null, null, null,
             null, null, null, null,
             false, false, null, null,

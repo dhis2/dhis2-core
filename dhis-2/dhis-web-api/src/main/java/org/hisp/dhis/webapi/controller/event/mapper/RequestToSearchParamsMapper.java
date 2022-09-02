@@ -124,7 +124,8 @@ public class RequestToSearchParamsMapper
 
     public EventSearchParams map( String program, String programStage, ProgramStatus programStatus, Boolean followUp,
         String orgUnit, OrganisationUnitSelectionMode orgUnitSelectionMode, String trackedEntityInstance,
-        Date startDate, Date endDate, Date dueDateStart, Date dueDateEnd, Date lastUpdatedStartDate,
+        Date startDate, Date endDate, Date dueDateStart, Date dueDateEnd, Date enrollmentEnrolledAfter,
+        Date lastUpdatedStartDate,
         Date lastUpdatedEndDate, String lastUpdatedDuration, EventStatus status,
         CategoryOptionCombo attributeOptionCombo, IdSchemes idSchemes, Integer page, Integer pageSize,
         boolean totalPages, boolean skipPaging, List<OrderParam> orders, List<OrderParam> gridOrders,
@@ -134,7 +135,8 @@ public class RequestToSearchParamsMapper
         boolean includeDeleted )
     {
         return map( program, programStage, programStatus, followUp, orgUnit, orgUnitSelectionMode,
-            trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate,
+            trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, enrollmentEnrolledAfter,
+            lastUpdatedStartDate,
             lastUpdatedEndDate, lastUpdatedDuration, status, attributeOptionCombo, idSchemes, page, pageSize,
             totalPages, skipPaging, orders, gridOrders, includeAttributes, events, null, skipEventId,
             assignedUserSelectionMode, assignedUsers, filters, dataElements, includeAllDataElements, includeDeleted );
@@ -142,7 +144,8 @@ public class RequestToSearchParamsMapper
 
     public EventSearchParams map( String program, String programStage, ProgramStatus programStatus, Boolean followUp,
         String orgUnit, OrganisationUnitSelectionMode orgUnitSelectionMode, String trackedEntityInstance,
-        Date startDate, Date endDate, Date dueDateStart, Date dueDateEnd, Date lastUpdatedStartDate,
+        Date startDate, Date endDate, Date dueDateStart, Date dueDateEnd, Date enrollmentEnrolledAfter,
+        Date lastUpdatedStartDate,
         Date lastUpdatedEndDate, String lastUpdatedDuration, EventStatus status,
         CategoryOptionCombo attributeOptionCombo, IdSchemes idSchemes, Integer page, Integer pageSize,
         boolean totalPages, boolean skipPaging, List<OrderParam> orders, List<OrderParam> gridOrders,
@@ -261,6 +264,7 @@ public class RequestToSearchParamsMapper
             .setProgramStatus( programStatus ).setFollowUp( followUp ).setOrgUnitSelectionMode( orgUnitSelectionMode )
             .setAssignedUserSelectionMode( assignedUserSelectionMode ).setAssignedUsers( assignedUsers )
             .setStartDate( startDate ).setEndDate( endDate ).setDueDateStart( dueDateStart ).setDueDateEnd( dueDateEnd )
+            .setEnrollmentEnrolledAfter( enrollmentEnrolledAfter )
             .setLastUpdatedStartDate( lastUpdatedStartDate ).setLastUpdatedEndDate( lastUpdatedEndDate )
             .setLastUpdatedDuration( lastUpdatedDuration ).setEventStatus( status )
             .setCategoryOptionCombo( attributeOptionCombo ).setIdSchemes( idSchemes ).setPage( page )
@@ -328,6 +332,7 @@ public class RequestToSearchParamsMapper
             eventCriteria.getEndDate(),
             eventCriteria.getDueDateStart(),
             eventCriteria.getDueDateEnd(),
+            eventCriteria.getEnrollmentEnrolledAfter(),
             eventCriteria.getLastUpdatedStartDate() != null ? eventCriteria.getLastUpdatedStartDate()
                 : eventCriteria.getLastUpdated(),
             eventCriteria.getLastUpdatedEndDate(),

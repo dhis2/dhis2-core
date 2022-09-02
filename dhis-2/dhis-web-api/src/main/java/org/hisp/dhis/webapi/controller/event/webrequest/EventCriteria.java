@@ -103,6 +103,8 @@ public class EventCriteria extends PagingAndSortingCriteriaAdapter
 
     private Boolean skipEventId;
 
+    private Date enrollmentEnrolledAfter;
+
     private Set<String> filter;
 
     private Set<String> programInstances;

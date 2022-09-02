@@ -270,8 +270,10 @@ public class EventController
 
         skipPaging = PagerUtils.isSkipPaging( skipPaging, paging );
 
+        // TODO(DHIS2-13648)
         EventSearchParams params = requestToSearchParamsMapper.map( program, programStage, programStatus, followUp,
-            orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate,
+            orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, null,
+            lastUpdatedStartDate,
             lastUpdatedEndDate, null, status, attributeOptionCombo, idSchemes, page, pageSize,
             totalPages, skipPaging, null, getGridOrderParams( order ), false, eventIds, false,
             assignedUserMode, assignedUserIds, filter, dataElement, includeAllDataElements, includeDeleted );
@@ -344,8 +346,10 @@ public class EventController
 
         skipPaging = PagerUtils.isSkipPaging( skipPaging, paging );
 
+        // TODO(DHIS2-13648)
         EventSearchParams params = requestToSearchParamsMapper.map( program, programStage, programStatus, followUp,
-            orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate,
+            orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, null,
+            lastUpdatedStartDate,
             lastUpdatedEndDate, null, status, attributeOptionCombo, idSchemes, page, pageSize,
             totalPages, skipPaging, null, getGridOrderParams( order ), false, eventIds, false,
             assignedUserMode, assignedUserIds, filter, dataElement, includeAllDataElements, includeDeleted );
@@ -417,8 +421,10 @@ public class EventController
 
         skipPaging = PagerUtils.isSkipPaging( skipPaging, paging );
 
+        // TODO(DHIS2-13648)
         EventSearchParams params = requestToSearchParamsMapper.map( program, programStage, programStatus, followUp,
-            orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate,
+            orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, null,
+            lastUpdatedStartDate,
             lastUpdatedEndDate, null, status, attributeOptionCombo, idSchemes, page, pageSize,
             totalPages, skipPaging, null, getGridOrderParams( order ), false, eventIds, false,
             assignedUserMode, assignedUserIds, filter, dataElement, includeAllDataElements, includeDeleted );
@@ -491,8 +497,10 @@ public class EventController
 
         skipPaging = PagerUtils.isSkipPaging( skipPaging, paging );
 
+        // TODO(DHIS2-13648)
         EventSearchParams params = requestToSearchParamsMapper.map( program, programStage, programStatus, followUp,
-            orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate,
+            orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, null,
+            lastUpdatedStartDate,
             lastUpdatedEndDate, null, status, attributeOptionCombo, idSchemes, page, pageSize,
             totalPages, skipPaging, null, getGridOrderParams( order ), false, eventIds, false,
             assignedUserMode, assignedUserIds, filter, dataElement, includeAllDataElements, includeDeleted );
@@ -693,8 +701,9 @@ public class EventController
 
         skipPaging = PagerUtils.isSkipPaging( skipPaging, paging );
 
+        // TODO(DHIS2-13648)
         EventSearchParams params = requestToSearchParamsMapper.map( program, null, programStatus, null,
-            orgUnit, ouMode, null, startDate, endDate, null, null,
+            orgUnit, ouMode, null, startDate, endDate, null, null, null,
             null, null, null, eventStatus, attributeOptionCombo,
             idSchemes, page, pageSize, totalPages, skipPaging, getOrderParams( order ),
             null, true, null, skipEventId, null, null, null,

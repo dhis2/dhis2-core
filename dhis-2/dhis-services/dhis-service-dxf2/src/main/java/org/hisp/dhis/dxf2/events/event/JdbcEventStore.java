@@ -206,6 +206,7 @@ public class JdbcEventStore implements EventStore
         .put( EVENT_PROGRAM_STAGE_ID, "ps_uid" )
         .put( EVENT_ENROLLMENT_ID, "pi_uid" )
         .put( "enrollmentStatus", "pi_status" )
+        .put( "enrolledAt", "pi.enrollmentdate" )
         .put( EVENT_ORG_UNIT_ID, "ou_uid" )
         .put( EVENT_ORG_UNIT_NAME, "ou_name" )
         .put( "trackedEntityInstance", "tei_uid" )
@@ -1239,6 +1240,15 @@ public class JdbcEventStore implements EventStore
             mapSqlParameterSource.addValue( "program_status", params.getProgramStatus().name() );
 
             sqlBuilder.append( hlp.whereAnd() ).append( " pi.status = " ).append( ":program_status " );
+        }
+
+        if ( params.getEnrollmentEnrolledAfter() != null )
+        {
+            mapSqlParameterSource.addValue( "enrollmentEnrolledAfter", params.getEnrollmentEnrolledAfter(),
+                Types.DATE );
+            sqlBuilder
+                .append( hlp.whereAnd() )
+                .append( " (pi.enrollmentdate >= :enrollmentEnrolledAfter ) " );
         }
 
         if ( params.getFollowUp() != null )

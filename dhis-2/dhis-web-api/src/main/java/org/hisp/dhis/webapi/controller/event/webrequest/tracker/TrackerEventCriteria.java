@@ -102,6 +102,8 @@ public class TrackerEventCriteria extends PagingAndSortingCriteriaAdapter
 
     private Boolean skipEventId;
 
+    private Date enrollmentEnrolledAfter;
+
     private Set<String> filter;
 
     private Set<String> enrollments;
