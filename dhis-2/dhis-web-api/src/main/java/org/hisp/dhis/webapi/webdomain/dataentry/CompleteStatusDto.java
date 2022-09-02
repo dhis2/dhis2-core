@@ -37,7 +37,7 @@ import lombok.experimental.Accessors;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * DTO which represents a custom data entry form.
+ * DTO which represents the completion status of a form.
  *
  * @author Lars Helge Overland
  */
