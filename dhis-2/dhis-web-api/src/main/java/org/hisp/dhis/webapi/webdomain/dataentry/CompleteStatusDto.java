@@ -55,7 +55,4 @@ public class CompleteStatusDto
 
     @JsonProperty
     private String completedBy;
-
-    @JsonProperty
-    private String lastUpdatedBy;
 }
