@@ -195,7 +195,7 @@ public class DefaultDataSetMetadataExportService
             .filter( Objects::nonNull )
             .collect( Collectors.toSet() );
 
-        dataElementOptionSets.addAll(commentOptionSets);
+        dataElementOptionSets.addAll( commentOptionSets );
 
         return dataElementOptionSets;
     }
