@@ -66,7 +66,7 @@ public class RemoveByIdOperation extends JsonPatchOperation
 
         if ( !nodePathExists( node ) )
         {
-            throw new JsonPatchException( String.format( "Invalid path %s", path ) );
+            return node;
         }
 
         final JsonNode parentNode = node.at( path );

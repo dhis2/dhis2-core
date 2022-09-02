@@ -18,12 +18,26 @@
           "id": "inVD5SdytkT"
         }
       ],
-      "username": "UserAA",
-      "userRoles": [
-        {
-          "id": "xJZBzAHI88H"
-        }
-      ],
+      "userCredentials": {
+        "externalAuth": false,
+        "disabled": false,
+        "invitation": false,
+        "userRoles": [
+          {
+            "id": "xJZBzAHI88H"
+          }
+        ],
+        "username": "UserAA",
+        "userInfo": {
+          "id": "sPWjoHSY03y"
+        },
+        "catDimensionConstraints": [],
+        "selfRegistered": false,
+        "user": {
+          "id": "enHApD3I6Ho"
+        },
+        "cogsDimensionConstraints": []
+      },
       "invitation": false,
       "disabled": false,
       "externalAuth": false,

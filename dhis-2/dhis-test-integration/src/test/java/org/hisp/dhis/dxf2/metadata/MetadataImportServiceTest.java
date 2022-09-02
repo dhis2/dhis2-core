@@ -852,6 +852,9 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
         params = createParams( ImportStrategy.CREATE_AND_UPDATE, metadata );
         report = importService.importMetadata( params );
         assertEquals( Status.OK, report.getStatus() );
+        User user = manager.get( User.class, "sPWjoHSY03y" );
+        assertNotNull( user );
+        assertTrue( user.getUserRoles().stream().anyMatch( userRole -> userRole.getUid().equals( "xJZBzAHI88H" ) ) );
     }
 
     @Test
