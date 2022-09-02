@@ -90,7 +90,7 @@ public class DataSetValueController
 
         List<MinMaxDataElement> minMaxValues = minMaxValueService.getMinMaxDataElements( ou, ds.getDataElements() );
 
-        LockStatus lockStatus = dataSetService.getLockStatus( null, ds, pe, ou, ao, null );
+        LockStatus lockStatus = dataSetService.getLockStatus( ds, pe, ou, ao );
 
         return new DataValuesDto()
             .setDataValues( mapToList( dataValues, DataValueDtoMapper::toDto ) )
