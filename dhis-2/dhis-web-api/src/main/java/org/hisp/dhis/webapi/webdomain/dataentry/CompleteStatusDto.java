@@ -25,23 +25,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.webdomain.datavalue;
+package org.hisp.dhis.webapi.webdomain.dataentry;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Date;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
-import org.hisp.dhis.dataset.LockStatus;
-import org.hisp.dhis.webapi.webdomain.dataentry.CompleteStatusDto;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * DTO which represents data values and min-max values for a data entry form.
+ * DTO which represents the completion status of a form.
  *
  * @author Lars Helge Overland
  */
@@ -49,17 +45,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Setter
 @Accessors( chain = true )
 @NoArgsConstructor
-public class DataValuesDto
+public class CompleteStatusDto
 {
     @JsonProperty
-    private List<DataValueDto> dataValues = new ArrayList<>();
+    private Boolean complete;
 
     @JsonProperty
-    private List<MinMaxValueDto> minMaxValues = new ArrayList<>();
+    private Date date;
 
     @JsonProperty
-    private LockStatus lockStatus;
-
-    @JsonProperty
-    private CompleteStatusDto completeStatus;
+    private String completedBy;
 }

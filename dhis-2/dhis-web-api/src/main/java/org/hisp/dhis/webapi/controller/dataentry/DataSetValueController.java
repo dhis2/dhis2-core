@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.dataentry;
 
 import static org.hisp.dhis.commons.collection.CollectionUtils.mapToList;
+import static org.hisp.dhis.webapi.webdomain.dataentry.DataEntryDtoMapper.toDto;
 
 import java.util.List;
 import java.util.Set;
@@ -36,6 +37,8 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.dataset.CompleteDataSetRegistration;
+import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dataset.LockStatus;
@@ -48,6 +51,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.webapi.controller.datavalue.DataValidator;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.webdomain.dataentry.CompleteStatusDto;
 import org.hisp.dhis.webapi.webdomain.datavalue.DataSetValueQueryParams;
 import org.hisp.dhis.webapi.webdomain.datavalue.DataValueDtoMapper;
 import org.hisp.dhis.webapi.webdomain.datavalue.DataValuesDto;
@@ -69,6 +73,8 @@ public class DataSetValueController
     private final MinMaxDataElementService minMaxValueService;
 
     private final DataSetService dataSetService;
+
+    private final CompleteDataSetRegistrationService registrationService;
 
     private final DataValidator dataValidator;
 
@@ -92,9 +98,13 @@ public class DataSetValueController
 
         LockStatus lockStatus = dataSetService.getLockStatus( ds, pe, ou, ao );
 
+        CompleteDataSetRegistration registration = registrationService
+            .getCompleteDataSetRegistration( ds, pe, ou, ao );
+
         return new DataValuesDto()
             .setDataValues( mapToList( dataValues, DataValueDtoMapper::toDto ) )
             .setMinMaxValues( mapToList( minMaxValues, DataValueDtoMapper::toDto ) )
-            .setLockStatus( lockStatus );
+            .setLockStatus( lockStatus )
+            .setCompleteStatus( registration != null ? toDto( registration ) : new CompleteStatusDto() );
     }
 }
