@@ -211,11 +211,10 @@ public interface DataSetService extends DataSetDataIntegrityProvider
      * @param period the period.
      * @param organisationUnit the organisation unit.
      * @param attributeOptionCombo the attribute option combo.
-     * @param now the base date for deciding locked date, current date if null.
      * @return the {@link LockStatus}.
      */
-    LockStatus getLockStatus( User user, DataSet dataSet, Period period, OrganisationUnit organisationUnit,
-        CategoryOptionCombo attributeOptionCombo, Date now );
+    LockStatus getLockStatus( DataSet dataSet, Period period,
+        OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo );
 
     /**
      * Checks whether the system is locked for data entry for the given input,
@@ -225,13 +224,29 @@ public interface DataSetService extends DataSetDataIntegrityProvider
      * @param period the period.
      * @param organisationUnit the organisation unit.
      * @param attributeOptionCombo the attribute option combo.
+     * @param user the user for deciding lock status.
+     * @param now the base date for deciding locked date, current date if null.
+     * @return the {@link LockStatus}.
+     */
+    LockStatus getLockStatus( DataSet dataSet, Period period, OrganisationUnit organisationUnit,
+        CategoryOptionCombo attributeOptionCombo, User user, Date now );
+
+    /**
+     * Checks whether the system is locked for data entry for the given input,
+     * checking expiry days, lock exceptions and data approvals.
+     *
+     * @param dataSet the data set
+     * @param period the period.
+     * @param organisationUnit the organisation unit.
+     * @param attributeOptionCombo the attribute option combo.
+     * @param user the user for deciding lock status.
      * @param now the base date for deciding locked date, current date if null.
      * @param useOrgUnitChildren whether to check children of the given org unit
      *        or the org unit only.
      * @return the {@link LockStatus}.
      */
-    LockStatus getLockStatus( User user, DataSet dataSet, Period period, OrganisationUnit organisationUnit,
-        CategoryOptionCombo attributeOptionCombo, Date now, boolean useOrgUnitChildren );
+    LockStatus getLockStatus( DataSet dataSet, Period period, OrganisationUnit organisationUnit,
+        CategoryOptionCombo attributeOptionCombo, User user, Date now, boolean useOrgUnitChildren );
 
     /**
      * Checks whether the system is locked for data entry for the given input,
@@ -241,11 +256,12 @@ public interface DataSetService extends DataSetDataIntegrityProvider
      * @param period the period.
      * @param organisationUnit the organisation unit.
      * @param attributeOptionCombo the attribute option combo.
+     * @param user the user for deciding lock status.
      * @param now the base date for deciding locked date, current date if null.
      * @return the {@link LockStatus}.
      */
-    LockStatus getLockStatus( User user, DataElement dataElement, Period period, OrganisationUnit organisationUnit,
-        CategoryOptionCombo attributeOptionCombo, Date now );
+    LockStatus getLockStatus( DataElement dataElement, Period period, OrganisationUnit organisationUnit,
+        CategoryOptionCombo attributeOptionCombo, User user, Date now );
 
     /**
      * Deletes a dataSet and period combination, used for batch removal, e.g.

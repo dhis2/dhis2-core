@@ -37,6 +37,8 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.dataset.LockStatus;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
@@ -66,6 +68,8 @@ public class DataSetValueController
 
     private final MinMaxDataElementService minMaxValueService;
 
+    private final DataSetService dataSetService;
+
     private final DataValidator dataValidator;
 
     @GetMapping( "/dataValues" )
@@ -86,8 +90,11 @@ public class DataSetValueController
 
         List<MinMaxDataElement> minMaxValues = minMaxValueService.getMinMaxDataElements( ou, ds.getDataElements() );
 
+        LockStatus lockStatus = dataSetService.getLockStatus( ds, pe, ou, ao );
+
         return new DataValuesDto()
             .setDataValues( mapToList( dataValues, DataValueDtoMapper::toDto ) )
-            .setMinMaxValues( mapToList( minMaxValues, DataValueDtoMapper::toDto ) );
+            .setMinMaxValues( mapToList( minMaxValues, DataValueDtoMapper::toDto ) )
+            .setLockStatus( lockStatus );
     }
 }

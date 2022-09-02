@@ -35,6 +35,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
+import org.hisp.dhis.dataset.LockStatus;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -53,4 +55,7 @@ public class DataValuesDto
 
     @JsonProperty
     private List<MinMaxValueDto> minMaxValues = new ArrayList<>();
+
+    @JsonProperty
+    private LockStatus lockStatus;
 }

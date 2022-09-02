@@ -268,7 +268,7 @@ class DataValueListenerTest extends DhisConvenienceTest
         when( smsCommandService.getSMSCommand( anyString(), any() ) ).thenReturn( keyValueCommand );
 
         // Mock for dataSetService
-        when( dataSetService.getLockStatus( any(), any( DataSet.class ), any(), any(), any(), any() ) )
+        when( dataSetService.getLockStatus( any( DataSet.class ), any(), any(), any() ) )
             .thenReturn( LockStatus.OPEN );
 
         // Mock for incomingSmsService
@@ -324,7 +324,7 @@ class DataValueListenerTest extends DhisConvenienceTest
         when( smsCommandService.getSMSCommand( anyString(), any() ) ).thenReturn( keyValueCommand );
 
         incomingSms.setUser( user );
-        when( dataSetService.getLockStatus( any(), any( DataSet.class ), any(), any(), any(), any() ) )
+        when( dataSetService.getLockStatus( any( DataSet.class ), any(), any(), any() ) )
             .thenReturn( LockStatus.OPEN );
         subject.receive( incomingSms );
 
@@ -353,7 +353,7 @@ class DataValueListenerTest extends DhisConvenienceTest
 
         assertEquals( SMSCommand.NO_USER_MESSAGE, message );
         assertNull( updatedIncomingSms );
-        verify( dataSetService, never() ).getLockStatus( any(), any( DataSet.class ), any(), any(), any(), any() );
+        verify( dataSetService, never() ).getLockStatus( any( DataSet.class ), any(), any(), any() );
     }
 
     @Test
@@ -377,7 +377,7 @@ class DataValueListenerTest extends DhisConvenienceTest
 
         assertEquals( SMSCommand.MORE_THAN_ONE_ORGUNIT_MESSAGE, message );
         assertNull( updatedIncomingSms );
-        verify( dataSetService, never() ).getLockStatus( any(), any( DataSet.class ), any(), any(), any(), any() );
+        verify( dataSetService, never() ).getLockStatus( any( DataSet.class ), any(), any(), any() );
 
         keyValueCommand.setMoreThanOneOrgUnitMessage( MORE_THAN_ONE_OU );
 
@@ -422,7 +422,7 @@ class DataValueListenerTest extends DhisConvenienceTest
 
         assertEquals( message, SMSCommand.WRONG_FORMAT_MESSAGE );
         assertNull( updatedIncomingSms );
-        verify( dataSetService, never() ).getLockStatus( any(), any( DataSet.class ), any(), any(), any(), any() );
+        verify( dataSetService, never() ).getLockStatus( any( DataSet.class ), any(), any(), any() );
 
         keyValueCommand.setWrongFormatMessage( WRONG_FORMAT );
         subject.receive( incomingSmsForCustomSeparator );
@@ -477,8 +477,8 @@ class DataValueListenerTest extends DhisConvenienceTest
         assertNotNull( updatedIncomingSms );
         assertEquals( SmsMessageStatus.FAILED, updatedIncomingSms.getStatus() );
         assertFalse( updatedIncomingSms.isParsed() );
-        verify( dataSetService, times( 0 ) ).getLockStatus( any( User.class ), any( DataSet.class ),
-            any( Period.class ), any( OrganisationUnit.class ), any( CategoryOptionCombo.class ), any( Date.class ) );
+        verify( dataSetService, times( 0 ) ).getLockStatus( any( DataSet.class ),
+            any( Period.class ), any( OrganisationUnit.class ), any( CategoryOptionCombo.class ) );
     }
 
     @Test
