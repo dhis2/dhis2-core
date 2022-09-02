@@ -48,10 +48,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class CompleteStatusDto
 {
     @JsonProperty
-    private Boolean complete;
+    private boolean complete = false;
 
     @JsonProperty
-    private Date date;
+    private Date created;
+
+    @JsonProperty
+    private Date lastUpdated;
 
     @JsonProperty
     private String completedBy;
