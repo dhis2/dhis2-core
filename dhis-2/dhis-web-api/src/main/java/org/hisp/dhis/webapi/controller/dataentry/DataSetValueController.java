@@ -51,6 +51,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.webapi.controller.datavalue.DataValidator;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.webdomain.dataentry.CompleteStatusDto;
 import org.hisp.dhis.webapi.webdomain.datavalue.DataSetValueQueryParams;
 import org.hisp.dhis.webapi.webdomain.datavalue.DataValueDtoMapper;
 import org.hisp.dhis.webapi.webdomain.datavalue.DataValuesDto;
@@ -104,6 +105,6 @@ public class DataSetValueController
             .setDataValues( mapToList( dataValues, DataValueDtoMapper::toDto ) )
             .setMinMaxValues( mapToList( minMaxValues, DataValueDtoMapper::toDto ) )
             .setLockStatus( lockStatus )
-            .setCompleteStatus( registration != null ? toDto( registration ) : null );
+            .setCompleteStatus( registration != null ? toDto( registration ) : new CompleteStatusDto() );
     }
 }
