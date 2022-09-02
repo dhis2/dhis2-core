@@ -51,7 +51,10 @@ public class CompleteStatusDto
     private boolean complete = false;
 
     @JsonProperty
-    private Date date;
+    private Date created;
+
+    @JsonProperty
+    private Date lastUpdated;
 
     @JsonProperty
     private String completedBy;
