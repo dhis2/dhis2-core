@@ -20,45 +20,46 @@
 
     <div id="accountInput">
 
-##        <h3><span id="create_new_account">$i18n.getString( "expired_password" )</span></h3>
-        <h3><span id="create_new_account">ENROL QR CODE</span></h3>
+        <h3><span id="enrol_two_fa">$i18n.getString( "enrol_2fa_title" )</span></h3>
 
-        <form id="accountForm">
+        <div><b><span id="enrol_two_fa">$i18n.getString( "enrol_2fa_description" )</span></b>
+            <span>With 2-Factor authentication turned on you will be asked to enter a second verification code when you log in. To generate this verification code you must use the Authenticator app. If you do not have this app you must download it on your phone/tablet.</span>
+        </div>
+
+        <div>
+            <img alt="qrCode" src="$qrUrl" style="padding: 1rem;">
+        </div>
+
+        <form id="loginForm" action="../../dhis-web-commons-security/login.action" method="post">
 
             <table>
                 <tr>
                     <td><label id="label_username" for="username">$i18n.getString( "user_name" )</label></td>
-                    <td><input type="text" id="username" name="username" value="$username" disabled autocomplete}="off"></td>
+                    <td><input type="text" id="j_username" name="j_username" placeholder="Username" readonly value="$username"></td>
                 </tr>
                 <tr>
-                    <td><label id="label_oldpassword" for="oldPassword">$i18n.getString( "old_password" )</label></td>
-                    <td><input type="password" id="oldPassword" name="oldPassword" autocomplete="off" placeholder="$i18n.getString( 'password_hint' )"></td>
+                    <td><label id="label_password" for="password">$i18n.getString( "password" )</label></td>
+                    <td><input type="password" id="j_password" name="j_password" autocomplete="off"
+                               placeholder="Password" required></td>
                 </tr>
                 <tr>
-                    <td><label id="label_password" for="password">$i18n.getString( "new_password" )</label></td>
-                    <td><input type="password" id="password" name="password" autocomplete="off" placeholder="$i18n.getString( 'password_hint' )"></td>
+                    <td><label id="label_retypePassword" for="retypePassword">$i18n.getString(
+                        'two_factor_code')</label></td>
+                    <td><input type="text" id="2fa_code" name="2fa_code">
+                    <td>
                 </tr>
-                <tr>
-                    <td><label id="label_retypePassword" for="retypePassword">$i18n.getString( "confirm_password" )</label></td>
-                    <td><input type="password" id="retypePassword" name="retypePassword" autocomplete="off"></td>
-                </tr>
-
                 <tr>
                     <td></td>
                     <td><label id="messageSpan" class="error" style="display:none"></label></td>
                 </tr>
-
                 <tr>
                     <td></td>
-                    <td><input id="submitButton" type="submit" value="$i18n.getString( 'save' )" style="width:10em"></td>
+                    <td><input id="submitButton" type="submit" value="$i18n.getString( 'login' )" style="width:10em">
+                    </td>
                 </tr>
             </table>
-
         </form>
-
     </div>
-
 </div>
-
 </body>
 </html>

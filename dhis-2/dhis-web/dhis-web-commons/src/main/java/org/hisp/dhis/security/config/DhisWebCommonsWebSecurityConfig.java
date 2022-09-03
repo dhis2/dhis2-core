@@ -36,7 +36,7 @@ import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.security.MappedRedirectStrategy;
-import org.hisp.dhis.security.authtentication.CustomAuthHandler;
+import org.hisp.dhis.security.authtentication.CustomAuthFailureHandler;
 import org.hisp.dhis.security.ldap.authentication.CustomLdapAuthenticationProvider;
 import org.hisp.dhis.security.oidc.DhisOidcLogoutSuccessHandler;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
@@ -159,7 +159,7 @@ public class DhisWebCommonsWebSecurityConfig
         private CustomLdapAuthenticationProvider customLdapAuthenticationProvider;
 
         @Autowired
-        private CustomAuthHandler customAuthHandler;
+        private CustomAuthFailureHandler customAuthFailureHandler;
 
         @Autowired
         private DefaultAuthenticationEventPublisher authenticationEventPublisher;
@@ -249,7 +249,7 @@ public class DhisWebCommonsWebSecurityConfig
                 .loginPage( "/dhis-web-commons/security/login.action" )
                 .usernameParameter( "j_username" ).passwordParameter( "j_password" )
                 .loginProcessingUrl( "/dhis-web-commons-security/login.action" )
-                .failureHandler( customAuthHandler )
+                .failureHandler( customAuthFailureHandler )
 //                .failureHandler( authenticationFailureHandler() )
                 .successHandler( authenticationSuccessHandler() )
                 .permitAll()

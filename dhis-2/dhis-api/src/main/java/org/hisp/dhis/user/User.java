@@ -183,7 +183,7 @@ public class User
 
     private boolean isAccountNonLocked;
 
-//    private boolean requires2FA;
+    // private boolean requires2FA;
 
     /**
      * The timestamp representing when the user account expires. If not set the
@@ -537,24 +537,24 @@ public class User
         this.password = password;
     }
 
-//    @JsonProperty
-//    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-//    public boolean isRequires2FA()
-//    {
-//        return requires2FA;
-//    }
-//
-//    public void setRequires2FA( boolean requires2FA )
-//    {
-//        this.requires2FA = requires2FA;
-//    }
+    // @JsonProperty
+    // @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    // public boolean isRequires2FA()
+    // {
+    // return requires2FA;
+    // }
+    //
+    // public void setRequires2FA( boolean requires2FA )
+    // {
+    // this.requires2FA = requires2FA;
+    // }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean hasTwoFAEnabled()
     {
-        //&& !this.secret.equals( TWO_FACTOR_ENROLLMENT_KEYWORD )
-        if ( this.secret != null   )
+        // && !this.secret.equals( TWO_FACTOR_ENROLLMENT_KEYWORD )
+        if ( this.secret != null )
         {
             return true;
         }
@@ -562,20 +562,20 @@ public class User
         return false;
     }
 
-//    /**
-//     * Set 2FA on user.
-//     *
-//     * @param twoFA true/false depending on activate or deactivate
-//     */
-//    public void setTwoFA( boolean twoFA )
-//    {
-//        this.twoFA = twoFA;
-//    }
+    // /**
+    // * Set 2FA on user.
+    // *
+    // * @param twoFA true/false depending on activate or deactivate
+    // */
+    // public void setTwoFA( boolean twoFA )
+    // {
+    // this.twoFA = twoFA;
+    // }
 
-//    public boolean getTwoFA()
-//    {
-//        return twoFA;
-//    }
+    // public boolean getTwoFA()
+    // {
+    // return twoFA;
+    // }
 
     @JsonIgnore
     public String getSecret()

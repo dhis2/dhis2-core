@@ -91,7 +91,7 @@ public class DhisOidcUserService
             User user = userService.getUserByOpenId( (String) claimValue );
             if ( user != null )
             {
-                CurrentUserDetails userDetails = userService.validateAndCreateUserDetails( user, user.getPassword() );
+                CurrentUserDetails userDetails = userService.createUserDetails( user );
                 return new DhisOidcUser( userDetails, attributes, IdTokenClaimNames.SUB, oidcUser.getIdToken() );
             }
         }

@@ -50,10 +50,13 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
 import javax.annotation.Nullable;
 
+import lombok.extern.slf4j.Slf4j;
+
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.AuditLogUtil;
@@ -74,17 +77,14 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.filter.UserRoleCanIssueFilter;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
-
-import com.google.common.collect.Lists;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.jboss.aerogear.security.otp.api.Base32;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.google.common.collect.Lists;
 
 /**
  * @author Chau Thu Tran
@@ -95,15 +95,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultUserService
     implements UserService
 {
-
-    public static final String TWO_FACTOR_CODE_APPROVAL_PREFIX = "APPROVAL_";
-
-    private Pattern BCRYPT_PATTERN = Pattern.compile( "\\A\\$2(a|y|b)?\\$(\\d\\d)\\$[./0-9A-Za-z]{53}" );
-
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final UserStore userStore;
 
     private final UserGroupService userGroupService;
@@ -151,14 +142,6 @@ public class DefaultUserService
         this.userDisplayNameCache = cacheProvider.createUserDisplayNameCache();
         this.aclService = aclService;
     }
-
-    // -------------------------------------------------------------------------
-    // UserService implementation
-    // -------------------------------------------------------------------------
-
-    // -------------------------------------------------------------------------
-    // User
-    // -------------------------------------------------------------------------
 
     @Override
     @Transactional
@@ -760,40 +743,44 @@ public class DefaultUserService
         return userStore.getExpiringUserAccounts( inDays );
     }
 
-    private void resetTwoFA( User user )
+    @Transactional
+    @Override
+    public void resetTwoFA( User user )
     {
         user.setSecret( null );
         updateUser( user );
     }
 
     @Transactional
-    @Override public void enableTwoFA( User user, String code )
+    @Override
+    public void enableTwoFA( User user, String code )
     {
         if ( user.getSecret() == null )
         {
             throw new IllegalStateException( "User has not asked for a QR code yet, call the /qr endpoint first" );
         }
 
-        if ( !user.getSecret().startsWith( TWO_FACTOR_CODE_APPROVAL_PREFIX ) )
+        if ( !UserService.hasTwoFactorSecretForApproval( user ) )
         {
             throw new IllegalStateException(
                 "QR already approved, you must call /disable and then call /qr before you can enable" );
 
         }
 
-        validateCode( user, code );
+        TwoFactoryAuthenticationUtils.verify( code, user.getSecret() );
         approveTwoFactorCode( user );
     }
 
     @Transactional
-    @Override public void disableTwoFA( User user, String code )
+    @Override
+    public void disableTwoFA( User user, String code )
     {
         if ( user.getSecret() == null )
         {
             throw new IllegalStateException( "Two factor is not enabled, enable first" );
         }
 
-        validateCode( user, code );
+        TwoFactoryAuthenticationUtils.verify( code, user.getSecret() );
         resetTwoFA( user );
     }
 
@@ -822,25 +809,25 @@ public class DefaultUserService
         resetTwoFA( user );
     }
 
-    private static void validateCode( User currentUser, String code )
-    {
-        if ( currentUser == null )
-        {
-            throw new BadCredentialsException( "No current user" );
-        }
-
-        if ( code == null || code.isEmpty() )
-        {
-            throw new BadCredentialsException( "No code provided" );
-        }
-
-        if ( TwoFactoryAuthenticationUtils.verify( currentUser, code ) )
-        {
-            throw new BadCredentialsException( "Invalid OTP code" );
-            //throw new WebMessageException( conflict( E3023.getMessage(), E3023 ) );
-        }
-
-    }
+    // private static void verifyCode( String code, String secret )
+    // {
+    // if ( secret == null || secret.isEmpty() )
+    // {
+    // throw new BadCredentialsException( "No secret" );
+    // }
+    //
+    // if ( code == null || code.isEmpty() )
+    // {
+    // throw new BadCredentialsException( "No code provided" );
+    // }
+    //
+    // if ( TwoFactoryAuthenticationUtils.verify( code, secret ) )
+    // {
+    // throw new BadCredentialsException( "Invalid OTP code" );
+    // //throw new WebMesageException( conflict( E3023.getMessage(), E3023 ) );
+    // }
+    //
+    // }
 
     @Override
     public void expireActiveSessions( User user )
@@ -891,7 +878,7 @@ public class DefaultUserService
 
     @Override
     @Transactional( readOnly = true )
-    public CurrentUserDetails validateAndCreateUserDetails( User user, String password )
+    public CurrentUserDetails createUserDetails( User user )
     {
         Objects.requireNonNull( user );
 
@@ -908,11 +895,11 @@ public class DefaultUserService
                 username, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked ) );
         }
 
-        return createUserDetails( user, password, accountNonLocked, credentialsNonExpired );
+        return createUserDetails( user, accountNonLocked, credentialsNonExpired );
     }
 
     @Override
-    public CurrentUserDetailsImpl createUserDetails( User user, String password, boolean accountNonLocked,
+    public CurrentUserDetailsImpl createUserDetails( User user, boolean accountNonLocked,
         boolean credentialsNonExpired )
     {
         return CurrentUserDetailsImpl.builder()
@@ -955,7 +942,8 @@ public class DefaultUserService
     @Transactional
     public void generateTwoFactorSecretForApproval( User user )
     {
-        user.setSecret( TWO_FACTOR_CODE_APPROVAL_PREFIX + Base32.random() );
+        String newSecret = TWO_FACTOR_CODE_APPROVAL_PREFIX + Base32.random();
+        user.setSecret( newSecret );
         updateUser( user );
     }
 
@@ -963,18 +951,18 @@ public class DefaultUserService
     @Transactional
     public void approveTwoFactorCode( User user )
     {
-        if ( user.getSecret() != null && user.getSecret().startsWith( TWO_FACTOR_CODE_APPROVAL_PREFIX ) )
+        if ( user.getSecret() != null && UserService.hasTwoFactorSecretForApproval( user ) )
         {
             user.setSecret( user.getSecret().replace( TWO_FACTOR_CODE_APPROVAL_PREFIX, "" ) );
             updateUser( user );
         }
     }
 
-    @Override public boolean shouldHaveTwoFactorSecret( User user )
+    @Override
+    public boolean hasTwoFactorRequirementRole( User user )
     {
         return user.hasAnyAuthority( Set.of( "MUST_HAVE_2FA_ENABLED" ) );
     }
-
 
     @Override
     @Transactional

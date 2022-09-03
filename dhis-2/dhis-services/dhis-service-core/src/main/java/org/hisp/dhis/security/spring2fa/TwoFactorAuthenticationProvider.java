@@ -27,15 +27,14 @@
  */
 package org.hisp.dhis.security.spring2fa;
 
-import org.hisp.dhis.security.SecurityService;
-import org.hisp.dhis.security.TwoFactoryAuthenticationUtils;
-import org.hisp.dhis.user.CurrentUserDetails;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
-
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.LongValidator;
+import org.hisp.dhis.security.SecurityService;
+import org.hisp.dhis.security.TwoFactoryAuthenticationUtils;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -74,9 +73,9 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider
     public Authentication authenticate( Authentication auth )
         throws AuthenticationException
     {
-        log.debug( String.format( "Login attempt: %s", auth.getName() ) );
-
         String username = auth.getName();
+
+        log.debug( String.format( "Login attempt: %s", username ) );
 
         User user = userService.getUserWithEagerFetchAuthorities( username );
         if ( user == null )
@@ -84,40 +83,7 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider
             throw new BadCredentialsException( "Invalid username or password" );
         }
 
-        if ( userService.shouldHaveTwoFactorSecret( user ) && !user.hasTwoFAEnabled() )
-        {
-            throw new TwoFactorAuthenticationEnrolException( "User must enrol two factor authentication" );
-        }
-
-        if ( user.hasTwoFAEnabled() && !(auth.getDetails() instanceof TwoFactorWebAuthenticationDetails) )
-        {
-            throw new BadCredentialsException( "Can't authenticate non form based login with 2FA enabled" );
-        }
-
-        // -------------------------------------------------------------------------
-        // Check two-factor authentication
-        // -------------------------------------------------------------------------
-        if ( user.hasTwoFAEnabled() && auth.getDetails() instanceof TwoFactorWebAuthenticationDetails )
-        {
-            performTwoFactorAuthentication( auth, username, user );
-        }
-
-        // -------------------------------------------------------------------------
-        // Delegate authentication downstream, using User as
-        // principal
-        // -------------------------------------------------------------------------
-        Authentication result = super.authenticate( auth );
-
-        CurrentUserDetails currentUserDetails = userService.validateAndCreateUserDetails( user, user.getPassword() );
-
-        return new UsernamePasswordAuthenticationToken( currentUserDetails, result.getCredentials(),
-            result.getAuthorities() );
-    }
-
-    private void performTwoFactorAuthentication( Authentication auth, String username, User user )
-    {
         TwoFactorWebAuthenticationDetails authDetails = (TwoFactorWebAuthenticationDetails) auth.getDetails();
-
         if ( authDetails == null )
         {
             log.info( "Missing authentication details in authentication request." );
@@ -125,23 +91,83 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider
                 "Missing authentication details in authentication request." );
         }
 
-        String ip = authDetails.getIp();
-        String code = StringUtils.deleteWhitespace( authDetails.getCode() );
-
         if ( securityService.isLocked( username ) )
         {
+            String ip = ((TwoFactorWebAuthenticationDetails) auth.getDetails()).getIp();
             log.debug( String.format( "Temporary lockout for user: %s and IP: %s", username, ip ) );
-
             throw new LockedException( String.format( "IP is temporarily locked: %s", ip ) );
         }
 
-        if ( !LongValidator.getInstance().isValid( code ) || !TwoFactoryAuthenticationUtils.verify( user, code ) )
+        // Redirect to enrolment page if user has not enrolled in 2FA
+        if ( !user.hasTwoFAEnabled() && userService.hasTwoFactorRequirementRole( user ) )
+        {
+            throw new TwoFactorAuthenticationEnrolmentException( "User must setup two factor authentication" );
+        }
+
+        boolean resetApprovalCodeIfPasswordIsCorrect = false;
+
+        // Check 2FA code if user has enrolled in 2FA
+        if ( user.hasTwoFAEnabled() )
+        {
+            String code = StringUtils.deleteWhitespace( authDetails.getCode() );
+            boolean validCode = validateTwoFactorCode( code, user );
+
+            if ( !validCode )
+            {
+                if ( UserService.hasTwoFactorSecretForApproval( user ) )
+                {
+                    resetApprovalCodeIfPasswordIsCorrect = true;
+                }
+                else
+                {
+                    log.info( String.format( "Invalid two factor code for user: %s", username ) );
+                    throw new TwoFactorAuthenticationException( "Invalid verification code" );
+                }
+            }
+            else if ( UserService.hasTwoFactorSecretForApproval( user ) )
+            {
+                // Change from approval to normal 2FA secret
+                userService.approveTwoFactorCode( user );
+            }
+        }
+
+        // -------------------------------------------------------------------------
+        // Delegate authentication downstream
+        // -------------------------------------------------------------------------
+        Authentication result = super.authenticate( auth );
+
+        if ( resetApprovalCodeIfPasswordIsCorrect )
+        {
+            userService.resetTwoFA( user );
+            log.info( String.format( "Invalid two factor code for user: %s", username ) );
+            throw new TwoFactorAuthenticationEnrolmentException( "Invalid verification code" );
+        }
+
+        return new UsernamePasswordAuthenticationToken( userService.createUserDetails( user ),
+            result.getCredentials(),
+            result.getAuthorities() );
+    }
+
+    private boolean validateTwoFactorCode( String code, User user )
+    {
+        if ( !user.hasTwoFAEnabled() )
+        {
+            throw new IllegalStateException( "User has not enrolled in 2FA" );
+        }
+
+        if ( !LongValidator.getInstance().isValid( code ) ||
+            !TwoFactoryAuthenticationUtils.verify( code,
+                user.getSecret() ) )
         {
             log.debug(
                 String.format( "Two-factor authentication failure for user: %s", user.getUsername() ) );
 
-            throw new TwoFactorAuthenticationException( "Invalid verification code" );
+            // Failed the 2FA approval, reset so we can restart the process
+
+            return false;
         }
+
+        return true;
     }
 
     @Override

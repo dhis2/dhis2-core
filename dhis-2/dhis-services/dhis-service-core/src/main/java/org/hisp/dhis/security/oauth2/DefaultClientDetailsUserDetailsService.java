@@ -70,7 +70,7 @@ public class DefaultClientDetailsUserDetailsService implements UserDetailsServic
         user.setCredentialsNonExpired( true );
         user.setAccountExpiry( null );
 
-        return userService.validateAndCreateUserDetails( user, user.getPassword() );
+        return userService.createUserDetails( user );
     }
 
     private ClientDetails getClientDetails( String username )

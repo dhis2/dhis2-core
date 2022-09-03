@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller.user;
 
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.user.User.populateUserCredentialsDtoFields;
@@ -56,7 +55,6 @@ import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.interpretation.InterpretationService;
 import org.hisp.dhis.message.MessageService;
@@ -462,10 +460,11 @@ public class MeController
 
         // TODO: NOT ALLOWED AFTER 13332, breaks current API/UI (2.39) 2.38
         // backport later
-//        if ( currentUser.getTwoFA() != user.getTwoFA() )
-//        {
-//            throw new WebMessageException( badRequest( ErrorCode.E3024.getMessage(), ErrorCode.E3024 ) );
-//        }
+        // if ( currentUser.getTwoFA() != user.getTwoFA() )
+        // {
+        // throw new WebMessageException( badRequest(
+        // ErrorCode.E3024.getMessage(), ErrorCode.E3024 ) );
+        // }
     }
 
     private void updatePassword( User currentUser, String password )

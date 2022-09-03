@@ -72,6 +72,7 @@ public class LoginAction
     // Input & Output
     // -------------------------------------------------------------------------
 
+    private Boolean twoFactor = false;
     private Boolean failed = false;
 
     public void setFailed( Boolean failed )
@@ -82,6 +83,16 @@ public class LoginAction
     public Boolean getFailed()
     {
         return failed;
+    }
+
+    public Boolean getTwoFactor()
+    {
+        return twoFactor;
+    }
+
+    public void setTwoFactor( Boolean twoFactor )
+    {
+        this.twoFactor = twoFactor;
     }
 
     private List<Locale> availableLocales;

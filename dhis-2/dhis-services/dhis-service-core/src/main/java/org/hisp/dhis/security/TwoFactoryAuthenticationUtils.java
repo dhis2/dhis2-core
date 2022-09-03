@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.security;
 
+import static org.hisp.dhis.user.UserService.TWO_FACTOR_CODE_APPROVAL_PREFIX;
+
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -57,10 +59,13 @@ public class TwoFactoryAuthenticationUtils
     public static String generateQrUrl( String appName, User user )
     {
         String secret = user.getSecret();
+
         if ( Strings.isNullOrEmpty( secret ) )
         {
             throw new IllegalArgumentException( "User must have a secret" );
         }
+
+        secret = removeApprovalPrefix( secret );
 
         String app = (APP_NAME_PREFIX + StringUtils.stripToEmpty( appName )).replace( " ", "%20" );
 
@@ -80,23 +85,19 @@ public class TwoFactoryAuthenticationUtils
     /**
      * Verifies that the secret for the given user matches the given code.
      *
-     * @param user the users.
      * @param code the code.
+     * @param secret
+     *
      * @return true if the user secret matches the given code, false if not.
      */
-    public static boolean verify( User user, String code )
+    public static boolean verify( String code, String secret )
     {
-        String secret = user.getSecret();
         if ( Strings.isNullOrEmpty( secret ) )
         {
             throw new IllegalArgumentException( "User must have a secret" );
         }
 
-        if ( secret.startsWith( "APPROVAL_" ) )
-        {
-            secret = secret.substring( 9 );
-        }
-
+        secret = removeApprovalPrefix( secret );
 
         Totp totp = new Totp( secret );
         try
@@ -107,5 +108,14 @@ public class TwoFactoryAuthenticationUtils
         {
             return false;
         }
+    }
+
+    private static String removeApprovalPrefix( String secret )
+    {
+        if ( secret.startsWith( TWO_FACTOR_CODE_APPROVAL_PREFIX ) )
+        {
+            secret = secret.substring( TWO_FACTOR_CODE_APPROVAL_PREFIX.length() );
+        }
+        return secret;
     }
 }

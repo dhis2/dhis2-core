@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.useraccount.action;
 
+import org.hisp.dhis.security.TwoFactoryAuthenticationUtils;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 
@@ -39,11 +42,15 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class EnrolTwoFaAction implements Action
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+    private SystemSettingManager systemSettingManager;
 
     private UserService userService;
+
+    @Autowired
+    public void setSystemSettingManager( SystemSettingManager systemSettingManager )
+    {
+        this.systemSettingManager = systemSettingManager;
+    }
 
     @Autowired
     public void setUserService( UserService userService )
@@ -51,20 +58,19 @@ public class EnrolTwoFaAction implements Action
         this.userService = userService;
     }
 
-    // -------------------------------------------------------------------------
-    // Getters and Setters
-    // -------------------------------------------------------------------------
-
     private String username;
+
+    private String qrUrl;
 
     public String getUsername()
     {
         return username;
     }
 
-    // -------------------------------------------------------------------------
-    // Action Impl
-    // -------------------------------------------------------------------------
+    public String getQrUrl()
+    {
+        return qrUrl;
+    }
 
     @Override
     public String execute()
@@ -72,11 +78,16 @@ public class EnrolTwoFaAction implements Action
     {
         username = (String) ServletActionContext.getRequest().getSession().getAttribute( "username" );
 
-        User credentials = userService.getUserByUsername( username );
+        User user = userService.getUserByUsername( username );
 
-        // check that the user is actually expired
-        if ( credentials != null && !userService.userNonExpired( credentials ) )
+        if ( userService.hasTwoFactorRequirementRole( user ) && (!user.hasTwoFAEnabled()
+            || UserService.hasTwoFactorSecretForApproval( user )) )
         {
+            userService.generateTwoFactorSecretForApproval( user );
+
+            String appName = systemSettingManager.getStringSetting( SettingKey.APPLICATION_TITLE );
+            qrUrl = TwoFactoryAuthenticationUtils.generateQrUrl( appName, user );
+
             return SUCCESS;
         }
 

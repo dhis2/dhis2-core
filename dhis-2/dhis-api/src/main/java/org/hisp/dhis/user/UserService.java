@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.regex.Pattern;
 
 import javax.annotation.Nullable;
 
@@ -49,6 +50,10 @@ public interface UserService
     String ID = UserService.class.getName();
 
     String PW_NO_INTERNAL_LOGIN = "--[##no_internal_login##]--";
+
+    String TWO_FACTOR_CODE_APPROVAL_PREFIX = "APPROVAL_";
+
+    Pattern BCRYPT_PATTERN = Pattern.compile( "\\A\\$2(a|y|b)?\\$(\\d\\d)\\$[./0-9A-Za-z]{53}" );
 
     // -------------------------------------------------------------------------
     // User
@@ -375,8 +380,6 @@ public interface UserService
      */
     List<UserAccountExpiryInfo> getExpiringUserAccounts( int inDays );
 
-
-
     /**
      * Expire a user's active sessions retrieved from the Spring security's
      * org.springframework.security.core.session.SessionRegistry
@@ -440,9 +443,9 @@ public interface UserService
      */
     List<User> getUsersWithAuthority( String authority );
 
-    CurrentUserDetails validateAndCreateUserDetails( User user, String password );
+    CurrentUserDetails createUserDetails( User user );
 
-    CurrentUserDetailsImpl createUserDetails( User user, String password, boolean accountNonLocked,
+    CurrentUserDetailsImpl createUserDetails( User user, boolean accountNonLocked,
         boolean credentialsNonExpired );
 
     /**
@@ -466,10 +469,18 @@ public interface UserService
 
     void approveTwoFactorCode( User user );
 
+    void resetTwoFA( User user );
+
     void enableTwoFA( User user, String code );
+
     void disableTwoFA( User user, String code );
 
-    boolean shouldHaveTwoFactorSecret( User user );
+    static boolean hasTwoFactorSecretForApproval( User user )
+    {
+        return user.getSecret().startsWith( TWO_FACTOR_CODE_APPROVAL_PREFIX );
+    }
+
+    boolean hasTwoFactorRequirementRole( User user );
 
     void validate2FAUpdate( boolean before, boolean after, User userToModify );
 }

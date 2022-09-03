@@ -25,52 +25,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security;
+package org.hisp.dhis.security.spring2fa;
 
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.BadCredentialsException;
 
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
-import org.springframework.dao.DataAccessException;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-/**
- * @author Torgeir Lorange Ostby
- */
-@Slf4j
-@Service( "ldapUserDetailsService" )
-@AllArgsConstructor
-public class DefaultLdapUserDetailsService
-    implements UserDetailsService
+public class TwoFactorAuthenticationEnrolmentException extends BadCredentialsException
 {
-    private final UserService userService;
-
-    @Override
-    @Transactional( readOnly = true )
-    public UserDetails loadUserByUsername( String username )
-        throws UsernameNotFoundException,
-        DataAccessException
+    public TwoFactorAuthenticationEnrolmentException( String msg )
     {
-        User user = userService.getUserByUsername( username );
-        if ( user == null )
-        {
-            throw new UsernameNotFoundException( String.format( "Username '%s' not found.", username ) );
-        }
-
-        if ( !user.isExternalAuth() || !user.hasLdapId() )
-        {
-            throw new UsernameNotFoundException( "Wrong type of user, is not LDAP user." );
-        }
-
-        String password = "EXTERNAL_LDAP_" + CodeGenerator.generateCode( 10 );
-
-        return userService.createUserDetails( user );
+        super( msg );
     }
-
 }

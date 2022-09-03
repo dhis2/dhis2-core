@@ -133,7 +133,7 @@ public class ApiTokenAuthManager implements AuthenticationManager
                 ApiTokenErrors.invalidToken( "The API token is disabled, locked or 2FA is enabled." ) );
         }
 
-        return userService.createUserDetails( user, user.getPassword(), accountNonLocked, credentialsNonExpired );
+        return userService.createUserDetails( user, accountNonLocked, credentialsNonExpired );
     }
 
     private void validateTokenExpiry( Long expiry )

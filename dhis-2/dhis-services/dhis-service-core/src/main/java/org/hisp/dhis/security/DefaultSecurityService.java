@@ -28,7 +28,6 @@
 package org.hisp.dhis.security;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -48,7 +47,6 @@ import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.i18n.locale.LocaleManager;
@@ -59,9 +57,7 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.system.velocity.VelocityManager;
-import org.hisp.dhis.user.CurrentUserDetails;
 import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingKey;
@@ -650,6 +646,5 @@ public class DefaultSecurityService
         return !aclService.isSupported( identifiableObject )
             || aclService.canDataRead( currentUserService.getCurrentUser(), identifiableObject );
     }
-
 
 }

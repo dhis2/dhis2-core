@@ -59,11 +59,12 @@
                 <div><input type="text" id="j_username" name="j_username" placeholder="Username" required></div>
                 <div><input type="password" id="j_password" name="j_password" autocomplete="off" placeholder="Password"
                             required></div>
-                <div>
-                  <input type="checkbox" name="2fa" value="2fa" id="2fa"/><label id="2FaLabel">$i18n.getString('login_using_two_factor_authentication')</label>
+                    #if( $twoFactor == true )
+                    <div>
                     <input type="code" id="2fa_code" name="2fa_code"
-                           placeholder="$i18n.getString('two_factor_authentication_code')" hidden readonly>
-                </div>
+                               placeholder="$i18n.getString('two_factor_authentication_code')">
+                    </div>
+                    #end
             </div>
             <div id="submitDiv">
                 <input id="submit" class="button" type="submit" value="$i18n.getString('sign_in')">

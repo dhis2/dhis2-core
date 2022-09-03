@@ -1,13 +1,13 @@
 package org.hisp.dhis.security.authtentication;
 
 import java.io.IOException;
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationEnrolException;
+import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationEnrolmentException;
+import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationException;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +19,8 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationFa
 import org.springframework.stereotype.Component;
 
 @Component
-public class CustomAuthHandler extends SimpleUrlAuthenticationFailureHandler implements AuthenticationFailureHandler
+public class CustomAuthFailureHandler extends SimpleUrlAuthenticationFailureHandler
+    implements AuthenticationFailureHandler
 {
     @Autowired
     private I18nManager i18nManager;
@@ -28,13 +29,10 @@ public class CustomAuthHandler extends SimpleUrlAuthenticationFailureHandler imp
     public void onAuthenticationFailure( HttpServletRequest request, HttpServletResponse response,
         AuthenticationException exception )
         throws
-        IOException,
-        ServletException
+        IOException
     {
-//        setUseForward( true );
-//        saveException( request, exception );
-
         final String username = request.getParameter( "j_username" );
+        final String password = request.getParameter( "j_password" );
 
         request.getSession().setAttribute( "username", username );
 
@@ -51,30 +49,22 @@ public class CustomAuthHandler extends SimpleUrlAuthenticationFailureHandler imp
                 .setAttribute( "LOGIN_FAILED_MESSAGE", i18n.getString( "wrong_username_or_password" ) );
         }
 
-
-        if ( exception.getClass().equals( CredentialsExpiredException.class ) )
+        if ( CredentialsExpiredException.class.equals( exception.getClass() ) )
         {
-//            setDefaultFailureUrl( "/dhis-web-commons/security/expired.action" );
-            getRedirectStrategy().sendRedirect(request, response, "/dhis-web-commons/security/expired.action");
+            getRedirectStrategy().sendRedirect( request, response, "/dhis-web-commons/security/expired.action" );
         }
-//        else if ( exception.getClass().equals( TwoFactorAuthenticationException.class ) )
-//        {
-////???
-//        }
-        else if ( exception.getClass().equals( TwoFactorAuthenticationEnrolException.class ) )
+        else if ( TwoFactorAuthenticationEnrolmentException.class.equals( exception.getClass() ) )
         {
-//            setDefaultFailureUrl( "/dhis-web-commons/security/enrolTwoFa.action" );
-            getRedirectStrategy().sendRedirect(request, response, "/dhis-web-commons/security/enrolTwoFa.action");
-
+            getRedirectStrategy().sendRedirect( request, response, "/dhis-web-commons/security/enrolTwoFa.action" );
+        }
+        else if ( TwoFactorAuthenticationException.class.equals( exception.getClass() ) )
+        {
+            getRedirectStrategy().sendRedirect( request, response, "/dhis-web-commons/security/login.action?twoFactor=true" );
         }
         else
         {
-//            setDefaultFailureUrl( "/dhis-web-commons/security/login.action?failed=true" );
-            getRedirectStrategy().sendRedirect(request, response, "/dhis-web-commons/security/login.action?failed=true");
-
+            getRedirectStrategy().sendRedirect( request, response,
+                "/dhis-web-commons/security/login.action?failed=true" );
         }
-
-//        super.onAuthenticationFailure( request, response, exception );
     }
-
 }

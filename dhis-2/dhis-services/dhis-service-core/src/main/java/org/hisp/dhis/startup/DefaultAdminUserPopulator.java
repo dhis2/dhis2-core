@@ -92,7 +92,7 @@ public class DefaultAdminUserPopulator
         "F_TRACKED_ENTITY_MERGE",
         "F_DATAVALUE_ADD",
         "F_DATAVALUE_DELETE",
-        "MUST_HAVE_2FA_ENABLED");
+        "MUST_HAVE_2FA_ENABLED" );
 
     private final UserService userService;
 

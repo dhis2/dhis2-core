@@ -35,6 +35,8 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import java.util.HashMap;
 import java.util.Map;
 
+import lombok.AllArgsConstructor;
+
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -46,8 +48,6 @@ import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-
-import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -85,8 +85,9 @@ public class TwoFactorController
             throw new BadCredentialsException( "No current user" );
         }
 
-        // User already has a secret, throw exception. User need to disable 2FA before enabling again!
-        if ( currentUser.hasTwoFAEnabled() )
+        // User already has a secret, throw exception. User need to disable 2FA
+        // before enabling again!
+        if ( currentUser.hasTwoFAEnabled() && !UserService.hasTwoFactorSecretForApproval( currentUser ) )
         {
             throw new WebMessageException( conflict( ErrorCode.E3022.getMessage(), ErrorCode.E3022 ) );
         }
@@ -112,7 +113,7 @@ public class TwoFactorController
             throw new BadCredentialsException( "No current user" );
         }
 
-        if ( !TwoFactoryAuthenticationUtils.verify( currentUser, code ) )
+        if ( !TwoFactoryAuthenticationUtils.verify( code, currentUser.getSecret() ) )
         {
             return unauthorized( "2FA code not authenticated" );
         }

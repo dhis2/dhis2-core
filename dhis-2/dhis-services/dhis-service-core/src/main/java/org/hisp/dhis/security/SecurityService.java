@@ -310,5 +310,5 @@ public interface SecurityService
      * @param before The user object before the update.
      * @param after The user object that is being updated.
      */
-//    void validate2FAUpdate( boolean before, boolean after, User user );
+    // void validate2FAUpdate( boolean before, boolean after, User user );
 }
