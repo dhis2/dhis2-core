@@ -97,12 +97,12 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration
 {
     // Paths where XML should still be allowed.
     public static final List<Pattern> XML_PATTERNS = List.of(
-        Pattern.compile( "/(\\d\\d/)?relationships(/?$|/.+)" ),
-        Pattern.compile( "/(\\d\\d/)?enrollments(/?$|/.+)" ),
-        Pattern.compile( "/(\\d\\d/)?events(/?$|/.+)" ),
-        Pattern.compile( "/(\\d\\d/)?trackedEntityInstances(/?$|/.+)" ),
-        Pattern.compile( "/(\\d\\d/)?dataValueSets(/?$|/.+)" ),
-        Pattern.compile( "/(\\d\\d/)?completeDataSetRegistrations(/?$|/.+)" ) );
+        Pattern.compile( "/(\\d\\d/)?relationships(.xml)?" ),
+        Pattern.compile( "/(\\d\\d/)?enrollments(.xml)?" ),
+        Pattern.compile( "/(\\d\\d/)?events(.xml)?" ),
+        Pattern.compile( "/(\\d\\d/)?trackedEntityInstances(.xml)?" ),
+        Pattern.compile( "/(\\d\\d/)?dataValueSets(.xml)?" ),
+        Pattern.compile( "/(\\d\\d/)?completeDataSetRegistrations(.xml)?" ) );
 
     @Autowired
     public CurrentUserHandlerMethodArgumentResolver currentUserHandlerMethodArgumentResolver;
