@@ -25,34 +25,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataset;
+package org.hisp.dhis.webapi.webdomain.dataentry;
 
-import java.util.List;
+import java.util.Date;
 
-import org.hisp.dhis.common.GenericStore;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * DTO which represents the completion status of a form.
+ *
+ * @author Lars Helge Overland
  */
-public interface LockExceptionStore
-    extends GenericStore<LockException>
+@Getter
+@Setter
+@Accessors( chain = true )
+@NoArgsConstructor
+public class CompleteStatusDto
 {
-    List<LockException> getLockExceptions( List<DataSet> dataSets );
+    @JsonProperty
+    private boolean complete = false;
 
-    List<LockException> getLockExceptionCombinations();
+    @JsonProperty
+    private Date created;
 
-    void deleteLockExceptions( DataSet dataSet, Period period );
+    @JsonProperty
+    private Date lastUpdated;
 
-    void deleteLockExceptions( DataSet dataSet, Period period, OrganisationUnit organisationUnit );
-
-    void deleteLockExceptions( OrganisationUnit organisationUnit );
-
-    long getCount( DataElement dataElement, Period period, OrganisationUnit organisationUnit );
-
-    long getCount( DataSet dataSet, Period period, OrganisationUnit organisationUnit );
-
-    boolean anyExists();
+    @JsonProperty
+    private String completedBy;
 }

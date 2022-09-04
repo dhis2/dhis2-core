@@ -25,34 +25,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataset;
+package org.hisp.dhis.webapi.webdomain.dataentry;
 
-import java.util.List;
+import org.hisp.dhis.dataset.CompleteDataSetRegistration;
+import org.hisp.dhis.dataset.LockException;
 
-import org.hisp.dhis.common.GenericStore;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
-
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public interface LockExceptionStore
-    extends GenericStore<LockException>
+public class DataEntryDtoMapper
 {
-    List<LockException> getLockExceptions( List<DataSet> dataSets );
+    DataEntryDtoMapper()
+    {
+    }
 
-    List<LockException> getLockExceptionCombinations();
+    /**
+     * Converts a {@link LockException} object to a {@link LockExceptionDto}.
+     *
+     * @param lockException the {@link LockException}.
+     * @return a {@link LockExceptionDto}.
+     */
+    public static LockExceptionDto toDto( LockException lockException )
+    {
+        return new LockExceptionDto()
+            .setPeriod( lockException.getPeriod().getIsoDate() )
+            .setOrgUnit( lockException.getOrganisationUnit().getUid() )
+            .setDataSet( lockException.getDataSet().getUid() );
+    }
 
-    void deleteLockExceptions( DataSet dataSet, Period period );
-
-    void deleteLockExceptions( DataSet dataSet, Period period, OrganisationUnit organisationUnit );
-
-    void deleteLockExceptions( OrganisationUnit organisationUnit );
-
-    long getCount( DataElement dataElement, Period period, OrganisationUnit organisationUnit );
-
-    long getCount( DataSet dataSet, Period period, OrganisationUnit organisationUnit );
-
-    boolean anyExists();
+    /**
+     * Converts a {@link CompleteDataSetRegistration} to a
+     * {@link CompleteStatusDto}.
+     *
+     * @param registration the {@link CompleteDataSetRegistration}.
+     * @return a {@link CompleteStatusDto}.
+     */
+    public static CompleteStatusDto toDto( CompleteDataSetRegistration registration )
+    {
+        return new CompleteStatusDto()
+            .setComplete( registration.getCompleted() )
+            .setCreated( registration.getDate() )
+            .setLastUpdated( registration.getLastUpdated() )
+            .setCompletedBy( registration.getStoredBy() );
+    }
 }
