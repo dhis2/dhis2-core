@@ -30,8 +30,10 @@ package org.hisp.dhis.webapi.controller.event.webrequest.tracker;
 import static org.hisp.dhis.webapi.controller.event.webrequest.tracker.FieldTranslatorSupport.translate;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import lombok.Data;
 import lombok.Getter;
@@ -39,8 +41,11 @@ import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.AssignedUserSelectionMode;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.commons.collection.CollectionUtils;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
@@ -107,6 +112,27 @@ public class TrackerEventCriteria extends PagingAndSortingCriteriaAdapter
     private Set<String> enrollments;
 
     private IdSchemes idSchemes = new IdSchemes();
+
+    public Set<String> getAssignedUsers()
+    {
+        Set<String> assignedUsers = new HashSet<>();
+
+        if ( assignedUser != null && !assignedUser.isEmpty() )
+        {
+            assignedUsers = TextUtils.splitToSet( assignedUser, TextUtils.SEMICOLON ).stream()
+                .filter( CodeGenerator::isValidUid ).collect( Collectors.toSet() );
+        }
+
+        return assignedUsers;
+    }
+
+    public Set<String> getEvents()
+    {
+        return CollectionUtils.emptyIfNull( TextUtils.splitToSet( event, TextUtils.SEMICOLON ) )
+            .stream()
+            .filter( CodeGenerator::isValidUid )
+            .collect( Collectors.toSet() );
+    }
 
     @Override
     public boolean isLegacy()
