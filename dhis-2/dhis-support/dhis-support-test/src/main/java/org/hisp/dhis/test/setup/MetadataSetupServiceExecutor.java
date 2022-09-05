@@ -86,6 +86,11 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class MetadataSetupServiceExecutor implements MetadataSetupExecutor
 {
+    /**
+     * name of the default category, category combo, ...
+     */
+    private static final String DEFAULT_NAME = "default";
+
     private final AttributeService attributeService;
 
     private final UserService userService;
@@ -225,6 +230,10 @@ public class MetadataSetupServiceExecutor implements MetadataSetupExecutor
 
     private CategoryOption createCategoryOptions( CategoryOptionSetup setup )
     {
+        if ( DEFAULT_NAME.equals( setup.getName() ) )
+        {
+            return categoryService.getDefaultCategoryOption();
+        }
         CategoryOption obj = new CategoryOption( setup.getName() );
         obj.setStartDate( setup.getStartDate() );
         obj.setEndDate( setup.getEndDate() );
@@ -235,6 +244,10 @@ public class MetadataSetupServiceExecutor implements MetadataSetupExecutor
 
     private Category createCategory( CategorySetup setup, Objects<CategorySetup> categories )
     {
+        if ( "default".equals( setup.getName() ) )
+        {
+            return categoryService.getDefaultCategory();
+        }
         Category obj = new Category( setup.getName(), setup.getDataDimensionType() );
         obj.setUid( setup.getUid() );
         obj.setShortName( categories.nextUnique( setup, CategorySetup::getShortName ) );
@@ -246,6 +259,10 @@ public class MetadataSetupServiceExecutor implements MetadataSetupExecutor
 
     private CategoryCombo createCategoryCombo( CategoryComboSetup setup )
     {
+        if ( "default".equals( setup.getName() ) )
+        {
+            return categoryService.getDefaultCategoryCombo();
+        }
         CategoryCombo obj = new CategoryCombo( setup.getName(), setup.getDataDimensionType(),
             setup.getCategories().stream().map( CategorySetup::getObject ).collect( toList() ) );
         obj.setUid( setup.getUid() );
@@ -257,6 +274,10 @@ public class MetadataSetupServiceExecutor implements MetadataSetupExecutor
     private CategoryOptionCombo createCategoryOptionCombo( CategoryOptionComboSetup setup,
         Objects<CategoryOptionComboSetup> optionCombos )
     {
+        if ( "default".equals( setup.getName() ) )
+        {
+            return categoryService.getDefaultCategoryOptionCombo();
+        }
         CategoryOptionCombo obj = new CategoryOptionCombo();
         obj.setUid( setup.getUid() );
         obj.setName( setup.getName() );
