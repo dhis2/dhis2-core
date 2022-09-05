@@ -53,7 +53,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.controller.event.mapper.RequestToSearchParamsMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -68,7 +67,7 @@ import org.mockito.quality.Strictness;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-class EventRequestToParamsMapperTest
+class EventRequestToSearchParamsMapperTest
 {
 
     @Mock
@@ -98,12 +97,12 @@ class EventRequestToParamsMapperTest
     @Mock
     private SchemaService schemaService;
 
-    private RequestToSearchParamsMapper requestToSearchParamsMapper;
+    private EventRequestToSearchParamsMapper requestToSearchParamsMapper;
 
     @BeforeEach
     public void setUp()
     {
-        requestToSearchParamsMapper = new RequestToSearchParamsMapper( currentUserService, programService,
+        requestToSearchParamsMapper = new EventRequestToSearchParamsMapper( currentUserService, programService,
             organisationUnitService, programStageService, aclService, entityInstanceService, dataElementService,
             inputUtils, schemaService );
 

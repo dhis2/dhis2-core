@@ -59,13 +59,19 @@ public class HibernateLockExceptionStore
     extends HibernateGenericStore<LockException>
     implements LockExceptionStore
 {
+    private static final String AT_PERIOD = "period";
+
+    private static final String AT_ORG_UNIT = "organisationUnit";
+
+    private static final String AT_DATA_SET = "dataSet";
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private DataSetStore dataSetStore;
+    private final DataSetStore dataSetStore;
 
-    private PeriodService periodService;
+    private final PeriodService periodService;
 
     public HibernateLockExceptionStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, DataSetStore dataSetStore, PeriodService periodService )
@@ -100,7 +106,14 @@ public class HibernateLockExceptionStore
     }
 
     @Override
-    public List<LockException> getCombinations()
+    public List<LockException> getLockExceptions( List<DataSet> dataSets )
+    {
+        return getList( getCriteriaBuilder(), newJpaParameters()
+            .addPredicate( root -> root.get( AT_DATA_SET ).in( dataSets ) ) );
+    }
+
+    @Override
+    public List<LockException> getLockExceptionCombinations()
     {
         final String sql = "select distinct datasetid, periodid from lockexception";
 
@@ -130,30 +143,30 @@ public class HibernateLockExceptionStore
     }
 
     @Override
-    public void deleteCombination( DataSet dataSet, Period period )
+    public void deleteLockExceptions( DataSet dataSet, Period period )
     {
         final String hql = "delete from LockException where dataSet=:dataSet and period=:period";
 
         getQuery( hql )
-            .setParameter( "dataSet", dataSet )
-            .setParameter( "period", period )
+            .setParameter( AT_DATA_SET, dataSet )
+            .setParameter( AT_PERIOD, period )
             .executeUpdate();
     }
 
     @Override
-    public void deleteCombination( DataSet dataSet, Period period, OrganisationUnit organisationUnit )
+    public void deleteLockExceptions( DataSet dataSet, Period period, OrganisationUnit organisationUnit )
     {
         final String hql = "delete from LockException where dataSet=:dataSet and period=:period and organisationUnit=:organisationUnit";
 
         getQuery( hql )
-            .setParameter( "dataSet", dataSet )
-            .setParameter( "period", period )
-            .setParameter( "organisationUnit", organisationUnit )
+            .setParameter( AT_DATA_SET, dataSet )
+            .setParameter( AT_PERIOD, period )
+            .setParameter( AT_ORG_UNIT, organisationUnit )
             .executeUpdate();
     }
 
     @Override
-    public void delete( OrganisationUnit organisationUnit )
+    public void deleteLockExceptions( OrganisationUnit organisationUnit )
     {
         final String hql = "delete from LockException where organisationUnit=:organisationUnit";
 
@@ -163,22 +176,14 @@ public class HibernateLockExceptionStore
     }
 
     @Override
-    public List<LockException> getAllOrderedName( int first, int max )
-    {
-        return getList( getCriteriaBuilder(), newJpaParameters()
-            .setFirstResult( first )
-            .setMaxResults( max ) );
-    }
-
-    @Override
     public long getCount( DataElement dataElement, Period period, OrganisationUnit organisationUnit )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
         return getCount( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "period" ), periodService.reloadPeriod( period ) ) )
-            .addPredicate( root -> builder.equal( root.get( "organisationUnit" ), organisationUnit ) )
-            .addPredicate( root -> root.get( "dataSet" ).in( dataElement.getDataSets() ) ) );
+            .addPredicate( root -> builder.equal( root.get( AT_PERIOD ), periodService.reloadPeriod( period ) ) )
+            .addPredicate( root -> builder.equal( root.get( AT_ORG_UNIT ), organisationUnit ) )
+            .addPredicate( root -> root.get( AT_DATA_SET ).in( dataElement.getDataSets() ) ) );
     }
 
     @Override
@@ -187,9 +192,9 @@ public class HibernateLockExceptionStore
         CriteriaBuilder builder = getCriteriaBuilder();
 
         return getCount( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "period" ), periodService.reloadPeriod( period ) ) )
-            .addPredicate( root -> builder.equal( root.get( "organisationUnit" ), organisationUnit ) )
-            .addPredicate( root -> builder.equal( root.get( "dataSet" ), dataSet ) ) );
+            .addPredicate( root -> builder.equal( root.get( AT_PERIOD ), periodService.reloadPeriod( period ) ) )
+            .addPredicate( root -> builder.equal( root.get( AT_ORG_UNIT ), organisationUnit ) )
+            .addPredicate( root -> builder.equal( root.get( AT_DATA_SET ), dataSet ) ) );
     }
 
     @Override

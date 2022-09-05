@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.commons.util;
 
+import static org.hisp.dhis.commons.collection.CollectionUtils.addIfNotNull;
 import static org.hisp.dhis.commons.collection.CollectionUtils.emptyIfNull;
 import static org.hisp.dhis.commons.collection.CollectionUtils.firstMatch;
 import static org.hisp.dhis.commons.collection.CollectionUtils.flatMapToSet;
@@ -152,5 +153,16 @@ class CollectionUtilsTest
 
         assertEquals( listA, emptyIfNull( listA ) );
         assertEquals( new ArrayList<>(), emptyIfNull( listB ) );
+    }
+
+    @Test
+    void testAddIfNotNull()
+    {
+        List<String> list = new ArrayList<>();
+        addIfNotNull( list, "One" );
+        addIfNotNull( list, null );
+        addIfNotNull( list, "Three" );
+
+        assertEquals( 2, list.size() );
     }
 }

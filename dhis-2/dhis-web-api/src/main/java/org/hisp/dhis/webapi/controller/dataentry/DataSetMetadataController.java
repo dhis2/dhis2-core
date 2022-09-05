@@ -46,7 +46,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 @RequiredArgsConstructor
 @RequestMapping( "/dataEntry" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class DataSetMetadataExportController
+public class DataSetMetadataController
 {
     private final DataSetMetadataExportService exportService;
 
