@@ -794,11 +794,9 @@ public abstract class AbstractJdbcEventAnalyticsManager
         if ( item.isProgramIndicator() )
         {
             ProgramIndicator programIndicator = (ProgramIndicator) item.getItem();
-            String sql = programIndicatorService.getAnalyticsSql( programIndicator.getExpression(), NUMERIC,
+            return programIndicatorService.getAnalyticsSql( programIndicator.getExpression(), NUMERIC,
                 programIndicator,
                 startDate, endDate );
-
-            return sql;
         }
         else
         {
