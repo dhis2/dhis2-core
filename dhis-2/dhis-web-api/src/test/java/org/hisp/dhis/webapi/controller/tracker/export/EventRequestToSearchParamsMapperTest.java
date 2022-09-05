@@ -32,6 +32,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 import java.util.Set;
 
 import org.hisp.dhis.common.IllegalQueryException;
@@ -98,12 +102,18 @@ class EventRequestToSearchParamsMapperTest
 
     private ProgramStage programStage;
 
+    private TrackedEntityInstance trackedEntityInstance;
+
+    private SimpleDateFormat dateFormatter;
+
     @BeforeEach
     public void setUp()
     {
         requestToSearchParamsMapper = new EventRequestToSearchParamsMapper( currentUserService, programService,
             organisationUnitService, programStageService, aclService, entityInstanceService, dataElementService,
             inputUtils, schemaService );
+
+        dateFormatter = new SimpleDateFormat( "yyyy-MM-dd", Locale.ENGLISH );
 
         User user = new User();
         when( currentUserService.getCurrentUser() ).thenReturn( user );
@@ -119,13 +129,14 @@ class EventRequestToSearchParamsMapperTest
         when( aclService.canDataRead( user, programStage ) ).thenReturn( true );
 
         OrganisationUnit ou = new OrganisationUnit();
-        TrackedEntityInstance tei = new TrackedEntityInstance();
         DataElement de = new DataElement();
 
         when( organisationUnitService.getOrganisationUnit( any() ) ).thenReturn( ou );
-
         when( organisationUnitService.isInUserHierarchy( ou ) ).thenReturn( true );
-        when( entityInstanceService.getTrackedEntityInstance( any() ) ).thenReturn( tei );
+
+        trackedEntityInstance = new TrackedEntityInstance();
+        when( entityInstanceService.getTrackedEntityInstance( "teiuid" ) ).thenReturn( trackedEntityInstance );
+
         when( dataElementService.getDataElement( any() ) ).thenReturn( de );
     }
 
@@ -136,11 +147,42 @@ class EventRequestToSearchParamsMapperTest
         TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
         eventCriteria.setProgram( "programuid" );
         eventCriteria.setProgramStage( "programstageuid" );
+        eventCriteria.setTrackedEntity( "teiuid" );
+
+        Date occurredAfter = date( "2020-01-01" );
+        eventCriteria.setOccurredAfter( occurredAfter );
+        Date occurredBefore = date( "2020-09-12" );
+        eventCriteria.setOccurredBefore( occurredBefore );
+
+        Date scheduledAfter = date( "2021-01-01" );
+        eventCriteria.setScheduledAfter( scheduledAfter );
+        Date scheduledBefore = date( "2021-09-12" );
+        eventCriteria.setScheduledBefore( scheduledBefore );
+
+        Date updatedAfter = date( "2022-01-01" );
+        eventCriteria.setUpdatedAfter( updatedAfter );
+        Date updatedBefore = date( "2022-09-12" );
+        eventCriteria.setUpdatedBefore( updatedBefore );
+
+        String updatedWithin = "P6M";
+        eventCriteria.setUpdatedWithin( updatedWithin );
+
+        Set<String> enrollments = Set.of( "NQnuK2kLm6e" );
+        eventCriteria.setEnrollments( enrollments );
 
         EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
 
         assertEquals( program, params.getProgram() );
         assertEquals( programStage, params.getProgramStage() );
+        assertEquals( trackedEntityInstance, params.getTrackedEntityInstance() );
+        assertEquals( occurredAfter, params.getStartDate() );
+        assertEquals( occurredBefore, params.getEndDate() );
+        assertEquals( scheduledAfter, params.getDueDateStart() );
+        assertEquals( scheduledBefore, params.getDueDateEnd() );
+        assertEquals( updatedAfter, params.getLastUpdatedStartDate() );
+        assertEquals( updatedBefore, params.getLastUpdatedEndDate() );
+        assertEquals( updatedWithin, params.getLastUpdatedDuration() );
+        assertEquals( enrollments, params.getProgramInstances() );
     }
 
     @Test
@@ -154,5 +196,17 @@ class EventRequestToSearchParamsMapperTest
         Exception exception = assertThrows( IllegalQueryException.class,
             () -> requestToSearchParamsMapper.map( eventCriteria ) );
         assertEquals( "Event UIDs and filters can not be specified at the same time", exception.getMessage() );
+    }
+
+    private Date date( String date )
+    {
+        try
+        {
+            return dateFormatter.parse( date );
+        }
+        catch ( ParseException e )
+        {
+            throw new RuntimeException( e );
+        }
     }
 }
