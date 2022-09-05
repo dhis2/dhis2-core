@@ -120,7 +120,7 @@ public class ApiTokenAuthManager implements AuthenticationManager
                 ApiTokenErrors.invalidToken( "The API token owner does not exists." ) );
         }
 
-        boolean is2FAEnabled = !user.hasTwoFAEnabled();
+        boolean is2FAEnabled = !user.hasTwoFactorEnabled();
         boolean enabled = !user.isDisabled();
         boolean credentialsNonExpired = userService.userNonExpired( user );
         boolean accountNonLocked = !securityService.isLocked( user.getUsername() );

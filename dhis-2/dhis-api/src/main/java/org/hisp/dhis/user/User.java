@@ -183,8 +183,6 @@ public class User
 
     private boolean isAccountNonLocked;
 
-    // private boolean requires2FA;
-
     /**
      * The timestamp representing when the user account expires. If not set the
      * account does never expire.
@@ -268,7 +266,7 @@ public class User
     /**
      * OBS! This field will only be set when de-serialising a user with settings
      * so the settings can be updated/stored.
-     *
+     * <p>
      * It is not initialised when loading a user from the database.
      */
     private transient UserSettings settings;
@@ -508,10 +506,6 @@ public class User
         return password != null;
     }
 
-    // -------------------------------------------------------------------------
-    // hashCode and equals
-    // ----------
-
     public UUID getUuid()
     {
         return uuid;
@@ -537,45 +531,12 @@ public class User
         this.password = password;
     }
 
-    // @JsonProperty
-    // @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    // public boolean isRequires2FA()
-    // {
-    // return requires2FA;
-    // }
-    //
-    // public void setRequires2FA( boolean requires2FA )
-    // {
-    // this.requires2FA = requires2FA;
-    // }
-
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean hasTwoFAEnabled()
+    public boolean hasTwoFactorEnabled()
     {
-        // && !this.secret.equals( TWO_FACTOR_ENROLLMENT_KEYWORD )
-        if ( this.secret != null )
-        {
-            return true;
-        }
-
-        return false;
+        return this.secret != null;
     }
-
-    // /**
-    // * Set 2FA on user.
-    // *
-    // * @param twoFA true/false depending on activate or deactivate
-    // */
-    // public void setTwoFA( boolean twoFA )
-    // {
-    // this.twoFA = twoFA;
-    // }
-
-    // public boolean getTwoFA()
-    // {
-    // return twoFA;
-    // }
 
     @JsonIgnore
     public String getSecret()

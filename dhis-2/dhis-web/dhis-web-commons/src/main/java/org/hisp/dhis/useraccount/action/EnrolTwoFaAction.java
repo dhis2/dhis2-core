@@ -80,7 +80,7 @@ public class EnrolTwoFaAction implements Action
 
         User user = userService.getUserByUsername( username );
 
-        if ( userService.hasTwoFactorRequirementRole( user ) && (!user.hasTwoFAEnabled()
+        if ( userService.hasTwoFactorRequirementRole( user ) && (!user.hasTwoFactorEnabled()
             || UserService.hasTwoFactorSecretForApproval( user )) )
         {
             userService.generateTwoFactorSecretForApproval( user );

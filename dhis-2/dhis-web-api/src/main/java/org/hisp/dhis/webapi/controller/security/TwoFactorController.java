@@ -125,7 +125,7 @@ public class TwoFactorController
 
         // User already has a secret, throw exception. User need to disable 2FA
         // before enabling again!
-        if ( currentUser.hasTwoFAEnabled() && !UserService.hasTwoFactorSecretForApproval( currentUser ) )
+        if ( currentUser.hasTwoFactorEnabled() && !UserService.hasTwoFactorSecretForApproval( currentUser ) )
         {
             throw new WebMessageException( conflict( ErrorCode.E3022.getMessage(), ErrorCode.E3022 ) );
         }
@@ -140,28 +140,6 @@ public class TwoFactorController
 
         return map;
     }
-
-    // /**
-    // * If the user is logged in, and the code they provided matches the
-    // secret, then return a success message
-    // *
-    // * @param code The code that the user has generated in the 2FA app.
-    // * @param currentUser This is the user that is currently logged in.
-    // *
-    // * @return A WebMessage object
-    // */
-    // @GetMapping( value = "/authenticate", produces = APPLICATION_JSON_VALUE )
-    // @ResponseBody
-    // public WebMessage authenticate(
-    // @RequestParam String code, @CurrentUser User currentUser )
-    // {
-    // if ( !verifyCode( code, currentUser ) )
-    // {
-    // return unauthorized( ErrorCode.E3023.getMessage() );
-    // }
-    //
-    // return ok( "2FA code verification was success" );
-    // }
 
     /**
      * Enable two-factor authentication for the current user.

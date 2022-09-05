@@ -457,14 +457,6 @@ public class MeController
         currentUser.setEducation( stringWithDefault( user.getEducation(), currentUser.getEducation() ) );
         currentUser.setInterests( stringWithDefault( user.getInterests(), currentUser.getInterests() ) );
         currentUser.setLanguages( stringWithDefault( user.getLanguages(), currentUser.getLanguages() ) );
-
-        // TODO: NOT ALLOWED AFTER 13332, breaks current API/UI (2.39) 2.38
-        // backport later
-        // if ( currentUser.getTwoFA() != user.getTwoFA() )
-        // {
-        // throw new WebMessageException( badRequest(
-        // ErrorCode.E3024.getMessage(), ErrorCode.E3024 ) );
-        // }
     }
 
     private void updatePassword( User currentUser, String password )

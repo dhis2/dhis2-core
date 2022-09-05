@@ -626,7 +626,7 @@ public class UserController
 
         User persistedObject = entities.get( 0 );
 
-        boolean twoFABefore = persistedObject.hasTwoFAEnabled();
+        boolean twoFABefore = persistedObject.hasTwoFactorEnabled();
 
         if ( !aclService.canUpdate( currentUser, persistedObject ) )
         {
@@ -640,7 +640,7 @@ public class UserController
         prePatchEntity( persistedObject, persistedObject );
         patchService.apply( patch, persistedObject );
 
-        boolean twoFAfter = persistedObject.hasTwoFAEnabled();
+        boolean twoFAfter = persistedObject.hasTwoFactorEnabled();
 
         userService.validate2FAUpdate( twoFABefore, twoFAfter, persistedObject );
 
