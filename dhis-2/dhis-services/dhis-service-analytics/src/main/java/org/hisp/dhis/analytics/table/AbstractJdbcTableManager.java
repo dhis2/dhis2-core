@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics.table;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
 import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
@@ -109,6 +110,8 @@ public abstract class AbstractJdbcTableManager
     protected static final Set<ValueType> NO_INDEX_VAL_TYPES = ImmutableSet.of( ValueType.TEXT, ValueType.LONG_TEXT );
 
     public static final String PREFIX_ORGUNITLEVEL = "uidlevel";
+
+    public static final String WITH_AUTOVACUUM_ENABLED_FALSE = "with(autovacuum_enabled = false)";
 
     protected IdentifiableObjectManager idObjectManager;
 
@@ -215,12 +218,11 @@ public abstract class AbstractJdbcTableManager
                 break;
             }
 
-            final String indexName = inx.getIndexName( getAnalyticsTableType() );
-            final String indexType = inx.hasType() ? " using " + inx.getType() : "";
-            final String indexColumns = StringUtils.join( inx.getColumns(), "," );
+            String indexName = inx.getIndexName( getAnalyticsTableType() );
+            String indexType = inx.hasType() ? " using " + inx.getType() : EMPTY;
+            String indexColumns = StringUtils.join( inx.getColumns(), "," );
 
-            final String sql = "create index " + indexName + " on " + inx.getTable() + indexType + " (" + indexColumns
-                + ")";
+            String sql = "create index " + indexName + " on " + inx.getTable() + indexType + " (" + indexColumns + ")";
 
             log.debug( "Create index: {} with SQL: {}", indexName, sql );
 
@@ -366,7 +368,7 @@ public abstract class AbstractJdbcTableManager
      */
     protected boolean hasRows( String tableName )
     {
-        final String sql = "select * from " + tableName + " limit 1";
+        String sql = "select * from " + tableName + " limit 1";
 
         try
         {
@@ -405,24 +407,24 @@ public abstract class AbstractJdbcTableManager
     {
         validateDimensionColumns( table.getDimensionColumns() );
 
-        final String tableName = table.getTempTableName();
+        String tableName = table.getTempTableName();
 
-        String sqlCreate = "create table " + tableName + " (";
+        StringBuilder sqlCreate = new StringBuilder( "create table " + tableName + " (" );
 
         for ( AnalyticsTableColumn col : ListUtils.union( table.getDimensionColumns(), table.getValueColumns() ) )
         {
-            String notNull = col.getNotNull().isNotNull() ? " not null" : "";
+            String notNull = col.getNotNull().isNotNull() ? " not null" : EMPTY;
 
-            sqlCreate += col.getName() + " " + col.getDataType().getValue() + notNull + ",";
+            sqlCreate.append( col.getName() + " " + col.getDataType().getValue() + notNull + "," );
         }
 
-        sqlCreate = TextUtils.removeLastComma( sqlCreate ) + ") " + getTableOptions();
+        String sql = TextUtils.removeLastComma( sqlCreate.toString() ) + ") " + WITH_AUTOVACUUM_ENABLED_FALSE;
 
         log.info( "Creating table: {}, columns: {}", tableName, table.getDimensionColumns().size() );
 
-        log.debug( "Create SQL: {}", sqlCreate );
+        log.debug( "Create SQL: {}", sql );
 
-        jdbcTemplate.execute( sqlCreate );
+        jdbcTemplate.execute( sql );
     }
 
     /**
@@ -434,8 +436,8 @@ public abstract class AbstractJdbcTableManager
     {
         for ( AnalyticsTablePartition partition : table.getTablePartitions() )
         {
-            final String tableName = partition.getTempTableName();
-            final List<String> checks = getPartitionChecks( partition );
+            String tableName = partition.getTempTableName();
+            List<String> checks = getPartitionChecks( partition );
 
             String sqlCreate = "create table " + tableName + " (";
 
@@ -446,7 +448,7 @@ public abstract class AbstractJdbcTableManager
                 sqlCreate += TextUtils.removeLastComma( sqlCheck.toString() );
             }
 
-            sqlCreate += ") inherits (" + table.getTempTableName() + ") " + getTableOptions();
+            sqlCreate += ") inherits (" + table.getTempTableName() + ") " + WITH_AUTOVACUUM_ENABLED_FALSE;
 
             log.info( "Creating partition table: {}", tableName );
 
@@ -454,14 +456,6 @@ public abstract class AbstractJdbcTableManager
 
             jdbcTemplate.execute( sqlCreate );
         }
-    }
-
-    /**
-     * Returns a table options SQL statement.
-     */
-    private String getTableOptions()
-    {
-        return "with(autovacuum_enabled = false)";
     }
 
     /**
@@ -524,13 +518,13 @@ public abstract class AbstractJdbcTableManager
         if ( hasUpdatedData )
         {
             table.addPartitionTable( AnalyticsTablePartition.LATEST_PARTITION, startDate, endDate );
-            log.info( String.format( "Added latest analytics partition with start: '%s' and end: '%s'",
-                getLongDateString( startDate ), getLongDateString( endDate ) ) );
+            log.info( "Added latest analytics partition with start: '{}' and end: '{}'",
+                getLongDateString( startDate ), getLongDateString( endDate ) );
         }
         else
         {
-            log.info( String.format( "No updated latest data found with start: '%s' and end: '%s",
-                getLongDateString( lastAnyTableUpdate ), getLongDateString( endDate ) ) );
+            log.info( "No updated latest data found with start: '{}' and end: '{}'",
+                getLongDateString( lastAnyTableUpdate ), getLongDateString( endDate ) );
         }
 
         return table;
@@ -549,7 +543,7 @@ public abstract class AbstractJdbcTableManager
             throw new IllegalStateException( "Analytics table dimensions are empty" );
         }
 
-        List<String> columnNames = columns.stream().map( d -> d.getName() ).collect( Collectors.toList() );
+        List<String> columnNames = columns.stream().map( AnalyticsTableColumn::getName ).collect( Collectors.toList() );
 
         Set<String> duplicates = ListUtils.getDuplicates( columnNames );
 
@@ -662,7 +656,7 @@ public abstract class AbstractJdbcTableManager
      */
     private void swapTable( String tempTableName, String realTableName )
     {
-        final String sql = "drop table if exists " + realTableName + " cascade; " +
+        String sql = "drop table if exists " + realTableName + " cascade; " +
             "alter table " + tempTableName + " rename to " + realTableName + ";";
 
         executeSilently( sql );
@@ -678,7 +672,7 @@ public abstract class AbstractJdbcTableManager
      */
     private void swapInheritance( String partitionTableName, String tempMasterTableName, String realMasterTableName )
     {
-        final String sql = "alter table " + partitionTableName + " inherit " + realMasterTableName + ";" +
+        String sql = "alter table " + partitionTableName + " inherit " + realMasterTableName + ";" +
             "alter table " + partitionTableName + " no inherit " + tempMasterTableName + ";";
 
         executeSilently( sql );
