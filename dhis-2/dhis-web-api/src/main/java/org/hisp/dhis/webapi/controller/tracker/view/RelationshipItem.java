@@ -39,7 +39,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.tracker.TrackerType;
 import org.locationtech.jts.geom.Geometry;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -57,7 +56,7 @@ public class RelationshipItem
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class TrackedEntity implements TrackerDto
+    public static class TrackedEntity
     {
         @JsonProperty
         private String trackedEntity;
@@ -112,25 +111,13 @@ public class RelationshipItem
         @JsonProperty
         @Builder.Default
         private List<ProgramOwner> programOwners = new ArrayList<>();
-
-        @Override
-        public String getUid()
-        {
-            return this.trackedEntity;
-        }
-
-        @Override
-        public TrackerType getTrackerType()
-        {
-            return TrackerType.TRACKED_ENTITY;
-        }
     }
 
     @Data
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class Enrollment implements TrackerDto
+    public static class Enrollment
     {
         @JsonProperty
         private String enrollment;
@@ -203,25 +190,13 @@ public class RelationshipItem
         @JsonProperty
         @Builder.Default
         private List<Note> notes = new ArrayList<>();
-
-        @Override
-        public String getUid()
-        {
-            return this.enrollment;
-        }
-
-        @Override
-        public TrackerType getTrackerType()
-        {
-            return TrackerType.ENROLLMENT;
-        }
     }
 
     @Data
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class Event implements TrackerDto
+    public static class Event
     {
         @JsonProperty
         private String event;
@@ -303,18 +278,6 @@ public class RelationshipItem
         @JsonProperty
         @Builder.Default
         private List<Note> notes = new ArrayList<>();
-
-        @Override
-        public String getUid()
-        {
-            return this.event;
-        }
-
-        @Override
-        public TrackerType getTrackerType()
-        {
-            return TrackerType.EVENT;
-        }
     }
 
     @JsonProperty

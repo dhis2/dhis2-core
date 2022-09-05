@@ -54,7 +54,6 @@ import org.hisp.dhis.common.IdentifiableObjectUtils;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 /**
@@ -133,7 +132,7 @@ public abstract class PeriodType
     /**
      * All period types enumerated in descending order according to frequency.
      */
-    public static final List<PeriodType> PERIOD_TYPES = Lists.newArrayList(
+    public static final List<PeriodType> PERIOD_TYPES = List.of(
         new DailyPeriodType(),
         new WeeklyPeriodType(),
         new WeeklyWednesdayPeriodType(),
@@ -170,7 +169,7 @@ public abstract class PeriodType
      */
     public static List<PeriodType> getAvailablePeriodTypes()
     {
-        return new ArrayList<>( PERIOD_TYPES );
+        return PERIOD_TYPES;
     }
 
     /**

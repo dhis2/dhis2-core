@@ -397,22 +397,22 @@ public class DataValidator
      * Validate if the DataSet or DataElement is locked based on the input
      * arguments.
      *
-     * @param user the current User.
      * @param dataElement the {@link DataElement}.
      * @param period the {@link Period}.
      * @param dataSet the {@link DataSet}.
      * @param organisationUnit the {@link OrganisationUnit}.
      * @param attributeOptionCombo the CategoryOptionCombo.
+     * @param user the current User.
      * @throws IllegalQueryException if the validation fails.
      */
-    public void validateDataSetNotLocked( User user, DataElement dataElement, Period period,
-        DataSet dataSet, OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo )
+    public void validateDataSetNotLocked( DataElement dataElement, Period period,
+        DataSet dataSet, OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo, User user )
     {
         if ( dataSet == null
-            ? !dataSetService.getLockStatus( user, dataElement, period, organisationUnit, attributeOptionCombo, null )
+            ? !dataSetService.getLockStatus( dataElement, period, organisationUnit, attributeOptionCombo, user, null )
                 .isOpen()
-            : !dataSetService.getLockStatus( user, dataSet, period, organisationUnit, attributeOptionCombo,
-                null ).isOpen() )
+            : !dataSetService.getLockStatus( dataSet, period, organisationUnit, attributeOptionCombo,
+                user, null ).isOpen() )
         {
             throw new IllegalQueryException( new ErrorMessage( ErrorCode.E2017 ) );
         }

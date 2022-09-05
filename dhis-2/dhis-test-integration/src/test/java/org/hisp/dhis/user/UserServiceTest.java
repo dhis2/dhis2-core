@@ -129,7 +129,7 @@ class UserServiceTest extends SingleSetupIntegrationTestBase
 
     private UserQueryParams getDefaultParams()
     {
-        return new UserQueryParams().setCanSeeOwnUserRoles( true );
+        return new UserQueryParams().setCanSeeOwnRoles( true );
     }
 
     @Test

@@ -39,10 +39,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.tracker.TrackerType;
 import org.locationtech.jts.geom.Geometry;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -53,7 +51,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Event
-    implements TrackerDto
 {
     @JsonProperty
     private String event;
@@ -142,22 +139,4 @@ public class Event
     @JsonProperty
     @Builder.Default
     private List<Note> notes = new ArrayList<>();
-
-    @JsonIgnore
-    public boolean isCreatableInSearchScope()
-    {
-        return this.getStatus() == EventStatus.SCHEDULE && this.getDataValues().isEmpty() && this.occurredAt == null;
-    }
-
-    @Override
-    public String getUid()
-    {
-        return this.event;
-    }
-
-    @Override
-    public TrackerType getTrackerType()
-    {
-        return TrackerType.EVENT;
-    }
 }

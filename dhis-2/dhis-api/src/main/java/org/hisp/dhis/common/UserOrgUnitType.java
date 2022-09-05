@@ -25,27 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.view;
+package org.hisp.dhis.common;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import static java.util.Arrays.stream;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Luciano Fiandesio
  */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class Coordinate
+@JacksonXmlRootElement( localName = "userOrgUnitType", namespace = DxfNamespaces.DXF_2_0 )
+public enum UserOrgUnitType
 {
-    @JsonProperty
-    private Double latitude;
+    DATA_CAPTURE,
+    DATA_OUTPUT,
+    TEI_SEARCH;
 
-    @JsonProperty
-    private Double longitude;
+    public static UserOrgUnitType fromValue( String name )
+    {
+        return stream( values() ).filter( t -> t.name().equalsIgnoreCase( name ) ).findFirst().orElse( null );
+    }
 }
