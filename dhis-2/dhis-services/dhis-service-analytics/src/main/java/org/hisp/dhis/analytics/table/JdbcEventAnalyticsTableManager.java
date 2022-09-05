@@ -323,12 +323,6 @@ public class JdbcEventAnalyticsTableManager
     }
 
     @Override
-    protected String getPartitionColumn()
-    {
-        return "yearly";
-    }
-
-    @Override
     protected void populateTable( AnalyticsTableUpdateParams params, AnalyticsTablePartition partition )
     {
         final Program program = partition.getMasterTable().getProgram();
