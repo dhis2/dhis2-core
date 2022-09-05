@@ -34,6 +34,7 @@ import static org.mockito.Mockito.when;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Set;
@@ -141,7 +142,7 @@ class EventRequestToSearchParamsMapperTest
     }
 
     @Test
-    void testEventRequestToSearchParamsMapperSuccess()
+    void testMapping()
     {
 
         TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
@@ -183,6 +184,76 @@ class EventRequestToSearchParamsMapperTest
         assertEquals( updatedBefore, params.getLastUpdatedEndDate() );
         assertEquals( updatedWithin, params.getLastUpdatedDuration() );
         assertEquals( enrollments, params.getProgramInstances() );
+    }
+
+    @Test
+    void testMappingOfEvents()
+    {
+
+        TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
+        eventCriteria.setEvent( "XKrcfuM4Hcw;M4pNmLabtXl" );
+
+        EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
+
+        assertEquals( Set.of( "XKrcfuM4Hcw", "M4pNmLabtXl" ), params.getEvents() );
+    }
+
+    @Test
+    void testMappingOfEventsStripsInvalidUid()
+    {
+
+        TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
+        eventCriteria.setEvent( "invalidUid;M4pNmLabtXl" );
+
+        EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
+
+        assertEquals( Set.of( "M4pNmLabtXl" ), params.getEvents() );
+    }
+
+    @Test
+    void testMappingOfNoEvents()
+    {
+
+        TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
+
+        EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
+
+        assertEquals( Collections.emptySet(), params.getEvents() );
+    }
+
+    @Test
+    void testMappingOfAssignedUsers()
+    {
+
+        TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
+        eventCriteria.setAssignedUser( "XKrcfuM4Hcw;M4pNmLabtXl" );
+
+        EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
+
+        assertEquals( Set.of( "XKrcfuM4Hcw", "M4pNmLabtXl" ), params.getAssignedUsers() );
+    }
+
+    @Test
+    void testMappingOfAssignedUsersStripsInvalidUid()
+    {
+
+        TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
+        eventCriteria.setAssignedUser( "invalidUid;M4pNmLabtXl" );
+
+        EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
+
+        assertEquals( Set.of( "M4pNmLabtXl" ), params.getAssignedUsers() );
+    }
+
+    @Test
+    void testMappingOfNoAssignedUsers()
+    {
+
+        TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
+
+        EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
+
+        assertEquals( Collections.emptySet(), params.getAssignedUsers() );
     }
 
     @Test
