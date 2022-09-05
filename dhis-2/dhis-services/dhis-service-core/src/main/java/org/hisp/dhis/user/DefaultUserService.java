@@ -767,7 +767,11 @@ public class DefaultUserService
 
         }
 
-        TwoFactoryAuthenticationUtils.verify( code, user.getSecret() );
+        if ( TwoFactoryAuthenticationUtils.verify( code, user.getSecret() ) )
+        {
+            throw new IllegalStateException( "Invalid code" );
+        }
+
         approveTwoFactorCode( user );
     }
 
@@ -780,7 +784,11 @@ public class DefaultUserService
             throw new IllegalStateException( "Two factor is not enabled, enable first" );
         }
 
-        TwoFactoryAuthenticationUtils.verify( code, user.getSecret() );
+        if ( !TwoFactoryAuthenticationUtils.verify( code, user.getSecret() ) )
+        {
+            throw new IllegalStateException( "Invalid code" );
+        }
+
         resetTwoFA( user );
     }
 
@@ -961,7 +969,7 @@ public class DefaultUserService
     @Override
     public boolean hasTwoFactorRequirementRole( User user )
     {
-        return user.hasAnyAuthority( Set.of( "MUST_HAVE_2FA_ENABLED" ) );
+        return user.hasAnyAuthority( Set.of( TWO_FACTOR_AUTH_REQUIRED_ROLE_NAME ) );
     }
 
     @Override

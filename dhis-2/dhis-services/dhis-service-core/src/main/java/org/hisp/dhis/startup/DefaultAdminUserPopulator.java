@@ -28,6 +28,7 @@
 package org.hisp.dhis.startup;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.user.DefaultUserService.TWO_FACTOR_AUTH_REQUIRED_ROLE_NAME;
 
 import java.util.Set;
 import java.util.UUID;
@@ -92,7 +93,7 @@ public class DefaultAdminUserPopulator
         "F_TRACKED_ENTITY_MERGE",
         "F_DATAVALUE_ADD",
         "F_DATAVALUE_DELETE",
-        "MUST_HAVE_2FA_ENABLED" );
+        TWO_FACTOR_AUTH_REQUIRED_ROLE_NAME );
 
     private final UserService userService;
 

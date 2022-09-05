@@ -73,6 +73,7 @@ public class LoginAction
     // -------------------------------------------------------------------------
 
     private Boolean twoFactor = false;
+
     private Boolean failed = false;
 
     public void setFailed( Boolean failed )

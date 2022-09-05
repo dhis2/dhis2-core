@@ -72,6 +72,8 @@ public class XmlPathMappingJackson2XmlHttpMessageConverter extends MappingJackso
         HttpServletRequest request = ContextUtils.getRequest();
         String pathInfo = request.getPathInfo();
 
+        // TODO: Why this fails for APITOKEN
+
         for ( var pathPattern : WebMvcConfig.XML_PATTERNS )
         {
             if ( pathPattern.matcher( pathInfo ).matches() )

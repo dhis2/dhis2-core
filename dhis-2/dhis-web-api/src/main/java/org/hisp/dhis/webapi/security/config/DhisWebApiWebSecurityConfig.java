@@ -39,6 +39,7 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.security.apikey.ApiTokenService;
 import org.hisp.dhis.security.apikey.DhisApiTokenAuthenticationEntryPoint;
+import org.hisp.dhis.security.basic.HttpBasicWebAuthenticationDetailsSource;
 import org.hisp.dhis.security.jwt.Dhis2JwtAuthenticationManagerResolver;
 import org.hisp.dhis.security.jwt.DhisBearerJwtTokenAuthenticationEntryPoint;
 import org.hisp.dhis.security.ldap.authentication.CustomLdapAuthenticationProvider;
@@ -375,6 +376,9 @@ public class DhisWebApiWebSecurityConfig
         @Autowired
         private ExternalAccessVoter externalAccessVoter;
 
+        @Autowired
+        private HttpBasicWebAuthenticationDetailsSource httpBasicWebAuthenticationDetailsSource;
+
         @Override
         public void configure( AuthenticationManagerBuilder auth )
         {
@@ -490,6 +494,7 @@ public class DhisWebApiWebSecurityConfig
                 http.antMatcher( "/**" )
                     .authorizeRequests( this::configureAccessRestrictions )
                     .httpBasic()
+                    .authenticationDetailsSource( httpBasicWebAuthenticationDetailsSource )
                     .authenticationEntryPoint( embeddedJettyBasicAuthenticationEntryPoint() );
 
                 /*
@@ -513,6 +518,7 @@ public class DhisWebApiWebSecurityConfig
                 http.antMatcher( apiContextPath + "/**" )
                     .authorizeRequests( this::configureAccessRestrictions )
                     .httpBasic()
+                    .authenticationDetailsSource( httpBasicWebAuthenticationDetailsSource )
                     .authenticationEntryPoint( formLoginBasicAuthenticationEntryPoint() );
             }
         }

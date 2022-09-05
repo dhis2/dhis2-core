@@ -45,7 +45,6 @@ import org.hisp.dhis.security.vote.ActionAccessVoter;
 import org.hisp.dhis.security.vote.ModuleAccessVoter;
 import org.hisp.dhis.webapi.filter.CorsFilter;
 import org.hisp.dhis.webapi.filter.CustomAuthenticationFilter;
-import org.hisp.dhis.webapi.handler.CustomExceptionMappingAuthenticationFailureHandler;
 import org.hisp.dhis.webapi.handler.DefaultAuthenticationSuccessHandler;
 import org.hisp.dhis.webapi.security.ExternalAccessVoter;
 import org.hisp.dhis.webapi.security.Http401LoginUrlAuthenticationEntryPoint;
@@ -250,7 +249,6 @@ public class DhisWebCommonsWebSecurityConfig
                 .usernameParameter( "j_username" ).passwordParameter( "j_password" )
                 .loginProcessingUrl( "/dhis-web-commons-security/login.action" )
                 .failureHandler( customAuthFailureHandler )
-//                .failureHandler( authenticationFailureHandler() )
                 .successHandler( authenticationSuccessHandler() )
                 .permitAll()
                 .and()
@@ -308,45 +306,6 @@ public class DhisWebCommonsWebSecurityConfig
 
             return mappedRedirectStrategy;
         }
-
-        @Bean
-        public CustomExceptionMappingAuthenticationFailureHandler authenticationFailureHandler()
-        {
-            CustomExceptionMappingAuthenticationFailureHandler handler = new CustomExceptionMappingAuthenticationFailureHandler(
-                i18nManager );
-
-            // Handles the special case when a user failed to login because it
-            // has expired...
-            handler.setExceptionMappings(
-                ImmutableMap.of(
-                    "org.springframework.security.authentication.CredentialsExpiredException",
-                    "/dhis-web-commons/security/expired.action" ) );
-
-            handler.setDefaultFailureUrl( "/dhis-web-commons/security/login.action?failed=true" );
-
-            return handler;
-        }
-
-
-
-
-//        @Bean
-//        public CustomExceptionMappingAuthenticationFailureHandler authenticationFailureHandler()
-//        {
-//            CustomExceptionMappingAuthenticationFailureHandler handler = new CustomExceptionMappingAuthenticationFailureHandler(
-//                i18nManager );
-//
-//            // Handles the special case when a user failed to login because it
-//            // has expired...
-//            handler.setExceptionMappings(
-//                ImmutableMap.of(
-//                    "org.springframework.security.authentication.CredentialsExpiredException",
-//                    "/dhis-web-commons/security/expired.action" ) );
-//
-//            handler.setDefaultFailureUrl( "/dhis-web-commons/security/login.action?failed=true" );
-//
-//            return handler;
-//        }
 
         @Bean
         public DeviceResolver deviceResolver()

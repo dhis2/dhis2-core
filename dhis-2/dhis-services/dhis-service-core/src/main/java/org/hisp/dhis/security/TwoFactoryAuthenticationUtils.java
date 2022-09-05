@@ -34,6 +34,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.validator.routines.LongValidator;
 import org.hisp.dhis.user.User;
 import org.jboss.aerogear.security.otp.Totp;
 
@@ -95,6 +96,11 @@ public class TwoFactoryAuthenticationUtils
         if ( Strings.isNullOrEmpty( secret ) )
         {
             throw new IllegalArgumentException( "User must have a secret" );
+        }
+
+        if ( !LongValidator.getInstance().isValid( code ) )
+        {
+            return false;
         }
 
         secret = removeApprovalPrefix( secret );
