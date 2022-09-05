@@ -47,7 +47,6 @@ import java.util.stream.Stream;
 
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.analytics.UserOrgUnitType;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DataQueryRequest;
@@ -55,6 +54,7 @@ import org.hisp.dhis.common.DimensionItemKeywords;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.i18n.I18n;

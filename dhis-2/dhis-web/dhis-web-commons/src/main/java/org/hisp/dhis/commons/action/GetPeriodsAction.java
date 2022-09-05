@@ -95,7 +95,7 @@ public class GetPeriodsAction
 
         if ( name == null || name.equals( ALL ) )
         {
-            List<PeriodType> periodTypes = periodService.getAllPeriodTypes();
+            List<PeriodType> periodTypes = PeriodType.getAvailablePeriodTypes();
 
             periods = new ArrayList<>();
 

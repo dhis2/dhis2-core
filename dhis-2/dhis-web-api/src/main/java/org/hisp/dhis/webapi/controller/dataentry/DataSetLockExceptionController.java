@@ -25,27 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.view;
+package org.hisp.dhis.webapi.controller.dataentry;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import static org.hisp.dhis.commons.collection.CollectionUtils.mapToList;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
+
+import lombok.RequiredArgsConstructor;
+
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.dataset.LockException;
+import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.webdomain.dataentry.DataEntryDtoMapper;
+import org.hisp.dhis.webapi.webdomain.dataentry.LockExceptionsDto;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Lars Helge Overland
  */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class Coordinate
+@RestController
+@RequiredArgsConstructor
+@RequestMapping( "/dataEntry" )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+public class DataSetLockExceptionController
 {
-    @JsonProperty
-    private Double latitude;
+    private final DataSetService dataSetService;
 
-    @JsonProperty
-    private Double longitude;
+    @GetMapping( "/lockExceptions" )
+    public LockExceptionsDto getLockExceptions()
+    {
+        List<LockException> lockExceptions = dataSetService.getDataWriteLockExceptions();
+
+        return new LockExceptionsDto()
+            .setLockExceptions( mapToList( lockExceptions, DataEntryDtoMapper::toDto ) );
+    }
 }

@@ -8,7 +8,7 @@ services:
        - "6379"
 
   db:
-    restart: always
+    restart: unless-stopped
     image: postgis/postgis:10-2.5-alpine
     command: postgres -c max_locks_per_transaction=100
     environment:

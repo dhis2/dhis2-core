@@ -25,19 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.webapi.webdomain.dataentry;
 
-import org.hisp.dhis.common.DxfNamespaces;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * @author Luciano Fiandesio
+ * DTO which represents a lock exception.
+ *
+ * @author Lars Helge Overland
  */
-@JacksonXmlRootElement( localName = "userOrgUnitType", namespace = DxfNamespaces.DXF_2_0 )
-public enum UserOrgUnitType
+@Getter
+@Setter
+@Accessors( chain = true )
+@NoArgsConstructor
+public class LockExceptionDto
 {
-    DATA_CAPTURE,
-    DATA_OUTPUT,
-    TEI_SEARCH
+    @JsonProperty
+    private String period;
+
+    @JsonProperty
+    private String orgUnit;
+
+    @JsonProperty
+    private String dataSet;
 }

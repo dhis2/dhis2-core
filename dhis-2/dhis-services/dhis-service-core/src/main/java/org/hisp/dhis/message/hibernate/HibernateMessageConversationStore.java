@@ -61,7 +61,7 @@ public class HibernateMessageConversationStore
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private StatementBuilder statementBuilder;
+    private final StatementBuilder statementBuilder;
 
     public HibernateMessageConversationStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService,

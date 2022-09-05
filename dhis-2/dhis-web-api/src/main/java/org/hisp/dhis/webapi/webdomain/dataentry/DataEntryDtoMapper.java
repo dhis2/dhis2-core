@@ -25,27 +25,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.view;
+package org.hisp.dhis.webapi.webdomain.dataentry;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import org.hisp.dhis.dataset.CompleteDataSetRegistration;
+import org.hisp.dhis.dataset.LockException;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class Coordinate
+public class DataEntryDtoMapper
 {
-    @JsonProperty
-    private Double latitude;
+    DataEntryDtoMapper()
+    {
+    }
 
-    @JsonProperty
-    private Double longitude;
+    /**
+     * Converts a {@link LockException} object to a {@link LockExceptionDto}.
+     *
+     * @param lockException the {@link LockException}.
+     * @return a {@link LockExceptionDto}.
+     */
+    public static LockExceptionDto toDto( LockException lockException )
+    {
+        return new LockExceptionDto()
+            .setPeriod( lockException.getPeriod().getIsoDate() )
+            .setOrgUnit( lockException.getOrganisationUnit().getUid() )
+            .setDataSet( lockException.getDataSet().getUid() );
+    }
+
+    /**
+     * Converts a {@link CompleteDataSetRegistration} to a
+     * {@link CompleteStatusDto}.
+     *
+     * @param registration the {@link CompleteDataSetRegistration}.
+     * @return a {@link CompleteStatusDto}.
+     */
+    public static CompleteStatusDto toDto( CompleteDataSetRegistration registration )
+    {
+        return new CompleteStatusDto()
+            .setComplete( registration.getCompleted() )
+            .setCreated( registration.getDate() )
+            .setLastUpdated( registration.getLastUpdated() )
+            .setCompletedBy( registration.getStoredBy() );
+    }
 }
