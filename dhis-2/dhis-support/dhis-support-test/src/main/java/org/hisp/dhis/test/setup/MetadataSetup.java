@@ -38,6 +38,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -57,6 +58,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -78,10 +80,14 @@ import org.hisp.dhis.user.UserRole;
  * @author Jan Bernitt
  */
 @Getter
-public class MetadataSetup implements TestObjectRegistry, TestDataValueGenerator
+public class MetadataSetup implements TestObjectRegistry, TestValueGenerator
 {
     public static final Consumer<Object> withDefaultSetup = x -> {
     };
+
+    private final Objects<AttributeSetup> attributes = new Objects<>( AttributeSetup::getName );
+
+    private final Objects<OrganisationUnitSetup> organisationUnits = new Objects<>( OrganisationUnitSetup::getName );
 
     private final Objects<UserSetup> users = new Objects<>( UserSetup::getName );
 
@@ -97,8 +103,6 @@ public class MetadataSetup implements TestObjectRegistry, TestDataValueGenerator
 
     private final Objects<CategoryOptionComboSetup> categoryOptionCombos = new Objects<>(
         CategoryOptionComboSetup::getName );
-
-    private final Objects<OrganisationUnitSetup> organisationUnits = new Objects<>( OrganisationUnitSetup::getName );
 
     private final Objects<DataElementSetup> dataElements = new Objects<>( DataElementSetup::getName );
 
@@ -147,6 +151,11 @@ public class MetadataSetup implements TestObjectRegistry, TestDataValueGenerator
         {
             return objectsByName == null ? emptyIterator() : objectsByName.values().iterator();
         }
+    }
+
+    public AttributeSetup addAttribute( String name, Consumer<? super AttributeSetup> attribute )
+    {
+        return add( name, AttributeSetup::new, attributes, attribute );
     }
 
     public UserSetup addUser( String name, Consumer<? super UserSetup> user )
@@ -238,7 +247,6 @@ public class MetadataSetup implements TestObjectRegistry, TestDataValueGenerator
     @Accessors( chain = true )
     public abstract static class AbstractSetup<T extends IdentifiableObject>
     {
-
         private String uid;
 
         private T object;
@@ -247,7 +255,77 @@ public class MetadataSetup implements TestObjectRegistry, TestDataValueGenerator
 
         private String shortName;
 
+        private final Set<AttributeSetup> attributes = new LinkedHashSet<>();
+
+        private final Map<AttributeSetup, String> attributeValues = new LinkedHashMap<>();
+
         public abstract String getName();
+
+        public abstract MetadataSetup getContext();
+
+        public AbstractSetup<T> addAttribute( String name, Consumer<? super AttributeSetup> attribute )
+        {
+            attributes.add( getContext().addAttribute( name, attribute ) );
+            return this;
+        }
+
+        public AbstractSetup<T> useAttribute( String name )
+        {
+            attributes.add( getContext().getAttributes().get( name ) );
+            return this;
+        }
+
+        public AbstractSetup<T> addAttributeValue( String name, String value )
+        {
+            attributeValues.put( getContext().getAttributes().get( name ), value );
+            return this;
+        }
+
+        public AbstractSetup<T> addAttributeValue( String name, String value, Consumer<AttributeSetup> attribute )
+        {
+            attributeValues.put( getContext().addAttribute( name, attribute ), value );
+            return this;
+        }
+
+        @Override
+        public final int hashCode()
+        {
+            return getClass().hashCode() ^ getName().hashCode();
+        }
+
+        @Override
+        public final boolean equals( Object obj )
+        {
+            return obj != null && obj.getClass() == getClass()
+                && getName().equals( ((AbstractSetup<?>) obj).getName() );
+        }
+    }
+
+    @ToString
+    @Getter
+    @Setter
+    @Accessors( chain = true )
+    @RequiredArgsConstructor
+    public static final class AttributeSetup extends AbstractSetup<Attribute>
+    {
+        private final MetadataSetup context;
+
+        private final String name;
+
+        private ValueType valueType;
+
+        private EnumSet<Attribute.ObjectType> objectTypes = EnumSet.noneOf( Attribute.ObjectType.class );
+
+        private boolean mandatory;
+
+        private boolean unique;
+
+        public AttributeSetup setTypes( Attribute.ObjectType... types )
+        {
+            return setObjectTypes( types.length == 0
+                ? EnumSet.noneOf( Attribute.ObjectType.class )
+                : EnumSet.of( types[0], types ) );
+        }
     }
 
     @ToString
@@ -283,7 +361,7 @@ public class MetadataSetup implements TestObjectRegistry, TestDataValueGenerator
 
         public UserSetup addRoles( String... names )
         {
-            stream( names ).forEach( name -> context.getRoles().get( name ).getMembers().add( this ) );
+            stream( names ).forEach( n -> context.getRoles().get( n ).getMembers().add( this ) );
             return this;
         }
 
@@ -295,7 +373,7 @@ public class MetadataSetup implements TestObjectRegistry, TestDataValueGenerator
 
         public UserSetup addGroups( String... names )
         {
-            stream( names ).forEach( name -> context.getUserGroups().get( name ).getMembers().add( this ) );
+            stream( names ).forEach( n -> context.getUserGroups().get( n ).getMembers().add( this ) );
             return this;
         }
 
@@ -339,7 +417,7 @@ public class MetadataSetup implements TestObjectRegistry, TestDataValueGenerator
 
         public UserGroupSetup addMembers( String... names )
         {
-            stream( names ).forEach( name -> members.add( context.getUsers().get( name ) ) );
+            stream( names ).forEach( n -> members.add( context.getUsers().get( n ) ) );
             return this;
         }
 
@@ -368,7 +446,7 @@ public class MetadataSetup implements TestObjectRegistry, TestDataValueGenerator
 
         public UserRoleSetup addMembers( String... names )
         {
-            stream( names ).forEach( name -> members.add( context.getUsers().get( name ) ) );
+            stream( names ).forEach( n -> members.add( context.getUsers().get( n ) ) );
             return this;
         }
     }

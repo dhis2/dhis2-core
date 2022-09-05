@@ -28,6 +28,7 @@
 package org.hisp.dhis.test.setup;
 
 import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.test.setup.MetadataSetup.AttributeSetup;
 import org.hisp.dhis.test.setup.MetadataSetup.CategoryOptionComboSetup;
 import org.hisp.dhis.test.setup.MetadataSetup.DataElementSetup;
 import org.hisp.dhis.test.setup.MetadataSetup.Objects;
@@ -40,8 +41,10 @@ import org.hisp.dhis.test.setup.MetadataSetup.PeriodSetup;
  *
  * @author Jan Bernitt
  */
-public interface TestDataValueGenerator
+public interface TestValueGenerator
 {
+    Objects<AttributeSetup> getAttributes();
+
     Objects<DataElementSetup> getDataElements();
 
     Objects<PeriodSetup> getPeriods();
@@ -52,12 +55,17 @@ public interface TestDataValueGenerator
 
     default DataValue newDateValue( String de, String pe, String ou, String coc, String value )
     {
+        return newDateValue( de, pe, ou, coc, null, value );
+    }
+
+    default DataValue newDateValue( String de, String pe, String ou, String coc, String aoc, String value )
+    {
         return new DataValue(
             getDataElements().get( de ).getObject(),
             getPeriods().get( pe ).getObject(),
             getOrganisationUnits().get( ou ).getObject(),
             getCategoryOptionCombos().get( coc ).getObject(),
-            null,
+            aoc == null ? null : getCategoryOptionCombos().get( aoc ).getObject(),
             value );
     }
 }

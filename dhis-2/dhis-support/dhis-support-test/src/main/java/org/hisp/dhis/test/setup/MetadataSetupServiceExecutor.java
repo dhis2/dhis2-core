@@ -31,6 +31,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static java.util.stream.Collectors.toUnmodifiableSet;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -38,12 +39,17 @@ import java.util.function.Function;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.attribute.AttributeService;
+import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -52,6 +58,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.test.setup.MetadataSetup.AbstractSetup;
+import org.hisp.dhis.test.setup.MetadataSetup.AttributeSetup;
 import org.hisp.dhis.test.setup.MetadataSetup.CategoryComboSetup;
 import org.hisp.dhis.test.setup.MetadataSetup.CategoryOptionComboSetup;
 import org.hisp.dhis.test.setup.MetadataSetup.CategoryOptionSetup;
@@ -79,6 +86,8 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class MetadataSetupServiceExecutor implements MetadataSetupExecutor
 {
+    private final AttributeService attributeService;
+
     private final UserService userService;
 
     private final UserGroupService userGroupService;
@@ -91,11 +100,15 @@ public class MetadataSetupServiceExecutor implements MetadataSetupExecutor
 
     private final DataElementService dataElementService;
 
+    private final IdentifiableObjectManager manager;
+
     @Override
     public void create( MetadataSetup setup )
     {
         // OBS! order matters! objects are created in such an order that
         // referenced objects are already created
+        createEach( setup.getAttributes(), this::createAttribute );
+
         createEach( setup.getOrganisationUnits(), this::createOrganisationUnit );
 
         createEach( setup.getUsers(), this::createUser );
@@ -121,6 +134,15 @@ public class MetadataSetupServiceExecutor implements MetadataSetupExecutor
                 T obj = creator.apply( setup );
                 setup.setObject( obj );
                 setup.setUid( obj.getUid() );
+                Map<AttributeSetup, String> attributeValues = setup.getAttributeValues();
+                if ( !attributeValues.isEmpty() )
+                {
+                    obj.setAttributeValues( attributeValues.entrySet().stream()
+                        .map( e -> new AttributeValue( setup.getContext().getAttribute( e.getKey().getName() ),
+                            e.getValue() ) )
+                        .collect( toUnmodifiableSet() ) );
+                    manager.update( obj );
+                }
             }
             catch ( Exception ex )
             {
@@ -134,6 +156,19 @@ public class MetadataSetupServiceExecutor implements MetadataSetupExecutor
         Objects<S> objects, BiFunction<S, Objects<S>, T> creator )
     {
         createEach( objects, setup -> creator.apply( setup, objects ) );
+    }
+
+    private Attribute createAttribute( AttributeSetup setup )
+    {
+        Attribute obj = new Attribute( setup.getName(),
+            orElse( setup, AttributeSetup::getValueType, ValueType.TEXT ) );
+        obj.setUid( setup.getUid() );
+        obj.setUnique( setup.isUnique() );
+        obj.setMandatory( setup.isMandatory() );
+        setup.getObjectTypes().forEach( type -> obj.setAttribute( type, true ) );
+        obj.setAutoFields();
+        attributeService.addAttribute( obj );
+        return obj;
     }
 
     private User createUser( UserSetup setup )

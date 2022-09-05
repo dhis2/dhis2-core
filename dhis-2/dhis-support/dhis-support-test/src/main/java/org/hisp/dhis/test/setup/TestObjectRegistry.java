@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.test.setup;
 
+import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -34,6 +35,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.test.setup.MetadataSetup.AttributeSetup;
 import org.hisp.dhis.test.setup.MetadataSetup.CategoryComboSetup;
 import org.hisp.dhis.test.setup.MetadataSetup.CategoryOptionComboSetup;
 import org.hisp.dhis.test.setup.MetadataSetup.CategoryOptionSetup;
@@ -56,6 +58,8 @@ import org.hisp.dhis.user.UserRole;
  */
 public interface TestObjectRegistry
 {
+    Objects<AttributeSetup> getAttributes();
+
     Objects<UserSetup> getUsers();
 
     Objects<UserGroupSetup> getUserGroups();
@@ -75,6 +79,11 @@ public interface TestObjectRegistry
     Objects<DataElementSetup> getDataElements();
 
     Objects<PeriodSetup> getPeriods();
+
+    default Attribute getAttribute( String name )
+    {
+        return getAttributes().get( name ).getObject();
+    }
 
     default User getUser( String name )
     {
