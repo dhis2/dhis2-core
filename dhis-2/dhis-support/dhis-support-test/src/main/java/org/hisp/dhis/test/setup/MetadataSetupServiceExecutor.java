@@ -29,7 +29,9 @@ package org.hisp.dhis.test.setup;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static java.util.stream.Collectors.toUnmodifiableSet;
 
+import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -49,6 +51,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.test.setup.MetadataSetup.AbstractSetup;
 import org.hisp.dhis.test.setup.MetadataSetup.CategoryComboSetup;
 import org.hisp.dhis.test.setup.MetadataSetup.CategoryOptionComboSetup;
 import org.hisp.dhis.test.setup.MetadataSetup.CategoryOptionSetup;
@@ -56,6 +59,15 @@ import org.hisp.dhis.test.setup.MetadataSetup.CategorySetup;
 import org.hisp.dhis.test.setup.MetadataSetup.DataElementSetup;
 import org.hisp.dhis.test.setup.MetadataSetup.Objects;
 import org.hisp.dhis.test.setup.MetadataSetup.OrganisationUnitSetup;
+import org.hisp.dhis.test.setup.MetadataSetup.PeriodSetup;
+import org.hisp.dhis.test.setup.MetadataSetup.UserGroupSetup;
+import org.hisp.dhis.test.setup.MetadataSetup.UserRoleSetup;
+import org.hisp.dhis.test.setup.MetadataSetup.UserSetup;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserGroupService;
+import org.hisp.dhis.user.UserRole;
+import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Component;
 
 /**
@@ -67,6 +79,10 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class MetadataSetupServiceExecutor implements MetadataSetupExecutor
 {
+    private final UserService userService;
+
+    private final UserGroupService userGroupService;
+
     private final PeriodService periodService;
 
     private final CategoryService categoryService;
@@ -80,6 +96,12 @@ public class MetadataSetupServiceExecutor implements MetadataSetupExecutor
     {
         // OBS! order matters! objects are created in such an order that
         // referenced objects are already created
+        createEach( setup.getOrganisationUnits(), this::createOrganisationUnit );
+
+        createEach( setup.getUsers(), this::createUser );
+        createEach( setup.getUserGroups(), this::createUserGroup );
+        createEach( setup.getRoles(), this::createRole );
+
         createEach( setup.getPeriods(), this::createPeriod );
 
         createEach( setup.getCategoryOptions(), this::createCategoryOptions );
@@ -87,11 +109,10 @@ public class MetadataSetupServiceExecutor implements MetadataSetupExecutor
         createEach( setup.getCategoryCombos(), this::createCategoryCombo );
         createEach( setup.getCategoryOptionCombos(), this::createCategoryOptionCombo );
 
-        createEach( setup.getOrganisationUnits(), this::createOrganisationUnit );
         createEach( setup.getDataElements(), this::createDataElement );
     }
 
-    private <S extends MetadataSetup.AbstractSetup<T>, T extends IdentifiableObject> void createEach(
+    private <S extends AbstractSetup<T>, T extends IdentifiableObject> void createEach(
         Objects<S> objects, Function<S, T> creator )
     {
         objects.forEach( setup -> {
@@ -109,13 +130,58 @@ public class MetadataSetupServiceExecutor implements MetadataSetupExecutor
         } );
     }
 
-    private <S extends MetadataSetup.AbstractSetup<T>, T extends IdentifiableObject> void createEach(
+    private <S extends AbstractSetup<T>, T extends IdentifiableObject> void createEach(
         Objects<S> objects, BiFunction<S, Objects<S>, T> creator )
     {
         createEach( objects, setup -> creator.apply( setup, objects ) );
     }
 
-    private Period createPeriod( MetadataSetup.PeriodSetup setup )
+    private User createUser( UserSetup setup )
+    {
+        String name = setup.getName();
+
+        User obj = new User();
+        obj.setUid( setup.getUid() );
+        obj.setCreatedBy( obj );
+        obj.setUsername( orElse( setup, UserSetup::getUsername, "username" + name ).toLowerCase() );
+        obj.setPassword( orElse( setup, UserSetup::getPassword, "password" + name ) );
+        obj.setFirstName( orElse( setup, UserSetup::getFirstName, "FirstName" + name ) );
+        obj.setSurname( orElse( setup, UserSetup::getSurname, "Surname" + name ) );
+        obj.setEmail( orElse( setup, UserSetup::getEmail, "Email" + name ).toLowerCase() );
+        obj.setPhoneNumber( orElse( setup, UserSetup::getPhoneNumber, "PhoneNumber" + name ) );
+        obj.setCode( orElse( setup, AbstractSetup::getCode, "UserCode" + name ) );
+        obj.setAutoFields();
+        userService.addUser( obj );
+        return obj;
+    }
+
+    private UserGroup createUserGroup( UserGroupSetup setup )
+    {
+        UserGroup obj = new UserGroup();
+        obj.setName( setup.getName() );
+        obj.setUid( setup.getUid() );
+        obj.setCode( orElse( setup, AbstractSetup::getCode, "UserGroupCode" + setup.getName() ) );
+        obj.setMembers( toObjectSet( setup.getMembers(), UserSetup::getObject ) );
+        obj.setManagedByGroups( toObjectSet( setup.getManagedByGroups(), UserGroupSetup::getObject ) );
+        obj.setManagedGroups( toObjectSet( setup.getManagedGroups(), UserGroupSetup::getObject ) );
+        obj.setAutoFields();
+        userGroupService.addUserGroup( obj );
+        return obj;
+    }
+
+    private UserRole createRole( UserRoleSetup setup )
+    {
+        UserRole obj = new UserRole();
+        obj.setName( setup.getName() );
+        obj.setUid( setup.getUid() );
+        obj.setAuthorities( setup.getAuthorities() );
+        obj.setAutoFields();
+        obj.setMembers( toObjectSet( setup.getMembers(), UserSetup::getObject ) );
+        userService.addUserRole( obj );
+        return obj;
+    }
+
+    private Period createPeriod( PeriodSetup setup )
     {
         Period obj = PeriodType.getPeriodFromIsoString( setup.getIsoPeriod() );
         periodService.addPeriod( obj );
@@ -201,5 +267,16 @@ public class MetadataSetupServiceExecutor implements MetadataSetupExecutor
         obj.setAutoFields();
         dataElementService.addDataElement( obj );
         return obj;
+    }
+
+    private static <T, E> T orElse( E entity, Function<E, T> getter, T orElse )
+    {
+        T value = getter.apply( entity );
+        return value == null ? orElse : value;
+    }
+
+    private static <T extends AbstractSetup<?>, E> Set<E> toObjectSet( Set<T> set, Function<T, E> toObject )
+    {
+        return set.stream().map( toObject ).collect( toUnmodifiableSet() );
     }
 }

@@ -28,6 +28,7 @@
 package org.hisp.dhis.test.setup;
 
 import static java.lang.String.format;
+import static java.util.Arrays.stream;
 import static java.util.Collections.emptyIterator;
 
 import java.time.LocalDate;
@@ -39,8 +40,11 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -64,6 +68,9 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserRole;
 
 /**
  * A description of the metadata model that should be created.
@@ -75,6 +82,12 @@ public class MetadataSetup implements TestObjectRegistry, TestDataValueGenerator
 {
     public static final Consumer<Object> withDefaultSetup = x -> {
     };
+
+    private final Objects<UserSetup> users = new Objects<>( UserSetup::getName );
+
+    private final Objects<UserGroupSetup> userGroups = new Objects<>( UserGroupSetup::getName );
+
+    private final Objects<UserRoleSetup> roles = new Objects<>( UserRoleSetup::getName );
 
     private final Objects<CategorySetup> categories = new Objects<>( CategorySetup::getName );
 
@@ -134,6 +147,21 @@ public class MetadataSetup implements TestObjectRegistry, TestDataValueGenerator
         {
             return objectsByName == null ? emptyIterator() : objectsByName.values().iterator();
         }
+    }
+
+    public UserSetup addUser( String name, Consumer<? super UserSetup> user )
+    {
+        return add( name, UserSetup::new, users, user );
+    }
+
+    public UserGroupSetup addUserGroup( String name, Consumer<? super UserGroupSetup> group )
+    {
+        return add( name, UserGroupSetup::new, userGroups, group );
+    }
+
+    public UserRoleSetup addUserRole( String name, Consumer<? super UserRoleSetup> role )
+    {
+        return add( name, UserRoleSetup::new, roles, role );
     }
 
     public CategorySetup addCategory( String name, Consumer<? super CategorySetup> category )
@@ -227,6 +255,129 @@ public class MetadataSetup implements TestObjectRegistry, TestDataValueGenerator
     @Setter
     @Accessors( chain = true )
     @RequiredArgsConstructor
+    public static final class UserSetup extends AbstractSetup<User>
+    {
+        private final MetadataSetup context;
+
+        private final String name;
+
+        private String username;
+
+        private String password;
+
+        private String firstName;
+
+        private String surname;
+
+        private String email;
+
+        private String phoneNumber;
+
+        private final Set<OrganisationUnitSetup> organisationUnits = new LinkedHashSet<>();
+
+        public UserSetup addRole( String name, Consumer<? super UserRoleSetup> role )
+        {
+            context.addUserRole( name, role ).getMembers().add( this );
+            return this;
+        }
+
+        public UserSetup addRoles( String... names )
+        {
+            stream( names ).forEach( name -> context.getRoles().get( name ).getMembers().add( this ) );
+            return this;
+        }
+
+        public UserSetup addGroup( String name, Consumer<? super UserGroupSetup> group )
+        {
+            context.addUserGroup( name, group ).getMembers().add( this );
+            return this;
+        }
+
+        public UserSetup addGroups( String... names )
+        {
+            stream( names ).forEach( name -> context.getUserGroups().get( name ).getMembers().add( this ) );
+            return this;
+        }
+
+        public UserSetup addOrganisationUnit( String name, Consumer<? super OrganisationUnitSetup> organisationUnit )
+        {
+            organisationUnits.add( context.addOrganisationUnit( name, organisationUnit ) );
+            return this;
+        }
+
+        public UserSetup useOrganisationUnit( String name )
+        {
+            organisationUnits.add( context.getOrganisationUnits().get( name ) );
+            return this;
+        }
+    }
+
+    @ToString
+    @Getter
+    @Setter
+    @Accessors( chain = true )
+    @RequiredArgsConstructor
+    public static final class UserGroupSetup extends AbstractSetup<UserGroup>
+    {
+        private final MetadataSetup context;
+
+        private final String name;
+
+        private UUID uuid;
+
+        private final Set<UserSetup> members = new LinkedHashSet<>();
+
+        private final Set<UserGroupSetup> managedGroups = new LinkedHashSet<>();
+
+        private final Set<UserGroupSetup> managedByGroups = new LinkedHashSet<>();
+
+        public UserGroupSetup addMember( String name, Consumer<UserSetup> user )
+        {
+            members.add( context.addUser( name, user ) );
+            return this;
+        }
+
+        public UserGroupSetup addMembers( String... names )
+        {
+            stream( names ).forEach( name -> members.add( context.getUsers().get( name ) ) );
+            return this;
+        }
+
+    }
+
+    @ToString
+    @Getter
+    @Setter
+    @Accessors( chain = true )
+    @RequiredArgsConstructor
+    public static final class UserRoleSetup extends AbstractSetup<UserRole>
+    {
+        private final MetadataSetup context;
+
+        private final String name;
+
+        private final Set<String> authorities = new LinkedHashSet<>();
+
+        private final Set<UserSetup> members = new LinkedHashSet<>();
+
+        public UserRoleSetup addMember( String name, Consumer<UserSetup> user )
+        {
+            members.add( context.addUser( name, user ) );
+            return this;
+        }
+
+        public UserRoleSetup addMembers( String... names )
+        {
+            stream( names ).forEach( name -> members.add( context.getUsers().get( name ) ) );
+            return this;
+        }
+    }
+
+    @ToString
+    @Getter
+    @Setter
+    @Accessors( chain = true )
+    @RequiredArgsConstructor
     public static final class CategorySetup extends AbstractSetup<Category>
     {
         private final MetadataSetup context;
@@ -235,7 +386,6 @@ public class MetadataSetup implements TestObjectRegistry, TestDataValueGenerator
 
         private DataDimensionType dataDimensionType = DataDimensionType.DISAGGREGATION;
 
-        @Setter( AccessLevel.NONE )
         private final List<CategoryOptionSetup> options = new ArrayList<>();
 
         public CategorySetup addOption( String name, Consumer<? super CategoryOptionSetup> option )
@@ -283,7 +433,6 @@ public class MetadataSetup implements TestObjectRegistry, TestDataValueGenerator
 
         private final String name;
 
-        @Setter( AccessLevel.NONE )
         private final List<CategorySetup> categories = new ArrayList<>();
 
         private DataDimensionType dataDimensionType = DataDimensionType.DISAGGREGATION;
@@ -310,7 +459,6 @@ public class MetadataSetup implements TestObjectRegistry, TestDataValueGenerator
 
         private final String name;
 
-        @Setter( AccessLevel.NONE )
         private final List<CategoryOptionSetup> options = new ArrayList<>();
 
         @Setter( AccessLevel.NONE )

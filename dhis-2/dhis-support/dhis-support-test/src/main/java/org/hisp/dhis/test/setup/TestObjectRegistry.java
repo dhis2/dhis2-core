@@ -42,6 +42,12 @@ import org.hisp.dhis.test.setup.MetadataSetup.DataElementSetup;
 import org.hisp.dhis.test.setup.MetadataSetup.Objects;
 import org.hisp.dhis.test.setup.MetadataSetup.OrganisationUnitSetup;
 import org.hisp.dhis.test.setup.MetadataSetup.PeriodSetup;
+import org.hisp.dhis.test.setup.MetadataSetup.UserGroupSetup;
+import org.hisp.dhis.test.setup.MetadataSetup.UserRoleSetup;
+import org.hisp.dhis.test.setup.MetadataSetup.UserSetup;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserRole;
 
 /**
  * Provides convenient access to the generated test objects.
@@ -50,6 +56,12 @@ import org.hisp.dhis.test.setup.MetadataSetup.PeriodSetup;
  */
 public interface TestObjectRegistry
 {
+    Objects<UserSetup> getUsers();
+
+    Objects<UserGroupSetup> getUserGroups();
+
+    Objects<UserRoleSetup> getRoles();
+
     Objects<CategorySetup> getCategories();
 
     Objects<CategoryOptionSetup> getCategoryOptions();
@@ -63,6 +75,21 @@ public interface TestObjectRegistry
     Objects<DataElementSetup> getDataElements();
 
     Objects<PeriodSetup> getPeriods();
+
+    default User getUser( String name )
+    {
+        return getUsers().get( name ).getObject();
+    }
+
+    default UserGroup getUserGroup( String name )
+    {
+        return getUserGroups().get( name ).getObject();
+    }
+
+    default UserRole getRole( String name )
+    {
+        return getRoles().get( name ).getObject();
+    }
 
     default Category getCategory( String name )
     {
