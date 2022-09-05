@@ -44,6 +44,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.time.DateUtils;
@@ -587,8 +588,9 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase
         assertNotNull( dataValues );
         assertEquals( 3, dataValues.size() );
         assertTrue( dataValues.contains( new DataValue( deA, peA, ouA, ocDef, ocDef ) ) );
-        assertEquals( "10002", dataValues.get( 1 ).getValue() );
-        assertEquals( "10003", dataValues.get( 2 ).getValue() );
+        assertEquals( Set.of( "10001", "10002", "10003" ),
+            dataValues.stream().map( d -> d.getValue() ).collect( Collectors.toSet() ),
+            "mismatch in dataValues values" );
 
         List<Executable> audits = dataValues.stream()
             .map( dv -> ((Executable) () -> assertEquals( List.of(), dataValueAuditService.getDataValueAudits( dv ) )) )
@@ -620,8 +622,9 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase
         assertNotNull( dataValues );
         assertEquals( 3, dataValues.size() );
         assertTrue( dataValues.contains( new DataValue( deA, peA, ouA, ocDef, ocDef ) ) );
-        assertEquals( "10002", dataValues.get( 1 ).getValue() );
-        assertEquals( "10003", dataValues.get( 2 ).getValue() );
+        assertEquals( Set.of( "10001", "10002", "10003" ),
+            dataValues.stream().map( d -> d.getValue() ).collect( Collectors.toSet() ),
+            "mismatch in dataValues values" );
 
         List<Executable> audits = dataValues.stream()
             .map( dv -> ((Executable) () -> assertEquals( List.of(), dataValueAuditService.getDataValueAudits( dv ) )) )
@@ -753,12 +756,13 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase
     }
 
     @Test
-    void testImportDataValuesCsvWithDataSetIdHeader()
+    void testImportDataValuesCsvWithDataSetIdParameter()
     {
         assertDataValuesCount( 0 );
 
         ImportSummary summary = dataValueSetService
-            .importDataValueSetCsv( readFile( "dxf2/datavalueset/dataValueSetWithDataSetHeader.csv" ), null, null );
+            .importDataValueSetCsv( readFile( "dxf2/datavalueset/dataValueSetWithDataSetHeader.csv" ),
+                new ImportOptions().setDataSet( "pBOMPrpg1QX" ), null );
 
         assertSuccessWithImportedUpdatedDeleted( 3, 0, 0, summary );
         assertDataValuesCount( 3 );

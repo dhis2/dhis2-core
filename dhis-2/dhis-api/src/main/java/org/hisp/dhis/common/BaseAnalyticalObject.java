@@ -55,7 +55,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.analytics.UserOrgUnitType;
 import org.hisp.dhis.category.CategoryDimension;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionGroupSetDimension;

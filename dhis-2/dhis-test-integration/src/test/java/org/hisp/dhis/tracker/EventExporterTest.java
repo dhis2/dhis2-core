@@ -33,6 +33,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -54,6 +57,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -97,6 +101,8 @@ class EventExporterTest extends TrackerTest
         .getRows()
         .stream().map( r -> r.get( 0 ).toString() ).sorted().collect( Collectors.toCollection( LinkedList::new ) );
 
+    private TrackedEntityInstance trackedEntityInstance;
+
     @Override
     protected void initTest()
         throws IOException
@@ -108,6 +114,7 @@ class EventExporterTest extends TrackerTest
         orgUnit = manager.get( OrganisationUnit.class, "h4w96yEMlzO" );
         programStage = manager.get( ProgramStage.class, "NpsdDv6kKSO" );
         program = programStage.getProgram();
+        trackedEntityInstance = manager.get( TrackedEntityInstance.class, "IOR1AXXl24G" );
         manager.flush();
     }
 
@@ -118,13 +125,31 @@ class EventExporterTest extends TrackerTest
             Arguments.of( eventsGridFunction ) );
     }
 
-    @Test
-    void testExportEvents()
+    @ParameterizedTest
+    @MethodSource( "getEventsFunctions" )
+    void testExportEvents( Function<EventSearchParams, List<String>> eventFunction )
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
+        params.setProgramStage( programStage );
 
-        List<String> events = eventsFunction.apply( params );
+        List<String> events = eventFunction.apply( params );
+
+        assertAll( () -> assertNotNull( events ),
+            () -> assertEquals( 2, events.size() ),
+            () -> assertEquals( List.of( "D9PbzJY8bJM", "D9PbzJY8bJO" ), events ) );
+    }
+
+    @ParameterizedTest
+    @MethodSource( "getEventsFunctions" )
+    void testExportEventsWithTotalPages( Function<EventSearchParams, List<String>> eventFunction )
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setTotalPages( true );
+        params.setProgramStage( programStage );
+
+        List<String> events = eventFunction.apply( params );
 
         assertAll( () -> assertNotNull( events ),
             () -> assertEquals( 2, events.size() ),
@@ -136,9 +161,72 @@ class EventExporterTest extends TrackerTest
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
+        params.setTrackedEntityInstance( trackedEntityInstance );
         params.setProgramInstances( Set.of( "TvctPPhpD8z" ) );
 
         List<String> events = eventsFunction.apply( params );
+
+        assertAll( () -> assertNotNull( events ),
+            () -> assertEquals( 1, events.size() ),
+            () -> assertEquals( List.of( "D9PbzJY8bJM" ), events ) );
+    }
+
+    @ParameterizedTest
+    @MethodSource( "getEventsFunctions" )
+    void testExportEventsWithExecutionAndUpdateDates( Function<EventSearchParams, List<String>> eventFunction )
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setProgramInstances( Set.of( "TvctPPhpD8z" ) );
+        params.setProgramStage( programStage );
+
+        params.setStartDate( getDate( 2018, 1, 1 ) );
+        params.setEndDate( getDate( 2020, 1, 1 ) );
+        params.setSkipChangedBefore( getDate( 2018, 1, 1 ) );
+
+        List<String> events = eventFunction.apply( params );
+
+        assertAll( () -> assertNotNull( events ),
+            () -> assertEquals( 1, events.size() ),
+            () -> assertEquals( List.of( "D9PbzJY8bJM" ), events ) );
+    }
+
+    @ParameterizedTest
+    @MethodSource( "getEventsFunctions" )
+    void testExportEventsWithLastUpdateDuration( Function<EventSearchParams, List<String>> eventFunction )
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setProgramInstances( Set.of( "TvctPPhpD8z" ) );
+        params.setProgramStage( programStage );
+
+        params.setLastUpdatedDuration( "1d" );
+
+        List<String> events = eventFunction.apply( params );
+
+        assertAll( () -> assertNotNull( events ),
+            () -> assertEquals( 1, events.size() ),
+            () -> assertEquals( List.of( "D9PbzJY8bJM" ), events ) );
+    }
+
+    @ParameterizedTest
+    @MethodSource( "getEventsFunctions" )
+    void testExportEventsWithLastUpdateDates( Function<EventSearchParams, List<String>> eventFunction )
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setProgramInstances( Set.of( "TvctPPhpD8z" ) );
+        params.setProgramStage( programStage );
+
+        Date date = new Date();
+
+        params.setLastUpdatedStartDate( Date.from(
+            date.toInstant().minus( 1, ChronoUnit.DAYS ).atZone( ZoneId.systemDefault() ).toInstant() ) );
+
+        params.setLastUpdatedEndDate( Date.from(
+            date.toInstant().plus( 1, ChronoUnit.DAYS ).atZone( ZoneId.systemDefault() ).toInstant() ) );
+
+        List<String> events = eventFunction.apply( params );
 
         assertAll( () -> assertNotNull( events ),
             () -> assertEquals( 1, events.size() ),

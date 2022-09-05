@@ -270,14 +270,6 @@ public interface PeriodService
     PeriodType getPeriodType( int id );
 
     /**
-     * Returns all PeriodTypes.
-     *
-     * @return a list of all PeriodTypes, or an empty list if there are no
-     *         PeriodTypes. The PeriodTypes have a natural order.
-     */
-    List<PeriodType> getAllPeriodTypes();
-
-    /**
      * Returns a PeriodType with a given name.
      *
      * @param name the name of the PeriodType to return.

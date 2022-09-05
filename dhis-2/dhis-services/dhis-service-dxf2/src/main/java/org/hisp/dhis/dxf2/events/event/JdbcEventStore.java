@@ -70,7 +70,6 @@ import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EventQuery.COL
 import static org.hisp.dhis.system.util.SqlUtils.castToNumber;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
 import static org.hisp.dhis.util.DateUtils.addDays;
-import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
 import java.io.IOException;
 import java.sql.PreparedStatement;
@@ -912,7 +911,7 @@ public class JdbcEventStore implements EventStore
 
         log.debug( "Event query count SQL: " + sql );
 
-        return jdbcTemplate.getJdbcTemplate().queryForObject( sql, Integer.class, mapSqlParameterSource );
+        return jdbcTemplate.queryForObject( sql, mapSqlParameterSource, Integer.class );
     }
 
     private DataValue convertEventDataValueIntoDtoDataValue( EventDataValue eventDataValue )
@@ -1068,7 +1067,7 @@ public class JdbcEventStore implements EventStore
 
         if ( params.getTrackedEntityInstance() != null )
         {
-            mapSqlParameterSource.addValue( "trackedentityinstanceid", params.getTrackedEntityInstance() );
+            mapSqlParameterSource.addValue( "trackedentityinstanceid", params.getTrackedEntityInstance().getId() );
 
             fromBuilder.append( hlp.whereAnd() )
                 .append( " tei.trackedentityinstanceid= " )
@@ -1122,8 +1121,7 @@ public class JdbcEventStore implements EventStore
         if ( params.getSkipChangedBefore() != null && params.getSkipChangedBefore()
             .getTime() > 0 )
         {
-            mapSqlParameterSource.addValue( "skipChangedBefore",
-                "'" + DateUtils.getLongDateString( params.getSkipChangedBefore() ) + "'" );
+            mapSqlParameterSource.addValue( "skipChangedBefore", params.getSkipChangedBefore(), Types.TIMESTAMP );
 
             fromBuilder.append( hlp.whereAnd() )
                 .append( PSI_LASTUPDATED_GT )
@@ -1150,25 +1148,24 @@ public class JdbcEventStore implements EventStore
 
         if ( params.getStartDate() != null )
         {
-            mapSqlParameterSource.addValue( "startDate", "'" + getMediumDateString( params.getStartDate() ) + "'" );
+            mapSqlParameterSource.addValue( "startDate", params.getStartDate(), Types.DATE );
 
             fromBuilder.append( hlp.whereAnd() )
                 .append( " (psi.executiondate >= " )
                 .append( ":startDate" )
-                .append( "or (psi.executiondate is null and psi.duedate >= " )
+                .append( " or (psi.executiondate is null and psi.duedate >= " )
                 .append( ":startDate" )
                 .append( " )) " );
         }
 
         if ( params.getEndDate() != null )
         {
-            mapSqlParameterSource.addValue( "endDate",
-                "'" + getMediumDateString( addDays( params.getEndDate(), 1 ) ) + "'" );
+            mapSqlParameterSource.addValue( "endDate", addDays( params.getEndDate(), 1 ), Types.DATE );
 
             fromBuilder.append( hlp.whereAnd() )
                 .append( " (psi.executiondate < " )
                 .append( ":endDate" )
-                .append( "or (psi.executiondate is null and psi.duedate < " )
+                .append( " or (psi.executiondate is null and psi.duedate < " )
                 .append( ":endDate" )
                 .append( " )) " );
         }
@@ -1421,8 +1418,7 @@ public class JdbcEventStore implements EventStore
 
         if ( params.getProgramStage() != null )
         {
-            mapSqlParameterSource.addValue( "programstageid", params.getProgramStage()
-                .getId() );
+            mapSqlParameterSource.addValue( "programstageid", params.getProgramStage().getId() );
 
             sqlBuilder.append( hlp.whereAnd() )
                 .append( " ps.programstageid = " )
@@ -1443,26 +1439,24 @@ public class JdbcEventStore implements EventStore
 
         if ( params.getStartDate() != null )
         {
-            mapSqlParameterSource.addValue( "startDate", "'" + getMediumDateString( params.getStartDate() ) + "'" );
+            mapSqlParameterSource.addValue( "startDate", params.getStartDate(), Types.DATE );
 
             sqlBuilder.append( hlp.whereAnd() )
                 .append( " (psi.executiondate >= " )
                 .append( ":startDate" )
-                .append( "or (psi.executiondate is null and psi.duedate >= " )
+                .append( " or (psi.executiondate is null and psi.duedate >= " )
                 .append( ":startDate" )
                 .append( " )) " );
         }
 
         if ( params.getEndDate() != null )
         {
-            mapSqlParameterSource.addValue( "endDate", "'" + getMediumDateString( params.getEndDate() ) + "'" );
+            mapSqlParameterSource.addValue( "endDate", addDays( params.getEndDate(), 1 ), Types.DATE );
 
-            sqlBuilder.append( hlp.whereAnd() )
-                .append( " (psi.executiondate < " )
-                .append( ":endDate" )
-                .append( "or (psi.executiondate is null and psi.duedate <= " )
-                .append( ":endDate" )
-                .append( " )) " );
+            sqlBuilder.append( hlp.whereAnd() ).append( " (psi.executiondate < " )
+                .append( ":endDate " )
+                .append( " or (psi.executiondate is null and psi.duedate < " )
+                .append( ":endDate" ).append( " )) " );
         }
 
         sqlBuilder.append( addLastUpdatedFilters( params, mapSqlParameterSource, hlp, false ) );
@@ -1478,18 +1472,16 @@ public class JdbcEventStore implements EventStore
         if ( params.getSkipChangedBefore() != null && params.getSkipChangedBefore()
             .getTime() > 0 )
         {
-            mapSqlParameterSource.addValue( "skipChangedBefore",
-                "'" + DateUtils.getLongDateString( params.getSkipChangedBefore() ) + "'" );
+            mapSqlParameterSource.addValue( "skipChangedBefore", params.getSkipChangedBefore(), Types.TIMESTAMP );
 
             sqlBuilder.append( hlp.whereAnd() )
                 .append( PSI_LASTUPDATED_GT )
-                .append( ":skipChangedBefore" );
+                .append( ":skipChangedBefore " );
         }
 
         if ( params.getDueDateStart() != null )
         {
-            mapSqlParameterSource.addValue( "startDueDate",
-                "'" + DateUtils.getLongDateString( params.getDueDateStart() ) + "'" );
+            mapSqlParameterSource.addValue( "startDueDate", params.getDueDateStart(), Types.DATE );
 
             sqlBuilder.append( hlp.whereAnd() )
                 .append( " psi.duedate is not null and psi.duedate >= " )
@@ -1499,8 +1491,7 @@ public class JdbcEventStore implements EventStore
 
         if ( params.getDueDateEnd() != null )
         {
-            mapSqlParameterSource.addValue( "endDueDate",
-                "'" + DateUtils.getLongDateString( params.getDueDateEnd() ) + "'" );
+            mapSqlParameterSource.addValue( "endDueDate", params.getDueDateEnd(), Types.DATE );
 
             sqlBuilder.append( hlp.whereAnd() )
                 .append( " psi.duedate is not null and psi.duedate <= " )
@@ -1637,12 +1628,11 @@ public class JdbcEventStore implements EventStore
                     sqlBuilder.append( hlp.whereAnd() )
                         .append( " psi.lastupdated < " )
                         .append( ":lastUpdatedEnd" )
-                        .append( "' " );
+                        .append( " " );
                 }
                 else
                 {
-                    mapSqlParameterSource.addValue( "lastUpdatedEnd",
-                        DateUtils.getLongDateString( params.getLastUpdatedEndDate() ), Types.TIMESTAMP );
+                    mapSqlParameterSource.addValue( "lastUpdatedEnd", params.getLastUpdatedEndDate(), Types.TIMESTAMP );
 
                     sqlBuilder.append( hlp.whereAnd() )
                         .append( " psi.lastupdated <= " )

@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
 import org.hisp.dhis.dataexchange.aggregate.Api;
 import org.hisp.dhis.dataexchange.aggregate.Source;
@@ -86,6 +87,33 @@ public class AggregateDataExchangeObjectBundleHookTest
         exchange.setSource( new Source() );
 
         assertErrorCode( ErrorCode.E6302, objectBundleHook.validate( exchange, objectBundle ) );
+    }
+
+    @Test
+    void testMissingSourceRequestName()
+    {
+        AggregateDataExchange exchange = getAggregateDataExchange( 'A' );
+        exchange.getSource().getRequests().get( 0 ).setName( null );
+
+        assertErrorCode( ErrorCode.E4000, objectBundleHook.validate( exchange, objectBundle ) );
+    }
+
+    @Test
+    void testSourceRequestNameTooLong()
+    {
+        AggregateDataExchange exchange = getAggregateDataExchange( 'A' );
+        exchange.getSource().getRequests().get( 0 ).setName( CodeGenerator.generateCode( 60 ) );
+
+        assertErrorCode( ErrorCode.E4001, objectBundleHook.validate( exchange, objectBundle ) );
+    }
+
+    @Test
+    void testSourceRequestVisualizationInvalidUid()
+    {
+        AggregateDataExchange exchange = getAggregateDataExchange( 'A' );
+        exchange.getSource().getRequests().get( 0 ).setVisualization( "1nvalidUid" );
+
+        assertErrorCode( ErrorCode.E4014, objectBundleHook.validate( exchange, objectBundle ) );
     }
 
     @Test

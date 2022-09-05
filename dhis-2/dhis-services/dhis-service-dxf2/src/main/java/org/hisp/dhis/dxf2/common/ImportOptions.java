@@ -27,6 +27,15 @@
  */
 package org.hisp.dhis.dxf2.common;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.experimental.Accessors;
+
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.MergeMode;
@@ -36,8 +45,6 @@ import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.user.User;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.google.common.base.MoreObjects;
 
 /**
  * The idScheme is a general setting which will apply to all objects. The
@@ -46,60 +53,92 @@ import com.google.common.base.MoreObjects;
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Getter
+@Setter
+@Accessors( chain = true )
+@Builder( access = AccessLevel.PRIVATE, toBuilder = true )
+@ToString( exclude = "user" )
+@NoArgsConstructor
+@AllArgsConstructor( access = AccessLevel.PRIVATE )
 public class ImportOptions
 {
     private User user;
 
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private IdSchemes idSchemes = new IdSchemes();
 
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private boolean dryRun;
 
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private Boolean preheatCache;
 
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private boolean async;
 
     private ImportStrategy importStrategy = ImportStrategy.CREATE_AND_UPDATE;
 
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private MergeMode mergeMode = MergeMode.REPLACE;
 
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private ImportReportMode reportMode = ImportReportMode.FULL;
 
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private boolean skipExistingCheck;
 
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private boolean sharing;
 
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private boolean skipNotifications;
 
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private boolean skipAudit;
 
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private boolean datasetAllowsPeriods;
 
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private boolean strictPeriods;
 
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private boolean strictDataElements;
 
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private boolean strictCategoryOptionCombos;
 
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private boolean strictAttributeOptionCombos;
 
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private boolean strictOrganisationUnits;
 
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private boolean requireCategoryOptionCombo;
 
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private boolean requireAttributeOptionCombo;
 
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private boolean skipPatternValidation;
 
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private boolean ignoreEmptyCollection;
 
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private boolean force;
 
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private boolean firstRowIsHeader = true;
 
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private String filename;
 
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private NotificationLevel notificationLevel;
 
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private boolean skipLastUpdated;
 
     /**
@@ -107,20 +146,21 @@ public class ImportOptions
      * that have to be merged with the existing Data Values (as opposed to a
      * full replacement)
      */
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private boolean mergeDataValues;
 
     /**
      * if true, caches for import are not used. Should only be used for testing
      */
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private boolean skipCache = false;
 
-    // --------------------------------------------------------------------------
-    // Constructors
-    // --------------------------------------------------------------------------
-
-    public ImportOptions()
-    {
-    }
+    /**
+     * Optional field to set the data set ID of the imported values using
+     * request parameters
+     */
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
+    private String dataSet;
 
     // --------------------------------------------------------------------------
     // Logic
@@ -128,37 +168,7 @@ public class ImportOptions
 
     public ImportOptions instance()
     {
-        ImportOptions options = new ImportOptions();
-
-        options.user = this.user;
-        options.idSchemes = this.idSchemes;
-        options.dryRun = this.dryRun;
-        options.preheatCache = this.preheatCache;
-        options.async = this.async;
-        options.importStrategy = this.importStrategy;
-        options.mergeMode = this.mergeMode;
-        options.skipExistingCheck = this.skipExistingCheck;
-        options.sharing = this.sharing;
-        options.skipNotifications = this.skipNotifications;
-        options.datasetAllowsPeriods = this.datasetAllowsPeriods;
-        options.strictPeriods = this.strictPeriods;
-        options.strictDataElements = this.strictDataElements;
-        options.strictCategoryOptionCombos = this.strictCategoryOptionCombos;
-        options.strictAttributeOptionCombos = this.strictAttributeOptionCombos;
-        options.strictOrganisationUnits = this.strictOrganisationUnits;
-        options.requireCategoryOptionCombo = this.requireCategoryOptionCombo;
-        options.requireAttributeOptionCombo = this.requireAttributeOptionCombo;
-        options.skipPatternValidation = this.skipPatternValidation;
-        options.force = this.force;
-        options.filename = this.filename;
-        options.notificationLevel = this.notificationLevel;
-        options.ignoreEmptyCollection = this.ignoreEmptyCollection;
-        options.firstRowIsHeader = this.firstRowIsHeader;
-        options.skipLastUpdated = this.skipLastUpdated;
-        options.skipCache = this.skipCache;
-        options.mergeDataValues = this.mergeDataValues;
-
-        return options;
+        return toBuilder().build();
     }
 
     public static ImportOptions getDefaultImportOptions()
@@ -171,7 +181,7 @@ public class ImportOptions
      */
     public boolean isPreheatCache()
     {
-        return preheatCache == null ? true : preheatCache;
+        return preheatCache == null || preheatCache;
     }
 
     /**
@@ -179,7 +189,7 @@ public class ImportOptions
      */
     public boolean isPreheatCacheDefaultFalse()
     {
-        return preheatCache == null ? false : preheatCache;
+        return preheatCache != null && preheatCache;
     }
 
     /**
@@ -198,232 +208,15 @@ public class ImportOptions
     // Get methods
     // --------------------------------------------------------------------------
 
-    public User getUser()
-    {
-        return user;
-    }
-
-    public ImportOptions setUser( User user )
-    {
-        this.user = user;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public IdSchemes getIdSchemes()
-    {
-        return idSchemes;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isDryRun()
-    {
-        return dryRun;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Boolean getPreheatCache()
-    {
-        return preheatCache;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isAsync()
-    {
-        return async;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isDatasetAllowsPeriods()
-    {
-        return datasetAllowsPeriods;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     public ImportStrategy getImportStrategy()
     {
         return importStrategy != null ? importStrategy : ImportStrategy.NEW_AND_UPDATES;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public MergeMode getMergeMode()
-    {
-        return mergeMode;
-    }
-
-    public void setMergeMode( MergeMode mergeMode )
-    {
-        this.mergeMode = mergeMode;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ImportReportMode getReportMode()
-    {
-        return reportMode;
-    }
-
-    public void setReportMode( ImportReportMode reportMode )
-    {
-        this.reportMode = reportMode;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isSkipExistingCheck()
-    {
-        return skipExistingCheck;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isSharing()
-    {
-        return sharing;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isSkipNotifications()
-    {
-        return skipNotifications;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isSkipAudit()
-    {
-        return skipAudit;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isStrictPeriods()
-    {
-        return strictPeriods;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isStrictDataElements()
-    {
-        return strictDataElements;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isStrictCategoryOptionCombos()
-    {
-        return strictCategoryOptionCombos;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isStrictAttributeOptionCombos()
-    {
-        return strictAttributeOptionCombos;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isStrictOrganisationUnits()
-    {
-        return strictOrganisationUnits;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isRequireCategoryOptionCombo()
-    {
-        return requireCategoryOptionCombo;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isRequireAttributeOptionCombo()
-    {
-        return requireAttributeOptionCombo;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isSkipPatternValidation()
-    {
-        return skipPatternValidation;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isIgnoreEmptyCollection()
-    {
-        return ignoreEmptyCollection;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isForce()
-    {
-        return force;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getFilename()
-    {
-        return filename;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public NotificationLevel getNotificationLevel()
-    {
-        return notificationLevel;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isFirstRowIsHeader()
-    {
-        return firstRowIsHeader;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isSkipLastUpdated()
-    {
-        return skipLastUpdated;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isSkipCache()
-    {
-        return skipCache;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isMergeDataValues()
-    {
-        return mergeDataValues;
-    }
-
     // --------------------------------------------------------------------------
     // Set methods
     // --------------------------------------------------------------------------
-
-    public ImportOptions setIdSchemes( IdSchemes idSchemes )
-    {
-        this.idSchemes = idSchemes;
-        return this;
-    }
 
     public ImportOptions setIdScheme( String idScheme )
     {
@@ -434,12 +227,6 @@ public class ImportOptions
     public ImportOptions setDataElementIdScheme( String idScheme )
     {
         idSchemes.setDataElementIdScheme( idScheme );
-        return this;
-    }
-
-    public ImportOptions setDatasetAllowsPeriods( boolean datasetAllowsPeriods )
-    {
-        this.datasetAllowsPeriods = datasetAllowsPeriods;
         return this;
     }
 
@@ -503,180 +290,8 @@ public class ImportOptions
         return this;
     }
 
-    public ImportOptions setDryRun( boolean dryRun )
-    {
-        this.dryRun = dryRun;
-        return this;
-    }
-
-    public ImportOptions setPreheatCache( Boolean preheatCache )
-    {
-        this.preheatCache = preheatCache;
-        return this;
-    }
-
-    public ImportOptions setAsync( boolean async )
-    {
-        this.async = async;
-        return this;
-    }
-
     public ImportOptions setStrategy( ImportStrategy strategy )
     {
-        this.importStrategy = strategy != null ? strategy : null;
-        return this;
-    }
-
-    public ImportOptions setImportStrategy( ImportStrategy strategy )
-    {
-        this.importStrategy = strategy != null ? strategy : null;
-        return this;
-    }
-
-    public ImportOptions setSkipExistingCheck( boolean skipExistingCheck )
-    {
-        this.skipExistingCheck = skipExistingCheck;
-        return this;
-    }
-
-    public ImportOptions setSharing( boolean sharing )
-    {
-        this.sharing = sharing;
-        return this;
-    }
-
-    public ImportOptions setSkipNotifications( boolean skipNotifications )
-    {
-        this.skipNotifications = skipNotifications;
-        return this;
-    }
-
-    public void setSkipAudit( boolean skipAudit )
-    {
-        this.skipAudit = skipAudit;
-    }
-
-    public ImportOptions setStrictPeriods( boolean strictPeriods )
-    {
-        this.strictPeriods = strictPeriods;
-        return this;
-    }
-
-    public ImportOptions setStrictDataElements( boolean strictDataElements )
-    {
-        this.strictDataElements = strictDataElements;
-        return this;
-    }
-
-    public ImportOptions setStrictCategoryOptionCombos( boolean strictCategoryOptionCombos )
-    {
-        this.strictCategoryOptionCombos = strictCategoryOptionCombos;
-        return this;
-    }
-
-    public ImportOptions setStrictAttributeOptionCombos( boolean strictAttributeOptionCombos )
-    {
-        this.strictAttributeOptionCombos = strictAttributeOptionCombos;
-        return this;
-    }
-
-    public ImportOptions setStrictOrganisationUnits( boolean strictOrganisationUnits )
-    {
-        this.strictOrganisationUnits = strictOrganisationUnits;
-        return this;
-    }
-
-    public ImportOptions setRequireCategoryOptionCombo( boolean requireCategoryOptionCombo )
-    {
-        this.requireCategoryOptionCombo = requireCategoryOptionCombo;
-        return this;
-    }
-
-    public ImportOptions setRequireAttributeOptionCombo( boolean requireAttributeOptionCombo )
-    {
-        this.requireAttributeOptionCombo = requireAttributeOptionCombo;
-        return this;
-    }
-
-    public ImportOptions setSkipPatternValidation( boolean skipPatternValidation )
-    {
-        this.skipPatternValidation = skipPatternValidation;
-        return this;
-    }
-
-    public ImportOptions setIgnoreEmptyCollection( boolean ignoreEmptyCollection )
-    {
-        this.ignoreEmptyCollection = ignoreEmptyCollection;
-        return this;
-    }
-
-    public ImportOptions setForce( boolean force )
-    {
-        this.force = force;
-        return this;
-    }
-
-    public ImportOptions setFilename( String filename )
-    {
-        this.filename = filename;
-        return this;
-    }
-
-    public ImportOptions setNotificationLevel( NotificationLevel notificationLevel )
-    {
-        this.notificationLevel = notificationLevel;
-        return this;
-    }
-
-    public ImportOptions setFirstRowIsHeader( boolean firstRowIsHeader )
-    {
-        this.firstRowIsHeader = firstRowIsHeader;
-        return this;
-    }
-
-    public ImportOptions setSkipLastUpdated( boolean skipLastUpdated )
-    {
-        this.skipLastUpdated = skipLastUpdated;
-        return this;
-    }
-
-    public void setSkipCache( boolean skipCache )
-    {
-        this.skipCache = skipCache;
-    }
-
-    public void setMergeDataValues( boolean mergeDataValues )
-    {
-        this.mergeDataValues = mergeDataValues;
-    }
-
-    @Override
-    public String toString()
-    {
-        return MoreObjects.toStringHelper( this )
-            .add( "idSchemes", idSchemes )
-            .add( "dryRun", dryRun )
-            .add( "preheatCache", preheatCache )
-            .add( "async", async )
-            .add( "importStrategy", importStrategy )
-            .add( "mergeMode", mergeMode )
-            .add( "skipExistingCheck", skipExistingCheck )
-            .add( "ignoreEmptyCollection", ignoreEmptyCollection )
-            .add( "sharing", sharing )
-            .add( "skipNotifications", skipNotifications )
-            .add( "datasetAllowsPeriods", datasetAllowsPeriods )
-            .add( "strictPeriods", strictPeriods )
-            .add( "strictDataElements", strictDataElements )
-            .add( "strictCategoryOptionCombos", strictCategoryOptionCombos )
-            .add( "strictAttributeOptionCombos", strictAttributeOptionCombos )
-            .add( "strictOrganisationUnits", strictOrganisationUnits )
-            .add( "requireCategoryOptionCombo", requireCategoryOptionCombo )
-            .add( "requireAttributeOptionCombo", requireAttributeOptionCombo )
-            .add( "force", force )
-            .add( "firstRowIsHeader", firstRowIsHeader )
-            .add( "skipLastUpdated", skipLastUpdated )
-            .add( "skipCache", skipCache )
-            .add( "skipDataValueMandatoryValidationCheck", mergeDataValues )
-            .toString();
+        return setImportStrategy( strategy );
     }
 }

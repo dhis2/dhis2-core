@@ -28,15 +28,15 @@
 package org.hisp.dhis.dxf2.metadata;
 
 import static com.google.common.collect.Sets.union;
+import static org.hisp.dhis.commons.collection.CollectionUtils.addIfNotNull;
 import static org.hisp.dhis.commons.collection.CollectionUtils.flatMapToSet;
 import static org.hisp.dhis.commons.collection.CollectionUtils.mapToSet;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import lombok.AllArgsConstructor;
 
@@ -98,6 +98,8 @@ public class DefaultDataSetMetadataExportService
 
     private static final String FIELDS_CATEGORIES = ":simple,categoryOptions~pluck[id]";
 
+    private static final String FIELDS_CATEGORY_OPTIONS = ":simple,organisationUnits~pluck[id]";
+
     private static final String FIELDS_OPTION_SETS = ":simple,options[id,code,displayName]";
 
     private final FieldFilterService fieldFilterService;
@@ -150,7 +152,7 @@ public class DefaultDataSetMetadataExportService
         rootNode.putArray( CategorySchemaDescriptor.PLURAL )
             .addAll( toObjectNodes( categories, FIELDS_CATEGORIES, Category.class ) );
         rootNode.putArray( CategoryOptionSchemaDescriptor.PLURAL )
-            .addAll( toObjectNodes( categoryOptions, FIELDS_CATEGORIES, CategoryOption.class ) );
+            .addAll( toObjectNodes( categoryOptions, FIELDS_CATEGORY_OPTIONS, CategoryOption.class ) );
         rootNode.putArray( OptionSetSchemaDescriptor.PLURAL )
             .addAll( toObjectNodes( optionSets, FIELDS_OPTION_SETS, OptionSet.class ) );
 
@@ -183,10 +185,12 @@ public class DefaultDataSetMetadataExportService
      */
     private Set<OptionSet> getOptionSets( Set<DataElement> dataElements )
     {
-        return dataElements.stream()
-            .map( DataElement::getOptionSet )
-            .filter( Objects::nonNull )
-            .collect( Collectors.toSet() );
+        Set<OptionSet> optionSets = new HashSet<>();
+        dataElements.forEach( de -> {
+            addIfNotNull( optionSets, de.getOptionSet() );
+            addIfNotNull( optionSets, de.getCommentOptionSet() );
+        } );
+        return optionSets;
     }
 
     /**
@@ -206,7 +210,7 @@ public class DefaultDataSetMetadataExportService
         for ( DataSet dataSet : dataSets )
         {
             ObjectNode objectNode = fieldFilterService.toObjectNode( dataSet, List.of( FIELDS_DATA_SETS ) );
-            objectNode.putArray( PROPERTY_ORGANISATION_UNITS ).add( toOrgUnitsArrayNode( dataSet, dataSetOrgUnits ) );
+            objectNode.set( PROPERTY_ORGANISATION_UNITS, toOrgUnitsArrayNode( dataSet, dataSetOrgUnits ) );
             objectNodes.add( objectNode );
         }
 

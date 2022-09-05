@@ -62,6 +62,7 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.TranslateParams;
@@ -250,6 +251,7 @@ public class UserController
         params.setInvitationStatus( UserInvitationStatus.fromValue( options.get( "invitationStatus" ) ) );
         params.setUserOrgUnits( options.isTrue( "userOrgUnits" ) );
         params.setIncludeOrgUnitChildren( options.isTrue( "includeChildren" ) );
+        params.setOrgUnitBoundary( UserOrgUnitType.fromValue( options.get( "orgUnitBoundary" ) ) );
 
         return params;
     }
@@ -635,7 +637,7 @@ public class UserController
 
         mergeUserCredentialsMutations( patch );
 
-        prePatchEntity( persistedObject );
+        prePatchEntity( persistedObject, persistedObject );
         patchService.apply( patch, persistedObject );
 
         boolean twoFAfter = persistedObject.getTwoFA();
@@ -791,20 +793,6 @@ public class UserController
     // -------------------------------------------------------------------------
     // PATCH
     // -------------------------------------------------------------------------
-
-    @Override
-    protected void prePatchEntity( User entity )
-        throws Exception
-    {
-        User currentUser = currentUserService.getCurrentUser();
-
-        if ( !userService.canAddOrUpdateUser( getUids( entity.getGroups() ), currentUser )
-            || !currentUser.canModifyUser( entity ) )
-        {
-            throw new WebMessageException( conflict(
-                "You must have permissions to create user, or ability to manage at least one user group for the user." ) );
-        }
-    }
 
     @Override
     protected void postPatchEntity( User user )

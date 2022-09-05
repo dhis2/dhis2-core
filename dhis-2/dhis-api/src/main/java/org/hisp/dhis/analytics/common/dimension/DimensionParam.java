@@ -110,11 +110,6 @@ public class DimensionParam
         return Objects.nonNull( dimensionalObject );
     }
 
-    private boolean isQueryItem()
-    {
-        return !isDimensionalObject();
-    }
-
     /**
      * @return the DimensionParamObjectType of this DimensionParam
      */
