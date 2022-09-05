@@ -29,6 +29,9 @@ package org.hisp.dhis.security.spring2fa;
 
 import org.springframework.security.authentication.BadCredentialsException;
 
+/**
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
 public class TwoFactorAuthenticationException extends BadCredentialsException
 {
     public TwoFactorAuthenticationException( String msg )

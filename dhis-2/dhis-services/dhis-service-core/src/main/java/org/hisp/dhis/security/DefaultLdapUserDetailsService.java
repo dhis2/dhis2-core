@@ -70,6 +70,7 @@ public class DefaultLdapUserDetailsService
 
         String password = "EXTERNAL_LDAP_" + CodeGenerator.generateCode( 10 );
 
+        // TODO: check LDAP
         return userService.createUserDetails( user );
     }
 

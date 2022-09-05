@@ -817,26 +817,6 @@ public class DefaultUserService
         resetTwoFA( user );
     }
 
-    // private static void verifyCode( String code, String secret )
-    // {
-    // if ( secret == null || secret.isEmpty() )
-    // {
-    // throw new BadCredentialsException( "No secret" );
-    // }
-    //
-    // if ( code == null || code.isEmpty() )
-    // {
-    // throw new BadCredentialsException( "No code provided" );
-    // }
-    //
-    // if ( TwoFactoryAuthenticationUtils.verify( code, secret ) )
-    // {
-    // throw new BadCredentialsException( "Invalid OTP code" );
-    // //throw new WebMesageException( conflict( E3023.getMessage(), E3023 ) );
-    // }
-    //
-    // }
-
     @Override
     public void expireActiveSessions( User user )
     {

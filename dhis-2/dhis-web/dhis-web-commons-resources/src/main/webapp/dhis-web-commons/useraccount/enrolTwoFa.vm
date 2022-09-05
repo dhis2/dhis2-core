@@ -22,8 +22,8 @@
 
         <h3><span id="enrol_two_fa">$i18n.getString( "enrol_2fa_title" )</span></h3>
 
-        <div><b><span id="enrol_two_fa">$i18n.getString( "enrol_2fa_description" )</span></b>
-            <span>With 2-Factor authentication turned on you will be asked to enter a second verification code when you log in. To generate this verification code you must use the Authenticator app. If you do not have this app you must download it on your phone/tablet.</span>
+        <div>
+            <b><span id="enrol_two_fa">$i18n.getString( "enrol_2fa_description" )</span></b>
         </div>
 
         <div>

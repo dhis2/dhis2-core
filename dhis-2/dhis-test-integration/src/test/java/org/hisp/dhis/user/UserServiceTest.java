@@ -574,7 +574,6 @@ class UserServiceTest extends SingleSetupIntegrationTestBase
     {
         User userToModify = createAndAddUser( "A" );
         userService.generateTwoFactorSecretForApproval( userToModify );
-        userToModify.setTwoFA( true );
         userService.updateUser( userToModify );
 
         User admin = createAndAddAdminUser( "ALL" );
@@ -588,7 +587,6 @@ class UserServiceTest extends SingleSetupIntegrationTestBase
     {
         User userToModify = createAndAddUser( "A" );
         userService.generateTwoFactorSecretForApproval( userToModify );
-        userToModify.setTwoFA( true );
 
         UserGroup userGroupA = createUserGroup( 'A', Sets.newHashSet( userToModify ) );
         userGroupService.addUserGroup( userGroupA );

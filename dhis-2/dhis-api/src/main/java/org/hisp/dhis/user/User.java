@@ -74,7 +74,7 @@ public class User
 {
     public static final int USERNAME_MAX_LENGTH = 255;
 
-    public static final String TWO_FACTOR_ENROLLMENT_KEYWORD = "ENROL";
+    public static final String TWO_FACTOR_SECRET_ENROLLMENT_PREFIX = "ENROL";
 
     /**
      * Globally unique identifier for User.
