@@ -32,6 +32,9 @@ import static java.util.Collections.emptyIterator;
 
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
@@ -168,6 +171,12 @@ public class MetadataSetup implements TestObjectRegistry, TestDataValueGenerator
     public PeriodSetup addPeriod( String isoPeriod, Consumer<? super PeriodSetup> period )
     {
         return add( isoPeriod, PeriodSetup::new, periods, period );
+    }
+
+    public PeriodSetup addPeriod( int dayOfTheMonth, Consumer<? super PeriodSetup> period )
+    {
+        ZonedDateTime date = ZonedDateTime.now().withDayOfMonth( dayOfTheMonth ).truncatedTo( ChronoUnit.DAYS );
+        return addPeriod( date.format( DateTimeFormatter.ofPattern( "yyyyMMdd" ) ), period );
     }
 
     private <T> T add( String name, BiFunction<MetadataSetup, String, T> newInstance, Objects<T> pool,

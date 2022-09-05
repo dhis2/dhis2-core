@@ -62,7 +62,8 @@ class DataValueServiceIntegrityTest extends SingleSetupIntegrationTestBase
         setup.addDataElement( "A", de -> de.addCombo( "L-R-U-D",
             combo -> combo.useCategory( "Vertical" ).useCategory( "Horizontal" ) ) );
         setup.addCategoryCombo( "VAge", combo -> combo.useCategory( "Vertical" ).useCategory( "Age" ) );
-        setup.addCategoryOptionCombo( "UpLeft", a -> a.useCombo( "L-R-U-D" ).useOption( "Up" ).useOption( "Left" ) );
+        setup.addCategoryOptionCombo( "UpLeft",
+            a -> a.useCombo( "L-R-U-D" ).useOption( "Up" ).useOption( "Left" ) );
         setup.addCategoryOptionCombo( "DownRight",
             a -> a.useCombo( "L-R-U-D" ).useOption( "Down" ).useOption( "Right" ) );
 

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.datavalue;
 
+import static org.hisp.dhis.test.setup.MetadataSetup.withDefaultSetup;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -46,6 +47,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.setup.MetadataSetup;
+import org.hisp.dhis.test.setup.MetadataSetupServiceExecutor;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -65,6 +68,9 @@ class DataValueServiceTest extends TransactionalIntegrationTest
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
+
+    @Autowired
+    private MetadataSetupServiceExecutor setupExecutor;
 
     // -------------------------------------------------------------------------
     // Supporting data
@@ -96,6 +102,8 @@ class DataValueServiceTest extends TransactionalIntegrationTest
 
     private OrganisationUnit ouD;
 
+    private MetadataSetup setup = new MetadataSetup();
+
     // -------------------------------------------------------------------------
     // Set up/tear down
     // -------------------------------------------------------------------------
@@ -104,27 +112,35 @@ class DataValueServiceTest extends TransactionalIntegrationTest
     public void setUpTest()
         throws Exception
     {
-        deA = createDataElement( 'A' );
-        deB = createDataElement( 'B' );
-        deC = createDataElement( 'C' );
-        deD = createDataElement( 'D' );
-        dataElementService.addDataElement( deA );
-        dataElementService.addDataElement( deB );
-        dataElementService.addDataElement( deC );
-        dataElementService.addDataElement( deD );
-        peA = createPeriod( getDay( 5 ), getDay( 6 ) );
-        peB = createPeriod( getDay( 6 ), getDay( 7 ) );
-        peC = createPeriod( getDay( 7 ), getDay( 8 ) );
-        peX = createPeriod( getDay( 27 ), getDay( 28 ) );
-        ouA = createOrganisationUnit( 'A' );
-        ouB = createOrganisationUnit( 'B' );
-        ouC = createOrganisationUnit( 'C' );
-        ouD = createOrganisationUnit( 'D' );
-        organisationUnitService.addOrganisationUnit( ouA );
-        organisationUnitService.addOrganisationUnit( ouB );
-        organisationUnitService.addOrganisationUnit( ouC );
-        organisationUnitService.addOrganisationUnit( ouD );
+        setup.addDataElement( "A", withDefaultSetup );
+        setup.addDataElement( "B", withDefaultSetup );
+        setup.addDataElement( "C", withDefaultSetup );
+        setup.addDataElement( "D", withDefaultSetup );
+        setup.addPeriod( "2022-09-05", withDefaultSetup );
+        setup.addPeriod( "2022-09-06", withDefaultSetup );
+        setup.addPeriod( "2022-09-07", withDefaultSetup );
+        setup.addPeriod( "2022-09-27", withDefaultSetup );
+        setup.addOrganisationUnit( "A", withDefaultSetup );
+        setup.addOrganisationUnit( "B", withDefaultSetup );
+        setup.addOrganisationUnit( "C", withDefaultSetup );
+        setup.addOrganisationUnit( "D", withDefaultSetup );
+
+        setupExecutor.create( setup );
+
+        deA = setup.getDataElement( "A" );
+        deB = setup.getDataElement( "B" );
+        deC = setup.getDataElement( "C" );
+        deD = setup.getDataElement( "D" );
+        peA = setup.getPeriod( "2022-09-05" );
+        peB = setup.getPeriod( "2022-09-06" );
+        peC = setup.getPeriod( "2022-09-07" );
+        peX = setup.getPeriod( "2022-09-27" );
+        ouA = setup.getOrganisationUnit( "A" );
+        ouB = setup.getOrganisationUnit( "B" );
+        ouC = setup.getOrganisationUnit( "C" );
+        ouD = setup.getOrganisationUnit( "D" );
         optionCombo = categoryService.getDefaultCategoryOptionCombo();
+
     }
 
     // -------------------------------------------------------------------------
