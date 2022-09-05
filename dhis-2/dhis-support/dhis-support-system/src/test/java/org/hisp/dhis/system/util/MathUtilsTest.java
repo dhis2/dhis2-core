@@ -59,16 +59,6 @@ class MathUtilsTest
     }
 
     @Test
-    void testDoubleIsEqual()
-    {
-        assertTrue( MathUtils.isEqual( 100.0, 100.0 ) );
-        assertTrue( MathUtils.isEqual( 100.0, 99.992 ) );
-
-        assertFalse( MathUtils.isEqual( 100.0, 99.9 ) );
-        assertFalse( MathUtils.isEqual( 100.0, 99.0 ) );
-    }
-
-    @Test
     void testDoubleObjectIsEqual()
     {
         assertTrue( MathUtils.isEqual( Double.valueOf( 100.0 ), Double.valueOf( 100.0 ) ) );
@@ -76,6 +66,16 @@ class MathUtilsTest
 
         assertFalse( MathUtils.isEqual( Double.valueOf( 100.0 ), Double.valueOf( 99.9 ) ) );
         assertFalse( MathUtils.isEqual( Double.valueOf( 100.0 ), Double.valueOf( 99.0 ) ) );
+    }
+
+    @Test
+    void testDoubleIsEqual()
+    {
+        assertTrue( MathUtils.isEqual( 100.0, 100.0 ) );
+        assertTrue( MathUtils.isEqual( 100.0, 99.992 ) );
+
+        assertFalse( MathUtils.isEqual( 100.0, 99.9 ) );
+        assertFalse( MathUtils.isEqual( 100.0, 99.0 ) );
     }
 
     @Test
