@@ -56,7 +56,6 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.node.Preset;
 import org.hisp.dhis.program.ProgramStageInstanceService;
-import org.hisp.dhis.webapi.controller.event.mapper.RequestToSearchParamsMapper;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.hisp.dhis.webapi.controller.event.webrequest.tracker.TrackerEventCriteria;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
@@ -95,7 +94,7 @@ public class TrackerEventsExportController
     private final ContextService contextService;
 
     @NonNull
-    private final RequestToSearchParamsMapper requestToSearchParamsMapper;
+    private final EventRequestToSearchParamsMapper requestToSearchParams;
 
     @NonNull
     private final ProgramStageInstanceService programStageInstanceService;
@@ -113,7 +112,7 @@ public class TrackerEventsExportController
         throws WebMessageException
     {
 
-        EventSearchParams eventSearchParams = requestToSearchParamsMapper.map( eventCriteria );
+        EventSearchParams eventSearchParams = requestToSearchParams.map( eventCriteria );
 
         if ( areAllEnrollmentsInvalid( eventCriteria, eventSearchParams ) )
         {
@@ -156,7 +155,7 @@ public class TrackerEventsExportController
             fields.addAll( Preset.ALL.getFields() );
         }
 
-        EventSearchParams eventSearchParams = requestToSearchParamsMapper.map( eventCriteria );
+        EventSearchParams eventSearchParams = requestToSearchParams.map( eventCriteria );
 
         if ( areAllEnrollmentsInvalid( eventCriteria, eventSearchParams ) )
         {
