@@ -25,103 +25,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.view;
+package org.hisp.dhis.webapi.webdomain.dataentry;
 
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Date;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import org.locationtech.jts.geom.Geometry;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * DTO which represents the completion status of a form.
+ *
+ * @author Lars Helge Overland
  */
-@Data
-@Builder
+@Getter
+@Setter
+@Accessors( chain = true )
 @NoArgsConstructor
-@AllArgsConstructor
-public class Enrollment
+public class CompleteStatusDto
 {
     @JsonProperty
-    private String enrollment;
+    private boolean complete = false;
 
     @JsonProperty
-    private Instant createdAt;
+    private Date created;
 
     @JsonProperty
-    private Instant createdAtClient;
-
-    @JsonProperty
-    private Instant updatedAt;
-
-    @JsonProperty
-    private Instant updatedAtClient;
-
-    @JsonProperty
-    private String trackedEntity;
-
-    @JsonProperty
-    private String program;
-
-    @JsonProperty
-    private EnrollmentStatus status;
-
-    @JsonProperty
-    private String orgUnit;
-
-    @JsonProperty
-    private String orgUnitName;
-
-    @JsonProperty
-    private Instant enrolledAt;
-
-    @JsonProperty
-    private Instant occurredAt;
-
-    @JsonProperty
-    private boolean followUp;
+    private Date lastUpdated;
 
     @JsonProperty
     private String completedBy;
-
-    @JsonProperty
-    private Instant completedAt;
-
-    @JsonProperty
-    private boolean deleted;
-
-    @JsonProperty
-    private String storedBy;
-
-    @JsonProperty
-    private User createdBy;
-
-    @JsonProperty
-    private User updatedBy;
-
-    @JsonProperty
-    private Geometry geometry;
-
-    @JsonProperty
-    @Builder.Default
-    private List<Event> events = new ArrayList<>();
-
-    @JsonProperty
-    @Builder.Default
-    private List<Relationship> relationships = new ArrayList<>();
-
-    @JsonProperty
-    @Builder.Default
-    private List<Attribute> attributes = new ArrayList<>();
-
-    @JsonProperty
-    @Builder.Default
-    private List<Note> notes = new ArrayList<>();
 }

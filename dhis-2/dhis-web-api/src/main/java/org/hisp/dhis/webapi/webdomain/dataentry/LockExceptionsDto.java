@@ -25,16 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.view;
+package org.hisp.dhis.webapi.webdomain.dataentry;
 
-import org.hisp.dhis.tracker.TrackerType;
+import java.util.ArrayList;
+import java.util.List;
+
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * DTO which represents lock exceptions.
+ *
+ * @author Lars Helge Overland
  */
-public interface TrackerDto
+@Getter
+@Setter
+@Accessors( chain = true )
+@NoArgsConstructor
+public class LockExceptionsDto
 {
-    String getUid();
-
-    TrackerType getTrackerType();
+    @JsonProperty
+    private List<LockExceptionDto> lockExceptions = new ArrayList<>();
 }

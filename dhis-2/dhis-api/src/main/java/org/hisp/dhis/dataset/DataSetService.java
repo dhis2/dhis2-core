@@ -143,115 +143,130 @@ public interface DataSetService extends DataSetDataIntegrityProvider
     // -------------------------------------------------------------------------
 
     /**
-     * Add new lock exception
+     * Adds new lock exception.
      *
-     * @param lockException LockException instance to add
-     * @return Database ID of LockException
+     * @param lockException LockException instance to add.
+     * @return identifier of lock exception.
      */
     long addLockException( LockException lockException );
 
     /**
-     * Update lock exception
+     * Updates lock exception.
      *
-     * @param lockException LockException instance to update
+     * @param lockException lock exception instance to update.
      */
     void updateLockException( LockException lockException );
 
     /**
-     * Delete lock exception
+     * Deletes lock exception.
      *
-     * @param lockException LockException instance to delete
+     * @param lockException lock exception instance to delete.
      */
     void deleteLockException( LockException lockException );
 
     /**
-     * Get LockException by ID
+     * Get lock exception by ID.
      *
-     * @param id ID of LockException to get
-     * @return LockException with given ID, or null if not found
+     * @param id the ID of lock exception to get.
+     * @return lock exception with given ID, or null if not found.
      */
     LockException getLockException( long id );
 
     /**
-     * Get number of LockExceptions in total
+     * Get number of LockExceptions in total.
      *
-     * @return Total count of LockExceptions
+     * @return the total count of lock exceptions.
      */
     int getLockExceptionCount();
 
     /**
-     * Returns all lock exceptions
+     * Returns all lock exceptions.
      *
-     * @return List of all the lock exceptions
+     * @return a list of all lock exceptions.
      */
     List<LockException> getAllLockExceptions();
 
     /**
-     * Get all LockExceptions within a specific range
+     * Returns lock exceptions associated with the data sets for which the
+     * current user has data write sharing access to.
      *
-     * @param first Index to start at
-     * @param max Number of results wanted
-     * @return List of LockExceptions withing the range specified
+     * @return a list of lock exceptions.
      */
-    List<LockException> getLockExceptionsBetween( int first, int max );
+    List<LockException> getDataWriteLockExceptions();
 
     /**
-     * Find all unique dataSet + period combinations (mainly used for batch
-     * removal)
+     * Find all unique data set and period combinations (mainly used for batch
+     * removal). The returned lock exceptions are generated and not persisted.
      *
-     * @return A list of all unique combinations (only dataSet and period is
-     *         set)
+     * @return list of all unique combinations (only data set and period are
+     *         set).
      */
     List<LockException> getLockExceptionCombinations();
 
     /**
      * Checks whether the system is locked for data entry for the given input,
-     * checking expiryDays, lockExceptions and approvals.
+     * checking expiry days, lock exceptions and data approvals.
      *
      * @param dataSet the data set
      * @param period the period.
      * @param organisationUnit the organisation unit.
      * @param attributeOptionCombo the attribute option combo.
-     * @param now the base date for deciding locked date, current date if null.
-     * @return LockStatus enum (LOCKED, APPROVED, OPEN)
+     * @return the {@link LockStatus}.
      */
-    LockStatus getLockStatus( User user, DataSet dataSet, Period period, OrganisationUnit organisationUnit,
-        CategoryOptionCombo attributeOptionCombo, Date now );
+    LockStatus getLockStatus( DataSet dataSet, Period period,
+        OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo );
 
     /**
      * Checks whether the system is locked for data entry for the given input,
-     * checking expiryDays, lockExceptions and approvals.
+     * checking expiry days, lock exceptions and data approvals.
      *
      * @param dataSet the data set
      * @param period the period.
      * @param organisationUnit the organisation unit.
      * @param attributeOptionCombo the attribute option combo.
+     * @param user the user for deciding lock status.
+     * @param now the base date for deciding locked date, current date if null.
+     * @return the {@link LockStatus}.
+     */
+    LockStatus getLockStatus( DataSet dataSet, Period period, OrganisationUnit organisationUnit,
+        CategoryOptionCombo attributeOptionCombo, User user, Date now );
+
+    /**
+     * Checks whether the system is locked for data entry for the given input,
+     * checking expiry days, lock exceptions and data approvals.
+     *
+     * @param dataSet the data set
+     * @param period the period.
+     * @param organisationUnit the organisation unit.
+     * @param attributeOptionCombo the attribute option combo.
+     * @param user the user for deciding lock status.
      * @param now the base date for deciding locked date, current date if null.
      * @param useOrgUnitChildren whether to check children of the given org unit
      *        or the org unit only.
-     * @return LockStatus enum (LOCKED, APPROVED, OPEN)
+     * @return the {@link LockStatus}.
      */
-    LockStatus getLockStatus( User user, DataSet dataSet, Period period, OrganisationUnit organisationUnit,
-        CategoryOptionCombo attributeOptionCombo, Date now, boolean useOrgUnitChildren );
+    LockStatus getLockStatus( DataSet dataSet, Period period, OrganisationUnit organisationUnit,
+        CategoryOptionCombo attributeOptionCombo, User user, Date now, boolean useOrgUnitChildren );
 
     /**
      * Checks whether the system is locked for data entry for the given input,
-     * checking expiryDays, lockExceptions and approvals.
+     * checking expiry days, lock exceptions and data approvals.
      *
      * @param dataElement the data element.
      * @param period the period.
      * @param organisationUnit the organisation unit.
      * @param attributeOptionCombo the attribute option combo.
+     * @param user the user for deciding lock status.
      * @param now the base date for deciding locked date, current date if null.
-     * @return LockStatus enum (LOCKED, APPROVED, OPEN)
+     * @return the {@link LockStatus}.
      */
-    LockStatus getLockStatus( User user, DataElement dataElement, Period period, OrganisationUnit organisationUnit,
-        CategoryOptionCombo attributeOptionCombo, Date now );
+    LockStatus getLockStatus( DataElement dataElement, Period period, OrganisationUnit organisationUnit,
+        CategoryOptionCombo attributeOptionCombo, User user, Date now );
 
     /**
-     * Delete a dataSet + period combination, used for batch removal, e.g. when
-     * you have a lock exception set on 100 OUs with the same dataSet + period
-     * combination.
+     * Deletes a dataSet and period combination, used for batch removal, e.g.
+     * when you have a lock exception set on many org units with the same data
+     * set and period combination.
      *
      * @param dataSet DataSet part of the combination
      * @param period Period part of the combination
@@ -259,11 +274,11 @@ public interface DataSetService extends DataSetDataIntegrityProvider
     void deleteLockExceptionCombination( DataSet dataSet, Period period );
 
     /**
-     * Delete a dataSet + period + organisationUnit combination
+     * Delete a data set, period and organisation unit combination
      *
-     * @param dataSet DataSet part of the combination
-     * @param period Period part of the combination
-     * @param organisationUnit OrganisationUnit part of the combination
+     * @param dataSet the data set part of the combination
+     * @param period the period part of the combination
+     * @param organisationUnit the organisationUnit part of the combination
      */
     void deleteLockExceptionCombination( DataSet dataSet, Period period, OrganisationUnit organisationUnit );
 

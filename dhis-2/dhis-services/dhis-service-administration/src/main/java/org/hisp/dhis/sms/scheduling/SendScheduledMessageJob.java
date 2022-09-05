@@ -44,7 +44,6 @@ import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.sms.outbound.OutboundSms;
 import org.hisp.dhis.sms.outbound.OutboundSmsService;
 import org.hisp.dhis.sms.outbound.OutboundSmsStatus;
-import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
@@ -55,18 +54,14 @@ public class SendScheduledMessageJob implements Job
 
     private final MessageSender smsSender;
 
-    private final Notifier notifier;
-
     public SendScheduledMessageJob( OutboundSmsService outboundSmsService,
-        @Qualifier( "smsMessageSender" ) MessageSender smsSender, Notifier notifier )
+        @Qualifier( "smsMessageSender" ) MessageSender smsSender )
     {
         checkNotNull( outboundSmsService );
         checkNotNull( smsSender );
-        checkNotNull( notifier );
 
         this.outboundSmsService = outboundSmsService;
         this.smsSender = smsSender;
-        this.notifier = notifier;
     }
 
     // -------------------------------------------------------------------------
