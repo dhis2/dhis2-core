@@ -142,52 +142,111 @@ class EventRequestToSearchParamsMapperTest
     }
 
     @Test
-    void testMapping()
+    void testMappingProgram()
     {
 
         TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
         eventCriteria.setProgram( "programuid" );
+
+        EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
+
+        assertEquals( program, params.getProgram() );
+    }
+
+    @Test
+    void testMappingProgramStage()
+    {
+
+        TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
         eventCriteria.setProgramStage( "programstageuid" );
+
+        EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
+
+        assertEquals( programStage, params.getProgramStage() );
+    }
+
+    @Test
+    void testMappingTrackedEntity()
+    {
+
+        TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
         eventCriteria.setTrackedEntity( "teiuid" );
+
+        EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
+
+        assertEquals( trackedEntityInstance, params.getTrackedEntityInstance() );
+    }
+
+    @Test
+    void testMappingOcurredAfterBefore()
+    {
+
+        TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
 
         Date occurredAfter = date( "2020-01-01" );
         eventCriteria.setOccurredAfter( occurredAfter );
         Date occurredBefore = date( "2020-09-12" );
         eventCriteria.setOccurredBefore( occurredBefore );
 
+        EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
+
+        assertEquals( occurredAfter, params.getStartDate() );
+        assertEquals( occurredBefore, params.getEndDate() );
+    }
+
+    @Test
+    void testMappingScheduledAfterBefore()
+    {
+
+        TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
+
         Date scheduledAfter = date( "2021-01-01" );
         eventCriteria.setScheduledAfter( scheduledAfter );
         Date scheduledBefore = date( "2021-09-12" );
         eventCriteria.setScheduledBefore( scheduledBefore );
 
+        EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
+
+        assertEquals( scheduledAfter, params.getDueDateStart() );
+        assertEquals( scheduledBefore, params.getDueDateEnd() );
+    }
+
+    @Test
+    void testMappingUpdatedDates()
+    {
+
+        TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
+
         Date updatedAfter = date( "2022-01-01" );
         eventCriteria.setUpdatedAfter( updatedAfter );
         Date updatedBefore = date( "2022-09-12" );
         eventCriteria.setUpdatedBefore( updatedBefore );
-
         String updatedWithin = "P6M";
         eventCriteria.setUpdatedWithin( updatedWithin );
+
+        EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
+
+        assertEquals( updatedAfter, params.getLastUpdatedStartDate() );
+        assertEquals( updatedBefore, params.getLastUpdatedEndDate() );
+        assertEquals( updatedWithin, params.getLastUpdatedDuration() );
+    }
+
+    @Test
+    void testMappingEnrollments()
+    {
+
+        TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
 
         Set<String> enrollments = Set.of( "NQnuK2kLm6e" );
         eventCriteria.setEnrollments( enrollments );
 
         EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
 
-        assertEquals( program, params.getProgram() );
-        assertEquals( programStage, params.getProgramStage() );
-        assertEquals( trackedEntityInstance, params.getTrackedEntityInstance() );
-        assertEquals( occurredAfter, params.getStartDate() );
-        assertEquals( occurredBefore, params.getEndDate() );
-        assertEquals( scheduledAfter, params.getDueDateStart() );
-        assertEquals( scheduledBefore, params.getDueDateEnd() );
-        assertEquals( updatedAfter, params.getLastUpdatedStartDate() );
-        assertEquals( updatedBefore, params.getLastUpdatedEndDate() );
-        assertEquals( updatedWithin, params.getLastUpdatedDuration() );
         assertEquals( enrollments, params.getProgramInstances() );
     }
 
     @Test
-    void testMappingOfEvents()
+    void testMappingEvents()
     {
 
         TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
@@ -199,7 +258,7 @@ class EventRequestToSearchParamsMapperTest
     }
 
     @Test
-    void testMappingOfEventsStripsInvalidUid()
+    void testMappingEventsStripsInvalidUid()
     {
 
         TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
@@ -211,7 +270,7 @@ class EventRequestToSearchParamsMapperTest
     }
 
     @Test
-    void testMappingOfNoEvents()
+    void testMappingNoEvents()
     {
 
         TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
@@ -222,7 +281,7 @@ class EventRequestToSearchParamsMapperTest
     }
 
     @Test
-    void testMappingOfAssignedUsers()
+    void testMappingAssignedUsers()
     {
 
         TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
@@ -234,7 +293,7 @@ class EventRequestToSearchParamsMapperTest
     }
 
     @Test
-    void testMappingOfAssignedUsersStripsInvalidUid()
+    void testMappingAssignedUsersStripsInvalidUid()
     {
 
         TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
@@ -246,7 +305,7 @@ class EventRequestToSearchParamsMapperTest
     }
 
     @Test
-    void testMappingOfNoAssignedUsers()
+    void testMappingNoAssignedUsers()
     {
 
         TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
