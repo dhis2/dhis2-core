@@ -36,7 +36,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import org.hisp.dhis.tracker.TrackerType;
 import org.locationtech.jts.geom.Geometry;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -49,7 +48,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TrackedEntity
-    implements TrackerDto
 {
     @JsonProperty
     private String trackedEntity;
@@ -108,16 +106,4 @@ public class TrackedEntity
     @JsonProperty
     @Builder.Default
     private List<ProgramOwner> programOwners = new ArrayList<>();
-
-    @Override
-    public String getUid()
-    {
-        return this.trackedEntity;
-    }
-
-    @Override
-    public TrackerType getTrackerType()
-    {
-        return TrackerType.TRACKED_ENTITY;
-    }
 }

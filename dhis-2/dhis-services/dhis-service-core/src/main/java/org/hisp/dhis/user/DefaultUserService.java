@@ -62,6 +62,7 @@ import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -94,8 +95,6 @@ public class DefaultUserService
     implements UserService
 {
     private Pattern BCRYPT_PATTERN = Pattern.compile( "\\A\\$2(a|y|b)?\\$(\\d\\d)\\$[./0-9A-Za-z]{53}" );
-
-    private static final int EXPIRY_THRESHOLD = 14;
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -332,9 +331,22 @@ public class DefaultUserService
             params.setInactiveSince( cal.getTime() );
         }
 
-        if ( params.isUserOrgUnits() && params.hasUser() )
+        if ( params.hasUser() )
         {
-            params.setOrganisationUnits( params.getUser().getOrganisationUnits() );
+            UserOrgUnitType orgUnitBoundary = params.getOrgUnitBoundary();
+            if ( params.isUserOrgUnits() || orgUnitBoundary == UserOrgUnitType.DATA_CAPTURE )
+            {
+                params.setOrganisationUnits( params.getUser().getOrganisationUnits() );
+                params.setOrgUnitBoundary( UserOrgUnitType.DATA_CAPTURE );
+            }
+            else if ( orgUnitBoundary == UserOrgUnitType.DATA_OUTPUT )
+            {
+                params.setOrganisationUnits( params.getUser().getDataViewOrganisationUnits() );
+            }
+            else if ( orgUnitBoundary == UserOrgUnitType.TEI_SEARCH )
+            {
+                params.setOrganisationUnits( params.getUser().getTeiSearchOrganisationUnits() );
+            }
         }
     }
 

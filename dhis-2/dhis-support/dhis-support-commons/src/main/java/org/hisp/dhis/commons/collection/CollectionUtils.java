@@ -235,4 +235,22 @@ public class CollectionUtils
     {
         return collection == null || collection.isEmpty();
     }
+
+    /**
+     * Adds the given object to the given collection if the object is not null.
+     *
+     * @param <T>
+     * @param collection the collection.
+     * @param object the object to add.
+     * @return true if this collection changed as a result of the call.
+     */
+    public static <T> boolean addIfNotNull( Collection<T> collection, T object )
+    {
+        if ( object != null )
+        {
+            return collection.add( object );
+        }
+
+        return false;
+    }
 }
